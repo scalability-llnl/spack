@@ -31,6 +31,8 @@ class Externaltool(Package):
 
     version('1.0', '1234567890abcdef1234567890abcdef')
 
+    variant('v1', default=False, description='Test variant')
+
     depends_on('externalprereq')
 
     def install(self, spec, prefix):

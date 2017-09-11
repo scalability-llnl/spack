@@ -328,6 +328,16 @@ class TestConcretize(object):
         assert spec['externaltool'].compiler.satisfies('gcc')
         assert spec['stuff'].compiler.satisfies('gcc')
 
+    def test_external_with_unspecified_default_false_variant(self):
+        """This tests concretization under the following conditions:
+           A spec X->Y is chosen, enabling a variant on Y that is false by
+           default; Y is provided as an external but the variant is not
+           specified in packages.yaml.
+        """
+        spec = Spec('externaltest ^externaltool+v1')
+        spec.concretize()
+        assert 'externaltool~v1' not in spec
+
     def test_find_spec_parents(self):
         """Tests the spec finding logic used by concretization. """
         s = Spec.from_literal({
