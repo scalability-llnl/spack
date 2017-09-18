@@ -3524,6 +3524,12 @@ dependencies as well.  This is equivalent to
   commas.
 * ``all`` or ``alldeps`` for all types of dependencies.
 
+The ``--term`` option provides an alternative ``spack graph`` rendering and
+interactive search and highlight features. The ``--termprint`` option
+provides the same drawing to ``stdout`` (without interactivity):
+
+.. command-output:: spack graph --termprint mpileaks
+
 You can also use ``spack graph`` to generate graphs in the widely used
 `Dot <http://www.graphviz.org/doc/info/lang.html>`_ format.  For
 example:

@@ -33,6 +33,8 @@ So far:
 
     functools:   Used for implementation of total_ordering.
 
+    graphterm:   Used for interactive ASCII node-link diagrams.
+
     jsonschema:  An implementation of JSON Schema for Python.
 
     ordereddict: We include our own version to be Python 2.6 compatible.

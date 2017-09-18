@@ -67,10 +67,12 @@ from six import iteritems
 
 from llnl.util.lang import *
 from llnl.util.tty.color import *
+from graphterm import TermDAG
 
 from spack.spec import *
 
-__all__ = ['topological_sort', 'graph_ascii', 'AsciiGraph', 'graph_dot']
+__all__ = ['topological_sort', 'graph_ascii', 'AsciiGraph', 'graph_dot',
+           'graph_interactive']
 
 
 def topological_sort(spec, reverse=False, deptype=None):
@@ -587,3 +589,30 @@ def graph_dot(specs, deptype=None, static=False, out=None):
     for pair in deps:
         out.write('  "%s" -> "%s"\n' % pair)
     out.write('}\n')
+
+
+def graph_interactive(spec, interactive=True):
+    """Generate a graphterm ASCII graph of the given spec object.
+
+        Arguments:
+        spec -- spec to graph.  This only handles one spec at a time.
+
+        Optional arguments:
+
+        interactive -- True for interactive highlighting with curses
+                       False to print static graph to stdout.
+    """
+    myspec = spec.copy()
+    nodes = myspec.index()
+    tg = TermDAG()
+    for name, node in nodes.items():
+        tg.add_node(name)
+
+    for name, node in nodes.items():
+        for dep in node.dependencies():
+            tg.add_link(name, dep.name)
+
+    if interactive:
+        tg.interactive()
+    else:
+        tg.printonly()

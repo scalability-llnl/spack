@@ -48,6 +48,12 @@ def setup_parser(subparser):
     method.add_argument(
         '-d', '--dot', action='store_true',
         help="generate graph in dot format and print to stdout")
+    method.add_argument(
+        '-m', '--term', action='store_true',
+        help="draw interactive ascii graph in terminal with curses")
+    method.add_argument(
+        '-p', '--termprint', action='store_true',
+        help="draw interactive-style ascii graph to stdout")
 
     subparser.add_argument(
         '-n', '--normalize', action='store_true',
@@ -96,6 +102,12 @@ def graph(parser, args):
 
     if args.dot:  # Dot graph only if asked for.
         graph_dot(specs, static=args.static, deptype=deptype)
+
+    elif args.term:
+        graph_interactive(specs[0])
+
+    elif args.termprint:
+        graph_interactive(specs[0], False)
 
     elif specs:  # ascii is default: user doesn't need to provide it explicitly
         graph_ascii(specs[0], debug=spack.debug, deptype=deptype)
