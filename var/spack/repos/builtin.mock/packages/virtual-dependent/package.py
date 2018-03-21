@@ -1,12 +1,12 @@
 ##############################################################################
-# Copyright (c) 2013-2017, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2013-2016, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory.
 #
 # This file is part of Spack.
 # Created by Todd Gamblin, tgamblin@llnl.gov, All rights reserved.
 # LLNL-CODE-647188
 #
-# For details, see https://github.com/spack/spack
+# For details, see https://github.com/llnl/spack
 # Please also see the NOTICE and LICENSE files for our notice and the LGPL.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -25,16 +25,15 @@
 from spack import *
 
 
-class XcbProto(AutotoolsPackage):
-    """xcb-proto provides the XML-XCB protocol descriptions that libxcb uses to
-    generate the majority of its code and API."""
+class VirtualDependent(Package):
+    """Simple package that depends on a virtual package"""
 
-    homepage = "http://xcb.freedesktop.org/"
-    url      = "http://xcb.freedesktop.org/dist/xcb-proto-1.11.tar.gz"
+    homepage = "http://www.example.com"
+    url = "http://www.example.com/virtualdependent-1.0.tar.gz"
 
-    version('1.12', '5ee1ec124ea8d56bd9e83b8e9e0b84c4')
-    version('1.11', 'c8c6cb72c84f58270f4db1f39607f66a')
+    version('1.0', '0123456789abcdef0123456789abcdef')
 
-    extends('python')
+    depends_on('stuff')
 
-    patch('xcb-proto-1.12-schema-1.patch', when='@1.12')
+    def install(self, spec, prefix):
+        pass

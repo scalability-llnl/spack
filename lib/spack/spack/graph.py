@@ -69,7 +69,7 @@ from six import iteritems
 from llnl.util.tty.color import ColorStream
 
 from spack.spec import Spec
-from spack.dependency import all_deptypes, canonical_deptype
+from spack.dependency import canonical_deptype
 
 
 __all__ = ['topological_sort', 'graph_ascii', 'AsciiGraph', 'graph_dot']
@@ -84,20 +84,19 @@ def topological_sort(spec, reverse=False, deptype='all'):
     """
     deptype = canonical_deptype(deptype)
 
-    if not reverse:
-        parents = lambda s: s.dependents()
-        children = lambda s: s.dependencies()
-    else:
-        parents = lambda s: s.dependencies()
-        children = lambda s: s.dependents()
+    children = lambda s: s.dependencies(deptype=deptype)
 
     # Work on a copy so this is nondestructive.
     spec = spec.copy(deps=deptype)
     nodes = spec.index(deptype=deptype)
 
     topo_order = []
-    par = dict((name, parents(nodes[name])) for name in nodes.keys())
-    remaining = [name for name in nodes.keys() if not parents(nodes[name])]
+    par = dict((name, set()) for name in nodes.keys())
+    for node in spec.traverse(deptype=deptype):
+        for child in children(node):
+            par[child.name].add(node)
+
+    remaining = [name for name in nodes.keys() if not par[name]]
     heapify(remaining)
 
     while remaining:
@@ -110,10 +109,10 @@ def topological_sort(spec, reverse=False, deptype='all'):
             if not par[dep.name]:
                 heappush(remaining, dep.name)
 
-    if any(par.get(s.name, []) for s in spec.traverse()):
+    if any(par.get(s.name, []) for s in spec.traverse(deptype=deptype)):
         raise ValueError("Spec has cycles!")
     else:
-        return topo_order
+        return list(reversed(topo_order)) if reverse else topo_order
 
 
 def find(seq, predicate):
@@ -144,7 +143,7 @@ class AsciiGraph(object):
         self.node_character = 'o'
         self.debug = False
         self.indent = 0
-        self.deptype = all_deptypes
+        self.deptype = ('link', 'run')
 
         # These are colors in the order they'll be used for edges.
         # See llnl.util.tty.color for details on color characters.
@@ -394,7 +393,7 @@ class AsciiGraph(object):
 
         # Work on a copy to be nondestructive
         spec = spec.copy()
-        self._nodes = spec.index()
+        self._nodes = spec.index(deptype=self.deptype)
 
         # Colors associated with each node in the DAG.
         # Edges are colored by the node they point to.

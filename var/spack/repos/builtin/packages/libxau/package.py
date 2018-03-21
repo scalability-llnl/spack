@@ -35,6 +35,6 @@ class Libxau(AutotoolsPackage):
 
     version('1.0.8', 'a85cd601d82bc79c0daa280917572e20')
 
-    depends_on('xproto', type=('build', 'link'))
+    depends_on('xproto', type='include')
     depends_on('pkgconfig', type='build')
     depends_on('util-macros', type='build')

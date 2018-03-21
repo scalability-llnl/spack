@@ -36,7 +36,7 @@ class Libx11(AutotoolsPackage):
 
     depends_on('libxcb@1.1.92:')
 
-    depends_on('xproto@7.0.17:', type='build')
+    depends_on('xproto@7.0.17:', type='include')
     depends_on('xextproto', type=('build', 'link'))
     depends_on('xtrans', type='build')
     depends_on('kbproto', type=('build', 'link'))

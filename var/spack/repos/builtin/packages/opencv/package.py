@@ -77,7 +77,7 @@ class Opencv(CMakePackage):
     variant('zlib', default=False, description='Build zlib from source')
     variant('dnn', default=False, description='Build DNN support')
 
-    depends_on('eigen~mpfr', when='+eigen', type='build')
+    depends_on('eigen~mpfr', when='+eigen', type='include')
 
     depends_on('zlib', when='+zlib')
     depends_on('libpng', when='+png')

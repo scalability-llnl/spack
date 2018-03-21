@@ -514,3 +514,8 @@ def sys_type():
     """
     arch = Arch(platform(), 'default_os', 'default_target')
     return str(arch)
+
+
+@memoized
+def frontend_sys_type():
+    return str(Arch(platform(), 'frontend', 'frontend'))

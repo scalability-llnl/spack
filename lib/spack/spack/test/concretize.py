@@ -101,16 +101,6 @@ class TestConcretize(object):
     def test_concretize(self, spec):
         check_concretize(spec)
 
-    def test_concretize_mention_build_dep(self):
-        spec = check_concretize('cmake-client ^cmake@3.4.3')
-        # Check parent's perspective of child
-        dependency = spec.dependencies_dict()['cmake']
-        assert set(dependency.deptypes) == set(['build'])
-        # Check child's perspective of parent
-        cmake = spec['cmake']
-        dependent = cmake.dependents_dict()['cmake-client']
-        assert set(dependent.deptypes) == set(['build'])
-
     def test_concretize_preferred_version(self):
         spec = check_concretize('python')
         assert spec.versions == ver('2.7.11')
@@ -183,14 +173,14 @@ class TestConcretize(object):
         assert Spec('builtin.mock.multi-provider-mpi@1.8.8') in providers
 
     def test_different_compilers_get_different_flags(self):
-        client = Spec('cmake-client %gcc@4.7.2 platform=test os=fe target=fe' +
-                      ' ^cmake %clang@3.5 platform=test os=fe target=fe')
-        client.concretize()
-        cmake = client['cmake']
-        assert set(client.compiler_flags['cflags']) == set(['-O0'])
-        assert set(cmake.compiler_flags['cflags']) == set(['-O3'])
-        assert set(client.compiler_flags['fflags']) == set(['-O0'])
-        assert not set(cmake.compiler_flags['fflags'])
+        dttop = Spec('dttop %gcc@4.7.2 platform=test os=fe target=fe' +
+                     ' ^dtlink1 %clang@3.5 platform=test os=fe target=fe')
+        dttop.concretize()
+        dtlink1 = dttop['dtlink1']
+        assert set(dttop.compiler_flags['cflags']) == set(['-O0'])
+        assert set(dtlink1.compiler_flags['cflags']) == set(['-O3'])
+        assert set(dttop.compiler_flags['fflags']) == set(['-O0'])
+        assert not set(dtlink1.compiler_flags['fflags'])
 
     def test_compiler_flags_from_user_are_grouped(self):
         spec = Spec('a%gcc cflags="-O -foo-flag foo-val" platform=test')
@@ -233,6 +223,14 @@ class TestConcretize(object):
         s = Spec('hypre ^openblas-with-lapack ^netlib-lapack')
         with pytest.raises(spack.spec.MultipleProviderError):
             s.concretize()
+
+    def test_virtual_build(self):
+        s = Spec('virtual-build1')
+        s.concretize()
+
+    def test_virtual_build_indirect(self):
+        s = Spec('virtual-build2')
+        s.concretize()
 
     def test_no_matching_compiler_specs(self):
         s = Spec('a %gcc@0.0.0')

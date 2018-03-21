@@ -30,7 +30,7 @@ import llnl.util.tty as tty
 import spack
 import spack.cmd
 import spack.store
-from spack.dependency import all_deptypes, canonical_deptype
+from spack.dependency import canonical_deptype
 from spack.graph import graph_dot, graph_ascii
 
 description = "generate graphs of package dependency relationships"
@@ -64,7 +64,7 @@ def setup_parser(subparser):
     subparser.add_argument(
         '-t', '--deptype', action='store',
         help="comma-separated list of deptypes to traverse. default=%s"
-        % ','.join(all_deptypes))
+        % ','.join(('link', 'run')))
 
     subparser.add_argument(
         'specs', nargs=argparse.REMAINDER,
@@ -87,7 +87,7 @@ def graph(parser, args):
         setup_parser.parser.print_help()
         return 1
 
-    deptype = all_deptypes
+    deptype = ('link', 'run')
     if args.deptype:
         deptype = tuple(args.deptype.split(','))
         if deptype == ('all',):

@@ -128,11 +128,11 @@ def test_ascii_graph_mpileaks(builtin_mock):
 |\
 | o  callpath
 |/|
-o |  mpi
- /
-o  dyninst
-|\
-| o  libdwarf
-|/
-o  libelf
+| o  dyninst
+| |\
+| | o  libdwarf
+| |/
+| o  libelf
+|
+o  mpi
 '''

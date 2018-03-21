@@ -652,7 +652,11 @@ class MockPackage(object):
             if not conditions or dep.name not in conditions:
                 self.dependencies[dep.name] = {Spec(name): d}
             else:
-                self.dependencies[dep.name] = {Spec(conditions[dep.name]): d}
+                dep_conditions = conditions[dep.name]
+                dep_conditions = dict(
+                    (Spec(x), Dependency(self, Spec(y), type=dtype))
+                    for x, y in dep_conditions.items())
+                self.dependencies[dep.name] = dep_conditions
 
         if versions:
             self.versions = versions

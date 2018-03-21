@@ -113,6 +113,7 @@ from llnl.util.filesystem import find_headers, find_libraries, is_exe
 from llnl.util.lang import key_ordering, HashableMap, ObjectWrapper, dedupe
 from llnl.util.lang import check_kwargs
 from llnl.util.tty.color import cwrite, colorize, cescape, get_color_when
+import llnl.util.tty as tty
 
 import spack
 import spack.architecture
@@ -899,6 +900,82 @@ class SpecBuildInterface(ObjectWrapper):
         )
 
 
+class DependencyConstraints(object):
+    def __init__(self, shared_run=None, shared_link=None, shared_build=None):
+        self.run = shared_run or {}
+        self.link = shared_link or {}
+        self.build = shared_build or {}
+
+    def copy(self):
+        copy = DependencyConstraints()
+        copy.run = list(self.run)
+        copy.link = list(self.link)
+        copy.build = list(self.build)
+        return copy
+
+    def update(self, spec, deptypes):
+        type_to_context = {
+            ('run',): self.run,
+            ('link', 'include'): self.link,
+            ('build', 'test'): self.build,
+        }
+        for types, context in type_to_context.items():
+            if any(t in deptypes for t in types):
+                DependencyConstraints._update_context(spec, context)
+        #for context in (self.run, self.link, self.build):
+        #    if spec.name in context and not (spec is context[spec.name]):
+        #        import pdb; pdb.set_trace()
+
+    @staticmethod
+    def _update_context(spec, context):
+        try:
+            if spec.name in context:
+                assert(spec is context[spec.name])
+            if spec.name not in context:
+                context[spec.name] = spec
+        except:
+            import pdb; pdb.set_trace()
+            raise
+
+    @staticmethod
+    def _update_contexts(spec, contexts):
+        for context in contexts:
+            if spec.name in context:
+                assert(spec is context[spec.name])
+        for context in contexts:
+            if spec.name not in context:
+                context[spec.name] = spec
+
+    def update_transitive(self, spec):
+        for x in spec.traverse(deptype=('link', 'include')):
+            self.update(x, ('link',))
+        for x in spec.traverse(deptype='run'):
+            self.update(x, ('run',))
+        for x in spec.dependencies(deptype=('build', 'test')):
+            self.update(x, ('build',))
+
+    def get(self, name, deptypes):
+        type_to_context = {
+            ('run',): self.run,
+            ('link', 'include'): self.link,
+            ('build', 'test'): self.build,
+        }
+        for types, context in type_to_context.items():
+            if any(t in deptypes for t in types):
+                if name in context:
+                    return context[name]
+
+    def root_deps(self):
+        return list(itertools.chain(self.run.values(), self.link.values(),
+                                    self.build.values()))
+
+    def replace(self, spec_name, replacement):
+        for context in (self.run, self.link, self.build):
+            if spec_name in context:
+                context[replacement.name] = replacement
+                context[spec_name] = replacement
+
+
 @key_ordering
 class Spec(object):
 
@@ -1474,7 +1551,7 @@ class Spec(object):
 
         # TODO: restore build dependencies here once we have less picky
         # TODO: concretization.
-        deps = self.dependencies_dict(deptype=('link', 'run'))
+        deps = self.dependencies_dict(deptype=('link', 'run', 'include'))
         if deps:
             if hash_function is None:
                 hash_function = lambda s: s.dag_hash()
@@ -1490,7 +1567,8 @@ class Spec(object):
 
     def to_dict(self):
         node_list = []
-        for s in self.traverse(order='pre', deptype=('link', 'run')):
+        for s in self.traverse(
+                order='pre', deptype=('link', 'run', 'include')):
             node = s.to_node_dict()
             node[s.name]['hash'] = s.dag_hash()
             node_list.append(node)
@@ -1640,48 +1718,57 @@ class Spec(object):
         except Exception as e:
             raise sjson.SpackJSONError("error parsing JSON spec:", str(e))
 
-    def _concretize_helper(self, presets=None, visited=None):
+    def _concretize_helper(self, visited=None, skip_build_only=False,
+                           in_build=False):
         """Recursive helper function for concretize().
            This concretizes everything bottom-up.  As things are
            concretized, they're added to the presets, and ancestors
            will prefer the settings of their children.
         """
-        if presets is None:
-            presets = {}
         if visited is None:
             visited = set()
 
-        if self.name in visited:
+        if self in visited:
             return False
 
-        if self.concrete:
-            visited.add(self.name)
+        visited.add(self)
+
+        if self.concrete or self.virtual:
             return False
 
         changed = False
 
-        # Concretize deps first -- this is a bottom-up process.
-        for name in sorted(self._dependencies.keys()):
-            changed |= self._dependencies[
-                name].spec._concretize_helper(presets, visited)
+        if in_build:
+            has_arch = list(x for x in self.traverse() if x.architecture)
+            if not has_arch:
+                frontend_arch = ArchSpec(
+                    spack.architecture.frontend_sys_type())
+                for dep in self.traverse():
+                    dep.architecture = frontend_arch
+        # Concretize arch in a top-down manner
+        spack.concretizer.concretize_architecture(self)
 
-        if self.name in presets:
-            changed |= self.constrain(presets[self.name])
+        # Concretize other properties bottom-up
+        deps = set(self.dependencies(deptype=('link', 'run', 'include')))
+        all_deps = set(self.dependencies())
+        build_only_deps = all_deps - deps
+        if skip_build_only:
+            to_visit = deps
         else:
-            # Concretize virtual dependencies last.  Because they're added
-            # to presets below, their constraints will all be merged, but we'll
-            # still need to select a concrete package later.
-            if not self.virtual:
-                changed |= any(
-                    (spack.concretizer.concretize_architecture(self),
-                     spack.concretizer.concretize_compiler(self),
-                     spack.concretizer.concretize_compiler_flags(
-                         self),  # has to be concretized after compiler
-                     spack.concretizer.concretize_version(self),
-                     spack.concretizer.concretize_variants(self)))
-            presets[self.name] = self
+            to_visit = all_deps
+        to_visit = sorted(to_visit, key=lambda spec: spec.name)
+        for dep in to_visit:
+            dep._concretize_helper(visited, skip_build_only=skip_build_only,
+                                   in_build=dep in build_only_deps)
 
-        visited.add(self.name)
+        updated = (
+            spack.concretizer.concretize_compiler(self),
+            spack.concretizer.concretize_compiler_flags(
+                self),  # has to be concretized after compiler
+            spack.concretizer.concretize_version(self),
+            spack.concretizer.concretize_variants(self))
+        changed |= any(updated)
+
         return changed
 
     def _replace_with(self, concrete):
@@ -1699,7 +1786,7 @@ class Spec(object):
             if concrete.name not in dependent._dependencies:
                 dependent._add_dependency(concrete, deptypes)
 
-    def _expand_virtual_packages(self):
+    def _expand_virtual_packages(self, dep_constraints, test_candidates=True):
         """Find virtual packages in this spec, replace them with providers,
            and normalize again to include the provider's (potentially virtual)
            dependencies.  Repeat until there are no virtual deps.
@@ -1747,16 +1834,21 @@ class Spec(object):
                     for replacement in candidates:
                         if replacement is spec:
                             break
+                        elif not test_candidates:
+                            break
 
                         # Replace spec with the candidate and normalize
                         copy = self.copy()
                         copy[spec.name]._dup(replacement, deps=False)
 
+                        dep_constraints_copy = DependencyConstraints()
+                        dep_constraints_copy.update_transitive(copy)
+
                         try:
                             # If there are duplicate providers or duplicate
                             # provider deps, consolidate them and merge
                             # constraints.
-                            copy.normalize(force=True)
+                            copy._normalize(dep_constraints_copy, force=True)
                             break
                         except SpecError:
                             # On error, we'll try the next replacement.
@@ -1791,12 +1883,18 @@ class Spec(object):
                 # place. TODO: make this more efficient.
                 if spec.virtual:
                     spec._replace_with(replacement)
-                    changed = True
-                if spec._dup(replacement, deps=False, cleardeps=False):
+                    dep_constraints.replace(spec.name, replacement)
                     changed = True
 
-                spec._dependencies.owner = spec
-                self_index.update(spec)
+                if (spec == self) or (not spec.virtual):
+                    changed |= spec._dup(
+                        replacement, deps=False, cleardeps=False)
+                    self_index.update(spec)
+                    spec._dependencies.owner = spec
+                else:
+                    self_index.update(replacement)
+                    replacement._dependencies.owner = replacement
+
                 done = False
                 break
 
@@ -1823,12 +1921,35 @@ class Spec(object):
         changed = True
         force = False
 
+        dep_constraints = DependencyConstraints()
+        dep_constraints.update_transitive(self)
+        user_specified_deps = set(
+            x.copy(deps=False) for x in self.traverse(root=False))
+        self._dependencies.clear()
         while changed:
-            changes = (self.normalize(force),
-                       self._expand_virtual_packages(),
-                       self._concretize_helper())
+            changes = (self._normalize(dep_constraints, force),
+                       self._expand_virtual_packages(dep_constraints),
+                       self._concretize_helper(skip_build_only=True))
             changed = any(changes)
             force = True
+
+        remaining_user_specified = unsatisfied(user_specified_deps, self)
+
+        changed = True
+        while changed:
+            changes = (
+                self._normalize(
+                    dep_constraints, force, all_deps=True,
+                    user_build_constraints=remaining_user_specified),
+                # In this second concretization loop, virtuals/externals will
+                # only be resolved for build-only dependencies (or their
+                # children). These are not necessarily uniquely accessible by
+                # name or even by hash, so testing concretization on a
+                # duplicate is not possible.
+                self._expand_virtual_packages(
+                    dep_constraints, test_candidates=False),
+                self._concretize_helper())
+            changed = any(changes)
 
         for s in self.traverse():
             # After concretizing, assign namespaces to anything left.
@@ -1897,6 +2018,8 @@ class Spec(object):
         # Mark everything in the spec as concrete, as well.
         self._mark_concrete()
 
+        assert_user_deps_are_satisfied(user_specified_deps, self)
+
         # Now that the spec is concrete we should check if
         # there are declared conflicts
         matches = []
@@ -1928,45 +2051,6 @@ class Spec(object):
         clone = self.copy(caches=False)
         clone.concretize()
         return clone
-
-    def flat_dependencies(self, **kwargs):
-        """Return a DependencyMap containing all of this spec's
-           dependencies with their constraints merged.
-
-           If copy is True, returns merged copies of its dependencies
-           without modifying the spec it's called on.
-
-           If copy is False, clears this spec's dependencies and
-           returns them.
-        """
-        copy = kwargs.get('copy', True)
-
-        flat_deps = {}
-        try:
-            deptree = self.traverse(root=False)
-            for spec in deptree:
-
-                if spec.name not in flat_deps:
-                    if copy:
-                        spec = spec.copy(deps=False)
-                    flat_deps[spec.name] = spec
-                else:
-                    flat_deps[spec.name].constrain(spec)
-
-            if not copy:
-                for spec in flat_deps.values():
-                    spec._dependencies.clear()
-                    spec._dependents.clear()
-                self._dependencies.clear()
-
-            return flat_deps
-
-        except UnsatisfiableSpecError as e:
-            # Here, the DAG contains two instances of the same package
-            # with inconsistent constraints.  Users cannot produce
-            # inconsistent specs like this on the command line: the
-            # parser doesn't allow it. Spack must be broken!
-            raise InconsistentSpecError("Invalid Spec DAG: %s" % e.message)
 
     def index(self, deptype='all'):
         """Return DependencyMap that points to all the dependencies in this
@@ -2043,8 +2127,9 @@ class Spec(object):
             elif required:
                 raise UnsatisfiableProviderSpecError(required[0], vdep)
 
-    def _merge_dependency(
-            self, dependency, visited, spec_deps, provider_index):
+    def _merge_dependency(self, dependency, dep_constraints, visited,
+                          provider_index, all_deps, in_build,
+                          user_build_constraints):
         """Merge dependency information from a Package into this Spec.
 
         Args:
@@ -2082,45 +2167,34 @@ class Spec(object):
         # If it's a virtual dependency, try to find an existing
         # provider in the spec, and merge that.
         if dep.virtual:
-            visited.add(dep.name)
+            if in_build and not all_deps:
+                return False
             provider = self._find_provider(dep, provider_index)
             if provider:
                 dep = provider
         else:
-            index = ProviderIndex([dep], restrict=True)
-            items = list(spec_deps.items())
-            for name, vspec in items:
-                if not vspec.virtual:
-                    continue
-
-                if index.providers_for(vspec):
-                    vspec._replace_with(dep)
-                    del spec_deps[vspec.name]
-                    changed = True
-                else:
-                    required = index.providers_for(vspec.name)
-                    if required:
-                        raise UnsatisfiableProviderSpecError(required[0], dep)
             provider_index.update(dep)
+
+        #tty.debug("merging: " + dep.name)
+        #if dep.name == 'pkgconfig':
+        #    import pdb; pdb.set_trace()
+
+        pre_existing = dep_constraints.get(dep.name, dependency.type)
 
         # If the spec isn't already in the set of dependencies, add it.
         # Note: dep is always owned by this method. If it's from the
         # caller, it's a copy from _evaluate_dependency_conditions. If it
         # comes from a vdep, it's a defensive copy from _find_provider.
-        if dep.name not in spec_deps:
-            if self.concrete:
-                return False
-
-            spec_deps[dep.name] = dep
-            changed = True
-        else:
+        if pre_existing:
             # merge package/vdep information into spec
             try:
-                changed |= spec_deps[dep.name].constrain(dep)
+                changed |= pre_existing.constrain(dep)
+                dep_constraints.update(pre_existing, dependency.type)
+                resolved = pre_existing
             except UnsatisfiableSpecError as e:
                 fmt = 'An unsatisfiable {0}'.format(e.constraint_type)
                 fmt += ' constraint has been detected for spec:'
-                fmt += '\n\n{0}\n\n'.format(spec_deps[dep.name].tree(indent=4))
+                fmt += '\n\n{0}\n\n'.format(pre_existing.tree(indent=4))
                 fmt += 'while trying to concretize the partial spec:'
                 fmt += '\n\n{0}\n\n'.format(self.tree(indent=4))
                 fmt += '{0} requires {1} {2} {3}, but spec asked for {4}'
@@ -2133,21 +2207,39 @@ class Spec(object):
                     e.provided)
 
                 raise
+        else:
+            if self.concrete:
+                return False
+            dep_constraints.update(dep, dependency.type)
+            resolved = dep
+            tty.debug('not pre-existing: ' + dep.name)
+            changed = True
 
         # Add merged spec to my deps and recurse
-        spec_dependency = spec_deps[dep.name]
-        if dep.name not in self._dependencies:
-            self._add_dependency(spec_dependency, dependency.type)
+        if resolved.name not in self._dependencies:
+            self._add_dependency(resolved, dependency.type)
+        elif self._dependencies[resolved.name].spec != resolved:
+            child = self._dependencies[resolved.name].spec
+            import pdb; pdb.set_trace()
+            err_msg = ("{0} has {1} as a dependency but dep constraints"
+                       " contain a reference to a different {2}")
+            err_msg = err_msg.format(
+                self.name, child.format(), resolved.format())
+            raise ValueError(err_msg)
 
-        changed |= spec_dependency._normalize_helper(
-            visited, spec_deps, provider_index)
+        changed |= resolved._normalize_helper(
+            dep_constraints, visited, provider_index, all_deps, in_build,
+            user_build_constraints)
         return changed
 
-    def _normalize_helper(self, visited, spec_deps, provider_index):
+    def _normalize_helper(self, dep_constraints, visited, provider_index,
+                          all_deps, in_build=False,
+                          user_build_constraints=None):
         """Recursive helper function for _normalize."""
-        if self.name in visited:
+        if self in visited:
+            #dep_constraints.update_transitive(self)
             return False
-        visited.add(self.name)
+        visited.add(self)
 
         # if we descend into a virtual spec, there's nothing more
         # to normalize.  Concretize will finish resolving it later.
@@ -2155,25 +2247,91 @@ class Spec(object):
             return False
 
         # Combine constraints from package deps with constraints from
-        # the spec, until nothing changes.
+        # the spec
         any_change = False
         changed = True
+        shared_run = {}
+        shared_link = {}
+        shared_build = {}
+        shared_run.update((x.name, x) for x in
+                          self.traverse(deptype='run', root=False))
+        for dep in shared_run.values():
+            # If self wasnt a run dependency of parent, the shared run deps
+            # were re-initialized to {}
+            dep_constraints.update(dep, ('run',))
+        shared_link.update((x.name, x) for x in
+                           self.traverse(
+                               deptype=('link', 'include'), root=False))
+        for dep in shared_link.values():
+            dep_constraints.update(dep, ('link',))
+        shared_build.update((x.name, x) for x in
+                            self.dependencies(deptype=('build', 'test')))
 
+        dep_to_constraints = {}
         while changed:
             changed = False
             for dep_name in self.package_class.dependencies:
-                # Do we depend on dep_name?  If so pkg_dep is not None.
-                dep = self._evaluate_dependency_conditions(dep_name)
-                # If dep is a needed dependency, merge it.
-                if dep and (spack.package_testing.check(self.name) or
-                            set(dep.type) - set(['test'])):
-                    changed |= self._merge_dependency(
-                        dep, visited, spec_deps, provider_index)
+                dependency = self._evaluate_dependency_conditions(dep_name)
+
+                if not dependency:
+                    continue
+                elif not (spack.package_testing.check(self.name) or
+                          set(dependency.type) - set(['test'])):
+                    continue
+
+                deptypes = dependency.type
+                if dep_name in dep_to_constraints:
+                    child_constraints = dep_to_constraints[dep_name]
+                else:
+                    if 'run' in deptypes:
+                        run_group = dep_constraints.run
+                    elif 'build' in deptypes or 'test' in deptypes:
+                        run_group = shared_run
+                    else:
+                        run_group = None
+
+                    if 'link' in deptypes or 'include' in deptypes:
+                        link_group = dep_constraints.link
+                    else:
+                        link_group = None
+
+                    child_constraints = DependencyConstraints(
+                        shared_run=run_group,
+                        shared_link=link_group,
+                        shared_build=shared_build
+                    )
+                    dep_to_constraints[dep_name] = child_constraints
+
+                build_only = set(deptypes) <= set(['build', 'test'])
+                child_build = in_build or build_only
+
+                if dependency and (all_deps or not build_only):
+                    if user_build_constraints and build_only:
+                        for constraint_spec in user_build_constraints:
+                            if constraint_spec.name == dependency.name:
+                                dependency.constrain(constraint_spec)
+
+                    local_changed = self._merge_dependency(
+                        dependency, child_constraints, visited,
+                        provider_index, all_deps, child_build,
+                        user_build_constraints)
+                    if local_changed:
+                        tty.debug('changed: ' + dependency.name)
+                    changed |= local_changed
             any_change |= changed
 
         return any_change
 
-    def normalize(self, force=False):
+    def normalize(self):
+        dep_constraints = DependencyConstraints()
+        dep_constraints.update_transitive(self)
+        self._dependencies.clear()
+        self._normalize(dep_constraints, force=True)
+        # Don't check if all user-specified deps are satisfied here because
+        # normalization doesn't always determine all transitive dependencies.
+
+    def _normalize(self, dep_constraints, force=False, all_deps=False,
+                   user_build_constraints=None):
         """When specs are parsed, any dependencies specified are hanging off
            the root, and ONLY the ones that were explicitly provided are there.
            Normalization turns a partial flat spec into a DAG, where:
@@ -2202,26 +2360,19 @@ class Spec(object):
 
         # Ensure first that all packages & compilers in the DAG exist.
         self.validate_or_raise()
-        # Get all the dependencies into one DependencyMap
-        spec_deps = self.flat_dependencies(copy=False)
 
         # Initialize index of virtual dependency providers if
         # concretize didn't pass us one already
         provider_index = ProviderIndex(
-            [s for s in spec_deps.values()], restrict=True)
+            list(self.traverse()), restrict=True)
+
+        visited = set()
 
         # traverse the package DAG and fill out dependencies according
         # to package files & their 'when' specs
-        visited = set()
-
-        any_change = self._normalize_helper(visited, spec_deps, provider_index)
-
-        # If there are deps specified but not visited, they're not
-        # actually deps of this package.  Raise an error.
-        extra = set(spec_deps.keys()).difference(visited)
-        if extra:
-            raise InvalidDependencyError(
-                self.name + " does not depend on " + comma_or(extra))
+        any_change = self._normalize_helper(
+            dep_constraints, visited, provider_index, all_deps,
+            user_build_constraints=user_build_constraints)
 
         # Mark the spec as normal once done.
         self._normal = True
@@ -2379,9 +2530,9 @@ class Spec(object):
     def common_dependencies(self, other):
         """Return names of dependencies that self an other have in common."""
         common = set(
-            s.name for s in self.traverse(root=False))
+            s.name for s in self.visible_dependencies())
         common.intersection_update(
-            s.name for s in other.traverse(root=False))
+            s.name for s in other.visible_dependencies())
         return common
 
     def constrained(self, other, deps=True):
@@ -2392,9 +2543,9 @@ class Spec(object):
 
     def dep_difference(self, other):
         """Returns dependencies in self that are not in other."""
-        mine = set(s.name for s in self.traverse(root=False))
+        mine = set(s.name for s in self.visible_dependencies())
         mine.difference_update(
-            s.name for s in other.traverse(root=False))
+            s.name for s in other.visible_dependencies())
         return mine
 
     def _autospec(self, spec_like):
@@ -2517,8 +2668,8 @@ class Spec(object):
             if not self._dependencies:
                 return False
 
-            selfdeps = self.traverse(root=False)
-            otherdeps = other.traverse(root=False)
+            selfdeps = self.visible_dependencies()
+            otherdeps = other.visible_dependencies()
             if not all(any(d.satisfies(dep) for d in selfdeps)
                        for dep in otherdeps):
                 return False
@@ -2682,22 +2833,21 @@ class Spec(object):
         return changed
 
     def _dup_deps(self, other, deptypes, caches):
-        new_specs = {self.name: self}
-        for dspec in other.traverse_edges(cover='edges',
-                                          root=False):
+        new_specs = {id(other): self}
+        for dspec in other.traverse_edges(cover='edges', root=False):
             if (dspec.deptypes and
                 not any(d in deptypes for d in dspec.deptypes)):
                 continue
 
-            if dspec.parent.name not in new_specs:
-                new_specs[dspec.parent.name] = dspec.parent.copy(
+            if id(dspec.parent) not in new_specs:
+                new_specs[id(dspec.parent)] = dspec.parent.copy(
                     deps=False, caches=caches)
-            if dspec.spec.name not in new_specs:
-                new_specs[dspec.spec.name] = dspec.spec.copy(
+            if id(dspec.spec) not in new_specs:
+                new_specs[id(dspec.spec)] = dspec.spec.copy(
                     deps=False, caches=caches)
 
-            new_specs[dspec.parent.name]._add_dependency(
-                new_specs[dspec.spec.name], dspec.deptypes)
+            new_specs[id(dspec.parent)]._add_dependency(
+                new_specs[id(dspec.spec)], dspec.deptypes)
 
     def copy(self, deps=True, **kwargs):
         """Make a copy of this spec.
@@ -2759,14 +2909,18 @@ class Spec(object):
             csv = query_parameters.pop().strip()
             query_parameters = re.split(r'\s*,\s*', csv)
 
+        value = None
+        iterated = list()
+        search_deps = itertools.chain([self], self.visible_dependencies())
+        for x in search_deps:
+            if x.name == name:
+                value = x
+                break
+            iterated.append(x)
         try:
-            value = next(
-                itertools.chain(
-                    # Regular specs
-                    (x for x in self.traverse() if x.name == name),
-                    (x for x in self.traverse()
-                     if (not x.virtual) and x.package.provides(name))
-                )
+            value = value or next(
+                x for x in iterated if
+                (not x.virtual) and x.package.provides(name)
             )
         except StopIteration:
             raise KeyError("No spec with name %s in %s" % (name, self))
@@ -2776,12 +2930,33 @@ class Spec(object):
 
         return value
 
+    def visible_dependencies(self):
+        """This collects all transitive link/run/include dependencies and all
+           link/run/include dependencies of direct build dependencies. In other
+           words, this excludes indirect build dependencies (and all
+           dependencies of those packages).
+        """
+        visited = set()
+        for dep in self.traverse(
+                root=False, deptype=('link', 'run', 'include')):
+            visited.add(dep)
+            yield dep
+        build_only = (set(self.dependencies()) -
+                      set(self.dependencies(
+                          deptype=('link', 'run', 'include'))))
+        visible_build_deps = itertools.chain.from_iterable(
+            x.traverse(deptype=('link', 'run', 'include')) for x in build_only)
+        for dep in visible_build_deps:
+            if dep not in visited:
+                visited.add(dep)
+                yield dep
+
     def __contains__(self, spec):
         """True if this spec satisfies the provided spec, or if any dependency
            does.  If the spec has no name, then we parse this one first.
         """
         spec = self._autospec(spec)
-        for s in self.traverse():
+        for s in itertools.chain([self], self.visible_dependencies()):
             if s.satisfies(spec, strict=True):
                 return True
 
@@ -2789,7 +2964,7 @@ class Spec(object):
 
     def sorted_deps(self):
         """Return a list of all dependencies sorted by name."""
-        deps = self.flat_dependencies()
+        deps = dict((x.name, x) for x in self.visible_dependencies())
         return tuple(deps[name] for name in sorted(deps))
 
     def _eq_dag(self, other, vs, vo, deptypes):
@@ -3193,6 +3368,22 @@ class Spec(object):
         return str(self)
 
 
+def assert_user_deps_are_satisfied(user_specified_deps, root):
+    remaining = unsatisfied(user_specified_deps, root)
+    if remaining:
+        err_msg = "The following explicit dependencies are not satisfied:"
+        err_msg += "\n\t" + "\n\t".join(x.format() for x in remaining)
+        raise InvalidDependencyError(err_msg)
+
+
+def unsatisfied(specs, root):
+    remaining = set(specs)
+    for dep in root.traverse():
+        satisfied = set(spec for spec in specs if dep.satisfies(spec))
+        remaining.difference_update(satisfied)
+    return remaining
+
+
 class LazySpecCache(collections.defaultdict):
     """Cache for Specs that uses a spec_like as key, and computes lazily
     the corresponding value ``Spec(spec_like``.
@@ -3589,6 +3780,10 @@ class SpecParseError(SpecError):
 
 class DuplicateDependencyError(SpecError):
     """Raised when the same dependency occurs in a spec twice."""
+
+
+class VirtualBuildDependencyError(SpecError):
+    """Raised when a build dependency is virtual or depends on a virtual"""
 
 
 class DuplicateCompilerSpecError(SpecError):

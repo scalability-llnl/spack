@@ -23,6 +23,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ##############################################################################
 import spack.architecture
+import itertools
 import pytest
 
 from spack.spec import Spec, UnsatisfiableSpecError
@@ -459,7 +460,7 @@ class TestSpecSematics(object):
         spec = Spec('dttop')
         spec.concretize()
         copy = spec.copy()
-        for s in spec.traverse():
+        for s in itertools.chain([spec], spec.visible_dependencies()):
             assert s.satisfies(copy[s.name])
             assert copy[s.name].satisfies(s)
 

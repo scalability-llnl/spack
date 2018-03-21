@@ -34,6 +34,8 @@ from spack.spec import Spec
 from spack.dependency import all_deptypes, Dependency, canonical_deptype
 from spack.test.conftest import MockPackage, MockPackageMultiRepo
 
+from spack.test.concretize_preferences import concretize_scope  # NOQA: ignore=F401
+
 
 def check_links(spec_to_check):
     for spec in spec_to_check.traverse():
@@ -70,6 +72,174 @@ def set_dependency(saved_deps):
         dependency = Dependency(pkg, spec, type=deptypes)
         pkg.dependencies[spec.name] = {cond: dependency}
     return _mock
+
+
+@pytest.mark.usefixtures('config')
+def test_sync_build_and_link_deps():
+    """Test that all instances of v are constrained to be the same for the
+following spec DAG::
+
+        w
+       /|
+      y x
+     /  |\
+    v   p q
+        |  \
+        v   v
+
+All deptypes are (link, build) except for x dependency on p, which is
+build-only. Note that the y->v and p->v dependencies could use different
+instances of v if it were not for the q->v dependency.
+
+"""
+    saved_repo = spack.repo
+
+    default = ('build', 'link')
+
+    v = MockPackage('v', [], [])
+    # Adding a condition for q on v ensures that q's instance of v is not
+    # created during the first pass of the concretization algorithm
+    q_conditions = {v.name: {'q@2:': v.name}}
+    q = MockPackage('q', [v], [default], q_conditions)
+    p = MockPackage('p', [v], [default])
+    x = MockPackage('x', [p, q], [('build',), default])
+    y = MockPackage('y', [v], [default])
+    w = MockPackage('w', [y, x], [default, default])
+
+    mock_repo = MockPackageMultiRepo([v, q, p, x, y, w])
+    try:
+        spack.repo = mock_repo
+        spec = Spec('w')
+        spec.concretize()
+
+        v_instances = [spec['y'].get_dependency('v').spec,
+                       spec['x']['p'].get_dependency('v').spec,
+                       spec['q'].get_dependency('v').spec]
+        assert all(v_instances[0] is s for s in v_instances)
+    finally:
+        spack.repo = saved_repo
+
+
+@pytest.mark.usefixtures('config')
+def test_separate_build_deps():
+    """Test that each instance of v is concretized separately in the
+following spec DAG::
+
+        w
+       / \
+      x   y
+     / \   \
+    v1  \   v3
+         z
+         |
+         v2
+
+All deptypes are (link, build) except for those on v.
+
+"""
+    saved_repo = spack.repo
+
+    default = ('build', 'link')
+    build_only = ('build',)
+
+    v = MockPackage('v', [], [])
+
+    z = MockPackage('z', [v], [build_only],
+                    {v.name: {'z': 'v@2'}})
+    x = MockPackage('x', [v, z], [build_only, default],
+                    {v.name: {'x': 'v@1'}})
+
+    y = MockPackage('y', [v], [build_only],
+                    {v.name: {'y': 'v@3'}})
+
+    w = MockPackage('w', [y, x], [default, default])
+
+    mock_repo = MockPackageMultiRepo([v, w, x, y, z])
+    try:
+        spack.repo = mock_repo
+        spec = Spec('w')
+        spec.concretize()
+
+        assert 'v@1' in spec['x']
+        assert 'v@2' in spec['z']
+        assert 'v@3' in spec['y']
+    finally:
+        spack.repo = saved_repo
+
+
+@pytest.mark.usefixtures('config')
+def test_user_mentioned_deptypes_are_preserved():
+    """Test that when a user explicitly mentions a dependency as part of a
+spec, that the deptypes are preserved for it. Given the following DAG::
+
+      w
+     /|
+    z x
+      |
+      y
+
+"""
+    xy_deptypes = ('build',)
+    wz_deptypes = ('build', 'link')
+    wx_deptypes = ('link', 'run')
+
+    y = MockPackage('y', [], [])
+    z = MockPackage('z', [], [])
+    x = MockPackage('x', [y], [xy_deptypes])
+    w = MockPackage('w', [z, x], [wz_deptypes, wx_deptypes])
+
+    mock_repo = MockPackageMultiRepo([w, x, y, z])
+    saved_repo = spack.repo
+    try:
+        spack.repo = mock_repo
+        spec = Spec('w ^x@2')
+        spec.concretize()
+
+        assert spec._dependencies['z'].deptypes == wz_deptypes
+        assert spec._dependencies['x'].deptypes == wx_deptypes
+        assert spec['x']._dependencies['y'].deptypes == xy_deptypes
+    finally:
+        spack.repo = saved_repo
+
+
+@pytest.mark.usefixtures('config', 'concretize_scope')
+def test_non_buildable_build_dep_is_external():
+    """Test that x is concretized as an external when it is marked as
+not-buildable in the following DAG::
+
+    w
+    |
+    x
+    |
+    y
+
+"""
+    xy_deptypes = ('build', 'link')
+    wx_deptypes = ('build',)
+
+    y = MockPackage('y', [], [])
+    x = MockPackage('x', [y], [xy_deptypes])
+    w = MockPackage('w', [x], [wx_deptypes])
+
+    mock_repo = MockPackageMultiRepo([w, x, y])
+    saved_repo = spack.repo
+    try:
+        spack.repo = mock_repo
+
+        conf = spack.util.spack_yaml.load("""\
+x:
+    buildable: false
+    paths:
+        x@2: /dummy/path
+""")
+        spack.config.update_config('packages', conf, 'concretize')
+
+        spec = Spec('w')
+        spec.concretize()
+
+        assert spec['x'].external
+    finally:
+        spack.repo = saved_repo
 
 
 @pytest.mark.usefixtures('config')
@@ -208,19 +378,6 @@ class TestSpecDag(object):
         traversal = dag.traverse(cover='paths', depth=True, order='post')
         assert [(x, y.name) for x, y in traversal] == pairs
 
-    def test_conflicting_spec_constraints(self):
-        mpileaks = Spec('mpileaks ^mpich ^callpath ^dyninst ^libelf ^libdwarf')
-
-        # Normalize then add conflicting constraints to the DAG (this is an
-        # extremely unlikely scenario, but we test for it anyway)
-        mpileaks.normalize()
-        mpileaks._dependencies['mpich'].spec = Spec('mpich@1.0')
-        mpileaks._dependencies['callpath']. \
-            spec._dependencies['mpich'].spec = Spec('mpich@2.0')
-
-        with pytest.raises(spack.spec.InconsistentSpecError):
-            mpileaks.flat_dependencies(copy=False)
-
     def test_normalize_twice(self):
         """Make sure normalize can be run twice on the same spec,
            and that it is idempotent."""
@@ -311,15 +468,15 @@ class TestSpecDag(object):
     def test_invalid_dep(self):
         spec = Spec('libelf ^mpich')
         with pytest.raises(spack.spec.InvalidDependencyError):
-            spec.normalize()
+            spec.concretize()
 
         spec = Spec('libelf ^libdwarf')
         with pytest.raises(spack.spec.InvalidDependencyError):
-            spec.normalize()
+            spec.concretize()
 
         spec = Spec('mpich ^dyninst ^libelf')
         with pytest.raises(spack.spec.InvalidDependencyError):
-            spec.normalize()
+            spec.concretize()
 
     def test_equal(self):
         # Different spec structures to test for equality
@@ -565,34 +722,34 @@ class TestSpecDag(object):
 
         run3 -b-> build3
     """
-
+    @pytest.mark.usefixtures('config')
     def test_deptype_traversal(self):
         dag = Spec('dtuse')
-        dag.normalize()
+        dag.concretize()
 
         names = ['dtuse', 'dttop', 'dtbuild1', 'dtbuild2', 'dtlink2',
-                 'dtlink1', 'dtlink3', 'dtlink4']
+                 'dtlink1', 'dtlink3', 'dtbuild2', 'dtlink4']
 
         traversal = dag.traverse(deptype=('build', 'link'))
         assert [x.name for x in traversal] == names
 
     def test_deptype_traversal_with_builddeps(self):
         dag = Spec('dttop')
-        dag.normalize()
+        dag.concretize()
 
         names = ['dttop', 'dtbuild1', 'dtbuild2', 'dtlink2',
-                 'dtlink1', 'dtlink3', 'dtlink4']
+                 'dtlink1', 'dtlink3', 'dtbuild2', 'dtlink4']
 
         traversal = dag.traverse(deptype=('build', 'link'))
         assert [x.name for x in traversal] == names
 
     def test_deptype_traversal_full(self):
         dag = Spec('dttop')
-        dag.normalize()
+        dag.concretize()
 
         names = ['dttop', 'dtbuild1', 'dtbuild2', 'dtlink2', 'dtrun2',
-                 'dtlink1', 'dtlink3', 'dtlink4', 'dtrun1', 'dtlink5',
-                 'dtrun3', 'dtbuild3']
+                 'dtlink1', 'dtlink3', 'dtbuild2', 'dtlink4', 'dtrun1',
+                 'dtlink5', 'dtrun3', 'dtbuild3']
 
         traversal = dag.traverse(deptype=all)
         assert [x.name for x in traversal] == names
@@ -717,15 +874,8 @@ class TestSpecDag(object):
         assert s['d']._dependencies['e'].deptypes == ('build', 'link')
         assert s['e']._dependencies['f'].deptypes == ('run',)
 
-        assert s['b']._dependencies['c'].deptypes == ('build',)
-        assert s['d']._dependencies['e'].deptypes == ('build', 'link')
-        assert s['e']._dependencies['f'].deptypes == ('run',)
-
-        assert s['c']._dependents['b'].deptypes == ('build',)
-        assert s['e']._dependents['d'].deptypes == ('build', 'link')
-        assert s['f']._dependents['e'].deptypes == ('run',)
-
-        assert s['c']._dependents['b'].deptypes == ('build',)
+        c_spec = s['b']._dependencies['c'].spec
+        assert c_spec._dependents['b'].deptypes == ('build',)
         assert s['e']._dependents['d'].deptypes == ('build', 'link')
         assert s['f']._dependents['e'].deptypes == ('run',)
 
@@ -743,17 +893,16 @@ class TestSpecDag(object):
             'dt-diamond-right'].deptypes == ('build', 'link')
 
         assert spec['dt-diamond-left']._dependencies[
-            'dt-diamond-bottom'].deptypes == ('build',)
+            'dt-diamond-bottom'].deptypes == ('build', 'link')
 
         assert spec['dt-diamond-right'] ._dependencies[
             'dt-diamond-bottom'].deptypes == ('build', 'link', 'run')
 
     def check_diamond_normalized_dag(self, spec):
-
         dag = Spec.from_literal({
             'dt-diamond': {
                 'dt-diamond-left:build,link': {
-                    'dt-diamond-bottom:build': None
+                    'dt-diamond-bottom:build,link': None
                 },
                 'dt-diamond-right:build,link': {
                     'dt-diamond-bottom:build,link,run': None

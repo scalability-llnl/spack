@@ -43,8 +43,7 @@ class Libxcb(AutotoolsPackage):
     depends_on('libxdmcp')
 
     depends_on('xcb-proto', type='build')
-    # TODO: uncomment once build deps can be resolved separately
-    # depends_on('python@2:2.8', type='build')
+    depends_on('python@2:2.8', type='build')
     depends_on('pkgconfig', type='build')
     depends_on('util-macros', type='build')
 

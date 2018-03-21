@@ -219,7 +219,7 @@ class DefaultConcretizer(object):
         spec_changed = False
 
         if spec.architecture is None:
-            spec.architecture = spack.spec.ArchSpec(sys_arch)
+            spec.architecture = spack.spec.ArchSpec(root_arch or sys_arch)
             spec_changed = True
 
         default_archs = list(x for x in [root_arch, sys_arch] if x)
@@ -297,9 +297,9 @@ class DefaultConcretizer(object):
 
         # Find another spec that has a compiler, or the root if none do
         other_spec = spec if spec.compiler else find_spec(
-            spec, lambda x: x.compiler, spec.root)
+            spec, lambda x: x.compiler and x.architecture == spec.architecture,
+            spec)
         other_compiler = other_spec.compiler
-        assert(other_spec)
 
         # Check if the compiler is already fully specified
         if other_compiler in all_compiler_specs:
@@ -320,7 +320,7 @@ class DefaultConcretizer(object):
         # By default, prefer later versions of compilers
         compiler_list = sorted(
             compiler_list, key=lambda x: (x.name, x.version), reverse=True)
-        ppk = PackagePrefs(other_spec.name, 'compiler')
+        ppk = PackagePrefs(other_spec.root.name, 'compiler')
         matches = sorted(compiler_list, key=ppk)
 
         # copy concrete version into other_compiler

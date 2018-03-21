@@ -2228,6 +2228,9 @@ def dump_packages(spec, path):
 
         # Get the location of the package in the dest repo.
         dest_pkg_dir = repo.dirname_for_package_name(node.name)
+        if os.path.exists(dest_pkg_dir):
+            continue
+
         if node is not spec:
             install_tree(source_pkg_dir, dest_pkg_dir)
         else:
