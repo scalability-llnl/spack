@@ -640,19 +640,24 @@ def mock_svn_repository(tmpdir_factory):
 
 
 class MockPackage(object):
-    def __init__(self, name, dependencies, dependency_types, conditions=None,
+    def __init__(self, name, dependencies=None, conditions=None,
                  versions=None):
         self.name = name
         self.spec = None
         self.dependencies = spack.util.ordereddict.OrderedDict()
 
-        assert len(dependencies) == len(dependency_types)
-        for dep, dtype in zip(dependencies, dependency_types):
-            d = Dependency(self, Spec(dep.name), type=dtype)
-            if not conditions or dep.name not in conditions:
-                self.dependencies[dep.name] = {Spec(name): d}
-            else:
-                self.dependencies[dep.name] = {Spec(conditions[dep.name]): d}
+        if conditions:
+            for dep_name, dep_conditions in conditions.items():
+                spec_dep_conditions = {}
+                for (when_spec, (dep_spec, dep_types)) in (
+                        dep_conditions.items()):
+                    spec_dep_conditions[Spec(when_spec)] = Dependency(
+                        self, Spec(dep_spec), type=dep_types)
+                self.dependencies[dep_name] = spec_dep_conditions
+        elif dependencies:
+            for dep_name, dtype in dependencies:
+                d = Dependency(self, Spec(dep_name), type=dtype)
+                self.dependencies[dep_name] = {Spec(name): d}
 
         if versions:
             self.versions = versions

@@ -2521,7 +2521,7 @@ class Spec(object):
 
             selfdeps = self.traverse(root=False)
             otherdeps = other.traverse(root=False)
-            if not all(any(d.satisfies(dep) for d in selfdeps)
+            if not all(any(d.satisfies(dep, strict=strict) for d in selfdeps)
                        for dep in otherdeps):
                 return False
 

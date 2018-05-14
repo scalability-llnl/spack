@@ -91,10 +91,10 @@ w->y deptypes are (link, build), w->x and y->z deptypes are (test)
     default = ('build', 'link')
     test_only = ('test',)
 
-    x = MockPackage('x', [], [])
-    z = MockPackage('z', [], [])
-    y = MockPackage('y', [z], [test_only])
-    w = MockPackage('w', [x, y], [test_only, default])
+    x = MockPackage('x')
+    z = MockPackage('z')
+    y = MockPackage('y', dependencies=[('z', test_only)])
+    w = MockPackage('w', dependencies=[('x', test_only), ('y', default)])
 
     mock_repo = MockPackageMultiRepo([w, x, y, z])
     try:
@@ -108,6 +108,47 @@ w->y deptypes are (link, build), w->x and y->z deptypes are (test)
     finally:
         spack.repo = saved_repo
         spack.package_testing.clear()
+
+
+@pytest.mark.usefixtures('config')
+def test_conditions_with_deps():
+    """For the following spec DAG::
+
+        w
+       /|
+      x y
+
+Ensure that when w's dependency on x is conditioned on y that the
+concretization can properly constrain x.
+
+"""
+    saved_repo = spack.repo
+
+    default = ('build', 'link')
+
+    x = MockPackage('x')
+    y = MockPackage('y')
+    w_conditions = {
+        'x': {'^y@2': ('x@2', default),
+              '^y@3': ('x@3', default)},
+        'y': {'w': ('y', default)}}
+    w = MockPackage('w', conditions=w_conditions)
+
+    mock_repo = MockPackageMultiRepo([w, x, y])
+    try:
+        spack.repo = mock_repo
+        spec = Spec('w')
+        spec.concretize()
+
+        assert 'x@3' in spec
+        assert 'y@3' in spec
+
+        spec = Spec('w ^y@2')
+        spec.concretize()
+
+        assert 'y@2' in spec
+    finally:
+        spack.repo = saved_repo
 
 
 @pytest.mark.usefixtures('refresh_builtin_mock')
