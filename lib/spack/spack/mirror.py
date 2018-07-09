@@ -88,9 +88,12 @@ Spack not to expand it with the following syntax:
         ext = 'tar.gz'
 
     if resourceId:
-        filename = "%s-%s" % (resourceId, spec.version) + ".%s" % ext
+        filename = "%s-%s" % (resourceId, spec.version)
     else:
-        filename = "%s-%s" % (spec.package.name, spec.version) + ".%s" % ext
+        filename = "%s-%s" % (spec.package.name, spec.version)
+
+    if not isinstance(fetcher, fs.URLFetchStrategy) or fetcher.expand_archive:
+        filename += ".%s" % ext
 
     return filename
 

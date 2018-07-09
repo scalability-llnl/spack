@@ -95,6 +95,57 @@ def test_from_list_url(mock_packages, config):
                 ('foo-' + ver_str + '.tar.gz'))
 
 
+class MockFilesystem(object):
+    def __init__(self, exists=None, files=None):
+        self.removed = set()
+        self.symlinked = set()
+        self.copied = set()
+        self.files = set(files or set())
+        self.exists = set(exists or set()) | self.files
+
+    def remove(self, path):
+        self.removed.add(path)
+        self.exists.remove(path)
+
+    def symlink(self, src, dst):
+        self.symlinked.add((src, dst))
+        self.exists.add(dst)
+
+    def copy(self, src, dst):
+        self.copied.add((src, dst))
+        self.exists.add(dst)
+
+    def file_exists(self, path):
+        return path in self.exists
+
+    def is_file(self, path):
+        return path in self.files
+
+
+class MockStage(object):
+    def __init__(self, save_filename):
+        self._save_filename = save_filename
+
+    def chdir(self):
+        pass
+
+    @property
+    def save_filename(self):
+        return self._save_filename
+
+
+def test_no_symlink_noexpand_cached(tmpdir):
+    test_path = 'made-up-path'
+    dst_path = 'dst-path'
+    mock_fs = MockFilesystem(files=[test_path])
+    cache_fetcher = spack.fetch_strategy.CacheURLFetchStrategy(
+        url=test_path, filesystem=mock_fs, expand=False)
+    cache_fetcher.set_stage(MockStage(dst_path))
+    cache_fetcher.fetch()
+    assert not mock_fs.symlinked
+    assert (test_path, dst_path) in mock_fs.copied
+
+
 def test_hash_detection(checksum_type):
     algo = crypto.hashes[checksum_type]()
     h = 'f' * (algo.digest_size * 2)  # hex -> bytes

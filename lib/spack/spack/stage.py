@@ -123,7 +123,7 @@ class Stage(object):
         with Stage() as stage:      # Context manager creates and destroys the
                                     # stage directory
             stage.fetch()           # Fetch a source archive into the stage.
-            stage.expand_archive()  # Expand the source archive.
+            stage.setup_source()  # Expand the source archive.
             <install>               # Build and install the archive.
                                     # (handled by user of Stage)
 
@@ -139,7 +139,7 @@ class Stage(object):
         try:
             stage.create()          # Explicitly create the stage directory.
             stage.fetch()           # Fetch a source archive into the stage.
-            stage.expand_archive()  # Expand the source archive.
+            stage.setup_source()  # Expand the source archive.
             <install>               # Build and install the archive.
                                     # (handled by user of Stage)
         finally:
@@ -357,10 +357,11 @@ class Stage(object):
             if not self.fetcher.expand_archive:
                 return self.path
 
-        for p in [os.path.join(self.path, f) for f in os.listdir(self.path)]:
+        paths = list(os.path.join(self.path, f) for f in os.listdir(self.path))
+
+        for p in paths:
             if os.path.isdir(p):
                 return p
-        return None
 
     def fetch(self, mirror_only=False):
         """Downloads an archive or checks out code from a repository."""
@@ -453,7 +454,7 @@ class Stage(object):
     def cache_local(self):
         spack.caches.fetch_cache.store(self.fetcher, self.mirror_path)
 
-    def expand_archive(self):
+    def setup_source(self):
         """Changes to the stage directory and attempt to expand the downloaded
         archive.  Fail if the stage is not set up or if the archive is not yet
         downloaded."""
@@ -522,8 +523,8 @@ class ResourceStage(Stage):
         super(ResourceStage, self).restage()
         self._add_to_root_stage()
 
-    def expand_archive(self):
-        super(ResourceStage, self).expand_archive()
+    def setup_source(self):
+        super(ResourceStage, self).setup_source()
         self._add_to_root_stage()
 
     def _add_to_root_stage(self):
@@ -532,37 +533,75 @@ class ResourceStage(Stage):
         """
         root_stage = self.root_stage
         resource = self.resource
-        placement = os.path.basename(self.source_path) \
-            if resource.placement is None \
-            else resource.placement
+
+        target_root = root_stage.source_path
+
+        if not resource.fetcher.expand_archive:
+            src_file_name = os.path.basename(self.archive_file)
+            dst_file_name = resource.placement or src_file_name
+            placement = {src_file_name: dst_file_name}
+        elif resource.placement is None:
+            if os.path.basename(self.source_path) == 'spack-expanded-archive':
+                placement = dict((f, f) for f in os.listdir(self.source_path))
+            else:
+                placement = os.path.basename(self.source_path)
+        else:
+            placement = resource.placement
+
         if not isinstance(placement, dict):
             placement = {'': placement}
 
-        target_path = os.path.join(
-            root_stage.source_path, resource.destination)
+        if resource.destination:
+            target_root = os.path.join(target_root, resource.destination)
 
-        try:
-            os.makedirs(target_path)
-        except OSError as err:
-            if err.errno == errno.EEXIST and os.path.isdir(target_path):
-                pass
-            else:
-                raise
-
+        # Make the paths in the dictionary absolute and link
         for key, value in iteritems(placement):
-            destination_path = os.path.join(target_path, value)
-            source_path = os.path.join(self.source_path, key)
+            destination_path = os.path.join(target_root, value)
+            source_path = os.path.realpath(os.path.join(self.source_path, key))
+
+            dst_dir = os.path.dirname(destination_path)
+            try:
+                os.makedirs(dst_dir)
+            except OSError as err:
+                if err.errno == errno.EEXIST and os.path.isdir(dst_dir):
+                    pass
+                else:
+                    raise
+
+            def warn_existing_file(src, dst):
+                tty.warn('File {1} already exists, '
+                         'not moving {0}'.format(src, dst))
 
             if not os.path.exists(destination_path):
                 tty.info('Moving resource stage\n\tsource : '
                          '{stage}\n\tdestination : {destination}'.format(
                              stage=source_path, destination=destination_path
                          ))
-                shutil.move(os.path.realpath(source_path), destination_path)
+                shutil.move(source_path, destination_path)
+            elif os.path.isdir(destination_path):
+                tty.info('{0} exists as a directory, moving all files '
+                         'from {1} to {0}'.format(
+                             destination_path, source_path))
+                if os.path.isfile(source_path):
+                    src_paths = [source_path]
+                else:
+                    src_files = os.listdir(source_path)
+                    src_paths = [os.path.join(source_path, x)
+                                 for x in src_files]
+
+                for src_path in src_paths:
+                    dst_file_path = os.path.join(
+                        destination_path, os.path.basename(src_path))
+                    if os.path.exists(dst_file_path):
+                        warn_existing_file(src_path, dst_file_path)
+                    else:
+                        shutil.move(src_path, dst_file_path)
+            else:
+                warn_existing_file(source_path, destination_path)
 
 
 @pattern.composite(method_list=[
-    'fetch', 'create', 'created', 'check', 'expand_archive', 'restage',
+    'fetch', 'create', 'created', 'check', 'setup_source', 'restage',
     'destroy', 'cache_local'])
 class StageComposite:
     """Composite for Stage type objects. The first item in this composite is
@@ -624,7 +663,7 @@ class DIYStage(object):
     def check(self):
         tty.msg("No checksum needed for DIY.")
 
-    def expand_archive(self):
+    def setup_source(self):
         tty.msg("Using source directory: %s" % self.source_path)
 
     def restage(self):

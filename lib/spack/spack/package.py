@@ -1094,7 +1094,7 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
             raise ValueError("Can only stage concrete packages.")
 
         self.do_fetch(mirror_only)     # this will create the stage
-        self.stage.expand_archive()
+        self.stage.setup_source()
 
         if not os.listdir(self.stage.path):
             raise FetchError("Archive was empty for %s" % self.name)

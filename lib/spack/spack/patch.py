@@ -148,12 +148,14 @@ class UrlPatch(Patch):
         Args:
             stage: stage for the package that needs to be patched
         """
+        is_archive = spack.util.compression.allowed_archive(self.url)
         # use archive digest for compressed archives
         fetch_digest = self.sha256
         if self.archive_sha256:
             fetch_digest = self.archive_sha256
 
-        fetcher = fs.URLFetchStrategy(self.url, digest=fetch_digest)
+        fetcher = fs.URLFetchStrategy(self.url, digest=fetch_digest,
+                                      expand=is_archive)
         mirror = os.path.join(
             os.path.dirname(stage.mirror_path),
             os.path.basename(self.url))
@@ -162,11 +164,8 @@ class UrlPatch(Patch):
             patch_stage.fetch()
             patch_stage.check()
             patch_stage.cache_local()
-
-            root = patch_stage.path
-            if self.archive_sha256:
-                patch_stage.expand_archive()
-                root = patch_stage.source_path
+            patch_stage.setup_source()
+            root = patch_stage.source_path
 
             files = os.listdir(root)
             if not files:
@@ -177,6 +176,9 @@ class UrlPatch(Patch):
                     raise NoSuchPatchError(
                         "Patch failed to download: %s" % self.url)
 
+            # archive patches are assumed to consist of one file, so regardless
+            # of whether the patch is compressed there should always be only
+            # one file in the staging directory
             self.path = os.path.join(root, files.pop())
 
             if not os.path.isfile(self.path):
