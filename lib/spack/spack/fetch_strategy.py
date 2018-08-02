@@ -40,6 +40,8 @@ in order to build it.  They need to define the following methods:
     * archive()
         Archive a source directory, e.g. for creating a mirror.
 """
+from __future__ import print_function
+
 import os
 import sys
 import re
@@ -47,6 +49,7 @@ import shutil
 import copy
 from functools import wraps
 from six import string_types, with_metaclass
+import requests
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir, mkdirp
@@ -207,8 +210,8 @@ class URLFetchStrategy(FetchStrategy):
                 self.digest = kwargs[h]
 
         self.expand_archive = kwargs.get('expand', True)
-        self.extra_curl_options = kwargs.get('curl_options', [])
-        self._curl = None
+        self.cookies = kwargs.get('cookies', None)
+        self._fetcher = None
 
         self.extension = kwargs.get('extension', None)
 
@@ -216,10 +219,19 @@ class URLFetchStrategy(FetchStrategy):
             raise ValueError("URLFetchStrategy requires a url for fetching.")
 
     @property
-    def curl(self):
-        if not self._curl:
-            self._curl = which('curl', required=True)
-        return self._curl
+    def is_curl(self):
+        return self._fetcher.name == 'curl'
+
+    @property
+    def is_wget(self):
+        return self._fetcher.name == 'wget'
+
+    @property
+    def fetcher(self):
+        if not self._fetcher:
+            # If available, use curl; otherwise, fall back to wget
+            self._fetcher = which('curl', 'wget')
+        return self._fetcher
 
     def source_id(self):
         return self.digest
@@ -239,66 +251,126 @@ class URLFetchStrategy(FetchStrategy):
         tty.msg("Fetching %s" % self.url)
 
         if partial_file:
-            save_args = ['-C',
-                         '-',  # continue partial downloads
-                         '-o',
-                         partial_file]  # use a .part file
+            # Use a .part file and continue partial downloads
+            curl_args = ['--continue-at', '-',
+                         '--output', partial_file]
+            wget_args = ['--continue',
+                         '--output-document={0}'.format(partial_file)]
         else:
-            save_args = ['-O']
+            # Extract file name from URL
+            curl_args = ['--remote-name']
+            wget_args = []
 
-        curl_args = save_args + [
-            '-f',  # fail on >400 errors
-            '-D',
-            '-',  # print out HTML headers
-            '-L',  # resolve 3xx redirects
-            self.url,
+        # Fail on >400 errors, follow redirects and print headers to stdout
+        curl_args += [
+            '--fail',
+            '--dump-header', '-',
+            '--location'
+        ]
+        wget_args += [
+            '--no-verbose',
+            '--server-response',
+            '--output-file=-'
         ]
 
         if not spack.config.get('config:verify_ssl'):
-            curl_args.append('-k')
+            curl_args.append('--insecure')
+            wget_args.append('--no-check-certificate')
 
         if sys.stdout.isatty():
-            curl_args.append('-#')  # status bar when using a tty
+            # Show status bar when using a tty
+            curl_args.append('--progress-bar')
+            wget_args.append('--show-progress')
         else:
-            curl_args.append('-sS')  # just errors when not.
+            # Show just errors when not using atty
+            curl_args.append('--silent')
+            curl_args.append('--show-error')
 
-        curl_args += self.extra_curl_options
+        if self.cookies:
+            curl_args.append('--junk-session-cookies')
 
-        # Run curl but grab the mime type from the http headers
-        curl = self.curl
-        with working_dir(self.stage.path):
-            headers = curl(*curl_args, output=str, fail_on_error=False)
+            for key, value in self.cookies.items():
+                header = 'Cookie: {0}={1}'.format(key, value)
+                curl_args.append('--header')
+                curl_args.append(header)
+                wget_args.append('--header={0}'.format(header))
 
-        if curl.returncode != 0:
-            # clean up archive on failure.
-            if self.archive_file:
-                os.remove(self.archive_file)
+        curl_args.append(self.url)
+        wget_args.append(self.url)
 
-            if partial_file and os.path.exists(partial_file):
-                os.remove(partial_file)
+        # Run fetcher but grab the mime type from the http headers
+        fetcher = self.fetcher
 
-            if curl.returncode == 22:
-                # This is a 404.  Curl will print the error.
-                raise FailedDownloadError(
-                    self.url, "URL %s was not found!" % self.url)
+        if fetcher is not None:
+            with working_dir(self.stage.path):
+                if self.is_curl:
+                    args = curl_args
+                elif self.is_wget:
+                    args = wget_args
 
-            elif curl.returncode == 60:
-                # This is a certificate error.  Suggest spack -k
+                headers = fetcher(*args, output=str, fail_on_error=False)
+
+            if fetcher.returncode != 0:
+                # clean up archive on failure.
+                if self.archive_file:
+                    os.remove(self.archive_file)
+
+                if partial_file and os.path.exists(partial_file):
+                    os.remove(partial_file)
+
+                if ((self.is_curl and fetcher.returncode == 22) or
+                    (self.is_wget and fetcher.returncode == 8)):
+                    # This is a 404.  Fetcher will print the error.
+                    raise FailedDownloadError(
+                        self.url, "URL %s was not found!" % self.url)
+
+                elif ((self.is_curl and fetcher.returncode == 60) or
+                      (self.is_wget and fetcher.returncode == 5)):
+                    # This is a certificate error.  Suggest spack -k
+                    raise FailedDownloadError(
+                        self.url,
+                        "Spack was unable to fetch due to invalid certificate. "
+                        "This is either an attack, or your cluster's SSL "
+                        "configuration is bad.  If you believe your SSL "
+                        "configuration is bad, you can try running spack -k, "
+                        "which will not check SSL certificates."
+                        "Use this at your own risk.")
+
+                else:
+                    # This is some other fetcher error.  Fetcher will print the
+                    # error, but print a spack message too
+                    raise FailedDownloadError(
+                        self.url,
+                        "Fetcher failed with error %d" % fetcher.returncode)
+        else:
+            if not partial_file:
                 raise FailedDownloadError(
                     self.url,
-                    "Curl was unable to fetch due to invalid certificate. "
-                    "This is either an attack, or your cluster's SSL "
-                    "configuration is bad.  If you believe your SSL "
-                    "configuration is bad, you can try running spack -k, "
-                    "which will not check SSL certificates."
-                    "Use this at your own risk.")
+                    "Requests requires partial_file to be set")
 
-            else:
-                # This is some other curl error.  Curl will print the
-                # error, but print a spack message too
-                raise FailedDownloadError(
-                    self.url,
-                    "Curl failed with error %d" % curl.returncode)
+            with working_dir(self.stage.path):
+                r = requests.get(self.url,
+                                 cookies=self.cookies,
+                                 verify=spack.config.get('config:verify_ssl'),
+                                 stream=True)
+
+            if r.status_code != requests.codes.ok:
+                # FIXME
+                pass
+
+            with open(partial_file, 'wb') as fd:
+                for chunk in r.iter_content(1048576):
+                    if sys.stdout.isatty():
+                        print('.', end='')
+                        sys.stdout.flush()
+
+                    fd.write(chunk)
+
+                if sys.stdout.isatty():
+                    print(' done!')
+
+            headers = '\n'.join('{0}: {1}'.format(key, val)
+                                for key, val in r.headers.items())
 
         # Check if we somehow got an HTML file rather than the archive we
         # asked for.  We only look at the last content type, to handle
