@@ -407,7 +407,8 @@ def provides(*specs, **kwargs):
 
 
 @directive('patches')
-def patch(url_or_filename, level=1, when=None, working_dir=".", **kwargs):
+def patch(url_or_filename, level=1, when=None, working_dir=".",
+          ignore_whitespace=False, **kwargs):
     """Packages can declare patches to apply to source.  You can
     optionally provide a when spec to indicate that a particular
     patch should only be applied when the package's spec meets
@@ -419,6 +420,8 @@ def patch(url_or_filename, level=1, when=None, working_dir=".", **kwargs):
         when (Spec): optional anonymous spec that specifies when to apply
             the patch
         working_dir (str): dir to change to before applying
+        ignore_whitespace (bool): if True, ignore whitespace differences
+            in patch
 
     Keyword Args:
         sha256 (str): sha256 sum of the patch, used to verify the patch
@@ -437,7 +440,7 @@ def patch(url_or_filename, level=1, when=None, working_dir=".", **kwargs):
         cur_patches = pkg_or_dep.patches.setdefault(when_spec, [])
         cur_patches.append(
             Patch.create(pkg_or_dep, url_or_filename, level,
-                         working_dir, **kwargs))
+                         working_dir, ignore_whitespace, **kwargs))
 
     return _execute_patch
 

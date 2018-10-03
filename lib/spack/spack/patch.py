@@ -55,7 +55,8 @@ class Patch(object):
     """
 
     @staticmethod
-    def create(pkg, path_or_url, level=1, working_dir=".", **kwargs):
+    def create(pkg, path_or_url, level=1, working_dir=".",
+               ignore_whitespace=False, **kwargs):
         """
         Factory method that creates an instance of some class derived from
         Patch
@@ -65,17 +66,20 @@ class Patch(object):
             path_or_url: path or url where the patch is found
             level: patch level (default 1)
             working_dir (str): dir to change to before applying (default '.')
+            ignore_whitespace (bool): if True, ignore whitespace differences
 
         Returns:
             instance of some Patch class
         """
         # Check if we are dealing with a URL
         if '://' in path_or_url:
-            return UrlPatch(path_or_url, level, working_dir, **kwargs)
+            return UrlPatch(path_or_url, level, working_dir,
+                            ignore_whitespace, **kwargs)
         # Assume patches are stored in the repository
-        return FilePatch(pkg, path_or_url, level, working_dir)
+        return FilePatch(pkg, path_or_url, level, working_dir,
+                         ignore_whitespace)
 
-    def __init__(self, path_or_url, level, working_dir):
+    def __init__(self, path_or_url, level, working_dir, ignore_whitespace):
         # Check on level (must be an integer > 0)
         if not isinstance(level, int) or not level >= 0:
             raise ValueError("Patch level needs to be a non-negative integer.")
@@ -83,6 +87,7 @@ class Patch(object):
         self.path_or_url = path_or_url
         self.level = level
         self.working_dir = working_dir
+        self.ignore_whitespace = ignore_whitespace
         # self.path needs to be computed by derived classes
         # before a call to apply
         self.path = None
@@ -98,16 +103,21 @@ class Patch(object):
             stage: stage for the package that needs to be patched
         """
         patch = which("patch", required=True)
+        args = ['-s', '-p', str(self.level), '-i', self.path, "-d",
+                self.working_dir]
+        if self.ignore_whitespace:
+            args += ['--ignore-whitespace']
         with working_dir(stage.source_path):
             # Use -N to allow the same patches to be applied multiple times.
-            patch('-s', '-p', str(self.level), '-i', self.path,
-                  "-d", self.working_dir)
+            patch(*args)
 
 
 class FilePatch(Patch):
     """Describes a patch that is retrieved from a file in the repository"""
-    def __init__(self, pkg, path_or_url, level, working_dir):
-        super(FilePatch, self).__init__(path_or_url, level, working_dir)
+    def __init__(self, pkg, path_or_url, level, working_dir,
+                 ignore_whitespace):
+        super(FilePatch, self).__init__(path_or_url, level,
+                                        working_dir, ignore_whitespace)
 
         pkg_dir = os.path.dirname(absolute_path_for_package(pkg))
         self.path = os.path.join(pkg_dir, path_or_url)
@@ -125,8 +135,10 @@ class FilePatch(Patch):
 
 class UrlPatch(Patch):
     """Describes a patch that is retrieved from a URL"""
-    def __init__(self, path_or_url, level, working_dir, **kwargs):
-        super(UrlPatch, self).__init__(path_or_url, level, working_dir)
+    def __init__(self, path_or_url, level, working_dir,
+                 ignore_whitespace, **kwargs):
+        super(UrlPatch, self).__init__(path_or_url, level,
+                                       working_dir, ignore_whitespace)
         self.url = path_or_url
 
         self.archive_sha256 = None
