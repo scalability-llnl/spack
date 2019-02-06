@@ -239,6 +239,25 @@ def set_compiler_environment_variables(pkg, env):
     return env
 
 
+def collect_installation_prefixes(deps):
+    prefixes = list()
+    for dep in deps:
+        if dep.prefix:
+            prefixes.append(dep.prefix)
+        else:
+            assert(dep.external)
+            if not dep.external_module:
+                tty.debug("{0} does not have a prefix or associated module."
+                          .format(dep.format()))
+
+    # Filter out system paths: ['/', '/usr', '/usr/local']
+    # These paths can be introduced into the build when an external package
+    # is added as a dependency. The problem with these paths is that they often
+    # contain hundreds of other packages installed in the same directory.
+    # If these paths come first, they can overshadow Spack installations.
+    return filter_system_paths(prefixes)
+
+
 def set_build_environment_variables(pkg, env, dirty):
     """Ensure a clean install environment when we build packages.
 
@@ -257,25 +276,16 @@ def set_build_environment_variables(pkg, env, dirty):
     build_link_deps = build_deps | link_deps
     rpath_deps      = get_rpath_deps(pkg)
 
-    build_prefixes      = [dep.prefix for dep in build_deps]
-    link_prefixes       = [dep.prefix for dep in link_deps]
-    build_link_prefixes = [dep.prefix for dep in build_link_deps]
-    rpath_prefixes      = [dep.prefix for dep in rpath_deps]
-
     # add run-time dependencies of direct build-time dependencies:
+    build_run_deps = set()
     for build_dep in build_deps:
         for run_dep in build_dep.traverse(deptype='run'):
-            build_prefixes.append(run_dep.prefix)
+            build_run_deps.add(run_dep)
 
-    # Filter out system paths: ['/', '/usr', '/usr/local']
-    # These paths can be introduced into the build when an external package
-    # is added as a dependency. The problem with these paths is that they often
-    # contain hundreds of other packages installed in the same directory.
-    # If these paths come first, they can overshadow Spack installations.
-    build_prefixes      = filter_system_paths(build_prefixes)
-    link_prefixes       = filter_system_paths(link_prefixes)
-    build_link_prefixes = filter_system_paths(build_link_prefixes)
-    rpath_prefixes      = filter_system_paths(rpath_prefixes)
+    build_prefixes = collect_installation_prefixes(build_deps | build_run_deps)
+    link_prefixes = collect_installation_prefixes(link_deps)
+    build_link_prefixes = collect_installation_prefixes(build_link_deps)
+    rpath_prefixes = collect_installation_prefixes(rpath_deps)
 
     # Prefixes of all of the package's dependencies go in SPACK_DEPENDENCIES
     env.set_path(SPACK_DEPENDENCIES, build_link_prefixes)

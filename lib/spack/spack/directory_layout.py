@@ -74,6 +74,8 @@ class DirectoryLayout(object):
         """Return absolute path from the root to a directory for the spec."""
         _check_concrete(spec)
 
+        assert(not spec.external)
+
         path = self.relative_path_for_spec(spec)
         assert(not path.startswith(self.root))
         return os.path.join(self.root, path)
@@ -190,9 +192,7 @@ class YamlDirectoryLayout(DirectoryLayout):
     def relative_path_for_spec(self, spec):
         _check_concrete(spec)
 
-        if spec.external:
-            return spec.external_path
-
+        assert(not spec.external)
         path = spec.format(self.path_scheme)
         return path
 
