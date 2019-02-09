@@ -3,10 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 
-
-class Mpifileutils(AutotoolsPackage):
+class Mpifileutils(DynamicInheritancePackage):
     """mpiFileUtils is a suite of MPI-based tools to manage large datasets,
        which may vary from large directory trees to large files.
        High-performance computing users often generate large datasets with
@@ -26,6 +24,11 @@ class Mpifileutils(AutotoolsPackage):
     version('0.7', 'c081f7f72c4521dddccdcf9e087c5a2b')
     version('0.6', '620bcc4966907481f1b1a965b28fc9bf')
 
+    classes = {
+        AutotoolsPackage: '@:0.8.1',
+        CMakePackage: '@0.9:'
+    }
+
     conflicts('platform=darwin')
 
     depends_on('mpi')
@@ -39,18 +42,74 @@ class Mpifileutils(AutotoolsPackage):
 
     depends_on('libarchive')
 
+    depends_on('cmake@3.1:', when='@0.9:', type='build')
+
+    variant('build_type', default='RelWithDebInfo',
+            description='CMake build type',
+            values=('Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel'))
+
     variant('xattr', default=True,
         description="Enable code for extended attributes")
 
     variant('lustre', default=False,
         description="Enable optimizations and features for Lustre")
 
+    variant('gpfs', default=False,
+        description="Enable optimizations and features for GPFS")
+    # gpfs support added after v0.8.1
+    conflicts('+gpfs', when='@:0.8.1')
+
     variant('experimental', default=False,
         description="Install experimental tools")
-
     # --enable-experimental fails with v0.6 and earlier
     conflicts('+experimental', when='@:0.6')
 
+    # return code bug in older versions prevents building with clang
+    conflicts('%clang', when='@:0.8.1')
+
+    # autotools versions do not implement MinSizeRel build type
+    conflicts('build_type=MinSizeRel', when='@:0.8.1')
+
+    def flag_handler(self, name, flags):
+        if name == 'cflags' and self.spec.satisfies('@:0.8.1'):
+            # handle cmake-style variant for pre-cmake versions
+            build_type = self.spec.variants['build_type'].value
+            if build_type in ('Debug', 'RelWithDebInfo'):
+                flags.append('-g')
+            elif build_type in ('Release', 'RelWithDebInfo'):
+                flags.append('-O2')
+        return (flags, None, None)
+
+    # 0.9 and later are cmake packages. Use these cmake args
+    def cmake_args(self):
+        args = []
+        args.append("-DWITH_DTCMP_PREFIX=%s" % self.spec['dtcmp'].prefix)
+        args.append("-DWITH_LibCircle_PREFIX=%s" %
+                    self.spec['libcircle'].prefix)
+
+        if '+xattr' in self.spec:
+            args.append("-DENABLE_XATTRS=ON")
+        else:
+            args.append("-DENABLE_XATTRS=OFF")
+
+        if '+lustre' in self.spec:
+            args.append("-DENABLE_LUSTRE=ON")
+        else:
+            args.append("-DENABLE_LUSTRE=OFF")
+
+        if '+gpfs' in self.spec:
+            args.append("-DENABLE_GPFS=ON")
+        else:
+            args.append("-DENABLE_GPFS=OFF")
+
+        if '+experimental' in self.spec:
+            args.append("-DENABLE_EXPERIMENTAL=ON")
+        else:
+            args.append("-DENABLE_EXPERIMENTAL=OFF")
+
+        return args
+
+    # 0.8.1 and earlier are autotools build. use these configure args
     def configure_args(self):
         args = []
         args.append("CPPFLAGS=-I%s/src/common" % pwd())
@@ -74,9 +133,11 @@ class Mpifileutils(AutotoolsPackage):
         else:
             args.append('--disable-lustre')
 
+        # does this propagate forward, for <=0.7?
         if self.spec.satisfies('@0.7:'):
             if '+experimental' in self.spec:
                 args.append('--enable-experimental')
             else:
                 args.append('--disable-experimental')
+
         return args

@@ -6,12 +6,15 @@
 import glob
 import os
 import pytest
+import argparse
 
 import spack.repo
 from llnl.util.filesystem import working_dir
 from spack.build_environment import get_std_cmake_args, setup_package
 from spack.spec import Spec
 from spack.util.executable import which
+
+import spack.cmd.install as inst
 
 
 DATA_PATH = os.path.join(spack.paths.test_path, 'data')
@@ -163,3 +166,29 @@ class TestAutotoolsPackage(object):
         assert '--without-bar' in options
         assert '--without-baz' in options
         assert '--no-fee' in options
+
+
+@pytest.mark.usefixtures(
+    'config', 'mock_packages', 'mock_fetch', 'mock_archive', 'install_mockery'
+)
+class TestDynamicInheritancePackage(object):
+    @pytest.mark.parametrize('version', ['1.0', '2.0', '3.0'])
+    def test_set_build_system(self, version, install_mockery):
+        abstract_spec = 'dynamic-inheritance-test@%s' % version
+        s = Spec(abstract_spec)
+        s.concretize()
+        p = s.package
+
+        parser = argparse.ArgumentParser()
+        inst.setup_parser(parser)
+        # We won't actually install anything, so no need to install deps
+        install_args = parser.parse_args(['-v', '--only=package'])
+        install_args.package = abstract_spec
+        inst.install(parser, install_args, stop_at='set_build_system')
+
+        stage_dir = os.path.dirname(p.stage.source_path)
+        os.unlink(stage_dir)
+
+        # The set_build_system method for the `dynamic-inheritance-test`
+        # package tests that its phases were properly set according to its
+        # class

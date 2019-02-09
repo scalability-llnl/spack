@@ -175,7 +175,6 @@ def default_log_file(spec):
 
 def install_spec(cli_args, kwargs, abstract_spec, spec):
     """Do the actual installation."""
-
     # handle active environment, if any
     def install(spec, kwargs):
         env = ev.get_env(cli_args, 'install')
@@ -234,7 +233,7 @@ def install(parser, args, **kwargs):
     # that will be passed to Package.do_install API
     update_kwargs_from_args(args, kwargs)
     kwargs.update({
-        'install_dependencies': ('dependencies' in args.things_to_install),
+        'install_deps': ('dependencies' in args.things_to_install),
         'install_package': ('package' in args.things_to_install)
     })
 

@@ -1482,13 +1482,16 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
                             for phase_name, phase_attr in zip(
                                     self.phases, self._InstallPhase_phases):
 
-                                with logger.force_echo():
-                                    tty.msg(
-                                        "Executing phase: '%s'" % phase_name)
-
-                                # Redirect stdout and stderr to daemon pipe
                                 phase = getattr(self, phase_attr)
-                                phase(self.spec, self.prefix)
+                                # build systems can dynamically remove phases
+                                if phase:
+                                    with logger.force_echo():
+                                        tty.msg(
+                                            "Executing phase: '%s'" %
+                                            phase_name)
+
+                                    # Redirect stdout and stderr to daemon pipe
+                                    phase(self.spec, self.prefix)
 
                     echo = logger.echo
                     self.log()
