@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
+import itertools
 import os
 import shutil
 
@@ -41,6 +42,10 @@ def setup_parser(subparser):
         '-p', '--python-cache', action='store_true',
         help="remove .pyc, .pyo files and __pycache__ folders")
     subparser.add_argument(
+        '-l', '--locks', action='store_true',
+        help="remove lock files (WARNING: this is only safe if no other"
+             " Spack process is running)")
+    subparser.add_argument(
         '-a', '--all', action=AllClean, help="equivalent to -sdmp", nargs=0
     )
     subparser.add_argument(
@@ -53,7 +58,7 @@ def setup_parser(subparser):
 def clean(parser, args):
     # If nothing was set, activate the default
     if not any([args.specs, args.stage, args.downloads, args.misc_cache,
-                args.python_cache]):
+                args.python_cache, args.locks]):
         args.stage = True
 
     # Then do the cleaning falling through the cases
@@ -91,3 +96,12 @@ def clean(parser, args):
                         dname = os.path.join(root, d)
                         tty.debug('Removing {0}'.format(dname))
                         shutil.rmtree(dname)
+
+    if args.locks:
+        lock_files = itertools.chain(
+            spack.store.db._lock_files(),
+            spack.caches.misc_cache._lock_files(),
+            [spack.stage.Stage.lock_path()])
+        for lock_file in lock_files:
+            tty.debug('Removing lock file: ' + lock_file)
+            os.remove(lock_file)

@@ -238,6 +238,9 @@ class Database(object):
         """Get a read lock context manager for use in a `with` block."""
         return ReadTransaction(self.lock, self._read)
 
+    def _lock_files(self):
+        return [self._lock_path, self.prefix_lock_path]
+
     def prefix_lock(self, spec):
         """Get a lock on a particular spec's installation directory.
 

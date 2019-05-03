@@ -206,16 +206,19 @@ class Stage(object):
             if self.name not in Stage.stage_locks:
                 sha1 = hashlib.sha1(self.name.encode('utf-8')).digest()
                 lock_id = prefix_bits(sha1, bit_length(sys.maxsize))
-                stage_lock_path = os.path.join(spack.paths.stage_path, '.lock')
 
                 Stage.stage_locks[self.name] = spack.util.lock.Lock(
-                    stage_lock_path, lock_id, 1)
+                    Stage.lock_path(), lock_id, 1)
 
             self._lock = Stage.stage_locks[self.name]
 
         # When stages are reused, we need to know whether to re-create
         # it.  This marks whether it has been created/destroyed.
         self.created = False
+
+    @staticmethod
+    def lock_path():
+        return os.path.join(spack.paths.stage_path, '.lock')
 
     def __enter__(self):
         """
