@@ -370,10 +370,10 @@ We can also enter the build area and try to manually run the build:
 
 .. code-block:: console
 
-  $ spack build-env mpileaks bash
+  $ spack build-env -c bash mpileaks
   $ spack cd mpileaks
 
-The ``spack env`` command spawned a new shell that contains the same
+The ``spack build-env`` command spawned a new shell that contains the same
 environment that Spack used to build the mpileaks package (you can
 substitute bash for your favorite shell).  The ``spack cd`` command
 changed our working dirctory to the last attempted build for mpileaks.
