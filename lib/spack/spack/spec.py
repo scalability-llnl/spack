@@ -91,6 +91,7 @@ from six import string_types
 from six import iteritems
 
 from llnl.util.filesystem import find_headers, find_libraries, is_exe
+from llnl.util.filesystem import find, HeaderList, LibraryList
 from llnl.util.lang import key_ordering, HashableMap, ObjectWrapper, dedupe
 from llnl.util.lang import check_kwargs, memoized
 from llnl.util.tty.color import cwrite, colorize, cescape, get_color_when
@@ -669,6 +670,13 @@ def _headers_default_handler(descriptor, spec, cls):
     Tries to search for ``*.h`` files recursively starting from
     ``spec.prefix.include``.
 
+    If the package corresponding to ``spec`` defines the attribute
+    ``headers_names`` then the search patterns (or simply file names) listed in
+    that property will be searched for instead of ``*.h``. The search is still
+    performed recusively starting from ``spec.prefix.include``. Note that if
+    ``spec.package.headers_names`` is empty, then an empty ``HeaderList`` is
+    returned without generating an error.
+
     Parameters:
         descriptor (ForwardQueryToPackage): descriptor that triggered the call
         spec (Spec): spec that is being queried
@@ -681,7 +689,18 @@ def _headers_default_handler(descriptor, spec, cls):
     Raises:
         NoHeadersError: If no headers are found
     """
-    headers = find_headers('*', root=spec.prefix.include, recursive=True)
+    try:
+        names = spec.package.headers_names
+    except AttributeError:
+        headers = find_headers('*', root=spec.prefix.include, recursive=True)
+    else:
+        if not names:  # No headers to export
+            return HeaderList([])
+        if isinstance(names, string_types):
+            names = [names]
+        # find_headers() always adds '.h' extension, so use find() assuming
+        # the names already have extensions - this is more general.
+        headers = HeaderList(find(spec.prefix.include, names, recursive=True))
 
     if headers:
         return headers
@@ -697,6 +716,35 @@ def _libs_default_handler(descriptor, spec, cls):
     ``spec.prefix``. If ``spec.name`` starts with ``lib``, searches for
     ``{spec.name}`` instead.
 
+    If the package corresponding to ``spec`` defines the attribute
+    ``libs_names`` then the search patterns (or simply file names) listed in
+    that property will be searched for instead of ``{spec.name}``, once again
+    adding the prefix ``lib`` to every pattern that does not start with
+    ``lib``.
+
+    If any query parameters are set, using the spec query format
+    ``base_spec['a:x,y'].libs``, then the names ``x`` and ``y`` will be
+    prepended to the library-names-search-list.
+
+    Note that if the library-names-search-list is empty, then an empty
+    ``LibraryList`` is returned without generating an error - this can only
+    happen if ``spec.package.libs_names`` is defined as empty and no query
+    parameters are given.
+
+    The search is performed in the following order: first search in the
+    directory ``spec.prefix.lib64``, non-recursively; if no libraries are found
+    there, then search in ``spec.prefix.lib``, non-recursively; if that search
+    returns no libraries, then the whole of ``spec.prefix`` is searched,
+    recursively.
+
+    The type of libraries that are searched for (shared and/or static) depends
+    on the value of the variant ``shared`` if such variant is defined by the
+    package. If ``shared`` variant is defined and enabled then only shared
+    libraries are searched for. If ``shared`` variant is defined and disabled
+    then only static libraries are searched for. In all other cases, this
+    function will first search for shared libraries and then, if that fails,
+    it will search for static libraries.
+
     Parameters:
         descriptor (ForwardQueryToPackage): descriptor that triggered the call
         spec (Spec): spec that is being queried
@@ -710,6 +758,10 @@ def _libs_default_handler(descriptor, spec, cls):
         NoLibrariesError: If no libraries are found
     """
 
+    # Handle extra query parameters: every parameter is added (prepended) to
+    # the list of names to search for.
+    params = spec.last_query.extra_parameters
+
     # Variable 'name' is passed to function 'find_libraries', which supports
     # glob characters. For example, we have a package with a name 'abc-abc'.
     # Now, we don't know if the original name of the package is 'abc_abc'
@@ -720,18 +772,29 @@ def _libs_default_handler(descriptor, spec, cls):
     # depending on which one exists (there is a possibility, of course, to
     # get something like 'libabcXabc.so, but for now we consider this
     # unlikely).
-    name = spec.name.replace('-', '?')
+    try:
+        names = spec.package.libs_names
+    except AttributeError:
+        names = [spec.name.replace('-', '?')]
+    else:
+        if not names and not params:  # No libraries to export
+            return LibraryList([])
+        if isinstance(names, string_types):
+            names = [names]
+
+    # Prepend any names from params - assuming that any extra libraries will
+    # generally depend on the base libraries.
+    names = params + names
 
     # Avoid double 'lib' for packages whose names already start with lib
-    if not name.startswith('lib'):
-        name = 'lib' + name
+    names = [n if n.startswith('lib') else 'lib' + n for n in names]
 
     # To speedup the search for external packages configured e.g. in /usr,
-    # perform first non-recursive search in prefix.lib then in prefix.lib64 and
+    # perform first non-recursive search in prefix.lib64 then in prefix.lib and
     # finally search all of prefix recursively. The search stops when the first
     # match is found.
     prefix = spec.prefix
-    search_paths = [(prefix.lib, False), (prefix.lib64, False), (prefix, True)]
+    search_paths = [(prefix.lib64, False), (prefix.lib, False), (prefix, True)]
 
     # If '+shared' search only for shared library; if '~shared' search only for
     # static library; otherwise, first search for shared and then for static.
@@ -741,7 +804,7 @@ def _libs_default_handler(descriptor, spec, cls):
     for shared in search_shared:
         for path, recursive in search_paths:
             libs = find_libraries(
-                name, root=path, shared=shared, recursive=recursive
+                names, root=path, shared=shared, recursive=recursive
             )
             if libs:
                 return libs

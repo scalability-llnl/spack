@@ -31,12 +31,11 @@ class Zlib(Package):
 
     patch('w_patch.patch', when="@1.2.11%cce")
 
-    @property
-    def libs(self):
-        shared = '+shared' in self.spec
-        return find_libraries(
-            ['libz'], root=self.prefix, recursive=True, shared=shared
-        )
+    # The following attribute is used by the default 'headers' handler.
+    headers_names = ['zlib.h']
+
+    # The following attribute is used by the default 'libs' handler.
+    libs_names = ['libz']
 
     def setup_environment(self, spack_env, run_env):
         if '+pic' in self.spec:
