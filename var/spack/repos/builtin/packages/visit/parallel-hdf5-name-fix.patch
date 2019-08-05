@@ -1,0 +1,11 @@
+diff -Naur a/src/CMake/FindHDF5.cmake b/src/CMake/FindHDF5.cmake
+--- a/src/CMake/FindHDF5.cmake	2019-06-26 14:22:19.603108618 -0400
++++ b/src/CMake/FindHDF5.cmake	2019-06-26 14:23:22.006711971 -0400
+@@ -73,6 +73,6 @@
+ ELSE()
+   SET_UP_THIRD_PARTY(HDF5 lib include hdf5)
+   IF(VISIT_PARALLEL)
+-      SET_UP_THIRD_PARTY(HDF5_MPI lib include hdf5_mpi)
++      SET_UP_THIRD_PARTY(HDF5_MPI lib include hdf5)
+   ENDIF(VISIT_PARALLEL)
+ ENDIF()

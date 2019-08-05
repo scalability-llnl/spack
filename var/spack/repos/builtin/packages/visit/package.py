@@ -34,6 +34,13 @@ class Visit(CMakePackage):
     depends_on('hdf5', when='+hdf5')
     depends_on('mpi', when='+mpi')
 
+    patch('parallel-hdf5-name-fix.patch', when='+hdf5 +mpi')
+    patch('https://aur.archlinux.org/cgit/aur.git/plain/fix_type.patch?h=visit',
+            level=0,
+            working_dir='src',
+            sha256=('9357fef64b4008a1044a804638ab1e2b'
+                    '8ca2faaec0bcc8cd4890fc3469017892'))
+
     conflicts('+hdf5', when='~gui')
     conflicts('+silo', when='~gui')
 
