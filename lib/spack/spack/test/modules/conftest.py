@@ -15,7 +15,6 @@ from six import StringIO
 import spack.paths
 import spack.spec
 import spack.modules.common
-import spack.util.path
 
 
 @pytest.fixture()
@@ -115,7 +114,7 @@ def patch_configuration(monkeypatch, request):
 def update_template_dirs(config, monkeypatch):
     """Mocks the template directories for tests"""
     dirs = spack.config.get_config('config')['template_dirs']
-    dirs = [spack.util.path.canonicalize_path(x) for x in dirs]
+    dirs = [spack.config.canonicalize_path(x) for x in dirs]
     monkeypatch.setattr(spack, 'template_dirs', dirs)
 
 

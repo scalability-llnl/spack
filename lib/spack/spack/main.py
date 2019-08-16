@@ -33,7 +33,6 @@ import spack.paths
 import spack.repo
 import spack.store
 import spack.util.debug
-import spack.util.path
 from spack.error import SpackError
 
 
@@ -585,7 +584,7 @@ def print_setup_info(*info):
         'lmod': list()
     }
     for name, path in module_roots.items():
-        path = spack.util.path.canonicalize_path(path)
+        path = spack.config.canonicalize_path(path)
         module_to_roots[name].append(path)
 
     other_spack_instances = spack.config.get(

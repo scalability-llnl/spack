@@ -34,6 +34,9 @@ import copy
 import os
 import sys
 import multiprocessing
+import re
+import getpass
+import tempfile
 from contextlib import contextmanager
 from six import string_types
 from six import iteritems
@@ -557,12 +560,17 @@ def override(path_or_scope, value=None):
 command_line_scopes = []
 
 
+def _platform_scope(scope_name):
+    platform = spack.architecture.platform().name
+    return '%s/%s' % (scope_name, platform)
+
+
 def _add_platform_scope(cfg, scope_type, name, path):
     """Add a platform-specific subdirectory for the current platform."""
+    plat_scope_name = _platform_scope(name)
     platform = spack.architecture.platform().name
-    plat_name = '%s/%s' % (name, platform)
     plat_path = os.path.join(path, platform)
-    cfg.push_scope(scope_type(plat_name, plat_path))
+    cfg.push_scope(scope_type(plat_scope_name, plat_path))
 
 
 def _add_command_line_scopes(cfg, command_line_scopes):
@@ -808,13 +816,35 @@ def _merge_yaml(dest, source):
 #
 # Settings for commands that modify configuration
 #
-def default_modify_scope():
+def default_modify_scope(section):
     """Return the config scope that commands should modify by default.
 
     Commands that modify configuration by default modify the *highest*
     priority scope.
     """
-    return spack.config.config.highest_precedence_scope().name
+    default_edit_scope = spack.config.get('config:default_edit_scope')
+    if not default_edit_scope:
+        default_edit_scope = 'user'
+    platform_scope = _platform_scope(default_edit_scope)
+    if section == 'compilers':
+        # compiler config should always use the platform scope regardless of
+        # whether the associated config file exists
+        if platform_scope in spack.config.config.scopes:
+            return platform_scope
+        else:
+            tty.warn("No associated platform scope for {0},"
+                     " using {0} as default edit scope for compilers"
+                     .format(default_edit_scope))
+    elif (platform_scope in spack.config.config.scopes) and (
+        spack.config.config.scopes[platform_scope].get_section(section)
+    ):
+        # for all sections other than compiler config, we edit the associated
+        # platform scope *if* an associated file exists
+        return platform_scope
+
+    # In other cases we return the default scope (this may be a platform scope
+    # if the user explicitly requested it)
+    return substitute_config_variables(default_edit_scope)
 
 
 def default_list_scope():
@@ -907,3 +937,46 @@ class ConfigFormatError(ConfigError):
 
         # give up and return None if nothing worked
         return None
+
+
+def _config_variable_substitutions():
+    return {
+        'spack': spack.paths.prefix,
+        'user': getpass.getuser(),
+        'tempdir': tempfile.gettempdir(),
+        'platform': spack.architecture.platform().name,
+    }
+
+
+def substitute_config_variables(path):
+    """Substitute placeholders into paths.
+
+    Spack allows paths in configs to have some placeholders, as follows:
+
+    - $spack     The Spack instance's prefix
+    - $user      The current user's username
+    - $tempdir   Default temporary directory returned by tempfile.gettempdir()
+
+    These are substituted case-insensitively into the path, and users can
+    use either ``$var`` or ``${var}`` syntax for the variables.
+
+    """
+    replacements = _config_variable_substitutions()
+
+    # Look up replacements for re.sub in the replacements dict.
+    def repl(match):
+        m = match.group(0).strip('${}')
+        return replacements.get(m.lower(), match.group(0))
+
+    # Replace $var or ${var}.
+    return re.sub(r'(\$\w+\b|\$\{\w+\})', repl, path)
+
+
+def canonicalize_path(path):
+    """Substitute config vars, expand environment vars,
+       expand user home, take abspath."""
+    path = substitute_config_variables(path)
+    path = os.path.expandvars(path)
+    path = os.path.expanduser(path)
+    path = os.path.abspath(path)
+    return path

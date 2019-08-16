@@ -37,7 +37,7 @@ def setup_parser(subparser):
     find_parser.add_argument('add_paths', nargs=argparse.REMAINDER)
     find_parser.add_argument(
         '--scope', choices=scopes, metavar=scopes_metavar,
-        default=spack.config.default_modify_scope(),
+        default=spack.config.default_modify_scope('compilers'),
         help="configuration scope to modify")
 
     # Remove
@@ -49,7 +49,7 @@ def setup_parser(subparser):
     remove_parser.add_argument('compiler_spec')
     remove_parser.add_argument(
         '--scope', choices=scopes, metavar=scopes_metavar,
-        default=spack.config.default_modify_scope(),
+        default=spack.config.default_modify_scope('compilers'),
         help="configuration scope to modify")
 
     # List

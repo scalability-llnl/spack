@@ -29,7 +29,6 @@ import llnl.util.lang
 
 import spack.paths
 import spack.config
-import spack.util.path
 import spack.database
 import spack.directory_layout
 
@@ -71,7 +70,7 @@ class Store(object):
 def _store():
     """Get the singleton store instance."""
     root = spack.config.get('config:install_tree', default_root)
-    root = spack.util.path.canonicalize_path(root)
+    root = spack.config.canonicalize_path(root)
 
     return Store(root,
                  spack.config.get('config:install_path_scheme'),

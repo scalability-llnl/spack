@@ -13,7 +13,7 @@ import spack.paths
 import spack.config
 import spack.fetch_strategy
 import spack.util.file_cache
-from spack.util.path import canonicalize_path
+from spack.config import canonicalize_path
 
 
 def _misc_cache():

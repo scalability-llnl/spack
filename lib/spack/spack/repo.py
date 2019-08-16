@@ -39,7 +39,7 @@ import spack.spec
 import spack.util.spack_json as sjson
 import spack.util.imp as simp
 from spack.provider_index import ProviderIndex
-from spack.util.path import canonicalize_path
+from spack.config import canonicalize_path
 from spack.util.naming import NamespaceTrie, valid_module_name
 from spack.util.naming import mod_to_class, possible_spack_module_names
 

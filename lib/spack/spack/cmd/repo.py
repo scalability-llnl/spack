@@ -44,7 +44,7 @@ def setup_parser(subparser):
         'path', help="path to a Spack package repository directory")
     add_parser.add_argument(
         '--scope', choices=scopes, metavar=scopes_metavar,
-        default=spack.config.default_modify_scope(),
+        default=spack.config.default_modify_scope('repos'),
         help="configuration scope to modify")
 
     # Remove
@@ -55,7 +55,7 @@ def setup_parser(subparser):
         help="path or namespace of a Spack package repository")
     remove_parser.add_argument(
         '--scope', choices=scopes, metavar=scopes_metavar,
-        default=spack.config.default_modify_scope(),
+        default=spack.config.default_modify_scope('repos'),
         help="configuration scope to modify")
 
 

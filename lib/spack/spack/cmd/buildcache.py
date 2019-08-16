@@ -130,7 +130,7 @@ def setup_parser(subparser):
 
     check.add_argument(
         '--scope', choices=scopes, metavar=scopes_metavar,
-        default=spack.config.default_modify_scope(),
+        default=spack.config.default_modify_scope('mirrors'),
         help="configuration scope containing mirrors to check")
 
     check.add_argument(

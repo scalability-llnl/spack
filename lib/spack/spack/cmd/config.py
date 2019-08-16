@@ -57,11 +57,10 @@ def setup_parser(subparser):
         help="print the file name that would be edited")
 
 
-def _get_scope_and_section(args):
+def _get_scope_and_section(args, edit=True):
     """Extract config scope and section from arguments."""
     scope = args.scope
     section = args.section
-
     # w/no args and an active environment, point to env manifest
     if not args.section:
         env = ev.get_env(args, 'config edit')
@@ -70,10 +69,10 @@ def _get_scope_and_section(args):
 
     # set scope defaults
     elif not args.scope:
-        if section == 'compilers':
-            scope = spack.config.default_modify_scope()
+        if edit:
+            scope = spack.config.default_modify_scope(section)
         else:
-            scope = 'user'
+            scope = spack.config.default_list_scope()
 
     return scope, section
 
@@ -85,7 +84,7 @@ def config_get(args):
     the environment's manifest file (spack.yaml).
 
     """
-    scope, section = _get_scope_and_section(args)
+    scope, section = _get_scope_and_section(args, edit=False)
 
     if scope and scope.startswith('env:'):
         config_file = spack.config.config.get_config_filename(scope, section)

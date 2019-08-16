@@ -23,7 +23,7 @@ import spack.schema.packages
 import spack.schema.mirrors
 import spack.schema.repos
 import spack.util.spack_yaml as syaml
-from spack.util.path import canonicalize_path
+from spack.config import canonicalize_path
 
 
 # sample config data
@@ -346,6 +346,11 @@ def test_substitute_tempdir(mock_config):
     )
 
 
+def test_substitute_platform(mock_config):
+    assert '/path/to/base/test' == canonicalize_path(
+        '/path/to/base/$platform')
+
+
 def test_read_config(mock_config, write_config_file):
     write_config_file('config', config_low, 'low')
     assert spack.config.get('config') == config_low['config']
@@ -616,7 +621,7 @@ def test_bad_command_line_scopes(tmpdir, mock_config):
 def test_add_command_line_scopes(tmpdir, mutable_config):
     config_yaml = str(tmpdir.join('config.yaml'))
     with open(config_yaml, 'w') as f:
-            f.write("""\
+        f.write("""\
 config:
     verify_ssl: False
     dirty: False

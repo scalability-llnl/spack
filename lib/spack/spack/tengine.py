@@ -10,7 +10,7 @@ import llnl.util.lang
 import six
 
 import spack.config
-from spack.util.path import canonicalize_path
+from spack.config import canonicalize_path
 
 
 TemplateNotFound = jinja2.TemplateNotFound

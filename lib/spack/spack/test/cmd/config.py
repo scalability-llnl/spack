@@ -44,17 +44,33 @@ repos:
 - repo3'''
 
 
-def test_config_edit():
+def test_config_edit(mutable_config):
     """Ensure `spack config edit` edits the right paths."""
-    dms = spack.config.default_modify_scope()
-    dms_path = spack.config.config.scopes[dms].path
     user_path = spack.config.config.scopes['user'].path
 
-    comp_path = os.path.join(dms_path, 'compilers.yaml')
     repos_path = os.path.join(user_path, 'repos.yaml')
 
-    assert config('edit', '--print-file', 'compilers').strip() == comp_path
     assert config('edit', '--print-file', 'repos').strip() == repos_path
+
+    platform = spack.config.substitute_config_variables('$platform')
+    platform_path = os.path.join(user_path, platform)
+    mutable_config.push_scope(
+        spack.config.ConfigScope('user/' + platform, platform_path))
+    os.makedirs(platform_path)
+
+    compilers_platform_path = os.path.join(platform_path, 'compilers.yaml')
+    # Always return the platform-specific path for compilers regardless of
+    # whether the file exists
+    assert config('edit', '--print-file', 'compilers').strip() == (
+        compilers_platform_path)
+
+    repos_platform_path = os.path.join(platform_path, 'repos.yaml')
+    with open(repos_platform_path, 'w') as config_file:
+        config_file.write("""repos: []
+""")
+    # Now that a platform-specific repo config exists, that should be returned
+    assert config('edit', '--print-file', 'repos').strip() == (
+        repos_platform_path)
 
 
 def test_config_get_gets_spack_yaml(mutable_mock_env_path):

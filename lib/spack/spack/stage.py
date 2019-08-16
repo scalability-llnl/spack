@@ -25,7 +25,7 @@ import spack.error
 import spack.util.lock
 import spack.fetch_strategy as fs
 import spack.util.pattern as pattern
-import spack.util.path as sup
+from spack.config import canonicalize_path, substitute_config_variables
 from spack.util.crypto import prefix_bits, bit_length
 
 _source_path_subdir = 'spack-src'
@@ -37,7 +37,7 @@ def _first_accessible_path(paths):
     for path in paths:
         try:
             # try to create the path if it doesn't exist.
-            path = sup.canonicalize_path(path)
+            path = canonicalize_path(path)
             mkdirp(path)
 
             # ensure accessible
@@ -76,7 +76,7 @@ def get_tmp_root():
             raise StageError("No accessible stage paths in:", candidates)
 
         # Return None to indicate we're using a local staging area.
-        if path == sup.canonicalize_path(spack.paths.stage_path):
+        if path == canonicalize_path(spack.paths.stage_path):
             _use_tmp_stage = False
             return None
 
@@ -359,8 +359,8 @@ class Stage(object):
             # urljoin() will strip everything past the final '/' in
             # the root, so we add a '/' if it is not present.
             mir_roots = [
-                sup.substitute_path_variables(root) if root.endswith(os.sep)
-                else sup.substitute_path_variables(root) + os.sep
+                substitute_config_variables(root) if root.endswith(os.sep)
+                else substitute_config_variables(root) + os.sep
                 for root in mirrors.values()]
             urls = [urljoin(root, self.mirror_path) for root in mir_roots]
 

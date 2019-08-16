@@ -43,8 +43,6 @@ import spack.paths
 import spack.build_environment as build_environment
 import spack.util.environment
 import spack.tengine as tengine
-import spack.util.path
-import spack.util.environment
 import spack.error
 import spack.util.spack_yaml as syaml
 import spack.util.file_permissions as fp
@@ -220,7 +218,7 @@ def root_path(name):
         root folder for module file installation
     """
     path = roots.get(name, os.path.join(spack.paths.share_path, name))
-    return spack.util.path.canonicalize_path(path)
+    return spack.config.canonicalize_path(path)
 
 
 def generate_module_index(root, modules):

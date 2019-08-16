@@ -66,6 +66,11 @@ config:
   verify_ssl: true
 
 
+  # When editing a configuration section, this is the default scope
+  # that the user edits
+  default_edit_scope: user
+
+
   # If set to true, Spack will attempt to build any compiler on the spec
   # that is not already available. If set to False, Spack will only use
   # compilers already configured in compilers.yaml
