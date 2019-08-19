@@ -57,6 +57,7 @@ def test_info_fields(pkg_query, parser, info_lines):
 
     expected_fields = (
         'Description:',
+        'Caveats:',
         'Homepage:',
         'Safe versions:',
         'Variants:',

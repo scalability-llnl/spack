@@ -2255,6 +2255,23 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
             results.write((" " * indent) + line + "\n")
         return results.getvalue()
 
+    def format_caveats(self, **kwargs):
+        """Trim trailing white space and indent"""
+        indent = kwargs.get('indent', 0)
+
+        if not self.caveats():
+            return ""
+
+        c = self.caveats()
+        c = c.rstrip()
+        lines = c.split('\n')
+        lines = [(indent * ' ') + line for line in lines]
+        c = "\n".join(lines)
+        return c
+
+    def caveats(self):
+        return ""
+
     @property
     def all_urls(self):
         """A list of all URLs in a package.

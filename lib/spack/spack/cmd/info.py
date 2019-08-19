@@ -141,6 +141,13 @@ def print_text_info(pkg):
     else:
         color.cprint("    None")
 
+    color.cprint(section_title('Caveats:'))
+    if pkg.caveats():
+        color.cprint(color.cescape(pkg.format_caveats(indent=4)))
+    else:
+        color.cprint("    None")
+    print("")                   # consistent line spacing, caveat or not
+
     color.cprint(section_title('Homepage: ') + pkg.homepage)
 
     if len(pkg.maintainers) > 0:

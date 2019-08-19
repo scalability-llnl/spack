@@ -64,6 +64,8 @@ class {class_name}({base_class_name}):
 
 {dependencies}
 
+{caveats}
+
 {body}
 '''
 
@@ -83,6 +85,22 @@ class PackageTemplate(object):
         make()
         make('install')"""
 
+    caveats = """\
+    # FIXME: Description of package caveats; for example, steps
+    # users must take post-install.
+    # Delete this entirely if there are no caveats.
+    # It is called from a post_install hook with a concrete
+    # spec and from `spack info` with a simple spec, you should
+    # handle both cases.
+    # def caveats(self):
+    #     '''Documents package caveats'''
+    #     # if self.spec.concrete:
+    #     #     e.g. can use self.spec.prefix here
+    #     # else:
+    #     #     e.g. must use default/example values here
+    #     warnings = "Things the user should know..."
+    #     return warnings"""
+
     def __init__(self, name, url, versions):
         self.name       = name
         self.class_name = mod_to_class(name)
@@ -101,7 +119,8 @@ class PackageTemplate(object):
                 url=self.url,
                 versions=self.versions,
                 dependencies=self.dependencies,
-                body=self.body))
+                body=self.body,
+                caveats=self.caveats))
 
 
 class AutotoolsPackageTemplate(PackageTemplate):
