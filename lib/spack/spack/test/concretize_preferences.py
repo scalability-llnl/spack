@@ -88,13 +88,73 @@ class TestConcretizePreferences(object):
     def test_preferred_compilers(self, mutable_mock_packages):
         """Test preferred compilers are applied correctly
         """
+        clang_spec = spack.spec.CompilerSpec('clang@3.3')
+        gcc_spec = spack.spec.CompilerSpec('gcc@4.5.0')
+
         update_packages('mpileaks', 'compiler', ['clang@3.3'])
         spec = concretize('mpileaks')
-        assert spec.compiler == spack.spec.CompilerSpec('clang@3.3')
+        assert spec.compiler == clang_spec
+        assert spec['callpath'].compiler == clang_spec
+        assert spec['mpi'].compiler == clang_spec
+
+        spec = concretize('mpileaks%gcc@4.5.0')
+        assert spec.compiler == gcc_spec
+        assert spec['callpath'].compiler == gcc_spec
+        assert spec['mpi'].compiler == gcc_spec
 
         update_packages('mpileaks', 'compiler', ['gcc@4.5.0'])
         spec = concretize('mpileaks')
-        assert spec.compiler == spack.spec.CompilerSpec('gcc@4.5.0')
+        assert spec.compiler == gcc_spec
+        assert spec['callpath'].compiler == gcc_spec
+        assert spec['mpi'].compiler == gcc_spec
+
+        spec = concretize('mpileaks%clang@3.3')
+        assert spec.compiler == clang_spec
+        assert spec['callpath'].compiler == clang_spec
+        assert spec['mpi'].compiler == clang_spec
+
+        update_packages('all', 'compiler', ['clang@3.3'])
+        spec = concretize('mpileaks')
+        assert spec.compiler == clang_spec
+        assert spec['callpath'].compiler == clang_spec
+        assert spec['mpi'].compiler == clang_spec
+
+        spec = concretize('mpileaks%gcc@4.5.0')
+        assert spec.compiler == gcc_spec
+        assert spec['callpath'].compiler == gcc_spec
+        assert spec['mpi'].compiler == gcc_spec
+
+        update_packages('all', 'compiler', ['gcc@4.5.0'])
+        spec = concretize('mpileaks')
+        assert spec.compiler == gcc_spec
+        assert spec['callpath'].compiler == gcc_spec
+        assert spec['mpi'].compiler == gcc_spec
+
+        spec = concretize('mpileaks%clang@3.3')
+        assert spec.compiler == clang_spec
+        assert spec['callpath'].compiler == clang_spec
+        assert spec['mpi'].compiler == clang_spec
+
+        update_packages('callpath', 'compiler', ['clang@3.3'])
+        spec = concretize('mpileaks')
+        assert spec.compiler == gcc_spec
+        assert spec['callpath'].compiler == clang_spec
+        assert spec['mpi'].compiler == gcc_spec
+
+        spec = concretize('mpileaks%gcc@4.5.0')
+        assert spec.compiler == gcc_spec
+        assert spec['callpath'].compiler == gcc_spec
+        assert spec['mpi'].compiler == gcc_spec
+
+        spec = concretize('mpileaks ^callpath%gcc@4.5.0')
+        assert spec.compiler == gcc_spec
+        assert spec['callpath'].compiler == gcc_spec
+        assert spec['mpi'].compiler == gcc_spec
+
+        spec = concretize('mpileaks ^mpich%gcc@4.5.0')
+        assert spec.compiler == gcc_spec
+        assert spec['callpath'].compiler == clang_spec
+        assert spec['mpi'].compiler == gcc_spec
 
     def test_preferred_versions(self):
         """Test preferred package versions are applied correctly

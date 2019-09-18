@@ -306,7 +306,7 @@ top-level package, we can also specify about a dependency using ``^``.
 
 .. code-block:: console
 
-  $ spack install tcl ^zlib @1.2.8 %clang
+  $ spack install tcl %clang ^zlib @1.2.8
   ==> Installing zlib
   ==> Searching for binary cache of zlib
   ==> Finding buildcaches in /mirror/build_cache

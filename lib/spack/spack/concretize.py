@@ -313,10 +313,49 @@ class Concretizer(object):
             return False
 
         # Find another spec that has a compiler, or the root if none do
-        other_spec = spec if spec.compiler else find_spec(
-            spec, lambda x: x.compiler, spec.root)
+        try:
+            other_spec = spec if spec.compiler else next(
+                p for p in spec.traverse(direction='parents') if p.compiler)
+        except StopIteration:
+            other_spec = spec.root
+
         other_compiler = other_spec.compiler
         assert(other_spec)
+
+        def fetch_compiler_prefs(spec, other_spec, compiler_list):
+            if not other_spec:
+                # Only fall back to 'all' preferences if looking at other specs
+                other_spec = spec
+                if not PackagePrefs.has_preferred_compiler(spec.name):
+                    return False
+
+            # By default, prefer later versions of compilers
+            compiler_list = sorted(
+                compiler_list, key=lambda x: (x.name, x.version), reverse=True)
+            ppk = PackagePrefs(other_spec.name, 'compiler')
+            matches = sorted(compiler_list, key=ppk)
+
+            # copy concrete version into other_compiler
+            try:
+                spec.compiler = next(
+                    c for c in matches
+                    if _proper_compiler_style(c, spec.architecture)).copy()
+            except StopIteration:
+                # No compiler with a satisfactory spec has a suitable arch
+                _compiler_concretization_failure(
+                    other_compiler, spec.architecture)
+
+            assert(spec.compiler.concrete)
+            return True
+
+        if not spec.compiler and not other_compiler:
+            # Only use compiler preferences if compiler has not been overriden
+            compiler_list = spack.compilers.all_compiler_specs()
+            if not compiler_list:
+                # Spack has no compilers.
+                raise spack.compilers.NoCompilersError()
+            if fetch_compiler_prefs(spec, None, compiler_list):
+                return True
 
         # Check if the compiler is already fully specified
         if other_compiler and other_compiler.concrete:
@@ -352,23 +391,7 @@ class Concretizer(object):
                 # Spack has no compilers.
                 raise spack.compilers.NoCompilersError()
 
-        # By default, prefer later versions of compilers
-        compiler_list = sorted(
-            compiler_list, key=lambda x: (x.name, x.version), reverse=True)
-        ppk = PackagePrefs(other_spec.name, 'compiler')
-        matches = sorted(compiler_list, key=ppk)
-
-        # copy concrete version into other_compiler
-        try:
-            spec.compiler = next(
-                c for c in matches
-                if _proper_compiler_style(c, spec.architecture)).copy()
-        except StopIteration:
-            # No compiler with a satisfactory spec has a suitable arch
-            _compiler_concretization_failure(
-                other_compiler, spec.architecture)
-
-        assert(spec.compiler.concrete)
+        fetch_compiler_prefs(spec, other_spec, compiler_list)
         return True  # things changed.
 
     def concretize_compiler_flags(self, spec):

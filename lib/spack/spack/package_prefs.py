@@ -164,6 +164,11 @@ class PackagePrefs(object):
         cls._spec_cache = {}
 
     @classmethod
+    def has_preferred_compiler(cls, pkgname):
+        """Whether specific package has a preferred compiler."""
+        return bool(cls.order_for_package(pkgname, 'compiler', None, False))
+
+    @classmethod
     def has_preferred_providers(cls, pkgname, vpkg):
         """Whether specific package has a preferred vpkg providers."""
         return bool(cls.order_for_package(pkgname, 'providers', vpkg, False))

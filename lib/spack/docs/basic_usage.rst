@@ -712,8 +712,9 @@ A compiler version specifier looks exactly like a package version
 specifier.  Version specifiers will associate with the nearest package
 name or compiler specifier to their left in the spec.
 
-If the compiler spec is omitted, Spack will choose a default compiler
-based on site policies.
+A compiler specifier will apply to the package it has been specified
+for (the nearest one to the left) and all of its children. If the compiler
+spec is omitted, Spack will choose a default compiler based on site policies.
 
 
 .. _basic-variants:
