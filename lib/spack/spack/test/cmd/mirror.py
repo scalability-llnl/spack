@@ -60,7 +60,7 @@ def test_mirror_paths(tmpdir, capfd, mock_packages, mock_archive):
 
             # register mirror with spack config
             # use relative path here!
-            mirrors = {'spack-mirror-test': 'file://' + 
+            mirrors = {'spack-mirror-test': 'file://' +
                                             os.path.relpath(mirror_root)}
             spack.config.set('mirrors', mirrors)
 
