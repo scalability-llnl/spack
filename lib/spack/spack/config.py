@@ -74,23 +74,6 @@ section_schemas = {
     'upstreams': spack.schema.upstreams.schema
 }
 
-#: Builtin paths to configuration files in Spack
-configuration_paths = (
-    # Default configuration scope is the lowest-level scope. These are
-    # versioned with Spack and can be overridden by systems, sites or users
-    ('defaults', os.path.join(spack.paths.etc_path, 'spack', 'defaults')),
-
-    # System configuration is per machine.
-    # No system-level configs should be checked into spack by default
-    ('system', os.path.join(spack.paths.system_etc_path, 'spack')),
-
-    # Site configuration is per spack instance, for sites or projects
-    # No site-level configs should be checked into spack by default.
-    ('site', os.path.join(spack.paths.etc_path, 'spack')),
-
-    # User configuration can override both spack defaults and site config
-    ('user', spack.paths.user_config_path)
-)
 
 #: Hard-coded default values for some key configuration options.
 #: This ensures that Spack will still work even if config.yaml in
@@ -120,6 +103,54 @@ def first_existing(dictionary, keys):
         return next(k for k in keys if k in dictionary)
     except StopIteration:
         raise KeyError("None of %s is in dict!" % keys)
+
+
+def _mark_overrides(data):
+    if isinstance(data, list):
+        return syaml.syaml_list(_mark_overrides(elt) for elt in data)
+
+    elif isinstance(data, dict):
+        marked = syaml.syaml_dict()
+        for key, val in iteritems(data):
+            if isinstance(key, string_types) and key.endswith(':'):
+                key = syaml.syaml_str(key[:-1])
+                key.override = True
+            marked[key] = _mark_overrides(val)
+        return marked
+
+    else:
+        return data
+
+
+def _read_config_file(filename, schema):
+    """Read a YAML configuration file."""
+    # Ignore nonexisting files.
+    if not os.path.exists(filename):
+        return None
+
+    elif not os.path.isfile(filename):
+        raise ConfigFileError(
+            "Invalid configuration. %s exists but is not a file." % filename)
+
+    elif not os.access(filename, os.R_OK):
+        raise ConfigFileError("Config file is not readable: %s" % filename)
+
+    try:
+        tty.debug("Reading config file %s" % filename)
+        with open(filename) as f:
+            data = _mark_overrides(syaml.load(f))
+
+        if data:
+            validate(data, schema)
+        return data
+
+    except MarkedYAMLError as e:
+        raise ConfigFileError(
+            "Error parsing yaml%s: %s" % (str(e.context_mark), e.problem))
+
+    except IOError as e:
+        raise ConfigFileError(
+            "Error reading configuration file %s: %s" % (filename, str(e)))
 
 
 class ConfigScope(object):
@@ -268,6 +299,123 @@ class ImmutableConfigScope(ConfigScope):
 
     def __repr__(self):
         return '<ImmutableConfigScope: %s: %s>' % (self.name, self.path)
+
+
+def validate(data, schema, set_defaults=True):
+    """Validate data read in from a Spack YAML file.
+
+    Arguments:
+        data (dict or list): data read from a Spack YAML file
+        schema (dict or list): jsonschema to validate data
+        set_defaults (bool): whether to set defaults based on the schema
+
+    This leverages the line information (start_mark, end_mark) stored
+    on Spack YAML structures.
+    """
+    import jsonschema
+    try:
+        spack.schema.Validator(schema).validate(data)
+    except jsonschema.ValidationError as e:
+        raise ConfigFormatError(e, data)
+
+
+def _mark_internal(data, name):
+    """Add a simple name mark to raw YAML/JSON data.
+
+    This is used by `spack config blame` to show where config lines came from.
+    """
+    if isinstance(data, dict):
+        d = syaml.syaml_dict((_mark_internal(k, name), _mark_internal(v, name))
+                             for k, v in data.items())
+    elif isinstance(data, list):
+        d = syaml.syaml_list(_mark_internal(e, name) for e in data)
+    else:
+        d = syaml.syaml_type(data)
+
+    if syaml.markable(d):
+        d._start_mark = yaml.Mark(name, None, None, None, None, None)
+        d._end_mark = yaml.Mark(name, None, None, None, None, None)
+
+    return d
+
+
+def _merge_yaml(dest, source):
+    """Merges source into dest; entries in source take precedence over dest.
+
+    This routine may modify dest and should be assigned to dest, in
+    case dest was None to begin with, e.g.:
+
+       dest = _merge_yaml(dest, source)
+
+    Config file authors can optionally end any attribute in a dict
+    with `::` instead of `:`, and the key will override that of the
+    parent instead of merging.
+
+    """
+    def they_are(t):
+        return isinstance(dest, t) and isinstance(source, t)
+
+    # If both are None, handle specially and return None.
+    if source is None and dest is None:
+        return None
+
+    # If source is None, overwrite with source.
+    elif source is None:
+        return None
+
+    # Source list is prepended (for precedence)
+    if they_are(list):
+        dest[:] = source + [x for x in dest if x not in source]
+        return dest
+
+    # Source dict is merged into dest.
+    elif they_are(dict):
+        # track keys for marking
+        key_marks = {}
+
+        for sk, sv in iteritems(source):
+            if _override(sk) or sk not in dest:
+                # if sk ended with ::, or if it's new, completely override
+                dest[sk] = copy.copy(sv)
+            else:
+                # otherwise, merge the YAML
+                dest[sk] = _merge_yaml(dest[sk], source[sk])
+
+            # this seems unintuitive, but see below. We need this because
+            # Python dicts do not overwrite keys on insert, and we want
+            # to copy mark information on source keys to dest.
+            key_marks[sk] = sk
+
+        # ensure that keys are marked in the destination.  the key_marks dict
+        # ensures we can get the actual source key objects from dest keys
+        for dk in dest.keys():
+            if dk in key_marks:
+                syaml.mark(dk, key_marks[dk])
+
+        return dest
+
+    # In any other case, overwrite with a copy of the source value.
+    else:
+        return copy.copy(source)
+
+
+def _validate_section_name(section):
+    """Exit if the section is not a valid section."""
+    if section not in section_schemas:
+        raise ConfigSectionError(
+            "Invalid config section: '%s'. Options are: %s"
+            % (section, " ".join(section_schemas.keys())))
+
+
+def _override(string):
+    """Test if a spack YAML string is an override.
+
+    See ``spack_yaml`` for details.  Keys in Spack YAML can end in `::`,
+    and if they do, their values completely replace lower-precedence
+    configs instead of merging into them.
+
+    """
+    return hasattr(string, 'override') and string.override
 
 
 class InternalConfigScope(ConfigScope):
@@ -610,6 +758,56 @@ def _add_command_line_scopes(cfg, command_line_scopes):
         _add_platform_scope(cfg, ImmutableConfigScope, name, path)
 
 
+# to empower setting of a custom user configuration path
+# we create a temporary configuration that pulls in the
+# default value of user_path; users should replace this value in one
+# of the higher priority scopes (except the user scope itself
+# of course); early_fetch_settings() will move through
+# the scopes and parse out user_path following the usual
+# scope hierarchy
+# the behavior of this approach is verified in
+# test_get_config_user_path_priority()
+
+def early_fetch_settings():
+    cfg_temp = Configuration()
+    defaults = InternalConfigScope('_builtin', config_defaults)
+
+    # the default scope should generally not be modified, but
+    # does contain the usual ~/.spack default for user_path
+    cfg_temp.push_scope(defaults)
+    cfg_temp.push_scope(ConfigScope('defaults',
+                        os.path.join(spack.paths.etc_path,
+                                     'spack', 'defaults')))
+    cfg_temp.push_scope(ConfigScope('system',
+                        os.path.join(spack.paths.system_etc_path,
+                                     'spack')))
+    cfg_temp.push_scope(ConfigScope('site',
+                        os.path.join(spack.paths.etc_path,
+                                     'spack')))
+    return cfg_temp
+
+
+config_temp = llnl.util.lang.Singleton(early_fetch_settings)
+
+#: Builtin paths to configuration files in Spack
+configuration_paths = (
+    # Default configuration scope is the lowest-level scope. These are
+    # versioned with Spack and can be overridden by systems, sites or users
+    ('defaults', os.path.join(spack.paths.etc_path, 'spack', 'defaults')),
+
+    # System configuration is per machine.
+    # No system-level configs should be checked into spack by default
+    ('system', os.path.join(spack.paths.system_etc_path, 'spack')),
+
+    # Site configuration is per spack instance, for sites or projects
+    # No site-level configs should be checked into spack by default.
+    ('site', os.path.join(spack.paths.etc_path, 'spack')),
+
+    # User configuration can override both spack defaults and site config
+    ('user', os.path.expanduser(config_temp.get('config:user_path')))
+)
+
+
 def _config():
     """Singleton Configuration instance.
 
@@ -641,6 +839,16 @@ def _config():
     # override configuration options.
     cfg.push_scope(InternalConfigScope('command_line'))
 
+    default_user_path = os.path.expanduser("~/.spack")
+    user_path = os.path.expanduser(cfg.get_config('config')['user_path'])
+
+    if user_path != default_user_path:
+        # the cached information on repos is re-rooted
+        # to user_path when set by user, otherwise
+        # we would still write to ~/.spack/cache even
+        # when no longer using ~/.spack for other purposes
+        cfg.update_config('config', {'misc_cache':
+                          os.path.join(user_path, 'cache')})
     return cfg
 
 
@@ -664,171 +872,6 @@ def set(path, value, scope=None):
 def scopes():
     """Convenience function to get list of configuration scopes."""
     return config.scopes
-
-
-def _validate_section_name(section):
-    """Exit if the section is not a valid section."""
-    if section not in section_schemas:
-        raise ConfigSectionError(
-            "Invalid config section: '%s'. Options are: %s"
-            % (section, " ".join(section_schemas.keys())))
-
-
-def validate(data, schema, set_defaults=True):
-    """Validate data read in from a Spack YAML file.
-
-    Arguments:
-        data (dict or list): data read from a Spack YAML file
-        schema (dict or list): jsonschema to validate data
-        set_defaults (bool): whether to set defaults based on the schema
-
-    This leverages the line information (start_mark, end_mark) stored
-    on Spack YAML structures.
-    """
-    import jsonschema
-    try:
-        spack.schema.Validator(schema).validate(data)
-    except jsonschema.ValidationError as e:
-        raise ConfigFormatError(e, data)
-
-
-def _read_config_file(filename, schema):
-    """Read a YAML configuration file."""
-    # Ignore nonexisting files.
-    if not os.path.exists(filename):
-        return None
-
-    elif not os.path.isfile(filename):
-        raise ConfigFileError(
-            "Invalid configuration. %s exists but is not a file." % filename)
-
-    elif not os.access(filename, os.R_OK):
-        raise ConfigFileError("Config file is not readable: %s" % filename)
-
-    try:
-        tty.debug("Reading config file %s" % filename)
-        with open(filename) as f:
-            data = _mark_overrides(syaml.load(f))
-
-        if data:
-            validate(data, schema)
-        return data
-
-    except MarkedYAMLError as e:
-        raise ConfigFileError(
-            "Error parsing yaml%s: %s" % (str(e.context_mark), e.problem))
-
-    except IOError as e:
-        raise ConfigFileError(
-            "Error reading configuration file %s: %s" % (filename, str(e)))
-
-
-def _override(string):
-    """Test if a spack YAML string is an override.
-
-    See ``spack_yaml`` for details.  Keys in Spack YAML can end in `::`,
-    and if they do, their values completely replace lower-precedence
-    configs instead of merging into them.
-
-    """
-    return hasattr(string, 'override') and string.override
-
-
-def _mark_overrides(data):
-    if isinstance(data, list):
-        return syaml.syaml_list(_mark_overrides(elt) for elt in data)
-
-    elif isinstance(data, dict):
-        marked = syaml.syaml_dict()
-        for key, val in iteritems(data):
-            if isinstance(key, string_types) and key.endswith(':'):
-                key = syaml.syaml_str(key[:-1])
-                key.override = True
-            marked[key] = _mark_overrides(val)
-        return marked
-
-    else:
-        return data
-
-
-def _mark_internal(data, name):
-    """Add a simple name mark to raw YAML/JSON data.
-
-    This is used by `spack config blame` to show where config lines came from.
-    """
-    if isinstance(data, dict):
-        d = syaml.syaml_dict((_mark_internal(k, name), _mark_internal(v, name))
-                             for k, v in data.items())
-    elif isinstance(data, list):
-        d = syaml.syaml_list(_mark_internal(e, name) for e in data)
-    else:
-        d = syaml.syaml_type(data)
-
-    if syaml.markable(d):
-        d._start_mark = yaml.Mark(name, None, None, None, None, None)
-        d._end_mark = yaml.Mark(name, None, None, None, None, None)
-
-    return d
-
-
-def _merge_yaml(dest, source):
-    """Merges source into dest; entries in source take precedence over dest.
-
-    This routine may modify dest and should be assigned to dest, in
-    case dest was None to begin with, e.g.:
-
-       dest = _merge_yaml(dest, source)
-
-    Config file authors can optionally end any attribute in a dict
-    with `::` instead of `:`, and the key will override that of the
-    parent instead of merging.
-
-    """
-    def they_are(t):
-        return isinstance(dest, t) and isinstance(source, t)
-
-    # If both are None, handle specially and return None.
-    if source is None and dest is None:
-        return None
-
-    # If source is None, overwrite with source.
-    elif source is None:
-        return None
-
-    # Source list is prepended (for precedence)
-    if they_are(list):
-        dest[:] = source + [x for x in dest if x not in source]
-        return dest
-
-    # Source dict is merged into dest.
-    elif they_are(dict):
-        # track keys for marking
-        key_marks = {}
-
-        for sk, sv in iteritems(source):
-            if _override(sk) or sk not in dest:
-                # if sk ended with ::, or if it's new, completely override
-                dest[sk] = copy.copy(sv)
-            else:
-                # otherwise, merge the YAML
-                dest[sk] = _merge_yaml(dest[sk], source[sk])
-
-            # this seems unintuitive, but see below. We need this because
-            # Python dicts do not overwrite keys on insert, and we want
-            # to copy mark information on source keys to dest.
-            key_marks[sk] = sk
-
-        # ensure that keys are marked in the destination.  the key_marks dict
-        # ensures we can get the actual source key objects from dest keys
-        for dk in dest.keys():
-            if dk in key_marks:
-                syaml.mark(dk, key_marks[dk])
-
-        return dest
-
-    # In any other case, overwrite with a copy of the source value.
-    else:
-        return copy.copy(source)
 
 
 #

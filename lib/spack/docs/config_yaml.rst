@@ -26,6 +26,30 @@ These settings can be overridden in ``etc/spack/config.yaml`` or
 The location where Spack will install packages and their dependencies.
 Default is ``$spack/opt/spack``.
 
+--------------------
+``user_path``
+--------------------
+
+The location of the user level configuration scope files. This may
+include a number of configuration and cache files and folders
+written by Spack. For example, if you add a mirror, this configuration
+update should be written using the path root provided by ``user_path``.
+
+It should be specified at the system or, perhaps
+most likely, site configuration scope, and might be used for
+example to prevent complications from multiple Spack instances
+writing to and depending on configuration data stored in the
+default ``~/.spack`` path when separated configurations and
+caches are more desirable.
+
+While setting ``user_path`` will automatically set the root of
+``misc_cache`` to include the new base path, it may still be useful
+to manually adjust ``build_stage`` to use a secondary/backup path
+that does not point to ``~/.spack/stage``.
+
+Setting ``user_path`` at configuration scopes with higher precedence
+than ``site`` is not currently supported.
+
 ---------------------------------------------------
 ``install_hash_length`` and ``install_path_scheme``
 ---------------------------------------------------

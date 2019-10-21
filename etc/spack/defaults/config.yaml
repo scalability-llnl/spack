@@ -18,6 +18,14 @@ config:
   # You can use $spack here to refer to the root of the spack instance.
   install_tree: $spack/opt/spack
 
+  # the repository default of ~/.spack will get expanded
+  # internally for backward compatibilty, but it is now
+  # also possible to specify a custom "user" directory
+  # for spack config; see gh-12892 and gh-13057
+  # paths not containing "~" will simply remain
+  # unchanged internally
+  user_path: "~/.spack"
+
 
   # Locations where templates should be found
   template_dirs:

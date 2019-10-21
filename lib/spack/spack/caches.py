@@ -24,7 +24,8 @@ def _misc_cache():
     """
     path = spack.config.get('config:misc_cache')
     if not path:
-        path = os.path.join(spack.paths.user_config_path, 'cache')
+        path = os.path.join(os.path.expanduser(
+                            spack.config.get('config:user_path')), 'cache')
     path = canonicalize_path(path)
 
     return spack.util.file_cache.FileCache(path)
