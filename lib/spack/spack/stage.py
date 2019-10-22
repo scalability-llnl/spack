@@ -398,6 +398,18 @@ class Stage(object):
         self.skip_checksum_for_mirror = True
         if self.mirror_path:
             mirrors = spack.config.get('mirrors')
+            path_string = 'file://'
+            # resolve relative paths to absolute for fetching
+            # purposes
+            for key in mirrors.keys():
+                current_path = mirrors[key]
+                target_path = current_path.replace(path_string, '')
+                if current_path.startswith(path_string) and not (
+                        os.path.isabs(target_path)):
+                    absolute_target_path = os.path.abspath(target_path)
+                    # we concatenate the paths because the prefix
+                    # path string "file://" is unnatural
+                    mirrors[key] = path_string + absolute_target_path
 
             # Join URLs of mirror roots with mirror paths. Because
             # urljoin() will strip everything past the final '/' in
