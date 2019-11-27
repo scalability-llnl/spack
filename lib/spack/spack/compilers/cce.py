@@ -24,8 +24,8 @@ class Cce(Compiler):
     # MacPorts builds gcc versions with prefixes and -mp-X.Y suffixes.
     suffixes = [r'-mp-\d\.\d']
 
-    PrgEnv = 'PrgEnv-cray'
-    PrgEnv_compiler = 'cce'
+    cray_prgenv_name = 'PrgEnv-cray'
+    cray_module_name = 'cce'
 
     link_paths = {'cc': 'cce/cc',
                   'cxx': 'cce/case-insensitive/CC',

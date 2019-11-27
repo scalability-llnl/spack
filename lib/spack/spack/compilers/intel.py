@@ -26,8 +26,8 @@ class Intel(Compiler):
                   'f77': 'intel/ifort',
                   'fc': 'intel/ifort'}
 
-    PrgEnv = 'PrgEnv-intel'
-    PrgEnv_compiler = 'intel'
+    cray_prgenv_name = 'PrgEnv-intel'
+    cray_module_name = 'intel'
 
     version_argument = '--version'
     version_regex = r'\((?:IFORT|ICC)\) ([^ ]+)'

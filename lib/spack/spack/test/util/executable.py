@@ -4,17 +4,18 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
+import os
 
 import llnl.util.filesystem as fs
-
+import spack
 import spack.util.executable as ex
 
 
-def test_read_unicode(tmpdir):
+def test_read_unicode(tmpdir, working_env):
     script_name = 'print_unicode.py'
 
     with tmpdir.as_cwd():
-
+        os.environ['LD_LIBRARY_PATH'] = spack.main.spack_ld_library_path
         # make a script that prints some unicode
         with open(script_name, 'w') as f:
             f.write('''#!{0}

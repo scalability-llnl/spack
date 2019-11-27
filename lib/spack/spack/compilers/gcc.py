@@ -35,8 +35,8 @@ class Gcc(Compiler):
                   'f77': 'gcc/gfortran',
                   'fc': 'gcc/gfortran'}
 
-    PrgEnv = 'PrgEnv-gnu'
-    PrgEnv_compiler = 'gcc'
+    cray_prgenv_name = 'PrgEnv-gnu'
+    cray_module_name = 'gcc'
 
     @classmethod
     def verbose_flag(cls):

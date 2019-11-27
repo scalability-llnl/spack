@@ -241,9 +241,9 @@ class Compiler(object):
         return '--enable-new-dtags'
 
     # Cray PrgEnv name that can be used to load this compiler
-    PrgEnv = None
+    cray_prgenv_name = None
     # Name of module used to switch versions of this compiler
-    PrgEnv_compiler = None
+    cray_module_name = None
 
     def __init__(self, cspec, operating_system, target,
                  paths, modules=[], alias=None, environment=None,

@@ -23,6 +23,7 @@ import spack.spec
 import spack.config
 import spack.architecture
 import spack.util.imp as simp
+import spack.util.module_cmd
 from spack.util.environment import get_path
 from spack.util.naming import mod_to_class
 
@@ -189,32 +190,73 @@ def all_compiler_specs(scope=None, init_config=True):
 
 
 def find_compilers(path_hints=None):
-    """Returns the list of compilers found in the paths given as arguments.
+    """Returns the list of compilers found in the paths provided.
+
+    This function will attempt to associate compilers with their modules
 
     Args:
-        path_hints (list or None): list of path hints where to look for.
-            A sensible default based on the ``PATH`` environment variable
-            will be used if the value is None
+        path_hints (list or None): list of path hints in which to look for
+            compilers. A sensible default based on the ``PATH`` environment
+            variable will be used if the value is None.
 
     Returns:
         List of compilers found
     """
+    # Get modules if none given
+    if spack.architecture.platform().name == "cray":
+        # Cray modules are handled in their own special way
+        modules_to_check_paths = []
+    else:
+        avail_output = spack.util.module_cmd.module('avail')
+        modules_to_check_paths = avail_output.split()
+
+    # Associate paths with modules. If a compiler is found in the path
+    # associated with a module, it will include that module
+    module_mapping = {}
+    for mod in modules_to_check_paths:
+        paths = spack.util.module_cmd.get_bin_paths_from_module(mod)
+        for path in paths:
+            if path in module_mapping:
+                module_mapping[path].add(mod)
+            else:
+                module_mapping[path] = set([mod])
+
+    for path, modules in module_mapping.items():
+        if len(modules) > 1:
+            msg = 'Multiple modules associated with path.\n'
+            msg += '%s --> %s' % (path, list(modules))
+            msg += 'Compilers may require manual configuration'
+            tty.warn(msg)
+
+    # Get PATH and all paths from modules if no path hints
     if path_hints is None:
-        path_hints = get_path('PATH')
-    default_paths = fs.search_paths_for_executables(*path_hints)
+        paths_to_search = list(module_mapping.keys()) + get_path('PATH')
+    else:
+        paths_to_search = path_hints
+
+    default_paths = fs.search_paths_for_executables(*paths_to_search)
 
     # To detect the version of the compilers, we dispatch a certain number
     # of function calls to different workers. Here we construct the list
     # of arguments for each call.
-    arguments = []
+    annotated_paths = []
     for o in all_os_classes():
         search_paths = getattr(o, 'compiler_search_paths', default_paths)
-        arguments.extend(arguments_to_detect_version_fn(o, search_paths))
+        annotated_paths.extend(arguments_to_detect_version_fn(o, search_paths))
 
+    return make_compiler_list(
+        detection_threadpool(detect_version, annotated_paths),
+        module_mapping)
+
+
+def detection_threadpool(fn, args):
+    """Wrapper function that execututes fn called with args using
+    multiprocessing.pool.ThreadPool()
+    """
     # Here we map the function arguments to the corresponding calls
     tp = multiprocessing.pool.ThreadPool()
     try:
-        detected_versions = tp.map(detect_version, arguments)
+        results = tp.map(fn, args)
     finally:
         tp.close()
 
@@ -234,8 +276,8 @@ def find_compilers(path_hints=None):
         value, _ = item
         return value
 
-    return make_compiler_list(
-        map(remove_errors, filter(valid_version, detected_versions))
+    return list(
+        map(remove_errors, filter(valid_version, results))
     )
 
 
@@ -623,7 +665,7 @@ def detect_version(detect_version_args):
     return fn(detect_version_args)
 
 
-def make_compiler_list(detected_versions):
+def make_compiler_list(detected_versions, module_mapping):
     """Process a list of detected versions and turn them into a list of
     compiler specs.
 
@@ -631,12 +673,38 @@ def make_compiler_list(detected_versions):
         detected_versions (list): list of DetectVersionArgs containing a
             valid version
 
+        module_mapping (dict): dictionary associating paths with modules
+            in which those paths are added to the PATH variable.
+
     Returns:
-        list of Compiler objects
+        list of Compiler objects, with associated modules set based on the
+        module_mapping argument.
     """
     # We don't sort on the path of the compiler
     sort_fn = lambda x: (x.id, x.variation, x.language)
     compilers_s = sorted(detected_versions, key=sort_fn)
+
+    def module_match_heuristic(modules, compiler_id):
+        # A heuristic for how likely the modules given are to be modules for
+        # the compiler given. Used in multiple sort keys
+        attributes = [
+            bool(modules),
+            any(compiler_id.compiler_name in m for m in modules),
+            any(compiler_id.compiler_name in m and compiler_id.version in m
+                for m in modules),
+            any(m.endswith('%s/%s' % (compiler_id.compiler_name,
+                                      compiler_id.version))
+                for m in modules)
+        ]
+        positives = list(filter(lambda x: x, attributes))
+        return len(positives)
+
+    def group_sort_key(detect_version_args):
+        # A key to sort detected paths by how confident we are that we found
+        # an appropriate module for the path.
+        binpath = os.path.dirname(detect_version_args.path)
+        return module_match_heuristic(module_mapping.get(binpath, ''),
+                                      detect_version_args.id)
 
     # Gather items in a dictionary by the id, name variation and language
     compilers_d = {}
@@ -644,7 +712,7 @@ def make_compiler_list(detected_versions):
         compiler_id, name_variation, language = sort_key
         by_compiler_id = compilers_d.setdefault(compiler_id, {})
         by_name_variation = by_compiler_id.setdefault(name_variation, {})
-        by_name_variation[language] = next(x.path for x in group)
+        by_name_variation[language] = max(group, key=group_sort_key).path
 
     # For each unique compiler id select the name variation with most entries
     # i.e. the one that supports most languages
@@ -662,16 +730,50 @@ def make_compiler_list(detected_versions):
         return [compiler]
 
     for compiler_id, by_compiler_id in compilers_d.items():
-        _, selected_name_variation = max(
-            (len(by_compiler_id[variation]), variation)
-            for variation in by_compiler_id
-        )
+        def sort_tuple(variation):
+            modules_for_paths = set()
+            paths = by_compiler_id[variation]
+            for p in paths.values():
+                modules_for_paths |= module_mapping.get(
+                    os.path.dirname(p), set())
+
+            module_suitability = module_match_heuristic(modules_for_paths,
+                                                        compiler_id)
+            return (len(paths), module_suitability)
+
+        selected_name_variation = sorted(list(by_compiler_id.keys()),
+                                         key=sort_tuple,
+                                         reverse=True)[0]
 
         # Add it to the list of compilers
         selected = by_compiler_id[selected_name_variation]
         operating_system, _, _ = compiler_id
         make_compilers = getattr(operating_system, 'make_compilers', _default)
         compilers.extend(make_compilers(compiler_id, selected))
+
+    # For each compiler, accumulate the modules associated with each of its
+    # paths and add them to the description
+    for compiler in compilers:
+        for path in (compiler.cc, compiler.cxx, compiler.fc, compiler.f77):
+            if path:
+                bindir = os.path.dirname(path)
+                if bindir in module_mapping:
+                    compiler.modules = list(
+                        set(compiler.modules) | module_mapping[bindir])
+
+    # Get set of all modules which provide any compiler we found
+    compiler_modules = set()
+    for compiler in compilers:
+        compiler_modules.update(compiler.modules)
+
+    # filter compiler modules by heuristic
+    # intel compiler module liable to add gcc to path
+    # if a module is for another compiler, exclude it from gcc compilers
+    for cm in compiler_modules:
+        cs_with_module = list(filter(lambda x: cm in x.modules, compilers))
+        if any(c.name != 'gcc' for c in cs_with_module):
+            for c in filter(lambda x: x.name == 'gcc', cs_with_module):
+                c.modules.remove(cm)
 
     return compilers
 
