@@ -11,6 +11,8 @@ from spack.spec import substitute_abstract_variants
 from spack.spec import SpecFormatSigilError, SpecFormatStringError
 from spack.variant import InvalidVariantValueError
 from spack.variant import MultipleValuesInExclusiveVariantError
+from spack.version import Version
+from spack.test.conftest import MockPackage, MockPackageMultiRepo
 
 import spack.architecture
 import spack.directives
@@ -82,6 +84,32 @@ def check_invalid_constraint(spec, constraint):
     constraint = Spec(constraint)
     with pytest.raises(UnsatisfiableSpecError):
         spec.constrain(constraint)
+
+
+@pytest.mark.usefixtures('config')
+def test_satisfies_nonstrict_mixed_versions():
+    test_versions = [Version('2.1'),
+                     Version('2.1.1'),
+                     Version('2.2.1')]
+    x = MockPackage('x', [], [], versions=test_versions)
+
+    mock_repo = MockPackageMultiRepo([x])
+
+    with spack.repo.swap(mock_repo):
+        spec = Spec('x@2.1')
+        assert not spec.satisfies('@2.1.1')
+        assert not spec.satisfies('@2.1.2')
+        assert spec.satisfies('@2.1')
+
+        # An x.y.z version does not satisfy an x.y constraint if there is an
+        # exact x.y version in the package
+        spec = Spec('x@2.1.1')
+        assert not spec.satisfies('@2.1')
+
+        # An x.y.z version satisfies an x.y constraint if there is no exact
+        # x.y version in the package
+        spec = Spec('x@2.2.1')
+        assert spec.satisfies('@2.2')
 
 
 @pytest.mark.usefixtures('config', 'mock_packages')

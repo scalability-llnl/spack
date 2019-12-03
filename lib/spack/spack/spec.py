@@ -2855,6 +2855,23 @@ class Spec(object):
         if self.versions and other.versions:
             if not self.versions.satisfies(other.versions, strict=strict):
                 return False
+
+            # If this package has a mix of x.y and x.y.z versions, and other
+            # specifies an exact x.y version (one that appears in the package
+            # definition), then self should match the version exactly if it
+            # specifies a version
+            if (not self.virtual) and self.versions.concrete and not strict:
+                version_satisfies = False
+                for v in other.versions:
+                    if v in self.package.versions:
+                        if self.version == v:
+                            version_satisfies = True
+                            break
+                    elif self.version.satisfies(v):
+                        version_satisfies = True
+                        break
+                if not version_satisfies:
+                    return False
         elif strict and (self.versions or other.versions):
             return False
 
