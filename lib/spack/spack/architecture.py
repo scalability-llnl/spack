@@ -213,8 +213,14 @@ class Target(object):
             # fully fledged compiler object
             import spack.spec
             if isinstance(compiler, spack.spec.CompilerSpec):
-                compiler = spack.compilers.compilers_for_spec(compiler).pop()
-            compiler_version = compiler.cc_version(compiler.cc)
+                compilers = spack.compilers.compilers_for_spec(compiler)
+                # If we explicitly ask for a compiler that does not exist on
+                # the system, it won't be available to query the true version.
+                # In that case we treat the user-specified compiler version as
+                # the true version.
+                if compilers:
+                    compiler = compilers.pop()
+                    compiler_version = compiler.cc_version(compiler.cc)
 
         return self.microarchitecture.optimization_flags(
             compiler.name, str(compiler_version)
