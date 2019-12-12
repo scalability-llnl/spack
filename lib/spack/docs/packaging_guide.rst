@@ -842,7 +842,10 @@ is the standard stage source path.
 To fetch a package from a source repository, Spack needs to know which
 VCS to use and where to download from. Much like with ``url``, package
 authors can specify a class-level ``git``, ``hg``, ``svn``, or ``go``
-attribute containing the correct download location.
+attribute containing the correct download location.  Spack will remove the
+version control information when :ref:`caching <caching>` the package
+sources during installation unless ``clean=False`` is passed to
+``version``.
 
 Many packages developed with Git have both a Git repository as well as
 release tarballs available for download. Packages can define both a

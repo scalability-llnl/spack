@@ -572,6 +572,7 @@ class VCSFetchStrategy(FetchStrategy):
 
         # Set a URL based on the type of fetch strategy.
         self.url = kwargs.get(self.url_attr, None)
+        self.clean = kwargs.get("clean", True)
         if not self.url:
             raise ValueError(
                 "%s requires %s argument." % (self.__class__, self.url_attr))
@@ -596,7 +597,7 @@ class VCSFetchStrategy(FetchStrategy):
         tar = which('tar', required=True)
 
         patterns = kwargs.get('exclude', None)
-        if patterns is not None:
+        if patterns is not None and self.clean:
             if isinstance(patterns, string_types):
                 patterns = [patterns]
             for p in patterns:
