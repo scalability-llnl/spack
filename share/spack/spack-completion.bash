@@ -1053,7 +1053,7 @@ function _spack_spec {
     then
         compgen -W "-h --help -l --long -L --very-long -I --install-status
                     -j --json -y --yaml -c --cover -N --namespaces
-                    -t --types" -- "$cur"
+                    -t --types -u --uarch-flags" -- "$cur"
     else
         compgen -W "$(_all_packages)" -- "$cur"
     fi

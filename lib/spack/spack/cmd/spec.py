@@ -9,6 +9,7 @@ import argparse
 import sys
 
 import llnl.util.tty as tty
+import llnl.util.tty.color as color
 
 import spack
 import spack.cmd
@@ -37,6 +38,9 @@ def setup_parser(subparser):
     subparser.add_argument(
         '-N', '--namespaces', action='store_true', default=False,
         help='show fully qualified package names')
+    subparser.add_argument(
+        '-u', '--uarch-flags', action='store_true', default=False,
+        help='show microarchitecture optimization flags')
 
     subparser.add_argument(
         '-t', '--types', action='store_true', default=False,
@@ -49,6 +53,7 @@ def spec(parser, args):
     name_fmt = '{namespace}.{name}' if args.namespaces else '{name}'
     fmt = '{@version}{%compiler}{compiler_flags}{variants}{arch=architecture}'
     install_status_fn = spack.spec.Spec.install_status
+
     kwargs = {
         'cover': args.cover,
         'format': name_fmt + fmt,
@@ -79,6 +84,11 @@ def spec(parser, args):
         print(spec.tree(**kwargs))
 
         kwargs['hashes'] = args.long or args.very_long
+        if args.uarch_flags:
+            kwargs["format"] += color.colorize(
+                " @Kuarch_flags=\"{uarch_flags}\"@."
+            )
+
         print("Concretized")
         print("--------------------------------")
         spec.concretize()

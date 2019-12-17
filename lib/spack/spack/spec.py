@@ -3769,6 +3769,17 @@ class Spec(object):
         result = out.getvalue()
         return result
 
+    @property
+    def uarch_flags(self):
+        """Specific target optimization flags."""
+        if not self.concrete:
+            return None
+
+        return self.target.optimization_flags(
+            self.compiler.name,
+            self.compiler.version,
+        )
+
     def cformat(self, *args, **kwargs):
         """Same as format, but color defaults to auto instead of False."""
         kwargs = kwargs.copy()
