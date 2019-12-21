@@ -10,6 +10,8 @@ import re
 import sys
 import types
 
+import six
+
 import llnl.util.lang
 import llnl.util.tty as tty
 import spack.config
@@ -100,9 +102,8 @@ def load_command_extension(command, path):
 def get_command_paths():
     """Return the list of paths where to search for command files."""
     command_paths = []
-    extension_paths = spack.config.get('config:extensions') or []
-
-    for path in extension_paths:
+    extensions = from_config()
+    for path in extension_paths(extensions):
         extension = extension_name(path)
         if extension:
             command_paths.append(os.path.join(path, extension, 'cmd'))
@@ -110,20 +111,21 @@ def get_command_paths():
     return command_paths
 
 
-def path_for_extension(target_name, *paths):
+def path_for_extension(target_name, *extensions):
     """Return the test root dir for a given extension.
 
     Args:
         target_name (str): name of the extension to test
-        *paths: paths where the extensions reside
+        *extensions: list of extensions to search
 
     Returns:
         Root directory where tests should reside or None
     """
-    for path in paths:
-        name = extension_name(path)
+    for ext in extensions:
+        name = ext['name']
+        repository_dir = os.path.join(ext['root'], name)
         if name == target_name:
-            return path
+            return repository_dir
     else:
         raise IOError('extension "{0}" not found'.format(target_name))
 
@@ -138,8 +140,8 @@ def get_module(cmd_name):
     """
     # If built-in failed the import search the extension
     # directories in order
-    extensions = spack.config.get('config:extensions') or []
-    for folder in extensions:
+    extensions = from_config()
+    for folder in extension_paths(extensions):
         module = load_command_extension(cmd_name, folder)
         if module:
             return module
@@ -151,6 +153,50 @@ def get_template_dirs():
     """Returns the list of directories where to search for templates
     in extensions.
     """
-    extension_dirs = spack.config.get('config:extensions') or []
-    extensions = [os.path.join(x, 'templates') for x in extension_dirs]
+    extensions = from_config()
+    dirs = extension_paths(extensions)
+    extensions = [os.path.join(x, 'templates') for x in dirs]
     return extensions
+
+
+def from_config(scope=None):
+    """Returns the extensions currently registered in the configuration files.
+
+    Args:
+        scope: scope to look at in the configuration files (default
+            is merge all)
+
+    Returns:
+        List of extensions
+    """
+    extensions = spack.config.get('config:extensions', scope=scope, default=[])
+
+    def convert_old_format(extension):
+        if isinstance(extension, six.string_types):
+            root = os.path.dirname(extension)
+            name = extension.split('/')[-1]
+            return {
+                'name': name,
+                'version': {
+                    'type': '',
+                    'value': ''
+                },
+                'root': root,
+                'url': ''
+            }
+        return extension
+
+    return [convert_old_format(x) for x in extensions]
+
+
+def extension_paths(extensions):
+    """Returns the paths where extensions are stored.
+
+    Args:
+        extensions: extensions as stored in config.yaml
+
+    Returns:
+        List of paths where the extensions are stored (usually
+        a path to a git repository).
+    """
+    return [os.path.join(e['root'], e['name']) for e in extensions]

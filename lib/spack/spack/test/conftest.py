@@ -441,7 +441,7 @@ def _populate(mock_db):
 
 
 @pytest.fixture(scope='session')
-def _store_dir_and_cache(tmpdir_factory):
+def store_dir_and_cache(tmpdir_factory):
     """Returns the directory where to build the mock database and
     where to cache it.
     """
@@ -451,13 +451,13 @@ def _store_dir_and_cache(tmpdir_factory):
 
 
 @pytest.fixture(scope='module')
-def database(tmpdir_factory, mock_packages, config, _store_dir_and_cache):
+def database(tmpdir_factory, mock_packages, config, store_dir_and_cache):
     """Creates a read-only mock database with some packages installed note
     that the ref count for dyninst here will be 3, as it's recycled
     across each install.
     """
     real_store = spack.store.store
-    store_path, store_cache = _store_dir_and_cache
+    store_path, store_cache = store_dir_and_cache
 
     mock_store = spack.store.Store(str(store_path))
     spack.store.store = mock_store
@@ -477,12 +477,12 @@ def database(tmpdir_factory, mock_packages, config, _store_dir_and_cache):
 
 
 @pytest.fixture(scope='function')
-def mutable_database(database, _store_dir_and_cache):
+def mutable_database(database, store_dir_and_cache):
     """Writeable version of the fixture, restored to its initial state
     after each test.
     """
     # Make the database writeable, as we are going to modify it
-    store_path, store_cache = _store_dir_and_cache
+    store_path, store_cache = store_dir_and_cache
     store_path.join('.spack-db').chmod(mode=0o755, rec=1)
 
     yield database

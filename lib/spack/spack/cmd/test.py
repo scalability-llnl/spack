@@ -86,7 +86,7 @@ def test(parser, args, unknown_args):
     pytest_root = spack.paths.test_path
     if args.extension:
         target = args.extension
-        extensions = spack.config.get('config:extensions')
+        extensions = spack.extensions.from_config()
         pytest_root = spack.extensions.path_for_extension(target, *extensions)
 
     # pytest.ini lives in the root of the spack repository.

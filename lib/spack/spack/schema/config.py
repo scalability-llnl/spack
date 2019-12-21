@@ -31,7 +31,28 @@ properties = {
             },
             'extensions': {
                 'type': 'array',
-                'items': {'type': 'string'}
+                'items': {
+                    'anyOf': [
+                        {'type': 'string'},
+                        {
+                            'type': 'object',
+                            'properties': {
+                                'name': {'type': 'string'},
+                                'version': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'type': {'type': 'string'},
+                                        'value': {'type': 'string'}
+                                    },
+                                    'additionalProperties': False
+                                },
+                                'url': {'type': 'string'},
+                                'root': {'type': 'string'}
+                            },
+                            'additionalProperties': False
+                        }
+                    ]
+                }
             },
             'template_dirs': {
                 'type': 'array',
