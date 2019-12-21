@@ -35,6 +35,43 @@ def test_log_python_output_with_fd_stream(capfd, tmpdir):
         assert capfd.readouterr() == ('', '')
 
 
+def test_pass_input(capfd, tmpdir):
+    import sys
+    import os
+    import multiprocessing
+    import time
+
+    def child_write(write_fd):
+        sending_end = os.fdopen(write_fd, 'w')
+        sending_end.write('example input\n')
+
+    save_stdin = sys.stdin
+    try:
+        sub_stdin_fd, write_fd = os.pipe()
+        sys.stdin = os.fdopen(sub_stdin_fd, 'r')
+        with tmpdir.as_cwd():
+            with log_output('foo.txt') as logger:
+                writing_proc = multiprocessing.Process(
+                    target=child_write, args=(write_fd,))
+
+                with logger._pass_input():
+                    writing_proc.start()
+                    time.sleep(1)
+                    if sys.version_info < (3,):
+                        x = raw_input()
+                    else:
+                        x = input()
+
+                writing_proc.join()
+                assert x == 'example input'
+                print('logged')
+
+            with open('foo.txt') as f:
+                assert f.read() == 'logged\n'
+    finally:
+        sys.stdin = save_stdin
+
+
 def test_log_python_output_and_echo_output(capfd, tmpdir):
     with tmpdir.as_cwd():
         with log_output('foo.txt') as logger:

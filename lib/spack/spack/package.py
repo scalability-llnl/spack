@@ -550,6 +550,8 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
 
         super(PackageBase, self).__init__()
 
+        self.input_capture = None
+
     @property
     def installed_upstream(self):
         if not hasattr(self, '_installed_upstream'):
@@ -1730,6 +1732,7 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
                         # Spawn a daemon that reads from a pipe and redirects
                         # everything to log_path
                         with log_output(self.log_path, echo, True) as logger:
+                            self.input_capture = logger
                             for phase_name, phase_attr in zip(
                                     self.phases, self._InstallPhase_phases):
 
@@ -1743,6 +1746,8 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
                                 # Redirect stdout and stderr to daemon pipe
                                 phase = getattr(self, phase_attr)
                                 phase(self.spec, self.prefix)
+
+                        self.input_capture = None
 
                     echo = logger.echo
                     self.log()
@@ -1821,6 +1826,12 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
             # not created so that the next time self.stage is invoked, we
             # check the filesystem for it.
             self.stage.created = False
+
+    @contextlib.contextmanager
+    def child_input(self):
+        self.input_capture.disable_input_capture()
+        yield
+        self.input_capture.enable_input_capture()
 
     @staticmethod
     def _install_bootstrap_compiler(pkg, **install_kwargs):

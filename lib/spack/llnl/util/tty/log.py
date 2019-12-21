@@ -16,6 +16,7 @@ import traceback
 from contextlib import contextmanager
 from six import string_types
 from six import StringIO
+import contextlib
 
 import llnl.util.tty as tty
 
@@ -218,6 +219,8 @@ class log_output(object):
         self.debug = debug
         self.buffer = buffer
 
+        self.acknowledge_queue = multiprocessing.Queue()
+
         self._active = False  # used to prevent re-entry
 
     def __call__(self, file_like=None, echo=None, debug=None, buffer=None):
@@ -284,6 +287,9 @@ class log_output(object):
         # OS-level pipe for redirecting output to logger
         self.read_fd, self.write_fd = os.pipe()
 
+        self.input_alert_read_fd, self.input_alert_write_fd = os.pipe()
+        self.input_alert_write = os.fdopen(self.input_alert_write_fd, 'w', 1)
+
         # Multiprocessing pipe for communication back from the daemon
         # Currently only used to save echo value between uses
         self.parent, self.child = multiprocessing.Pipe()
@@ -301,7 +307,7 @@ class log_output(object):
             self.process.daemon = True  # must set before start()
             self.process.start()
             os.close(self.read_fd)  # close in the parent process
-
+            os.close(self.input_alert_read_fd)
         finally:
             if input_stream:
                 input_stream.close()
@@ -412,6 +418,20 @@ class log_output(object):
         sys.stdout.write(xoff)
         sys.stdout.flush()
 
+    @contextlib.contextmanager
+    def _pass_input(self):
+        self.disable_input_capture()
+        yield
+        self.enable_input_capture()
+
+    def disable_input_capture(self):
+        self.input_alert_write.write('disable\n')
+        self.acknowledge_queue.get()
+
+    def enable_input_capture(self):
+        self.input_alert_write.write('enable\n')
+        self.acknowledge_queue.get()
+
     def _writer_daemon(self, stdin):
         """Daemon that writes output to the log file and stdout."""
         # Use line buffering (3rd param = 1) since Python 3 has a bug
@@ -419,52 +439,31 @@ class log_output(object):
         in_pipe = os.fdopen(self.read_fd, 'r', 1)
         os.close(self.write_fd)
 
-        echo = self.echo        # initial echo setting, user-controllable
-        force_echo = False      # parent can force echo for certain output
+        input_alert_read = os.fdopen(self.input_alert_read_fd, 'r', 1)
+        os.close(self.input_alert_write_fd)
 
-        # list of streams to select from
-        istreams = [in_pipe, stdin] if stdin else [in_pipe]
+        read_loop = ReadLoop()
+        read_loop.echo = self.echo
+        read_loop.proc_input = in_pipe
+        read_loop.stdin = stdin
+        read_loop.input_alert_read = input_alert_read
+        read_loop.log_file = self.log_file
 
-        log_file = self.log_file
         try:
-            with keyboard_input(stdin):
-                while True:
-                    # No need to set any timeout for select.select
-                    # Wait until a key press or an event on in_pipe.
-                    rlist, _, _ = select.select(istreams, [], [])
+            still_reading = True
+            while still_reading:
+                input_toggle = False
+                if not read_loop.pass_input:
+                    with keyboard_input(stdin):
+                        while (not input_toggle) and still_reading:
+                            still_reading, input_toggle = read_loop.next()
+                else:
+                    while (not input_toggle) and still_reading:
+                        still_reading, input_toggle = read_loop.next()
 
-                    # Allow user to toggle echo with 'v' key.
-                    # Currently ignores other chars.
-                    if stdin in rlist:
-                        if stdin.read(1) == 'v':
-                            echo = not echo
+                if input_toggle:
+                    self.acknowledge_queue.put('ack')
 
-                    # Handle output from the with block process.
-                    if in_pipe in rlist:
-                        # If we arrive here it means that in_pipe was
-                        # ready for reading : it should never happen that
-                        # line is false-ish
-                        line = in_pipe.readline()
-                        if not line:
-                            break  # EOF
-
-                        # find control characters and strip them.
-                        controls = control.findall(line)
-                        line = re.sub(control, '', line)
-
-                        # Echo to stdout if requested or forced
-                        if echo or force_echo:
-                            sys.stdout.write(line)
-                            sys.stdout.flush()
-
-                        # Stripped output to log file.
-                        log_file.write(_strip(line))
-                        log_file.flush()
-
-                        if xon in controls:
-                            force_echo = True
-                        if xoff in controls:
-                            force_echo = False
         except BaseException:
             tty.error("Exception occurred in writer daemon!")
             traceback.print_exc()
@@ -472,8 +471,74 @@ class log_output(object):
         finally:
             # send written data back to parent if we used a StringIO
             if self.write_log_in_parent:
-                self.child.send(log_file.getvalue())
-            log_file.close()
+                self.child.send(self.log_file.getvalue())
+            self.log_file.close()
 
         # send echo value back to the parent so it can be preserved.
-        self.child.send(echo)
+        self.child.send(read_loop.echo)
+
+
+class ReadLoop(object):
+    def __init__(self):
+        self.proc_input = None
+        self.input_alert_read = None
+        self.stdin = None
+        self.log_file = None
+        self.echo = False
+
+        self.force_echo = False
+        self.pass_input = False
+
+    def streams(self):
+        streams = [self.proc_input, self.input_alert_read]
+        if not self.pass_input and self.stdin:
+            streams.append(self.stdin)
+        return streams
+
+    def next(self):
+        istreams = self.streams()
+        rlist, _, _ = select.select(istreams, [], [])
+
+        still_reading, input_toggle = True, False
+
+        if self.input_alert_read in rlist:
+            result = self.input_alert_read.readline().strip()
+            input_toggle = True
+            self.pass_input = {'enable': False, 'disable': True}[result]
+            tty.debug("Pass input toggle: " + str(self.pass_input))
+
+        # Allow user to toggle echo with 'v' key.
+        # Currently ignores other chars.
+        if self.stdin in rlist:
+            if self.stdin.read(1) == 'v':
+                self.echo = not self.echo
+
+        # Handle output from the with block process.
+        if self.proc_input in rlist:
+            # If we arrive here it means that in_pipe was
+            # ready for reading : it should never happen that
+            # line is false-ish
+            line = self.proc_input.readline()
+            if not line:
+                still_reading = False
+
+            else:
+                # find control characters and strip them.
+                controls = control.findall(line)
+                line = re.sub(control, '', line)
+
+                # Echo to stdout if requested or forced
+                if self.echo or self.force_echo or self.pass_input:
+                    sys.stdout.write(line)
+                    sys.stdout.flush()
+
+                # Stripped output to log file.
+                self.log_file.write(_strip(line))
+                self.log_file.flush()
+
+                if xon in controls:
+                    self.force_echo = True
+                if xoff in controls:
+                    self.force_echo = False
+
+        return still_reading, input_toggle
