@@ -19,3 +19,8 @@ class Diffutils(AutotoolsPackage, GNUMirrorPackage):
     build_directory = 'spack-build'
 
     depends_on('libiconv')
+
+    def setup_build_environment(self, spack_env):
+        if self.spec.satisfies('%clang@9:'):
+            spack_env.append_flags('CFLAGS',
+                                   '-Werror=implicit-function-declaration')
