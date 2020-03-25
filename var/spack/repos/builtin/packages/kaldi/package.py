@@ -67,7 +67,7 @@ class Kaldi(Package):    # Does not use Autotools
             configure_args.append('--atlas-root=' + spec['blas'].prefix)
             if '+pthread' in spec['blas'].variants:
                 configure_args.append('--threaded-atlas')
-        elif '^intel-parallel-studio' in spec or '^intel-mkl' in spec:
+        elif '^mkl' in spec:
             configure_args.append('--mathlib=MKL')
             configure_args.append('--mkl-root=' + spec['blas'].prefix)
             if '+openmp' in spec['blas'].variants:

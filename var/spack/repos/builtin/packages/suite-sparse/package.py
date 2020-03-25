@@ -31,6 +31,7 @@ class SuiteSparse(Package):
     variant('pic',  default=True,  description='Build position independent code (required to link with shared libraries)')
     variant('cuda', default=False, description='Build with CUDA')
     variant('openmp', default=False, description='Build with OpenMP')
+    variant('mkl64', default=False, description='Build with 64 bit MKL interface.')
 
     depends_on('blas')
     depends_on('lapack')
@@ -96,9 +97,7 @@ class SuiteSparse(Package):
         ]
 
         # 64bit blas in UMFPACK:
-        if (spec.satisfies('^openblas+ilp64') or
-            spec.satisfies('^intel-mkl+ilp64') or
-            spec.satisfies('^intel-parallel-studio+mkl+ilp64')):
+        if '^openblas+ilp64' in spec or ('^mkl' in spec and '+mkl64' in spec):
             make_args.append('UMFPACK_CONFIG=-DLONGBLAS="long long"')
 
         # SuiteSparse defaults to using '-fno-common -fexceptions' in

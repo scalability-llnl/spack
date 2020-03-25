@@ -68,9 +68,9 @@ class Hydrogen(CMakePackage):
     depends_on('openblas threads=openmp +lip64', when='blas=openblas +openmp_blas +int64_blas')
 
     depends_on('intel-mkl', when="blas=mkl ~openmp_blas ~int64_blas")
-    depends_on('intel-mkl +ilp64', when="blas=mkl ~openmp_blas +int64_blas")
-    depends_on('intel-mkl threads=openmp', when='blas=mkl +openmp_blas ~int64_blas')
-    depends_on('intel-mkl@2017.1 +openmp +ilp64', when='blas=mkl +openmp_blas +int64_blas')
+    depends_on('intel-mkl', when="blas=mkl ~openmp_blas +int64_blas")
+    depends_on('intel-mkl', when='blas=mkl +openmp_blas ~int64_blas')
+    depends_on('intel-mkl@2017.1', when='blas=mkl +openmp_blas +int64_blas')
 
     depends_on('veclibfort', when='blas=accelerate')
     conflicts('blas=accelerate +openmp_blas')

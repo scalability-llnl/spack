@@ -105,8 +105,7 @@ class Hpl(AutotoolsPackage):
             'CFLAGS=-O3'
         ]
 
-        if (self.spec.satisfies('^intel-mkl') or
-            self.spec.satisfies('^intel-parallel-studio+mkl')):
+        if '^mkl' in spec:
             config.append('LDFLAGS={0}'.format(
                 self.spec['blas'].libs.ld_flags))
 

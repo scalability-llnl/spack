@@ -129,16 +129,6 @@ class IntelParallelStudio(IntelPackage):
             description='Add rpath to .cfg files')
     variant('newdtags', default=False,
             description='Allow use of --enable-new-dtags in MPI wrappers')
-    variant('shared',   default=True,
-            description='Builds shared library')
-    variant('ilp64',    default=False,
-            description='64 bit integers')
-    variant(
-        'threads', default='none',
-        description='Multithreading support',
-        values=('openmp', 'none'),
-        multi=False
-    )
 
     auto_dispatch_options = IntelPackage.auto_dispatch_options
     variant(
@@ -150,16 +140,8 @@ class IntelParallelStudio(IntelPackage):
     # Components available in all editions
     variant('daal', default=True,
             description='Install the Intel DAAL libraries')
-    variant('gdb',  default=False,
-            description='Install the Intel Debugger for Heterogeneous Compute')
-    variant('ipp',  default=True,
-            description='Install the Intel IPP libraries')
-    variant('mkl',  default=True,
-            description='Install the Intel MKL library')
     variant('mpi',  default=True,
             description='Install the Intel MPI library')
-    variant('tbb',  default=True,
-            description='Install the Intel TBB libraries')
 
     # Components only available in the Professional and Cluster Editions
     variant('advisor',   default=False,
@@ -176,17 +158,16 @@ class IntelParallelStudio(IntelPackage):
     provides('daal',        when='+daal')
     provides('ipp',         when='+ipp')
 
-    provides('mkl',         when='+mkl')
-    provides('blas',        when='+mkl')
-    provides('lapack',      when='+mkl')
-    provides('scalapack',   when='+mkl')
+    provides('mkl')
+    provides('blas')
+    provides('lapack')
+    provides('scalapack')
 
     provides('mpi',         when='+mpi')
-    provides('tbb',         when='+tbb')
 
     # For TBB, static linkage is not and has never been supported by Intel:
     # https://www.threadingbuildingblocks.org/faq/there-version-tbb-provides-statically-linked-libraries
-    conflicts('+tbb',       when='~shared')
+    provides('tbb')
 
     conflicts('+advisor',   when='@composer.0:composer.9999')
     conflicts('+clck',      when='@composer.0:composer.9999')

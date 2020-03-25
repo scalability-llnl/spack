@@ -152,7 +152,7 @@ class Sirius(CMakePackage, CudaPackage):
                     spec['scalapack'].libs.joined(';')),
             ]
 
-        if spec['blas'].name in ['intel-mkl', 'intel-parallel-studio']:
+        if '^mkl' in spec:
             args += ['-DUSE_MKL=ON']
 
         if '+elpa' in spec:

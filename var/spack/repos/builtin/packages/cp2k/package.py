@@ -79,8 +79,7 @@ class Cp2k(MakefilePackage, CudaPackage):
     depends_on('openblas threads=openmp', when='blas=openblas +openmp')
     depends_on('lapack', when='blas=openblas ~openmp')
 
-    depends_on('intel-mkl', when="blas=mkl ~openmp")
-    depends_on('intel-mkl threads=openmp', when='blas=mkl +openmp')
+    depends_on('mkl', when="blas=mkl")
 
     conflicts('blas=accelerate', '+openmp')  # there is no Accelerate with OpenMP support
 

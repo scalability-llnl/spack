@@ -56,21 +56,12 @@ class IntelMkl(IntelPackage):
 
     depends_on('cpio', type='build')
 
-    variant('shared', default=True, description='Builds shared library')
-    variant('ilp64', default=False, description='64 bit integers')
-    variant(
-        'threads', default='none',
-        description='Multithreading support',
-        values=('openmp', 'tbb', 'none'),
-        multi=False
-    )
-
     provides('blas')
     provides('lapack')
     provides('scalapack')
     provides('mkl')
     provides('fftw-api@3', when='@2017:')
 
-    if sys.platform == 'darwin':
-        # there is no libmkl_gnu_thread on macOS
-        conflicts('threads=openmp', when='%gcc')
+    # Note: there is no libmkl_gnu_thread on macOS
+    # if sys.platform == 'darwin':
+    #    conflicts('threads=openmp', when='%gcc')

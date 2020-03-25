@@ -92,8 +92,7 @@ class Qmcpack(CMakePackage, CudaPackage):
     conflicts('^openblas+ilp64',
               msg='QMCPACK does not support OpenBLAS 64-bit integer variant')
 
-    conflicts('^intel-mkl+ilp64',
-              msg='QMCPACK does not support MKL 64-bit integer variant')
+    # Note: QMCPACK does not support the MKL 64-bit integer interface
 
     # QMCPACK 3.6.0 or later requires support for C++14
     compiler_warning = 'QMCPACK 3.6.0 or later requires a ' \
@@ -118,9 +117,9 @@ class Qmcpack(CMakePackage, CudaPackage):
     # try to use Intel MKL with a non-Intel compiler.
     mkl_warning = 'QMCPACK releases prior to 3.5.0 require the ' \
                   'Intel compiler when linking against Intel MKL'
-    conflicts('%gcc', when='@:3.4.0 ^intel-mkl', msg=mkl_warning)
-    conflicts('%pgi', when='@:3.4.0 ^intel-mkl', msg=mkl_warning)
-    conflicts('%llvm', when='@:3.4.0 ^intel-mkl', msg=mkl_warning)
+    conflicts('%gcc', when='@:3.4.0 ^mkl', msg=mkl_warning)
+    conflicts('%pgi', when='@:3.4.0 ^mkl', msg=mkl_warning)
+    conflicts('%llvm', when='@:3.4.0 ^mkl', msg=mkl_warning)
 
     # Dependencies match those in the QMCPACK manual.
     # FIXME: once concretizer can unite unconditional and conditional
@@ -323,7 +322,7 @@ class Qmcpack(CMakePackage, CudaPackage):
         # Next two environment variables were introduced in QMCPACK 3.5.0
         # Prior to v3.5.0, these lines should be benign but CMake
         # may issue a warning.
-        if 'intel-mkl' in spec:
+        if '^mkl' in spec:
             args.append('-DENABLE_MKL=1')
             args.append('-DMKL_ROOT=%s' % env['MKLROOT'])
         else:

@@ -35,6 +35,7 @@ class Dealii(CMakePackage, CudaPackage):
     version('8.1.0', sha256='d666bbda2a17b41b80221d7029468246f2658051b8c00d9c5907cd6434c4df99')
 
     variant('mpi',      default=True,  description='Compile with MPI')
+    variant('mkl64',    default=False,  description='Build with 64 bit MKL interface')
     variant('assimp',   default=True,
             description='Compile with Assimp')
     variant('arpack',   default=True,
@@ -189,9 +190,11 @@ class Dealii(CMakePackage, CudaPackage):
 
     # check that the combination of variants makes sense
     # 64-bit BLAS:
-    for p in ['openblas', 'intel-mkl', 'intel-parallel-studio+mkl']:
-        conflicts('^{0}+ilp64'.format(p), when='@:8.5.1',
-                  msg='64bit BLAS is only supported from 9.0.0')
+    conflicts('^openblas+ilp64', when='@:8.5.1', 
+              msg='64bit OpenBLAS is only supported from 9.0.0')
+    conflicts('+mkl64', when='@:8.5.1',
+              msg='64bit MKL is only supported from 9.0.0')
+
 
     # interfaces added in 9.0.0:
     for p in ['assimp', 'gmsh', 'nanoflann', 'scalapack', 'sundials',
@@ -260,8 +263,7 @@ class Dealii(CMakePackage, CudaPackage):
         else:
             options.extend(['-DDEAL_II_WITH_THREADS:BOOL=OFF'])
 
-        if (spec.satisfies('^intel-parallel-studio+tbb')
-            and '+threads' in spec):
+        if '^tbb' in spec and '+threads' in spec:
             # deal.II/cmake will have hard time picking up TBB from Intel.
             tbb_ver = '.'.join(('%s' % spec['tbb'].version).split('.')[1:])
             options.extend([
@@ -274,9 +276,7 @@ class Dealii(CMakePackage, CudaPackage):
         else:
             options.append('-DTBB_DIR=%s' % spec['tbb'].prefix)
 
-        if (spec.satisfies('^openblas+ilp64') or
-            spec.satisfies('^intel-mkl+ilp64') or
-            spec.satisfies('^intel-parallel-studio+mkl+ilp64')):
+        if '^openblas+ilp64' in spec or ('^mkl' in spec and '+mkl64' in spec):
             options.append('-DLAPACK_WITH_64BIT_BLAS_INDICES=ON')
 
         if spec.satisfies('@:8.99'):
