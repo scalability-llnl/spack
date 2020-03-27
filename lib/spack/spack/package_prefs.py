@@ -159,14 +159,21 @@ class PackagePrefs(object):
     @classmethod
     def preferred_variants(cls, pkg_name):
         """Return a VariantMap of preferred variants/values for a spec."""
+        variants = []
+        # We want to collect the variants of both the package itself and the
+        # 'all' variants to merge them.
         for pkg in (pkg_name, 'all'):
-            variants = get_packages_config().get(pkg, {}).get('variants', '')
-            if variants:
-                break
+            v = get_packages_config().get(pkg, {}).get('variants', '')
+            if v:
+                # Allow variants to be list or string
+                if not isinstance(v, string_types):
+                    v = " ".join(v)
+                variants.append(v)
 
-        # allow variants to be list or string
-        if not isinstance(variants, string_types):
-            variants = " ".join(variants)
+        # Merge package-specific and 'all' variants into a single variable.
+        # FIXME: This will produce an error if a variant is specified in both
+        #        places.
+        variants = " ".join(variants)
 
         # Only return variants that are actually supported by the package
         pkg = spack.repo.get(pkg_name)
