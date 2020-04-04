@@ -9,3 +9,5 @@ share/spack/lmod/*
 share/spack/modules/*
 lib/spack/spack/test/*
 
+share/spack/docker/*.dockerfile
+
