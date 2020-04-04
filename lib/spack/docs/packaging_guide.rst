@@ -1312,6 +1312,8 @@ other similar operations:
             ).with_default('auto').with_non_feature_values('auto'),
         )
 
+.. _resources:
+
 ------------------------------------
 Resources (expanding extra tarballs)
 ------------------------------------

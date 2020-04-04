@@ -1,0 +1,21 @@
+[
+    {
+        "name": "common-all-versions",
+        "url": "http://example.com/Example/common-resource-for-all.tar.gz"
+    },
+    {
+        "name": "when-v1",
+        "url": "http://example.com/Example/constrained/resource-1.0.tar.gz",
+        "when": "@1"
+    },
+    {
+        "name": "when-v2",
+        "url": "http://example.com/Example/constrained/resource-2.2.tar.gz",
+        "when": "@2.2:"
+    },
+    {
+        "name": "when-v2",
+        "url": "http://example.com/Example/constrained/other-resource-2.2.tar.gz",
+        "when": "@2.2:"
+    }
+]

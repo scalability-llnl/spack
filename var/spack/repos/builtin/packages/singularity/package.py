@@ -6,8 +6,6 @@
 from spack import *
 
 import llnl.util.tty as tty
-import os
-import shutil
 
 
 class Singularity(MakefilePackage):
@@ -20,6 +18,14 @@ class Singularity(MakefilePackage):
        See package definition or `spack-build-out.txt` build log for details.
     '''
 
+    # RE: go dependencies, modules, and network access at build time:
+    # Singularity, from 3.2.0 -> 3.4.2 uses modules, *and* includes a
+    # vendored set of dependencies, *and* their build system enforces its
+    # use (see L9 of mlocal/frags/go_common_opts.mk) which means that they
+    # do not need to download dependencies at build time.
+    # It appears that @3.5: they don't commit the vendor dir to their repo
+    # but they *DO* include it in the tar.gz files that attach to the releases
+    # so things should just work.
     homepage = "https://www.sylabs.io/singularity/"
     url      = "https://github.com/sylabs/singularity/releases/download/v3.1.1/singularity-3.1.1.tar.gz"
     git      = "https://github.com/sylabs/singularity.git"
@@ -33,9 +39,8 @@ class Singularity(MakefilePackage):
     version('3.4.0', sha256='eafb27f1ffbed427922ebe2b5b95d1c9c09bfeb897518867444fe230e3e35e41')
     version('3.3.0', sha256='070530a472e7e78492f1f142c8d4b77c64de4626c4973b0589f0d18e1fcf5b4f')
     version('3.2.1', sha256='d4388fb5f7e0083f0c344354c9ad3b5b823e2f3f27980e56efa7785140c9b616')
-    version('3.1.1', sha256='7f0df46458d8894ba0c2071b0848895304ae6b1137d3d4630f1600ed8eddf1a4')
 
-    depends_on('go')
+    depends_on('go@1.11:')
     depends_on('libuuid')
     depends_on('libgpg-error')
     depends_on('squashfs', type='run')
@@ -44,40 +49,6 @@ class Singularity(MakefilePackage):
     depends_on('cryptsetup', type=('build', 'run'), when='@3.4:')
 
     patch('singularity_v3.4.0_remove_root_check.patch', level=0, when='@3.4.0:3.4.1')
-
-    # Go has novel ideas about how projects should be organized.
-    # We'll point GOPATH at the stage dir, and move the unpacked src
-    # tree into the proper subdir in our overridden do_stage below.
-    @property
-    def gopath(self):
-        return self.stage.path
-
-    @property
-    def sylabs_gopath_dir(self):
-        return join_path(self.gopath, 'src/github.com/sylabs/')
-
-    @property
-    def singularity_gopath_dir(self):
-        return join_path(self.sylabs_gopath_dir, 'singularity')
-
-    # Unpack the tarball as usual, then move the src dir into
-    # its home within GOPATH.
-    def do_stage(self, mirror_only=False):
-        super(Singularity, self).do_stage(mirror_only)
-        if not os.path.exists(self.singularity_gopath_dir):
-            # Move the expanded source to its destination
-            tty.debug("Moving {0} to {1}".format(
-                self.stage.source_path, self.singularity_gopath_dir))
-            shutil.move(self.stage.source_path, self.singularity_gopath_dir)
-
-            # The build process still needs access to the source path,
-            # so create a symlink.
-            force_symlink(self.singularity_gopath_dir, self.stage.source_path)
-
-    # MakefilePackage's stages use this via working_dir()
-    @property
-    def build_directory(self):
-        return self.singularity_gopath_dir
 
     # Hijack the edit stage to run mconfig.
     def edit(self, spec, prefix):
@@ -88,10 +59,6 @@ class Singularity(MakefilePackage):
     # Set these for use by MakefilePackage's default build/install methods.
     build_targets = ['-C', 'builddir', 'parallel=False']
     install_targets = ['install', '-C', 'builddir', 'parallel=False']
-
-    def setup_build_environment(self, env):
-        # Point GOPATH at the top of the staging dir for the build step.
-        env.prepend_path('GOPATH', self.gopath)
 
     # `singularity` has a fixed path where it will look for
     # mksquashfs.  If it lives somewhere else you need to specify the

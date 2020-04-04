@@ -46,6 +46,7 @@ on these ideas for each distinct build system that Spack supports:
    :maxdepth: 1
    :caption: Language-specific
 
+   build_systems/gopackage
    build_systems/octavepackage
    build_systems/perlpackage
    build_systems/pythonpackage

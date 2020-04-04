@@ -1,0 +1,170 @@
+[
+  {
+    "name": "github.com/Azure/go-ansiterm",
+    "git": "https://github.com/Azure/go-ansiterm",
+    "commit": "d6e3b3328b78",
+    "placement": "vendor/github.com/Azure/go-ansiterm",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/Microsoft/go-winio",
+    "git": "https://github.com/Microsoft/go-winio",
+    "tag": "v0.4.11",
+    "placement": "vendor/github.com/Microsoft/go-winio",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/docker/distribution",
+    "git": "https://github.com/docker/distribution",
+    "tag": "v2.7.1",
+    "placement": "vendor/github.com/docker/distribution",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/docker/docker",
+    "git": "https://github.com/docker/docker",
+    "commit": "295413c9d0e1",
+    "placement": "vendor/github.com/docker/docker",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/docker/go-connections",
+    "git": "https://github.com/docker/go-connections",
+    "tag": "v0.4.0",
+    "placement": "vendor/github.com/docker/go-connections",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/docker/go-units",
+    "git": "https://github.com/docker/go-units",
+    "tag": "v0.3.3",
+    "placement": "vendor/github.com/docker/go-units",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/gdamore/encoding",
+    "git": "https://github.com/gdamore/encoding",
+    "tag": "v1.0.0",
+    "placement": "vendor/github.com/gdamore/encoding",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/gdamore/tcell",
+    "git": "https://github.com/gdamore/tcell",
+    "tag": "v1.1.1",
+    "placement": "vendor/github.com/gdamore/tcell",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/gogo/protobuf",
+    "git": "https://github.com/gogo/protobuf",
+    "tag": "v1.2.0",
+    "placement": "vendor/github.com/gogo/protobuf",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/net",
+    "git": "https://github.com/golang/net",
+    "commit": "4829fb13d2c6",
+    "placement": "vendor/golang.org/x/net",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/sys",
+    "git": "https://github.com/golang/sys",
+    "commit": "804c0c7841b5",
+    "placement": "vendor/golang.org/x/sys",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/text",
+    "git": "https://github.com/golang/text",
+    "tag": "v0.3.2",
+    "placement": "vendor/golang.org/x/text",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/konsorten/go-windows-terminal-sequences",
+    "git": "https://github.com/konsorten/go-windows-terminal-sequences",
+    "tag": "v1.0.2",
+    "placement": "vendor/github.com/konsorten/go-windows-terminal-sequences",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/lucasb-eyer/go-colorful",
+    "git": "https://github.com/lucasb-eyer/go-colorful",
+    "tag": "v1.0.1",
+    "placement": "vendor/github.com/lucasb-eyer/go-colorful",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mattn/go-runewidth",
+    "git": "https://github.com/mattn/go-runewidth",
+    "tag": "v0.0.4",
+    "placement": "vendor/github.com/mattn/go-runewidth",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/opencontainers/go-digest",
+    "git": "https://github.com/opencontainers/go-digest",
+    "tag": "v1.0.0-rc1",
+    "placement": "vendor/github.com/opencontainers/go-digest",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/opencontainers/image-spec",
+    "git": "https://github.com/opencontainers/image-spec",
+    "tag": "v1.0.1",
+    "placement": "vendor/github.com/opencontainers/image-spec",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/pkg/errors",
+    "git": "https://github.com/pkg/errors",
+    "tag": "v0.8.1",
+    "placement": "vendor/github.com/pkg/errors",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/rivo/tview",
+    "git": "https://github.com/rivo/tview",
+    "commit": "8a9e26fab0ff",
+    "placement": "vendor/github.com/rivo/tview",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/rivo/uniseg",
+    "git": "https://github.com/rivo/uniseg",
+    "commit": "f699dde9c340",
+    "placement": "vendor/github.com/rivo/uniseg",
+    "when": "@2.0.4",
+    "destination": "."
+  },
+  {
+    "name": "github.com/sirupsen/logrus",
+    "git": "https://github.com/sirupsen/logrus",
+    "tag": "v1.4.1",
+    "placement": "vendor/github.com/sirupsen/logrus",
+    "when": "@2.0.4",
+    "destination": "."
+  }
+]

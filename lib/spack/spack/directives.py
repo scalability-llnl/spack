@@ -23,6 +23,7 @@ The available directives are:
   * ``patch``
   * ``provides``
   * ``resource``
+  * ``import_resources``
   * ``variant``
   * ``version``
 
@@ -30,6 +31,7 @@ The available directives are:
 
 import collections
 import functools
+import json
 import os.path
 import re
 from six import string_types
@@ -607,38 +609,72 @@ def resource(**kwargs):
       resource is moved into the main package stage area.
     """
     def _execute_resource(pkg):
-        when = kwargs.get('when')
-        when_spec = make_when_spec(when)
-        if not when_spec:
-            return
-
-        destination = kwargs.get('destination', "")
-        placement = kwargs.get('placement', None)
-
-        # Check if the path is relative
-        if os.path.isabs(destination):
-            message = ('The destination keyword of a resource directive '
-                       'can\'t be an absolute path.\n')
-            message += "\tdestination : '{dest}\n'".format(dest=destination)
-            raise RuntimeError(message)
-
-        # Check if the path falls within the main package stage area
-        test_path = 'stage_folder_root'
-        normalized_destination = os.path.normpath(
-            os.path.join(test_path, destination)
-        )  # Normalized absolute path
-
-        if test_path not in normalized_destination:
-            message = ("The destination folder of a resource must fall "
-                       "within the main package stage directory.\n")
-            message += "\tdestination : '{dest}'\n".format(dest=destination)
-            raise RuntimeError(message)
-
-        resources = pkg.resources.setdefault(when_spec, [])
-        name = kwargs.get('name')
-        fetcher = from_kwargs(**kwargs)
-        resources.append(Resource(name, fetcher, destination, placement))
+        _resource(pkg, **kwargs)
     return _execute_resource
+
+
+@directive('resources')
+def import_resources(filename):
+    """Load one or more resource definitions from a JSON file.  The JSON
+    file must contains an array of objects, where the keys of each
+    object are valid resource keywords (e.g. 'when', 'destination')
+    and the values are the valid values for the corresponding resource
+    definition.  E.g.
+
+    [{"name": "tarball", "url": "https://example.com/tarball.tgz"}]
+
+    """
+    def _execute_import_resources(pkg):
+        pkg_dir = os.path.abspath(os.path.dirname(pkg.module.__file__))
+        path = os.path.join(pkg_dir, filename)
+        try:
+            with open(path) as fh:
+                resources = json.load(fh)
+                for r in resources:
+                    _resource(pkg, **r)
+        except json.decoder.JSONDecodeError as e:
+            # json error message never says "JSON", be helpful...
+            raise ResourcesFileError(
+                "Unable to load resources file, bad JSON: {0}".format(e))
+        except Exception as e:
+            raise ResourcesFileError(
+                "Unable to load resources file: {0}".format(e))
+
+    return _execute_import_resources
+
+
+def _resource(pkg, **kwargs):
+    when = kwargs.get('when')
+    when_spec = make_when_spec(when)
+    if not when_spec:
+        return
+
+    destination = kwargs.get('destination', "")
+    placement = kwargs.get('placement', None)
+
+    # Check if the path is relative
+    if os.path.isabs(destination):
+        message = ('The destination keyword of a resource directive '
+                   'can\'t be an absolute path.\n')
+        message += "\tdestination : '{dest}\n'".format(dest=destination)
+        raise RuntimeError(message)
+
+    # Check if the path falls within the main package stage area
+    test_path = 'stage_folder_root'
+    normalized_destination = os.path.normpath(
+        os.path.join(test_path, destination)
+    )  # Normalized absolute path
+
+    if test_path not in normalized_destination:
+        message = ("The destination folder of a resource must fall "
+                   "within the main package stage directory.\n")
+        message += "\tdestination : '{dest}'\n".format(dest=destination)
+        raise RuntimeError(message)
+
+    resources = pkg.resources.setdefault(when_spec, [])
+    name = kwargs.get('name')
+    fetcher = from_kwargs(**kwargs)
+    resources.append(Resource(name, fetcher, destination, placement))
 
 
 class DirectiveError(spack.error.SpackError):
@@ -655,3 +691,12 @@ class DependencyPatchError(DirectiveError):
 
 class UnsupportedPackageDirective(DirectiveError):
     """Raised when an invalid or unsupported package directive is specified."""
+
+
+class ResourcesFileError(DirectiveError):
+    """Raised for errors while importing resources file."""
+
+    def __init__(self, message):
+        super(ResourcesFileError, self).__init__(
+            "Problem importing resources file: %s" %
+            message)

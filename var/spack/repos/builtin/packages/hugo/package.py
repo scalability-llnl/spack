@@ -4,10 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
-from spack.util.executable import which
 
 
-class Hugo(Package):
+class Hugo(GoPackage):
     """The world's fastest framework for building websites."""
 
     homepage = "https://gohugo.io"
@@ -15,12 +14,14 @@ class Hugo(Package):
 
     version('0.53', sha256='48e65a33d3b10527101d13c354538379d9df698e5c38f60f4660386f4232e65c')
 
-    # Uses go modules.
-    # See https://gohugo.io/getting-started/installing/#fetch-from-github
-    depends_on('go@1.11:', when='@0.48:', type='build')
+    variant('extended', default='False', description='Extended Sass/SCSS support')
 
-    def install(self, spec, prefix):
-        go = which('go')
-        go('build')
-        mkdir(prefix.bin)
-        install('hugo', prefix.bin)
+    # hugo has used modules since its v0.48, so we do too.
+    import_resources("hugo-resources-0.53.json")
+
+    def build_args(self):
+        if self.spec.satisfies('+extended'):
+            return ['-tags', 'extended']
+        return []
+
+    executables = ['hugo']

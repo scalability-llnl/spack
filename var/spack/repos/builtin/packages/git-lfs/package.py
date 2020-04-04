@@ -23,12 +23,19 @@ class GitLfs(MakefilePackage):
     version('2.7.0', sha256='1c829ddd163be2206a44edb366bd7f6d84c5afae3496687405ca9d2a5f3af07b')
     version('2.6.1', sha256='e17cd9d4e66d1116be32f7ddc7e660c7f8fabbf510bc01b01ec15a22dd934ead')
 
-    depends_on('go@1.5:', type='build')
+    depends_on('go@1.11:', type='build')  # module/vendor support
     depends_on('git@1.8.2:', type='run')
 
     patch('patches/issue-10702.patch', when='@2.7.0:2.7.1')
 
     parallel = False
+
+    # dependencies are vendored, ensure that they're used
+    def setup_build_environment(self, env):
+        # forcibly enable module mode
+        env.set('GO111MODULE', 'on')
+        # forcibly enable vendoring, prevent network access
+        env.set('GOFLAGS', '-mod=vendor')
 
     # Git-lfs does not provide an 'install' target in the Makefile
     def install(self, spec, prefix):

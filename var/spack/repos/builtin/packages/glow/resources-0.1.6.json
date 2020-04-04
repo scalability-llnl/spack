@@ -1,0 +1,146 @@
+[
+  {
+    "name": "github.com/alecthomas/chroma",
+    "git": "https://github.com/alecthomas/chroma",
+    "tag": "v0.7.0",
+    "placement": "vendor/github.com/alecthomas/chroma",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/charmbracelet/glamour",
+    "git": "https://github.com/charmbracelet/glamour",
+    "commit": "3bd1742b4822",
+    "placement": "vendor/github.com/charmbracelet/glamour",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/danwakefield/fnmatch",
+    "git": "https://github.com/danwakefield/fnmatch",
+    "commit": "cbb64ac3d964",
+    "placement": "vendor/github.com/danwakefield/fnmatch",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/dlclark/regexp2",
+    "git": "https://github.com/dlclark/regexp2",
+    "tag": "v1.2.0",
+    "placement": "vendor/github.com/dlclark/regexp2",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/net",
+    "git": "https://github.com/golang/net",
+    "commit": "c0dbc17a3553",
+    "placement": "vendor/golang.org/x/net",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/sys",
+    "git": "https://github.com/golang/sys",
+    "commit": "d0b11bdaac8a",
+    "placement": "vendor/golang.org/x/sys",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/inconshreveable/mousetrap",
+    "git": "https://github.com/inconshreveable/mousetrap",
+    "tag": "v1.0.0",
+    "placement": "vendor/github.com/inconshreveable/mousetrap",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/logrusorgru/aurora",
+    "git": "https://github.com/logrusorgru/aurora",
+    "commit": "66b7ad493a23",
+    "placement": "vendor/github.com/logrusorgru/aurora",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/lucasb-eyer/go-colorful",
+    "git": "https://github.com/lucasb-eyer/go-colorful",
+    "tag": "v1.0.3",
+    "placement": "vendor/github.com/lucasb-eyer/go-colorful",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mattn/go-isatty",
+    "git": "https://github.com/mattn/go-isatty",
+    "tag": "v0.0.4",
+    "placement": "vendor/github.com/mattn/go-isatty",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mattn/go-runewidth",
+    "git": "https://github.com/mattn/go-runewidth",
+    "tag": "v0.0.7",
+    "placement": "vendor/github.com/mattn/go-runewidth",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/microcosm-cc/bluemonday",
+    "git": "https://github.com/microcosm-cc/bluemonday",
+    "tag": "v1.0.2",
+    "placement": "vendor/github.com/microcosm-cc/bluemonday",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/muesli/reflow",
+    "git": "https://github.com/muesli/reflow",
+    "commit": "e5efeac4e302",
+    "placement": "vendor/github.com/muesli/reflow",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/olekukonko/tablewriter",
+    "git": "https://github.com/olekukonko/tablewriter",
+    "tag": "v0.0.4",
+    "placement": "vendor/github.com/olekukonko/tablewriter",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/rakyll/statik",
+    "git": "https://github.com/rakyll/statik",
+    "tag": "v0.1.6",
+    "placement": "vendor/github.com/rakyll/statik",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/cobra",
+    "git": "https://github.com/spf13/cobra",
+    "tag": "v0.0.5",
+    "placement": "vendor/github.com/spf13/cobra",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/pflag",
+    "git": "https://github.com/spf13/pflag",
+    "tag": "v1.0.3",
+    "placement": "vendor/github.com/spf13/pflag",
+    "when": "@0.1.6",
+    "destination": "."
+  },
+  {
+    "name": "github.com/yuin/goldmark",
+    "git": "https://github.com/yuin/goldmark",
+    "tag": "v1.1.17",
+    "placement": "vendor/github.com/yuin/goldmark",
+    "when": "@0.1.6",
+    "destination": "."
+  }
+]

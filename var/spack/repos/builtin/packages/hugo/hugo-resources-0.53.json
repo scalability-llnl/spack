@@ -1,0 +1,522 @@
+[
+  {
+    "name": "github.com/BurntSushi/locker",
+    "git": "https://github.com/BurntSushi/locker",
+    "commit": "a6e239ea1c69",
+    "placement": "vendor/github.com/BurntSushi/locker",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/BurntSushi/toml",
+    "git": "https://github.com/BurntSushi/toml",
+    "commit": "a368813c5e64",
+    "placement": "vendor/github.com/BurntSushi/toml",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/PuerkitoBio/purell",
+    "git": "https://github.com/PuerkitoBio/purell",
+    "tag": "v1.1.0",
+    "placement": "vendor/github.com/PuerkitoBio/purell",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/PuerkitoBio/urlesc",
+    "git": "https://github.com/PuerkitoBio/urlesc",
+    "commit": "de5bf2ad4578",
+    "placement": "vendor/github.com/PuerkitoBio/urlesc",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/alecthomas/assert",
+    "git": "https://github.com/alecthomas/assert",
+    "commit": "405dbfeb8e38",
+    "placement": "vendor/github.com/alecthomas/assert",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/alecthomas/chroma",
+    "git": "https://github.com/alecthomas/chroma",
+    "tag": "v0.6.0",
+    "placement": "vendor/github.com/alecthomas/chroma",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/alecthomas/colour",
+    "git": "https://github.com/alecthomas/colour",
+    "commit": "60882d9e2721",
+    "placement": "vendor/github.com/alecthomas/colour",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/alecthomas/repr",
+    "git": "https://github.com/alecthomas/repr",
+    "commit": "117648cd9897",
+    "placement": "vendor/github.com/alecthomas/repr",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/bep/debounce",
+    "git": "https://github.com/bep/debounce",
+    "tag": "v1.1.0",
+    "placement": "vendor/github.com/bep/debounce",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/bep/gitmap",
+    "git": "https://github.com/bep/gitmap",
+    "tag": "v1.0.0",
+    "placement": "vendor/github.com/bep/gitmap",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/bep/go-tocss",
+    "git": "https://github.com/bep/go-tocss",
+    "tag": "v0.6.0",
+    "placement": "vendor/github.com/bep/go-tocss",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/chaseadamsio/goorgeous",
+    "git": "https://github.com/chaseadamsio/goorgeous",
+    "tag": "v1.1.0",
+    "placement": "vendor/github.com/chaseadamsio/goorgeous",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/cpuguy83/go-md2man",
+    "git": "https://github.com/cpuguy83/go-md2man",
+    "tag": "v1.0.8",
+    "placement": "vendor/github.com/cpuguy83/go-md2man",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/danwakefield/fnmatch",
+    "git": "https://github.com/danwakefield/fnmatch",
+    "commit": "cbb64ac3d964",
+    "placement": "vendor/github.com/danwakefield/fnmatch",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/davecgh/go-spew",
+    "git": "https://github.com/davecgh/go-spew",
+    "tag": "v1.1.1",
+    "placement": "vendor/github.com/davecgh/go-spew",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/disintegration/imaging",
+    "git": "https://github.com/disintegration/imaging",
+    "tag": "v1.5.0",
+    "placement": "vendor/github.com/disintegration/imaging",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/dlclark/regexp2",
+    "git": "https://github.com/dlclark/regexp2",
+    "tag": "v1.1.6",
+    "placement": "vendor/github.com/dlclark/regexp2",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/eknkc/amber",
+    "git": "https://github.com/eknkc/amber",
+    "commit": "cdade1c07385",
+    "placement": "vendor/github.com/eknkc/amber",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/fortytw2/leaktest",
+    "git": "https://github.com/fortytw2/leaktest",
+    "tag": "v1.2.0",
+    "placement": "vendor/github.com/fortytw2/leaktest",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/fsnotify/fsnotify",
+    "git": "https://github.com/fsnotify/fsnotify",
+    "tag": "v1.4.7",
+    "placement": "vendor/github.com/fsnotify/fsnotify",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "gopkg.in/yaml.v2",
+    "git": "https://github.com/go-yaml/yaml",
+    "tag": "v2.2.2",
+    "placement": "vendor/gopkg.in/yaml.v2",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/gobwas/glob",
+    "git": "https://github.com/gobwas/glob",
+    "tag": "v0.2.3",
+    "placement": "vendor/github.com/gobwas/glob",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/image",
+    "git": "https://github.com/golang/image",
+    "commit": "c73c2afc3b81",
+    "placement": "vendor/golang.org/x/image",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/net",
+    "git": "https://github.com/golang/net",
+    "commit": "161cd47e91fd",
+    "placement": "vendor/golang.org/x/net",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/sync",
+    "git": "https://github.com/golang/sync",
+    "commit": "1d60e4601c6f",
+    "placement": "vendor/golang.org/x/sync",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/sys",
+    "git": "https://github.com/golang/sys",
+    "commit": "70b957f3b65e",
+    "placement": "vendor/golang.org/x/sys",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/text",
+    "git": "https://github.com/golang/text",
+    "tag": "v0.3.0",
+    "placement": "vendor/golang.org/x/text",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/gorilla/websocket",
+    "git": "https://github.com/gorilla/websocket",
+    "tag": "v1.4.0",
+    "placement": "vendor/github.com/gorilla/websocket",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/hashicorp/go-immutable-radix",
+    "git": "https://github.com/hashicorp/go-immutable-radix",
+    "tag": "v1.0.0",
+    "placement": "vendor/github.com/hashicorp/go-immutable-radix",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/hashicorp/golang-lru",
+    "git": "https://github.com/hashicorp/golang-lru",
+    "tag": "v0.5.0",
+    "placement": "vendor/github.com/hashicorp/golang-lru",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/hashicorp/hcl",
+    "git": "https://github.com/hashicorp/hcl",
+    "tag": "v1.0.0",
+    "placement": "vendor/github.com/hashicorp/hcl",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/inconshreveable/mousetrap",
+    "git": "https://github.com/inconshreveable/mousetrap",
+    "tag": "v1.0.0",
+    "placement": "vendor/github.com/inconshreveable/mousetrap",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/jdkato/prose",
+    "git": "https://github.com/jdkato/prose",
+    "tag": "v1.1.0",
+    "placement": "vendor/github.com/jdkato/prose",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/kyokomi/emoji",
+    "git": "https://github.com/kyokomi/emoji",
+    "tag": "v1.5.1",
+    "placement": "vendor/github.com/kyokomi/emoji",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/magefile/mage",
+    "git": "https://github.com/magefile/mage",
+    "tag": "v1.4.0",
+    "placement": "vendor/github.com/magefile/mage",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/magiconair/properties",
+    "git": "https://github.com/magiconair/properties",
+    "tag": "v1.8.0",
+    "placement": "vendor/github.com/magiconair/properties",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/markbates/inflect",
+    "git": "https://github.com/markbates/inflect",
+    "commit": "a12c3aec81a6",
+    "placement": "vendor/github.com/markbates/inflect",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mattn/go-isatty",
+    "git": "https://github.com/mattn/go-isatty",
+    "tag": "v0.0.4",
+    "placement": "vendor/github.com/mattn/go-isatty",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mattn/go-runewidth",
+    "git": "https://github.com/mattn/go-runewidth",
+    "tag": "v0.0.3",
+    "placement": "vendor/github.com/mattn/go-runewidth",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/miekg/mmark",
+    "git": "https://github.com/miekg/mmark",
+    "tag": "v1.3.6",
+    "placement": "vendor/github.com/miekg/mmark",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mitchellh/hashstructure",
+    "git": "https://github.com/mitchellh/hashstructure",
+    "tag": "v1.0.0",
+    "placement": "vendor/github.com/mitchellh/hashstructure",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mitchellh/mapstructure",
+    "git": "https://github.com/mitchellh/mapstructure",
+    "tag": "v1.1.2",
+    "placement": "vendor/github.com/mitchellh/mapstructure",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/muesli/smartcrop",
+    "git": "https://github.com/muesli/smartcrop",
+    "commit": "f6ebaa786a12",
+    "placement": "vendor/github.com/muesli/smartcrop",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/nicksnyder/go-i18n",
+    "git": "https://github.com/nicksnyder/go-i18n",
+    "tag": "v1.10.0",
+    "placement": "vendor/github.com/nicksnyder/go-i18n",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/olekukonko/tablewriter",
+    "git": "https://github.com/olekukonko/tablewriter",
+    "commit": "d4647c9c7a84",
+    "placement": "vendor/github.com/olekukonko/tablewriter",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/pelletier/go-toml",
+    "git": "https://github.com/pelletier/go-toml",
+    "tag": "v1.2.0",
+    "placement": "vendor/github.com/pelletier/go-toml",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/pkg/errors",
+    "git": "https://github.com/pkg/errors",
+    "tag": "v0.8.0",
+    "placement": "vendor/github.com/pkg/errors",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/pmezard/go-difflib",
+    "git": "https://github.com/pmezard/go-difflib",
+    "tag": "v1.0.0",
+    "placement": "vendor/github.com/pmezard/go-difflib",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/russross/blackfriday",
+    "git": "https://github.com/russross/blackfriday",
+    "commit": "46c73eb196ba",
+    "placement": "vendor/github.com/russross/blackfriday",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/sanity-io/litter",
+    "git": "https://github.com/sanity-io/litter",
+    "tag": "v1.1.0",
+    "placement": "vendor/github.com/sanity-io/litter",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/sergi/go-diff",
+    "git": "https://github.com/sergi/go-diff",
+    "tag": "v1.0.0",
+    "placement": "vendor/github.com/sergi/go-diff",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/shurcooL/sanitized_anchor_name",
+    "git": "https://github.com/shurcooL/sanitized_anchor_name",
+    "commit": "86672fcb3f95",
+    "placement": "vendor/github.com/shurcooL/sanitized_anchor_name",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/afero",
+    "git": "https://github.com/spf13/afero",
+    "tag": "v1.2.0",
+    "placement": "vendor/github.com/spf13/afero",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/cast",
+    "git": "https://github.com/spf13/cast",
+    "tag": "v1.3.0",
+    "placement": "vendor/github.com/spf13/cast",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/cobra",
+    "git": "https://github.com/spf13/cobra",
+    "tag": "v0.0.3",
+    "placement": "vendor/github.com/spf13/cobra",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/fsync",
+    "git": "https://github.com/spf13/fsync",
+    "commit": "12a01e648f05",
+    "placement": "vendor/github.com/spf13/fsync",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/jwalterweatherman",
+    "git": "https://github.com/spf13/jwalterweatherman",
+    "commit": "94f6ae3ed3bc",
+    "placement": "vendor/github.com/spf13/jwalterweatherman",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/nitro",
+    "git": "https://github.com/spf13/nitro",
+    "commit": "24d7ef30a12d",
+    "placement": "vendor/github.com/spf13/nitro",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/pflag",
+    "git": "https://github.com/spf13/pflag",
+    "tag": "v1.0.3",
+    "placement": "vendor/github.com/spf13/pflag",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/spf13/viper",
+    "git": "https://github.com/spf13/viper",
+    "tag": "v1.3.1",
+    "placement": "vendor/github.com/spf13/viper",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/stretchr/testify",
+    "git": "https://github.com/stretchr/testify",
+    "commit": "04af85275a5c",
+    "placement": "vendor/github.com/stretchr/testify",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/tdewolff/minify/v2",
+    "git": "https://github.com/tdewolff/minify",
+    "tag": "v2.3.7",
+    "placement": "vendor/github.com/tdewolff/minify/v2",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/tdewolff/parse/v2",
+    "git": "https://github.com/tdewolff/parse",
+    "tag": "v2.3.5",
+    "placement": "vendor/github.com/tdewolff/parse/v2",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/wellington/go-libsass",
+    "git": "https://github.com/wellington/go-libsass",
+    "commit": "c63644206701",
+    "placement": "vendor/github.com/wellington/go-libsass",
+    "when": "@0.53",
+    "destination": "."
+  },
+  {
+    "name": "github.com/yosssi/ace",
+    "git": "https://github.com/yosssi/ace",
+    "tag": "v0.0.5",
+    "placement": "vendor/github.com/yosssi/ace",
+    "when": "@0.53",
+    "destination": "."
+  }
+]

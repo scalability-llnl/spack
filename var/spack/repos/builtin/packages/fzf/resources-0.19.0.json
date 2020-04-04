@@ -1,0 +1,74 @@
+[
+  {
+    "name": "github.com/gdamore/encoding",
+    "git": "https://github.com/gdamore/encoding",
+    "commit": "b23993cbb635",
+    "placement": "vendor/github.com/gdamore/encoding",
+    "when": "@0.19.0",
+    "destination": "."
+  },
+  {
+    "name": "github.com/gdamore/tcell",
+    "git": "https://github.com/gdamore/tcell",
+    "commit": "0a0db94084df",
+    "placement": "vendor/github.com/gdamore/tcell",
+    "when": "@0.19.0",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/crypto",
+    "git": "https://github.com/golang/crypto",
+    "commit": "558b6879de74",
+    "placement": "vendor/golang.org/x/crypto",
+    "when": "@0.19.0",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/sys",
+    "git": "https://github.com/golang/sys",
+    "commit": "a5b02f93d862",
+    "placement": "vendor/golang.org/x/sys",
+    "when": "@0.19.0",
+    "destination": "."
+  },
+  {
+    "name": "golang.org/x/text",
+    "git": "https://github.com/golang/text",
+    "commit": "4ee4af566555",
+    "placement": "vendor/golang.org/x/text",
+    "when": "@0.19.0",
+    "destination": "."
+  },
+  {
+    "name": "github.com/lucasb-eyer/go-colorful",
+    "git": "https://github.com/lucasb-eyer/go-colorful",
+    "commit": "c900de9dbbc7",
+    "placement": "vendor/github.com/lucasb-eyer/go-colorful",
+    "when": "@0.19.0",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mattn/go-isatty",
+    "git": "https://github.com/mattn/go-isatty",
+    "commit": "66b8e73f3f5c",
+    "placement": "vendor/github.com/mattn/go-isatty",
+    "when": "@0.19.0",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mattn/go-runewidth",
+    "git": "https://github.com/mattn/go-runewidth",
+    "commit": "14207d285c6c",
+    "placement": "vendor/github.com/mattn/go-runewidth",
+    "when": "@0.19.0",
+    "destination": "."
+  },
+  {
+    "name": "github.com/mattn/go-shellwords",
+    "git": "https://github.com/mattn/go-shellwords",
+    "tag": "v1.0.3",
+    "placement": "vendor/github.com/mattn/go-shellwords",
+    "when": "@0.19.0",
+    "destination": "."
+  }
+]
