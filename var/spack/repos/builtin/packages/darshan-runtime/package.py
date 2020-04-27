@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
-import os
 
 
 class DarshanRuntime(Package):
@@ -59,5 +58,4 @@ class DarshanRuntime(Package):
 
     def setup_run_environment(self, env):
         # default path for log file, could be user or site specific setting
-        darshan_log_dir = os.environ['HOME']
-        env.set('DARSHAN_LOG_DIR_PATH', darshan_log_dir)
+        env.set('DARSHAN_LOG_DIR_PATH', '.')
