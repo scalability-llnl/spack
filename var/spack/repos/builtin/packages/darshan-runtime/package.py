@@ -30,7 +30,10 @@ class DarshanRuntime(Package):
     depends_on('mpi')
     depends_on('zlib')
 
-    variant('log-path-by-env', default='none', values=str, description="The default log directory to use. May also be an environmental variable to use")
+    variant('log-path-by-env', default='none',
+            description="The default log directory to use. "
+            "May also signify an environmental variable to resolve, "
+            "e.g. `log-path-by-env='$CUSTOM_VARIABLE'`")
 
     variant('slurm', default=False, description='Use Slurm Job Id')
     variant('cobalt', default=False, description='Use Cobalt Job Id')
