@@ -225,3 +225,35 @@ class IntelParallelStudio(IntelPackage):
             'F90':  spack_fc,
             'FC':   spack_fc,
         })
+
+    def setup_run_environment(self, env):
+        # Search prefix directory for possibly modified compiler names
+        # CAUTION - DUP code in:
+        #   ../intel/package.py
+        #   ../intel-parallel-studio/package.py
+        # ported from ../gcc/package.py
+        from spack.compilers.intel import Intel as Compiler
+
+        # Get the contents of the installed binary directory
+        bin_path = self.spec.prefix.bin
+
+        if not os.path.isdir(bin_path):
+            return
+
+        bin_contents = os.listdir(bin_path)
+
+        # Find the first non-symlink compiler binary present for each language
+        for lang in ['cc', 'cxx', 'fc', 'f77']:
+            for filename, regexp in itertools.product(
+                    bin_contents,
+                    Compiler.search_regexps(lang)
+            ):
+                if not regexp.match(filename):
+                    continue
+
+                realpath = os.path.realpath(os.path.join(bin_path, filename))
+
+                # Set the proper environment variable
+                env.set(lang.upper(), realpath)
+                # Stop searching filename/regex combos for this language
+                break
