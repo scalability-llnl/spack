@@ -408,6 +408,38 @@ def extends(spec, **kwargs):
     return _execute_extends
 
 
+@directive('dependencies')
+def same_version_as(
+        dep, when=None, type=default_deptype, patches=None,
+        pkg_to_dep_version=None):
+    """Depend on the exact same version of another package.
+
+    For every version defined for this package, this utility function adds a
+    dependency on the exact same version in another package.
+
+    This is useful when one package is a utility or wrapping library for
+    another and both are released in lockstep (an example would be protobuf and
+    py-protobuf).
+
+    If `pkg_to_dep_version` is set, it should be a function mapping the version
+    string from the current package to the version string of the dependency.
+    This is useful for filtering suffixes or additions that might be present
+    (for example `py-protobuf` has some `x.y.z.post1` versions that should use
+    `x.y.z` from `protobuf`).
+    """
+    def _same_version_as(pkg):
+        for ver in pkg.versions:
+            if pkg_to_dep_version is not None:
+                needed = pkg_to_dep_version(ver)
+            else:
+                needed = ver
+            _depends_on(pkg, "{dep}@{version}".format(dep=dep, version=needed),
+                        when="@{version}{when}".format(
+                            version=ver, when="" if when is None else when),
+                        type=type, patches=patches)
+    return _same_version_as
+
+
 @directive('provided')
 def provides(*specs, **kwargs):
     """Allows packages to provide a virtual dependency.  If a package provides

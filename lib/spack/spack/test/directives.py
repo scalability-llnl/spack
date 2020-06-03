@@ -32,3 +32,18 @@ def test_true_directives_exist(mock_packages):
 
     assert cls.patches
     assert Spec() in cls.patches
+
+
+def test_same_version_as(config, mock_packages):
+    # check that every version of the wrapper depends on the corresponding
+    # major version of the wrappee
+
+    pkg = spack.repo.get("same_version_as_wrapper")
+
+    for ver in pkg.versions:
+        spec = pkg.spec.constrained("@{0}".format(ver))
+        spec.concretize()
+        deps = spec.dependencies()
+
+        assert len(deps) == 1
+        assert deps[0].version.up_to(1) == ver.up_to(1)
