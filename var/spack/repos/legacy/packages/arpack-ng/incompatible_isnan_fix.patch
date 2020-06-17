@@ -1,0 +1,22 @@
+diff -ur arpack-ng-3.7.0_org/TESTS/bug_58_double.f arpack-ng-3.7.0/TESTS/bug_58_double.f
+--- arpack-ng-3.7.0_org/TESTS/bug_58_double.f	2019-10-17 12:17:22.496987817 +0900
++++ arpack-ng-3.7.0/TESTS/bug_58_double.f	2019-10-17 17:12:37.669353870 +0900
+@@ -69,7 +69,7 @@
+      &                  workev(3*maxncv),
+      &                  workl(3*maxncv*maxncv+6*maxncv),
+      &                  dd(maxn), dl(maxn), du(maxn),
+-     &                  du2(maxn), a(maxn,maxn), c(maxn,maxn)
++     &                  du2(maxn), a(maxn,maxn), c(maxn,maxn), rslt
+ c
+ c     %---------------%
+ c     | Local Scalars |
+@@ -417,7 +417,8 @@
+          print *, ' '
+ c
+       end if
+-      if (isnan(v(1,1))) then
++      rslt = v(1,1)
++      if (rslt .ne. rslt) then
+          stop 1
+       end if
+ c
