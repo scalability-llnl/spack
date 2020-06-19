@@ -249,9 +249,9 @@ def test_get_command_paths(config):
     for ext in extensions:
         ext_path = os.path.join('my', 'path', 'to', 'spack-' + ext)
         ext_paths.append(ext_path)
-        expected_cmd_paths.append(os.path.join(ext_path,
-                                               spack.cmd.python_name(ext),
-                                               'cmd'))
+        path = os.path.join(ext_path, spack.cmd.python_name(ext), 'cmd')
+        path = os.path.abspath(path)
+        expected_cmd_paths.append(path)
 
     with spack.config.override('config:extensions', ext_paths):
         assert spack.extensions.get_command_paths() == expected_cmd_paths
