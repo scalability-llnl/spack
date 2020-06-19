@@ -257,3 +257,17 @@ and ld.so will ONLY search for dependencies in the ``RUNPATH`` of
 the loading object.
 
 DO NOT MIX the two options within the same install tree.
+
+----------------------
+``set_terminal_title``
+----------------------
+
+By default, Spack will update the terminal's title to provide information
+about its current progress, including the stage, as well as the current and
+total package numbers.
+
+To work properly, this requires your terminal to reset its title after
+Spack has finished its work, otherwise Spack's status information will
+remain in the terminal's title indefinitely. Most terminals should already
+be set up this way and clear Spack's status information. If you encounter
+any problems, set this option to ``false`` to disable this functionality.

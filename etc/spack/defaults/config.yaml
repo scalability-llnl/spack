@@ -161,3 +161,8 @@ config:
   # Set to 'false' to allow installation on filesystems that doesn't allow setgid bit
   # manipulation by unprivileged user (e.g. AFS)
   allow_sgid: true
+
+  # Whether to set the terminal title to display status information during
+  # building and installing packages. This gives information about the phase
+  # currently executing as well as the current and total number of packages.
+  set_terminal_title: true

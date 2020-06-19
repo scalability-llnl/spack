@@ -27,6 +27,8 @@ This module supports the coordination of local and distributed concurrent
 installations of packages in a Spack instance.
 """
 
+from __future__ import print_function
+
 import glob
 import heapq
 import itertools
@@ -629,6 +631,10 @@ class PackageInstaller(object):
         # Locks on specs being built, keyed on the package's unique id
         self.locks = {}
 
+        # Counters used for showing status information in the terminal title
+        self.pkg_num = 0
+        self.pkg_count = 0
+
     def __repr__(self):
         """Returns a formal representation of the package installer."""
         rep = '{0}('.format(self.__class__.__name__)
@@ -656,6 +662,18 @@ class PackageInstaller(object):
         for (comp_pkg, is_compiler) in packages:
             if package_id(comp_pkg) not in self.build_tasks:
                 self._push_task(comp_pkg, is_compiler, 0, 0, STATUS_ADDED)
+
+    def _set_terminal_title(self, text, force=False):
+        if not spack.config.get('config:set_terminal_title', True):
+            return
+
+        if not sys.stdout.isatty() and not force:
+            return
+
+        status = '{0} [{1}/{2}]'.format(text, self.pkg_num, self.pkg_count)
+        print('\033]0;Spack: {0}\007'.format(status), end='')
+        # print's flush argument is not available on Python 2
+        sys.stdout.flush()
 
     def _check_db(self, spec):
         """Determine if the spec is flagged as installed in the database
@@ -1057,6 +1075,9 @@ class PackageInstaller(object):
 
             This function's return value is returned to the parent process.
             """
+            pkg_id = package_id(pkg)
+            self._set_terminal_title('Fetching {0}'.format(pkg_id))
+
             start_time = time.time()
             if not fake:
                 if not skip_patch:
@@ -1064,7 +1085,6 @@ class PackageInstaller(object):
                 else:
                     pkg.do_stage()
 
-            pkg_id = package_id(pkg)
             tty.msg('{0} Building {1} [{2}]'
                     .format(pre, pkg_id, pkg.build_system_class))
 
@@ -1081,6 +1101,8 @@ class PackageInstaller(object):
                 # the directory is created.
                 spack.hooks.pre_install(pkg.spec)
                 if fake:
+                    self._set_terminal_title('Faking install for {0}'.format(
+                        pkg_id))
                     _do_fake_install(pkg)
                 else:
                     source_path = pkg.stage.source_path
@@ -1089,6 +1111,8 @@ class PackageInstaller(object):
                                                   pkg.name, 'src')
                         tty.msg('{0} Copying source to {1}'
                                 .format(pre, src_target))
+                        self._set_terminal_title('Copying source for {0}'
+                                                 .format(pkg_id))
                         fs.install_tree(pkg.stage.source_path, src_target)
 
                     # Do the real install in the source directory.
@@ -1114,6 +1138,7 @@ class PackageInstaller(object):
 
                         # Spawn a daemon that reads from a pipe and redirects
                         # everything to log_path
+                        force_title = sys.stdout.isatty()
                         with log_output(pkg.log_path, echo, True) as logger:
                             for phase_name, phase_attr in zip(
                                     pkg.phases, pkg._InstallPhase_phases):
@@ -1125,6 +1150,11 @@ class PackageInstaller(object):
                                             .format(pre, phase_name))
                                     tty.set_debug(inner_debug)
 
+                                    self._set_terminal_title(
+                                        'Running {0} for {1}'.format(
+                                            phase_name, pkg_id),
+                                        force=force_title)
+
                                 # Redirect stdout and stderr to daemon pipe
                                 phase = getattr(pkg, phase_attr)
                                 phase(pkg.spec, pkg.prefix)
@@ -1132,6 +1162,8 @@ class PackageInstaller(object):
                     echo = logger.echo
                     log(pkg)
 
+                self._set_terminal_title('Running post-install hooks for {0}'
+                                         .format(pkg_id))
                 # Run post install hooks before build stage is removed.
                 spack.hooks.post_install(pkg.spec)
 
@@ -1407,8 +1439,12 @@ class PackageInstaller(object):
         # Initialize the build task queue
         self._init_queue(install_deps, install_package)
 
+        self.pkg_num = 0
+        self.pkg_count = len(self.build_pq)
+
         # Proceed with the installation
         while self.build_pq:
+            self.pkg_num += 1
             task = self._pop_task()
             if task is None:
                 continue
@@ -1455,6 +1491,7 @@ class PackageInstaller(object):
             # another process is likely (un)installing the spec or has
             # determined the spec has already been installed (though the
             # other process may be hung).
+            self._set_terminal_title('Acquiring lock for {0}'.format(pkg_id))
             ltype, lock = self._ensure_locked('write', pkg)
             if lock is None:
                 # Attempt to get a read lock instead.  If this fails then
@@ -1469,6 +1506,7 @@ class PackageInstaller(object):
                 self._requeue_task(task)
                 continue
 
+            self._set_terminal_title('Preparing {0}'.format(pkg_id))
             # Determine state of installation artifacts and adjust accordingly.
             self._prepare_for_install(task, keep_prefix, keep_stage,
                                       restage)
