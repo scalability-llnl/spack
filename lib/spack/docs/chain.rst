@@ -54,6 +54,11 @@ Other details about upstream installations:
    includes the upstream functionality (i.e. if its commit is after March
    27, 2019).
 
+.. note::
+
+   Upstream install_tree path supports :ref:`config variables
+   <config-file-variables>`.
+
 ---------------------------------------
 Using Multiple Upstream Spack Instances
 ---------------------------------------
@@ -94,3 +99,8 @@ corresponding command for the type of module they intend to use).
    Spack can generate modules that :ref:`automatically load
    <autoloading-dependencies>` the modules of dependency packages. Spack cannot
    currently do this for modules in upstream packages.
+
+.. note::
+
+   Upstream module path configs support :ref:`config variables
+   <config-file-variables>`.

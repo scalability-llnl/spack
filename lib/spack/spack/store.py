@@ -210,7 +210,9 @@ def retrieve_upstream_dbs():
 
     install_roots = []
     for install_properties in other_spack_instances.values():
-        install_roots.append(install_properties['install_tree'])
+        root = install_properties['install_tree']
+        root = spack.util.path.canonicalize_path(root)
+        install_roots.append(root)
 
     return _construct_upstream_dbs_from_install_roots(install_roots)
 

@@ -652,6 +652,7 @@ def print_setup_info(*info):
             if k in module_to_roots
         )
         for module_type, root in upstream_module_roots.items():
+            root = spack.util.path.canonicalize_path(root)
             module_to_roots[module_type].append(root)
 
     for name, paths in module_to_roots.items():
