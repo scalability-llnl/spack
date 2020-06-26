@@ -55,6 +55,46 @@ def test_install_package_and_dependency(
     assert 'errors="0"' in content
 
 
+def test_global_install_package_and_dependency(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery):
+
+    with tmpdir.as_cwd():
+        install('--global',
+                '--log-format=junit',
+                '--log-file=test.xml',
+                'libdwarf')
+
+    files = tmpdir.listdir()
+    filename = tmpdir.join('test.xml')
+    assert filename in files
+
+    content = filename.open().read()
+    assert 'tests="2"' in content
+    assert 'failures="0"' in content
+    assert 'errors="0"' in content
+
+
+def test_upstream_install_package_and_dependency(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery):
+
+    with tmpdir.as_cwd():
+        install('--upstream=global',
+                '--log-format=junit',
+                '--log-file=test.xml',
+                'libdwarf')
+
+    files = tmpdir.listdir()
+    filename = tmpdir.join('test.xml')
+    assert filename in files
+
+    content = filename.open().read()
+    assert 'tests="2"' in content
+    assert 'failures="0"' in content
+    assert 'errors="0"' in content
+
+
 @pytest.mark.disable_clean_stage_check
 def test_install_runtests_notests(monkeypatch, mock_packages, install_mockery):
     def check(pkg):

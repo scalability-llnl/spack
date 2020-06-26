@@ -34,7 +34,7 @@ import spack.database
 import spack.directory_layout
 
 #: default installation root, relative to the Spack install path
-default_root = os.path.join(spack.paths.opt_path, 'spack')
+default_root = os.path.join(spack.paths.user_config_path, 'opt/spack')
 
 
 class Store(object):
@@ -70,9 +70,10 @@ class Store(object):
 
 def _store():
     """Get the singleton store instance."""
-    root = spack.config.get('config:install_tree', default_root)
-    root = spack.util.path.canonicalize_path(root)
+    root = spack.config.get('config:active_tree', default_root)
 
+    # Canonicalize Path for Root regardless of origin
+    root = spack.util.path.canonicalize_path(root)
     return Store(root,
                  spack.config.get('config:install_path_scheme'),
                  spack.config.get('config:install_hash_length'))
@@ -88,11 +89,19 @@ layout = llnl.util.lang.LazyReference(lambda: store.layout)
 
 
 def retrieve_upstream_dbs():
-    other_spack_instances = spack.config.get('upstreams', {})
 
+    global_fallback = {'global': {'install_tree': '$spack/opt/spack',
+                                  'modules':
+                                  {'tcl': '$spack/share/spack/modules',
+                                   'lmod': '$spack/share/spack/lmod',
+                                   'dotkit': '$spack/share/spack/dotkit'}}}
+
+    other_spack_instances = spack.config.get('upstreams',
+                                             global_fallback)
     install_roots = []
     for install_properties in other_spack_instances.values():
-        install_roots.append(install_properties['install_tree'])
+        install_roots.append(spack.util.path.canonicalize_path(
+                             install_properties['install_tree']))
 
     return _construct_upstream_dbs_from_install_roots(install_roots)
 

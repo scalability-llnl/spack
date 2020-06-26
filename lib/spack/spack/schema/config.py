@@ -73,6 +73,16 @@ properties = {
                     {'type': 'null'}
                 ],
             },
+            'metrics': {'type': 'boolean'},
+            'metrcis_address': {
+                'type': 'array',
+                'items': {
+                    'anyOf': [
+                       {'type': 'string'},
+                       {'type': 'integer'}
+                    ]
+                }
+            },
             'allow_sgid': {'type': 'boolean'},
         },
     },

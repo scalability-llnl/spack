@@ -5,16 +5,23 @@
 
 from __future__ import print_function
 
+import copy
 import sys
 import itertools
+import os
+import logging
+import logging.config
 
 import spack.cmd
+import spack.config
 import spack.environment as ev
 import spack.error
 import spack.package
 import spack.cmd.common.arguments as arguments
 import spack.repo
 import spack.store
+import spack.util.spack_yaml as syaml
+import spack.spec
 from spack.database import InstallStatuses
 
 from llnl.util import tty
@@ -63,8 +70,19 @@ def setup_parser(subparser):
         help="remove ALL installed packages that match each supplied spec"
     )
 
+    subparser.add_argument(
+        '-u', '--upstream', action='store', default=None,
+        dest='upstream', metavar='UPSTREAM_NAME',
+        help='specify which upstream spack to uninstall from')
 
-def find_matching_specs(env, specs, allow_multiple_matches=False, force=False):
+    subparser.add_argument(
+        '-g', '--global', action='store_true',
+        dest='global_uninstall',
+        help='uninstall packages installed to global upstream')
+
+
+def find_matching_specs(env, specs, allow_multiple_matches=False, force=False,
+                        upstream=None, global_uninstall=False):
     """Returns a list of specs matching the not necessarily
        concretized specs given from cli
 
@@ -76,6 +94,35 @@ def find_matching_specs(env, specs, allow_multiple_matches=False, force=False):
     Return:
         list of specs
     """
+    if global_uninstall:
+        spack.config.set('config:active_upstream', 'global',
+                         scope='user')
+        global_root = spack.config.get('upstreams')
+        global_root = global_root['global']['install_tree']
+        global_root = spack.util.path.canonicalize_path(global_root)
+        spack.config.set('config:active_tree', global_root,
+                         scope='user')
+    elif upstream:
+        if upstream not in spack.config.get('upstreams'):
+            tty.die("specified upstream does not exist")
+        spack.config.set('config:active_upstream', upstream,
+                         scope='user')
+        root = spack.config.get('upstreams')
+        root = root[upstream]['install_tree']
+        root = spack.util.path.canonicalize_path(root)
+        spack.config.set('config:active_tree', root, scope='user')
+    else:
+        spack.config.set('config:active_upstream', None,
+                         scope='user')
+        for spec in specs:
+            if isinstance(spec, spack.spec.Spec):
+                spec_name = str(spec)
+                spec_copy = (copy.deepcopy(spec))
+                spec_copy.concretize()
+                if spec_copy.package.installed_upstream:
+                    tty.warn("{0} is installed upstream".format(spec_name))
+                    tty.die("Use 'spack uninstall [--upstream upstream_name]'")
+
     # constrain uninstall resolution to current environment if one is active
     hashes = env.all_hashes() if env else None
 
@@ -207,6 +254,25 @@ def do_uninstall(env, specs, force):
     """
     packages = []
     for item in specs:
+        if spack.config.get('config:metrics'):
+            # Logs spec to install to syslog for metrics collection
+            config_path = os.path.dirname(os.path.abspath(__file__))
+            config_path = os.path.join(config_path, '../metrics_logger.yaml')
+            with open(config_path, 'r') as f:
+                yaml_dict = syaml.load(f)
+            logging.config.dictConfig(yaml_dict)
+            if sys.platform == 'darwin':
+                if spack.config.get('config:metrics_address'):
+                    addr = spack.config.get('config:metrics_address')
+                    yaml_dict['handlers']['handler_darwin']['address'] = addr
+                logger = logging.getLogger('metrics_darwin')
+            else:
+                if spack.config.get('config:metrics_address'):
+                    addr = spack.config.get('config:metrics_address')
+                    yaml_dict['handlers']['handler_linux']['address'] = addr
+                logger = logging.getLogger('metrics_linux')
+            logger.info("SPACK_UNINSTALL: " + str(item))
+
         try:
             # should work if package is known to spack
             packages.append(item.package)
@@ -233,11 +299,25 @@ def do_uninstall(env, specs, force):
         for item in ready:
             item.do_uninstall(force=force)
 
+    # write any changes made to the active environment
+    if env:
+        env.write()
+
+    spack.config.set('config:active_tree',
+                     '~/.spack/opt/spack',
+                     scope='user')
+
+    spack.config.set('config:active_upstream', None,
+                     scope='user')
+
 
 def get_uninstall_list(args, specs, env):
     # Gets the list of installed specs that match the ones give via cli
     # args.all takes care of the case where '-a' is given in the cli
-    uninstall_list = find_matching_specs(env, specs, args.all, args.force)
+    uninstall_list = find_matching_specs(env, specs, args.all, args.force,
+                                         upstream=args.upstream,
+                                         global_uninstall=args.global_uninstall
+                                         )
 
     # Takes care of '-R'
     active_dpts, inactive_dpts = installed_dependents(uninstall_list, env)
@@ -314,7 +394,7 @@ def uninstall_specs(args, specs):
     anything_to_do = set(uninstall_list).union(set(remove_list))
 
     if not anything_to_do:
-        tty.warn('There are no package to uninstall.')
+        tty.warn('There are no packages to uninstall.')
         return
 
     if not args.yes_to_all:

@@ -154,6 +154,7 @@ def get_stage_root():
 
     if _stage_root is None:
         candidates = spack.config.get('config:build_stage')
+
         if isinstance(candidates, string_types):
             candidates = [candidates]
 

@@ -117,7 +117,7 @@ def test_uninstall_deprecated(mock_packages, mock_archive, mock_fetch,
 
     non_deprecated = spack.store.db.query()
 
-    uninstall('-y', 'libelf@0.8.10')
+    uninstall('-y', '-g', 'libelf@0.8.10')
 
     assert spack.store.db.query() == spack.store.db.query(installed=any)
     assert spack.store.db.query() == non_deprecated

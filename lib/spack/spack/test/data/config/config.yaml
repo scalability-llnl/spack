@@ -1,5 +1,5 @@
 config:
-  install_tree: $spack/opt/spack
+  install_tree: ~/.spack/opt/spack
   template_dirs:
   - $spack/share/spack/templates
   - $spack/lib/spack/spack/test/data/templates
@@ -7,7 +7,7 @@ config:
   build_stage:
   - $tempdir/$user/spack-stage
   - ~/.spack/stage
-  source_cache: $spack/var/spack/cache
+  source_cache: ~/.spack/var/spack/cache
   misc_cache: ~/.spack/cache
   verify_ssl: true
   checksum: true

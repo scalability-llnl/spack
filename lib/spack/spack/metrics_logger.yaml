@@ -1,0 +1,33 @@
+version: 1
+formatters:
+  metrics_formatter: 
+    format: '%(asctime)s - spack_metrics - %(levelname)s - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+
+handlers:
+  handler_darwin:
+    class: logging.handlers.SysLogHandler
+    level: INFO
+    address: /var/run/syslog
+    facility: syslog
+    formatter: metrics_formatter
+  handler_linux:
+    class: logging.handlers.SysLogHandler
+    level: INFO
+    address: /dev/log
+    facility: syslog
+    formatter: metrics_formatter
+
+loggers:
+  metrics_darwin:
+    level: INFO
+    qualname: metrics_darwin
+    handlers: 
+      - handler_darwin
+    formatter: metrics_formatter
+  metrics_linux:
+    level: INFO
+    qualname: metrics_linux
+    handlers: 
+      - handler_linux
+    formatter: metrics_formatter

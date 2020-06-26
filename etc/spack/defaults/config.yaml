@@ -16,7 +16,7 @@
 config:
   # This is the path to the root of the Spack install tree.
   # You can use $spack here to refer to the root of the spack instance.
-  install_tree: $spack/opt/spack
+  install_tree: ~/.spack/opt/spack
 
 
   # Locations where templates should be found
@@ -30,8 +30,8 @@ config:
 
   # Locations where different types of modules should be installed.
   module_roots:
-    tcl:    $spack/share/spack/modules
-    lmod:   $spack/share/spack/lmod
+    tcl:    ~/.spack/share/spack/modules
+    lmod:   ~/.spack/share/spack/lmod
 
 
   # Temporary locations Spack can try to use for builds.
@@ -67,7 +67,7 @@ config:
 
   # Cache directory for already downloaded source tarballs and archived
   # repositories. This can be purged with `spack clean --downloads`.
-  source_cache: $spack/var/spack/cache
+  source_cache: ~/.spack/var/spack/cache
 
 
   # Cache directory for miscellaneous files, like the package index.
@@ -157,6 +157,13 @@ config:
   # Has no effect on macOS. DO NOT MIX these within the same install tree.
   # See the Spack documentation for details.
   shared_linking: 'rpath'
+
+  # Toggle Spack's install/uninstall metrics to a syslog server. When enabled
+  # SPACK_INSTALL/SPACK_UNINSTALL [spec] is logged to syslog to determine how
+  # which packages are being commonly installed by users. Disabled by default.
+  # If defined, the location of where metrics can be logged can be overwritten with
+  # metrics_address: [address]
+  metrics: false
 
   # Set to 'false' to allow installation on filesystems that doesn't allow setgid bit
   # manipulation by unprivileged user (e.g. AFS)

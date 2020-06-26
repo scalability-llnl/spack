@@ -215,6 +215,7 @@ def root_path(name):
     Returns:
         root folder for module file installation
     """
+
     # Root folders where the various module files should be written
     roots = spack.config.get('config:module_roots', {})
     path = roots.get(name, os.path.join(spack.paths.share_path, name))
@@ -288,6 +289,7 @@ def read_module_indices():
         module_type_to_index = {}
         module_type_to_root = install_properties.get('modules', {})
         for module_type, root in module_type_to_root.items():
+            root = spack.util.path.canonicalize_path(root)
             module_type_to_index[module_type] = read_module_index(root)
         module_indices.append(module_type_to_index)
 

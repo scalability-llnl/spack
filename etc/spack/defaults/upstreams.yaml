@@ -1,0 +1,7 @@
+upstreams:
+  global:
+    install_tree: $spack/opt/spack
+    modules:
+      tcl:    $spack/share/spack/modules
+      lmod:   $spack/share/spack/lmod
+      dotkit: $spack/share/spack/dotkit

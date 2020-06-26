@@ -644,6 +644,7 @@ def print_setup_info(*info):
 
     other_spack_instances = spack.config.get(
         'upstreams') or {}
+
     for install_properties in other_spack_instances.values():
         upstream_module_roots = install_properties.get('modules', {})
         upstream_module_roots = dict(

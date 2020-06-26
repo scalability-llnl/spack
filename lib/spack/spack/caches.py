@@ -42,6 +42,7 @@ def _fetch_cache():
     building the same package different ways or multiple times.
     """
     path = spack.config.get('config:source_cache')
+
     if not path:
         path = os.path.join(spack.paths.var_path, "cache")
     path = spack.util.path.canonicalize_path(path)
