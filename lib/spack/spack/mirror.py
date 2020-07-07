@@ -500,7 +500,7 @@ def _add_single_spec(spec, mirror, mirror_stats):
     tty.msg("Adding package {pkg} to mirror".format(
         pkg=spec.format("{name}{@version}")
     ))
-    num_retries = 3
+    num_retries = 2
     while num_retries > 0:
         try:
             with spec.package.stage as pkg_stage:

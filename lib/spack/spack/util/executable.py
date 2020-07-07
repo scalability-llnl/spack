@@ -7,6 +7,7 @@ import os
 import re
 import shlex
 import subprocess
+import sys
 from six import string_types, text_type
 
 import llnl.util.tty as tty
@@ -23,6 +24,7 @@ class Executable(object):
         self.exe = shlex.split(str(name))
         self.default_env = {}
         self.returncode = None
+        self.call_settings = {}
 
         if not self.exe:
             raise ProcessError("Cannot construct executable for '%s'" % name)
@@ -39,6 +41,11 @@ class Executable(object):
             value: The value to set it to
         """
         self.default_env[key] = value
+
+    def add_default_call_setting(self, key, value):
+        """Add keyword arguments to all invocations of ``__call__``.
+        """
+        self.call_settings[key] = value
 
     @property
     def command(self):
@@ -88,6 +95,8 @@ class Executable(object):
             input: Where to read stdin from
             output: Where to send stdout
             error: Where to send stderr
+            disable_stdin: If ``True`` this indicates that the process should
+                not expect to run interactively.
 
         Accepted values for input, output, and error:
 
@@ -102,6 +111,10 @@ class Executable(object):
         By default, the subprocess inherits the parent's file descriptors.
 
         """
+        base_kwargs = dict(self.call_settings)
+        base_kwargs.update(kwargs)
+        kwargs = base_kwargs
+
         # Environment
         env_arg = kwargs.get('env', None)
         if env_arg is None:
@@ -158,13 +171,23 @@ class Executable(object):
 
         tty.debug(cmd_line)
 
+        cmd_kwargs = {
+            'stderr': estream,
+            'stdout': ostream,
+            'env': env
+        }
+        if kwargs.get('disable_stdin', False):
+            # TODO: raise error if bool(istream) == True
+
+            if sys.version_info >= (3, 2):
+                cmd_kwargs['start_new_session'] = True
+            else:
+                cmd_kwargs['preexec_fn'] = os.setsid
+        else:
+            cmd_kwargs['stdin'] = istream
+
         try:
-            proc = subprocess.Popen(
-                cmd,
-                stdin=istream,
-                stderr=estream,
-                stdout=ostream,
-                env=env)
+            proc = subprocess.Popen(cmd, **cmd_kwargs)
             out, err = proc.communicate()
 
             result = None

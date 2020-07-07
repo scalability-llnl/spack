@@ -757,6 +757,8 @@ class GitFetchStrategy(VCSFetchStrategy):
             if not spack.config.get('config:verify_ssl'):
                 self._git.add_default_env('GIT_SSL_NO_VERIFY', 'true')
 
+            self._git.add_default_call_setting('disable_stdin', True)
+
         return self._git
 
     @property
@@ -791,6 +793,14 @@ class GitFetchStrategy(VCSFetchStrategy):
             tty.msg("Already fetched {0}".format(self.stage.source_path))
             return
 
+        try:
+            self._clone_and_checkout()
+        except Exception:
+            if os.path.exists(self.stage.source_path):
+                shutil.rmtree(self.stage.source_path)
+            raise
+
+    def _clone_and_checkout(self):
         tty.msg("Cloning git repository: {0}".format(self._repo_info()))
 
         git = self.git
