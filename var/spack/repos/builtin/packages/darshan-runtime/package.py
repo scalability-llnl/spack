@@ -32,8 +32,13 @@ class DarshanRuntime(Package):
     depends_on('mpi')
     depends_on('zlib')
 
-    variant('slurm', default=False, description='Use Slurm Job ID')
-    variant('cobalt', default=False, description='Use Coblat Job Id')
+    variant('log-path-by-env', default='none',
+            description="The default log directory to use. "
+            "May also signify an environmental variable to resolve, "
+            "e.g. `log-path-by-env='$CUSTOM_VARIABLE'`")
+
+    variant('slurm', default=False, description='Use Slurm Job Id')
+    variant('cobalt', default=False, description='Use Cobalt Job Id')
     variant('pbs', default=False, description='Use PBS Job Id')
 
     def install(self, spec, prefix):
@@ -46,10 +51,16 @@ class DarshanRuntime(Package):
         if '+pbs' in spec:
             job_id = 'PBS_JOBID'
 
+        darshan_log_env = self.spec.variants['log-path-by-env'].value
+        if darshan_log_env.startswith('$'):
+            darshan_log_env = darshan_log_env[1:]
+        else:
+            darshan_log_env = 'DARSHAN_LOG_DIR_PATH'
+
         # TODO: BG-Q and other platform configure options
         options = ['CC=%s' % spec['mpi'].mpicc,
                    '--with-mem-align=8',
-                   '--with-log-path-by-env=DARSHAN_LOG_DIR_PATH',
+                   '--with-log-path-by-env=%s' % darshan_log_env,
                    '--with-jobid-env=%s' % job_id,
                    '--with-zlib=%s' % spec['zlib'].prefix]
 
@@ -61,5 +72,8 @@ class DarshanRuntime(Package):
 
     def setup_run_environment(self, env):
         # default path for log file, could be user or site specific setting
-        darshan_log_dir = os.environ['HOME']
-        env.set('DARSHAN_LOG_DIR_PATH', darshan_log_dir)
+        darshan_log_dir = self.spec.variants['log-path-by-env'].value
+        if darshan_log_dir == 'none':
+            darshan_log_dir = os.environ['HOME']
+        if not darshan_log_dir.startswith('$'):
+            env.set('DARSHAN_LOG_DIR_PATH', darshan_log_dir)
