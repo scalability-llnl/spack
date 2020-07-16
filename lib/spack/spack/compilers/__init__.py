@@ -576,9 +576,8 @@ def arguments_to_detect_version_fn(operating_system, paths):
                         )
                         command_arguments.append(detect_version_args)
 
-        # Reverse it here so that the dict creation (last insert wins)
-        # does not spoil the intended precedence.
-        return reversed(command_arguments)
+        # Order already respects priority from compiler class
+        return command_arguments
 
     fn = getattr(
         operating_system, 'arguments_to_detect_version_fn', _default
