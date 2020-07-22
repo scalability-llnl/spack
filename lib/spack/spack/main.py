@@ -362,6 +362,9 @@ def make_argument_parser(**kwargs):
         '-C', '--config-scope', dest='config_scopes', action='append',
         metavar='DIR', help="add a custom configuration scope")
     parser.add_argument(
+        '-u', '--user-config', action='store', dest='user_config_path',
+        metavar='DIR', help="use this for the user configuration scope")
+    parser.add_argument(
         '-d', '--debug', action='store_true',
         help="write out debug logs during compile")
     parser.add_argument(
@@ -437,6 +440,11 @@ def setup_main_options(args):
     tty.set_verbose(args.verbose)
     tty.set_debug(args.debug)
     tty.set_stacktrace(args.stacktrace)
+
+    if args.user_config_path is not None:
+        # This must be set before any uses of spack.config so that the config
+        # singleton sees the correct user config path.
+        spack.paths.user_config_path = args.user_config_path
 
     # debug must be set first so that it can even affect behvaior of
     # errors raised by spack.config.
