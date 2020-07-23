@@ -1,0 +1,112 @@
+commit 65ca2dfc67a24a5267e7386103af973c81419d47
+Author: Tyler John Edward Reddy <reddy5@rzansel49.coral.llnl.gov>
+Date:   Mon Mar 23 16:17:58 2020 -0700
+
+    BUG: patch deferred procedures for XLF
+    
+    * use stubbing instead of deferred procedures
+    for pfunit 3.2.9, to enable compilation with XLF
+
+diff --git a/source/BaseTestRunner.F90 b/source/BaseTestRunner.F90
+index 5f8977a..80b76c6 100644
+--- a/source/BaseTestRunner.F90
++++ b/source/BaseTestRunner.F90
+@@ -31,26 +31,21 @@ module BaseTestRunner_mod
+       private
+ 
+    contains
+-      procedure(run2), deferred :: run
++      procedure :: run => run
+    end type BaseTestRunner
+ 
+-   abstract interface
+-
+-      ! TODO - report bug to NAG.  If this is named "run" then
+-      ! RubustRunner fails to compile with message about conflicting types
++   contains
+ 
+-      function run2(this, aTest, context) result(result)
++      function run(this, aTest, context) result(result)
+          use Test_mod
+          use ParallelContext_mod
+          use TestResult_mod
+-         import BaseTestRunner
+ 
+          type (TestResult) :: result
+          class (BaseTestRunner), target, intent(inout) :: this
+          class (Test), intent(inout) :: aTest
+          class (ParallelContext), intent(in) :: context
+-      end function run2
++      end function run
+ 
+-   end interface
+ 
+ end module BaseTestRunner_mod
+diff --git a/source/TestListener.F90 b/source/TestListener.F90
+index 8cd12d7..aba94ee 100644
+--- a/source/TestListener.F90
++++ b/source/TestListener.F90
+@@ -31,11 +31,11 @@ module TestListener_mod
+       private
+       logical :: useDebug = .false.
+    contains
+-     procedure(addFailure), deferred :: addFailure
+-     procedure(startTest), deferred :: startTest
+-     procedure(endTest), deferred :: endTest
++     procedure :: addFailure =>  addFailure
++     procedure :: startTest => startTest
++     procedure :: endTest => endTest
+ !     procedure(startRun), deferred :: startRun  ! make deferred when ready
+-     procedure(endRun), deferred :: endRun    ! make deferred when ready
++     procedure :: endRun => endRun    ! make deferred when ready
+      procedure :: addError
+      procedure :: setDebug
+      procedure :: debug
+@@ -45,23 +45,21 @@ module TestListener_mod
+      class (TestListener), pointer :: pListener
+    end type ListenerPointer
+ 
+-   abstract interface
++   contains
++
+       subroutine addFailure(this, testName, exceptions)
+          use Exception_mod
+-         import TestListener
+          class (TestListener), intent(inout) :: this
+          character(len=*), intent(in) :: testName
+          type (Exception), intent(in) :: exceptions(:)
+       end subroutine addFailure
+ 
+       subroutine startTest(this, testName)
+-         import TestListener
+          class (TestListener), intent(inout) :: this
+          character(len=*), intent(in) :: testName
+       end subroutine startTest
+     
+       subroutine endTest(this, testName)
+-         import TestListener
+          class (TestListener), intent(inout) :: this
+          character(len=*), intent(in) :: testName
+       end subroutine endTest
+@@ -75,15 +73,10 @@ module TestListener_mod
+       ! Stub for future implementation.
+       subroutine endRun(this, result)
+          use AbstractTestResult_mod, only : AbstractTestResult
+-         import TestListener
+          class (TestListener), intent(inout) :: this
+          class (AbstractTestResult), intent(in) :: result
+       end subroutine endRun
+ 
+-   end interface
+-
+-contains
+-
+    ! Most scenarios in Fortran cannot diagnose true errors, so
+    ! an empty stub is provided here for convenience.
+    subroutine addError(this, testName, exceptions)
+@@ -105,4 +98,5 @@ contains
+        debug = this%useDebug
+     end function debug
+ 
++
+  end module TestListener_mod

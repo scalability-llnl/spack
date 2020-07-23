@@ -43,6 +43,14 @@ class Pfunit(CMakePackage):
 
     conflicts("use_comm_world", when="~mpi")
     patch("mpi-test.patch", when="+use_comm_world")
+    # XLF is not able to handle the deferred
+    # procedure overrides--it insists that
+    # an abstract extended type is needed,
+    # which prevents compilation; for this
+    # specific version, a patch has been
+    # developed to stub deferred procedures
+    # that interfere with inheritance/building
+    patch("xl-deferred.patch", when='@3.2.9 %xl_r')
 
     def patch(self):
         # The package tries to put .mod files in directory ./mod;
@@ -59,6 +67,19 @@ class Pfunit(CMakePackage):
             '-DBUILD_DOCS=%s' % ('YES' if '+docs' in spec else 'NO'),
             '-DOPENMP=%s' % ('YES' if '+openmp' in spec else 'NO'),
             '-DMAX_RANK=%s' % spec.variants['max_array_rank'].value]
+
+        if spec.satisfies('@3.2.9 %xl_r'):
+            # DCMAKE_Fortran_MODULE_DIRECTORY setting is
+            # not sufficient for XLF build, at least on rzansel
+            # need to create the path so module files can be placed
+            # appropriately
+            try:
+                mkdir(self.prefix.include)
+            except FileExistsError:
+                pass
+
+            args.append('-DCMAKE_Fortran_STANDARD_INCLUDE_DIRECTORIES=%s' %
+                        spec.prefix.include)
 
         if spec.satisfies('+mpi'):
             args.extend(['-DMPI=YES', '-DMPI_USE_MPIEXEC=YES',
@@ -81,7 +102,7 @@ class Pfunit(CMakePackage):
 
     def compiler_vendor(self):
         vendors = {'%gcc': 'GNU', '%clang': 'GNU', '%intel': 'Intel',
-                   '%pgi': 'PGI', '%nag': 'NAG'}
+                   '%pgi': 'PGI', '%nag': 'NAG', '%xl_r': 'XL'}
         for key, value in vendors.items():
             if self.spec.satisfies(key):
                 return value
