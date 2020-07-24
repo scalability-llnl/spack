@@ -283,7 +283,7 @@ class TestConcretize(object):
 
     def test_concretize_two_virtuals_with_two_bound(self):
         """Test a package with multiple virtual deps and two of them preset."""
-        Spec('hypre ^openblas ^netlib-lapack').concretize()
+        Spec('hypre ^atlas ^netlib-lapack').concretize()
 
     def test_concretize_two_virtuals_with_dual_provider(self):
         """Test a package with multiple virtual dependencies and force a provider

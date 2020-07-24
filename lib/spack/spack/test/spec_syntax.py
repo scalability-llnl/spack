@@ -805,3 +805,24 @@ class TestSpecSyntax(object):
     ])
     def test_target_tokenization(self, expected_tokens, spec_string):
         self.check_lex(expected_tokens, spec_string)
+
+    @pytest.mark.parametrize('expected_tokens,spec_string', [
+        ([Token(sp.ID, 'hdf5'),
+          Token(sp.DEP),
+          Token(sp.ID, 'mpi'),
+          Token(sp.EQ),
+          Token(sp.VAL, 'openmpi')],
+         'hdf5 ^mpi=openmpi'),
+        ([Token(sp.ID, 'netlib-scalapack'),
+          Token(sp.DEP),
+          Token(sp.ID, 'lapack'),
+          Token(sp.COMMA),
+          Token(sp.ID, 'blas'),
+          Token(sp.EQ),
+          Token(sp.VAL, 'openblas')],
+         'netlib-scalapack ^lapack,blas=openblas')
+    ])
+    def test_provider_preferences_tokenization(
+            self, expected_tokens, spec_string
+    ):
+        self.check_lex(expected_tokens, spec_string)

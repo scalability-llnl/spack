@@ -674,8 +674,8 @@ class Database(object):
         spec_dict = installs[hash_key]['spec']
         if 'dependencies' in spec_dict[spec.name]:
             yaml_deps = spec_dict[spec.name]['dependencies']
-            for dname, dhash, dtypes in spack.spec.Spec.read_yaml_dep_specs(
-                    yaml_deps):
+            for item in spack.spec.Spec.read_yaml_dep_specs(yaml_deps):
+                dname, dhash, dtypes, virtuals = item
                 # It is important that we always check upstream installations
                 # in the same order, and that we always check the local
                 # installation first: if a downstream Spack installs a package
@@ -697,7 +697,7 @@ class Database(object):
                     tty.warn(msg)
                     continue
 
-                spec._add_dependency(child, dtypes)
+                spec._add_dependency(child, dtypes, virtuals=virtuals)
 
     def _read_from_file(self, filename):
         """Fill database from file, do not maintain old data.
@@ -1104,7 +1104,9 @@ class Database(object):
             ):
                 dkey = dep.spec.dag_hash()
                 upstream, record = self.query_by_spec_hash(dkey)
-                new_spec._add_dependency(record.spec, dep.deptypes)
+                new_spec._add_dependency(
+                    record.spec, dep.deptypes, virtuals=dep.virtuals
+                )
                 if not upstream:
                     record.ref_count += 1
 

@@ -13,7 +13,9 @@ from spack.main import SpackCommand
 
 dependencies = SpackCommand('dependencies')
 
-mpis = ['mpich', 'mpich2', 'multi-provider-mpi', 'zmpi']
+mpis = [
+    'intel-parallel-studio', 'mpich', 'mpich2', 'multi-provider-mpi', 'zmpi'
+]
 mpi_deps = ['fake']
 
 
@@ -51,8 +53,8 @@ def test_direct_installed_dependencies(mock_packages, database):
     with color_when(False):
         out = dependencies('--installed', 'mpileaks^mpich')
 
-    lines = [l for l in out.strip().split('\n') if not l.startswith('--')]
-    hashes = set([re.split(r'\s+', l)[0] for l in lines])
+    lines = [x for x in out.strip().split('\n') if not x.startswith('--')]
+    hashes = set([re.split(r'\s+', x)[0] for x in lines])
 
     expected = set([spack.store.db.query_one(s).dag_hash(7)
                     for s in ['mpich', 'callpath^mpich']])
@@ -65,8 +67,8 @@ def test_transitive_installed_dependencies(mock_packages, database):
     with color_when(False):
         out = dependencies('--installed', '--transitive', 'mpileaks^zmpi')
 
-    lines = [l for l in out.strip().split('\n') if not l.startswith('--')]
-    hashes = set([re.split(r'\s+', l)[0] for l in lines])
+    lines = [x for x in out.strip().split('\n') if not x.startswith('--')]
+    hashes = set([re.split(r'\s+', x)[0] for x in lines])
 
     expected = set([spack.store.db.query_one(s).dag_hash(7)
                     for s in ['zmpi', 'callpath^zmpi', 'fake',

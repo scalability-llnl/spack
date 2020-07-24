@@ -27,6 +27,20 @@ except ImportError:
     collections_abc = collections
 
 
+def concretize_and_marshal(spec_str):
+    """Concretize a spec string and marshal it to a byte string.
+
+    Args:
+        spec_str: spec string to be concretized and marshaled
+
+    Returns:
+        String of bytes
+    """
+    s = spack.spec.Spec(spec_str)
+    s.concretize()
+    return ci.format_root_spec(s, main_phase=True, strip_compiler=False)
+
+
 @pytest.fixture
 def tmp_scope():
     """Creates a temporary configuration scope"""
@@ -95,30 +109,21 @@ def test_configure_compilers(mutable_config):
     assert_present(last_config)
 
 
-def test_get_concrete_specs(config, mock_packages):
-    root_spec = (
-        'eJztkk1uwyAQhfc5BbuuYjWObSKuUlURYP5aDBjjBPv0RU7iRI6qpKuqUtnxzZvRwHud'
-        'YxSt1oCMyuVoBdI5MN8paxDYZK/ZbkLYU3kqAuA0Dtz6BgGtTB8XdG87BCgzwXbwXArY'
-        'CxYQiLtqXxUTpLZxSjN/mWlwwxAQlJ7v8wpFtsvK1UXSOUyTjvRKB2Um7LBPhZD0l1md'
-        'xJ7VCATfszOiXGOR9np7vwDn7lCMS8SXQNf3RCtyBTVzzNTMUMXmfWrFeR+UngEAEncS'
-        'ASjKwZcid7ERNldthBxjX46mMD2PsJnlYXDs2rye3l+vroOkJJ54SXgZPklLRQmx61sm'
-        'cgKNVFRO0qlpf2pojq1Ro7OG56MY+Bgc1PkIo/WkaT8OVcrDYuvZkJdtBl/+XCZ+NQBJ'
-        'oKg1h6X/VdXRoyE2OWeH6lCXZdHGrauUZAWFw/YJ/0/39OefN3F4Kle3cXjYsF684ZqG'
-        'Tbap/uPwbRx+YPStIQ8bvgA7G6YE'
-    )
+def test_get_concrete_specs(config):
+    root_spec = concretize_and_marshal('bzip2 ^libiconv')
 
     dep_builds = 'diffutils;libiconv'
     spec_map = ci.get_concrete_specs(root_spec, 'bzip2', dep_builds, 'NONE')
 
-    assert('root' in spec_map and 'deps' in spec_map)
+    assert 'root' in spec_map and 'deps' in spec_map
 
-    nonconc_root_spec = 'archive-files'
+    nonconc_root_spec = 'bzip2'
     dep_builds = ''
     spec_map = ci.get_concrete_specs(
-        nonconc_root_spec, 'archive-files', dep_builds, 'FIND_ANY')
+        nonconc_root_spec, 'bzip2', dep_builds, 'FIND_ANY')
 
-    assert('root' in spec_map and 'deps' in spec_map)
-    assert('archive-files' in spec_map)
+    assert 'root' in spec_map and 'deps' in spec_map
+    assert 'bzip2' in spec_map
 
 
 def test_register_cdash_build():
@@ -132,17 +137,8 @@ def test_register_cdash_build():
         ci.register_cdash_build(build_name, base_url, project, site, track)
 
 
-def test_relate_cdash_builds(config, mock_packages):
-    root_spec = (
-        'eJztkk1uwyAQhfc5BbuuYjWObSKuUlURYP5aDBjjBPv0RU7iRI6qpKuqUtnxzZvRwHud'
-        'YxSt1oCMyuVoBdI5MN8paxDYZK/ZbkLYU3kqAuA0Dtz6BgGtTB8XdG87BCgzwXbwXArY'
-        'CxYQiLtqXxUTpLZxSjN/mWlwwxAQlJ7v8wpFtsvK1UXSOUyTjvRKB2Um7LBPhZD0l1md'
-        'xJ7VCATfszOiXGOR9np7vwDn7lCMS8SXQNf3RCtyBTVzzNTMUMXmfWrFeR+UngEAEncS'
-        'ASjKwZcid7ERNldthBxjX46mMD2PsJnlYXDs2rye3l+vroOkJJ54SXgZPklLRQmx61sm'
-        'cgKNVFRO0qlpf2pojq1Ro7OG56MY+Bgc1PkIo/WkaT8OVcrDYuvZkJdtBl/+XCZ+NQBJ'
-        'oKg1h6X/VdXRoyE2OWeH6lCXZdHGrauUZAWFw/YJ/0/39OefN3F4Kle3cXjYsF684ZqG'
-        'Tbap/uPwbRx+YPStIQ8bvgA7G6YE'
-    )
+def test_relate_cdash_builds(config):
+    root_spec = concretize_and_marshal('bzip2 ^libiconv')
 
     dep_builds = 'diffutils;libiconv'
     spec_map = ci.get_concrete_specs(root_spec, 'bzip2', dep_builds, 'NONE')

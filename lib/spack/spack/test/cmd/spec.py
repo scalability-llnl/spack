@@ -15,7 +15,7 @@ spec = SpackCommand('spec')
 
 
 def test_spec():
-    output = spec('mpileaks')
+    output = spec('mpileaks ^mpich')
 
     assert 'mpileaks@2.3' in output
     assert 'callpath@1.0' in output
@@ -26,7 +26,7 @@ def test_spec():
 
 
 def test_spec_yaml():
-    output = spec('--yaml', 'mpileaks')
+    output = spec('--yaml', 'mpileaks ^mpich')
 
     mpileaks = spack.spec.Spec.from_yaml(output)
     assert 'mpileaks' in mpileaks
@@ -38,7 +38,7 @@ def test_spec_yaml():
 
 
 def test_spec_json():
-    output = spec('--json', 'mpileaks')
+    output = spec('--json', 'mpileaks ^mpich')
 
     mpileaks = spack.spec.Spec.from_json(output)
     assert 'mpileaks' in mpileaks

@@ -168,7 +168,7 @@ def parse_specs(args, **kwargs):
         return specs
 
     except spack.spec.SpecParseError as e:
-        msg = e.message + "\n" + str(e.string) + "\n"
+        msg = str(e) + "\n" + str(e) + "\n"
         msg += (e.pos + 2) * " " + "^"
         raise spack.error.SpackError(msg)
 

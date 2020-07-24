@@ -18,8 +18,11 @@ Tests assume that mock packages provide this::
                     mpi@:10.0: set([zmpi])},
     'stuff': {stuff: set([externalvirtual])}}
 """
+import pytest
+
 from six import StringIO
 
+import spack.provider_index
 import spack.repo
 from spack.provider_index import ProviderIndex
 from spack.spec import Spec
@@ -73,3 +76,15 @@ def test_copy(mock_packages):
     p = ProviderIndex(spack.repo.all_package_names())
     q = p.copy()
     assert p == q
+
+
+@pytest.mark.parametrize('spec_str,vspec,expected', [
+    ('openblas', 'lapack', ['blas', 'lapack', 'another']),
+    ('openblas@0.2.14', 'lapack', ['blas', 'lapack', 'another']),
+    ('openblas@0.2.15', 'lapack', ['blas', 'lapack']),
+])
+@pytest.mark.usefixtures('config', 'mock_packages')
+def test_conditional_computation_used_together(spec_str, vspec, expected):
+    s = Spec(spec_str)
+    together = spack.provider_index.used_together(s, vspec)
+    assert together == set(expected)

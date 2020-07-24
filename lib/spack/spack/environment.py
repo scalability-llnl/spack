@@ -1423,10 +1423,10 @@ class Environment(object):
             specs_by_hash[dag_hash] = Spec.from_node_dict(node_dict)
 
         for dag_hash, node_dict in json_specs_by_hash.items():
-            for dep_name, dep_hash, deptypes in (
+            for dep_name, dep_hash, deptypes, virtuals in (
                     Spec.dependencies_from_node_dict(node_dict)):
                 specs_by_hash[dag_hash]._add_dependency(
-                    specs_by_hash[dep_hash], deptypes)
+                    specs_by_hash[dep_hash], deptypes, virtuals=virtuals)
 
         # If we are reading an older lockfile format (which uses dag hashes
         # that exclude build deps), we use this to convert the old

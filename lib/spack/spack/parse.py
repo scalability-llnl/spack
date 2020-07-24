@@ -3,12 +3,12 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import itertools
 import re
 import shlex
 import sys
-import itertools
-from six import string_types
 
+import six
 import spack.error
 
 
@@ -142,7 +142,7 @@ class Parser(object):
             sys.exit(1)
 
     def setup(self, text):
-        if isinstance(text, string_types):
+        if isinstance(text, six.string_types):
             text = shlex.split(str(text))
         self.text = text
         self.push_tokens(self.lexer.lex(text))

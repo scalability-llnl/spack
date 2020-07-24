@@ -12,4 +12,4 @@ class Hdf5(Package):
 
     variant('mpi', default=True, description='Debug variant')
 
-    depends_on('mpi', when='mpi')
+    depends_on('mpi', when='+mpi')

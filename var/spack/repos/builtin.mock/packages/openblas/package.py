@@ -9,8 +9,10 @@ from spack import *
 class Openblas(Package):
     """OpenBLAS: An optimized BLAS library"""
     homepage = "http://www.openblas.net"
-    url      = "http://github.com/xianyi/OpenBLAS/archive/v0.2.15.tar.gz"
+    url = "http://github.com/xianyi/OpenBLAS/archive/v0.2.15.tar.gz"
 
     version('0.2.15', 'b1190f3d3471685f17cfd1ec1d252ac9')
+    version('0.2.14', 'b1190f3d3471685f17cfd1ec1d252ac9')
 
-    provides('blas')
+    provides('blas', 'lapack')
+    provides('blas@:2.0', 'lapack@:3.0', 'another', when='@0.2.14')

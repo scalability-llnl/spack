@@ -114,12 +114,12 @@ class TestConcretizePreferences(object):
         spec = concretize('mpich')
         assert str(spec.target) == preferred
 
-        spec = concretize('mpileaks')
+        spec = concretize('mpileaks ^mpich')
         assert str(spec['mpileaks'].target) == default
         assert str(spec['mpich'].target) == preferred
 
         update_packages('mpileaks', 'target', [preferred])
-        spec = concretize('mpileaks')
+        spec = concretize('mpileaks ^mpich')
         assert str(spec['mpich'].target) == preferred
         assert str(spec['mpich'].target) == preferred
 

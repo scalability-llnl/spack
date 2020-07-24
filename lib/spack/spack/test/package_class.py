@@ -26,6 +26,7 @@ def mpileaks_possible_deps(mock_packages, mpi_names):
         'callpath': set(['dyninst'] + mpi_names),
         'dyninst': set(['libdwarf', 'libelf']),
         'fake': set(),
+        'intel-parallel-studio': set(),
         'libdwarf': set(['libelf']),
         'libelf': set(),
         'mpich': set(),
@@ -39,8 +40,8 @@ def mpileaks_possible_deps(mock_packages, mpi_names):
 
 def test_possible_dependencies(mock_packages, mpileaks_possible_deps):
     mpileaks = spack.repo.get('mpileaks')
-    assert mpileaks_possible_deps == (
-        mpileaks.possible_dependencies(expand_virtuals=True))
+    result = mpileaks.possible_dependencies(expand_virtuals=True)
+    assert mpileaks_possible_deps == result
 
     assert {
         'callpath': set(['dyninst', 'mpi']),

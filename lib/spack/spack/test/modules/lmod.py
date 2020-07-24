@@ -27,8 +27,8 @@ def compiler(request):
 
 @pytest.fixture(params=[
     ('mpich@3.0.4', ('mpi',)),
-    ('mpich@3.0.1', []),
-    ('openblas@0.2.15', ('blas',)),
+    ('mpich@3.0.1', tuple()),
+    ('atlas@0.2.15', ('blas',)),
     ('openblas-with-lapack@0.2.15', ('blas', 'lapack'))
 ])
 def provider(request):
