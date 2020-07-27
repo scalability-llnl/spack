@@ -82,6 +82,29 @@ properties = {
                             {'type': 'array',
                              'items': {'type': 'string'}}],
                     },
+                    'hardware': {
+                        'type': 'array',
+                        'additionalProperties': False,
+                        'items': [{
+                            'type': 'object',
+                            'additionalProperties': False,
+                            'properties': {
+                                'host': {
+                                    'type': 'object',
+                                    'additionalProperties': False,
+                                    'require': ['name', 'compiler'],
+                                    'properties': {
+                                        'name': {'type': 'string'},
+                                        'compiler': {
+                                            'type': 'array',
+                                            'default': [],
+                                            'items': {'type': 'string'}
+                                        },
+                                    }
+                                }
+                            }
+                        }],
+                    },
                 },
             },
         },
