@@ -733,6 +733,11 @@ def setup_package(pkg, dirty):
     set_module_variables_for_package(pkg)
     pkg.setup_build_environment(build_env)
 
+    # User-configured modifications
+    build_env.extend(
+        modifications_from_config(pkg.spec, context='build')
+    )
+
     # Loading modules, in particular if they are meant to be used outside
     # of Spack, can change environment variables that are relevant to the
     # build of packages. To avoid a polluted environment, preserve the
@@ -798,6 +803,88 @@ def modifications_from_dependencies(spec, context):
         # Allow dependencies to modify the module
         dpkg.setup_dependent_package(pkg.module, spec)
         getattr(dpkg, method)(env, spec)
+
+    return env
+
+
+def iter_modifications_from_config(spec, context):
+    """Iterates over a flat list of user-configured environment modifications.
+
+    Each modification is a list of strings.  The first element represents the
+    specific modification (e.g.: "append_path").  Any additional elements are
+    the arguments of the modification.
+
+    Args:
+        spec (Spec): spec for which we want the modifications
+        context (str): either 'build' for build-time modifications or 'run'
+            for run-time modifications
+    """
+    packages_conf = spack.config.get('packages')
+    for key in ('all', spec.package.name):
+        env_config = packages_conf.get(key, {}).get('env', {})
+        for mod_spec, mod_entries in env_config.items():
+            if not spec.satisfies(mod_spec):
+                continue
+
+            for mod_entry in mod_entries:
+                if hasattr(mod_entry, 'items'):
+                    for subcontext, mod_subentries in mod_entry.items():
+                        if context != subcontext:
+                            continue
+
+                        for subentry in mod_subentries:
+                            yield subentry
+
+                    continue
+
+                yield mod_entry
+
+
+def modifications_from_config(spec, context):
+    """Returns the environment modifications that are provided by the user
+    in the package configuration.
+
+    Args:
+        spec (Spec): spec for which we want the modifications
+        context (str): either 'build' for build-time modifications or 'run'
+            for run-time modifications
+    """
+    env = EnvironmentModifications()
+
+    for mod in iter_modifications_from_config(spec, context):
+        operation = mod[0]
+        args = mod[1:]
+
+        operation_is_valid = True
+        try:
+            func = getattr(env, operation)
+        except AttributeError:
+            operation_is_valid = False
+
+        if operation_is_valid:
+            if operation in ('set', 'append_flags'):
+                func(*args)
+
+            elif operation in (
+                    'deprioritize_system_paths',
+                    'prune_duplicate_paths',
+                    'unset'):
+                for arg in args:
+                    func(arg)
+
+            elif operation in ('append_path', 'prepend_path', 'remove_path'):
+                for arg in args[1:]:
+                    func(args[0], arg)
+
+            elif operation == 'set_path':
+                func(args[0], args[1:])
+
+            else:
+                operation_is_valid = False
+
+        if not operation_is_valid:
+            raise spack.error.SpackError(
+                'Invalid environment modification: {OP}'.format(OP=operation))
 
     return env
 

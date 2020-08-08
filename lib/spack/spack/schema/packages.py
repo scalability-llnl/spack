@@ -10,6 +10,64 @@
 """
 
 
+# env modification - e.g.: ["append_path", "PATH", "/some/path"]
+env_modification = {'type': 'array', 'items': {'type': 'string'}}
+
+
+# env modification entry - either an env modification, or a dict.
+#     If a dict, its keys can only be "build" or "run", and the value is a
+#     list of env modifications.
+#
+# e.g.:
+#
+# build:
+#   - ["append_path", "CMAKE_MODULE_PATH", "/some/path"]
+#   - ["unset", "VAR0", "VAR1"]
+#
+# This type allows for a list of env modification entries to look like this:
+#
+# env:
+#   - ["append_path", "PATH", "/some/path"]
+#   - ["append_path", "PATH", "/some/path"]
+#   - [... etc ... ]
+#
+#   - build:
+#       - ["append_path", "CMAKE_MODULE_PATH", "/some/path"]
+#       - ["unset", "VAR0", "VAR1"]
+#       - [ ... other build-only settings ]
+#       - [ ... other build-only settings ]
+#
+#   - run:
+#       - ["append_path", "CMAKE_MODULE_PATH", "/some/path"]
+#       - ["unset", "VAR0", "VAR1"]
+#       - [ ... other run-only settings ]
+#       - [ ... other run-only settings ]
+#
+#   - [ ... other common env settings ... ]
+#   - [ ... other common env settings ... ]
+env_mod_entry = {
+    'anyOf': [
+        env_modification,
+        {
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                'build': {
+                    'type': 'array',
+                    'default': [],
+                    'items': env_modification,
+                },
+                'run': {
+                    'type': 'array',
+                    'default': [],
+                    'items': env_modification,
+                },
+            }
+        },
+    ]
+}
+
+
 #: Properties for inclusion in other schemas
 properties = {
     'packages': {
@@ -75,6 +133,18 @@ properties = {
                     'paths': {
                         'type': 'object',
                         'default': {},
+                    },
+                    'env': {
+                        'type': 'object',
+                        'default': {},
+                        'additionalProperties': False,
+                        'patternProperties': {
+                            r'\w[\w-]*': {
+                                'type': 'array',
+                                'default': [],
+                                'items': env_mod_entry,
+                            },
+                        },
                     },
                     'variants': {
                         'oneOf': [
