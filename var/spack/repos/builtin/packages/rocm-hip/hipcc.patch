@@ -1,0 +1,39 @@
+--- a/bin/hipcc.orig	2020-06-23 08:53:16.632568244 -0400
++++ b/bin/hipcc	2020-06-23 08:57:37.731394327 -0400
+@@ -8,6 +8,17 @@
+ use Cwd;
+ use Cwd 'abs_path';
+ 
++$ENV{'HIPCC_VERBOSE'}="3";
++$ENV{'HIP_CLANG_PATH'}=@HIP_CLANG_PREFIX_BIN@
++$ENV{'HIP_COMPILER'}="clang";
++$ENV{'HIP_INCLUDE_PATH'}=@SELF_PREFIX_INCLUDE@
++$ENV{'HIP_LIB_PATH'}=@SELF_PREFIX_LIB@
++$ENV{'HIP_PATH'}=@SELF_PREFIX@
++$ENV{'HIP_PLATFORM'}="hcc";
++$ENV{'HIP_ROCCLR_HOME'}=@ROCCLR_PREFIX@
++$ENV{'DEVICE_LIB_PATH'}=@DEVICE_LIBS_PREFIX@
++$ENV{'HSA_PATH'}=@RUNTIME_PREFIX@
++
+ # HIP compiler driver
+ # Will call NVCC or HCC (depending on target) and pass the appropriate include and library options for
+ # the target compiler and HIP infrastructure.
+@@ -83,6 +94,7 @@
+     $ROCM_PATH=$ENV{'ROCM_PATH'} // "/opt/rocm";
+ }
+ $HIP_ROCCLR_HOME=$ENV{'HIP_ROCCLR_HOME'};
++$HIP_INCLUDE_PATH=$ENV{'HIP_INCLUDE_PATH'};
+ $HIP_LIB_PATH=$ENV{'HIP_LIB_PATH'};
+ $HIP_CLANG_PATH=$ENV{'HIP_CLANG_PATH'};
+ $DEVICE_LIB_PATH=$ENV{'DEVICE_LIB_PATH'};
+@@ -149,7 +161,9 @@
+     if (!defined $DEVICE_LIB_PATH and -e "$HIP_ROCCLR_HOME/lib/bitcode") {
+         $DEVICE_LIB_PATH = "$HIP_ROCCLR_HOME/lib/bitcode";
+     }
+-    $HIP_INCLUDE_PATH = "$HIP_ROCCLR_HOME/include";
++    if (!defined $HIP_INCLUDE_PATH) {
++	$HIP_INCLUDE_PATH = "$HIP_ROCCLR_HOME/include";
++    }
+     if (!defined $HIP_LIB_PATH) {
+         $HIP_LIB_PATH = "$HIP_ROCCLR_HOME/lib";
+     }

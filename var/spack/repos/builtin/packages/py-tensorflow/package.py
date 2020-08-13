@@ -197,6 +197,16 @@ class PyTensorflow(Package, CudaPackage):
     # depends_on('android-ndk@10:18', when='+android')
     # depends_on('android-sdk', when='+android')
 
+    depends_on('rocm-hip', when='+rocm')
+
+    depends_on('rocm-hiprand', when='+rocm')
+    depends_on('rocm-miopen', when='+rocm')
+    depends_on('rocm-rocblas', when='+rocm')
+    depends_on('rocm-rocfft', when='+rocm')
+    depends_on('rocm-rccl', when='+rocm')
+    depends_on('rocm-hipsparse', when='+rocm')
+    depends_on('rocm-hipcub', when='+rocm')
+
     # Check configure and configure.py to see when these variants are supported
     conflicts('+mkl', when='@:1.0')
     conflicts('+mkl', when='platform=darwin', msg='Darwin is not yet supported')
@@ -252,6 +262,7 @@ class PyTensorflow(Package, CudaPackage):
     # Allows 2.0.* releases to build with '--config=nogcp'
     patch('0001-Remove-contrib-cloud-bigtable-and-storage-ops-kernel.patch',
           when='@2.0.0:2.0.1')
+    patch('tensorflow_rocm.patched', when='+rocm')
 
     # for fcc
     patch('1-1_fcc_tf_patch.patch', when='@2.1.0:2.1.99%fj')
@@ -641,6 +652,35 @@ class PyTensorflow(Package, CudaPackage):
         filter_file('build:opt --host_copt=-march=native', '',
                     '.tf_configure.bazelrc')
 
+        if spec.satisfies('+rocm'):
+            filter_file(r'\@SPACK_HIP_ROOT\@',
+                        '"{0}"'.format(spec['rocm-hip'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_ROCFFT_ROOT\@',
+                        '"{0}"'.format(spec['rocm-rocfft'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_ROCBLAS_ROOT\@',
+                        '"{0}"'.format(spec['rocm-rocblas'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_MIOPEN_ROOT\@',
+                        '"{0}"'.format(spec['rocm-miopen'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_RCCL_ROOT\@',
+                        '"{0}"'.format(spec['rocm-rccl'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_HIPRAND_ROOT\@',
+                        '"{0}"'.format(spec['rocm-hiprand'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_HIPSPARSE_ROOT\@',
+                        '"{0}"'.format(spec['rocm-hipsparse'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_ROCPRIM_ROOT\@',
+                        '"{0}"'.format(spec['rocm-rocprim'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_HIPCUB_ROOT\@',
+                        '"{0}"'.format(spec['rocm-hipcub'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+
     def build(self, spec, prefix):
         tmp_path = env['TEST_TMPDIR']
 
@@ -690,6 +730,9 @@ class PyTensorflow(Package, CudaPackage):
 
             if '+cuda' in spec:
                 args.append('--config=cuda')
+
+            if '+rocm' in spec:
+                args.append('--config=rocm')
 
             if '~aws' in spec:
                 args.append('--config=noaws')

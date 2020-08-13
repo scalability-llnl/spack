@@ -1,0 +1,45 @@
+--- a/hip-config.cmake.in.orig	2020-06-23 08:40:59.134949156 -0400
++++ b/hip-config.cmake.in	2020-06-23 08:41:26.194411702 -0400
+@@ -123,8 +123,8 @@
+   )
+   set_target_properties(hip::device PROPERTIES
+     INTERFACE_COMPILE_DEFINITIONS "__HIP_ROCclr__=1"
+-    INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/../include"
+-    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/../include"
++    INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
++    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+   )
+ else()
+   set_target_properties(hip::hip_hcc_static PROPERTIES
+@@ -136,8 +136,8 @@
+     INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${HSA_HEADER}"
+   )
+   set_target_properties(hip::device PROPERTIES
+-    INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/../include"
+-    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/../include"
++    INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
++    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+   )
+ endif()
+ 
+@@ -156,13 +156,13 @@
+     INTERFACE_LINK_LIBRARIES --hip-device-lib-path=${AMD_DEVICE_LIBS_PREFIX}/lib --hip-link
+   )
+ 
+-  set_property(TARGET hip::device APPEND PROPERTY
+-    INTERFACE_INCLUDE_DIRECTORIES "${HIP_CLANG_INCLUDE_PATH}/.."
+-  )
+-
+-  set_property(TARGET hip::device APPEND PROPERTY
+-    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${HIP_CLANG_INCLUDE_PATH}/.."
+-  )
++#  set_property(TARGET hip::device APPEND PROPERTY
++#    INTERFACE_INCLUDE_DIRECTORIES "${HIP_CLANG_INCLUDE_PATH}/.."
++#  )
++
++#  set_property(TARGET hip::device APPEND PROPERTY
++#    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${HIP_CLANG_INCLUDE_PATH}/.."
++#  )
+ 
+   foreach(GPU_TARGET ${GPU_TARGETS})
+       set_property(TARGET hip::device APPEND PROPERTY

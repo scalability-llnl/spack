@@ -1,0 +1,222 @@
+diff -ru /tmp/aweits/spack-stage/spack-stage-py-tensorflow-2.2.0-n5en5zlv7tgrltqqzghmk3r6wssdy5ye/spack-src/tensorflow/core/kernels/conv_2d_gpu.h /dev/shm/spack-src-tensorflow-patched/tensorflow/core/kernels/conv_2d_gpu.h
+--- a/tensorflow/core/kernels/conv_2d_gpu.h	2020-05-05 17:58:49.000000000 -0400
++++ b/tensorflow/core/kernels/conv_2d_gpu.h	2020-06-24 15:19:40.404740728 -0400
+@@ -236,7 +236,7 @@
+   // One extra line in the inner dimension to avoid share memory bank conflict.
+   // This is to mimic the following, but no constructor of T can be invoked.
+   //     __shared__ T shared_memory_tile[TileSizeI][TileSizeJ + 1];
+-#if GOOGLE_CUDA
++#if GOOGLE_CUDA || TENSORFLOW_COMPILER_IS_HIP_CLANG
+   __shared__ __align__(
+       alignof(T)) char shared_mem_raw[TileSizeI * (TileSizeJ + 1) * sizeof(T)];
+   typedef T(*SharedMemoryTile)[TileSizeJ + 1];
+
+diff -ru /tmp/aweits/spack-stage/spack-stage-py-tensorflow-2.2.0-n5en5zlv7tgrltqqzghmk3r6wssdy5ye/spack-src/tensorflow/core/lib/bfloat16/bfloat16.h /dev/shm/spack-src-tensorflow-patched/tensorflow/core/lib/bfloat16/bfloat16.h
+--- a/tensorflow/core/lib/bfloat16/bfloat16.h	2020-05-05 17:58:49.000000000 -0400
++++ b/tensorflow/core/lib/bfloat16/bfloat16.h	2020-06-24 15:19:40.368740613 -0400
+@@ -22,7 +22,7 @@
+ 
+ #include "tensorflow/core/platform/byte_order.h"
+ 
+-#ifdef __CUDACC__
++#if defined(__CUDACC__) || (defined(__HIPCC__) && defined(__HIP__))
+ // All functions callable from CUDA code must be qualified with __device__
+ #define B16_DEVICE_FUNC __host__ __device__
+ 
+diff -ru /tmp/aweits/spack-stage/spack-stage-py-tensorflow-2.2.0-n5en5zlv7tgrltqqzghmk3r6wssdy5ye/spack-src/tensorflow/core/util/gpu_launch_config.h /dev/shm/spack-src-tensorflow-patched/tensorflow/core/util/gpu_launch_config.h
+--- a/tensorflow/core/util/gpu_launch_config.h	2020-05-05 17:58:49.000000000 -0400
++++ b/tensorflow/core/util/gpu_launch_config.h	2020-06-24 15:19:40.322740467 -0400
+@@ -168,6 +168,13 @@
+       block_size_limit);
+   CHECK_EQ(err, cudaSuccess);
+ #elif TENSORFLOW_USE_ROCM
++#if TENSORFLOW_COMPILER_IS_HIP_CLANG
++  // ROCm 3.5 (hipclang) and above have the same interface as CUDA
++  // no need anymore for the unsigned int conversions
++  hipOccupancyMaxPotentialBlockSize(&block_count, &thread_per_block, func,
++                                    dynamic_shared_memory_size,
++                                    block_size_limit);
++#else
+   // Earlier versions of this HIP routine incorrectly returned void.
+   // TODO re-enable hipError_t error checking when HIP is fixed.
+   // ROCm interface uses unsigned int, convert after checking
+@@ -181,6 +188,7 @@
+   block_count = static_cast<int>(block_count_uint);
+   thread_per_block = static_cast<int>(thread_per_block_uint);
+ #endif
++#endif
+ 
+   block_count =
+       std::min(block_count, DivUp(work_element_count, thread_per_block));
+
+diff -ru /tmp/aweits/spack-stage/spack-stage-py-tensorflow-2.2.0-n5en5zlv7tgrltqqzghmk3r6wssdy5ye/spack-src/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_rocm.tpl /dev/shm/spack-src-tensorflow-patched/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_rocm.tpl
+--- a/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_rocm.tpl	2020-05-05 17:58:49.000000000 -0400
++++ b/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_rocm.tpl	2020-06-24 15:19:40.112739798 -0400
+@@ -173,6 +173,8 @@
+   out = ' -o ' + out_file[0]
+ 
+   hipccopts = ' '
++  if HIPCC_IS_HIPCLANG:
++    hipccopts += ' --include=hip/hip_runtime.h -Wno-error=cuda-shared-init '
+   hipccopts += ' ' + hipcc_compiler_options
+   # Use -fno-gpu-rdc by default for early GPU kernel finalization
+   # This flag would trigger GPU kernels be generated at compile time, instead
+
+diff -ru /tmp/aweits/spack-stage/spack-stage-py-tensorflow-2.2.0-n5en5zlv7tgrltqqzghmk3r6wssdy5ye/spack-src/third_party/gpus/rocm_configure.bzl /dev/shm/spack-src-tensorflow-patched/third_party/gpus/rocm_configure.bzl
+--- a/third_party/gpus/rocm_configure.bzl	2020-05-05 17:58:49.000000000 -0400
++++ b/third_party/gpus/rocm_configure.bzl	2020-06-24 15:19:40.111739795 -0400
+@@ -271,8 +271,8 @@
+       A speculative real path of the rocm toolkit install directory.
+     """
+     rocm_toolkit_path = get_host_environ(repository_ctx, _ROCM_TOOLKIT_PATH, _DEFAULT_ROCM_TOOLKIT_PATH)
+-    if files_exist(repository_ctx, [rocm_toolkit_path], bash_bin) != [True]:
+-        auto_configure_fail("Cannot find rocm toolkit path.")
++#    if files_exist(repository_ctx, [rocm_toolkit_path], bash_bin) != [True]:
++#        auto_configure_fail("Cannot find rocm toolkit path.")
+     return realpath(repository_ctx, rocm_toolkit_path, bash_bin)
+ 
+ def _amdgpu_targets(repository_ctx):
+@@ -330,7 +330,7 @@
+             return "True"
+ 
+     # grep for "HIP_COMPILER=clang" in /opt/rocm/hip/lib/.hipInfo
+-    cmd = "grep HIP_COMPILER=clang %s/hip/lib/.hipInfo || true" % rocm_config.rocm_toolkit_path
++    cmd = "grep HIP_COMPILER=clang %s/lib/.hipInfo || true" % @SPACK_HIP_ROOT@
+     grep_result = execute(repository_ctx, [bash_bin, "-c", cmd], empty_stdout_fine = True)
+     result = grep_result.stdout.strip()
+     if result == "HIP_COMPILER=clang":
+@@ -436,13 +436,13 @@
+     libs_paths = [
+         (name, _rocm_lib_paths(repository_ctx, name, path))
+         for name, path in [
+-            ("hip_hcc", rocm_config.rocm_toolkit_path),
+-            ("rocblas", rocm_config.rocm_toolkit_path + "/rocblas"),
+-            ("rocfft", rocm_config.rocm_toolkit_path + "/rocfft"),
+-            ("hiprand", rocm_config.rocm_toolkit_path + "/hiprand"),
+-            ("MIOpen", rocm_config.rocm_toolkit_path + "/miopen"),
+-            ("rccl", rocm_config.rocm_toolkit_path + "/rccl"),
+-            ("hipsparse", rocm_config.rocm_toolkit_path + "/hipsparse"),
++            ("hip_hcc", @SPACK_HIP_ROOT@),
++            ("rocblas", @SPACK_ROCBLAS_ROOT@),
++            ("rocfft", @SPACK_ROCFFT_ROOT@),
++            ("hiprand", @SPACK_HIPRAND_ROOT@ + "/hiprand"),
++            ("MIOpen", @SPACK_MIOPEN_ROOT@),
++            ("rccl", @SPACK_RCCL_ROOT@),
++            ("hipsparse", @SPACK_HIPSPARSE_ROOT@),
+         ]
+     ]
+ 
+@@ -606,42 +606,72 @@
+     # rocm_toolkit_path
+     rocm_toolkit_path = rocm_config.rocm_toolkit_path
+     copy_rules = [
+-        make_copy_dir_rule(
+-            repository_ctx,
+-            name = "rocm-include",
+-            src_dir = rocm_toolkit_path + "/include",
+-            out_dir = "rocm/include",
+-        ),
++#        make_copy_dir_rule(
++#            repository_ctx,
++#            name = "rocm-include",
++#            src_dir = rocm_toolkit_path + "/include",
++#            out_dir = "rocm/include",
++#        ),
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "rocfft-include",
+-            src_dir = rocm_toolkit_path + "/rocfft/include",
++            src_dir = @SPACK_ROCFFT_ROOT@ + "/include",
+             out_dir = "rocm/include/rocfft",
+         ),
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "rocblas-include",
+-            src_dir = rocm_toolkit_path + "/rocblas/include",
+-            out_dir = "rocm/include/rocblas",
++            src_dir = @SPACK_ROCBLAS_ROOT@ + "/include",
++            out_dir = "rocm/include",
+         ),
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "miopen-include",
+-            src_dir = rocm_toolkit_path + "/miopen/include",
+-            out_dir = "rocm/include/miopen",
++            src_dir = @SPACK_MIOPEN_ROOT@ + "/include",
++            out_dir = "rocm/include",
+         ),
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "rccl-include",
+-            src_dir = rocm_toolkit_path + "/rccl/include",
++            src_dir = @SPACK_RCCL_ROOT@ + "/include",
+             out_dir = "rocm/include/rccl",
+         ),
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "hipsparse-include",
+-            src_dir = rocm_toolkit_path + "/hipsparse/include",
++            src_dir = @SPACK_HIPSPARSE_ROOT@ + "/include",
+             out_dir = "rocm/include/hipsparse",
+         ),
++        make_copy_dir_rule(
++            repository_ctx,
++            name = "rocprim-include",
++            src_dir = @SPACK_ROCPRIM_ROOT@ + "/include/rocprim",
++            out_dir = "rocm/include/rocprim",
++        ),
++        make_copy_dir_rule(
++            repository_ctx,
++            name = "hipcub-include",
++            src_dir = @SPACK_HIPCUB_ROOT@ + "/include/hipcub",
++            out_dir = "rocm/include/hipcub",
++        ),
++        make_copy_dir_rule(
++            repository_ctx,
++            name = "hip-include",
++            src_dir = @SPACK_HIP_ROOT@ + "/include/hip",
++            out_dir = "rocm/include/hip",
++        ),
++        make_copy_dir_rule(
++            repository_ctx,
++            name = "hiprand-include",
++            src_dir = @SPACK_HIPRAND_ROOT@ + "/hiprand/include",
++            out_dir = "rocm/include/hiprand",
++        ),
++        make_copy_dir_rule(
++            repository_ctx,
++            name = "rocrand-include",
++            src_dir = @SPACK_HIPRAND_ROOT@ + "/rocrand/include",
++            out_dir = "rocm/include/rocrand",
++        ),
+     ]
+ 
+     rocm_libs = _find_libs(repository_ctx, rocm_config, bash_bin)
+@@ -681,11 +711,15 @@
+             "%{rccl_lib}": rocm_libs["rccl"].file_name,
+             "%{hipsparse_lib}": rocm_libs["hipsparse"].file_name,
+             "%{copy_rules}": "\n".join(copy_rules),
+-            "%{rocm_headers}": ('":rocm-include",\n' +
+-                                '":rocfft-include",\n' +
++            "%{rocm_headers}": ('":rocfft-include",\n' +
+                                 '":rocblas-include",\n' +
+                                 '":miopen-include",\n' +
+                                 '":rccl-include",\n' +
++                                '":rocprim-include",\n' +
++                                '":hipcub-include",\n' +
++                                '":hiprand-include",\n' +
++                                '":rocrand-include",\n' +
++                                '":hip-include",\n' +
+                                 '":hipsparse-include",'),
+         },
+     )
+@@ -753,7 +787,7 @@
+         tpl_paths["crosstool:clang/bin/crosstool_wrapper_driver_rocm"],
+         {
+             "%{cpu_compiler}": str(cc),
+-            "%{hipcc_path}": rocm_config.rocm_toolkit_path + "/bin/hipcc",
++            "%{hipcc_path}": @SPACK_HIP_ROOT@ + "/bin/hipcc",
+             "%{hipcc_env}": _hipcc_env(repository_ctx),
+             "%{hipcc_is_hipclang}": _hipcc_is_hipclang(repository_ctx, rocm_config, bash_bin),
+             "%{rocr_runtime_path}": rocm_config.rocm_toolkit_path + "/lib",
+Only in /dev/shm/spack-src-tensorflow-patched/tools: python_bin_path.sh
