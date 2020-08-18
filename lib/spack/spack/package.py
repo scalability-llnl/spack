@@ -534,6 +534,10 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
     #: are executed or 'None' if there are no such test functions.
     build_time_test_callbacks = None
 
+    #: By default, packages are not virtual
+    #: Virtual packages override this attribute
+    virtual = False
+
     #: Most Spack packages are used to install source or binary code while
     #: those that do not can be used to install a set of other Spack packages.
     has_code = True

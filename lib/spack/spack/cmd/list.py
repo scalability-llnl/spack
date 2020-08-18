@@ -54,6 +54,9 @@ def setup_parser(subparser):
     subparser.add_argument(
         '--update', metavar='FILE', default=None, action='store',
         help='write output to the specified file, if any package is newer')
+    subparser.add_argument(
+        '-v', '--virtuals', action='store_true', default=False,
+        help='include virtual packages in list')
 
     arguments.add_common_arguments(subparser, ['tags'])
 
@@ -267,7 +270,7 @@ def list(parser, args):
     formatter = formatters[args.format]
 
     # Retrieve the names of all the packages
-    pkgs = set(spack.repo.all_package_names())
+    pkgs = set(spack.repo.all_package_names(args.virtuals))
     # Filter the set appropriately
     sorted_packages = filter_by_name(pkgs, args)
 

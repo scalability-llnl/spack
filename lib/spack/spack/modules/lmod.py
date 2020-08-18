@@ -12,6 +12,7 @@ import collections
 import spack.config
 import spack.compilers
 import spack.spec
+import spack.repo
 import spack.error
 import spack.tengine as tengine
 
@@ -125,7 +126,9 @@ class LmodConfiguration(BaseConfiguration):
 
         # Check if all the tokens in the hierarchy are virtual specs.
         # If not warn the user and raise an error.
-        not_virtual = [t for t in tokens if not spack.spec.Spec.is_virtual(t)]
+        not_virtual = [t for t in tokens
+                       if t != 'compiler' and
+                       not spack.repo.path.is_virtual(t)]
         if not_virtual:
             msg = "Non-virtual specs in 'hierarchy' list for lmod: {0}\n"
             msg += "Please check the 'modules.yaml' configuration files"

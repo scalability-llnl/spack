@@ -1028,7 +1028,7 @@ _spack_license_verify() {
 _spack_list() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -d --search-description --format --update -t --tags"
+        SPACK_COMPREPLY="-h --help -d --search-description --format --update -v --virtuals -t --tags"
     else
         _all_packages
     fi

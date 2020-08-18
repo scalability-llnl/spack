@@ -61,9 +61,9 @@ def mock_pkg_git_repo(tmpdir_factory):
         mkdirp('pkg-a', 'pkg-b', 'pkg-c')
         with open('pkg-a/package.py', 'w') as f:
             f.write(pkg_template.format(name='PkgA'))
-        with open('pkg-c/package.py', 'w') as f:
-            f.write(pkg_template.format(name='PkgB'))
         with open('pkg-b/package.py', 'w') as f:
+            f.write(pkg_template.format(name='PkgB'))
+        with open('pkg-c/package.py', 'w') as f:
             f.write(pkg_template.format(name='PkgC'))
         git('add', 'pkg-a', 'pkg-b', 'pkg-c')
         git('commit', '-m', 'add pkg-a, pkg-b, pkg-c')
@@ -125,6 +125,8 @@ def test_pkg_add(mock_pkg_git_repo):
                     git('status', '--short', output=str))
         finally:
             shutil.rmtree('pkg-e')
+            # Removing a package mid-run disrupts Spack's caching
+            spack.repo.path.repos[0]._fast_package_checker.invalidate()
 
     with pytest.raises(spack.main.SpackCommandError):
         pkg('add', 'does-not-exist')
