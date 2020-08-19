@@ -213,12 +213,16 @@ def _convert_to_iterable(single_val_or_multiple):
 
 
 def _determine_base_dir(prefix):
-    # Given a prefix where an executable is found, assuming that prefix ends
-    # with /bin/, strip off the 'bin' directory to get a Spack-compatible
+    # Given a prefix where an executable is found, assuming that prefix
+    # contains /bin/, strip off the 'bin' directory to get a Spack-compatible
     # prefix
     assert os.path.isdir(prefix)
-    if os.path.basename(prefix) == 'bin':
-        return os.path.dirname(prefix)
+
+    components = prefix.split(os.sep)
+    if 'bin' not in components:
+        return None
+    idx = components.index('bin')
+    return os.sep.join(components[:idx])
 
 
 def _get_predefined_externals():

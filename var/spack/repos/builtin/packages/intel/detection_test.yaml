@@ -1,0 +1,19 @@
+paths:
+  - layout:
+      - subdir: [bin, intel64]
+        name: icc
+        output: |
+          echo "icc (ICC) 18.0.5 20180823"
+          echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+      - subdir: [bin, intel64]
+        name: icpc
+        output: |
+          echo "icpc (ICC) 18.0.5 20180823"
+          echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+      - subdir: [bin, intel64]
+        name: ifort
+        output: |
+          echo "ifort (IFORT) 18.0.5 20180823"
+          echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+    results:
+      - spec: 'intel@18.0.5'
