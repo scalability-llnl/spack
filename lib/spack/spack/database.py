@@ -1184,12 +1184,7 @@ class Database(object):
 
         del self._data[key]
         for dep in rec.spec.dependencies(_tracked_deps):
-            # FIXME: the two lines below needs to be updated once #11983 is
-            # FIXME: fixed. The "if" statement should be deleted and specs are
-            # FIXME: to be removed from dependents by hash and not by name.
-            # FIXME: See https://github.com/spack/spack/pull/15777#issuecomment-607818955
-            if dep._dependents.get(spec.name):
-                del dep._dependents[spec.name]
+            del dep._dependents[id(rec.spec)]
             self._decrement_ref_count(dep)
 
         if rec.deprecated_for:

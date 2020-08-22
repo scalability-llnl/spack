@@ -182,7 +182,7 @@ def _packages_needed_to_bootstrap_compiler(pkg):
     # concretize as Spec to add that information
     dep.concretize()
     # mark compiler as depended-on by the package that uses it
-    dep._dependents[pkg.name] = spack.spec.DependencySpec(
+    dep._dependents[id(pkg.spec)] = spack.spec.DependencySpec(
         pkg.spec, dep, ('build',))
     packages = [(s.package, False) for
                 s in dep.traverse(order='post', root=False)]
