@@ -567,6 +567,8 @@ install_args_docstring = """
                 possible (i.e., best effort installation).
             fake (bool): Don't really build; install fake stub files instead.
             force (bool): Install again, even if already installed.
+            ignore_test_failures (bool): Proceed with installation even if
+                there are failing tests..
             install_deps (bool): Install dependencies before installing this
                 package
             install_source (bool): By default, source is not installed, but
@@ -1042,6 +1044,7 @@ class PackageInstaller(object):
         keep_stage = kwargs.get('keep_stage', False)
         skip_patch = kwargs.get('skip_patch', False)
         tests = kwargs.get('tests', False)
+        ignore_test_failures = kwargs.get('ignore_test_failures', False)
         unsigned = kwargs.get('unsigned', False)
         use_cache = kwargs.get('use_cache', True)
         verbose = kwargs.get('verbose', False)
@@ -1064,6 +1067,7 @@ class PackageInstaller(object):
             return
 
         pkg.run_tests = (tests is True or tests and pkg.name in tests)
+        pkg.ignore_test_failures = ignore_test_failures
 
         pid = '{0}: '.format(self.pid) if tty.show_pid() else ''
         pre = '{0}{1}:'.format(pid, pkg.name)

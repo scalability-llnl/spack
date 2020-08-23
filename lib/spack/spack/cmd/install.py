@@ -36,6 +36,7 @@ def update_kwargs_from_args(args, kwargs):
         'keep_prefix': args.keep_prefix,
         'keep_stage': args.keep_stage,
         'restage': not args.dont_restage,
+        'ignore_test_failures': args.ignore_test_failures,
         'install_source': args.install_source,
         'verbose': args.verbose,
         'fake': args.fake,
@@ -143,6 +144,10 @@ packages. If neither are chosen, don't run tests for any packages."""
     testing.add_argument(
         '--run-tests', action='store_true',
         help='run package tests during installation (same as --test=all)'
+    )
+    subparser.add_argument(
+        '--ignore-test-failures', action='store_true', default=False,
+        help='(with testing) test failures will not abort the install'
     )
     subparser.add_argument(
         '--log-format',

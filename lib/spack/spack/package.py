@@ -56,6 +56,7 @@ from spack.filesystem_view import YamlFilesystemView
 from spack.installer import \
     install_args_docstring, PackageInstaller, InstallError
 from spack.stage import stage_prefix, Stage, ResourceStage, StageComposite
+from spack.util.executable import ProcessError
 from spack.util.package_hash import package_hash
 from spack.version import Version
 
@@ -547,6 +548,9 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
 
     #: By default do not run tests within package's install()
     run_tests = False
+
+    #: By default kill the install if any tests fail
+    ignore_test_failures = False
 
     # FIXME: this is a bad object-oriented design, should be moved to Clang.
     #: By default do not setup mockup XCode on macOS with Clang
@@ -2211,6 +2215,12 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
             except AttributeError:
                 msg = 'RUN-TESTS: method not implemented [{0}]'
                 tty.warn(msg.format(name))
+            except ProcessError:
+                if self.ignore_test_failures:
+                    msg = 'RUN-TESTS: test failures detected [{0}]'
+                    tty.warn(msg.format(name))
+                else:
+                    raise
 
     @on_package_attributes(run_tests=True)
     def _run_default_install_time_test_callbacks(self):
@@ -2230,7 +2240,12 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
             except AttributeError:
                 msg = 'RUN-TESTS: method not implemented [{0}]'
                 tty.warn(msg.format(name))
-
+            except ProcessError:
+                if self.ignore_test_failures:
+                    msg = 'RUN-TESTS: test failures detected [{0}]'
+                    tty.warn(msg.format(name))
+                else:
+                    raise
 
 inject_flags = PackageBase.inject_flags
 env_flags = PackageBase.env_flags
