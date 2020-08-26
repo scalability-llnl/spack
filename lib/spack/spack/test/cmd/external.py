@@ -5,11 +5,13 @@
 import pytest
 
 import contextlib
+import glob
 import os
 import os.path
 
 import spack
 import spack.util.spack_yaml as syaml
+import spack.util.path
 from spack.spec import Spec
 from spack.cmd.external import ExternalPackageEntry
 from spack.main import SpackCommand
@@ -272,15 +274,23 @@ def test_use_tags_for_detection(
 
 
 def candidate_packages():
-    all_packages = spack.repo.path.all_packages()
+    """Return the list of packages with a corresponding
+    detection_test.yaml file.
+    """
+    # Directories where we have repositories
+    repo_dirs = [spack.util.path.canonicalize_path(x)
+                 for x in spack.config.get('repos')]
+
+    # Compute which files need to be tested
     to_be_tested = []
-    for pkg in all_packages:
-        pkg_dir = os.path.dirname(
-            spack.repo.path.filename_for_package_name(pkg.name)
+    for repo_dir in repo_dirs:
+        pattern = os.path.join(
+            repo_dir, 'packages', '**', 'detection_test.yaml'
         )
-        detection_data = os.path.join(pkg_dir, 'detection_test.yaml')
-        if os.path.exists(detection_data):
-            to_be_tested.append(pkg.name)
+        pkgs_with_tests = [os.path.basename(os.path.dirname(x))
+                           for x in glob.glob(pattern)]
+        to_be_tested.extend(pkgs_with_tests)
+
     return to_be_tested
 
 
