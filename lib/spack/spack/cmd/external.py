@@ -214,8 +214,8 @@ def _convert_to_iterable(single_val_or_multiple):
 
 def _determine_base_dir(prefix):
     # Given a prefix where an executable is found, assuming that prefix
-    # contains /bin/, strip off the 'bin' directory to get a Spack-compatible
-    # prefix
+    # contains /bin/, strip off the 'bin' directory and all subsequent
+    # directories to get a Spack-compatible prefix
     assert os.path.isdir(prefix)
 
     components = prefix.split(os.sep)
