@@ -5,13 +5,12 @@
 import pytest
 
 import contextlib
-import glob
 import os
 import os.path
 
 import spack
 import spack.util.spack_yaml as syaml
-import spack.util.path
+import spack.paths
 from spack.spec import Spec
 from spack.cmd.external import ExternalPackageEntry
 from spack.main import SpackCommand
@@ -277,20 +276,10 @@ def candidate_packages():
     """Return the list of packages with a corresponding
     detection_test.yaml file.
     """
-    # Directories where we have repositories
-    repo_dirs = [spack.util.path.canonicalize_path(x)
-                 for x in spack.config.get('repos')]
-
-    # Compute which files need to be tested
-    to_be_tested = []
-    for repo_dir in repo_dirs:
-        pattern = os.path.join(
-            repo_dir, 'packages', '**', 'detection_test.yaml'
-        )
-        pkgs_with_tests = [os.path.basename(os.path.dirname(x))
-                           for x in glob.glob(pattern)]
-        to_be_tested.extend(pkgs_with_tests)
-
+    # Directory where we store all the data to setup unit tests for detection.
+    data_dir = os.path.join(spack.paths.test_path, 'data', 'detection')
+    to_be_tested = [os.path.basename(x).replace('.yaml', '')
+                    for x in os.listdir(data_dir)]
     return to_be_tested
 
 
@@ -298,10 +287,8 @@ def candidate_packages():
 @pytest.mark.parametrize('package_name', candidate_packages())
 def test_package_detection(mock_executable, package_name):
     def detection_tests_for(pkg):
-        pkg_dir = os.path.dirname(
-            spack.repo.path.filename_for_package_name(pkg)
-        )
-        detection_data = os.path.join(pkg_dir, 'detection_test.yaml')
+        data_dir = os.path.join(spack.paths.test_path, 'data', 'detection')
+        detection_data = os.path.join(data_dir, '{0}.yaml'.format(pkg))
         with open(detection_data) as f:
             return syaml.load(f)
 
