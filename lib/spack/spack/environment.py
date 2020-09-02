@@ -1171,7 +1171,7 @@ class Environment(object):
 
         errors = []
         for _, spec in self.concretized_specs():
-            if spec in self.default_view and spec.package.installed:
+            if spec in self.default_view and spec.install_status():
                 try:
                     mods = uenv.environment_modifications_for_spec(
                         spec, self.default_view)

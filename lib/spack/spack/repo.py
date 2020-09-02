@@ -442,6 +442,11 @@ class RepoPath(object):
         repos (list): list Repo objects or paths to put in this RepoPath
     """
 
+    def copy(self):
+        clone = RepoPath.__new__(RepoPath)
+        clone.__init__(*self.repos)
+        return clone
+
     def __init__(self, *repos):
         self.repos = []
         self.by_namespace = nm.NamespaceTrie()
@@ -632,7 +637,11 @@ class RepoPath(object):
             fullspace = get_full_namespace(namespace)
             if fullspace not in self.by_namespace:
                 raise UnknownNamespaceError(spec.namespace)
-            return self.by_namespace[fullspace]
+            if not self.by_namespace[fullspace]._fallthrough:
+                return self.by_namespace[fullspace]
+            else:
+                if name in self.by_namespace[fullspace]:
+                    return self.by_namespace[fullspace]
 
         # If there's no namespace, search in the RepoPath.
         for repo in self.repos:
@@ -741,6 +750,7 @@ class Repo(object):
         self._modules = {}
         self._classes = {}
         self._instances = {}
+        self._fallthrough = False
 
         # Maps that goes from package name to corresponding file stat
         self._fast_package_checker = None
@@ -1238,6 +1248,43 @@ def additional_repository(repository):
     path.put_first(repository)
     yield
     path.remove(repository)
+
+
+@contextlib.contextmanager
+def swap_in_additional_repository(repository_path):
+    """Swaps in a copy of the current RepoPath and
+       adds a fallthrough repository temporarily
+       to the top of the copy. Upon restoring the
+       previous RepoPath, clean out any cached entries
+       that were modified due to the additional repository
+       being there.
+
+    Args:
+        repository_path: (string) path to the repository to be added
+    """
+    global path
+    repository = spack.repo.Repo(repository_path)
+    repository._fallthrough = True
+    # swap out _path for repo_path
+    saved = path
+    repo_path = path.copy()
+    repo_path.put_first(repository)
+    remove_from_meta = set_path(repo_path)
+    try:
+        yield
+    finally:
+        # restore _path and sys.meta_path
+        if remove_from_meta:
+            sys.meta_path.remove(repo_path)
+        path = saved
+        # look through the other repos to find and clear
+        # instances where the loaded module has been
+        # changed as a result of the temporary repo addition
+        # and subsequent operations
+        for repo in spack.repo.path.repos:
+            for module in list(repo._modules.keys()):
+                if repository_path in repo._modules[module].__file__:
+                    del repo._modules[module]
 
 
 class RepoError(spack.error.SpackError):

@@ -170,19 +170,41 @@ def test_env_modifications_error_on_activate(
 
     e = ev.read('test')
     with e:
-        install('cmake-client')
+        install('trivial-install-test-package-broken-runtime')
 
-    def setup_error(pkg, env):
-        raise RuntimeError("cmake-client had issues!")
-
-    pkg = spack.repo.path.get_pkg_class("cmake-client")
-    monkeypatch.setattr(pkg, "setup_run_environment", setup_error)
     with e:
         pass
 
     _, err = capfd.readouterr()
-    assert "cmake-client had issues!" in err
+    assert "runtime setup had issues!" in err
     assert "Warning: couldn't get environment settings" in err
+
+
+def test_env_renamed_package_no_error_on_activate(
+        install_mockery, mock_fetch, monkeypatch, capfd):
+    """Ensure that a package that installed, but renamed or
+       removed from the spack code can still be loaded via
+       an environment activation"""
+    env('create', 'test')
+    install = SpackCommand('install')
+
+    @property
+    def find_nothing(spec, *args):
+        pkg = spack.repo.get(spec)
+        if '.spack/repos/' in spack.repo.path.repos[0].root:
+            return pkg
+        else:
+            raise spack.repo.UnknownPackageError(
+                'Repo package access is disabled for test')
+
+    e = ev.read('test')
+    with e:
+        install('trivial-install-test-package')
+
+    monkeypatch.setattr(spack.spec.Spec,
+                        'package', find_nothing)
+    with e:
+        pass
 
 
 def test_env_install_same_spec_twice(install_mockery, mock_fetch, capfd):

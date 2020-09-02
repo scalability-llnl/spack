@@ -5,6 +5,7 @@
 import os
 import pytest
 from spack.main import SpackCommand, SpackCommandError
+from spack.spec import Spec
 import spack.spec
 import spack.user_environment as uenv
 
@@ -136,3 +137,66 @@ def test_unload_fails_no_shell(install_mockery, mock_fetch, mock_archive,
 
     out = unload('mpileaks', fail_on_error=False)
     assert "To initialize spack's shell commands" in out
+
+
+def test_load_installed_package_not_in_repo(install_mockery,
+                                            mock_fetch, monkeypatch):
+    """Test that spack load can still load a package that is no
+       longer in the builtin repo, but has an installation."""
+    # Get a basic concrete spec for the trivial install package.
+    spec = Spec('trivial-install-test-package')
+    spec.concretize()
+    assert spec.concrete
+
+    # Get the package
+    pkg = spec.package
+
+    def find_nothing(spec, *args):
+        monkeypatch.delattr(spack.repo.path, 'get')
+        pkg = spack.repo.path.get(spec)
+        monkeypatch.setattr(spack.repo.path, 'get', find_nothing)
+        if spec.prefix in spack.repo.path.repos[0].root:
+            return pkg
+        else:
+            raise spack.repo.UnknownPackageError(
+                'Repo package access is disabled for test')
+
+    try:
+        pkg.do_install()
+
+        spec._package = None
+        monkeypatch.setattr(spack.repo.path, 'get', find_nothing)
+        with pytest.raises(spack.repo.UnknownPackageError):
+            spec.package
+
+        sh_out = load('--sh', 'trivial-install-test-package')
+        assert spec.prefix in sh_out
+
+        os.environ[uenv.spack_loaded_hashes_var] = '%s:%s' % (
+            spec.dag_hash(), 'garbage')
+        sh_out = unload('--sh', 'trivial-install-test-package')
+        assert 'export %s=garbage' % uenv.spack_loaded_hashes_var in sh_out
+
+        pkg.do_uninstall()
+    except Exception:
+        pkg.remove_prefix()
+        raise
+
+
+def test_load_unload_package_external_deps(database,
+                                           monkeypatch,
+                                           working_env):
+    """Test that spack load can load and unload a package that has
+       external packages as dependencies."""
+    spec = Spec('externaltest')
+    spec.concretize()
+    assert spec.concrete
+
+    sh_out = load('--sh', 'externaltest')
+
+    assert spec.prefix in sh_out
+
+    os.environ[uenv.spack_loaded_hashes_var] = '%s:%s' % (
+        spec.dag_hash(), 'garbage')
+    sh_out = unload('--sh', 'externaltest')
+    assert 'export %s=garbage' % uenv.spack_loaded_hashes_var in sh_out

@@ -8,6 +8,9 @@ import os
 import spack.util.prefix as prefix
 import spack.util.environment as environment
 import spack.build_environment as build_env
+import spack.store
+import spack.repo
+import contextlib
 
 #: Environment variable name Spack uses to track individually loaded packages
 spack_loaded_hashes_var = 'SPACK_LOADED_HASHES'
@@ -59,33 +62,46 @@ def unconditional_environment_modifications(view):
     return env
 
 
-def environment_modifications_for_spec(spec, view=None):
+@contextlib.contextmanager
+def nullcontext(repo):
+    yield
+
+
+def environment_modifications_for_spec(in_spec, view=None):
     """List of environment (shell) modifications to be processed for spec.
 
     This list is specific to the location of the spec or its projection in
     the view."""
-    spec = spec.copy()
-    if view and not spec.external:
-        spec.prefix = prefix.Prefix(view.view().get_projection_for_spec(spec))
+    spec = in_spec.copy()
+    pkgrepopath = os.path.join(
+        spack.store.layout.build_packages_path(in_spec),
+        spec.namespace)
+    context = nullcontext
+    if not spec.external:
+        context = spack.repo.swap_in_additional_repository
+    with context(pkgrepopath):
+        if view and not spec.external:
+            spec.prefix = prefix.Prefix(
+                view.view().get_projection_for_spec(spec))
 
-    # generic environment modifications determined by inspecting the spec
-    # prefix
-    env = environment.inspect_path(
-        spec.prefix,
-        prefix_inspections(spec.platform),
-        exclude=environment.is_system_path
-    )
-
-    # Let the extendee/dependency modify their extensions/dependents
-    # before asking for package-specific modifications
-    env.extend(
-        build_env.modifications_from_dependencies(
-            spec, context='run'
+        # generic environment modifications determined by inspecting the spec
+        # prefix
+        env = environment.inspect_path(
+            spec.prefix,
+            prefix_inspections(spec.platform),
+            exclude=environment.is_system_path
         )
-    )
 
-    # Package specific modifications
-    build_env.set_module_variables_for_package(spec.package)
-    spec.package.setup_run_environment(env)
+        # Let the extendee/dependency modify their extensions/dependents
+        # before asking for package-specific modifications
+        env.extend(
+            build_env.modifications_from_dependencies(
+                spec, context='run'
+            )
+        )
+
+        # Package specific modifications
+        build_env.set_module_variables_for_package(spec.package)
+        spec.package.setup_run_environment(env)
 
     return env
