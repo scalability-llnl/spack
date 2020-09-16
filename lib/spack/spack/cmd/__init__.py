@@ -18,6 +18,7 @@ from llnl.util.lang import attr_setdefault, index_by
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
 from llnl.util.filesystem import join_path
+from spack.version import ver, VersionList
 
 import spack.config
 import spack.error
@@ -28,7 +29,7 @@ import spack.store
 import spack.util.spack_json as sjson
 import spack.util.string
 from ruamel.yaml.error import MarkedYAMLError
-
+import tempfile
 
 # cmd has a submodule called "list" so preserve the python list module
 python_list = list
@@ -197,8 +198,12 @@ def elide_list(line_list, max_num=10):
         return line_list
 
 
-def disambiguate_spec(spec, env, local=False, installed=True, first=False):
+def disambiguate_spec(spec, env, local=False, installed=True, first=False,
+                      compatible=False, preferred=False):
     """Given a spec, figure out which installed package it refers to.
+       If attempts to find a spec fail, an attempt to compute
+       a compatible one will be made, and a yaml file describing that
+       build will be made available.
 
     Arguments:
         spec (spack.spec.Spec): a spec to disambiguate
@@ -208,13 +213,56 @@ def disambiguate_spec(spec, env, local=False, installed=True, first=False):
         installed (boolean or any, or spack.database.InstallStatus or iterable
             of spack.database.InstallStatus): install status argument passed to
             database query. See ``spack.database.Database._query`` for details.
+        first (boolean, default False): in case of multiple matches, simply
+            return the first spec in the list.
+        compatible (boolean, default False): attempt to locate a package that
+            does not conflict with any of the currently loaded packages.
+        preferred (boolean, default False): use information gleaned from
+            packages.yaml and the current platform to assist in narrowing
+            down to specific package. (currently uses versions, variants,
+            architechture and compiler). If a preference eliminates all
+            results, the preference will not be honored.
     """
     hashes = env.all_hashes() if env else None
-    return disambiguate_spec_from_hashes(spec, hashes, local, installed, first)
+    return disambiguate_spec_from_hashes(spec, hashes, local, installed, first,
+                                         compatible, preferred)
+
+
+def _find_already_loaded():
+    spechash = {}
+    loadedhashes = os.environ.get(
+        spack.user_environment.spack_loaded_hashes_var, '').split(':')
+    matching_specs = spack.store.db.query(hashes=loadedhashes)
+    for spec in matching_specs:
+        for node in spec.traverse():
+            spechash[node.name] = node
+    return spechash
+
+
+def _apply_defaults(spec):
+    spec = spec.copy()
+    prefs = spack.config.get('packages').get(spec.name, {})
+
+    version = prefs.get('version', '')
+    if spec.versions == VersionList([':']) and version:
+        spec.versions = ver(version[0])
+
+    variants = prefs.get('variants', '')
+    if not spec.variants and variants:
+        tmpspec = spack.spec.Spec(variants)
+        for name in tmpspec.variants:
+            spec.variants[name] = tmpspec.variants.get(name)
+
+    concretizer = spack.concretize.Concretizer(spec)
+    concretizer.concretize_architecture(spec)
+    concretizer.concretize_compiler(spec)
+    return spec
 
 
 def disambiguate_spec_from_hashes(spec, hashes, local=False,
-                                  installed=True, first=False):
+                                  installed=True, first=False,
+                                  compatible=False,
+                                  preferred=False):
     """Given a spec and a list of hashes, get concrete spec the spec refers to.
 
     Arguments:
@@ -226,13 +274,98 @@ def disambiguate_spec_from_hashes(spec, hashes, local=False,
             database query. See ``spack.database.Database._query`` for details.
     """
     if local:
-        matching_specs = spack.store.db.query_local(spec, hashes=hashes,
-                                                    installed=installed)
+        pre_matching_specs = spack.store.db.query_local(spec, hashes=hashes,
+                                                        installed=installed)
     else:
-        matching_specs = spack.store.db.query(spec, hashes=hashes,
-                                              installed=installed)
+        pre_matching_specs = spack.store.db.query(spec, hashes=hashes,
+                                                  installed=installed)
+
+    matching_specs = []
+    conflicting_specs = []
+    narrowed_specs = []
+    loaded_specs = _find_already_loaded()
+
+    if compatible:
+        # compute the lists of conflicting and matching specs
+        loaded_hashes = [loaded_specs[name].dag_hash()
+                         for name in loaded_specs]
+        for possible_spec in pre_matching_specs:
+            conflict = False
+            for node in possible_spec.traverse():
+                if (loaded_specs.get(node.name) and
+                    (loaded_specs[node.name].dag_hash() !=
+                     node.dag_hash())):
+                    possible_spec._message = node.name
+                    conflict = True
+                    break
+            if possible_spec.dag_hash() in loaded_hashes:
+                tty.die(str(possible_spec.name) + ' is alreaded loaded\n')
+            if conflict:
+                conflicting_specs.append(possible_spec)
+            else:
+                matching_specs.append(possible_spec)
+    else:
+        matching_specs = pre_matching_specs
+
+    if preferred:
+        # see what the preferred spec would be,
+        # compare against the previously matched versions
+        # if none of them match, allow the whole list
+        # through, as we want to honor compatible specs and/or
+        # what the user specified over the preferences
+        if len(matching_specs) > 1:
+            prefspec = _apply_defaults(spec)
+            for possible_spec in matching_specs:
+                if possible_spec.satisfies(prefspec):
+                    narrowed_specs.append(possible_spec)
+            if len(narrowed_specs) != 0:
+                matching_specs = narrowed_specs
+
     if not matching_specs:
-        tty.die("Spec '%s' matches no installed packages." % spec)
+        if compatible and len(conflicting_specs) > 0:
+            format_string = '{name}{@version}{%compiler}{arch=architecture}'
+            args = ["All installed instances of %s conflict " % spec,
+                    "with the currently loaded packages.",
+                    "Conflicting packages:"]
+            args += [colorize("  @K{%s} (conflict @R{%s}) " %
+                              (s.dag_hash(7), s._message)) +
+                     s.cformat(format_string) for s in conflicting_specs]
+            args += ["Install a nonconflicting spec."]
+            tty.error(*args)
+        else:
+            tty.error("Spec '%s' matches no installed packages." % spec)
+
+        # Attempt to help. Compute something that should work
+        # and leave a yaml file describing the build.
+
+        possible = set(spack.package.possible_dependencies(spec))
+        loaded = set(loaded_specs.keys())
+        intersect = loaded.intersection(possible)
+
+        for depspec in intersect:
+            spec._add_dependency(loaded_specs[depspec], ('build', 'link'))
+        try:
+            tty.error('Attempting to compute a compatible spec')
+            spec.concretize()
+        except BaseException as e:
+            args = ["Was not able to compute a compatible spec"]
+            args += [e]
+            args += ['Nothing available to load']
+            tty.die(*args)
+        if spec._concrete:
+            args = ["A compatible spec that can be installed "
+                    "with \"spack install -f\" is available in"]
+            fd, path = tempfile.mkstemp(prefix=spec.name, text=True)
+            args += ["this file %s" % path]
+            yaml = None
+            if sys.version_info < (3, 0):
+                yaml = bytes(spec.to_yaml())
+            else:
+                yaml = bytes(spec.to_yaml(), 'ascii')
+            os.write(fd, yaml)
+            os.close(fd)
+        args += ['Nothing available to load']
+        tty.die(*args)
 
     elif first:
         return matching_specs[0]

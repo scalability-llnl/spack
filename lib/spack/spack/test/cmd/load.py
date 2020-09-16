@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
+import re
 import pytest
 from spack.main import SpackCommand, SpackCommandError
 import spack.spec
@@ -96,6 +97,20 @@ def test_load_first(install_mockery, mock_fetch, mock_archive, mock_packages):
     load('--sh', '--first', 'libelf')
 
 
+def test_load_with_packages_yaml(install_mockery, mock_fetch,
+                                 mock_archive, mock_packages):
+    """Test that packages.yaml can assist in narrowing down the
+    selection of packages to load"""
+    install('libelf@0.8.12')
+    install('libelf@0.8.13')
+    # use packages.yaml to guide the correct selection
+    with spack.config.override('packages:libelf', {
+            'version': ['0.8.13', '0.8.12']
+    }):
+        out = load('--sh', 'libelf', output=str)
+        assert('libelf-0.8.13' in out)
+
+
 def test_load_fails_no_shell(install_mockery, mock_fetch, mock_archive,
                              mock_packages):
     """Test that spack load prints an error message without a shell."""
@@ -136,3 +151,54 @@ def test_unload_fails_no_shell(install_mockery, mock_fetch, mock_archive,
 
     out = unload('mpileaks', fail_on_error=False)
     assert "To initialize spack's shell commands" in out
+
+
+def test_conflicting_load(database, working_env):
+    """Test that a compatible package is loaded if
+    one is available"""
+    # load the callpath that uses mpich
+    callpath_spec = spack.spec.Spec('callpath ^mpich').concretized()
+    mpileaks_spec = spack.spec.Spec('mpileaks ^mpich').concretized()
+    os.environ[uenv.spack_loaded_hashes_var] = callpath_spec.dag_hash()
+    # there are multiple mpileaks available, but only one that
+    # is compatible with our use of callpath ^mpich
+    out = load('--sh', 'mpileaks')
+    assert mpileaks_spec.dag_hash() in out
+
+
+def test_conflict_concrete(install_mockery, mock_fetch, mock_archive,
+                           mock_packages, mutable_database, working_env):
+    """Test the scenario where only conflicting packages are
+    available. A message should be printed and a file
+    describing a compatible build should be provided"""
+    # generate the scenario where we need a version
+    # of mpileaks dependent on mpich
+    mutable_database.remove('mpileaks ^mpich')
+    callpath_spec = spack.spec.Spec('callpath ^mpich').concretized()
+    os.environ[uenv.spack_loaded_hashes_var] = callpath_spec.dag_hash()
+    # the load should fail and generate a file capable
+    # of building a compatible version of mpileaks
+    out = load('--sh', 'mpileaks', fail_on_error=False, output=str)
+    assert 'A compatible spec that can' in out
+    filematch = re.search(r'this file (.*)', out)
+    assert(filematch)
+    file = filematch.group(1)
+    assert(file)
+    with open(file, 'r') as fd:
+        spec_yaml = fd.read()
+        spec_from_yaml = spack.spec.Spec.from_yaml(spec_yaml)
+    assert(spec_from_yaml.satisfies('mpileaks ^mpich'))
+    install('-f', file)
+    out = load('--sh', 'mpileaks', fail_on_error=False, output=str)
+    hash_test_replacements = (uenv.spack_loaded_hashes_var,
+                              spec_from_yaml.dag_hash())
+    sh_hash_test = 'export %s=%s' % hash_test_replacements
+    assert sh_hash_test in out
+    os.unlink(file)
+
+
+def test_load_fails_no_package(database, working_env, mutable_config):
+    """Test that spack load prints an error message when no package
+    is available."""
+    out = load('--sh', 'fluffybunnies', fail_on_error=False, output=str)
+    assert "Spec 'fluffybunnies' matches no installed packages" in out
