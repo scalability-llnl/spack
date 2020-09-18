@@ -358,6 +358,7 @@ def display_specs(specs, args=None, **kwargs):
     variants      = get_arg('variants', False)
     groups        = get_arg('groups', True)
     all_headers   = get_arg('all_headers', False)
+    location      = get_arg('location', False)
 
     decorator     = get_arg('decorator', None)
     if decorator is None:
@@ -389,6 +390,8 @@ def display_specs(specs, args=None, **kwargs):
         string = ""
         if hashes:
             string += gray_hash(s, hlen) + ' '
+        if location:
+            string += "^" if s.package.installed_upstream else " "
         string += depth * "    "
         string += s.cformat(format_string, transform=transform)
         return string

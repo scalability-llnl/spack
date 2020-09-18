@@ -61,6 +61,9 @@ def setup_parser(subparser):
                            action='store_true',
                            dest='show_full_compiler',
                            help='show full compiler specs')
+    subparser.add_argument('--location',
+                           action='store_true',
+                           help='show if it is a local or an upstream package')
     implicit_explicit = subparser.add_mutually_exclusive_group()
     implicit_explicit.add_argument(
         '-x', '--explicit',
