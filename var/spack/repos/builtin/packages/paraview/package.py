@@ -50,6 +50,7 @@ class Paraview(CMakePackage, CudaPackage):
             description='Builds a shared version of the library')
     variant('kits', default=True,
             description='Use module kits')
+    variant('egl', default=False, description="Enable EGL")
 
     conflicts('+python', when='+python3')
     # Python 2 support dropped with 5.9.0
@@ -59,6 +60,9 @@ class Paraview(CMakePackage, CudaPackage):
     # Legacy rendering dropped in 5.5
     # See commit: https://gitlab.kitware.com/paraview/paraview/-/commit/798d328c
     conflicts('~opengl2', when='@5.5:')
+
+    conflicts('+egl', when='+osmesa')
+    conflicts('+egl', when='+qt')
 
     # Workaround for
     # adding the following to your packages.yaml
@@ -96,6 +100,10 @@ class Paraview(CMakePackage, CudaPackage):
     depends_on('mesa+osmesa', when='+osmesa')
     depends_on('gl@3.2:', when='+opengl2')
     depends_on('gl@1.2:', when='~opengl2')
+
+    depends_on('glx', when='~osmesa ~egl platform=linux')
+    depends_on('egl', when='+egl')
+
     depends_on('libxt', when='~osmesa platform=linux')
     conflicts('+qt', when='+osmesa')
 
@@ -220,7 +228,9 @@ class Paraview(CMakePackage, CudaPackage):
         cmake_args = [
             '-DPARAVIEW_BUILD_QT_GUI:BOOL=%s' % variant_bool('+qt'),
             '-DVTK_OPENGL_HAS_OSMESA:BOOL=%s' % variant_bool('+osmesa'),
-            '-DVTK_USE_X:BOOL=%s' % nvariant_bool('+osmesa'),
+            '-DVTK_OPENGL_HAS_EGL:BOOL=%s' % variant_bool('+egl'),
+            ('-DVTK_USE_X:BOOL=%s' %
+                variant_bool('~osmesa ~egl platform=linux')),
             '-DVTK_RENDERING_BACKEND:STRING=%s' % rendering,
             '-DPARAVIEW_INSTALL_DEVELOPMENT_FILES:BOOL=%s' % includes,
             '-DBUILD_TESTING:BOOL=OFF',
@@ -291,7 +301,6 @@ class Paraview(CMakePackage, CudaPackage):
 
         if 'darwin' in spec.architecture:
             cmake_args.extend([
-                '-DVTK_USE_X:BOOL=OFF',
                 '-DPARAVIEW_DO_UNIX_STYLE_INSTALLS:BOOL=ON',
             ])
 

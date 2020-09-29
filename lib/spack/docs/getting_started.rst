@@ -832,6 +832,100 @@ to add the following to ``packages.yaml``:
    present in PATH, however it will have lower precedence compared to paths
    from other dependencies. This ensures that binaries in Spack dependencies
    are preferred over system binaries.
+   
+^^^^^^
+OpenGL
+^^^^^^
+
+To use hardware-accelerated rendering from a system-supplied OpenGL driver,
+add something like the following to your ``packages`` configuration:
+
+.. code-block:: yaml
+
+    packages:
+        opengl:
+            paths:
+                opengl+glx@4.5: /usr
+            buildable: False
+        all:
+            providers:
+                gl: [opengl]
+                glx: [opengl]
+
+For `EGL <https://www.khronos.org/egl>` support, or for certain modern drivers,
+OpenGL calls are dispatched dynamically at run time to the hardware graphics
+implementation.  This dynamic dispatch is performed using `libglvnd
+<https://gitlab.freedesktop.org/glvnd/libglvnd>`.  In this mode, the graphics
+library (e.g.: opengl) must be built to work with libglvnd.  Applications then
+link against libglvnd instead of the underlying implementation.  Environment
+variables set at run time govern the process by which libglvnd loads the
+underlying implementation and dispatches calls to it.  See `this
+<https://github.com/NVIDIA/libglvnd/issues/177#issuecomment-496562769>` comment
+for details on loading a specific GLX implementation and `this
+<https://github.com/NVIDIA/libglvnd/blob/master/src/EGL/icd_enumeration.md>`
+page for information about EGL ICD enumeration.
+
+This codependency between libglvnd and the underlying implementation is modeled
+in Spack with two packages for libglvnd: libglvnd, which provides libglvnd
+proper; and libglvnd-fe, a bundle package that depends on libglvnd and an
+implementation.  Implementations that work through libglvnd are no longer
+providers for graphics virtual dependencies, like "gl" or "glx", but instead
+provide libglvnd versions of these dependencies ("libglvnd-be-gl",
+"libglvnd-be-glx", etc.).  The libglvnd-fe package depends on these
+"libglvnd-be-..." virtual packages, which provide the actual implementation.
+It also depends on libglvnd, itself, and exposes its libraries to downstream
+applications.  For correct operation, the Spack package for the underlying
+implementation has to set the runtime environment to ensure that it is loaded
+when an application linked against libglvnd runs.  This last detail is
+important for users who want to set up an external OpenGL implementation that
+requires libglvnd to work.  This setup requires modifying the ``modules``
+configuration so that modules generated for the external OpenGL implementation
+set the necessary environment variables.
+
+.. code-block:: yaml
+
+    packages:
+        opengl:
+            paths:
+                opengl@4.5+glx+egl+glvnd: /does/not/exist
+            buildable: False
+            variants:+glx+egl+glvnd
+        libglvnd-fe:
+            variants:+glx+egl
+        all:
+            providers:
+                glvnd-be-gl: [opengl~glvnd]
+                glvnd-be-glx: [opengl+glx~glvnd]
+                glvnd-be-egl: [opengl+egl~glvnd]
+                gl: [libglvnd-fe]
+                glx: [libglvnd-fe+glx]
+                egl: [libglvnd-fe+egl]
+      
+.. code-block:: yaml
+
+    modules:
+        tcl:
+          opengl@4.5+glx+glvnd:
+            environment:
+              set:
+                __GLX_VENDOR_LIBRARY_NAME: nvidia
+          opengl@4.5+egl+glvnd:
+            environment:
+              set:
+                __EGL_VENDOR_LIBRARY_FILENAMES: /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
+One final detail about the above example is that it avoids setting the true
+root of the external OpenGL implementation, instead opting to set it to a path
+that is not expected to exist on the system.  This is done for two reasons.
+First, Spack would add directories under this root to environment variables
+that would affect the process of building and installing other packages, such
+as ``PATH`` and ``PKG_CONFIG_PATH``.  These additions may potentially prevent
+those packages from installing successfully, and this risk is especially great
+for paths that house many libraries and applications, like ``/usr``.  Second,
+providing the true root of the external implementation in the ``packages``
+configuration is not necessary because libglvnd need only the environment
+variables set above in the ``modules`` configuration to determine what OpenGL
+implementation to dispatch calls to at run time.
 
 ^^^
 Git
