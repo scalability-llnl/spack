@@ -249,7 +249,11 @@ def set_compiler_environment_variables(pkg, env):
         env.set('SPACK_DTAGS_TO_ADD', compiler.enable_new_dtags)
 
     # Set the target parameters that the compiler will add
-    isa_arg = spec.architecture.target.optimization_flags(compiler)
+    # Don't set on cray platform because the targeting module handles this
+    if spec.satisfies('platform=cray'):
+        isa_arg = ''
+    else:
+        isa_arg = spec.architecture.target.optimization_flags(compiler)
     env.set('SPACK_TARGET_ARGS', isa_arg)
 
     # Trap spack-tracked compiler flags as appropriate.
