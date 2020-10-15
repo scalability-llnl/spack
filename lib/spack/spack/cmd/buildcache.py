@@ -509,6 +509,13 @@ def install_tarball(spec, args):
 def listspecs(args):
     """list binary packages available from mirrors"""
     specs = bindist.get_specs()
+
+    with spack.store.db.write_transaction():
+        for spec in specs:
+            in_db = spack.store.db.query(spec, installed=any)
+            if not in_db:
+                spack.store.db.add(spec, spack.store.layout)
+
     if not args.allarch:
         arch = spack.architecture.default_arch().to_spec()
         specs = [s for s in specs if s.satisfies(arch)]
@@ -522,6 +529,7 @@ def listspecs(args):
         if not builds and not args.allarch:
             tty.msg("You can query all available architectures with:",
                     "spack buildcache list --allarch")
+
     display_specs(specs, args, all_headers=True)
 
 

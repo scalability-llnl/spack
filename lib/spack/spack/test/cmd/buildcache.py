@@ -17,6 +17,8 @@ from spack.spec import Spec
 
 buildcache = spack.main.SpackCommand('buildcache')
 install = spack.main.SpackCommand('install')
+uninstall = spack.main.SpackCommand('uninstall')
+spec = spack.main.SpackCommand('spec')
 env = spack.main.SpackCommand('env')
 add = spack.main.SpackCommand('add')
 gpg = spack.main.SpackCommand('gpg')
@@ -58,7 +60,7 @@ def test_buildcache_preview_just_runs(database):
 
 @pytest.mark.db
 @pytest.mark.regression('13757')
-def test_buildcache_list_duplicates(mock_get_specs, capsys):
+def test_buildcache_list_duplicates(mock_get_specs, mutable_database, capsys):
     with capsys.disabled():
         output = buildcache('list', 'mpileaks', '@2.3')
 
@@ -67,7 +69,8 @@ def test_buildcache_list_duplicates(mock_get_specs, capsys):
 
 @pytest.mark.db
 @pytest.mark.regression('17827')
-def test_buildcache_list_allarch(database, mock_get_specs_multiarch, capsys):
+def test_buildcache_list_allarch(
+        mutable_database, mock_get_specs_multiarch, capsys):
     with capsys.disabled():
         output = buildcache('list', '--allarch')
 
@@ -77,6 +80,27 @@ def test_buildcache_list_allarch(database, mock_get_specs_multiarch, capsys):
         output = buildcache('list')
 
     assert output.count('mpileaks') == 2
+
+
+@pytest.mark.db
+@pytest.mark.regression('reference listed binaries by hash')
+def test_buildcache_reference_by_hash(
+        mutable_database, mock_get_specs, capsys):
+    expected = mutable_database.query(installed=True)
+    uninstall('-a', '-y')
+
+    assert not mutable_database.query()
+    buildcache('list')
+
+    found = mutable_database.query(installed=any)
+    found_installed = mutable_database.query(installed=True)
+
+    assert found == expected
+    assert found_installed == [s for s in expected if s.external]
+    assert len(found_installed) < len(found)
+
+    uninstalled = list(set(found) - set(found_installed))
+    spec('/%s' % uninstalled[0].dag_hash())  # failure raises
 
 
 def tests_buildcache_create(

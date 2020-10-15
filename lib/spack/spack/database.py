@@ -1073,21 +1073,20 @@ class Database(object):
                 }
                 self._add(dep, directory_layout, **extra_args)
 
-        if key not in self._data:
-            installed = bool(spec.external)
-            path = None
-            if not spec.external and directory_layout:
-                path = directory_layout.path_for_spec(spec)
-                try:
-                    directory_layout.check_installed(spec)
-                    installed = True
-                except DirectoryLayoutError as e:
-                    tty.warn(
-                        'Dependency missing: may be deprecated or corrupted:',
-                        path, str(e))
-            elif spec.external_path:
-                path = spec.external_path
+        installed = bool(spec.external)
+        path = None
+        if not spec.external and directory_layout:
+            path = directory_layout.path_for_spec(spec)
+            try:
+                installed = bool(directory_layout.check_installed(spec))
+            except DirectoryLayoutError as e:
+                tty.warn(
+                    'Dependency missing: may be deprecated or corrupted:',
+                    path, str(e))
+        elif spec.external_path:
+            path = spec.external_path
 
+        if key not in self._data:
             # Create a new install record with no deps initially.
             new_spec = spec.copy(deps=False)
             extra_args = {
@@ -1115,7 +1114,7 @@ class Database(object):
 
         else:
             # If it is already there, mark it as installed.
-            self._data[key].installed = True
+            self._data[key].installed = installed
 
         self._data[key].explicit = explicit
 
