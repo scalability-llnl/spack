@@ -248,6 +248,9 @@ class TagIndex(Mapping):
 class Indexer(object):
     """Adaptor for indexes that need to be generated when repos are updated."""
 
+    def __init__(self):
+        self.index = None
+
     def create(self):
         self.index = self._create()
 
@@ -309,7 +312,7 @@ class ProviderIndexer(Indexer):
 
     def update(self, pkg_fullname):
         self.index.remove_provider(pkg_fullname)
-        self.index.update(pkg_fullname)
+        self.index.update_with(pkg_fullname)
 
     def write(self, stream):
         self.index.to_json(stream)
@@ -631,7 +634,7 @@ class RepoPath(object):
         if namespace:
             fullspace = get_full_namespace(namespace)
             if fullspace not in self.by_namespace:
-                raise UnknownNamespaceError(spec.namespace)
+                raise UnknownNamespaceError(namespace)
             return self.by_namespace[fullspace]
 
         # If there's no namespace, search in the RepoPath.

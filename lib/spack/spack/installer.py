@@ -183,7 +183,7 @@ def _packages_needed_to_bootstrap_compiler(pkg):
     dep.concretize()
     # mark compiler as depended-on by the package that uses it
     dep._dependents[pkg.name] = spack.spec.DependencySpec(
-        pkg.spec, dep, ('build',))
+        pkg.spec, dep, ('build',), virtuals=None)
     packages = [(s.package, False) for
                 s in dep.traverse(order='post', root=False)]
     packages.append((dep.package, True))

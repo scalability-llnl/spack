@@ -119,7 +119,7 @@ def test_installed_deps():
             setattr(spec.package, 'installed', True)
 
         a_spec = Spec('a')
-        a_spec._add_dependency(c_installed, default)
+        a_spec._add_dependency(c_installed, default, virtuals=None)
         a_spec.concretize()
 
         assert a_spec['d'].version == spack.version.Version('3')
@@ -145,7 +145,7 @@ def test_specify_preinstalled_dep():
             setattr(spec.package, 'installed', True)
 
         a_spec = Spec('a')
-        a_spec._add_dependency(b_spec, default)
+        a_spec._add_dependency(b_spec, default, virtuals=None)
         a_spec.concretize()
 
         assert set(x.name for x in a_spec.traverse()) == set(['a', 'b', 'c'])

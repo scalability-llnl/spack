@@ -3,11 +3,20 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Classes and functions to manage providers of virtual dependencies"""
+try:
+    import collections.abc as abc  # novm
+except ImportError:
+    import collections as abc
 import itertools
 
 import six
 import spack.error
 import spack.util.spack_json as sjson
+
+try:
+    from collections import ChainMap  # novm
+except ImportError:
+    from chainmap import ChainMap
 
 
 def _cross_provider_maps(lmap, rmap):
@@ -129,7 +138,7 @@ class _IndexBase(object):
         return repr(self.providers)
 
 
-class ProviderIndex(_IndexBase):
+class ProviderIndex(abc.Mapping, _IndexBase):
     def __init__(self, specs=None, restrict=False):
         """Provider index based on a single mapping of providers.
 
@@ -157,13 +166,27 @@ class ProviderIndex(_IndexBase):
             if spec.virtual:
                 continue
 
-            self.update(spec)
+            self.update_with(spec)
 
-    def update(self, spec):
+    def __getitem__(self, key):
+        return self.providers[key]
+
+    def __iter__(self):
+        return iter(self.providers)
+
+    def __len__(self):
+        return len(self.providers)
+
+    def update_with(self, spec, only=None, exclude=None):
         """Update the provider index with additional virtual specs.
 
         Args:
             spec: spec potentially providing additional virtual specs
+            only (sequence of str or None): virtual specs to consider for
+                the update. If None all provided are considered, except
+                those explicitly excluded.
+            exclude (sequence of str or None): virtual specs to exclude from
+                the update.
         """
         if not isinstance(spec, spack.spec.Spec):
             spec = spack.spec.Spec(spec)
@@ -175,6 +198,24 @@ class ProviderIndex(_IndexBase):
         assert not spec.virtual, "cannot update an index using a virtual spec"
 
         pkg_provided = spec.package_class.provided
+        if only is not None:
+            # Here we need to use vspec.name since the key is a Spec and
+            # llnl.util.lang.total_ordering interferes with string
+            # comparison
+            pkg_provided = dict(
+                (vspec, condition) for vspec, condition in pkg_provided.items()
+                if vspec.name in only
+            )
+
+        if exclude is not None:
+            # Here we need to use vspec.name since the key is a Spec and
+            # llnl.util.lang.total_ordering interferes with string
+            # comparison
+            pkg_provided = dict(
+                (vspec, condition) for vspec, condition in pkg_provided.items()
+                if vspec.name not in exclude
+            )
+
         for provided_spec, provider_specs in six.iteritems(pkg_provided):
             for provider_spec in provider_specs:
                 # TODO: fix this comment.
@@ -294,6 +335,89 @@ class ProviderIndex(_IndexBase):
                 spack.spec.Spec.from_node_dict(vpkg),
                 set(spack.spec.Spec.from_node_dict(p) for p in plist)))
         return index
+
+
+class IndexWithBindings(abc.Mapping, _IndexBase):
+    def __init__(self, specs, bindings):
+        """Provider index that ensures some virtual dependencies to be
+        bound to certain providers.
+
+        Args:
+            specs: specs used to initialize this provider index.
+            bindings (dict): dictionary mapping a virtual dependency name to
+                its preferred provider. All the other virtual dependencies
+                provided by the same package will be given the lowest possible
+                priority.
+        """
+        self.bindings = bindings
+
+        # Be safe if the argument is a generator that can
+        # be consumed only once
+        specs = list(specs)
+
+        highest, binds = ProviderIndex(restrict=True), []
+        lowest = ProviderIndex(restrict=True)
+        for v, constraint in bindings.items():
+            s = [x for x in specs if x.satisfies(constraint, strict=True)]
+            if not s:
+                continue
+
+            assert len(s) == 1, specs
+            s = s[0]
+            binds.append(str(s))
+            virtual_deps = used_together(s, v)
+
+            highest.update_with(s, only=virtual_deps)
+            lowest.update_with(s, exclude=virtual_deps)
+
+        non_binds = [x for x in specs if str(x) not in binds]
+        middle = ProviderIndex(non_binds, restrict=True)
+
+        self.providers = ChainMap(highest, middle, lowest)
+
+    def update_with(self, spec):
+        is_highest = False
+        for vspec, constraint in self.bindings.items():
+            if not spec.satisfies(constraint, strict=True):
+                continue
+
+            binds = used_together(spec, vspec)
+            is_highest = True
+            self.providers.maps[0].update_with(spec, only=binds)
+            self.providers.maps[2].update_with(spec, exclude=binds)
+
+        if not is_highest:
+            self.providers.maps[1].update_with(spec)
+
+    def __getitem__(self, key):
+        return self.providers[key]
+
+    def __iter__(self):
+        return iter(self.providers)
+
+    def __len__(self):
+        return len(self.providers)
+
+
+def used_together(provider_spec, virtual_spec):
+    """Return the set of virtual specs that needs to be used together
+    for a given provider.
+
+    Args:
+        provider_spec: provider spec
+        virtual_spec: virtual spec of interest
+
+    Returns:
+        Set of virtual specs that needs to be used together
+    """
+    result, pkg = set(), provider_spec.package
+    for when_spec, vspec_sets in pkg.used_together.items():
+        if not provider_spec.satisfies(when_spec):
+            continue
+        ss = [s for s in vspec_sets if virtual_spec in s]
+        for xx in ss:
+            result |= xx
+    return result
 
 
 def _transform(providers, transform_fun, out_mapping_type=dict):

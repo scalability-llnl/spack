@@ -988,6 +988,68 @@ class TestSpecSematics(object):
         with pytest.raises(UnknownVariantError, match=r'package has no such'):
             s.concretize()
 
+    @pytest.mark.parametrize('spec_str,specs_in_dag', [
+        ('hdf5+mpi ^mpi=mpich', [('mpich', 'mpich'), ('mpi', 'mpich')]),
+        # Try different combinations with packages that provides a
+        # disjoint set of virtual dependencies
+        ('netlib-scalapack ^mpich ^openblas',
+         [('mpi', 'mpich'), ('lapack', 'openblas'), ('blas', 'openblas')]),
+        ('netlib-scalapack ^mpi=mpich ^openblas',
+         [('mpi', 'mpich'), ('lapack', 'openblas'), ('blas', 'openblas')]),
+        ('netlib-scalapack ^mpich ^lapack=openblas',
+         [('mpi', 'mpich'), ('lapack', 'openblas'), ('blas', 'openblas')]),
+        ('netlib-scalapack ^mpi=mpich ^lapack=openblas',
+         [('mpi', 'mpich'), ('lapack', 'openblas'), ('blas', 'openblas')]),
+        # Test that we can mix dependencies that provide an overlapping
+        # sets of virtual dependencies
+        ('netlib-scalapack ^mpi=intel-parallel-studio ^lapack=openblas',
+         [('mpi', 'intel-parallel-studio'), ('lapack', 'openblas'),
+          ('blas', 'openblas')]),
+        ('netlib-scalapack ^mpi=intel-parallel-studio ^openblas',
+         [('mpi', 'intel-parallel-studio'), ('lapack', 'openblas'),
+          ('blas', 'openblas')]),
+        ('netlib-scalapack ^intel-parallel-studio ^lapack=openblas',
+         [('mpi', 'intel-parallel-studio'), ('lapack', 'openblas'),
+          ('blas', 'openblas')]),
+        # Test that we can bind more than one virtual to the same provider
+        ('netlib-scalapack ^lapack,blas=openblas',
+         [('lapack', 'openblas'), ('blas', 'openblas')]),
+    ])
+    def test_virtual_deps_bindings(self, spec_str, specs_in_dag):
+        s = Spec(spec_str)
+        s.concretize()
+        for label, expected in specs_in_dag:
+            assert label in s
+            assert s[label].satisfies(expected, strict=True)
+
+    @pytest.mark.parametrize('spec_str', [
+        'netlib-scalapack ^intel-parallel-studio ^openblas',
+        'netlib-scalapack ^blas=atlas ^openblas',
+        'netlib-scalapack ^lapack=intel-parallel-studio ^openblas',
+    ])
+    def test_unsatisfiable_virtual_deps_bindings(self, spec_str):
+        s = Spec(spec_str)
+        with pytest.raises(Exception):
+            s.concretize()
+
+    @pytest.mark.parametrize('spec_str,expected_providers', [
+        ('netlib-scalapack ^mpi=mpich ^lapack=openblas',
+         {'mpich': ['mpi'], 'openblas': ['blas', 'lapack']}),
+        ('netlib-scalapack ^mpi=mpich ^lapack,blas=openblas',
+         {'mpich': ['mpi'], 'openblas': ['blas', 'lapack']}),
+        ('netlib-scalapack ^mpi=intel-parallel-studio ^openblas',
+         {'intel-parallel-studio': ['mpi'], 'openblas': ['blas', 'lapack']}),
+    ])
+    def test_virtual_deps_as_edge_attributes(
+            self, spec_str, expected_providers
+    ):
+        s = Spec(spec_str)
+        s.concretize()
+        for name, expected_virtuals in expected_providers.items():
+            assert name in s._dependencies
+            expected_virtuals = tuple(sorted(expected_virtuals))
+            assert expected_virtuals == s._dependencies[name].virtuals
+
 
 @pytest.mark.regression('3887')
 @pytest.mark.parametrize('spec_str', [

@@ -339,3 +339,18 @@ def test_setting_dtags_based_on_config(
 
         dtags_to_add = modifications['SPACK_DTAGS_TO_ADD'][0]
         assert dtags_to_add.value == expected_flag
+
+
+def test_monkey_patching_works_across_virtual(config, mock_packages):
+    # Create a DAG containing a virtual spec
+    s = spack.spec.Spec('mpileaks ^mpich')
+    s.concretize()
+
+    # Mock what setup_dependent_package might do e.g. monkey
+    # patch the spec
+    s['mpich'].foo = 'foo'
+
+    # Assert the attribut can be found regardless the name
+    # we use to access mpich
+    assert s['mpich'].foo == 'foo'
+    assert s['mpi'].foo == 'foo'

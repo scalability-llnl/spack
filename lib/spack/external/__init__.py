@@ -17,6 +17,14 @@ argparse
   vendored copy ever needs to be updated again:
   https://github.com/spack/spack/pull/6786/commits/dfcef577b77249106ea4e4c69a6cd9e64fa6c418
 
+chainmap
+--------
+
+* Homepage: https://bitbucket.org/jeunice/chainmap/src/default/
+* Usage: Port of collections.ChainMap for Python 2.6 and 2.7
+* Version: 1.0.3
+* License: https://bitbucket.org/jeunice/chainmap/src/default/LICENSE.txt
+
 ctest_log_parser
 ----------------
 

@@ -1167,6 +1167,56 @@ any MPI implementation will do.  If another package depends on
 error.  Likewise, if you try to plug in some package that doesn't
 provide MPI, Spack will raise an error.
 
+""""""""""""""""""""""""""""""""""""""""
+Explicit binding of virtual dependencies
+""""""""""""""""""""""""""""""""""""""""
+
+There are packages that provide more than just one virtual dependency.
+When interacting with them users might want to pick only
+a single virtual dependency from one package and use different providers for
+the others. For example, consider these two packages:
+
+* ``intel-parallel-studio``, which provides ``mpi``, ``lapack``, and ``blas``
+* ``openblas``, which provides ``lapack`` and ``blas``
+
+We might want to use ``intel-parallel-studio`` for ``mpi`` and ``openblas``
+for ``lapack`` and ``blas``:
+
+.. code-block:: console
+
+   $ spack spec netlib-scalapack ^mpi=intel-parallel-studio@cluster+mpi ^openblas
+   Input spec
+   --------------------------------
+   netlib-scalapack
+       ^intel-parallel-studio@cluster+mpi
+       ^openblas
+
+   Concretized
+   --------------------------------
+   netlib-scalapack@2.1.0%gcc@9.0.1 build_type=RelWithDebInfo patches=f2baedde688ffe4c20943c334f580eb298e04d6f35c86b90a1f4e8cb7ae344a2 ~pic+shared arch=linux-ubuntu18.04-broadwell
+       ^cmake@3.16.5%gcc@9.0.1~doc+ncurses+openssl+ownlibs~qt arch=linux-ubuntu18.04-broadwell
+           ^ncurses@6.2%gcc@9.0.1~symlinks+termlib arch=linux-ubuntu18.04-broadwell
+               ^pkgconf@1.6.3%gcc@9.0.1 arch=linux-ubuntu18.04-broadwell
+           ^openssl@1.1.1e%gcc@9.0.1+systemcerts arch=linux-ubuntu18.04-broadwell
+               ^perl@5.30.1%gcc@9.0.1+cpanm+shared+threads arch=linux-ubuntu18.04-broadwell
+                   ^gdbm@1.18.1%gcc@9.0.1 arch=linux-ubuntu18.04-broadwell
+                       ^readline@8.0%gcc@9.0.1 arch=linux-ubuntu18.04-broadwell
+               ^zlib@1.2.11%gcc@9.0.1+optimize+pic+shared arch=linux-ubuntu18.04-broadwell
+       ^intel-parallel-studio@cluster%gcc@9.0.1~advisor auto_dispatch=none ~clck+daal~gdb~ilp64~inspector+ipp~itac+mkl+mpi~newdtags+rpath+shared+tbb threads=none ~vtune arch=linux-ubuntu18.04-broadwell
+       ^openblas@0.3.9%gcc@9.0.1~consistent_fpcsr~ilp64+pic+shared threads=none arch=linux-ubuntu18.04-broadwell
+
+The ``^<virtual>=<spec>`` syntax tells Spack to use ``<spec>`` to satisfy the
+requested virtual (so ``^mpi=intel-parallel-studio`` tells Spack to use
+``intel-parallel-studio`` as the ``mpi`` provider) and to consider its other virtual
+dependencies after any other explicitly mentioned package. Adding ``^openblas``
+to the spec thus means that ``openblas`` will then be used for ``lapack``, and
+``blas`` because it is specified explicitly.
+
+In this example, that covers all the virtual dependencies, but if there were other
+virtual dependencies, Spack could try to satisfy them with ``intel-parallel-studio``.
+For instance, if another package depended on ``tbb`` or ``daal`` (which ``intel-parallel-studio``
+also provides), Spack could use ``intel-parallel-studio`` to satisfy them as a last resort.
+
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Specifying Specs by Hash
 ^^^^^^^^^^^^^^^^^^^^^^^^

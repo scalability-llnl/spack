@@ -283,7 +283,7 @@ class TestConcretize(object):
 
     def test_concretize_two_virtuals_with_two_bound(self):
         """Test a package with multiple virtual deps and two of them preset."""
-        Spec('hypre ^openblas ^netlib-lapack').concretize()
+        Spec('hypre ^atlas ^netlib-lapack').concretize()
 
     def test_concretize_two_virtuals_with_dual_provider(self):
         """Test a package with multiple virtual dependencies and force a provider
@@ -644,3 +644,21 @@ class TestConcretize(object):
         with pytest.raises(spack.error.SpecError):
             s = Spec('+variant')
             s.concretize()
+
+
+@pytest.mark.parametrize('spec_str,ensure_present,ensure_absent', [
+    ('fftw ^mpi=intel-parallel-studio@cluster', ['mpi'], ['lapack'])
+])
+def test_subscript_for_concretized_specs(
+        spec_str, ensure_present, ensure_absent
+):
+    s = Spec(spec_str)
+    s.concretize()
+
+    for dep in ensure_present:
+        msg = '"{0}" should be present in "{1}"'
+        assert dep in s, msg.format(dep, spec_str)
+
+    for dep in ensure_absent:
+        msg = '"{0}" should not be present in "{1}"'
+        assert dep not in s, msg.format(dep, spec_str)

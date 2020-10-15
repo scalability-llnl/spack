@@ -267,11 +267,11 @@ class TestTcl(object):
         """Tests adding suffixes to module file name."""
         module_configuration('suffix')
 
-        writer, spec = factory('mpileaks+debug arch=x86-linux')
+        writer, spec = factory('mpileaks+debug arch=x86-linux ^mpich')
         assert 'foo' in writer.layout.use_name
         assert 'foo-foo' not in writer.layout.use_name
 
-        writer, spec = factory('mpileaks~debug arch=x86-linux')
+        writer, spec = factory('mpileaks~debug arch=x86-linux ^mpich')
         assert 'foo-bar' in writer.layout.use_name
         assert 'baz' not in writer.layout.use_name
 
