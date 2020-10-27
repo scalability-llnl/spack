@@ -35,18 +35,22 @@ def _misc_cache():
 misc_cache = llnl.util.lang.Singleton(_misc_cache)
 
 
+def fetch_cache_path():
+    """Retrieves the path to the source cache"""
+
+    path = spack.config.get('config:source_cache')
+    if not path:
+        path = os.path.join(spack.paths.var_path, "cache")
+    return spack.util.path.canonicalize_path(path)
+
+
 def _fetch_cache():
     """Filesystem cache of downloaded archives.
 
     This prevents Spack from repeatedly fetch the same files when
     building the same package different ways or multiple times.
     """
-    path = spack.config.get('config:source_cache')
-    if not path:
-        path = os.path.join(spack.paths.var_path, "cache")
-    path = spack.util.path.canonicalize_path(path)
-
-    return spack.fetch_strategy.FsCache(path)
+    return spack.fetch_strategy.FsCache(fetch_cache_path())
 
 
 class MirrorCache(object):

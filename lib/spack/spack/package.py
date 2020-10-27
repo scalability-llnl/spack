@@ -45,7 +45,9 @@ import spack.store
 import spack.url
 import spack.util.environment
 import spack.util.web
-from llnl.util.filesystem import mkdirp, touch, working_dir
+import spack.multimethod
+
+from llnl.util.filesystem import mkdirp, touch, working_dir, join_path
 from llnl.util.lang import memoized
 from llnl.util.link_tree import LinkTree
 from ordereddict_backport import OrderedDict
@@ -55,7 +57,8 @@ from six import with_metaclass
 from spack.filesystem_view import YamlFilesystemView
 from spack.installer import \
     install_args_docstring, PackageInstaller, InstallError
-from spack.stage import stage_prefix, Stage, ResourceStage, StageComposite
+from spack.stage import \
+    stage_prefix, Stage, ResourceStage, StageComposite, CargoStage
 from spack.util.package_hash import package_hash
 from spack.version import Version
 
@@ -920,6 +923,17 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
                       path=self.path, search_fn=download_search)
         return stage
 
+    def _make_cargo_stage(self, root_stage):
+        return CargoStage(
+            self.cargo_manifest, root_stage,
+            mirror_paths=[
+                join_path(
+                    '_cargo-cache',
+                    root_stage.fetcher.mirror_id()
+                ) + '.tar.gz'
+            ]
+        )
+
     def _make_stage(self):
         # If it's a dev package (not transitively), use a DIY stage object
         dev_path_var = self.spec.variants.get('dev_path', None)
@@ -933,7 +947,7 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
         for ii, fetcher in enumerate(composite_fetcher):
             if ii == 0:
                 # Construct root stage first
-                stage = self._make_root_stage(fetcher)
+                stage = root_stage = self._make_root_stage(fetcher)
             else:
                 # Construct resource stage
                 resource = resources[ii - 1]  # ii == 0 is root!
@@ -941,6 +955,10 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
                                                   resource)
             # Append the item to the composite
             composite_stage.append(stage)
+
+        if self.cargo_manifest:
+            composite_stage.append(
+                self._make_cargo_stage(root_stage))
 
         return composite_stage
 
@@ -2191,6 +2209,11 @@ class PackageBase(with_metaclass(PackageMeta, PackageViewMixin, object)):
         Returns:
             dict: a dictionary mapping versions to URLs
         """
+        if hasattr(self, 'crates_io') and self.crates_io:
+            # For packages pulled from crates.io, all releases can be easily
+            # discovered
+            return spack.util.web.find_crate_versions(self.crates_io)
+
         if not self.all_urls:
             return {}
 

@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import codecs
 import errno
+import json
 import multiprocessing.pool
 import os
 import os.path
@@ -19,6 +20,9 @@ import traceback
 import six
 from six.moves.urllib.error import URLError
 from six.moves.urllib.request import urlopen, Request
+
+from spack.version import Version
+from spack.util.executable import which
 
 try:
     # Python 2 had these in the HTMLParser package.
@@ -486,6 +490,35 @@ def _urlopen(req, *args, **kwargs):
         opener = spack.s3_handler.open
 
     return opener(req, *args, **kwargs)
+
+
+def get_crate_metadata(crate_name):
+    """Retrieves the metadata of a crate from crates.io
+
+    Returns:
+        crate: a dictionary of crate metadata
+    """
+    curl = which('curl', required=True)
+    payload = curl(
+        '-L',
+        'https://crates.io/api/v1/crates/{crate}'.format(crate=crate_name),
+        output=str)
+    return json.loads(payload)
+
+
+def find_crate_versions(crate_name):
+    """Retrieves the versions of a crate from crates.io
+
+    Returns:
+        dict: a dictionary mapping versions to URLs
+    """
+    crate = get_crate_metadata(crate_name)
+
+    versions = {}
+    for v in crate["versions"]:
+        if not v["yanked"]:
+            versions[Version(v["num"])] = "https://crates.io" + v["dl_path"]
+    return versions
 
 
 def find_versions_of_archive(

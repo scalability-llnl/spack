@@ -6,26 +6,52 @@
 from spack import *
 
 
-class Ripgrep(Package):
+class Ripgrep(CargoPackage):
     """ripgrep is a line-oriented search tool that recursively searches
     your current directory for a regex pattern.  ripgrep is similar to
     other popular search tools like The Silver Searcher, ack and grep.
     """
 
     homepage = "https://github.com/BurntSushi/ripgrep"
-    url      = "https://github.com/BurntSushi/ripgrep/archive/11.0.2.tar.gz"
+    crates_io = "ripgrep"
+    git = "https://github.com/BurntSushi/ripgrep.git"
 
-    version('11.0.2', sha256='0983861279936ada8bc7a6d5d663d590ad34eb44a44c75c2d6ccd0ab33490055')
+    maintainers = ["AndrewGaspar"]
 
-    depends_on('rust')
+    version('master', branch='master')
+    version('12.1.1', sha256='b955557adc78324dbc2bc663ca85df54b48a579b340876e38dffb39f24882ebf')
 
-    def install(self, spec, prefix):
-        cargo = which('cargo')
-        cargo('install', '--root', prefix, '--path', '.')
+    variant(
+        "pcre2",
+        default=True,
+        description="Support for perl-style regex"
+    )
 
-    # needed for onig_sys
+    depends_on("pcre2", when="+pcre2")
+
+    variant(
+        "simd_accel",
+        default=False,
+        description="Enable simd acceleration for some dependencies"
+    )
+
+    conflicts(
+        "+simd_accel", when="^rust@1.0.0:1.999.999",
+        msg="The simd_accel feature requires nightly Rust")
+    conflicts(
+        "+simd_accel", when="^rust@beta",
+        msg="The simd_accel feature requires nightly Rust")
+
+    def cargo_features(self):
+        features = []
+        if "+pcre2" in self.spec:
+            features += ["pcre2"]
+
+        if "+simd_accel" in self.spec:
+            features += ["simd-accel"]
+
+        return features
+
     def setup_build_environment(self, env):
-        env.append_flags('LLVM_CONFIG_PATH',
-                         join_path(self.spec['llvm'].prefix.libexec.llvm,
-                                   'llvm-config'))
-        env.append_flags('LIBCLANG_PATH', self.spec['llvm'].prefix.lib)
+        if '+pcre2' in self.spec:
+            env.append_flags('PCRE2_SYS_STATIC', '0')

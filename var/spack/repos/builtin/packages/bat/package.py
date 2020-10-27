@@ -6,17 +6,26 @@
 from spack import *
 
 
-class Bat(Package):
+class Bat(CargoPackage):
     """A cat(1) clone with wings."""
 
-    homepage = 'https://github.com/sharkdp/bat'
-    url = 'https://github.com/sharkdp/bat/archive/v0.13.0.tar.gz'
+    homepage = "https://github.com/sharkdp/bat"
+    crates_io = "bat"
+    git = "https://github.com/sharkdp/bat.git"
 
-    version('0.13.0', sha256='f4aee370013e2a3bc84c405738ed0ab6e334d3a9f22c18031a7ea008cd5abd2a')
-    version('0.12.1', sha256='1dd184ddc9e5228ba94d19afc0b8b440bfc1819fef8133fe331e2c0ec9e3f8e2')
+    maintainers = ['AndrewGaspar']
 
-    depends_on('rust')
+    version('master', branch='master')
+    version('0.15.4', sha256='91f17c2d9e1cee447a788a15fa6819c0cb488fb2935e3e8c4e7120e1678b7aa8')
 
-    def install(self, spec, prefix):
-        cargo = which('cargo')
-        cargo('install', '--root', prefix, '--path', '.')
+    depends_on('pkgconfig', type='build')
+    depends_on('libgit2')
+    depends_on('oniguruma')
+
+    # Tell onig-sys to prefer spack-installed oniguruma
+    def setup_build_environment(self, env):
+        # onig-sys environment
+        env.append_flags('RUSTONIG_DYNAMIC_LIBONIG', '1')
+
+        # git-sys environment
+        env.append_flags('LIBGIT2_SYS_USE_PKG_CONFIG', '1')

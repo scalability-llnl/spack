@@ -40,7 +40,7 @@ import spack.util.pattern as pattern
 import spack.util.url as url_util
 import spack.util.web as web_util
 from llnl.util.filesystem import (
-    working_dir, mkdirp, temp_rename, temp_cwd, get_single_file)
+    working_dir, mkdirp, temp_rename, temp_cwd, get_single_file, join_path)
 from spack.util.compression import decompressor_for, extension
 from spack.util.executable import which
 from spack.util.string import comma_and, quote
@@ -48,6 +48,9 @@ from spack.version import Version, ver
 
 #: List of all fetch strategies, created by FetchStrategy metaclass.
 all_strategies = []
+
+# Well-known vendor subdirectory name
+_cargo_vendor_subdir = 'spack-cargo-vendor'
 
 CONTENT_TYPE_MISMATCH_WARNING_TEMPLATE = (
     "The contents of {subject} look like {content_type}.  Either the URL"
@@ -580,6 +583,24 @@ class CacheURLFetchStrategy(URLFetchStrategy):
 
         # Notify the user how we fetched.
         tty.msg('Using cached archive: {0}'.format(path))
+
+
+# This class is intentionally defined prior to version control fetch strategies
+# because it should be preferred before a version control strategy
+@fetcher
+class CratesIOURLFetchStrategy(URLFetchStrategy):
+    """FetchStrategy that pulls from crates.io"""
+    url_attr = 'crates_io'
+
+    def __init__(self, crate, version, *args, **kwargs):
+        url = "https://crates.io/api/v1/crates/{crate}/{version}/download"\
+            .format(
+                crate=crate,
+                version=version
+            )
+        super(CratesIOURLFetchStrategy, self).__init__(
+            url=url, extension='tar.gz', *args, **kwargs
+        )
 
 
 class VCSFetchStrategy(FetchStrategy):
@@ -1179,6 +1200,134 @@ class S3FetchStrategy(URLFetchStrategy):
             raise FailedDownloadError(self.url)
 
 
+class CargoVendorFetchStrategy(FetchStrategy):
+    """This fetch strategy is used for fetching the dependencies of a cargo
+    package using the `cargo vendor` command. It is not a standalone fetch
+    strategy - it's only used by packages that use the `cargo_manifest`
+    directive."""
+
+    def __init__(self, manifest, package_stage):
+        self.manifest = manifest
+        self.package_stage = package_stage
+
+    @property
+    def cachable(self):
+        return self.package_stage.default_fetcher.cachable
+
+    @property
+    def manifest_path(self):
+        return join_path(self.package_stage.source_path, self.manifest)
+
+    @property
+    def manifest_dir(self):
+        return os.path.dirname(self.manifest_path)
+
+    @property
+    def manifest_dir_rel(self):
+        return os.path.dirname(self.manifest)
+
+    @property
+    def manifest_lock_path(self):
+        return join_path(self.manifest_dir, 'Cargo.lock')
+
+    @property
+    def manifest_lock_path_rel(self):
+        return join_path(self.manifest_dir_rel, 'Cargo.lock')
+
+    @property
+    def vendor_stage(self):
+        return join_path(
+            self.package_stage.path, _cargo_vendor_subdir)
+
+    @property
+    def vendor_tar(self):
+        return self.vendor_stage + '.tar.gz'
+
+    def fetch(self):
+        # Fetching the cargo stage requires the package is expanded
+        tty.msg(
+            "Creating stage for {name} in order to fetch cargo dependencies"
+            .format(name=self.package_stage.name))
+        self.package_stage.expand_archive()
+
+        cargo = which('cargo', required=True)
+
+        checksum = spack.config.get('config:checksum')
+        if checksum and not os.path.exists(self.manifest_lock_path):
+            tty.warn(
+                "There is no Cargo.lock file to vendor crate depenencies "
+                "safely.")
+
+            # Ask the user whether to skip the checksum if we're
+            # interactive, but just fail if non-interactive.
+            ck_msg = "Add a checksum or use --no-checksum to skip this check."
+            ignore_checksum = False
+            if sys.stdout.isatty():
+                ignore_checksum = tty.get_yes_or_no("  Fetch anyway?",
+                                                    default=False)
+                if ignore_checksum:
+                    tty.msg("Vendoring with no checksum.", ck_msg)
+
+            if not ignore_checksum:
+                raise FetchError("Will not vendor cargo dependencies")
+
+            locked = False
+        else:
+            locked = True
+
+        args = ["--locked"] if locked else []
+        args += [
+            'vendor', '--versioned-dirs',
+            '--manifest-path',
+            self.manifest_path,
+            _cargo_vendor_subdir,
+        ]
+
+        # Create the vendored dependencies directory
+        mkdirp(self.vendor_stage)
+
+        try:
+            # Run from a relative directory so the generated configuration is
+            # relative to the staging directory
+            with working_dir(self.package_stage.path):
+                config = cargo(
+                    *args,
+                    output=str
+                )
+
+            # Set-up config
+            config_dir_path = join_path(self.package_stage.path, '.cargo')
+            mkdirp(config_dir_path)
+
+            with open(join_path(config_dir_path, 'config'), 'w') as f:
+                f.write(config)
+        except BaseException:
+            # Remove the spack-cargo-vendor dir on error because it's used to
+            # determine if dependencies have already been staged
+            os.rmdir(self.vendor_stage)
+            raise
+
+        # Archive the dependencies and configuration files
+        tar = which('tar', required=True)
+
+        with working_dir(self.package_stage.path):
+            # Cache the vendored dependencies and the cargo configuration
+            src_files = [_cargo_vendor_subdir, '.cargo']
+            if not locked:
+                # And the Cargo.lock for unlocked crates
+                src_files.append(
+                    join_path('spack-src', self.manifest_lock_path_rel))
+
+            tar('-czf', self.vendor_tar, *src_files)
+
+    def archive(self, destination):
+        """Just moves the spack-cargo-vendor.tar.gz to the destination."""
+        web_util.push_to_url(
+            self.vendor_tar,
+            destination,
+            keep_original=True)
+
+
 def stable_target(fetcher):
     """Returns whether the fetcher target is expected to have a stable
        checksum. This is only true if the target is a preexisting archive
@@ -1230,8 +1379,10 @@ def check_pkg_attributes(pkg):
     conflicts = set([s.url_attr for s in all_strategies
                      if hasattr(pkg, s.url_attr)])
 
-    # URL isn't a VCS fetch method. We can use it with a VCS method.
+    # URL and crates_io aren't VCS fetch methods. We can use them with VCS
+    # methods.
     conflicts -= set(['url'])
+    conflicts -= set(['crates_io'])
 
     if len(conflicts) > 1:
         raise FetcherConflict(
@@ -1265,8 +1416,14 @@ def _check_version_attributes(fetcher, pkg, version):
 def _extrapolate(pkg, version):
     """Create a fetcher from an extrapolated URL for this version."""
     try:
-        return URLFetchStrategy(pkg.url_for_version(version),
-                                fetch_options=pkg.fetch_options)
+        if hasattr(pkg, 'crates_io'):
+            return CratesIOURLFetchStrategy(
+                crate=pkg.crates_io,
+                version=version
+            )
+        else:
+            return URLFetchStrategy(pkg.url_for_version(version),
+                                    fetch_options=pkg.fetch_options)
     except spack.package.NoURLError:
         msg = ("Can't extrapolate a URL for version %s "
                "because package %s defines no URLs")
@@ -1282,6 +1439,8 @@ def _from_merged_attrs(fetcher, pkg, version):
         mirrors = [spack.url.substitute_version(u, version)
                    for u in getattr(pkg, 'urls', [])[1:]]
         attrs = {fetcher.url_attr: url, 'mirrors': mirrors}
+    elif fetcher.url_attr == 'crates_io':
+        attrs = {'crate': pkg.crates_io, 'version': version}
     else:
         url = getattr(pkg, fetcher.url_attr)
         attrs = {fetcher.url_attr: url}
@@ -1323,7 +1482,11 @@ def for_package_version(pkg, version):
     # if a version's optional attributes imply a particular fetch
     # strategy, and we have the `url_attr`, then use that strategy.
     for fetcher in all_strategies:
-        if hasattr(pkg, fetcher.url_attr) or fetcher.url_attr == 'url':
+        # crates.io packages have the same optional_attrs as 'url', and so
+        # do not treat those attributes as a hint at the 'url' fetcher for
+        # crates_io packages
+        if hasattr(pkg, fetcher.url_attr) or \
+                (fetcher.url_attr == 'url' and not hasattr(pkg, 'crates_io')):
             optionals = fetcher.optional_attrs
             if optionals and any(a in args for a in optionals):
                 _check_version_attributes(fetcher, pkg, version)

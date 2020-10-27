@@ -34,3 +34,8 @@ packages:
     externals:
     - spec: ruby@2.5.1
       prefix: /usr
+  rust:
+    buildable: False
+    externals:
+    - spec: rust@1.44.1
+      prefix: /usr/share/rust/.rustup/toolchains/1.44.1-x86_64-unknown-linux-gnu

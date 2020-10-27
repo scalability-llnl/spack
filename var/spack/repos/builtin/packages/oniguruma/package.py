@@ -12,6 +12,7 @@ class Oniguruma(AutotoolsPackage):
     homepage = "https://github.com/kkos/oniguruma"
     url      = "https://github.com/kkos/oniguruma/releases/download/v6.9.4/onig-6.9.4.tar.gz"
 
+    version('6.9.5', sha256='2f25cc3165e6da4b12dcabdb6b77c48f436d835e127ec2e3cad7abae9ea8e9a6')
     version('6.9.4', sha256='4669d22ff7e0992a7e93e116161cac9c0949cd8960d1c562982026726f0e6d53')
     version('6.1.3', sha256='480c850cd7c7f2fcaad0942b4a488e2af01fbb8e65375d34908f558b432725cf')
 

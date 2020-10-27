@@ -686,6 +686,14 @@ def parse_name_offset(path, v=None):
         # e.g. https://pypi.io/packages/source/b/backports.ssl_match_hostname/backports.ssl_match_hostname-3.5.0.1.tar.gz
         (r'pypi\.(?:python\.org|io)/packages/source/[A-Za-z\d]/([^/]+)', path),
 
+        # Crates.IO: crates.io/crates/name
+        # e.g. https://crates.io/crates/ripgrep
+        (r'crates\.io/crates/([^/]+)', path),
+
+        # lib.rs: lib.rs/crates/name
+        # e.g. https://lib.rs/crates/ripgrep
+        (r'lib\.rs/crates/([^/]+)', path),
+
         # 2nd Pass: Query strings
 
         # ?filename=name-ver.ver

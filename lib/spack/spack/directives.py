@@ -641,6 +641,31 @@ def resource(**kwargs):
     return _execute_resource
 
 
+@directive('cargo_manifest')
+def cargo_manifest(**kwargs):
+    """
+    Specify that a package has a Cargo.toml file that it should vendor
+    dependencies from.
+
+    List of recognized keywords:
+
+    * 'path' : (optional) path to the `Cargo.toml` file relative to the
+      package source stage directory. There must be a Cargo.lock file in the
+      same directory. Default: 'Cargo.toml'
+    """
+    def _execute_cargo_manifest(pkg):
+        path = kwargs.get('path', 'Cargo.toml')
+        if os.path.isabs(path):
+            message = ('The path keyword of a cargo_manifest directive '
+                       'can\'t be an absolute path.\n')
+            message += "\tpath : '{path}\n'".format(path=path)
+            raise RuntimeError(message)
+
+        pkg.cargo_manifest = path
+
+    return _execute_cargo_manifest
+
+
 class DirectiveError(spack.error.SpackError):
     """This is raised when something is wrong with a package directive."""
 

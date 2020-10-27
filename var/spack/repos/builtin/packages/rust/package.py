@@ -2,6 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+from spack import *
+from spack.util.rust import rust_archs, RustQuery
+
+import inspect
 from six import iteritems
 
 
@@ -20,7 +25,7 @@ class Rust(Package):
 
     maintainers = ["AndrewGaspar"]
 
-    phases = ['configure', 'build', 'install']
+    phases = ['configure', 'install']
 
     extendable = True
 
@@ -363,26 +368,6 @@ class Rust(Package):
         }
     }
 
-    # This dictionary maps Rust target architectures to Spack constraints that
-    # match that target.
-    rust_archs = {
-        'x86_64-unknown-linux-gnu': [
-            {'platform': 'linux', 'target': 'x86_64:'},
-            {'platform': 'cray', 'target': 'x86_64:'}
-        ],
-        'powerpc64le-unknown-linux-gnu': [
-            {'platform': 'linux', 'target': 'ppc64le:'},
-            {'platform': 'cray', 'target': 'ppc64le:'}
-        ],
-        'aarch64-unknown-linux-gnu': [
-            {'platform': 'linux', 'target': 'aarch64:'},
-            {'platform': 'cray', 'target': 'aarch64:'}
-        ],
-        'x86_64-apple-darwin': [
-            {'platform': 'darwin', 'target': 'x86_64:'}
-        ]
-    }
-
     # Specifies the strings which represent a pre-release Rust version. These
     # always bootstrap with the latest beta release.
     #
@@ -513,7 +498,7 @@ class Rust(Package):
         ar = which('ar', required=True)
 
         extra_targets = []
-        if self.spec.variants['extra_targets'].value != 'none':
+        if self.spec.variants['extra_targets'].value != ('none',):
             extra_targets = list(self.spec.variants['extra_targets'].value)
 
         targets = [self.get_rust_target()] + extra_targets
@@ -582,13 +567,35 @@ sysconfdir = "etc"
             )
             )
 
-    def build(self, spec, prefix):
-        python('./x.py', 'build', extra_env={
+    def install(self, spec, prefix):
+        jobs = inspect.getmodule(self).make_jobs
+
+        rustflags = []
+
+        target_cpu = \
+            RustQuery(
+                Executable(
+                    join_path(
+                        self.stage.source_path,
+                        'spack_bootstrap/bin/rustc'
+                    )
+                )
+            ).target_cpu(self.spec)
+
+        if target_cpu:
+            rustflags.extend(["-C", "target-cpu={0}".format(target_cpu)])
+
+        python('./x.py', 'install', '-j', str(jobs), extra_env={
             # vendored libgit2 wasn't correctly building (couldn't find the
             # vendored libssh2), so let's just have spack build it
             'LIBSSH2_SYS_USE_PKG_CONFIG': '1',
-            'LIBGIT2_SYS_USE_PKG_CONFIG': '1'
+            'LIBGIT2_SYS_USE_PKG_CONFIG': '1',
+            'RUSTFLAGS': " ".join(rustflags)
         })
 
-    def install(self, spec, prefix):
-        python('./x.py', 'install')
+    def setup_dependent_package(self, module, dependent_spec):
+        """Called before cargo modules' build() methods."""
+
+        module.cargo = Executable(join_path(self.prefix.bin, 'cargo'))
+        module.cargo.add_default_arg('--locked')
+        module.cargo.add_default_arg('--offline')

@@ -18,6 +18,8 @@ on:
       - '!var/spack/repos/builtin/packages/py-setuptools/**'
       - '!var/spack/repos/builtin/packages/openjpeg/**'
       - '!var/spack/repos/builtin/packages/r-rcpp/**'
+      - '!var/spack/repos/builtin/packages/rust/**'
+      - '!var/spack/repos/builtin/packages/ripgrep/**'
       - '!var/spack/repos/builtin/packages/ruby-rake/**'
       # Don't run if we only modified documentation
       - 'lib/spack/docs/**'
@@ -34,6 +36,7 @@ jobs:
         - py-setuptools  # PythonPackage
         - openjpeg  # CMakePackage
         - r-rcpp  # RPackage
+        - ripgrep # CargoPackage
         - ruby-rake  # RubyPackage
     steps:
     - uses: actions/checkout@v2
@@ -53,6 +56,10 @@ jobs:
         R --version
         perl --version
         ruby --version
+    - name: Install Rust 1.44.1
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: 1.44.1
     - name: Copy Configuration
       run: |
         ccache -M 300M && ccache -z

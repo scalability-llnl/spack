@@ -239,8 +239,11 @@ class MirrorCollection(Mapping):
 def _determine_extension(fetcher):
     if isinstance(fetcher, fs.URLFetchStrategy):
         if fetcher.expand_archive:
-            # If we fetch with a URLFetchStrategy, use URL's archive type
-            ext = url.determine_url_file_extension(fetcher.url)
+            if fetcher.extension is not None:
+                ext = fetcher.extension
+            else:
+                # If we fetch with a URLFetchStrategy, use URL's archive type
+                ext = url.determine_url_file_extension(fetcher.url)
 
             if ext:
                 # Remove any leading dots

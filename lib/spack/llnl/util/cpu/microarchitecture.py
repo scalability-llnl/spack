@@ -191,23 +191,12 @@ class Microarchitecture(object):
 
         return dict(list_of_items)
 
-    def optimization_flags(self, compiler, version):
-        """Returns a string containing the optimization flags that needs
-        to be used to produce code optimized for this micro-architecture.
-
-        If there is no information on the compiler passed as argument the
-        function returns an empty string. If it is known that the compiler
-        version we want to use does not support this architecture the function
-        raises an exception.
-
-        Args:
-            compiler (str): name of the compiler to be used
-            version (str): version of the compiler to be used
-        """
-        # If we don't have information on compiler at all
-        # return an empty string
+    def compiler_entry(self, compiler, version):
+        """Returns the best matching compiler info for the provided compiler
+        and version. Returns `None` if there is no matching compiler"""
+        # If we don't have information on compiler at all return None
         if compiler not in self.family.compilers:
-            return ''
+            return None
 
         # If we have information but it stops before this
         # microarchitecture, fall back to the best known target
@@ -254,24 +243,55 @@ class Microarchitecture(object):
 
         for compiler_entry in compiler_info:
             if satisfies_constraint(compiler_entry, version):
-                flags_fmt = compiler_entry['flags']
                 # If there's no field name, use the name of the
                 # micro-architecture
                 compiler_entry.setdefault('name', self.name)
+                return compiler_entry
 
-                # Check if we need to emit a warning
-                warning_message = compiler_entry.get('warnings', None)
-                if warning_message:
-                    warnings.warn(warning_message)
+        return None
 
-                flags = flags_fmt.format(**compiler_entry)
-                return flags
+    def optimization_flags(self, compiler, version):
+        """Returns a string containing the optimization flags that needs
+        to be used to produce code optimized for this micro-architecture.
 
-        msg = ("cannot produce optimized binary for micro-architecture '{0}'"
-               " with {1}@{2} [supported compiler versions are {3}]")
-        msg = msg.format(self.name, compiler, version,
-                         ', '.join([x['versions'] for x in compiler_info]))
-        raise UnsupportedMicroarchitecture(msg)
+        If there is no information on the compiler passed as argument the
+        function returns an empty string. If it is known that the compiler
+        version we want to use does not support this architecture the function
+        raises an exception.
+
+        Args:
+            compiler (str): name of the compiler to be used
+            version (str): version of the compiler to be used
+        """
+        # If we don't have information on compiler return an empty string
+        if compiler not in self.family.compilers:
+            return ''
+
+        # Look up the compiler entry
+        compiler_entry = self.compiler_entry(compiler, version)
+
+        # If we have information on the compiler, but it isn't compatible with
+        # the selected version, emit an error
+        if not compiler_entry:
+            compiler_info = self.compilers[compiler]
+            if not isinstance(compiler_info, Sequence):
+                compiler_info = [compiler_info]
+
+            msg = ("cannot produce optimized binary for micro-architecture "
+                   "'{0}' with {1}@{2} [supported compiler versions are {3}]")
+            msg = msg.format(self.name, compiler, version,
+                             ', '.join([x['versions'] for x in compiler_info]))
+            raise UnsupportedMicroarchitecture(msg)
+
+        flags_fmt = compiler_entry['flags']
+
+        # Check if we need to emit a warning
+        warning_message = compiler_entry.get('warnings', None)
+        if warning_message:
+            warnings.warn(warning_message)
+
+        flags = flags_fmt.format(**compiler_entry)
+        return flags
 
 
 def generic_microarchitecture(name):

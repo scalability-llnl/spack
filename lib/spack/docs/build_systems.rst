@@ -52,6 +52,7 @@ on these ideas for each distinct build system that Spack supports:
    build_systems/pythonpackage
    build_systems/rpackage
    build_systems/rubypackage
+   build_systems/cargopackage
 
 .. toctree::
    :maxdepth: 1

@@ -4,20 +4,25 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
-import os
 
 
-class RustBindgen(Package):
-    """The rust programming language toolchain"""
-    homepage = "http://www.rust-lang.org"
-    url = "https://github.com/servo/rust-bindgen/archive/v0.20.5.tar.gz"
+class RustBindgen(CargoPackage):
+    """bindgen automatically generates Rust FFI bindings to C (and some C++)
+    libraries."""
 
-    version('0.20.5', sha256='4f5236e7979d262c43267afba365612b1008b91b8f81d1efc6a8a2199d52bb37')
+    homepage = "https://rust-lang.github.io/rust-bindgen/"
+    crates_io = "bindgen"
+    git = "https://github.com/rust-lang/rust-bindgen.git"
 
-    extends("rust")
-    depends_on("llvm")
+    maintainers = ['AndrewGaspar']
 
-    def install(self, spec, prefix):
-        env = dict(os.environ)
-        env['LIBCLANG_PATH'] = os.path.join(spec['llvm'].prefix, 'lib')
-        cargo('install', '--root', prefix, env=env)
+    version('master', branch='master')
+    version('0.55.1', sha256='75b13ce559e6433d360c26305643803cb52cfbabbc2b9c47ce04a58493dfb443')
+
+    depends_on('llvm@6.0:', type=('build', 'run'))
+
+    # rust-bindgen has a dependency on libclang - add path
+    def setup_build_environment(self, env):
+        env.append_flags(
+            'LLVM_CONFIG_PATH',
+            join_path(self.spec['llvm'].prefix.bin, 'llvm-config'))

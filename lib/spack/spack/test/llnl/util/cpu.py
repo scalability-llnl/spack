@@ -220,7 +220,7 @@ def test_target_json_schema():
     ('icelake', 'gcc', '8.1.0',
      '-march=icelake-client -mtune=icelake-client'),
     ('zen2', 'clang', '9.0.0', '-march=znver2 -mtune=znver2'),
-    ('power9le', 'clang', '8.0.0', '-mcpu=power9 -mtune=power9'),
+    ('power9le', 'clang', '8.0.0', '-mcpu=pwr9 -mtune=pwr9'),
     ('thunderx2', 'clang', '6.0.0', '-mcpu=thunderx2t99'),
     # Test Intel on Intel CPUs
     ('sandybridge', 'intel', '17.0.2', '-march=corei7-avx -mtune=corei7-avx'),

@@ -6,16 +6,41 @@
 from spack import *
 
 
-class Exa(Package):
-    """exa is a replacement for ls written in Rust."""
+class Exa(CargoPackage):
+    """A modern replacement for ls"""
 
-    homepage = 'https://the.exa.website'
-    url = 'https://github.com/ogham/exa/archive/v0.9.0.tar.gz'
+    homepage  = "https://the.exa.website/"
+    crates_io = "exa"
+    git       = "https://github.com/ogham/exa.git"
 
-    version('0.9.0', sha256='96e743ffac0512a278de9ca3277183536ee8b691a46ff200ec27e28108fef783')
+    maintainers = ['AndrewGaspar']
 
-    depends_on('rust')
+    version('master', branch='master')
+    version('0.9.0', sha256='0463ccb5038bd6a0ee042e0a8ff5cd9792906e19a29f0ce631217c7a5f1720e9')
 
-    def install(self, spec, prefix):
-        cargo = which('cargo')
-        cargo('install', '--root', prefix, '--path', '.')
+    # exa doesn't build with prefer_dynamic at present, so switch default to
+    # False
+    variant(
+        'prefer_dynamic',
+        default=False,
+        description='Link Rust standard library dynamically'
+    )
+
+    variant(
+        'git',
+        default=True,
+        description='Enable git features in exa'
+    )
+
+    depends_on('pkgconfig', type='build')
+    depends_on('libgit2', when='+git')
+
+    def cargo_features(self):
+        if '+git' in self.spec:
+            return ['git']
+        else:
+            return []
+
+    def setup_build_environment(self, env):
+        if '+git' in self.spec:
+            env.append_flags('LIBGIT2_SYS_USE_PKG_CONFIG', '1')
