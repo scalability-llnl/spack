@@ -100,6 +100,63 @@ class Mirror(object):
         else:
             return Mirror(d['fetch'], d['push'], name)
 
+    @staticmethod
+    def from_args(args):
+        result = None
+
+        if ((args.directory and args.mirror_name) or
+                (args.mirror_name and args.mirror_url) or
+                (args.mirror_url and args.directory)):
+            raise ValueError('no more than one of "directory",'
+                             ' "mirror_url", and "mirror_name" allowed')
+
+        if args.directory:
+            location = args.directory
+
+            # User meant to provide a path to a local directory.
+            # Ensure that they did not accidentally pass a URL.
+            scheme = url_util.parse(location, scheme='<missing>').scheme
+            if scheme != '<missing>':
+                raise ValueError(
+                    '"directory" must be a local path (got a URL)')
+
+            # User meant to provide a path to a local directory.
+            # Ensure that the mirror lookup does not mistake it for a named
+            # mirror.
+            location = 'file://' + location
+            result = spack.mirror.MirrorCollection().lookup(location)
+
+        elif args.mirror_name:
+            location = args.mirror_name
+
+            # User meant to provide the name of a preconfigured mirror.
+            # Ensure that the mirror lookup actually returns a named mirror.
+            result = spack.mirror.MirrorCollection().lookup(location)
+            if result.name == "<unnamed>":
+                raise ValueError(
+                    'no configured mirror named "{name}"'.format(
+                        name=location))
+
+        elif args.mirror_url:
+            location = args.mirror_url
+
+            # User meant to provide a URL for an anonymous mirror.
+            # Ensure that they actually provided a URL.
+            scheme = url_util.parse(location, scheme='<missing>').scheme
+            if scheme == '<missing>':
+                raise ValueError(
+                    '"{url}" is not a valid URL'.format(url=location))
+
+            result = spack.mirror.MirrorCollection().lookup(location)
+
+        else:
+            # User did not provide any mirror specifications.
+            # Use source_cache as the default mirror.
+            result = spack.mirror.Mirror(
+                spack.config.get('config:source_cache'))
+
+        return result
+
     def display(self, max_len=0):
         if self._push_url is None:
             _display_mirror_entry(max_len, self._name, self._fetch_url)
@@ -401,12 +458,12 @@ def get_matching_versions(specs, num_versions=1):
     return matching
 
 
-def create(path, specs, skip_unstable_versions=False):
-    """Create a directory to be used as a spack mirror, and fill it with
-    package archives.
+def create(url, specs, skip_unstable_versions=False):
+    """Create a directory or remote location to be used as a spack mirror, and
+    fill it with package archives.
 
     Arguments:
-        path: Path to create a mirror directory hierarchy in.
+        url: Path to create a mirror hierarchy in.
         specs: Any package versions matching these specs will be added \
             to the mirror.
         skip_unstable_versions: if true, this skips adding resources when
@@ -424,27 +481,25 @@ def create(path, specs, skip_unstable_versions=False):
     it creates specs for those versions.  If the version satisfies any spec
     in the specs list, it is downloaded and added to the mirror.
     """
-    parsed = url_util.parse(path)
+    parsed = url_util.parse(url)
     mirror_root = url_util.local_file_path(parsed)
-    if not mirror_root:
-        raise spack.error.SpackError(
-            'MirrorCaches only work with file:// URLs')
 
     # automatically spec-ify anything in the specs array.
     specs = [
         s if isinstance(s, spack.spec.Spec) else spack.spec.Spec(s)
         for s in specs]
 
-    # Get the absolute path of the root before we start jumping around.
-    if not os.path.isdir(mirror_root):
-        try:
-            mkdirp(mirror_root)
-        except OSError as e:
-            raise MirrorError(
-                "Cannot create directory '%s':" % mirror_root, str(e))
+    if mirror_root:
+        # Get the absolute path of the root before we start jumping around.
+        if not os.path.isdir(mirror_root):
+            try:
+                mkdirp(mirror_root)
+            except OSError as e:
+                raise MirrorError(
+                    "Cannot create directory '%s':" % mirror_root, str(e))
 
     mirror_cache = spack.caches.MirrorCache(
-        mirror_root, skip_unstable_versions=skip_unstable_versions)
+        parsed, skip_unstable_versions=skip_unstable_versions)
     mirror_stats = MirrorStats()
 
     # Iterate through packages and download all safe tarballs for each

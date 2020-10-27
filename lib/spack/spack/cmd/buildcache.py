@@ -424,47 +424,14 @@ def createtarball(args):
     # restrict matching to current environment if one is active
     env = ev.get_env(args, 'buildcache create')
 
-    output_location = None
-    if args.directory:
-        output_location = args.directory
+    mirror = spack.mirror.Mirror.from_args(args)
 
-        # User meant to provide a path to a local directory.
-        # Ensure that they did not accidentally pass a URL.
-        scheme = url_util.parse(output_location, scheme='<missing>').scheme
-        if scheme != '<missing>':
-            raise ValueError(
-                '"--directory" expected a local path; got a URL, instead')
-
-        # User meant to provide a path to a local directory.
-        # Ensure that the mirror lookup does not mistake it for a named mirror.
-        output_location = 'file://' + output_location
-
-    elif args.mirror_name:
-        output_location = args.mirror_name
-
-        # User meant to provide the name of a preconfigured mirror.
-        # Ensure that the mirror lookup actually returns a named mirror.
-        result = spack.mirror.MirrorCollection().lookup(output_location)
-        if result.name == "<unnamed>":
-            raise ValueError(
-                'no configured mirror named "{name}"'.format(
-                    name=output_location))
-
-    elif args.mirror_url:
-        output_location = args.mirror_url
-
-        # User meant to provide a URL for an anonymous mirror.
-        # Ensure that they actually provided a URL.
-        scheme = url_util.parse(output_location, scheme='<missing>').scheme
-        if scheme == '<missing>':
-            raise ValueError(
-                '"{url}" is not a valid URL'.format(url=output_location))
     add_spec = ('package' in args.things_to_install)
     add_deps = ('dependencies' in args.things_to_install)
 
     _createtarball(env, spec_yaml=args.spec_yaml, packages=args.specs,
                    add_spec=add_spec, add_deps=add_deps,
-                   output_location=output_location, signing_key=args.key,
+                   output_location=mirror.push_url, signing_key=args.key,
                    force=args.force, make_relative=args.rel,
                    unsigned=args.unsigned, allow_root=args.allow_root,
                    rebuild_index=args.rebuild_index)

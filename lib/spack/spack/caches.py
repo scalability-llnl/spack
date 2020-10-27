@@ -15,6 +15,7 @@ import spack.config
 import spack.fetch_strategy
 import spack.util.file_cache
 import spack.util.path
+import spack.util.url
 
 
 def _misc_cache():
@@ -51,7 +52,7 @@ def _fetch_cache():
 
 class MirrorCache(object):
     def __init__(self, root, skip_unstable_versions):
-        self.root = os.path.abspath(root)
+        self.root = spack.util.url.parse(root)
         self.skip_unstable_versions = skip_unstable_versions
 
     def store(self, fetcher, relative_dest):
@@ -59,16 +60,23 @@ class MirrorCache(object):
 
         # Note this will archive package sources even if they would not
         # normally be cached (e.g. the current tip of an hg/git branch)
-        dst = os.path.join(self.root, relative_dest)
-        mkdirp(os.path.dirname(dst))
+        dst = spack.util.url.join(self.root, relative_dest)
+        local_dst = spack.util.url.local_file_path(dst)
+        if local_dst:
+            mkdirp(os.path.dirname(local_dst))
         fetcher.archive(dst)
 
     def symlink(self, mirror_ref):
         """Symlink a human readible path in our mirror to the actual
         storage location."""
 
-        cosmetic_path = os.path.join(self.root, mirror_ref.cosmetic_path)
-        storage_path = os.path.join(self.root, mirror_ref.storage_path)
+        root = spack.util.url.local_file_path(self.root)
+        if not root:
+            # Don't bother symlinking with non-local-file-system mirrors
+            return
+
+        cosmetic_path = os.path.join(root, mirror_ref.cosmetic_path)
+        storage_path = os.path.join(root, mirror_ref.storage_path)
         relative_dst = os.path.relpath(
             storage_path,
             start=os.path.dirname(cosmetic_path))

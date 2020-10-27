@@ -10,6 +10,8 @@ import pytest
 import spack.repo
 import spack.mirror
 import spack.util.executable
+import spack.util.url
+import spack.util.web
 from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which
@@ -97,13 +99,68 @@ def check_mirror():
                         # tarball
                         assert not dcmp.right_only
                         # and that all original files are present.
-                        assert all(l in exclude for l in dcmp.left_only)
+                        assert all(
+                            original_file in exclude
+                            for original_file in dcmp.left_only)
 
 
 def test_url_mirror(mock_archive):
     set_up_package('trivial-install-test-package', mock_archive, 'url')
     check_mirror()
     repos.clear()
+
+
+def test_bad_mirror_args():
+    mirror_from_args = (
+        lambda directory=None, mirror_name=None, mirror_url=None:
+            spack.mirror.Mirror.from_args(type('', (), {
+                'directory': directory,
+                'mirror_name': mirror_name,
+                'mirror_url': mirror_url
+            })))
+
+    # Must provide no more than one of either directory, mirror_name, or
+    # mirror_url arguments
+    with pytest.raises(ValueError):
+        mirror_from_args(
+            directory='some-directory',
+            mirror_name='some-mirror-name',
+            mirror_url='some-mirror-url')
+
+    with pytest.raises(ValueError):
+        mirror_from_args(
+            directory='some-directory',
+            mirror_name='some-mirror-name')
+
+    with pytest.raises(ValueError):
+        mirror_from_args(
+            directory='some-directory',
+            mirror_url='some-mirror-url')
+
+    with pytest.raises(ValueError):
+        mirror_from_args(
+            mirror_name='some-mirror-name',
+            mirror_url='some-mirror-url')
+
+    # No arguments: return default mirror, which should be source_cache
+    cache = spack.config.get('config:source_cache')
+    default_mirror = mirror_from_args()
+
+    assert default_mirror.fetch_url == cache
+    assert default_mirror.push_url == cache
+
+    # BAD: callsite passes something other than a directory via "directory"
+    with pytest.raises(ValueError):
+        mirror_from_args(directory='https://spack.io/example')
+
+    # BAD: callsite passes a mirror_name that doesn't map to a pre-configured
+    #      mirror.
+    with pytest.raises(ValueError):
+        mirror_from_args(mirror_name='-[@&%-not-a-valid-"-mirror-name-%&@]-')
+
+    # BAD: callsite passes a mirror_url that is not a URL
+    with pytest.raises(ValueError):
+        mirror_from_args(mirror_url='/user/forgot/to/prepend/file://')
 
 
 @pytest.mark.skipif(
@@ -200,10 +257,14 @@ class MockFetcher(object):
     """Mock fetcher object which implements the necessary functionality for
        testing MirrorCache
     """
-    @staticmethod
-    def archive(dst):
-        with open(dst, 'w'):
+    def __init__(self, tmpdir):
+        self.tmpdir = tmpdir
+
+    def archive(self, dst):
+        filename = os.path.join(self.tmpdir, 'empty-file')
+        with open(filename, 'w'):
             pass
+        spack.util.web.push_to_url(filename, dst, keep_original=False)
 
 
 @pytest.mark.regression('14067')
@@ -216,11 +277,12 @@ def test_mirror_cache_symlinks(tmpdir):
     cache = spack.caches.MirrorCache(str(tmpdir), False)
     reference = spack.mirror.MirrorReference(cosmetic_path, global_path)
 
-    cache.store(MockFetcher(), reference.storage_path)
+    cache.store(MockFetcher(tmpdir), reference.storage_path)
     cache.symlink(reference)
 
+    cache_root = spack.util.url.local_file_path(cache.root)
     link_target = resolve_link_target_relative_to_the_link(
-        os.path.join(cache.root, reference.cosmetic_path))
+        os.path.join(cache_root, reference.cosmetic_path))
     assert os.path.exists(link_target)
     assert (os.path.normpath(link_target) ==
-            os.path.join(cache.root, reference.storage_path))
+            os.path.join(cache_root, reference.storage_path))

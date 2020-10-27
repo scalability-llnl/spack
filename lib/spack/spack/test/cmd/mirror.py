@@ -5,6 +5,7 @@
 
 import pytest
 import os
+import os.path
 
 from spack.main import SpackCommand, SpackCommandError
 import spack.environment as ev
@@ -42,6 +43,38 @@ def test_regression_8083(tmpdir, capfd, mock_packages, mock_fetch, config):
         output = mirror('create', '-d', str(tmpdir), 'externaltool')
     assert 'Skipping' in output
     assert 'as it is an external spec' in output
+
+
+@pytest.mark.regression('17531')
+def test_regression_17531(tmp_scope, tmpdir, capfd, mock_packages, mock_fetch, config):
+    tmp_mirror0 = (
+        'file://' + os.path.abspath(os.path.join(str(tmpdir), 'mirror-0')))
+
+    tmp_mirror1 = (
+        'file://' + os.path.abspath(os.path.join(str(tmpdir), 'mirror-1')))
+
+    with capfd.disabled():
+        output = mirror('create',
+                        '--mirror-url',
+                        tmp_mirror0,
+                        '--skip-unstable-versions',
+                        'git-test',
+                        'trivial-pkg-with-valid-hash')
+
+        assert ('Successfully created mirror in ' + tmp_mirror0) in output
+
+        mirror('add', '--scope', 'command_line', 'named-mirror', tmp_mirror1)
+
+        output = mirror('create',
+                        '--mirror-name',
+                        'named-mirror',
+                        '--skip-unstable-versions',
+                        'git-test',
+                        'trivial-pkg-with-valid-hash')
+
+        assert ('Successfully created mirror in ' + tmp_mirror1) in output
+
+        mirror('remove', '--scope', 'command_line', 'named-mirror')
 
 
 @pytest.mark.regression('12345')

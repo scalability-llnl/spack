@@ -8,6 +8,7 @@ import os
 import six.moves.urllib.parse as urllib_parse
 
 import spack
+import spack.error
 import spack.util.url as url_util
 
 
@@ -21,7 +22,10 @@ def create_s3_session(url):
     # NOTE(opadron): import boto and friends as late as possible.  We don't
     # want to require boto as a dependency unless the user actually wants to
     # access S3 mirrors.
-    from boto3 import Session
+    try:
+        from boto3 import Session
+    except ImportError:
+        raise spack.error.SpackError('Accessing an S3 mirror requires boto3')
 
     session = Session()
 

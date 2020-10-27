@@ -1100,7 +1100,7 @@ _spack_mirror() {
 _spack_mirror_create() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -d --directory -a --all -f --file --exclude-file --exclude-specs --skip-unstable-versions -D --dependencies -n --versions-per-spec"
+        SPACK_COMPREPLY="-h --help -d --directory -m --mirror-name --mirror-url -a --all -f --file --exclude-file --exclude-specs --skip-unstable-versions -D --dependencies -n --versions-per-spec"
     else
         _all_packages
     fi

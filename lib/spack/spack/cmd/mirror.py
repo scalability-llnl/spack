@@ -35,8 +35,23 @@ def setup_parser(subparser):
 
     # Create
     create_parser = sp.add_parser('create', help=mirror_create.__doc__)
-    create_parser.add_argument('-d', '--directory', default=None,
-                               help="directory in which to create mirror")
+
+    group = create_parser.add_mutually_exclusive_group(required=False)
+    group.add_argument(
+        '-d', '--directory',
+        metavar='directory',
+        type=str,
+        help="local directory in which to create mirror")
+    group.add_argument(
+        '-m', '--mirror-name',
+        metavar='mirror-name',
+        type=str,
+        help="name of the configured mirror to be created.")
+    group.add_argument(
+        '--mirror-url',
+        metavar='mirror-url',
+        type=str,
+        help="URL of the mirror to be created.")
 
     create_parser.add_argument(
         '-a', '--all', action='store_true',
@@ -331,15 +346,12 @@ def _determine_specs_to_mirror(args):
 
 
 def mirror_create(args):
-    """Create a directory to be used as a spack mirror, and fill it with
+    """Create/Update a location to be used as a spack mirror, and fill it with
        package archives."""
     mirror_specs = _determine_specs_to_mirror(args)
 
-    mirror = spack.mirror.Mirror(
-        args.directory or spack.config.get('config:source_cache'))
-
+    mirror = spack.mirror.Mirror.from_args(args)
     directory = url_util.format(mirror.push_url)
-
     existed = web_util.url_exists(directory)
 
     # Actually do the work to create the mirror

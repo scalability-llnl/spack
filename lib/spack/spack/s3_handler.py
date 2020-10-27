@@ -44,10 +44,10 @@ def _s3_open(url):
     s3 = s3_util.create_s3_session(parsed)
 
     bucket = parsed.netloc
-    key = parsed.path
-
-    if key.startswith('/'):
-        key = key[1:]
+    key = parsed.path.lstrip('/')
+    if not key:
+        raise ValueError(
+            'Fetch undefined for S3 URL with no key: ' + url_util.format(url))
 
     obj = s3.get_object(Bucket=bucket, Key=key)
 
@@ -65,23 +65,7 @@ class UrllibS3Handler(urllib_request.HTTPSHandler):
         try:
             url, headers, stream = _s3_open(orig_url)
             return urllib_response.addinfourl(stream, headers, url)
-        except ClientError as err:
-            # if no such [KEY], but [KEY]/index.html exists,
-            # return that, instead.
-            if err.response['Error']['Code'] == 'NoSuchKey':
-                try:
-                    _, headers, stream = _s3_open(
-                        url_util.join(orig_url, 'index.html'))
-                    return urllib_response.addinfourl(
-                        stream, headers, orig_url)
-
-                except ClientError as err2:
-                    if err.response['Error']['Code'] == 'NoSuchKey':
-                        # raise original error
-                        raise urllib_error.URLError(err)
-
-                    raise urllib_error.URLError(err2)
-
+        except (ClientError, ValueError) as err:
             raise urllib_error.URLError(err)
 
 
