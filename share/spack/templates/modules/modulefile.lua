@@ -77,6 +77,8 @@ end
 prepend_path("{{ cmd.name }}", "{{ cmd.value }}", "{{ cmd.separator }}")
 {% elif command_name == 'AppendPath' %}
 append_path("{{ cmd.name }}", "{{ cmd.value }}", "{{ cmd.separator }}")
+{% elif command_name == 'AppendFlagsEnv' %}
+append_path("{{ cmd.name }}", "{{ cmd.value }}", "{{ cmd.separator }}")
 {% elif command_name == 'RemovePath' %}
 remove_path("{{ cmd.name }}", "{{ cmd.value }}", "{{ cmd.separator }}")
 {% elif command_name == 'SetEnv' %}
