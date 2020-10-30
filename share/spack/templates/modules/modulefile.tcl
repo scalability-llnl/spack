@@ -63,8 +63,6 @@ unsetenv {{ cmd.name }}
 {# We are using the usual separator #}
 {% if command_name == 'PrependPath' %}
 prepend-path {{ cmd.name }} "{{ cmd.value }}"
-{% elif command_name in ('AppendPath', 'AppendFlagsEnv') %}
-append-path {{ cmd.name }} "{{ cmd.value }}"
 {% elif command_name == 'RemovePath' %}
 remove-path {{ cmd.name }} "{{ cmd.value }}"
 {% elif command_name == 'SetEnv' %}
