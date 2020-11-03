@@ -14,6 +14,8 @@ class Umpire(CMakePackage, CudaPackage):
     homepage = 'https://github.com/LLNL/Umpire'
     git      = 'https://github.com/LLNL/Umpire.git'
 
+    maintainers = ['davidbeckingsale']
+
     version('develop', branch='develop', submodules='True')
     version('main', branch='main', submodules='True')
     version('4.1.2', tag='v4.1.2', submodules='True')
@@ -42,6 +44,7 @@ class Umpire(CMakePackage, CudaPackage):
     version('0.1.3', tag='v0.1.3', submodules='True')
 
     patch('camp_target_umpire_3.0.0.patch', when='@3.0.0')
+    patch('cmake_version_check.patch', when='@4.1.0:main')
 
     variant('fortran', default=False, description='Build C/Fortran API')
     variant('c', default=True, description='Build C API')

@@ -27,6 +27,7 @@ class Launchmon(AutotoolsPackage):
     depends_on("spectrum-mpi", when='arch=ppc64le')
 
     patch('launchmon-char-conv.patch', when='@1.0.2')
+    patch('for_aarch64.patch', when='@:1.0.2 target=aarch64:')
 
     def setup_build_environment(self, env):
         if self.spec.satisfies('@master'):

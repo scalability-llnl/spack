@@ -1,0 +1,11 @@
+--- spack-src/src/services/callpath/Callpath.cpp.bak	2020-10-28 14:38:19.668122844 +0900
++++ spack-src/src/services/callpath/Callpath.cpp	2020-10-28 15:03:12.258061188 +0900
+@@ -63,7 +63,7 @@
+         unw_context_t unw_ctx;
+         unw_cursor_t  unw_cursor;
+ 
+-        unw_getcontext(&unw_ctx);
++        unw_getcontext(unw_ctx);
+ 
+         if (unw_init_local(&unw_cursor, &unw_ctx) < 0) {
+             Log(0).stream() << "callpath: unable to init libunwind cursor" << endl;

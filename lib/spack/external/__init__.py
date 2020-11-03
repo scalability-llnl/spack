@@ -6,6 +6,13 @@
 """This module contains the following external, potentially separately
 licensed, packages that are included in Spack:
 
+archspec
+--------
+
+* Homepage: https://pypi.python.org/pypi/archspec
+* Usage: Labeling, comparison and detection of microarchitectures
+* Version: 0.1.2 (commit 6e1b6502bb0a743d44a5eed7cfbbb84b4b817c43)
+
 argparse
 --------
 

@@ -1,0 +1,31 @@
+diff --git a/lldb/include/lldb/Host/Config.h.cmake b/lldb/include/lldb/Host/Config.h.cmake
+--- a/lldb/include/lldb/Host/Config.h.cmake
++++ b/lldb/include/lldb/Host/Config.h.cmake
+@@ -38,6 +38,8 @@
+ 
+ #cmakedefine01 LLDB_ENABLE_CURSES
+ 
++#cmakedefine01 CURSES_HAVE_NCURSES_CURSES_H
++
+ #cmakedefine01 LLDB_ENABLE_LIBEDIT
+ 
+ #cmakedefine01 LLDB_ENABLE_LIBXML2
+diff --git a/lldb/source/Core/IOHandlerCursesGUI.cpp b/lldb/source/Core/IOHandlerCursesGUI.cpp
+--- a/lldb/source/Core/IOHandlerCursesGUI.cpp
++++ b/lldb/source/Core/IOHandlerCursesGUI.cpp
+@@ -10,9 +10,14 @@
+ #include "lldb/Host/Config.h"
+ 
+ #if LLDB_ENABLE_CURSES
++#if CURSES_HAVE_NCURSES_CURSES_H
++#include <ncurses/curses.h>
++#include <ncurses/panel.h>
++#else
+ #include <curses.h>
+ #include <panel.h>
+ #endif
++#endif
+ 
+ #if defined(__APPLE__)
+ #include <deque>
+

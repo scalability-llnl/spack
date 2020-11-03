@@ -27,6 +27,18 @@ def sbang_install_path():
     return os.path.join(spack.store.layout.root, "bin", "sbang")
 
 
+def sbang_shebang_line():
+    """Full shebang line that should be prepended to files to use sbang.
+
+    The line returned does not have a final newline (caller should add it
+    if needed).
+
+    This should be the only place in Spack that knows about what
+    interpreter we use for ``sbang``.
+    """
+    return '#!/bin/sh %s' % sbang_install_path()
+
+
 def shebang_too_long(path):
     """Detects whether a file has a shebang line that is too long."""
     if not os.path.isfile(path):
@@ -51,7 +63,7 @@ def filter_shebang(path):
             original = original.decode('UTF-8')
 
     # This line will be prepended to file
-    new_sbang_line = '#!/bin/sh %s\n' % sbang_install_path()
+    new_sbang_line = '%s\n' % sbang_shebang_line()
 
     # Skip files that are already using sbang.
     if original.startswith(new_sbang_line):

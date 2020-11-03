@@ -74,7 +74,7 @@ class Vtk(CMakePackage):
 
     # Note: it is recommended to use mesa+llvm, if possible.
     # mesa default is software rendering, llvm makes it faster
-    depends_on('mesa+osmesa', when='+osmesa')
+    depends_on('osmesa', when='+osmesa')
 
     # VTK will need Qt5OpenGL, and qt needs '-opengl' for that
     depends_on('qt+opengl', when='+qt')

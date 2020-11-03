@@ -16,6 +16,9 @@ class Meson(PythonPackage):
 
     maintainers = ['michaelkuhn']
 
+    version('0.56.0', sha256='a9ca7adf66dc69fbb7e583f7c7aef16b9fe56ec2874a3d58747e69a3affdf300')
+    version('0.55.3', sha256='2b276df50c5b13ccdbfb14d3333141e9e7985aca31b60400b3f3e0be2ee6897e')
+    version('0.55.2', sha256='56244896e56c2b619f819d047b6de412ecc5250975ee8717f1e329113d178e06')
     version('0.55.1', sha256='c7ebf2fff5934a974c7edd1aebb5fc9c3e1da5ae3184a29581fde917638eea39')
     version('0.55.0', sha256='9034c943c8cf4d734c0e18e5ba038dd762fcdcc614c45b41703305da8382e90c')
     version('0.54.3', sha256='c25caff342b5368bfe33fab6108f454fcf12e2f2cef70817205872ddef669e8b')
@@ -37,4 +40,11 @@ class Meson(PythonPackage):
     # rpath modification completely to make sure that Spack's rpath changes
     # are not reverted.
     patch('rpath-0.49.patch', when='@0.49:0.53')
-    patch('rpath-0.54.patch', when='@0.54:')
+    patch('rpath-0.54.patch', when='@0.54:0.55')
+    patch('rpath-0.56.patch', when='@0.56')
+
+    executables = ['^meson$']
+
+    @classmethod
+    def determine_version(cls, exe):
+        return Executable(exe)('--version', output=str, error=str).rstrip()

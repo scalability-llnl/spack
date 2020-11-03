@@ -136,7 +136,7 @@ def _make_relative(reference_file, path_root, paths):
         reference_file (str): file from which the reference directory
             is computed
         path_root (str): root of the relative paths
-        paths: paths to be examined
+        paths: (list) paths to be examined
 
     Returns:
         List of relative paths
@@ -790,10 +790,10 @@ def relocate_text(
         files, orig_layout_root, new_layout_root, orig_install_prefix,
         new_install_prefix, orig_spack, new_spack, new_prefixes
 ):
-    """Relocate text file from the original installation prefix to the
-    new prefix.
+    """Relocate text file from the original ``install_tree`` to the new one.
 
-    Relocation also affects the the path in Spack's sbang script.
+    This also handles relocating Spack's sbang scripts to point at the
+    new install tree.
 
     Args:
         files (list): text files to be relocated
@@ -805,19 +805,29 @@ def relocate_text(
         new_spack (str): path to the new Spack
         new_prefixes (dict): dictionary that maps the original prefixes to
             where they should be relocated
+
     """
     # TODO: reduce the number of arguments (8 seems too much)
-    orig_sbang = '#!/bin/bash {0}/bin/sbang'.format(orig_spack)
-    new_sbang = '#!/bin/bash {0}/bin/sbang'.format(new_spack)
 
+    # This is vestigial code for the *old* location of sbang. Previously,
+    # sbang was a bash script, and it lived in the spack prefix. It is
+    # now a POSIX script that lives in the install prefix. Old packages
+    # will have the old sbang location in their shebangs.
+    import spack.hooks.sbang as sbang
+    orig_sbang = '#!/bin/bash {0}/bin/sbang'.format(orig_spack)
+    new_sbang = sbang.sbang_shebang_line()
+
+    # Do relocations on text that refers to the install tree
     for filename in files:
         _replace_prefix_text(filename, orig_install_prefix, new_install_prefix)
         for orig_dep_prefix, new_dep_prefix in new_prefixes.items():
             _replace_prefix_text(filename, orig_dep_prefix, new_dep_prefix)
         _replace_prefix_text(filename, orig_layout_root, new_layout_root)
-        # relocate the sbang location only if the spack directory changed
-        if orig_spack != new_spack:
-            _replace_prefix_text(filename, orig_sbang, new_sbang)
+
+        # Point old packages at the new sbang location. Packages that
+        # already use the new sbang location will already have been
+        # handled by the prior call to _replace_prefix_text
+        _replace_prefix_text(filename, orig_sbang, new_sbang)
 
 
 def relocate_text_bin(

@@ -1,0 +1,116 @@
+diff --git a/src/config/hypre_macros_misc.m4 b/src/config/hypre_macros_misc.m4
+index 2b9b19c92..14319b509 100644
+--- a/src/config/hypre_macros_misc.m4
++++ b/src/config/hypre_macros_misc.m4
+@@ -98,7 +98,7 @@ AC_DEFUN([AC_HYPRE_OPTIMIZATION_FLAGS],
+ 
+ if test "x${hypre_user_chose_cflags}" = "xno"
+ then
+-   case "${CC}" in
++   case `basename "${CC}"` in
+       gcc|mpigcc|mpicc)
+         CFLAGS="-O2"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -138,7 +138,7 @@ fi
+ 
+ if test "x${hypre_user_chose_cxxflags}" = "xno"
+ then
+-   case "${CXX}" in
++   case `basename "${CXX}"` in
+       g++|gCC|mpig++|mpicxx|mpic++|mpiCC)
+         CXXFLAGS="-O2"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -174,7 +174,7 @@ fi
+ 
+ if test "x${hypre_user_chose_fflags}" = "xno"
+ then
+-   case "${FC}" in
++   case `basename "${FC}"` in
+       g77|gfortran|mpigfortran|mpif77)
+         FFLAGS="-O2"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -218,7 +218,7 @@ AC_DEFUN([AC_HYPRE_DEBUG_FLAGS],
+ 
+ if test "x${hypre_user_chose_cflags}" = "xno"
+ then
+-   case "${CC}" in
++   case `basename "${CC}"` in
+       gcc|mpigcc|mpicc)
+         CFLAGS="-g -Wall"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -258,7 +258,7 @@ fi
+ 
+ if test "x${hypre_user_chose_cxxflags}" = "xno"
+ then
+-   case "${CXX}" in
++   case `basename "${CXX}"` in
+       g++|gCC|mpig++|mpicxx|mpic++|mpiCC)
+         CXXFLAGS="-g -Wall"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -294,7 +294,7 @@ fi
+ 
+ if test "x${hypre_user_chose_fflags}" = "xno"
+ then
+-   case "${FC}" in
++   case `basename "${FC}"` in
+       g77|gfortran|mpigfortran|mpif77)
+         FFLAGS="-g -Wall"
+         if test "$hypre_using_openmp" = "yes" ; then
+diff --git a/src/configure b/src/configure
+index dd7555b10..696b41132 100755
+--- a/src/configure
++++ b/src/configure
+@@ -7765,7 +7765,7 @@ then
+ 
+ if test "x${hypre_user_chose_cflags}" = "xno"
+ then
+-   case "${CC}" in
++   case `basename "${CC}"` in
+       gcc|mpigcc|mpicc)
+         CFLAGS="-g -Wall"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -7805,7 +7805,7 @@ fi
+ 
+ if test "x${hypre_user_chose_cxxflags}" = "xno"
+ then
+-   case "${CXX}" in
++   case `basename "${CXX}"` in
+       g++|gCC|mpig++|mpicxx|mpic++|mpiCC)
+         CXXFLAGS="-g -Wall"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -7841,7 +7841,7 @@ fi
+ 
+ if test "x${hypre_user_chose_fflags}" = "xno"
+ then
+-   case "${FC}" in
++   case `basename "${FC}"` in
+       g77|gfortran|mpigfortran|mpif77)
+         FFLAGS="-g -Wall"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -7881,7 +7881,7 @@ else
+ 
+ if test "x${hypre_user_chose_cflags}" = "xno"
+ then
+-   case "${CC}" in
++   case `basename "${CC}"` in
+       gcc|mpigcc|mpicc)
+         CFLAGS="-O2"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -7921,7 +7921,7 @@ fi
+ 
+ if test "x${hypre_user_chose_cxxflags}" = "xno"
+ then
+-   case "${CXX}" in
++   case `basename "${CXX}"` in
+       g++|gCC|mpig++|mpicxx|mpic++|mpiCC)
+         CXXFLAGS="-O2"
+         if test "$hypre_using_openmp" = "yes" ; then
+@@ -7957,7 +7957,7 @@ fi
+ 
+ if test "x${hypre_user_chose_fflags}" = "xno"
+ then
+-   case "${FC}" in
++   case `basename "${FC}"` in
+       g77|gfortran|mpigfortran|mpif77)
+         FFLAGS="-O2"
+         if test "$hypre_using_openmp" = "yes" ; then

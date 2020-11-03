@@ -60,9 +60,9 @@ import functools
 import inspect
 import warnings
 
+import archspec.cpu
 import six
 
-import llnl.util.cpu as cpu
 import llnl.util.tty as tty
 from llnl.util.lang import memoized, list_modules, key_ordering
 
@@ -109,9 +109,9 @@ class Target(object):
                 current target. This is typically used on machines
                 like Cray (e.g. craype-compiler)
         """
-        if not isinstance(name, cpu.Microarchitecture):
-            name = cpu.targets.get(
-                name, cpu.generic_microarchitecture(name)
+        if not isinstance(name, archspec.cpu.Microarchitecture):
+            name = archspec.cpu.TARGETS.get(
+                name, archspec.cpu.generic_microarchitecture(name)
             )
         self.microarchitecture = name
         self.module_name = module_name
@@ -207,7 +207,9 @@ class Target(object):
         # has an unexpected suffix. If so, treat it as a compiler with a
         # custom spec.
         compiler_version = compiler.version
-        version_number, suffix = cpu.version_components(compiler.version)
+        version_number, suffix = archspec.cpu.version_components(
+            compiler.version
+        )
         if not version_number or suffix not in ('', 'apple'):
             # Try to deduce the underlying version of the compiler, regardless
             # of its name in compilers.yaml. Depending on where this function
@@ -555,7 +557,7 @@ def sys_type():
 def compatible_sys_types():
     """Returns a list of all the systypes compatible with the current host."""
     compatible_archs = []
-    current_host = cpu.host()
+    current_host = archspec.cpu.host()
     compatible_targets = [current_host] + current_host.ancestors
     for target in compatible_targets:
         arch = Arch(platform(), 'default_os', target)

@@ -15,6 +15,7 @@ class Mercury(CMakePackage):
     maintainers = ['soumagne']
 
     version('master', branch='master', submodules=True)
+    version('2.0.0', sha256='9e80923712e25df56014309df70660e828dbeabbe5fcc82ee024bcc86e7eb6b7')
     version('1.0.1', sha256='02febd56c401ef7afa250caf28d012b37dee842bfde7ee16fcd2f741b9cf25b3')
     version('1.0.0', sha256='fb0e44d13f4652f53e21040435f91d452bc2b629b6e98dcf5292cd0bece899d4')
     version('0.9.0', sha256='40868e141cac035213fe79400f8926823fb1f5a0651fd7027cbe162b063843ef')
@@ -31,16 +32,13 @@ class Mercury(CMakePackage):
             description='Use preprocessor headers from boost dependency')
     variant('shared',   default=True,
             description='Build with shared libraries')
-    variant('selfforward', default=True,
-            description='Mercury will short-circuit operations' +
-                        ' by forwarding to itself when possible')
     # NOTE: the 'udreg' variant requires that the MPICH_GNI_NDREG_ENTRIES=1024
     #   environment variable be set at run time to avoid conflicts with
     #   Cray-MPICH if libfabric and MPI are used at the same time
     variant('udreg', default=False,
             description='Enable udreg on supported Cray platforms')
-    variant('verbose', default=True,
-            description='Enable Mercury to print errors on stderr')
+    variant('debug', default=False,
+            description='Enable Mercury to print debug output')
 
     depends_on('cmake@2.8.12.2:', type='build')
     # depends_on('cci', when='+cci')  # TODO: add CCI package
@@ -56,7 +54,7 @@ class Mercury(CMakePackage):
 
     # Fix CMake check_symbol_exists
     # See https://github.com/mercury-hpc/mercury/issues/299
-    patch('fix-cmake-3.15-check_symbol_exists.patch', when='@:1.0.1')
+    patch('fix-cmake-3.15-check_symbol_exists.patch', when='@1.0.0:1.0.1')
 
     def cmake_args(self):
         """Populate cmake arguments for Mercury."""
@@ -68,20 +66,29 @@ class Mercury(CMakePackage):
             '-DBUILD_SHARED_LIBS:BOOL=%s' % variant_bool('+shared'),
             '-DBUILD_TESTING:BOOL=%s' % str(self.run_tests),
             '-DMERCURY_ENABLE_PARALLEL_TESTING:BOOL=%s' % str(parallel_tests),
-            '-DMERCURY_ENABLE_POST_LIMIT:BOOL=OFF',
             '-DMERCURY_USE_BOOST_PP:BOOL=ON',
             '-DMERCURY_USE_CHECKSUMS:BOOL=ON',
-            '-DMERCURY_USE_EAGER_BULK:BOOL=ON',
-            '-DMERCURY_USE_SELF_FORWARD:BOOL=%s'
-            % variant_bool('+selfforward'),
             '-DMERCURY_USE_SYSTEM_MCHECKSUM:BOOL=OFF',
             '-DMERCURY_USE_XDR:BOOL=OFF',
             '-DNA_USE_BMI:BOOL=%s' % variant_bool('+bmi'),
             '-DNA_USE_CCI:BOOL=%s' % variant_bool('+cci'),
             '-DNA_USE_MPI:BOOL=%s' % variant_bool('+mpi'),
             '-DNA_USE_SM:BOOL=%s'  % variant_bool('+sm'),
-            '-DMERCURY_ENABLE_VERBOSE_ERROR=%s' % variant_bool('+verbose'),
         ]
+
+        if '@2.0.0:' in spec:
+            cmake_args.extend([
+                '-DMERCURY_ENABLE_DEBUG:BOOL=%s' % variant_bool('+debug'),
+            ])
+
+        # Previous versions of mercury had more extensive CMake options
+        if '@:1.0.1' in spec:
+            cmake_args.extend([
+                '-DMERCURY_ENABLE_POST_LIMIT:BOOL=OFF',
+                '-DMERCURY_ENABLE_VERBOSE_ERROR=%s' % variant_bool('+debug'),
+                '-DMERCURY_USE_EAGER_BULK:BOOL=ON',
+                '-DMERCURY_USE_SELF_FORWARD:BOOL=ON',
+            ])
 
         if '@1.0.0:' in spec:
             cmake_args.extend([

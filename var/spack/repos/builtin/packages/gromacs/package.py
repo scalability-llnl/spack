@@ -2,9 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import llnl.util.cpu
-
-
 class Gromacs(CMakePackage):
     """GROMACS (GROningen MAchine for Chemical Simulations) is a molecular
     dynamics package primarily designed for simulations of proteins, lipids
@@ -91,7 +88,6 @@ class Gromacs(CMakePackage):
     depends_on('plumed+mpi', when='+plumed+mpi')
     depends_on('plumed~mpi', when='+plumed~mpi')
     depends_on('fftw-api@3')
-    depends_on('mkl', when='fft=mkl')
     depends_on('cmake@2.8.8:3.99.99', type='build')
     depends_on('cmake@3.4.3:3.99.99', type='build', when='@2018:')
     depends_on('cmake@3.13.0:3.99.99', type='build', when='@master')
@@ -159,25 +155,25 @@ class Gromacs(CMakePackage):
 
         # Activate SIMD based on properties of the target
         target = self.spec.target
-        if target >= llnl.util.cpu.targets['zen2']:
+        if target >= 'zen2':
             # AMD Family 17h (EPYC Rome)
             options.append('-DGMX_SIMD=AVX2_256')
-        elif target >= llnl.util.cpu.targets['zen']:
+        elif target >= 'zen':
             # AMD Family 17h (EPYC Naples)
             options.append('-DGMX_SIMD=AVX2_128')
-        elif target >= llnl.util.cpu.targets['bulldozer']:
+        elif target >= 'bulldozer':
             # AMD Family 15h
             options.append('-DGMX_SIMD=AVX_128_FMA')
         elif 'vsx' in target:
             # IBM Power 7 and beyond
             options.append('-DGMX_SIMD=IBM_VSX')
-        elif target.family == llnl.util.cpu.targets['aarch64']:
+        elif target.family == 'aarch64':
             # ARMv8
             if self.spec.satisfies('%nvhpc'):
                 options.append('-DGMX_SIMD=None')
             else:
                 options.append('-DGMX_SIMD=ARM_NEON_ASIMD')
-        elif target == llnl.util.cpu.targets['mic_knl']:
+        elif target == 'mic_knl':
             # Intel KNL
             options.append('-DGMX_SIMD=AVX_512_KNL')
         elif target.vendor == 'GenuineIntel':

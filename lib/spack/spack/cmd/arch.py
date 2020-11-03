@@ -7,7 +7,7 @@ from __future__ import print_function
 
 import collections
 
-import llnl.util.cpu
+import archspec.cpu
 import llnl.util.tty.colify as colify
 import llnl.util.tty.color as color
 import spack.architecture as architecture
@@ -73,7 +73,7 @@ def display_targets(targets):
 
 def arch(parser, args):
     if args.known_targets:
-        display_targets(llnl.util.cpu.targets)
+        display_targets(archspec.cpu.TARGETS)
         return
 
     if args.frontend:

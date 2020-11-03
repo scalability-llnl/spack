@@ -119,7 +119,11 @@ spack:
     - old-gcc-pkgs:
       - archive-files
       - callpath
-      - hypre@0.2.15
+      # specify ^openblas-with-lapack to ensure that builtin.mock repo flake8
+      # package (which can also provide lapack) is not chosen, as it violates
+      # a package-level check which requires exactly one fetch strategy (this
+      # is apparently not an issue for other tests that use it).
+      - hypre@0.2.15 ^openblas-with-lapack
   specs:
     - matrix:
       - [$old-gcc-pkgs]

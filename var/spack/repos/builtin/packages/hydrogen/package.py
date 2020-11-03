@@ -18,6 +18,7 @@ class Hydrogen(CMakePackage, CudaPackage):
     maintainers = ['bvanessen']
 
     version('develop', branch='hydrogen')
+    version('1.5.0', sha256='03dd487fb23b9fdbc715554a8ea48c3196a1021502e61b0172ef3fdfbee75180')
     version('1.4.0', sha256='c13374ff4a6c4d1076e47ba8c8d91a7082588b9958d1ed89cffb12f1d2e1452e')
     version('1.3.4', sha256='7979f6656f698f0bbad6798b39d4b569835b3013ff548d98089fce7c283c6741')
     version('1.3.3', sha256='a51a1cfd40ac74d10923dfce35c2c04a3082477683f6b35e7b558ea9f4bb6d51')
@@ -62,8 +63,9 @@ class Hydrogen(CMakePackage, CudaPackage):
             description='Use OpenMP taskloops instead of parallel for loops.')
     variant('half', default=True,
             description='Builds with support for FP16 precision data types')
-
     depends_on('cmake@3.16.0:', type='build')
+    depends_on('mpi')
+    depends_on('hwloc@2.0:')
 
     # Note that #1712 forces us to enumerate the different blas variants
     depends_on('openblas', when='blas=openblas ~openmp_blas ~int64_blas')
@@ -85,13 +87,16 @@ class Hydrogen(CMakePackage, CudaPackage):
     depends_on('essl threads=openmp +ilp64', when='blas=essl +openmp_blas +int64_blas')
     depends_on('netlib-lapack +external-blas', when='blas=essl')
 
-    depends_on('aluminum', when='+al ~cuda')
+    # Specify the correct version of Aluminum
+    depends_on('aluminum@:0.3.99', when='@:1.3.99 +al')
+    depends_on('aluminum@0.4:0.4.99', when='@1.4:1.4.99 +al')
+    depends_on('aluminum@0.5:', when='@:1.0,1.5.0: +al')
+
+    # Add Aluminum variants
     depends_on('aluminum +cuda +nccl +ht +cuda_rma', when='+al +cuda')
 
     # Note that this forces us to use OpenBLAS until #1712 is fixed
     depends_on('lapack', when='blas=openblas ~openmp_blas')
-
-    depends_on('mpi')
 
     depends_on('scalapack', when='+scalapack')
     depends_on('gmp', when='+mpfr')

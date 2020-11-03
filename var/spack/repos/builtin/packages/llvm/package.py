@@ -208,6 +208,10 @@ class Llvm(CMakePackage, CudaPackage):
     # https://bugs.llvm.org/show_bug.cgi?id=39696
     patch("thread-p9.patch", when="@develop+libcxx")
 
+    # https://github.com/spack/spack/issues/19625,
+    # merged in llvm-11.0.0_rc2
+    patch("lldb_external_ncurses-10.patch", when="@10.0.0:10.99+lldb")
+
     # The functions and attributes below implement external package
     # detection for LLVM. See:
     #

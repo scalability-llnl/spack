@@ -28,7 +28,7 @@ uninstall = spack.main.SpackCommand('uninstall')
 def mock_get_specs(database, monkeypatch):
     specs = database.query_local()
     monkeypatch.setattr(
-        spack.binary_distribution, 'get_specs', lambda: specs
+        spack.binary_distribution, 'update_cache_and_get_specs', lambda: specs
     )
 
 
@@ -43,7 +43,7 @@ def mock_get_specs_multiarch(database, monkeypatch):
             break
 
     monkeypatch.setattr(
-        spack.binary_distribution, 'get_specs', lambda: specs
+        spack.binary_distribution, 'update_cache_and_get_specs', lambda: specs
     )
 
 

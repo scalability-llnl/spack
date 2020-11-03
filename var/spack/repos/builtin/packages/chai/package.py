@@ -25,6 +25,8 @@ class Chai(CMakePackage, CudaPackage):
 
     variant('shared', default=True, description='Build Shared Libs')
     variant('raja', default=False, description='Build plugin for RAJA')
+    variant('benchmarks', default=True, description='Build benchmarks.')
+    variant('examples', default=True, description='Build examples.')
 
     depends_on('cmake@3.8:', type='build')
     depends_on('umpire')
@@ -42,7 +44,7 @@ class Chai(CMakePackage, CudaPackage):
         if '+cuda' in spec:
             options.extend([
                 '-DENABLE_CUDA=ON',
-                '-DCUDA_TOOLKIT_ROOT_DIR=%s' % (spec['cuda'].prefix)])
+                '-DCUDA_TOOLKIT_ROOT_DIR=' + spec['cuda'].prefix])
 
             if not spec.satisfies('cuda_arch=none'):
                 cuda_arch = spec.variants['cuda_arch'].value
@@ -52,10 +54,20 @@ class Chai(CMakePackage, CudaPackage):
         else:
             options.append('-DENABLE_CUDA=OFF')
 
+        if '+raja' in spec:
+            options.extend(['-DENABLE_RAJA_PLUGIN=ON',
+                            '-DRAJA_DIR=' + spec['raja'].prefix])
+
         options.append('-Dumpire_DIR:PATH='
                        + spec['umpire'].prefix.share.umpire.cmake)
 
         options.append('-DENABLE_TESTS={0}'.format(
             'ON' if self.run_tests else 'OFF'))
+
+        options.append('-DENABLE_BENCHMARKS={0}'.format(
+            'ON' if '+benchmarks' in spec else 'OFF'))
+
+        options.append('-DENABLE_EXAMPLES={0}'.format(
+            'ON' if '+examples' in spec else 'OFF'))
 
         return options

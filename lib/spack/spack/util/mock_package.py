@@ -67,6 +67,11 @@ class MockPackageBase(object):
 
         return visited
 
+    def content_hash(self):
+        # Unlike real packages, MockPackage doesn't have a corresponding
+        # package.py file; in that sense, the content_hash is always the same.
+        return self.__class__.__name__
+
 
 class MockPackageMultiRepo(object):
     """Mock package repository, mimicking ``spack.repo.Repo``."""

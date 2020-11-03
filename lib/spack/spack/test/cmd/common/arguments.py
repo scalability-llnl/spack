@@ -20,6 +20,7 @@ def parser():
     arguments.add_common_arguments(p, ['jobs'])
     yield p
     # Cleanup the command line scope if it was set during tests
+    spack.config.config.clear_caches()
     if 'command_line' in spack.config.config.scopes:
         spack.config.config.scopes['command_line'].clear()
 

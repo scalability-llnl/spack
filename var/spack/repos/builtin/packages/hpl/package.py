@@ -28,7 +28,7 @@ class Hpl(AutotoolsPackage):
     depends_on('blas')
 
     # 2.3 adds support for openmpi 4
-    conflicts('openmpi@4.0.0:', when='@:2.2')
+    conflicts('^openmpi@4.0.0:', when='@:2.2')
 
     parallel = False
 

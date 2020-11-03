@@ -1,0 +1,11 @@
+--- spack-src/setup.py.bak	2019-07-02 09:00:09.000000000 +0900
++++ spack-src/setup.py	2020-10-28 10:58:22.559034050 +0900
+@@ -207,7 +207,7 @@
+              'filter.matchedfilter',
+              'vetoes.chisq']
+ ext = []
+-cython_compile_args = ['-O3', '-w', '-msse4.2', '-ffast-math',
++cython_compile_args = ['-O3', '-w', '-ffast-math',
+                        '-ffinite-math-only']
+ cython_link_args = []
+ # Mac's clang compiler doesn't have openMP support by default. Therefore

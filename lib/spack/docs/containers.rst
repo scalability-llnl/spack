@@ -79,6 +79,13 @@ Environments:
 
    ENTRYPOINT ["/bin/bash", "--rcfile", "/etc/profile", "-l"]
 
+In order to build and run the image, execute:
+
+.. code-block:: bash
+
+   $ spack containerize > Dockerfile
+   $ docker build -t myimage .
+   $ docker run -it myimage
 
 The bits that make this automation possible are discussed in details
 below. All the images generated in this way will be based on
@@ -305,3 +312,57 @@ following ``Dockerfile``:
    Spack can also produce Singularity definition files to build the image. The
    minimum version of Singularity required to build a SIF (Singularity Image Format)
    from them is ``3.5.3``.
+
+--------------
+Best Practices
+--------------
+
+^^^
+MPI
+^^^
+Due to the dependency on Fortran for OpenMPI, which is the spack default
+implementation, consider adding ``gfortran`` to the ``apt-get install`` list.
+
+Recent versions of OpenMPI will require you to pass ``--allow-run-as-root``
+to your ``mpirun`` calls if started as root user inside Docker.
+
+For execution on HPC clusters, it can be helpful to import the docker
+image into Singularity in order to start a program with an *external*
+MPI. Otherwise, also add ``openssh-server`` to the ``apt-get install`` list.
+
+^^^^
+CUDA
+^^^^
+Starting from CUDA 9.0, Nvidia provides minimal CUDA images based on
+Ubuntu. Please see `their instructions <https://hub.docker.com/r/nvidia/cuda/>`_.
+Avoid double-installing CUDA by adding, e.g.
+
+.. code-block:: yaml
+
+   packages:
+     cuda:
+       externals:
+       - spec: "cuda@9.0.176%gcc@5.4.0 arch=linux-ubuntu16-x86_64"
+         prefix: /usr/local/cuda
+       buildable: False
+
+to your ``spack.yaml``.
+
+Users will either need ``nvidia-docker`` or e.g. Singularity to *execute*
+device kernels.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Docker on Windows and OSX
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On Mac OS and Windows, docker runs on a hypervisor that is not allocated much
+memory by default, and some spack packages may fail to build due to lack of
+memory. To work around this issue, consider configuring your docker installation
+to use more of your host memory. In some cases, you can also ease the memory
+pressure on parallel builds by limiting the parallelism in your config.yaml.
+
+.. code-block:: yaml
+
+   config:
+     build_jobs: 2
+

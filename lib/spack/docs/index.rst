@@ -85,7 +85,6 @@ or refer to the full manual below.
    packaging_guide
    build_systems
    developer_guide
-   docker_for_developers
 
 .. toctree::
    :maxdepth: 2

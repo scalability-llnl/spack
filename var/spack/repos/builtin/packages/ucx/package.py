@@ -62,7 +62,8 @@ class Ucx(AutotoolsPackage, CudaPackage):
     depends_on('pkgconfig', type='build')
     depends_on('java@8', when='+java')
     depends_on('maven', when='+java')
-    depends_on('gdrcopy@1.3', when='+gdrcopy')
+    depends_on('gdrcopy', when='@1.7:+gdrcopy')
+    depends_on('gdrcopy@1.3', when='@:1.6+gdrcopy')
     conflicts('+gdrcopy', when='~cuda',
               msg='gdrcopy currently requires cuda support')
     depends_on('xpmem', when='+xpmem')

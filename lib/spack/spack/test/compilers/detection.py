@@ -14,6 +14,7 @@ import spack.compilers.clang
 import spack.compilers.fj
 import spack.compilers.gcc
 import spack.compilers.intel
+import spack.compilers.oneapi
 import spack.compilers.nag
 import spack.compilers.nvhpc
 import spack.compilers.pgi
@@ -151,6 +152,37 @@ def test_intel_version_detection(version_str, expected_version):
 
 
 @pytest.mark.parametrize('version_str,expected_version', [
+    (  # ICX
+        'Intel(R) oneAPI DPC++ Compiler Pro 2021.1 (2020.8.0.0827)\n'
+        'Target: x86_64-unknown-linux-gnu\n'
+        'Thread model: posix\n'
+        'InstalledDir: /soft/restricted/CNDA/sdk/\n'
+        '2020.9.15.1/oneapi/compiler/2021.1-beta09/linux/bin',
+        '2020.8.0.0827'
+    ),
+    (  # ICPX
+        'Intel(R) oneAPI DPC++ Compiler Pro 2021.1 (2020.8.0.0827)\n'
+        'Target: x86_64-unknown-linux-gnu\n'
+        'Thread model: posix\n'
+        'InstalledDir: /soft/restricted/CNDA/sdk/\n'
+        '2020.9.15.1/oneapi/compiler/2021.1-beta09/linux/bin',
+        '2020.8.0.0827'
+    )
+    # Detection will fail for ifx because it can't parse it from this.
+    # (  # IFX
+    #     'ifx (IFORT) 2021.1 Beta 20200827\n'
+    #     'Copyright (C) 1985-2020 Intel Corporation. All rights reserved.',
+    #     '2020.8.0.0827'
+    # )
+])
+def test_oneapi_version_detection(version_str, expected_version):
+    version = spack.compilers.oneapi.Oneapi.extract_version_from_output(
+        version_str
+    )
+    assert version == expected_version
+
+
+@pytest.mark.parametrize('version_str,expected_version', [
     ('NAG Fortran Compiler Release 6.0(Hibiya) Build 1037\n'
      'Product NPL6A60NA for x86-64 Linux\n', '6.0')
 ])
@@ -260,6 +292,8 @@ def test_xl_version_detection(version_str, expected_version):
     ('pgi', '19.1a'),
     ('intel', '9.0.0'),
     ('intel', '0.0.0-foobar')
+    # ('oneapi', '2021.1'),
+    # ('oneapi', '2021.1-foobar')
 ])
 def test_cray_frontend_compiler_detection(
         compiler, version, tmpdir, monkeypatch, working_env

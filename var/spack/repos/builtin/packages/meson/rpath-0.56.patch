@@ -1,0 +1,20 @@
+--- a/mesonbuild/scripts/depfixer.py	2020-10-30 03:25:24.000000000 -0500
++++ b/mesonbuild/scripts/depfixer.py	2020-11-01 14:24:44.000000000 -0600
+@@ -13,6 +13,7 @@
+ # limitations under the License.
+ 
+ 
++import os
+ import sys, struct
+ import shutil, subprocess
+ import typing as T
+@@ -454,6 +455,9 @@
+ 
+ def fix_rpath(fname: str, rpath_dirs_to_remove: T.List[bytes], new_rpath: T.Union[str, bytes], final_path: str, install_name_mappings: T.Dict[str, str], verbose: bool = True) -> None:
+     global INSTALL_NAME_TOOL
++    # Do not strip rpath when run from within Spack
++    if 'SPACK_RPATH_DIRS' in os.environ:
++        return
+     # Static libraries, import libraries, debug information, headers, etc
+     # never have rpaths
+     # DLLs and EXE currently do not need runtime path fixing

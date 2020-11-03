@@ -32,7 +32,6 @@ licensed_files = [
     # spack scripts
     r'^bin/spack$',
     r'^bin/spack-python$',
-    r'^bin/sbang$',
 
     # all of spack core
     r'^lib/spack/spack/.*\.py$',

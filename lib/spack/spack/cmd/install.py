@@ -45,6 +45,7 @@ def update_kwargs_from_args(args, kwargs):
         'explicit': True,  # Always true for install command
         'stop_at': args.until,
         'unsigned': args.unsigned,
+        'full_hash_match': args.full_hash_match,
     })
 
     kwargs.update({
@@ -107,6 +108,11 @@ the dependencies"""
         '--no-check-signature', action='store_true',
         dest='unsigned', default=False,
         help="do not check signatures of binary packages")
+    subparser.add_argument(
+        '--require-full-hash-match', action='store_true',
+        dest='full_hash_match', default=False, help="""when installing from
+binary mirrors, do not install binary package unless the full hash of the
+remote spec matches that of the local spec""")
     subparser.add_argument(
         '--show-log-on-error', action='store_true',
         help="print full build log to stderr if build fails")

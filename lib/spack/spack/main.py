@@ -21,7 +21,7 @@ import traceback
 import warnings
 from six import StringIO
 
-import llnl.util.cpu
+import archspec.cpu
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 import llnl.util.tty.color as color
@@ -664,7 +664,7 @@ def print_setup_info(*info):
     # print environment module system if available. This can be expensive
     # on clusters, so skip it if not needed.
     if 'modules' in info:
-        generic_arch = llnl.util.cpu.host().family
+        generic_arch = archspec.cpu.host().family
         module_spec = 'environment-modules target={0}'.format(generic_arch)
         specs = spack.store.db.query(module_spec)
         if specs:

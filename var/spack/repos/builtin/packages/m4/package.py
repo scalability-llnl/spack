@@ -52,13 +52,10 @@ class M4(AutotoolsPackage, GNUMirrorPackage):
         if spec.satisfies('%cce@9:'):
             args.append('LDFLAGS=-rtlib=compiler-rt')
 
-        if spec.satisfies('%clang') and not spec.satisfies('platform=darwin'):
-            args.append('LDFLAGS=-rtlib=compiler-rt')
-
-        if spec.satisfies('%arm') and not spec.satisfies('platform=darwin'):
-            args.append('LDFLAGS=-rtlib=compiler-rt')
-
-        if spec.satisfies('%fj') and not spec.satisfies('platform=darwin'):
+        if (spec.satisfies('%clang') or
+            spec.satisfies('%aocc') or
+            spec.satisfies('%arm') or
+            spec.satisfies('%fj')) and not spec.satisfies('platform=darwin'):
             args.append('LDFLAGS=-rtlib=compiler-rt')
 
         if spec.satisfies('%intel@:18.999'):

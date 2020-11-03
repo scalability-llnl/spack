@@ -18,6 +18,10 @@ class PyDotnetcore2(Package):
         version('2.1.14', sha256='d8d83ac30c22a0e48a9a881e117d98da17f95c4098cb9500a35e323b8e4ab737', expand=False,
                 url='https://pypi.io/packages/py3/d/dotnetcore2/dotnetcore2-2.1.14-py3-none-manylinux1_x86_64.whl')
 
+    conflicts('target=ppc64:', msg='py-dotnetcore2 is only available for x86_64')
+    conflicts('target=ppc64le:', msg='py-dotnetcore2 is only available for x86_64')
+    conflicts('target=aarch64:', msg='py-dotnetcore2 is only available for x86_64')
+
     extends('python')
     depends_on('python@3:', type=('build', 'run'))
     depends_on('py-pip', type='build')

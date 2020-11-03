@@ -766,7 +766,7 @@ config:
     assert data['config']['install_tree'] == {'root': 'dummy_tree_value'}
 
     with pytest.raises(spack.config.ConfigError):
-        scope.write_section('config')
+        scope._write_section('config')
 
 
 def test_single_file_scope(tmpdir, config):
@@ -839,7 +839,7 @@ def test_write_empty_single_file_scope(tmpdir):
     env_schema = spack.schema.env.schema
     scope = spack.config.SingleFileScope(
         'test', str(tmpdir.ensure('config.yaml')), env_schema, ['spack'])
-    scope.write_section('config')
+    scope._write_section('config')
     # confirm we can write empty config
     assert not scope.get_section('config')
 

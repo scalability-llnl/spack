@@ -1,0 +1,12 @@
+--- a/configure	2020-09-09 18:44:01.241188553 +0530
++++ b/configure	2020-09-09 18:46:51.672191301 +0530
+@@ -6513,6 +6513,9 @@
+ 				gcc)
+ 			fla_c_openmp_flags='-fopenmp'
+ 		;;
++                 clang)
++            fla_c_openmp_flags='-fopenmp'
++        ;;
+ 				pathcc)
+ 			fla_c_openmp_flags='-mp'
+ 		;;

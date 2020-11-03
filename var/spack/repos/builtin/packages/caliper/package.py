@@ -79,6 +79,8 @@ class Caliper(CMakePackage):
     conflicts('+dyninst', when='@:1.99',
               msg='Dyninst unsupported by version <=2.0.1')
 
+    patch('for_aarch64.patch', when='target=aarch64:')
+
     def cmake_args(self):
         spec = self.spec
 

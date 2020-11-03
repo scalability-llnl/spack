@@ -17,6 +17,7 @@ class PyOpppy(PythonPackage):
     maintainers = ['clevelam']
 
     version('master', branch='master')
+    version('0_1_4', sha256='22d81a64856f4c12f8079440c837d7d1f45153e68c405b45bed8b6d35831e948')
     version('0_1_3', sha256='c3ca97f2ff8ab319b5c7257baa8cab852387dc00d426b4534c06f0894363c541')
     version('0_1_2', sha256='ef3795d3164fa0aa7ea7da7e223d6d0a48d2960aefd03a7d90cdb8b8f480cd4c')
     version('0_1_1', sha256='505c023853e75552abc65de9777a125ecb6a99a1cb4e605a4f702af837e3168b')

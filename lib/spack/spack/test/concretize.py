@@ -2,8 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import pytest
+
+import archspec.cpu
+
 import llnl.util.lang
 
 import spack.architecture
@@ -92,13 +94,13 @@ def current_host(request, monkeypatch):
     # is_preference is not empty if we want to supply the
     # preferred target via packages.yaml
     cpu, _, is_preference = request.param.partition('-')
-    target = llnl.util.cpu.targets[cpu]
+    target = archspec.cpu.TARGETS[cpu]
 
     # this function is memoized, so clear its state for testing
     spack.architecture.get_platform.cache.clear()
 
     if not is_preference:
-        monkeypatch.setattr(llnl.util.cpu, 'host', lambda: target)
+        monkeypatch.setattr(archspec.cpu, 'host', lambda: target)
         monkeypatch.setattr(spack.platforms.test.Test, 'default', cpu)
         yield target
     else:
@@ -613,14 +615,13 @@ class TestConcretize(object):
         ('mpileaks%gcc@4.4.7', 'core2'),
         ('mpileaks%gcc@4.8', 'haswell'),
         ('mpileaks%gcc@5.3.0', 'broadwell'),
-        # Apple's clang always falls back to x86-64 for now
-        ('mpileaks%apple-clang@9.1.0', 'x86_64')
+        ('mpileaks%apple-clang@5.1.0', 'x86_64')
     ])
     @pytest.mark.regression('13361')
     def test_adjusting_default_target_based_on_compiler(
             self, spec, best_achievable, current_host
     ):
-        best_achievable = llnl.util.cpu.targets[best_achievable]
+        best_achievable = archspec.cpu.TARGETS[best_achievable]
         expected = best_achievable if best_achievable < current_host \
             else current_host
         with spack.concretize.disable_compiler_existence_check():

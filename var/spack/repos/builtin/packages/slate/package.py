@@ -6,7 +6,7 @@
 from spack import *
 
 
-class Slate(MakefilePackage):
+class Slate(CMakePackage):
     """The Software for Linear Algebra Targeting Exascale (SLATE) project is
     to provide fundamental dense linear algebra capabilities to the US
     Department of Energy and to the high-performance computing (HPC) community
@@ -17,44 +17,40 @@ class Slate(MakefilePackage):
 
     homepage = "https://icl.utk.edu/slate/"
     git      = "https://bitbucket.org/icl/slate"
+    url      = 'https://bitbucket.org/icl/slate/downloads/slate-2020.10.00.tar.gz'
     maintainers = ['G-Ragghianti', 'mgates3']
 
-    version('develop', submodules=True)
+    version('master', branch='master')
+    version('2020.10.00', sha256='ff58840cdbae2991d100dfbaf3ef2f133fc2f43fc05f207dc5e38a41137882ab')
 
     variant('cuda',   default=True, description='Build with CUDA support.')
     variant('mpi',    default=True, description='Build with MPI support.')
     variant('openmp', default=True, description='Build with OpenMP support.')
+    variant('shared', default=True, description='Build shared library')
 
-    depends_on('bash', type='build')
-    depends_on('scalapack')
+    depends_on('cuda', when='+cuda')
+    depends_on('mpi', when='+mpi')
     depends_on('blas')
-    depends_on('cuda@9:10', when='+cuda')
-    depends_on('mpi',       when='+mpi')
+    depends_on('blaspp ~cuda', when='~cuda')
+    depends_on('blaspp +cuda', when='+cuda')
+    depends_on('lapackpp')
+    depends_on('lapackpp@2020.10.02:', when='@2020.10.00')
+    depends_on('lapackpp@master', when='@master')
+    depends_on('scalapack')
 
-    conflicts('%gcc@:5')
+    cpp_17_msg = 'Requires C++17 compiler support'
+    conflicts('%gcc@:5', msg=cpp_17_msg)
+    conflicts('%xl', msg=cpp_17_msg)
+    conflicts('%xl_r', msg=cpp_17_msg)
+    conflicts('%intel@19:', msg='Does not currently build with icpc >= 2019')
 
-    def edit(self, spec, prefix):
-        if '^openblas' in spec:
-            blas = 'openblas'
-        elif '^intel-mkl' in spec:
-            blas = 'mkl'
-        elif '^essl' in spec:
-            blas = 'essl'
-        else:
-            raise InstallError('Supports only BLAS provider '
-                               'openblas, intel-mkl, or essl')
-        config = [
-            'SHELL=bash',
-            'prefix=%s' % prefix,
-            'mpi=%i'    % ('+mpi' in spec),
-            'cuda=%i'   % ('+cuda' in spec),
-            'openmp=%i' % ('+openmp' in spec),
-            'blas=%s'   % blas
+    def cmake_args(self):
+        spec = self.spec
+        return [
+            '-Dbuild_tests=%s'       % self.run_tests,
+            '-Duse_openmp=%s'        % ('+openmp' in spec),
+            '-DBUILD_SHARED_LIBS=%s' % ('+shared' in spec),
+            '-Duse_cuda=%s'          % ('+cuda' in spec),
+            '-Duse_mpi=%s'           % ('+mpi' in spec),
+            '-DSCALAPACK_LIBRARIES=%s'    % spec['scalapack'].libs.joined(';')
         ]
-        if '+mpi' in spec:
-            config.append('CXX=' + spec['mpi'].mpicxx)
-            config.append('FC=' + spec['mpi'].mpifc)
-
-        with open('make.inc', 'w') as inc:
-            for line in config:
-                inc.write('{0}\n'.format(line))

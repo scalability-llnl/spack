@@ -12,6 +12,7 @@ import llnl.util.filesystem
 import pytest
 import spack.architecture
 import spack.concretize
+import spack.hooks.sbang as sbang
 import spack.paths
 import spack.relocate
 import spack.spec
@@ -401,3 +402,48 @@ def test_relocate_text_bin_raise_if_new_prefix_is_longer():
         spack.relocate.relocate_text_bin(
             ['item'], short_prefix, long_prefix, None, None, None
         )
+
+
+@pytest.mark.parametrize("sbang_line", [
+    "#!/bin/bash /path/to/orig/spack/bin/sbang",
+    "#!/bin/sh /orig/layout/root/bin/sbang"
+])
+def test_relocate_text_old_sbang(tmpdir, sbang_line):
+    """Ensure that old and new sbang styles are relocated."""
+
+    old_install_prefix = "/orig/layout/root/orig/install/prefix"
+    new_install_prefix = os.path.join(
+        spack.store.layout.root, "new", "install", "prefix"
+    )
+
+    # input file with an sbang line
+    original = """\
+{0}
+#!/usr/bin/env python
+
+/orig/layout/root/orig/install/prefix
+""".format(sbang_line)
+
+    # expected relocation
+    expected = """\
+{0}
+#!/usr/bin/env python
+
+{1}
+""".format(sbang.sbang_shebang_line(), new_install_prefix)
+
+    path = tmpdir.ensure("path", "to", "file")
+    with path.open("w") as f:
+        f.write(original)
+
+    spack.relocate.relocate_text(
+        [str(path)],
+        "/orig/layout/root",   spack.store.layout.root,
+        old_install_prefix,    new_install_prefix,
+        "/path/to/orig/spack", spack.paths.spack_root,
+        {
+            old_install_prefix: new_install_prefix
+        }
+    )
+
+    assert expected == open(str(path)).read()

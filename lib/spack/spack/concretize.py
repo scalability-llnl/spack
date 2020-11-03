@@ -19,6 +19,9 @@ from __future__ import print_function
 import platform
 import os.path
 import tempfile
+
+import archspec.cpu
+
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
@@ -27,7 +30,6 @@ from functools_backport import reverse_order
 from contextlib import contextmanager
 
 import llnl.util.lang
-import llnl.util.cpu as cpu
 
 import spack.repo
 import spack.abi
@@ -325,7 +327,7 @@ class Concretizer(object):
         """
         target_prefs = PackagePrefs(spec.name, 'target')
         target_specs = [spack.spec.Spec('target=%s' % tname)
-                        for tname in cpu.targets]
+                        for tname in archspec.cpu.TARGETS]
 
         def tspec_filter(s):
             # Filter target specs by whether the architecture
@@ -333,7 +335,7 @@ class Concretizer(object):
             # we only consider x86_64 targets when on an
             # x86_64 machine, etc. This may need to change to
             # enable setting cross compiling as a default
-            target = cpu.targets[str(s.architecture.target)]
+            target = archspec.cpu.TARGETS[str(s.architecture.target)]
             arch_family_name = target.family.name
             return arch_family_name == platform.machine()
 
@@ -569,7 +571,7 @@ class Concretizer(object):
         Returns:
             True if any modification happened, False otherwise
         """
-        import llnl.util.cpu
+        import archspec.cpu
 
         # Try to adjust the target only if it is the default
         # target for this platform
@@ -589,14 +591,14 @@ class Concretizer(object):
 
         try:
             current_target.optimization_flags(spec.compiler)
-        except llnl.util.cpu.UnsupportedMicroarchitecture:
+        except archspec.cpu.UnsupportedMicroarchitecture:
             microarchitecture = current_target.microarchitecture
             for ancestor in microarchitecture.ancestors:
                 candidate = None
                 try:
                     candidate = spack.architecture.Target(ancestor)
                     candidate.optimization_flags(spec.compiler)
-                except llnl.util.cpu.UnsupportedMicroarchitecture:
+                except archspec.cpu.UnsupportedMicroarchitecture:
                     continue
 
                 if candidate is not None:

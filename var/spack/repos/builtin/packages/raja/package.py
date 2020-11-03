@@ -32,6 +32,8 @@ class Raja(CMakePackage, CudaPackage):
 
     variant('openmp', default=True, description='Build OpenMP backend')
     variant('shared', default=True, description='Build Shared Libs')
+    variant('examples', default=True, description='Build examples.')
+    variant('exercises', default=True, description='Build exercises.')
 
     depends_on('cmake@3.8:', type='build')
     depends_on('cmake@3.9:', when='+cuda', type='build')
@@ -41,7 +43,7 @@ class Raja(CMakePackage, CudaPackage):
 
         options = []
         options.append('-DENABLE_OPENMP={0}'.format(
-            'ON' if '+openmp' in spec else 'Off'))
+            'ON' if '+openmp' in spec else 'OFF'))
 
         if '+cuda' in spec:
             options.extend([
@@ -51,16 +53,17 @@ class Raja(CMakePackage, CudaPackage):
             if not spec.satisfies('cuda_arch=none'):
                 cuda_arch = spec.variants['cuda_arch'].value
                 options.append('-DCUDA_ARCH=sm_{0}'.format(cuda_arch[0]))
-                flag = '-arch sm_{0}'.format(cuda_arch[0])
-                options.append('-DCMAKE_CUDA_FLAGS:STRING={0}'.format(flag))
         else:
             options.append('-DENABLE_CUDA=OFF')
 
         options.append('-DBUILD_SHARED_LIBS={0}'.format(
             'ON' if '+shared' in spec else 'OFF'))
 
-        options.append('-DENABLE_CHAI={0}'.format(
-            'ON' if '+chai' in spec else 'OFF'))
+        options.append('-DENABLE_EXAMPLES={0}'.format(
+            'ON' if '+examples' in spec else 'OFF'))
+
+        options.append('-DENABLE_EXERCISES={0}'.format(
+            'ON' if '+exercises' in spec else 'OFF'))
 
         # Work around spack adding -march=ppc64le to SPACK_TARGET_ARGS which
         # is used by the spack compiler wrapper.  This can go away when BLT
@@ -69,9 +72,5 @@ class Raja(CMakePackage, CudaPackage):
             options.append('-DENABLE_TESTS=OFF')
         else:
             options.append('-DENABLE_TESTS=ON')
-
-        if '+chai' in spec:
-            options.extend([
-                '-DENABLE_CHAI=ON'])
 
         return options

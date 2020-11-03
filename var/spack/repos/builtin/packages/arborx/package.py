@@ -50,7 +50,7 @@ class Arborx(CMakePackage):
     # - current version of Trilinos package does not allow disabling Serial
     # - current version of Trilinos package does not allow enabling CUDA
     depends_on('trilinos+kokkos@develop', when='+trilinos')
-    depends_on('trilinos+openmp', when='trilinos+openmp')
+    depends_on('trilinos+openmp', when='+trilinos+openmp')
     conflicts('~serial', when='+trilinos')
     conflicts('+cuda', when='+trilinos')
 

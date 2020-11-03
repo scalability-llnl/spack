@@ -809,3 +809,61 @@ def test_install_fails_no_args_suggests_env_activation(tmpdir):
     assert 'requires a package argument or active environment' in output
     assert 'spack env activate .' in output
     assert 'using the `spack.yaml` in this directory' in output
+
+
+def test_cache_install_full_hash_match(
+        install_mockery_mutable_config, mock_packages, mock_fetch,
+        mock_archive, mutable_config, monkeypatch, tmpdir):
+    """Make sure installing from cache respects full hash argument"""
+
+    # Create a temp mirror directory for buildcache usage
+    mirror_dir = tmpdir.join('mirror_dir')
+    mirror_url = 'file://{0}'.format(mirror_dir.strpath)
+
+    s = Spec('libdwarf').concretized()
+
+    # Install a package
+    install(s.name)
+
+    # Put installed package in the buildcache
+    buildcache('create', '-u', '-a', '-f', '-d', mirror_dir.strpath, s.name)
+
+    # Now uninstall the package
+    uninstall('-y', s.name)
+
+    # Configure the mirror with the binary package in it
+    mirror('add', 'test-mirror', mirror_url)
+
+    # Make sure we get the binary version by default
+    install_output = install('--no-check-signature', s.name, output=str)
+    expect_msg = 'Extracting {0} from binary cache'.format(s.name)
+
+    assert expect_msg in install_output
+
+    uninstall('-y', s.name)
+
+    # Now monkey patch Spec to change the full hash on the package
+    def fake_full_hash(spec):
+        print('fake_full_hash')
+        return 'tal4c7h4z0gqmixb1eqa92mjoybxn5l6'
+    monkeypatch.setattr(spack.spec.Spec, 'full_hash', fake_full_hash)
+
+    # Check that even if the full hash changes, we install from binary when
+    # we don't explicitly require the full hash to match
+    install_output = install('--no-check-signature', s.name, output=str)
+    expect_msg = 'Extracting {0} from binary cache'.format(s.name)
+
+    assert expect_msg in install_output
+
+    uninstall('-y', s.name)
+
+    # Finally, make sure that if we insist on the full hash match, spack
+    # installs from source.
+    install_output = install('--require-full-hash-match', s.name, output=str)
+    expect_msg = 'No binary for {0} found: installing from source'.format(
+        s.name)
+
+    assert expect_msg in install_output
+
+    uninstall('-y', s.name)
+    mirror('rm', 'test-mirror')

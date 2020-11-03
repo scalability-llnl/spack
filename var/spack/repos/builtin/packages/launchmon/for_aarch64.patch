@@ -1,0 +1,1294 @@
+--- spack-src/config.h.in.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/config.h.in	2020-10-27 16:52:28.052351749 +0900
+@@ -1,5 +1,8 @@
+ /* config.h.in.  Generated from configure.ac by autoheader.  */
+ 
++/* Define 1 for AARCH64_ARCHITECTURE */
++#undef AARCH64_ARCHITECTURE
++
+ /* Define 1 for AIX_CODE_REQUIRED */
+ #undef AIX_CODE_REQUIRED
+ 
+@@ -116,6 +119,21 @@
+ /* Define to 1 if you have the <string.h> header file. */
+ #undef HAVE_STRING_H
+ 
++/* Define to 1 if the system has the type `struct user_fpregs_struct'. */
++#undef HAVE_STRUCT_USER_FPREGS_STRUCT
++
++/* Define to 1 if the system has the type `struct user_fpsimd_state'. */
++#undef HAVE_STRUCT_USER_FPSIMD_STATE
++
++/* Define to 1 if the system has the type `struct user_fpsimd_struct'. */
++#undef HAVE_STRUCT_USER_FPSIMD_STRUCT
++
++/* Define to 1 if the system has the type `struct user_pt_regs'. */
++#undef HAVE_STRUCT_USER_PT_REGS
++
++/* Define to 1 if the system has the type `struct user_regs_struct'. */
++#undef HAVE_STRUCT_USER_REGS_STRUCT
++
+ /* Define to 1 if you have the <sys/stat.h> header file. */
+ #undef HAVE_SYS_STAT_H
+ 
+@@ -158,6 +176,10 @@
+ /* install prefix */
+ #undef LMON_PREFIX
+ 
++/* Enable use of SGI hostnames as a fallback if no matches in /etc/hosts for
++   the hostname returned by mpiexec.hydra */
++#undef LMON_SGI_HOSTNAMES
++
+ /* Enable a workaround to cope with additional SIGCONT sent by slurmstepd */
+ #undef LMON_SLURM_MPAO_WR
+ 
+@@ -168,8 +190,7 @@
+    slash. */
+ #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
+ 
+-/* Define to the sub-directory in which libtool stores uninstalled libraries.
+-   */
++/* Define to the sub-directory where libtool stores uninstalled libraries. */
+ #undef LT_OBJDIR
+ 
+ /* Define 1 for MEASURE_TRACING_COST */
+@@ -238,6 +259,9 @@
+ /* Define 1 for SUB_ARCH_BGQ */
+ #undef SUB_ARCH_BGQ
+ 
++/* Define 1 for SUB_ARCH_CRAY */
++#undef SUB_ARCH_CRAY
++
+ /* Define os-isa string */
+ #undef TARGET_OS_ISA_STRING
+ 
+--- spack-src/configure.bak	2016-05-24 12:24:36.000000000 +0900
++++ spack-src/configure	2020-10-28 09:31:33.099432617 +0900
+@@ -3526,6 +3526,15 @@
+ $as_echo "#define BIT64 1" >>confdefs.h
+ 
+               ;;
++    *aarch64*)
++$as_echo "#define AARCH64_ARCHITECTURE 1" >>confdefs.h
++
++              ac_have_known_isa="yes"
++              ac_target_isa="aarch64"
++
++$as_echo "#define BIT64 1" >>confdefs.h
++
++              ;;
+     *i686*)
+ $as_echo "#define X86_ARCHITECTURE 1" >>confdefs.h
+ 
+@@ -18001,6 +18010,57 @@
+ 
+ fi
+ 
++ac_fn_c_check_type "$LINENO" "struct user_regs_struct" "ac_cv_type_struct_user_regs_struct" "#include <sys/user.h>
++"
++if test "x$ac_cv_type_struct_user_regs_struct" = xyes; then :
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_STRUCT_USER_REGS_STRUCT 1
++_ACEOF
++
++
++fi
++ac_fn_c_check_type "$LINENO" "struct user_pt_regs" "ac_cv_type_struct_user_pt_regs" "#include <sys/user.h>
++"
++if test "x$ac_cv_type_struct_user_pt_regs" = xyes; then :
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_STRUCT_USER_PT_REGS 1
++_ACEOF
++
++
++fi
++ac_fn_c_check_type "$LINENO" "struct user_fpregs_struct" "ac_cv_type_struct_user_fpregs_struct" "#include <sys/user.h>
++"
++if test "x$ac_cv_type_struct_user_fpregs_struct" = xyes; then :
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_STRUCT_USER_FPREGS_STRUCT 1
++_ACEOF
++
++
++fi
++ac_fn_c_check_type "$LINENO" "struct user_fpsimd_struct" "ac_cv_type_struct_user_fpsimd_struct" "#include <sys/user.h>
++"
++if test "x$ac_cv_type_struct_user_fpsimd_struct" = xyes; then :
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_STRUCT_USER_FPSIMD_STRUCT 1
++_ACEOF
++
++
++fi
++ac_fn_c_check_type "$LINENO" "struct user_fpsimd_state" "ac_cv_type_struct_user_fpsimd_state" "#include <sys/user.h>
++"
++if test "x$ac_cv_type_struct_user_fpsimd_state" = xyes; then :
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_STRUCT_USER_FPSIMD_STATE 1
++_ACEOF
++
++
++fi
++
+ 
+ for ac_header in vfork.h
+ do :
+--- spack-src/launchmon/src/linux/main.cxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/linux/main.cxx	2020-10-21 10:30:55.761905054 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------			
+  *
+  *  Update Log:
++ *        May  02 2018 KMD: Added aarch64 support
+  *        Nov  08 2010 DHA: Added a lexical scope around the driver object
+  *                          to support memory tools 
+  *        Aug  10 2008 DHA: Now returns EXIT_FAILURE
+@@ -44,9 +45,9 @@
+ #include "sdbg_base_launchmon.hxx"
+ #include "sdbg_base_launchmon_impl.hxx"
+ 
+-#include "linux/sdbg_linux_mach.hxx"
+ #include "linux/sdbg_linux_driver.hxx"
+ #include "linux/sdbg_linux_driver_impl.hxx"
++#include "linux/sdbg_linux_mach.hxx"
+ 
+ 
+ int main(int argc, char* argv[])
+@@ -56,7 +57,8 @@
+ 
+     int rc = EXIT_FAILURE;
+       {
+-#if X86_ARCHITECTURE || X86_64_ARCHITECTURE || PPC_ARCHITECTURE
++#if X86_ARCHITECTURE || X86_64_ARCHITECTURE || PPC_ARCHITECTURE || \
++    AARCH64_ARCHITECTURE
+         //
+         // driver instantiation for the linux platform.
+         //
+--- spack-src/launchmon/src/sdbg_base_mach.hxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/sdbg_base_mach.hxx	2020-10-20 11:47:56.306294254 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------
+  *
+  *  Update Log:
++ *        May 02 2018 ADG: Added aarch64 support
+  *        Sep 02 2010 DHA: Added MPIR_attach_fifo support
+  *        May 08 2008 DHA: Added an alias (is_master_thread) for get_master_thread
+  *                         because the latter isn't entirely intuitive.
+@@ -42,16 +43,14 @@
+ #include <stack>
+ #include <string>
+ 
+-#include "sdbg_std.hxx"
+-#include "sdbg_opt.hxx"
+ #include "sdbg_base_bp.hxx"
+-#include "sdbg_base_symtab.hxx"
+ #include "sdbg_base_exception.hxx"
++#include "sdbg_base_symtab.hxx"
++#include "sdbg_opt.hxx"
++#include "sdbg_std.hxx"
+ 
+ const int THREAD_KEY_INVALID = -1;
+ 
+-
+-
+ ////////////////////////////////////////////////////////////////////////////
+ //
+ //
+@@ -82,7 +81,6 @@
+   virtual ~machine_exception_t()                  { }
+ 
+ };
+-  
+ 
+ ////////////////////////////////////////////////////////////////////////////
+ //
+@@ -131,6 +129,7 @@
+   void inc_ptr_by_word ()                    { rs_ptr++; }
+   void write_word_to_ptr (WT w)              { (*rs_ptr) = w; }
+   unsigned int size_in_word ();
++  size_t size() { return sizeof(NATIVE_RS); }
+ 
+ protected:
+   // "rs" retains register set object in its native data structure. 
+--- spack-src/launchmon/src/linux/sdbg_linux_bp.hxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/linux/sdbg_linux_bp.hxx	2020-10-21 10:34:38.051897589 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------			
+  *
+  *  Update Log:
++ *        May 02 2018 KMD: Added aarch64 support
+  *        Mar 06 2008 DHA: Added indirect breakpoint support
+  *        Mar 11 2008 DHA: Added Linux PowerPC support 
+  *        Feb 09 2008 DHA: Added LLNS Copyright
+@@ -40,11 +41,11 @@
+ #include "sdbg_linux_mach.hxx"
+ 
+ #if BIT64
+-# if X86_64_ARCHITECTURE
++# if X86_64_ARCHITECTURE || AARCH64_ARCHITECTURE
+   const int NUM_BYTE_INCR_AFTER_SINGLESTEP = 8;
+ # else
+   const int NUM_BYTE_INCR_AFTER_SINGLESTEP = 4;
+-# endif //X86_64_ARCHITECTURE
++# endif //X86_64_ARCHITECTURE || AARCH64_ARCHITECTURE
+ #else
+ const int NUM_BYTE_INCR_AFTER_SINGLESTEP = 4;
+ #endif
+@@ -53,7 +54,7 @@
+ const int NUM_BYTE_INCR_AFTER_TRAP       = 1;
+ #else
+ const int NUM_BYTE_INCR_AFTER_TRAP       = 0;
+-#endif
++#endif // X86_64_ARCHITECTURE || AARCH64_ARCHITECTURE
+ 
+ //! linux_breakpoint_t:
+ /*!
+--- spack-src/launchmon/src/linux/sdbg_linux_driver_impl.hxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/linux/sdbg_linux_driver_impl.hxx	2020-10-21 10:51:02.851885431 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------			
+  *
+  *  Update Log:
++ *        May  02 2018 KMD: Added aarch64 support
+  *        Mar  11 2008 DHA: Added PowerPC support
+  *        Feb  09 2008 DHA: Added LLNS Copyright
+  *        Mar  13 2007 DHA: pipe_t support
+@@ -40,9 +41,9 @@
+ #include "sdbg_base_driver.hxx"
+ #include "sdbg_base_driver_impl.hxx"
+ 
+-#include "sdbg_linux_mach.hxx"
+-#include "sdbg_linux_launchmon.hxx"
+ #include "sdbg_linux_driver.hxx"
++#include "sdbg_linux_launchmon.hxx"
++#include "sdbg_linux_mach.hxx"
+  
+ 
+ ////////////////////////////////////////////////////////////////////
+@@ -102,6 +103,8 @@
+   return_proc = new linux_ppc_process_t(pid, mi, md, mt, mc);
+ #elif IA64_ARCHITECTURE
+   return_proc = new linux_ia64_process_t(pid, mi, md, mt, mc);
++#elif AARCH64_ARCHITECTURE
++  return_proc = new linux_aarch64_process_t(pid, mi, md, mt, mc);
+ #endif
+ 
+   return return_proc;
+@@ -134,6 +137,8 @@
+   return_proc = new linux_ppc_process_t (pid, mi);
+ #elif IA64_ARCHITECTURE
+   return_proc = new linux_ia64_process_t (pid, mi);
++#elif AARCH64_ARCHITECTURE
++  return_proc = new linux_aarch64_process_t(pid, mi);
+ #endif
+ 
+   return return_proc;
+--- spack-src/launchmon/src/linux/sdbg_linux_launchmon.cxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/linux/sdbg_linux_launchmon.cxx	2020-10-21 10:58:29.611880731 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------
+  *
+  *  Update Log:
++ *        May 02 2018 KMD: Added aarch64 support
+  *        Feb 20 2015 andrewg@cray.com: Added support for RMs that build the
+  *                         proctable on demand. Fixed a misplaced brace bug.
+  *        Oct 26 2012 DHA: Removed catch clauses for deprecated thread tracers 
+@@ -112,34 +113,34 @@
+ #endif
+ 
+ extern "C" {
+-#include <sys/types.h>
+-#include <sys/stat.h>
+-#include <fcntl.h>
+-#include <sys/socket.h>
+ #include <arpa/inet.h>
+-#include <link.h>
+-#include <thread_db.h>
++#include <fcntl.h>
+ #include <libgen.h>
+ #include <limits.h>
++#include <link.h>
++#include <sys/socket.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <thread_db.h>
+ }
+ 
+-#include "sdbg_self_trace.hxx"
+-#include "sdbg_base_symtab.hxx" 
+-#include "sdbg_base_symtab_impl.hxx"
+ #include "sdbg_base_mach.hxx"
+ #include "sdbg_base_mach_impl.hxx"
++#include "sdbg_base_symtab.hxx"
++#include "sdbg_base_symtab_impl.hxx"
+ #include "sdbg_base_tracer.hxx"
++#include "sdbg_self_trace.hxx"
+ 
+ #include "sdbg_base_launchmon.hxx"
+ #include "sdbg_base_launchmon_impl.hxx"
+ #include "sdbg_rm_map.hxx"
+ 
+-#include "sdbg_linux_std.hxx"
+ #include "sdbg_linux_bp.hxx"
+-#include "sdbg_linux_mach.hxx"
+ #include "sdbg_linux_launchmon.hxx"
++#include "sdbg_linux_mach.hxx"
+ #include "sdbg_linux_ptracer.hxx"
+ #include "sdbg_linux_ptracer_impl.hxx"
++#include "sdbg_linux_std.hxx"
+ 
+ #if MEASURE_TRACING_COST
+ static double accum = 0.0;
+@@ -3175,6 +3176,9 @@
+ #elif PPC_ARCHITECTURE
+           thread_base_t<SDBG_LINUX_DFLT_INSTANTIATION> *thrinfo
+             = new linux_ppc_thread_t();
++#elif AARCH64_ARCHITECTURE
++          thread_base_t<SDBG_LINUX_DFLT_INSTANTIATION> *thrinfo
++            = new linux_aarch64_thread_t();
+ #endif
+           thrinfo->copy_thread_info(tinfo);
+           // if the process doesn't contain tid of the given thread,
+--- spack-src/launchmon/src/linux/sdbg_linux_mach.cxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/linux/sdbg_linux_mach.cxx	2020-10-21 11:05:33.491869894 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------
+  *
+  *  Update Log:
++ *        May 02 2018 KMD/ADG: Added aarch64 support
+  *        Sep 02 2010 DHA: Added MPIR_attach_fifo support
+  *        Aug  07 2009 DHA: Added more comments; added exception throwing
+  *                          into linux_<arch>_process_t constructors that
+@@ -45,9 +46,9 @@
+ 
+ #include "sdbg_base_mach.hxx"
+ #include "sdbg_base_mach_impl.hxx"
++#include "sdbg_linux_mach.hxx"
+ #include "sdbg_linux_symtab.hxx"
+ #include "sdbg_linux_symtab_impl.hxx"
+-#include "sdbg_linux_mach.hxx"
+ 
+ 
+ extern "C" {
+@@ -1079,4 +1080,397 @@
+   return true;
+ }
+ 
+-#endif // ARCHITECTURES
++#elif AARCH64_ARCHITECTURE
++
++////////////////////////////////////////////////////////////////////
++//
++// PUBLIC INTERFACES (class linux_aarch64_gpr_set_t)
++//
++//
++
++//! PUBLIC: linux_aarch64_gpr_set_t
++/*!
++    Default constructor.
++*/
++linux_aarch64_gpr_set_t::linux_aarch64_gpr_set_t()
++    : MODULENAME(self_trace_t::self_trace().machine_module_trace.module_name) {
++  // This part of the code may be difficult to read. It was trial and error
++  //   to detemine what registers are writable and what are not.
++  // Mar 11 2008 DHA
++  // If somebody has ABI documentation that describes all of these,
++  // let me know.
++  //
++  unsigned int gpr_writable_mask = 0;
++  int i;
++
++  for (i = 0; i <= 30; ++i) {
++    gpr_writable_mask |= (1 << i);
++  }
++
++  set_user_offset(0);
++  set_writable_mask(gpr_writable_mask);
++
++}  // linux_aarch64_gpr_set_t
++
++//! PUBLIC: linux_aarch64_gpr_set_t
++/*!
++    get_pc
++*/
++const T_VA linux_aarch64_gpr_set_t::get_pc() const {
++  T_GRS gpr = get_native_rs();
++
++  return gpr.pc;
++}
++
++//! PUBLIC: linux_aarch64_gpr_set_t
++/*!
++    get_memloc_for_ret_addr
++*/
++const T_VA linux_aarch64_gpr_set_t::get_ret_addr() const {
++  //
++  // We need to keep track of the "return address"
++  // because that address can result from a single-step
++  // needed for a breakpoint operation.
++  // Essentially, we need to be able to indentify all possible
++  // reasons for a process stop event; otherwise, our
++  // process state transition will cause a BAD thing.
++  //
++  // In the case of Linux AARCH64, according to AARCH64 ABI doc
++  // the Link Register (LR regs[30]) contains that information.
++  //
++  // TODO: This is not always true if the LR is spilled to the
++  // stack to make room for more GP registers. How to determine
++  // this?
++  T_GRS gpr = get_native_rs();
++
++  return gpr.regs[30];
++}
++
++//! PUBLIC: linux_aarch64_gpr_set_t
++/*!
++    get_memloc_for_ret_addr
++*/
++const T_VA linux_aarch64_gpr_set_t::get_memloc_for_ret_addr() const {
++  //
++  // We need to keep track of the "return address"
++  // because that address can result from a single-step
++  // needed for a breakpoint operation.
++  // Essentially, we need to be able to indentify all possible
++  // reasons for a process stop event; otherwise, our
++  // process state transition will cause a BAD thing.
++  //
++  // In this architecture, this information is kepted in
++  // the register set. We simply return T_UNINIT_HEX.
++
++  return T_UNINIT_HEX;
++}
++
++//! PUBLIC: linux_aarch64_gpr_set_t
++/*!
++  set_pc method doesn't actually write value into tho PC register
++  but into its corresponding data strucuture. The user of this method
++  must ensure writing this back into the register.
++*/
++void linux_aarch64_gpr_set_t::set_pc(T_VA addr) { rs.pc = addr; }
++
++////////////////////////////////////////////////////////////////////
++//
++// PUBLIC INTERFACES (class linux_aarch64_fpr_set_t)
++//
++//
++
++//! PUBLIC: linux_aarch64_fpr_set_t
++/*!
++    Default constructor.
++*/
++linux_aarch64_fpr_set_t::linux_aarch64_fpr_set_t()
++    : MODULENAME(self_trace_t::self_trace().machine_module_trace.module_name) {
++  unsigned int fpr_writable_mask = 0xffffffff;
++  set_user_offset(sizeof(T_GRS) + sizeof(int));
++  set_writable_mask(fpr_writable_mask);
++}
++
++////////////////////////////////////////////////////////////////////
++//
++// PUBLIC INTERFACES (class linux_aarch64_thread_t)
++//
++//
++
++//! PUBLIC: linux_aarch64_thread_t
++/*!
++    Default constructor.
++*/
++linux_aarch64_thread_t::linux_aarch64_thread_t()
++    : MODULENAME(self_trace_t::self_trace().machine_module_trace.module_name) {
++  set_gprset(new linux_aarch64_gpr_set_t());
++  set_fprset(new linux_aarch64_fpr_set_t());
++}
++
++linux_aarch64_thread_t::~linux_aarch64_thread_t() {}
++
++//! PUBLIC: linux_aarch64_thread_t
++/*!
++    accessors
++*/
++pid_t linux_aarch64_thread_t::thr2pid() {
++  //
++  // ti_lid is defined by the pthread debug library.
++  // It contains the lightweight process ID (lwp) that
++  // the kernel can understand. For example, passing this
++  // information into the ptrace system call, the kernel
++  // should operate on the thread.
++  //
++  // thr2pid is a misnomer, it should rather be thr2lwp.
++  //
++
++  if (is_master_thread())
++    return (pid_t)get_master_pid();
++  else
++    return (pid_t)get_thread_info().ti_lid;
++}
++
++////////////////////////////////////////////////////////////////////
++//
++// PUBLIC INTERFACES (class linux_aarch64_process_t)
++//
++//
++
++//! PUBLIC: linux_aarch64_process_t
++/*!
++    Default constructor.
++*/
++linux_aarch64_process_t::linux_aarch64_process_t()
++    : MODULENAME(self_trace_t::self_trace().machine_module_trace.module_name) {}
++
++//! PUBLIC: linux_aarch64_process_t
++/*!
++     A constructor.
++*/
++linux_aarch64_process_t::linux_aarch64_process_t(const std::string& mi,
++                                                 const std::string& md,
++                                                 const std::string& mt,
++                                                 const std::string& mc) {
++  basic_init(mi, md, mt, mc);
++}  // linux_aarch64_process_t
++
++//! PUBLIC: linux_aarch64_process_t
++/*!
++    A constructor.
++*/
++linux_aarch64_process_t::linux_aarch64_process_t(const pid_t& pid)
++    : MODULENAME(self_trace_t::self_trace().machine_module_trace.module_name) {
++  using namespace std;
++
++  //
++  // default lwp state is LMON_RM_CREATED
++  //
++  linux_aarch64_thread_t* master_thread = new linux_aarch64_thread_t();
++
++  //
++  // indicating this represents the main thread
++  //
++  master_thread->set_master_thread(true);
++
++  //
++  // pid is lwp pid
++  //
++  master_thread->set_master_pid(pid);
++
++  //
++  // update the thread list
++  //
++  get_thrlist().insert(make_pair((int)pid, master_thread));
++
++  //
++  // TODO: I need to be able to fetch image information
++  // using pid to push it into basic_init.
++  //
++}  // linux_aarch64_process_t
++
++//! PUBLIC: linux_aarch64_process_t
++/*!
++    A constructor: this is the currently recommended constructor
++*/
++linux_aarch64_process_t::linux_aarch64_process_t(const pid_t& pid,
++                                                 const std::string& mi)
++    : MODULENAME(self_trace_t::self_trace().machine_module_trace.module_name) {
++  using namespace std;
++
++  //
++  // Once pid is in place, at least the main thread has already
++  // come into existence
++  //
++
++  //
++  // default lwp state is LMON_RM_CREATED
++  //
++  linux_aarch64_thread_t* master_thread = new linux_aarch64_thread_t();
++
++  //
++  // indicating this represents the main thread
++  //
++  master_thread->set_master_thread(true);
++
++  //
++  // pid is lwp pid
++  //
++  master_thread->set_master_pid(pid);
++
++  //
++  // update the thread list
++  //
++  get_thrlist().insert(make_pair((int)pid, master_thread));
++
++  //
++  // now is the time to initialize my image!
++  //
++  if (!basic_init(mi)) {
++    throw(machine_exception_t("fail to initialize a process"));
++  }
++}  // linux_aarch64_process_t
++
++//! PUBLIC: linux_aarch64_process_t
++/*!
++    A constructor.
++*/
++linux_aarch64_process_t::linux_aarch64_process_t(const pid_t& pid,
++                                                 const std::string& mi,
++                                                 const std::string& md,
++                                                 const std::string& mt,
++                                                 const std::string& mc)
++    : MODULENAME(self_trace_t::self_trace().machine_module_trace.module_name) {
++  using namespace std;
++
++  //
++  // Once pid is in place, at least the main thread has already
++  // come into existence
++  //
++  linux_aarch64_thread_t* master_thread = new linux_aarch64_thread_t();
++
++  master_thread->set_master_thread(true);
++
++  master_thread->set_master_pid(pid);
++
++  get_thrlist().insert(make_pair((int)pid, master_thread));
++
++  //
++  // now is the time to initialize my image!
++  //
++  if (!basic_init(mi)) {
++    throw(machine_exception_t("fail to initialize a process"));
++  }
++}  // linux_aarch64_process_t
++
++//! PRIVATE: linux_aarch64_process_t
++/*!
++    launcher_symbols_init
++*/
++void linux_aarch64_process_t::launcher_symbols_init() {
++  //
++  // symbols relevant to daemon launching
++  //
++  set_launch_breakpoint_sym(LAUNCH_BREAKPOINT);
++  set_launch_being_debug(LAUNCH_BEING_DEBUG);
++  set_launch_debug_state(LAUNCH_DEBUG_STATE);
++  set_launch_debug_gate(LAUNCH_DEBUG_GATE);
++  set_launch_proctable(LAUNCH_PROCTABLE);
++  set_launch_proctable_size(LAUNCH_PROCTABLE_SIZE);
++  set_launch_acquired_premain(LAUNCH_ACQUIRED_PREMAIN);
++  set_launch_exec_path(LAUNCH_EXEC_PATH);
++  set_launch_server_args(LAUNCH_SERVER_ARGS);
++  set_launch_attach_fifo(LAUNCH_ATTACH_FIFO);
++  set_loader_breakpoint_sym(LOADER_BP_SYM);
++  set_loader_r_debug_sym(LOADER_R_DEBUG);
++  set_loader_start_sym(LOADER_START);
++  set_resource_handler_sym(RESOURCE_HANDLER_SYM);
++}
++
++//! PUBLIC: linux_aarch64_process_t
++/*!
++    basic_init
++*/
++bool linux_aarch64_process_t::basic_init(const std::string& mi) {
++  struct stat pathchk;
++
++  //
++  // make sure paths exist
++  //
++  if (stat(mi.c_str(), &pathchk) != 0) {
++    self_trace_t::trace(1, MODULENAME, 1, "Machine: invalid path %s",
++                        mi.c_str());
++
++    return false;
++  }
++
++  set_myimage(new linux_image_t<T_VA>(mi));
++  set_mydynloader_image(new linux_image_t<T_VA>());
++  set_mythread_lib_image(new linux_image_t<T_VA>());
++  set_mylibc_image(new linux_image_t<T_VA>());
++  set_myrmso_image(new linux_image_t<T_VA>());
++
++  if (!protected_init(mi)) {
++    self_trace_t::trace(1, MODULENAME, 1, "Machine: protected_init failed.");
++
++    return false;
++  }
++
++  launcher_symbols_init();
++
++  return true;
++}
++
++//! PUBLIC: linux_aarch64_process_t
++/*!
++    basic_init
++*/
++bool linux_aarch64_process_t::basic_init(const std::string& mi,
++                                         const std::string& md,
++                                         const std::string& mt,
++                                         const std::string& mc) {
++  struct stat pathchk;
++
++  //
++  // make sure paths exist
++  //
++  if (stat(mi.c_str(), &pathchk) != 0) {
++    self_trace_t::trace(1, MODULENAME, 1, "Machine: invalid path %s",
++                        mi.c_str());
++
++    return false;
++  }
++  if (stat(md.c_str(), &pathchk) != 0) {
++    self_trace_t::trace(1, MODULENAME, 1, "Machine: invalid path %s",
++                        md.c_str());
++
++    return false;
++  }
++  if (stat(mt.c_str(), &pathchk) != 0) {
++    self_trace_t::trace(1, MODULENAME, 1, "Machine: invalid path %s",
++                        mt.c_str());
++
++    return false;
++  }
++  if (stat(mc.c_str(), &pathchk) != 0) {
++    self_trace_t::trace(1, MODULENAME, 1, "Machine: invalid path %s",
++                        mc.c_str());
++
++    return false;
++  }
++
++  set_myimage(new linux_image_t<T_VA>(mi));
++  set_mydynloader_image(new linux_image_t<T_VA>(md));
++  set_mythread_lib_image(new linux_image_t<T_VA>(mt));
++  set_mylibc_image(new linux_image_t<T_VA>(mc));
++
++  if (!protected_init(mi, md, mt, mc)) {
++    self_trace_t::trace(1, MODULENAME, 1, "Machine: protected_init failed.");
++
++    return false;
++  }
++
++  launcher_symbols_init();
++
++  return true;
++}
++
++#endif  // AARCH64_ARCHITECTURE
+--- spack-src/launchmon/src/linux/sdbg_linux_mach.hxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/linux/sdbg_linux_mach.hxx	2020-10-21 11:13:33.611857965 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------			
+  *
+  *  Update Log:
++ *        May  02 2018 KMD: Added aarch64 support
+  *        Mar  06 2009 DHA: Remove dynloader_iden
+  *        Mar  11 2008 DHA: Linux PowerPC support 
+  *        Feb  09 2008 DHA: Added LLNS Copyright
+@@ -42,10 +43,10 @@
+ }
+ 
+ #include <string>
+-#include "sdbg_std.hxx"
+ #include "sdbg_base_mach.hxx"
+ #include "sdbg_linux_std.hxx"
+ #include "sdbg_linux_symtab.hxx"
++#include "sdbg_std.hxx"
+ 
+ 
+ #if X86_ARCHITECTURE || X86_64_ARCHITECTURE
+@@ -372,6 +373,166 @@
+   process_base_t<SDBG_LINUX_DFLT_INSTANTIATION>* p;
+ };
+ 
++#elif AARCH64_ARCHITECTURE
++
++//! linux_aarch64_gpr_set_t:
++/*!
++    The class represents linux aarch64 general purpose register set.
++
++    The offset in the USER area is calculated as following.
++    (This is defined in sys/user.h)
++
++    === AARCH64 (64 bit process) ===
++
++    struct user_regs_struct
++    {
++      unsigned long long regs[31];
++      unsigned long long sp;
++      unsigned long long pc;
++      unsigned long long pstate;
++    };
++
++    struct user_fpsimd_struct
++    {
++      __uint128_t  vregs[32];
++      unsigned int fpsr;
++      unsigned int fpcr;
++    };
++
++    General purpose register set resides at the zero offset.
++*/
++
++class linux_aarch64_gpr_set_t : public register_set_base_t<T_GRS, T_VA, T_WT> {
++ public:
++  // constructors and destructor
++  //
++  linux_aarch64_gpr_set_t();
++  virtual ~linux_aarch64_gpr_set_t() {}
++
++  virtual void set_pc(T_VA addr);
++  virtual T_VA const get_pc() const;
++  virtual T_VA const get_ret_addr() const;
++  virtual T_VA const get_memloc_for_ret_addr() const;
++
++ private:
++  bool LEVELCHK(self_trace_verbosity level) {
++    return (self_trace_t::self_trace().tracer_module_trace.verbosity_level >=
++            level);
++  }
++
++  std::string MODULENAME;
++};
++
++//! linux_aarch64_fpr_set_t
++/*!
++    The class represents linux aarch64 general purpose register set.
++
++    The offset in the USER area is calculated as following.
++    (This is defined in sys/user.h)
++
++    === AARCH64 (64 bit process) ===
++
++    struct user_regs_struct
++    {
++      unsigned long long regs[31];
++      unsigned long long sp;
++      unsigned long long pc;
++      unsigned long long pstate;
++    };
++
++    struct user_fpsimd_struct
++    {
++      __uint128_t  vregs[32];
++      unsigned int fpsr;
++      unsigned int fpcr;
++    };
++
++    General purpose register set resides at the zero offset.
++*/
++class linux_aarch64_fpr_set_t : public register_set_base_t<T_FRS, T_VA, T_WT> {
++ public:
++  // constructors and destructor
++  //
++  linux_aarch64_fpr_set_t();
++  virtual ~linux_aarch64_fpr_set_t() {}
++
++ private:
++  bool LEVELCHK(self_trace_verbosity level) {
++    return (self_trace_t::self_trace().tracer_module_trace.verbosity_level >=
++            level);
++  }
++
++  std::string MODULENAME;
++};
++
++//! class linux_aarch64_thread_t:
++/*!
++    linux_aarch64_thread_t is linux AARCH64 implementation of thread_base_t
++    class. The constructor sets register model.
++*/
++class linux_aarch64_thread_t
++    : public thread_base_t<SDBG_LINUX_DFLT_INSTANTIATION> {
++ public:
++  // constructors and destructor
++  //
++  linux_aarch64_thread_t();
++  virtual ~linux_aarch64_thread_t();
++
++  // virtual method to convert thread id to lwp
++  // which the kernel understands
++  virtual pid_t thr2pid();
++
++ private:
++  bool LEVELCHK(self_trace_verbosity level) {
++    return (self_trace_t::self_trace().tracer_module_trace.verbosity_level >=
++            level);
++  }
++
++  std::string MODULENAME;
++};
++
++//! linux_aarch64_process_t:
++/*!
++  linux_aarch64_process_t is AARCH64 implementation of process_base_t
++  class. The constructor sets register model.
++*/
++class linux_aarch64_process_t
++    : public process_base_t<SDBG_LINUX_DFLT_INSTANTIATION> {
++ public:
++  // constructors and destructor
++  //
++  linux_aarch64_process_t();
++  linux_aarch64_process_t(const std::string& mi, const std::string& md,
++                          const std::string& mt, const std::string& mc);
++  linux_aarch64_process_t(const pid_t& pid, const std::string& mi,
++                          const std::string& md, const std::string& mt,
++                          const std::string& mc);
++  linux_aarch64_process_t(const pid_t& pid, const std::string& mi);
++
++  explicit linux_aarch64_process_t(const pid_t& pid);
++  ~linux_aarch64_process_t() {}
++
++ protected:
++  bool basic_init(const std::string& mi, const std::string& md,
++                  const std::string& mt, const std::string& mc);
++
++  bool basic_init(const std::string& mi);
++
++ private:
++  void launcher_symbols_init();
++  bool LEVELCHK(self_trace_verbosity level) {
++    return (self_trace_t::self_trace().tracer_module_trace.verbosity_level >=
++            level);
++  }
++
++  std::string MODULENAME;
++};
++
++// data structure needed by proc service layer
++//
++struct ps_prochandle {
++  process_base_t<SDBG_LINUX_DFLT_INSTANTIATION>* p;
++};
+ 
+ #elif PPC_ARCHITECTURE
+ 
+--- spack-src/launchmon/src/linux/sdbg_linux_ptracer_impl.hxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/linux/sdbg_linux_ptracer_impl.hxx	2020-10-21 11:27:59.251833345 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------			
+  *
+  *  Update Log:
++ *        May 02 2018 KMD/ADG: Added aarch64 support
+  *        Mar 06 2008 DHA: Added indirection Breakpoint support.
+  *                         insert_breakpoint 
+  *                         and pullout_breakpoint method.
+@@ -51,12 +52,15 @@
+ 
+ extern "C" {
+ 
+-#include <syscall.h>
+-#include <unistd.h>
+-#include <sys/types.h>
+-#include <sys/ptrace.h>
++#include <elf.h>
+ #include <errno.h>
+ #include <signal.h>
++#include <sys/ptrace.h>
++#include <sys/types.h>
++#include <sys/uio.h>
++#include <sys/user.h>
++#include <syscall.h>
++#include <unistd.h>
+ }
+ 
+ #include <fstream>
+@@ -102,10 +106,6 @@
+ {
+   using namespace std;
+ 
+-  WT r;
+-  unsigned int i;
+-  unsigned int num_regs;
+-  VA offset;
+   string e;
+   string func = "[linux_ptracer_t::tracer_setregs]";
+   register_set_base_t<GRS,VA,WT> *regset = p.get_gprset(use_cxt);
+@@ -119,8 +119,28 @@
+     }
+ 
+   regset->set_ptr_to_regset();
+-  num_regs = regset->size_in_word();
+-  offset = regset->get_offset_in_user();
++
++#if AARCH64_ARCHITECTURE
++
++  struct iovec iov;
++  int ret;
++
++  iov.iov_base = (void*)regset->get_rs_ptr();
++  iov.iov_len = regset->size();
++
++  // Write all general purpose registers in one go
++  ret = Pptrace(PTRACE_SETREGSET, tpid, (void*)NT_PRSTATUS, (void*)&iov);
++  if (ret < 0) {
++    e = func + ERRMSG_PTRACE + strerror(errno);
++    throw linux_tracer_exception_t(e, convert_error_code(errno));
++  }
++
++#else
++
++  WT r;
++  VA offset = regset->get_offset_in_user();
++  unsigned int num_regs = regset->size_in_word();
++  unsigned int i;
+ 
+   for ( i=0; i < num_regs; i++ ) 
+     {
+@@ -149,6 +169,8 @@
+     offset += sizeof(WT);
+   } // for ( i=0; i < num_regs; i++ )
+ 
++#endif
++
+   return SDBG_TRACE_OK;
+ 
+ } // tracer_error_e linux_ptracer_t::tracer_setregs
+@@ -168,10 +190,6 @@
+ {
+   using namespace std;
+ 
+-  WT r;
+-  unsigned int i;
+-  unsigned int num_regs;
+-  VA offset;
+   string e;
+   string func = "[linux_ptracer_t::tracer_getregs]";
+   register_set_base_t<GRS,VA,WT> *regset = p.get_gprset(use_cxt);
+@@ -185,9 +203,29 @@
+     }
+   
+   regset->set_ptr_to_regset();
+-  num_regs = regset->size_in_word();
+-  offset = regset->get_offset_in_user();
+-  
++
++#if AARCH64_ARCHITECTURE
++
++  struct iovec iov;
++  int ret;
++
++  iov.iov_base = (void*)regset->get_rs_ptr();
++  iov.iov_len = regset->size();
++
++  // Read all general purpose registers in one go
++  ret = Pptrace(PTRACE_GETREGSET, tpid, (void*)NT_PRSTATUS, (void*)&iov);
++  if (ret < 0) {
++    e = func + ERRMSG_PTRACE + strerror(errno);
++    throw linux_tracer_exception_t(e, convert_error_code(errno));
++  }
++
++#else
++
++  WT r;
++  VA offset = regset->get_offset_in_user();
++  unsigned int num_regs = regset->size_in_word();
++  unsigned int i;
++
+   for ( i=0; i < num_regs; i++ ) 
+     {
+ 
+@@ -205,6 +243,8 @@
+ 
+   } // for ( i=0; i < num_regs; i++ )
+ 
++#endif
++
+   return SDBG_TRACE_OK;  
+ 
+ } // tracer_error_e linux_ptracer_t::tracer_getfpregs
+@@ -223,9 +263,6 @@
+ {
+   using namespace std;
+ 
+-  WT r;
+-  int i, num_regs;
+-  VA offset;
+   string e;
+   string func = "[linux_ptracer_t::tracer_getfpregs]";
+   register_set_base_t<FRS,VA,WT>* regset = p.get_fprset(use_cxt);
+@@ -239,9 +276,29 @@
+     }   
+ 
+   regset->set_ptr_to_regset();
+-  num_regs = regset->size_in_word();
+-  offset = regset->get_offset_in_user();
+- 
++
++#if AARCH64_ARCHITECTURE
++
++  struct iovec iov;
++  int ret;
++
++  iov.iov_base = (void*)regset->get_rs_ptr();
++  iov.iov_len = regset->size();
++
++  // Read all floating point registers in one go
++  ret = Pptrace(PTRACE_GETREGSET, tpid, (void*)NT_FPREGSET, (void*)&iov);
++  if (ret < 0) {
++    e = func + ERRMSG_PTRACE + strerror(errno);
++    throw linux_tracer_exception_t(e, convert_error_code(errno));
++  }
++
++#else
++
++  WT r;
++  VA offset = regset->get_offset_in_user();
++  unsigned int num_regs = regset->size_in_word();
++  unsigned int i;
++
+   for ( i=0; i < num_regs; i++ ) 
+     {
+ 
+@@ -258,6 +315,8 @@
+       offset += sizeof(WT);
+     }
+ 
++#endif
++
+   return SDBG_TRACE_OK;  
+  
+ } // tracer_error_e linux_ptracer_t::tracer_getfpregs
+--- spack-src/launchmon/src/linux/sdbg_linux_std.hxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/linux/sdbg_linux_std.hxx	2020-10-27 16:44:38.202365256 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------			
+  *
+  *  Update Log:
++ *        May  02 2018 KMD: Added aarch64 support 
+  *        Sep 02 2010 DHA: Added MPIR_attach_fifo support
+  *        Dec  16 2009 DHA: Moved backtrace support with C++ demangling here
+  *        Aug  10 2009 DHA: Added more comments
+@@ -47,8 +48,8 @@
+ #include <stddef.h>
+ }
+ 
+-#include <string>
+ #include <cxxabi.h> /* picking up demangling service */
++#include <string>
+ 
+ //! LAUNCH_BREAKPOINT:
+ /*!
+@@ -230,6 +231,27 @@
+   return true;
+ }
+ 
++// The register and fp register structures are defined differently on
++// various levels of linux. This sets the appropriate struct based on
++// configure checks.
++#if X86_ARCHITECTURE || X86_64_ARCHITECTURE || AARCH64_ARCHITECTURE
++#if defined(HAVE_STRUCT_USER_REGS_STRUCT)
++#define SDBG_LINUX_REGS_STRUCT struct user_regs_struct
++#elif defined(HAVE_STRUCT_USER_PT_REGS)
++#define SDBG_LINUX_REGS_STRUCT struct user_pt_regs
++#else
++#error Missing required definition from <sys/user.h> for cpu registers!
++#endif
++#if defined(HAVE_STRUCT_USER_FPREGS_STRUCT)
++#define SDBG_LINUX_FPREGS_STRUCT struct user_fpregs_struct
++#elif defined(HAVE_STRUCT_USER_FPSIMD_STRUCT)
++#define SDBG_LINUX_FPREGS_STRUCT struct user_fpsimd_struct
++#elif defined(HAVE_STRUCT_USER_FPSIMD_STATE)
++#define SDBG_LINUX_FPREGS_STRUCT struct user_fpsimd_state
++#else
++#error Missing required definition from <sys/user.h> for floating point registers!
++#endif
++#endif
+ 
+ #if X86_ARCHITECTURE
+ 
+@@ -308,6 +330,47 @@
+                                       my_thrinfo_t,\
+                                       elf_wrapper
+ 
++#elif AARCH64_ARCHITECTURE
++
++//
++//
++// insert linux AARCH64 architecture macros here ...
++//
++//
++//
++
++#if BIT64
++//
++// if the target is 64 bit, use the following
++//
++typedef u_int64_t T_VA;
++typedef u_int64_t T_WT;
++typedef u_int32_t T_IT;
++typedef SDBG_LINUX_REGS_STRUCT T_GRS;
++typedef SDBG_LINUX_FPREGS_STRUCT T_FRS;
++const T_IT T_TRAP_INSTRUCTION = 0x00000000d4200000;
++const T_IT T_BLEND_MASK = 0xffffffff00000000;
++const T_IT IT_UNINIT_HEX = 0xdeadbeefdeadbeefULL;
++const T_VA T_UNINIT_HEX = 0xdeadbeefdeadbeef;
++#else
++// 32 bit arm is untested...
++#error 32-bit target is not supported for the ARM architecture
++//
++// if the target is 32 bit, use the following
++//
++typedef u_int32_t T_VA;
++typedef u_int32_t T_WT;
++typedef u_int32_t T_IT;
++typedef SDBG_LINUX_REGS_STRUCT T_GRS;
++typedef SDBG_LINUX_FPREGS_STRUCT T_FRS;
++const T_IT T_TRAP_INSTRUCTION = 0xd4200000;
++const T_IT T_BLEND_MASK = 0x00000000;
++const T_IT IT_UNINIT_HEX = 0xdeadbeef;
++const T_VA T_UNINIT_HEX = 0xdeadbeef;
++#endif  // BIT64
++
++#define SDBG_LINUX_DFLT_INSTANTIATION \
++  T_VA, T_WT, T_IT, T_GRS, T_FRS, my_thrinfo_t, elf_wrapper
+ 
+ #elif PPC_ARCHITECTURE
+ 
+--- spack-src/launchmon/src/linux/sdbg_proc_service.cxx.bak	2016-05-24 12:11:41.000000000 +0900
++++ spack-src/launchmon/src/linux/sdbg_proc_service.cxx	2020-10-21 11:38:27.761815829 +0900
+@@ -26,6 +26,7 @@
+  *--------------------------------------------------------------------------------			
+  *
+  *  Update Log:
++ *        May  02 2018 KMD: Added aarch64 support
+  *        Mar  11 2008 DHA: Added PowerPC support
+  *        Feb  09 2008 DHA: Added LLNS Copyright
+  *        Jul  18 2006 DHA: Initial Linux PPC (BG/L) port 
+@@ -47,14 +48,13 @@
+ #error This source file requires a LINUX OS
+ #endif
+  
+-
+-#include "sdbg_proc_service.hxx"
+-#include "sdbg_linux_std.hxx"
+-#include "sdbg_linux_ptracer.hxx"
+-#include "sdbg_linux_ptracer_impl.hxx"
+ #include "sdbg_base_mach.hxx"
+ #include "sdbg_base_mach_impl.hxx"
+ #include "sdbg_linux_mach.hxx"
++#include "sdbg_linux_ptracer.hxx"
++#include "sdbg_linux_ptracer_impl.hxx"
++#include "sdbg_linux_std.hxx"
++#include "sdbg_proc_service.hxx"
+ 
+ extern "C" {
+ #include <libgen.h>
+@@ -81,7 +81,7 @@
+   unsigned int empty:25;
+ };
+ 
+-#elif X86_64_ARCHITECTURE
++#elif X86_64_ARCHITECTURE || AARCH64_ARCHITECTURE
+ 
+ #ifndef PTRACE_ARCH_PRCTL
+ #define PTRACE_ARCH_PRCTL       30    /* arch_prctl for child */
+@@ -347,7 +347,7 @@
+ 
+   *addr = (psaddr_t) (tsd_desc.base_addr);
+ 
+-#elif X86_64_ARCHITECTURE
++#elif X86_64_ARCHITECTURE || AARCH64_ARCHITECTURE
+   /*
+    * How to fetch thread-specific area for x86-64/linux
+    *

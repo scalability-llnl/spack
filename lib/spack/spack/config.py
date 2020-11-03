@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 """This module implements Spack's configuration file handling.
 
 This implements Spack's configuration system, which handles merging
@@ -29,9 +28,9 @@ When read in, Spack validates configurations with jsonschemas.  The
 schemas are in submodules of :py:mod:`spack.schema`.
 
 """
-
 import collections
 import copy
+import functools
 import os
 import re
 import sys
@@ -157,7 +156,7 @@ class ConfigScope(object):
             self.sections[section] = data
         return self.sections[section]
 
-    def write_section(self, section):
+    def _write_section(self, section):
         filename = self.get_section_filename(section)
         data = self.get_section(section)
 
@@ -253,7 +252,7 @@ class SingleFileScope(ConfigScope):
                 self.sections[section_key] = {section_key: data}
         return self.sections.get(section, None)
 
-    def write_section(self, section):
+    def _write_section(self, section):
         data_to_write = self._raw_data
 
         # If there is no existing data, this section SingleFileScope has never
@@ -305,7 +304,7 @@ class ImmutableConfigScope(ConfigScope):
     This is used for ConfigScopes passed on the command line.
     """
 
-    def write_section(self, section):
+    def _write_section(self, section):
         raise ConfigError("Cannot write to immutable scope %s" % self)
 
     def __repr__(self):
@@ -341,7 +340,7 @@ class InternalConfigScope(ConfigScope):
             self.sections[section] = None
         return self.sections[section]
 
-    def write_section(self, section):
+    def _write_section(self, section):
         """This only validates, as the data is already in memory."""
         data = self.get_section(section)
         if data is not None:
@@ -371,6 +370,18 @@ class InternalConfigScope(ConfigScope):
         return result
 
 
+def _config_mutator(method):
+    """Decorator to mark all the methods in the Configuration class
+    that mutate the underlying configuration. Used to clear the
+    memoization cache.
+    """
+    @functools.wraps(method)
+    def _method(self, *args, **kwargs):
+        self._get_config_memoized.cache.clear()
+        return method(self, *args, **kwargs)
+    return _method
+
+
 class Configuration(object):
     """A full Spack configuration, from a hierarchy of config files.
 
@@ -390,6 +401,7 @@ class Configuration(object):
             self.push_scope(scope)
         self.format_updates = collections.defaultdict(list)
 
+    @_config_mutator
     def push_scope(self, scope):
         """Add a higher precedence scope to the Configuration."""
         cmd_line_scope = None
@@ -404,11 +416,13 @@ class Configuration(object):
         if cmd_line_scope:
             self.scopes['command_line'] = cmd_line_scope
 
+    @_config_mutator
     def pop_scope(self):
         """Remove the highest precedence scope and return it."""
         name, scope = self.scopes.popitem(last=True)
         return scope
 
+    @_config_mutator
     def remove_scope(self, scope_name):
         return self.scopes.pop(scope_name)
 
@@ -472,6 +486,7 @@ class Configuration(object):
         scope = self._validate_scope(scope)
         return scope.get_section_filename(section)
 
+    @_config_mutator
     def clear_caches(self):
         """Clears the caches for configuration files,
 
@@ -479,6 +494,7 @@ class Configuration(object):
         for scope in self.scopes.values():
             scope.clear()
 
+    @_config_mutator
     def update_config(self, section, update_data, scope=None, force=False):
         """Update the configuration file for a particular scope.
 
@@ -526,7 +542,7 @@ class Configuration(object):
                     yaml.comments.Comment.attrib,
                     comments)
 
-        scope.write_section(section)
+        scope._write_section(section)
 
     def get_config(self, section, scope=None):
         """Get configuration settings for a section.
@@ -552,6 +568,10 @@ class Configuration(object):
            }
 
         """
+        return self._get_config_memoized(section, scope)
+
+    @llnl.util.lang.memoized
+    def _get_config_memoized(self, section, scope):
         _validate_section_name(section)
 
         if scope is None:
@@ -619,6 +639,7 @@ class Configuration(object):
 
         return value
 
+    @_config_mutator
     def set(self, path, value, scope=None):
         """Convenience function for setting single values in config files.
 
@@ -782,6 +803,22 @@ def _config():
 
 #: This is the singleton configuration instance for Spack.
 config = llnl.util.lang.Singleton(_config)
+
+
+def replace_config(configuration):
+    """Replace the current global configuration with the instance passed as
+    argument.
+
+    Args:
+        configuration (Configuration): the new configuration to be used.
+
+    Returns:
+        The old configuration that has been removed
+    """
+    global config
+    config.clear_caches(), configuration.clear_caches()
+    old_config, config = config, configuration
+    return old_config
 
 
 def get(path, default=None, scope=None):

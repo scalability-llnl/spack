@@ -1,0 +1,13 @@
+diff --git a/libpyclingo/pyclingo.cc b/libpyclingo/pyclingo.cc
+index 9480203..6a7068c 100644
+--- a/libpyclingo/pyclingo.cc
++++ b/libpyclingo/pyclingo.cc
+@@ -1177,7 +1177,7 @@ PyTypeObject ObjectBase<T>::type = {
+     sizeof(T),                                  // tp_basicsize
+     0,                                          // tp_itemsize
+     PythonDetail::Get_tp_dealloc<T>::value,     // tp_dealloc
+-    nullptr,                                    // tp_print
++    0,                                          // tp_print
+     nullptr,                                    // tp_getattr
+     nullptr,                                    // tp_setattr
+     nullptr,                                    // tp_compare

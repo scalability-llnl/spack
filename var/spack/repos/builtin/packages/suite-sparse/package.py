@@ -148,6 +148,13 @@ class SuiteSparse(Package):
         make_args.append('INSTALL=%s' % prefix)
         make('install', *make_args)
 
+    @run_after('install')
+    def fix_darwin_install(self):
+        # The shared libraries are not installed correctly on Darwin:
+        # See https://github.com/DrTimothyAldenDavis/SuiteSparse/issues/42
+        if '+pic platform=darwin' in self.spec:
+            fix_darwin_install_name(self.spec.prefix.lib)
+
     @property
     def libs(self):
         """Export the libraries of SuiteSparse.

@@ -2,11 +2,12 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import platform
+
+import archspec.cpu
+
 from spack.architecture import Platform, Target
 from spack.operating_systems.linux_distro import LinuxDistro
-import llnl.util.cpu as cpu
 
 
 class Linux(Platform):
@@ -15,11 +16,11 @@ class Linux(Platform):
     def __init__(self):
         super(Linux, self).__init__('linux')
 
-        for name in cpu.targets:
+        for name in archspec.cpu.TARGETS:
             self.add_target(name, Target(name))
 
         # Get specific default
-        self.default = cpu.host().name
+        self.default = archspec.cpu.host().name
         self.front_end = self.default
         self.back_end = self.default
 

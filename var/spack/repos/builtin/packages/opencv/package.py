@@ -2,10 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-
-
 class Opencv(CMakePackage, CudaPackage):
     """OpenCV is released under a BSD license and hence it's free for both
     academic and commercial use. It has C++, C, Python and Java interfaces and
@@ -151,8 +147,8 @@ class Opencv(CMakePackage, CudaPackage):
     # TODO For Cuda >= 10, make sure 'dynlink_nvcuvid.h' or 'nvcuvid.h'
     # exists, otherwise build will fail
     # See https://github.com/opencv/opencv_contrib/issues/1786
-    conflicts('cuda@10:', when='+cudacodec')
-    conflicts('cuda', when='~contrib', msg='cuda support requires +contrib')
+    conflicts('^cuda@10:', when='+cudacodec')
+    conflicts('^cuda', when='~contrib', msg='cuda support requires +contrib')
 
     # IPP is provided x86_64 only
     conflicts('+ipp', when="arch=aarch64:")

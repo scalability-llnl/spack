@@ -262,7 +262,7 @@ class Root(CMakePackage):
     conflicts('%gcc@9.0.0:', when='@:6.11.99')
 
     # ROOT <6.14 was incompatible with Python 3.7+
-    conflicts('python@3.7:', when='@:6.13.99 +python')
+    conflicts('^python@3.7:', when='@:6.13.99 +python')
 
     # See README.md
     conflicts('+http',
@@ -275,179 +275,173 @@ class Root(CMakePackage):
     conflicts('cxxstd=11', when='+root7', msg='root7 requires at least C++14')
 
     # Feature removed in 6.18:
-    [(conflicts('+{0}'.format(pkg), when='@6.18.00:',
-                msg='Obsolete option +{0} selected.'.format(pkg))) for pkg in
-     ('memstat', 'qt4', 'table')]
+    for pkg in ('memstat', 'qt4', 'table'):
+        conflicts('+' + pkg, when='@6.18.00:',
+                  msg='Obsolete option +{0} selected.'.format(pkg))
 
     def cmake_args(self):
         spec = self.spec
+        define = self.define
+        define_from_variant = self.define_from_variant
+        options = []
 
         # ###################### Boolean Options ######################
         # For option list format see _process_opts(), below.
 
         # Options controlling gross build / config behavior.
-        control_opts\
-            = [
-                ['cxxmodules', False],
-                ['exceptions', True],
-                ['explicitlink', True],
-                ['fail-on-missing', True],
-                ['fortran'],
-                ['gminimal'],
-                ['gnuinstall', False],
-                ['libcxx', False],
-                ['pch', True],
-                ['roottest', False],
-                ['rpath'],
-                ['runtime_cxxmodules', False],
-                ['shared', True],
-                ['soversion', True],
-                ['testing', self.run_tests],
-                ['thread', 'threads']
-            ]
+        options += [
+            define('cxxmodules', False),
+            define('exceptions', True),
+            define('explicitlink', True),
+            define('fail-on-missing', True),
+            define_from_variant('fortran'),
+            define_from_variant('gminimal'),
+            define('gnuinstall', False),
+            define('libcxx', False),
+            define('pch', True),
+            define('roottest', False),
+            define_from_variant('rpath'),
+            define('runtime_cxxmodules', False),
+            define('shared', True),
+            define('soversion', True),
+            define('testing', self.run_tests),
+            define_from_variant('thread', 'threads')
+        ]
 
         # Options related to ROOT's ability to download and build its own
         # dependencies. Per Spack convention, this should generally be avoided.
-        builtin_opts\
-            = [
-                ['builtin_afterimage', True],
-                ['builtin_cfitsio', False],
-                ['builtin_davix', False],
-                ['builtin_fftw3', False],
-                ['builtin_freetype', False],
-                ['builtin_ftgl', False],
-                ['builtin_gl2ps', False],
-                ['builtin_glew', False],
-                ['builtin_gsl', False],
-                ['builtin_llvm', True],
-                ['builtin_lz4', self.spec.satisfies('@6.12.02:6.12.99')],
-                ['builtin_lzma', False],
-                ['builtin_openssl', False],
-                ['builtin_pcre', False],
-                ['builtin_tbb', False],
-                ['builtin_unuran', False],
-                ['builtin_vc', False],
-                ['builtin_vdt', False],
-                ['builtin_veccore', False],
-                ['builtin_xrootd', False],
-                ['builtin_xxhash', self.spec.satisfies('@6.12.02:6.12.99')],
-                ['builtin_zlib', False]
-            ]
+        options += [
+            define('builtin_afterimage', True),
+            define('builtin_cfitsio', False),
+            define('builtin_davix', False),
+            define('builtin_fftw3', False),
+            define('builtin_freetype', False),
+            define('builtin_ftgl', False),
+            define('builtin_gl2ps', False),
+            define('builtin_glew', False),
+            define('builtin_gsl', False),
+            define('builtin_llvm', True),
+            define('builtin_lz4', self.spec.satisfies('@6.12.02:6.12.99')),
+            define('builtin_lzma', False),
+            define('builtin_openssl', False),
+            define('builtin_pcre', False),
+            define('builtin_tbb', False),
+            define('builtin_unuran', False),
+            define('builtin_vc', False),
+            define('builtin_vdt', False),
+            define('builtin_veccore', False),
+            define('builtin_xrootd', False),
+            define('builtin_xxhash', self.spec.satisfies('@6.12.02:6.12.99')),
+            define('builtin_zlib', False)
+        ]
 
         # Features
-        feature_opts\
-            = [
-                ['afdsmrgd', False],
-                ['afs', False],
-                ['alien', False],
-                ['arrow', False],
-                ['asimage', True],
-                ['astiff', True],
-                ['bonjour', False],
-                ['castor', False],
-                ['ccache', False],
-                ['chirp', False],
-                ['cling', True],
-                ['cocoa', 'aqua'],
-                ['dataframe', True],
-                ['davix'],
-                ['dcache', False],
-                ['fftw3', 'fftw'],
-                ['fitsio', 'fits'],
-                ['ftgl', 'opengl'],
-                ['gdml'],
-                ['genvector', 'math'],
-                ['geocad', False],
-                ['gfal', False],
-                ['gl2ps', 'opengl'],
-                ['glite', False],
-                ['globus', False],
-                ['gsl_shared', 'gsl'],
-                ['gviz', 'graphviz'],
-                ['hdfs', False],
-                ['http'],  # See conflicts
-                ['imt', 'tbb'],
-                ['jemalloc'],
-                ['krb5', False],
-                ['ldap', False],
-                ['mathmore', 'math'],
-                ['memstat'],  # See conflicts
-                ['minimal'],
-                ['minuit'],
-                ['minuit2', 'minuit'],
-                ['mlp'],
-                ['monalisa', False],
-                ['mysql'],
-                ['odbc'],
-                ['opengl'],
-                ['oracle', False],
-                ['pgsql', 'postgres'],
-                ['pythia6'],
-                ['pythia8'],
-                ['qt', 'qt4'],  # See conflicts
-                ['qtgsi', 'qt4'],  # See conflicts
-                ['r', 'r'],
-                ['rfio', False],
-                ['roofit'],
-                ['root7'],  # See conflicts
-                ['ruby', False],
-                ['sapdb', False],
-                ['shadowpw', 'shadow'],
-                ['sqlite'],
-                ['srp', False],
-                ['ssl'],
-                ['table'],
-                ['tbb'],
-                ['tcmalloc', False],
-                ['tmva'],
-                ['unuran'],
-                ['vc'],
-                ['vdt'],
-                ['veccore'],
-                ['vmc'],
-                ['webui', 'root7'],  # requires root7
-                ['x11', 'x'],
-                ['xft', 'x'],
-                ['xml'],
-                ['xrootd']
-            ]
-
-        options = self._process_opts(control_opts, builtin_opts, feature_opts)
+        options += [
+            define('afdsmrgd', False),
+            define('afs', False),
+            define('alien', False),
+            define('arrow', False),
+            define('asimage', True),
+            define('astiff', True),
+            define('bonjour', False),
+            define('castor', False),
+            define('ccache', False),
+            define('chirp', False),
+            define('cling', True),
+            define_from_variant('cocoa', 'aqua'),
+            define('dataframe', True),
+            define_from_variant('davix'),
+            define('dcache', False),
+            define_from_variant('fftw3', 'fftw'),
+            define_from_variant('fitsio', 'fits'),
+            define_from_variant('ftgl', 'opengl'),
+            define_from_variant('gdml'),
+            define_from_variant('genvector', 'math'),
+            define('geocad', False),
+            define('gfal', False),
+            define_from_variant('gl2ps', 'opengl'),
+            define('glite', False),
+            define('globus', False),
+            define_from_variant('gsl_shared', 'gsl'),
+            define_from_variant('gviz', 'graphviz'),
+            define('hdfs', False),
+            define_from_variant('http'),  # See conflicts
+            define_from_variant('imt', 'tbb'),
+            define_from_variant('jemalloc'),
+            define('krb5', False),
+            define('ldap', False),
+            define_from_variant('mathmore', 'math'),
+            define_from_variant('memstat'),  # See conflicts
+            define('minimal', False),
+            define_from_variant('minuit'),
+            define_from_variant('minuit2', 'minuit'),
+            define_from_variant('mlp'),
+            define('monalisa', False),
+            define_from_variant('mysql'),
+            define('odbc', False),
+            define_from_variant('opengl'),
+            define('oracle', False),
+            define_from_variant('pgsql', 'postgres'),
+            define_from_variant('pythia6'),
+            define_from_variant('pythia8'),
+            define_from_variant('qt', 'qt4'),  # See conflicts
+            define_from_variant('qtgsi', 'qt4'),  # See conflicts
+            define_from_variant('r'),
+            define('rfio', False),
+            define('roofit', False),
+            define_from_variant('root7'),  # See conflicts
+            define('ruby', False),
+            define('sapdb', False),
+            define_from_variant('shadowpw', 'shadow'),
+            define_from_variant('sqlite'),
+            define('srp', False),
+            define_from_variant('ssl'),
+            define_from_variant('table'),
+            define_from_variant('tbb'),
+            define('tcmalloc', False),
+            define_from_variant('tmva'),
+            define_from_variant('unuran'),
+            define_from_variant('vc'),
+            define_from_variant('vdt'),
+            define('veccore', False),
+            define_from_variant('vmc'),
+            define_from_variant('webui', 'root7'),  # requires root7
+            define_from_variant('x11', 'x'),
+            define_from_variant('xft', 'x'),
+            define_from_variant('xml'),
+            define_from_variant('xrootd')
+        ]
 
         # Some special features
         if self.spec.satisfies('@6.20:'):
-            options.append(self.define_from_variant('pyroot', 'python'))
+            options.append(define_from_variant('pyroot', 'python'))
         else:
-            options.append(self.define_from_variant('python'))
+            options.append(define_from_variant('python'))
 
         # #################### Compiler options ####################
 
-        if sys.platform == 'darwin':
-            if self.compiler.cc == 'gcc':
-                options.extend([
-                    '-DCMAKE_C_FLAGS=-D__builtin_unreachable=__builtin_trap',
-                    '-DCMAKE_CXX_FLAGS=-D__builtin_unreachable=__builtin_trap',
-                ])
+        if sys.platform == 'darwin' and self.compiler.cc == 'gcc':
+            cflags = '-D__builtin_unreachable=__builtin_trap'
+            options.extend([
+                define('CMAKE_C_FLAGS', cflags),
+                define('CMAKE_CXX_FLAGS', cflags),
+            ])
 
         # Method for selecting C++ standard depends on ROOT version
-        options.append(('-DCMAKE_CXX_STANDARD={0}' if
-                        self.spec.satisfies('@6.18.00:') else
-                        '-Dcxx{0}:BOOL=ON').format
-                       (self.spec.variants['cxxstd'].value))
-
-        if 'mysql-client' in self.spec:
-            options.append('-DCMAKE_PROGRAM_PATH={0}'.format(
-                self.spec['mysql-client'].prefix.bin))
+        if self.spec.satisfies('@6.18.00:'):
+            options.append(define_from_variant('CMAKE_CXX_STANDARD', 'cxxstd'))
+        else:
+            options.append(define('cxx' + self.spec.variants['cxxstd'].value,
+                                  True))
 
         if '+x+opengl' in self.spec:
-            options.append('-DFTGL_ROOT_DIR={0}'.format(
-                self.spec['ftgl'].prefix))
-            options.append('-DFTGL_INCLUDE_DIR={0}'.format(
-                self.spec['ftgl'].prefix.include))
-        # see https://github.com/spack/spack/pull/11579
+            ftgl_prefix = self.spec('ftgl').prefix
+            options.append(define('FTGL_ROOT_DIR', ftgl_prefix))
+            options.append(define('FTGL_INCLUDE_DIR', ftgl_prefix.include))
         if '+python' in self.spec:
-            options.append('-DPYTHON_EXECUTABLE=%s' %
-                           spec['python'].command.path)
+            # See https://github.com/spack/spack/pull/11579
+            options.append(define('PYTHON_EXECUTABLE',
+                                  spec['python'].command.path))
 
         return options
 
@@ -496,8 +490,7 @@ class Root(CMakePackage):
         env.set('ROOT_VERSION', 'v{0}'.format(self.version.up_to(1)))
         env.prepend_path('PYTHONPATH', self.prefix.lib)
         env.prepend_path('PATH', self.prefix.bin)
-        env.append_path('CMAKE_MODULE_PATH', '{0}/cmake'
-                        .format(self.prefix))
+        env.append_path('CMAKE_MODULE_PATH', self.prefix.cmake)
         if "+rpath" not in self.spec:
             env.prepend_path('LD_LIBRARY_PATH', self.prefix.lib)
 
@@ -508,24 +501,3 @@ class Root(CMakePackage):
         env.prepend_path('PATH', self.prefix.bin)
         if "+rpath" not in self.spec:
             env.prepend_path('LD_LIBRARY_PATH', self.prefix.lib)
-
-    def _process_opts(self, *opt_lists):
-        """Process all provided boolean option lists into CMake arguments.
-
-        Args:
-            opt_list (list): list of elements, each of which is a list:
-                    <cmake-option>[, <bool-or-controlling-variant-name>]
-                The optional element in each sub-list defaults to
-                <cmake-option> if ommited.
-        """
-
-        def _process_opt(opt_name, cond_or_variant=None):
-            val = cond_or_variant if \
-                isinstance(cond_or_variant, bool) else \
-                ('+{variant}'.format(variant=cond_or_variant or opt_name)
-                 in self.spec)
-            return '-D{opt}:BOOL={val}'.format(opt=opt_name, val='ON' if
-                                               val else 'OFF')
-
-        return [_process_opt(*opt_info) for opt_list in opt_lists for
-                opt_info in opt_list]

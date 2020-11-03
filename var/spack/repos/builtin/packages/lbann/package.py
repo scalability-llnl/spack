@@ -20,6 +20,7 @@ class Lbann(CMakePackage, CudaPackage):
     maintainers = ['bvanessen']
 
     version('develop', branch='develop')
+    version('0.101', sha256='69d3fe000a88a448dc4f7e263bcb342c34a177bd9744153654528cd86335a1f7')
     version('0.100', sha256='d1bab4fb6f1b80ae83a7286cc536a32830890f6e5b0c3107a17c2600d0796912')
     version('0.99',   sha256='3358d44f1bc894321ce07d733afdf6cb7de39c33e3852d73c9f31f530175b7cd')
     version('0.98.1', sha256='9a2da8f41cd8bf17d1845edf9de6d60f781204ebd37bffba96d8872036c10c66')
@@ -33,7 +34,6 @@ class Lbann(CMakePackage, CudaPackage):
     version('0.92', sha256='9187c5bcbc562c2828fe619d53884ab80afb1bcd627a817edb935b80affe7b84')
     version('0.91', sha256='b69f470829f434f266119a33695592f74802cff4b76b37022db00ab32de322f5')
 
-    variant('nccl', default=False, description='Builds with support for NCCL communication lib')
     variant('opencv', default=True, description='Builds with support for image processing routines with OpenCV')
     variant('seq_init', default=False, description='Force serial initialization of weight matrices.')
     variant('dtype', default='float',
@@ -46,6 +46,14 @@ class Lbann(CMakePackage, CudaPackage):
     variant('conduit', default=True,
             description='Builds with support for Conduit Library '
             '(note that for v0.99 conduit is required)')
+    variant('half', default=False,
+            description='Builds with support for FP16 precision data types')
+    variant('dihydrogen', default=False,
+            description='Builds with support for DiHydrogen Tensor Library')
+    variant('distconv', default=False,
+            description='Builds with support for spatial, filter, or channel '
+            'distributed convolutions')
+
     variant('vtune', default=False, description='Builds with support for Intel VTune')
     variant('docs', default=False, description='Builds with support for building documentation')
     variant('extras', default=False, description='Add python modules for LBANN related tools')
@@ -54,57 +62,68 @@ class Lbann(CMakePackage, CudaPackage):
 
     depends_on('cmake@3.16.0:', type='build')
 
-    # It seems that there is a need for one statement per version bounds
-    depends_on('hydrogen +openmp_blas +shared +int64', when='@:0.90,0.95: ~al')
-    depends_on('hydrogen +openmp_blas +shared +int64 +al', when='@:0.90,0.95: +al')
+    # Specify the correct versions of Hydrogen
+    depends_on('hydrogen@:1.3.4', when='@0.95:0.100')
+    depends_on('hydrogen@1.4.0:1.4.99', when='@0.101:0.101.99')
+    depends_on('hydrogen@1.5.0:', when='@:0.90,0.102:')
 
-    depends_on('hydrogen +openmp_blas +shared +int64 build_type=Debug',
-               when='build_type=Debug @:0.90,0.95: ~al')
-    depends_on('hydrogen +openmp_blas +shared +int64 build_type=Debug +al',
-               when='build_type=Debug @:0.90,0.95: +al')
-
-    depends_on('hydrogen +openmp_blas +shared +int64 +cuda',
-               when='+gpu @:0.90,0.95: ~al')
-    depends_on('hydrogen +openmp_blas +shared +int64 +cuda +al',
-               when='+gpu @:0.90,0.95: +al')
-
-    depends_on('hydrogen +openmp_blas +shared +int64 +cuda build_type=Debug',
-               when='build_type=Debug @:0.90,0.95: +gpu')
-    depends_on('hydrogen +openmp_blas +shared +int64 +cuda build_type=Debug +al',
-               when='build_type=Debug @:0.90,0.95: +gpu +al')
+    # Add Hydrogen variants
+    depends_on('hydrogen +openmp_blas +shared +int64')
+    depends_on('hydrogen +al', when='+al')
+    depends_on('hydrogen +cuda', when='+cuda')
+    depends_on('hydrogen +half', when='+half')
+    depends_on('hydrogen build_type=Debug', when='build_type=Debug')
 
     # Older versions depended on Elemental not Hydrogen
     depends_on('elemental +openmp_blas +shared +int64', when='@0.91:0.94')
     depends_on('elemental +openmp_blas +shared +int64 build_type=Debug',
                when='build_type=Debug @0.91:0.94')
 
-    depends_on('aluminum', when='@:0.90,0.95: +al ~gpu')
-    depends_on('aluminum +cuda +ht', when='@:0.90,0.95: +al +cuda ~nccl')
-    depends_on('aluminum +cuda +nccl +ht', when='@:0.90,0.95: +al +cuda +nccl')
+    # Specify the correct version of Aluminum
+    depends_on('aluminum@:0.3.99', when='@0.95:0.100 +al')
+    depends_on('aluminum@0.4:0.4.99', when='@0.101:0.101.99 +al')
+    depends_on('aluminum@0.5:', when='@:0.90,0.102: +al')
 
-    depends_on('cudnn', when='+cuda')
+    # Add Aluminum variants
+    depends_on('aluminum +cuda +nccl +ht +cuda_rma', when='+al +cuda')
+
+    depends_on('dihydrogen +openmp', when='+dihydrogen')
+    depends_on('dihydrogen +cuda', when='+dihydrogen +cuda')
+    depends_on('dihydrogen +al', when='+dihydrogen +al')
+    depends_on('dihydrogen +legacy +cuda', when='+distconv')
+    depends_on('dihydrogen +half', when='+dihydrogen +half')
+    depends_on('dihydrogen@0.1', when='@0.101:0.101.99 +dihydrogen')
+    depends_on('dihydrogen@:0.0,0.2:', when='@:0.90,0.102: +dihydrogen')
+    conflicts('~dihydrogen', when='+distconv')
+
+    depends_on('cudnn', when='@0.90:0.100.99 +cuda')
+    depends_on('cudnn@8.0.2:', when='@:0.90,0.101: +cuda')
     depends_on('cub', when='@0.94:0.98.2 +cuda')
     depends_on('mpi')
-    depends_on('hwloc')
+    depends_on('hwloc@2.0:')
+
+    depends_on('half', when='+half')
 
     # LBANN wraps OpenCV calls in OpenMP parallel loops, build without OpenMP
     # Additionally disable video related options, they incorrectly link in a
     # bad OpenMP library when building with clang or Intel compilers
-    # Note that for Power systems we want the environment to add  +powerpc +vsx
-    depends_on('opencv@3.2.0: +core +highgui +imgproc +jpeg +png +tiff +zlib '
-               '+fast-math ~calib3d ~cuda ~dnn ~eigen'
+    depends_on('opencv@4.1.0: build_type=RelWithDebInfo +core +highgui +imgproc +jpeg '
+               '+png +tiff +zlib +fast-math ~calib3d ~cuda ~dnn ~eigen'
                '~features2d ~flann ~gtk ~ipp ~ipp_iw ~jasper ~java ~lapack ~ml'
                '~openmp ~opencl ~opencl_svm ~openclamdblas ~openclamdfft'
-               '~pthreads_pf ~python ~qt ~stitching ~superres ~ts ~video'
-               '~videostab ~videoio ~vtk', when='+opencv')
+               '~pthreads_pf ~python ~qt +shared ~stitching ~superres ~ts'
+               '~video ~videostab ~videoio ~vtk', when='+opencv')
+
+    # Note that for Power systems we want the environment to add  +powerpc +vsx
+    depends_on('opencv@4.1.0: +powerpc +vsx', when='+opencv arch=ppc64le:')
 
     depends_on('cnpy')
-    depends_on('nccl', when='@0.94:0.98.2 +cuda +nccl')
+    depends_on('nccl', when='@0.94:0.98.2 +cuda')
 
-    depends_on('conduit@0.4.0: +hdf5', when='@0.94:0.99 +conduit')
-    depends_on('conduit@0.4.0: +hdf5', when='@:0.90,0.99:')
+    depends_on('conduit@0.4.0: +hdf5~hdf5_compat', when='@0.94:0.99 +conduit')
+    depends_on('conduit@0.4.0: +hdf5~hdf5_compat', when='@:0.90,0.99:')
 
-    depends_on('python@3: +shared', type=('build', 'run'), when='@:0.90,0.99:')
+    depends_on('python@3:3.7.9 +shared', type=('build', 'run'), when='@:0.90,0.99:')
     extends("python")
     depends_on('py-setuptools', type='build')
     depends_on('py-argparse', type='run', when='@:0.90,0.99: ^python@:2.6')
@@ -116,7 +135,8 @@ class Lbann(CMakePackage, CudaPackage):
     depends_on('py-pandas@0.24.1:', type='run', when='@:0.90,0.99: +extras')
     depends_on('py-texttable@1.4.0:', type='run', when='@:0.90,0.99: +extras')
     depends_on('py-pytest', type='test', when='@:0.90,0.99:')
-    depends_on('py-protobuf+cpp@3.6.1:', type=('build', 'run'), when='@:0.90,0.99:')
+    depends_on('py-protobuf+cpp@3.10.0', type=('build', 'run'), when='@:0.90,0.99:')
+    depends_on('protobuf+shared@3.10.0', when='@:0.90,0.99:')
 
     depends_on('py-breathe', type='build', when='+docs')
     depends_on('doxygen', type='build', when='+docs')
@@ -219,6 +239,14 @@ class Lbann(CMakePackage, CudaPackage):
                     args.extend([
                         '-DNCCL_DIR={0}'.format(
                             spec['nccl'].prefix)])
+
+        if spec.satisfies('@:0.90') or spec.satisfies('@0.100:'):
+            args.extend([
+                '-DLBANN_WITH_DIHYDROGEN:BOOL=%s' % ('+dihydrogen' in spec)])
+
+        if spec.satisfies('@:0.90') or spec.satisfies('@0.101:'):
+            args.extend([
+                '-DLBANN_WITH_DISTCONV:BOOL=%s' % ('+distconv' in spec)])
 
         return args
 

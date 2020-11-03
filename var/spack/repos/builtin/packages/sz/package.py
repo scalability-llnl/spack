@@ -21,6 +21,7 @@ class Sz(CMakePackage):
         return url.format(version)
 
     version('master', branch='master')
+    version('2.1.11', sha256='85b8ef99344a3317ba9ee63ca4b9d99a51d1832d4d8880e01c7c56b3a69cacc9')
     version('2.1.10', sha256='3aba7619bdb5412218f162696f946c9d3a3df5acf128ddc685b21e45c11f6ae3',
             url="https://github.com/szcompressor/SZ/releases/download/v2.1.10/sz-2.1.10.tar.gz")
     version('2.1.9', sha256='491724ff1c0eaaab5e1a7a28e36aba6da9dcbeddb29d8d21a6d1388383d4891e')

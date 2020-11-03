@@ -51,6 +51,7 @@ class PyTorch(PythonPackage, CudaPackage):
     ]
 
     version('master', branch='master', submodules=True)
+    version('1.7.0', tag='v1.7.0', submodules=True)
     version('1.6.0', tag='v1.6.0', submodules=True)
     version('1.5.1', tag='v1.5.1', submodules=True)
     version('1.5.0', tag='v1.5.0', submodules=True)
@@ -127,10 +128,13 @@ class PyTorch(PythonPackage, CudaPackage):
     depends_on('python@2.7:2.8,3.5:', type=('build', 'run'))
     depends_on('py-setuptools', type=('build', 'run'))
     depends_on('py-numpy', type=('build', 'run'))
-    depends_on('py-future', when='@1.1: ^python@:2', type='build')
+    depends_on('py-future', when='@1.5:', type=('build', 'run'))
+    depends_on('py-future', when='@1.1: ^python@:2', type=('build', 'run'))
     depends_on('py-pyyaml', type=('build', 'run'))
     depends_on('py-typing', when='@0.4: ^python@:3.4', type=('build', 'run'))
+    depends_on('py-typing-extensions', when='@1.7:', type=('build', 'run'))
     depends_on('py-pybind11', when='@0.4:', type=('build', 'link', 'run'))
+    depends_on('py-dataclasses', when='@1.7: ^python@3.6.0:3.6.999', type=('build', 'run'))
     depends_on('blas')
     depends_on('lapack')
     depends_on('protobuf', when='@0.4:')

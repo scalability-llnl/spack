@@ -12,10 +12,11 @@ class Onednn(CMakePackage):
     Formerly known as Intel MKL-DNN and DNNL."""
 
     homepage = "https://01.org/onednn"
-    url      = "https://github.com/oneapi-src/oneDNN/archive/v1.6.4.tar.gz"
+    url      = "https://github.com/oneapi-src/oneDNN/archive/v1.6.5.tar.gz"
 
     maintainers = ['adamjstewart']
 
+    version('1.6.5',  sha256='6258d961fe1757b70d10cf34f0925079401ffae264f056b15024270b11d5c1eb')
     version('1.6.4',  sha256='5369f7b2f0b52b40890da50c0632c3a5d1082d98325d0f2bff125d19d0dcaa1d')
     version('1.6.3',  sha256='471c877671f672e4119e5f49143890c5ce2efff80a52a5eaf7ef3730eb3e1738')
     version('1.6.2',  sha256='83533fcf81cd4c4565bf640b895d1ea0a4563a5dac88af8e5c05813f1af13e25')

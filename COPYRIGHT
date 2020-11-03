@@ -28,9 +28,11 @@ text in the license header:
 
 External Packages
 -------------------
-Spack bundles its external dependencies in lib/spack/external.  These
-packages are covered by various permissive licenses.  A summary listing
-follows.  See the license included with each package for full details.
+
+Spack bundles most external dependencies in lib/spack/external. It also
+includes the sbang tool directly in bin/sbang. These packages are covered
+by various permissive licenses. A summary listing follows. See the
+license included with each package for full details.
 
 PackageName: argparse
 PackageHomePage: https://pypi.python.org/pypi/argparse
@@ -75,6 +77,10 @@ PackageLicenseDeclared: MIT
 PackageName: ruamel.yaml
 PackageHomePage: https://yaml.readthedocs.io/
 PackageLicenseDeclared: MIT
+
+PackageName: sbang
+PackageHomePage: https://github.com/spack/sbang
+PackageLicenseDeclared: Apache-2.0 OR MIT
 
 PackageName: six
 PackageHomePage: https://pypi.python.org/pypi/six

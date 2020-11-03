@@ -77,7 +77,7 @@ class Graphviz(AutotoolsPackage):
           sha256='813e6529e79161a18b0f24a969b7de22f8417b2e942239e658b5402884541bc2',
           when='@:2.40%intel')
     patch('ps2pdf.patch')
-    patch('implicit.patch')
+    patch('implicit.patch', level=0, when='@:2.44.0')
 
     if not MACOS_VERSION:
         conflicts('+quartz',

@@ -12,8 +12,9 @@ class Fmt(CMakePackage):
     to C++ IOStreams."""
 
     homepage = "http://fmtlib.net/latest/index.html"
-    url      = "https://github.com/fmtlib/fmt/releases/download/5.2.1/fmt-5.2.1.zip"
+    url      = "https://github.com/fmtlib/fmt/releases/download/7.1.0/fmt-7.1.0.zip"
 
+    version('7.1.0', sha256='308af4e36ee3ab527b51014a2a5d862682c84f5d16f7a597aea34c84853cbcb0')
     version('6.1.2', sha256='63650f3c39a96371f5810c4e41d6f9b0bb10305064e6faf201cbafe297ea30e8')
     version('5.3.0', sha256='4c0741e10183f75d7d6f730b8708a99b329b2f942dad5a9da3385ab92bb4a15c')
     version('5.2.1', sha256='43894ab8fe561fc9e523a8024efc23018431fa86b95d45b06dbe6ddb29ffb6cd')
