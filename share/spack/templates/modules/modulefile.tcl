@@ -54,20 +54,9 @@ append-path --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
 {% elif command_name == 'RemovePath' %}
 remove-path --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
 {% elif command_name == 'SetEnv' %}
-setenv --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
-{% elif command_name == 'UnsetEnv' %}
-unsetenv {{ cmd.name }}
-{% else %}
-{# We are using the usual separator #}
-{% if command_name == 'PrependPath' %}
-prepend-path {{ cmd.name }} "{{ cmd.value }}"
-{% elif command_name == 'RemovePath' %}
-remove-path {{ cmd.name }} "{{ cmd.value }}"
-{% elif command_name == 'SetEnv' %}
 setenv {{ cmd.name }} "{{ cmd.value }}"
 {% elif command_name == 'UnsetEnv' %}
 unsetenv {{ cmd.name }}
-{% endif %}
 {#  #}
 {% endif %}
 {% endfor %}
