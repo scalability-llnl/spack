@@ -46,7 +46,6 @@ conflict {{ name }}
 
 {% block environment %}
 {% for command_name, cmd in environment_modifications %}
-{% if cmd.separator != ':' %}
 {# A non-standard separator is required #}
 {% if command_name == 'PrependPath' %}
 prepend-path --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
