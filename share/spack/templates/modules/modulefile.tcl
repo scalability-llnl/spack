@@ -57,7 +57,6 @@ remove-path --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
 setenv --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
 {% elif command_name == 'UnsetEnv' %}
 unsetenv {{ cmd.name }}
-{% endif %}
 {% else %}
 {# We are using the usual separator #}
 {% if command_name == 'PrependPath' %}
