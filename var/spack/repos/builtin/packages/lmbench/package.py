@@ -5,6 +5,8 @@
 
 from spack import *
 
+from spack.util.provides import setup_libtirpc_build_environment
+
 
 class Lmbench(MakefilePackage):
     """lmbench is a suite of simple, portable, ANSI/C microbenchmarks for
@@ -22,8 +24,7 @@ class Lmbench(MakefilePackage):
     patch('fix_results_path_for_aarch64.patch', sha256='2af57abc9058c56b6dd0697bb01a98902230bef92b117017e318faba148eef60', when='target=aarch64:')
 
     def setup_build_environment(self, env):
-        env.prepend_path('CPATH', self.spec['libtirpc'].prefix.include.tirpc)
-        env.append_flags('LDFLAGS', '-ltirpc')
+        setup_libtirpc_build_environment(self.spec, env)
 
     def build(self, spec, prefix):
         make('build')

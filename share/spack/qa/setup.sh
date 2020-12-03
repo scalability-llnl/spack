@@ -94,6 +94,7 @@ check_dependencies() {
             if [[ $spack_package ]]; then
                 echo "To install with Spack, run:"
                 echo "    $ spack install $spack_package"
+                echo "    $ spack load $spack_package"
             fi
 
             if [[ $pip_package ]]; then

@@ -1,0 +1,381 @@
+--- a/scripts/mk_util.py	2019-11-19 12:58:44.000000000 -0800
++++ b/scripts/mk_util.py	2020-11-29 19:40:56.342800585 -0800
+@@ -535,12 +535,12 @@
+ def get_version():
+     return (VER_MAJOR, VER_MINOR, VER_BUILD, VER_TWEAK)
+ 
+ def get_version_string(n):
+     if n == 3:
+-        return "{}.{}.{}".format(VER_MAJOR,VER_MINOR,VER_BUILD)
+-    return "{}.{}.{}.{}".format(VER_MAJOR,VER_MINOR,VER_BUILD,VER_TWEAK)
++        return "{0}.{1}.{2}".format(VER_MAJOR,VER_MINOR,VER_BUILD)
++    return "{0}.{1}.{2}.{3}".format(VER_MAJOR,VER_MINOR,VER_BUILD,VER_TWEAK)
+ 
+ def build_static_lib():
+     return STATIC_LIB
+ 
+ def build_static_bin():
+@@ -611,11 +611,11 @@
+         IS_MSYS2=True
+         if os.uname()[4] == 'x86_64':
+             LINUX_X64=True
+         else:
+             LINUX_X64=False
+-            
++
+ 
+ def display_help(exit_code):
+     print("mk_make.py: Z3 Makefile generator\n")
+     print("This script generates the Makefile for the Z3 theorem prover.")
+     print("It must be executed from the Z3 root directory.")
+@@ -778,11 +778,11 @@
+ 
+     f = io.open(fname, encoding='utf-8', mode='r')
+     linenum = 1
+     for line in f:
+         m1 = std_inc_pat.match(line)
+-        if m1: 
++        if m1:
+             root_file_name = m1.group(1)
+             slash_pos =  root_file_name.rfind('/')
+             if slash_pos >= 0  and root_file_name.find("..") < 0 : #it is a hack for lp include files that behave as continued from "src"
+                 # print(root_file_name)
+                 root_file_name = root_file_name[slash_pos+1:]
+@@ -1497,12 +1497,12 @@
+             self.pythonPkgDir = strip_path_prefix(PYTHON_PACKAGE_DIR, PREFIX)
+         else:
+             # Use path inside the prefix (should be the normal case on Linux)
+             # CMW: Also normal on *BSD?
+             if not PYTHON_PACKAGE_DIR.startswith(PREFIX):
+-                raise MKException(('The python package directory ({}) must live ' +
+-                    'under the install prefix ({}) to install the python bindings.' +
++                raise MKException(('The python package directory ({0}) must live ' +
++                    'under the install prefix ({1}) to install the python bindings.' +
+                     'Use --pypkgdir and --prefix to set the python package directory ' +
+                     'and install prefix respectively. Note that the python package ' +
+                     'directory does not need to exist and will be created if ' +
+                     'necessary during install.').format(
+                         PYTHON_PACKAGE_DIR,
+@@ -1612,11 +1612,11 @@
+        elif os.path.isfile(os.path.join(self.src_dir, self.key_file)):
+            self.key_file = os.path.abspath(os.path.join(self.src_dir, self.key_file))
+        else:
+            print("Keyfile '%s' could not be found; %s.dll will be unsigned." % (self.key_file, self.dll_name))
+            self.key_file = None
+-    
++
+ 
+ # build for dotnet core
+ class DotNetDLLComponent(Component):
+     def __init__(self, name, dll_name, path, deps, assembly_info_dir, default_key_file):
+         Component.__init__(self, name, path, deps)
+@@ -1626,11 +1626,11 @@
+             assembly_info_dir = "."
+         self.dll_name          = dll_name
+         self.assembly_info_dir = assembly_info_dir
+         self.key_file = default_key_file
+ 
+-    
++
+     def mk_makefile(self, out):
+         if not is_dotnet_core_enabled():
+             return
+         cs_fp_files = []
+         for cs_file in get_cs_files(self.src_dir):
+@@ -1642,11 +1642,11 @@
+         out.write('%s: %s$(SO_EXT)' % (dllfile, get_component(Z3_DLL_COMPONENT).dll_name))
+         for cs_file in cs_fp_files:
+             out.write(' ')
+             out.write(cs_file)
+         out.write('\n')
+-        
++
+         set_key_file(self)
+         key = ""
+         if not self.key_file is None:
+             key = "<AssemblyOriginatorKeyFile>%s</AssemblyOriginatorKeyFile>" % self.key_file
+             key += "\n<SignAssembly>true</SignAssembly>"
+@@ -1684,34 +1684,34 @@
+         csproj = os.path.join('dotnet', 'z3.csproj')
+         with open(os.path.join(BUILD_DIR, csproj), 'w') as ous:
+             ous.write(core_csproj_str)
+ 
+         dotnetCmdLine = [DOTNET, "build", csproj]
+-        
++
+         dotnetCmdLine.extend(['-c'])
+         if DEBUG_MODE:
+             dotnetCmdLine.extend(['Debug'])
+         else:
+             dotnetCmdLine.extend(['Release'])
+ 
+         path = os.path.join(os.path.abspath(BUILD_DIR), ".")
+         dotnetCmdLine.extend(['-o', path])
+-            
++
+         MakeRuleCmd.write_cmd(out, ' '.join(dotnetCmdLine))
+         self.sign_esrp(out)
+-        out.write('\n')        
++        out.write('\n')
+         out.write('%s: %s\n\n' % (self.name, dllfile))
+ 
+     def sign_esrp(self, out):
+         global ESRP_SIGNx
+         print("esrp-sign", ESRP_SIGN)
+         if not ESRP_SIGN:
+             return
+-        
++
+         import uuid
+         guid = str(uuid.uuid4())
+-        path = os.path.abspath(BUILD_DIR).replace("\\","\\\\")        
++        path = os.path.abspath(BUILD_DIR).replace("\\","\\\\")
+         assemblySignStr = """
+ {
+   "Version": "1.0.0",
+   "SignBatches"
+   :
+@@ -1770,16 +1770,16 @@
+         MakeRuleCmd.write_cmd(out, "move /Y C:\\esrp\\output\\Microsoft.Z3.dll .")
+ 
+ 
+     def main_component(self):
+         return is_dotnet_core_enabled()
+-    
++
+     def has_assembly_info(self):
+         # TBD: is this required for dotnet core given that version numbers are in z3.csproj file?
+         return False
+ 
+-    
++
+     def mk_win_dist(self, build_path, dist_path):
+         if is_dotnet_core_enabled():
+             mk_dir(os.path.join(dist_path, INSTALL_BIN_DIR))
+             shutil.copy('%s.dll' % os.path.join(build_path, self.dll_name),
+                         '%s.dll' % os.path.join(dist_path, INSTALL_BIN_DIR, self.dll_name))
+@@ -1899,18 +1899,18 @@
+ 
+     def mk_install(self, out):
+         if is_java_enabled() and self.install:
+             dllfile = '%s$(SO_EXT)' % self.dll_name
+             MakeRuleCmd.install_files(out, dllfile, os.path.join(INSTALL_LIB_DIR, dllfile))
+-            jarfile = '{}.jar'.format(self.package_name)
++            jarfile = '{0}.jar'.format(self.package_name)
+             MakeRuleCmd.install_files(out, jarfile, os.path.join(INSTALL_LIB_DIR, jarfile))
+ 
+     def mk_uninstall(self, out):
+         if is_java_enabled() and self.install:
+             dllfile = '%s$(SO_EXT)' % self.dll_name
+             MakeRuleCmd.remove_installed_files(out, os.path.join(INSTALL_LIB_DIR, dllfile))
+-            jarfile = '{}.jar'.format(self.package_name)
++            jarfile = '{0}.jar'.format(self.package_name)
+             MakeRuleCmd.remove_installed_files(out, os.path.join(INSTALL_LIB_DIR, jarfile))
+ 
+ class MLComponent(Component):
+ 
+     def __init__(self, name, lib_name, path, deps):
+@@ -1976,16 +1976,16 @@
+ 
+             src_dir = self.to_src_dir
+             mk_dir(os.path.join(BUILD_DIR, self.sub_dir))
+             api_src = get_component(API_COMPONENT).to_src_dir
+             # remove /GL and -std=c++11; the ocaml tools don't like them.
+-            if IS_WINDOWS:                
++            if IS_WINDOWS:
+                 out.write('CXXFLAGS_OCAML=$(CXXFLAGS:/GL=)\n')
+             else:
+                 out.write('CXXFLAGS_OCAML=$(subst -std=c++11,,$(CXXFLAGS))\n')
+ 
+-            substitutions = { 'VERSION': "{}.{}.{}.{}".format(VER_MAJOR, VER_MINOR, VER_BUILD, VER_TWEAK) }
++            substitutions = { 'VERSION': "{0}.{1}.{2}.{3}".format(VER_MAJOR, VER_MINOR, VER_BUILD, VER_TWEAK) }
+ 
+             configure_file(os.path.join(self.src_dir, 'META.in'),
+                            os.path.join(BUILD_DIR, self.sub_dir, 'META'),
+                            substitutions)
+ 
+@@ -2774,21 +2774,21 @@
+         for f in files:
+             if f.endswith('.pyg'):
+                 script = os.path.join(root, f)
+                 generated_file = mk_genfile_common.mk_hpp_from_pyg(script, root)
+                 if is_verbose():
+-                    print("Generated '{}'".format(generated_file))
++                    print("Generated '{0}'".format(generated_file))
+ 
+ # TODO: delete after src/ast/pattern/expr_pattern_match
+ # database.smt ==> database.h
+ def mk_pat_db():
+     c = get_component(PATTERN_COMPONENT)
+     fin  = os.path.join(c.src_dir, 'database.smt2')
+     fout = os.path.join(c.src_dir, 'database.h')
+     mk_genfile_common.mk_pat_db_internal(fin, fout)
+     if VERBOSE:
+-        print("Generated '{}'".format(fout))
++        print("Generated '{0}'".format(fout))
+ 
+ # Update version numbers
+ def update_version():
+     major = VER_MAJOR
+     minor = VER_MINOR
+@@ -2852,11 +2852,11 @@
+         c = get_component(cname)
+         component_src_dirs.append(c.src_dir)
+     h_files_full_path = get_header_files_for_components(component_src_dirs)
+     generated_file = mk_genfile_common.mk_install_tactic_cpp_internal(h_files_full_path, path)
+     if VERBOSE:
+-        print("Generated '{}'".format(generated_file))
++        print("Generated '{0}'".format(generated_file))
+ 
+ def mk_all_install_tactic_cpps():
+     if not ONLY_MAKEFILES:
+         for c in get_components():
+             if c.require_install_tactics():
+@@ -2871,11 +2871,11 @@
+         c = get_component(cname)
+         component_src_dirs.append(c.src_dir)
+     h_files_full_path = get_header_files_for_components(component_src_dirs)
+     generated_file = mk_genfile_common.mk_mem_initializer_cpp_internal(h_files_full_path, path)
+     if VERBOSE:
+-        print("Generated '{}'".format(generated_file))
++        print("Generated '{0}'".format(generated_file))
+ 
+ def mk_all_mem_initializer_cpps():
+     if not ONLY_MAKEFILES:
+         for c in get_components():
+             if c.require_mem_initializer():
+@@ -2890,11 +2890,11 @@
+         c = get_component(cname)
+         component_src_dirs.append(c.src_dir)
+     h_files_full_path = get_header_files_for_components(component_src_dirs)
+     generated_file = mk_genfile_common.mk_gparams_register_modules_internal(h_files_full_path, path)
+     if VERBOSE:
+-        print("Generated '{}'".format(generated_file))
++        print("Generated '{0}'".format(generated_file))
+ 
+ def mk_all_gparams_register_modules():
+     if not ONLY_MAKEFILES:
+         for c in get_components():
+             if c.require_mem_initializer():
+@@ -3020,11 +3020,11 @@
+         api_file_c = api_dll.find_file(api_file, api_dll.name)
+         api_file   = os.path.join(api_file_c.src_dir, api_file)
+         full_path_api_files.append(api_file)
+     generated_file = mk_genfile_common.mk_z3consts_py_internal(full_path_api_files, Z3PY_SRC_DIR)
+     if VERBOSE:
+-        print("Generated '{}".format(generated_file))
++        print("Generated '{0}".format(generated_file))
+ 
+ # Extract enumeration types from z3_api.h, and add .Net definitions
+ def mk_z3consts_dotnet(api_files, output_dir):
+     dotnet = get_component(DOTNET_COMPONENT)
+     if not dotnet:
+@@ -3034,11 +3034,11 @@
+         api_file_c = dotnet.find_file(api_file, dotnet.name)
+         api_file   = os.path.join(api_file_c.src_dir, api_file)
+         full_path_api_files.append(api_file)
+     generated_file = mk_genfile_common.mk_z3consts_dotnet_internal(full_path_api_files, output_dir)
+     if VERBOSE:
+-        print("Generated '{}".format(generated_file))
++        print("Generated '{0}".format(generated_file))
+ 
+ # Extract enumeration types from z3_api.h, and add Java definitions
+ def mk_z3consts_java(api_files):
+     java = get_component(JAVA_COMPONENT)
+     full_path_api_files = []
+@@ -3050,11 +3050,11 @@
+         full_path_api_files,
+         java.package_name,
+         java.src_dir)
+     if VERBOSE:
+         for generated_file in generated_files:
+-            print("Generated '{}'".format(generated_file))
++            print("Generated '{0}'".format(generated_file))
+ 
+ # Extract enumeration types from z3_api.h, and add ML definitions
+ def mk_z3consts_ml(api_files):
+     ml = get_component(ML_COMPONENT)
+     full_path_api_files = []
+@@ -3078,11 +3078,11 @@
+     lline = lines[-1]
+     tokens = lline.split('.')
+     if len(tokens) < 2:
+         return default
+     else:
+-        if tokens[0] == "15": 
++        if tokens[0] == "15":
+             # Visual Studio 2017 reports 15.* but the PlatformToolsetVersion is 141
+             return "v141"
+         else:
+             return 'v' + tokens[0] + tokens[1]
+ 
+@@ -3287,11 +3287,12 @@
+         # Note: DESTDIR is to support staged installs
+         return "$(DESTDIR)$(PREFIX)/"
+ 
+     @classmethod
+     def _is_str(cls, obj):
+-        if sys.version_info.major > 2:
++        # TODO: py26 compat, or we would use '.major'.
++        if sys.version_info[0] > 2:
+             # Python 3 or newer. Strings are always unicode and of type str
+             return isinstance(obj, str)
+         else:
+             # Python 2. Has byte-string and unicode representation, allow both
+             return isinstance(obj, str) or isinstance(obj, unicode)
+@@ -3300,13 +3301,13 @@
+     def _install_root(cls, path, in_prefix, out, is_install=True):
+         if not in_prefix:
+             # The Python bindings on OSX are sometimes not installed inside the prefix.
+             install_root = "$(DESTDIR)"
+             action_string = 'install' if is_install else 'uninstall'
+-            cls.write_cmd(out, 'echo "WARNING: {}ing files/directories ({}) that are not in the install prefix ($(PREFIX))."'.format(
++            cls.write_cmd(out, 'echo "WARNING: {0}ing files/directories ({1}) that are not in the install prefix ($(PREFIX))."'.format(
+                     action_string, path))
+-            #print("WARNING: Generating makefile rule that {}s {} '{}' which is outside the installation prefix '{}'.".format(
++            #print("WARNING: Generating makefile rule that {0}s {1} '{2}' which is outside the installation prefix '{0}'.".format(
+             #        action_string, 'to' if is_install else 'from', path, PREFIX))
+         else:
+             # assert not os.path.isabs(path)
+             install_root = cls.install_root()
+         return install_root
+@@ -3428,11 +3429,11 @@
+     # ``$(Verb)`` and have it set to ``@`` or empty at build time depending on
+     # a variable (e.g. ``VERBOSE``) passed to the ``make`` invocation. This
+     # would be very helpful for debugging.
+     @classmethod
+     def write_cmd(cls, out, line):
+-        out.write("\t@{}\n".format(line))
++        out.write("\t@{0}\n".format(line))
+ 
+ def strip_path_prefix(path, prefix):
+     if path.startswith(prefix):
+         stripped_path = path[len(prefix):]
+         stripped_path.replace('//','/')
+@@ -3456,23 +3457,23 @@
+     assert isinstance(template_file_path, str)
+     assert isinstance(output_file_path, str)
+     assert isinstance(substitutions, dict)
+     assert len(template_file_path) > 0
+     assert len(output_file_path) > 0
+-    print("Generating {} from {}".format(output_file_path, template_file_path))
++    print("Generating {0} from {1}".format(output_file_path, template_file_path))
+ 
+     if not os.path.exists(template_file_path):
+-        raise MKException('Could not find template file "{}"'.format(template_file_path))
++        raise MKException('Could not find template file "{0}"'.format(template_file_path))
+ 
+     # Read whole template file into string
+     template_string = None
+     with open(template_file_path, 'r') as f:
+         template_string = f.read()
+ 
+     # Do replacements
+     for (old_string, replacement) in substitutions.items():
+-        template_string = template_string.replace('@{}@'.format(old_string), replacement)
++        template_string = template_string.replace('@{0}@'.format(old_string), replacement)
+ 
+     # Write the string to the file
+     with open(output_file_path, 'w') as f:
+         f.write(template_string)
+ 

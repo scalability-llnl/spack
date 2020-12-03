@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import sys
+
 from spack import *
 
 
@@ -22,7 +24,8 @@ class Libnsl(AutotoolsPackage):
     depends_on('pkgconfig@0.9.0:', type='build')
     depends_on('gettext')
     depends_on('rpcsvc-proto')
-    depends_on('libtirpc')
+    # TODO: allow specifying != for negation in 'when=' specs!
+    depends_on('libtirpc', when=(sys.platform != 'darwin'))
 
     def autoreconf(self, spec, prefix):
         autoreconf = which('autoreconf')

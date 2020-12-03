@@ -1,0 +1,124 @@
+--- a/scripts/mk_genfile_common.py	2019-11-19 12:58:44.000000000 -0800
++++ b/scripts/mk_genfile_common.py	2020-11-29 19:41:01.152833632 -0800
+@@ -26,19 +26,19 @@
+     """
+         Returns ``True`` if ``output_dir`` exists, otherwise
+         returns ``False``.
+     """
+     if not os.path.isdir(output_dir):
+-        _logger.error('"{}" is not an existing directory'.format(output_dir))
++        _logger.error('"{0}" is not an existing directory'.format(output_dir))
+         return False
+     return True
+ 
+ def check_files_exist(files):
+     assert isinstance(files, list)
+     for f in files:
+         if not os.path.exists(f):
+-            _logger.error('"{}" does not exist'.format(f))
++            _logger.error('"{0}" does not exist'.format(f))
+             return False
+     return True
+ 
+ def sorted_headers_by_component(l):
+     """
+@@ -53,11 +53,11 @@
+       and ``<build_dir>`` prefixes so that we can match the Python build
+       system's behaviour.
+     """
+     assert isinstance(l, list)
+     def get_key(path):
+-        _logger.debug("get_key({})".format(path))
++        _logger.debug("get_key({0})".format(path))
+         path_components = []
+         stripped_path = path
+         assert 'src' in stripped_path.split(os.path.sep) or 'src' in stripped_path.split('/')
+         # Keep stripping off directory components until we hit ``src``
+         while os.path.basename(stripped_path) != 'src':
+@@ -67,14 +67,14 @@
+         path_components.reverse()
+         # For consistency across platforms use ``/`` rather than ``os.sep``.
+         # This is a sorting key so it doesn't need to a platform suitable
+         # path
+         r = '/'.join(path_components)
+-        _logger.debug("return key:'{}'".format(r))
++        _logger.debug("return key:'{0}'".format(r))
+         return r
+     sorted_headers = sorted(l, key=get_key)
+-    _logger.debug('sorted headers:{}'.format(pprint.pformat(sorted_headers)))
++    _logger.debug('sorted headers:{0}'.format(pprint.pformat(sorted_headers)))
+     return sorted_headers
+ 
+ 
+ 
+ ###############################################################################
+@@ -593,11 +593,11 @@
+     h_file = h_file.replace("\\","/")
+     idx = h_file.rfind("src/")
+     if idx == -1:
+         return h_file
+     return h_file[idx + 4:]
+-            
++
+ def mk_gparams_register_modules_internal(h_files_full_path, path):
+     """
+         Generate a ``gparams_register_modules.cpp`` file in the directory ``path``.
+         Returns the path to the generated file.
+ 
+@@ -609,11 +609,11 @@
+ 
+         This procedure is invoked by gparams::init()
+     """
+     assert isinstance(h_files_full_path, list)
+     assert check_dir_exists(path)
+-    cmds = []    
++    cmds = []
+     mod_cmds = []
+     mod_descrs = []
+     fullname = os.path.join(path, 'gparams_register_modules.cpp')
+     fout  = open(fullname, 'w')
+     fout.write('// Automatically generated file.\n')
+@@ -691,38 +691,38 @@
+     fout.write('// Automatically generated file.\n')
+     fout.write('#include "tactic/tactic.h"\n')
+     fout.write('#include "cmd_context/tactic_cmds.h"\n')
+     fout.write('#include "cmd_context/cmd_context.h"\n')
+     tactic_pat   = re.compile('[ \t]*ADD_TACTIC\(.*\)')
+-    probe_pat    = re.compile('[ \t]*ADD_PROBE\(.*\)')   
++    probe_pat    = re.compile('[ \t]*ADD_PROBE\(.*\)')
+     for h_file in sorted_headers_by_component(h_files_full_path):
+         added_include = False
+         try:
+             with io.open(h_file, encoding='utf-8', mode='r') as fin:
+                 for line in fin:
+                     if tactic_pat.match(line):
+                         if not added_include:
+-                            added_include = True                        
++                            added_include = True
+                             fout.write('#include "%s"\n' % path_after_src(h_file))
+                         try:
+                             eval(line.strip('\n '), eval_globals, None)
+                         except Exception as e:
+-                            _logger.error("Failed processing ADD_TACTIC command at '{}'\n{}".format(
++                            _logger.error("Failed processing ADD_TACTIC command at '{0}'\n{1}".format(
+                                 fullname, line))
+                             raise e
+                     if probe_pat.match(line):
+                         if not added_include:
+                             added_include = True
+                             fout.write('#include "%s"\n' % path_after_src(h_file))
+                         try:
+                             eval(line.strip('\n '), eval_globals, None)
+                         except Exception as e:
+-                            _logger.error("Failed processing ADD_PROBE command at '{}'\n{}".format(
++                            _logger.error("Failed processing ADD_PROBE command at '{0}'\n{1}".format(
+                                 fullname, line))
+                             raise e
+         except Exception as e:
+-           _logger.error("Failed to read file {}\n".format(h_file))
++           _logger.error("Failed to read file {0}\n".format(h_file))
+            raise e
+     # First pass will just generate the tactic factories
+     fout.write('#define ADD_TACTIC_CMD(NAME, DESCR, CODE) ctx.insert(alloc(tactic_cmd, symbol(NAME), DESCR, [](ast_manager &m, const params_ref &p) { return CODE; }))\n')
+     fout.write('#define ADD_PROBE(NAME, DESCR, PROBE) ctx.insert(alloc(probe_info, symbol(NAME), DESCR, PROBE))\n')
+     fout.write('void install_tactics(tactic_manager & ctx) {\n')

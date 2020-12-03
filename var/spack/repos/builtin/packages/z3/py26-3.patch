@@ -1,0 +1,109 @@
+--- a/scripts/update_api.py	2019-11-19 12:58:44.000000000 -0800
++++ b/scripts/update_api.py	2020-11-29 19:40:54.949457677 -0800
+@@ -778,11 +778,11 @@
+        ous.write("  \"api\": [\n")
+        for name, result, params in _dotnet_decls:
+            ous.write("    {\n")
+            ous.write("       \"name\": \"%s\",\n" % name)
+            ous.write("       \"c_type\": \"%s\",\n" % Type2Str[result])
+-           ous.write("       \"napi_type\": \"%s\",\n" % type2napi(result))                       
++           ous.write("       \"napi_type\": \"%s\",\n" % type2napi(result))
+            ous.write("       \"arg_list\": [")
+            first = True
+            for p in params:
+                if first:
+                   first = False
+@@ -791,11 +791,11 @@
+                   ous.write(",\n         {\n")
+                t = param_type(p)
+                k = t
+                ous.write("            \"name\": \"%s\",\n" % "")                        # TBD
+                ous.write("            \"c_type\": \"%s\",\n" % type2str(t))
+-               ous.write("            \"napi_type\": \"%s\",\n" % type2napi(t))        
++               ous.write("            \"napi_type\": \"%s\",\n" % type2napi(t))
+                ous.write("            \"napi_builder\": \"%s\"\n" % type2napibuilder(t))
+                ous.write(  "         }")
+            ous.write("],\n")
+            ous.write("       \"napi_builder\": \"%s\"\n" % type2napibuilder(result))
+            ous.write("    },\n")
+@@ -1717,11 +1717,11 @@
+ del _lib
+ del _default_dirs
+ del _all_dirs
+ del _ext
+ """)
+-    
++
+ def write_core_py_preamble(core_py):
+   core_py.write(
+ """
+ # Automatically generated file
+ import sys, os
+@@ -1790,11 +1790,11 @@
+     print("    builtins.Z3_LIB_DIRS = [ '/path/to/libz3.%s' ] " % _ext)
+   raise Z3Exception("libz3.%s not found." % _ext)
+ 
+ def _to_ascii(s):
+   if isinstance(s, str):
+-    try: 
++    try:
+       return s.encode('ascii')
+     except:
+       # kick the bucket down the road.  :-J
+       return s
+   else:
+@@ -1871,11 +1871,11 @@
+     if output_dir != None:
+       assert os.path.exists(output_dir) and os.path.isdir(output_dir)
+       return open(os.path.join(output_dir, file_name), mode)
+     else:
+       # Return a file that we can write to without caring
+-      print("Faking emission of '{}'".format(file_name))
++      print("Faking emission of '{0}'".format(file_name))
+       import tempfile
+       return tempfile.TemporaryFile(mode=mode)
+ 
+   with mk_file_or_temp(api_output_dir, 'api_log_macros.h') as log_h:
+     with mk_file_or_temp(api_output_dir, 'api_log_macros.cpp') as log_c:
+@@ -1893,22 +1893,22 @@
+           mk_bindings(exe_c)
+           mk_py_wrappers()
+           write_core_py_post(core_py)
+ 
+           if mk_util.is_verbose():
+-            print("Generated '{}'".format(log_h.name))
+-            print("Generated '{}'".format(log_c.name))
+-            print("Generated '{}'".format(exe_c.name))
+-            print("Generated '{}'".format(core_py.name))
++            print("Generated '{0}'".format(log_h.name))
++            print("Generated '{0}'".format(log_c.name))
++            print("Generated '{0}'".format(exe_c.name))
++            print("Generated '{0}'".format(core_py.name))
+ 
+   if dotnet_output_dir:
+     with open(os.path.join(dotnet_output_dir, 'Native.cs'), 'w') as dotnet_file:
+       mk_dotnet(dotnet_file)
+       mk_dotnet_wrappers(dotnet_file)
+       if mk_util.is_verbose():
+-        print("Generated '{}'".format(dotnet_file.name))
+-        
++        print("Generated '{0}'".format(dotnet_file.name))
++
+   if java_output_dir:
+     mk_java(java_output_dir, java_package_name)
+ 
+   if ml_output_dir:
+     assert not ml_src_dir is None
+@@ -1966,11 +1966,11 @@
+       logging.error('--ml-src-dir must be specified')
+       return 1
+ 
+   for api_file in pargs.api_files:
+     if not os.path.exists(api_file):
+-      logging.error('"{}" does not exist'.format(api_file))
++      logging.error('"{0}" does not exist'.format(api_file))
+       return 1
+ 
+   generate_files(api_files=pargs.api_files,
+                  api_output_dir=pargs.api_output_dir,
+                  z3py_output_dir=pargs.z3py_output_dir,

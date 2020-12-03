@@ -5,6 +5,8 @@
 
 from spack import *
 
+from spack.util.provides import setup_libtirpc_build_environment
+
 
 class Ganglia(AutotoolsPackage):
     """Ganglia is a scalable distributed monitoring system for high-performance
@@ -31,5 +33,4 @@ class Ganglia(AutotoolsPackage):
     depends_on('expat')
 
     def setup_build_environment(self, env):
-        env.prepend_path('CPATH', self.spec['libtirpc'].prefix.include.tirpc)
-        env.append_flags('LDFLAGS', '-ltirpc')
+        setup_libtirpc_build_environment(self.spec, env)

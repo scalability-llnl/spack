@@ -1,0 +1,57 @@
+--- a/setup.py	2020-11-29 13:43:26.736062972 -0800
++++ b/setup.py	2020-11-29 13:43:40.166165660 -0800
+@@ -1144,53 +1144,11 @@
+                 missing.append('bsddb185')
+         else:
+             missing.append('bsddb185')
+ 
+         # The standard Unix dbm module:
+-        if platform not in ['cygwin']:
+-            if find_file("ndbm.h", inc_dirs, []) is not None:
+-                # Some systems have -lndbm, others don't
+-                if self.compiler.find_library_file(lib_dirs, 'ndbm'):
+-                    ndbm_libs = ['ndbm']
+-                else:
+-                    ndbm_libs = []
+-                exts.append( Extension('dbm', ['dbmmodule.c'],
+-                                       define_macros=[('HAVE_NDBM_H',None)],
+-                                       libraries = ndbm_libs ) )
+-            elif self.compiler.find_library_file(lib_dirs, 'gdbm'):
+-                gdbm_libs = ['gdbm']
+-                if self.compiler.find_library_file(lib_dirs, 'gdbm_compat'):
+-                    gdbm_libs.append('gdbm_compat')
+-                if find_file("gdbm/ndbm.h", inc_dirs, []) is not None:
+-                    exts.append( Extension(
+-                        'dbm', ['dbmmodule.c'],
+-                        define_macros=[('HAVE_GDBM_NDBM_H',None)],
+-                        libraries = gdbm_libs ) )
+-                elif find_file("gdbm-ndbm.h", inc_dirs, []) is not None:
+-                    exts.append( Extension(
+-                        'dbm', ['dbmmodule.c'],
+-                        define_macros=[('HAVE_GDBM_DASH_NDBM_H',None)],
+-                        libraries = gdbm_libs ) )
+-                else:
+-                    missing.append('dbm')
+-            elif db_incs is not None:
+-                exts.append( Extension('dbm', ['dbmmodule.c'],
+-                                       library_dirs=dblib_dir,
+-                                       runtime_library_dirs=dblib_dir,
+-                                       include_dirs=db_incs,
+-                                       define_macros=[('HAVE_BERKDB_H',None),
+-                                                      ('DB_DBM_HSEARCH',None)],
+-                                       libraries=dblibs))
+-            else:
+-                missing.append('dbm')
+-
+-        # Anthony Baxter's gdbm module.  GNU dbm(3) will require -lgdbm:
+-        if (self.compiler.find_library_file(lib_dirs, 'gdbm')):
+-            exts.append( Extension('gdbm', ['gdbmmodule.c'],
+-                                   libraries = ['gdbm'] ) )
+-        else:
+-            missing.append('gdbm')
++        # NB: Removed!
+ 
+         # Unix-only modules
+         if platform not in ['mac', 'win32']:
+             # Steen Lumholt's termios module
+             exts.append( Extension('termios', ['termios.c']) )

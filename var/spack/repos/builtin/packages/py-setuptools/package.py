@@ -47,8 +47,8 @@ class PySetuptools(PythonPackage):
     version('11.3.1', sha256='bd25f17de4ecf00116a9f7368b614a54ca1612d7945d2eafe5d97bc08c138bc5')
 
     depends_on('python@3.5:', type=('build', 'run'), when='@45.0.0:')
-    depends_on('python@2.7:2.8,3.5:', type=('build', 'run'), when='@44.0.0:44.99.99')
-    depends_on('python@2.7:2.8,3.4:', type=('build', 'run'), when='@:43.99.99')
+    depends_on('python@2.6:2.8,3.5:', type=('build', 'run'), when='@44.0.0:44.99.99')
+    depends_on('python@2.6:2.8,3.4:', type=('build', 'run'), when='@:43.99.99')
 
     # Previously, setuptools vendored all of its dependencies to allow
     # easy bootstrapping. As of version 34.0.0, this is no longer done
