@@ -84,7 +84,10 @@ def make_log_context(log_events, width=None):
         _, width = tty.terminal_size()
     if width <= 0:
         width = sys.maxsize
-    wrap_width = width - num_width - 6
+    if width < num_width + 6 + 1:
+        tty.die("width at least %d\n" % (num_width + 6 + 1))
+    else:
+        wrap_width = width - num_width - 6
 
     out = StringIO()
     next_line = 1
@@ -107,7 +110,7 @@ def make_log_context(log_events, width=None):
         for i in range(start, event.end):
             # wrap to width
             lines = _wrap(event[i], wrap_width)
-            lines[1:] = [indent + l for l in lines[1:]]
+            lines[1:] = [indent + row for row in lines[1:]]
             wrapped_line = line_fmt % (i, '\n'.join(lines))
 
             if i in error_lines:
