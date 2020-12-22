@@ -193,60 +193,64 @@ def _placeholder(dirname):
     return '@' * len(dirname)
 
 
-def macho_make_paths_relative(path_name, old_layout_root,
-                              rpaths, deps, idpath):
-    """
-    Return a dictionary mapping the original rpaths to the relativized rpaths.
-    This dictionary is used to replace paths in mach-o binaries.
+def _macho_relative_paths(binary, orig_layout_root, rpaths, deps, idpath):
+    """Return a dictionary mapping the original RPATHs in the binary to the
+    relativized RPATHs.
+
+    This dictionary is used to replace paths in Mach-O binaries.
+
     Replace old_dir with relative path from dirname of path name
     in rpaths and deps; idpath is replaced with @rpath/libname.
+
+    Args:
+        binary (str): Mach-O binary under consideration
+        orig_layout_root (str): root directory in the original layout
+        rpaths (str): RPATHs to be made relative
+        deps (str): dependency paths to be made relative
+        idpath (str): path to be substituted with '@rpath/<basename>'
     """
-    paths_to_paths = dict()
+    orig_to_rel, orig_layout_regex = {}, re.compile(orig_layout_root)
+    binary_dir = os.path.dirname(binary)
     if idpath:
-        paths_to_paths[idpath] = os.path.join(
-            '@rpath', '%s' % os.path.basename(idpath))
-    for rpath in rpaths:
-        if re.match(old_layout_root, rpath):
-            rel = os.path.relpath(rpath, start=os.path.dirname(path_name))
-            paths_to_paths[rpath] = os.path.join('@loader_path', '%s' % rel)
-        else:
-            paths_to_paths[rpath] = rpath
-    for dep in deps:
-        if re.match(old_layout_root, dep):
-            rel = os.path.relpath(dep, start=os.path.dirname(path_name))
-            paths_to_paths[dep] = os.path.join('@loader_path', '%s' % rel)
-        else:
-            paths_to_paths[dep] = dep
-    return paths_to_paths
+        orig_to_rel[idpath] = os.path.join('@rpath', os.path.basename(idpath))
+
+    for rpath_or_dep in rpaths + deps:
+        orig_to_rel[rpath_or_dep] = rpath_or_dep
+        if orig_layout_regex.match(rpath_or_dep):
+            rel = os.path.relpath(rpath_or_dep, start=binary_dir)
+            orig_to_rel[rpath_or_dep] = os.path.join('@loader_path', rel)
+
+    return orig_to_rel
 
 
-def macho_make_paths_normal(orig_path_name, rpaths, deps, idpath):
+def _macho_normalized_paths(binary, rpaths, deps, idpath):
+    """Return a dictionary mapping the relativized RPATHs to the
+    original RPATHs.
+
+    This dictionary is used to replace paths in Mach-O binaries.
+
+    Replace '@loader_path' with the directory of the binary in RPATHs
+    and deps; idpath is replaced with the binary
+
+    Args:
+        binary (str): Mach-O binary under consideration
+        rpaths (str): RPATHs to be normalized
+        deps (str): dependency paths to be normalized
+        idpath (str): path to be substituted with the binary
     """
-    Return a dictionary mapping the relativized rpaths to the original rpaths.
-    This dictionary is used to replace paths in mach-o binaries.
-    Replace '@loader_path' with the dirname of the origname path name
-    in rpaths and deps; idpath is replaced with the original path name
-    """
-    rel_to_orig = dict()
+    rel_to_orig, loader_path_regex = {}, re.compile('@loader_path')
+    binary_dir = os.path.dirname(binary)
     if idpath:
-        rel_to_orig[idpath] = orig_path_name
+        rel_to_orig[idpath] = binary
 
-    for rpath in rpaths:
-        if re.match('@loader_path', rpath):
-            norm = os.path.normpath(re.sub(re.escape('@loader_path'),
-                                           os.path.dirname(orig_path_name),
-                                           rpath))
-            rel_to_orig[rpath] = norm
-        else:
-            rel_to_orig[rpath] = rpath
-    for dep in deps:
-        if re.match('@loader_path', dep):
-            norm = os.path.normpath(re.sub(re.escape('@loader_path'),
-                                           os.path.dirname(orig_path_name),
-                                           dep))
-            rel_to_orig[dep] = norm
-        else:
-            rel_to_orig[dep] = dep
+    for rpath_or_dep in rpaths + deps:
+        rel_to_orig[rpath_or_dep] = rpath_or_dep
+        if loader_path_regex.match(rpath_or_dep):
+            normalized_path = os.path.normpath(
+                re.sub(re.escape('@loader_path'), binary_dir, rpath_or_dep)
+            )
+            rel_to_orig[rpath_or_dep] = normalized_path
+
     return rel_to_orig
 
 
@@ -539,7 +543,7 @@ def relocate_macho_binaries(path_names, old_layout_root, new_layout_root,
                                     path_name)
             # get the mapping of the relativized paths to the original
             # normalized paths
-            rel_to_orig = macho_make_paths_normal(orig_path_name,
+            rel_to_orig = _macho_normalized_paths(orig_path_name,
                                                   rpaths, deps,
                                                   idpath)
             # replace the relativized paths with normalized paths
@@ -565,9 +569,9 @@ def relocate_macho_binaries(path_names, old_layout_root, new_layout_root,
             # get the new normalized path in the mach-o binary
             rpaths, deps, idpath = macholib_get_paths(path_name)
             # get the mapping of paths to relative paths in the new prefix
-            paths_to_paths = macho_make_paths_relative(path_name,
-                                                       new_layout_root,
-                                                       rpaths, deps, idpath)
+            paths_to_paths = _macho_relative_paths(path_name,
+                                                   new_layout_root,
+                                                   rpaths, deps, idpath)
             # replace the new paths with relativized paths in the new prefix
             if platform.system().lower() == 'darwin':
                 modify_macho_object(path_name, rpaths, deps,
@@ -705,9 +709,9 @@ def make_macho_binaries_relative(cur_path_names, orig_path_names,
         idpath = None
         if platform.system().lower() == 'darwin':
             (rpaths, deps, idpath) = macholib_get_paths(cur_path)
-            paths_to_paths = macho_make_paths_relative(orig_path,
-                                                       old_layout_root,
-                                                       rpaths, deps, idpath)
+            paths_to_paths = _macho_relative_paths(orig_path,
+                                                   old_layout_root,
+                                                   rpaths, deps, idpath)
             modify_macho_object(cur_path,
                                 rpaths, deps, idpath,
                                 paths_to_paths)
