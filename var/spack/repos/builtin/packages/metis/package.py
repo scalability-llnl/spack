@@ -51,9 +51,11 @@ class Metis(Package):
     conflicts('@:4.999', when='+real64')
 
     depends_on('cmake@2.8:', when='@5:', type='build')
+    depends_on('cmake@3:', when='platform=darwin')
 
     patch('install_gklib_defs_rename.patch', when='@5:')
     patch('gklib_nomisleadingindentation_warning.patch', when='@5: %gcc@6:')
+    patch('darwin_cmake_rpath.patch', when='platform=darwin')
 
     def setup_build_environment(self, env):
         # Ignore warnings/errors re unrecognized omp pragmas on %intel

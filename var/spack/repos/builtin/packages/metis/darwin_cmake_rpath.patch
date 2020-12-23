@@ -1,0 +1,8 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 2.8)
++cmake_minimum_required(VERSION 3.2)
+ project(METIS)
+
+ set(GKLIB_PATH "GKlib" CACHE PATH "path to GKlib")
