@@ -103,6 +103,10 @@ class CMakePackage(PackageBase):
               msg='+ipo is not supported by CMake < 3.9')
 
     depends_on('cmake', type='build')
+    if generator == 'Unix Makefiles':
+        depends_on('gmake', type='build')
+    elif generator == 'Ninja':
+        depends_on('ninja', type='build')
 
     @property
     def archive_files(self):
