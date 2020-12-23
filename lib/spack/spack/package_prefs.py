@@ -191,17 +191,18 @@ def spec_externals(spec):
 
 def is_spec_buildable(spec):
     """Return true if the spec pkgspec is configured as buildable"""
-
     allpkgs = spack.config.get('packages')
     all_buildable = allpkgs.get('all', {}).get('buildable', True)
+    so_far = all_buildable  # the default "so far"
 
-    # Get the list of names for which all_buildable is overridden
-    reverse = [name for name, entry in allpkgs.items()
-               if entry.get('buildable', all_buildable) != all_buildable]
-    # Does this spec override all_buildable
-    spec_reversed = (spec.name in reverse or
-                     any(spec.package.provides(name) for name in reverse))
-    return not all_buildable if spec_reversed else all_buildable
+    # check whether any providers for this package override the default
+    if any((spec.package.provides(name) and
+            entry.get('buildable', so_far) != so_far)
+           for name, entry in allpkgs.items()):
+        so_far = not so_far
+
+    spec_buildable = allpkgs.get(spec.name, {}).get('buildable', so_far)
+    return spec_buildable
 
 
 def get_package_dir_permissions(spec):

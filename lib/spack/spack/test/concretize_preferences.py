@@ -327,6 +327,21 @@ mpi:
         spec = Spec('mpich')
         assert spack.package_prefs.is_spec_buildable(spec)
 
+    def test_buildable_false_virtual_true_pacakge(self):
+        conf = syaml.load_config("""\
+mpi:
+  buildable: false
+mpich:
+  buildable: true
+""")
+        spack.config.set('packages', conf, scope='concretize')
+
+        spec = Spec('zmpi')
+        assert not spack.package_prefs.is_spec_buildable(spec)
+
+        spec = Spec('mpich')
+        assert spack.package_prefs.is_spec_buildable(spec)
+
     def test_config_permissions_from_all(self, configure_permissions):
         # Although these aren't strictly about concretization, they are
         # configured in the same file and therefore convenient to test here.
