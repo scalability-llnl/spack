@@ -14,6 +14,7 @@ import spack.binary_distribution
 import spack.environment as ev
 import spack.spec
 from spack.spec import Spec
+from spack.paths import mock_gpg_keys_path
 
 buildcache = spack.main.SpackCommand('buildcache')
 install = spack.main.SpackCommand('install')
@@ -22,6 +23,24 @@ add = spack.main.SpackCommand('add')
 gpg = spack.main.SpackCommand('gpg')
 mirror = spack.main.SpackCommand('mirror')
 uninstall = spack.main.SpackCommand('uninstall')
+
+
+def has_gpg():
+    try:
+        gpg = spack.util.gpg.Gpg()
+    except spack.util.gpg.SpackGPGError:
+        gpg = None
+    return bool(gpg)
+
+
+@pytest.fixture()
+def mirror_path(tmpdir):
+    mirror_path = os.path.join(str(tmpdir), 'mirror_path')
+    mirror('add', '--scope', 'site', 'spack-mirror-test', 'file://%s' % mirror_path)
+
+    yield mirror_path
+
+    mirror('rm', '--scope', 'site', 'spack-mirror-test')
 
 
 @pytest.fixture()
@@ -45,6 +64,138 @@ def mock_get_specs_multiarch(database, monkeypatch):
     monkeypatch.setattr(
         spack.binary_distribution, 'update_cache_and_get_specs', lambda: specs
     )
+
+
+@pytest.mark.skipif(not has_gpg(), reason='This test requires gpg')
+def tests_buildcache_keys(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery, mock_gnupghome, mirror_path, capfd):
+
+    pkg = 'libdwarf'
+    install(pkg)
+    gpg('init', '--from', mock_gpg_keys_path)
+    gpg('create',
+        '--comment', 'Spack buildcache keys',
+        'Spack testing',
+        'spack@googlegroups.com')
+
+    buildcache('create', '-d', str(mirror_path), '--unsigned', pkg)
+
+    key_path = os.path.join(str(mirror_path), 'build_cache', 'key-test.key')
+    gpg('export', str(key_path))
+
+    with capfd.disabled():
+        output = buildcache('keys', '-i', '-t', '-f')
+
+    assert 'Spack buildcache keys' in output
+
+
+def tests_buildcache_env_check(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery, mutable_mock_env_path, mirror_path):
+
+    pkg = 'libdwarf'
+    env('create', 'test')
+    with ev.read('test'):
+        add(pkg)
+        install(pkg)
+
+        buildcache('create', '-d', str(mirror_path), '--unsigned', pkg)
+        buildcache('check', '-m', str(mirror_path), '--scope', 'site')
+
+
+def tests_buildcache_check(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery, mirror_path):
+
+    pkg = 'libdwarf'
+    install(pkg)
+
+    buildcache('create', '-d', str(mirror_path), '--unsigned', pkg)
+    buildcache('check', '-m', str(mirror_path), '-s', pkg, '--scope', 'site')
+
+
+def tests_buildcache_download(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery, mirror_path):
+
+    pkg = 'libdwarf'
+    install(pkg)
+    spec = Spec(pkg).concretized()
+
+    download_path = os.path.join(str(tmpdir), 'download_path')
+
+    buildcache('create', '-d', str(mirror_path), '--unsigned', pkg)
+    buildcache('download', '-p', str(download_path), '-s', pkg)
+
+    tarball = spack.binary_distribution.tarball_name(spec, '.spec.yaml')
+    tarball_path = spack.binary_distribution.tarball_path_name(spec, '.spack')
+
+    assert os.path.exists(os.path.join(str(download_path), tarball))
+    assert os.path.exists(os.path.join(str(download_path), tarball_path))
+
+
+def tests_buildcache_copy(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery):
+
+    pkg = 'libdwarf'
+    install(pkg)
+    mirror_url = os.path.join(str(tmpdir), 'mirror_url')
+
+    buildcache('create', '-d', str(tmpdir), '--unsigned', pkg)
+
+    spec = Spec(pkg).concretized()
+    tarball = spack.binary_distribution.tarball_name(spec, '.spec.yaml')
+    tarball_path = spack.binary_distribution.tarball_path_name(spec, '.spack')
+
+    buildcache('copy', '--spec-yaml', os.path.join(str(tmpdir), 'build_cache',
+               tarball), '--base-dir', str(tmpdir),
+               '--destination-url', str(mirror_url))
+
+    assert os.path.exists(os.path.join(str(mirror_url),
+                          'build_cache', tarball_path))
+
+
+def tests_buildcache_save_yaml_root_spec(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery):
+    pkg = 'libdwarf'
+    install(pkg)
+    buildcache('create', '-d', str(tmpdir), '--unsigned', pkg)
+
+    spec = Spec(pkg).concretized()
+    tarball = spack.binary_distribution.tarball_name(spec, '.spec.yaml')
+
+    buildcache('save-yaml', '--root-spec', pkg, '-s',
+               'libelf', '-y', str(tmpdir))
+    buildcache('save-yaml', '--root-spec-yaml',
+               os.path.join(str(tmpdir), 'build_cache', tarball),
+               '-s', pkg, '-y', str(tmpdir))
+
+    assert os.path.exists(
+        os.path.join(str(tmpdir), 'libelf.yaml'))
+    assert os.path.exists(
+        os.path.join(str(tmpdir), 'libdwarf.yaml'))
+
+
+def tests_buildcache_get_buildcache_name(
+        install_mockery, mock_fetch, monkeypatch, tmpdir, capsys):
+    pkg = 'trivial-install-test-package'
+    install(pkg)
+    buildcache('create', '-d', str(tmpdir), '--unsigned', pkg)
+
+    spec = Spec(pkg).concretized()
+    tarball_path = spack.binary_distribution.tarball_path_name(spec, '.spack')
+    tarball = spack.binary_distribution.tarball_name(spec, '.spec.yaml')
+
+    with capsys.disabled():
+        outupt = buildcache('get-buildcache-name', '-s', pkg)
+        outupt2 = buildcache('get-buildcache-name', '-y',
+                             os.path.join(str(tmpdir), 'build_cache', tarball))
+
+    assert outupt.strip() in tarball_path
+    assert outupt2.strip() in tarball_path
 
 
 @pytest.mark.skipif(
