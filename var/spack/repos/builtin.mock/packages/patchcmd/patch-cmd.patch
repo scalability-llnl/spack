@@ -1,0 +1,11 @@
+--- libelf/configure   2020-09-01 22:14:36.962203595 -0700
++++ libelf/configure.patchcmd  2020-09-02 01:42:53.572203595 -0700
+@@ -2,7 +2,7 @@
+ prefix=$(echo $1 | sed 's/--prefix=//')
+ cat > Makefile <<EOF
+ all:
+-	echo Building...
++	echo Patchcmd!
+ 
+ install:
+ 	mkdir -p $prefix
