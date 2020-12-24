@@ -58,6 +58,20 @@ def module_type(request):
 # TODO : add tests for loads and find to check the prompt format
 
 @pytest.mark.db
+def test_load_and_refresh(database, module_type):
+
+    module(module_type, 'refresh', '-y', '--delete-tree')
+    module_files = _module_files(module_type, 'mpileaks')
+    for item in module_files:
+        assert os.path.exists(item)
+
+    output = module(module_type, 'loads', 'mpileaks')
+    lines = output.split('\n')
+
+    assert any(re.match(r'[^#]*module load.*mpileaks', ln) for ln in lines)
+
+
+@pytest.mark.db
 def test_exit_with_failure(database, module_type, failure_args):
     with pytest.raises(spack.main.SpackCommandError):
         module(module_type, *failure_args)
@@ -77,11 +91,6 @@ def test_deprecated_command(database, deprecated_command):
 @pytest.mark.db
 def test_remove_and_add(database, module_type):
     """Tests adding and removing a tcl module file."""
-
-    if module_type == 'lmod':
-        # TODO: Testing this with lmod requires mocking
-        # TODO: the core compilers
-        return
 
     rm_cli_args = ['rm', '-y', 'mpileaks']
     module_files = _module_files(module_type, 'mpileaks')

@@ -16,6 +16,7 @@
 modules:
   enable:
     - tcl
+    - lmod
   prefix_inspections:
     bin:
       - PATH
@@ -41,3 +42,10 @@ modules:
       - PKG_CONFIG_PATH
     '':
       - CMAKE_PREFIX_PATH
+
+
+  lmod:
+    hierarchy:
+    - mpi
+    core_compilers:
+    - gcc@4.5.0
