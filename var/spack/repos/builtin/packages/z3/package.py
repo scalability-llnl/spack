@@ -22,17 +22,23 @@ class Z3(MakefilePackage):
     phases = ['bootstrap', 'build', 'install']
 
     variant('python', default=True, description='Enable python binding')
-    depends_on('python', type=('build', 'run'))
-    depends_on('py-setuptools', type=('run'), when='+python')
+    depends_on('python+shared', type=('build', 'run'), when="+python")
     extends('python', when='+python')
 
     # Referenced: https://github.com/Z3Prover/z3/issues/1016
     patch('fix_1016_1.patch', when='@:4.4.1')
     patch('fix_1016_2.patch', when='@4.5.0')
 
+    using_py26 = "^python@:2.6.99"
+    patch('py26-1.patch', when=using_py26)
+    patch('py26-2.patch', when=using_py26)
+    patch('py26-3.patch', when=using_py26)
+    depends_on('py-argparse', type=('build', 'run'), when=using_py26)
+    depends_on('py-setuptools@:25.2.0', type=('build', 'run'), when=using_py26)
+
     build_directory = 'build'
 
-    def configure_args(self):
+    def configure_args(self, prefix):
         spec = self.spec
 
         args = []
@@ -48,5 +54,5 @@ class Z3(MakefilePackage):
         return args
 
     def bootstrap(self, spec, prefix):
-        options = ['--prefix={0}'.format(prefix)] + self.configure_args()
+        options = ['--prefix={0}'.format(prefix)] + self.configure_args(prefix)
         spec['python'].command('scripts/mk_make.py', *options)

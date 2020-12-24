@@ -18,6 +18,7 @@ import spack.store
 import spack.util.spack_json as sjson
 from spack.util.environment import is_system_path
 from spack.util.prefix import Prefix
+from spack.util.provides import setup_libtirpc_build_environment
 from spack import *
 
 
@@ -190,6 +191,12 @@ class Python(AutotoolsPackage):
     patch('python-3.7.3-distutils-C++.patch', when='@3.7.3')
     patch('python-3.7.4+-distutils-C++.patch', when='@3.7.4:')
 
+    # TODO: There's currently no way to ignore the fact that a single module failed, even if the
+    # variant corresponding to that module is deselected. These patches comment out sections of
+    # setup.py, specifically for the purpose of python 2.6 compat.
+    patch('no-ssl.patch', when='~ssl')
+    patch('no-dbm.patch', when='~dbm')
+
     patch('tkinter.patch', when='@:2.8,3.3:3.7 platform=darwin')
 
     # Ensure that distutils chooses correct compiler option for RPATH on cray:
@@ -353,14 +360,6 @@ class Python(AutotoolsPackage):
     def setup_build_environment(self, env):
         spec = self.spec
 
-        # TODO: The '--no-user-cfg' option for Python installation is only in
-        # Python v2.7 and v3.4+ (see https://bugs.python.org/issue1180) and
-        # adding support for ignoring user configuration will require
-        # significant changes to this package for other Python versions.
-        if not spec.satisfies('@2.7:2.8,3.4:'):
-            tty.warn(('Python v{0} may not install properly if Python '
-                      'user configurations are present.').format(self.version))
-
         # TODO: Python has incomplete support for Python modules with mixed
         # C/C++ source, and patches are required to enable building for these
         # modules. All Python versions without a viable patch are installed
@@ -375,6 +374,8 @@ class Python(AutotoolsPackage):
 
         env.unset('PYTHONPATH')
         env.unset('PYTHONHOME')
+
+        setup_libtirpc_build_environment(spec, env)
 
     def flag_handler(self, name, flags):
         # python 3.8 requires -fwrapv when compiled with intel
@@ -393,22 +394,25 @@ class Python(AutotoolsPackage):
         # as it scans for the library and headers to build
         link_deps = spec.dependencies('link')
 
+        cppflags = []
+        ldflags = []
         if link_deps:
             # Header files are often included assuming they reside in a
             # subdirectory of prefix.include, e.g. #include <openssl/ssl.h>,
             # which is why we don't use HeaderList here. The header files of
             # libffi reside in prefix.lib but the configure script of Python
             # finds them using pkg-config.
-            cppflags = ' '.join('-I' + spec[dep.name].prefix.include
-                                for dep in link_deps)
+            cppflags.extend('-I' + spec[dep.name].prefix.include for dep in link_deps)
 
             # Currently, the only way to get SpecBuildInterface wrappers of the
             # dependencies (which we need to get their 'libs') is to get them
             # using spec.__getitem__.
-            ldflags = ' '.join(spec[dep.name].libs.search_flags
-                               for dep in link_deps)
+            ldflags.extend(spec[dep.name].libs.ld_flags for dep in link_deps)
 
-            config_args.extend(['CPPFLAGS=' + cppflags, 'LDFLAGS=' + ldflags])
+        config_args.extend([
+            'CPPFLAGS=' + ' '.join(cppflags),
+            'LDFLAGS=' + ' '.join(ldflags),
+        ])
 
         # https://docs.python.org/3/whatsnew/3.7.html#build-changes
         if spec.satisfies('@:3.6'):
@@ -968,8 +972,14 @@ class Python(AutotoolsPackage):
         setup_py('install', '--prefix={0}'.format(prefix))"""
 
         module.python = self.command
-        module.setup_py = Executable(
-            self.command.path + ' setup.py --no-user-cfg')
+
+        if self.version.up_to(2).string == '2.6':
+            trailing_args = []
+        else:
+            trailing_args = ['--no-user-cfg']
+        args = ['setup.py', *tuple(trailing_args)]
+        full_cmdline = self.command.path + ' {0}'.format(' '.join(args))
+        module.setup_py = Executable(full_cmdline)
 
         distutil_vars = self._load_distutil_vars()
 

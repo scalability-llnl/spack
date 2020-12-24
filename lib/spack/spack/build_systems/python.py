@@ -139,11 +139,42 @@ class PythonPackage(PackageBase):
     def python(self, *args, **kwargs):
         inspect.getmodule(self).python(*args, **kwargs)
 
+    def _is_py26(self):
+        return self.spec['python'].version.up_to(2).string == '2.6'
+
+    def trailing_setup_args(self):
+        if self._is_py26():
+            return []
+        return ['--no-user-cfg']
+
     def setup_py(self, *args, **kwargs):
         setup = self.setup_file()
 
+        trailing_args = tuple(self.trailing_setup_args())
         with working_dir(self.build_directory):
-            self.python('-s', setup, '--no-user-cfg', *args, **kwargs)
+            self.python('-s', setup, *trailing_args, *args, **kwargs)
+
+    def _setup_command_available(self, command):
+        """Determines whether or not a setup.py command exists.
+
+        Args:
+            command (str): The command to look for
+
+        Returns:
+            bool: True if the command is found, else False
+        """
+        kwargs = {
+            'output': os.devnull,
+            'error':  os.devnull,
+            'fail_on_error': False
+        }
+
+        python = inspect.getmodule(self).python
+        setup = self.setup_file()
+
+        trailing_args = tuple(self.trailing_setup_args())
+        python('-s', setup, *trailing_args, command, '--help', **kwargs)
+        return python.returncode == 0
 
     # The following phases and their descriptions come from:
     #   $ python setup.py --help-commands
