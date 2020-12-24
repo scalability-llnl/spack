@@ -9,6 +9,7 @@ pr_pipeline:
     AWS_SECRET_ACCESS_KEY: ${PR_MIRRORS_AWS_SECRET_ACCESS_KEY}
   trigger:
     project: spack/e4s
+    branch: per-pipeline-branches
     strategy: depend
 
 develop_pipeline:
