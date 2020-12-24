@@ -66,6 +66,9 @@ schema = {
                 spack.schema.merged.properties,
                 # extra environment schema properties
                 {
+                    'pre_cmd': {
+                        'type': 'string'
+                    },
                     'include': {
                         'type': 'array',
                         'default': [],

@@ -2356,3 +2356,42 @@ spack:
             e.clear()
             e.write()
     assert os.path.exists(str(spack_lock))
+
+
+def test_pre_cmd(tmpdir, capsys):
+    """Test use of pre_cmd
+
+    Test includes importing and referencing the environment as ``self``"""
+    raw_yaml = """
+spack:
+  pre_cmd: |
+    import llnl.util.tty as tty
+    tty.msg(self.name)
+  specs: []
+"""
+    spack_yaml = tmpdir.join('spack.yaml')
+    spack_yaml.write(raw_yaml)
+
+    e = ev.Environment(str(tmpdir))
+
+    out, err = capsys.readouterr()
+    assert e.name in out
+    assert err == ''
+
+
+def test_pre_cmd_fails(tmpdir, capsys):
+    """Test error reporting when pre_cmd fails"""
+    raw_yaml = """
+spack:
+  pre_cmd: |
+    assert False, "Intentional Failure"
+  specs: []
+"""
+    spack_yaml = tmpdir.join('spack.yaml')
+    spack_yaml.write(raw_yaml)
+
+    with pytest.raises(SystemExit):
+        _ = ev.Environment(str(tmpdir))
+
+    out, err = capsys.readouterr()
+    assert "Intentional Failure" in err

@@ -628,6 +628,20 @@ class Environment(object):
         # If with_view is None, then defer to the view settings determined by
         # the manifest file
 
+        # Run pre command if the environment has one
+        self.run_pre_cmd()
+
+    def run_pre_cmd(self):
+        """Run the user-defined pre-environment script"""
+        script = config_dict(self.yaml).get('pre_cmd', None)
+        if script:
+            try:
+                exec(script, locals(), locals())
+            except BaseException as e:
+                msg = "Pre-cmd script for environment %s failed.\n" % self.name
+                msg += str(e)
+                tty.die(msg)
+
     def _re_read(self):
         """Reinitialize the environment object if it has been written (this
            may not be true if the environment was just created in this running
