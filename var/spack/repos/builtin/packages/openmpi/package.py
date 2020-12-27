@@ -326,7 +326,7 @@ class Openmpi(AutotoolsPackage):
     # knem support was added in 1.5
     conflicts('fabrics=knem', when='@:1.4')
 
-    conflicts('schedulers=slurm ~pmi', when='@1.5.4:',
+    conflicts('schedulers=slurm ~pmi ~legacylaunchers', when='@1.5.4:',
               msg='+pmi is required for openmpi(>=1.5.5) to work with SLURM.')
     conflicts('schedulers=loadleveler', when='@3.0.0:',
               msg='The loadleveler scheduler is not supported with '
@@ -618,7 +618,7 @@ class Openmpi(AutotoolsPackage):
         # adding --enable-static silently disables slurm support via pmi/pmi2
         # for versions older than 3.0.3,3.1.3,4.0.0
         # Presumably future versions after 11/2018 should support slurm+static
-        if spec.satisfies('schedulers=slurm'):
+        if spec.satisfies('schedulers=slurm ~legacylaunchers'):
             config_args.append('--with-pmi={0}'.format(spec['slurm'].prefix))
             if spec.satisfies('@3.1.3:') or spec.satisfies('@3.0.3'):
                 if '+static' in spec:
@@ -674,6 +674,12 @@ class Openmpi(AutotoolsPackage):
         if spec.satisfies('+lustre'):
             lustre_opt = '--with-lustre={0}'.format(spec['lustre'].prefix)
             config_args.append(lustre_opt)
+            # Fixme: How to treat gpfs if it's on with lustre?
+            # Default is +gpfs, but development support may be absent.
+            if spec.satisfies('+gpfs'):
+                raise InstallError("Configuring ROMIO for both GPFS and Lustre not supported; use ~gpfs")
+                # Arguably could add +nfs
+            config_args.append('--with-io-romio-flags=--with-file-system=ufs+lustre')
         # Hwloc support
         if spec.satisfies('@1.5.2:'):
             config_args.append('--with-hwloc={0}'.format(spec['hwloc'].prefix))
