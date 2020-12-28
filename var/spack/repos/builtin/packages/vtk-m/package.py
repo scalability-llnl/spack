@@ -197,7 +197,7 @@ class VtkM(CMakePackage, CudaPackage):
 
             return options
 
-    def smoke_test(self):
+    def test(self):
         print("Checking VTK-m installation...")
         spec = self.spec
         checkdir = "spack-check"
@@ -363,4 +363,4 @@ Ran tests on: """ + expected_device + "\n"
     def check_install(self):
         spec = self.spec
         if "@master" in spec:
-            self.smoke_test()
+            self.test()
