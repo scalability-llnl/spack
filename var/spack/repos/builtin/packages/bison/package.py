@@ -3,10 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-from spack.operating_systems.mac_os import macos_version
-import sys
 import re
+import sys
+
+from spack.operating_systems.mac_os import macos_version
+from spack.package import *
 
 
 class Bison(AutotoolsPackage, GNUMirrorPackage):

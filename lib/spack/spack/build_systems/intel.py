@@ -19,7 +19,7 @@ from llnl.util.filesystem import \
     LibraryList, find_libraries, find_system_libraries
 
 from spack.version import Version, ver
-from spack.package import PackageBase, run_after, InstallError
+from spack.package_base import PackageBase, run_after, InstallError
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 from spack.util.prefix import Prefix

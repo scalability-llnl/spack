@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 import os
 from datetime import datetime
+
+from spack.package import *
 
 
 class Stata(Package):

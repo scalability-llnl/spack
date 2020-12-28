@@ -46,7 +46,7 @@ import spack.binary_distribution as binary_distribution
 import spack.compilers
 import spack.error
 import spack.hooks
-import spack.package
+import spack.package_base
 import spack.package_prefs as prefs
 import spack.repo
 import spack.store
@@ -1118,7 +1118,7 @@ class PackageInstaller(object):
 
             # Create a child process to do the actual installation.
             # Preserve verbosity settings across installs.
-            spack.package.PackageBase._verbose = (
+            spack.package_base.PackageBase._verbose = (
                 spack.build_environment.start_build_process(
                     pkg, build_process, install_args)
             )
@@ -1651,8 +1651,8 @@ def build_process(pkg, kwargs):
 
     # get verbosity from do_install() parameter or saved value
     echo = verbose
-    if spack.package.PackageBase._verbose is not None:
-        echo = spack.package.PackageBase._verbose
+    if spack.package_base.PackageBase._verbose is not None:
+        echo = spack.package_base.PackageBase._verbose
 
     pkg.stage.keep = keep_stage
     with pkg.stage:
@@ -1752,7 +1752,7 @@ class BuildTask(object):
         """
 
         # Ensure dealing with a package that has a concrete spec
-        if not isinstance(pkg, spack.package.PackageBase):
+        if not isinstance(pkg, spack.package_base.PackageBase):
             raise ValueError("{0} must be a package".format(str(pkg)))
 
         self.pkg = pkg
@@ -1934,7 +1934,7 @@ class BuildRequest(object):
             install_args (dict): the install arguments associated with ``pkg``
         """
         # Ensure dealing with a package that has a concrete spec
-        if not isinstance(pkg, spack.package.PackageBase):
+        if not isinstance(pkg, spack.package_base.PackageBase):
             raise ValueError("{0} must be a package".format(str(pkg)))
 
         self.pkg = pkg

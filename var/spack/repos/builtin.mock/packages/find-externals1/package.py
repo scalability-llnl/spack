@@ -5,7 +5,8 @@
 import os
 import re
 
-import spack.package
+import spack.package_base
+from spack.package import *
 
 
 class FindExternals1(AutotoolsPackage):

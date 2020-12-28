@@ -7,8 +7,9 @@
 # Based on Homebrew's formula:
 # https://github.com/Homebrew/homebrew-core/blob/master/Formula/cask.rb
 #
-from spack import *
 from glob import glob
+
+from spack.package import *
 
 
 class Cask(Package):

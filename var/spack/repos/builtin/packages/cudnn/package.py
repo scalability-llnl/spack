@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-from spack import *
 import platform
+
+from spack.package import *
+
 
 _versions = {
     # cuDNN 8.0.4

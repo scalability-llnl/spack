@@ -3,9 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import re
 import os.path
+import re
 import sys
+
+from spack.package import *
 
 
 class Mvapich2(AutotoolsPackage):

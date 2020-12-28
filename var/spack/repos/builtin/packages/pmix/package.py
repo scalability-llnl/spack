@@ -4,9 +4,10 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-from spack import *
-import spack.architecture
 import os
+
+import spack.architecture
+from spack.package import *
 
 
 class Pmix(AutotoolsPackage):

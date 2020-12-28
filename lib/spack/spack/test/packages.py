@@ -188,10 +188,10 @@ def test_urls_for_versions(mock_packages, config):
 
 def test_url_for_version_with_no_urls(mock_packages, config):
     pkg = spack.repo.get('git-test')
-    with pytest.raises(spack.package.NoURLError):
+    with pytest.raises(spack.package_base.NoURLError):
         pkg.url_for_version('1.0')
 
-    with pytest.raises(spack.package.NoURLError):
+    with pytest.raises(spack.package_base.NoURLError):
         pkg.url_for_version('1.1')
 
 

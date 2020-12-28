@@ -30,16 +30,18 @@
 #
 ##############################################################################
 import glob
-import re
 import os
+import re
 
-from spack import *
-from spack.util.environment import EnvironmentModifications
-from spack.pkg.builtin.openfoam import OpenfoamArch
-from spack.pkg.builtin.openfoam import add_extra_files
-from spack.pkg.builtin.openfoam import write_environ
-from spack.pkg.builtin.openfoam import rewrite_environ_files
 import llnl.util.tty as tty
+from spack.pkg.builtin.openfoam import (
+    OpenfoamArch,
+    add_extra_files,
+    write_environ,
+    rewrite_environ_files,
+)
+from spack.package import *
+from spack.util.environment import EnvironmentModifications
 
 
 class FoamExtend(Package):
@@ -52,52 +54,54 @@ class FoamExtend(Package):
 
     homepage = "http://www.extend-project.de/"
 
-    version('4.0', git='http://git.code.sf.net/p/foam-extend/foam-extend-4.0.git')
-    version('3.2', git='http://git.code.sf.net/p/foam-extend/foam-extend-3.2.git')
-    version('3.1', git='http://git.code.sf.net/p/foam-extend/foam-extend-3.1.git')
-    version('3.0', git='http://git.code.sf.net/p/foam-extend/foam-extend-3.0.git')
+    version("4.0", git="http://git.code.sf.net/p/foam-extend/foam-extend-4.0.git")
+    version("3.2", git="http://git.code.sf.net/p/foam-extend/foam-extend-3.2.git")
+    version("3.1", git="http://git.code.sf.net/p/foam-extend/foam-extend-3.1.git")
+    version("3.0", git="http://git.code.sf.net/p/foam-extend/foam-extend-3.0.git")
 
     # variant('int64', default=False,
     #         description='Compile with 64-bit label')
-    variant('float32', default=False,
-            description='Compile with 32-bit scalar (single-precision)')
-    variant('paraview', default=False,
-            description='Build paraview plugins (eg, paraFoam)')
-    variant('scotch', default=True,
-            description='With scotch for decomposition')
-    variant('ptscotch', default=True,
-            description='With ptscotch for decomposition')
-    variant('metis', default=True,
-            description='With metis for decomposition')
-    variant('parmetis', default=True,
-            description='With parmetis for decomposition')
-    variant('parmgridgen', default=True,
-            description='With parmgridgen support')
-    variant('source', default=True,
-            description='Install library/application sources and tutorials')
+    variant(
+        "float32",
+        default=False,
+        description="Compile with 32-bit scalar (single-precision)",
+    )
+    variant(
+        "paraview", default=False, description="Build paraview plugins (eg, paraFoam)"
+    )
+    variant("scotch", default=True, description="With scotch for decomposition")
+    variant("ptscotch", default=True, description="With ptscotch for decomposition")
+    variant("metis", default=True, description="With metis for decomposition")
+    variant("parmetis", default=True, description="With parmetis for decomposition")
+    variant("parmgridgen", default=True, description="With parmgridgen support")
+    variant(
+        "source",
+        default=True,
+        description="Install library/application sources and tutorials",
+    )
 
-    depends_on('mpi')
-    depends_on('python')
-    depends_on('zlib')
-    depends_on('flex',  type='build')
-    depends_on('cmake', type='build')
+    depends_on("mpi")
+    depends_on("python")
+    depends_on("zlib")
+    depends_on("flex", type="build")
+    depends_on("cmake", type="build")
 
-    depends_on('scotch~metis',     when='~ptscotch+scotch')
-    depends_on('scotch~metis+mpi', when='+ptscotch')
-    depends_on('metis@5:',         when='+metis')
-    depends_on('parmetis',         when='+parmetis')
+    depends_on("scotch~metis", when="~ptscotch+scotch")
+    depends_on("scotch~metis+mpi", when="+ptscotch")
+    depends_on("metis@5:", when="+metis")
+    depends_on("parmetis", when="+parmetis")
     # mgridgen is statically linked
-    depends_on('parmgridgen',      when='+parmgridgen', type='build')
-    depends_on('paraview@:5.0.1',  when='+paraview')
+    depends_on("parmgridgen", when="+parmgridgen", type="build")
+    depends_on("paraview@:5.0.1", when="+paraview")
 
     # General patches
-    common = ['spack-Allwmake', 'README-spack']
+    common = ["spack-Allwmake", "README-spack"]
     assets = []
 
     # Some user config settings
     config = {
-        'label-size': False,    # <- No int32/int64 support
-        'mplib': 'USERMPI',     # USERMPI
+        "label-size": False,  # <- No int32/int64 support
+        "mplib": "USERMPI",  # USERMPI
     }
 
     # The openfoam architecture, compiler information etc
@@ -109,8 +113,8 @@ class FoamExtend(Package):
     # Content for etc/config.{csh,sh}/ files
     etc_config = {}
 
-    phases = ['configure', 'build', 'install']
-    build_script = './spack-Allwmake'  # <- Added by patch() method.
+    phases = ["configure", "build", "install"]
+    build_script = "./spack-Allwmake"  # <- Added by patch() method.
 
     #
     # - End of definitions / setup -
@@ -124,7 +128,7 @@ class FoamExtend(Package):
 
            $ . $WM_PROJECT_DIR/etc/bashrc
         """
-        bashrc = join_path(self.projectdir, 'etc', 'bashrc')
+        bashrc = join_path(self.projectdir, "etc", "bashrc")
         minimal = True
         if os.path.isfile(bashrc):
             # post-install: source the installed bashrc
@@ -135,49 +139,47 @@ class FoamExtend(Package):
                     blacklist=[  # Blacklist these
                         # Inadvertent changes
                         # -------------------
-                        'PS1',            # Leave unaffected
-                        'MANPATH',        # Leave unaffected
-
+                        "PS1",  # Leave unaffected
+                        "MANPATH",  # Leave unaffected
                         # Unneeded bits
                         # -------------
-                        'FOAM_INST_DIR',  # Possibly incorrect
-                        'FOAM_(APP|ETC|SRC|SOLVERS|UTILITIES)',
-                        'FOAM_TEST_.*_DIR',
-                        'WM_NCOMPPROCS',
+                        "FOAM_INST_DIR",  # Possibly incorrect
+                        "FOAM_(APP|ETC|SRC|SOLVERS|UTILITIES)",
+                        "FOAM_TEST_.*_DIR",
+                        "WM_NCOMPPROCS",
                         # 'FOAM_TUTORIALS',  # can be useful
-
                         # Lots of third-party cruft
                         # -------------------------
-                        '[A-Z].*_(BIN|LIB|INCLUDE)_DIR',
-                        '[A-Z].*_SYSTEM',
-                        'WM_THIRD_PARTY_.*',
-                        '(BISON|FLEX|CMAKE|ZLIB)_DIR',
-                        '(METIS|PARMETIS|PARMGRIDGEN|SCOTCH)_DIR',
-
+                        "[A-Z].*_(BIN|LIB|INCLUDE)_DIR",
+                        "[A-Z].*_SYSTEM",
+                        "WM_THIRD_PARTY_.*",
+                        "(BISON|FLEX|CMAKE|ZLIB)_DIR",
+                        "(METIS|PARMETIS|PARMGRIDGEN|SCOTCH)_DIR",
                         # User-specific
                         # -------------
-                        'FOAM_RUN',
-                        '(FOAM|WM)_.*USER_.*',
+                        "FOAM_RUN",
+                        "(FOAM|WM)_.*USER_.*",
                     ],
                     whitelist=[  # Whitelist these
-                        'MPI_ARCH_PATH',  # Can be needed for compilation
-                        'PYTHON_BIN_DIR',
-                    ])
+                        "MPI_ARCH_PATH",  # Can be needed for compilation
+                        "PYTHON_BIN_DIR",
+                    ],
+                )
 
                 env.extend(mods)
                 minimal = False
-                tty.info('foam-extend env: {0}'.format(bashrc))
+                tty.info("foam-extend env: {0}".format(bashrc))
             except Exception:
                 minimal = True
 
         if minimal:
             # pre-build or minimal environment
-            tty.info('foam-extend minimal env {0}'.format(self.prefix))
-            env.set('FOAM_INST_DIR', os.path.dirname(self.projectdir)),
-            env.set('FOAM_PROJECT_DIR', self.projectdir)
-            env.set('WM_PROJECT_DIR', self.projectdir)
-            for d in ['wmake', self.archbin]:  # bin added automatically
-                env.prepend_path('PATH', join_path(self.projectdir, d))
+            tty.info("foam-extend minimal env {0}".format(self.prefix))
+            env.set("FOAM_INST_DIR", os.path.dirname(self.projectdir)),
+            env.set("FOAM_PROJECT_DIR", self.projectdir)
+            env.set("WM_PROJECT_DIR", self.projectdir)
+            for d in ["wmake", self.archbin]:  # bin added automatically
+                env.prepend_path("PATH", join_path(self.projectdir, d))
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         """Location of the OpenFOAM project.
@@ -185,7 +187,7 @@ class FoamExtend(Package):
         variable since it would mask the normal OpenFOAM cleanup of
         previous versions.
         """
-        env.set('FOAM_PROJECT_DIR', self.projectdir)
+        env.set("FOAM_PROJECT_DIR", self.projectdir)
 
     @property
     def projectdir(self):
@@ -201,43 +203,45 @@ class FoamExtend(Package):
     @property
     def archbin(self):
         """Relative location of architecture-specific executables"""
-        return join_path('applications', 'bin', self.foam_arch)
+        return join_path("applications", "bin", self.foam_arch)
 
     @property
     def archlib(self):
         """Relative location of architecture-specific libraries"""
-        return join_path('lib', self.foam_arch)
+        return join_path("lib", self.foam_arch)
 
     def patch(self):
         """Adjust OpenFOAM build for spack.
-           Where needed, apply filter as an alternative to normal patching."""
+        Where needed, apply filter as an alternative to normal patching."""
         add_extra_files(self, self.common, self.assets)
 
         # Adjust ParMGridGen - this is still a mess
         files = [
-            'src/dbns/Make/options',
-            'src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options'  # noqa: E501
+            "src/dbns/Make/options",
+            "src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options",  # noqa: E501
         ]
         for f in files:
-            filter_file(r'-lMGridGen', r'-lmgrid', f, backup=False)
+            filter_file(r"-lMGridGen", r"-lmgrid", f, backup=False)
 
         # Adjust for flex version check
         files = [
-            'src/thermophysicalModels/reactionThermo/chemistryReaders/chemkinReader/chemkinLexer.L',  # noqa: E501
-            'src/surfMesh/surfaceFormats/stl/STLsurfaceFormatASCII.L',  # noqa: E501
-            'src/meshTools/triSurface/triSurface/interfaces/STL/readSTLASCII.L',  # noqa: E501
-            'applications/utilities/preProcessing/fluentDataToFoam/fluentDataToFoam.L',  # noqa: E501
-            'applications/utilities/mesh/conversion/gambitToFoam/gambitToFoam.L',  # noqa: E501
-            'applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L',  # noqa: E501
-            'applications/utilities/mesh/conversion/ansysToFoam/ansysToFoam.L',  # noqa: E501
-            'applications/utilities/mesh/conversion/fluentMeshToFoam/fluentMeshToFoam.L',  # noqa: E501
-            'applications/utilities/mesh/conversion/fluent3DMeshToElmer/fluent3DMeshToElmer.L'  # noqa: E501
+            "src/thermophysicalModels/reactionThermo/chemistryReaders/chemkinReader/chemkinLexer.L",  # noqa: E501
+            "src/surfMesh/surfaceFormats/stl/STLsurfaceFormatASCII.L",  # noqa: E501
+            "src/meshTools/triSurface/triSurface/interfaces/STL/readSTLASCII.L",  # noqa: E501
+            "applications/utilities/preProcessing/fluentDataToFoam/fluentDataToFoam.L",  # noqa: E501
+            "applications/utilities/mesh/conversion/gambitToFoam/gambitToFoam.L",  # noqa: E501
+            "applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L",  # noqa: E501
+            "applications/utilities/mesh/conversion/ansysToFoam/ansysToFoam.L",  # noqa: E501
+            "applications/utilities/mesh/conversion/fluentMeshToFoam/fluentMeshToFoam.L",  # noqa: E501
+            "applications/utilities/mesh/conversion/fluent3DMeshToElmer/fluent3DMeshToElmer.L",  # noqa: E501
         ]
         for f in files:
             filter_file(
-                r'#if YY_FLEX_SUBMINOR_VERSION < 34',
-                r'#if YY_FLEX_MAJOR_VERSION <= 2 && YY_FLEX_MINOR_VERSION <= 5 && YY_FLEX_SUBMINOR_VERSION < 34',   # noqa: E501
-                f, backup=False)
+                r"#if YY_FLEX_SUBMINOR_VERSION < 34",
+                r"#if YY_FLEX_MAJOR_VERSION <= 2 && YY_FLEX_MINOR_VERSION <= 5 && YY_FLEX_SUBMINOR_VERSION < 34",  # noqa: E501
+                f,
+                backup=False,
+            )
 
     def configure(self, spec, prefix):
         """Make adjustments to the OpenFOAM configuration files in their various
@@ -247,92 +251,93 @@ class FoamExtend(Package):
         """
         # Content for etc/prefs.{csh,sh}
         self.etc_prefs = {
-            '000': {  # Sort first
-                'compilerInstall': 'System',
+            "000": {  # Sort first
+                "compilerInstall": "System",
             },
-            '001': {},
-            'cmake': {
-                'CMAKE_DIR':     spec['cmake'].prefix,
-                'CMAKE_BIN_DIR': spec['cmake'].prefix.bin,
+            "001": {},
+            "cmake": {
+                "CMAKE_DIR": spec["cmake"].prefix,
+                "CMAKE_BIN_DIR": spec["cmake"].prefix.bin,
             },
-            'python': {
-                'PYTHON_DIR':     spec['python'].home,
-                'PYTHON_BIN_DIR': spec['python'].home.bin,
+            "python": {
+                "PYTHON_DIR": spec["python"].home,
+                "PYTHON_BIN_DIR": spec["python"].home.bin,
             },
-            'flex': {
-                'FLEX_SYSTEM': 1,
-                'FLEX_DIR':    spec['flex'].prefix,
+            "flex": {
+                "FLEX_SYSTEM": 1,
+                "FLEX_DIR": spec["flex"].prefix,
             },
-            'bison': {
-                'BISON_SYSTEM': 1,
-                'BISON_DIR':    spec['flex'].prefix,
+            "bison": {
+                "BISON_SYSTEM": 1,
+                "BISON_DIR": spec["flex"].prefix,
             },
-            'zlib': {
-                'ZLIB_SYSTEM': 1,
-                'ZLIB_DIR':    spec['zlib'].prefix,
+            "zlib": {
+                "ZLIB_SYSTEM": 1,
+                "ZLIB_DIR": spec["zlib"].prefix,
             },
         }
         # Adjust configuration via prefs - sort second
-        self.etc_prefs['001'].update(self.foam_arch.foam_dict())
+        self.etc_prefs["001"].update(self.foam_arch.foam_dict())
 
-        if '+scotch' in spec or '+ptscotch' in spec:
-            pkg = spec['scotch'].prefix
-            self.etc_prefs['scotch'] = {
-                'SCOTCH_SYSTEM': 1,
-                'SCOTCH_DIR': pkg,
-                'SCOTCH_BIN_DIR': pkg.bin,
-                'SCOTCH_LIB_DIR': pkg.lib,
-                'SCOTCH_INCLUDE_DIR': pkg.include,
+        if "+scotch" in spec or "+ptscotch" in spec:
+            pkg = spec["scotch"].prefix
+            self.etc_prefs["scotch"] = {
+                "SCOTCH_SYSTEM": 1,
+                "SCOTCH_DIR": pkg,
+                "SCOTCH_BIN_DIR": pkg.bin,
+                "SCOTCH_LIB_DIR": pkg.lib,
+                "SCOTCH_INCLUDE_DIR": pkg.include,
             }
 
-        if '+metis' in spec:
-            pkg = spec['metis'].prefix
-            self.etc_prefs['metis'] = {
-                'METIS_SYSTEM': 1,
-                'METIS_DIR': pkg,
-                'METIS_BIN_DIR': pkg.bin,
-                'METIS_LIB_DIR': pkg.lib,
-                'METIS_INCLUDE_DIR': pkg.include,
+        if "+metis" in spec:
+            pkg = spec["metis"].prefix
+            self.etc_prefs["metis"] = {
+                "METIS_SYSTEM": 1,
+                "METIS_DIR": pkg,
+                "METIS_BIN_DIR": pkg.bin,
+                "METIS_LIB_DIR": pkg.lib,
+                "METIS_INCLUDE_DIR": pkg.include,
             }
 
-        if '+parmetis' in spec:
-            pkg = spec['parmetis'].prefix
-            self.etc_prefs['parametis'] = {
-                'PARMETIS_SYSTEM': 1,
-                'PARMETIS_DIR':     pkg,
-                'PARMETIS_BIN_DIR': pkg.bin,
-                'PARMETIS_LIB_DIR': pkg.lib,
-                'PARMETIS_INCLUDE_DIR': pkg.include,
+        if "+parmetis" in spec:
+            pkg = spec["parmetis"].prefix
+            self.etc_prefs["parametis"] = {
+                "PARMETIS_SYSTEM": 1,
+                "PARMETIS_DIR": pkg,
+                "PARMETIS_BIN_DIR": pkg.bin,
+                "PARMETIS_LIB_DIR": pkg.lib,
+                "PARMETIS_INCLUDE_DIR": pkg.include,
             }
 
-        if '+parmgridgen' in spec:
-            pkg = spec['parmgridgen'].prefix
-            self.etc_prefs['parmgridgen'] = {
-                'PARMGRIDGEN_SYSTEM': 1,
-                'PARMGRIDGEN_DIR':     pkg,
-                'PARMGRIDGEN_BIN_DIR': pkg.bin,
-                'PARMGRIDGEN_LIB_DIR': pkg.lib,
-                'PARMGRIDGEN_INCLUDE_DIR': pkg.include,
+        if "+parmgridgen" in spec:
+            pkg = spec["parmgridgen"].prefix
+            self.etc_prefs["parmgridgen"] = {
+                "PARMGRIDGEN_SYSTEM": 1,
+                "PARMGRIDGEN_DIR": pkg,
+                "PARMGRIDGEN_BIN_DIR": pkg.bin,
+                "PARMGRIDGEN_LIB_DIR": pkg.lib,
+                "PARMGRIDGEN_INCLUDE_DIR": pkg.include,
             }
 
-        if '+paraview' in self.spec:
-            self.etc_prefs['paraview'] = {
-                'PARAVIEW_SYSTEM':  1,
-                'PARAVIEW_DIR':     spec['paraview'].prefix,
-                'PARAVIEW_BIN_DIR': spec['paraview'].prefix.bin,
+        if "+paraview" in self.spec:
+            self.etc_prefs["paraview"] = {
+                "PARAVIEW_SYSTEM": 1,
+                "PARAVIEW_DIR": spec["paraview"].prefix,
+                "PARAVIEW_BIN_DIR": spec["paraview"].prefix.bin,
             }
-            self.etc_prefs['qt'] = {
-                'QT_SYSTEM':  1,
-                'QT_DIR':     spec['qt'].prefix,
-                'QT_BIN_DIR': spec['qt'].prefix.bin,
+            self.etc_prefs["qt"] = {
+                "QT_SYSTEM": 1,
+                "QT_DIR": spec["qt"].prefix,
+                "QT_BIN_DIR": spec["qt"].prefix.bin,
             }
 
         # Write prefs files according to the configuration.
         # Only need prefs.sh for building, but install both for end-users
         write_environ(
             self.etc_prefs,
-            posix=join_path('etc', 'prefs.sh'),
-            cshell=join_path('etc', 'prefs.csh'))
+            posix=join_path("etc", "prefs.sh"),
+            cshell=join_path("etc", "prefs.csh"),
+        )
 
     def build(self, spec, prefix):
         """Build using the OpenFOAM Allwmake script, with a wrapper to source
@@ -344,7 +349,7 @@ class FoamExtend(Package):
 
         args = []
         if self.parallel:  # Build in parallel? - pass via the environment
-            os.environ['WM_NCOMPPROCS'] = str(make_jobs)
+            os.environ["WM_NCOMPPROCS"] = str(make_jobs)
         builder = Executable(self.build_script)
         builder(*args)
 
@@ -352,63 +357,59 @@ class FoamExtend(Package):
         """Install under the projectdir"""
 
         # Fairly ugly since intermediate targets are scattered inside sources
-        appdir = 'applications'
+        appdir = "applications"
         projdir = os.path.basename(self.projectdir)
         mkdirp(self.projectdir, join_path(self.projectdir, appdir))
         # Filtering: bashrc, cshrc
         edits = {
-            'WM_PROJECT_INST_DIR': os.path.dirname(self.projectdir),
-            'WM_PROJECT_DIR': join_path('$WM_PROJECT_INST_DIR', projdir),
+            "WM_PROJECT_INST_DIR": os.path.dirname(self.projectdir),
+            "WM_PROJECT_DIR": join_path("$WM_PROJECT_INST_DIR", projdir),
         }
 
         # All top-level files, except spack build info and possibly Allwmake
-        if '+source' in spec:
-            ignored = re.compile(r'^spack-.*')
+        if "+source" in spec:
+            ignored = re.compile(r"^spack-.*")
         else:
-            ignored = re.compile(r'^(Allclean|Allwmake|spack-).*')
+            ignored = re.compile(r"^(Allclean|Allwmake|spack-).*")
 
         files = [
-            f for f in glob.glob("*")
-            if os.path.isfile(f) and not ignored.search(f)
+            f for f in glob.glob("*") if os.path.isfile(f) and not ignored.search(f)
         ]
         for f in files:
             install(f, self.projectdir)
 
         # Install directories. install applications/bin directly
         # Install 'etc' before 'bin' (for symlinks)
-        for d in ['etc', 'bin', 'wmake', 'lib', join_path(appdir, 'bin')]:
-            install_tree(
-                d,
-                join_path(self.projectdir, d),
-                symlinks=True)
+        for d in ["etc", "bin", "wmake", "lib", join_path(appdir, "bin")]:
+            install_tree(d, join_path(self.projectdir, d), symlinks=True)
 
-        if '+source' in spec:
-            subitem = join_path(appdir, 'Allwmake')
+        if "+source" in spec:
+            subitem = join_path(appdir, "Allwmake")
             install(subitem, join_path(self.projectdir, subitem))
 
             foam_arch_str = str(self.foam_arch)
             # Ignore intermediate targets
             ignore = lambda p: os.path.basename(p) == foam_arch_str
 
-            for d in ['src', 'tutorials']:
+            for d in ["src", "tutorials"]:
                 install_tree(
-                    d,
-                    join_path(self.projectdir, d),
-                    ignore=ignore,
-                    symlinks=True)
+                    d, join_path(self.projectdir, d), ignore=ignore, symlinks=True
+                )
 
-            for d in ['solvers', 'utilities']:
+            for d in ["solvers", "utilities"]:
                 install_tree(
                     join_path(appdir, d),
                     join_path(self.projectdir, appdir, d),
                     ignore=ignore,
-                    symlinks=True)
+                    symlinks=True,
+                )
 
-        etc_dir = join_path(self.projectdir, 'etc')
+        etc_dir = join_path(self.projectdir, "etc")
         rewrite_environ_files(  # Adjust etc/bashrc and etc/cshrc
             edits,
-            posix=join_path(etc_dir, 'bashrc'),
-            cshell=join_path(etc_dir, 'cshrc'))
+            posix=join_path(etc_dir, "bashrc"),
+            cshell=join_path(etc_dir, "cshrc"),
+        )
         self.install_links()
 
     def install_links(self):
@@ -417,6 +418,8 @@ class FoamExtend(Package):
         with working_dir(self.projectdir):
             os.symlink(
                 join_path(os.path.relpath(self.install_log_path)),
-                join_path('log.' + str(self.foam_arch)))
+                join_path("log." + str(self.foam_arch)),
+            )
+
 
 # -----------------------------------------------------------------------------

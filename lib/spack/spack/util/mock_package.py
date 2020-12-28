@@ -16,7 +16,7 @@ __all__ = ["MockPackageMultiRepo"]
 
 
 class MockPackageBase(object):
-    """Internal base class for mocking ``spack.package.PackageBase``.
+    """Internal base class for mocking ``spack.package_base.PackageBase``.
 
     Use ``MockPackageMultiRepo.add_package()`` to create new instances.
 

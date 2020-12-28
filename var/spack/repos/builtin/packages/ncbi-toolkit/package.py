@@ -5,7 +5,7 @@
 
 from glob import glob
 
-from spack import *
+from spack.package import *
 
 
 class NcbiToolkit(AutotoolsPackage):

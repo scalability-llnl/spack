@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 # adapted from official quantum espresso package
+from spack.package import *
 
 
 class QESirius(Package):

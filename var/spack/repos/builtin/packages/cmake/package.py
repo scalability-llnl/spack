@@ -5,6 +5,8 @@
 
 import re
 
+from spack.package import *
+
 
 class Cmake(Package):
     """A cross-platform, open-source build system. CMake is a family of

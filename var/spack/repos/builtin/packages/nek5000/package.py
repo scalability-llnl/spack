@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-from shutil import copyfile
 import os
+from shutil import copyfile
+
+from spack.package import *
 
 
 class Nek5000(Package):

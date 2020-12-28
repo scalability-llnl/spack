@@ -3,10 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-from os.path import join
-from fnmatch import fnmatch
 import os
+from fnmatch import fnmatch
+from os.path import join
+
+from spack.package import *
 
 
 class Kaldi(Package):    # Does not use Autotools

@@ -5,6 +5,8 @@
 
 import re
 
+from spack.package import *
+
 
 class Bazel(Package):
     """Bazel is an open-source build and test tool similar to Make, Maven, and

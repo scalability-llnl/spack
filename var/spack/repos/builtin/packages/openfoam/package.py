@@ -41,12 +41,12 @@
 #
 ##############################################################################
 import glob
-import re
 import os
+import re
 
-from spack import *
-from spack.util.environment import EnvironmentModifications
 import llnl.util.tty as tty
+from spack.package import *
+from spack.util.environment import EnvironmentModifications
 
 
 # Not the nice way of doing things, but is a start for refactoring

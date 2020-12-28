@@ -14,7 +14,7 @@
 #   HOST that's defined to a string.  Hilarity ensues.
 #
 #
-from spack import *
+from spack.package import *
 
 
 class BlastPlus(AutotoolsPackage):

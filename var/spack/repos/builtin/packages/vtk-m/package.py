@@ -4,10 +4,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-from spack import *
 import os
 import shutil
 import sys
+
+from spack.package import *
 
 
 class VtkM(CMakePackage, CudaPackage):

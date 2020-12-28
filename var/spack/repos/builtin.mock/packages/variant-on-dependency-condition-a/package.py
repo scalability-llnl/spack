@@ -2,6 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.package import *
+
+
 class VariantOnDependencyConditionA(Package):
     """Test that dependencies that are conditional on the state of
     other dependencies are added correctly, for instance:

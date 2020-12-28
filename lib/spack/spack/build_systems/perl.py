@@ -8,7 +8,7 @@ import inspect
 import os
 
 from spack.directives import depends_on, extends
-from spack.package import PackageBase, run_after
+from spack.package_base import PackageBase, run_after
 from spack.util.executable import Executable
 from llnl.util.filesystem import filter_file
 

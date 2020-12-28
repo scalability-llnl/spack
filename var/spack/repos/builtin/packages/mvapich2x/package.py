@@ -6,6 +6,8 @@
 import os.path
 import sys
 
+from spack.package import *
+
 
 class Mvapich2x(AutotoolsPackage):
     """MVAPICH2-X is the advanced version of the MVAPICH2 MPI library with

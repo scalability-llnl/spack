@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from six import iteritems
+from spack.package import *
 
 
 class Rust(Package):

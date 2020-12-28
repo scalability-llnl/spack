@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
+from spack.package import *
 
 
 class Sio(CMakePackage):
@@ -30,7 +30,7 @@ class Sio(CMakePackage):
         so for example v01-12-01, v01-12 ...
 
         :param self: spack package class that has a url
-        :type self: class: `spack.PackageBase`
+        :type self: class: `spack.package_base.PackageBase`
         :param version: version
         :type param: str
         """

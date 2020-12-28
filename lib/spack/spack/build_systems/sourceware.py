@@ -2,16 +2,17 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from typing import Optional  # novm
 
 import spack.util.url
-import spack.package
+import spack.package_base
 
 
-class SourcewarePackage(spack.package.PackageBase):
+class SourcewarePackage(spack.package_base.PackageBase):
     """Mixin that takes care of setting url and mirrors for Sourceware.org
        packages."""
     #: Path of the package in a Sourceware mirror
-    sourceware_mirror_path = None
+    sourceware_mirror_path = None  # type: Optional[str]
 
     #: List of Sourceware mirrors used by Spack
     base_mirrors = [

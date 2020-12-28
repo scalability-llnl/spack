@@ -3,10 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-import os
 import glob
+import os
 from shutil import copyfile, Error
+
+from spack.package import *
 
 
 class NetcdfFortran(AutotoolsPackage):

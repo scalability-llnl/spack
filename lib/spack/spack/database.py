@@ -254,7 +254,7 @@ _query_docstring = """
                 ``spec.satisfies(query_spec)``
 
             known (bool or any, optional): Specs that are "known" are those
-                for which Spack can locate a ``package.py`` file -- i.e.,
+                for which Spack can locate a ``package_base.py`` file -- i.e.,
                 Spack "knows" how to install them.  Specs that are unknown may
                 represent packages that existed in a previous version of
                 Spack, but have since either changed their name or

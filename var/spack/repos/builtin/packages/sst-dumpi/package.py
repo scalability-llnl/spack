@@ -7,7 +7,7 @@
 # Author: Samuel Knight <sknigh@sandia.gov>
 # Date: Feb 3, 2017
 #
-from spack import *
+from spack.package import *
 
 
 class SstDumpi(AutotoolsPackage):

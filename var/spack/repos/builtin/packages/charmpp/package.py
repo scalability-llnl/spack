@@ -8,7 +8,8 @@ import os
 import platform
 import shutil
 import sys
-from spack import *
+
+from spack.package import *
 
 
 class Charmpp(Package):

@@ -7,6 +7,7 @@
 # https://github.com/flame/blis/issues/17
 # https://github.com/flame/blis/issues/195
 # https://github.com/flame/blis/issues/197
+from spack.package import *
 
 
 class BlisBase(Package):

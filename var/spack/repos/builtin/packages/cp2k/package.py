@@ -3,11 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
-import os.path
 import copy
+import os.path
 
 import spack.util.environment
+from spack.package import *
 
 
 class Cp2k(MakefilePackage, CudaPackage):

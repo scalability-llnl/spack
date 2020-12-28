@@ -3,8 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import sys
 import os
+import sys
+
+from spack.package import *
 
 
 class Hdf(AutotoolsPackage):

@@ -3,8 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 import re
+
+from spack.package import *
 
 
 class Ccache(AutotoolsPackage):

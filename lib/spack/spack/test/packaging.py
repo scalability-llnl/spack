@@ -567,10 +567,10 @@ def mock_download():
     def fake_fn(self):
         return fetcher
 
-    orig_fn = spack.package.PackageBase.fetcher
-    spack.package.PackageBase.fetcher = fake_fn
+    orig_fn = spack.package_base.PackageBase.fetcher
+    spack.package_base.PackageBase.fetcher = fake_fn
     yield
-    spack.package.PackageBase.fetcher = orig_fn
+    spack.package_base.PackageBase.fetcher = orig_fn
 
 
 @pytest.mark.parametrize("manual,instr", [(False, False), (False, True),
@@ -590,7 +590,7 @@ def test_manual_download(install_mockery, mock_download, monkeypatch, manual,
 
     pkg.manual_download = manual
     if instr:
-        monkeypatch.setattr(spack.package.PackageBase, 'download_instr',
+        monkeypatch.setattr(spack.package_base.PackageBase, 'download_instr',
                             _instr)
 
     expected = pkg.download_instr if manual else 'All fetchers failed'

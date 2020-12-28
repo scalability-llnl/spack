@@ -5,6 +5,8 @@
 
 import platform
 
+from spack.package import *
+
 
 class PyScipy(PythonPackage):
     """SciPy (pronounced "Sigh Pie") is a Scientific Library for Python.

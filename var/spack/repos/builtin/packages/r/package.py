@@ -6,7 +6,7 @@
 import os
 import re
 
-from spack import *
+from spack.package import *
 
 
 class R(AutotoolsPackage):

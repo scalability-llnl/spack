@@ -3,11 +3,12 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 import os
 import subprocess
 import sys
+
 import llnl.util.tty as tty
+from spack.package import *
 
 
 class Catalyst(CMakePackage):

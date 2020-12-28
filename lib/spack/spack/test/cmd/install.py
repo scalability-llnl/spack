@@ -17,7 +17,7 @@ import llnl.util.filesystem as fs
 import spack.config
 import spack.compilers as compilers
 import spack.hash_types as ht
-import spack.package
+import spack.package_base
 import spack.cmd.install
 from spack.error import SpackError
 from spack.spec import Spec, CompilerSpec
@@ -62,7 +62,7 @@ def test_install_package_and_dependency(
 def test_install_runtests_notests(monkeypatch, mock_packages, install_mockery):
     def check(pkg):
         assert not pkg.run_tests
-    monkeypatch.setattr(spack.package.PackageBase, 'unit_test_check', check)
+    monkeypatch.setattr(spack.package_base.PackageBase, 'unit_test_check', check)
     install('-v', 'dttop')
 
 
@@ -71,7 +71,7 @@ def test_install_runtests_root(monkeypatch, mock_packages, install_mockery):
     def check(pkg):
         assert pkg.run_tests == (pkg.name == 'dttop')
 
-    monkeypatch.setattr(spack.package.PackageBase, 'unit_test_check', check)
+    monkeypatch.setattr(spack.package_base.PackageBase, 'unit_test_check', check)
     install('--test=root', 'dttop')
 
 
@@ -80,7 +80,7 @@ def test_install_runtests_all(monkeypatch, mock_packages, install_mockery):
     def check(pkg):
         assert pkg.run_tests
 
-    monkeypatch.setattr(spack.package.PackageBase, 'unit_test_check', check)
+    monkeypatch.setattr(spack.package_base.PackageBase, 'unit_test_check', check)
     install('--test=all', 'a')
     install('--run-tests', 'a')
 

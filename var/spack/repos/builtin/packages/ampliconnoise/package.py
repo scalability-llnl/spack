@@ -5,6 +5,8 @@
 
 import os.path
 
+from spack.package import *
+
 
 class Ampliconnoise(MakefilePackage):
     """AmpliconNoise is a collection of programs for the removal of noise

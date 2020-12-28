@@ -329,7 +329,7 @@ def external_list(args):
     list(spack.repo.path.all_packages())
     # Print all the detectable packages
     tty.msg("Detectable packages per repository")
-    for namespace, pkgs in sorted(spack.package.detectable_packages.items()):
+    for namespace, pkgs in sorted(spack.package_base.detectable_packages.items()):
         print("Repository:", namespace)
         colify.colify(pkgs, indent=4, output=sys.stdout)
 

@@ -5,6 +5,8 @@
 
 import os.path
 
+from spack.package import *
+
 
 class Gatk(Package):
     """

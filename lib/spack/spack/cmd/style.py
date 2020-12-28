@@ -219,9 +219,9 @@ def run_flake8(file_list, args):
     flake8_cmd = which("flake8", required=True)
 
     output = ""
-    # run in chunks of 100 at a time to avoid line length limit
+    # run in chunks of 800 at a time to avoid line length limit
     # filename parameter in config *does not work* for this reliably
-    for chunk in grouper(file_list, 100):
+    for chunk in grouper(file_list, 800):
         chunk = filter(lambda e: e is not None, chunk)
 
         output = flake8_cmd(
@@ -252,17 +252,27 @@ def run_mypy(file_list, args):
 
     print_tool_header("mypy")
 
-    returncode = 0
-    output = ""
-    # run in chunks of 100 at a time to avoid line length limit
-    # filename parameter in config *does not work* for this reliably
-    for chunk in grouper(file_list, 100):
-        chunk = filter(lambda e: e is not None, chunk)
+    # package_list = filter(lambda f: is_package(f), file_list)
+    non_package_list = filter(lambda f: not is_package(f), file_list)
 
-        output = mypy_cmd(*chunk, fail_on_error=False, output=str)
-        returncode |= mypy_cmd.returncode
+    def run_chunked(flist, chunk_size):
+        returncode = 0
+        output = ""
+        # run in chunks to avoid line length limit
+        # filename parameter in config *does not work* for this reliably
+        for chunk in grouper(flist, chunk_size):
+            chunk = filter(lambda e: e is not None, chunk)
 
-        rewrite_and_print_output(output, args)
+            output = mypy_cmd(*chunk, fail_on_error=False, output=str)
+            returncode |= mypy_cmd.returncode
+
+            rewrite_and_print_output(output, args)
+        return returncode
+
+    returncode = run_chunked(non_package_list, 800)
+    # packages must be done one at a time unless we want to check all of them, disabling
+    # checking on packages for now
+    # returncode |= run_chunked(package_list, 1)
 
     if returncode == 0:
         tty.msg("mypy checks were clean")
@@ -283,9 +293,9 @@ def run_black(file_list, args):
     replacement = "would reformat {0}"
     returncode = 0
     output = ""
-    # run in chunks of 100 at a time to avoid line length limit
+    # run in chunks of 800 at a time to avoid line length limit
     # filename parameter in config *does not work* for this reliably
-    for chunk in grouper(file_list, 100):
+    for chunk in grouper(file_list, 800):
         chunk = filter(lambda e: e is not None, chunk)
 
         output = black_cmd(

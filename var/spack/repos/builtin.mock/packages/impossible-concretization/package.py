@@ -2,6 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.package import *
+
+
 class ImpossibleConcretization(Package):
     """Package that should be impossible to concretize due to a conflict
     with target ranges. See Issue 19981.

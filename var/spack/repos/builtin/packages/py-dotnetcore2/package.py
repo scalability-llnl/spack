@@ -5,6 +5,8 @@
 
 import sys
 
+from spack.package import *
+
 
 class PyDotnetcore2(Package):
     """.Net Core 2.1 runtime."""

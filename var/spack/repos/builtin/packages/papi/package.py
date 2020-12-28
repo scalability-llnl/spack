@@ -6,7 +6,9 @@
 import glob
 import os
 import sys
+
 import llnl.util.filesystem as fs
+from spack.package import *
 
 
 class Papi(AutotoolsPackage):

@@ -7,7 +7,7 @@ import ast
 import hashlib
 
 import spack.repo
-import spack.package
+import spack.package_base
 import spack.directives
 import spack.error
 import spack.spec
@@ -63,7 +63,7 @@ class RemoveDirectives(ast.NodeTransformer):
     def is_spack_attr(self, node):
         return (isinstance(node, ast.Assign) and
                 node.targets and isinstance(node.targets[0], ast.Name) and
-                node.targets[0].id in spack.package.Package.metadata_attrs)
+                node.targets[0].id in spack.package_base.Package.metadata_attrs)
 
     def visit_ClassDef(self, node):  # noqa
         if node.name == spack.util.naming.mod_to_class(self.spec.name):

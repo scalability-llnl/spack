@@ -13,7 +13,7 @@ from typing import List  # novm
 import llnl.util.tty as tty
 import llnl.util.filesystem as fs
 from llnl.util.filesystem import working_dir, force_remove
-from spack.package import PackageBase, run_after, run_before
+from spack.package_base import PackageBase, run_after, run_before
 from spack.util.executable import Executable
 
 

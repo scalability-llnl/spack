@@ -3,12 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from six import string_types
-
-from spack import *
 import spack.architecture
-
+from six import string_types
 from spack.pkg.builtin.mock.multimethod_base import MultimethodBase
+from spack.package import *
 
 
 class Multimethod(MultimethodBase):

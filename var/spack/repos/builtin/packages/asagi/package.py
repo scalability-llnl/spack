@@ -6,7 +6,7 @@
 # Author: Gilbert Brietzke
 # Date: July 2, 2019
 
-from spack import *
+from spack.package import *
 
 
 class Asagi(CMakePackage):

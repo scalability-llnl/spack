@@ -5,6 +5,8 @@
 
 import os.path
 
+from spack.package import *
+
 
 class LuaLuafilesystem(Package):
     """LuaFileSystem is a Lua library developed to complement the set of

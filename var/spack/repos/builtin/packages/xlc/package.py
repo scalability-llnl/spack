@@ -5,8 +5,9 @@
 import collections
 import re
 
-import spack.compiler
 import llnl.util.tty as tty
+import spack.compiler
+from spack.package import *
 
 
 class Xlc(Package):

@@ -7,7 +7,7 @@
 import inspect
 
 from spack.directives import depends_on
-from spack.package import PackageBase, run_after
+from spack.package_base import PackageBase, run_after
 
 from llnl.util.filesystem import working_dir
 

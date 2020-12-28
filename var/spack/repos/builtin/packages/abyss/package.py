@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import numbers
-from spack import *
+
+from spack.package import *
 
 
 def is_multiple_32(x):

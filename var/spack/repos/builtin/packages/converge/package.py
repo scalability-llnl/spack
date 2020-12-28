@@ -6,7 +6,7 @@
 import glob
 import os
 
-from spack import *
+from spack.package import *
 
 
 class Converge(Package):

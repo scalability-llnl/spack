@@ -5,6 +5,7 @@
 
 import os
 
+from spack.package import *
 from spack.util.environment import is_system_path
 
 

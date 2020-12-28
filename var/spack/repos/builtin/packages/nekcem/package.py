@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-import os
 import json
+import os
+
+from spack.package import *
 
 
 class Nekcem(Package):

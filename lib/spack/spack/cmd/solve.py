@@ -15,7 +15,7 @@ import spack
 import spack.cmd
 import spack.cmd.common.arguments as arguments
 import spack.hash_types as ht
-import spack.package
+import spack.package_base
 import spack.solver.asp as asp
 
 description = "concretize a specs using an ASP solver"

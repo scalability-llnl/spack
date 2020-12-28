@@ -620,7 +620,7 @@ def test_check_deps_status_upstream(install_mockery, monkeypatch):
     request = installer.build_requests[0]
 
     # Mock the known dependent, b, as installed upstream
-    monkeypatch.setattr(spack.package.PackageBase, 'installed_upstream', True)
+    monkeypatch.setattr(spack.package_base.PackageBase, 'installed_upstream', True)
     installer._check_deps_status(request)
     assert list(installer.installed)[0].startswith('b')
 
@@ -697,7 +697,7 @@ def test_install_task_add_compiler(install_mockery, monkeypatch, capfd):
     task.compiler = True
 
     # Preclude any meaningful side-effects
-    monkeypatch.setattr(spack.package.PackageBase, 'unit_test_check', _true)
+    monkeypatch.setattr(spack.package_base.PackageBase, 'unit_test_check', _true)
     monkeypatch.setattr(inst.PackageInstaller, '_setup_install_dir', _noop)
     monkeypatch.setattr(spack.build_environment, 'start_build_process', _noop)
     monkeypatch.setattr(spack.database.Database, 'add', _noop)
@@ -1020,7 +1020,7 @@ def test_install_fail_fast_on_except(install_mockery, monkeypatch, capsys):
     # This will prevent b from installing, which will cause the build of a
     # to be skipped.
     monkeypatch.setattr(
-        spack.package.PackageBase,
+        spack.package_base.PackageBase,
         'do_patch',
         _test_install_fail_fast_on_except_patch
     )

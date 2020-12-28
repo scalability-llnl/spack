@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-from os import unlink
 from glob import glob
+from os import unlink
+
+from spack.package import *
 
 
 class PyDpGpCluster(PythonPackage):

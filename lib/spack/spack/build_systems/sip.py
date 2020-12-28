@@ -9,7 +9,7 @@ import os
 from llnl.util.filesystem import working_dir, join_path
 from spack.build_systems.python import PythonPackage
 from spack.directives import depends_on, extends
-from spack.package import PackageBase, run_after
+from spack.package_base import PackageBase, run_after
 
 
 class SIPPackage(PackageBase):

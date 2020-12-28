@@ -6,7 +6,7 @@
 #
 # Author: Matteo Giantomassi <matteo.giantomassiNOSPAM AT uclouvain.be>
 # Date: October 11, 2016
-from spack import *
+from spack.package import *
 
 
 class Abinit(AutotoolsPackage):

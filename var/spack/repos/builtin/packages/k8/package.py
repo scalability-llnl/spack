@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import sys
 import os
-from spack import *
+import sys
+
+from spack.package import *
 
 
 class K8(Package):

@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 # See the Spack documentation for more information on packaging.
 
-from spack import *
 from os import symlink
+
+from spack.package import *
 
 
 class Smof(Package):

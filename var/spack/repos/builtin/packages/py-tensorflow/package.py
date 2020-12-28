@@ -6,6 +6,8 @@
 import sys
 import tempfile
 
+from spack.package import *
+
 
 class PyTensorflow(Package, CudaPackage):
     """TensorFlow is an Open Source Software Library for Machine Intelligence

@@ -380,7 +380,7 @@ def url_list_parsing(args, urls, url, pkg):
         urls (set): List of URLs that have already been added
         url (str or None): A URL to potentially add to ``urls`` depending on
             ``args``
-        pkg (spack.package.PackageBase): The Spack package
+        pkg (spack.package_base.PackageBase): The Spack package
 
     Returns:
         set: The updated set of ``urls``
@@ -428,7 +428,7 @@ def name_parsed_correctly(pkg, name):
     """Determine if the name of a package was correctly parsed.
 
     Args:
-        pkg (spack.package.PackageBase): The Spack package
+        pkg (spack.package_base.PackageBase): The Spack package
         name (str): The name that was extracted from the URL
 
     Returns:
@@ -445,7 +445,7 @@ def version_parsed_correctly(pkg, version):
     """Determine if the version of a package was correctly parsed.
 
     Args:
-        pkg (spack.package.PackageBase): The Spack package
+        pkg (spack.package_base.PackageBase): The Spack package
         version (str): The version that was extracted from the URL
 
     Returns:

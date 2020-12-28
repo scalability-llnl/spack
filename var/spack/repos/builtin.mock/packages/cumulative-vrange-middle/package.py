@@ -2,6 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.package import *
+
+
 class CumulativeVrangeMiddle(Package):
     """Test that creating cumulative version ranges of the
     form X.Y:X works and allows for the selection of all the

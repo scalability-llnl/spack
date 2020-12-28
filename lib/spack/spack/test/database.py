@@ -27,7 +27,7 @@ from llnl.util.tty.colify import colify
 import spack.repo
 import spack.store
 import spack.database
-import spack.package
+import spack.package_base
 import spack.spec
 from spack.util.mock_package import MockPackageMultiRepo
 from spack.util.executable import Executable
@@ -760,7 +760,7 @@ def test_uninstall_by_spec(mutable_database):
     with mutable_database.write_transaction():
         for spec in mutable_database.query():
             if spec.package.installed:
-                spack.package.PackageBase.uninstall_by_spec(spec, force=True)
+                spack.package_base.PackageBase.uninstall_by_spec(spec, force=True)
             else:
                 mutable_database.remove(spec)
     assert len(mutable_database.query()) == 0

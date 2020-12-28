@@ -5,6 +5,8 @@
 
 import os
 
+from spack.package import *
+
 
 class IntelXed(Package):
     """The Intel X86 Encoder Decoder library for encoding and decoding x86

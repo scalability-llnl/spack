@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
-from spack import *
+
 import spack.util.web
+from spack.package import *
 
 
 class Protobuf(Package):

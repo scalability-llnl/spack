@@ -5,8 +5,7 @@
 
 import shutil
 import sys
-
-from spack import *
+from spack.package import *
 
 
 class Hdf5(AutotoolsPackage):

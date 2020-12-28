@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 from llnl.util import tty
+from spack.package import *
 
 
 class Mercurial(PythonPackage):

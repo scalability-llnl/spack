@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import spack.pkg.builtin.mock.simple_inheritance as si
+from spack.package import *
 
 
 class MultimoduleInheritance(si.BaseWithDirectives):

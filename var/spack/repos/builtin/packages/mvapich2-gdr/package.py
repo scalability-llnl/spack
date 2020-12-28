@@ -6,6 +6,8 @@
 import os.path
 import sys
 
+from spack.package import *
+
 
 class Mvapich2Gdr(AutotoolsPackage):
     """MVAPICH2-GDR is an optimized version of the MVAPICH2 MPI library for

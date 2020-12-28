@@ -9,14 +9,14 @@ import shutil
 
 import llnl.util.filesystem as fs
 
-from spack.package import InstallError, PackageBase, PackageStillNeededError
+from spack.package_base import InstallError, PackageBase, PackageStillNeededError
 import spack.error
 import spack.patch
 import spack.repo
 import spack.store
 from spack.spec import Spec
-from spack.package import (_spack_build_envfile, _spack_build_logfile,
-                           _spack_configure_argsfile)
+from spack.package_base import (_spack_build_envfile, _spack_build_logfile,
+                                _spack_configure_argsfile)
 
 
 def find_nothing(*args):
@@ -177,7 +177,7 @@ def test_flatten_deps(
     assert dependency_name not in os.listdir(pkg.prefix)
 
     # Flatten the dependencies and ensure the dependency directory is there.
-    spack.package.flatten_dependencies(spec, pkg.prefix)
+    spack.package_base.flatten_dependencies(spec, pkg.prefix)
 
     dependency_dir = os.path.join(pkg.prefix, dependency_name)
     assert os.path.isdir(dependency_dir)
@@ -256,12 +256,12 @@ def test_partial_install_keep_prefix(install_mockery, mock_fetch):
 
     # Normally the stage should start unset, but other tests set it
     pkg._stage = None
-    remove_prefix = spack.package.Package.remove_prefix
+    remove_prefix = spack.package_base.Package.remove_prefix
     try:
         # If remove_prefix is called at any point in this test, that is an
         # error
         pkg.succeed = False  # make the build fail
-        spack.package.Package.remove_prefix = mock_remove_prefix
+        spack.package_base.Package.remove_prefix = mock_remove_prefix
         with pytest.raises(spack.build_environment.ChildError):
             pkg.do_install(keep_prefix=True)
         assert os.path.exists(pkg.prefix)
@@ -276,15 +276,15 @@ def test_partial_install_keep_prefix(install_mockery, mock_fetch):
         assert not pkg.stage.test_destroyed
 
     finally:
-        spack.package.Package.remove_prefix = remove_prefix
+        spack.package_base.Package.remove_prefix = remove_prefix
 
 
 def test_second_install_no_overwrite_first(install_mockery, mock_fetch):
     spec = Spec('canfail').concretized()
     pkg = spack.repo.get(spec)
-    remove_prefix = spack.package.Package.remove_prefix
+    remove_prefix = spack.package_base.Package.remove_prefix
     try:
-        spack.package.Package.remove_prefix = mock_remove_prefix
+        spack.package_base.Package.remove_prefix = mock_remove_prefix
 
         pkg.succeed = True
         pkg.do_install()
@@ -295,7 +295,7 @@ def test_second_install_no_overwrite_first(install_mockery, mock_fetch):
         pkg.do_install()
 
     finally:
-        spack.package.Package.remove_prefix = remove_prefix
+        spack.package_base.Package.remove_prefix = remove_prefix
 
 
 def test_store(install_mockery, mock_fetch):

@@ -3,10 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import sys
-import re
 import os
-from spack import *
+import re
+import sys
+
+from spack.package import *
 
 
 class Git(AutotoolsPackage):

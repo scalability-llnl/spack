@@ -5,6 +5,8 @@
 
 import os
 
+from spack.package import *
+
 
 class C(Package):
     """Virtual package for C compilers."""

@@ -3,10 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 import glob
 import os.path
 import re
+
+from spack.package import *
 
 
 class Picard(Package):

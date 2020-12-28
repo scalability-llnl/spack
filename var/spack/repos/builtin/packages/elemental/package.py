@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-from spack import *
+
 from spack.spec import UnsupportedCompilerError
+from spack.package import *
 
 
 class Elemental(CMakePackage):

@@ -41,12 +41,14 @@ max-line-length = 88
 
 # F4: Import
 # - F405: `name` may be undefined, or undefined from star imports: `module`
+# - F401: import unused, package imports names for a star import, uses little
 #
 # F8: Name
 # - F821: undefined name `name`
 #
 per-file-ignores =
   var/spack/repos/*/package.py:F405,F821
+  lib/spack/spack/package.py:F401
 
 # exclude things we usually do not want linting for.
 # These still get linted when passed explicitly, as when spack flake8 passes

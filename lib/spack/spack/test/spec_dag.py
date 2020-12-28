@@ -8,7 +8,7 @@ These tests check Spec DAG operations using dummy packages.
 import pytest
 import spack.architecture
 import spack.error
-import spack.package
+import spack.package_base
 
 from spack.spec import Spec
 from spack.dependency import all_deptypes, Dependency, canonical_deptype

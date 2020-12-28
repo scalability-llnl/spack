@@ -3,8 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 from shutil import copytree
+
+from spack.package import *
 
 
 class StringViewLite(CMakePackage):

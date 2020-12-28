@@ -3,8 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack.util.prefix import Prefix
 import os
+
+from spack.package import *
+from spack.util.prefix import Prefix
 
 
 class Hip(CMakePackage):

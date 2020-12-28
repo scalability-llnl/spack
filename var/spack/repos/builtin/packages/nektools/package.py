@@ -3,10 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-
 import numbers
 import os
+
+from spack.package import *
 
 
 def is_integral(x):

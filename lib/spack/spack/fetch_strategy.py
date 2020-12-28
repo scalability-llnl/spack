@@ -1275,7 +1275,7 @@ def _extrapolate(pkg, version):
     try:
         return URLFetchStrategy(pkg.url_for_version(version),
                                 fetch_options=pkg.fetch_options)
-    except spack.package.NoURLError:
+    except spack.package_base.NoURLError:
         msg = ("Can't extrapolate a URL for version %s "
                "because package %s defines no URLs")
         raise ExtrapolationError(msg % (version, pkg.name))

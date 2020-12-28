@@ -70,7 +70,7 @@
 #    does not like its directory structure.
 #
 
-from spack.package import PackageBase
+from spack.package_base import PackageBase
 from spack.directives import depends_on, variant, conflicts
 
 import spack.variant

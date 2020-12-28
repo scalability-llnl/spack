@@ -8,7 +8,7 @@ import os.path
 
 import spack.build_environment
 import spack.fetch_strategy
-import spack.package
+import spack.package_base
 from spack.reporter import Reporter
 
 __all__ = ['JUnit']

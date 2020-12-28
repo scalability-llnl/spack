@@ -5,6 +5,8 @@
 
 import glob
 
+from spack.package import *
+
 
 class Braker(Package):
     """BRAKER is a pipeline for unsupervised RNA-Seq-based genome annotation

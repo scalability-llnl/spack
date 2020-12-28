@@ -3,15 +3,14 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-
-import socket
-import os
 import glob
+import os
 import shutil
+import socket
+from os import environ as env
 
 import llnl.util.tty as tty
-from os import environ as env
+from spack.package import *
 
 
 def cmake_cache_entry(name, value, vtype=None):

@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
-from spack import *
+
+from spack.package import *
 
 
 class Cgns(CMakePackage):

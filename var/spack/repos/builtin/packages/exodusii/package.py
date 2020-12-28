@@ -3,7 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
+from spack.package import *
+
 
 # TODO: Add support for a C++11 enabled installation that filters out the
 # TODO: "C++11-Disabled" flag (but only if the spec compiler supports C++11).

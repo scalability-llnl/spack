@@ -7,7 +7,7 @@
 # Author: Gilbert Brietzke
 # Date: June 18, 2019
 
-from spack import *
+from spack.package import *
 
 
 class Fgsl(AutotoolsPackage):

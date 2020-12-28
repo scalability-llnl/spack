@@ -11,7 +11,7 @@
 # Institution: Trinity Centre for High Performance Computing, https://www.tchpc.tcd.ie/  # noqa: E501
 # Date: May 09, 2019
 #
-from spack import *
+from spack.package import *
 
 
 class Aom(CMakePackage):

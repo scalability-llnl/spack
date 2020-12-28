@@ -11,7 +11,7 @@ import itertools
 import spack.cmd
 import spack.environment as ev
 import spack.error
-import spack.package
+import spack.package_base
 import spack.cmd.common.arguments as arguments
 import spack.repo
 import spack.store
@@ -215,7 +215,7 @@ def do_uninstall(env, specs, force):
         except spack.repo.UnknownEntityError:
             # The package.py file has gone away -- but still
             # want to uninstall.
-            spack.package.Package.uninstall_by_spec(item, force=True)
+            spack.package_base.Package.uninstall_by_spec(item, force=True)
 
     # A package is ready to be uninstalled when nothing else references it,
     # unless we are requested to force uninstall it.

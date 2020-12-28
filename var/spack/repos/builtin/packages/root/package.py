@@ -4,9 +4,10 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-from spack import *
-from spack.util.environment import is_system_path
 import sys
+
+from spack.package import *
+from spack.util.environment import is_system_path
 
 
 class Root(CMakePackage):

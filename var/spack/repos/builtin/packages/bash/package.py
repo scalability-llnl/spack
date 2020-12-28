@@ -5,6 +5,8 @@
 
 import re
 
+from spack.package import *
+
 
 class Bash(AutotoolsPackage, GNUMirrorPackage):
     """The GNU Project's Bourne Again SHell."""

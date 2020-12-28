@@ -18,7 +18,7 @@ import spack.environment as ev
 import spack.cmd
 import spack.cmd.common.arguments as arguments
 import spack.report
-import spack.package
+import spack.package_base
 
 description = "run spack's tests for an install"
 section = "admin"
@@ -166,7 +166,7 @@ environment variables:
     # Set up reporter
     setattr(args, 'package', [s.format() for s in test_suite.specs])
     reporter = spack.report.collect_info(
-        spack.package.PackageBase, 'do_test', args.log_format, args)
+        spack.package_base.PackageBase, 'do_test', args.log_format, args)
     if not reporter.filename:
         if args.log_file:
             if os.path.isabs(args.log_file):
@@ -188,7 +188,7 @@ environment variables:
 
 
 def has_test_method(pkg):
-    return pkg.test.__func__ != spack.package.PackageBase.test
+    return pkg.test.__func__ != spack.package_base.PackageBase.test
 
 
 def test_list(args):

@@ -69,14 +69,14 @@ NOT_PROVIDED = object()
 #: core the top-level namespace polluted by package symbols this way.  To
 #: solve this, the top-level ``spack`` package contains very few symbols
 #: of its own, and importing ``*`` is essentially a no-op.  The common
-#: routines and directives that packages need are now in ``spack.pkgkit``,
+#: routines and directives that packages need are now in ``spack.package``,
 #: and the import system forces packages to automatically include
 #: this. This way, old packages that call ``from spack import *`` will
 #: continue to work without modification, but it's no longer required.
 #:
 #: TODO: At some point in the future, consider removing ``from spack import *``
-#: TODO: from packages and shifting to from ``spack.pkgkit import *``
-_package_prepend = 'from spack.pkgkit import *'
+#: TODO: from packages and shifting to from ``spack.package import *``
+_package_prepend = 'from spack.package import *'
 
 
 def autospec(function):
@@ -96,10 +96,10 @@ def is_package_file(filename):
     # Package files are named `package.py` and are not in lib/spack/spack
     # We have to remove the file extension because it can be .py and can be
     # .pyc depending on context, and can differ between the files
-    import spack.package  # break cycle
+    import spack.package_base  # break cycle
     filename_noext = os.path.splitext(filename)[0]
     packagebase_filename_noext = os.path.splitext(
-        inspect.getfile(spack.package.PackageBase))[0]
+        inspect.getfile(spack.package_base.PackageBase))[0]
     return (filename_noext != packagebase_filename_noext and
             os.path.basename(filename_noext) == 'package')
 

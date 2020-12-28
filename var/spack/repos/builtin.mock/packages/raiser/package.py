@@ -4,8 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from six.moves import builtins
-
-from spack import *
+from spack.package import *
 
 
 class Raiser(Package):

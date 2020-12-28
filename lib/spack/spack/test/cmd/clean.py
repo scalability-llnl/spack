@@ -7,7 +7,7 @@ import pytest
 import spack.stage
 import spack.caches
 import spack.main
-import spack.package
+import spack.package_base
 
 clean = spack.main.SpackCommand('clean')
 
@@ -25,7 +25,7 @@ def mock_calls_for_clean(monkeypatch):
         def __call__(self, *args, **kwargs):
             counts[self.name] += 1
 
-    monkeypatch.setattr(spack.package.PackageBase, 'do_clean',
+    monkeypatch.setattr(spack.package_base.PackageBase, 'do_clean',
                         Counter('package'))
     monkeypatch.setattr(spack.stage, 'purge', Counter('stages'))
     monkeypatch.setattr(

@@ -3,8 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 from os.path import join
+
+from spack.package import *
 
 
 class Tcptrace(AutotoolsPackage):

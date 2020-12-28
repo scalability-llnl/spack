@@ -9,7 +9,7 @@ import os
 import pytest
 
 import spack.config
-import spack.package
+import spack.package_base
 import spack.cmd.install
 from spack.main import SpackCommand
 

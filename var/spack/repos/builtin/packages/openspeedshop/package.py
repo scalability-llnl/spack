@@ -3,10 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
+import os
 
 import spack.store
-import os
+from spack.package import *
 
 
 class Openspeedshop(CMakePackage):

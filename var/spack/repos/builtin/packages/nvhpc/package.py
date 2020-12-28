@@ -5,10 +5,12 @@
 #
 # Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
 
-from spack import *
-from spack.util.prefix import Prefix
 import os
 import platform
+
+from spack.package import *
+from spack.util.prefix import Prefix
+
 
 # FIXME Remove hack for polymorphic versions
 # This package uses a ugly hack to be able to dispatch, given the same

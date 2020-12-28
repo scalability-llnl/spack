@@ -8,6 +8,7 @@ import re
 import llnl.util.tty as tty
 import spack.compiler
 import spack.util.executable
+from spack.package import *
 
 
 class Arm(Package):

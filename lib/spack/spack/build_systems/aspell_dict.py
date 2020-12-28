@@ -8,7 +8,7 @@
 from llnl.util.filesystem import filter_file
 from spack.build_systems.autotools import AutotoolsPackage
 from spack.directives import extends
-from spack.package import ExtensionError
+from spack.package_base import ExtensionError
 from spack.util.executable import which
 
 

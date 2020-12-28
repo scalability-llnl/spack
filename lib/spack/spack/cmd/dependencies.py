@@ -11,7 +11,7 @@ from llnl.util.tty.colify import colify
 import spack.cmd
 import spack.cmd.common.arguments as arguments
 import spack.environment as ev
-import spack.package
+import spack.package_base
 import spack.repo
 import spack.store
 
@@ -57,7 +57,7 @@ def dependencies(parser, args):
 
     else:
         spec = specs[0]
-        dependencies = spack.package.possible_dependencies(
+        dependencies = spack.package_base.possible_dependencies(
             spec,
             transitive=args.transitive,
             expand_virtuals=args.expand_virtuals,

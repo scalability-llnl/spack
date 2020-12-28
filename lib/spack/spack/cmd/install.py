@@ -237,7 +237,7 @@ environment variables:
         return
 
     reporter = spack.report.collect_info(
-        spack.package.PackageInstaller, '_install_task', args.log_format, args)
+        spack.package_base.PackageInstaller, '_install_task', args.log_format, args)
     if args.log_file:
         reporter.filename = args.log_file
 

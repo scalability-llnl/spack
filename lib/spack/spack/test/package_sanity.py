@@ -9,7 +9,7 @@ import re
 import pytest
 
 import spack.fetch_strategy
-import spack.package
+import spack.package_base
 import spack.paths
 import spack.repo
 import spack.util.executable as executable
@@ -232,7 +232,7 @@ def test_all_dependencies_exist():
     """Make sure no packages have nonexisting dependencies."""
     missing = {}
     pkgs = [pkg for pkg in spack.repo.path.all_package_names()]
-    spack.package.possible_dependencies(
+    spack.package_base.possible_dependencies(
         *pkgs, transitive=True, missing=missing)
 
     lines = [

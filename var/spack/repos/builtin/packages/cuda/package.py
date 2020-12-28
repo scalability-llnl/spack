@@ -3,13 +3,15 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-from glob import glob
-from llnl.util.filesystem import LibraryList
 import os
-import re
 import platform
+import re
+from glob import glob
+
 import llnl.util.tty as tty
+from llnl.util.filesystem import LibraryList
+from spack.package import *
+
 
 # FIXME Remove hack for polymorphic versions
 # This package uses a ugly hack to be able to dispatch, given the same

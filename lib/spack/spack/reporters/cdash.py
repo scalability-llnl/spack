@@ -21,7 +21,7 @@ import llnl.util.tty as tty
 from ordereddict_backport import OrderedDict
 import spack.build_environment
 import spack.fetch_strategy
-import spack.package
+import spack.package_base
 from spack.reporter import Reporter
 from spack.util.crypto import checksum
 from spack.util.executable import which

@@ -8,8 +8,9 @@
 # glibc-devel.i686 (CentoOS) or libc6-dev-i386 and g++-multilib (Ubuntu)
 
 
-from spack import *
 import re
+
+from spack.package import *
 
 
 class Ispc(CMakePackage):

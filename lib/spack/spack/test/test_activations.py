@@ -11,7 +11,7 @@ import os
 import pytest
 
 import spack.spec
-import spack.package
+import spack.package_base
 from llnl.util.link_tree import MergeConflictError
 from spack.directory_layout import YamlDirectoryLayout
 from spack.filesystem_view import YamlFilesystemView

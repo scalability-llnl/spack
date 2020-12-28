@@ -6,6 +6,9 @@
 
 # Although zlib comes with a configure script, it does not use Autotools
 # The AutotoolsPackage causes zlib to fail to build with PGI
+from spack.package import *
+
+
 class Zlib(Package):
     """A free, general-purpose, legally unencumbered lossless
     data-compression library.

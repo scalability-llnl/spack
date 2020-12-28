@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-from os import chmod
 import glob
+from os import chmod
+
+from spack.package import *
 
 
 class Mirdeep2(Package):

@@ -3,10 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
 import os.path
+
 import llnl.util.lang
-from spack import *
+from spack.package import *
 
 
 class FftwBase(AutotoolsPackage):

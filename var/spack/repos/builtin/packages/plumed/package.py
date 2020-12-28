@@ -6,6 +6,8 @@
 import collections
 import os.path
 
+from spack.package import *
+
 
 class Plumed(AutotoolsPackage):
     """PLUMED is an open source library for free energy calculations in
