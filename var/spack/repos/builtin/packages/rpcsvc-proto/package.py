@@ -17,4 +17,5 @@ class RpcsvcProto(AutotoolsPackage):
     depends_on('gettext')
 
     def configure_args(self):
-        return ['LIBS=-lintl']
+        if self.spec['gettext'].prefix != '/usr':
+            return ['LIBS=-lintl']

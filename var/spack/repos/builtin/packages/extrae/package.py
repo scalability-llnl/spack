@@ -88,7 +88,8 @@ class Extrae(AutotoolsPackage):
 
         # This was added due to configure failure
         # https://www.gnu.org/software/gettext/FAQ.html#integrating_undefined
-        args.append('LDFLAGS=-lintl')
+        if self.spec['gettext'].prefix != '/usr':
+            args.append('LDFLAGS=-lintl')
 
         return(args)
 

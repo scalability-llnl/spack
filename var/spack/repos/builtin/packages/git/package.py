@@ -250,8 +250,9 @@ class Git(AutotoolsPackage):
         # In that case the node in the DAG gets truncated and git DOES NOT
         # have a gettext dependency.
         if 'gettext' in self.spec:
-            env.append_flags('EXTLIBS', '-L{0} -lintl'.format(
-                self.spec['gettext'].prefix.lib))
+            if self.spec['gettext'].prefix != '/usr':
+                env.append_flags('EXTLIBS', '-L{0} -lintl'.format(
+                    self.spec['gettext'].prefix.lib))
             env.append_flags('CFLAGS', '-I{0}'.format(
                 self.spec['gettext'].prefix.include))
 

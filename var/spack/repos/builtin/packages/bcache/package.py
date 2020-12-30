@@ -25,7 +25,8 @@ class Bcache(MakefilePackage):
     depends_on('pkgconfig', type='build')
 
     def setup_build_environment(self, env):
-        env.append_flags('LDFLAGS', '-lintl')
+        if self.spec['gettext'].prefix != '/usr':
+            env.append_flags('LDFLAGS', '-lintl')
 
     patch('func_crc64.patch', sha256='558b35cadab4f410ce8f87f0766424a429ca0611aa2fd247326ad10da115737d')
 
