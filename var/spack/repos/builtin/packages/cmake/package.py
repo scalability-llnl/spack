@@ -239,7 +239,7 @@ class Cmake(Package):
         args.append('-DCMake_TEST_INSTALL=OFF')
 
         # When building our own private copy of curl then we need to properly
-        # enable / disable oepnssl
+        # enable / disable openssl
         if '+ownlibs' in spec:
             args.append('-DCMAKE_USE_OPENSSL=%s' % str('+openssl' in spec))
 

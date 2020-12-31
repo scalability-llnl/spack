@@ -29,17 +29,19 @@ class Clingo(CMakePackage):
     version('5.3.0', sha256='b0d406d2809352caef7fccf69e8864d55e81ee84f4888b0744894977f703f976')
     version('5.2.2', sha256='da1ef8142e75c5a6f23c9403b90d4f40b9f862969ba71e2aaee9a257d058bfcf')
 
-    variant("docs", default=False, description="build documentation with Doxyegen")
+    variant("docs", default=False, description="build documentation with Doxygen")
     variant("python", default=True, description="build with python bindings")
+    variant("cxx11", default=False, description="build a C++11-compatible clingo")
 
     depends_on('doxygen', type="build", when="+docs")
     depends_on('re2c@0.13:', type="build")
     depends_on('bison@2.5:', type="build")
 
-    depends_on('python', type=("build", "link", "run"), when="+python")
+    depends_on('python+shared', type=("build", "link", "run"), when="+python")
     extends('python', when='+python')
 
-    patch('python38.patch', when="@5.3:5.4")
+    patch('python38.patch', when="@5.3:5.4^python@3.8:")
+    patch('revert-python-abi-usage.patch', when="^python")
 
     def patch(self):
         # Doxygen is optional but can't be disabled with a -D, so patch
@@ -53,14 +55,34 @@ class Clingo(CMakePackage):
     def cmake_args(self):
         try:
             self.compiler.cxx14_flag
-        except UnsupportedCompilerFlag:
-            InstallError('clingo requires a C++14-compliant C++ compiler')
+        except UnsupportedCompilerFlag as e:
+            raise InstallError(
+                'clingo requires a C++14-compliant C++ compiler',
+                long_msg=str(e))
 
-        return [
-            '-DCLINGO_REQUIRE_PYTHON=ON',
-            '-DCLINGO_BUILD_WITH_PYTHON=ON',
-            '-DCLINGO_BUILD_PY_SHARED=ON',
-            '-DPYCLINGO_USER_INSTALL=OFF',
-            '-DPYCLINGO_USE_INSTALL_PREFIX=ON',
-            '-DCLINGO_BUILD_WITH_LUA=OFF'
+        # Don't build with lua for *any* variant.
+        base_args = [
+            '-DCLINGO_BUILD_WITH_LUA=OFF',
         ]
+
+        if '+python' in self.spec:
+            python = self.spec['python']
+            python_args = [
+                '-DCLINGO_REQUIRE_PYTHON=ON',
+                '-DCLINGO_BUILD_WITH_PYTHON=ON',
+                '-DCLINGO_BUILD_PY_SHARED=ON',
+                '-DPYCLINGO_USER_INSTALL=OFF',
+                '-DPYCLINGO_USE_INSTALL_PREFIX=ON',
+                '-DPYTHON_EXECUTABLE={0}'.format(python.command.path),
+                '-DPYTHON_LIBRARY={0}'.format(python.libs.libraries[0]),
+                '-DPYTHON_INCLUDE_DIR={0}'.format(
+                    python.headers.directories[0]),
+                '-DCLINGO_PYTHON_VERSION:LIST={0};EXACT'.format(
+                    python.version.up_to(3)),
+            ]
+        else:
+            python_args = []
+
+        args = base_args + python_args
+
+        return args

@@ -9,6 +9,13 @@
 # This file is bilingual. The following shell code finds our preferred python.
 # Following line is a shell no-op, and starts a multi-line Python comment.
 # See https://stackoverflow.com/a/47886254
+
+# TODO(#20430): iterating through interpreter binaries via shell script makes
+# it difficult to stop python@3: from bleeding through. This results in
+# confusing errors, e.g. when clingo bootstraps successfully, but spack
+# continues to fail to find the appropriate interpreter. PEX has well-tested
+# code which would do this part for us:
+# https://github.com/pantsbuild/pex/blob/4b899b73262f60e70556e9f24dc27c818a990356/pex/pex_bootstrapper.py#L260-L277
 """:"
 # prefer python3, then python, then python2
 for cmd in python3 python python2; do

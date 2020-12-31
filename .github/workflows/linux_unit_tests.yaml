@@ -117,6 +117,9 @@ jobs:
           git fetch origin ${{ github.ref }}:test-branch
           git checkout test-branch
           share/spack/qa/run-unit-tests
+
+          # TODO(#20123): Test bootstrapping clingo from scratch!
+          share/spack/qa/run-clingo-py2-bootstrap
   clingo:
     # Test for the clingo based solver
     runs-on: ubuntu-latest

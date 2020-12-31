@@ -10,6 +10,18 @@
 #     Common setup code to be sourced by Spack's test scripts.
 #
 
+# Our spack/centos6 image doesn't have a `realpath`, and we can't put it in
+# another source file, because it's used to set `$SPACK_ROOT`.
+function command_exists {
+  hash "$@" 2>/dev/null
+}
+
+if ! command_exists realpath; then
+  function realpath {
+    readlink -f "$@"
+  }
+fi
+
 QA_DIR="$(dirname ${BASH_SOURCE[0]})"
 export SPACK_ROOT=$(realpath "$QA_DIR/../../..")
 
@@ -83,7 +95,7 @@ check_dependencies() {
                 kcov)
                     spack_package=kcov
                     ;;
-                svn)
+                svn|svnadmin)
                     spack_package=subversion
                     ;;
                 *)
@@ -98,6 +110,7 @@ check_dependencies() {
             if [[ $spack_package ]]; then
                 echo "To install with Spack, run:"
                 echo "    $ spack install $spack_package"
+                echo "    $ spack load $spack_package"
             fi
 
             if [[ $pip_package ]]; then

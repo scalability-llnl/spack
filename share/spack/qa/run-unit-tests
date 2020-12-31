@@ -23,7 +23,7 @@
 ORIGINAL_PATH="$PATH"
 
 . "$(dirname $0)/setup.sh"
-check_dependencies $coverage git hg svn
+check_dependencies $coverage git hg svn svnadmin
 
 # Move to root directory of Spack
 # Allows script to be run from anywhere
@@ -37,7 +37,13 @@ bin/spack -h
 bin/spack help -a
 
 # Profile and print top 20 lines for a simple call to spack spec
-spack -p --lines 20 spec mpileaks%gcc ^elfutils@0.170
+if [[ "$(uname)" == 'Darwin' ]]; then
+  # There's a conflict with mpileaks on darwin. So that we can run unit tests
+  # on OSX, let's something else like hdf5!
+  spack -p --lines 20 spec hdf5%gcc ^elfutils@0.170
+else
+  spack -p --lines 20 spec mpileaks%gcc ^elfutils@0.170
+fi
 
 #-----------------------------------------------------------
 # Run unit tests with code coverage

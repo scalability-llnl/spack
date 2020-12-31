@@ -32,6 +32,11 @@ class Krb5(AutotoolsPackage):
     )
     patch('mit-krb5-1.17-static-libs.patch', level=0)
 
+    conflicts('%gcc@:4.99',
+              when='@1.18:',
+              msg='The CLI option -Wno-maybe-uninitialized '
+                  'is not recognized by older gcc versions.')
+
     configure_directory = 'src'
     build_directory = 'src'
 

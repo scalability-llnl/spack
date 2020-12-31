@@ -99,7 +99,7 @@ class CMakePackage(PackageBase):
     variant('ipo', default=False,
             description='CMake interprocedural optimization')
     # CMAKE_INTERPROCEDURAL_OPTIMIZATION only exists for CMake >= 3.9
-    conflicts('+ipo', when='^cmake@:3.8',
+    conflicts('+ipo', when='^cmake@:3.8.99',
               msg='+ipo is not supported by CMake < 3.9')
 
     depends_on('cmake', type='build')

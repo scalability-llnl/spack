@@ -1,0 +1,92 @@
+#!/bin/bash -e
+#
+# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Spack Project Developers. See the top-level COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+#
+# Description:
+#     Bootstraps clingo, assuming the current machine has only python 2.6 and
+#     gcc <4.5.
+#
+# Usage:
+#     run-clingo-py2-bootstrap
+#
+
+# TODO(#20123): there are multiple alternatives to this script:
+#  - TODO(#20430): package spack as a PEX file to avoid mixing up spack-installed packages
+#                  and others!
+#  - TODO(#20260): sandbox all builds with fakechroot to avoid this double bootstrapping!
+# - Add your own! #20207 makes python configuration a lot smarter, and yet still fails CentOS 6.
+
+ORIGINAL_PATH="$PATH"
+
+. "$(dirname $0)/setup.sh"
+check_dependencies $coverage git
+
+set -euxo pipefail
+
+# Move to root directory of Spack
+# Allows script to be run from anywhere
+cd "$SPACK_ROOT"
+
+# Extract the major.minor.patch version in order to make spack install the
+# exact same python later.
+python --version 2>&1 \
+  | awk '{print $2}' \
+        > python-full-version.txt
+
+# Verify that we are running python 2.6.
+if ! python --version 2>&1 | grep -F 2.6; then
+  echo >&2 "python was not 2.6! was $(cat python-full-version.txt)"
+  exit 1
+fi
+
+# Game plan: install the same python, with a much less broken installation
+# (headers and libraries where clingo can find them).
+
+# TODO: thanks to a quirk of CentOS 6 (and maybe others), it *does* contain libpython in /usr/lib64.
+# However, all but one of the necessary python-dev header files are missing by default, and
+# even that libpython library is somehow corrupt, causing any attempt to install another python
+# interpreter of the same version to fail at install time.
+
+# Note that installing, and then requiring the user to use an interpreter with a different version,
+# may break a lot of 2.6-only code. So to avoid changing the python version for the user by
+# accident, we actually need to install *yet another* python whose libpython doesn't clash with the
+# OS python, then work our way back to the python we want.
+
+# TODO: it would be really nice if these could be specified in a config file!
+CLI_INSTALL_ARGS=( --verbose --fail-fast -y -n )
+
+# '~dbm~pyexpat' is necessary to build python 2.7 in specifically this environment. To be clear,
+# in most other environments, using '+dbm+pyexpat' is necessary to build.
+spack install "${CLI_INSTALL_ARGS[@]}" 'python@2.7.18~dbm~pyexpat+shared'
+
+# Many other libraries will fail to build correctly when we load this new gcc
+# unless we also enable +binutils.
+spack install "${CLI_INSTALL_ARGS[@]}" -j 6 'gcc@10.2.0+binutils'
+
+# Please use this mildly recent gcc now.
+spack load 'gcc@10.2.0+binutils'
+
+# Load the newer python to avoid having this build fail while looking for the
+# broken centos6 python library in /usr/lib64.
+spack load 'python@2.7.18~dbm~pyexpat+shared'
+# Install the same python again, this time ready to build modules against (with normal headers and
+# libpython).
+spack install "${CLI_INSTALL_ARGS[@]}" "python@$(cat python-full-version.txt)~dbm~pyexpat+shared"
+# Our python is now the same (version) again, but with a reasonable header and shared
+# library arrangement!
+spack load "python@$(cat python-full-version.txt)~dbm~pyexpat+shared"
+# Build clingo.
+spack install "${CLI_INSTALL_ARGS[@]}" 'clingo@spack+python%gcc@10.2.0'
+
+# For fun, make it run a solve on the same spec.
+spack solve 'clingo@spack+python'
+if spack spec 'clingo@spack+python'; then
+  echo 1>&2 'UNEXPECTED FAILURE: spack spec should have failed!'
+  exit 1
+else
+  echo 1>&2 'EXPECTED FAILURE: spack spec uses the v1 concretizer!'
+fi

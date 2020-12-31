@@ -1,0 +1,264 @@
+diff --git a/libclingo/clingo.h b/libclingo/clingo.h
+index 0091ed8..938067f 100644
+--- a/libclingo/clingo.h
++++ b/libclingo/clingo.h
+@@ -3661,23 +3661,6 @@ typedef struct clingo_options clingo_options_t;
+ //! @return whether the call was successful
+ typedef bool (*clingo_main_function_t) (clingo_control_t *control, char const *const * files, size_t size, void *data);
+ 
+-//! Callback to print a model in default format.
+-//!
+-//! @param[in] data user data for the callback
+-//!
+-//! @return whether the call was successful
+-typedef bool (*clingo_default_model_printer_t) (void *data);
+-
+-//! Callback to customize model printing.
+-//!
+-//! @param[in] model the model
+-//! @param[in] printer the default model printer
+-//! @param[in] printer_data user data for the printer
+-//! @param[in] data user data for the callback
+-//!
+-//! @return whether the call was successful
+-typedef bool (*clingo_model_printer_t) (clingo_model_t const *model, clingo_default_model_printer_t printer, void *printer_data, void *data);
+-
+ //! This struct contains a set of functions to customize the clingo application.
+ typedef struct clingo_application {
+     char const *(*program_name) (void *data);                        //!< callback to obtain program name
+@@ -3685,7 +3668,6 @@ typedef struct clingo_application {
+     unsigned (*message_limit) (void *data);                          //!< callback to obtain message limit
+     clingo_main_function_t main;                                     //!< callback to override clingo's main function
+     clingo_logger_t logger;                                          //!< callback to override default logger
+-    clingo_model_printer_t printer;                                  //!< callback to override default model printing
+     bool (*register_options)(clingo_options_t *options, void *data); //!< callback to register options
+     bool (*validate_options)(void *data);                            //!< callback validate options
+ } clingo_application_t;
+diff --git a/libclingo/clingo.hh b/libclingo/clingo.hh
+index 3ab9dbb..32bf362 100644
+--- a/libclingo/clingo.hh
++++ b/libclingo/clingo.hh
+@@ -2297,7 +2297,6 @@ struct Application {
+     virtual char const *version() const noexcept;
+     virtual void main(Control &ctl, StringSpan files) = 0;
+     virtual void log(WarningCode code, char const *message) noexcept;
+-    virtual void print_model(Model const &model, std::function<void()> default_printer) noexcept;
+     virtual void register_options(ClingoOptions &app);
+     virtual void validate_options();
+     virtual ~Application() = default;
+@@ -4547,9 +4546,7 @@ inline char const *Application::program_name() const noexcept {
+ inline char const *Application::version() const noexcept {
+     return CLINGO_VERSION;
+ }
+-inline void Application::print_model(Model const &, std::function<void()> default_printer) noexcept {
+-    default_printer();
+-}
++
+ inline void Application::log(WarningCode, char const *message) noexcept {
+     fprintf(stderr, "%s\n", message);
+     fflush(stderr);
+@@ -4595,16 +4592,6 @@ inline static void g_logger(clingo_warning_t code, char const *message, void *ad
+     return data.app.log(static_cast<WarningCode>(code), message);
+ }
+ 
+-inline static bool g_model_printer(clingo_model_t const *model, clingo_default_model_printer_t printer, void *printer_data, void *data) {
+-    ApplicationData &app_data = *static_cast<ApplicationData*>(data);
+-    CLINGO_TRY {
+-        app_data.app.print_model(Model(const_cast<clingo_model_t*>(model)), [&]() {
+-            Detail::handle_error(printer(printer_data));
+-        });
+-    }
+-    CLINGO_CATCH;
+-}
+-
+ inline static bool g_register_options(clingo_options_t *options, void *adata) {
+     ApplicationData &data = *static_cast<ApplicationData*>(adata);
+     CLINGO_TRY {
+@@ -5415,7 +5402,6 @@ inline int clingo_main(Application &application, StringSpan arguments) {
+         Detail::g_message_limit,
+         Detail::g_main,
+         Detail::g_logger,
+-        Detail::g_model_printer,
+         Detail::g_register_options,
+         Detail::g_validate_options
+     };
+diff --git a/libclingo/clingo/clingocontrol.hh b/libclingo/clingo/clingocontrol.hh
+index 10126e2..df94eaa 100644
+--- a/libclingo/clingo/clingocontrol.hh
++++ b/libclingo/clingo/clingocontrol.hh
+@@ -190,11 +190,6 @@ public:
+         static_cast<void>(message);
+         std::terminate();
+     }
+-    virtual bool has_printer() const { return false; }
+-    virtual void print_model(Model *model, std::function<void()> printer) {
+-        static_cast<void>(model);
+-        printer();
+-    }
+     virtual void register_options(ClingoApp &app) { static_cast<void>(app); }
+     virtual void validate_options() { }
+     virtual ~IClingoApp() = default;
+diff --git a/libclingo/src/clingo_app.cc b/libclingo/src/clingo_app.cc
+index 3e4d14c..9e9a629 100644
+--- a/libclingo/src/clingo_app.cc
++++ b/libclingo/src/clingo_app.cc
+@@ -161,80 +161,9 @@ Clasp::ProblemType ClingoApp::getProblemType() {
+     return Clasp::ClaspFacade::detectProblemType(getStream());
+ }
+ 
+-// TODO: the code below is annoying. There is too much copy and paste. The
+-// easiest way would be if the textoutput would already provide something to
+-// customize the output.
+-namespace {
+-
+-class CustomTextOutput : public Clasp::Cli::TextOutput {
+-public:
+-    CustomTextOutput(std::unique_ptr<ClingoControl> &ctl, IClingoApp &app, Clasp::uint32 verbosity, Format f, const char* catAtom = 0, char ifs = ' ')
+-    : TextOutput(verbosity, f, catAtom, ifs), ctl_(ctl), app_(app) { }
+-
+-protected:
+-    void printModel(const Clasp::OutputTable& out, const Clasp::Model& m, PrintLevel x) override {
+-        if (ctl_) {
+-            if (x == modelQ()) {
+-                comment(1, "%s: %" PRIu64"\n", !m.up ? "Answer" : "Update", m.num);
+-                ClingoModel cm(*ctl_, &m);
+-                std::lock_guard<decltype(ctl_->propLock_)> lock(ctl_->propLock_);
+-                app_.print_model(&cm, [&]() { printValues(out, m); });
+-            }
+-            if (x == optQ()) {
+-                printMeta(out, m);
+-            }
+-            fflush(stdout);
+-        }
+-        else { Clasp::Cli::TextOutput::printModel(out, m, x); }
+-    }
+-private:
+-    std::unique_ptr<ClingoControl> &ctl_;
+-    IClingoApp &app_;
+-};
+-
+-} // namespace
+-
+ ClingoApp::ClaspOutput* ClingoApp::createOutput(ProblemType f) {
+     if (mode_ == mode_gringo) return 0;
+-    using namespace Clasp;
+-    using namespace Clasp::Cli;
+-    SingleOwnerPtr<ClaspOutput> out;
+-    if (claspAppOpts_.outf == ClaspAppOptions::out_none) {
+-        return 0;
+-    }
+-    if (claspAppOpts_.outf != ClaspAppOptions::out_json || claspAppOpts_.onlyPre) {
+-        TextOutput::Format outFormat = TextOutput::format_asp;
+-        if      (f == Problem_t::Sat){ outFormat = TextOutput::format_sat09; }
+-        else if (f == Problem_t::Pb) { outFormat = TextOutput::format_pb09;  }
+-        else if (f == Problem_t::Asp && claspAppOpts_.outf == ClaspAppOptions::out_comp) {
+-            outFormat = TextOutput::format_aspcomp;
+-        }
+-        if (app_->has_printer()) {
+-            out.reset(new CustomTextOutput(grd, *app_, verbose(), outFormat, claspAppOpts_.outAtom.c_str(), claspAppOpts_.ifs));
+-        }
+-        else {
+-            out.reset(new TextOutput(verbose(), outFormat, claspAppOpts_.outAtom.c_str(), claspAppOpts_.ifs));
+-        }
+-        if (claspConfig_.parse.isEnabled(ParserOptions::parse_maxsat) && f == Problem_t::Sat) {
+-            static_cast<TextOutput*>(out.get())->result[TextOutput::res_sat] = "UNKNOWN";
+-        }
+-    }
+-    else {
+-        out.reset(new JsonOutput(verbose()));
+-    }
+-    if (claspAppOpts_.quiet[0] != static_cast<uint8>(UCHAR_MAX)) {
+-        out->setModelQuiet((ClaspOutput::PrintLevel)std::min(uint8(ClaspOutput::print_no), claspAppOpts_.quiet[0]));
+-    }
+-    if (claspAppOpts_.quiet[1] != static_cast<uint8>(UCHAR_MAX)) {
+-        out->setOptQuiet((ClaspOutput::PrintLevel)std::min(uint8(ClaspOutput::print_no), claspAppOpts_.quiet[1]));
+-    }
+-    if (claspAppOpts_.quiet[2] != static_cast<uint8>(UCHAR_MAX)) {
+-        out->setCallQuiet((ClaspOutput::PrintLevel)std::min(uint8(ClaspOutput::print_no), claspAppOpts_.quiet[2]));
+-    }
+-    if (claspAppOpts_.hideAux && clasp_.get()) {
+-        clasp_->ctx.output.setFilter('_');
+-    }
+-    return out.release();
++    return BaseType::createOutput(f);
+ }
+ 
+ void ClingoApp::printHelp(const Potassco::ProgramOptions::OptionContext& root) {
+@@ -294,4 +223,3 @@ void ClingoApp::run(Clasp::ClaspFacade& clasp) {
+ // }}}
+ 
+ } // namespace Gringo
+-
+diff --git a/libclingo/src/control.cc b/libclingo/src/control.cc
+index 935b144..47643d1 100644
+--- a/libclingo/src/control.cc
++++ b/libclingo/src/control.cc
+@@ -1675,16 +1675,6 @@ public:
+         assert(has_log());
+         app_.logger(static_cast<clingo_warning_t>(code), message, data_);
+     }
+-    bool has_printer() const override { return app_.printer; }
+-    void print_model(Model *model, std::function<void()> printer) override {
+-        handleCError(app_.printer(model, [](void *data) {
+-            GRINGO_CLINGO_TRY {
+-                (*static_cast<std::function<void()>*>(data))();
+-            }
+-            GRINGO_CLINGO_CATCH;
+-        }, &printer, data_));
+-    }
+-
+     void register_options(ClingoApp &app) override {
+         if (app_.register_options) {
+             handleCError(app_.register_options(static_cast<clingo_options_t*>(&app), data_));
+diff --git a/libpyclingo/pyclingo.cc b/libpyclingo/pyclingo.cc
+index ec4a33c..e916870 100644
+--- a/libpyclingo/pyclingo.cc
++++ b/libpyclingo/pyclingo.cc
+@@ -9568,39 +9568,6 @@ bool g_app_register_options(clingo_options_t *options, void *data) {
+     }
+ }
+ 
+-PyObject* call_printer(PyObject *data) {
+-    PY_TRY {
+-        auto d = static_cast<std::pair<clingo_default_model_printer_t, void*>*>(PyCapsule_GetPointer(data, nullptr));
+-        if (!d) { return nullptr; }
+-        handle_c_error(d->first(d->second));
+-        Py_RETURN_NONE;
+-    }
+-    PY_CATCH(nullptr);
+-}
+-
+-PyMethodDef call_printer_def = {
+-    "clingo.default_model_printer",
+-    reinterpret_cast<PyCFunction>(call_printer),
+-    METH_NOARGS,
+-    nullptr
+-};
+-
+-bool g_app_model_printer(clingo_model_t const *model, clingo_default_model_printer_t printer, void *printer_data, void *data) {
+-    PyBlock block;
+-    try {
+-        AppData &pyApp = *static_cast<AppData*>(data);
+-        std::pair<clingo_default_model_printer_t, void*> pd{printer, printer_data};
+-        Object ptr = PyCapsule_New(&pd, nullptr, nullptr);
+-        Object pyP = PyCFunction_New(&call_printer_def, ptr.toPy());
+-        pyApp.first.call("print_model", Model::construct(model), pyP);
+-        return true;
+-    }
+-    catch (...) {
+-        handle_cxx_error("<application>", "error during model printing");
+-        return false;
+-    }
+-}
+-
+ bool g_app_validate_options(void *data) {
+     try {
+         AppData &pyApp = *static_cast<AppData*>(data);
+@@ -9645,7 +9612,6 @@ Object clingoMain(Reference args, Reference kwds) {
+         pyApp.hasAttr("message_limit") ? g_app_message_limit : nullptr,
+         g_app_main,
+         pyApp.hasAttr("logger") ? g_app_logger : nullptr,
+-        pyApp.hasAttr("print_model") ? g_app_model_printer : nullptr,
+         pyApp.hasAttr("register_options") ? g_app_register_options : nullptr,
+         pyApp.hasAttr("validate_options") ? g_app_validate_options : nullptr,
+     };

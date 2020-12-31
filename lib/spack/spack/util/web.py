@@ -102,6 +102,9 @@ def read_from_url(url, accept_content_type=None):
             else:
                 # User wants SSL verification, and it *can* be provided.
                 context = ssl.create_default_context()  # novm
+        elif __UNABLE_TO_VERIFY_SSL:
+            # User wants SSL verification, but it cannot be provided.
+            warn_no_ssl_cert_checking()
         else:
             # User has explicitly indicated that they do not want SSL
             # verification.

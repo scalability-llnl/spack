@@ -288,7 +288,8 @@ def get_uninstall_list(args, specs, env):
             msgs.append(
                 'use `spack uninstall --dependents` to remove dependents too')
         if spec_envs:
-            msgs.append('use `spack env remove` to remove from environments')
+            msgs.append(
+                'use `spack -e ENV remove` to remove from environment ENV')
         print()
         tty.die('There are still dependents.', *msgs)
 
