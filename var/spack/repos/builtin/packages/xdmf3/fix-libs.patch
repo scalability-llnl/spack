@@ -1,0 +1,45 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8085f121..8eae02c8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.5)
+ 
+ project(Xdmf)
+ 
++include(GNUInstallDirs)
+ 
+ if(WIN32)
+   ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE)
+@@ -21,6 +22,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
+ 
+ if(BUILD_SHARED_LIBS)
+   set(BUILD_SHARED 1)
++  set(XDMF_LIBRARIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libXdmf.so;${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libXdmfCore.so")
+ endif()
+ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/XdmfConfig.hpp.in
+                ${CMAKE_CURRENT_BINARY_DIR}/XdmfConfig.hpp)
+@@ -255,7 +257,6 @@ if(XDMF_WRAP_JAVA)
+   endmacro()
+ endif()
+ 
+-include(GNUInstallDirs)
+ 
+ add_subdirectory(core)
+ include_directories(${XdmfCore_INCLUDE_DIRS} ${XdmfDSM_INCLUDE_DIRS})
+diff --git a/core/CMakeLists.txt b/core/CMakeLists.txt
+index 752d3254..0f3ac85e 100644
+--- a/core/CMakeLists.txt
++++ b/core/CMakeLists.txt
+@@ -179,9 +179,9 @@ set(XdmfCoreHeaders
+ install(FILES ${XdmfCoreHeaders} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+ install(FILES ${LokiHeaders} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/loki)
+ install(TARGETS XdmfCore
+-  RUNTIME DESTINATION bin
+-  LIBRARY DESTINATION lib
+-  ARCHIVE DESTINATION lib)
++    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ 
+ if (Boost_FOUND)
+   set(FOUND_BOOST_INCLUDES ${Boost_INCLUDE_DIRS})
