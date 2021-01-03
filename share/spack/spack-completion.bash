@@ -895,7 +895,7 @@ _spack_external_list() {
 _spack_fetch() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -n --no-checksum -m --missing -D --dependencies"
+        SPACK_COMPREPLY="-h --help -n --no-checksum -m --missing -D --dependencies -f --file"
     else
         _all_packages
     fi
