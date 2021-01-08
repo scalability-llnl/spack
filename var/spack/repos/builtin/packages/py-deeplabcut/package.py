@@ -56,7 +56,7 @@ class PyDeeplabcut(PythonPackage):
     depends_on("py-numba@0.51.1", type=('build', 'run'))
     depends_on("py-matplotlib@3.1.3", type=('build', 'run'))
     depends_on("py-moviepy@:1.0.1", type=('build', 'run'))
-    depends_on("py-numpy@1.16.4", type=('build', 'run'))
+    depends_on("py-numpy@1.16.4:1.999", type=('build', 'run'))
     depends_on("py-opencv-python-headless", type=('build', 'run'))
     depends_on("py-pandas@1.0.1:", type=('build', 'run'))
     depends_on("py-patsy", type=('build', 'run'))
