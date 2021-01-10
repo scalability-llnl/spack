@@ -96,6 +96,14 @@ properties = {
             },
             'allow_sgid': {'type': 'boolean'},
             'binary_index_root': {'type': 'string'},
+            'aliases': {
+                'type': 'object',
+                'patternProperties': {
+                    r'\w[\w-]*': {
+                        'type': 'string'
+                    },
+                },
+            },
         },
     },
 }

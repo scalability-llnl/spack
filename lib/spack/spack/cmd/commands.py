@@ -229,7 +229,9 @@ def names(args, out):
     commands = copy.copy(spack.cmd.all_commands())
 
     if args.aliases:
-        commands.extend(spack.main.aliases.keys())
+        aliases = spack.config.get('config:aliases')
+        if aliases:
+            commands.extend(aliases.keys())
 
     colify(commands, output=out)
 

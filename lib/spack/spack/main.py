@@ -16,6 +16,7 @@ import os
 import os.path
 import inspect
 import pstats
+import shlex
 import argparse
 import traceback
 import warnings
@@ -43,11 +44,6 @@ from spack.error import SpackError
 
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
-
-#: top-level aliases for Spack commands
-aliases = {
-    'rm': 'remove'
-}
 
 #: help levels in order of detail (i.e., number of commands shown)
 levels = ['short', 'long']
@@ -314,7 +310,10 @@ class SpackArgumentParser(argparse.ArgumentParser):
         module = spack.cmd.get_module(cmd_name)
 
         # build a list of aliases
-        alias_list = [k for k, v in aliases.items() if v == cmd_name]
+        alias_list = []
+        aliases = spack.config.get('config:aliases')
+        if aliases:
+            alias_list = [k for k, v in aliases.items() if v == cmd_name]
 
         subparser = self.subparsers.add_parser(
             cmd_name, aliases=alias_list,
@@ -740,12 +739,22 @@ def main(argv=None):
 
         # Try to load the particular command the caller asked for.
         cmd_name = args.command[0]
-        cmd_name = aliases.get(cmd_name, cmd_name)
+
+        if cmd_name not in spack.cmd.all_commands():
+            alias = spack.config.get('config:aliases')
+
+            if alias:
+                alias = alias.get(cmd_name)
+
+            if alias is not None:
+                alias_parts = shlex.split(alias)
+                cmd_name = alias_parts[0]
+                args.command = alias_parts + args.command[1:]
 
         command = parser.add_command(cmd_name)
 
         # Re-parse with the proper sub-parser added.
-        args, unknown = parser.parse_known_args()
+        args, unknown = parser.parse_known_args(args.command)
 
         # many operations will fail without a working directory.
         set_working_dir()

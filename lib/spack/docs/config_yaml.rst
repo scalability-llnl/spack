@@ -257,3 +257,17 @@ and ld.so will ONLY search for dependencies in the ``RUNPATH`` of
 the loading object.
 
 DO NOT MIX the two options within the same install tree.
+
+-----------
+``aliases``
+-----------
+
+Aliases can be used to define new Spack commands. They can be either shortcuts
+for longer commands or include specific arguments for convenience. For instance,
+if users want to use ``spack install``'s ``-v`` argument all the time, they can
+create a new alias called ``inst`` that will always call ``install -v``:
+
+.. code-block:: yaml
+
+   aliases:
+     inst: install -v
