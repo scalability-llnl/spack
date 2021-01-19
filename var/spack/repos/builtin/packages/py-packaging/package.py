@@ -19,7 +19,7 @@ class PyPackaging(PythonPackage):
     version('16.8', sha256='5d50835fdf0a7edf0b55e311b7c887786504efea1177abd7e69329a8e5ea619e')
 
     depends_on('py-setuptools', type='build')
-    depends_on('python@2.7:2.8,3.4:', type=('build', 'run'))
+    depends_on('python@2.6:2.8,3.4:', type=('build', 'run'))
     depends_on('py-attrs', when='@19.1', type=('build', 'run'))
     depends_on('py-pyparsing@2.0.2:', type=('build', 'run'))
     depends_on('py-six', type=('build', 'run'))

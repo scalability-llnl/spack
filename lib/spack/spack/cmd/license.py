@@ -175,7 +175,8 @@ def _check_license(lines, path):
             if error:
                 return error
 
-    print('{0}: the license does not match the expected format'.format(path))
+    print('{0}: the license does not match the expected format. Expected:\n{1}'
+          .format(path, '\n'.join(license_lines)))
     return GENERAL_MISMATCH
 
 

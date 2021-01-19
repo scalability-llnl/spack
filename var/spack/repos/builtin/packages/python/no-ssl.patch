@@ -1,0 +1,32 @@
+--- a/setup.py	2020-11-29 13:15:49.676636440 -0800
++++ b/setup.py	2020-11-29 13:43:26.736062972 -0800
+@@ -761,13 +761,12 @@
+             except IOError, msg:
+                 print "IOError while reading opensshv.h:", msg
+                 pass
+ 
+ 
+-        if (ssl_incs is not None and
+-            ssl_libs is not None and
+-            openssl_ver >= 0x00907000):
++        # raise Exception('change this to True!')
++        if False:
+             # The _hashlib module wraps optimized implementations
+             # of hash functions from the OpenSSL library.
+             exts.append( Extension('_hashlib', ['_hashopenssl.c'],
+                                    include_dirs = ssl_incs,
+                                    library_dirs = ssl_libs,
+@@ -781,10 +780,13 @@
+             # Message-Digest Algorithm, described in RFC 1321.  The
+             # necessary files md5.c and md5.h are included here.
+             exts.append( Extension('_md5',
+                             sources = ['md5module.c', 'md5.c'],
+                             depends = ['md5.h']) )
++            # OpenSSL doesn't do these until 0.9.8 so we'll bring our own hash
++            exts.append( Extension('_sha256', ['sha256module.c']) )
++            exts.append( Extension('_sha512', ['sha512module.c']) )
+             missing.append('_hashlib')
+ 
+         if (openssl_ver < 0x00908000):
+             # OpenSSL doesn't do these until 0.9.8 so we'll bring our own hash
+             exts.append( Extension('_sha256', ['sha256module.c']) )
