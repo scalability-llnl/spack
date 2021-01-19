@@ -7,6 +7,7 @@ import filecmp
 import json
 import os
 import pytest
+import re
 from jsonschema import validate
 
 import spack
@@ -171,16 +172,30 @@ spack:
             assert(yaml_contents['stages'][5] == 'stage-rebuild-index')
 
 
+def _find_in_needs_list(match_str, needs_list):
+    for need_item in needs_list:
+        if re.match(match_str, need_item['job']):
+            return True
+    return False
+
+
+def _find_job_in_yaml_def(match_str, yaml_contents):
+    for yaml_key, yaml_value in yaml_contents.items():
+        if re.match(match_str, yaml_key):
+            return yaml_value
+    return None
+
+
 def _validate_needs_graph(yaml_contents, needs_graph, artifacts):
-    for job_name, job_def in yaml_contents.items():
-        for needs_def_name, needs_list in needs_graph.items():
-            if job_name.startswith(needs_def_name):
-                # check job needs against the expected needs definition
-                assert all([job_needs['job'][:job_needs['job'].index('/')]
-                           in needs_list for job_needs in job_def['needs']])
-                assert all([job_needs['artifacts'] == artifacts
-                           for job_needs in job_def['needs']])
-                break
+    for needs_def_pattern, needs_list in needs_graph.items():
+        job_def = _find_job_in_yaml_def(needs_def_pattern, yaml_contents)
+        assert(job_def is not None)
+        job_needs_list = job_def['needs']
+        assert(len(needs_list) == len(job_needs_list))
+        assert(all([job_needs['artifacts'] is artifacts
+                   for job_needs in job_needs_list]))
+        for job_needs_pattern in needs_list:
+            assert(_find_in_needs_list(job_needs_pattern, job_needs_list))
 
 
 def test_ci_generate_bootstrap_gcc(tmpdir, mutable_mock_env_path,
@@ -213,21 +228,21 @@ spack:
 """)
 
     needs_graph = {
-        '(bootstrap) conflict': [],
-        '(bootstrap) gcc': [
-            '(bootstrap) conflict',
+        r"^conflict.+\(bootstrap\)$": [],
+        r"^gcc.+\(bootstrap\)$": [
+            r"^conflict.+\(bootstrap\)$",
         ],
-        '(specs) libelf': [
-            '(bootstrap) gcc',
+        r"^libelf.+\(specs\)$": [
+            r"^gcc.+\(bootstrap\)$",
         ],
-        '(specs) libdwarf': [
-            '(bootstrap) gcc',
-            '(specs) libelf',
+        r"^libdwarf.+\(specs\)$": [
+            r"^gcc.+\(bootstrap\)$",
+            r"^libelf.+\(specs\)$",
         ],
-        '(specs) dyninst': [
-            '(bootstrap) gcc',
-            '(specs) libelf',
-            '(specs) libdwarf',
+        r"^dyninst.+\(specs\)$": [
+            r"^gcc.+\(bootstrap\)$",
+            r"^libelf.+\(specs\)$",
+            r"^libdwarf.+\(specs\)$",
         ],
     }
 
@@ -276,24 +291,24 @@ spack:
 """)
 
     needs_graph = {
-        '(bootstrap) conflict': [],
-        '(bootstrap) gcc': [
-            '(bootstrap) conflict',
+        r"^conflict.+\(bootstrap\)$": [],
+        r"^gcc.+\(bootstrap\)$": [
+            r"^conflict.+\(bootstrap\)$",
         ],
-        '(specs) libelf': [
-            '(bootstrap) gcc',
-            '(bootstrap) conflict',
+        r"^libelf.+\(specs\)$": [
+            r"^gcc.+\(bootstrap\)$",
+            r"^conflict.+\(bootstrap\)$",
         ],
-        '(specs) libdwarf': [
-            '(bootstrap) gcc',
-            '(bootstrap) conflict',
-            '(specs) libelf',
+        r"^libdwarf.+\(specs\)$": [
+            r"^gcc.+\(bootstrap\)$",
+            r"^conflict.+\(bootstrap\)$",
+            r"^libelf.+\(specs\)$",
         ],
-        '(specs) dyninst': [
-            '(bootstrap) gcc',
-            '(bootstrap) conflict',
-            '(specs) libelf',
-            '(specs) libdwarf',
+        r"^dyninst.+\(specs\)$": [
+            r"^gcc.+\(bootstrap\)$",
+            r"^conflict.+\(bootstrap\)$",
+            r"^libelf.+\(specs\)$",
+            r"^libdwarf.+\(specs\)$",
         ],
     }
 
