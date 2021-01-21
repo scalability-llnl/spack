@@ -242,6 +242,25 @@ def _normalize_packages_yaml(packages_yaml):
     return normalized_yaml
 
 
+class ActionRecorder(object):
+    """Records a series of actions to be executed later by a driver"""
+    def __init__(self):
+        self.actions = []
+
+    def __getattr__(self, item):
+
+        class Record(object):
+            def __init__(self, name, recorder):
+                self.name = name
+                self.recorder = recorder
+
+            def __call__(self, *args):
+                _record = (self.name, *args)
+                self.recorder.actions.append(_record)
+
+        return Record(item, self)
+
+
 class PyclingoDriver(object):
     def __init__(self, cores=True, asp=None):
         """Driver for the Python clingo interface.
@@ -299,52 +318,18 @@ class PyclingoDriver(object):
             timers=False, stats=False, tests=False
     ):
         timer = Timer()
-
-        # Initialize the control object for the solver
-        self.control = clingo.Control()
-        self.control.configuration.solve.models = nmodels
-        self.control.configuration.asp.trans_ext = 'all'
-        self.control.configuration.asp.eq = '5'
-        self.control.configuration.configuration = 'tweety'
-        self.control.configuration.solve.parallel_mode = '2'
-        self.control.configuration.solver.opt_strategy = "usc,one"
-
-        # set up the problem -- this generates facts and rules
-        self.assumptions = []
-        with self.control.backend() as backend:
-            self.backend = backend
-            solver_setup.setup(self, specs, tests=tests)
+        fast, complete = solver_setup.setup(specs, tests=tests)
         timer.phase("setup")
 
-        # read in the main ASP program and display logic -- these are
-        # handwritten, not generated, so we load them as resources
-        parent_dir = os.path.dirname(__file__)
-        self.control.load(os.path.join(parent_dir, 'concretize.lp'))
-        self.control.load(os.path.join(parent_dir, "display.lp"))
-        timer.phase("load")
-
-        # Grounding is the first step in the solve -- it turns our facts
-        # and first-order logic rules into propositional logic.
-        self.control.ground([("base", [])])
-        timer.phase("ground")
-
-        # With a grounded program, we can run the solve.
-        result = Result()
-        models = []  # stable models if things go well
-        cores = []   # unsatisfiable cores if they do not
-
-        def on_model(model):
-            models.append((model.cost, model.symbols(shown=True, terms=True)))
-
-        solve_kwargs = {"assumptions": self.assumptions,
-                        "on_model": on_model,
-                        "on_core": cores.append}
-        if clingo_cffi:
-            solve_kwargs["on_unsat"] = cores.append
-        solve_result = self.control.solve(**solve_kwargs)
-        timer.phase("solve")
+        for name, actions in zip(('fast', 'complete'), (fast, complete)):
+            cores, models, solve_result = self._singleshot(
+                name, actions, nmodels, timer
+            )
+            if solve_result.satisfiable:
+                break
 
         # once done, construct the solve result
+        result = Result()
         result.satisfiable = solve_result.satisfiable
 
         def stringify(x):
@@ -403,12 +388,62 @@ class PyclingoDriver(object):
 
         return result
 
+    def _singleshot(self, solve_name, actions, nmodels, timer):
+        # Initialize the control object for the solver
+        self.control = clingo.Control()
+        self.control.configuration.solve.models = nmodels
+        self.control.configuration.asp.trans_ext = 'all'
+        self.control.configuration.asp.eq = '5'
+        self.control.configuration.configuration = 'tweety'
+        self.control.configuration.solve.parallel_mode = '2'
+        self.control.configuration.solver.opt_strategy = "usc,one"
+
+        # set up the problem -- this generates facts and rules
+        self.assumptions = []
+        self.cores = False
+        with self.control.backend() as backend:
+            self.backend = backend
+            # Python 2.7 or less does not support starred assignment
+            for args in actions:
+                getattr(self, args[0])(*args[1:])
+        timer.phase("facts [{0}]".format(solve_name))
+
+        # read in the main ASP program and display logic -- these are
+        # handwritten, not generated, so we load them as resources
+        parent_dir = os.path.dirname(__file__)
+        self.control.load(os.path.join(parent_dir, 'concretize.lp'))
+        self.control.load(os.path.join(parent_dir, "display.lp"))
+        timer.phase("load [{0}]".format(solve_name))
+
+        # Grounding is the first step in the solve -- it turns our facts
+        # and first-order logic rules into propositional logic.
+        self.control.ground([("base", [])])
+        timer.phase("ground [{0}]".format(solve_name))
+        # With a grounded program, we can run the solve.
+        models = []  # stable models if things go well
+        cores = []  # unsatisfiable cores if they do not
+
+        def on_model(model):
+            models.append((model.cost, model.symbols(shown=True, terms=True)))
+
+        solve_kwargs = {
+            "assumptions": self.assumptions,
+            "on_model": on_model,
+            "on_core": cores.append
+        }
+        if clingo_cffi:
+            solve_kwargs["on_unsat"] = cores.append
+
+        solve_result = self.control.solve(**solve_kwargs)
+        timer.phase("solve [{0}]".format(solve_name))
+        return cores, models, solve_result
+
 
 class SpackSolverSetup(object):
     """Class to set up and run a Spack concretization solve."""
 
     def __init__(self):
-        self.gen = None  # set by setup()
+        self.gen = ActionRecorder()
         self.possible_versions = {}
         self.versions_in_package_py = {}
         self.versions_from_externals = {}
@@ -425,6 +460,8 @@ class SpackSolverSetup(object):
 
         # Caches to optimize the setup phase of the solver
         self.target_specs_cache = None
+        # Targets that are mandated in the user spec
+        self.user_targets = []
 
     def pkg_version_rules(self, pkg):
         """Output declared versions of a package.
@@ -1316,7 +1353,28 @@ class SpackSolverSetup(object):
         for pkg, variant, value in sorted(self.variant_values_from_specs):
             self.gen.fact(fn.variant_possible_value(pkg, variant, value))
 
-    def setup(self, driver, specs, tests=False):
+    def clause_from_user_spec(self, clause):
+        if clause.name == 'node_target_set':
+            self.user_targets.append(str(clause.args[1]))
+
+        self.gen.fact(clause)
+
+    def fast_actions(self):
+        targets = self.user_targets or [
+            str(spack.architecture.default_arch().target)
+        ]
+        target_facts = [
+            'target', 'target_family', 'target_parent',
+            'default_target_weight'
+        ]
+        to_be_filtered = [
+            x for x in self.gen.actions
+            if (x[0] == 'fact' and x[1].name in target_facts
+                and x[1].args[0] not in targets)
+        ]
+        return [x for x in self.gen.actions if x not in to_be_filtered]
+
+    def setup(self, specs, tests=False):
         """Generate an ASP program with relevant constraints for specs.
 
         This calls methods on the solve driver to set up the problem with
@@ -1336,16 +1394,13 @@ class SpackSolverSetup(object):
         self.possible_virtuals = set(
             x.name for x in specs if x.virtual
         )
+        deptypes = ('build', 'link', 'run')
+        if tests:
+            deptypes = spack.dependency.all_deptypes
         possible = spack.package.possible_dependencies(
-            *specs,
-            virtuals=self.possible_virtuals,
-            deptype=spack.dependency.all_deptypes
+            *specs, virtuals=self.possible_virtuals, deptype=deptypes
         )
         pkgs = set(possible)
-
-        # driver is used by all the functions below to add facts and
-        # rules to generate an ASP program.
-        self.gen = driver
 
         # get possible compilers
         self.possible_compilers = self.generate_possible_compilers(specs)
@@ -1392,7 +1447,7 @@ class SpackSolverSetup(object):
                 else fn.root(spec.name)
             )
             for clause in self.spec_clauses(spec):
-                self.gen.fact(clause)
+                self.clause_from_user_spec(clause)
 
         self.gen.h1("Variant Values defined in specs")
         self.define_variant_values()
@@ -1408,6 +1463,8 @@ class SpackSolverSetup(object):
 
         self.gen.h1("Target Constraints")
         self.define_target_constraints()
+
+        return self.fast_actions(), self.gen.actions
 
 
 class SpecBuilder(object):
