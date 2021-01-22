@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
+import re
 
 
 class PyFlake8(PythonPackage):
@@ -68,3 +68,13 @@ class PyFlake8(PythonPackage):
     def patch(self):
         """Filter pytest-runner requirement out of setup.py."""
         filter_file("['pytest-runner']", "[]", 'setup.py', string=True)
+
+    executables = ['flake8']
+
+    @classmethod
+    def determine_version(cls, exe):
+        # flake8 --version output looks like:
+        # 3.8.2 (...)
+        output = Executable(exe)('--version', output=str, error=str)
+        match = re.match(r'^(\S+)', output)
+        return match.group(1) if match else None

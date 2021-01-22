@@ -36,6 +36,7 @@ import spack.spec
 import spack.package
 import spack.package_prefs
 import spack.repo
+import spack.bootstrap
 import spack.variant
 import spack.version
 
@@ -251,7 +252,16 @@ class PyclingoDriver(object):
             asp (file-like): optional stream to write a text-based ASP program
                 for debugging or verification.
         """
-        assert clingo, "PyclingoDriver requires clingo with Python support"
+        global clingo
+        if not clingo:
+            # TODO: Find a way to vendor the concrete spec
+            # in a cross-platform way
+            clingo_spec = spack.spec.Spec('clingo@spack+python')
+            with spack.bootstrap.system_python_context():
+                clingo_spec._old_concretize()
+            spack.bootstrap.make_module_available(
+                'clingo', spec=clingo_spec, install=True)
+            import clingo
         self.out = asp or llnl.util.lang.Devnull()
         self.cores = cores
 

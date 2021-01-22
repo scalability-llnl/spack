@@ -36,15 +36,22 @@ jobs:
         python-version: 3.9
     - name: Install Python packages
       run: |
-        pip install --upgrade pip six setuptools flake8 mypy black
+        pip install --upgrade pip six setuptools coverage codecov mypy black
     - name: Setup git configuration
       run: |
         # Need this for the git tests to succeed.
         git --version
         . .github/workflows/setup_git.sh
     - name: Run style tests
+      env:
+          COVERAGE: true
       run: |
           share/spack/qa/run-style-tests
+          coverage combine
+          coverage xml
+    - uses: codecov/codecov-action@v1
+      with:
+        flags: bootstrapping,style,flake
   documentation:
     runs-on: ubuntu-latest
     steps:

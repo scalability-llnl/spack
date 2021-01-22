@@ -15,10 +15,12 @@
 #     run-flake8-tests
 #
 . "$(dirname $0)/setup.sh"
-check_dependencies flake8 mypy
+check_dependencies $coverage mypy  # we will bootstrap flake8
+
+check_dependencies $coverage
 
 # verify that the code style is correct
-spack style
+$coverage_run $(which spack) style
 
 # verify that the license headers are present
-spack license verify
+$coverage_run $(which spack) license verify

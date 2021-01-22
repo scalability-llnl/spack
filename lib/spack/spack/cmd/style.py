@@ -23,6 +23,7 @@ import llnl.util.tty as tty
 import spack.paths
 from spack.util.executable import which
 
+from spack.bootstrap import get_executable
 
 description = (
     "runs source code style checks on Spack. Requires flake8, mypy, black for "
@@ -96,6 +97,10 @@ def changed_files(base=None, untracked=True, all_files=False):
 
             # Ignore files in the exclude locations
             if any(os.path.realpath(f).startswith(e) for e in excludes):
+                continue
+
+            # Ignore broken symlinks
+            if not os.path.exists(f):
                 continue
 
             changed.add(f)
@@ -216,7 +221,7 @@ def print_tool_header(tool):
 def run_flake8(file_list, args):
     returncode = 0
     print_tool_header("flake8")
-    flake8_cmd = which("flake8", required=True)
+    flake8_cmd = get_executable('flake8', spec='py-flake8', install=True)
 
     output = ""
     # run in chunks of 100 at a time to avoid line length limit
