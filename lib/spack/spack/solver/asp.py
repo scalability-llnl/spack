@@ -395,7 +395,6 @@ class PyclingoDriver(object):
         self.control.configuration.asp.trans_ext = 'all'
         self.control.configuration.asp.eq = '5'
         self.control.configuration.configuration = 'tweety'
-        self.control.configuration.solve.parallel_mode = '2'
         self.control.configuration.solver.opt_strategy = "usc,one"
 
         # set up the problem -- this generates facts and rules
@@ -1360,6 +1359,12 @@ class SpackSolverSetup(object):
         self.gen.fact(clause)
 
     def fast_actions(self):
+        """Filter the entire set of facts according to some
+        heuristics, to throw in a first solve only the target,
+        compilers and providers that are most likely to be chosen.
+        """
+        getattr(spack.architecture.platform, 'clear', lambda: None)()
+        getattr(spack.architecture.default_arch, 'clear', lambda: None)()
         targets = self.user_targets or [
             str(spack.architecture.default_arch().target)
         ]
@@ -1367,12 +1372,31 @@ class SpackSolverSetup(object):
             'target', 'target_family', 'target_parent',
             'default_target_weight'
         ]
-        to_be_filtered = [
-            x for x in self.gen.actions
-            if (x[0] == 'fact' and x[1].name in target_facts
-                and x[1].args[0] not in targets)
-        ]
-        return [x for x in self.gen.actions if x not in to_be_filtered]
+        result = []
+        default_compiler = None
+        for x in self.gen.actions:
+            if x[0] == 'fact':
+                # Not one of the likely targets
+                if x[1].name in target_facts and x[1].args[0] not in targets:
+                    continue
+
+                # Remove facts on the support of targets we won't consider
+                if x[1].name == 'compiler_supports_target':
+                    if x[1].args[2] not in targets:
+                        continue
+                    if x[1].args[0] != default_compiler:
+                        continue
+
+                # Pick only the default compiler
+                if x[1].name == 'default_compiler_preference':
+                    # Not the default compiler
+                    if x[1].args[2] != 0:
+                        continue
+                    default_compiler = x[1].args[0]
+
+            result.append(x)
+
+        return result
 
     def setup(self, specs, tests=False):
         """Generate an ASP program with relevant constraints for specs.
