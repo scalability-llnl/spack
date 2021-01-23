@@ -2,10 +2,12 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-from spack.util.prefix import Prefix
 import os
+import re
+
+import llnl.util.tty as tty
+import spack.compiler
+import spack.util
 
 
 class Pgi(Package):
@@ -91,7 +93,9 @@ class Pgi(Package):
         os.system("./install")
 
     def setup_run_environment(self, env):
-        prefix = Prefix(join_path(self.prefix, 'linux86-64', self.version))
+        prefix = spack.util.Prefix(
+            join_path(self.prefix, 'linux86-64', self.version)
+        )
 
         env.prepend_path('PATH', prefix.bin)
         env.prepend_path('MANPATH', prefix.man)
@@ -110,3 +114,59 @@ class Pgi(Package):
                                                          'include'))
             env.prepend_path('MANPATH', join_path(prefix.mpi, ompi_dir,
                                                   'share/man'))
+
+    executables = [
+        r'^pgcc$', r'^pgc\+\+$', r'^pgCC$',
+        r'^pgfortran$', r'^pg77$', '^pgf95$', '^pgf90$'
+    ]
+
+    @classmethod
+    def determine_version(cls, exe):
+        version_regex = re.compile(
+            r'pg[^ ]* ([0-9.]+)-[0-9]+ (LLVM )?[^ ]+ target on '
+        )
+        try:
+            output = spack.compiler.get_compiler_version_output(exe, '-V')
+            match = version_regex.search(output)
+            if match:
+                return match.group(1)
+        except spack.util.executable.ProcessError:
+            pass
+        except Exception as e:
+            tty.debug(e)
+
+    @classmethod
+    def determine_variants(cls, exes, version_str):
+        compilers = {}
+        for exe in exes:
+            if 'pgcc' in exe:
+                compilers['c'] = exe
+            if 'pgc++' in exe:
+                compilers['cxx'] = exe
+            if 'pgfortran' in exe:
+                compilers['fortran'] = exe
+        return '', {'compilers': compilers}
+
+    @property
+    def cc(self):
+        if self.spec.external:
+            return self.spec.extra_attributes['compilers'].get('c', None)
+        msg = "cannot retrieve C compiler [spec is not concrete]"
+        assert self.spec.concrete, msg
+        return str(self.spec.prefix.bin.pgcc)
+
+    @property
+    def cxx(self):
+        if self.spec.external:
+            return self.spec.extra_attributes['compilers'].get('cxx', None)
+        msg = "cannot retrieve C++ compiler [spec is not concrete]"
+        assert self.spec.concrete, msg
+        return os.path.join(self.spec.prefix.bin, 'pgc++')
+
+    @property
+    def fortran(self):
+        if self.spec.external:
+            return self.spec.extra_attributes['compilers'].get('fortran', None)
+        msg = "cannot retrieve Fortran compiler [spec is not concrete]"
+        assert self.spec.concrete, msg
+        return str(self.spec.prefix.bin.pgfortran)
