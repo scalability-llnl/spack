@@ -806,7 +806,7 @@ class IntelPackage(PackageBase):
         # we must supply a personality matching the MPI implementation that
         # is active for the root package that asked for ScaLapack.
         spec_root = self.spec.root
-        if sys.platform == 'darwin' and '^mpich' in spec_root:
+        if sys.platform == 'darwin':
             # The only supported choice for MKL 2018 on Mac.
             blacs_lib = 'libmkl_blacs_mpich'
         elif '^openmpi' in spec_root:
