@@ -106,7 +106,7 @@ class MockPackageMultiRepo(object):
         return item in self.spec_to_pkg
 
     def add_package(self, name, dependencies=None, dependency_types=None,
-                    conditions=None):
+                    conditions=None, pkg_class=None):
         """Factory method for creating mock packages.
 
         This creates a new subclass of ``MockPackageBase``, ensures that its
@@ -134,38 +134,40 @@ class MockPackageMultiRepo(object):
 
         assert len(dependencies) == len(dependency_types)
 
-        # new class for the mock package
-        class MockPackage(MockPackageBase):
-            pass
-        MockPackage.__name__ = spack.util.naming.mod_to_class(name)
-        MockPackage.name = name
-        MockPackage._repo = self
+        if not pkg_class:
+            # new class for the mock package
+            class MockPackage(MockPackageBase):
+                pass
+            pkg_class = MockPackage
+        pkg_class.__name__ = spack.util.naming.mod_to_class(name)
+        pkg_class.name = name
+        pkg_class._repo = self
 
         # set up dependencies
-        MockPackage.dependencies = ordereddict_backport.OrderedDict()
+        pkg_class.dependencies = ordereddict_backport.OrderedDict()
         for dep, dtype in zip(dependencies, dependency_types):
-            d = Dependency(MockPackage, Spec(dep.name), type=dtype)
+            d = Dependency(pkg_class, Spec(dep.name), type=dtype)
             if not conditions or dep.name not in conditions:
-                MockPackage.dependencies[dep.name] = {Spec(name): d}
+                pkg_class.dependencies[dep.name] = {Spec(name): d}
             else:
                 dep_conditions = conditions[dep.name]
                 dep_conditions = dict(
-                    (Spec(x), Dependency(MockPackage, Spec(y), type=dtype))
+                    (Spec(x), Dependency(pkg_class, Spec(y), type=dtype))
                     for x, y in dep_conditions.items())
-                MockPackage.dependencies[dep.name] = dep_conditions
+                pkg_class.dependencies[dep.name] = dep_conditions
 
         # each package has some fake versions
         versions = list(Version(x) for x in [1, 2, 3])
-        MockPackage.versions = dict(
+        pkg_class.versions = dict(
             (x, {'preferred': False}) for x in versions
         )
 
-        MockPackage.variants = {}
-        MockPackage.provided = {}
-        MockPackage.conflicts = {}
-        MockPackage.patches = {}
+        pkg_class.variants = {}
+        pkg_class.provided = {}
+        pkg_class.conflicts = {}
+        pkg_class.patches = {}
 
-        mock_package = MockPackage(
+        mock_package = pkg_class(
             dependencies, dependency_types, conditions, versions)
         self.spec_to_pkg[name] = mock_package
         self.spec_to_pkg["mockrepo." + name] = mock_package

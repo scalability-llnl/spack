@@ -1634,6 +1634,9 @@ class Spec(object):
                  ) for name, dspec in sorted(deps.items())
             ])
 
+        if self.extra_pkg_properties:
+            d['extra_pkg_properties'] = self.extra_pkg_properties()
+
         return syaml.syaml_dict([(self.name, d)])
 
     def to_dict(self, hash=ht.dag_hash):
@@ -1825,6 +1828,9 @@ class Spec(object):
                 spec.extra_attributes = node['external'].get(
                     'extra_attributes', syaml.syaml_dict()
                 )
+
+        if 'extra_pkg_properties' in node:
+            spec._extra_pkg_properties = node['extra_pkg_properties']
 
         # specs read in are concrete unless marked abstract
         spec._concrete = node.get('concrete', True)
@@ -3576,7 +3582,20 @@ class Spec(object):
                 self.variants,
                 self.architecture,
                 self.compiler,
-                self.compiler_flags)
+                self.compiler_flags,
+                self.extra_pkg_properties())
+
+    def extra_pkg_properties(self):
+        if not self.concrete:
+            return tuple()
+        elif not hasattr(self, '_extra_pkg_properties'):
+            if hasattr(self.package, 'extra_properties'):
+                self._extra_pkg_properties = (
+                    self.package.extra_properties(self))
+            else:
+                self._extra_pkg_properties = None
+
+        return self._extra_pkg_properties
 
     def eq_node(self, other):
         """Equality with another spec, not including dependencies."""

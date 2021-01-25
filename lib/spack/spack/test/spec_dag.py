@@ -82,6 +82,35 @@ w->y deptypes are (link, build), w->x and y->z deptypes are (test)
         assert ('x' in spec)
         assert ('z' not in spec)
 
+@pytest.mark.usefixtures('config')
+def test_extra_pkg_properties():
+    default = ('build', 'link')
+    test_only = ('test',)
+
+    class SpecialPackage(spack.util.mock_package.MockPackageBase):
+        def extra_properties(self, spec):
+            #return ('test-property',)
+            dependents = list()
+            for s in spec.dependents():
+                dependents.append(s.format("{name}@{version}"))
+            return tuple(sorted(dependents))
+
+    mock_repo = MockPackageMultiRepo()
+
+    with spack.repo.swap(mock_repo):
+        z = mock_repo.add_package('z', [], [], pkg_class=SpecialPackage)
+        x = mock_repo.add_package('x', [z], [default])
+        y = mock_repo.add_package('y', [z], [default])
+        w = mock_repo.add_package('w', [x, y], [default, default])
+
+        spec1 = Spec('w')
+        spec1.concretize()
+
+        spec2 = Spec('w ^x@2')
+        spec2.concretize()
+
+        assert spec1['z'] != spec2['z']
+
 
 @pytest.mark.usefixtures('config')
 def test_installed_deps():
