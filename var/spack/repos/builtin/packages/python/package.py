@@ -10,8 +10,7 @@ import re
 
 import llnl.util.tty as tty
 from llnl.util.lang import match_predicate
-from llnl.util.filesystem import (force_remove, get_filetype,
-                                  path_contains_subdirectory)
+import llnl.util.filesystem as fs
 
 import spack.store
 import spack.util.spack_json as sjson
@@ -247,8 +246,10 @@ class Python(AutotoolsPackage):
     @classmethod
     def determine_variants(cls, exes, version_str):
         python = Executable(exes[0])
+        version = Version(version_str)
 
         variants = ''
+
         for module in ['readline', 'sqlite3', 'dbm', 'nis',
                        'zlib', 'bz2', 'lzma', 'ctypes', 'uuid']:
             try:
@@ -273,7 +274,7 @@ class Python(AutotoolsPackage):
             variants += '~pyexpat'
 
         # Some modules changed names in Python 3
-        if Version(version_str) >= Version('3'):
+        if version >= Version('3'):
             try:
                 python('-c', 'import tkinter', error=os.devnull)
                 variants += '+tkinter'
@@ -297,6 +298,57 @@ class Python(AutotoolsPackage):
                 variants += '+tix'
             except ProcessError:
                 variants += '~tix'
+
+        # Get config args for debug, and optimizations variant checks
+        sysconf_imp = 'import sysconfig'
+        if version < Version('2.7'):
+            sysconf_imp = 'import distutils.sysconfig as sysconfig'
+        conf_args = python(
+            '-c',
+            '%s; print(sysconfig.get_config_var("CONFIG_ARGS"))' % sysconf_imp,
+            output=str, error=str)
+
+        libdir = python(
+            '-c', '%s; print(sysconfig.get_config_var("LIBPL"))' % sysconf_imp,
+            output=str, error=str).strip()
+        # Search for shared libraries in the prefix and set shared variant
+        matches = fs.find_libraries('libpython*', prefix=libdir, shared=True)
+        variants += '+shared' if len(matches) > 0 else '~shared'
+
+        # check for debug
+        # default is off, so we check for the string to turn it on
+        variants += '+debug' if '--with-pydebug' in conf_args else '~debug'
+
+        # Use config args to determine whether optimizations were used
+        opt_var = '~optimizations'
+        # only check for versions that support optimization
+        if version >= Version('3.5.3') or (version >= Version('2.7.13') and
+                                           version < Version('2.8')):
+            if '--enable-optimizations' in conf_args:
+                opt_var = '+optimizations'
+        variants += opt_var
+
+        # +ucs4 only compatible with python@:3.2
+        if version >= Version('3.3'):
+            variants += '~ucs4'
+        else:
+            # maxunicode is 0xFFFF for UCS2 and 0x10FFFF for UCS4
+            maxunicode = python('-c', 'import sys; print(sys.maxunicode)',
+                                output=str, error=str)
+            variants += '~ucs4' if maxunicode == 0xFFFF else '+ucs4'
+
+        # Will always be true for python2, but relevant for python3
+        if 'python' in [os.path.basename(exe) for exe in exes]:
+            variants += '+pythoncmd'
+        else:
+            variants += '~pythoncmd'
+
+        # The libxml2 variant only exists to get out of a circular dependency
+        # This will not be an issue when we add cycle detection to the new
+        # concretizer. Until then, just "detect" the more restrictive option
+        # since we need to detect a fully concrete external python for
+        # concretizer bootstrapping purposes.
+        variants += '~libxml2'
 
         return variants
 
@@ -544,7 +596,7 @@ class Python(AutotoolsPackage):
                 # is initialized by the method load_distutils_data().
                 self._distutil_vars = {}
                 if output_filename:
-                    force_remove(output_filename)
+                    fs.force_remove(output_filename)
 
     def _load_distutil_vars(self):
         # We update and keep the cache unchanged only if the package is
@@ -1100,11 +1152,11 @@ class Python(AutotoolsPackage):
     def add_files_to_view(self, view, merge_map):
         bin_dir = self.spec.prefix.bin
         for src, dst in merge_map.items():
-            if not path_contains_subdirectory(src, bin_dir):
+            if not fs.path_contains_subdirectory(src, bin_dir):
                 view.link(src, dst, spec=self.spec)
             elif not os.path.islink(src):
                 copy(src, dst)
-                if 'script' in get_filetype(src):
+                if 'script' in fs.get_filetype(src):
                     filter_file(
                         self.spec.prefix,
                         os.path.abspath(
@@ -1132,7 +1184,7 @@ class Python(AutotoolsPackage):
     def remove_files_from_view(self, view, merge_map):
         bin_dir = self.spec.prefix.bin
         for src, dst in merge_map.items():
-            if not path_contains_subdirectory(src, bin_dir):
+            if not fs.path_contains_subdirectory(src, bin_dir):
                 view.remove_file(src, dst)
             else:
                 os.remove(dst)
