@@ -14,9 +14,10 @@ class PyDeeplabcut(PythonPackage):
     (typically 50-200 frames)."""
 
     homepage = "http://www.mousemotorlab.org/deeplabcut"
-    url      = "https://github.com/DeepLabCut/DeepLabCut/archive/v2.2b8.tar.gz"
+    pypi = "deeplabcut/deeplabcut-2.2b8.tar.gz"
 
-    version('2.2b8',   sha256='eb6180741bb7eab173e09118bad60551b3c9ab2c8d4ed68460979105137fe72e')
+    version('2.2b8',   sha256='af81d9f5deb79558b23a9e8f5c76d85c43ac487453dc4f2357b7e30cb479ea30')
+    version('2.1.10', sha256='457ae694ec91d4903d7077c4ef14a00444a9f8932f3d1cbe08d1c2d58c326df5')
 
     depends_on('py-setuptools', type='build')
     depends_on("py-bayesian-optimization", type=('build', 'run'))
