@@ -47,6 +47,69 @@ def mock_get_specs_multiarch(database, monkeypatch):
     )
 
 
+def tests_buildcache_copy(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery):
+
+    pkg = 'libdwarf'
+    install(pkg)
+    mirror_url = os.path.join(str(tmpdir), 'mirror_url')
+
+    buildcache('create', '-d', str(tmpdir), '--unsigned', pkg)
+
+    spec = Spec(pkg).concretized()
+    tarball = spack.binary_distribution.tarball_name(spec, '.spec.yaml')
+    tarball_path = spack.binary_distribution.tarball_path_name(spec, '.spack')
+
+    buildcache('copy', '--spec-yaml', os.path.join(str(tmpdir), 'build_cache',
+               tarball), '--base-dir', str(tmpdir),
+               '--destination-url', str(mirror_url))
+
+    assert os.path.exists(os.path.join(str(mirror_url),
+                          'build_cache', tarball_path))
+
+
+def tests_buildcache_save_yaml_root_spec(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery):
+    pkg = 'libdwarf'
+    install(pkg)
+    buildcache('create', '-d', str(tmpdir), '--unsigned', pkg)
+
+    spec = Spec(pkg).concretized()
+    tarball = spack.binary_distribution.tarball_name(spec, '.spec.yaml')
+
+    buildcache('save-yaml', '--root-spec', pkg, '-s',
+               'libelf', '-y', str(tmpdir))
+    buildcache('save-yaml', '--root-spec-yaml',
+               os.path.join(str(tmpdir), 'build_cache', tarball),
+               '-s', pkg, '-y', str(tmpdir))
+
+    assert os.path.exists(
+        os.path.join(str(tmpdir), 'libelf.yaml'))
+    assert os.path.exists(
+        os.path.join(str(tmpdir), 'libdwarf.yaml'))
+
+
+def tests_buildcache_get_buildcache_name(
+        install_mockery, mock_fetch, monkeypatch, tmpdir, capsys):
+    pkg = 'trivial-install-test-package'
+    install(pkg)
+    buildcache('create', '-d', str(tmpdir), '--unsigned', pkg)
+
+    spec = Spec(pkg).concretized()
+    tarball_path = spack.binary_distribution.tarball_path_name(spec, '.spack')
+    tarball = spack.binary_distribution.tarball_name(spec, '.spec.yaml')
+
+    with capsys.disabled():
+        outupt = buildcache('get-buildcache-name', '-s', pkg)
+        outupt2 = buildcache('get-buildcache-name', '-y',
+                             os.path.join(str(tmpdir), 'build_cache', tarball))
+
+    assert outupt.strip() in tarball_path
+    assert outupt2.strip() in tarball_path
+
+
 @pytest.mark.skipif(
     platform.system().lower() != 'linux',
     reason='implementation for MacOS still missing'

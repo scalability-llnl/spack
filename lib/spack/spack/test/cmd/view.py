@@ -26,6 +26,21 @@ def create_projection_file(tmpdir, projection):
 
 @pytest.mark.parametrize('cmd', ['hardlink', 'symlink', 'hard', 'add',
                                  'copy', 'relocate'])
+def test_view_link_status(
+        tmpdir, mock_packages, mock_archive, mock_fetch, config,
+        install_mockery, cmd):
+    install('libdwarf')
+    viewpath = str(tmpdir.mkdir('view_{0}'.format(cmd)))
+    view(cmd, viewpath, 'libdwarf')
+    package_prefix = os.path.join(viewpath, 'libdwarf')
+    assert os.path.exists(package_prefix)
+
+    output = view('statlink', viewpath, 'libdwarf')
+    assert 'Packages linked in [{0}]'.format(viewpath) in output
+
+
+@pytest.mark.parametrize('cmd', ['hardlink', 'symlink', 'hard', 'add',
+                                 'copy', 'relocate'])
 def test_view_link_type(
         tmpdir, mock_packages, mock_archive, mock_fetch, config,
         install_mockery, cmd):
