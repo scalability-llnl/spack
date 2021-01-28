@@ -23,8 +23,7 @@ class MockPackageBase(object):
     """
     virtual = False
 
-    def __init__(self, dependencies, dependency_types,
-                 conditions=None, versions=None):
+    def __init__(self, spec):
         """Instantiate a new MockPackageBase.
 
         This is not for general use; it needs to be constructed by a
@@ -32,7 +31,7 @@ class MockPackageBase(object):
         to find possible depenencies.
 
         """
-        self.spec = None
+        self.spec = spec
         self._installed_upstream = False
 
     def provides(self, vname):
@@ -74,6 +73,9 @@ class MockPackageBase(object):
         # package.py file; in that sense, the content_hash is always the same.
         return self.__class__.__name__
 
+    def dynamic_dependencies(self):
+        return []
+
 
 class MockPackageMultiRepo(object):
     """Mock package repository, mimicking ``spack.repo.Repo``."""
@@ -86,7 +88,7 @@ class MockPackageMultiRepo(object):
             spec = Spec(spec)
         if spec.name not in self.spec_to_pkg:
             raise spack.repo.UnknownPackageError(spec.fullname)
-        return self.spec_to_pkg[spec.name]
+        return self.spec_to_pkg[spec.name](spec)
 
     def get_pkg_class(self, name):
         return self.spec_to_pkg[name]
@@ -165,9 +167,7 @@ class MockPackageMultiRepo(object):
         MockPackage.conflicts = {}
         MockPackage.patches = {}
 
-        mock_package = MockPackage(
-            dependencies, dependency_types, conditions, versions)
-        self.spec_to_pkg[name] = mock_package
-        self.spec_to_pkg["mockrepo." + name] = mock_package
+        self.spec_to_pkg[name] = MockPackage
+        self.spec_to_pkg["mockrepo." + name] = MockPackage
 
-        return mock_package
+        return MockPackage

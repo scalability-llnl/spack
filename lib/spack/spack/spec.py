@@ -2822,6 +2822,10 @@ class Spec(object):
                     if merge:
                         changed |= self._merge_dependency(
                             dep, visited, spec_deps, provider_index, tests)
+            for spec in self.package.dynamic_dependencies():
+                dependency = dp.Dependency(spec.name, spec, type=())
+                changed |= self._merge_dependency(
+                    dependency, visited, spec_deps, provider_index, tests)
             any_change |= changed
 
         return any_change

@@ -2520,6 +2520,9 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
                 msg = 'RUN-TESTS: method not implemented [{0}]'
                 tty.warn(msg.format(name))
 
+    def dynamic_dependencies(self):
+        return []
+
 
 def test_process(pkg, kwargs):
     with tty.log.log_output(pkg.test_log_file) as logger:

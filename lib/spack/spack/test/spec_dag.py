@@ -84,6 +84,41 @@ w->y deptypes are (link, build), w->x and y->z deptypes are (test)
 
 
 @pytest.mark.usefixtures('config')
+def test_dynamic_deps():
+    default = ('build', 'link')
+
+    mock_repo = MockPackageMultiRepo()
+    with spack.repo.swap(mock_repo):
+        z = mock_repo.add_package('z', [], [])
+        def dynamic_dependencies(self):
+            dependencies = []
+            for x in self.spec.dependents():
+                if not x.versions.concrete:
+                    continue
+                new_spec = Spec(x.format('{name}-source@{version}'))
+                dependencies.append(new_spec)
+            return dependencies
+        z.dynamic_dependencies = dynamic_dependencies
+
+        x = mock_repo.add_package('x', [z], [default])
+        y = mock_repo.add_package('y', [z], [default])
+        w = mock_repo.add_package('w', [x, y], [default, default])
+        x_source = mock_repo.add_package('x-source', [], [])
+        y_source = mock_repo.add_package('y-source', [], [])
+
+        spec1 = Spec('w')
+        spec1.concretize()
+
+        spec2 = Spec('w ^x@2')
+        spec2.concretize()
+
+        assert any(x.satisfies(Spec('x-source@3'))
+                   for x in spec1['z'].dependencies())
+        assert any(x.satisfies(Spec('x-source@2'))
+                   for x in spec2['z'].dependencies())
+
+
+@pytest.mark.usefixtures('config')
 def test_installed_deps():
     """Preinstall a package P with a constrained build dependency D, then
     concretize a dependent package which also depends on P and D, specifying
