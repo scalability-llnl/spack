@@ -22,6 +22,7 @@ class Autoconf(AutotoolsPackage, GNUMirrorPackage):
     # needed when autoconf runs, not only when autoconf is built.
     depends_on('m4@1.4.6:', type=('build', 'run'))
     depends_on('perl', type=('build', 'run'))
+    depends_on('help2man', type='build', when='@2.70:')
 
     build_directory = 'spack-build'
 
