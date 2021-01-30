@@ -800,7 +800,9 @@ class SpackSolverSetup(object):
             providers = [
                 x for x in providers if x in self.possible_dependencies
             ]
-            self.preferred_providers[vspec] = providers[0]
+            if providers:
+                self.preferred_providers[vspec] = providers[0]
+
             for i, provider in enumerate(providers):
                 func(vspec, provider, i + 10)
 
