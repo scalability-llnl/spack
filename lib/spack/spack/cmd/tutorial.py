@@ -12,6 +12,7 @@ import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
 
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
 import spack.config
 import spack.paths
 import spack.util.gpg
@@ -44,6 +45,8 @@ def setup_parser(subparser):
 
 
 def tutorial(parser, args):
+    deployment.die_if_deployment('tutorial')
+
     if not spack.cmd.spack_is_git_repo():
         tty.die("This command requires a git installation of Spack!")
 

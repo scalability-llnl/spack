@@ -16,6 +16,7 @@ from llnl.util.tty.color import colorize
 import spack.config
 import spack.schema.env
 import spack.cmd.common.arguments
+import spack.cmd.common.deployment as deployment
 import spack.cmd.install
 import spack.cmd.uninstall
 import spack.cmd.modules
@@ -82,6 +83,8 @@ def env_activate_setup_parser(subparser):
 
 
 def env_activate(args):
+    deployment.die_if_deployment('env activate')
+
     env = args.activate_env
     if not args.shell:
         spack.cmd.common.shell_init_instructions(
@@ -133,6 +136,8 @@ def env_deactivate_setup_parser(subparser):
 
 
 def env_deactivate(args):
+    deployment.die_if_deployment('env deactivate')
+
     if not args.shell:
         spack.cmd.common.shell_init_instructions(
             "spack env deactivate",
@@ -233,6 +238,8 @@ def env_remove(args):
     and `spack.yaml` files embedded in repositories should be removed
     manually.
     """
+    deployment.die_if_deployment('env remove')
+
     read_envs = []
     for env_name in args.rm_env:
         env = ev.read(env_name)
@@ -313,6 +320,7 @@ def env_view(args):
         if args.action == ViewAction.regenerate:
             env.regenerate_views()
         elif args.action == ViewAction.enable:
+            deployment.die_if_deployment('env view enable')
             if args.view_path:
                 view_path = args.view_path
             else:
@@ -320,6 +328,7 @@ def env_view(args):
             env.update_default_view(view_path)
             env.write()
         elif args.action == ViewAction.disable:
+            deployment.die_if_deployment('env view disable')
             env.update_default_view(None)
             env.write()
     else:
@@ -394,6 +403,8 @@ def env_update_setup_parser(subparser):
 
 
 def env_update(args):
+    deployment.die_if_deployment('env update')
+
     manifest_file = ev.manifest_file(args.env)
     backup_file = manifest_file + ".bkp"
     needs_update = not ev.is_latest_format(manifest_file)
@@ -430,6 +441,8 @@ def env_revert_setup_parser(subparser):
 
 
 def env_revert(args):
+    deployment.die_if_deployment('env revert')
+
     manifest_file = ev.manifest_file(args.env)
     backup_file = manifest_file + ".bkp"
 

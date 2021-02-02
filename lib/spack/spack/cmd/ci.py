@@ -13,6 +13,7 @@ import llnl.util.tty as tty
 
 import spack.binary_distribution as bindist
 import spack.ci as spack_ci
+import spack.cmd.common.deployment as deployment
 import spack.cmd.buildcache as buildcache
 import spack.environment as ev
 import spack.hash_types as ht
@@ -409,5 +410,7 @@ def ci_rebuild(args):
 
 
 def ci(parser, args):
+    deployment.die_if_deployment('ci')
+
     if args.func:
         args.func(args)

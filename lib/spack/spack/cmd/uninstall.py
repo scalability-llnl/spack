@@ -9,6 +9,7 @@ import sys
 import itertools
 
 import spack.cmd
+import spack.cmd.common.deployment as deployment
 import spack.environment as ev
 import spack.error
 import spack.package
@@ -353,6 +354,10 @@ def uninstall(parser, args):
     if not args.specs and not args.all:
         tty.die('uninstall requires at least one package argument.',
                 '  Use `spack uninstall --all` to uninstall ALL packages.')
+
+    deployment_required_args = {'yes_to_all': False}
+    deployment.setup_deployment_args(
+        'uninstall', args, deployment_required_args)
 
     # [any] here handles the --all case by forcing all specs to be returned
     specs = spack.cmd.parse_specs(args.specs) if args.specs else [any]

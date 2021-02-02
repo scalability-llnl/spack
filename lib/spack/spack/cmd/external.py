@@ -16,6 +16,7 @@ import llnl.util.tty.colify as colify
 import six
 import spack
 import spack.cmd
+import spack.cmd.common.deployment as deployment
 import spack.error
 import spack.util.environment
 import spack.util.spack_yaml as syaml
@@ -148,6 +149,8 @@ def _spec_is_valid(spec):
 
 
 def external_find(args):
+    deployment.die_if_deployment('external find')
+
     if args.packages:
         packages_to_check = list(spack.repo.get(pkg) for pkg in args.packages)
     else:

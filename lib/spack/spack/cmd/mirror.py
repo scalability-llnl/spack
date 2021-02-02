@@ -10,6 +10,7 @@ from llnl.util.tty.colify import colify
 
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
 import spack.concretize
 import spack.config
 import spack.environment as ev
@@ -116,6 +117,8 @@ def setup_parser(subparser):
 
 def mirror_add(args):
     """Add a mirror to Spack."""
+    deployment.die_if_deployment('mirror add')
+
     url = url_util.format(args.url)
 
     mirrors = spack.config.get('mirrors', scope=args.scope)
@@ -133,6 +136,8 @@ def mirror_add(args):
 
 def mirror_remove(args):
     """Remove a mirror by name."""
+    deployment.die_if_deployment('mirror remove')
+
     name = args.name
 
     mirrors = spack.config.get('mirrors', scope=args.scope)
@@ -165,6 +170,8 @@ def mirror_remove(args):
 
 def mirror_set_url(args):
     """Change the URL of a mirror."""
+    deployment.die_if_deployment('mirror set-url')
+
     url = url_util.format(args.url)
 
     mirrors = spack.config.get('mirrors', scope=args.scope)

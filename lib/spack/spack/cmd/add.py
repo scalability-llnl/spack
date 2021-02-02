@@ -7,6 +7,7 @@ import llnl.util.tty as tty
 
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
 import spack.environment as ev
 
 
@@ -23,6 +24,7 @@ def setup_parser(subparser):
 
 
 def add(parser, args):
+    deployment.confirm_command_if_deployment('add')
     env = ev.get_env(args, 'add', required=True)
 
     with env.write_transaction():

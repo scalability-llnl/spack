@@ -2,6 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import spack.cmd.common.deployment as deployment
 import spack.cmd.common.env_utility as env_utility
 
 description = "run a command in a spec's test environment, " \
@@ -13,4 +14,5 @@ setup_parser = env_utility.setup_parser
 
 
 def test_env(parser, args):
+    deployment.die_if_deployment('test-env')
     env_utility.emulate_env_utility('test-env', 'test', args)

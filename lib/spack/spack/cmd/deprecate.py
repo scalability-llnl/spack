@@ -20,6 +20,7 @@ import os
 import llnl.util.tty as tty
 
 import spack.cmd
+import spack.cmd.common.deployment as deployment
 import spack.store
 import spack.cmd.common.arguments as arguments
 import spack.environment as ev
@@ -73,6 +74,11 @@ def deprecate(parser, args):
     """Deprecate one spec in favor of another"""
     env = ev.get_env(args, 'deprecate')
     specs = spack.cmd.parse_specs(args.specs)
+
+    # Enforce restrictions on Spack in deployment mode
+    deployment_required_args = {'yes_to_all': False}
+    deployment.setup_deployment_args(
+        'deprecate', args, deployment_required_args)
 
     if len(specs) != 2:
         raise SpackError('spack deprecate requires exactly two specs')

@@ -12,6 +12,7 @@ import spack.architecture
 import spack.binary_distribution as bindist
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
 import spack.environment as ev
 import spack.hash_types as ht
 import spack.mirror
@@ -472,6 +473,8 @@ def createtarball(args):
 
 def installtarball(args):
     """install from a binary package"""
+    deployment.die_if_deployment('buildcache install')
+
     if not args.specs:
         tty.die("build cache file installation requires" +
                 " at least one package spec argument")
@@ -528,6 +531,7 @@ def listspecs(args):
 
 def getkeys(args):
     """get public keys available on mirrors"""
+    deployment.die_if_deployment('buildcache keys')
     bindist.get_keys(args.install, args.trust, args.force)
 
 

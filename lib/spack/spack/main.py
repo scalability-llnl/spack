@@ -452,7 +452,7 @@ def setup_main_options(args):
     # override lock configuration if passed on command line
     if args.locks is not None:
         spack.util.lock.check_lock_safety(spack.paths.prefix)
-        spack.config.set('config:locks', False, scope='command_line')
+        spack.config.set('config:locks', args.locks, scope='command_line')
 
     if args.mock:
         rp = spack.repo.RepoPath(spack.paths.mock_packages_path)
@@ -460,8 +460,15 @@ def setup_main_options(args):
 
     # If the user asked for it, don't check ssl certs.
     if args.insecure:
-        tty.warn("You asked for --insecure. Will NOT check SSL certificates.")
-        spack.config.set('config:verify_ssl', False, scope='command_line')
+        mode = spack.config.restricted_config.get('config:mode', 'standard')
+        if isinstance(mode, dict) and 'deployment' in mode:
+            msg = "You asked for --insecure. This option is invalid in"
+            msg += " deployment mode."
+            tty.die(msg)
+        else:
+            msg = "You asked for --insecure. Will NOT check SSL certificates"
+            tty.warn(msg)
+            spack.config.set('config:verify_ssl', False, scope='command_line')
 
     # when to use color (takes always, auto, or never)
     color.set_color_when(args.color)
@@ -707,6 +714,22 @@ def main(argv=None):
         spack.config.command_line_scopes = args.config_scopes
 
     # activate an environment if one was specified on the command line
+    mode = spack.config.restricted_config.get('config:mode', 'standard')
+    if isinstance(mode, dict) and 'deployment' in mode:
+        if args.env or args.env_dir or args.no_env:
+            tty.warn("Spack is in deployment mode. Ignoring arguments that"
+                     " affect environment activation.")
+
+        # Set env arguments appropriately
+        env_name = mode['deployment']['env']
+        args.no_env = False
+        if env_name and ev.exists(env_name):
+            args.env = env_name
+            args.env_dir = None
+        else:
+            args.env = None
+            args.env_dir = env_name
+
     if not args.no_env:
         env = ev.find_environment(args)
         if env:

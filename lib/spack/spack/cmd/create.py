@@ -11,6 +11,7 @@ import re
 import llnl.util.tty as tty
 from llnl.util.filesystem import mkdirp
 
+import spack.cmd.common.deployment as deployment
 import spack.util.web
 import spack.repo
 import spack.stage
@@ -801,6 +802,8 @@ def get_repository(args, name):
 
 
 def create(parser, args):
+    deployment.die_if_deployment('create')
+
     # Gather information about the package to be created
     name = get_name(args)
     url = get_url(args)

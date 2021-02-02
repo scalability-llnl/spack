@@ -22,6 +22,20 @@ properties = {
                 'type': 'string',
                 'enum': ['rpath', 'runpath']
             },
+            'mode': {
+                'anyOf': [
+                    {
+                        'type': 'string',
+                        'enum': ['standard'],
+                    },
+                    {
+                        'type': 'object',
+                        'properties': {
+                            'env': {'type': 'string'}
+                        },
+                    },
+                ],
+            },
             'install_tree': {
                 'anyOf': [
                     {

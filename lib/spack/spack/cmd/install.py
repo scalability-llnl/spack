@@ -15,6 +15,8 @@ import llnl.util.tty as tty
 import spack.build_environment
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
+import spack.config
 import spack.environment as ev
 import spack.fetch_strategy
 import spack.paths
@@ -235,6 +237,15 @@ environment variables:
         arguments.add_cdash_args(parser, True)
         parser.print_help()
         return
+
+    # Enforce restrictions on Spack in deployment mode
+    deployment_required_args = {
+        'use_cache': True,
+        'cache_only': True,
+        'dirty': False,
+        'unsigned': False,
+    }
+    deployment.setup_deployment_args('install', args, deployment_required_args)
 
     reporter = spack.report.collect_info(
         spack.package.PackageInstaller, '_install_task', args.log_format, args)

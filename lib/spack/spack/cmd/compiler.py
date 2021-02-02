@@ -10,6 +10,7 @@ import sys
 from six import iteritems
 
 import llnl.util.tty as tty
+import spack.cmd.common.deployment as deployment
 import spack.compilers
 import spack.config
 import spack.spec
@@ -73,6 +74,8 @@ def compiler_find(args):
        add them to Spack's configuration.
 
     """
+    deployment.die_if_deployment('compiler find')
+
     # None signals spack.compiler.find_compilers to use its default logic
     paths = args.add_paths or None
 
@@ -108,6 +111,8 @@ def compiler_find(args):
 
 
 def compiler_remove(args):
+    deployment.die_if_deployment('compiler remove')
+
     cspec = CompilerSpec(args.compiler_spec)
     compilers = spack.compilers.compilers_for_spec(cspec, scope=args.scope)
     if not compilers:

@@ -8,6 +8,7 @@ import argparse
 
 import spack.binary_distribution
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
 import spack.paths
 import spack.util.gpg
 
@@ -112,6 +113,8 @@ def setup_parser(subparser):
 
 def gpg_create(args):
     """create a new key"""
+    deployment.die_if_deployment('gpg create')
+
     if args.export:
         old_sec_keys = spack.util.gpg.signing_keys()
     spack.util.gpg.create(name=args.name, email=args.email,
@@ -124,6 +127,8 @@ def gpg_create(args):
 
 def gpg_export(args):
     """export a secret key"""
+    deployment.die_if_deployment('gpg export')
+
     keys = args.keys
     if not keys:
         keys = spack.util.gpg.signing_keys()
@@ -156,11 +161,14 @@ def gpg_sign(args):
 
 def gpg_trust(args):
     """add a key to the keyring"""
+    deployment.die_if_deployment('gpg trust')
     spack.util.gpg.trust(args.keyfile)
 
 
 def gpg_init(args):
     """add the default keys to the keyring"""
+    deployment.die_if_deployment('gpg init')
+
     import_dir = args.import_dir
     if import_dir is None:
         import_dir = spack.paths.gpg_keys_path
@@ -174,6 +182,7 @@ def gpg_init(args):
 
 def gpg_untrust(args):
     """remove a key from the keyring"""
+    deployment.die_if_deployment('gpg untrust')
     spack.util.gpg.untrust(args.signing, *args.keys)
 
 

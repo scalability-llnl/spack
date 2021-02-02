@@ -29,6 +29,13 @@ config:
     # padded_length: 128
 
 
+  # Spack has a restricted "deployment" mode that adds security features for a
+  # setuid Spack deployment model. Enable those features by setting
+  # mode: deployment. This setting can only be controlled at the `defaults` or
+  # `site` scopes, for security reasons.
+  mode: standard
+
+
   # Locations where templates should be found
   template_dirs:
     - $spack/share/spack/templates

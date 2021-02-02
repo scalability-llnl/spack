@@ -2,7 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
+import spack.cmd.common.deployment as deployment
 import spack.environment as ev
 
 description = 'concretize an environment and write a lockfile'
@@ -17,6 +17,9 @@ def setup_parser(subparser):
 
 
 def concretize(parser, args):
+    if args.force:
+        deployment.confirm_command_if_deployment('concretize -f')
+
     env = ev.get_env(args, 'concretize', required=True)
     with env.write_transaction():
         concretized_specs = env.concretize(force=args.force)

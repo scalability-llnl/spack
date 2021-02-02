@@ -9,6 +9,7 @@ import llnl.util.tty as tty
 
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
 import spack.environment as ev
 
 from spack.error import SpackError
@@ -38,6 +39,8 @@ def setup_parser(subparser):
 
 
 def develop(parser, args):
+    deployment.die_if_deployment('develop')
+
     env = ev.get_env(args, 'develop', required=True)
 
     if not args.spec:

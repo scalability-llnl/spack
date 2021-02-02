@@ -7,10 +7,11 @@ import llnl.util.tty as tty
 
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
 import spack.environment as ev
 
 
-description = 'remove specs from an environment'
+description = 'remove development information from an environment'
 section = "environments"
 level = "long"
 
@@ -23,6 +24,8 @@ def setup_parser(subparser):
 
 
 def undevelop(parser, args):
+    deployment.die_if_deployment('undevelop')
+
     env = ev.get_env(args, 'undevelop', required=True)
 
     if args.all:

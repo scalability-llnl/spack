@@ -7,6 +7,7 @@ import llnl.util.tty as tty
 
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
 import spack.environment as ev
 from spack.filesystem_view import YamlFilesystemView
 
@@ -26,6 +27,8 @@ def setup_parser(subparser):
 
 
 def activate(parser, args):
+    deployment.confirm_command_if_deployment('activate')
+
     specs = spack.cmd.parse_specs(args.spec)
     if len(specs) != 1:
         tty.die("activate requires one spec.  %d given." % len(specs))

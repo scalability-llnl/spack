@@ -3796,6 +3796,8 @@ class Spec(object):
                             if current == _any_version:
                                 # We don't print empty version lists
                                 return
+                            if current.concrete:
+                                current = current.lowest()
 
                     if callable(current):
                         raise SpecFormatStringError(

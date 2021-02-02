@@ -11,6 +11,7 @@ import llnl.util.tty as tty
 import spack.config
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.cmd.common.deployment as deployment
 import spack.repo
 
 description = "developer build: build from code in current working directory"
@@ -61,6 +62,8 @@ packages. If neither are chosen, don't run tests for any packages.""")
 
 
 def dev_build(self, args):
+    deployment.die_if_deployment('dev-build')
+
     if not args.spec:
         tty.die("spack dev-build requires a package spec argument.")
 

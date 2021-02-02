@@ -15,6 +15,7 @@ import runpy
 import llnl.util.tty as tty
 
 import spack
+import spack.cmd.common.deployment as deployment
 
 description = "launch an interpreter as spack would launch a command"
 section = "developer"
@@ -42,6 +43,8 @@ def python(parser, args, unknown_args):
     if args.version:
         print('Python', platform.python_version())
         return
+
+    deployment.die_if_deployment('python')
 
     if args.module:
         sys.argv = ['spack-python'] + unknown_args + args.python_args

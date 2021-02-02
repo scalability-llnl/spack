@@ -8,6 +8,7 @@ from __future__ import print_function
 import os
 
 import llnl.util.tty as tty
+import spack.cmd.common.deployment as deployment
 import spack.config
 import spack.repo
 import spack.util.path
@@ -70,6 +71,8 @@ def repo_create(args):
 
 def repo_add(args):
     """Add a package source to Spack's configuration."""
+    deployment.die_if_deployment('repo add')
+
     path = args.path
 
     # real_path is absolute and handles substitution.
@@ -101,6 +104,8 @@ def repo_add(args):
 
 def repo_remove(args):
     """Remove a repository from Spack's configuration."""
+    deployment.die_if_deployment('repo remove')
+
     repos = spack.config.get('repos', scope=args.scope)
     namespace_or_path = args.namespace_or_path
 

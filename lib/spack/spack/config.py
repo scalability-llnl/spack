@@ -98,6 +98,15 @@ configuration_paths = (
     ('user', spack.paths.user_config_path)
 )
 
+
+internal_configuration_paths = (
+    # Only the configuration paths internal to the Spack tree
+    # These can be used for secure settings of production modes for Spack
+    ('defaults', os.path.join(spack.paths.etc_path, 'spack', 'defaults')),
+    ('site', os.path.join(spack.paths.etc_path, 'spack'))
+)
+
+
 #: Hard-coded default values for some key configuration options.
 #: This ensures that Spack will still work even if config.yaml in
 #: the defaults scope is removed.
@@ -766,6 +775,41 @@ def _add_command_line_scopes(cfg, command_line_scopes):
         _add_platform_scope(cfg, ImmutableConfigScope, name, path)
 
 
+def _internal_config():
+    """Singleton Configuration instance.
+
+    This constructs one instance associated with this module and returns
+    it. It is bundled inside a function so that configuration can be
+    initialized lazily.
+
+    Return:
+        (Configuration): object for accessing spack configuration
+
+    """
+    cfg = Configuration()
+
+    # first do the builtin, hardcoded defaults
+    defaults = InternalConfigScope('_builtin', config_defaults)
+    cfg.push_scope(defaults)
+
+    # add each scope and its platform-specific directory
+    for name, path in internal_configuration_paths:
+        cfg.push_scope(ConfigScope(name, path))
+
+        # Each scope can have per-platfom overrides in subdirectories
+        _add_platform_scope(cfg, ConfigScope, name, path)
+
+    # we make a special scope for spack commands so that they can
+    # override configuration options.
+    cfg.push_scope(InternalConfigScope('command_line'))
+
+    return cfg
+
+
+#: This is the singleton configuration instance of restricted configs in Spack.
+restricted_config = llnl.util.lang.Singleton(_internal_config)
+
+
 def _config():
     """Singleton Configuration instance.
 
@@ -791,7 +835,12 @@ def _config():
         _add_platform_scope(cfg, ConfigScope, name, path)
 
     # add command-line scopes
-    _add_command_line_scopes(cfg, command_line_scopes)
+    mode = restricted_config.get('config:mode', 'standard')
+    if mode == 'standard':
+        _add_command_line_scopes(cfg, command_line_scopes)
+    elif command_line_scopes:
+        tty.warn('Spack is in deployment mode. '
+                 'Ignoring command line config scopes')
 
     # we make a special scope for spack commands so that they can
     # override configuration options.

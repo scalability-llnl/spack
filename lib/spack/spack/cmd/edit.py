@@ -9,6 +9,7 @@ import glob
 import llnl.util.tty as tty
 
 import spack.cmd
+import spack.cmd.common.deployment as deployment
 import spack.paths
 import spack.repo
 from spack.spec import Spec
@@ -88,6 +89,8 @@ def setup_parser(subparser):
 
 
 def edit(parser, args):
+    deployment.die_if_deployment('edit')
+
     name = args.package
 
     # By default, edit package files
