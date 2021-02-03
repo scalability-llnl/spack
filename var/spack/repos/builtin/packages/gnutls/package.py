@@ -39,6 +39,7 @@ class Gnutls(AutotoolsPackage):
     depends_on('nettle@:2.9', when='@3.3.9')
     depends_on('nettle', when='@3.5:')
     depends_on('libidn2@:2.0.99', when='@:3.5.99')
+    depends_on('libidn2')
     depends_on('zlib', when='+zlib')
     depends_on('gettext')
 
