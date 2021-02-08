@@ -76,3 +76,43 @@ class Stat(AutotoolsPackage):
         if '~examples' in spec:
             args.append('--disable-examples')
         return args
+
+    # TODO: this is copied from PythonPackage
+    def add_files_to_view(self, view, merge_map):
+        bin_dir = self.spec.prefix.bin
+        python_prefix = self.extendee_spec.prefix
+        global_view = same_path(python_prefix, view.get_projection_for_spec(
+            self.spec
+        ))
+        for src, dst in merge_map.items():
+            if os.path.exists(dst):
+                continue
+            elif global_view or not path_contains_subdirectory(src, bin_dir):
+                view.link(src, dst)
+            elif not os.path.islink(src):
+                shutil.copy2(src, dst)
+                if 'script' in get_filetype(src):
+                    filter_file(
+                        python_prefix, os.path.abspath(
+                            view.get_projection_for_spec(self.spec)), dst
+                    )
+            else:
+                orig_link_target = os.path.realpath(src)
+                new_link_target = os.path.abspath(merge_map[orig_link_target])
+                view.link(new_link_target, dst)
+
+    # TODO: this is modified from PythonPackage, since STAT is not a python
+    # library, this does not need to manage Python namespaces
+    def remove_files_from_view(self, view, merge_map):
+        bin_dir = self.spec.prefix.bin
+        python_prefix = self.extendee_spec.prefix
+        global_view = same_path(python_prefix, view.get_projection_for_spec(
+            self.spec
+        ))
+        for src, dst in merge_map.items():
+            if (global_view or not path_contains_subdirectory(src, bin_dir)
+                or os.path.islink(dst)):
+
+                view.remove_file(src, dst)
+            else:
+                os.remove(dst)
