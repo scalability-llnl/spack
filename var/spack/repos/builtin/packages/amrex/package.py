@@ -68,6 +68,8 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
             description='Enable Hypre interfaces')
     variant('petsc', default=False,
             description='Enable PETSc interfaces')
+    variant('sycl', default=False,
+            description='Build with OneAPI')
 
     # Build dependencies
     depends_on('mpi', when='+mpi')
@@ -79,6 +81,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     depends_on('cmake@3.14:', type='build', when='@19.04:')
     # cmake @3.17: is necessary to handle cuda @11: correctly
     depends_on('cmake@3.17:', type='build', when='^cuda @11:')
+    depends_on('intel-oneapi-compilers', when='+sycl')
     depends_on('hdf5@1.10.4: +mpi', when='+hdf5')
     depends_on('rocrand', type='build', when='+rocm')
     conflicts('%apple-clang')
@@ -113,6 +116,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     conflicts('cuda_arch=21', when='+cuda', msg='AMReX only supports compute capabilities >= 3.5')
     conflicts('cuda_arch=30', when='+cuda', msg='AMReX only supports compute capabilities >= 3.5')
     conflicts('cuda_arch=32', when='+cuda', msg='AMReX only supports compute capabilities >= 3.5')
+    conflicts('+sycl', when='@:20.11', msg='AMReX SYCL support needs AMReX newer than 20.11')
     conflicts('+rocm', when='@:20.11', msg='AMReX HIP support needs AMReX newer than version 20.11')
     conflicts('+cuda', when='+rocm', msg='CUDA and HIP support are exclusive')
 
@@ -207,5 +211,9 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
             args.append('-DAMReX_GPU_BACKEND=HIP')
             targets = self.spec.variants['amdgpu_target'].value
             args.append('-DAMReX_AMD_ARCH=' + ';'.join(str(x) for x in targets))
+
+        if '+sycl' in self.spec:
+            args.append('-DAMReX_GPU_BACKEND=SYCL')
+            args.append('-DCMAKE_CXX_COMPILER=dpcpp')
 
         return args
