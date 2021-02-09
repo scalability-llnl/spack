@@ -43,7 +43,6 @@ class PyDeeplabcut(PythonPackage):
     depends_on("py-pyyaml", type=('build', 'run'))
     depends_on("py-requests", type=('build', 'run'))
     depends_on("py-ruamel-yaml@0.15.0:", type=('build', 'run'))
-    depends_on("py-setuptools", type=('build', 'run'))
     depends_on("py-scikit-image", type=('build', 'run'))
     depends_on("py-scikit-learn", type=('build', 'run'))
     depends_on("py-scipy@1.4:", type=('build', 'run'))
