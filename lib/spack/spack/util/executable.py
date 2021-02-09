@@ -8,12 +8,39 @@ import re
 import shlex
 import subprocess
 from six import string_types, text_type
+import threading
+import errno
 
 import llnl.util.tty as tty
 
 import spack.error
 
 __all__ = ['Executable', 'which', 'ProcessError']
+
+
+class RunCommand(object):
+    def __init__(self, proc, timeout=None):
+        self.proc = proc
+        self.timeout = timeout
+
+    def run(self):
+        def run_proc(results):
+            out, err = self.proc.communicate()
+            results.extend([out, err])
+
+        stored_results = []
+        thread = threading.Thread(target=run_proc, args=(stored_results,))
+        thread.start()
+        thread.join(self.timeout)
+
+        try:
+            self.proc.kill()
+        except OSError as e:
+            if e.errno == errno.ESRCH:
+                pass
+            else:
+                raise
+        return stored_results
 
 
 class Executable(object):
@@ -168,7 +195,7 @@ class Executable(object):
                 stderr=estream,
                 stdout=ostream,
                 env=env)
-            out, err = proc.communicate()
+            out, err = RunCommand(proc, kwargs.get('timeout', None)).run()
 
             result = None
             if output in (str, str.split) or error in (str, str.split):

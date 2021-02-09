@@ -380,7 +380,8 @@ class URLFetchStrategy(FetchStrategy):
         # Run curl but grab the mime type from the http headers
         curl = self.curl
         with working_dir(self.stage.path):
-            headers = curl(*curl_args, output=str, fail_on_error=False)
+            headers = curl(*curl_args, output=str, fail_on_error=False,
+                           timeout=600)
 
         if curl.returncode != 0:
             # clean up archive on failure.
@@ -833,7 +834,7 @@ class GitFetchStrategy(VCSFetchStrategy):
             if not debug:
                 clone_args.insert(1, '--quiet')
             with temp_cwd():
-                git(*clone_args)
+                git(*clone_args, timeout=600)
                 repo_name = get_single_file('.')
                 self.stage.srcdir = repo_name
                 shutil.move(repo_name, self.stage.source_path)
