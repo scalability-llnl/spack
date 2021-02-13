@@ -28,6 +28,7 @@ class Mpileaks(Package):
 
     def install(self, spec, prefix):
         touch(prefix.mpileaks)
+        mkdirp(prefix.man)
 
     def setup_environment(self, senv, renv):
         renv.set('FOOBAR', self.name)

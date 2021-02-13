@@ -545,6 +545,8 @@ class EnvironmentModifications(object):
         """Return shell code to apply the modifications and clears the list."""
         modifications = self.group_by_name()
         new_env = os.environ.copy()
+        if new_env.get('MANPATH'):
+            new_env['MANPATH'] = new_env['MANPATH'].strip(':')
 
         for name, actions in sorted(modifications.items()):
             for x in actions:
@@ -552,6 +554,8 @@ class EnvironmentModifications(object):
 
         cmds = ''
 
+        if new_env.get('MANPATH'):
+            new_env['MANPATH'] = new_env['MANPATH'] + ':'
         for name in set(new_env) | set(os.environ):
             new = new_env.get(name, None)
             old = os.environ.get(name, None)
