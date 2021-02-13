@@ -23,7 +23,6 @@ filesystem.
 import contextlib
 import datetime
 import os
-import six
 import socket
 import sys
 import time
@@ -938,7 +937,7 @@ class Database(object):
         counts = {}
         for key, rec in self._data.items():
             counts.setdefault(key, 0)
-            for dep in rec.spec.dependencies(_tracked_deps):
+            for dep in rec.spec.dependencies(deptype=_tracked_deps):
                 dep_key = dep.dag_hash()
                 counts.setdefault(dep_key, 0)
                 counts[dep_key] += 1
@@ -1066,7 +1065,7 @@ class Database(object):
         # Retrieve optional arguments
         installation_time = installation_time or _now()
 
-        for dep in spec.dependencies(_tracked_deps):
+        for dep in spec.dependencies(deptype=_tracked_deps):
             dkey = dep.dag_hash()
             if dkey not in self._data:
                 extra_args = {
@@ -1101,9 +1100,7 @@ class Database(object):
             )
 
             # Connect dependencies from the DB to the new copy.
-            for name, dep in six.iteritems(
-                    spec.dependencies_dict(_tracked_deps)
-            ):
+            for dep in spec.edges_to_dependencies(deptype=_tracked_deps):
                 dkey = dep.spec.dag_hash()
                 upstream, record = self.query_by_spec_hash(dkey)
                 new_spec._add_dependency(record.spec, dep.deptypes)
@@ -1166,7 +1163,7 @@ class Database(object):
 
         if rec.ref_count == 0 and not rec.installed:
             del self._data[key]
-            for dep in spec.dependencies(_tracked_deps):
+            for dep in spec.dependencies(deptype=_tracked_deps):
                 self._decrement_ref_count(dep)
 
     def _increment_ref_count(self, spec):
@@ -1188,13 +1185,10 @@ class Database(object):
             return rec.spec
 
         del self._data[key]
-        for dep in rec.spec.dependencies(_tracked_deps):
-            # FIXME: the two lines below needs to be updated once #11983 is
-            # FIXME: fixed. The "if" statement should be deleted and specs are
-            # FIXME: to be removed from dependents by hash and not by name.
-            # FIXME: See https://github.com/spack/spack/pull/15777#issuecomment-607818955
-            if dep._dependents.get(spec.name):
-                del dep._dependents[spec.name]
+        # Remove any reference to this node from dependencies and
+        # decrement the reference count
+        rec.spec.detach_node(deptype=_tracked_deps)
+        for dep in rec.spec.dependencies(deptype=_tracked_deps):
             self._decrement_ref_count(dep)
 
         if rec.deprecated_for:
@@ -1489,7 +1483,8 @@ class Database(object):
             # us anyway (so e.g. they should never uninstall specs)
             upstream_results.extend(upstream_db._query(*args, **kwargs) or [])
 
-        local_results = set(self.query_local(*args, **kwargs))
+        local_results = self.query_local(*args, **kwargs)
+        local_results = set(local_results)
 
         results = list(local_results) + list(
             x for x in upstream_results if x not in local_results)

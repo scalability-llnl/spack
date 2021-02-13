@@ -240,9 +240,9 @@ class PythonPackage(PackageBase):
         # such as py-basemap will not build properly with this flag since
         # it does not use setuptools to build and those does not recognize
         # the --single-version-externally-managed flag
-        if ('py-setuptools' == spec.name or          # this is setuptools, or
-            'py-setuptools' in spec._dependencies and  # it's an immediate dep
-            'build' in spec._dependencies['py-setuptools'].deptypes):
+        if ('py-setuptools' == spec.name or   # this is setuptools, or
+                # it's an immediate dep
+                spec.dependencies(name='py-setuptools', deptype='build')):
             args += ['--single-version-externally-managed']
 
         # Get all relative paths since we set the root to `prefix`

@@ -18,10 +18,10 @@ from spack.util.mock_package import MockPackageMultiRepo
 def check_links(spec_to_check):
     for spec in spec_to_check.traverse():
         for dependent in spec.dependents():
-            assert spec.name in dependent.dependencies_dict()
+            assert dependent.edges_to_dependencies(name=spec.name)
 
         for dependency in spec.dependencies():
-            assert spec.name in dependency.dependents_dict()
+            assert dependency.edges_from_dependents(name=spec.name)
 
 
 @pytest.fixture()
@@ -297,9 +297,16 @@ class TestSpecDag(object):
         # Normalize then add conflicting constraints to the DAG (this is an
         # extremely unlikely scenario, but we test for it anyway)
         mpileaks.normalize()
-        mpileaks._dependencies['mpich'].spec = Spec('mpich@1.0')
-        mpileaks._dependencies['callpath']. \
-            spec._dependencies['mpich'].spec = Spec('mpich@2.0')
+
+        mpileaks.edges_to_dependencies(
+            name='mpich'
+        )[0].spec = Spec('mpich@1.0')
+
+        mpileaks.edges_to_dependencies(
+            name='callpath'
+        )[0].spec.edges_to_dependencies(
+            name='mpich'
+        )[0].spec = Spec('mpich@2.0')
 
         with pytest.raises(spack.spec.InconsistentSpecError):
             mpileaks.flat_dependencies(copy=False)
@@ -790,21 +797,25 @@ class TestSpecDag(object):
             }
         })
 
-        assert s['b']._dependencies['c'].deptypes == ('build',)
-        assert s['d']._dependencies['e'].deptypes == ('build', 'link')
-        assert s['e']._dependencies['f'].deptypes == ('run',)
+        assert s['b'].edges_to_dependencies(
+            name='c'
+        )[0].deptypes == ('build',)
+        assert s['d'].edges_to_dependencies(
+            name='e'
+        )[0].deptypes == ('build', 'link')
+        assert s['e'].edges_to_dependencies(
+            name='f'
+        )[0].deptypes == ('run',)
 
-        assert s['b']._dependencies['c'].deptypes == ('build',)
-        assert s['d']._dependencies['e'].deptypes == ('build', 'link')
-        assert s['e']._dependencies['f'].deptypes == ('run',)
-
-        assert s['c']._dependents['b'].deptypes == ('build',)
-        assert s['e']._dependents['d'].deptypes == ('build', 'link')
-        assert s['f']._dependents['e'].deptypes == ('run',)
-
-        assert s['c']._dependents['b'].deptypes == ('build',)
-        assert s['e']._dependents['d'].deptypes == ('build', 'link')
-        assert s['f']._dependents['e'].deptypes == ('run',)
+        assert s['c'].edges_from_dependents(
+            name='b'
+        )[0].deptypes == ('build',)
+        assert s['e'].edges_from_dependents(
+            name='d'
+        )[0].deptypes == ('build', 'link')
+        assert s['f'].edges_from_dependents(
+            name='e'
+        )[0].deptypes == ('run',)
 
     def check_diamond_deptypes(self, spec):
         """Validate deptypes in dt-diamond spec.
@@ -813,17 +824,21 @@ class TestSpecDag(object):
         depend on the same dependency in different ways.
 
         """
-        assert spec['dt-diamond']._dependencies[
-            'dt-diamond-left'].deptypes == ('build', 'link')
+        assert spec['dt-diamond'].edges_to_dependencies(
+            name='dt-diamond-left'
+        )[0].deptypes == ('build', 'link')
 
-        assert spec['dt-diamond']._dependencies[
-            'dt-diamond-right'].deptypes == ('build', 'link')
+        assert spec['dt-diamond'].edges_to_dependencies(
+            name='dt-diamond-right'
+        )[0].deptypes == ('build', 'link')
 
-        assert spec['dt-diamond-left']._dependencies[
-            'dt-diamond-bottom'].deptypes == ('build',)
+        assert spec['dt-diamond-left'].edges_to_dependencies(
+            name='dt-diamond-bottom'
+        )[0].deptypes == ('build',)
 
-        assert spec['dt-diamond-right'] ._dependencies[
-            'dt-diamond-bottom'].deptypes == ('build', 'link', 'run')
+        assert spec['dt-diamond-right'].edges_to_dependencies(
+            name='dt-diamond-bottom'
+        )[0].deptypes == ('build', 'link', 'run')
 
     def check_diamond_normalized_dag(self, spec):
 
@@ -982,3 +997,54 @@ class TestSpecDag(object):
         # Can't use more than one ':' separator
         with pytest.raises(KeyError):
             Spec.from_literal({'foo': {'bar:build:link': None}})
+
+
+def test_synthetic_construction_of_split_dependencies_from_same_package(
+        mock_packages, config
+):
+    # Construct in a synthetic way (i.e. without using the solver)
+    # the following spec:
+    #
+    #          b
+    #  build /   \ link,run
+    #    c@2.0   c@1.0
+    #
+    # To demonstrate that a spec can now hold two direct
+    # dependencies from the same package
+    root = Spec('b').concretized()
+    link_run_spec = Spec('c@1.0').concretized()
+    build_spec = Spec('c@2.0').concretized()
+
+    root.add_dependency_edge(link_run_spec, deptype='link')
+    root.add_dependency_edge(link_run_spec, deptype='run')
+    root.add_dependency_edge(build_spec, deptype='build')
+
+    # Check dependencies from the perspective of root
+    assert len(root.dependencies()) == 2
+    assert all(x.name == 'c' for x in root.dependencies())
+
+    assert '@2.0' in root.dependencies(name='c', deptype='build')[0]
+    assert '@1.0' in root.dependencies(name='c', deptype=('link', 'run'))[0]
+
+    # Check parent from the perspective of the dependencies
+    assert len(build_spec.dependents()) == 1
+    assert len(link_run_spec.dependents()) == 1
+    assert build_spec.dependents() == link_run_spec.dependents()
+    assert build_spec != link_run_spec
+
+
+def test_synthetic_construction_bootstrapping(mock_packages, config):
+    # Construct the following spec:
+    #
+    #  b@2.0
+    #    | build
+    #  b@1.0
+    #
+    root = Spec('b@2.0').concretized()
+    bootstrap = Spec('b@1.0').concretized()
+
+    root.add_dependency_edge(bootstrap, deptype='build')
+
+    assert len(root.dependencies()) == 1
+    assert root.dependencies()[0].name == 'b'
+    assert root.name == 'b'
