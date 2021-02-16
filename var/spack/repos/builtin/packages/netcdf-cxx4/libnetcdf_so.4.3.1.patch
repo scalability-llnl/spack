@@ -1,0 +1,19 @@
+commit cd9f909a3a1715377ae492ab8d05b77bbec42a3a
+Author: Toyohisa Kameyama <kameyama@riken.jp>
+Date:   Mon Jul 6 16:03:22 2020 +0900
+
+        Add LIBS to libnetcdf to use configure and nc-config.
+
+diff --git a/configure.ac b/configure.ac
+index b454a5b..09dbe0a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -197,6 +197,8 @@ AS_IF([test "x$ac_cv_path_NCCONF" != "x"],
+       nc_has_logging=`$ac_cv_path_NCCONF --has-logging`
+       nc_has_dap=`$ac_cv_path_NCCONF --has-dap`
+       nc_has_pnetcdf=`$ac_cv_path_NCCONF --has-pnetcdf`
++      nc_libs=`$ac_cv_path_NCCONF --libs`
++      LIBS="$nc_libs $LIBS"
+     ],
+     [
+       # See if these functions are in the library.
