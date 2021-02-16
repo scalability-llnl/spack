@@ -113,6 +113,9 @@ class Cmake(Package):
     # https://gitlab.kitware.com/cmake/cmake/merge_requests/4075
     patch('fix-xlf-ninja-mr-4075.patch', sha256="42d8b2163a2f37a745800ec13a96c08a3a20d5e67af51031e51f63313d0dedd1", when="@3.15.5")
 
+    # HPE apollo80 support patch - fix appears in release 3.19.2
+    patch('fixes-for-HPE-apollo80-CCE-configuration.patch', when='@3.19.0:3.19.1%cce@10:')
+
     # We default ownlibs to true because it greatly speeds up the CMake
     # build, and CMake is built frequently. Also, CMake is almost always
     # a build dependency, and its libs will not interfere with others in

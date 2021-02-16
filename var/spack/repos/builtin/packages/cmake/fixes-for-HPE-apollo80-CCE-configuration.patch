@@ -1,0 +1,51 @@
+diff --git a/Modules/CMakeCCompilerId.c.in b/Modules/CMakeCCompilerId.c.in
+index 2f6bdb4a..474d05b6 100644
+--- a/Modules/CMakeCCompilerId.c.in
++++ b/Modules/CMakeCCompilerId.c.in
+@@ -26,7 +26,7 @@ char const* info_simulate = "INFO" ":" "simulate[" SIMULATE_ID "]";
+ char const* qnxnto = "INFO" ":" "qnxnto[]";
+ #endif
+ 
+-#if defined(__CRAYXE) || defined(__CRAYXC)
++#if defined(__CRAYXE) || defined(__CRAYXC) || defined(__cray__)
+ char const *info_cray = "INFO" ":" "compiler_wrapper[CrayPrgEnv]";
+ #endif
+ 
+@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
+ #ifdef SIMULATE_VERSION_MAJOR
+   require += info_simulate_version[argc];
+ #endif
+-#if defined(__CRAYXE) || defined(__CRAYXC)
++#if defined(__CRAYXE) || defined(__CRAYXC) || defined(__cray__)
+   require += info_cray[argc];
+ #endif
+   require += info_language_dialect_default[argc];
+diff --git a/Modules/CMakeCXXCompilerId.cpp.in b/Modules/CMakeCXXCompilerId.cpp.in
+index a743ce78..e8170648 100644
+--- a/Modules/CMakeCXXCompilerId.cpp.in
++++ b/Modules/CMakeCXXCompilerId.cpp.in
+@@ -20,7 +20,7 @@ char const* info_simulate = "INFO" ":" "simulate[" SIMULATE_ID "]";
+ char const* qnxnto = "INFO" ":" "qnxnto[]";
+ #endif
+ 
+-#if defined(__CRAYXE) || defined(__CRAYXC)
++#if defined(__CRAYXE) || defined(__CRAYXC) || defined(__cray__)
+ char const *info_cray = "INFO" ":" "compiler_wrapper[CrayPrgEnv]";
+ #endif
+ 
+diff --git a/Modules/CMakeFortranCompilerId.F.in b/Modules/CMakeFortranCompilerId.F.in
+index 30f8d4c4..5e0ca11f 100644
+--- a/Modules/CMakeFortranCompilerId.F.in
++++ b/Modules/CMakeFortranCompilerId.F.in
+@@ -108,7 +108,7 @@
+ #else
+         PRINT *, 'INFO:compiler[]'
+ #endif
+-#if defined(__CRAYXE) || defined(__CRAYXC)
++#if defined(__CRAYXE) || defined(__CRAYXC) || defined(_CRAYFTN)
+         PRINT *, 'INFO:compiler_wrapper[CrayPrgEnv]'
+ #endif
+ 
+-- 
+1.8.3.1
+
