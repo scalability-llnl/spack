@@ -119,6 +119,9 @@ six
 * Homepage: https://pypi.python.org/pypi/six
 * Usage: Python 2 and 3 compatibility utilities.
 * Version: 1.11.0
+* Note: This package has been slightly extended:
+  * The `compat` module contains types from either `collections` or `collections.abc`,
+    according to the major Python version.
 
 macholib
 --------

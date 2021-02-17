@@ -8,17 +8,13 @@ from __future__ import division
 import multiprocessing
 import os
 import re
+import sys
 import functools
 import inspect
 from datetime import datetime, timedelta
 from six import string_types
-import sys
 
-
-if sys.version_info >= (3, 3):
-    from collections.abc import Hashable, MutableMapping  # novm
-else:
-    from collections import Hashable, MutableMapping
+from compat import Hashable, MutableMapping
 
 
 # Ignore emacs backups when listing modules

@@ -3,18 +3,12 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import collections
-
-try:
-    # dynamically import to keep vermin from complaining
-    collections_abc = __import__('collections.abc')
-except ImportError:
-    collections_abc = collections
+from compat import Mapping
 
 
 get_job_name = lambda needs_entry: (
     needs_entry.get('job') if (
-        isinstance(needs_entry, collections_abc.Mapping) and
+        isinstance(needs_entry, Mapping) and
         needs_entry.get('artifacts', True))
 
     else
@@ -25,7 +19,7 @@ get_job_name = lambda needs_entry: (
 
 
 def convert_job(job_entry):
-    if not isinstance(job_entry, collections_abc.Mapping):
+    if not isinstance(job_entry, Mapping):
         return job_entry
 
     needs = job_entry.get('needs')

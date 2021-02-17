@@ -42,12 +42,6 @@ import spack.variant
 import spack.version
 
 
-if sys.version_info >= (3, 3):
-    from collections.abc import Sequence  # novm
-else:
-    from collections import Sequence
-
-
 class Timer(object):
     """Simple timer for timing phases of a solve"""
     def __init__(self):

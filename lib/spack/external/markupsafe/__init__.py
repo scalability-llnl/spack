@@ -14,10 +14,7 @@ import sys
 from markupsafe._compat import text_type, string_types, int_types, \
      unichr, iteritems, PY2
 
-if sys.version_info >= (3, 3):
-    from collections.abc import Mapping
-else:
-    from collections import Mapping
+from compat import Mapping
 
 __version__ = "1.0"
 

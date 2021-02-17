@@ -315,14 +315,10 @@ class Context(with_metaclass(ContextMeta)):
 
 # register the context as mapping if possible
 try:
-    from collections.abc import Mapping
+    from compat import Mapping
     Mapping.register(Context)
 except ImportError:
-    try:
-        from collections import Mapping
-        Mapping.register(Context)
-    except ImportError:
-        pass
+    pass
 
 
 class BlockReference(object):

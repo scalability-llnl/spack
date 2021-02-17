@@ -10,11 +10,7 @@ a separate base
 """
 
 import sys
-
-if sys.version_info >= (3, 3):
-    from collections.abc import MutableSet
-else:
-    from collections import MutableSet
+from compat import MutableSet
 
 __all__ = ["CommentedSeq", "CommentedMap", "CommentedOrderedMap",
            "CommentedSet", 'comment_attrib', 'merge_attrib']

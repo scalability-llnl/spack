@@ -9,6 +9,7 @@ import binascii
 import re
 import sys
 import types
+from compat import Hashable
 
 try:
     from .error import *                               # NOQA
@@ -23,12 +24,6 @@ except (ImportError, ValueError):  # for Jython
                                     ordereddict, text_type)
     from ruamel.yaml.comments import *                               # NOQA
     from ruamel.yaml.scalarstring import *                           # NOQA
-
-
-if sys.version_info >= (3, 3):
-    from collections.abc import Hashable
-else:
-    from collections import Hashable
 
 
 __all__ = ['BaseConstructor', 'SafeConstructor', 'Constructor',

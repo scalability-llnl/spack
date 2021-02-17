@@ -87,6 +87,7 @@ import re
 
 import six
 import ruamel.yaml as yaml
+from compat import Mapping
 
 import llnl.util.filesystem as fs
 import llnl.util.lang as lang
@@ -115,12 +116,6 @@ import spack.util.spack_yaml as syaml
 import spack.util.string
 import spack.variant as vt
 import spack.version as vn
-
-
-if sys.version_info >= (3, 3):
-    from collections.abc import Mapping  # novm
-else:
-    from collections import Mapping
 
 
 __all__ = [

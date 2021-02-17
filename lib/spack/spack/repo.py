@@ -20,12 +20,8 @@ import traceback
 import types
 from typing import Dict  # novm
 
-if sys.version_info >= (3, 5):
-    from collections.abc import Mapping  # novm
-else:
-    from collections import Mapping
-
 import ruamel.yaml as yaml
+from compat import Mapping
 
 import llnl.util.lang
 import llnl.util.tty as tty
