@@ -15,6 +15,7 @@ import shutil
 import ssl
 import sys
 import traceback
+from typing import Optional     # novm
 
 import six
 from six.moves.urllib.error import URLError
@@ -87,6 +88,15 @@ __UNABLE_TO_VERIFY_SSL = (
     ))(sys.version_info)
 
 
+def _unverified_context():
+    # type: () -> Optional[ssl.SSLContext]
+    try:
+        return ssl._create_unverified_context()
+    except AttributeError:
+        warn_no_ssl_cert_checking()
+        return None
+
+
 def read_from_url(url, accept_content_type=None):
     url = url_util.parse(url)
     context = None
@@ -106,7 +116,7 @@ def read_from_url(url, accept_content_type=None):
         else:
             # User has explicitly indicated that they do not want SSL
             # verification.
-            context = ssl._create_unverified_context()
+            context = _unverified_context()
 
     req = Request(url_util.format(url))
     content_type = None

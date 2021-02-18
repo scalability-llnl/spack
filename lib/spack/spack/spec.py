@@ -84,6 +84,7 @@ import itertools
 import operator
 import os
 import re
+from typing import Iterable, Optional, Union  # novm
 
 import six
 import ruamel.yaml as yaml
@@ -1022,9 +1023,16 @@ class Spec(object):
     #: Cache for spec's prefix, computed lazily in the corresponding property
     _prefix = None
 
-    def __init__(self, spec_like=None,
-                 normal=False, concrete=False, external_path=None,
-                 external_modules=None, full_hash=None):
+    def __init__(
+        self,
+        spec_like=None,         # type: Optional[Union[str, Spec]]
+        normal=False,           # type: bool
+        concrete=False,         # type: bool
+        external_path=None,     # type: Optional[str]
+        external_modules=None,  # type: Optional[Iterable[str]]
+        full_hash=None,         # type: Optional[str]
+    ):
+        # type: (...) -> None
         """Create a new Spec.
 
         Arguments:
@@ -3340,6 +3348,7 @@ class Spec(object):
         # We don't count dependencies as changes here
         changed = True
         if hasattr(self, 'name'):
+            # TODO: what does 'changed' mean here?
             changed = (self.name != other.name and
                        self.versions != other.versions and
                        self.architecture != other.architecture and
@@ -4119,6 +4128,9 @@ class Spec(object):
         ret = self.format() + self.dep_string()
         return ret.strip()
 
+    def __repr__(self):
+        return 'Spec({0!r})'.format(str(self))
+
     def install_status(self):
         """Helper for tree to print DB install status."""
         if not self.concrete:
@@ -4207,9 +4219,6 @@ class Spec(object):
                 break
 
         return out
-
-    def __repr__(self):
-        return str(self)
 
     @property
     def platform(self):

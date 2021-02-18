@@ -36,6 +36,7 @@ import shlex
 import logging
 import argparse
 import subprocess
+from typing import Dict         # novm
 
 
 if not sys.platform.startswith('linux'):
@@ -51,7 +52,7 @@ _OS_RELEASE_BASENAME = 'os-release'
 #:   with blanks translated to underscores.
 #:
 #: * Value: Normalized value.
-NORMALIZED_OS_ID = {}
+NORMALIZED_OS_ID = {}  # type: Dict[str, str]
 
 #: Translation table for normalizing the "Distributor ID" attribute returned by
 #: the lsb_release command, for use by the :func:`distro.id` method.

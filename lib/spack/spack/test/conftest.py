@@ -600,14 +600,15 @@ def mock_store(tmpdir_factory, mock_repo_path, mock_configuration_scopes,
             with spack.store.use_store(str(store_path)) as store:
                 with spack.repo.use_repositories(mock_repo_path):
                     _populate(store.db)
-        store_path.copy(store_cache, mode=True, stat=True)
 
-    # Make the DB filesystem read-only to ensure we can't modify entries
-    store_path.join('.spack-db').chmod(mode=0o555, rec=1)
+                    store_path.copy(store_cache, mode=True, stat=True)
 
-    yield store
+                    # Make the DB filesystem read-only to ensure we can't modify entries
+                    store_path.join('.spack-db').chmod(mode=0o555, rec=1)
 
-    store_path.join('.spack-db').chmod(mode=0o755, rec=1)
+                    yield store
+
+                    store_path.join('.spack-db').chmod(mode=0o755, rec=1)
 
 
 @pytest.fixture(scope='function')
@@ -1237,3 +1238,21 @@ def mock_test_stage(mutable_config, tmpdir):
     mutable_config.set('config:test_stage', tmp_stage)
 
     yield tmp_stage
+
+
+mirror_path_rel = None
+
+
+@pytest.fixture(scope='session')
+def session_mirror_def(tmpdir_factory):
+    dir = tmpdir_factory.mktemp('mirror')
+    global mirror_path_rel
+    mirror_path_rel = dir
+    dir.ensure('build_cache', dir=True)
+    yield dir
+    dir.join('build_cache').remove()
+
+
+@pytest.fixture(scope='function')
+def mirror_directory_def(session_mirror_def):
+    yield str(session_mirror_def)
