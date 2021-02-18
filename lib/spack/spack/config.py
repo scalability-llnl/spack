@@ -110,7 +110,7 @@ config_defaults = {
         'verify_ssl': True,
         'checksum': True,
         'dirty': False,
-        'build_jobs': min(16, multiprocessing.cpu_count()),
+        'build_jobs': 4,
         'build_stage': '$tempdir/spack-stage',
         'concretizer': 'original',
     }
