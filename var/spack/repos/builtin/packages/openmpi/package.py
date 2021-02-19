@@ -289,6 +289,7 @@ class Openmpi(AutotoolsPackage):
     depends_on('mxm', when='fabrics=mxm')
     depends_on('binutils+libiberty', when='fabrics=mxm')
     depends_on('ucx', when='fabrics=ucx')
+    depends_on('ucx +cuda +gdrcopy', when='fabrics=ucx +cuda')
     depends_on('ucx +thread_multiple', when='fabrics=ucx +thread_multiple')
     depends_on('ucx +thread_multiple', when='@3.0.0: fabrics=ucx')
     depends_on('libfabric', when='fabrics=ofi')
