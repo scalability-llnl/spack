@@ -579,7 +579,7 @@ _spack_compilers() {
 }
 
 _spack_concretize() {
-    SPACK_COMPREPLY="-h --help -f --force"
+    SPACK_COMPREPLY="-h --help -f --force -d --dry-run"
 }
 
 _spack_config() {

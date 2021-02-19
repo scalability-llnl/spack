@@ -294,7 +294,7 @@ def _print_installed_pkg(message):
     Args:
         message (str): message to be output
     """
-    print(colorize('@*g{[+]} ') + message)
+    print(colorize('@*g{[\u2713]} ') + message)
 
 
 def _process_external_package(pkg, explicit):

@@ -4120,14 +4120,23 @@ class Spec(object):
         return ret.strip()
 
     def install_status(self):
-        """Helper for tree to print DB install status."""
+        """Helper for tree to print DB install status.
+        :returns: True - if installed, False - if not, None on errors
+        """
         if not self.concrete:
             return None
         try:
             record = spack.store.db.get_record(self)
+            if (record.installed and
+                    (record.path is None or not os.path.exists(record.path))):
+                # There was a record, but no valid path to the install
+                return None
+
             return record.installed
+
         except KeyError:
-            return None
+            # No record exists
+            return False
 
     def _installed_explicitly(self):
         """Helper for tree to print DB install status."""
@@ -4139,13 +4148,20 @@ class Spec(object):
         except KeyError:
             return None
 
+    UPSTREAM_STATUS = clr.colorize("@*b{[^]}", color=clr.get_color_when())
+    POS_STATUS = clr.colorize("@*g{[\u2714]}", color=clr.get_color_when())
+    NEG_STATUS = clr.colorize("@*K{[ ]}", color=clr.get_color_when())
+    ERR_STATUS = clr.colorize("@*r{[?]}", color=clr.get_color_when())
+
     def tree(self, **kwargs):
         """Prints out this spec and its dependencies, tree-formatted
            with indentation."""
-        color = kwargs.pop('color', clr.get_color_when())
         depth = kwargs.pop('depth', False)
         hashes = kwargs.pop('hashes', False)
         hlen = kwargs.pop('hashlen', None)
+        # Should take a Spec object, return True/False for positive/negative
+        # results, and None on error. Upstream packages are always shown as
+        # such, regardless of status.
         status_fn = kwargs.pop('status_fn', False)
         cover = kwargs.pop('cover', 'nodes')
         indent = kwargs.pop('indent', 0)
@@ -4155,6 +4171,8 @@ class Spec(object):
         deptypes = kwargs.pop('deptypes', 'all')
         recurse_dependencies = kwargs.pop('recurse_dependencies', True)
         lang.check_kwargs(kwargs, self.tree)
+
+        color = clr.get_color_when()
 
         out = ""
         for d, dep_spec in self.traverse_edges(
@@ -4171,13 +4189,15 @@ class Spec(object):
             if status_fn:
                 status = status_fn(node)
                 if node.package.installed_upstream:
-                    out += clr.colorize("@g{[^]}  ", color=color)
-                elif status is None:
-                    out += clr.colorize("@K{ - }  ", color=color)  # !installed
-                elif status:
-                    out += clr.colorize("@g{[+]}  ", color=color)  # installed
+                    out += self.UPSTREAM_STATUS
+                elif status is True:
+                    out += self.POS_STATUS
+                elif status is False:
+                    out += self.NEG_STATUS
                 else:
-                    out += clr.colorize("@r{[-]}  ", color=color)  # missing
+                    out += self.ERR_STATUS
+
+                out += "  "
 
             if hashes:
                 out += clr.colorize(

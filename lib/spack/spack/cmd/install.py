@@ -175,6 +175,11 @@ packages. If neither are chosen, don't run tests for any packages."""
     )
     arguments.add_cdash_args(subparser, False)
     arguments.add_common_arguments(subparser, ['yes_to_all', 'spec'])
+    subparser.epilog = (
+        'Install Statuses:\n'
+        '  {s.POS_STATUS} - installed, {s.NEG_STATUS} - not installed,'
+        ' {s.UPSTREAM_STATUS} - upstream, {s.ERR_STATUS} - missing/error'
+        .format(s=spack.spec.Spec))
 
 
 def default_log_file(spec):

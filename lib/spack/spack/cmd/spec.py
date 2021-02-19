@@ -46,6 +46,11 @@ for further documentation regarding the spec syntax, see:
         '-t', '--types', action='store_true', default=False,
         help='show dependency types')
     arguments.add_common_arguments(subparser, ['specs'])
+    subparser.epilog = (
+        'Install Statuses:\n'
+        '  {s.POS_STATUS} - installed, {s.NEG_STATUS} - not installed,'
+        ' {s.UPSTREAM_STATUS} - upstream, {s.ERR_STATUS} - missing/error'
+        .format(s=spack.spec.Spec))
 
 
 @contextlib.contextmanager
