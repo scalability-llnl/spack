@@ -1046,21 +1046,18 @@ def import_signing_key(base64_signing_key):
 
     tty.debug('ci.import_signing_key() will attempt to import a key')
 
-    # This command has the side-effect of creating the directory referred
-    # to as GNUPGHOME in setup_environment()
+    # This command has the side-effect of creating the gpg directory
+    # if it doesn't already exist.  Set SPACK_GNUPGHOME to control where
+    # this directory gets created.
     list_output = spack_gpg('list', output=str)
 
     tty.debug('spack gpg list:')
     tty.debug(list_output)
 
-    decoded_key = base64.b64decode(base64_signing_key)
-    if isinstance(decoded_key, bytes):
-        decoded_key = decoded_key.decode('utf8')
-
     with TemporaryDirectory() as tmpdir:
         sign_key_path = os.path.join(tmpdir, 'signing_key')
         with open(sign_key_path, 'w') as fd:
-            fd.write(decoded_key)
+            fd.write(base64_signing_key)
 
         key_import_output = spack_gpg('trust', sign_key_path, output=str)
         tty.debug('spack gpg trust {0}'.format(sign_key_path))

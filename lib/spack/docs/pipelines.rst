@@ -587,28 +587,117 @@ environment variables used by the pipeline infrastructure are described here.
 AWS_ACCESS_KEY_ID
 ^^^^^^^^^^^^^^^^^
 
-Needed when binary mirror is an S3 bucket.
+(Optional) Needed if binary mirror is an S3 bucket that is not publicly writable.
 
 ^^^^^^^^^^^^^^^^^^^^^
 AWS_SECRET_ACCESS_KEY
 ^^^^^^^^^^^^^^^^^^^^^
 
-Needed when binary mirror is an S3 bucket.
+(Optional) Needed if binary mirror is an S3 bucket that is not publicly writable.
 
 ^^^^^^^^^^^^^^^
 S3_ENDPOINT_URL
 ^^^^^^^^^^^^^^^
 
-Needed when binary mirror is an S3 bucket that is *not* on AWS.
+(Optional) Needed when binary mirror is an S3 bucket that is *not* on AWS.
 
 ^^^^^^^^^^^^^^^^^
 CDASH_AUTH_TOKEN
 ^^^^^^^^^^^^^^^^^
 
-Needed in order to report build groups to CDash.
+(Optional) Needed if reporting pipeline build results to CDash.
 
 ^^^^^^^^^^^^^^^^^
 SPACK_SIGNING_KEY
 ^^^^^^^^^^^^^^^^^
 
-Needed to sign/verify binary packages from the remote binary mirror.
+(Optional) Can be used to cause spack to import this key to sign/verify binary
+packages in situations where a persistent keystore (such as in user home directory)
+is not available to runners.  NOTE: In situations where such a peristent key store
+is available, it is recommended instead to set up keys there and use the
+``SPACK_GNUPGHOME`` environment variable to tell spack about those keys.
+
+If ``SPACK_SIGNING_KEY`` is needed, then the desired public and secret keys should
+be exported from the appropriate keystore (in "app armored" format) and provided via
+gitlab CI variables.  Below is an example command line to export a key in the correct
+format.  Note that both the public and secret keys are needed, and typically need to
+be exported using two separate commands::
+
+   $ gpg2 --export --armor <KEY-ID> && gpg2 --export-secret-keys --armor <KEY-ID>
+
+If you need to create a test key with which to experiment, you can do that
+interactively using the ``gpg2`` command, or you can save the following to a file,
+e.g. to ``/work/gpg_script``, that contains all the answers you would
+otherwise have to provide interactively::
+
+   %echo Generating a basic OpenPGP key
+   Key-Type: RSA
+   Key-Length: 2048
+   Subkey-Type: RSA
+   Subkey-Length: 2048
+   Name-Real: Spack Build Pipeline Test Key
+   Name-Comment: Demo Key
+   Name-Email: key@spack.demo
+   Expire-Date: 0
+   %commit
+   %echo done
+
+Now create a directory for a keychain and set up to have ``gpg2`` use that directory::
+
+   $ mkdir ~/.mygpg
+   $ export GNUPGHOME=~/.mygpg
+   $ gpg2 --list-keys
+   gpg: keybox '/work/.mygpg/pubring.kbx' created
+   gpg: /work/.mygpg/trustdb.gpg: trustdb created
+
+Then issue the following command making use of the script you saved above to
+create a new key in that directory::
+
+   $ gpg2 --batch --gen-key --pinentry-mode=loopback --passphrase "" /work/gpg_script
+   gpg: Generating a basic OpenPGP key
+   gpg: key 69E126D64EA1DF72 marked as ultimately trusted
+   gpg: directory '/work/.mygpg/openpgp-revocs.d' created
+   gpg: revocation certificate stored as '/work/.mygpg/openpgp-revocs.d/F5B819B8283B573B572173B969E126D64EA1DF72.rev'
+   gpg: done
+
+Listing the keys again will show you the id of the key you'll want to export,
+and you should see something when you list secret keys as well::
+
+   $ gpg2 --list-keys
+   /work/.mygpg/pubring.kbx
+   ------------------------
+   pub   rsa2048 2020-08-10 [SCEA]
+         F5B819B8283B573B572173B969E126D64EA1DF72
+   uid           [ultimate] Spack Build Pipeline (Demo Key) <key@spack.demo>
+   sub   rsa2048 2020-08-10 [SEA]
+
+   $ gpg2 --list-secret-keys
+   /work/.mygpg/pubring.kbx
+   ------------------------
+   sec   rsa2048 2020-08-10 [SCEA]
+         F5B819B8283B573B572173B969E126D64EA1DF72
+   uid           [ultimate] Spack Build Pipeline (Demo Key) <key@spack.demo>
+   ssb   rsa2048 2020-08-10 [SEA]
+
+
+Now you can export both the public and secret parts of that key::
+
+   $ gpg2 --export --armor F5B819B8283B573B572173B969E126D64EA1DF72 && \
+     gpg2 --export-secret-keys --armor F5B819B8283B573B572173B969E126D64EA1DF72
+
+You can copy the output from the above command and paste it in as the value of
+the ``SPACK_SIGNING_KEY`` CI variable in the gitlab variables UI.  It's presence
+will cause spack to attempt to import that key.
+
+^^^^^^^^^^^^^^^
+SPACK_GNUPGHOME
+^^^^^^^^^^^^^^^
+
+(Optional) Use this environment variable to tell spack about the location of
+a keychain directory.  This can be used by itself to point spack at a location
+where you already have trusted the keys you want to use for signing and
+verifying packages.  In this case, it should point to a directory the runner
+can access and that already contains the key you want to use.  This environment
+variable can also be used together with the variable above (``SPACK_SIGNING_KEY``)
+if you want spack to import a key from that CI variable but you also want to
+customize the location of the keystore.
