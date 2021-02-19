@@ -46,32 +46,17 @@ conflict {{ name }}
 
 {% block environment %}
 {% for command_name, cmd in environment_modifications %}
-{% if cmd.separator != ':' %}
 {# A non-standard separator is required #}
 {% if command_name == 'PrependPath' %}
 prepend-path --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
-{% elif command_name == 'AppendPath' %}
+{% elif command_name in ('AppendPath', 'AppendFlagsEnv') %}
 append-path --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
 {% elif command_name == 'RemovePath' %}
 remove-path --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
 {% elif command_name == 'SetEnv' %}
-setenv --delim "{{ cmd.separator }}" {{ cmd.name }} "{{ cmd.value }}"
-{% elif command_name == 'UnsetEnv' %}
-unsetenv {{ cmd.name }}
-{% endif %}
-{% else %}
-{# We are using the usual separator #}
-{% if command_name == 'PrependPath' %}
-prepend-path {{ cmd.name }} "{{ cmd.value }}"
-{% elif command_name == 'AppendPath' %}
-append-path {{ cmd.name }} "{{ cmd.value }}"
-{% elif command_name == 'RemovePath' %}
-remove-path {{ cmd.name }} "{{ cmd.value }}"
-{% elif command_name == 'SetEnv' %}
 setenv {{ cmd.name }} "{{ cmd.value }}"
 {% elif command_name == 'UnsetEnv' %}
 unsetenv {{ cmd.name }}
-{% endif %}
 {#  #}
 {% endif %}
 {% endfor %}
