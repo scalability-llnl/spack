@@ -247,6 +247,9 @@ class UrlPatch(Patch):
 
         self._stage = spack.stage.Stage(fetcher, mirror_paths=mirror_ref)
         self._stage.create()
+        if os.listdir(self._stage.path):
+            tty.warn("[Issue:15780] This directory should be empty: "
+                     + str(self._stage.path))
         return self._stage
 
     def clean(self):

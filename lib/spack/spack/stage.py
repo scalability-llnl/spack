@@ -289,6 +289,10 @@ class Stage(object):
         self.name = name
         if name is None:
             self.name = stage_prefix + next(tempfile._get_candidate_names())
+            tty.debug(
+                "[Issue:15780] {0}".format(str(url_or_fetch_strategy)))
+            tty.debug(
+                "[Issue:15780] {0}".format(str(id(self))))
         self.mirror_paths = mirror_paths
 
         # Use the provided path or construct an optionally named stage path.
