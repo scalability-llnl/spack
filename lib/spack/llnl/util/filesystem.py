@@ -1640,6 +1640,12 @@ def find_libraries(libraries, root, shared=True, recursive=False):
         suffix = 'a'
     # List of libraries we are searching with suffixes
     libraries = ['{0}.{1}'.format(lib, suffix) for lib in libraries]
+    if suffix == 'so':
+        # if we're installing buildcache images, we only need runtimes
+        # runtimes on Linux are libfoo.so.n for some integer n
+        librariesn = ['{0}.{1}'.format(lib, str(n))
+                      for n in range(20) for lib in libraries]
+        libraries = libraries + librariesn
 
     if not recursive:
         # If not recursive, look for the libraries directly in root
