@@ -16,12 +16,14 @@ class PyAstropy(PythonPackage):
     pypi = 'astropy/astropy-4.0.1.post1.tar.gz'
 
     version('4.0.1.post1', sha256='5c304a6c1845ca426e7bc319412b0363fccb4928cb4ba59298acd1918eec44b5')
+    version('4.0', sha256='404200e0baa84de09ac563ad9ccab3817e9b9669d0025cee74a8752f4bc2771b')
     version('3.2.1', sha256='706c0457789c78285e5464a5a336f5f0b058d646d60f4e5f5ba1f7d5bf424b28')
     version('2.0.14', sha256='618807068609a4d8aeb403a07624e9984f566adc0dc0f5d6b477c3658f31aeb6')
     version('1.1.2', sha256='6f0d84cd7dfb304bb437dda666406a1d42208c16204043bc920308ff8ffdfad1')
     version('1.1.post1', sha256='64427ec132620aeb038e4d8df94d6c30df4cc8b1c42a6d8c5b09907a31566a21')
 
     variant('extras', default=False, description='Enable extra functionality')
+    variant('usesystemlib', default=True, description='Use external libraries for erfa, wcslib, cfitsio and expat')
 
     # Required dependencies
     depends_on('python@3.6:', when='@4.0:', type=('build', 'run'))
@@ -59,10 +61,10 @@ class PyAstropy(PythonPackage):
     depends_on('py-pytest', when='+extras', type=('build', 'run'))
 
     # System dependencies
-    depends_on('erfa')
-    depends_on('wcslib')
-    depends_on('cfitsio')
-    depends_on('expat')
+    depends_on('erfa', when='+usesystemlib')
+    depends_on('wcslib', when='+usesystemlib')
+    depends_on('cfitsio', when='+usesystemlib')
+    depends_on('expat', when='+usesystemlib')
 
     def patch(self):
         # forces the rebuild of files with cython
@@ -79,6 +81,9 @@ class PyAstropy(PythonPackage):
             '--use-system-cfitsio',
             '--use-system-expat'
         ]
+
+        if spec.satisfies('-usesystemlib'):
+            args = []
 
         if spec.satisfies('^python@3:'):
             args.extend(['-j', str(make_jobs)])
