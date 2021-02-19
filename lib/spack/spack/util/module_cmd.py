@@ -53,9 +53,21 @@ def module(*args):
         # dump SPACKIGNORE as a placeholder for parsing if LD_LIBRARY_PATH null
         module_cmd += 'echo "${SPACK_NEW_LD_LIBRARY_PATH:-SPACKIGNORE}"'
 
+        # Bash allows to export functions into the environment, and
+        # subprocesses executing Bash can make use of these.
+        #
+        # If the user runs a different shell, emulate the exported module
+        # function to have the module commands work properly.
+        #
+        # Added caveat: `modulecmd` needs to be in PATH.
+        environ = dict(os.environ)
+        if "BASH_FUNC_module()" not in environ:
+            environ["BASH_FUNC_module()"] = "() { eval `modulecmd bash $*`\n}"
+
         module_p  = subprocess.Popen(module_cmd,
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT,
+                                     env=environ,
                                      shell=True,
                                      executable="/bin/bash")
 
@@ -80,10 +92,16 @@ def module(*args):
             os.environ['LD_LIBRARY_PATH'] = new_ld_library_path
 
     else:
+        # See note above
+        environ = dict(os.environ)
+        if "BASH_FUNC_module()" not in environ:
+            environ["BASH_FUNC_module()"] = "() { eval `modulecmd bash $*`\n}"
+
         # Simply execute commands that don't change state and return output
         module_p = subprocess.Popen(module_cmd,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT,
+                                    env=environ,
                                     shell=True,
                                     executable="/bin/bash")
         # Decode and str to return a string object in both python 2 and 3
