@@ -1087,7 +1087,7 @@ class IntelPackage(PackageBase):
                 # Intel MPI since 2019 depends on libfabric which is not in the
                 # lib directory but in a directory of its own which should be
                 # included in the rpath
-                if self.version >= ver('2019'):
+                if self.version_yearlike >= ver('2019'):
                     d = ancestor(self.component_lib_dir('mpi'))
                     libfabrics_path = os.path.join(d, 'libfabric', 'lib')
                     env.append_path('SPACK_COMPILER_EXTRA_RPATHS',
