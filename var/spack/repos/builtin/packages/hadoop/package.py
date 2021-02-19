@@ -6,33 +6,39 @@
 from spack import *
 
 
-class Hadoop(Package):
+class Hadoop(MavenPackage):
     """The Apache Hadoop software library is a framework that
     allows for the distributed processing of large data sets
-    across clusters of computers using simple programming models.
-    """
+    across clusters of computers using simple programming models."""
 
     homepage = "http://hadoop.apache.org/"
-    url      = "https://www.apache.org/dist/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz"
+    url      = "https://github.com/apache/hadoop/archive/rel/release-3.2.1.tar.gz"
 
-    version('3.2.1',  sha256='f66a3a4115b8f16c1077d1a198a06854dbef0e4233291712ed08d0a10629ed37')
-    version('3.1.3',  sha256='1e8b7ca4e3911f8ec999595f71921390e9ad7a27255fbd36af1f3a1628b67e2b')
-    version('2.10.0', sha256='131750c258368be4baff5d4a83b4de2cd119bda3774ed26d1d233b6fdf33f07f')
-    version('2.9.2',  sha256='3d2023c46b1156c1b102461ad08cbc17c8cc53004eae95dab40a1f659839f28a')
-    version('2.8.5',  sha256='f9c726df693ce2daa4107886f603270d66e7257f77a92c9886502d6cd4a884a4')
-    version('2.7.7',  sha256='d129d08a2c9dafec32855a376cbd2ab90c6a42790898cabbac6be4d29f9c2026')
+    version('3.2.1', sha256='43ccc9078afb51c7d22087613b52cf7ad3ed8737371d6353c16af3b93069fb8b')
+    version('3.1.3', sha256='1ebe5bf73589b4a5284b8bf04b93cb14808f8350653988d8c50ecf7b2a931837')
+    version('3.1.1', sha256='00f6eb11144525d426fe4dabcc9ddb5f6080cceb96b2cb77d2a55f0713412c20')
+    version('3.1.0', sha256='42c540101ee8c50e4c90ba7a430a75459afb1802211e7d4a09ee694eb0157631')
 
-    depends_on('java', type='run')
+    depends_on('protobuf@2.5.0')
+    depends_on('java@8', type=('build', 'run'))
+    depends_on('cmake', type='build')
+    depends_on('openssl')
+    depends_on('libtirpc')
+    depends_on('doxygen', type='build', when='@3.2.1:')
+    depends_on('cyrus-sasl', when='@3.2.1:')
+
+    def setup_build_environment(self, env):
+        env.append_path('LDFLAGS', '-ldl -ltirpc')
+        env.prepend_path('CPATH', self.spec['libtirpc'].prefix.include.tirpc)
+
+    def build(self, spec, prefix):
+        mvn = which('mvn')
+        mvn('package', '-DskipTests', '-Pdist,native',
+            '-Dtar', '-Dmaven.javadoc.skip=true')
 
     def install(self, spec, prefix):
-
-        def install_dir(dirname):
-            install_tree(dirname, join_path(prefix, dirname))
-
-        install_dir('bin')
-        install_dir('etc')
-        install_dir('include')
-        install_dir('lib')
-        install_dir('libexec')
-        install_dir('sbin')
-        install_dir('share')
+        hadoop_path = join_path(self.stage.source_path,
+                                'hadoop-dist', 'target',
+                                'hadoop-{0}'.format(self.version))
+        with working_dir(hadoop_path):
+            install_tree('.', prefix)
