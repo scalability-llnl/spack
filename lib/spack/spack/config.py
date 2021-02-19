@@ -710,30 +710,43 @@ def override(path_or_scope, value=None):
     an internal config scope for it and push/pop that scope.
 
     """
-    if isinstance(path_or_scope, ConfigScope):
-        overrides = path_or_scope
-        config.push_scope(path_or_scope)
-    else:
-        base_name = overrides_base_name
-        # Ensure the new override gets a unique scope name
-        current_overrides = [s.name for s in
-                             config.matching_scopes(r'^{0}'.format(base_name))]
-        num_overrides = len(current_overrides)
-        while True:
-            scope_name = '{0}{1}'.format(base_name, num_overrides)
-            if scope_name in current_overrides:
-                num_overrides += 1
-            else:
-                break
+    def _process_path_or_scope():
+        """Treat path_or_scope correctly, creating a new scope with an unique
+        name if necessary.
 
-        overrides = InternalConfigScope(scope_name)
-        config.push_scope(overrides)
-        config.set(path_or_scope, value, scope=scope_name)
+        Encapsulates the logic to avoid setting variables only valid in one
+        conditional branch.
 
-    yield config
+        Returns a tuple of (scope, path).
+        """
+        if isinstance(path_or_scope, ConfigScope):
+            return (path_or_scope, None)
+        else:
+            # Ensure the new override gets a unique scope name
+            current_overrides\
+                = [s.name for s in config.
+                   matching_scopes(r'^{0}\d+$'.
+                                   format(re.escape(overrides_base_name)))]
+            num_overrides = len(current_overrides)
+            while True:
+                scope_name = '{0}{1}'.\
+                             format(overrides_base_name, num_overrides)
+                if scope_name in current_overrides:
+                    num_overrides += 1
+                else:
+                    break
+            return (InternalConfigScope(scope_name), path_or_scope)
 
-    scope = config.remove_scope(overrides.name)
-    assert scope is overrides
+    override_scope, config_path = _process_path_or_scope()
+    config.push_scope(override_scope)
+
+    try:
+        if config_path is not None:
+            config.set(config_path, value, scope=override_scope.name)
+        yield config
+    finally:
+        removed_scope = config.remove_scope(override_scope.name)
+        assert removed_scope is override_scope
 
 
 #: configuration scopes added on the command line

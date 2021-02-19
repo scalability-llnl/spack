@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import contextlib
 import os
 import collections
 import getpass
@@ -735,14 +736,38 @@ config:
     spack.config._add_command_line_scopes(mutable_config, [str(tmpdir)])
 
 
-def test_nested_override():
-    """Ensure proper scope naming of nested overrides."""
+@contextlib.contextmanager
+def _exception_handler(want_exception):
+    """Abstract the complication of deciding on the correct context manager
+    out of test_nested_override().
+    """
+    @contextlib.contextmanager
+    def _does_not_raise():
+        yield
+
+    with pytest.raises(RuntimeError) if want_exception else _does_not_raise():
+        yield
+
+
+@pytest.mark.parametrize('want_exception', [False, True],
+                         ids=['simple', 'with_exception'])
+def test_nested_override(want_exception):
+    """Ensure proper scope naming and behavior of nested overrides.
+
+    In the "simple" case, verify that we can nest two overrides and expect
+    correct state before and after each override has executed and been cleaned
+    up.
+
+    In the "with_exception" case, verify correct behavior in the presence of an
+    exception.
+    """
     base_name = spack.config.overrides_base_name
 
-    def _check_scopes(num_expected, debug_values):
+    def _check_scopes(num_expected, debug_values=[]):
         scope_names = [s.name for s in spack.config.config.scopes.values() if
                        s.name.startswith(base_name)]
 
+        assert len(scope_names) == num_expected
         for i in range(num_expected):
             name = '{0}{1}'.format(base_name, i)
             assert name in scope_names
@@ -751,11 +776,19 @@ def test_nested_override():
             assert data['debug'] == debug_values[i]
 
     # Check results from single and nested override
-    with spack.config.override('config:debug', True):
-        with spack.config.override('config:debug', False):
-            _check_scopes(2, [True, False])
-
-        _check_scopes(1, [True])
+    _check_scopes(0)
+    try:
+        with _exception_handler(want_exception):
+            with spack.config.override('config:debug', True):
+                try:
+                    with spack.config.override('config:debug', False):
+                        _check_scopes(2, [True, False])
+                        if want_exception:
+                            raise RuntimeError
+                finally:
+                    _check_scopes(1, [True])
+    finally:
+        _check_scopes(0)
 
 
 def test_alternate_override(monkeypatch):
