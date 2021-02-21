@@ -1,0 +1,90 @@
+diff --git a/CMake/FindNetCDF.cmake b/CMake/FindNetCDF.cmake
+index 7e8117cac5..194b1a0d32 100644
+--- a/VTK/CMake/FindNetCDF.cmake
++++ b/VTK/CMake/FindNetCDF.cmake
+@@ -6,8 +6,20 @@ Provides the following variables:
+   * `NetCDF_LIBRARIES`: Libraries necessary to use NetCDF.
+   * `NetCDF_VERSION`: The version of NetCDF found.
+   * `NetCDF::NetCDF`: A target to use with `target_link_libraries`.
++  * `NetCDF_HAS_PARALLEL`: Whether or not NetCDF was found with parallel IO support.
+ #]==]
+ 
++function(FindNetCDF_get_is_parallel_aware include_dir)
++  file(STRINGS "${include_dir}/netcdf_meta.h" _netcdf_lines
++    REGEX "#define[ \t]+NC_HAS_PARALLEL[ \t]")
++  string(REGEX REPLACE ".*NC_HAS_PARALLEL[ \t]*([0-1]+).*" "\\1" _netcdf_has_parallel "${_netcdf_lines}")
++  if (_netcdf_has_parallel)
++    set(NetCDF_HAS_PARALLEL TRUE PARENT_SCOPE)
++  else()
++    set(NetCDF_HAS_PARALLEL FALSE PARENT_SCOPE)
++  endif()
++endfunction()
++
+ # Try to find a CMake-built NetCDF.
+ find_package(netCDF CONFIG QUIET)
+ if (netCDF_FOUND)
+@@ -16,11 +28,28 @@ if (netCDF_FOUND)
+   set(NetCDF_INCLUDE_DIRS "${netCDF_INCLUDE_DIR}")
+   set(NetCDF_LIBRARIES "${netCDF_LIBRARIES}")
+   set(NetCDF_VERSION "${NetCDFVersion}")
++
++  include(FindPackageHandleStandardArgs)
++  find_package_handle_standard_args(NetCDF
++    REQUIRED_VARS NetCDF_INCLUDE_DIRS NetCDF_LIBRARIES
++    VERSION_VAR NetCDF_VERSION)
++
+   if (NOT TARGET NetCDF::NetCDF)
+     add_library(NetCDF::NetCDF INTERFACE IMPORTED)
+-    set_target_properties(NetCDF::NetCDF PROPERTIES
+-      INTERFACE_LINK_LIBRARIES "${NetCDF_LIBRARIES}")
++    if (TARGET "netCDF::netcdf")
++      # 4.7.3
++      set_target_properties(NetCDF::NetCDF PROPERTIES
++        INTERFACE_LINK_LIBRARIES "netCDF::netcdf")
++    elseif (TARGET "netcdf")
++      set_target_properties(NetCDF::NetCDF PROPERTIES
++        INTERFACE_LINK_LIBRARIES "netcdf")
++    else ()
++      set_target_properties(NetCDF::NetCDF PROPERTIES
++        INTERFACE_LINK_LIBRARIES "${netCDF_LIBRARIES}")
++    endif ()
+   endif ()
++
++  FindNetCDF_get_is_parallel_aware("${NetCDF_INCLUDE_DIRS}")
+   # Skip the rest of the logic in this file.
+   return ()
+ endif ()
+@@ -34,11 +63,24 @@ if (PkgConfig_FOUND)
+     set(NetCDF_INCLUDE_DIRS "${_NetCDF_INCLUDE_DIRS}")
+     set(NetCDF_LIBRARIES "${_NetCDF_LIBRARIES}")
+     set(NetCDF_VERSION "${_NetCDF_VERSION}")
++
++    include(FindPackageHandleStandardArgs)
++    find_package_handle_standard_args(NetCDF
++      REQUIRED_VARS NetCDF_LIBRARIES
++      # This is not required because system-default include paths are not
++      # reported by `FindPkgConfig`, so this might be empty. Assume that if we
++      # have a library, the include directories are fine (if any) since
++      # PkgConfig reported that the package was found.
++      # NetCDF_INCLUDE_DIRS
++      VERSION_VAR NetCDF_VERSION)
++
+     if (NOT TARGET NetCDF::NetCDF)
+       add_library(NetCDF::NetCDF INTERFACE IMPORTED)
+       set_target_properties(NetCDF::NetCDF PROPERTIES
+         INTERFACE_LINK_LIBRARIES "PkgConfig::_NetCDF")
+     endif ()
++
++    FindNetCDF_get_is_parallel_aware("${_NetCDF_INCLUDEDIR}")
+     # Skip the rest of the logic in this file.
+     return ()
+   endif ()
+@@ -67,6 +109,8 @@ if (NetCDF_INCLUDE_DIR)
+   unset(_netcdf_version_patch)
+   unset(_netcdf_version_note)
+   unset(_netcdf_version_lines)
++
++  FindNetCDF_get_is_parallel_aware("${NetCDF_INCLUDE_DIR}")
+ endif ()
+ 
+ include(FindPackageHandleStandardArgs)

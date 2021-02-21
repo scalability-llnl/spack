@@ -149,6 +149,12 @@ class Paraview(CMakePackage, CudaPackage):
     # Broken H5Part with external parallel HDF5
     patch('h5part-parallel.patch', when='@5.7:5.7.999')
 
+    # Do not search system paths for python
+    # Python3_ROOT_DIR works for ParaView 5.9 but it does not for 5.7
+    patch('no-system-path-for-python.patch', when='@5.7:5.7.999')
+    # Backport FindNetCDF.cmake from 5.9 to fix finding netcdf libraries
+    patch('find-external-netcdf.patch', when='@5.7:5.7.999')
+
     def url_for_version(self, version):
         _urlfmt  = 'http://www.paraview.org/files/v{0}/ParaView-v{1}{2}.tar.{3}'
         """Handle ParaView version-based custom URLs."""
@@ -319,6 +325,9 @@ class Paraview(CMakePackage, CudaPackage):
                 spec['python'].command.path,
                 '-D%s_PYTHON_VERSION:STRING=%d' % (py_ver_opt, py_ver_val)
             ])
+            if '+python3' in spec:
+                cmake_args.append('-DPython3_ROOT_DIR:PATH={}'.format(
+                    spec['python'].prefix))
             if spec.satisfies('@:5.6'):
                 cmake_args.append(
                     '-DVTK_USE_SYSTEM_MPI4PY:BOOL=%s' % variant_bool('+mpi'))

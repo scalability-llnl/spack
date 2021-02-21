@@ -1,0 +1,13 @@
+--- a/VTK/CMake/patches/99/FindPython/Support.cmake
++++ b/VTK/CMake/patches/99/FindPython/Support.cmake
+@@ -1278,7 +1278,9 @@
+                     NAMES ${_${_PYTHON_PREFIX}_CONFIG_NAMES}
+                     NAMES_PER_DIR
+                     HINTS ${_${_PYTHON_PREFIX}_HINTS}
+-                    PATH_SUFFIXES bin)
++                    PATH_SUFFIXES bin
++                    NO_CMAKE_SYSTEM_PATH
++                    NO_SYSTEM_ENVIRONMENT_PATH)
+       unset (_${_PYTHON_PREFIX}_CONFIG_NAMES)
+ 
+       if (NOT _${_PYTHON_PREFIX}_CONFIG)
