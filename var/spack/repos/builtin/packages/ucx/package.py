@@ -17,7 +17,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
     maintainers = ['hppritcha']
 
     # Development
-    version('1.9-dev', branch='v1.9.x')
+    version('1.10-dev', branch='v1.10.x')
 
     # Current
     version('1.9.0', sha256='a7a2c8841dc0d5444088a4373dc9b9cc68dbffcd917c1eba92ca8ed8e5e635fb', preferred=True)
