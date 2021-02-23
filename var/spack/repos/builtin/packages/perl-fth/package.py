@@ -1,0 +1,95 @@
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Spack Project Developers. See the top-level COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+from spack import *
+import os
+
+
+class PerlFth(Package):
+    """Ftagshtml is a Fortran (and simple C) to HTML browsing,
+       resolves static interface overload.
+       It can handle some LaTeX comments inside the source files.
+       It only needs to be put somewhere into your disk since it uses Perl.
+       It also provides javatex2.pl initmak.pl getin.pl tex3ht.pl and view.pl.
+    """
+
+    homepage = "https://sourceforge.net/projects/ftagshtml/"
+    url      = "https://downloads.sourceforge.net/project/ftagshtml/ftagshtml-0.523.tgz"
+    list_url = "https://downloads.sourceforge.net/project/ftagshtml/download/"
+    git      = "https://sourceforge.net/p/ftagshtml/git"
+
+    maintainers = ['cessenat']
+
+    version('0.523', sha256='d5d3fbd3caca30eee9de45baa46612841d55b2960db8e11411af6db76cf214ad')
+    version('0.522', sha256='acb73eb2c05b1ed7b75f86fbd9656c00158519b3d11d89a082117004deb0fb9e')
+    version('0.521', sha256='f980c9cc1ce644340a9e9630ef252f92bc89a411ea0a661fcb80cdae07f0731c')
+    version('0.520', sha256='0ac509a7416d67f5ddc4ad9f629cb0443e1ce515cf9eb92f4272eb6b545a4c50')
+    version('0.519', sha256='7a440ca08a18edbc57a4a5da7c90c98551ae1adaa303c9f984e5712e1cd54ffb')
+    version('0.518', sha256='7aed7c831270bb1935d4ccd090ef1360ec9446dd773c10350645985047f8879b')
+    version('0.517', sha256='e24488a7edbfa764060f007693329d5ee3154e1ce49a627ec109c41a9d7abcbe')
+
+    variant('hevea', default=False,
+            description="Use hevea when inputting LaTeX files (fth.pl -hevea)")
+    variant('pdflatex', default=False,
+            description="Use pdflatex to make a LaTeX index file (fth.pl -latexindex)")
+
+    depends_on('perl', type='run')
+    depends_on('perl-cgi', type='run')
+    # Actual dependency is on etags
+    depends_on('emacs', type='run')
+    # For fth.pl -hevea option
+    depends_on('hevea', when='+hevea', type='run')
+    # Actual dependency is on pdflatex only for fth.pl -latexindex option
+    depends_on('texlive', when='+pdflatex', type='run')
+    # initmak.pl uses md5sum provided by coreutils
+    depends_on('coreutils', type='run')
+
+    # Patches to remove the ancient ksh shebang for fth.pl and initmak.pl.
+    # Patches are signed.
+    # git diff a/bin/fth.pl b/bin/fth.pl
+    patch('fth-shebang.patch', when='@0.517:0.522', sha256='3e82d34c8ae1709e5480fac87db387c1c2e219d7b7d596c8a9d62f0da2439ab3')
+    patch('fth-shebang2.patch', when='@0.517:0.522', sha256='839be7c0efad752ae341379c81ee1df4a3a81f608f802998c6b4ebc4bae8e167')
+
+    def setup_run_environment(self, env):
+        # https://github.com/spack/spack/discussions/13926
+        # Let us set the adequate environment when loading perl-fth
+        env.set('JAVATEX_DIR', self.prefix)
+        env.set('FTAGSHTML_DIR', self.prefix)
+        env.set('FTAGSHTML_DOC', join_path(self.prefix, 'doc'))
+
+    def install(self, spec, prefix):
+        # Remove the perl shebang with the local perl
+        # (since ftagshtml has no Makefile.PL to do it).
+        checks = ['fth', 'getin', 'view', 'javatex2', 'tex3ht', 'initmak']
+        mstr = '#!' + join_path(spec['perl'].prefix.bin, 'perl')
+        with working_dir('bin'):
+            for exe in checks:
+                if os.path.exists(exe + '.pl'):
+                    fthfile = FileFilter(exe + '.pl')
+                    fthfile.filter('#!/usr/bin/perl', mstr)
+
+        # Adds a Makefile with an rsync rule
+        makefile_inc = [
+            'RSYNC_OPTS = -avuzL',
+            'RSYNC = rsync',
+        ]
+        makefile_inc.append('install:')
+        makefile_inc.append('	$(RSYNC) $(RSYNC_OPTS) . %s' % prefix)
+        makefile_inc.append('')
+        with working_dir('.'):
+            with open('Makefile', 'a') as fh:
+                fh.write('\n'.join(makefile_inc))
+
+        # Remove obsolete ftagshtml files, if they exist:
+        with working_dir('bin'):
+            if os.path.exists("ftagshtml"):
+                os.remove("ftagshtml")
+            if os.path.exists("tata.pl"):
+                os.remove("tata.pl")
+            if os.path.exists("truc.pl"):
+                os.remove("truc.pl")
+
+        # Install the full directory structure
+        install_tree('.', prefix)

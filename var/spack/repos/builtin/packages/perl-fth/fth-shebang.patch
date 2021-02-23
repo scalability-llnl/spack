@@ -1,0 +1,10 @@
+diff --git a/bin/fth.pl b/bin/fth.pl
+--- a/bin/fth.pl
++++ b/bin/fth.pl
+@@ -1,6 +1,3 @@
+-#!/bin/ksh
+-eval 'exec perl -x -S $0 ${1+"$@"}'
+-              if $running_under_some_shell;
+ #!/usr/bin/perl -w
+ # -*- Mode: cperl -*-
+ #|########################################################################
