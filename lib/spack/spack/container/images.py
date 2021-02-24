@@ -2,9 +2,14 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""Manages the details on the images used in the build and the run stage."""
+"""Manages the details on the images used in the various stages."""
 import json
 import os.path
+import sys
+
+import llnl.util.tty as tty
+import llnl.util.filesystem as fs
+import spack.util.executable as executable
 
 #: Global variable used to cache in memory the content of images.json
 _data = None
@@ -39,18 +44,12 @@ def build_info(image, spack_version):
     # Don't handle error here, as a wrong image should have been
     # caught by the JSON schema
     image_data = data()["images"][image]
-    build_image = image_data['build']
+    build_image = image_data.get('build', None)
+    if not build_image:
+        return None, None
 
-    # Try to check if we have a tag for this Spack version
-    try:
-        # Translate version from git to docker if necessary
-        build_tag = image_data['build_tags'].get(spack_version, spack_version)
-    except KeyError:
-        msg = ('the image "{0}" has no tag for Spack version "{1}" '
-               '[valid versions are {2}]')
-        msg = msg.format(build_image, spack_version,
-                         ', '.join(image_data['build_tags'].keys()))
-        raise ValueError(msg)
+    # Translate version from git to docker if necessary
+    build_tag = image_data['build_tags'].get(spack_version, spack_version)
 
     return build_image, build_tag
 
@@ -82,3 +81,47 @@ def commands_for(package_manager):
     """
     info = data()["os_package_managers"][package_manager]
     return info['update'], info['install'], info['clean']
+
+
+def bootstrap_template_for(image):
+    return data()["images"][image]["bootstrap"]["template"]
+
+
+def _verify_ref(url, ref, enforce_sha):
+    # Do a checkout in a temporary directory
+    msg = 'Cloning "{0}" to verify ref "{1}"'.format(url, ref)
+    tty.info(msg, stream=sys.stderr)
+    git = executable.which('git', required=True)
+    with fs.temporary_dir():
+        git('clone', '-q', url, '.')
+        sha = git('rev-parse', '-q', ref + '^{commit}',
+                  output=str, error=os.devnull, fail_on_error=False)
+        if git.returncode:
+            msg = '"{0}" is not a valid reference for "{1}"'
+            raise RuntimeError(msg.format(sha, url))
+
+        if enforce_sha:
+            ref = sha.strip()
+
+        return ref
+
+
+def checkout_command(url, ref, enforce_sha, verify):
+    """Return the checkout command to be used in the bootstrap phase.
+
+    Args:
+        url (str): url of the Spack repository
+        ref (str): either a branch name, a tag or a commit sha
+        enforce_sha (bool): if true turns every
+        verify (bool):
+    """
+    url = url or 'https://github.com/spack/spack.git'
+    ref = ref or 'develop'
+    enforce_sha, verify = bool(enforce_sha), bool(verify)
+    # If we want to enforce a sha or verify the ref we need
+    # to checkout the repository locally
+    if enforce_sha or verify:
+        ref = _verify_ref(url, ref, enforce_sha)
+
+    command = 'git clone {0} . && git checkout {1} '.format(url, ref)
+    return command

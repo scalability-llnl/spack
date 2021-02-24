@@ -13,8 +13,9 @@ import spack.schema.env
 import spack.tengine as tengine
 import spack.util.spack_yaml as syaml
 
-from spack.container.images import build_info, commands_for
+from spack.container.images import data, build_info, commands_for
 from spack.container.images import os_package_manager_for
+from spack.container.images import bootstrap_template_for, checkout_command
 
 #: Caches all the writers that are currently supported
 _writer_factory = {}
@@ -52,6 +53,75 @@ def recipe(configuration):
     return create(configuration)()
 
 
+def _stage_base_images(images_config):
+    """Return a tuple with the base images to be used at the various stages.
+
+    Args:
+        images_config (dict): configuration under container:images
+    """
+    # If we have custom base images, just return them verbatim.
+    build_stage = images_config.get('build', None)
+    if build_stage:
+        final_stage = images_config['final']
+        return None, build_stage, final_stage
+
+    # Check the operating system: this will be the base of the bootstrap
+    # stage, if there, and of the final stage.
+    operating_system = images_config.get('os', None)
+
+    # Check the OS is mentioned in the internal data stored in a JSON file
+    images_json = data()['images']
+    if not any(os_name == operating_system for os_name in images_json):
+        msg = ('invalid operating system name "{0}". '
+               '[Allowed values are {1}]')
+        msg = msg.format(operating_system, ', '.join(data()['images']))
+        raise ValueError(msg)
+
+    # Retrieve the build stage
+    spack_info = images_config['spack']
+    if isinstance(spack_info, dict):
+        build_stage = 'bootstrap'
+    else:
+        spack_version = images_config['spack']
+        image_name, tag = build_info(operating_system, spack_version)
+        build_stage = 'bootstrap'
+        if image_name:
+            build_stage = ':'.join([image_name, tag])
+
+    # Retrieve the bootstrap stage
+    bootstrap_stage = None
+    if build_stage == 'bootstrap':
+        bootstrap_stage = images_json[operating_system]['bootstrap'].get(
+            'image', operating_system
+        )
+
+    # Retrieve the final stage
+    final_stage = images_json[operating_system].get(
+        'final', {'image': operating_system}
+    )['image']
+
+    return bootstrap_stage, build_stage, final_stage
+
+
+def _spack_checkout_config(images_config):
+    spack_info = images_config['spack']
+
+    url = 'https://github.com/spack/spack.git'
+    ref = 'develop'
+    enforce_sha, verify = False, False
+
+    # Config specific values may override defaults
+    if isinstance(spack_info, dict):
+        url = spack_info.get('url', url)
+        ref = spack_info.get('ref', ref)
+        enforce_sha = spack_info.get('enforce-sha', enforce_sha)
+        verify = spack_info.get('verify', verify)
+    else:
+        ref = spack_info
+
+    return url, ref, enforce_sha, verify
+
+
 class PathContext(tengine.Context):
     """Generic context used to instantiate templates of recipes that
     install software in a common location and make it available
@@ -61,37 +131,27 @@ class PathContext(tengine.Context):
         self.config = spack.environment.config_dict(config)
         self.container_config = self.config['container']
 
+        # Operating system tag as written in the configuration file
+        self.operating_system_key = self.container_config['images'].get('os')
+        # Get base images and verify the OS
+        bootstrap, build, final = _stage_base_images(
+            self.container_config['images']
+        )
+        self.bootstrap_image = bootstrap
+        self.build_image = build
+        self.final_image = final
+
     @tengine.context_property
     def run(self):
         """Information related to the run image."""
-        images_config = self.container_config['images']
-
-        # Check if we have custom images
-        image = images_config.get('final', None)
-        # If not use the base OS image
-        if image is None:
-            image = images_config['os']
-
         Run = collections.namedtuple('Run', ['image'])
-        return Run(image=image)
+        return Run(image=self.final_image)
 
     @tengine.context_property
     def build(self):
         """Information related to the build image."""
-        images_config = self.container_config['images']
-
-        # Check if we have custom images
-        image = images_config.get('build', None)
-
-        # If not select the correct build image based on OS and Spack version
-        if image is None:
-            operating_system = images_config['os']
-            spack_version = images_config['spack']
-            image_name, tag = build_info(operating_system, spack_version)
-            image = ':'.join([image_name, tag])
-
         Build = collections.namedtuple('Build', ['image'])
-        return Build(image=image)
+        return Build(image=self.build_image)
 
     @tengine.context_property
     def strip(self):
@@ -190,6 +250,25 @@ class PathContext(tengine.Context):
     @tengine.context_property
     def labels(self):
         return self.container_config.get('labels', {})
+
+    @tengine.context_property
+    def bootstrap(self):
+        """Information related to the build image."""
+        images_config = self.container_config['images']
+        bootstrap_recipe = None
+        if self.bootstrap_image:
+            config_args = _spack_checkout_config(images_config)
+            command = checkout_command(*config_args)
+            template_path = bootstrap_template_for(self.operating_system_key)
+            env = tengine.make_environment()
+            context = {"bootstrap": {
+                "image": self.bootstrap_image,
+                "spack_checkout": command
+            }}
+            bootstrap_recipe = env.get_template(template_path).render(**context)
+
+        Bootstrap = collections.namedtuple('Build', ['image', 'recipe'])
+        return Bootstrap(image=self.bootstrap_image, recipe=bootstrap_recipe)
 
     def __call__(self):
         """Returns the recipe as a string"""
