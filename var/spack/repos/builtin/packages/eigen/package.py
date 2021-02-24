@@ -42,6 +42,9 @@ class Eigen(CMakePackage):
     # TODO: latex and doxygen needed to produce docs with make doc
     # TODO: Other dependencies might be needed to test this package
 
+    # Builds in ppc64le fail in PacketMath.h for some Eigen versions
+    conflicts('target=ppc64le:', when='@3.3.0:3.3.4')
+
     def setup_run_environment(self, env):
         env.prepend_path('CPATH', self.prefix.include.eigen3)
 

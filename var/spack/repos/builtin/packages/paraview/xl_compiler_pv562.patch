@@ -1,0 +1,40 @@
+diff -up ParaView-v5.6.2/CoProcessing/Catalyst/CMakeLists.txt.orig ParaView-v5.6.2/CoProcessing/Catalyst/CMakeLists.txt
+--- ParaView-v5.6.2/CoProcessing/Catalyst/CMakeLists.txt.orig	2019-08-22 08:54:28.000000000 -0600
++++ ParaView-v5.6.2/CoProcessing/Catalyst/CMakeLists.txt	2020-10-19 15:39:34.550540681 -0600
+@@ -56,7 +56,14 @@ if (CMAKE_Fortran_COMPILER_WORKS)
+       needtocreategrid
+       coprocess)
+ 
+-  set(CATALYST_FORTRAN_USING_MANGLING ${FortranCInterface_GLOBAL_FOUND})
++  if (FortranCInterface_GLOBAL_PREFIX OR
++      FortranCInterface_GLOBAL_SUFFIX OR
++      (NOT FortranCInterface_GLOBAL_CASE STREQUAL "LOWER"))
++      set(CATALYST_FORTRAN_USING_MANGLING ${FortranCInterface_GLOBAL_FOUND})
++  else()
++    # otherwise there's no mangling necessary for Fortran/C interchange and
++    # hence we leave catalyst_fortran_using_mangling unset.
++  endif()
+ 
+   set (Module_SRCS
+       ${Module_SRCS}
+diff -up ParaView-v5.6.2/CoProcessing/PythonCatalyst/CMakeLists.txt.orig ParaView-v5.6.2/CoProcessing/PythonCatalyst/CMakeLists.txt
+--- ParaView-v5.6.2/CoProcessing/PythonCatalyst/CMakeLists.txt.orig	2019-08-22 08:54:28.000000000 -0600
++++ ParaView-v5.6.2/CoProcessing/PythonCatalyst/CMakeLists.txt	2020-10-19 15:39:34.550540681 -0600
+@@ -41,7 +41,16 @@ if (CMAKE_Fortran_COMPILER_WORKS)
+   include(FortranCInterface)
+   FortranCInterface_HEADER(FortranPythonAdaptorAPIMangling.h
+     SYMBOLS coprocessorinitializewithpython coprocessoraddpythonscript)
+-  set(CATALYST_FORTRAN_USING_MANGLING ${FortranCInterface_GLOBAL_FOUND})
++
++  if (FortranCInterface_GLOBAL_PREFIX OR
++      FortranCInterface_GLOBAL_SUFFIX OR
++      (NOT FortranCInterface_GLOBAL_CASE STREQUAL "LOWER"))
++      set(CATALYST_FORTRAN_USING_MANGLING ${FortranCInterface_GLOBAL_FOUND})
++  else()
++    # otherwise there's no mangling necessary for Fortran/C interchange and
++    # hence we leave catalyst_fortran_using_mangling unset.
++  endif()
++
+   set (Module_SRCS
+       ${Module_SRCS}
+       FortranPythonAdaptorAPI.cxx)
