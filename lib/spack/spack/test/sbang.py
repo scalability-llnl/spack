@@ -62,10 +62,18 @@ class ScriptDirectory(object):
         with open(self.short_shebang, 'w') as f:
             f.write(short_line)
             f.write(last_line)
+        self.make_executable(self.short_shebang)
 
         # Script with long shebang
         self.long_shebang = os.path.join(self.tempdir, 'long')
         with open(self.long_shebang, 'w') as f:
+            f.write(long_line)
+            f.write(last_line)
+        self.make_executable(self.long_shebang)
+
+        # Non-executable script with long shebang
+        self.nonexec_long_shebang = os.path.join(self.tempdir, 'nonexec_long')
+        with open(self.nonexec_long_shebang, 'w') as f:
             f.write(long_line)
             f.write(last_line)
 
@@ -74,6 +82,7 @@ class ScriptDirectory(object):
         with open(self.lua_shebang, 'w') as f:
             f.write(lua_line)
             f.write(last_line)
+        self.make_executable(self.lua_shebang)
 
         # Lua script with long shebang
         self.lua_textbang = os.path.join(self.tempdir, 'lua_in_text')
@@ -81,12 +90,14 @@ class ScriptDirectory(object):
             f.write(short_line)
             f.write(lua_in_text)
             f.write(last_line)
+        self.make_executable(self.lua_textbang)
 
         # Node script with long shebang
         self.node_shebang = os.path.join(self.tempdir, 'node')
         with open(self.node_shebang, 'w') as f:
             f.write(node_line)
             f.write(last_line)
+        self.make_executable(self.node_shebang)
 
         # Node script with long shebang
         self.node_textbang = os.path.join(self.tempdir, 'node_in_text')
@@ -94,12 +105,14 @@ class ScriptDirectory(object):
             f.write(short_line)
             f.write(node_in_text)
             f.write(last_line)
+        self.make_executable(self.node_textbang)
 
         # php script with long shebang
         self.php_shebang = os.path.join(self.tempdir, 'php')
         with open(self.php_shebang, 'w') as f:
             f.write(php_line)
             f.write(last_line)
+        self.make_executable(self.php_shebang)
 
         # php script with long shebang
         self.php_textbang = os.path.join(self.tempdir, 'php_in_text')
@@ -107,6 +120,7 @@ class ScriptDirectory(object):
             f.write(short_line)
             f.write(php_in_text)
             f.write(last_line)
+        self.make_executable(self.php_textbang)
 
         # Script already using sbang.
         self.has_sbang = os.path.join(self.tempdir, 'shebang')
@@ -114,14 +128,26 @@ class ScriptDirectory(object):
             f.write(sbang_line)
             f.write(long_line)
             f.write(last_line)
+        self.make_executable(self.has_sbang)
 
         # Fake binary file.
         self.binary = os.path.join(self.tempdir, 'binary')
         tar = which('tar', required=True)
         tar('czf', self.binary, self.has_sbang)
+        self.make_executable(self.binary)
 
     def destroy(self):
         shutil.rmtree(self.tempdir, ignore_errors=True)
+
+    def make_executable(self, path):
+        # make a file executable
+        st = os.stat(path)
+        executable_mode = st.st_mode \
+            | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+        os.chmod(path, executable_mode)
+
+        st = os.stat(path)
+        assert oct(executable_mode) == oct(st.st_mode & executable_mode)
 
 
 @pytest.fixture
@@ -134,6 +160,7 @@ def script_dir(sbang_line):
 def test_shebang_handling(script_dir, sbang_line):
     assert sbang.shebang_too_long(script_dir.lua_shebang)
     assert sbang.shebang_too_long(script_dir.long_shebang)
+    assert sbang.shebang_too_long(script_dir.nonexec_long_shebang)
 
     assert not sbang.shebang_too_long(script_dir.short_shebang)
     assert not sbang.shebang_too_long(script_dir.has_sbang)
@@ -150,6 +177,11 @@ def test_shebang_handling(script_dir, sbang_line):
     # Make sure this got patched.
     with open(script_dir.long_shebang, 'r') as f:
         assert f.readline() == sbang_line
+        assert f.readline() == long_line
+        assert f.readline() == last_line
+
+    # Make sure this is untouched
+    with open(script_dir.nonexec_long_shebang, 'r') as f:
         assert f.readline() == long_line
         assert f.readline() == last_line
 

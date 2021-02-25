@@ -124,6 +124,11 @@ def filter_shebangs_in_directory(directory, filenames=None):
         if not os.path.isfile(path):
             continue
 
+        # only handle executable files
+        st = os.stat(path)
+        if not st.st_mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH):
+            continue
+
         # only handle links that resolve within THIS package's prefix.
         if os.path.islink(path):
             real_path = os.path.realpath(path)
