@@ -246,8 +246,8 @@ class Openmpi(AutotoolsPackage):
 
     variant(
         'legacylaunchers',
-        default=False,
-        description='Do not remove mpirun/mpiexec when building with slurm'
+        default=True,
+        description='Keep mpirun/mpiexec launchers after installation'
     )
     # Variants to use internal packages
     variant('internal-hwloc', default=False, description='Use internal hwloc')
@@ -602,6 +602,12 @@ class Openmpi(AutotoolsPackage):
             env.set('ac_cv_header_gpfs_fcntl_h', 'no')
 
     def configure_args(self):
+        if self.spec.satisfies('+legacylaunchers schedulers=slurm'):
+            tty.warn(self.spec.format(
+                "The preferred way to run an application when Slurm is the "
+                "scheduler is to let Slurm manage process spawning via PMI: "
+                "consider building {name} with '~legacylaunchers'"))
+
         spec = self.spec
         config_args = [
             '--enable-shared',
@@ -842,21 +848,23 @@ class Openmpi(AutotoolsPackage):
         # applications via mpirun or mpiexec, and leaves srun as the
         # only sensible choice (orterun is still present, but normal
         # users don't know about that).
-        if '@1.6: ~legacylaunchers schedulers=slurm' in self.spec:
-            exe_list = [self.prefix.bin.mpirun,
+        if '~legacylaunchers' in self.spec:
+            stub_name = 'nolegacylaunchers.sh'
+            stub_src = join_path(os.path.dirname(__file__), stub_name)
+            stub_dst = join_path(spack.store.layout.metadata_path(self.spec),
+                                 stub_name)
+            install(stub_src, stub_dst)
+
+            for exe in [self.prefix.bin.mpirun,
                         self.prefix.bin.mpiexec,
                         self.prefix.bin.shmemrun,
-                        self.prefix.bin.oshrun
-                        ]
-            script_stub = join_path(os.path.dirname(__file__),
-                                    "nolegacylaunchers.sh")
-            for exe in exe_list:
+                        self.prefix.bin.oshrun]:
                 try:
                     os.remove(exe)
                 except OSError:
                     tty.debug("File not present: " + exe)
                 else:
-                    copy(script_stub, exe)
+                    os.symlink(stub_dst, exe)
 
     @run_after('install')
     def setup_install_tests(self):
