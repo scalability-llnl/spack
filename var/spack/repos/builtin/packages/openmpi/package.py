@@ -603,6 +603,11 @@ class Openmpi(AutotoolsPackage):
 
     def configure_args(self):
         if self.spec.satisfies('+legacylaunchers schedulers=slurm'):
+            # Deleting the links to orterun avoids users running their
+            # applications via mpirun or mpiexec, and leaves srun as the only
+            # sensible choice (orterun is still present, but normal users don't
+            # know about that). See https://github.com/spack/spack/pull/10340
+            # for more details.
             tty.warn(self.spec.format(
                 "The preferred way to run an application when Slurm is the "
                 "scheduler is to let Slurm manage process spawning via PMI: "
@@ -841,13 +846,6 @@ class Openmpi(AutotoolsPackage):
 
     @run_after('install')
     def delete_mpirun_mpiexec(self):
-        # The preferred way to run an application when Slurm is the
-        # scheduler is to let Slurm manage process spawning via PMI.
-        #
-        # Deleting the links to orterun avoids users running their
-        # applications via mpirun or mpiexec, and leaves srun as the
-        # only sensible choice (orterun is still present, but normal
-        # users don't know about that).
         if '~legacylaunchers' in self.spec:
             stub_name = 'nolegacylaunchers.sh'
             stub_src = join_path(os.path.dirname(__file__), stub_name)
