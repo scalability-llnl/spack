@@ -50,6 +50,8 @@ import spack.util.file_permissions as fp
 import spack.util.path
 import spack.util.spack_yaml as syaml
 
+install_root = None
+
 
 #: config section for this file
 def configuration():
@@ -204,6 +206,46 @@ def merge_config_rules(configuration, spec):
     return spec_configuration
 
 
+def get_roots_dict():
+    if spack.config.get('config:module_roots', False):
+        # Ensures that two module root locations are not set
+        if spack.config.get('config:install_trees', False):
+            tty.die('Cannot use top level \'config:module_roots\''
+                    'with updated install_trees format')
+
+        # Sets module roots if deprecated format used
+        roots = spack.config.get('config:module_roots', {})
+        tty.warn('Using deprecated module_roots format, module'
+                 'roots should be placed under a specific install tree')
+    elif spack.config.get('config:install_trees', False):
+        # If updated install_trees format used, module roots are
+        # pull from the correct install tree
+        install_trees = spack.config.get('config:install_trees')
+        shared_install_trees = spack.config.get('config:shared_install_trees')
+
+        if install_root:
+            # Get module roots from install_root
+            if install_root in install_trees:
+                roots = install_trees.get(install_root).get('module_roots')
+            elif shared_install_trees and (install_root in shared_install_trees):
+                roots = shared_install_trees.get(install_root)
+                roots = roots.get('module_roots')
+            else:
+                tty.die("Specified install tree does not exist: {0}"
+                        .format(install_root))
+        elif shared_install_trees:
+            # Get module roots from user
+            # (assumes user if shared instances are added)
+            roots = spack.config.get('config:install_trees:user:module_roots')
+        else:
+            roots = spack.config.get('config:install_trees:spack-root')
+            roots = roots.get('module_roots')
+    else:
+        tty.die('module_roots config options is unset')
+
+    return roots
+
+
 def root_path(name):
     """Returns the root folder for module file installation.
 
@@ -214,8 +256,11 @@ def root_path(name):
         root folder for module file installation
     """
     # Root folders where the various module files should be written
-    roots = spack.config.get('config:module_roots', {})
-    path = roots.get(name, os.path.join(spack.paths.share_path, name))
+    roots = get_roots_dict()
+
+    module_base = os.path.join(str(spack.store.root), 'modules')
+
+    path = roots.get(name, os.path.join(module_base, name))
     return spack.util.path.canonicalize_path(path)
 
 
@@ -280,14 +325,36 @@ def read_module_indices():
     other_spack_instances = spack.config.get(
         'upstreams') or {}
 
+    uses_old_module_index = False
+    for install_properties in other_spack_instances.values():
+        if 'modules' in install_properties:
+            uses_old_module_index = True
+            break
+
     module_indices = []
 
-    for install_properties in other_spack_instances.values():
-        module_type_to_index = {}
-        module_type_to_root = install_properties.get('modules', {})
-        for module_type, root in module_type_to_root.items():
-            module_type_to_index[module_type] = read_module_index(root)
-        module_indices.append(module_type_to_index)
+    if not uses_old_module_index:
+        # New spack upstream instances do not require specifying module root
+        # locations in the config, since modules are now stored in the install
+        # tree by default.
+        upstream_roots = spack.store.upstream_install_roots(
+            str(spack.store.root))
+        for upstream_root in upstream_roots:
+            module_type_to_index = {}
+            upstream_module_root = os.path.join(upstream_root, 'modules')
+            for module_type in os.listdir(upstream_module_root):
+                module_type_root = os.path.join(
+                    upstream_module_root, module_type)
+                module_type_to_index[module_type] = read_module_index(
+                    module_type_root)
+            module_indices.append(module_type_to_index)
+    else:
+        for install_properties in other_spack_instances.values():
+            module_type_to_index = {}
+            module_type_to_root = install_properties.get('modules', {})
+            for module_type, root in module_type_to_root.items():
+                module_type_to_index[module_type] = read_module_index(root)
+            module_indices.append(module_type_to_index)
 
     return module_indices
 

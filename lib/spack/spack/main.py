@@ -32,6 +32,7 @@ import spack.architecture
 import spack.config
 import spack.cmd
 import spack.environment as ev
+import spack.modules
 import spack.paths
 import spack.repo
 import spack.store
@@ -385,7 +386,6 @@ def make_argument_parser(**kwargs):
     parser.add_argument(
         '--use-env-repo', action='store_true',
         help="when running in an environment, use its package repository")
-
     parser.add_argument(
         '-k', '--insecure', action='store_true',
         help="do not check ssl certificates when downloading")
@@ -420,6 +420,16 @@ def make_argument_parser(**kwargs):
     parser.add_argument(
         '--print-shell-vars', action='store',
         help="print info needed by setup-env.[c]sh")
+    parser.add_argument(
+        '-g', '--global', action='store_true',
+        default=False, dest='global_upstream',
+        help='target global upstream'
+    )
+    parser.add_argument(
+        '--install-root', dest='install_root',
+        action='store', default=None,
+        help='specify non-default install tree'
+    )
 
     return parser
 
@@ -465,6 +475,15 @@ def setup_main_options(args):
 
     # when to use color (takes always, auto, or never)
     color.set_color_when(args.color)
+
+    # If install-root or global command specified
+    # Target different install root here.
+    if args.install_root:
+        spack.store.install_root = args.install_root
+        spack.modules.common.install_root = args.install_root
+    elif args.global_upstream:
+        spack.store.install_root = 'spack-root'
+        spack.modules.common.install_root = args.install_root
 
 
 def allows_unknown_args(command):
@@ -635,7 +654,7 @@ def print_setup_info(*info):
         'tcl': list(),
         'lmod': list()
     }
-    module_roots = spack.config.get('config:module_roots')
+    module_roots = spack.modules.common.get_roots_dict()
     module_roots = dict(
         (k, v) for k, v in module_roots.items() if k in module_to_roots
     )
@@ -643,10 +662,22 @@ def print_setup_info(*info):
         path = spack.util.path.canonicalize_path(path)
         module_to_roots[name].append(path)
 
-    other_spack_instances = spack.config.get(
-        'upstreams') or {}
-    for install_properties in other_spack_instances.values():
-        upstream_module_roots = install_properties.get('modules', {})
+    # Invoke str() to resolve LazyReference
+    upstream_roots = spack.store.upstream_install_roots(str(spack.store.root))
+    for upstream_root in upstream_roots:
+        # For each upstream install root, if there is a 'modules' directory,
+        # then create a dictionary: each subdir of that directory should be
+        # 'tcl' or etc. and the dictionary maps subdir name to full path
+        modules_root = os.path.join(upstream_root, 'modules')
+
+        if not os.path.exists(modules_root):
+            os.mkdir(spack.util.path.canonicalize_path(modules_root))
+
+        upstream_module_roots = dict(
+            (module_type, os.path.join(modules_root, module_type))
+            for module_type in os.listdir(modules_root)
+        )
+
         upstream_module_roots = dict(
             (k, v) for k, v in upstream_module_roots.items()
             if k in module_to_roots

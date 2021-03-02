@@ -241,6 +241,100 @@ def test_recursive_upstream_dbs(tmpdir_factory, gen_mock_layout):
                 spec['z'], direction='parents') == set([spec, spec['y']]))
 
 
+@pytest.mark.usefixtures('config')
+def test_upstream_db_construction_from_pointers(
+        tmpdir_factory, mock_store, gen_mock_layout):
+    """
+    Ensures that an upstream database can be constructed
+    from pointer files. Chained pointer files replaces the now
+    deprecated use of upstreams.yaml configuration file.
+    """
+    roots = [str(tmpdir_factory.mktemp(x)) for x in ['a', 'b']]
+    layouts = [gen_mock_layout(x) for x in ['/ra/', '/rb/']]
+
+    default = ('build', 'link')
+    mock_repo = MockPackageMultiRepo()
+    y = mock_repo.add_package('y', [], [])
+    mock_repo.add_package('x', [y], [default])
+
+    with spack.repo.use_repositories(mock_repo):
+        spec = spack.spec.Spec('x')
+        spec.concretize()
+
+        db_b = spack.database.Database(roots[1])
+        db_b.add(spec['y'], layouts[1])
+
+        db_a = spack.database.Database(roots[0], upstream_dbs=[db_b])
+        db_a.add(spec['x'], layouts[0])
+
+        # Initialize upstream pointer
+        spack.store.initialize_upstream_pointer_if_unset(roots[0], roots[1])
+
+        # Upstream db construction
+        upstream_dbs_from_scratch = (
+            spack.store.upstream_dbs_from_pointers(roots[0]))
+        db_a_from_scratch = spack.database.Database(
+            roots[0], upstream_dbs=upstream_dbs_from_scratch)
+
+        assert db_a_from_scratch.db_for_spec_hash(spec.dag_hash()) == (
+            db_a_from_scratch)
+        assert db_a_from_scratch.db_for_spec_hash(spec['y'].dag_hash()) == (
+            upstream_dbs_from_scratch[0])
+
+        db_a_from_scratch._check_ref_counts()
+        upstream_dbs_from_scratch[0]._check_ref_counts()
+
+        assert (db_a_from_scratch.installed_relatives(spec) ==
+                set(spec.traverse(root=False)))
+
+
+@pytest.mark.usefixtures('config')
+def test_upstream_db_construction_from_config(
+        tmpdir_factory, mock_store, gen_mock_layout):
+    """
+    Ensures that an upstream database can be constructed
+    from deprecated upstreams.yaml format. Assumes that
+    the upstreams are in use for each possible install tree.
+    """
+    roots = [str(tmpdir_factory.mktemp(x)) for x in ['a', 'b']]
+    layouts = [gen_mock_layout(x) for x in ['/ra/', '/rb/']]
+
+    default = ('build', 'link')
+    mock_repo = MockPackageMultiRepo()
+    y = mock_repo.add_package('y', [], [])
+    mock_repo.add_package('x', [y], [default])
+
+    with spack.repo.use_repositories(mock_repo):
+        spec = spack.spec.Spec('x')
+        spec.concretize()
+
+        db_b = spack.database.Database(roots[1])
+        db_b.add(spec['y'], layouts[1])
+
+        db_a = spack.database.Database(roots[0], upstream_dbs=[db_b])
+        db_a.add(spec['x'], layouts[0])
+
+        # Initialize mock upstream config
+        spack.config.set('upstreams:test-1:install_tree', roots[1])
+
+        # Do Upstream DB construction here
+        upstream_dbs_from_scratch = (
+            spack.store.upstream_dbs_from_config())
+        db_a_from_scratch = spack.database.Database(
+            roots[0], upstream_dbs=upstream_dbs_from_scratch)
+
+        assert db_a_from_scratch.db_for_spec_hash(spec.dag_hash()) == (
+            db_a_from_scratch)
+        assert db_a_from_scratch.db_for_spec_hash(spec['y'].dag_hash()) == (
+            upstream_dbs_from_scratch[0])
+
+        db_a_from_scratch._check_ref_counts()
+        upstream_dbs_from_scratch[0]._check_ref_counts()
+
+        assert (db_a_from_scratch.installed_relatives(spec) ==
+                set(spec.traverse(root=False)))
+
+
 @pytest.fixture()
 def usr_folder_exists(monkeypatch):
     """The ``/usr`` folder is assumed to be existing in some tests. This

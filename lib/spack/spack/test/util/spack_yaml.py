@@ -45,7 +45,7 @@ def test_config_blame(config):
     """check blame info for elements in mock configuration."""
     config_file = config.get_config_filename('site', 'config')
 
-    check_blame('install_tree', config_file, 2)
+    check_blame('install_trees', config_file, 2)
     check_blame('source_cache', config_file, 11)
     check_blame('misc_cache', config_file, 12)
     check_blame('verify_ssl', config_file, 13)
@@ -57,8 +57,8 @@ def test_config_blame_with_override(config):
     """check blame for an element from an override scope"""
     config_file = config.get_config_filename('site', 'config')
 
-    with spack.config.override('config:install_tree', {'root': 'foobar'}):
-        check_blame('install_tree', 'overrides')
+    with spack.config.override('config:install_trees', {'root': 'foobar'}):
+        check_blame('install_trees', 'overrides')
 
         check_blame('source_cache', config_file, 11)
         check_blame('misc_cache', config_file, 12)

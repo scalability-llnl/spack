@@ -65,6 +65,7 @@ from spack.error import SpackError
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
 
+
 #: Dict from section names -> schema for that section
 section_schemas = {
     'compilers': spack.schema.compilers.schema,
@@ -82,23 +83,22 @@ all_schemas = copy.deepcopy(section_schemas)
 all_schemas.update(dict((key, spack.schema.env.schema)
                         for key in spack.schema.env.keys))
 
-#: Builtin paths to configuration files in Spack
-configuration_paths = (
-    # Default configuration scope is the lowest-level scope. These are
-    # versioned with Spack and can be overridden by systems, sites or users
-    ('defaults', os.path.join(spack.paths.etc_path, 'spack', 'defaults')),
 
-    # System configuration is per machine.
-    # No system-level configs should be checked into spack by default
-    ('system', os.path.join(spack.paths.system_etc_path, 'spack')),
+class ConfigPath(object):
+    def __init__(self, universal, user):
+        self.universal = universal
+        self.user = user
 
-    # Site configuration is per spack instance, for sites or projects
-    # No site-level configs should be checked into spack by default.
-    ('site', os.path.join(spack.paths.etc_path, 'spack')),
 
-    # User configuration can override both spack defaults and site config
-    ('user', spack.paths.user_config_path)
+default_config_paths = ConfigPath(
+    universal={
+        'defaults': os.path.join(spack.paths.etc_path, 'spack', 'defaults'),
+        'system': os.path.join(spack.paths.system_etc_path, 'spack'),
+        'site': os.path.join(spack.paths.etc_path, 'spack')
+    },
+    user=('user', spack.paths.user_config_path)
 )
+
 
 #: Hard-coded default values for some key configuration options.
 #: This ensures that Spack will still work even if config.yaml in
@@ -614,6 +614,13 @@ class Configuration(object):
             ret = syaml.syaml_dict(ret)
         return ret
 
+    def shared_spack(self):
+        # Note: this (and _config) assume that a shared spack instance will
+        # always define 'shared_install_trees', although it could be that
+        # an admin wants to provide a shared instance without installing
+        # any packages to that instance
+        return bool(spack.config.config.get('config:shared_install_trees'))
+
     def get(self, path, default=None, scope=None):
         """Get a config section or a single value from one.
 
@@ -768,7 +775,7 @@ def _add_command_line_scopes(cfg, command_line_scopes):
         _add_platform_scope(cfg, ImmutableConfigScope, name, path)
 
 
-def _config():
+def _config(cfg_paths=None, install_tree=None):
     """Singleton Configuration instance.
 
     This constructs one instance associated with this module and returns
@@ -781,16 +788,41 @@ def _config():
     """
     cfg = Configuration()
 
+    cfg_paths = cfg_paths or default_config_paths
+    install_tree = install_tree or spack.store.install_root
+
     # first do the builtin, hardcoded defaults
     defaults = InternalConfigScope('_builtin', config_defaults)
     cfg.push_scope(defaults)
 
     # add each scope and its platform-specific directory
-    for name, path in configuration_paths:
+    for name, path in cfg_paths.universal.items():
         cfg.push_scope(ConfigScope(name, path))
 
         # Each scope can have per-platfom overrides in subdirectories
         _add_platform_scope(cfg, ConfigScope, name, path)
+
+    shared_install_trees = cfg.get('config:shared_install_trees')
+    shared_tree_scope = False
+    if shared_install_trees:
+        if install_tree in shared_install_trees:
+            shared_tree_scope = True
+            scope_name = 'install_tree:' + install_tree
+            shared_install_root = shared_install_trees[install_tree]['root']
+            shared_install_root = spack.util.path.canonicalize_path(
+                shared_install_root)
+            shared_install_config_path = os.path.join(
+                str(shared_install_root), 'config')
+            cfg.push_scope(
+                ConfigScope(scope_name, shared_install_config_path))
+        else:
+            # User configuration is only used when we are not using a shared
+            # install tree
+            cfg.push_scope(ConfigScope(*cfg_paths.user))
+    else:
+        # User configuration is only used when we are not using a shared
+        # install tree
+        cfg.push_scope(ConfigScope(*cfg_paths.user))
 
     # add command-line scopes
     _add_command_line_scopes(cfg, command_line_scopes)
@@ -799,11 +831,79 @@ def _config():
     # override configuration options.
     cfg.push_scope(InternalConfigScope('command_line'))
 
+    # TODO: this allows command-line scopes to specify new install trees.
+    # The added install_tree_scope needs to be lower precedence than all
+    # command line scopes.
+    if not shared_tree_scope:
+        # The user configuration will store the install trees that are used
+        # by this spack instance
+        install_trees = cfg.get('config:install_trees')
+        if not install_trees:
+            if shared_install_trees:
+                # If this is a shared spack instance, then the default for
+                # users is to put new installations in the home directory
+                install_trees = {'user': '~/.spack/installs'}
+            else:
+                install_trees = {'spack-root': '$spack/opt/spack'}
+            cfg.set('config:install_trees', install_trees, 'user')
+
+        default_install_tree = (not install_tree)
+        if not install_tree:
+            if shared_install_trees:
+                install_tree = 'user'
+            else:
+                install_tree = 'spack-root'
+
+        if install_tree not in install_trees:
+            if default_install_tree:
+                # In this case, we have either (a) added a shared install tree
+                # or (b) removed all shared install trees, the former is
+                # unexpected, and the latter will likely result in serious
+                # issues (e.g. missing dependencies for locally-installed
+                # packages)
+                if install_tree not in shared_install_trees:
+                    tty.die("No default install tree found, install tree must be"
+                            " specified with `spack --install-tree [tree-name]`")
+                pass
+            tty.die("The specified install tree does not exist")
+
+        # Only add new scope for non default/user install trees
+        if install_tree not in ['spack-root', 'user']:
+            scope_name = 'install_tree:' + install_tree
+            install_tree = install_trees[install_tree]
+            install_root = install_tree['root']
+            install_config_path = os.path.join(install_root, 'config')
+            cfg.push_scope(ConfigScope(scope_name, install_config_path))
+
     return cfg
 
 
 #: This is the singleton configuration instance for Spack.
 config = llnl.util.lang.Singleton(_config)
+
+
+def shared_spack():
+    # Note: this (and _config) assume that a shared spack instance will always
+    # define 'shared_install_trees', although it could be that an admin
+    # wants to provide a shared instance without installing any packages to
+    # that instance
+    return bool(spack.config.config.get('config:shared_install_trees'))
+
+
+def replace_config(configuration):
+    """Replace the current global configuration with the instance passed as
+    argument.
+
+    Args:
+        configuration (Configuration): the new configuration to be used.
+
+    Returns:
+        The old configuration that has been removed
+    """
+    global config
+    config.clear_caches(), configuration.clear_caches()
+    old_config, config = config, configuration
+    return old_config
 
 
 def get(path, default=None, scope=None):

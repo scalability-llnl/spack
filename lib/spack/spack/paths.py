@@ -15,6 +15,9 @@ from llnl.util.filesystem import ancestor
 #: This file lives in $prefix/lib/spack/spack/__file__
 prefix = ancestor(__file__, 4)
 
+#: User configuration location
+user_config_path = os.path.expanduser('~/.spack')
+
 #: synonym for prefix
 spack_root = prefix
 
@@ -43,13 +46,15 @@ var_path              = os.path.join(prefix, "var", "spack")
 repos_path            = os.path.join(var_path, "repos")
 tests_path            = os.path.join(var_path, "tests")
 share_path            = os.path.join(prefix, "share", "spack")
+user_share_path       = os.path.join(user_config_path, "share", "spack")
+
+# Default cache locations (can be changed in config)
+default_misc_cache_path = os.path.join(user_config_path, 'cache')
+default_source_cache_path = os.path.join(user_config_path, 'downloads')
 
 # Paths to built-in Spack repositories.
 packages_path      = os.path.join(repos_path, "builtin")
 mock_packages_path = os.path.join(repos_path, "builtin.mock")
-
-#: User configuration location
-user_config_path = os.path.expanduser('~/.spack')
 
 
 opt_path        = os.path.join(prefix, "opt")

@@ -47,6 +47,56 @@ def test_install_and_uninstall(install_mockery, mock_fetch, monkeypatch):
         raise
 
 
+def test_select_install_tree(install_mockery_mutable_config,
+                             tmpdir_factory, mock_fetch, monkeypatch):
+    spack_root_install_tree_path = str(tmpdir_factory.mktemp('root1'))
+    spack_user_install_tree_path = str(tmpdir_factory.mktemp('root2'))
+    spack.config.set('config:install_trees', {
+        'spack-root': {
+            'root': spack_root_install_tree_path
+        },
+        'user': {
+            'root': spack_user_install_tree_path
+        }
+    })
+
+    default_store = spack.store._store()
+    assert default_store.root == spack_root_install_tree_path
+
+    try:
+        spack.store.install_root = 'user'
+        with spack.store.use_store(spack.store._store()) as temp_store:
+
+            assert temp_store.root == spack_user_install_tree_path
+
+            # Get a basic concrete spec for the trivial install package.
+            spec = Spec('trivial-install-test-package')
+            spec.concretize()
+
+            # Ensure non-default install_root used in install
+            assert spack_user_install_tree_path in spec.prefix
+            assert spack_root_install_tree_path not in spec.prefix
+
+            # Get the package
+            pkg = spec.package
+
+            # Do install and check install is in new store
+            try:
+                pkg.do_install()
+
+                spec._package = None
+                monkeypatch.setattr(spack.repo, 'get', find_nothing)
+                with pytest.raises(spack.repo.UnknownPackageError):
+                    spec.package
+
+                pkg.do_uninstall()
+            except Exception:
+                pkg.remove_prefix()
+                raise
+    finally:
+        spack.store.install_root = None
+
+
 def mock_remove_prefix(*args):
     raise MockInstallError(
         "Intentional error",

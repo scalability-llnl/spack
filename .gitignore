@@ -17,6 +17,9 @@
 spack-db.*
 *.in.log
 *.out.log
+*.orig
+.mypy_cache/
+
 
 ###########################
 # Python-specific ignores #

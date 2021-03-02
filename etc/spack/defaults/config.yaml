@@ -16,28 +16,40 @@
 config:
   # This is the path to the root of the Spack install tree.
   # You can use $spack here to refer to the root of the spack instance.
-  install_tree:
-    root: $spack/opt/spack
-    projections:
-      all: "${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH}"
-    # install_tree can include an optional padded length (int or boolean)
-    # default is False (do not pad)
-    # if padded_length is True, Spack will pad as close to the system max path
-    # length as possible
-    # if padded_length is an integer, Spack will pad to that many characters,
-    # assuming it is higher than the length of the install_tree root.
-    # padded_length: 128
+  install_trees:
+    spack-root:
+      root: $spack/opt/spack
+      projections:
+        all: "${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH}"
+      # Locations where different types of modules should be installed.
+      module_roots:
+        tcl:    $spack/share/spack/modules
+        lmod:   $spack/share/spack/lmod
+      permissions:
+        read: world
+        write: user
+    user:
+      root: ~/.spack/opt/spack
+      projections:
+        all: "${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH}"
+      module_roots:
+        tcl:    ~/.spack/share/spack/modules
+        lmod:   ~/.spack/share/spack/lmod
+      permissions:
+        read: world
+        write: user
 
+      # install trees can include an optional padded length (int or boolean)
+      # default is False (do not pad)
+      # if padded_length is True, Spack will pad as close to the system max path
+      # length as possible
+      # if padded_length is an integer, Spack will pad to that many characters,
+      # assuming it is higher than the length of the install_tree root.
+      # padded_length: 128
 
   # Locations where templates should be found
   template_dirs:
     - $spack/share/spack/templates
-
-
-  # Locations where different types of modules should be installed.
-  module_roots:
-    tcl:    $spack/share/spack/modules
-    lmod:   $spack/share/spack/lmod
 
 
   # Temporary locations Spack can try to use for builds.
@@ -77,7 +89,7 @@ config:
 
   # Cache directory for already downloaded source tarballs and archived
   # repositories. This can be purged with `spack clean --downloads`.
-  source_cache: $spack/var/spack/cache
+  source_cache: ~/.spack/cache/downloads
 
 
   # Cache directory for miscellaneous files, like the package index.

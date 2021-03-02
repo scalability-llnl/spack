@@ -5,6 +5,7 @@
 
 from __future__ import print_function
 
+import argparse
 import sys
 import itertools
 
@@ -15,6 +16,7 @@ import spack.package
 import spack.cmd.common.arguments as arguments
 import spack.repo
 import spack.store
+import spack.spec
 from spack.database import InstallStatuses
 
 from llnl.util import tty
@@ -63,6 +65,11 @@ def setup_parser(subparser):
         help="remove ALL installed packages that match each supplied spec"
     )
 
+    subparser.add_argument(
+        'packages',
+        nargs=argparse.REMAINDER,
+        help="specs of packages to uninstall")
+
 
 def find_matching_specs(env, specs, allow_multiple_matches=False, force=False):
     """Returns a list of specs matching the not necessarily
@@ -103,8 +110,13 @@ def find_matching_specs(env, specs, allow_multiple_matches=False, force=False):
                 pkg_type = "packages in environment '%s'" % env.name
             else:
                 pkg_type = 'installed packages'
-            tty.die('{0} does not match any {1}.'.format(spec, pkg_type))
-
+            upstream = spack.store.db.query(spec, hashes=hashes,
+                                            installed=install_query)
+            if upstream:
+                tty.die("the package is installed upstream,"
+                        "use 'spack --install-root ...'")
+            else:
+                tty.die('{0} does not match any {1}.'.format(spec, pkg_type))
         specs_from_cli.extend(matching)
 
     if has_errors:
@@ -316,7 +328,7 @@ def uninstall_specs(args, specs):
     anything_to_do = set(uninstall_list).union(set(remove_list))
 
     if not anything_to_do:
-        tty.warn('There are no package to uninstall.')
+        tty.warn('There are no packages to uninstall.')
         return
 
     if not args.yes_to_all:

@@ -998,7 +998,8 @@ class Database(object):
         try to regenerate a missing DB if local. This requires taking a
         write lock.
         """
-        if os.path.isfile(self._index_path):
+        index_path = spack.util.path.canonicalize_path(self._index_path)
+        if os.path.isfile(index_path):
             current_verifier = ''
             if _use_uuid:
                 try:
@@ -1010,7 +1011,7 @@ class Database(object):
                     (current_verifier == '')):
                 self.last_seen_verifier = current_verifier
                 # Read from file if a database exists
-                self._read_from_file(self._index_path)
+                self._read_from_file(index_path)
             return
         elif self.is_upstream:
             raise UpstreamDatabaseLockingError(

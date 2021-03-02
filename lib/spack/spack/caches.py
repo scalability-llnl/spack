@@ -25,7 +25,7 @@ def _misc_cache():
     """
     path = spack.config.get('config:misc_cache')
     if not path:
-        path = os.path.join(spack.paths.user_config_path, 'cache')
+        path = spack.paths.default_misc_cache_path
     path = spack.util.path.canonicalize_path(path)
 
     return spack.util.file_cache.FileCache(path)
@@ -42,8 +42,9 @@ def _fetch_cache():
     building the same package different ways or multiple times.
     """
     path = spack.config.get('config:source_cache')
+
     if not path:
-        path = os.path.join(spack.paths.var_path, "cache")
+        path = spack.paths.default_source_cache_path
     path = spack.util.path.canonicalize_path(path)
 
     return spack.fetch_strategy.FsCache(path)

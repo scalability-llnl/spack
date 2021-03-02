@@ -12,6 +12,56 @@ import six
 from llnl.util.lang import union_dicts
 import spack.schema.projections
 
+module_roots = {
+    'module_roots': {
+        'type': 'object',
+        'additionalProperties': False,
+        'properties': {
+            'tcl': {'type': 'string'},
+            'lmod': {'type': 'string'},
+            'dotkit': {'type': 'string'},
+        },
+        'deprecatedProperties': {
+            'properties': ['dotkit'],
+            'message': 'specifying a "dotkit" module root has no '
+                       'effect [support for "dotkit" has been '
+                       'dropped in v0.13.0]',
+            'error': False
+        },
+    },
+}
+
+install_tree = {
+    'install_tree': {
+        'type': 'object',
+        'properties': union_dicts(
+            {'root': {'type': 'string'}},
+            {'padded_length': {'oneOf': [
+                {'type': 'integer', 'minimum': 0},
+                {'type': 'boolean'}]}},
+            spack.schema.projections.properties,
+            module_roots,
+            {'permissions': {
+                'type': 'object',
+                'additionalProperties': False,
+                'properties': {
+                    'read': {
+                        'type':  'string',
+                        'enum': ['user', 'group', 'world'],
+                    },
+                    'write': {
+                        'type':  'string',
+                        'enum': ['user', 'group', 'world'],
+                    },
+                    'group': {
+                        'type':  'string',
+                    },
+                }
+            }},
+        ),
+    }
+}
+
 #: Properties for inclusion in other schemas
 properties = {
     'config': {
@@ -36,6 +86,26 @@ properties = {
                     },
                     {'type': 'string'}  # deprecated
                 ],
+            },
+            'install_trees': {
+                'type': 'object',
+                'default': {},
+                'additionalProperties': False,
+                'patternProperties': {
+                    r'\w[\w-]*': {
+                        'install_tree': install_tree
+                    },
+                },
+            },
+            'shared_install_trees': {
+                'type': 'object',
+                'default': {},
+                'additionalProperties': False,
+                'patternProperties': {
+                    r'\w[\w-]*': {
+                        'install_tree': install_tree
+                    },
+                },
             },
             'install_hash_length': {'type': 'integer', 'minimum': 1},
             'install_path_scheme': {'type': 'string'},  # deprecated
