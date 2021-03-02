@@ -38,8 +38,7 @@ obtained by cloning the corresponding git repository:
 
 .. code-block:: console
 
-   $ pwd
-   /home/user
+   $ cd ~/
    $ mkdir tmp && cd tmp
    $ git clone https://github.com/alalazo/spack-scripting.git
    Cloning into 'spack-scripting'...
@@ -62,7 +61,7 @@ paths to ``config.yaml``. In the case of our example this means ensuring that:
 
    config:
      extensions:
-     - /home/user/tmp/spack-scripting
+     - ~/tmp/spack-scripting
 
 is part of your configuration file. Once this is setup any command that the extension provides
 will be available from the command line:
