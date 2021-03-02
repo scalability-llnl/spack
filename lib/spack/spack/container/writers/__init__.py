@@ -34,23 +34,25 @@ def writer(name):
     return _decorator
 
 
-def create(configuration):
+def create(configuration, last_phase=None):
     """Returns a writer that conforms to the configuration passed as input.
 
     Args:
-        configuration: how to generate the current recipe
+        configuration (dict): how to generate the current recipe
+        last_phase (str): last phase to be printed or None to print them all
     """
     name = spack.environment.config_dict(configuration)['container']['format']
-    return _writer_factory[name](configuration)
+    return _writer_factory[name](configuration, last_phase)
 
 
-def recipe(configuration):
+def recipe(configuration, last_phase=None):
     """Returns a recipe that conforms to the configuration passed as input.
 
     Args:
-        configuration: how to generate the current recipe
+        configuration (dict): how to generate the current recipe
+        last_phase (str): last phase to be printed or None to print them all
     """
-    return create(configuration)()
+    return create(configuration, last_phase)()
 
 
 def _stage_base_images(images_config):
@@ -127,7 +129,7 @@ class PathContext(tengine.Context):
     install software in a common location and make it available
     directly via PATH.
     """
-    def __init__(self, config):
+    def __init__(self, config, last_phase):
         self.config = spack.environment.config_dict(config)
         self.container_config = self.config['container']
 
@@ -140,6 +142,9 @@ class PathContext(tengine.Context):
         self.bootstrap_image = bootstrap
         self.build_image = build
         self.final_image = final
+
+        # Record the last phase
+        self.last_phase = last_phase
 
     @tengine.context_property
     def run(self):
@@ -269,6 +274,14 @@ class PathContext(tengine.Context):
 
         Bootstrap = collections.namedtuple('Build', ['image', 'recipe'])
         return Bootstrap(image=self.bootstrap_image, recipe=bootstrap_recipe)
+
+    @tengine.context_property
+    def render_build_phase(self):
+        return not self.last_phase == 'bootstrap'
+
+    @tengine.context_property
+    def render_final_phase(self):
+        return self.last_phase in (None, 'final')
 
     def __call__(self):
         """Returns the recipe as a string"""

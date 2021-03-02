@@ -1,6 +1,8 @@
 {% if bootstrap.image %}
 {{ bootstrap.recipe }}
+
 {% endif %}
+{% if render_build_phase %}
 # Build stage with Spack pre-installed and ready to be used
 FROM {{ build.image }} as builder
 
@@ -35,7 +37,8 @@ RUN cd {{ paths.environment }} && \
 {% if extra_instructions.build %}
 {{ extra_instructions.build }}
 {% endif %}
-
+{% endif %}
+{% if render_final_phase %}
 # Bare OS image to run the installed executables
 FROM {{ run.image }}
 
@@ -57,3 +60,4 @@ RUN {% if os_package_update %}{{ os_packages_final.update }} \
 LABEL "{{ label }}"="{{ value }}"
 {% endfor %}
 ENTRYPOINT ["/bin/bash", "--rcfile", "/etc/profile", "-l"]
+{% endif %}

@@ -69,6 +69,11 @@ def os_package_manager_for(image):
     return name
 
 
+def all_bootstrap_os():
+    """Return a list of all the OS that can be used to bootstrap Spack"""
+    return list(data()['images'])
+
+
 def commands_for(package_manager):
     """Returns the commands used to update system repositories, install
     system packages and clean afterwards.
