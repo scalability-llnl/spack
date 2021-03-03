@@ -587,28 +587,28 @@ environment variables used by the pipeline infrastructure are described here.
 AWS_ACCESS_KEY_ID
 ^^^^^^^^^^^^^^^^^
 
-Needed when binary mirror is an S3 bucket.
+(Optional) Needed when binary mirror is an S3 bucket.
 
 ^^^^^^^^^^^^^^^^^^^^^
 AWS_SECRET_ACCESS_KEY
 ^^^^^^^^^^^^^^^^^^^^^
 
-Needed when binary mirror is an S3 bucket.
+(Optional) Needed when binary mirror is an S3 bucket.
 
 ^^^^^^^^^^^^^^^
 S3_ENDPOINT_URL
 ^^^^^^^^^^^^^^^
 
-Needed when binary mirror is an S3 bucket that is *not* on AWS.
+(Optional) Needed when binary mirror is an S3 bucket that is *not* on AWS.
 
 ^^^^^^^^^^^^^^^^^
 CDASH_AUTH_TOKEN
 ^^^^^^^^^^^^^^^^^
 
-Needed in order to report build groups to CDash.
+(Optional) Needed in order to report build groups to CDash.
 
 ^^^^^^^^^^^^^^^^^
 SPACK_SIGNING_KEY
 ^^^^^^^^^^^^^^^^^
 
-Needed to sign/verify binary packages from the remote binary mirror.
+(Optional) Needed to sign/verify binary packages from the remote binary mirror.
