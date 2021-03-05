@@ -104,7 +104,7 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
         # Makefile, leading to build errors.
         env.pop('APPS', None)
 
-        if str(spec.target.family) in ('x86_64', 'ppc64'):
+        if str(spec.target.family) in ('x86_64', 'ppc64', 'arm64'):
             # This needs to be done for all 64-bit architectures (except Linux,
             # where it happens automatically?)
             env['KERNEL_BITS'] = '64'
@@ -114,7 +114,8 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
             options.append('no-krb5')
         # clang does not support the .arch directive in assembly files.
         if 'clang' in self.compiler.cc and \
-           'aarch64' in spack.architecture.sys_type():
+           ('aarch64' in spack.architecture.sys_type() or
+            'arm64' in spack.architecture.sys_type()):
             options.append('no-asm')
 
         # The default glibc provided by CentOS 7 does not provide proper
@@ -133,6 +134,9 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
         # present e.g. on Darwin. They are non-standard, i.e. most compilers
         # (e.g. gcc) will not accept them.
         filter_file(r'-arch x86_64', '', 'Makefile')
+        filter_file(r'-arch arm64', '', 'Makefile')
+        # 1.1.1h is misconfigured as i386 on darwin-arm64, filter this as well
+        filter_file(r'-arch i386', '', 'Makefile')
 
         make()
         if self.run_tests:
