@@ -1,0 +1,11 @@
+--- a/dds-submit/src/Options.h~	2020-03-23 13:24:41.000000000 +0100
++++ b/dds-submit/src/Options.h	2020-03-23 13:29:48.587740102 +0100
+@@ -45,7 +45,7 @@
+             size_t m_number{ 0 };
+             size_t m_slots{ 0 };
+             bool m_bListPlugins{ false };
+-            boost::uuids::uuid m_sid{ boost::uuids::nil_uuid() };
++            boost::uuids::uuid m_sid = boost::uuids::nil_uuid();
+         } SOptions_t;
+         //=============================================================================
+         inline std::ostream& operator<<(std::ostream& _stream, const SOptions& val)
