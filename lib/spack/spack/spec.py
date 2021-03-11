@@ -84,6 +84,7 @@ import itertools
 import operator
 import os
 import re
+from textwrap import dedent
 
 import six
 import ruamel.yaml as yaml
@@ -176,7 +177,7 @@ _separators = '[\\%s]' % '\\'.join(color_formats.keys())
 
 #: Versionlist constant so we don't have to build a list
 #: every time we call str()
-_any_version = vn.VersionList([':'])
+_any_version = vn.VersionList.parse(':')
 
 default_format = '{name}{@version}'
 default_format += '{%compiler.name}{@compiler.version}{compiler_flags}'
@@ -1163,8 +1164,9 @@ class Spec(object):
         # If it already has a non-trivial version list, this is an error
         if self.versions and self.versions != vn.VersionList(':'):
             raise MultipleVersionError(
-                'A spec cannot contain multiple version signifiers.'
-                ' Use a version list instead.')
+                'A spec cannot contain multiple version signifiers '
+                '(was: {0}). Use a version list instead.'
+                .format(self.versions))
         self.versions = vn.VersionList()
         for version in version_list:
             self.versions.add(version)
@@ -4345,45 +4347,68 @@ class LazySpecCache(collections.defaultdict):
 
 
 #: These are possible token types in the spec grammar.
-HASH, DEP, AT, COLON, COMMA, ON, OFF, PCT, EQ, ID, VAL, FILE = range(12)
+(
+    HASH, DEP, AT, ID, COLON, COMMA, ON, OFF, PCT, EQ, VAL, FILE, LT_COLON, GT_COLON,
+    LT_GT_COLON,
+) = range(15)
 
+# NB: `spec_id_re` currently contains a literal `*` to match against, because
+# we use that same regex for matching version strings, and we want to support
+# the use of e.g. `spack install python@3.9.*`.
 #: Regex for fully qualified spec names. (e.g., builtin.hdf5)
-spec_id_re = r'\w[\w.-]*'
+spec_id_re = r'\w[\w.\-\*]*'
 
 
 class SpecLexer(spack.parse.Lexer):
 
     """Parses tokens that make up spack specs."""
 
+    # TODO: Determine whether using >2 lexer modes would allow us to create
+    # a separate entry (likely defined the same as `spec_id_re` at first) to
+    # specifically match version strings, variant names, compiler dependency
+    # names (with '%').
     def __init__(self):
         super(SpecLexer, self).__init__([
-            (r'\^', lambda scanner, val: self.token(DEP,   val)),
-            (r'\@', lambda scanner, val: self.token(AT,    val)),
-            (r'\:', lambda scanner, val: self.token(COLON, val)),
-            (r'\,', lambda scanner, val: self.token(COMMA, val)),
-            (r'\+', lambda scanner, val: self.token(ON,    val)),
-            (r'\-', lambda scanner, val: self.token(OFF,   val)),
-            (r'\~', lambda scanner, val: self.token(OFF,   val)),
-            (r'\%', lambda scanner, val: self.token(PCT,   val)),
-            (r'\=', lambda scanner, val: self.token(EQ,    val)),
+            ([
+                # '^': dependency, or "AND":
+                (r'\^', lambda scanner, val: self.token(DEP,   val)),
+                # '@': begin a Version, VersionRange, or VersionList:
+                (r'\@', lambda scanner, val: self.token(AT,    val)),
+                # VersionRange syntax:
+                (r'\!\:\!', lambda scanner, val: self.token(LT_GT_COLON, val)),
+                (r'\:\!', lambda scanner, val: self.token(LT_COLON, val)),
+                (r'\!\:', lambda scanner, val: self.token(GT_COLON, val)),
+                (r'\:', lambda scanner, val: self.token(COLON, val)),
+                # VersionList syntax:
+                (r'\,', lambda scanner, val: self.token(COMMA, val)),
+                # variant syntax:
+                (r'\+', lambda scanner, val: self.token(ON,    val)),
+                (r'\-', lambda scanner, val: self.token(OFF,   val)),
+                (r'\~', lambda scanner, val: self.token(OFF,   val)),
+                # Compiler dependency syntax:
+                (r'\%', lambda scanner, val: self.token(PCT,   val)),
 
-            # Filenames match before identifiers, so no initial filename
-            # component is parsed as a spec (e.g., in subdir/spec.yaml)
-            (r'[/\w.-]*/[/\w/-]+\.yaml[^\b]*',
-             lambda scanner, v: self.token(FILE, v)),
+                # This is *not* used in version string parsing.
+                (r'\=', lambda scanner, val: self.token(EQ,    val)),
 
-            # Hash match after filename. No valid filename can be a hash
-            # (files end w/.yaml), but a hash can match a filename prefix.
-            (r'/', lambda scanner, val: self.token(HASH, val)),
+                # Filenames match before identifiers, so no initial filename
+                # component is parsed as a spec (e.g., in subdir/spec.yaml)
+                (r'[/\w.-]*/[/\w/-]+\.yaml[^\b]*',
+                 lambda scanner, v: self.token(FILE, v)),
 
-            # Identifiers match after filenames and hashes.
-            (spec_id_re, lambda scanner, val: self.token(ID, val)),
+                # Hash match after filename. No valid filename can be a hash
+                # (files end w/.yaml), but a hash can match a filename prefix.
+                (r'/', lambda scanner, val: self.token(HASH, val)),
 
-            (r'\s+', lambda scanner, val: None)],
-            [EQ],
-            [(r'[\S].*', lambda scanner, val: self.token(VAL,    val)),
-             (r'\s+', lambda scanner, val: None)],
-            [VAL])
+                # Identifiers match after filenames and hashes.
+                (spec_id_re, lambda scanner, val: self.token(ID, val)),
+
+                # Gobble up all remaining whitespace between tokens.
+                (r'\s+', lambda scanner, val: None),
+            ], {1: [EQ]}),
+            ([(r'[\S].*', lambda scanner, val: self.token(VAL,    val)),
+              (r'\s+', lambda scanner, val: None)],
+             {0: [VAL]})])
 
 
 # Lexer is always the same for every parser.
@@ -4649,20 +4674,88 @@ class SpecParser(spack.parse.Parser):
     def version(self):
         start = None
         end = None
+        op = None
+
+        # @:!1.2.3( !: | : | \epsilon )
+        if self.accept(LT_COLON):
+            op = self.token.value
+            assert self.accept(ID)
+            end = self.token.value
+
+            # @:!1.2.3!: (@!=1.2.3) (not equal to)
+            if self.accept(GT_COLON):
+                return vn.VersionRange.from_single_version(end.negated())
+
+            # @:!1.2.3: => @: (all versions, which is often unexpected)
+            if self.accept(COLON):
+                self.push_tokens([self.token])
+                self.next_token_error(
+                    "A @:!{0}: is the same as @: (all versions)!".format(end))
+
+            # @:!1.2.3 => @<1.2.3
+            return vn.VersionRange(start=vn.Version.wildcard(), end=end.negated())
+
+        # @:( \epsilon | 1.2.3( !: | : | \epsilon ))
+        if self.accept(COLON):
+            op = self.token.value
+            # @:
+            if not self.accept(ID):
+                return vn.VersionRange(None, None)
+            end = self.token.value
+
+            # @:1.2.3( !: | : ) => (@:) (all versions; often unexpected)
+            if self.accept(GT_COLON):
+                self.push_tokens([self.token])
+                self.next_token_error(
+                    "A @:{0}!: is the same as @: (all versions)!".format(end))
+            if self.accept(COLON):
+                self.push_tokens([self.token])
+                self.next_token_error(
+                    "A @:{0}: is the same as @: (all versions)!".format(end))
+
+            # @:1.2.3 \epsilon => @<=1.2.3
+            return vn.VersionRange(start=vn.Version.wildcard(), end=end)
+
+        # @1.2.3( !:!1.2.3 | :!1.2.3 | !:1.2.3 | !: | :1.2.3 | : | \epsilon )
         if self.accept(ID):
             start = self.token.value
 
-        if self.accept(COLON):
-            if self.accept(ID):
-                if self.next and self.next.type is EQ:
-                    # This is a start: range followed by a key=value pair
-                    self.push_tokens([self.token])
-                else:
+            # @1.2.3!:!1.2.3
+            if self.accept(LT_GT_COLON):
+                assert self.accept(ID)
+                end = self.token.value
+                return vn.VersionRange(start=start.negated(), end=end.negated())
+
+            # @1.2.3:!1.2.3
+            if self.accept(LT_COLON):
+                assert self.accept(ID)
+                end = self.token.value
+                return vn.VersionRange(start=start, end=end.negated())
+
+            # @1.2.3!:(1.2.3 | \epsilon)
+            if self.accept(GT_COLON):
+                # @1.2.3!:1.2.3
+                if self.accept(ID):
                     end = self.token.value
-        elif start:
+                    return vn.VersionRange(start=start.negated(), end=end)
+                # @1.2.3!:
+                return vn.VersionRange(start=start.negated(), end=Version.wildcard())
+
+            # @1.2.3:( 1.2.3 | \epsilon )
+            if self.accept(COLON):
+                if self.accept(ID):
+                    if self.next and self.next.type is EQ:
+                        # This is a start: range followed by a key=value pair
+                        self.push_tokens([self.token])
+                    else:
+                        end = self.token.value
+                return vn.VersionRange(start=start, end=end)
+
+        if start:
             # No colon, but there was a version.
             return vn.Version(start)
-        else:
+
+        if op is None:
             # No colon and no id: invalid version.
             self.next_token_error("Invalid version specifier")
 
@@ -4670,7 +4763,7 @@ class SpecParser(spack.parse.Parser):
             start = vn.Version(start)
         if end:
             end = vn.Version(end)
-        return vn.VersionRange(start, end)
+        return vn.VersionRange(start=start, end=end)
 
     def version_list(self):
         vlist = []
@@ -4752,7 +4845,14 @@ def base32_prefix_bits(hash_string, bits):
 class SpecParseError(spack.error.SpecError):
     """Wrapper for ParseError for when we're parsing specs."""
     def __init__(self, parse_error):
-        super(SpecParseError, self).__init__(parse_error.message)
+        printed = dedent("""\
+        {0}: <{1}>
+        ---------
+        {2}
+        {3}^
+        """).format(parse_error.message, parse_error.pos, parse_error.string,
+                    parse_error.pos * ' ')
+        super(SpecParseError, self).__init__(printed)
         self.string = parse_error.string
         self.pos = parse_error.pos
 

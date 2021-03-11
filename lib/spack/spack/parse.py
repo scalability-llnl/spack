@@ -7,6 +7,7 @@ import re
 import shlex
 import sys
 import itertools
+from textwrap import dedent
 from six import string_types
 
 import spack.error
@@ -37,45 +38,40 @@ class Token(object):
 class Lexer(object):
     """Base class for Lexers that keep track of line numbers."""
 
-    def __init__(self, lexicon0, mode_switches_01=[],
-                 lexicon1=[], mode_switches_10=[]):
-        self.scanner0 = re.Scanner(lexicon0)
-        self.mode_switches_01 = mode_switches_01
-        self.scanner1 = re.Scanner(lexicon1)
-        self.mode_switches_10 = mode_switches_10
+    def __init__(self, lexicon_and_mode_switches):
+        self.scanners = []
+        self.switchbook = []
+        for lexicon, mode_switches_dict in lexicon_and_mode_switches:
+            self.scanners.append(re.Scanner(lexicon))
+            self.switchbook.append(mode_switches_dict)
+
         self.mode = 0
 
     def token(self, type, value=''):
-        if self.mode == 0:
-            return Token(type, value,
-                         self.scanner0.match.start(0),
-                         self.scanner0.match.end(0))
-        else:
-            return Token(type, value,
-                         self.scanner1.match.start(0),
-                         self.scanner1.match.end(0))
+        cur_scanner = self.scanners[self.mode]
+        return Token(type, value,
+                     cur_scanner.match.start(0),
+                     cur_scanner.match.end(0))
 
     def lex_word(self, word):
-        scanner = self.scanner0
-        mode_switches = self.mode_switches_01
-        if self.mode == 1:
-            scanner = self.scanner1
-            mode_switches = self.mode_switches_10
+        scanner = self.scanners[self.mode]
+        mode_switches_dict = self.switchbook[self.mode]
 
         tokens, remainder = scanner.scan(word)
-        remainder_used = 0
+        remainder_was_used = False
 
         for i, t in enumerate(tokens):
-            if t.type in mode_switches:
-                # Combine post-switch tokens with remainder and
-                # scan in other mode
-                self.mode = 1 - self.mode  # swap 0/1
-                remainder_used = 1
-                tokens = tokens[:i + 1] + self.lex_word(
-                    word[word.index(t.value) + len(t.value):])
-                break
+            for other_mode, mode_switches in mode_switches_dict.items():
+                if t.type in mode_switches:
+                    # Combine post-switch tokens with remainder and
+                    # scan in other mode
+                    self.mode = other_mode  # swap 0/1
+                    remainder_was_used = True
+                    tokens = tokens[:i + 1] + self.lex_word(
+                        word[word.index(t.value) + len(t.value):])
+                    break
 
-        if remainder and not remainder_used:
+        if remainder and not remainder_was_used:
             raise LexError("Invalid character", word, word.index(remainder))
 
         return tokens
@@ -153,7 +149,7 @@ class Parser(object):
 
 
 class ParseError(spack.error.SpackError):
-    """Raised when we don't hit an error while parsing."""
+    """Raised when we hit an error while parsing."""
 
     def __init__(self, message, string, pos):
         super(ParseError, self).__init__(message)
@@ -165,4 +161,11 @@ class LexError(ParseError):
     """Raised when we don't know how to lex something."""
 
     def __init__(self, message, string, pos):
-        super(LexError, self).__init__(message, string, pos)
+        bad_char = string[pos]
+        printed = dedent("""\
+        {0}: '{1}'
+        -------
+        {2}
+        {3}^
+        """).format(message, bad_char, string, pos * ' ')
+        super(LexError, self).__init__(printed, string, pos)

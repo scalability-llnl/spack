@@ -42,4 +42,4 @@ spack -p --lines 20 spec mpileaks%gcc ^elfutils@0.170
 #-----------------------------------------------------------
 # Run unit tests with code coverage
 #-----------------------------------------------------------
-$coverage_run $(which spack) unit-test -x --verbose
+$coverage_run $(which spack) unit-test -x --verbose "$@"

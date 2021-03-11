@@ -9,7 +9,7 @@ where it makes sense.
 """
 import pytest
 
-from spack.version import Version, VersionList, ver
+from spack.version import Version, VersionList, VersionRange, ver
 
 
 def assert_ver_lt(a, b):
@@ -257,6 +257,19 @@ def test_version_ranges():
 
     assert_ver_lt('1.2:1.4', '1.5:1.6')
     assert_ver_gt('1.5:1.6', '1.2:1.4')
+
+    assert_in('1.5', VersionRange('1.5', '1.6'))
+    assert_in('1.6', VersionRange('1.5', '1.6'))
+
+    assert VersionRange.parse('1.5:1.6') not in VersionRange.parse('1.5:!1.6')
+    assert VersionRange.parse('1.5:1.6') not in VersionRange.parse('1.5!:1.6')
+    assert VersionRange.parse('1.5:1.6') < VersionRange.parse('1.5:!1.6')
+    assert VersionRange.parse('1.5:1.6') < VersionRange.parse('1.5!:1.6')
+
+    assert_in('1.5', VersionRange.parse('1.5:!1.6'))
+    assert_not_in('1.6', VersionRange.parse('1.5:!1.6'))
+    assert_not_in('1.5', VersionRange.parse('1.5!:1.6'))
+    assert_in('1.6', VersionRange.parse('1.5!:1.6'))
 
 
 def test_contains():
@@ -562,3 +575,41 @@ def test_list_highest():
     assert vl2.highest_numeric() is None
     assert vl2.preferred() == Version('develop')
     assert vl2.lowest() == Version('master')
+
+
+def test_strict_inequalities():
+    # (0) !2 => :!2!:
+    assert Version('2') < Version('2').negated()
+    assert Version('2').negated() < Version('2')
+    assert Version('2').negated() > Version('2')
+    assert Version('2').negated() != Version('2')
+    assert Version('2').negated() != Version('2.1')
+    assert Version('2') not in Version('2').negated()
+    assert Version('3') in Version('2').negated()
+
+    # (1) 2:!3
+    assert Version('2') < ver('2:!3')
+    assert Version('3') > ver('2:!3')
+
+    assert ver('2:!3') in Version('2')
+    assert ver('2:!3') not in Version('3')
+    assert Version('3') not in ver('2:!3')
+    assert Version('2') in ver('2:!3')
+
+    # (2) 2!:3
+    assert Version('2') < ver('2!:3')
+    assert Version('3') > ver('2!:3')
+
+    assert ver('2!:3') not in Version('2')
+    assert ver('2!:3') in Version('3')
+    assert Version('3') in ver('2!:3')
+    assert Version('2') not in ver('2!:3')
+
+    # (3) 2!:!3
+    assert Version('2') < ver('2!:!3')
+    assert Version('3') > ver('2!:!3')
+
+    assert ver('2!:!3') in Version('2')
+    assert ver('2!:!3') not in Version('3')
+    assert Version('3') not in ver('2!:!3')
+    assert Version('2') not in ver('2!:!3')
