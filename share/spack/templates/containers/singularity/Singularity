@@ -1,0 +1,30 @@
+Bootstrap: {{ bootstrap }}
+From: {{ image }}
+
+%environment
+SPACK_ROOT=/home/spack
+FORCE_UNSAFE_CONFIGURE=1
+PATH="${PATH}:${SPACK_ROOT}/bin"
+export SPACK_ROOT FORCE_UNSAFE_CONFIGURE PATH
+
+%help
+{{ help }}
+
+%post
+SPACK_ROOT=/home/spack
+FORCE_UNSAFE_CONFIGURE=1
+PATH="${PATH}:${SPACK_ROOT}/bin"
+export SPACK_ROOT FORCE_UNSAFE_CONFIGURE PATH
+
+# Install basic system dependencies
+{{ dependencies }}
+
+# Install spack + set the mirror
+mkdir -p $SPACK_ROOT
+curl -s -L https://api.github.com/repos/{{ repo }}/spack/tarball/{{ branch }} \
+    | tar xzC $SPACK_ROOT --strip 1
+
+/home/spack/bin/spack install {{ specs }}
+
+%runscript
+exec /home/spack/bin/spack "$@"
