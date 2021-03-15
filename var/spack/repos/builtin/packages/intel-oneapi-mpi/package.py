@@ -80,6 +80,9 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
         for lib_version in ['debug', 'release', 'release_mt', 'debug_mt']:
             file = self._join_prefix('lib/' + lib_version + '/libmpi.so')
             subprocess.call(['patchelf', '--set-rpath', libfabric_rpath, file])
+        subprocess.call(['sed', '-i', '-e', 
+                         's/icc|icpc|dpcpp/icc|icpc|dpcpp|icx|icpx/g',
+                         self._join_prefix('bin/mpicxx')])
 
     def setup_run_environment(self, env):
         env.prepend_path('PATH', self._join_prefix('bin'))
