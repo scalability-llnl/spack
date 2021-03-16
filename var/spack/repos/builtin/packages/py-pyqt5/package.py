@@ -17,6 +17,7 @@ class PyPyqt5(SIPPackage):
 
     sip_module = 'PyQt5.sip'
 
+    version('5.15.2', sha256='372b08dc9321d1201e4690182697c5e7ffb2e0770e6b4a45519025134b12e4fc')
     version('5.13.1', sha256='54b7f456341b89eeb3930e786837762ea67f235e886512496c4152ebe106d4af')
     version('5.13.0', sha256='0cdbffe5135926527b61cc3692dd301cd0328dd87eeaf1313e610787c46faff9')
     version('5.12.3', sha256='0db0fa37debab147450f9e052286f7a530404e2aaddc438e97a7dcdf56292110')
