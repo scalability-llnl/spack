@@ -72,8 +72,13 @@ class IntelOneapiCompilers(IntelOneApiPackage):
 
     def setup_run_environment(self, env):
         env.prepend_path('PATH', self._join_prefix('bin'))
+        env.prepend_path('PATH', self._join_prefix('bin/intel64'))
+        env.prepend_path('MANPATH', self._join_prefix('../documentation/en/man/common'))
         env.prepend_path('CPATH', self._join_prefix('include'))
         env.prepend_path('LIBRARY_PATH', self._join_prefix('lib'))
+        env.prepend_path('LIBRARY_PATH', self._join_prefix('lib/intel64_lin'))
+        env.prepend_path('OCL_ICD_FILENAMES',
+                         self._join_prefix('lib/x64/libintelocl.so'))
         for dir in self._ld_library_path():
             env.prepend_path('LD_LIBRARY_PATH', dir)
         env.set('CC', self._join_prefix('bin/icx'))
