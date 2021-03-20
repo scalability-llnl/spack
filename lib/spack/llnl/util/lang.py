@@ -10,15 +10,16 @@ import os
 import re
 import functools
 import inspect
+import sys
 from datetime import datetime, timedelta
 from six import string_types
-import sys
+from typing import Callable, TypeVar
 
 
 if sys.version_info >= (3, 3):
-    from collections.abc import Hashable, MutableMapping  # novm
+    from collections.abc import MutableMapping  # novm
 else:
-    from collections import Hashable, MutableMapping
+    from collections import MutableMapping
 
 
 # Ignore emacs backups when listing modules
@@ -186,24 +187,32 @@ def union_dicts(*dicts):
     return result
 
 
+_F = TypeVar('_F', bound=Callable)
+
+
 def memoized(func):
+    # type: (_F) -> _F
     """Decorator that caches the results of a function, storing them in
     an attribute of that function.
     """
-    func.cache = {}
+    func.cache = {}  # type: ignore[attr-defined]
 
     @functools.wraps(func)
-    def _memoized_function(*args):
-        if not isinstance(args, Hashable):
+    def _memoized_function(*args, **kwargs):
+        assert isinstance(args, tuple), args
+        key = args + tuple(kwargs.items() if kwargs else [])
+
+        try:
+            ret = func.cache[key]
+        except KeyError:
+            ret = func(*args, **kwargs)
+            func.cache[key] = ret
+        except TypeError:
             # Not hashable, so just call the function.
-            return func(*args)
+            ret = func(*args, **kwargs)
+        return ret
 
-        if args not in func.cache:
-            func.cache[args] = func(*args)
-
-        return func.cache[args]
-
-    return _memoized_function
+    return _memoized_function  # type: ignore[return-value]
 
 
 def list_modules(directory, **kwargs):
