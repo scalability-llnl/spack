@@ -178,3 +178,10 @@ def test_update_key_index(tmpdir, mutable_mock_env_path,
     mirror('rm', 'test-mirror')
 
     assert 'index.json' in key_dir_list
+
+
+def test_skip_no_redistribute(mock_packages):
+    specs = list(Spec('no-redistribute-dependent').concretized().traverse())
+    filtered = spack.cmd.buildcache._skip_no_redistribute_for_public(specs)
+    assert not any(s.name == 'no-redistribute' for s in filtered)
+    assert any(s.name == 'no-redistribute-dependent' for s in filtered)

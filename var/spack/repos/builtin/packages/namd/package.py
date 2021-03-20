@@ -19,6 +19,8 @@ class Namd(MakefilePackage, CudaPackage):
     git      = "https://charm.cs.illinois.edu/gerrit/namd.git"
     manual_download = True
 
+    redistribute_source = False
+
     version("master", branch="master")
     version('2.15a1', branch="master", tag='release-2-15-alpha-1')
     version('2.14', sha256='34044d85d9b4ae61650ccdba5cda4794088c3a9075932392dd0752ef8c049235',

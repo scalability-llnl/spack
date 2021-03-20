@@ -65,6 +65,10 @@ def setup_parser(subparser):
         '-n', '--versions-per-spec',
         help="the number of versions to fetch for each spec, choose 'all' to"
              " retrieve all versions of each package")
+    create_parser.add_argument(
+        '--public', action='store_true',
+        help="if this is a public mirror, avoid adding packages when"
+             " licensing prohibits it")
     arguments.add_common_arguments(create_parser, ['specs'])
 
     # Destroy
@@ -339,6 +343,16 @@ def _determine_specs_to_mirror(args):
         mirror_specs = list(
             x for x in mirror_specs
             if not any(x.satisfies(y, strict=True) for y in exclude_specs))
+    if args.public:
+        public_specs = list()
+        for spec in mirror_specs:
+            if spec.package.redistribute_source:
+                public_specs.append(spec)
+            else:
+                tty.debug("Skip adding {0} to mirror: the package.py file"
+                          " indicates that a public mirror should not contain"
+                          " it.".format(spec.name))
+        mirror_specs = public_specs
 
     return mirror_specs
 

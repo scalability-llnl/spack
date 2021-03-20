@@ -469,7 +469,19 @@ def test_log_pathname(test_stage, spec):
                         'test-{0}-out.txt'.format(TestSuite.test_pkg_id(spec)))
 
 
-class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
+class RedistributionMixin(object):
+    #: Whether it should be possible to add the source of this package to a
+    #: Spack mirror. This is only false when licensing for the package
+    #: implies that public mirrors should not redistribute its source code.
+    redistribute_source = True
+
+    #: Whether it should be possible to create a binary out of an installed
+    #: instance of this package.
+    redistribute_binary = True
+
+
+class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin,
+                                     RedistributionMixin, object)):
     """This is the superclass for all spack packages.
 
     ***The Package class***

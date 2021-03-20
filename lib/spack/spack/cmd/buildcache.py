@@ -83,6 +83,9 @@ def setup_parser(subparser):
                               ' its dependencies. Alternatively, one can'
                               ' decide to build a cache for only the package'
                               ' or only the dependencies'))
+    create.add_argument('--public', action='store_true',
+                        help="if this is a public mirror, avoid adding"
+                             " packages when licensing prohibits it")
     arguments.add_common_arguments(create, ['specs'])
     create.set_defaults(func=createtarball)
 
@@ -334,7 +337,8 @@ def match_downloaded_specs(pkgs, allow_multiple_matches=False, force=False,
 def _createtarball(env, spec_yaml=None, packages=None, add_spec=True,
                    add_deps=True, output_location=os.getcwd(),
                    signing_key=None, force=False, make_relative=False,
-                   unsigned=False, allow_root=False, rebuild_index=False):
+                   unsigned=False, allow_root=False, rebuild_index=False,
+                   public=False):
     if spec_yaml:
         with open(spec_yaml, 'r') as fd:
             yaml_text = fd.read()
@@ -408,6 +412,9 @@ def _createtarball(env, spec_yaml=None, packages=None, add_spec=True,
 
     tty.debug('writing tarballs to %s/build_cache' % outdir)
 
+    if public:
+        specs = _skip_no_redistribute_for_public(specs)
+
     for spec in specs:
         tty.debug('creating binary cache file for package %s ' % spec.format())
         try:
@@ -416,6 +423,22 @@ def _createtarball(env, spec_yaml=None, packages=None, add_spec=True,
                                   rebuild_index)
         except bindist.NoOverwriteException as e:
             tty.warn(e)
+
+
+def _skip_no_redistribute_for_public(specs):
+    remaining_specs = list()
+    removed_specs = list()
+    for spec in specs:
+        if spec.package.redistribute_binary:
+            remaining_specs.append(spec)
+        else:
+            removed_specs.append(spec)
+    if removed_specs:
+        tty.debug("The following specs will not be added to the binary cache"
+                  " because their package.py file has marked them as"
+                  " 'redistribute_binary = False': {0}"
+                  .format(', '.join(s.name for s in removed_specs)))
+    return remaining_specs
 
 
 def createtarball(args):
@@ -467,7 +490,7 @@ def createtarball(args):
                    output_location=output_location, signing_key=args.key,
                    force=args.force, make_relative=args.rel,
                    unsigned=args.unsigned, allow_root=args.allow_root,
-                   rebuild_index=args.rebuild_index)
+                   rebuild_index=args.rebuild_index, public=args.public)
 
 
 def installtarball(args):

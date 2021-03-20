@@ -95,7 +95,7 @@ def test_mirror_skip_unstable(tmpdir_factory, mock_packages, config,
 class MockMirrorArgs(object):
     def __init__(self, specs=None, all=False, file=None,
                  versions_per_spec=None, dependencies=False,
-                 exclude_file=None, exclude_specs=None):
+                 exclude_file=None, exclude_specs=None, public=False):
         self.specs = specs or []
         self.all = all
         self.file = file
@@ -103,6 +103,7 @@ class MockMirrorArgs(object):
         self.dependencies = dependencies
         self.exclude_file = exclude_file
         self.exclude_specs = exclude_specs
+        self.public = public
 
 
 def test_exclude_specs(mock_packages, config):
@@ -118,6 +119,18 @@ def test_exclude_specs(mock_packages, config):
                            ['mpich@3.0.1', 'mpich@3.0.2', 'mpich@1.0'])
     assert expected_include <= set(mirror_specs)
     assert (not expected_exclude & set(mirror_specs))
+
+
+def test_exclude_specs_public_mirror(mock_packages, config):
+    args = MockMirrorArgs(
+        specs=['no-redistribute-dependent'],
+        versions_per_spec='all',
+        dependencies=True,
+        public=True)
+
+    mirror_specs = spack.cmd.mirror._determine_specs_to_mirror(args)
+    assert not any(s.name == 'no-redistribute' for s in mirror_specs)
+    assert any(s.name == 'no-redistribute-dependent' for s in mirror_specs)
 
 
 def test_exclude_file(mock_packages, tmpdir, config):
