@@ -942,7 +942,10 @@ def environment_after_sourcing_files(*files, **kwargs):
             source_file, suppress_output,
             concatenate_on_success, dump_environment,
         ])
-        output = shell(source_file_arguments, output=str, env=environment)
+        output = shell(
+            source_file_arguments, output=str, env=environment,
+            warn_quotes=False
+        )
         environment = json.loads(output)
 
         # If we're in python2, convert to str objects instead of unicode

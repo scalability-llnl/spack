@@ -92,6 +92,8 @@ class Executable(object):
             ignore_errors (int or list): A list of error codes to ignore.
                 If these codes are returned, this process will not raise
                 an exception even if ``fail_on_error`` is set to ``True``
+            warn_quotes (bool): Warn if quotes are present in args. Default
+                ``True``
             input: Where to read stdin from
             output: Where to send stdout
             error: Where to send stderr
@@ -164,15 +166,18 @@ class Executable(object):
         estream, close_estream = streamify(error,  'w')
         istream, close_istream = streamify(input,  'r')
 
-        quoted_args = [arg for arg in args if re.search(r'^"|^\'|"$|\'$', arg)]
-        if quoted_args:
-            tty.warn(
-                "Quotes in command arguments can confuse scripts like"
-                " configure.",
-                "The following arguments may cause problems when executed:",
-                str("\n".join(["    " + arg for arg in quoted_args])),
-                "Quotes aren't needed because spack doesn't use a shell.",
-                "Consider removing them")
+        if kwargs.get('warn_quotes', True):
+            quoted_args = [
+                arg for arg in args if re.search(r'^"|^\'|"$|\'$', arg)]
+            if quoted_args:
+                tty.warn(
+                    "Quotes in command arguments can confuse scripts like"
+                    " configure.",
+                    "The following arguments may cause problems when"
+                    "  executed:",
+                    str("\n".join(["    " + arg for arg in quoted_args])),
+                    "Quotes aren't needed because spack doesn't use a shell.",
+                    "Consider removing them")
 
         cmd = self.exe + list(args)
 
