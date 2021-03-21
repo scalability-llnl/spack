@@ -139,6 +139,10 @@ class Paraview(CMakePackage, CudaPackage):
     # Can't contretize with python2 and py-pillow@7.0.0:
     depends_on('pil@:6', when='+python')
 
+    # paraview@5.9.0 is recommended when using the xl compiler
+    # See https://gitlab.kitware.com/paraview/paraview/-/merge_requests/4433
+    conflicts('paraview@:5.8', when='%xl_r', msg='Use paraview@5.9.0 with %xl_r. Earlier versions are not able to build with xl.')
+
     patch('stl-reader-pv440.patch', when='@4.4.0')
 
     # Broken gcc-detection - improved in 5.1.0, redundant later
@@ -155,6 +159,10 @@ class Paraview(CMakePackage, CudaPackage):
 
     # Broken downstream FindMPI
     patch('vtkm-findmpi-downstream.patch', when='@5.9.0')
+
+    # Patch for paraview 5.9.0%xl_r
+    # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/7591
+    patch('xlc-compilation-pv590.patch', when='@5.9.0%xl_r')
 
     def url_for_version(self, version):
         _urlfmt  = 'http://www.paraview.org/files/v{0}/ParaView-v{1}{2}.tar.{3}'

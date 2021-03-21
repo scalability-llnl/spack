@@ -1,0 +1,39 @@
+diff --git a/VTK/Common/DataModel/vtkStaticCellLinksTemplate.txx b/VTK/Common/DataModel/vtkStaticCellLinksTemplate.txx
+index 514c0ee..66edca2 100644
+--- a/VTK/Common/DataModel/vtkStaticCellLinksTemplate.txx
++++ b/VTK/Common/DataModel/vtkStaticCellLinksTemplate.txx
+@@ -356,7 +356,7 @@ void vtkStaticCellLinksTemplate<TIds>::ThreadedBuildLinks(
+
+   // Create an array of atomics with initial count=0. This will keep
+   // track of point uses. Count them in parallel.
+-  std::atomic<TIds>* counts = new std::atomic<TIds>[numPts] {};
++  std::atomic<TIds>* counts = new std::atomic<TIds>[numPts] ();
+   CountUses<TIds> count(cellArray, counts);
+   vtkSMPTools::For(0, numCells, count);
+
+diff --git a/VTK/Filters/Core/vtkBinnedDecimation.cxx b/VTK/Filters/Core/vtkBinnedDecimation.cxx
+index 0736c56..8403908 100644
+--- a/VTK/Filters/Core/vtkBinnedDecimation.cxx
++++ b/VTK/Filters/Core/vtkBinnedDecimation.cxx
+@@ -632,7 +632,7 @@ void BinPointsDecimate(int genMode, vtkIdType numPts, PointsT* pts, vtkPointData
+   // is a problem because a ptId can == zero; as a workaround, we'll
+   // initially use negative ids, and convert to positive ids in the
+   // final composition.
+-  std::atomic<TIds>* ptMap = new std::atomic<TIds>[numBins] {};
++  std::atomic<TIds>* ptMap = new std::atomic<TIds>[numBins] ();
+
+   // Is the triangle output? And eventually the offset into the output cell array.
+   TIds* triMap = new TIds[numTris + 1];
+diff --git a/VTK/Filters/Core/vtkWindowedSincPolyDataFilter.cxx b/VTK/Filters/Core/vtkWindowedSincPolyDataFilter.cxx
+index 15e47a1..7baef33 100644
+--- a/VTK/Filters/Core/vtkWindowedSincPolyDataFilter.cxx
++++ b/VTK/Filters/Core/vtkWindowedSincPolyDataFilter.cxx
+@@ -348,7 +348,7 @@ struct PointConnectivity : PointConnectivityBase
+     // accommodate more smoothing edges (although after a certain point,
+     // additional edges make little difference, especially at the cost of
+     // memory and speed).
+-    this->Offsets = new std::atomic<TIds>[this->NumPts + 1] {}; // Initialized to zero
++    this->Offsets = new std::atomic<TIds>[this->NumPts + 1] (); // Initialized to zero
+     this->Edges = nullptr;                                      // initially until constructed
+     this->EdgeCounts = new EDGE_COUNT_TYPE[this->NumPts];       // values set later
+   }
