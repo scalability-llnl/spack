@@ -83,7 +83,7 @@ class NaluWind(CMakePackage, CudaPackage):
     # FFTW doesn't have a 'shared' variant at this moment
     depends_on('fftw+mpi', when='+fftw')
 
-    depends_on('boost cxxstd=14', when='+boost')
+    depends_on('boost +filesystem +iostreams cxxstd=14', when='+boost')
 
     conflicts('+cuda', when='+shared')
 

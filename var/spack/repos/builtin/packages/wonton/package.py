@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Wonton(CMakePackage):
@@ -53,6 +54,11 @@ class Wonton(CMakePackage):
 
     # We need boost only when no thrust option
     depends_on('boost', when='~thrust')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, when='~thrust')
 
     # NVidia thrust library
     depends_on('thrust@1.8.3', when='+thrust')

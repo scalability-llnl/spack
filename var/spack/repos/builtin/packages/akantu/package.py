@@ -30,7 +30,6 @@ class Akantu(CMakePackage):
             description="Activates python bindings")
 
     depends_on('boost@:1.66', when='@:3.0.99')
-    depends_on('boost')
     depends_on('lapack')
     depends_on('cmake@3.5.1:', type='build')
     depends_on('python', when='+python', type=('build', 'run'))

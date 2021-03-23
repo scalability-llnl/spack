@@ -75,26 +75,10 @@ class Boost(Package):
     version('1.34.1', sha256='0f866c75b025a4f1340117a106595cc0675f48ba1e5a9b5c221ec7f19e96ec4c')
     version('1.34.0', sha256='455cb8fa41b759272768257c2e7bdc5c47ec113245dfa533f275e787a855efd2')
 
-    default_install_libs = set(['atomic',
-                                'chrono',
-                                'date_time',
-                                'exception',
-                                'filesystem',
-                                'graph',
-                                'iostreams',
-                                'locale',
-                                'log',
-                                'math',
-                                'program_options',
-                                'random',
-                                'regex',
-                                'serialization',
-                                'signals',
-                                'system',
-                                'test',
-                                'thread',
-                                'timer',
-                                'wave'])
+    with_default_variants = ("boost+atomic+chrono+date_time+exception+filesystem"
+                             "+graph+iostreams+locale+log+math+program_options"
+                             "+random+regex+serialization+signals+system+test"
+                             "+thread+timer+wave")
 
     # mpi/python are not installed by default because they pull in many
     # dependencies and/or because there is a great deal of customization
@@ -103,13 +87,37 @@ class Boost(Package):
     # Boost.Container can be both header-only and compiled. '+container'
     # indicates the compiled version which requires Extended Allocator
     # support. The header-only library is installed when no variant is given.
-    default_noinstall_libs\
-        = set(['container', 'context', 'coroutine', 'fiber', 'mpi', 'python'])
-
-    all_libs = default_install_libs | default_noinstall_libs
+    all_libs = [
+        'atomic',
+        'chrono',
+        'container',
+        'context',
+        'coroutine',
+        'date_time',
+        'exception',
+        'fiber',
+        'filesystem',
+        'graph',
+        'iostreams',
+        'locale',
+        'log',
+        'math',
+        'mpi',
+        'program_options',
+        'python',
+        'random',
+        'regex',
+        'serialization',
+        'signals',
+        'system',
+        'test',
+        'thread',
+        'timer',
+        'wave'
+    ]
 
     for lib in all_libs:
-        variant(lib, default=(lib not in default_noinstall_libs),
+        variant(lib, default=False,
                 description="Compile with {0} library".format(lib))
 
     @property

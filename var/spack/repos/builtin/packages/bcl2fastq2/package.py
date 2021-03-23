@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 import os
 import glob
 import llnl.util.tty as tty
@@ -26,6 +27,11 @@ class Bcl2fastq2(Package):
               msg='malloc.h/etc requirements break build on macs')
 
     depends_on('boost@1.54.0')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants)
     depends_on('cmake@2.8.9:', type='build')
     depends_on('libxml2@2.7.8')
     depends_on('libxslt@1.1.26~crypto')

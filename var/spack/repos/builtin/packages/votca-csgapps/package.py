@@ -5,6 +5,7 @@
 
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class VotcaCsgapps(CMakePackage):
@@ -33,4 +34,8 @@ class VotcaCsgapps(CMakePackage):
     for v in ["1.4", "1.4.1", "1.5", "1.5.1", "1.6", "1.6.1", "1.6.2",
               "1.6.3", "1.6.4"]:
         depends_on('votca-csg@%s' % v, when="@%s:%s.0" % (v, v))
-    depends_on("boost")
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants)

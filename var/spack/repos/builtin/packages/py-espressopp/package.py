@@ -5,6 +5,7 @@
 
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class PyEspressopp(CMakePackage):
@@ -28,6 +29,11 @@ class PyEspressopp(CMakePackage):
     depends_on("cmake@2.8:", type='build')
     depends_on("mpi")
     depends_on("boost+serialization+filesystem+system+python+mpi cxxstd=11", when='@1.9.4:')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, when='@1.9.4:')
     extends("python")
     depends_on("python@2:2.8")
     depends_on("py-mpi4py@2.0.0:", when='@1.9.4', type=('build', 'run'))

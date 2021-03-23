@@ -5,6 +5,7 @@
 
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Sympol(CMakePackage):
@@ -17,7 +18,11 @@ class Sympol(CMakePackage):
     depends_on("cmake@2.6:", type="build")
 
     depends_on("bliss")
-    depends_on("boost")
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants)
     depends_on("gmp")
     depends_on("lrslib")
 

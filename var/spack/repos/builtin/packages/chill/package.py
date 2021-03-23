@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Chill(AutotoolsPackage):
@@ -19,6 +20,11 @@ class Chill(AutotoolsPackage):
     version('0.3', sha256='574b622368a6bfaadbe9c1fa02fabefdc6c006069246f67d299f943b7e1d8aa3')
 
     depends_on('boost@1.66.0 cxxstd=11', type='build')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, type='build')
     depends_on('rose@0.9.13.0: +cxx11', type=('build', 'run'))
     depends_on('autoconf', type='build')
     depends_on('automake@1.14:',  type='build')

@@ -5,6 +5,7 @@
 
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Flann(CMakePackage):
@@ -66,6 +67,11 @@ class Flann(CMakePackage):
     # HDF5_IS_PARALLEL actually comes from hdf5+mpi
     # https://github.com/mariusmuja/flann/blob/06a49513138009d19a1f4e0ace67fbff13270c69/CMakeLists.txt#L108-L112
     depends_on("boost+mpi+system+serialization+thread", when="+mpi ^hdf5+mpi")
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, when="+mpi ^hdf5+mpi")
 
     # Doc deps
     depends_on("texlive", when="+doc")

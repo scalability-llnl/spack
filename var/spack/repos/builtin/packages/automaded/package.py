@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Automaded(CMakePackage):
@@ -24,7 +25,11 @@ class Automaded(CMakePackage):
     version('1.0', sha256='600740cdd594cc6968c7bcb285d0829eb0ddbd5597c32c06c6ae5d9929a2625d')
 
     depends_on('mpi')
-    depends_on('boost')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants)
     depends_on('callpath')
     depends_on('cmake@2.8:', type='build')
 

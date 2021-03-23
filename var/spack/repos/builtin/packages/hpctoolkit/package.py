@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 from spack.util.environment import SetEnv
 
 
@@ -70,6 +71,11 @@ class Hpctoolkit(AutotoolsPackage):
     depends_on('binutils +libiberty~nls', type='link', when='@2020.04:2020.99')
     depends_on('binutils@:2.33.1 +libiberty~nls', type='link', when='@:2020.03.99')
     depends_on('boost' + boost_libs)
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants)
     depends_on('bzip2+shared', type='link')
     depends_on('dyninst@10.2.0:', when='@2021.00:')
     depends_on('dyninst@9.3.2:', when='@:2020.99')

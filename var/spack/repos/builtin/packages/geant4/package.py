@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Geant4(CMakePackage):
@@ -94,6 +95,11 @@ class Geant4(CMakePackage):
         # Boost.python, conflict handled earlier
         depends_on('boost@1.70: +python cxxstd=' + std,
                    when='+python cxxstd=' + std)
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, when='+python')
 
     # Visualization driver dependencies
     depends_on("gl", when='+opengl')

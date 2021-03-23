@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Delly2(MakefilePackage):
@@ -18,7 +19,11 @@ class Delly2(MakefilePackage):
     version('2017-08-03', commit='e32a9cd55c7e3df5a6ae4a91f31a0deb354529fc')
 
     depends_on('htslib')
-    depends_on('boost')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants)
     depends_on('bcftools')
 
     def edit(self, spec, prefix):

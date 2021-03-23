@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 import os
 
 
@@ -20,7 +21,10 @@ class Paraver(Package):
     version('4.6.3', sha256='ac6025eec5419e1060967eab71dfd123e585be5b5f3ac3241085895dbeca255a')
     version('4.6.2', sha256='74b85bf9e6570001d372b376b58643526e349b1d2f1e7633ca38bb0800ecf929')
 
-    depends_on("boost")
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants)
     # depends_on("extrae")
     depends_on("wxwidgets")
     depends_on("wxpropgrid")

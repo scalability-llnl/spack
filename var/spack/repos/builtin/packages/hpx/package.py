@@ -83,6 +83,10 @@ class Hpx(CMakePackage, CudaPackage):
     # https://github.com/STEllAR-GROUP/hpx/issues/4728#issuecomment-640685308
     depends_on('boost@:1.72.0', when='@:1.4')
 
+    depends_on('boost+filesystem', when='cxxstd=11')
+    depends_on('boost+filesystem', when='cxxstd=14')
+    depends_on('boost+system+program_options+chrono+date_time+log+regex+thread')
+
     # COROUTINES
     # ~generic_coroutines conflict is not fully implemented
     # for additional information see:

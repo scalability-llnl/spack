@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Dimemas(AutotoolsPackage):
@@ -22,6 +23,11 @@ class Dimemas(AutotoolsPackage):
     depends_on('bison', type=('build', 'link', 'run'))
     depends_on('flex', type=('build', 'link', 'run'))
     depends_on('boost@1.65.0+program_options cxxstd=11', type=('build', 'link'))
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, type=('build', 'link'))
 
     def autoreconf(self, spec, prefix):
         autoreconf('--install', '--verbose', '--force')

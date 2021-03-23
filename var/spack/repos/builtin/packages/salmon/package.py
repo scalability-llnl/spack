@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.pkg.builtin.boost import Boost
+
 
 class Salmon(CMakePackage):
     """Salmon is a tool for quantifying the expression of transcripts using
@@ -23,7 +25,17 @@ class Salmon(CMakePackage):
 
     depends_on('tbb')
     depends_on('boost@:1.66.0', when='@:0.14.1')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, when='@:0.14.1')
     depends_on('boost@1.72.0', when='@1.4.0')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, when='@1.4.0')
     depends_on('cereal')
     depends_on('jemalloc')
     depends_on('xz')

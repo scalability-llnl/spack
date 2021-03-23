@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Caffe(CMakePackage):
@@ -33,8 +34,12 @@ class Caffe(CMakePackage):
     variant('matlab', default=False,
             description='Build Matlab wrapper')
 
-    depends_on('boost')
     depends_on('boost +python', when='+python')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, when='+python')
     depends_on('cuda', when='+cuda')
     depends_on('blas')
     depends_on('protobuf')
