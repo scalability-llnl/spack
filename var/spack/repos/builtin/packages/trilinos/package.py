@@ -909,13 +909,18 @@ class Trilinos(CMakePackage, CudaPackage):
         # run-time error: Symbol not found: _PyBool_Type and prevents
         # Trilinos to be used in any C++ code, which links executable
         # against the libraries listed in Trilinos_LIBRARIES.  See
-        # https://github.com/Homebrew/homebrew-science/issues/2148#issuecomment-103614509
-        # A workaround is to remove PyTrilinos from the COMPONENTS_LIST :
+        # https://github.com/trilinos/Trilinos/issues/569 and
+        # https://github.com/trilinos/Trilinos/issues/866
+        # A workaround is to remove PyTrilinos from the COMPONENTS_LIST
+        # and to remove -lpytrilonos from Makefile.export.Trilinos
         if '+python' in self.spec:
             filter_file(r'(SET\(COMPONENTS_LIST.*)(PyTrilinos;)(.*)',
                         (r'\1\3'),
                         '%s/cmake/Trilinos/TrilinosConfig.cmake' %
                         self.prefix.lib)
+            filter_file(r'-lpytrilinos', '',
+                        '%s/Makefile.export.Trilinos' %
+                        self.prefix.include)
 
     def setup_run_environment(self, env):
         if '+exodus' in self.spec:
