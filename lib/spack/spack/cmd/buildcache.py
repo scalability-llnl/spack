@@ -769,24 +769,28 @@ def buildcache_copy(args):
         shutil.copyfile(cdashid_src_path, cdashid_dest_path)
 
 
+def update_index(mirror_url, update_keys=False):
+    mirror = spack.mirror.MirrorCollection().lookup(mirror_url)
+    outdir = url_util.format(mirror.push_url)
+
+    bindist.generate_package_index(
+        url_util.join(outdir, bindist.build_cache_relative_path()))
+
+    if update_keys:
+        keys_url = url_util.join(outdir,
+                                 bindist.build_cache_relative_path(),
+                                 bindist.build_cache_keys_relative_path())
+
+        bindist.generate_key_index(keys_url)
+
+
 def buildcache_update_index(args):
     """Update a buildcache index."""
     outdir = '.'
     if args.mirror_url:
         outdir = args.mirror_url
 
-    mirror = spack.mirror.MirrorCollection().lookup(outdir)
-    outdir = url_util.format(mirror.push_url)
-
-    bindist.generate_package_index(
-        url_util.join(outdir, bindist.build_cache_relative_path()))
-
-    if args.keys:
-        keys_url = url_util.join(outdir,
-                                 bindist.build_cache_relative_path(),
-                                 bindist.build_cache_keys_relative_path())
-
-        bindist.generate_key_index(keys_url)
+    update_index(outdir, update_keys=args.keys)
 
 
 def buildcache(parser, args):

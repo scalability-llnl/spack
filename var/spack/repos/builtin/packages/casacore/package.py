@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+import os
 
 
 class Casacore(CMakePackage):
@@ -14,6 +15,7 @@ class Casacore(CMakePackage):
 
     maintainers = ['mpokorny']
 
+    version('3.4.0', sha256='31f02ad2e26f29bab4a47a2a69e049d7bc511084a0b8263360e6157356f92ae1')
     version('3.3.0', sha256='3a714644b908ef6e81489b792cc9b80f6d8267a275e15d38a42a6a5137d39d3d')
     version('3.2.0', sha256='ae5d3786cb6dfdd7ebc5eecc0c724ff02bbf6929720bc23be43a027978e79a5f')
     version('3.1.2', sha256='ac94f4246412eb45d503f1019cabe2bb04e3861e1f3254b832d9b1164ea5f281')
@@ -22,12 +24,14 @@ class Casacore(CMakePackage):
     version('3.0.0', sha256='6f0e68fd77b5c96299f7583a03a53a90980ec347bff9dfb4c0abb0e2933e6bcb')
     version('2.4.1', sha256='58eccc875053b2c6fe44fe53b6463030ef169597ec29926936f18d27b5087d63')
 
+    depends_on('cmake@3.7.1:', type='build')
+
     variant('openmp', default=False, description='Build OpenMP support')
     variant('shared', default=True, description='Build shared libraries')
     variant('readline', default=True, description='Build readline support')
     # see note below about the reason for disabling the "sofa" variant
     # variant('sofa', default=False, description='Build SOFA support')
-    variant('fftw', default=False, description='Build FFTW3 support')
+    variant('fftw', default=True, description='Build FFTW3 support')
     variant('hdf5', default=False, description='Build HDF5 support')
     variant('python', default=False, description='Build python support')
 
@@ -42,7 +46,7 @@ class Casacore(CMakePackage):
     depends_on('bison', type='build')
     depends_on('blas')
     depends_on('lapack')
-    depends_on('cfitsio@3.181:')
+    depends_on('cfitsio')
     depends_on('wcslib@4.20:+cfitsio')
     depends_on('fftw@3.0.0:~mpi precision=float,double', when='+fftw')
     # SOFA dependency suffers the same problem in CMakeLists.txt as readline;
@@ -61,15 +65,27 @@ class Casacore(CMakePackage):
         args.append(self.define_from_variant('USE_OPENMP', 'openmp'))
         args.append(self.define_from_variant('USE_READLINE', 'readline'))
         args.append(self.define_from_variant('USE_HDF5', 'hdf5'))
-        args.append(self.define_from_variant('USE_FFTW3', 'fftw'))
+
+        # fftw3 is used by casacore as the default starting with
+        # v3.4.0 (although we use fftw3 by default in this Spack
+        # package), but the old fftpack is still available
+        if spec.satisfies('@3.4.0:'):
+            if spec.satisfies('~fftw'):
+                args.append('-DBUILD_FFTPACK_DEPRECATED=YES')
+        else:
+            args.append(self.define_from_variant('USE_FFTW3', 'fftw'))
 
         # Python2 and Python3 binding
-        if '+python' not in spec:
+        if spec.satisfies('~python'):
             args.extend(['-DBUILD_PYTHON=NO', '-DBUILD_PYTHON3=NO'])
-        elif spec['python'].version >= Version('3.0.0'):
+        elif spec.satisfies('^python@3.0.0:'):
             args.extend(['-DBUILD_PYTHON=NO', '-DBUILD_PYTHON3=YES'])
         else:
             args.extend(['-DBUILD_PYTHON=YES', '-DBUILD_PYTHON3=NO'])
 
         args.append('-DBUILD_TESTING=OFF')
         return args
+
+    def patch(self):
+        # Rely on CMake ability to find hdf5, available since CMake 3.7.X
+        os.remove('cmake/FindHDF5.cmake')

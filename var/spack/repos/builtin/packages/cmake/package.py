@@ -18,11 +18,15 @@ class Cmake(Package):
 
     executables = ['^cmake$']
 
+    version('3.19.7',   sha256='58a15f0d56a0afccc3cc5371234fce73fcc6c8f9dbd775d898e510b83175588e')
+    version('3.19.6',   sha256='ec87ab67c45f47c4285f204280c5cde48e1c920cfcfed1555b27fb3b1a1d20ba')
+    version('3.19.5',   sha256='c432296eb5dec6d71eae15d140f6297d63df44e9ffe3e453628d1dc8fc4201ce')
     version('3.19.4',   sha256='7d0232b9f1c57e8de81f38071ef8203e6820fe7eec8ae46a1df125d88dbcc2e1')
     version('3.19.3',   sha256='3faca7c131494a1e34d66e9f8972ff5369e48d419ea8ceaa3dc15b4c11367732')
     version('3.19.2',   sha256='e3e0fd3b23b7fb13e1a856581078e0776ffa2df4e9d3164039c36d3315e0c7f0')
     version('3.19.1',   sha256='1d266ea3a76ef650cdcf16c782a317cb4a7aa461617ee941e389cb48738a3aba')
     version('3.19.0',   sha256='fdda688155aa7e72b7c63ef6f559fca4b6c07382ea6dca0beb5f45aececaf493')
+    version('3.18.6',   sha256='124f571ab70332da97a173cb794dfa09a5b20ccbb80a08e56570a500f47b6600')
     version('3.18.5',   sha256='080bf24b0f73f4bf3ec368d2be1aa59369b9bb1cd693deeb6f18fe553ca74ab4')
     version('3.18.4',   sha256='597c61358e6a92ecbfad42a9b5321ddd801fc7e7eca08441307c9138382d4f77')
     version('3.18.3',   sha256='2c89f4e30af4914fd6fb5d00f863629812ada848eee4e2d29ec7e456d7fa32e5')
@@ -100,6 +104,10 @@ class Cmake(Package):
     version('3.1.0',    sha256='8bdc3fa3f2da81bc10c772a6b64cc9052acc2901d42e1e1b2588b40df224aad9')
     version('3.0.2',    sha256='6b4ea61eadbbd9bec0ccb383c29d1f4496eacc121ef7acf37c7a24777805693e')
     version('2.8.10.2', sha256='ce524fb39da06ee6d47534bbcec6e0b50422e18b62abc4781a4ba72ea2910eb1')
+
+    variant('build_type', default='Release',
+            description='CMake build type',
+            values=('Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel'))
 
     # Revert the change that introduced a regression when parsing mpi link
     # flags, see: https://gitlab.kitware.com/cmake/cmake/issues/19516
@@ -181,6 +189,13 @@ class Cmake(Package):
     # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5025
     patch('pgi-cxx-ansi.patch', when='@3.15:3.18.99')
 
+    # Adds CCE v11+ fortran preprocessing definition.
+    # requires Cmake 3.19+
+    # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5882
+    patch('5882-enable-cce-fortran-preprocessing.patch',
+          sha256='b48396c0e4f61756248156b6cebe9bc0d7a22228639b47b5aa77c9330588ce88',
+          when='@3.19.0:3.19.99')
+
     conflicts('+qt', when='^qt@5.4.0')  # qt-5.4.0 has broken CMake modules
 
     # https://gitlab.kitware.com/cmake/cmake/issues/18166
@@ -238,8 +253,8 @@ class Cmake(Package):
         # Now for CMake arguments to pass after the initial bootstrap
         args.append('--')
 
-        # Make sure to create an optimized release build
-        args.append('-DCMAKE_BUILD_TYPE=Release')
+        args.append('-DCMAKE_BUILD_TYPE={0}'.format(
+            self.spec.variants['build_type'].value))
 
         # Install CMake correctly, even if `spack install` runs
         # inside a ctest environment

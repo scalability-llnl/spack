@@ -28,6 +28,7 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
 
     # The latest stable version is the 1.1.1 series. This is also our Long Term
     # Support (LTS) version, supported until 11th September 2023.
+    version('1.1.1j', sha256='aaf2fcb575cdf6491b98ab4829abf78a3dec8402b8b81efc8f23c00d443981bf')
     version('1.1.1i', sha256='e8be6a35fe41d10603c3cc635e93289ed00bf34b79671a3a4de64fcee00d5242')
     version('1.1.1h', sha256='5c9ca8774bd7b03e5784f26ae9e9e6d749c9da2438545077e6b3d755a06595d9')
     version('1.1.1g', sha256='ddb04774f1e32f0c49751e21b67216ac87852ceb056b75209af2443400636d46')
@@ -75,6 +76,7 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
     version('1.0.1e', sha256='f74f15e8c8ff11aa3d5bb5f276d202ec18d7246e95f961db76054199c69c1ae3', deprecated=True)
 
     variant('systemcerts', default=True, description='Use system certificates')
+    variant('docs', default=False, description='Install docs and manpages')
 
     depends_on('zlib')
 
@@ -136,8 +138,10 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
         if self.run_tests:
             make('test', parallel=False)  # 'VERBOSE=1'
 
+        install_tgt = 'install' if self.spec.satisfies('+docs') else 'install_sw'
+
         # See https://github.com/openssl/openssl/issues/7466#issuecomment-432148137
-        make('install', parallel=False)
+        make(install_tgt, parallel=False)
 
     @run_after('install')
     def link_system_certs(self):
@@ -155,6 +159,8 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
 
         pkg_dir = join_path(self.prefix, 'etc', 'openssl')
 
+        mkdirp(pkg_dir)
+
         for directory in system_dirs:
             sys_cert = join_path(directory, 'cert.pem')
             pkg_cert = join_path(pkg_dir, 'cert.pem')
@@ -169,7 +175,8 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
             # We symlink the whole directory instead of all files because
             # the directory contents might change without Spack noticing.
             if os.path.isdir(sys_certs) and not os.path.islink(pkg_certs):
-                os.rmdir(pkg_certs)
+                if os.path.isdir(pkg_certs):
+                    os.rmdir(pkg_certs)
                 os.symlink(sys_certs, pkg_certs)
 
     def patch(self):

@@ -985,6 +985,74 @@ class TestSpecSematics(object):
         assert 'avx512' not in spec.target
         assert spec.target < 'broadwell'
 
+    @pytest.mark.parametrize('transitive', [True, False])
+    def test_splice(self, transitive):
+        # Tests the new splice function in Spec using a somewhat simple case
+        # with a variant with a conditional dependency.
+        # TODO: Test being able to splice in different provider for a virtual.
+        # Example: mvapich for mpich.
+        spec = Spec('splice-t')
+        dep = Spec('splice-h+foo')
+        spec.concretize()
+        dep.concretize()
+        # Sanity checking that these are not the same thing.
+        assert dep.dag_hash() != spec['splice-h'].dag_hash()
+        assert dep.build_hash() != spec['splice-h'].build_hash()
+        # Do the splice.
+        out = spec.splice(dep, transitive)
+        # Returned spec should still be concrete.
+        assert out.concrete
+        # Traverse the spec and assert that all dependencies are accounted for.
+        for node in spec.traverse():
+            assert node.name in out
+        # If the splice worked, then the full hash of the spliced dep should
+        # now match the full hash of the build spec of the dependency from the
+        # returned spec.
+        out_h_build = out['splice-h'].build_spec
+        assert out_h_build.full_hash() == dep.full_hash()
+        # Transitivity should determine whether the transitive dependency was
+        # changed.
+        expected_z = dep['splice-z'] if transitive else spec['splice-z']
+        assert out['splice-z'].full_hash() == expected_z.full_hash()
+        # Sanity check build spec of out should be the original spec.
+        assert (out['splice-t'].build_spec.full_hash() ==
+                spec['splice-t'].full_hash())
+        # Finally, the spec should know it's been spliced:
+        assert out.spliced
+
+    @pytest.mark.parametrize('transitive', [True, False])
+    def test_splice_input_unchanged(self, transitive):
+        spec = Spec('splice-t').concretized()
+        dep = Spec('splice-h+foo').concretized()
+        orig_spec_hash = spec.full_hash()
+        orig_dep_hash = dep.full_hash()
+        spec.splice(dep, transitive)
+        # Post-splice, dag hash should still be different; no changes should be
+        # made to these specs.
+        assert spec.full_hash() == orig_spec_hash
+        assert dep.full_hash() == orig_dep_hash
+
+    @pytest.mark.parametrize('transitive', [True, False])
+    def test_splice_subsequent(self, transitive):
+        spec = Spec('splice-t')
+        dep = Spec('splice-h+foo')
+        spec.concretize()
+        dep.concretize()
+        out = spec.splice(dep, transitive)
+        # Now we attempt a second splice.
+        dep = Spec('splice-z+bar')
+        dep.concretize()
+        # Transitivity shouldn't matter since Splice Z has no dependencies.
+        out2 = out.splice(dep, transitive)
+        assert out2.concrete
+        assert out2['splice-z'].build_hash() != spec['splice-z'].build_hash()
+        assert out2['splice-z'].build_hash() != out['splice-z'].build_hash()
+        assert out2['splice-z'].full_hash() != spec['splice-z'].full_hash()
+        assert out2['splice-z'].full_hash() != out['splice-z'].full_hash()
+        assert (out2['splice-t'].build_spec.full_hash() ==
+                spec['splice-t'].full_hash())
+        assert out2.spliced
+
     @pytest.mark.parametrize('spec,constraint,expected_result', [
         ('libelf target=haswell', 'target=broadwell', False),
         ('libelf target=haswell', 'target=haswell', True),

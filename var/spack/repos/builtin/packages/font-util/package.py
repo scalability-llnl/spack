@@ -75,7 +75,7 @@ class FontUtil(AutotoolsPackage, XorgPackage):
         conflicts('fonts=font-bh-ttf', when='platform=cray')
         conflicts('fonts=font-bh-ttf', when='arch=linux-rhel7-broadwell')
 
-        if f != 'font-bh-tff':
+        if f != 'font-bh-ttf':
             default_fonts.append(f)
 
         fonts.append(f)

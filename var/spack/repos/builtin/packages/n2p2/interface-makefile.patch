@@ -1,0 +1,18 @@
+--- a/src/interface/makefile
++++ b/src/interface/makefile
+@@ -45,10 +45,11 @@ lammps-nnp:
+ 	tar -xzf $(LAMMPS_VERSION).tar.gz && mv lammps-$(LAMMPS_VERSION) lammps-nnp
+ 	ln -s $(PROJECT_DIR)/../../ lammps-nnp/lib/nnp
+ 	cp -r ./LAMMPS/src/USER-NNP lammps-nnp/src/
+-	sed -i "s/^CC .*$$/CC      =       $(PROJECT_MPICC)/" lammps-nnp/src/MAKE/Makefile.mpi
+-	sed -i "s/^CCFLAGS .*$$/CCFLAGS =       $(PROJECT_CFLAGS) $(PROJECT_CFLAGS_MPI)/" lammps-nnp/src/MAKE/Makefile.mpi
+-	sed -i "s/^LINK .*$$/LINK =          $(PROJECT_MPICC)/" lammps-nnp/src/MAKE/Makefile.mpi
+-	sed -i "s/^LINKFLAGS .*$$/LINKFLAGS =     $(PROJECT_CFLAGS) $(PROJECT_CFLAGS_MPI)/" lammps-nnp/src/MAKE/Makefile.mpi
++	sed -i "s/final(/final2(/g" lammps-nnp/src/hashlittle.cpp
++	sed -i "s|^CC .*$$|CC      =       $(PROJECT_MPICC)|" lammps-nnp/src/MAKE/Makefile.mpi
++	sed -i "s|^CCFLAGS .*$$|CCFLAGS =       $(PROJECT_CFLAGS) $(PROJECT_CFLAGS_MPI)|" lammps-nnp/src/MAKE/Makefile.mpi
++	sed -i "s|^LINK .*$$|LINK =          $(PROJECT_MPICC)|" lammps-nnp/src/MAKE/Makefile.mpi
++	sed -i "s|^LINKFLAGS .*$$|LINKFLAGS =     $(PROJECT_CFLAGS) $(PROJECT_CFLAGS_MPI)|" lammps-nnp/src/MAKE/Makefile.mpi
+ 	if [ "$(MODE)" = "test" ]; then \
+ 		sed -i "/^CCFLAGS =/   s/$$/ $(PROJECT_DEBUG) $(PROJECT_TEST)/" lammps-nnp/src/MAKE/Makefile.mpi; \
+ 		sed -i "/^LINKFLAGS =/ s/$$/ $(PROJECT_DEBUG) $(PROJECT_TEST)/" lammps-nnp/src/MAKE/Makefile.mpi; \

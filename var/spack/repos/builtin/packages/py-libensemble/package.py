@@ -46,7 +46,7 @@ class PyLibensemble(PythonPackage):
     depends_on('py-mpi4py@2.0:', type=('build', 'run'), when='+mpi')
     depends_on('py-scipy', type=('build', 'run'), when='+scipy')
     depends_on('py-petsc4py', type=('build', 'run'), when='+petsc4py')
-    depends_on('py-petsc4py@develop', type=('build', 'run'), when='@develop+petsc4py')
+    depends_on('py-petsc4py@main', type=('build', 'run'), when='@develop+petsc4py')
     depends_on('nlopt', type=('build', 'run'), when='+nlopt')
     depends_on('py-mpmath', type=('build', 'run'), when='+mpmath')
     depends_on('py-deap', type=('build', 'run'), when='+deap')

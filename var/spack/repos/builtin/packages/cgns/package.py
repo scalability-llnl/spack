@@ -16,6 +16,8 @@ class Cgns(CMakePackage):
     url      = "https://github.com/CGNS/CGNS/archive/v3.3.0.tar.gz"
     git      = "https://github.com/CGNS/CGNS"
 
+    parallel = False
+
     version('develop', branch='develop')
     version('master',  branch='master')
     version('4.1.1',   sha256='055d345c3569df3ae832fb2611cd7e0bc61d56da41b2be1533407e949581e226')

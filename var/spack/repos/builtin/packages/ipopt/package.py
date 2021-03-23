@@ -30,13 +30,18 @@ class Ipopt(AutotoolsPackage):
             description="Build with METIS partitioning support")
     variant('debug', default=False,
             description="Build debug instead of optimized version")
+    variant('mumps', default=True,
+            description='Build with support for linear solver MUMPS')
 
     depends_on("blas")
     depends_on("lapack")
     depends_on("pkgconfig", type='build')
-    depends_on("mumps+double~mpi")
+    depends_on("mumps+double~mpi", when='+mumps')
     depends_on('coinhsl', when='+coinhsl')
     depends_on('metis@4.0:', when='+metis')
+
+    # Must have at least one linear solver available!
+    conflicts('~mumps', when='~coinhsl')
 
     patch('ipopt_ppc_build.patch', when='arch=ppc64le')
 
@@ -51,20 +56,12 @@ class Ipopt(AutotoolsPackage):
         # Dependency directories
         blas_dir = spec['blas'].prefix
         lapack_dir = spec['lapack'].prefix
-        mumps_dir = spec['mumps'].prefix
-
-        # Add directory with fake MPI headers in sequential MUMPS
-        # install to header search path
-        mumps_flags = "-ldmumps -lmumps_common -lpord -lmpiseq"
-        mumps_libcmd = "-L%s " % mumps_dir.lib + mumps_flags
 
         blas_lib = spec['blas'].libs.ld_flags
         lapack_lib = spec['lapack'].libs.ld_flags
 
         args = [
             "--prefix=%s" % self.prefix,
-            "--with-mumps-incdir=%s" % mumps_dir.include,
-            "--with-mumps-lib=%s" % mumps_libcmd,
             "--enable-shared",
             "coin_skip_warn_cxxflags=yes",
             "--with-blas-incdir=%s" % blas_dir.include,
@@ -72,6 +69,16 @@ class Ipopt(AutotoolsPackage):
             "--with-lapack-incdir=%s" % lapack_dir.include,
             "--with-lapack-lib=%s" % lapack_lib
         ]
+
+        if '+mumps' in spec:
+            # Add directory with fake MPI headers in sequential MUMPS
+            # install to header search path
+            mumps_dir = spec['mumps'].prefix
+            mumps_flags = "-ldmumps -lmumps_common -lpord -lmpiseq"
+            mumps_libcmd = "-L%s " % mumps_dir.lib + mumps_flags
+            args.extend([
+                "--with-mumps-incdir=%s" % mumps_dir.include,
+                "--with-mumps-lib=%s" % mumps_libcmd])
 
         if 'coinhsl' in spec:
             args.extend([

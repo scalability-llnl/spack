@@ -69,7 +69,7 @@ class Channelflow(CMakePackage):
         }
 
         args.append('-DWITH_NETCDF:STRING={0}'.format(
-            netcdf_str[spec.variants['netcdf-c'].value]
+            netcdf_str[spec.variants['netcdf'].value]
         ))
 
         # Set an MPI compiler for parallel builds

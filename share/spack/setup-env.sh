@@ -303,12 +303,12 @@ _spack_pathadd PATH "${_sp_prefix%/}/bin"
 # Check whether a function of the given name is defined
 #
 _spack_fn_exists() {
-	LANG= type $1 2>&1 | grep -q 'function'
+    LANG= type $1 2>&1 | grep -q 'function'
 }
 
 need_module="no"
 if ! _spack_fn_exists use && ! _spack_fn_exists module; then
-	need_module="yes"
+    need_module="yes"
 fi;
 
 # Define the spack shell function with some informative no-ops, so when users
@@ -325,6 +325,14 @@ if [ "$_sp_shell" = bash ]; then
     export -f spack
     export -f _spack_shell_wrapper
 fi
+
+# Identify and lock the python interpreter
+for cmd in "${SPACK_PYTHON:-}" python3 python python2; do
+    if command -v > /dev/null "$cmd"; then
+        export SPACK_PYTHON="$(command -v "$cmd")"
+        break
+    fi
+done
 
 #
 # make available environment-modules

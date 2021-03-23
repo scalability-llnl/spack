@@ -18,3 +18,11 @@ class RV8(RPackage):
     depends_on('r-curl@1.0:', type=('build', 'run'))
     depends_on('r-jsonlite@1.0:', type=('build', 'run'))
     depends_on('r-rcpp@0.12.12:', type=('build', 'run'))
+
+    conflicts('@3.4.0', when='target=aarch64:')
+
+    def setup_build_environment(self, env):
+        spec = self.spec
+        if ((spec.platform == 'darwin') or
+            (spec.platform == 'linux' and spec.target.family == 'x86_64')):
+            env.append_flags('DOWNLOAD_STATIC_LIBV8', '1')

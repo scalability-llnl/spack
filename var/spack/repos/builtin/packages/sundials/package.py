@@ -8,7 +8,7 @@ import os
 import sys
 
 
-class Sundials(CMakePackage):
+class Sundials(CMakePackage, CudaPackage, ROCmPackage):
     """SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
     Solvers)"""
 
@@ -73,8 +73,6 @@ class Sundials(CMakePackage):
             description='Enable OpenMP parallel vector')
     variant('pthread', default=False,
             description='Enable Pthreads parallel vector')
-    variant('cuda',    default=False,
-            description='Enable CUDA vector and solvers')
     variant('raja',    default=False,
             description='Enable RAJA vector')
 
@@ -107,18 +105,8 @@ class Sundials(CMakePackage):
             description='Enable Fortran 2003 interface')
 
     # Examples
-    variant('examples-c',       default=True,
-            description='Enable C examples')
-    variant('examples-cxx',     default=False,
-            description='Enable C++ examples')
-    variant('examples-f77',     default=True,
-            description='Enable Fortran 77 examples')
-    variant('examples-f90',     default=False,
-            description='Enable Fortran 90 examples')
-    variant('examples-f2003',   default=False,
-            description='Enable Fortran 2003 examples')
-    variant('examples-cuda',    default=False,
-            description='Enable CUDA examples')
+    variant('examples',         default=True,
+            description='Enable examples')
     variant('examples-install', default=True,
             description='Install examples')
 
@@ -134,19 +122,16 @@ class Sundials(CMakePackage):
     # Conflicts
     # ==========================================================================
 
-    # Options added after v2.6.2
-    conflicts('+hypre', when='@:2.6.2')
-    conflicts('+petsc', when='@:2.6.2')
-
-    # Options added after v2.7.0
+    conflicts('+hypre',         when='@:2.6.2')
+    conflicts('+petsc',         when='@:2.6.2')
     conflicts('+cuda',          when='@:2.7.0')
     conflicts('+raja',          when='@:2.7.0')
     conflicts('~int64',         when='@:2.7.0')
-    conflicts('+examples-cuda', when='@:2.7.0')
     conflicts('+superlu-dist',  when='@:4.1.0')
     conflicts('+f2003',         when='@:4.1.0')
     conflicts('+trilinos',      when='@:4.1.0')
     conflicts('+monitoring',    when='@:5.5.0')
+    conflicts('+rocm',          when='@:5.6.0')
 
     # External libraries incompatible with 64-bit indices
     conflicts('+lapack', when='@3.0.0: +int64')
@@ -172,7 +157,7 @@ class Sundials(CMakePackage):
     # ==========================================================================
 
     # Build dependencies
-    depends_on('cmake@3.5:', type='build')
+    depends_on('cmake@3.12:', type='build')
 
     # MPI related dependencies
     depends_on('mpi', when='+mpi')
@@ -181,14 +166,13 @@ class Sundials(CMakePackage):
     depends_on('mpi', when='+superlu-dist')
 
     # Other parallelism dependencies
-    depends_on('cuda', when='+cuda')
-    depends_on('raja +cuda ~openmp', when='+raja')
+    depends_on('raja', when='+raja')
 
     # External libraries
     depends_on('lapack',              when='+lapack')
     depends_on('suite-sparse',        when='+klu')
-    depends_on('petsc +mpi',          when='+petsc')
-    depends_on('hypre +mpi',          when='+hypre')
+    depends_on('petsc+mpi',           when='+petsc')
+    depends_on('hypre+mpi',           when='+hypre')
     depends_on('superlu-dist@6.1.1:', when='@:5.4.0 +superlu-dist')
     depends_on('superlu-dist@6.3.0:', when='@5.5.0: +superlu-dist')
     depends_on('trilinos+tpetra',     when='+trilinos')
@@ -215,6 +199,7 @@ class Sundials(CMakePackage):
     patch('test_nvector_parhyp.patch', when='@2.7.0:3.0.0')
     patch('FindPackageMultipass.cmake.patch', when='@5.0.0')
     patch('5.5.0-xsdk-patches.patch', when='@5.5.0')
+    patch('0001-add-missing-README-to-examples-cvode-hip.patch', when='@5.6.0:5.7.0')
 
     # ==========================================================================
     # SUNDIALS Settings
@@ -279,19 +264,41 @@ class Sundials(CMakePackage):
         args.extend([
             '-DMPI_ENABLE=%s'     % on_off('+mpi'),
             '-DOPENMP_ENABLE=%s'  % on_off('+openmp'),
-            '-DPTHREAD_ENABLE=%s' % on_off('+pthread'),
-            '-DCUDA_ENABLE=%s'    % on_off('+cuda')
+            '-DPTHREAD_ENABLE=%s' % on_off('+pthread')
         ])
+
+        if '+cuda' in spec:
+            args.append('-DCUDA_ENABLE=ON')
+            archs = spec.variants['cuda_arch'].value
+            if archs != 'none':
+                arch_str = ",".join(archs)
+            args.append('CMAKE_CUDA_ARCHITECTURES=%s' % arch_str)
+        else:
+            args.append('-DCUDA_ENABLE=OFF')
+
+        if '+rocm' in spec:
+            args.extend([
+                '-DCMAKE_CXX_COMPILER=%s' % spec['hip'].hipcc,
+                '-DENABLE_HIP=ON',
+                '-DHIP_PATH=%s' % spec['hip'].prefix,
+                '-DHIP_CLANG_INCLUDE_PATH=%s/include' % spec['llvm-amdgpu'].prefix,
+                '-DROCM_PATH=%s' % spec['llvm-amdgpu'].prefix
+            ])
+            archs = spec.variants['amdgpu_target'].value
+            if archs != 'none':
+                arch_str = ",".join(archs)
+            args.append('-DAMDGPU_TARGETS=%s' % arch_str)
+        else:
+            args.append('-DENABLE_HIP=OFF')
 
         # MPI support
         if '+mpi' in spec:
-            args.extend(['-DMPI_MPICC=%s' % spec['mpi'].mpicc])
-            if 'examples-cxx' in spec:
-                args.extend(['-DMPI_MPICXX=%s' % spec['mpi'].mpicxx])
-            if ('+fcmix' in spec) and ('+examples-f77' in spec):
-                args.extend(['-DMPI_MPIF77=%s' % spec['mpi'].mpif77])
-            if ('+fcmix' in spec) and ('+examples-f90' in spec):
-                args.extend(['-DMPI_MPIF90=%s' % spec['mpi'].mpifc])
+            args.extend([
+                '-DMPI_MPICC=%s' % spec['mpi'].mpicc,
+                '-DMPI_MPICXX=%s' % spec['mpi'].mpicxx,
+                '-DMPI_MPIF77=%s' % spec['mpi'].mpif77,
+                '-DMPI_MPIF90=%s' % spec['mpi'].mpifc
+            ])
 
         # Building with Hypre
         if '+hypre' in spec:
@@ -414,20 +421,18 @@ class Sundials(CMakePackage):
         # Examples
         if spec.satisfies('@3.0.0:'):
             args.extend([
-                '-DEXAMPLES_ENABLE_C=%s'      % on_off('+examples-c'),
-                '-DEXAMPLES_ENABLE_CXX=%s'    % on_off('+examples-cxx'),
-                '-DEXAMPLES_ENABLE_F77=%s'    % on_off('+examples-f77'),
-                '-DEXAMPLES_ENABLE_F90=%s'    % on_off('+examples-f90'),
-                '-DEXAMPLES_ENABLE_F2003=%s'  % on_off('+examples-f2003'),
-                '-DEXAMPLES_ENABLE_CUDA=%s'   % on_off('+examples-cuda'),
-                # option removed in 5.0.0
-                '-DEXAMPLES_ENABLE_RAJA=%s'   % on_off('+raja')
+                '-DEXAMPLES_ENABLE_C=%s'      % on_off('+examples'),
+                '-DEXAMPLES_ENABLE_CXX=%s'    % on_off('+examples'),
+                '-DEXAMPLES_ENABLE_CUDA=%s'   % on_off('+examples+cuda'),
+                '-DEXAMPLES_ENABLE_F77=%s'    % on_off('+examples+fcmix'),
+                '-DEXAMPLES_ENABLE_F90=%s'    % on_off('+examples+fcmix'),
+                '-DEXAMPLES_ENABLE_F2003=%s'  % on_off('+examples+f2003'),
             ])
         else:
             args.extend([
-                '-DEXAMPLES_ENABLE=%s' % on_off('+examples-c'),
-                '-DCXX_ENABLE=%s'      % on_off('+examples-cxx'),
-                '-DF90_ENABLE=%s'      % on_off('+examples-f90')
+                '-DEXAMPLES_ENABLE=%s' % on_off('+examples'),
+                '-DCXX_ENABLE=%s'      % on_off('+examples'),
+                '-DF90_ENABLE=%s'      % on_off('+examples+fcmix')
             ])
 
         args.extend([
@@ -571,17 +576,17 @@ class Sundials(CMakePackage):
             filter_file(r'^CPP\s*=.*', self.compiler.cc,
                         os.path.join(dirname, filename), **kwargs)
 
-        if ('+fcmix' in spec) and ('+examples-f77' in spec):
+        if ('+fcmix' in spec) and ('+examples' in spec):
             for filename in f77_files:
                 filter_file(os.environ['F77'], self.compiler.f77,
                             os.path.join(dirname, filename), **kwargs)
 
-        if ('+fcmix' in spec) and ('+examples-f90' in spec):
+        if ('+fcmix' in spec) and ('+examples' in spec):
             for filename in f90_files:
                 filter_file(os.environ['FC'], self.compiler.fc,
                             os.path.join(dirname, filename), **kwargs)
 
-        if ('+f2003' in spec) and ('+examples-f2003' in spec):
+        if ('+f2003' in spec) and ('+examples' in spec):
             for filename in f2003_files:
                 filter_file(os.environ['FC'], self.compiler.fc,
                             os.path.join(dirname, filename), **kwargs)
@@ -616,3 +621,54 @@ class Sundials(CMakePackage):
                               recursive=True)
 
         return libs or None  # Raise an error if no libs are found
+
+    @run_after('install')
+    @on_package_attributes(run_tests=True)
+    def test_install(self):
+        """Perform make test_install.
+        """
+        with working_dir(self.build_directory):
+            make("test_install")
+
+    @run_after('install')
+    def setup_build_tests(self):
+        """Copy the build test files after the package is installed to a
+        relative install test subdirectory for use during `spack test run`."""
+        # Now copy the relative files
+        self.cache_extra_test_sources(self.build_relpath)
+
+        # Ensure the path exists since relying on a relative path at the
+        # same level as the normal stage source path.
+        mkdirp(self.install_test_root)
+
+    @property
+    def build_relpath(self):
+        """Relative path to the cmake build subdirectory."""
+        return join_path('..', self.build_dirname)
+
+    @property
+    def _extra_tests_path(self):
+        return join_path(self.install_test_root, self.build_relpath)
+
+    def test(self):
+        """Run the smoke tests."""
+        if '+examples' not in self.spec:
+            print('Smoke tests were skipped: install with examples enabled')
+        return
+
+        self.run_test('examples/nvector/serial/test_nvector_serial',
+                      options=['10', '0'],
+                      work_dir=self._extra_tests_path)
+        if '+cuda' in self.spec:
+            self.run_test('examples/cvode/cuda/cvAdvDiff_ky_cuda',
+                          work_dir=self._extra_tests_path)
+            self.run_test('examples/nvector/cuda/test_nvector_cuda',
+                          options=['10', '0', '0'],
+                          work_dir=self._extra_tests_path)
+        if '+rocm' in self.spec:
+            self.run_test('examples/cvode/hip/cvAdvDiff_kry_hip',
+                          work_dir=self._extra_tests_path)
+            self.run_test('examples/nvector/hip/test_nvector_hip',
+                          options=['10', '0', '0'],
+                          work_dir=self._extra_tests_path)
+        return

@@ -1,0 +1,22 @@
+From 5466501b51cc329aeea234f562aa85bedf870321 Mon Sep 17 00:00:00 2001
+From: "Cody J. Balos" <balos1@llnl.gov>
+Date: Mon, 8 Mar 2021 13:28:11 -0800
+Subject: [PATCH] add missing README to examples/cvode/hip
+
+---
+ examples/cvode/hip/README | 3 +++
+ 1 file changed, 3 insertions(+)
+ create mode 100644 examples/cvode/hip/README
+
+diff --git a/examples/cvode/hip/README b/examples/cvode/hip/README
+new file mode 100644
+index 000000000..8480fbf7d
+--- /dev/null
++++ b/examples/cvode/hip/README
+@@ -0,0 +1,3 @@
++List of Hip CVODE examples
++
++  cvAdvDiff_kry_hip                 : 2-D advection-diffusion (nonstiff)
+-- 
+2.29.1
+

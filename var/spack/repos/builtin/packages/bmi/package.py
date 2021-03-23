@@ -9,12 +9,12 @@ from spack import *
 class Bmi(AutotoolsPackage):
     """a communications framework and network abstraction layer"""
 
-    homepage = 'https://xgitlab.cels.anl.gov/sds/bmi'
-    git = 'https://xgitlab.cels.anl.gov/sds/bmi.git'
+    homepage = 'https://github.com/radix-io/bmi/'
+    git = 'https://github.com/radix-io/bmi.git'
 
     maintainers = ['carns']
 
-    version('develop', branch='master')
+    version('main', branch='main')
 
     depends_on('autoconf', type='build')
     depends_on('automake', type='build')

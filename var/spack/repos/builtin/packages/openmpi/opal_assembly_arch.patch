@@ -1,0 +1,27 @@
+diff --git a/opal/include/opal/sys/gcc_builtin/atomic.h b/opal/include/opal/sys/gcc_builtin/atomic.h
+index d85ff02bd6a..a465fdae5db 100644
+--- a/opal/include/opal/sys/gcc_builtin/atomic.h
++++ b/opal/include/opal/sys/gcc_builtin/atomic.h
+@@ -13,8 +13,8 @@
+  * Copyright (c) 2011      Sandia National Laboratories. All rights reserved.
+  * Copyright (c) 2014-2017 Los Alamos National Security, LLC. All rights
+  *                         reserved.
+- * Copyright (c) 2016-2017 Research Organization for Information Science
+- *                         and Technology (RIST). All rights reserved.
++ * Copyright (c) 2016-2021 Research Organization for Information Science
++ *                         and Technology (RIST).  All rights reserved.
+  * Copyright (c) 2018      Triad National Security, LLC. All rights
+  *                         reserved.
+  * $COPYRIGHT$
+@@ -61,9 +61,8 @@ static inline void opal_atomic_rmb(void)
+ {
+ #if OPAL_ASSEMBLY_ARCH == OPAL_X86_64
+     /* work around a bug in older gcc versions where ACQUIRE seems to get
+-     * treated as a no-op instead of being equivalent to
+-     * __asm__ __volatile__("": : :"memory") */
+-    __atomic_thread_fence (__ATOMIC_SEQ_CST);
++     * treated as a no-op instead */
++    __asm__ __volatile__("": : :"memory");
+ #else
+     __atomic_thread_fence (__ATOMIC_ACQUIRE);
+ #endif

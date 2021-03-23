@@ -12,8 +12,10 @@ class Vigra(CMakePackage):
        customizable algorithms and data structures"""
 
     homepage = "https://ukoethe.github.io/vigra/"
+    git = "https://github.com/ukoethe/vigra.git"
     url = "https://github.com/ukoethe/vigra/releases/download/Version-1-11-1/vigra-1.11.1-src.tar.gz"
 
+    version('master', branch='master')
     version('1.11.1', sha256='a5564e1083f6af6a885431c1ee718bad77d11f117198b277557f8558fa461aaf')
 
     variant('png', default=False, description='Include support for PNG images')

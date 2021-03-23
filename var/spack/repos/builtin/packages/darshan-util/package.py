@@ -28,6 +28,8 @@ class DarshanUtil(Package):
     version('3.0.0', sha256='95232710f5631bbf665964c0650df729c48104494e887442596128d189da43e0')
 
     variant('bzip2', default=False, description="Enable bzip2 compression")
+    variant('shared', default=True, description='Build shared libraries')
+
     depends_on('zlib')
     depends_on('bzip2', when="+bzip2", type=("build", "link", "run"))
 
@@ -37,6 +39,8 @@ class DarshanUtil(Package):
 
         options = ['CC=%s' % self.compiler.cc,
                    '--with-zlib=%s' % spec['zlib'].prefix]
+        if '+shared' in spec:
+            options.extend(['--enable-shared'])
 
         with working_dir('spack-build', create=True):
             configure = Executable('../darshan-util/configure')

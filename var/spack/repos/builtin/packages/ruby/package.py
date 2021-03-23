@@ -15,6 +15,8 @@ class Ruby(AutotoolsPackage):
     list_url = "http://cache.ruby-lang.org/pub/ruby/"
     list_depth = 1
 
+    version('3.0.0', sha256='a13ed141a1c18eb967aac1e33f4d6ad5f21be1ac543c344e0d6feeee54af8e28')
+    version('2.7.2', sha256='6e5706d0d4ee4e1e2f883db9d768586b4d06567debea353c796ec45e8321c3d4')
     version('2.7.1', sha256='d418483bdd0000576c1370571121a6eb24582116db0b7bb2005e90e250eae418')
     version('2.6.2', sha256='a0405d2bf2c2d2f332033b70dff354d224a864ab0edd462b7a413420453b49ab')
     version('2.5.3', sha256='9828d03852c37c20fa333a0264f2490f07338576734d910ee3fd538c9520846c')
@@ -28,9 +30,9 @@ class Ruby(AutotoolsPackage):
     depends_on('pkgconfig', type=('build'))
     depends_on('libffi')
     depends_on('zlib')
-    depends_on('libx11')
-    depends_on('tcl')
-    depends_on('tk')
+    depends_on('libx11', when='@:2.3')
+    depends_on('tcl', when='@:2.3')
+    depends_on('tk', when='@:2.3')
     depends_on('openssl@:1.0', when='@:2.3+openssl')
     depends_on('openssl', when='+openssl')
     depends_on('readline', when='+readline')
@@ -73,7 +75,8 @@ class Ruby(AutotoolsPackage):
         if '+readline' in self.spec:
             args.append("--with-readline-dir=%s"
                         % self.spec['readline'].prefix)
-        args.append('--with-tk=%s' % self.spec['tk'].prefix)
+        if '^tk' in self.spec:
+            args.append('--with-tk=%s' % self.spec['tk'].prefix)
         if self.spec.satisfies("%fj"):
             args.append('--disable-dtrace')
         return args

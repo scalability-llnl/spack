@@ -18,6 +18,7 @@ class GenemarkEt(Package):
        http://spack.readthedocs.io/en/latest/mirrors.html"""
 
     homepage = "http://topaz.gatech.edu/GeneMark"
+    manual_download = True
 
     version('4.46', sha256='856b0b6c7cbd12835e140ff04ecd9124376348efd65f76bfd8b8e08c1834eac0')
     version('4.38', sha256='cee3bd73d331be44159eac15469560d0b07ffa2c98ac764c37219e1f3b7d3146')

@@ -50,6 +50,7 @@ packages:
       yacc: [bison, byacc]
       flame: [libflame, amdlibflame]
       uuid: [util-linux-uuid, libuuid]
+      ziglang: [zig]
     permissions:
       read: world
       write: user

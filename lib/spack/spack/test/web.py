@@ -6,9 +6,13 @@ import os
 
 import ordereddict_backport
 import pytest
+import spack.config
 import spack.paths
 import spack.util.web
+import spack.util.s3
 from spack.version import ver
+
+import llnl.util.tty as tty
 
 
 def _create_url(relative_url):
@@ -195,3 +199,58 @@ def test_list_url(tmpdir):
                               'file-0.txt',
                               'file-1.txt',
                               'file-2.txt']
+
+
+class MockPages(object):
+    def search(self, *args, **kwargs):
+        return [
+            {'Key': 'keyone'},
+            {'Key': 'keytwo'},
+            {'Key': 'keythree'},
+        ]
+
+
+class MockPaginator(object):
+    def paginate(self, *args, **kwargs):
+        return MockPages()
+
+
+class MockS3Client(object):
+    def get_paginator(self, *args, **kwargs):
+        return MockPaginator()
+
+    def delete_objects(self, *args, **kwargs):
+        return {
+            'Errors': [
+                {'Key': 'keyone', 'Message': 'Access Denied'}
+            ],
+            'Deleted': [
+                {'Key': 'keytwo'},
+                {'Key': 'keythree'}
+            ],
+        }
+
+    def delete_object(self, *args, **kwargs):
+        pass
+
+
+def test_remove_s3_url(monkeypatch, capfd):
+    fake_s3_url = 's3://my-bucket/subdirectory/mirror'
+
+    def mock_create_s3_session(url):
+        return MockS3Client()
+
+    monkeypatch.setattr(
+        spack.util.s3, 'create_s3_session', mock_create_s3_session)
+
+    current_debug_level = tty.debug_level()
+    tty.set_debug(1)
+
+    spack.util.web.remove_url(fake_s3_url, recursive=True)
+    err = capfd.readouterr()[1]
+
+    tty.set_debug(current_debug_level)
+
+    assert('Failed to delete keyone (Access Denied)' in err)
+    assert('Deleted keythree' in err)
+    assert('Deleted keytwo' in err)

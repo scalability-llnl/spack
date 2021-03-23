@@ -22,6 +22,7 @@ class VotcaXtp(CMakePackage):
 
     version('master', branch='master')
     version('stable', branch='stable')
+    version('2021', sha256='43bb5a52fec675738f4b5896f0833a1c1090bd7e74f97769697495abf4652e40')
     version('1.6.4', sha256='699a835954556cf6b2f20dac7942c1761c6dd6c6c3fbdde62c8bfcfd71ee075b')
     version('1.6.3', sha256='757b9a6a470b3c356f638d62269c5b72b8ace374f006658aef8bb6afd1ad1413')
     version('1.6.2', sha256='b51a28cddceca6998b981ad61466617ad624d577ce424c0653d92a680f460061')
@@ -33,10 +34,10 @@ class VotcaXtp(CMakePackage):
 
     depends_on("cmake@2.8:", type='build')
     for v in ["1.4.1", "1.5", "1.5.1", "1.6", "1.6.1", "1.6.2",
-              "1.6.3", "1.6.4", "master", "stable"]:
+              "1.6.3", "1.6.4", "2021", "master", "stable"]:
         depends_on('votca-tools@%s' % v, when="@%s:%s.0" % (v, v))
         depends_on('votca-csg@%s' % v, when="@%s:%s.0" % (v, v))
     depends_on("libxc", when='@stable,1.5:')
     depends_on("ceres-solver", when='@1.5:1.5.9999')
     depends_on("hdf5+cxx~mpi")
-    depends_on("libint@2.6.0:", when="@1.7:")
+    depends_on("libint@2.6.0:", when="@2021:")

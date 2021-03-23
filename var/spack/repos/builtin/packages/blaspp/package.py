@@ -23,14 +23,20 @@ class Blaspp(CMakePackage, CudaPackage):
     version('2020.10.00', sha256='ce148cfe397428d507c72d7d9eba5e9d3f55ad4cd842e6e873c670183dcb7795')
 
     variant('openmp', default=True, description='Use OpenMP internally.')
-    variant('cuda',   default=True, description='Build with CUDA')
+    variant('cuda',   default=False, description='Build with CUDA')
     variant('shared', default=True, description='Build shared libraries')
 
     depends_on('cmake@3.15.0:', type='build')
     depends_on('blas')
+    depends_on('llvm-openmp', when='%apple-clang +openmp')
+
+    # only supported with clingo solver: virtual dependency preferences
+    # depends_on('openblas threads=openmp', when='+openmp ^openblas')
 
     # BLASpp tests will fail when using openblas > 0.3.5 without multithreading support
-    conflicts('^openblas@0.3.6: threads=none', msg='BLASpp requires openblas multithreading support')
+    # locking is only supported in openblas 3.7+
+    conflicts('^openblas@0.3.6 threads=none', msg='BLASpp requires a threadsafe openblas')
+    conflicts('^openblas@0.3.7: ~locking', msg='BLASpp requires a threadsafe openblas')
 
     def cmake_args(self):
         spec = self.spec

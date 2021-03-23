@@ -18,3 +18,10 @@ class RRhdf5filters(RPackage):
 
     depends_on('r-rhdf5lib', type=('build', 'run'))
     depends_on('gmake', type='build')
+
+    def configure_args(self):
+        args = []
+        if self.spec.target.family == 'aarch64':
+            args.append("ax_cv_gcc_check_x86_cpu_init=yes")
+            args.append("ax_cv_gcc_x86_cpu_supports_sse2=no")
+        return args

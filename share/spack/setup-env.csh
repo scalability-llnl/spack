@@ -58,6 +58,18 @@ alias spack          'set _sp_args = (\!*); source $_spack_share_dir/csh/spack.c
 alias spacktivate    'spack env activate'
 alias _spack_pathadd 'set _pa_args = (\!*) && source $_spack_share_dir/csh/pathadd.csh'
 
+# Identify and lock the python interpreter
+if (! $?SPACK_PYTHON) then
+    setenv SPACK_PYTHON ""
+endif
+foreach cmd ("$SPACK_PYTHON" python3 python python2)
+    command -v "$cmd" >& /dev/null
+    if ($status == 0) then
+        setenv SPACK_PYTHON `command -v "$cmd"`
+        break
+    endif
+end
+
 # Set variables needed by this script
 _spack_pathadd PATH "$SPACK_ROOT/bin"
 eval `spack --print-shell-vars csh`

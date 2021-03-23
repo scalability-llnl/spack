@@ -89,7 +89,7 @@ def test_dev_build_until_last_phase(tmpdir, mock_packages, install_mockery):
     assert os.path.exists(str(tmpdir))
 
 
-def test_dev_build_before_until(tmpdir, mock_packages, install_mockery):
+def test_dev_build_before_until(tmpdir, mock_packages, install_mockery, capsys):
     spec = spack.spec.Spec('dev-build-test-install@0.0.0 dev_path=%s' % tmpdir)
     spec.concretize()
 
@@ -103,13 +103,18 @@ def test_dev_build_before_until(tmpdir, mock_packages, install_mockery):
 
         bad_phase = 'phase_that_does_not_exist'
         not_allowed = 'is not a valid phase'
-        out = dev_build('-u', bad_phase, 'dev-build-test-install@0.0.0')
+        not_installed = 'was not installed'
+        out = dev_build('-u', bad_phase, 'dev-build-test-install@0.0.0',
+                        fail_on_error=False)
         assert bad_phase in out
         assert not_allowed in out
+        assert not_installed in out
 
-        out = dev_build('-b', bad_phase, 'dev-build-test-install@0.0.0')
+        out = dev_build('-b', bad_phase, 'dev-build-test-install@0.0.0',
+                        fail_on_error=False)
         assert bad_phase in out
         assert not_allowed in out
+        assert not_installed in out
 
 
 def print_spack_cc(*args):
@@ -197,7 +202,7 @@ env:
     dev-build-test-install:
       spec: dev-build-test-install@0.0.0
       path: %s
-""" % build_dir)
+""" % os.path.relpath(str(build_dir), start=str(envdir)))
 
         env('create', 'test', './spack.yaml')
         with ev.read('test'):
@@ -323,7 +328,7 @@ env:
     dev-build-test-install:
       spec: dev-build-test-install@0.0.0
       path: %s
-""" % build_dir)
+""" % os.path.relpath(str(build_dir), start=str(envdir)))
 
         env('create', 'test', './spack.yaml')
         with ev.read('test'):
@@ -338,7 +343,7 @@ env:
     assert dep_spec.package.filename in os.listdir(dep_spec.prefix)
     assert os.path.exists(spec.prefix)
 
-    # Ensure variants set properly
+    # Ensure variants set properly; ensure build_dir is absolute and normalized
     for dep in (dep_spec, spec['dev-build-test-install']):
         assert dep.satisfies('dev_path=%s' % build_dir)
     assert spec.satisfies('^dev_path=*')

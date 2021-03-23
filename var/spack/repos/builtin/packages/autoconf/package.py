@@ -12,6 +12,7 @@ class Autoconf(AutotoolsPackage, GNUMirrorPackage):
     homepage = 'https://www.gnu.org/software/autoconf/'
     gnu_mirror_path = 'autoconf/autoconf-2.69.tar.gz'
 
+    version('2.71', sha256='431075ad0bf529ef13cb41e9042c542381103e80015686222b8a9d4abef42a1c')
     version('2.70', sha256='f05f410fda74323ada4bdc4610db37f8dbd556602ba65bc843edb4d4d4a1b2b7')
     version('2.69', sha256='954bd69b391edc12d6a4a51a2dd1476543da5c6bbf05a95b59dc0dd6fd4c2969',
             preferred=True)
@@ -26,6 +27,7 @@ class Autoconf(AutotoolsPackage, GNUMirrorPackage):
 
     # Note: m4 is not a pure build-time dependency of autoconf. m4 is
     # needed when autoconf runs, not only when autoconf is built.
+    depends_on('help2man', type='build')
     depends_on('m4@1.4.6:', type=('build', 'run'))
     depends_on('perl', type=('build', 'run'))
 

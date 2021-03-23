@@ -1,0 +1,11 @@
+--- a/src/cbf_ws.c	2021-01-26 15:31:04.793960741 +0900
++++ b/src/cbf_ws.c	2021-01-26 15:32:08.092795581 +0900
+@@ -1034,7 +1034,7 @@
+         
+         const char * line;
+         
+-        char c, cprev, cprevprev, cprevprevprev;
++        int c, cprev, cprevprev, cprevprevprev;
+         
+         size_t length;
+         

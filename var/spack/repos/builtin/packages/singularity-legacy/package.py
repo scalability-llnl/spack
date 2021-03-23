@@ -13,9 +13,9 @@ class SingularityLegacy(AutotoolsPackage):
        legacy package is pre-version 3.0.0
     """
 
-    homepage = "https://www.sylabs.io/singularity/"
-    url      = "https://github.com/sylabs/singularity/releases/download/2.5.2/singularity-2.5.2.tar.gz"
-    git      = "https://github.com/sylabs/singularity.git"
+    homepage = "https://sylabs.io/singularity/"
+    url      = "https://github.com/hpcng/singularity/releases/download/2.5.2/singularity-2.5.2.tar.gz"
+    git      = "https://github.com/hpcng/singularity.git"
 
     # Versions before 2.5.2 suffer from a serious security problem.
     # https://nvd.nist.gov/vuln/detail/CVE-2018-12021

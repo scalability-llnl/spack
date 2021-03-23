@@ -227,7 +227,7 @@ following ``spack.yaml``:
 
      container:
        images:
-         os: centos/7
+         os: centos:7
          spack: 0.15.4
 
 uses ``spack/centos7:0.15.4``  and ``centos:7`` for the stages where the

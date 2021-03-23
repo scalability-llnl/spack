@@ -16,7 +16,7 @@ class Petsc(Package):
     git = "https://gitlab.com/petsc/petsc.git"
     maintainers = ['balay', 'barrysmith', 'jedbrown']
 
-    version('develop', branch='master')
+    version('main', branch='main')
     version('xsdk-0.2.0', tag='xsdk-0.2.0')
 
     version('3.14.4', sha256='b030969816e02c251a6d010c07a90b69ade44932f9ddfac3090ff5e95ab97d5c')
@@ -176,7 +176,7 @@ class Petsc(Package):
 
     # Virtual dependencies
     # Git repository needs sowing to build Fortran interface
-    depends_on('sowing', when='@develop')
+    depends_on('sowing', when='@main')
     depends_on('sowing@1.1.23-p1', when='@xsdk-0.2.0')
 
     # PETSc, hypre, superlu_dist when built with int64 use 32 bit integers
@@ -226,8 +226,8 @@ class Petsc(Package):
     depends_on('hypre@2.14:+mpi~internal-superlu+int64', when='@3.14:+hypre+mpi~complex+int64')
     depends_on('hypre@xsdk-0.2.0+mpi~internal-superlu+int64', when='@xsdk-0.2.0+hypre+mpi~complex+int64')
     depends_on('hypre@xsdk-0.2.0+mpi~internal-superlu~int64', when='@xsdk-0.2.0+hypre+mpi~complex~int64')
-    depends_on('hypre@develop+mpi~internal-superlu+int64', when='@develop+hypre+mpi~complex+int64')
-    depends_on('hypre@develop+mpi~internal-superlu~int64', when='@develop+hypre+mpi~complex~int64')
+    depends_on('hypre@develop+mpi~internal-superlu+int64', when='@main+hypre+mpi~complex+int64')
+    depends_on('hypre@develop+mpi~internal-superlu~int64', when='@main+hypre+mpi~complex~int64')
     depends_on('superlu-dist@:4.3~int64', when='@3.4.4:3.6.4+superlu-dist+mpi~int64')
     depends_on('superlu-dist@:4.3+int64', when='@3.4.4:3.6.4+superlu-dist+mpi+int64')
     depends_on('superlu-dist@5.0.0:5.1.3~int64', when='@3.7:3.7.99+superlu-dist+mpi~int64')
@@ -242,13 +242,13 @@ class Petsc(Package):
     depends_on('superlu-dist@6.1:+int64', when='@3.13.0:+superlu-dist+mpi+int64')
     depends_on('superlu-dist@xsdk-0.2.0~int64', when='@xsdk-0.2.0+superlu-dist+mpi~int64')
     depends_on('superlu-dist@xsdk-0.2.0+int64', when='@xsdk-0.2.0+superlu-dist+mpi+int64')
-    depends_on('superlu-dist@develop~int64', when='@develop+superlu-dist+mpi~int64')
-    depends_on('superlu-dist@develop+int64', when='@develop+superlu-dist+mpi+int64')
+    depends_on('superlu-dist@develop~int64', when='@main+superlu-dist+mpi~int64')
+    depends_on('superlu-dist@develop+int64', when='@main+superlu-dist+mpi+int64')
     depends_on('mumps+mpi~int64', when='+mumps')
     depends_on('scalapack', when='+mumps')
     depends_on('trilinos@12.6.2:+mpi', when='@3.7.0:+trilinos+mpi')
     depends_on('trilinos@xsdk-0.2.0+mpi', when='@xsdk-0.2.0+trilinos+mpi')
-    depends_on('trilinos@develop+mpi', when='@xdevelop+trilinos+mpi')
+    depends_on('trilinos@develop+mpi', when='@main+trilinos+mpi')
     depends_on('mkl', when='+mkl-pardiso')
     depends_on('fftw+mpi', when='+fftw+mpi')
     depends_on('suite-sparse', when='+suite-sparse')

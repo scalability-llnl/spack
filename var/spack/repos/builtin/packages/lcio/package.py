@@ -19,6 +19,7 @@ class Lcio(CMakePackage):
     maintainers = ['gaede', 'vvolkl']
 
     version('master', branch='master')
+    version('2.16.1', sha256='992a649f864785e62fe12d7a638b2696c91f9535881de33f22b3cceabcdcdbaf')
     version('2.16',   sha256='aff7707750d821f31cbae3d7529fd8e22457f48d759e834ec01aa9389b5dbf1a')
     version('2.15.4', sha256='720c8130762d445df44d2c245da01c0a1ca807d7ed62362cebf7b3a99f9a37d7')
     version('2.15.3', sha256='a00f9e1e8fc98151e88e603bbfca8088ded21ae3daca5c91869628a19af0cefb')
@@ -45,7 +46,7 @@ class Lcio(CMakePackage):
             description="Turn on to build LCIO examples")
 
     depends_on('sio@0.0.2:', when='@2.14:')
-    depends_on('sio@0.0.4:', when='@2.16:')
+    depends_on('sio@0.1:', when='@2.16:')
 
     depends_on('root@6.04:', when="+rootdict")
     depends_on('openjdk', when="+jar")

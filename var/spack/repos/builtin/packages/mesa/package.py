@@ -26,6 +26,7 @@ class Mesa(MesonPackage):
     depends_on('pkgconfig', type='build')
     depends_on('binutils', when=(sys.platform != 'darwin'), type='build')
     depends_on('bison', type='build')
+    depends_on('cmake', type='build')
     depends_on('flex', type='build')
     depends_on('gettext', type='build')
     depends_on('python@3:', type='build')

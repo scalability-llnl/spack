@@ -322,20 +322,40 @@ class RPackageTemplate(PackageTemplate):
     # depends_on('r-foo', type=('build', 'run'))"""
 
     body_def = """\
-    def configure_args(self, spec, prefix):
+    def configure_args(self):
         # FIXME: Add arguments to pass to install via --configure-args
         # FIXME: If not needed delete this function
         args = []
         return args"""
 
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, name, url, *args, **kwargs):
         # If the user provided `--name r-rcpp`, don't rename it r-r-rcpp
         if not name.startswith('r-'):
             # Make it more obvious that we are renaming the package
             tty.msg("Changing package name from {0} to r-{0}".format(name))
             name = 'r-{0}'.format(name)
 
-        super(RPackageTemplate, self).__init__(name, *args, **kwargs)
+        r_name = parse_name(url)
+
+        cran = re.search(
+            r'(?:r-project)[^/]+/src' + '/([^/]+)' * 2,
+            url
+        )
+
+        if cran:
+            url = r_name
+            self.url_line = '    cran     = "{url}"'
+
+        bioc = re.search(
+            r'(?:bioconductor)[^/]+/packages' + '/([^/]+)' * 5,
+            url
+        )
+
+        if bioc:
+            self.url_line = '    url      = "{0}"\n'\
+                '    bioc     = "{1}"'.format(url, r_name)
+
+        super(RPackageTemplate, self).__init__(name, url, *args, **kwargs)
 
 
 class PerlmakePackageTemplate(PackageTemplate):

@@ -629,10 +629,11 @@ def test_cache_only_fails(tmpdir, mock_fetch, install_mockery, capfd):
     # libelf from cache fails to install, which automatically removes the
     # the libdwarf build task
     with capfd.disabled():
-        out = install('--cache-only', 'libdwarf')
+        out = install('--cache-only', 'libdwarf', fail_on_error=False)
 
     assert 'Failed to install libelf' in out
     assert 'Skipping build of libdwarf' in out
+    assert 'was not installed' in out
 
     # Check that failure prefix locks are still cached
     failure_lock_prefixes = ','.join(spack.store.db._prefix_failures.keys())
@@ -884,3 +885,23 @@ def test_cache_install_full_hash_match(
 
     uninstall('-y', s.name)
     mirror('rm', 'test-mirror')
+
+
+def test_install_env_with_tests_all(tmpdir, mock_packages, mock_fetch,
+                                    install_mockery, mutable_mock_env_path):
+    env('create', 'test')
+    with ev.read('test'):
+        test_dep = Spec('test-dependency').concretized()
+        add('depb')
+        install('--test', 'all')
+        assert os.path.exists(test_dep.prefix)
+
+
+def test_install_env_with_tests_root(tmpdir, mock_packages, mock_fetch,
+                                     install_mockery, mutable_mock_env_path):
+    env('create', 'test')
+    with ev.read('test'):
+        test_dep = Spec('test-dependency').concretized()
+        add('depb')
+        install('--test', 'root')
+        assert not os.path.exists(test_dep.prefix)

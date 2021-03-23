@@ -232,8 +232,8 @@ class Llvm(CMakePackage, CudaPackage):
     patch("thread-p9.patch", when="@develop+libcxx")
 
     # https://github.com/spack/spack/issues/19625,
-    # merged in llvm-11.0.0_rc2
-    patch("lldb_external_ncurses-10.patch", when="@10.0.0:10.99+lldb")
+    # merged in llvm-11.0.0_rc2, but not found in 11.0.1
+    patch("lldb_external_ncurses-10.patch", when="@10.0.0:11.0.1+lldb")
 
     # https://github.com/spack/spack/issues/19908
     # merged in llvm main prior to 12.0.0

@@ -15,6 +15,7 @@ class Freetype(AutotoolsPackage):
     homepage = "https://www.freetype.org/index.html"
     url      = "https://download.savannah.gnu.org/releases/freetype/freetype-2.10.1.tar.gz"
 
+    version('2.10.4', sha256='5eab795ebb23ac77001cfb68b7d4d50b5d6c7469247b0b01b2c953269f658dac')
     version('2.10.1', sha256='3a60d391fd579440561bf0e7f31af2222bc610ad6ce4d9d7bd2165bca8669110')
     version('2.10.0', sha256='955e17244e9b38adb0c98df66abb50467312e6bb70eac07e49ce6bd1a20e809a')
     version('2.9.1',  sha256='ec391504e55498adceb30baceebd147a6e963f636eb617424bcfc47a169898ce')

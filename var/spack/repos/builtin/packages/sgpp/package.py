@@ -34,7 +34,7 @@ class Sgpp(SConsPackage):
     # be copied into prefix/lib upon installation
     # (otherwise it would be prefix/lib/sgpp)
     # Fixed in SGpp in PR https://github.com/SGpp/SGpp/pull/222
-    patch('directory.patch', when='@:3.2.0')
+    patch('directory.patch', when='@1.0.0:3.2.0')
     # Fix faulty setup.py introduced in 3.2.0
     # Fixed in SGpp in version 3.3.0
     patch('fix-setup-py.patch', when='@3.2.0')
@@ -73,20 +73,24 @@ class Sgpp(SConsPackage):
     # extends('openjdk', when='+java')
 
     # Mandatory dependencies
-    depends_on('scons@2.5.1', when='@:3.1.0', type=('build'))
+    depends_on('scons', type=('build'))
+    depends_on('scons@2.5.1', when='@1.0.0:3.1.0', type=('build'))
     depends_on('scons@3:', when='@3.2.0:', type=('build'))
     depends_on('zlib', type=('link'))
     # Python dependencies
     extends('python', when='+python')
     depends_on('py-setuptools', when='+python', type=('build'))
     # Python 3 support was added in version 3.2.0
-    depends_on('python@2.7:2.8', when='@:3.1.0+python', type=('build', 'run'))
+    depends_on('python', when='+python', type=('build', 'run'))
+    depends_on('python@2.7:2.8', when='@1.0.0:3.1.0+python', type=('build', 'run'))
     depends_on('python@3:', when='@3.2.0:+python', type=('build', 'run'))
     depends_on('swig@3:', when='+python', type=('build'))
     # Python libraries (version depends on whether we use Python 2 or 3)
-    depends_on('py-numpy@:1.16', when='@:3.1.0+python', type=('build', 'run'))
+    depends_on('py-numpy', when='+python', type=('build', 'run'))
+    depends_on('py-numpy@:1.16', when='@1.0.0:3.1.0+python', type=('build', 'run'))
     depends_on('py-numpy@1.17:', when='@3.2.0:+python', type=('build', 'run'))
-    depends_on('py-scipy@:1.2.3', when='@:3.1.0+python', type=('build', 'run'))
+    depends_on('py-scipy', when='+python', type=('build', 'run'))
+    depends_on('py-scipy@:1.2.3', when='@1.0.0:3.1.0+python', type=('build', 'run'))
     depends_on('py-scipy@1.3.0:', when='@3.2.0:+python', type=('build', 'run'))
     # OpenCL dependency
     depends_on('opencl@1.1:', when='+opencl', type=('build', 'run'))
@@ -113,14 +117,14 @@ class Sgpp(SConsPackage):
     conflicts('+misc', when='-solver')
     conflicts('+misc', when='-optimization')
     conflicts('+misc', when='-pde')
-    conflicts('+misc', when='@:3.1.0',
+    conflicts('+misc', when='@1.0.0:3.1.0',
               msg='The misc module was introduced in version 3.2.0')
     # Combigrid module requirements (for 3.2.0 or older)
     # newer combigrids have no dependencies
-    conflicts('+combigrid', when='@:3.2.0~optimization')
-    conflicts('+combigrid', when='@:3.2.0~pde')
-    conflicts('+combigrid', when='@:3.2.0~solver')
-    conflicts('+combigrid', when='@:3.2.0~quadrature')
+    conflicts('+combigrid', when='@1.0.0:3.2.0~optimization')
+    conflicts('+combigrid', when='@1.0.0:3.2.0~pde')
+    conflicts('+combigrid', when='@1.0.0:3.2.0~solver')
+    conflicts('+combigrid', when='@1.0.0:3.2.0~quadrature')
 
     patch('for_aarch64.patch', when='target=aarch64:')
 
@@ -131,7 +135,7 @@ class Sgpp(SConsPackage):
                          'RUN_BOOST_TESTS=1']
             if ('+python' in spec):
                 self.args.append('RUN_PYTHON_TESTS=1')
-            if spec.satisfies('@:3.2.0'):
+            if spec.satisfies('@1.0.0:3.2.0'):
                 self.args.append('RUN_CPPLINT=1')
             else:  # argument was renamed after 3.2.0
                 self.args.append('CHECK_STYLE=1')
@@ -139,7 +143,7 @@ class Sgpp(SConsPackage):
             self.args = ['COMPILE_BOOST_TESTS=0',
                          'RUN_BOOST_TESTS=0',
                          'RUN_PYTHON_TESTS=0']
-            if spec.satisfies('@:3.2.0'):
+            if spec.satisfies('@1.0.0:3.2.0'):
                 self.args.append('RUN_CPPLINT=0')
             else:  # argument was renamed after 3.2.0
                 self.args.append('CHECK_STYLE=0')
@@ -171,7 +175,7 @@ class Sgpp(SConsPackage):
             '1' if '+solver' in spec else '0'))
 
         # Misc flag did not exist in older versions
-        if spec.satisfies('@3.2.0:'):
+        if not spec.satisfies('@1.0.0:3.2.0'):
             self.args.append('SG_MISC={0}'.format(
                 '1' if '+misc' in spec else '0'))
 
@@ -198,6 +202,8 @@ class Sgpp(SConsPackage):
         if ('+mpi' in spec):
             self.args.append('CXX={0}'.format(
                 self.spec['mpi'].mpicxx))
+        else:
+            self.args.append('CXX={0}'.format(self.compiler.cxx))
 
         return self.args
 

@@ -1,0 +1,58 @@
+--- w3m-0.5.3/istream.c.orig	2021-02-05 13:19:44.023053158 +0900
++++ w3m-0.5.3/istream.c	2021-02-05 13:19:53.380179220 +0900
+@@ -22,8 +22,8 @@
+ static void basic_close(int *handle);
+ static int basic_read(int *handle, char *buf, int len);
+
+-static void file_close(struct file_handle *handle);
+-static int file_read(struct file_handle *handle, char *buf, int len);
++static void file_close(struct w3m_file_handle *handle);
++static int file_read(struct w3m_file_handle *handle, char *buf, int len);
+
+ static int str_read(Str handle, char *buf, int len);
+
+@@ -114,7 +114,7 @@ newFileStream(FILE * f, void (*closep) (
+     stream = New(union input_stream);
+     init_base_stream(&stream->base, STREAM_BUF_SIZE);
+     stream->file.type = IST_FILE;
+-    stream->file.handle = New(struct file_handle);
++    stream->file.handle = New(struct w3m_file_handle);
+     stream->file.handle->f = f;
+     if (closep)
+ 	stream->file.handle->close = closep;
+@@ -658,13 +658,13 @@ basic_read(int *handle, char *buf, int l
+ }
+
+ static void
+-file_close(struct file_handle *handle)
++file_close(struct w3m_file_handle *handle)
+ {
+     handle->close(handle->f);
+ }
+
+ static int
+-file_read(struct file_handle *handle, char *buf, int len)
++file_read(struct w3m_file_handle *handle, char *buf, int len)
+ {
+     return fread(buf, 1, len, handle->f);
+ }
+--- w3m-0.5.3/istream.h.orig	2021-02-05 13:19:44.023053158 +0900
++++ w3m-0.5.3/istream.h	2021-02-05 13:19:53.380179220 +0900
+@@ -20,7 +20,7 @@ struct stream_buffer {
+
+ typedef struct stream_buffer *StreamBuffer;
+
+-struct file_handle {
++struct w3m_file_handle {
+     FILE *f;
+     void (*close) ();
+ };
+@@ -53,7 +53,7 @@ struct base_stream {
+
+ struct file_stream {
+     struct stream_buffer stream;
+-    struct file_handle *handle;
++    struct w3m_file_handle *handle;
+     char type;
+     char iseos;
+     int (*read) ();

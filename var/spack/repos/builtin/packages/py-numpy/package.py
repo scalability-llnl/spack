@@ -106,6 +106,12 @@ class PyNumpy(PythonPackage):
     patch('add_fj_compiler3.patch', when='@1.14.0:1.18.5%fj')
     patch('add_fj_compiler4.patch', when='@:1.13.3%fj')
 
+    patch('check_executables.patch', when='@1.20.0:')
+    patch('check_executables2.patch', when='@1.19.0:1.19.5')
+    patch('check_executables3.patch', when='@1.16.0:1.18.5')
+    patch('check_executables4.patch', when='@1.14.0:1.15.4')
+    patch('check_executables5.patch', when='@:1.13.3')
+
     # GCC 4.8 is the minimum version that works
     conflicts('%gcc@:4.7', msg='GCC 4.8+ required')
 

@@ -25,7 +25,7 @@ class Harfbuzz(AutotoolsPackage):
     depends_on("glib")
     depends_on("icu4c")
     depends_on("freetype")
-    depends_on("cairo")
+    depends_on("cairo+pdf+ft")
     depends_on("zlib")
     depends_on("graphite2", when='+graphite2')
 
@@ -40,12 +40,21 @@ class Harfbuzz(AutotoolsPackage):
 
         return url.format(version)
 
+    # Function borrowed from superlu
+    def flag_handler(self, name, flags):
+        flags = list(flags)
+        if name == 'cxxflags':
+            flags.append(self.compiler.cxx11_flag)
+        if name == 'cflags':
+            if '%pgi' not in self.spec and self.spec.satisfies('%gcc@:5.1'):
+                flags.append('-std=gnu99')
+        return (None, None, flags)
+
     def configure_args(self):
         args = []
         # disable building of gtk-doc files following #9771
         args.append('--disable-gtk-doc-html')
         true = which('true')
-        args.append('CXXFLAGS={0}'.format(self.compiler.cxx11_flag))
         args.append('GTKDOC_CHECK={0}'.format(true))
         args.append('GTKDOC_CHECK_PATH={0}'.format(true))
         args.append('GTKDOC_MKPDF={0}'.format(true))

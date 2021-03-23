@@ -1,0 +1,14 @@
+--- a/src/CMakeLists.txt	2021-02-10 22:55:14.766411242 -0500
++++ b/src/CMakeLists.txt	2021-02-10 23:10:17.651541580 -0500
+@@ -305,6 +305,11 @@
+     xmldocvisitor.cpp
+     xmlgen.cpp
+ )
++# Work aroung for GCC bug getting stuck in an infinite loop
++if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
++set_source_files_properties(doxygen.cpp PROPERTIES COMPILE_FLAGS -fno-partial-inlining)
++endif()
++
+ add_sanitizers(doxymain)
+ 
+ # LLVM/clang headers give a lot of warnings with -Wshadow and -Wcast-align so we disable them for

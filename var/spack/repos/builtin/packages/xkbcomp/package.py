@@ -17,6 +17,7 @@ class Xkbcomp(AutotoolsPackage, XorgPackage):
     homepage = "https://www.x.org/wiki/XKB/"
     xorg_mirror_path = "app/xkbcomp-1.3.1.tar.gz"
 
+    version('1.4.4', sha256='159fba6b62ef4a3fb16ef7fc4eb4fc26f3888652471ceb604c495783dda020bc')
     version('1.3.1', sha256='018e83a922430652d4bc3f3db610d2296e618c76c9b3fbcdccde975aeb655749')
 
     depends_on('libx11')

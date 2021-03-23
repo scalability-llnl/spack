@@ -8,6 +8,36 @@ from spack import *
 import platform
 
 _versions = {
+    # cuDNN 8.1.1
+    '8.1.1.33-11.2': {
+        'Linux-x86_64': '98a8784e92862f20018d20c281b30d4a0cd951f93694f6433ccf4ae9c502ba6a',
+        'Linux-ppc64le': 'c3e535a5d633ad8f4d50be0b6f8efd084c6c6ed3525c07cbd89fc508b1d76c7a',
+        'Linux-aarch64sbsa': '4f7e4f5698539659d51f28dff0da11e5445a5ae58439af1d8a8e9f2d93535245'},
+    '8.1.1.33-10.2': {
+        'Linux-x86_64': '2a4a7b99a6e9bfa690eb19bb41e49553f2a7a491a5b3abfcae900e166c5b6ebd'},
+
+    # cuDNN 8.1.0
+    '8.1.0.77-11.2': {
+        'Linux-x86_64': 'dbe82faf071d91ba9bcf00480146ad33f462482dfee56caf4479c1b8dabe3ecb',
+        'Linux-ppc64le': '0d3f8fa21959e9f94889841cc8445aecf41d2f3c557091b447313afb43034037',
+        'Linux-aarch64sbsa': 'ba16ff486b68a8b50b69b32702612634954de529f39cfff68c12b8bfc1958499'},
+    '8.1.0.77-10.2': {
+        'Linux-x86_64': 'c5bc617d89198b0fbe485156446be15a08aee37f7aff41c797b120912f2b14b4'},
+
+    # cuDNN 8.0.5
+    '8.0.5.39-11.1': {
+        'Linux-x86_64': '1d046bfa79399dabcc6f6cb1507918754439442ea0ca9e0fbecdd446f9b00cce',
+        'Linux-aarch64sbsa': '0c3542c51b42131247cd9f839d0ebefe4e02bb46d1716be1682cb2919278085a'},
+    '8.0.5.39-11.0': {
+        'Linux-x86_64': '4e16ee7895deb4a8b1c194b812ba49586ef7d26902051401d3717511898a9b73',
+        'Linux-ppc64le': '05207a02c0b4f22464dbb0ee646693df4a70ae557640ba576ba8678c26393004'},
+    '8.0.5.39-10.2': {
+        'Linux-x86_64': '21f84c05c67bf1ec859e77c38ccd5bf154964fa1c308f449959be4c356e382f3',
+        'Linux-ppc64le': 'ce128ea090b05e36d00ffe921e45982ca10e8207e40cfc2e0067d0f62d9b36f9'},
+    '8.0.5.39-10.1': {
+        'Linux-x86_64': '90908495298896b33aa95063a3471f93c36627d7ac01c17dc36d75c65eea4a00',
+        'Linux-ppc64le': 'e43b10bb3932d5e7a598dcc726d16dc9938dd99dd319cd74b3420f3ed65fe5e0'},
+
     # cuDNN 8.0.4
     '8.0.4.30-11.1': {
         'Linux-x86_64': '8f4c662343afce5998ce963500fe3bb167e9a508c1a1a949d821a4b80fa9beab',

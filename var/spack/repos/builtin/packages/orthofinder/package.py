@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
+import shutil
 from spack import *
 
 
@@ -18,17 +20,34 @@ class Orthofinder(Package):
     in FASTA format."""
 
     homepage = "https://github.com/davidemms/OrthoFinder"
-    url      = "https://github.com/davidemms/OrthoFinder/releases/download/2.2.0/OrthoFinder-2.2.0.tar.gz"
+    url = "https://github.com/davidemms/OrthoFinder/releases/download/2.5.2/OrthoFinder_source.tar.gz"
 
-    version('2.2.0', sha256='7314f3fdfb24d84aa5b9ee27ce9f670df314889c12b8100e4e476c2d21a1c8e7')
+    version('2.5.2', sha256='e0752b66866e23a11f0592e880fac5f67258f9cf926f926dec8849564c41b8f7')
+    version('2.2.0', sha256='375f711086b44e2118d7d460821294744245e254e5fa2151dfe73100c0707a8c')
 
+    depends_on('py-numpy', type='run')
+    depends_on('py-scipy', type='run')
+    depends_on('diamond', type='run')
     depends_on('blast-plus', type='run')
     depends_on('mcl', type='run')
     depends_on('fastme', type='run')
-    depends_on('py-dlcpar', type='run')
+
+    def url_for_version(self, version):
+        if '@:2.3.6' in self.spec:
+            url = "https://github.com/davidemms/OrthoFinder/releases/download/{0}/OrthoFinder-{0}_source.tar.gz"
+            return url.format(version)
+        else:
+            url = "https://github.com/davidemms/OrthoFinder/releases/download/{0}/OrthoFinder_source.tar.gz"
+            return url.format(version)
 
     def install(self, spec, prefix):
-        install_tree('.', prefix.bin)
+        if '@2.2.0' in spec:
+            install_tree('./orthofinder', prefix.bin)
+        else:
+            install_tree('.', prefix.bin)
+            shutil.rmtree(prefix.bin.scripts_of.bin)
+        os.rename('%s/orthofinder.py' % prefix.bin, '%s/orthofinder' % prefix.bin)
 
-        chmod = which('chmod')
-        chmod('+x', join_path(prefix.bin, 'orthofinder'))
+    def setup_run_environment(self, env):
+        env.prepend_path('PATH', prefix.bin)
+        env.prepend_path('PATH', prefix.bin.tools)

@@ -1,0 +1,36 @@
+From 3d3916e01f22c20eb4aa80d1ed784402a17422f6 Mon Sep 17 00:00:00 2001
+Date: Thu, 10 Sep 2020 23:16:31 +0200
+Subject: [PATCH] fixed compilation errors by adding the algorithm header
+
+---
+ dolfin/geometry/IntersectionConstruction.cpp | 1 +
+ dolfin/mesh/MeshFunction.h                   | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/dolfin/geometry/IntersectionConstruction.cpp b/dolfin/geometry/IntersectionConstruction.cpp
+index 765dbb674..fe72ee5f6 100644
+--- a/dolfin/geometry/IntersectionConstruction.cpp
++++ b/dolfin/geometry/IntersectionConstruction.cpp
+@@ -18,6 +18,7 @@
+ // First added:  2014-02-03
+ // Last changed: 2017-12-12
+ 
++#include <algorithm> 	// fix compiling problem with min_element
+ #include <iomanip>
+ #include <dolfin/mesh/MeshEntity.h>
+ #include "predicates.h"
+diff --git a/dolfin/mesh/MeshFunction.h b/dolfin/mesh/MeshFunction.h
+index 08cbc824f..6d4a22f6e 100644
+--- a/dolfin/mesh/MeshFunction.h
++++ b/dolfin/mesh/MeshFunction.h
+@@ -26,6 +26,7 @@
+ 
+ #include <map>
+ #include <vector>
++#include <algorithm>	// EM: fix for compile error, line 652
+ 
+ #include <memory>
+ #include <unordered_set>
+-- 
+2.25.1
+

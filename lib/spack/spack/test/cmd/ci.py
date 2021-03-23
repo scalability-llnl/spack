@@ -7,10 +7,11 @@ import filecmp
 import json
 import os
 import pytest
-from jsonschema import validate
+from jsonschema import validate, ValidationError
 
 import spack
 import spack.ci as ci
+import spack.compilers as compilers
 import spack.config
 import spack.environment as ev
 import spack.hash_types as ht
@@ -19,7 +20,8 @@ import spack.paths as spack_paths
 import spack.repo as repo
 from spack.schema.buildcache_spec import schema as spec_yaml_schema
 from spack.schema.database_index import schema as db_idx_schema
-from spack.spec import Spec
+from spack.schema.gitlab_ci import schema as gitlab_ci_schema
+from spack.spec import Spec, CompilerSpec
 from spack.util.mock_package import MockPackageMultiRepo
 import spack.util.executable as exe
 import spack.util.spack_yaml as syaml
@@ -31,8 +33,12 @@ env_cmd = spack.main.SpackCommand('env')
 mirror_cmd = spack.main.SpackCommand('mirror')
 gpg_cmd = spack.main.SpackCommand('gpg')
 install_cmd = spack.main.SpackCommand('install')
+uninstall_cmd = spack.main.SpackCommand('uninstall')
 buildcache_cmd = spack.main.SpackCommand('buildcache')
 git = exe.which('git', required=True)
+
+
+pytestmark = pytest.mark.maybeslow
 
 
 @pytest.fixture()
@@ -73,17 +79,17 @@ and then 'd', 'b', and 'a' to be put in the next three stages, respectively.
     b = mock_repo.add_package('b', [d, e], [default, default])
     mock_repo.add_package('a', [b, c], [default, default])
 
-    with repo.swap(mock_repo):
+    with repo.use_repositories(mock_repo):
         spec_a = Spec('a')
         spec_a.concretize()
 
-        spec_a_label = ci.spec_deps_key_label(spec_a)[1]
-        spec_b_label = ci.spec_deps_key_label(spec_a['b'])[1]
-        spec_c_label = ci.spec_deps_key_label(spec_a['c'])[1]
-        spec_d_label = ci.spec_deps_key_label(spec_a['d'])[1]
-        spec_e_label = ci.spec_deps_key_label(spec_a['e'])[1]
-        spec_f_label = ci.spec_deps_key_label(spec_a['f'])[1]
-        spec_g_label = ci.spec_deps_key_label(spec_a['g'])[1]
+        spec_a_label = ci.spec_deps_key(spec_a)
+        spec_b_label = ci.spec_deps_key(spec_a['b'])
+        spec_c_label = ci.spec_deps_key(spec_a['c'])
+        spec_d_label = ci.spec_deps_key(spec_a['d'])
+        spec_e_label = ci.spec_deps_key(spec_a['e'])
+        spec_f_label = ci.spec_deps_key(spec_a['f'])
+        spec_g_label = ci.spec_deps_key(spec_a['g'])
 
         spec_labels, dependencies, stages = ci.stage_spec_jobs([spec_a])
 
@@ -109,6 +115,7 @@ def test_ci_generate_with_env(tmpdir, mutable_mock_env_path, env_deactivate,
                               install_mockery, mock_packages):
     """Make sure we can get a .gitlab-ci.yml from an environment file
        which has the gitlab-ci, cdash, and mirrors sections."""
+    mirror_url = 'https://my.fake.mirror'
     filename = str(tmpdir.join('spack.yaml'))
     with open(filename, 'w') as f:
         f.write("""\
@@ -128,7 +135,7 @@ spack:
     - matrix:
       - [$old-gcc-pkgs]
   mirrors:
-    some-mirror: https://my.fake.mirror
+    some-mirror: {0}
   gitlab-ci:
     bootstrap:
       - name: bootstrap
@@ -140,7 +147,7 @@ spack:
           tags:
             - donotcare
           image: donotcare
-    final-stage-rebuild-index:
+    service-job-attributes:
       image: donotcare
       tags: [donotcare]
   cdash:
@@ -148,7 +155,7 @@ spack:
     url: https://my.fake.cdash
     project: Not used
     site: Nothing
-""")
+""".format(mirror_url))
     with tmpdir.as_cwd():
         env_cmd('create', 'test', './spack.yaml')
         outputfile = str(tmpdir.join('.gitlab-ci.yml'))
@@ -170,16 +177,30 @@ spack:
             assert(yaml_contents['stages'][0] == 'stage-0')
             assert(yaml_contents['stages'][5] == 'stage-rebuild-index')
 
+            assert('rebuild-index' in yaml_contents)
+            rebuild_job = yaml_contents['rebuild-index']
+            expected = 'spack buildcache update-index --keys -d {0}'.format(
+                mirror_url)
+            assert(rebuild_job['script'][0] == expected)
+
 
 def _validate_needs_graph(yaml_contents, needs_graph, artifacts):
     for job_name, job_def in yaml_contents.items():
         for needs_def_name, needs_list in needs_graph.items():
             if job_name.startswith(needs_def_name):
                 # check job needs against the expected needs definition
+                j_needs = job_def['needs']
+                print('job {0} needs:'.format(needs_def_name))
+                print([j['job'] for j in j_needs])
+                print('expected:')
+                print([nl for nl in needs_list])
                 assert all([job_needs['job'][:job_needs['job'].index('/')]
-                           in needs_list for job_needs in job_def['needs']])
+                           in needs_list for job_needs in j_needs])
+                assert(all([nl in
+                           [n['job'][:n['job'].index('/')] for n in j_needs]
+                           for nl in needs_list]))
                 assert all([job_needs['artifacts'] == artifacts
-                           for job_needs in job_def['needs']])
+                           for job_needs in j_needs])
                 break
 
 
@@ -369,7 +390,10 @@ spack:
             fake_token = 'notreallyatokenbutshouldnotmatter'
             os.environ['SPACK_CDASH_AUTH_TOKEN'] = fake_token
             copy_to_file = str(tmpdir.join('backup-ci.yml'))
-            output = ci_cmd('generate', '--copy-to', copy_to_file, output=str)
+            try:
+                output = ci_cmd('generate', '--copy-to', copy_to_file, output=str)
+            finally:
+                del os.environ['SPACK_CDASH_AUTH_TOKEN']
             # That fake token should still have resulted in being unable to
             # register build group with cdash, but the workload should
             # still have been generated.
@@ -533,7 +557,7 @@ spack:
 
 def test_ci_generate_for_pr_pipeline(tmpdir, mutable_mock_env_path,
                                      env_deactivate, install_mockery,
-                                     mock_packages):
+                                     mock_packages, monkeypatch):
     """Test that PR pipelines do not include a final stage job for
     rebuilding the mirror index, even if that job is specifically
     configured"""
@@ -558,9 +582,10 @@ spack:
         runner-attributes:
           tags:
             - donotcare
-    final-stage-rebuild-index:
+    service-job-attributes:
       image: donotcare
       tags: [donotcare]
+    rebuild-index: False
 """)
 
     with tmpdir.as_cwd():
@@ -569,7 +594,14 @@ spack:
 
         with ev.read('test'):
             os.environ['SPACK_IS_PR_PIPELINE'] = 'True'
-            ci_cmd('generate', '--output-file', outputfile)
+            os.environ['SPACK_PR_BRANCH'] = 'fake-test-branch'
+            monkeypatch.setattr(
+                ci, 'SPACK_PR_MIRRORS_ROOT_URL', r"file:///fake/mirror")
+            try:
+                ci_cmd('generate', '--output-file', outputfile)
+            finally:
+                del os.environ['SPACK_IS_PR_PIPELINE']
+                del os.environ['SPACK_PR_BRANCH']
 
         with open(outputfile) as f:
             contents = f.read()
@@ -579,10 +611,17 @@ spack:
 
             assert('rebuild-index' not in yaml_contents)
 
+            for ci_key in yaml_contents.keys():
+                if ci_key.startswith('(specs) '):
+                    job_object = yaml_contents[ci_key]
+                    job_vars = job_object['variables']
+                    assert('SPACK_IS_PR_PIPELINE' in job_vars)
+                    assert(job_vars['SPACK_IS_PR_PIPELINE'] == 'True')
+
 
 def test_ci_generate_with_external_pkg(tmpdir, mutable_mock_env_path,
                                        env_deactivate, install_mockery,
-                                       mock_packages):
+                                       mock_packages, monkeypatch):
     """Make sure we do not generate jobs for external pkgs"""
     filename = str(tmpdir.join('spack.yaml'))
     with open(filename, 'w') as f:
@@ -609,6 +648,8 @@ spack:
         outputfile = str(tmpdir.join('.gitlab-ci.yml'))
 
         with ev.read('test'):
+            monkeypatch.setattr(
+                ci, 'SPACK_PR_MIRRORS_ROOT_URL', r"file:///fake/mirror")
             ci_cmd('generate', '--output-file', outputfile)
 
         with open(outputfile) as f:
@@ -712,6 +753,19 @@ spack:
    - $packages
  mirrors:
    test-mirror: {0}
+ gitlab-ci:
+   enable-artifacts-buildcache: True
+   mappings:
+     - match:
+         - patchelf
+       runner-attributes:
+         tags:
+           - donotcare
+         image: donotcare
+   service-job-attributes:
+     tags:
+       - nonbuildtag
+     image: basicimage
 """.format(mirror_url)
 
     print('spack.yaml:\n{0}\n'.format(spack_yaml_contents))
@@ -738,6 +792,48 @@ spack:
                 env, concrete_spec, yaml_path, mirror_url, '42', True)
 
             buildcache_path = os.path.join(mirror_dir.strpath, 'build_cache')
+
+            # Now test the --prune-dag (default) option of spack ci generate
+            mirror_cmd('add', 'test-ci', mirror_url)
+
+            outputfile_pruned = str(tmpdir.join('pruned_pipeline.yml'))
+            ci_cmd('generate', '--output-file', outputfile_pruned)
+
+            with open(outputfile_pruned) as f:
+                contents = f.read()
+                yaml_contents = syaml.load(contents)
+                assert('no-specs-to-rebuild' in yaml_contents)
+                # Make sure there are no other spec jobs or rebuild-index
+                assert(len(yaml_contents.keys()) == 1)
+                the_elt = yaml_contents['no-specs-to-rebuild']
+                assert('tags' in the_elt)
+                assert('nonbuildtag' in the_elt['tags'])
+                assert('image' in the_elt)
+                assert(the_elt['image'] == 'basicimage')
+
+            outputfile_not_pruned = str(tmpdir.join('unpruned_pipeline.yml'))
+            ci_cmd('generate', '--no-prune-dag', '--output-file',
+                   outputfile_not_pruned)
+
+            # Test the --no-prune-dag option of spack ci generate
+            with open(outputfile_not_pruned) as f:
+                contents = f.read()
+                yaml_contents = syaml.load(contents)
+
+                found_spec_job = False
+
+                for ci_key in yaml_contents.keys():
+                    if '(specs) patchelf' in ci_key:
+                        the_elt = yaml_contents[ci_key]
+                        assert('variables' in the_elt)
+                        job_vars = the_elt['variables']
+                        assert('SPACK_SPEC_NEEDS_REBUILD' in job_vars)
+                        assert(job_vars['SPACK_SPEC_NEEDS_REBUILD'] == 'False')
+                        found_spec_job = True
+
+                assert(found_spec_job)
+
+            mirror_cmd('rm', 'test-ci')
 
             # Test generating buildcache index while we have bin mirror
             buildcache_cmd('update-index', '--mirror-url', mirror_url)
@@ -783,6 +879,26 @@ spack:
             dl_dir_list = os.listdir(dl_dir.strpath)
 
             assert(len(dl_dir_list) == 3)
+
+
+def test_push_mirror_contents_exceptions(monkeypatch, capsys):
+    def faked(env, spec_yaml=None, packages=None, add_spec=True,
+              add_deps=True, output_location=os.getcwd(),
+              signing_key=None, force=False, make_relative=False,
+              unsigned=False, allow_root=False, rebuild_index=False):
+        raise Exception('Error: Access Denied')
+
+    import spack.cmd.buildcache as buildcache
+    monkeypatch.setattr(buildcache, '_createtarball', faked)
+
+    url = 'fakejunk'
+    ci.push_mirror_contents(None, None, None, url, None, None)
+
+    captured = capsys.readouterr()
+    std_out = captured[0]
+    expect_msg = 'Permission problem writing to {0}'.format(url)
+
+    assert(expect_msg in std_out)
 
 
 def test_ci_generate_override_runner_attrs(tmpdir, mutable_mock_env_path,
@@ -839,7 +955,7 @@ spack:
             - custom main step
           after_script:
             - custom post step one
-    final-stage-rebuild-index:
+    service-job-attributes:
       image: donotcare
       tags: [donotcare]
 """)
@@ -851,6 +967,8 @@ spack:
         with ev.read('test'):
             monkeypatch.setattr(
                 spack.main, 'get_version', lambda: '0.15.3-416-12ad69eb1')
+            monkeypatch.setattr(
+                ci, 'SPACK_PR_MIRRORS_ROOT_URL', r"file:///fake/mirror")
             ci_cmd('generate', '--output-file', outputfile)
 
         with open(outputfile) as f:
@@ -925,3 +1043,364 @@ spack:
                     assert(the_elt['script'][0] == 'main step')
                     assert(len(the_elt['after_script']) == 1)
                     assert(the_elt['after_script'][0] == 'post step one')
+
+
+def test_ci_generate_with_workarounds(tmpdir, mutable_mock_env_path,
+                                      env_deactivate, install_mockery,
+                                      mock_packages, monkeypatch):
+    """Make sure the post-processing cli workarounds do what they should"""
+    filename = str(tmpdir.join('spack.yaml'))
+    with open(filename, 'w') as f:
+        f.write("""\
+spack:
+  specs:
+    - callpath%gcc@3.0
+  mirrors:
+    some-mirror: https://my.fake.mirror
+  gitlab-ci:
+    mappings:
+      - match: ['%gcc@3.0']
+        runner-attributes:
+          tags:
+            - donotcare
+          image: donotcare
+    enable-artifacts-buildcache: true
+""")
+
+    with tmpdir.as_cwd():
+        env_cmd('create', 'test', './spack.yaml')
+        outputfile = str(tmpdir.join('.gitlab-ci.yml'))
+
+        with ev.read('test'):
+            monkeypatch.setattr(
+                ci, 'SPACK_PR_MIRRORS_ROOT_URL', r"file:///fake/mirror")
+            ci_cmd('generate', '--output-file', outputfile, '--dependencies')
+
+            with open(outputfile) as f:
+                contents = f.read()
+                yaml_contents = syaml.load(contents)
+
+                found_one = False
+
+                for ci_key in yaml_contents.keys():
+                    if ci_key.startswith('(specs) '):
+                        found_one = True
+                        job_obj = yaml_contents[ci_key]
+                        assert('needs' not in job_obj)
+                        assert('dependencies' in job_obj)
+
+                assert(found_one is True)
+
+
+@pytest.mark.disable_clean_stage_check
+def test_ci_rebuild_index(tmpdir, mutable_mock_env_path, env_deactivate,
+                          install_mockery, mock_packages, mock_fetch,
+                          mock_stage):
+    working_dir = tmpdir.join('working_dir')
+
+    mirror_dir = working_dir.join('mirror')
+    mirror_url = 'file://{0}'.format(mirror_dir.strpath)
+
+    spack_yaml_contents = """
+spack:
+ specs:
+   - callpath
+ mirrors:
+   test-mirror: {0}
+ gitlab-ci:
+   mappings:
+     - match:
+         - patchelf
+       runner-attributes:
+         tags:
+           - donotcare
+         image: donotcare
+""".format(mirror_url)
+
+    filename = str(tmpdir.join('spack.yaml'))
+    with open(filename, 'w') as f:
+        f.write(spack_yaml_contents)
+
+    with tmpdir.as_cwd():
+        env_cmd('create', 'test', './spack.yaml')
+        with ev.read('test'):
+            spec_map = ci.get_concrete_specs(
+                'callpath', 'callpath', '', 'FIND_ANY')
+            concrete_spec = spec_map['callpath']
+            spec_yaml = concrete_spec.to_yaml(hash=ht.build_hash)
+            yaml_path = str(tmpdir.join('spec.yaml'))
+            with open(yaml_path, 'w') as ypfd:
+                ypfd.write(spec_yaml)
+
+            install_cmd('--keep-stage', '-f', yaml_path)
+            buildcache_cmd('create', '-u', '-a', '-f', '--mirror-url',
+                           mirror_url, 'callpath')
+            ci_cmd('rebuild-index')
+
+            buildcache_path = os.path.join(mirror_dir.strpath, 'build_cache')
+            index_path = os.path.join(buildcache_path, 'index.json')
+            with open(index_path) as idx_fd:
+                index_object = json.load(idx_fd)
+                validate(index_object, db_idx_schema)
+
+
+def test_ci_generate_bootstrap_prune_dag(
+        install_mockery_mutable_config, mock_packages, mock_fetch,
+        mock_archive, mutable_config, monkeypatch, tmpdir,
+        mutable_mock_env_path, env_deactivate):
+    """Test compiler bootstrapping with DAG pruning.  Specifically, make
+       sure that if we detect the bootstrapped compiler needs to be rebuilt,
+       we ensure the spec we want to build with that compiler is scheduled
+       for rebuild as well."""
+
+    # Create a temp mirror directory for buildcache usage
+    mirror_dir = tmpdir.join('mirror_dir')
+    mirror_url = 'file://{0}'.format(mirror_dir.strpath)
+
+    # Install a compiler, because we want to put it in a buildcache
+    install_cmd('gcc@10.1.0%gcc@4.5.0')
+
+    # Put installed compiler in the buildcache
+    buildcache_cmd('create', '-u', '-a', '-f', '-d', mirror_dir.strpath,
+                   'gcc@10.1.0%gcc@4.5.0')
+
+    # Now uninstall the compiler
+    uninstall_cmd('-y', 'gcc@10.1.0%gcc@4.5.0')
+
+    monkeypatch.setattr(spack.concretize.Concretizer,
+                        'check_for_compiler_existence', False)
+    spack.config.set('config:install_missing_compilers', True)
+    assert CompilerSpec('gcc@10.1.0') not in compilers.all_compiler_specs()
+
+    # Configure the mirror where we put that buildcache w/ the compiler
+    mirror_cmd('add', 'test-mirror', mirror_url)
+
+    install_cmd('--no-check-signature', 'a%gcc@10.1.0')
+
+    # Put spec built with installed compiler in the buildcache
+    buildcache_cmd('create', '-u', '-a', '-f', '-d', mirror_dir.strpath,
+                   'a%gcc@10.1.0')
+
+    # Now uninstall the spec
+    uninstall_cmd('-y', 'a%gcc@10.1.0')
+
+    filename = str(tmpdir.join('spack.yaml'))
+    with open(filename, 'w') as f:
+        f.write("""\
+spack:
+  definitions:
+    - bootstrap:
+      - gcc@10.1.0%gcc@4.5.0
+  specs:
+    - a%gcc@10.1.0
+  mirrors:
+    atestm: {0}
+  gitlab-ci:
+    bootstrap:
+      - name: bootstrap
+        compiler-agnostic: true
+    mappings:
+      - match:
+          - arch=test-debian6-x86_64
+        runner-attributes:
+          tags:
+            - donotcare
+      - match:
+          - arch=test-debian6-core2
+        runner-attributes:
+          tags:
+            - meh
+""".format(mirror_url))
+
+    # Without this monkeypatch, pipeline generation process would think that
+    # nothing in the environment needs rebuilding.  With the monkeypatch, the
+    # process sees the compiler as needing a rebuild, which should then result
+    # in the specs built with that compiler needing a rebuild too.
+    def fake_get_mirrors_for_spec(spec=None, full_hash_match=False,
+                                  mirrors_to_check=None, index_only=False):
+        if spec.name == 'gcc':
+            return []
+        else:
+            return [{
+                'spec': spec,
+                'mirror_url': mirror_url,
+            }]
+
+    with tmpdir.as_cwd():
+        env_cmd('create', 'test', './spack.yaml')
+        outputfile = str(tmpdir.join('.gitlab-ci.yml'))
+
+        with ev.read('test'):
+            monkeypatch.setattr(
+                ci, 'SPACK_PR_MIRRORS_ROOT_URL', r"file:///fake/mirror")
+
+            ci_cmd('generate', '--output-file', outputfile)
+
+            with open(outputfile) as of:
+                yaml_contents = of.read()
+                original_yaml_contents = syaml.load(yaml_contents)
+
+            # without the monkeypatch, everything appears up to date and no
+            # rebuild jobs are generated.
+            assert(original_yaml_contents)
+            assert('no-specs-to-rebuild' in original_yaml_contents)
+
+            monkeypatch.setattr(spack.binary_distribution,
+                                'get_mirrors_for_spec',
+                                fake_get_mirrors_for_spec)
+
+            ci_cmd('generate', '--output-file', outputfile)
+
+            with open(outputfile) as of:
+                yaml_contents = of.read()
+                new_yaml_contents = syaml.load(yaml_contents)
+
+            assert(new_yaml_contents)
+
+            # This 'needs' graph reflects that even though specs 'a' and 'b' do
+            # not otherwise need to be rebuilt (thanks to DAG pruning), they
+            # both end up in the generated pipeline because the compiler they
+            # depend on is bootstrapped, and *does* need to be rebuilt.
+            needs_graph = {
+                '(bootstrap) gcc': [],
+                '(specs) b': [
+                    '(bootstrap) gcc',
+                ],
+                '(specs) a': [
+                    '(bootstrap) gcc',
+                    '(specs) b',
+                ],
+            }
+
+            _validate_needs_graph(new_yaml_contents, needs_graph, False)
+
+
+def test_ci_subcommands_without_mirror(tmpdir, mutable_mock_env_path,
+                                       env_deactivate, mock_packages,
+                                       install_mockery):
+    """Make sure we catch if there is not a mirror and report an error"""
+    filename = str(tmpdir.join('spack.yaml'))
+    with open(filename, 'w') as f:
+        f.write("""\
+spack:
+  specs:
+    - archive-files
+  gitlab-ci:
+    mappings:
+      - match:
+          - archive-files
+        runner-attributes:
+          tags:
+            - donotcare
+          image: donotcare
+""")
+
+    with tmpdir.as_cwd():
+        env_cmd('create', 'test', './spack.yaml')
+        outputfile = str(tmpdir.join('.gitlab-ci.yml'))
+
+        with ev.read('test'):
+            # Check the 'generate' subcommand
+            output = ci_cmd('generate', '--output-file', outputfile,
+                            output=str, fail_on_error=False)
+            ex = 'spack ci generate requires an env containing a mirror'
+            assert(ex in output)
+
+            # Also check the 'rebuild-index' subcommand
+            output = ci_cmd('rebuild-index', output=str, fail_on_error=False)
+            ex = 'spack ci rebuild-index requires an env containing a mirror'
+            assert(ex in output)
+
+
+def test_ensure_only_one_temporary_storage():
+    """Make sure 'gitlab-ci' section of env does not allow specification of
+    both 'enable-artifacts-buildcache' and 'temporary-storage-url-prefix'."""
+    gitlab_ci_template = """
+  gitlab-ci:
+    {0}
+    mappings:
+      - match:
+          - notcheckedhere
+        runner-attributes:
+          tags:
+            - donotcare
+"""
+
+    enable_artifacts = 'enable-artifacts-buildcache: True'
+    temp_storage = 'temporary-storage-url-prefix: file:///temp/mirror'
+    specify_both = """{0}
+    {1}
+""".format(enable_artifacts, temp_storage)
+    specify_neither = ''
+
+    # User can specify "enable-artifacts-buildcache" (boolean)
+    yaml_obj = syaml.load(gitlab_ci_template.format(enable_artifacts))
+    validate(yaml_obj, gitlab_ci_schema)
+
+    # User can also specify "temporary-storage-url-prefix" (string)
+    yaml_obj = syaml.load(gitlab_ci_template.format(temp_storage))
+    validate(yaml_obj, gitlab_ci_schema)
+
+    # However, specifying both should fail to validate
+    yaml_obj = syaml.load(gitlab_ci_template.format(specify_both))
+    with pytest.raises(ValidationError):
+        validate(yaml_obj, gitlab_ci_schema)
+
+    # Specifying neither should be fine too, as neither of these properties
+    # should be required
+    yaml_obj = syaml.load(gitlab_ci_template.format(specify_neither))
+    validate(yaml_obj, gitlab_ci_schema)
+
+
+def test_ci_generate_temp_storage_url(tmpdir, mutable_mock_env_path,
+                                      env_deactivate, install_mockery,
+                                      mock_packages, monkeypatch):
+    """Verify correct behavior when using temporary-storage-url-prefix"""
+    filename = str(tmpdir.join('spack.yaml'))
+    with open(filename, 'w') as f:
+        f.write("""\
+spack:
+  specs:
+    - archive-files
+  mirrors:
+    some-mirror: https://my.fake.mirror
+  gitlab-ci:
+    temporary-storage-url-prefix: file:///work/temp/mirror
+    mappings:
+      - match:
+          - archive-files
+        runner-attributes:
+          tags:
+            - donotcare
+          image: donotcare
+""")
+
+    with tmpdir.as_cwd():
+        env_cmd('create', 'test', './spack.yaml')
+        outputfile = str(tmpdir.join('.gitlab-ci.yml'))
+
+        monkeypatch.setattr(
+            ci, 'SPACK_PR_MIRRORS_ROOT_URL', r"file:///fake/mirror")
+
+        with ev.read('test'):
+            ci_cmd('generate', '--output-file', outputfile)
+
+            with open(outputfile) as of:
+                pipeline_doc = syaml.load(of.read())
+
+                print(pipeline_doc)
+
+                assert('cleanup' in pipeline_doc)
+                cleanup_job = pipeline_doc['cleanup']
+
+                assert('script' in cleanup_job)
+                cleanup_task = cleanup_job['script'][0]
+
+                assert(cleanup_task.startswith('spack -d mirror destroy'))
+
+                assert('stages' in pipeline_doc)
+                stages = pipeline_doc['stages']
+
+                # Cleanup job should be 2nd to last, just before rebuild-index
+                assert('stage' in cleanup_job)
+                assert(cleanup_job['stage'] == stages[-2])

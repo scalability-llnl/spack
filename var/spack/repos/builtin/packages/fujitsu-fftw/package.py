@@ -31,8 +31,9 @@ class FujitsuFftw(FftwBase):
 
     _name = 'fujitsu-fftw'
     homepage = "https://github.com/fujitsu/fftw3"
+    url = "https://github.com/fujitsu/fftw3/archive/sve-v1.0.0.tar.gz"
 
-    version('master', branch='fj_master', git='https://github.com/fujitsu/fftw3.git')
+    version('1.0.0', sha256='b5931e352355d8d1ffeb215922f4b96de11b8585c423fceeaffbf3d5436f6f2f')
 
     variant('shared', default=True, description='Builds a shared version of the library')
     variant('openmp', default=True, description="Enable OpenMP support")

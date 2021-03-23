@@ -13,6 +13,7 @@ class Opencv(CMakePackage, CudaPackage):
     maintainers = ['bvanessen', 'adamjstewart']
 
     version('master', branch='master')
+    version('4.5.1',    sha256='e27fe5b168918ab60d58d7ace2bd82dd14a4d0bd1d3ae182952c2113f5637513')
     version('4.5.0',    sha256='dde4bf8d6639a5d3fe34d5515eab4a15669ded609a1d622350c7ff20dace1907')
     version('4.2.0',    sha256='9ccb2192d7e8c03c58fee07051364d94ed7599363f3b0dce1c5e6cc11c1bb0ec')
     version('4.1.2',    sha256='385dd0a9c25e67ef0dd60e022d2a2d7b17e2f36819cf3cb46aa8cdff5c5282c9')
@@ -90,17 +91,13 @@ class Opencv(CMakePackage, CudaPackage):
 
     variant('contrib', default=False, description='Adds in code from opencv_contrib.')
     contrib_vers = [
-        '3.4.12', '4.0.0', '4.0.1', '4.1.0', '4.1.1', '4.1.2', '4.2.0', '4.5.0'
+        '3.4.12', '4.0.0', '4.0.1', '4.1.0', '4.1.1', '4.1.2', '4.2.0', '4.5.0', '4.5.1'
     ]
     for cv in contrib_vers:
         resource(name="contrib",
                  git='https://github.com/opencv/opencv_contrib.git',
                  tag="{0}".format(cv),
                  when='@{0}+contrib'.format(cv))
-        resource(name="contrib",
-                 git='https://github.com/opencv/opencv_contrib.git',
-                 tag="{0}".format(cv),
-                 when='@{0}+cuda'.format(cv))
 
     depends_on('hdf5', when='+contrib')
     depends_on('hdf5', when='+cuda')
@@ -142,7 +139,7 @@ class Opencv(CMakePackage, CudaPackage):
     # exists, otherwise build will fail
     # See https://github.com/opencv/opencv_contrib/issues/1786
     conflicts('^cuda@10:', when='+cudacodec')
-    conflicts('^cuda', when='~contrib', msg='cuda support requires +contrib')
+    conflicts('+cuda', when='~contrib', msg='cuda support requires +contrib')
 
     # IPP is provided x86_64 only
     conflicts('+ipp', when="arch=aarch64:")
@@ -249,7 +246,7 @@ class Opencv(CMakePackage, CudaPackage):
             '-DPROTOBUF_UPDATE_FILES={0}'.format('ON')
         ])
 
-        if '+contrib' in spec or '+cuda' in spec:
+        if '+contrib' in spec:
             args.append('-DOPENCV_EXTRA_MODULES_PATH={0}'.format(
                 join_path(self.stage.source_path, 'opencv_contrib/modules')))
 

@@ -399,6 +399,12 @@ There are two ways to include configuration information in a Spack Environment:
 
 #. Included in the ``spack.yaml`` file from another file.
 
+Many Spack commands also affect configuration information in files
+automatically. Those commands take a ``--scope`` argument, and the
+environment can be specified by ``env:NAME`` (to affect environment
+``foo``, set ``--scope env:foo``). These commands will automatically
+manipulate configuration inline in the ``spack.yaml`` file.
+
 """""""""""""""""""""
 Inline configurations
 """""""""""""""""""""
@@ -441,8 +447,8 @@ Environments can include files with either relative or absolute
 paths. Inline configurations take precedence over included
 configurations, so you don't have to change shared configuration files
 to make small changes to an individual Environment. Included configs
-listed later will have higher precedence, as the included configs are
-applied in order.
+listed earlier will have higher precedence, as the included configs are
+applied in reverse order.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Manually Editing the Specs List

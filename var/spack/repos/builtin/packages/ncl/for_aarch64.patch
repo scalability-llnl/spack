@@ -1,0 +1,10 @@
+--- spack-src/config/ymake.bak	2021-02-26 14:49:53.611863443 +0900
++++ spack-src/config/ymake	2021-02-26 14:52:08.501852485 +0900
+@@ -367,6 +367,7 @@
+         case    x*64:
+         case    p*64:
+         case    alpha:
++        case    aarch64:
+             set model   = $mach
+             set arch    = $mach
+             set sysincs = LINUX

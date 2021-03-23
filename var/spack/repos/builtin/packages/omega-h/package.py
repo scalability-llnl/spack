@@ -17,7 +17,7 @@ class OmegaH(CMakePackage):
 
     maintainers = ['ibaned']
 
-    version('develop', branch='master')
+    version('main', branch='main')
     version('9.32.5', sha256='963a203e9117024cd48d829d82b8543cd9133477fdc15386113b594fdc3246d8')
     version('9.29.0', sha256='b41964b018909ffe9cea91c23a0509b259bfbcf56874fcdf6bd9f6a179938014')
     version('9.27.0', sha256='aa51f83508cbd14a41ae953bda7da98a6ad2979465c76e5b3a3d9a7a651cb34a')

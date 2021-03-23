@@ -11,7 +11,9 @@ class Eigen(CMakePackage):
 
     homepage = 'http://eigen.tuxfamily.org/'
     url = 'https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz'
+    maintainers = ['HaoZeke']
 
+    version('3.3.9', sha256='7985975b787340124786f092b3a07d594b2e9cd53bbfe5f3d9b1daee7d55f56f')
     version('3.3.8', sha256='146a480b8ed1fb6ac7cd33fec9eb5e8f8f62c3683b3f850094d9d5c35a92419a')
     version('3.3.7', sha256='d56fbad95abf993f8af608484729e3d87ef611dd85b3380a8bad1d5cbc373a57')
     version('3.3.6', sha256='e7cd8c94d6516d1ada9893ccc7c9a400fcee99927c902f15adba940787104dba')

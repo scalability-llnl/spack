@@ -25,16 +25,6 @@ modules:
       - MANPATH
     share/aclocal:
       - ACLOCAL_PATH
-    lib:
-      - LIBRARY_PATH
-    lib64:
-      - LIBRARY_PATH
-    include:
-      - C_INCLUDE_PATH
-      - CPLUS_INCLUDE_PATH
-      # The INCLUDE env variable specifies paths to look for
-      # .mod file for Intel Fortran compilers
-      - INCLUDE
     lib/pkgconfig:
       - PKG_CONFIG_PATH
     lib64/pkgconfig:

@@ -53,6 +53,9 @@ class NetcdfC(AutotoolsPackage):
     patch('https://github.com/Unidata/netcdf-c/pull/1505.patch', sha256='f52db13c61b9c19aafe03c2a865163b540e9f6dee36e3a5f808f05fac59f2030', when='@4.7.2')
     patch('https://github.com/Unidata/netcdf-c/pull/1508.patch', sha256='56532470875b9a97f3cf2a7d9ed16ef1612df3265ee38880c109428322ff3a40', when='@4.7.2')
 
+    # See https://github.com/Unidata/netcdf-c/pull/1752
+    patch('4.7.3-spectrum-mpi-pnetcdf-detect.patch', when='@4.7.3:4.7.4 +parallel-netcdf')
+
     variant('mpi', default=True,
             description='Enable parallel I/O for netcdf-4')
     variant('parallel-netcdf', default=False,

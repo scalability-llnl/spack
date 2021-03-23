@@ -1,0 +1,9 @@
+--- a/src/gui/BladePlugin.cpp	2021-03-19 13:32:33.609988108 +0100
++++ b/src/gui/BladePlugin.cpp	2021-03-19 13:32:49.153702599 +0100
+@@ -348,5 +348,6 @@
+ BladePlugin::checkForSalsaViewer()
+ {
+ //     service->setGlobalValue( BladePlugin::BLADE_PLUGIN_NOTIFIER , QVariant( ++val ), false ); // true = notify myself
++	return true;
+ }
+ 

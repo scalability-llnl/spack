@@ -1,0 +1,51 @@
+From 5bf0eff1563820d7c997649da372ab003fd4af81 Mon Sep 17 00:00:00 2001
+From: Chuck Atkins <chuck.atkins@kitware.com>
+Date: Mon, 15 Feb 2021 13:59:50 -0500
+Subject: [PATCH] CMake: Fix FindMPI getting consumed by newer CMake versions
+
+---
+ CMake/patches/FindMPI.cmake | 11 +++++++++++
+ CMakeLists.txt              |  7 ++++++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
+ create mode 100644 CMake/patches/FindMPI.cmake
+
+diff --git a/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/FindMPI.cmake b/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/FindMPI.cmake
+new file mode 100644
+index 000000000..a4ed44f04
+--- /dev/null
++++ b/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/FindMPI.cmake
+@@ -0,0 +1,11 @@
++#------------------------------------------------------------------------------#
++# Distributed under the OSI-approved Apache License, Version 2.0.  See
++# accompanying file Copyright.txt for details.
++#------------------------------------------------------------------------------#
++
++# This module is already included in new versions of CMake
++if(CMAKE_VERSION VERSION_LESS 3.15)
++  include(${CMAKE_CURRENT_LIST_DIR}/3.15/FindMPI.cmake)
++else()
++  include(${CMAKE_ROOT}/Modules/FindMPI.cmake)
++endif()
+diff --git a/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt b/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt
+index e907495f3..fa464ab8d 100644
+--- a/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt
++++ b/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt
+@@ -277,9 +277,14 @@ if(NOT VTKm_INSTALL_ONLY_LIBRARIES)
+     FILES
+       ${VTKm_SOURCE_DIR}/CMake/VTKmCMakeBackports.cmake
+       ${VTKm_SOURCE_DIR}/CMake/FindTBB.cmake
+-      ${VTKm_SOURCE_DIR}/CMake/patches/3.15/FindMPI.cmake
++      ${VTKm_SOURCE_DIR}/CMake/patches/FindMPI.cmake
+     DESTINATION ${VTKm_INSTALL_CMAKE_MODULE_DIR}
+     )
++  install(
++    FILES
++      ${VTKm_SOURCE_DIR}/CMake/patches/3.15/FindMPI.cmake
++    DESTINATION ${VTKm_INSTALL_CMAKE_MODULE_DIR}/3.15
++    )
+ 
+   # Install support files.
+   install(
+-- 
+2.24.2
+

@@ -1,0 +1,342 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -124,11 +124,7 @@ AC_PROG_F77($genesis_default_fc)
+ # check actual compiler
+ AC_MSG_CHECKING([for actual compiler])
+ 
+-if test x"${FC}" = x"mpifrtpx"; then
+-  VER_OPT="-V"
+-else
+-  VER_OPT="--version"
+-fi
++VER_OPT="--version"
+ 
+ fc_ver_info=$(${FC} -E ${VER_OPT})
+ for vtok in ${fc_ver_info} ; do
+@@ -158,9 +154,13 @@ for vtok in ${fc_ver_info} ; do
+ done
+ 
+ if test -z "${FC_ACT}"; then
+-  FC_ACT=${FC}
++  FC_ACT=`basename ${FC}`
+ fi
+ 
++
++
++
++
+ AC_MSG_RESULT([$FC_ACT])
+ 
+ version_warning=yes
+@@ -256,7 +256,7 @@ for vtok in ${cc_ver_info} ; do
+ done
+ 
+ if test -z "${CC_ACT}"; then
+-  CC_ACT=${CC}
++  CC_ACT=`basename ${CC}`
+ fi
+ 
+ AC_MSG_RESULT([$CC_ACT])
+@@ -322,18 +322,12 @@ if test x"${enable_openmp}" = x"yes"; th
+   elif test x"${FC_ACT}" = x"pgf90"; then
+     OPT_OPENMP="-mp"
+ 
+-  elif test x"${FC_ACT}" = x"frtpx"; then
++  elif test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"frt"; then
+     OPT_OPENMP="-Kopenmp"
+   
+-  elif test x"${FC_ACT}" = x"mpifrtpx"; then
++  elif test x"${FC_ACT}" = x"mpifrtpx" -o x"${FC_ACT}" = x"mpifrt"; then
+     OPT_OPENMP="-Kopenmp"
+   
+-  elif test x"${FC_ACT}" = x"frt"; then
+-    OPT_OPENMP="-KOMP"
+-
+-  elif test x"${FC_ACT}" = x"mpifrt"; then
+-    OPT_OPENMP="-KOMP"
+-
+   fi
+ fi
+ 
+@@ -439,7 +433,8 @@ fi
+ AC_ARG_ENABLE([parallel_IO],
+ 	[AS_HELP_STRING([--enable-parallel_IO], [enable parallel_IO (defalt: no)])],
+ 	[], [enable_parallel_IO=no])
+-if test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"mpifrtpx"; then
++if test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"mpifrtpx" -o \
++	x"${FC_ACT}" = x"frt" -o x"${FC_ACT}" = x"mpifrt"; then
+   enable_parallel_IO=no
+ fi
+ #if test x"${mainly_single}" = x"yes"; then
+@@ -742,22 +737,16 @@ else
+     elif test x"${FC_ACT}" = x"pgf90"; then
+       FCFLAGS="-O2 -fastsse -Mipa=fast,inline -m64 -Mflushz -pc 64 -mcmodel=medium -Msmartalloc=huge"
+ 
+-    elif test x"${FC_ACT}" = x"frtpx"; then
+-      FCFLAGS="-m -Kvisimpact -Kocl -Kswp"
+-
+-    elif test x"${FC_ACT}" = x"mpifrtpx"; then
+-      FCFLAGS="-m -Kocl -Kfast,openmp,parallel,simd=2,noalias -Nlst=t -Koptmsg=2"
+-      FCFLAGS_FFTE_KERNEL_FPP__PGI__SP=" -m -Kocl  -Kfast,openmp,parallel,simd=2,noalias -Nlst=t -Koptmsg=2"
+-      FCFLAGS_FPP__PGI_NOOPT="-m -Kocl -Kfast,openmp,parallel,simd=2,noalias -Nlst=t -Koptmsg=2"
+-      FCFLAGS_KERNELS_PAIRLIST="-m -Kocl  -Kfast,openmp,parallel,simd=2,nounroll,swp_strong,noalias=s -Nlst=t -Koptmsg=2" 
+-      FCFLAGS_DIHEDRAL="-m  -xsp_energy_dihedrals_mod.calculate_dihedral_2 -Kocl -Kfast,openmp,parallel,simd=2,noalias -Nlst=t -Koptmsg=2"
+-      FCFLAGS_KERNELS=" -m -Kocl  -Kfast,openmp,parallel,simd=2,swp_strong,noalias=s -Nlst=t -Koptmsg=2"      
++    elif test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"frt"; then
++      FCFLAGS="-Kocl"
+ 
+-    elif test x"${FC_ACT}" = x"frt"; then
+-      FCFLAGS="-m -Am -Kfast"
+-
+-    elif test x"${FC_ACT}" = x"mpifrt"; then
+-      FCFLAGS="-m -Am -Kfast"
++    elif test x"${FC_ACT}" = x"mpifrtpx" -o x"${FC_ACT}" = x"mpifrt"; then
++      FCFLAGS="-Kocl -Kfast,openmp,parallel,simd=2,noalias -Nlst=t -Koptmsg=2"
++      FCFLAGS_FFTE_KERNEL_FPP__PGI__SP="-Kocl  -Kfast,openmp,parallel,simd=2,noalias -Nlst=t -Koptmsg=2"
++      FCFLAGS_FPP__PGI_NOOPT="-Kocl -Kfast,openmp,parallel,simd=2,noalias -Nlst=t -Koptmsg=2"
++      FCFLAGS_KERNELS_PAIRLIST="-Kocl  -Kfast,openmp,parallel,simd=2,nounroll,swp_strong,noalias=s -Nlst=t -Koptmsg=2" 
++      FCFLAGS_DIHEDRAL="-xsp_energy_dihedrals_mod.calculate_dihedral_2 -Kocl -Kfast,openmp,parallel,simd=2,noalias -Nlst=t -Koptmsg=2"
++      FCFLAGS_KERNELS="-Kocl  -Kfast,openmp,parallel,simd=2,swp_strong,noalias=s -Nlst=t -Koptmsg=2"      
+ 
+     fi
+ 
+@@ -776,22 +765,16 @@ else
+     elif test x"${FC_ACT}" = x"pgf90"; then
+       FCFLAGS="-m64 -Mflushz -pc 64 -mcmodel=medium -Msmartalloc=huge"
+ 
+-    elif test x"${FC_ACT}" = x"frtpx"; then
+-      FCFLAGS="-m -Kocl "
+-
+-    elif test x"${FC_ACT}" = x"mpifrtpx"; then
+-      FCFLAGS=" -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
+-      FCFLAGS_KERNELS=" -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"      
+-      FCFLAGS_KERNELS_PAIRLIST="-m -Kocl -Kopenmp -Nlst=t -Koptmsg=2" 
+-      FCFLAGS_FFTE_KERNEL_FPP__PGI__SP=" -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
+-      FCFLAGS_FPP__PGI_NOOPT=" -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
+-      FCFLAGS_DIHEDRAL=" -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"     
+-
+-    elif test x"${FC_ACT}" = x"frt"; then
+-      FCFLAGS="-m "
++    elif test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"frt"; then
++      FCFLAGS="-Kocl "
+ 
+-    elif test x"${FC_ACT}" = x"mpifrt"; then
+-      FCFLAGS="-m "
++    elif test x"${FC_ACT}" = x"mpifrtpx" -o x"${FC_ACT}" = x"mpifrt"; then
++      FCFLAGS=" -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
++      FCFLAGS_KERNELS="-Kocl -Kopenmp  -Nlst=t -Koptmsg=2"      
++      FCFLAGS_KERNELS_PAIRLIST="-Kocl -Kopenmp -Nlst=t -Koptmsg=2" 
++      FCFLAGS_FFTE_KERNEL_FPP__PGI__SP="-Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
++      FCFLAGS_FPP__PGI_NOOPT="-Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
++      FCFLAGS_DIHEDRAL="-Kocl -Kopenmp  -Nlst=t -Koptmsg=2"     
+ 
+     fi
+ 
+@@ -813,22 +796,16 @@ else
+     elif test x"${FC_ACT}" = x"pgf90"; then
+       FCFLAGS="-g  -m64 -Mflushz -pc 64 -mcmodel=medium -Msmartalloc=huge"
+ 
+-    elif test x"${FC_ACT}" = x"frtpx"; then
+-      FCFLAGS="-g -m -Kocl -Kopenmp"
++    elif test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"frt"; then
++      FCFLAGS="-g -Kocl -Kopenmp"
+ 
+-    elif test x"${FC_ACT}" = x"mpifrtpx"; then
+-      FCFLAGS=" -g -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
+-      FCFLAGS_KERNELS=" -g -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"      
+-      FCFLAGS_KERNELS_PAIRLIST=" -g -m -Kocl -Kopenmp -Nlst=t -Koptmsg=2" 
+-      FCFLAGS_FFTE_KERNEL_FPP__PGI__SP=" -g -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
+-      FCFLAGS_FPP__PGI_NOOPT=" -g -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
+-      FCFLAGS_DIHEDRAL=" -g -m -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"     
+-
+-    elif test x"${FC_ACT}" = x"frt"; then
+-      FCFLAGS="-g -m "
+-
+-    elif test x"${FC_ACT}" = x"mpifrt"; then
+-      FCFLAGS="-g -m "
++    elif test x"${FC_ACT}" = x"mpifrtpx" -o x"${FC_ACT}" = x"mpifrt"; then
++      FCFLAGS=" -g -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
++      FCFLAGS_KERNELS=" -g  -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"      
++      FCFLAGS_KERNELS_PAIRLIST=" -g  -Kocl -Kopenmp -Nlst=t -Koptmsg=2" 
++      FCFLAGS_FFTE_KERNEL_FPP__PGI__SP=" -g -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
++      FCFLAGS_FPP__PGI_NOOPT=" -g -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"
++      FCFLAGS_DIHEDRAL=" -g -Kocl -Kopenmp  -Nlst=t -Koptmsg=2"     
+ 
+     fi
+ 
+@@ -850,23 +827,23 @@ else
+     elif test x"${FC_ACT}" = x"pgf90"; then
+       FCFLAGS="-O0 -g -m64 -Msmartalloc=huge"
+ 
+-    elif test x"${FC_ACT}" = x"frtpx"; then
++    elif test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"frt"; then
+ #      FCFLAGS="-O0 -g -Hs -Hu -Ha"
+       FCFLAGS="-O0 -g -Kocl -Kopenmp -Hs -Hu -Ha -Nlst=t -Koptmsg=2"
+ 
+-    elif test x"${FC_ACT}" = x"mpifrtpx"; then
+-      FCFLAGS=" -O0 -g -m -Kocl -Kopenmp -Hs -Hu -Ha -Nlst=t -Koptmsg=2"
+-      FCFLAGS_KERNELS=" -O0 -g -m -Kocl -Kopenmp -Hs -Hu -Ha -Nlst=t -Koptmsg=2"      
+-      FCFLAGS_KERNELS_PAIRLIST=" -O0 -g -m -Kocl -Kopenmp -Hs -Hu -Ha -Nlst=t -Koptmsg=2" 
+-      FCFLAGS_FFTE_KERNEL_FPP__PGI__SP=" -O0 -g -m -Kocl -Kopenmp  -Hs -Hu -Ha -Nlst=t -Koptmsg=2"
+-      FCFLAGS_FPP__PGI_NOOPT=" -O0 -g -m -Kocl -Kopenmp -Hs -Hu -Ha  -Nlst=t -Koptmsg=2"
+-      FCFLAGS_DIHEDRAL=" -O0 -g -m -Kocl -Kopenmp -Hs -Hu -Ha  -Nlst=t -Koptmsg=2"     
++    elif test x"${FC_ACT}" = x"mpifrtpx" -o x"${FC_ACT}" = x"mpifrt"; then
++      FCFLAGS=" -O0 -g -Kocl -Kopenmp -Hs -Hu -Ha -Nlst=t -Koptmsg=2"
++      FCFLAGS_KERNELS=" -O0 -g -Kocl -Kopenmp -Hs -Hu -Ha -Nlst=t -Koptmsg=2"      
++      FCFLAGS_KERNELS_PAIRLIST=" -O0 -g -Kocl -Kopenmp -Hs -Hu -Ha -Nlst=t -Koptmsg=2" 
++      FCFLAGS_FFTE_KERNEL_FPP__PGI__SP=" -O0 -g -Kocl -Kopenmp  -Hs -Hu -Ha -Nlst=t -Koptmsg=2"
++      FCFLAGS_FPP__PGI_NOOPT=" -O0 -g -Kocl -Kopenmp -Hs -Hu -Ha  -Nlst=t -Koptmsg=2"
++      FCFLAGS_DIHEDRAL=" -O0 -g -Kocl -Kopenmp -Hs -Hu -Ha  -Nlst=t -Koptmsg=2"     
+ 
+-    elif test x"${FC_ACT}" = x"frt"; then
+-      FCFLAGS="-O0 -g"
++    #elif test x"${FC_ACT}" = x"frt"; then
++    #  FCFLAGS="-O0 -g"
+ 
+-    elif test x"${FC_ACT}" = x"mpifrt"; then
+-      FCFLAGS="-O0 -g"
++    #elif test x"${FC_ACT}" = x"mpifrt"; then
++    #  FCFLAGS="-O0 -g"
+ 
+     fi
+   else
+@@ -930,17 +907,11 @@ else
+     elif test x"${CC_ACT}" = x"pgcc"; then
+       CFLAGS="-O3 -fastsse -Mipa=fast,inline -m64 -Mflushz -pc 64 -mcmodel=medium -Msmartalloc=huge"
+ 
+-    elif test x"${CC_ACT}" = x"fccpx"; then
+-      CFLAGS="-m -Kvisimpact -Kocl -Kswp"
+-
+-    elif test x"${CC_ACT}" = x"mpifccpx"; then
+-      CFLAGS="-m -Kvisimpact -Kocl -Kswp"
++    elif test x"${CC_ACT}" = x"fccpx" -o x"${CC_ACT}" = x"fcc"; then
++      CFLAGS="-Kocl"
+ 
+-    elif test x"${CC_ACT}" = x"fcc"; then
+-      CFLAGS="-m -Am -Kfast"
+-
+-    elif test x"${CC_ACT}" = x"mpifcc"; then
+-      CFLAGS="-m -Am -Kfast"
++    elif test x"${CC_ACT}" = x"mpifccpx" -o x"${CC_ACT}" = x"mpifcc"; then
++      CFLAGS="-Kocl"
+ 
+     fi
+ 
+@@ -959,17 +930,11 @@ else
+     elif test x"${CC_ACT}" = x"pgcc"; then
+       CFLAGS="-fastsse -Mipa=fast,inline -m64 -Mflushz -pc 64 -mcmodel=medium -Msmartalloc=huge"
+ 
+-    elif test x"${CC_ACT}" = x"fccpx"; then
+-      CFLAGS="-m -Kocl"
+-
+-    elif test x"${CC_ACT}" = x"mpifccpx"; then
+-      CFLAGS="-m -Kocl"
+-
+-    elif test x"${CC_ACT}" = x"fcc"; then
+-      CFLAGS="-m -Am -Kfast"
++    elif test x"${CC_ACT}" = x"fccpx" -o x"${CC_ACT}" = x"fcc"; then
++      CFLAGS="-Kocl"
+ 
+-    elif test x"${CC_ACT}" = x"mpifcc"; then
+-      CFLAGS="-m -Am -Kfast"
++    elif test x"${CC_ACT}" = x"mpifccpx" -o x"${CC_ACT}" = x"mpifcc"; then
++      CFLAGS="-Kocl"
+ 
+     fi
+ 
+@@ -991,17 +956,11 @@ else
+     elif test x"${CC_ACT}" = x"pgcc"; then
+       CFLAGS="-g -fastsse -Mipa=fast,inline -m64 -Mflushz -pc 64 -mcmodel=medium -Msmartalloc=huge"
+ 
+-    elif test x"${CC_ACT}" = x"fccpx"; then
+-      CFLAGS="-g -m -Kocl"
++    elif test x"${CC_ACT}" = x"fccpx" -o x"${CC_ACT}" = x"fcc"; then
++      CFLAGS="-g -Kocl"
+ 
+-    elif test x"${CC_ACT}" = x"mpifccpx"; then
+-      CFLAGS="-g -m -Kocl"
+-
+-    elif test x"${CC_ACT}" = x"fcc"; then
+-      CFLAGS="-g -m -Am -Kfast"
+-
+-    elif test x"${CC_ACT}" = x"mpifcc"; then
+-      CFLAGS="-g -m -Am -Kfast"
++    elif test x"${CC_ACT}" = x"mpifccpx" -o x"${CC_ACT}" = x"mpifcc"; then
++      CFLAGS="-g -Kocl"
+ 
+     fi
+ 
+@@ -1023,19 +982,13 @@ else
+     elif test x"${CC_ACT}" = x"pgcc"; then
+       CFLAGS="-O0 -g -m64 -Msmartalloc=huge"
+ 
+-    elif test x"${CC_ACT}" = x"fccpx"; then
++    elif test x"${CC_ACT}" = x"fccpx" -o x"${CC_ACT}" = x"fcc"; then
+ #      CFLAGS="-O0 -g -Hs -Hu -Ha"
+       CFLAGS="-O0 -g -Kocl"
+ 
+-    elif test x"${CC_ACT}" = x"mpifccpx"; then
++    elif test x"${CC_ACT}" = x"mpifccpx" -o x"${CC_ACT}" = x"mpifcc"; then
+       CFLAGS="-O0 -g -Kocl"
+ 
+-    elif test x"${CC_ACT}" = x"fcc"; then
+-      CFLAGS="-O0 -g"
+-
+-    elif test x"${CC_ACT}" = x"mpifcc"; then
+-      CFLAGS="-O0 -g"
+-
+     fi
+ 
+   fi
+@@ -1056,17 +1009,11 @@ if test -z "${LDFLAGS}"; then
+     LDFLAGS=""
+     #LDFLAGS="-march=native -fuse-linker-plugin"
+   
+-  elif test x"${FC_ACT}" = x"frtpx"; then
+-    LDFLAGS="-SSL2 -Kparallel -Nfjomplib"
+-  
+-  elif test x"${FC_ACT}" = x"mpifrtpx"; then
+-    LDFLAGS="-SSL2BLAMP -Kparallel -Nfjomplib"
+-
+-  elif test x"${FC_ACT}" = x"frt"; then
+-    LDFLAGS="-KSPARC64VII,V9FMADD -SSL2"
++  elif test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"frt"; then
++    LDFLAGS="-Kparallel -Kopenmp -Nlibomp"
+   
+-  elif test x"${FC_ACT}" = x"mpifrt"; then
+-    LDFLAGS="-KSPARC64VII,V9FMADD -SSL2"
++  elif test x"${FC_ACT}" = x"mpifrtpx" -o x"${FC_ACT}" = x"mpifrt"; then
++    LDFLAGS="-Kparallel -Kopenmp -Nlibomp"
+ 
+   fi
+ fi
+@@ -1101,7 +1048,9 @@ AC_SUBST(PPFLAGS)
+ 
+ # USEKCOMP
+ AM_CONDITIONAL(USEKCOMP, test x"${FC_ACT}" = x"frtpx" -o \
+-			      x"${FC_ACT}" = x"mpifrtpx")
++			      x"${FC_ACT}" = x"mpifrtpx" -o \
++			      x"${FC_ACT}" = x"frt" -o \
++			      x"${FC_ACT}" = x"mpifrt")
+ 
+ # KCOMP preprocess macro
+ AC_ARG_ENABLE([pktimer],
+@@ -1130,7 +1079,8 @@ AC_ARG_WITH([fj_timer_2],
+ 	[use FJ-timer in main loop (default: not use)])],
+ 	[], [with_fj_timer_2=no])
+ 
+-if test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"mpifrtpx"; then
++if test x"${FC_ACT}" = x"frtpx" -o x"${FC_ACT}" = x"mpifrtpx" -o \
++	x"${FC_ACT}" = x"frt" -o x"${FC_ACT}" = x"mpifrt"; then
+   AC_DEFINE(KCOMP, 1, [defined if K-computer compiler is used.])
+   DEFINED_VARIABLES+=" -DKCOMP"
+ 
+@@ -1148,7 +1098,7 @@ if test x"${FC_ACT}" = x"frtpx" -o x"${F
+   mainly_pktimer=no
+   if test x"${enable_pktimer}" = x"yes"; then
+ 
+-    if test x"${FC_ACT}" = x"mpifrtpx"; then
++    if test x"${FC_ACT}" = x"mpifrtpx" -o x"${FC_ACT}" = x"mpifrt"; then
+       AC_DEFINE(PKTIMER, 1, [defined if PKTIMER is used.])
+       DEFINED_VARIABLES+=" -DPKTIMER"
+       mainly_pktimer=yes

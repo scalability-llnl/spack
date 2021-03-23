@@ -1,0 +1,185 @@
+From 0510b87018815781da34566a57f35caaf01fc822 Mon Sep 17 00:00:00 2001
+From: Robert Maynard <robert.maynard@kitware.com>
+Date: Thu, 18 Jun 2020 15:48:48 -0400
+Subject: [PATCH] Make sure we don't leak our findmpi module
+
+Consumers of VTK-m shouldn't use VTK-m find mpi module unless
+they explicitly want to. This makes sure that by default only
+VTK-m uses it.
+---
+ CMake/VTKmCMakeBackports.cmake         | 23 +++++++++++++++++++++++
+ CMake/VTKmMPI.cmake                    | 24 ------------------------
+ CMake/VTKmWrappers.cmake               |  6 +++++-
+ CMake/{ => patches/3.15}/FindMPI.cmake |  0
+ CMake/patches/FindMPI.cmake            | 18 ++++++++++++++++++
+ CMake/patches/README.md                |  7 +++++++
+ CMakeLists.txt                         | 11 ++++++++---
+ 7 files changed, 61 insertions(+), 28 deletions(-)
+ create mode 100644 CMake/VTKmCMakeBackports.cmake
+ delete mode 100644 CMake/VTKmMPI.cmake
+ rename CMake/{ => patches/3.15}/FindMPI.cmake (100%)
+ create mode 100644 CMake/patches/FindMPI.cmake
+ create mode 100644 CMake/patches/README.md
+
+diff --git a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmCMakeBackports.cmake b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmCMakeBackports.cmake
+new file mode 100644
+index 000000000..2d286fb16
+--- /dev/null
++++ b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmCMakeBackports.cmake
+@@ -0,0 +1,23 @@
++##============================================================================
++##  Copyright (c) Kitware, Inc.
++##  All rights reserved.
++##  See LICENSE.txt for details.
++##
++##  This software is distributed WITHOUT ANY WARRANTY; without even
++##  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
++##  PURPOSE.  See the above copyright notice for more information.
++##============================================================================
++
++file(GLOB cmake_version_backports
++  LIST_DIRECTORIES true
++  RELATIVE "${CMAKE_CURRENT_LIST_DIR}/patches"
++  "${CMAKE_CURRENT_LIST_DIR}/patches/*")
++
++foreach (cmake_version_backport IN LISTS cmake_version_backports)
++  if (NOT IS_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/patches/${cmake_version_backport}")
++    continue ()
++  endif ()
++  if (CMAKE_VERSION VERSION_LESS "${cmake_version_backport}")
++    list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_LIST_DIR}/patches/${cmake_version_backport}")
++  endif ()
++endforeach ()
+diff --git a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmMPI.cmake b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmMPI.cmake
+deleted file mode 100644
+index 4c06369ec..000000000
+--- a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmMPI.cmake
++++ /dev/null
+@@ -1,24 +0,0 @@
+-##============================================================================
+-##  Copyright (c) Kitware, Inc.
+-##  All rights reserved.
+-##  See LICENSE.txt for details.
+-##
+-##  This software is distributed WITHOUT ANY WARRANTY; without even
+-##  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+-##  PURPOSE.  See the above copyright notice for more information.
+-##============================================================================
+-
+-if(VTKm_ENABLE_MPI AND NOT TARGET MPI::MPI_CXX)
+-  if(CMAKE_VERSION VERSION_LESS 3.15)
+-    #While CMake 3.10 introduced the new MPI module.
+-    #Fixes related to MPI+CUDA that VTK-m needs are
+-    #only found in CMake 3.15+.
+-    find_package(MPI REQUIRED MODULE)
+-  else()
+-    #clunky but we need to make sure we use the upstream module if it exists
+-    set(orig_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
+-    set(CMAKE_MODULE_PATH "")
+-    find_package(MPI REQUIRED MODULE)
+-    set(CMAKE_MODULE_PATH ${orig_CMAKE_MODULE_PATH})
+-  endif()
+-endif()
+diff --git a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmWrappers.cmake b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmWrappers.cmake
+index 08c359053..a79b72338 100644
+--- a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmWrappers.cmake
++++ b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/VTKmWrappers.cmake
+@@ -10,9 +10,13 @@
+ 
+ include(CMakeParseArguments)
+ 
++include(VTKmCMakeBackports)
+ include(VTKmDeviceAdapters)
+ include(VTKmCPUVectorization)
+-include(VTKmMPI)
++
++if(VTKm_ENABLE_MPI AND NOT TARGET MPI::MPI_CXX)
++  find_package(MPI REQUIRED MODULE)
++endif()
+ 
+ #-----------------------------------------------------------------------------
+ # INTERNAL FUNCTIONS
+diff --git a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/FindMPI.cmake b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/3.15/FindMPI.cmake
+similarity index 100%
+rename from CMake/FindMPI.cmake
+rename to CMake/patches/3.15/FindMPI.cmake
+diff --git a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/FindMPI.cmake b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/FindMPI.cmake
+new file mode 100644
+index 000000000..192c280fd
+--- /dev/null
++++ b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/FindMPI.cmake
+@@ -0,0 +1,18 @@
++##=============================================================================
++##
++##  Copyright (c) Kitware, Inc.
++##  All rights reserved.
++##  See LICENSE.txt for details.
++##
++##  This software is distributed WITHOUT ANY WARRANTY; without even
++##  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
++##  PURPOSE.  See the above copyright notice for more information.
++##
++##=============================================================================
++
++# This module is already included in new versions of CMake
++if(CMAKE_VERSION VERSION_LESS 3.15)
++  include(${CMAKE_CURRENT_LIST_DIR}/3.15/FindMPI.cmake)
++else()
++  include(${CMAKE_ROOT}/Modules/FindMPI.cmake)
++endif()
+diff --git a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/README.md b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/README.md
+new file mode 100644
+index 000000000..405016904
+--- /dev/null
++++ b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMake/patches/README.md
+@@ -0,0 +1,7 @@
++# CMake backports
++
++This directory contains backports from newer CMake versions to help support
++actually using older CMake versions for building VTK-m. The directory name is the
++minimum version of CMake for which the contained files are no longer necessary.
++For example, the files under the `3.15` directory are not needed for 3.15 or
++3.16, but are for 3.14.
+diff --git a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt
+index 7695384d4..e40063b3d 100644
+--- a/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt
++++ b/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt
+@@ -247,11 +247,17 @@ if(NOT VTKm_INSTALL_ONLY_LIBRARIES)
+   # Install helper configure files.
+   install(
+     FILES
++      ${VTKm_SOURCE_DIR}/CMake/VTKmCMakeBackports.cmake
+       ${VTKm_SOURCE_DIR}/CMake/FindTBB.cmake
+-      ${VTKm_SOURCE_DIR}/CMake/FindMPI.cmake
+       ${VTKm_SOURCE_DIR}/CMake/FindOpenGL.cmake
++      ${VTKm_SOURCE_DIR}/CMake/patches/FindMPI.cmake
+     DESTINATION ${VTKm_INSTALL_CMAKE_MODULE_DIR}
+     )
++  install(
++    FILES
++      ${VTKm_SOURCE_DIR}/CMake/patches/3.15/FindMPI.cmake
++    DESTINATION ${VTKm_INSTALL_CMAKE_MODULE_DIR}/3.15
++    )
+ 
+   # Install support files.
+   install(
+@@ -260,7 +266,6 @@ if(NOT VTKm_INSTALL_ONLY_LIBRARIES)
+       ${VTKm_SOURCE_DIR}/CMake/VTKmDetectCUDAVersion.cu
+       ${VTKm_SOURCE_DIR}/CMake/VTKmDeviceAdapters.cmake
+       ${VTKm_SOURCE_DIR}/CMake/VTKmExportHeaderTemplate.h.in
+-      ${VTKm_SOURCE_DIR}/CMake/VTKmMPI.cmake
+       ${VTKm_SOURCE_DIR}/CMake/VTKmRenderingContexts.cmake
+       ${VTKm_SOURCE_DIR}/CMake/VTKmWrappers.cmake
+     DESTINATION ${VTKm_INSTALL_CMAKE_MODULE_DIR}
+@@ -294,7 +299,7 @@ endif ()
+ #-----------------------------------------------------------------------------
+ #add the benchmarking folder
+ if(VTKm_ENABLE_BENCHMARKS)
+-    add_subdirectory(benchmarking)
++  add_subdirectory(benchmarking)
+ endif()
+ 
+ #-----------------------------------------------------------------------------
+-- 
+2.24.2
+

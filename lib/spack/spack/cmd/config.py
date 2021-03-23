@@ -17,6 +17,8 @@ import spack.environment as ev
 import spack.schema.packages
 import spack.util.spack_yaml as syaml
 from spack.util.editor import editor
+import spack.store
+import spack.repo
 
 description = "get and set configuration options"
 section = "config"
@@ -71,6 +73,16 @@ def setup_parser(subparser):
     add_parser.add_argument(
         '-f', '--file',
         help="file from which to set all config values"
+    )
+
+    prefer_upstream_parser = sp.add_parser(
+        'prefer-upstream',
+        help='set package preferences from upstream')
+
+    prefer_upstream_parser.add_argument(
+        '--local', action='store_true', default=False,
+        help="Set packages preferences based on local installs, rather "
+             "than upstream."
     )
 
     remove_parser = sp.add_parser('remove', aliases=['rm'],
@@ -188,71 +200,11 @@ def config_add(args):
 
     scope, section = _get_scope_and_section(args)
 
-    # Updates from file
     if args.file:
-        # Get file as config dict
-        data = spack.config.read_config_file(args.file)
-        if any(k in data for k in spack.schema.env.keys):
-            data = ev.config_dict(data)
-
-        # update all sections from config dict
-        # We have to iterate on keys to keep overrides from the file
-        for section in data.keys():
-            if section in spack.config.section_schemas.keys():
-                # Special handling for compiler scope difference
-                # Has to be handled after we choose a section
-                if scope is None:
-                    scope = spack.config.default_modify_scope(section)
-
-                value = data[section]
-                existing = spack.config.get(section, scope=scope)
-                new = spack.config.merge_yaml(existing, value)
-
-                spack.config.set(section, new, scope)
+        spack.config.add_from_file(args.file, scope=scope)
 
     if args.path:
-        components = spack.config.process_config_path(args.path)
-
-        has_existing_value = True
-        path = ''
-        override = False
-        for idx, name in enumerate(components[:-1]):
-            # First handle double colons in constructing path
-            colon = '::' if override else ':' if path else ''
-            path += colon + name
-            if getattr(name, 'override', False):
-                override = True
-            else:
-                override = False
-
-            # Test whether there is an existing value at this level
-            existing = spack.config.get(path, scope=scope)
-
-            if existing is None:
-                has_existing_value = False
-                # We've nested further than existing config, so we need the
-                # type information for validation to know how to handle bare
-                # values appended to lists.
-                existing = spack.config.get_valid_type(path)
-
-                # construct value from this point down
-                value = syaml.load_config(components[-1])
-                for component in reversed(components[idx + 1:-1]):
-                    value = {component: value}
-                break
-
-        if has_existing_value:
-            path, _, value = args.path.rpartition(':')
-            value = syaml.load_config(value)
-            existing = spack.config.get(path, scope=scope)
-
-        # append values to lists
-        if isinstance(existing, list) and not isinstance(value, list):
-            value = [value]
-
-        # merge value into existing
-        new = spack.config.merge_yaml(existing, value)
-        spack.config.set(path, new, scope)
+        spack.config.add(args.path, scope=scope)
 
 
 def config_remove(args):
@@ -431,6 +383,79 @@ def config_revert(args):
         tty.msg(msg.format(cfg_file))
 
 
+def config_prefer_upstream(args):
+    """Generate a packages config based on the configuration of all upstream
+    installs."""
+
+    scope = args.scope
+    if scope is None:
+        scope = spack.config.default_modify_scope('packages')
+
+    all_specs = set(spack.store.db.query(installed=True))
+    local_specs = set(spack.store.db.query_local(installed=True))
+    pref_specs = local_specs if args.local else all_specs - local_specs
+
+    conflicting_variants = set()
+
+    pkgs = {}
+    for spec in pref_specs:
+        # Collect all the upstream compilers and versions for this package.
+        pkg = pkgs.get(spec.name, {
+            'version': [],
+            'compiler': [],
+        })
+        pkgs[spec.name] = pkg
+
+        # We have no existing variant if this is our first added version.
+        existing_variants = pkg.get('variants',
+                                    None if not pkg['version'] else '')
+
+        version = spec.version.string
+        if version not in pkg['version']:
+            pkg['version'].append(version)
+
+        compiler = str(spec.compiler)
+        if compiler not in pkg['compiler']:
+            pkg['compiler'].append(compiler)
+
+        # Get and list all the variants that differ from the default.
+        variants = []
+        for var_name, variant in spec.variants.items():
+            if (var_name in ['patches']
+                    or var_name not in spec.package.variants):
+                continue
+
+            if variant.value != spec.package.variants[var_name].default:
+                variants.append(str(variant))
+        variants.sort()
+        variants = ' '.join(variants)
+
+        if spec.name not in conflicting_variants:
+            # Only specify the variants if there's a single variant
+            # set across all versions/compilers.
+            if existing_variants is not None and existing_variants != variants:
+                conflicting_variants.add(spec.name)
+                pkg.pop('variants', None)
+            elif variants:
+                pkg['variants'] = variants
+
+    if conflicting_variants:
+        tty.warn(
+            "The following packages have multiple conflicting upstream "
+            "specs. You may have to specify, by "
+            "concretized hash, which spec you want when building "
+            "packages that depend on them:\n - {0}"
+            .format("\n - ".join(sorted(conflicting_variants))))
+
+    # Simply write the config to the specified file.
+    existing = spack.config.get('packages', scope=scope)
+    new = spack.config.merge_yaml(existing, pkgs)
+    spack.config.set('packages', new, scope)
+    config_file = spack.config.config.get_config_filename(scope, section)
+
+    tty.msg("Updated config at {0}".format(config_file))
+
+
 def config(parser, args):
     action = {
         'get': config_get,
@@ -441,6 +466,7 @@ def config(parser, args):
         'rm': config_remove,
         'remove': config_remove,
         'update': config_update,
-        'revert': config_revert
+        'revert': config_revert,
+        'prefer-upstream': config_prefer_upstream,
     }
     action[args.config_command](args)

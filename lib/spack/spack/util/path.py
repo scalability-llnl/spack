@@ -17,7 +17,7 @@ import llnl.util.tty as tty
 from llnl.util.lang import memoized
 
 import spack.paths
-
+import spack.util.spack_yaml as syaml
 
 __all__ = [
     'substitute_config_variables',
@@ -72,12 +72,22 @@ def substitute_config_variables(path):
     - $spack     The Spack instance's prefix
     - $user      The current user's username
     - $tempdir   Default temporary directory returned by tempfile.gettempdir()
+    - $env       The active Spack environment.
 
     These are substituted case-insensitively into the path, and users can
-    use either ``$var`` or ``${var}`` syntax for the variables.
-
+    use either ``$var`` or ``${var}`` syntax for the variables. $env is only
+    replaced if there is an active environment, and should only be used in
+    environment yaml files.
     """
-    # Look up replacements for re.sub in the replacements dict.
+    import spack.environment as ev  # break circular
+    env = ev.get_env({}, '')
+    if env:
+        replacements.update({'env': env.path})
+    else:
+        # If a previous invocation added env, remove it
+        replacements.pop('env', None)
+
+    # Look up replacements
     def repl(match):
         m = match.group(0).strip('${}')
         return replacements.get(m.lower(), match.group(0))
@@ -132,7 +142,19 @@ def add_padding(path, length):
 
 def canonicalize_path(path):
     """Same as substitute_path_variables, but also take absolute path."""
-    path = substitute_path_variables(path)
-    path = os.path.abspath(path)
+    # Get file in which path was written in case we need to make it absolute
+    # relative to that path.
+    filename = None
+    if isinstance(path, syaml.syaml_str):
+        filename = os.path.dirname(path._start_mark.name)
+        assert path._start_mark.name == path._end_mark.name
 
-    return path
+    path = substitute_path_variables(path)
+    if not os.path.isabs(path):
+        if filename:
+            path = os.path.join(filename, path)
+        else:
+            path = os.path.abspath(path)
+            tty.debug("Using current working directory as base for abspath")
+
+    return os.path.normpath(path)

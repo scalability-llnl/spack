@@ -18,6 +18,7 @@ class PyTorchGeometric(PythonPackage):
     homepage = "https://github.com/rusty1s/pytorch_geometric"
     url      = "https://github.com/rusty1s/pytorch_geometric/archive/1.6.0.tar.gz"
 
+    version('1.6.3', sha256='1907c0f5eb7ab8f6f79a7e43703579b39b514501dd956ed0fc3d33210bcbb4c2')
     version('1.6.0', sha256='7d5231cdcc2ebd4444f406cbf1537eb49bf90ab6f446eaf1b7af5cdbe105f3c9')
 
     variant('cuda', default=False, description="Enable CUDA support")
@@ -32,6 +33,7 @@ class PyTorchGeometric(PythonPackage):
     depends_on('py-networkx', type=('build', 'run'))
     depends_on('py-scikit-learn', type=('build', 'run'))
     depends_on('py-numba', type=('build', 'run'))
+    depends_on('py-python-louvain', type=('build', 'run'), when='@1.6.2:')
     depends_on('py-requests', type=('build', 'run'))
     depends_on('py-pandas', type=('build', 'run'))
     depends_on('py-rdflib', type=('build', 'run'))

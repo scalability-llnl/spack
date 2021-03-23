@@ -18,7 +18,11 @@
 ORIGINAL_PATH="$PATH"
 
 . "$(dirname $0)/setup.sh"
-check_dependencies $coverage kcov git hg svn
+if [ "$COVERAGE" = true ]; then
+  check_dependencies $coverage kcov git hg svn
+else
+  echo "COVERAGE not set to 'true' [skipping coverage]"
+fi
 
 # Clean the environment by removing Spack from the path and getting rid of
 # the spack shell function

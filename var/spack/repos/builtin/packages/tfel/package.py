@@ -44,7 +44,8 @@ class Tfel(CMakePackage):
     version("rliv-1.2", branch="rliv-1.2")
 
     # released version
-    version('3.4.0', sha256='884ad68b0fbbededc3a602d559433c24114ae4534dc9f0a759d31ca3589dace0')
+    version('3.4.0', sha256='176feb4c1726d0f21f4c656b20620dce6f99ab7f5f09a66905aeb643a316bbc1')
+    version('3.3.1', sha256='ad07329c25874832fbacc999b5f88d9b9ab84415bc897a6f3cae5b4afcd7661f')
     version('3.3.0', sha256='884ad68b0fbbededc3a602d559433c24114ae4534dc9f0a759d31ca3589dace0')
     version('3.2.2', sha256='69b01ae0d1f9140b619aaa9135948284ff40d4654672c335e55ab4934c02eb43')
     version('3.2.1', sha256='12786480524a7fe86889120fb334fa00211dfd44ad5ec71e2279e7adf1ddc807')

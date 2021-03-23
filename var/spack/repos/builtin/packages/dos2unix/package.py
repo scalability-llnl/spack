@@ -14,7 +14,7 @@ class Dos2unix(MakefilePackage):
 
     version('7.3.4', sha256='8ccda7bbc5a2f903dafd95900abb5bf5e77a769b572ef25150fde4056c5f30c5')
 
-    depends_on('gettext', type='build')
+    depends_on('gettext')
 
     def install(self, spec, prefix):
         make('prefix={0}'.format(prefix), 'install')

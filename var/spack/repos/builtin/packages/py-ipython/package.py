@@ -21,6 +21,7 @@ class PyIpython(PythonPackage):
         'IPython.external', 'IPython.external.decorators'
     ]
 
+    version('7.21.0', sha256='04323f72d5b85b606330b6d7e2dc8d2683ad46c3905e955aa96ecc7a99388e70')
     version('7.18.1', sha256='a331e78086001931de9424940699691ad49dfb457cea31f5471eae7b78222d5e')
     version('7.5.0',  sha256='e840810029224b56cd0d9e7719dc3b39cf84d577f8ac686547c8ba7a06eeab26')
     version('7.3.0',  sha256='06de667a9e406924f97781bda22d5d76bfb39762b678762d86a466e63f65dc39')
@@ -36,13 +37,15 @@ class PyIpython(PythonPackage):
     depends_on('python@2.7:2.8,3.3:', type=('build', 'run'))
     depends_on('py-setuptools@18.5:', type='run', when='@4.1:')
     depends_on('py-jedi@0.10:', type=('build', 'run'), when='@7.5.0:')
+    depends_on('py-jedi@:0.17', type=('build', 'run'), when='@:7.18')  # from release notes
+    depends_on('py-jedi@0.16:', type=('build', 'run'), when='@7.18:')
     depends_on('py-decorator', type=('build', 'run'))
     depends_on('py-pickleshare', type=('build', 'run'))
     depends_on('py-traitlets@4.2:', type=('build', 'run'))
     depends_on('py-prompt-toolkit@1.0.4:1.999',  when='@:7.0.0', type=('build', 'run'))
-    depends_on('py-prompt-toolkit@2.0.0:2.999',  when='@7.0.0:', type=('build', 'run'))
+    depends_on('py-prompt-toolkit@2.0.0:2.999',  when='@7.0.0:7.5.0', type=('build', 'run'))
     depends_on('py-prompt-toolkit@2.0.0:2.0.999', when='@7.5.0', type=('build', 'run'))
-    depends_on('py-prompt-toolkit@2.0.0:2.999,3.0.2:3.0.999', when='@7.18:', type=('build', 'run'))
+    depends_on('py-prompt-toolkit@3.0.2:3.0.999', when='@7.18:', type=('build', 'run'))
     depends_on('py-pygments', type=('build', 'run'))
     depends_on('py-backcall', type=('build', 'run'), when='@7.5.0:')
     depends_on('py-pexpect', type=('build', 'run'))

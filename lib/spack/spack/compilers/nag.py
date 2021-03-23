@@ -102,3 +102,13 @@ class Nag(spack.compiler.Compiler):
     @property
     def linker_arg(self):
         return '-Wl,-Wl,,'
+
+    @property
+    def disable_new_dtags(self):
+        # Disable RPATH/RUNPATH forcing for NAG/GCC mixed toolchains:
+        return ''
+
+    @property
+    def enable_new_dtags(self):
+        # Disable RPATH/RUNPATH forcing for NAG/GCC mixed toolchains:
+        return ''

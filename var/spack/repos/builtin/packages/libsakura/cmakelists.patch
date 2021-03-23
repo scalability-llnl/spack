@@ -1,0 +1,38 @@
+diff -ur a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	2016-09-15 02:39:32.000000000 -0600
++++ b/CMakeLists.txt	2021-03-10 10:00:28.227544744 -0700
+@@ -46,10 +46,7 @@
+ 
+ message(STATUS "CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}")
+ 
+-
+-find_path(GTEST_INCLUDE_DIRS gtest/gtest.h PATHS ${PROJECT_SOURCE_DIR}/gtest/include)
+-set(GTEST_LIBRARIES ${PROJECT_BINARY_DIR}/bingtest/libgtest.a)
+-set(GTEST_MAIN_LIBRARIES ${PROJECT_BINARY_DIR}/bingtest/libgtest_main.a)
++list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules")
+ 
+ # sakura root directory
+ set(SAKURA_ROOT_DIR ${PROJECT_SOURCE_DIR})
+@@ -57,5 +54,3 @@
+ #set(CMAKE_BUILD_TYPE Release)
+ 
+ add_subdirectory(src bin)
+-add_subdirectory(gtest bingtest)
+-add_subdirectory(test bintest)
+diff -ur a/src/CMakeLists.txt b/src/CMakeLists.txt
+--- a/src/CMakeLists.txt	2016-09-15 02:39:32.000000000 -0600
++++ spack-src/src/CMakeLists.txt	2021-03-10 09:56:22.399794093 -0700
+@@ -25,12 +25,10 @@
+ 
+ project(libsakura)
+ 
+-set(CMAKE_MODULE_PATH ../cmake-modules CACHE STRING "List of directories to search for CMake modules")
+-
+ find_package(Threads)
+ find_package(Eigen3 3.2.0 REQUIRED)
+ find_package(Log4Cxx)
+-find_package(FFTW3 3.3.2 REQUIRED)
++find_package(FFTW3 3.3.2 MODULE REQUIRED)
+ include(SetArchFlags)
+ 
+ set(CMAKE_INSTALL_PREFIX /usr/local)

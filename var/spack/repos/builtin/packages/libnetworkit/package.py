@@ -22,6 +22,7 @@ class Libnetworkit(CMakePackage):
 
     maintainers = ['fabratu']
 
+    version('8.1', sha256='0a22eb839606b9fabfa68c7add12c4de5eee735c6f8bb34420e5916ce5d7f829')
     version('8.0', sha256='cdf9571043edbe76c447622ed33efe9cba2880f887ca231d98f6d3c22027e20e')
     version('7.1', sha256='60026c3be581ae9d5c919c861605082fcb9c8205758b3ddfcde2408153ae166e')
     version('7.0', sha256='4faf16c5fae3e14d3c1b6f30e25c6e093dcf6a3dbf021235f3161ac2a527f682')

@@ -15,3 +15,8 @@ class Mcl(AutotoolsPackage):
     url      = "https://www.micans.org/mcl/src/mcl-14-137.tar.gz"
 
     version('14-137', sha256='b5786897a8a8ca119eb355a5630806a4da72ea84243dba85b19a86f14757b497')
+
+    @when('%gcc@10:')
+    def patch(self):
+        filter_file('^dim', 'extern dim', 'src/impala/iface.h')
+        filter_file('^double', 'extern double', 'src/impala/iface.h')

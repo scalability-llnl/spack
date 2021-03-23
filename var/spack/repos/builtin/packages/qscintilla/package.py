@@ -13,25 +13,29 @@ class Qscintilla(QMakePackage):
     """
 
     homepage = "https://www.riverbankcomputing.com/software/qscintilla/intro"
-    url      = "https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.11.2/QScintilla_gpl-2.11.2.tar.gz"
+    url      = "https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.12.0/QScintilla_src-2.12.0.tar.gz"
 
-    version('2.11.2', sha256='029bdc476a069fda2cea3cd937ba19cc7fa614fb90578caef98ed703b658f4a1')
-    # Newer versions of Qscintilla won't build, so prefer the following version
-    version('2.10.2', sha256='14b31d20717eed95ea9bea4cd16e5e1b72cee7ebac647cba878e0f6db6a65ed0', preferred=True)
+    # Directory structure is changed in latest release, logic is lost
+    version('2.12.0', sha256='a4cc9e7d2130ecfcdb18afb43b813ef122473f6f35deff747415fbc2fe0c60ed', url='https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.12.0/QScintilla_src-2.12.0.tar.gz')
+
+    # Last standard release dates back to 2021/11/23
+    version('2.11.6', sha256='e7346057db47d2fb384467fafccfcb13aa0741373c5d593bc72b55b2f0dd20a7', preferred=True, url='https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.11.6/QScintilla-2.11.6.tar.gz')
+    version('2.11.2', sha256='029bdc476a069fda2cea3cd937ba19cc7fa614fb90578caef98ed703b658f4a1', url='https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.11.2/QScintilla_gpl-2.11.2.tar.gz')
+    version('2.10.2', sha256='14b31d20717eed95ea9bea4cd16e5e1b72cee7ebac647cba878e0f6db6a65ed0', url='https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.10.2/QScintilla-2.10.2.tar.gz')
 
     variant('designer', default=False, description="Enable pluging for Qt-Designer")
     variant('python', default=False, description="Build python bindings")
 
+    depends_on('qt+opengl',  when='+python')
     depends_on('qt')
     depends_on('py-pyqt5 +qsci_api', type=('build', 'run'),  when='+python ^qt@5')
     depends_on('py-pyqt4 +qsci_api', type=('build', 'run'),  when='+python ^qt@4')
     depends_on('python',   type=('build', 'run'),  when='+python')
+    # adter install inquires py-sip variant : so we need to have it
+    depends_on('py-sip',   type='build',  when='~python')
 
     extends('python', when='+python')
-
-    @run_before('qmake')
-    def chdir(self):
-        os.chdir(str(self.stage.source_path) + '/Qt4Qt5')
+    build_directory = 'Qt4Qt5'
 
     def qmake_args(self):
         # below, DEFINES ... gets rid of ...regex...errors during build
@@ -50,7 +54,7 @@ class Qscintilla(QMakePackage):
     # Fix install prefix
     @run_after('qmake')
     def fix_install_path(self):
-        makefile = FileFilter('Makefile')
+        makefile = FileFilter(join_path('Qt4Qt5', 'Makefile'))
         makefile.filter(r'\$\(INSTALL_ROOT\)' +
                         self.spec['qt'].prefix, '$(INSTALL_ROOT)')
 
@@ -128,7 +132,10 @@ class Qscintilla(QMakePackage):
                 makefile = FileFilter('Qsci/Makefile')
                 makefile.filter(r'\$\(INSTALL_ROOT\)', '')
 
-                make('install')
+                if '@2.11:' in self.spec:
+                    make('install', parallel=False)
+                else:
+                    make('install')
 
     @run_after('install')
     def extend_path_setup(self):

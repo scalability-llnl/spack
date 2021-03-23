@@ -8,9 +8,10 @@ import re
 
 import pytest
 
+import spack.config
 import spack.main
 import spack.modules
-from spack.test.conftest import use_store, use_configuration, use_repo
+import spack.store
 
 module = spack.main.SpackCommand('module')
 
@@ -18,12 +19,13 @@ module = spack.main.SpackCommand('module')
 #: make sure module files are generated for all the tests here
 @pytest.fixture(scope='module', autouse=True)
 def ensure_module_files_are_there(
-        mock_repo_path, mock_store, mock_configuration):
+        mock_repo_path, mock_store, mock_configuration_scopes
+):
     """Generate module files for module tests."""
     module = spack.main.SpackCommand('module')
-    with use_store(mock_store):
-        with use_configuration(mock_configuration):
-            with use_repo(mock_repo_path):
+    with spack.store.use_store(str(mock_store)):
+        with spack.config.use_configuration(*mock_configuration_scopes):
+            with spack.repo.use_repositories(mock_repo_path):
                 module('tcl', 'refresh', '-y')
 
 

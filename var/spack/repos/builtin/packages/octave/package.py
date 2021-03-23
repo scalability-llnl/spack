@@ -26,6 +26,7 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
 
     extendable = True
 
+    version('6.2.0', sha256='457d1fda8634a839e2fd7cfc55b98bd56f36b6ae73d31bb9df43dde3012caa7c')
     version('6.1.0', sha256='6ff34e401658622c44094ecb67e497672e4337ca2d36c0702d0403ecc60b0a57')
     version('5.2.0', sha256='2fea62b3c78d6f38e9451da8a4d26023840725977dffee5250d3d180f56595e1')
     version('5.1.0', sha256='e36b1124cac27c7caa51cc57de408c31676d5f0096349b4d50b57bfe1bcd7495')
@@ -87,12 +88,13 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
     depends_on('gnuplot',      when='+gnuplot')
     depends_on('imagemagick',  when='+magick')
     depends_on('hdf5',         when='+hdf5')
-    depends_on('java',          when='+jdk')        # TODO: requires Java 6 ?
+    depends_on('java',         when='+jdk')        # TODO: requires Java 6 ?
     depends_on('llvm',         when='+llvm')
-    # depends_on('opengl',      when='+opengl')    # TODO: add package
+    depends_on('gl',           when='+opengl')
+    depends_on('gl',           when='+fltk')
     depends_on('qhull',        when='+qhull')
     depends_on('qrupdate',     when='+qrupdate')
-    # depends_on('qscintilla',  when='+qscintilla) # TODO: add package
+    depends_on('qscintilla',   when='+qscintilla')
     depends_on('qt+opengl',    when='+qt')
     depends_on('suite-sparse', when='+suitesparse')
     depends_on('zlib',         when='+zlib')
@@ -238,7 +240,7 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
         else:
             config_args.append("--disable-java")
 
-        if '~opengl' in spec:
+        if '~opengl' and '~fltk' in spec:
             config_args.extend([
                 "--without-opengl",
                 "--without-framework-opengl"

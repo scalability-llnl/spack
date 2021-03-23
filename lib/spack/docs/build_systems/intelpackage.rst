@@ -137,6 +137,7 @@ If you need to save disk space or installation time, you could install the
 ``intel`` compilers-only subset (0.6 GB) and just the library packages you
 need, for example ``intel-mpi`` (0.5 GB) and ``intel-mkl`` (2.5 GB).
 
+.. _intel-unrelated-packages:
 
 """"""""""""""""""""
 Unrelated packages
@@ -357,6 +358,8 @@ affected by an advanced third method:
 
 Next, visit section `Selecting Intel Compilers`_ to learn how to tell
 Spack to use the newly configured compilers.
+
+.. _intel-integrating-external-libraries:
 
 """"""""""""""""""""""""""""""""""
 Integrating external libraries
@@ -834,6 +837,7 @@ for example:
       compiler: [ intel@18, intel@17, gcc@4.4.7, gcc@4.9.3, gcc@7.3.0, ]
 
 
+.. _intel-virtual-packages:
 
 """"""""""""""""""""""""""""""""""""""""""""""""
 Selecting libraries to satisfy virtual packages
@@ -907,6 +911,7 @@ With the proper installation as detailed above, no special steps should be
 required when a client package specifically (and thus deliberately) requests an
 Intel package as dependency, this being one of the target use cases for Spack.
 
+.. _using-mkl-tips:
 
 """""""""""""""""""""""""""""""""""""""""""""""
 Tips for configuring client packages to use MKL

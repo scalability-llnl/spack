@@ -17,6 +17,8 @@ class Pfapack(MakefilePackage):
 
     version('2014-09-17', sha256='b68fc35dda23ee24c358641b1a92ef701c4ffa0b3f0b0808b24e68afeb58ef07')
 
+    parallel = False
+
     depends_on('lapack')
     depends_on('blas')
     depends_on('python', type=('build', 'run'))

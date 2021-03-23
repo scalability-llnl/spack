@@ -23,6 +23,7 @@ install trees to define their own layouts with some per-tree
 configuration.
 
 """
+import contextlib
 import os
 import re
 import six
@@ -157,6 +158,8 @@ class Store(object):
     ):
         self.root = root
         self.unpadded_root = unpadded_root or root
+        self.projections = projections
+        self.hash_length = hash_length
         self.db = spack.database.Database(
             root, upstream_dbs=retrieve_upstream_dbs())
         self.layout = spack.directory_layout.YamlDirectoryLayout(
@@ -166,12 +169,43 @@ class Store(object):
         """Convenience function to reindex the store DB with its own layout."""
         return self.db.reindex(self.layout)
 
+    def serialize(self):
+        """Return a pickle-able object that can be used to reconstruct
+        a store.
+        """
+        return (
+            self.root, self.unpadded_root, self.projections, self.hash_length
+        )
+
+    @staticmethod
+    def deserialize(token):
+        """Return a store reconstructed from a token created by
+        the serialize method.
+
+        Args:
+            token: return value of the serialize method
+
+        Returns:
+            Store object reconstructed from the token
+        """
+        return Store(*token)
+
 
 def _store():
     """Get the singleton store instance."""
     config_dict = spack.config.get('config')
     root, unpadded_root, projections = parse_install_tree(config_dict)
     hash_length = spack.config.get('config:install_hash_length')
+
+    # Check that the user is not trying to install software into the store
+    # reserved by Spack to bootstrap its own dependencies, since this would
+    # lead to bizarre behaviors (e.g. cleaning the bootstrap area would wipe
+    # user installed software)
+    if spack.paths.user_bootstrap_store == root:
+        msg = ('please change the install tree root "{0}" in your '
+               'configuration [path reserved for Spack internal use]')
+        raise ValueError(msg.format(root))
+
     return Store(root=root,
                  unpadded_root=unpadded_root,
                  projections=projections,
@@ -227,3 +261,34 @@ def _construct_upstream_dbs_from_install_roots(
         accumulated_upstream_dbs.insert(0, next_db)
 
     return accumulated_upstream_dbs
+
+
+@contextlib.contextmanager
+def use_store(store_or_path):
+    """Use the store passed as argument within the context manager.
+
+    Args:
+        store_or_path: either a Store object ot a path to where the store resides
+
+    Returns:
+        Store object associated with the context manager's store
+    """
+    global store, db, layout, root, unpadded_root
+
+    # Normalize input arguments
+    temporary_store = store_or_path
+    if not isinstance(store_or_path, Store):
+        temporary_store = Store(store_or_path)
+
+    # Swap the store with the one just constructed and return it
+    _ = store.db
+    original_store, store = store, temporary_store
+    db, layout = store.db, store.layout
+    root, unpadded_root = store.root, store.unpadded_root
+
+    yield temporary_store
+
+    # Restore the original store
+    store = original_store
+    db, layout = original_store.db, original_store.layout
+    root, unpadded_root = original_store.root, original_store.unpadded_root

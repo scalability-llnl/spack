@@ -61,11 +61,6 @@ class VtkM(CMakePackage, CudaPackage):
     amdgpu_targets = (
         'gfx900', 'gfx906', 'gfx908'
     )
-    kokkos_amd_gpu_map = {
-        'gfx900': 'vega900',
-        'gfx906': 'vega906',
-        'gfx908': 'vega908'
-    }
 
     variant('amdgpu_target', default='none', multi=True, values=('none',) + amdgpu_targets)
     conflicts("+hip", when="amdgpu_target=none")
@@ -77,14 +72,13 @@ class VtkM(CMakePackage, CudaPackage):
     depends_on("tbb", when="+tbb")
     depends_on("mpi", when="+mpi")
 
-    for kokkos_value in kokkos_amd_gpu_map:
-        depends_on("kokkos@develop +hip amd_gpu_arch=%s" % kokkos_amd_gpu_map[kokkos_value], when="amdgpu_target=%s" % kokkos_value)
+    for amdgpu_value in amdgpu_targets:
+        depends_on("kokkos@develop +rocm amdgpu_target=%s" % amdgpu_value, when="amdgpu_target=%s" % amdgpu_value)
 
     depends_on("rocm-cmake@3.7:", when="+hip")
     depends_on("hip@3.7:", when="+hip")
 
     conflicts("+hip", when="+cuda")
-    conflicts("~shared", when="~pic")
 
     def cmake_args(self):
         spec = self.spec

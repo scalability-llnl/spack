@@ -2,36 +2,30 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import pytest
 
 import spack.spec
+import spack.store
 
 
-def test_set_install_hash_length(mock_packages, mutable_config, monkeypatch,
-                                 tmpdir):
-    # spack.store.layout caches initial config values, so we monkeypatch
-    mutable_config.set('config:install_hash_length', 5)
+@pytest.mark.parametrize('hash_length', [1, 2, 3, 4, 5, 9])
+@pytest.mark.use_fixtures('mock_packages')
+def test_set_install_hash_length(hash_length, mutable_config, tmpdir):
+    mutable_config.set('config:install_hash_length', hash_length)
     mutable_config.set('config:install_tree', {'root': str(tmpdir)})
-    monkeypatch.setattr(spack.store, 'store', spack.store._store())
-
-    spec = spack.spec.Spec('libelf').concretized()
-    prefix = spec.prefix
-    hash = prefix.rsplit('-')[-1]
-
-    assert len(hash) == 5
-
-    mutable_config.set('config:install_hash_length', 9)
-    monkeypatch.setattr(spack.store, 'store', spack.store._store())
-
-    spec = spack.spec.Spec('libelf').concretized()
-    prefix = spec.prefix
-    hash = prefix.rsplit('-')[-1]
-
-    assert len(hash) == 9
+    # The call below is to reinitialize the directory layout associated
+    # with the store according to the configuration changes above (i.e.
+    # with the shortened hash)
+    store = spack.store._store()
+    with spack.store.use_store(store):
+        spec = spack.spec.Spec('libelf').concretized()
+        prefix = spec.prefix
+        hash_str = prefix.rsplit('-')[-1]
+        assert len(hash_str) == hash_length
 
 
-def test_set_install_hash_length_upper_case(mock_packages, mutable_config,
-                                            monkeypatch, tmpdir):
-    # spack.store.layout caches initial config values, so we monkeypatch
+@pytest.mark.use_fixtures('mock_packages')
+def test_set_install_hash_length_upper_case(mutable_config, tmpdir):
     mutable_config.set('config:install_hash_length', 5)
     mutable_config.set(
         'config:install_tree',
@@ -42,10 +36,12 @@ def test_set_install_hash_length_upper_case(mock_packages, mutable_config,
             }
         }
     )
-    monkeypatch.setattr(spack.store, 'store', spack.store._store())
-
-    spec = spack.spec.Spec('libelf').concretized()
-    prefix = spec.prefix
-    hash = prefix.rsplit('-')[-1]
-
-    assert len(hash) == 5
+    # The call below is to reinitialize the directory layout associated
+    # with the store according to the configuration changes above (i.e.
+    # with the shortened hash and projection)
+    store = spack.store._store()
+    with spack.store.use_store(store):
+        spec = spack.spec.Spec('libelf').concretized()
+        prefix = spec.prefix
+        hash_str = prefix.rsplit('-')[-1]
+        assert len(hash_str) == 5

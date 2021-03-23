@@ -15,4 +15,15 @@ class StadenIoLib(AutotoolsPackage):
 
     version('1.14.8', sha256='3bd560309fd6d70b14bbb8230e1baf8706b804eb6201220bb6c3d6db72003d1b')
 
+    variant('curl', default=False, description='Build with curl support')
+
     depends_on('zlib')
+    depends_on('curl', when='+curl')
+
+    def configure_args(self):
+        args = []
+
+        if self.spec.satisfies('~curl'):
+            args.append('--without-libcurl')
+
+        return args

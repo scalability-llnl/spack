@@ -350,15 +350,15 @@ def test_ccld_deps_isystem():
     with set_env(SPACK_INCLUDE_DIRS='xinc:yinc:zinc',
                  SPACK_RPATH_DIRS='xlib:ylib:zlib',
                  SPACK_LINK_DIRS='xlib:ylib:zlib'):
-        mytest_args = test_args + ['-isystemfooinc']
+        mytest_args = test_args + ['-isystem', 'fooinc']
         check_args(
             cc, mytest_args,
             [real_cc] +
             test_include_paths +
-            ['-isystemfooinc',
-             '-isystemxinc',
-             '-isystemyinc',
-             '-isystemzinc'] +
+            ['-isystem', 'fooinc',
+             '-isystem', 'xinc',
+             '-isystem', 'yinc',
+             '-isystem', 'zinc'] +
             test_library_paths +
             ['-Lxlib',
              '-Lylib',
@@ -432,20 +432,20 @@ def test_ccld_with_system_dirs_isystem():
                  SPACK_RPATH_DIRS='xlib:ylib:zlib',
                  SPACK_LINK_DIRS='xlib:ylib:zlib'):
 
-        sys_path_args = ['-isystem/usr/include',
+        sys_path_args = ['-isystem', '/usr/include',
                          '-L/usr/local/lib',
                          '-Wl,-rpath,/usr/lib64',
-                         '-isystem/usr/local/include',
+                         '-isystem', '/usr/local/include',
                          '-L/lib64/']
         check_args(
             cc, sys_path_args + test_args,
             [real_cc] +
             test_include_paths +
-            ['-isystemxinc',
-             '-isystemyinc',
-             '-isystemzinc'] +
-            ['-isystem/usr/include',
-             '-isystem/usr/local/include'] +
+            ['-isystem', 'xinc',
+             '-isystem', 'yinc',
+             '-isystem', 'zinc'] +
+            ['-isystem', '/usr/include',
+             '-isystem', '/usr/local/include'] +
             test_library_paths +
             ['-Lxlib',
              '-Lylib',

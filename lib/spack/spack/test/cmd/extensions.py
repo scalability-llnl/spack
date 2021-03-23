@@ -27,7 +27,7 @@ def python_database(mock_packages, mutable_database):
 
 
 @pytest.mark.db
-def test_extensions(mock_packages, python_database, capsys):
+def test_extensions(mock_packages, python_database, config, capsys):
     ext2   = Spec("py-extension2").concretized()
 
     def check_output(ni, na):

@@ -22,4 +22,5 @@ class Vcsh(Package):
 
     # vcsh provides a makefile, if needed the install method should be adapted
     def install(self, spec, prefix):
+        mkdirp(prefix.bin)
         install('vcsh', prefix.bin)

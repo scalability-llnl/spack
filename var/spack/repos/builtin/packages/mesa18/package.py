@@ -13,7 +13,7 @@ class Mesa18(AutotoolsPackage):
      - a system for rendering interactive 3D graphics."""
 
     homepage = "http://www.mesa3d.org"
-    maintainers = ['v-dobrev', 'chuckatkins']
+    maintainers = ['v-dobrev', 'chuckatkins', 'ChristianTackeGSI']
 
     # Note that we always want to build from the git repo instead of a
     # tarball since the tarball has pre-generated files for certain versions
@@ -21,7 +21,7 @@ class Mesa18(AutotoolsPackage):
     # whatever version of LLVM you're using.
     git      = "https://gitlab.freedesktop.org/mesa/mesa.git"
 
-    version('18.3.6', tag='mesa-18.3.6', preferred=True, deprecated=True)
+    version('18.3.6', tag='mesa-18.3.6')
 
     depends_on('autoconf', type='build')
     depends_on('automake', type='build')

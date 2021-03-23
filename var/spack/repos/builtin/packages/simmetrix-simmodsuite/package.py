@@ -138,6 +138,7 @@ class SimmetrixSimmodsuite(Package):
     """
 
     homepage = "http://www.simmetrix.com/products/SimulationModelingSuite/main.html"
+    manual_download = True
 
     license_required = True
     license_vars     = ['SIM_LICENSE_FILE']

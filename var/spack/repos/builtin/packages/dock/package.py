@@ -16,6 +16,7 @@ class Dock(Package):
 
     homepage = "http://dock.compbio.ucsf.edu/DOCK_6/index.htm"
     url      = "file://{0}/dock.6.9_source.tar.gz".format(os.getcwd())
+    manual_download = True
 
     version('6.9', sha256='c2caef9b4bb47bb0cb437f6dc21f4c605fd3d0d9cc817fa13748c050dc87a5a8')
 

@@ -1,0 +1,8 @@
+--- rootinterface/pythia6_common_address.c.orig	2020-11-12 14:07:37.000000000 +0100
++++ rootinterface/pythia6_common_address.c	2020-11-12 14:08:54.000000000 +0100
+@@ -1,4 +1,5 @@
+ // declaration of PYTHIA6 common clocks
++# include <string.h>
+ #ifndef WIN32
+ # define pyjets pyjets_
+ # define pydat1 pydat1_

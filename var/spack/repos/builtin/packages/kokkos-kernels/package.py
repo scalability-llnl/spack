@@ -28,6 +28,7 @@ class KokkosKernels(CMakePackage, CudaPackage):
         'serial': (False,  "enable Serial backend (default)"),
         'cuda': (False,  "enable Cuda backend"),
         'openmp': (False,  "enable OpenMP backend"),
+        'pthread': (False,  "enable Pthread backend"),
     }
 
     for backend in backends:

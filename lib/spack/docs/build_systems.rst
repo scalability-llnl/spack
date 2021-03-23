@@ -59,6 +59,7 @@ on these ideas for each distinct build system that Spack supports:
 
    build_systems/bundlepackage
    build_systems/cudapackage
+   build_systems/inteloneapipackage
    build_systems/intelpackage
    build_systems/rocmpackage
    build_systems/custompackage

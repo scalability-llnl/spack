@@ -28,6 +28,21 @@ class Git(AutotoolsPackage):
     # You can find the source here: https://mirrors.edge.kernel.org/pub/software/scm/git/sha256sums.asc
     releases = [
         {
+            'version': '2.31.0',
+            'sha256': 'bc6168777883562569144d536e8a855b12d25d46870d95188a3064260d7784ee',
+            'sha256_manpages': 'a51b760c36be19113756839a9110b328a09abfff0d57f1c93ddac3974ccbc238'
+        },
+        {
+            'version': '2.30.1',
+            'sha256': '23a3e53f0d2dd3e62a8147b24a1a91d6ffe95b92123ef4dbae04e9a6205e71c0',
+            'sha256_manpages': 'db323e1b242e9d0337363b1e538c8b879e4c46eedbf94d3bee9e65dab6d49138'
+        },
+        {
+            'version': '2.30.0',
+            'sha256': 'd24c4fa2a658318c2e66e25ab67cc30038a35696d2d39e6b12ceccf024de1e5e',
+            'sha256_manpages': 'e23035ae232c9a5eda57db258bc3b7f1c1060cfd66920f92c7d388b6439773a6'
+        },
+        {
             'version': '2.29.0',
             'sha256': 'fa08dc8424ef80c0f9bf307877f9e2e49f1a6049e873530d6747c2be770742ff',
             'sha256_manpages': '8f3bf70ddb515674ce2e19572920a39b1be96af12032b77f1dd57898981fb151'

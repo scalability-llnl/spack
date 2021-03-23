@@ -73,7 +73,7 @@ def test_repo_getpkg_names_and_classes():
 def test_get_all_mock_packages():
     """Get the mock packages once each too."""
     db = spack.repo.RepoPath(spack.paths.mock_packages_path)
-    with spack.repo.swap(db):
+    with spack.repo.use_repositories(db):
         check_repo()
 
 

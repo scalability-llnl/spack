@@ -1,9 +1,10 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #
 from spack import *
+import llnl.util.tty as tty
 
 
 class Parsec(CMakePackage, CudaPackage):
@@ -19,6 +20,8 @@ class Parsec(CMakePackage, CudaPackage):
     list_url    = "https://bitbucket.org/icldistcomp/parsec/downloads/?tab=tags"
     maintainers = ['abouteiller', 'bosilca', 'herault']
 
+    test_requires_compiler = True
+
     version('master', branch='master')
     version('3.0.2012', sha256='f565bcfffe106be8237b6aea3e83a5770607b7236606414b6f270244fa6ec3bc')
     version('1.1.0', sha256='d2928033c121000ae0a554f1e7f757c1f22274a8b74457ecd52744ae1f70b95a', url='https://bitbucket.org/icldistcomp/parsec/get/v1.1.0.tar.bz2')
@@ -33,7 +36,7 @@ class Parsec(CMakePackage, CudaPackage):
     # TODO: Spack does not handle cross-compilation atm
     # variant('xcompile', default=False, description='Cross compile')
 
-    depends_on('cmake@3.16.0:', type='build')
+    depends_on('cmake@3.16:', type='build')
     depends_on('python', type='build')
     depends_on('hwloc')
     depends_on('mpi')
@@ -53,3 +56,33 @@ class Parsec(CMakePackage, CudaPackage):
             self.define_from_variant('PARSEC_DEBUG_PARANOID', 'debug_verbose'),
         ]
         return args
+
+    @run_after('install')
+    @on_package_attributes(run_tests=True)
+    def check(self):
+        """Run ctest after building binary."""
+        with working_dir(self.build_directory):
+            try:
+                ctest('--output-on-failure', '-j1')
+            except ProcessError:
+                warn  = 'ctest tests failed.\n'
+                warn += 'Please report this failure to:\n'
+                warn += 'https://bitbucket.org/icldistcomp/parsec/issues'
+                tty.msg(warn)
+
+    def test(self):
+        """Compile and run a user program with the installed library"""
+        with working_dir(join_path(self.install_test_root,
+                                   'contrib/build_with_parsec')):
+            self.run_test('cmake',
+                          options=['.'],
+                          purpose='Check if CMake can find PaRSEC and its targets')
+            self.run_test('make',
+                          purpose='Check if tests can compile')
+            self.run_test('./dtd_test_allreduce')
+            self.run_test('./write_check')
+
+    @run_after('install')
+    def cache_test_sources(self):
+        srcs = ['contrib/build_with_parsec']
+        self.cache_extra_test_sources(srcs)

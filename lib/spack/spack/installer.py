@@ -392,7 +392,7 @@ def _try_install_from_binary_cache(pkg, explicit, unsigned=False,
     pkg_id = package_id(pkg)
     tty.debug('Searching for binary cache of {0}'.format(pkg_id))
     matches = binary_distribution.get_mirrors_for_spec(
-        pkg.spec, force=False, full_hash_match=full_hash_match)
+        pkg.spec, full_hash_match=full_hash_match)
 
     if not matches:
         return False
@@ -1609,15 +1609,22 @@ class PackageInstaller(object):
         self._cleanup_all_tasks()
 
         # Ensure we properly report if one or more explicit specs failed
-        if exists_errors or failed_explicits:
+        # or were not installed when should have been.
+        missing = [request.pkg_id for request in self.build_requests if
+                   request.install_args.get('install_package') and
+                   request.pkg_id not in self.installed]
+        if exists_errors or failed_explicits or missing:
             for pkg_id, err in exists_errors:
                 tty.error('{0}: {1}'.format(pkg_id, err))
 
             for pkg_id, err in failed_explicits:
                 tty.error('{0}: {1}'.format(pkg_id, err))
 
+            for pkg_id in missing:
+                tty.error('{0}: Package was not installed'.format(pkg_id))
+
             raise InstallError('Installation request failed.  Refer to '
-                               'recent errors for specific package(s).')
+                               'reported errors for failing package(s).')
 
 
 def build_process(pkg, kwargs):

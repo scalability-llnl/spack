@@ -11,6 +11,9 @@ import spack.config
 import spack.environment as ev
 import spack.main
 import spack.util.spack_yaml as syaml
+import spack.spec
+import spack.database
+import spack.store
 
 config = spack.main.SpackCommand('config')
 env = spack.main.SpackCommand('env')
@@ -84,6 +87,7 @@ repos:
 
 def test_config_edit():
     """Ensure `spack config edit` edits the right paths."""
+
     dms = spack.config.default_modify_scope('compilers')
     dms_path = spack.config.config.scopes[dms].path
     user_path = spack.config.config.scopes['user'].path
@@ -201,18 +205,25 @@ def test_config_add_override_leaf(mutable_empty_config):
 
 
 def test_config_add_update_dict(mutable_empty_config):
-    config('add', 'packages:all:compiler:[gcc]')
-    config('add', 'packages:all:version:1.0.0')
+    config('add', 'packages:all:version:[1.0.0]')
     output = config('get', 'packages')
 
-    expected = """packages:
-  all:
-    compiler: [gcc]
-    version:
-    - 1.0.0
-"""
-
+    expected = 'packages:\n  all:\n    version: [1.0.0]\n'
     assert output == expected
+
+
+def test_config_with_c_argument(mutable_empty_config):
+
+    # I don't know how to add a spack argument to a Spack Command, so we test this way
+    config_file = 'config:install_root:root:/path/to/config.yaml'
+    parser = spack.main.make_argument_parser()
+    args = parser.parse_args(['-c', config_file])
+    assert config_file in args.config_vars
+
+    # Add the path to the config
+    config("add", args.config_vars[0], scope='command_line')
+    output = config("get", 'config')
+    assert "config:\n  install_root:\n  - root: /path/to/config.yaml" in output
 
 
 def test_config_add_ordered_dict(mutable_empty_config):
@@ -645,3 +656,50 @@ def check_config_updated(data):
     assert isinstance(data['install_tree'], dict)
     assert data['install_tree']['root'] == '/fake/path'
     assert data['install_tree']['projections'] == {'all': '{name}-{version}'}
+
+
+def test_config_prefer_upstream(tmpdir_factory, install_mockery, mock_fetch,
+                                mutable_config, gen_mock_layout, monkeypatch):
+    """Check that when a dependency package is recorded as installed in
+       an upstream database that it is not reinstalled.
+    """
+
+    mock_db_root = str(tmpdir_factory.mktemp('mock_db_root'))
+    prepared_db = spack.database.Database(mock_db_root)
+
+    upstream_layout = gen_mock_layout('/a/')
+
+    for spec in [
+            'hdf5 +mpi',
+            'hdf5 ~mpi',
+            'boost+debug~icu+graph',
+            'dependency-install',
+            'patch']:
+        dep = spack.spec.Spec(spec)
+        dep.concretize()
+        prepared_db.add(dep, upstream_layout)
+
+    downstream_db_root = str(
+        tmpdir_factory.mktemp('mock_downstream_db_root'))
+    db_for_test = spack.database.Database(
+        downstream_db_root, upstream_dbs=[prepared_db])
+    monkeypatch.setattr(spack.store, 'db', db_for_test)
+
+    output = config('prefer-upstream')
+    scope = spack.config.default_modify_scope('packages')
+    cfg_file = spack.config.config.get_config_filename(scope, 'packages')
+    packages = syaml.load(open(cfg_file))['packages']
+
+    # Make sure only the non-default variants are set.
+    assert packages['boost'] == {
+        'compiler': ['gcc@4.5.0'],
+        'variants': '+debug +graph',
+        'version': ['1.63.0']}
+    assert packages['dependency-install'] == {
+        'compiler': ['gcc@4.5.0'], 'version': ['2.0']}
+    # Ensure that neither variant gets listed for hdf5, since they conflict
+    assert packages['hdf5'] == {
+        'compiler': ['gcc@4.5.0'], 'version': ['2.3']}
+
+    # Make sure a message about the conflicting hdf5's was given.
+    assert '- hdf5' in output

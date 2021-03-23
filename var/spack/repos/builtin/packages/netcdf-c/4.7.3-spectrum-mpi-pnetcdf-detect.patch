@@ -1,0 +1,44 @@
+--- a/configure 2019-11-20 18:59:25.000000000 -0500
++++ b/configure 13:20:48.088873402 -0500
+@@ -18459,12 +18459,12 @@
+ $as_echo_n "checking Is libpnetcdf version 1.6.0 or later?... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
++#include <pnetcdf.h>
+ 
+ int
+ main ()
+ {
+ 
+-#include <pnetcdf.h>
+ #if (PNETCDF_VERSION_MAJOR*1000 + PNETCDF_VERSION_MINOR < 1006)
+       choke me
+ #endif
+@@ -18584,12 +18584,12 @@
+ $as_echo_n "checking if erange-fill is enabled in PnetCDF... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
++#include <pnetcdf.h>
+ 
+ int
+ main ()
+ {
+ 
+-#include <pnetcdf.h>
+ #if !defined(PNETCDF_ERANGE_FILL) || PNETCDF_ERANGE_FILL == 0
+       choke me
+ #endif
+@@ -18619,12 +18619,12 @@
+ $as_echo_n "checking if relax-coord-bound is enabled in PnetCDF... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
++#include <pnetcdf.h>
+ 
+ int
+ main ()
+ {
+ 
+-#include <pnetcdf.h>
+ #if !defined(PNETCDF_RELAX_COORD_BOUND) || PNETCDF_RELAX_COORD_BOUND == 0
+       choke me
+ #endif

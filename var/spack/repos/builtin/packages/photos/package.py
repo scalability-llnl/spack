@@ -15,15 +15,21 @@ class Photos(AutotoolsPackage):
 
     tags = ['hep']
 
+    version('3.64', sha256='cb4096b4804289fc4d54a992caa566cbbd33f41f65f8906deb01200dc5163027')
     version('3.61', sha256='acd3bcb769ba2a3e263de399e9b89fd6296405c9cbc5045b83baba3e60db4b26')
+
+    variant('hepmc', default=True, description='Build with HepMC2 support')
+    variant('hepmc3', default=False, description='Build with HepMC3 support')
 
     maintainers = ['vvolkl']
 
-    depends_on('hepmc@:2.99.99')
+    depends_on('hepmc', when='+hepmc')
+    depends_on('hepmc3', when='+hepmc3')
 
     def configure_args(self):
         args = []
 
-        args.append('--with-hepmc=%s' % self.spec["hepmc"].prefix)
-        args.append('--without-hepmc3')
+        args.extend(self.with_or_without('hepmc', 'prefix'))
+        args.extend(self.with_or_without('hepmc3', 'prefix'))
+
         return args

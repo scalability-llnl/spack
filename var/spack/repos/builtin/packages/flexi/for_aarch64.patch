@@ -1,0 +1,9 @@
+--- spack-src/tools/userblock/generateuserblock.sh.org  2021-03-05 15:27:48.635287742 +0900
++++ spack-src/tools/userblock/generateuserblock.sh      2021-03-05 15:29:31.995593495 +0900
+@@ -108,5 +108,5 @@
+ tar cJf userblock.tar.xz userblock.txt
+
+ # Build the module
+-objcopy -I binary -O elf64-x86-64 -B i386 --redefine-sym _binary_userblock_tar_xz_start=userblock_start --redefine-sym _binary_userblock_tar_xz_end=userblock_end --redefine-sym _binary_userblock_tar_xz_size=userblock_size userblock.tar.xz userblock.o
++objcopy -I binary -O elf64-littleaarch64 -B aarch64 --redefine-sym _binary_userblock_tar_xz_start=userblock_start --redefine-sym _binary_userblock_tar_xz_end=userblock_end --redefine-sym _binary_userblock_tar_xz_size=userblock_size userblock.tar.xz userblock.o
+ rm userblock.tar.xz

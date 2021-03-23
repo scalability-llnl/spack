@@ -304,7 +304,7 @@ class TestConcretize(object):
         barpkg = mock_repo.add_package('barpkg', [bazpkg], [default_dep])
         mock_repo.add_package('foopkg', [barpkg], [default_dep])
 
-        with spack.repo.swap(mock_repo):
+        with spack.repo.use_repositories(mock_repo):
             spec = Spec('foopkg %gcc@4.5.0 os=CNL target=nocona' +
                         ' ^barpkg os=SuSE11 ^bazpkg os=be')
             spec.concretize()
@@ -660,8 +660,7 @@ class TestConcretize(object):
 
         abstract_specs = [Spec(x) for x in abstract_specs]
         concrete_specs = spack.concretize.concretize_specs_together(
-            *abstract_specs
-        )
+            *abstract_specs)
 
         # Check there's only one configuration of each package in the DAG
         names = set(
@@ -925,6 +924,35 @@ class TestConcretize(object):
         assert s.external
         assert s.satisfies(expected)
 
+    @pytest.mark.regression('20976')
+    @pytest.mark.parametrize('compiler,spec_str,expected,xfailold', [
+        ('gcc', 'external-common-python %clang',
+         '%clang ^external-common-openssl%gcc ^external-common-gdbm%clang', False),
+        ('clang', 'external-common-python',
+         '%clang ^external-common-openssl%clang ^external-common-gdbm%clang', True)
+    ])
+    def test_compiler_in_nonbuildable_external_package(
+            self, compiler, spec_str, expected, xfailold
+    ):
+        """Check that the compiler of a non-buildable external package does not
+           spread to other dependencies, unless no other commpiler is specified."""
+        packages_yaml = {
+            'external-common-openssl': {
+                'externals': [
+                    {'spec': 'external-common-openssl@1.1.1i%' + compiler,
+                     'prefix': '/usr'}
+                ],
+                'buildable': False
+            }
+        }
+        spack.config.set('packages', packages_yaml)
+
+        s = Spec(spec_str).concretized()
+        if xfailold and spack.config.get('config:concretizer') == 'original':
+            pytest.xfail('This only works on the ASP-based concretizer')
+        assert s.satisfies(expected)
+        assert 'external-common-perl' not in [d.name for d in s.dependencies()]
+
     def test_external_packages_have_consistent_hash(self):
         if spack.config.get('config:concretizer') == 'original':
             pytest.skip('This tests needs the ASP-based concretizer')
@@ -1098,3 +1126,15 @@ class TestConcretize(object):
         # dependency type declared to infer that the dependency holds.
         s = Spec('test-dep-with-imposed-conditions').concretized()
         assert 'c' not in s
+
+    @pytest.mark.parametrize('spec_str', [
+        'wrong-variant-in-conflicts',
+        'wrong-variant-in-depends-on'
+    ])
+    def test_error_message_for_inconsistent_variants(self, spec_str):
+        if spack.config.get('config:concretizer') == 'original':
+            pytest.xfail('Known failure of the original concretizer')
+
+        s = Spec(spec_str)
+        with pytest.raises(RuntimeError, match='not found in package'):
+            s.concretize()

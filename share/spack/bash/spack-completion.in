@@ -55,7 +55,7 @@ _bash_completion_spack() {
     # For our purposes, flags should not affect tab completion. For instance,
     # `spack install []` and `spack -d install --jobs 8 []` should both give the same
     # possible completions. Therefore, we need to ignore any flags in COMP_WORDS.
-    local COMP_WORDS_NO_FLAGS=()
+    local -a COMP_WORDS_NO_FLAGS
     local index=0
     while [[ "$index" -lt "$COMP_CWORD" ]]
     do

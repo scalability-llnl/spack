@@ -13,6 +13,7 @@ class PyTorchSparse(PythonPackage):
     homepage = "https://github.com/rusty1s/pytorch_sparse/"
     url      = "https://github.com/rusty1s/pytorch_sparse/archive/0.6.7.tar.gz"
 
+    version('0.6.8', sha256='98f7ff1f0f9cd5031bc81c70c11970c3864545ae33677025a6efd2466a97e6f9')
     version('0.6.7', sha256='0d038a1502548692972a085cd0496460b5d2050bb7328427add990f081d6c44d')
 
     variant('cuda', default=False, description="Enable CUDA support")

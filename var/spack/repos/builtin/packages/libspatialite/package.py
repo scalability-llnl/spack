@@ -13,6 +13,7 @@ class Libspatialite(AutotoolsPackage):
 
     homepage = "http://www.gaia-gis.it"
     url      = "http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-4.3.0a.tar.gz"
+    manual_download = True
 
     version('5.0.0', preferred=True, sha256='7b7fd70243f5a0b175696d87c46dde0ace030eacc27f39241c24bac5dfac6dac')
     # Must download manually from:

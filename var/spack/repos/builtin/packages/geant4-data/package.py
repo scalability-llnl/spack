@@ -17,6 +17,7 @@ class Geant4Data(BundlePackage):
 
     tags = ['hep']
 
+    version('10.7.1')
     version('10.7.0')
     version('10.6.3')
     version('10.6.2')
@@ -38,7 +39,8 @@ class Geant4Data(BundlePackage):
     depends_on("g4emlow@7.13", when='@10.7.0:10.7.9999')
     depends_on("g4photonevaporation@5.7", when='@10.7.0:10.7.9999')
     depends_on("g4radioactivedecay@5.6", when='@10.7.0:10.7.9999')
-    depends_on("g4particlexs@3.1", when='@10.7.0:10.7.9999')
+    depends_on("g4particlexs@3.1.1", when='@10.7.1:10.7.9999')
+    depends_on("g4particlexs@3.1", when='@10.7.0')
     depends_on("g4pii@1.3", when='@10.7.0:10.7.9999')
     depends_on("g4realsurface@2.2", when='@10.7.0:10.7.9999')
     depends_on("g4saiddata@2.0", when='@10.7.0:10.7.9999')

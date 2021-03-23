@@ -1,0 +1,11 @@
+--- a/bootstrap.sh	2020-12-03 00:00:59.000000000 -0500
++++ a/bootstrap.sh	2021-01-08 13:38:30.000000000 -0500
+@@ -223,7 +223,7 @@
+ if test "x$BJAM" = x; then
+   $ECHO "Building B2 engine.."
+   pwd=`pwd`
+-  (cd "$my_dir/tools/build/src/engine" && ./build.sh)
++  (cd "$my_dir/tools/build/src/engine" && ./build.sh "$TOOLSET")
+   if [ $? -ne 0 ]; then
+       echo
+       echo "Failed to build B2 build engine"

@@ -147,3 +147,11 @@ class Povray(AutotoolsPackage):
         extra_args.append('--without-x')
 
         return extra_args
+
+    def test(self):
+        povs = find(self.prefix.share, 'biscuit.pov')[0]
+        copy(povs, '.')
+        self.run_test('povray', options=['biscuit.pov'],
+                      purpose="test: render sample file",
+                      expected=['POV-Ray finished']
+                      )

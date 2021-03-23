@@ -10,6 +10,8 @@ class Ngspice(AutotoolsPackage):
 
     homepage = "http://ngspice.sourceforge.net/"
     url      = "https://sourceforge.net/projects/ngspice/files/ngspice-33.tar.gz"
+
+    version('34', sha256='2263fffc6694754972af7072ef01cfe62ac790800dad651bc290bfcae79bd7b5')
     version('33', sha256='b99db66cc1c57c44e9af1ef6ccb1dcbc8ae1df3e35acf570af578f606f8541f1')
 
     depends_on('fftw')

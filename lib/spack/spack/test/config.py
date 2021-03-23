@@ -16,6 +16,7 @@ import pytest
 import spack.paths
 import spack.config
 import spack.main
+import spack.environment
 import spack.schema.compilers
 import spack.schema.config
 import spack.schema.env
@@ -257,6 +258,37 @@ def test_write_to_same_priority_file(mock_low_high_config, compiler_specs):
 repos_low = {'repos': ["/some/path"]}
 repos_high = {'repos': ["/some/other/path"]}
 
+# Test setting config values via path in filename
+
+
+def test_add_config_path():
+
+    # Try setting a new install tree root
+    path = "config:install_tree:root:/path/to/config.yaml"
+    spack.config.add(path, scope="command_line")
+    set_value = spack.config.get('config')['install_tree']['root']
+    assert set_value == '/path/to/config.yaml'
+
+    # Now a package:all setting
+    path = "packages:all:compiler:[gcc]"
+    spack.config.add(path, scope="command_line")
+    compilers = spack.config.get('packages')['all']['compiler']
+    assert "gcc" in compilers
+
+
+def test_add_config_filename(mock_low_high_config, tmpdir):
+
+    config_yaml = tmpdir.join('config-filename.yaml')
+    config_yaml.ensure()
+    with config_yaml.open('w') as f:
+        syaml.dump_config(config_low, f)
+
+    spack.config.add_from_file(str(config_yaml), scope="low")
+    assert "build_stage" in spack.config.get('config')
+    build_stages = spack.config.get('config')['build_stage']
+    for stage in config_low['config']['build_stage']:
+        assert stage in build_stages
+
 
 # repos
 def test_write_list_in_memory(mock_low_high_config):
@@ -267,7 +299,12 @@ def test_write_list_in_memory(mock_low_high_config):
     assert config == repos_high['repos'] + repos_low['repos']
 
 
-def test_substitute_config_variables(mock_low_high_config):
+class MockEnv(object):
+    def __init__(self, path):
+        self.path = path
+
+
+def test_substitute_config_variables(mock_low_high_config, monkeypatch):
     prefix = spack.paths.prefix.lstrip('/')
 
     assert os.path.join(
@@ -297,6 +334,33 @@ def test_substitute_config_variables(mock_low_high_config):
     assert os.path.join(
         '/foo/bar/baz', prefix, 'foo/bar/baz'
     ) != spack_path.canonicalize_path('/foo/bar/baz/${spack/foo/bar/baz/')
+
+    # $env replacement is a no-op when no environment is active
+    assert spack_path.canonicalize_path(
+        '/foo/bar/baz/$env'
+    ) == '/foo/bar/baz/$env'
+
+    # Fake an active environment and $env is replaced properly
+    fake_env_path = '/quux/quuux'
+    monkeypatch.setattr(spack.environment, 'get_env',
+                        lambda x, y: MockEnv(fake_env_path))
+    assert spack_path.canonicalize_path(
+        '$env/foo/bar/baz'
+    ) == os.path.join(fake_env_path, 'foo/bar/baz')
+
+    # relative paths without source information are relative to cwd
+    assert spack_path.canonicalize_path(
+        'foo/bar/baz'
+    ) == os.path.abspath('foo/bar/baz')
+
+    # relative paths with source information are relative to the file
+    spack.config.set(
+        'config:module_roots', {'lmod': 'foo/bar/baz'}, scope='low')
+    spack.config.config.clear_caches()
+    path = spack.config.get('config:module_roots:lmod')
+    assert spack_path.canonicalize_path(path) == os.path.normpath(
+        os.path.join(mock_low_high_config.scopes['low'].path,
+                     'foo/bar/baz'))
 
 
 packages_merge_low = {

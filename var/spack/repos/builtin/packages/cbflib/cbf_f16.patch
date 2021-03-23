@@ -1,0 +1,17 @@
+--- a/src/fcb_skip_whitespace.f90	2021-01-26 15:14:30.565029427 +0900
++++ b/src/fcb_skip_whitespace.f90	2021-01-26 15:15:01.016918388 +0900
+@@ -65,11 +65,11 @@
+ 		     END IF
+ 		  ELSE
+ 		     SELECT CASE (LINE(IC))
+-		     CASE (Z'5C')      ! backslash
++		     CASE (INT(Z'5C'))      ! backslash
+ 			IC = IC+1      ! force skip of next character
+-		     CASE (Z'28')      ! open paren
++		     CASE (INT(Z'28'))      ! open paren
+ 			COMMENT_LEVEL = COMMENT_LEVEL+1;
+-		     CASE (Z'29')      ! close paren
++		     CASE (INT(Z'29'))      ! close paren
+ 			COMMENT_LEVEL = COMMENT_LEVEL-1;
+ 		     END SELECT
+ 		     IC = IC+1;

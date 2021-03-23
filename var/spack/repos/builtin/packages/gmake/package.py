@@ -13,6 +13,7 @@ class Gmake(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.gnu.org/software/make/"
     gnu_mirror_path = "make/make-4.2.1.tar.gz"
 
+    version('4.3',   sha256='e05fdde47c5f7ca45cb697e973894ff4f5d79e13b750ed57d7b66d8defc78e19')
     version('4.2.1', sha256='e40b8f018c1da64edd1cc9a6fce5fa63b2e707e404e20cad91fbae337c98a5b7')
     version('4.0',   sha256='fc42139fb0d4b4291929788ebaf77e2a4de7eaca95e31f3634ef7d4932051f69')
 

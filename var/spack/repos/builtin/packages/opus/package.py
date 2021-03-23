@@ -12,6 +12,7 @@ class Opus(AutotoolsPackage):
     homepage = "http://opus-codec.org/"
     url      = "http://downloads.xiph.org/releases/opus/opus-1.1.4.tar.gz"
 
+    version('1.3.1',      sha256='65b58e1e25b2a114157014736a3d9dfeaad8d41be1c8179866f144a2fb44ff9d')
     version('1.1.4',      sha256='9122b6b380081dd2665189f97bfd777f04f92dc3ab6698eea1dbb27ad59d8692')
     version('1.1.3',      sha256='58b6fe802e7e30182e95d0cde890c0ace40b6f125cffc50635f0ad2eef69b633')
     version('1.1.2',      sha256='0e290078e31211baa7b5886bcc8ab6bc048b9fc83882532da4a1a45e58e907fd')

@@ -103,7 +103,12 @@ class Neuron(CMakePackage):
         nrnmech_makefile = join_path(self.prefix,
                                      "./bin/nrnmech_makefile")
 
-        assign_operator = "?="
+        # assign_operator is changed to fix wheel support
+        if self.spec.satisfies("@:7.99"):
+            assign_operator = "?="
+        else:
+            assign_operator = "="
+
         filter_file("CC {0} {1}".format(assign_operator, env["CC"]),
                     "CC = {0}".format(cc_compiler),
                     nrnmech_makefile,

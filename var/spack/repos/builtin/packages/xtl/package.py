@@ -16,6 +16,7 @@ class Xtl(CMakePackage):
     maintainers = ['ax3l']
 
     version('develop', branch='master')
+    version('0.7.2', sha256='95c221bdc6eaba592878090916383e5b9390a076828552256693d5d97f78357c')
     version('0.6.4', sha256='5db5087c37daab3e1d35337782f79972aaaf19218a0de786a0515f247244e390')
     version('0.4.0', sha256='2cfe9acbcc4e484f3aa33a98892a09ffe79bb9c0dfd3ffc57b3561f44c591e7c')
     version('0.3.4', sha256='618536c3998091b0bdd7f8202e8bec9c34e82409c8ee0ea179a2759bdea426e2')

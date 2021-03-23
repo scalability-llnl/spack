@@ -62,7 +62,7 @@ class Spfft(CMakePackage, CudaPackage):
             self.define_from_variant('SPFFT_MPI', 'mpi'),
             self.define_from_variant('SPFFT_SINGLE_PRECISION', 'single_precision'),
             self.define_from_variant('SPFFT_GPU_DIRECT', 'gpu_direct'),
-            self.define_from_variant('SPFFT_FORTAN', 'fortran'),
+            self.define_from_variant('SPFFT_FORTRAN', 'fortran'),
             self.define_from_variant('SPFFT_STATIC', 'static')
         ]
 

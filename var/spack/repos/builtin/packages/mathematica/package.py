@@ -19,6 +19,7 @@ class Mathematica(Package):
 
     homepage = "https://www.wolfram.com/mathematica/"
     url = 'file://{0}/Mathematica_12.0.0_LINUX.sh'.format(os.getcwd())
+    manual_download = True
 
     version('12.1.1',
             sha256='ad47b886be4a9864d70f523f792615a051d4ebc987d9a0f654b645b4eb43b30a',

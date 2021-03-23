@@ -98,9 +98,8 @@ def location(parser, args):
                 print(spack.repo.path.dirname_for_package_name(spec.name))
 
             else:
-                # These versions need concretized specs.
-                spec.concretize()
-                pkg = spack.repo.get(spec)
+                spec = spack.cmd.matching_spec_from_env(spec)
+                pkg = spec.package
 
                 if args.stage_dir:
                     print(pkg.stage.path)
@@ -110,4 +109,16 @@ def location(parser, args):
                         tty.die("Build directory does not exist yet. "
                                 "Run this to create it:",
                                 "spack stage " + " ".join(args.spec))
-                    print(pkg.stage.source_path)
+
+                    # Out of source builds have build_directory defined
+                    if hasattr(pkg, 'build_directory'):
+                        # build_directory can be either absolute or relative
+                        # to the stage path in either case os.path.join makes it
+                        # absolute
+                        print(os.path.normpath(os.path.join(
+                            pkg.stage.path,
+                            pkg.build_directory
+                        )))
+                    else:
+                        # Otherwise assume in-source builds
+                        return print(pkg.stage.source_path)

@@ -23,13 +23,14 @@ class Rocfft(CMakePackage):
     version('3.5.0', sha256='629f02cfecb7de5ad2517b6a8aac6ed4de60d3a9c620413c4d9db46081ac2c88')
 
     amdgpu_targets = (
-        'gfx701', 'gfx801', 'gfx802', 'gfx803',
+        'none', 'gfx701', 'gfx801', 'gfx802', 'gfx803',
         'gfx900', 'gfx906', 'gfx908', 'gfx1010',
         'gfx1011', 'gfx1012'
     )
 
     variant('build_type', default='Release', values=("Release", "Debug"), description='CMake build type')
     variant('amdgpu_target', default='gfx701', multi=True, values=amdgpu_targets)
+    variant('amdgpu_target_sram_ecc', default='none', multi=True, values=amdgpu_targets)
 
     depends_on('cmake@3:', type='build')
 
@@ -43,9 +44,21 @@ class Rocfft(CMakePackage):
         env.set('CXX', self.spec['hip'].hipcc)
 
     def cmake_args(self):
-        archs = ",".join(self.spec.variants['amdgpu_target'].value)
+        args = []
 
-        args = [
-            '-DCMAKE_CXX_FLAGS=--amdgpu-target={0}'.format(archs),
-        ]
+        tgt = self.spec.variants['amdgpu_target'].value
+
+        if tgt[0] != 'none':
+            if '@:3.8.0' in self.spec:
+                args.append(self.define('CMAKE_CXX_FLAGS',
+                                        '--amdgpu-target={0}'.format(",".join(tgt))))
+            else:
+                args.append(self.define('AMDGPU_TARGETS', ";".join(tgt)))
+
+        # From version 3.9 and above we have AMDGPU_TARGETS_SRAM_ECC
+        tgt_sram = self.spec.variants['amdgpu_target_sram_ecc'].value
+
+        if tgt_sram[0] != 'none' and '@3.9.0:' in self.spec:
+            args.append(self.define('AMDGPU_TARGETS_SRAM_ECC', ";".join(tgt_sram)))
+
         return args

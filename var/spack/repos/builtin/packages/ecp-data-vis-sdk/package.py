@@ -110,6 +110,8 @@ class EcpDataVisSdk(BundlePackage):
 
     depends_on('vtk-m+shared+mpi+openmp+rendering', when='+vtkm')
 
-    variants2deps('sz+shared+fortran+python+random_access', '+sz', ['hdf5'])
+    # +python is currently broken in sz
+    # variants2deps('sz+shared+fortran+python+random_access', '+sz', ['hdf5'])
+    variants2deps('sz+shared+fortran+random_access', '+sz', ['hdf5'])
 
     depends_on('zfp', when='+zfp')

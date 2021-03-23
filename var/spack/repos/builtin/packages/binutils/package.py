@@ -12,6 +12,8 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
     homepage = "http://www.gnu.org/software/binutils/"
     gnu_mirror_path = "binutils/binutils-2.28.tar.bz2"
 
+    version('2.36.1', sha256='5b4bd2e79e30ce8db0abd76dd2c2eae14a94ce212cfc59d3c37d23e24bc6d7a3')
+    version('2.35.2', sha256='cfa7644dbecf4591e136eb407c1c1da16578bd2b03f0c2e8acdceba194bb9d61')
     version('2.35.1', sha256='320e7a1d0f46fcd9f413f1046e216cbe23bb2bce6deb6c6a63304425e48b1942')
     version('2.35', sha256='7d24660f87093670738e58bcc7b7b06f121c0fcb0ca8fc44368d675a5ef9cff7')
     version('2.34', sha256='89f010078b6cf69c23c27897d686055ab89b198dddf819efb0a4f2c38a0b36e6')
@@ -103,6 +105,13 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
             configure_args.append('--program-prefix=g')
 
         return configure_args
+
+    # 2.36 is missing some dependencies and requires serial make install.
+    # https://sourceware.org/bugzilla/show_bug.cgi?id=27482
+    @when('@2.36:')
+    def install(self, spec, prefix):
+        with working_dir(self.build_directory):
+            make('-j', '1', *self.install_targets)
 
     @run_after('install')
     def install_headers(self):

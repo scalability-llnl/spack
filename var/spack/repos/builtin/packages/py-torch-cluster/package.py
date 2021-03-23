@@ -14,6 +14,7 @@ class PyTorchCluster(PythonPackage):
     homepage = "https://github.com/rusty1s/pytorch_cluster"
     url      = "https://github.com/rusty1s/pytorch_cluster/archive/1.5.7.tar.gz"
 
+    version('1.5.8', sha256='95c6e81e9c4a6235e1b2152ab917021d2060ad995199f6bd7fb39986d37310f0')
     version('1.5.7', sha256='71701d2f7f3e458ebe5904c982951349fdb60e6f1654e19c7e102a226e2de72e')
 
     variant('cuda', default=False, description='Enables CUDA support')

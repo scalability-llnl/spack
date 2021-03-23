@@ -23,6 +23,8 @@ class Ncl(Package):
     version('6.5.0', sha256='133446f3302eddf237db56bf349e1ebf228240a7320699acc339a3d7ee414591')
     version('6.4.0', sha256='0962ae1a1d716b182b3b27069b4afe66bf436c64c312ddfcf5f34d4ec60153c8')
 
+    patch('for_aarch64.patch', when='target=aarch64:')
+
     patch('spack_ncl.patch')
     # Make ncl compile with hdf5 1.10 (upstream as of 6.5.0)
     patch('hdf5.patch', when="@6.4.0")

@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,8 +25,10 @@ class Eigenexa(AutotoolsPackage):
     depends_on("scalapack")
 
     patch("fj_compiler.patch", when="%fj")
+    patch("gcc_compiler.patch", when="%gcc")
 
     parallel = False
+    force_autoreconf = True
 
     def setup_build_environment(self, env):
         env.set("FC", self.spec["mpi"].mpifc, force=True)
@@ -46,4 +48,22 @@ class Eigenexa(AutotoolsPackage):
                     + self.spec["scalapack"].libs.directories
                 )
             ),
+        )
+
+    @run_after('install')
+    def cache_test_sources(self):
+        self.cache_extra_test_sources("benchmark")
+
+    def test(self):
+        test_dir = self.test_suite.current_test_data_dir
+        exe_name = join_path(test_dir, "run-test.sh")
+        mpi_name = self.spec["mpi"].prefix.bin.mpirun
+        test_file = join_path(
+            self.install_test_root, "benchmark", "eigenexa_benchmark"
+        )
+        input_file = join_path(self.install_test_root, "benchmark", "IN")
+        opts = [exe_name, mpi_name, '-n', '1', test_file, '-f', input_file]
+        env["OMP_NUM_THREADS"] = "1"
+        self.run_test(
+            "sh", options=opts, expected="EigenExa Test Passed !", work_dir=test_dir
         )

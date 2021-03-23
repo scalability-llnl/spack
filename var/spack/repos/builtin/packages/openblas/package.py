@@ -18,6 +18,7 @@ class Openblas(MakefilePackage):
     git      = 'https://github.com/xianyi/OpenBLAS.git'
 
     version('develop', branch='develop')
+    version('0.3.14', sha256='d381935d26f9cae8e4bbd7d7f278435adf8e3a90920edf284bb9ad789ee9ad60')
     version('0.3.13', sha256='79197543b17cc314b7e43f7a33148c308b0807cd6381ee77f77e15acf3e6459e')
     version('0.3.12', sha256='65a7d3a4010a4e3bd5c0baa41a234797cd3a1735449a4a5902129152601dc57b')
     version('0.3.11', sha256='bc4617971179e037ae4e8ebcd837e46db88422f7b365325bd7aba31d1921a673')
@@ -43,7 +44,9 @@ class Openblas(MakefilePackage):
     variant('pic', default=True, description='Build position independent code')
     variant('shared', default=True, description='Build shared libraries')
     variant('consistent_fpcsr', default=False, description='Synchronize FP CSR between threads (x86/x86_64 only)')
+    variant('bignuma', default=False, description='Enable experimental support for up to 1024 CPUs/Cores and 128 numa nodes')
 
+    variant('locking', default=True, description='Build with thread safety')
     variant(
         'threads', default='none',
         description='Multithreading support',
@@ -115,16 +118,25 @@ class Openblas(MakefilePackage):
     patch('openblas_fujitsu_v0.3.11.patch', when='@0.3.11:0.3.12 %fj')
     patch('openblas_fujitsu2.patch', when='@0.3.10:0.3.12 %fj')
 
+    # Use /usr/bin/env perl in build scripts
+    patch('0001-use-usr-bin-env-perl.patch', when='@:0.3.13')
+
     # See https://github.com/spack/spack/issues/19932#issuecomment-733452619
     conflicts('%gcc@7.0.0:7.3.99,8.0.0:8.2.99', when='@0.3.11:')
+
+    # See https://github.com/xianyi/OpenBLAS/issues/3074
+    conflicts('%gcc@:10.1.99', when='@0.3.13 target=ppc64le:')
 
     # See https://github.com/spack/spack/issues/3036
     conflicts('%intel@16', when='@0.2.15:0.2.19')
     conflicts('+consistent_fpcsr', when='threads=none',
               msg='FPCSR consistency only applies to multithreading')
 
+    conflicts('threads=pthreads', when='~locking', msg='Pthread support requires +locking')
     conflicts('threads=openmp', when='%apple-clang', msg="Apple's clang does not support OpenMP")
     conflicts('threads=openmp @:0.2.19', when='%clang', msg='OpenBLAS @:0.2.19 does not support OpenMP with clang!')
+
+    depends_on('perl', type='build')
 
     @property
     def parallel(self):
@@ -207,8 +219,15 @@ class Openblas(MakefilePackage):
         if microarch.vendor == 'generic':
             # User requested a generic platform, or we couldn't find a good
             # match for the requested one. Allow OpenBLAS to determine
-            # an optimized kernel at run time.
+            # an optimized kernel at run time, including older CPUs, while
+            # forcing it not to add flags for the current host compiler.
             args.append('DYNAMIC_ARCH=1')
+            if self.spec.version >= Version('0.3.12'):
+                # These are necessary to prevent OpenBLAS from targeting the
+                # host architecture on newer version of OpenBLAS, but they
+                # cause build errors on 0.3.5 .
+                args.extend(['DYNAMIC_OLDER=1', 'TARGET=GENERIC'])
+
         elif microarch.name in skylake:
             # Special case for renaming skylake family
             args.append('TARGET=SKYLAKEX')
@@ -252,6 +271,13 @@ class Openblas(MakefilePackage):
         if self.spec.satisfies('@0.2.16'):
             make_defs += ['BUILD_LAPACK_DEPRECATED=1']
 
+        # serial, but still thread-safe version
+        if self.spec.satisfies('@0.3.7:'):
+            if '+locking' in self.spec:
+                make_defs += ['USE_LOCKING=1']
+            else:
+                make_defs += ['USE_LOCKING=0']
+
         # Add support for multithreading
         if self.spec.satisfies('threads=openmp'):
             make_defs += ['USE_OPENMP=1', 'USE_THREAD=1']
@@ -285,6 +311,9 @@ class Openblas(MakefilePackage):
         # prefix, for instance, .../lib/spack/env/gcc/ranlib, which will fail.
         if self.spec.satisfies('@0.3.13:'):
             make_defs.append('RANLIB=ranlib')
+
+        if self.spec.satisfies('+bignuma'):
+            make_defs.append('BIGNUMA=1')
 
         return make_defs
 

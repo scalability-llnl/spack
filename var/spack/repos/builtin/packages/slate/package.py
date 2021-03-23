@@ -23,7 +23,7 @@ class Slate(CMakePackage):
     version('master', branch='master')
     version('2020.10.00', sha256='ff58840cdbae2991d100dfbaf3ef2f133fc2f43fc05f207dc5e38a41137882ab')
 
-    variant('cuda',   default=True, description='Build with CUDA support.')
+    variant('cuda',   default=False, description='Build with CUDA support.')
     variant('mpi',    default=True, description='Build with MPI support.')
     variant('openmp', default=True, description='Build with OpenMP support.')
     variant('shared', default=True, description='Build shared library')

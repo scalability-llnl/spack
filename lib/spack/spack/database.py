@@ -795,7 +795,7 @@ class Database(object):
         # do it *while* we're constructing specs,it causes hashes to be
         # cached prematurely.
         for hash_key, rec in data.items():
-            rec.spec._mark_concrete()
+            rec.spec._mark_root_concrete()
 
         self._data = data
 
@@ -1454,11 +1454,12 @@ class Database(object):
                     rec.spec.name) != known:
                 continue
 
-            inst_date = datetime.datetime.fromtimestamp(
-                rec.installation_time
-            )
-            if not (start_date < inst_date < end_date):
-                continue
+            if start_date or end_date:
+                inst_date = datetime.datetime.fromtimestamp(
+                    rec.installation_time
+                )
+                if not (start_date < inst_date < end_date):
+                    continue
 
             if (query_spec is any or
                 rec.spec.satisfies(query_spec, strict=True)):

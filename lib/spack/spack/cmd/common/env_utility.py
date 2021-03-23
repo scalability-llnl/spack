@@ -53,10 +53,12 @@ def emulate_env_utility(cmd_name, context, args):
         spec = args.spec[0]
         cmd = args.spec[1:]
 
-    specs = spack.cmd.parse_specs(spec, concretize=True)
+    specs = spack.cmd.parse_specs(spec, concretize=False)
     if len(specs) > 1:
         tty.die("spack %s only takes one spec." % cmd_name)
     spec = specs[0]
+
+    spec = spack.cmd.matching_spec_from_env(spec)
 
     build_environment.setup_package(spec.package, args.dirty, context)
 

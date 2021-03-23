@@ -1,0 +1,31 @@
+From ef513fe3d1d864d865d7143699834228988a7cd7 Mon Sep 17 00:00:00 2001
+From: Brad King <brad.king@kitware.com>
+Date: Fri, 5 Mar 2021 08:08:16 -0500
+Subject: [PATCH] Cray: Enable explicit Fortran preprocessing for Ninja
+ generator
+
+Cray 11.0 adds support for preprocessing with output written to a
+specified file (instead of always next to the source).  Use it to
+enable Cray Fortran with the Ninja generator.
+
+Patch-by: James Elliott
+Fixes: #20731
+---
+ Modules/Compiler/Cray-Fortran.cmake | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Modules/Compiler/Cray-Fortran.cmake b/Modules/Compiler/Cray-Fortran.cmake
+index 696ae76074..0d5e1c7679 100644
+--- a/Modules/Compiler/Cray-Fortran.cmake
++++ b/Modules/Compiler/Cray-Fortran.cmake
+@@ -19,3 +19,7 @@ else()
+   set(CMAKE_Fortran_COMPILE_OPTIONS_PREPROCESS_ON "-eZ")
+   set(CMAKE_Fortran_COMPILE_OPTIONS_PREPROCESS_OFF "-dZ")
+ endif()
++
++if (NOT CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 11.0)
++  set(CMAKE_Fortran_PREPROCESS_SOURCE "<CMAKE_Fortran_COMPILER> -o <PREPROCESSED_SOURCE> <DEFINES> <INCLUDES> <FLAGS> -eP <SOURCE>")
++endif()
+-- 
+GitLab
+

@@ -17,6 +17,8 @@ class Libxsmm(MakefilePackage):
     url      = 'https://github.com/hfp/libxsmm/archive/1.16.1.tar.gz'
     git      = 'https://github.com/hfp/libxsmm.git'
 
+    maintainers = ['hfp']
+
     version('master', branch='master')
     version('1.16.1', sha256='93dc7a3ec40401988729ddb2c6ea2294911261f7e6cd979cf061b5c3691d729d')
     version('1.16',   sha256='4f4f2ad97815413af80821d2e306eb6f00541941ad412662da05c02361a20e07')

@@ -22,6 +22,11 @@ class Hdf5(AutotoolsPackage):
 
     test_requires_compiler = True
 
+    # We rely on the *.la files to be removed and, therefore, do not try to make
+    # sure that they are correct. The following is a precaution against someone
+    # blindly changing the value to True, either here or in the baseclass.
+    install_libtool_archives = False
+
     version('develop', branch='develop')
 
     version('1.12.0', sha256='a62dcb276658cb78e6795dd29bf926ed7a9bc4edf6e77025cd2c689a8f97c17a')
@@ -39,6 +44,7 @@ class Hdf5(AutotoolsPackage):
     version('1.10.0-patch1', sha256='6e78cfe32a10e6e0629393cdfddf6cfa536571efdaf85f08e35326e1b4e9eff0')
     version('1.10.0', sha256='81f6201aba5c30dced5dcd62f5d5477a2790fd5850e02ac514ca8bf3e2bb375a')
 
+    version('1.8.22', sha256='8406d96d9355ef8961d2739fb8fd5474ad4cdf52f3cfac657733defd9709bfaa')
     version('1.8.21', sha256='87d8c82eba5cf766d97cd06c054f4639c1049c4adeaa3a79f77f8bd374f80f37')
     version('1.8.19', sha256='a4335849f19fae88c264fd0df046bc321a78c536b2548fc508627a790564dc38')
     version('1.8.18', sha256='cdb195ad8d9e6782acf24b2488061289f615628c2ccda8457b0a0c3fb7a8a063')
@@ -229,39 +235,27 @@ class Hdf5(AutotoolsPackage):
             msg = 'cannot build a Fortran variant without a Fortran compiler'
             raise RuntimeError(msg)
 
+    def with_or_without_szip(self, activated):
+        return '--{0}-szlib'.format('with' if activated else 'without')
+
     def configure_args(self):
         # Always enable this option. This does not actually enable any
         # features: it only *allows* the user to specify certain
         # combinations of other arguments. Enabling it just skips a
         # sanity check in configure, so this doesn't merit a variant.
-        extra_args = ['--enable-unsupported']
-        extra_args += ['--enable-symbols=yes']
+        extra_args = ['--enable-unsupported',
+                      '--enable-symbols=yes',
+                      '--with-zlib']
         extra_args += self.enable_or_disable('threadsafe')
         extra_args += self.enable_or_disable('cxx')
         extra_args += self.enable_or_disable('hl')
         extra_args += self.enable_or_disable('fortran')
         extra_args += self.enable_or_disable('java')
+        extra_args += self.with_or_without('szip')
 
         api = self.spec.variants['api'].value
         if api != 'none':
             extra_args.append('--with-default-api-version=' + api)
-
-        if '+szip' in self.spec:
-            szip_spec = self.spec['szip']
-            # The configure script of HDF5 accepts a comma-separated tuple of
-            # two paths: the first one points to the directory with include
-            # files, the second one points to the directory with library files.
-            # If the second path is not specified, the configure script assumes
-            # that it equals to prefix/lib. However, the correct directory
-            # might be prefix/lib64. It is not a problem when the building is
-            # done with Spack's compiler wrapper but it makes the Libtool
-            # files (*.la) invalid, which makes it problematic to use the
-            # installed library outside of Spack environment.
-            extra_args.append('--with-szlib=%s,%s' %
-                              (szip_spec.headers.directories[0],
-                               szip_spec.libs.directories[0]))
-        else:
-            extra_args.append('--without-szlib')
 
         if self.spec.satisfies('@1.10:'):
             if '+debug' in self.spec:
@@ -307,8 +301,6 @@ class Hdf5(AutotoolsPackage):
 
             if '+fortran' in self.spec:
                 extra_args.append('FC=%s' % self.spec['mpi'].mpifc)
-
-        extra_args.append('--with-zlib=%s' % self.spec['zlib'].prefix)
 
         return extra_args
 

@@ -34,6 +34,9 @@ def setup_parser(subparser):
         '-m', dest='module', action='store',
         help='run library module as a script')
     subparser.add_argument(
+        '--path', action='store_true', dest='show_path',
+        help='show path to python interpreter that spack uses')
+    subparser.add_argument(
         'python_args', nargs=argparse.REMAINDER,
         help="file to run plus arguments")
 
@@ -41,6 +44,10 @@ def setup_parser(subparser):
 def python(parser, args, unknown_args):
     if args.version:
         print('Python', platform.python_version())
+        return
+
+    if args.show_path:
+        print(sys.executable)
         return
 
     if args.module:

@@ -17,6 +17,7 @@ class Vasp(MakefilePackage):
 
     homepage = "http://vasp.at"
     url      = "file://{0}/vasp.5.4.4.pl2.tgz".format(os.getcwd())
+    manual_download = True
 
     version('6.1.1', sha256='e37a4dfad09d3ad0410833bcd55af6b599179a085299026992c2d8e319bf6927')
     version('5.4.4.pl2', sha256='98f75fd75399a23d76d060a6155f4416b340a1704f256a00146f89024035bc8e')

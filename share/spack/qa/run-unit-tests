@@ -42,4 +42,9 @@ spack -p --lines 20 spec mpileaks%gcc ^elfutils@0.170
 #-----------------------------------------------------------
 # Run unit tests with code coverage
 #-----------------------------------------------------------
+if [[ "$ONLY_PACKAGES" == "true" ]]; then
+  echo "ONLY PACKAGE RECIPES CHANGED [skipping slow unit tests]"
+  export PYTEST_ADDOPTS='-k "package_sanity" -m "not maybeslow"'
+fi
+
 $coverage_run $(which spack) unit-test -x --verbose

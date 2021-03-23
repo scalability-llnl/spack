@@ -92,6 +92,9 @@ class Zoltan(AutotoolsPackage):
         # PGI runtime libraries
         if '%pgi' in spec:
             config_ldflags.append('-pgf90libs')
+        # NVHPC runtime libraries
+        if '%nvhpc' in spec:
+            config_ldflags.append('-fortranlibs')
         if '+shared' in spec:
             config_args.extend([
                 'RANLIB=echo',

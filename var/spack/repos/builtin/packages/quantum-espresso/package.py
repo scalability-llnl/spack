@@ -377,7 +377,7 @@ class QuantumEspresso(Package):
                 scalapack_option = 'yes'
             options.append('--with-scalapack={0}'.format(scalapack_option))
             scalapack_lib = spec['scalapack'].libs
-            options.append('SCALAPACK_LIBS={0}'.format(scalapack_lib))
+            options.append('SCALAPACK_LIBS={0}'.format(scalapack_lib.ld_flags))
 
         if '+elpa' in spec:
 

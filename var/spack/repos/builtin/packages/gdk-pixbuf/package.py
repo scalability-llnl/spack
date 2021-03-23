@@ -18,6 +18,7 @@ class GdkPixbuf(Package):
     list_url = "https://ftp.acc.umu.se/pub/gnome/sources/gdk-pixbuf/"
     list_depth = 1
 
+    version('2.42.2', sha256='83c66a1cfd591d7680c144d2922c5955d38b4db336d7cd3ee109f7bcf9afef15')
     version('2.40.0', sha256='1582595099537ca8ff3b99c6804350b4c058bb8ad67411bbaae024ee7cead4e6')
     version('2.38.2', sha256='73fa651ec0d89d73dd3070b129ce2203a66171dfc0bd2caa3570a9c93d2d0781')
     version('2.38.0', sha256='dd50973c7757bcde15de6bcd3a6d462a445efd552604ae6435a0532fbbadae47')
@@ -25,6 +26,7 @@ class GdkPixbuf(Package):
 
     variant('x11', default=False, description="Enable X11 support")
 
+    depends_on('meson@0.55.3:', type='build', when='@2.42.2:')
     depends_on('meson@0.46.0:', type='build', when='@2.37.92:')
     depends_on('meson@0.45.0:', type='build', when='@2.37.0:')
     depends_on('ninja', type='build', when='@2.37.0:')

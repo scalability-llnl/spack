@@ -4,12 +4,12 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+from os import path
 import subprocess
+from sys import platform
+
 
 from spack import *
-
-releases = {
-    '2021.1.1': {'irc_id': '17397', 'build': '76'}}
 
 
 class IntelOneapiMpi(IntelOneApiLibraryPackage):
@@ -19,18 +19,19 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
 
     homepage = 'https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/mpi-library.html'
 
-    version('2021.1.1', sha256='8b7693a156c6fc6269637bef586a8fd3ea6610cac2aae4e7f48c1fbb601625fe', expand=False)
+    if platform == 'linux':
+        version('2021.1.1',
+                sha256='8b7693a156c6fc6269637bef586a8fd3ea6610cac2aae4e7f48c1fbb601625fe',
+                url='https://registrationcenter-download.intel.com/akdlm/irc_nas/17397/l_mpi_oneapi_p_2021.1.1.76_offline.sh',
+                expand=False)
 
     provides('mpi@:3')
 
     depends_on('patchelf', type='build')
 
-    def __init__(self, spec):
-        self.component_info(dir_name='mpi',
-                            components='intel.oneapi.lin.mpi.devel',
-                            releases=releases,
-                            url_name='mpi_oneapi')
-        super(IntelOneapiMpi, self).__init__(spec)
+    @property
+    def component_dir(self):
+        return 'mpi'
 
     def setup_dependent_package(self, module, dep_spec):
         dir = join_path(self.prefix, 'mpi', 'latest', 'bin')
@@ -49,8 +50,10 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
     @property
     def libs(self):
         libs = []
-        for dir in ['lib/release_mt', 'lib', 'libfabric/lib']:
-            lib_path = '{0}/{1}/latest/{2}'.format(self.prefix, self._dir_name, dir)
+        for dir in [path.join('lib', 'release_mt'),
+                    'lib',
+                    path.join('libfabric', 'lib')]:
+            lib_path = path.join(self.prefix, 'mpi', 'latest', dir)
             ldir = find_libraries('*', root=lib_path, shared=True, recursive=False)
             libs += ldir
         return libs
@@ -58,38 +61,11 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
     def _join_prefix(self, path):
         return join_path(self.prefix, 'mpi', 'latest', path)
 
-    def _ld_library_path(self):
-        dirs = ['lib',
-                'lib/release',
-                'libfabric/lib']
-        for dir in dirs:
-            yield self._join_prefix(dir)
-
-    def _library_path(self):
-        dirs = ['lib',
-                'lib/release',
-                'libfabric/lib']
-        for dir in dirs:
-            yield self._join_prefix(dir)
-
     def install(self, spec, prefix):
         super(IntelOneapiMpi, self).install(spec, prefix)
 
         # need to patch libmpi.so so it can always find libfabric
-        libfabric_rpath = self._join_prefix('libfabric/lib')
+        libfabric_rpath = self._join_prefix(path.join('libfabric', 'lib'))
         for lib_version in ['debug', 'release', 'release_mt', 'debug_mt']:
-            file = self._join_prefix('lib/' + lib_version + '/libmpi.so')
+            file = self._join_prefix(path.join('lib', lib_version, 'libmpi.so'))
             subprocess.call(['patchelf', '--set-rpath', libfabric_rpath, file])
-
-    def setup_run_environment(self, env):
-        env.prepend_path('PATH', self._join_prefix('bin'))
-        env.prepend_path('CPATH', self._join_prefix('include'))
-        for dir in self._library_path():
-            env.prepend_path('LIBRARY_PATH', dir)
-        for dir in self._ld_library_path():
-            env.prepend_path('LD_LIBRARY_PATH', dir)
-        # so wrappers know where MPI lives
-        mpi_root = join_path(prefix, 'mpi', 'latest')
-        env.set('I_MPI_ROOT', mpi_root)
-        # set this so that wrappers can find libfabric providers
-        env.set('FI_PROVIDER_PATH', self._join_prefix('libfabric/lib/prov'))

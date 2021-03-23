@@ -1,0 +1,11 @@
+--- spack-src/src/enzo/FindSuperSourceByPosition.C.bak	2019-09-19 21:35:51.000000000 +0900
++++ spack-src/src/enzo/FindSuperSourceByPosition.C	2021-02-17 11:58:28.574066786 +0900
+@@ -1,7 +1,7 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <math.h>
+-#include <xmmintrin.h>
++#include <sse2neon.h>
+ #include "ErrorExceptions.h"
+ #include "macros_and_parameters.h"
+ #include "typedefs.h"

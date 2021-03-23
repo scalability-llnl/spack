@@ -243,7 +243,28 @@ class PythonPackage(PackageBase):
         if ('py-setuptools' == spec.name or          # this is setuptools, or
             'py-setuptools' in spec._dependencies and  # it's an immediate dep
             'build' in spec._dependencies['py-setuptools'].deptypes):
-            args += ['--single-version-externally-managed', '--root=/']
+            args += ['--single-version-externally-managed']
+
+        # Get all relative paths since we set the root to `prefix`
+        # We query the python with which these will be used for the lib and inc
+        # directories. This ensures we use `lib`/`lib64` as expected by python.
+        python = spec['python'].package.command
+        command_start = 'print(distutils.sysconfig.'
+        commands = ';'.join([
+            'import distutils.sysconfig',
+            command_start + 'get_python_lib(plat_specific=False, prefix=""))',
+            command_start + 'get_python_lib(plat_specific=True, prefix=""))',
+            command_start + 'get_python_inc(plat_specific=True, prefix=""))'])
+        pure_site_packages_dir, plat_site_packages_dir, inc_dir = python(
+            '-c', commands, output=str, error=str).strip().split('\n')
+
+        args += ['--root=%s' % prefix,
+                 '--install-purelib=%s' % pure_site_packages_dir,
+                 '--install-platlib=%s' % plat_site_packages_dir,
+                 '--install-scripts=bin',
+                 '--install-data=',
+                 '--install-headers=%s' % inc_dir
+                 ]
 
         return args
 

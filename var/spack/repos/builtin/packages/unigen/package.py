@@ -18,6 +18,8 @@ class Unigen(MakefilePackage):
     homepage = "https://www.gsi.de/work/wissenschaftliche_netzwerke/helmholtz_virtuelle_institute/unigen.htm"
     url      = "https://github.com/FairRootGroup/UniGen/archive/v2.3.tar.gz"
 
+    tags = ['hep']
+
     version('2.3', sha256='8783bcabbdf8c50dab6e93153cff9cfb267a9a9e61aef51bf1e17679ba42a717')
     patch('unigen-2.3.patch', level=0)
 

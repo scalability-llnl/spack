@@ -1,0 +1,14 @@
+https://github.com/Blosc/c-blosc/issues/316
+diff --git a/c-blosc/internal-complibs/zlib-1.2.8/gzguts.h b/c-blosc/internal-complibs/zlib-1.2.8/gzguts.h
+index d87659d..f6823ed 100644
+--- a/c-blosc/internal-complibs/zlib-1.2.8/gzguts.h
++++ b/c-blosc/internal-complibs/zlib-1.2.8/gzguts.h
+@@ -26,6 +26,7 @@
+ #  include <limits.h>
+ #endif
+ #include <fcntl.h>
++#include <unistd.h>
+
+ #ifdef _WIN32
+ #  include <stddef.h>
+

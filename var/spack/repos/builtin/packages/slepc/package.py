@@ -17,7 +17,7 @@ class Slepc(Package):
 
     maintainers = ['joseeroman', 'balay']
 
-    version('master', branch='master')
+    version('main', branch='main')
     version('3.14.2', sha256='3e54578dda1f4c54d35ac27d02f70a43f6837906cb7604dbcec0e033cfb264c8')
     version('3.14.1', sha256='cc78a15e34d26b3e6dde003d4a30064e595225f6185c1975bbd460cb5edd99c7')
     version('3.14.0', sha256='37f8bb270169d1d3f5d43756ac8929d56204e596bd7a78a7daff707513472e46')
@@ -54,7 +54,7 @@ class Slepc(Package):
     depends_on('python@2.6:2.8,3.4:', type='build', when='@3.11:')
 
     # Cannot mix release and development versions of SLEPc and PETSc:
-    depends_on('petsc@develop', when='@develop')
+    depends_on('petsc@main', when='@main')
     depends_on('petsc@3.14:3.14.99', when='@3.14:3.14.99')
     depends_on('petsc@3.13:3.13.99', when='@3.13:3.13.99')
     depends_on('petsc@3.12:3.12.99', when='@3.12:3.12.99')

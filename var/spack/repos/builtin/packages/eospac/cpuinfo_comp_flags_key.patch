@@ -1,0 +1,23 @@
+--- a/Source/config/Makefile.-linux-gnu.hashes	2019-10-12 12:16:17.000000000 -0600
++++ b/Source/config/Makefile.-linux-gnu.hashes	2020-09-25 15:14:45.990734000 -0600
+@@ -267,9 +267,9 @@
+ ifneq ($(strip $(CPUFLAGS)),)
+ 
+   KEYLIST = $(call keys,_F90-CPUINFO_COMP_FLAGS)
+-  MYKEYS = $(addprefix $(F90)-$(_F90_MAJOR_VERSION)-,$(CPUFLAGS))
++  MYKEYS = $(addprefix $(notdir $(F90))-$(_F90_MAJOR_VERSION)-,$(CPUFLAGS))
+   SHORTCUT = $(filter $(MYKEYS),$(KEYLIST))
+-  OTHER = $(subst $(F90)-$(_F90_MAJOR_VERSION)-,,$(filter-out $(SHORTCUT),$(MYKEYS)))
++  OTHER = $(subst $(notdir $(F90))-$(_F90_MAJOR_VERSION)-,,$(filter-out $(SHORTCUT),$(MYKEYS)))
+   # $(warning CPUFLAGS : "$(CPUFLAGS)")
+   # $(warning KEYLIST : $(KEYLIST))
+   # $(warning MYKEYS : $(MYKEYS))
+@@ -284,7 +284,7 @@
+ 
+   ifeq ($(ALT_SUBDIR_Key1),craype-mic-knl)
+     # define the default _CPUINFO_FLAGS for the craype-mic-knl
+-    _CPUINFO_FLAGS += $(call get,_F90-CPUINFO_COMP_FLAGS,$(F90)-$(_F90_MAJOR_VERSION)-knl)
++    _CPUINFO_FLAGS += $(call get,_F90-CPUINFO_COMP_FLAGS,$(notdir $(F90))-$(_F90_MAJOR_VERSION)-knl)
+   else
+     # define the default _CPUINFO_FLAGS
+     _CPUINFO_FLAGS += $(call get,_F90-CPUINFO_COMP_FLAGS,$(notdir $(F90)-$(_F90_MAJOR_VERSION)-$(lastword $(_SUPPORTED_CPUINFO_FLAGS))))

@@ -22,6 +22,7 @@ class VotcaTools(CMakePackage):
 
     version('master', branch='master')
     version('stable', branch='stable')
+    version('2021', sha256='b84f68ba4a8bfae7b06b61e1e078dcbfb3b340c516da3be39ef545152da00ccd')
     version('1.6.4', sha256='aa79ef4617a80ba3ca063932d5ee0d5767c0285b4b613abd373ad3c986ab9f4c')
     version('1.6.3', sha256='b4ba63861f4342070d81309992f76c4cc798dffeab894bff64799881e75b3cc2')
     version('1.6.2', sha256='1b31e0dd7550b80b963e6714d671f3516d68ebc1e75068a5d827a6e8b4f1759a')

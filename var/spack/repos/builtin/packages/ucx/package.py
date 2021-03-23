@@ -60,6 +60,22 @@ class Ucx(AutotoolsPackage, CudaPackage):
             description='Enable KNEM support')
     variant('xpmem', default=False,
             description='Enable XPMEM support')
+    variant('cma', default=False,
+            description="nable Cross Memory Attach")
+    variant('rc', default=False,
+            description="Compile with IB Reliable Connection support")
+    variant('dc', default=False,
+            description="Compile with IB Dynamic Connection support")
+    variant('ud', default=False,
+            description="Compile with IB Unreliable Datagram support")
+    variant('mlx5-dv', default=False,
+            description="Compile with mlx5 Direct Verbs support")
+    variant('ib-hw-tm', default=False,
+            description="Compile with IB Tag Matching support")
+    variant('dm', default=False,
+            description="Compile with Device Memory support")
+    variant('cm', default=False,
+            description="Compile with IB Connection Manager support")
 
     depends_on('numactl')
     depends_on('rdma-core')
@@ -88,16 +104,34 @@ class Ucx(AutotoolsPackage, CudaPackage):
         else:
             config_args.append('--disable-mt')
 
+        if '+cma' in spec:
+            config_args.append('--enable-cma')
+        else:
+            config_args.append('--disable-cma')
+
         if '+paramter_checking' in spec:
             config_args.append('--enable-params-check')
         else:
             config_args.append('--disable-params-check')
+
+        # Activate SIMD based on properties of the target
+        if 'avx' in self.spec.target:
+            config_args.append('--with-avx')
+        else:
+            config_args.append('--without-avx')
 
         config_args.extend(self.enable_or_disable('optimizations'))
         config_args.extend(self.enable_or_disable('assertions'))
         config_args.extend(self.enable_or_disable('logging'))
 
         config_args.extend(self.with_or_without('pic'))
+        config_args.extend(self.with_or_without('rc'))
+        config_args.extend(self.with_or_without('ud'))
+        config_args.extend(self.with_or_without('dc'))
+        config_args.extend(self.with_or_without('mlx5-dv'))
+        config_args.extend(self.with_or_without('ib-hw-tm'))
+        config_args.extend(self.with_or_without('dm'))
+        config_args.extend(self.with_or_without('cm'))
         config_args.extend(self.with_or_without('java',
                                                 activation_value='prefix'))
         config_args.extend(self.with_or_without('cuda',

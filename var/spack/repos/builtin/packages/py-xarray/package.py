@@ -25,6 +25,8 @@ class PyXarray(PythonPackage):
     version('0.11.0', sha256='636964baccfca0e5d69220ac4ecb948d561addc76f47704064dcbe399e03a818')
     version('0.9.1', sha256='89772ed0e23f0e71c3fb8323746374999ecbe79c113e3fadc7ae6374e6dc0525')
 
+    variant('io', default=False, description='Build io backends')
+
     depends_on('python@2.7:2.8,3.5:',   when='@0.11:',  type=('build', 'run'))
     depends_on('python@3.5:',           when='@0.12',   type=('build', 'run'))
     depends_on('python@3.5.3:',         when='@0.13',   type=('build', 'run'))
@@ -43,3 +45,13 @@ class PyXarray(PythonPackage):
     depends_on('py-numpy@1.12:',    when='@0.11:0.13',  type=('build', 'run'))
     depends_on('py-numpy@1.14:',    when='@0.14.0',     type=('build', 'run'))
     depends_on('py-numpy@1.15:',    when='@0.15:',      type=('build', 'run'))
+
+    depends_on('py-netcdf4',  when='+io', type=('build', 'run'))
+    depends_on('py-h5netcdf', when='+io', type=('build', 'run'))
+    depends_on('py-scipy',    when='+io', type=('build', 'run'))
+    depends_on('py-pydap',    when='+io', type=('build', 'run'))
+    depends_on('py-zarr',     when='+io', type=('build', 'run'))
+    depends_on('py-fsspec',   when='+io', type=('build', 'run'))
+    depends_on('py-cftime',   when='+io', type=('build', 'run'))
+    depends_on('py-rasterio', when='+io', type=('build', 'run'))
+    depends_on('py-cfgrib',   when='+io', type=('build', 'run'))

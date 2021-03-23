@@ -1526,9 +1526,15 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
         hash_content.extend(':'.join((p.sha256, str(p.level))).encode('utf-8')
                             for p in self.spec.patches)
         hash_content.append(package_hash(self.spec, content))
-        return base64.b32encode(
+        b32_hash = base64.b32encode(
             hashlib.sha256(bytes().join(
                 sorted(hash_content))).digest()).lower()
+
+        # convert from bytes if running python 3
+        if sys.version_info[0] >= 3:
+            b32_hash = b32_hash.decode('utf-8')
+
+        return b32_hash
 
     def _has_make_target(self, target):
         """Checks to see if 'target' is a valid target in a Makefile.

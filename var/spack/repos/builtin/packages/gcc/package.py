@@ -212,7 +212,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     conflicts('languages=objc', when='+nvptx')
     conflicts('languages=obj-c++', when='+nvptx')
     # NVPTX build disables bootstrap
-    conflicts('+binutils', when='+nvptx')
+    conflicts('+bootstrap', when='+nvptx')
 
     # Binutils can't build ld on macOS
     conflicts('+binutils', when='platform=darwin')

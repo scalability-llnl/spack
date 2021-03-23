@@ -25,8 +25,10 @@ from spack.util.path import substitute_path_variables
 
 
 # everything here uses the mock_env_path
-pytestmark = pytest.mark.usefixtures(
-    'mutable_mock_env_path', 'config', 'mutable_mock_repo')
+pytestmark = [
+    pytest.mark.usefixtures('mutable_mock_env_path', 'config', 'mutable_mock_repo'),
+    pytest.mark.maybeslow
+]
 
 env        = SpackCommand('env')
 install    = SpackCommand('install')
@@ -137,6 +139,19 @@ def test_concretize():
     e.concretize()
     env_specs = e._get_environment_specs()
     assert any(x.name == 'mpileaks' for x in env_specs)
+
+
+def test_env_uninstalled_specs(install_mockery, mock_fetch):
+    e = ev.create('test')
+    e.add('cmake-client')
+    e.concretize()
+    assert any(s.name == 'cmake-client' for s in e.uninstalled_specs())
+    e.install_all()
+    assert not any(s.name == 'cmake-client' for s in e.uninstalled_specs())
+    e.add('mpileaks')
+    e.concretize()
+    assert not any(s.name == 'cmake-client' for s in e.uninstalled_specs())
+    assert any(s.name == 'mpileaks' for s in e.uninstalled_specs())
 
 
 def test_env_install_all(install_mockery, mock_fetch):
@@ -330,7 +345,7 @@ def test_env_status_broken_view(
         # switch to a new repo that doesn't include the installed package
         # test that Spack detects the missing package and warns the user
         new_repo = MockPackageMultiRepo()
-        with spack.repo.swap(new_repo):
+        with spack.repo.use_repositories(new_repo):
             output = env('status')
             assert 'In environment test' in output
             assert 'Environment test includes out of date' in output
@@ -351,7 +366,7 @@ def test_env_activate_broken_view(
     # switch to a new repo that doesn't include the installed package
     # test that Spack detects the missing package and fails gracefully
     new_repo = MockPackageMultiRepo()
-    with spack.repo.swap(new_repo):
+    with spack.repo.use_repositories(new_repo):
         with pytest.raises(SpackCommandError):
             env('activate', '--sh', 'test')
 
@@ -929,7 +944,7 @@ def test_read_old_lock_and_write_new(tmpdir):
     y = mock_repo.add_package('y', [], [])
     mock_repo.add_package('x', [y], [build_only])
 
-    with spack.repo.swap(mock_repo):
+    with spack.repo.use_repositories(mock_repo):
         x = Spec('x')
         x.concretize()
 
@@ -960,7 +975,7 @@ def test_read_old_lock_creates_backup(tmpdir):
     mock_repo = MockPackageMultiRepo()
     y = mock_repo.add_package('y', [], [])
 
-    with spack.repo.swap(mock_repo):
+    with spack.repo.use_repositories(mock_repo):
         y = Spec('y')
         y.concretize()
 
@@ -997,7 +1012,7 @@ def test_indirect_build_dep():
         pass
     setattr(mock_repo, 'dump_provenance', noop)
 
-    with spack.repo.swap(mock_repo):
+    with spack.repo.use_repositories(mock_repo):
         x_spec = Spec('x')
         x_concretized = x_spec.concretized()
 
@@ -1038,7 +1053,7 @@ def test_store_different_build_deps():
         pass
     setattr(mock_repo, 'dump_provenance', noop)
 
-    with spack.repo.swap(mock_repo):
+    with spack.repo.use_repositories(mock_repo):
         y_spec = Spec('y ^z@3')
         y_concretized = y_spec.concretized()
 
@@ -2100,7 +2115,11 @@ def test_env_activate_default_view_root_unconditional(env_deactivate,
         viewdir = e.default_view.root
 
     out = env('activate', '--sh', 'test')
-    assert 'PATH=%s' % os.path.join(viewdir, 'bin') in out
+    viewdir_bin = os.path.join(viewdir, 'bin')
+
+    assert "export PATH={0}".format(viewdir_bin) in out or \
+           "export PATH='{0}".format(viewdir_bin) in out or \
+           'export PATH="{0}'.format(viewdir_bin) in out
 
 
 def test_concretize_user_specs_together():
@@ -2356,3 +2375,82 @@ spack:
             e.clear()
             e.write()
     assert os.path.exists(str(spack_lock))
+
+
+def _setup_develop_packages(tmpdir):
+    """Sets up a structure ./init_env/spack.yaml, ./build_folder, ./dest_env
+       where spack.yaml has a relative develop path to build_folder"""
+    init_env = tmpdir.join('init_env')
+    build_folder = tmpdir.join('build_folder')
+    dest_env = tmpdir.join('dest_env')
+
+    fs.mkdirp(str(init_env))
+    fs.mkdirp(str(build_folder))
+    fs.mkdirp(str(dest_env))
+
+    raw_yaml = """
+spack:
+  specs: ['mypkg1', 'mypkg2']
+  develop:
+    mypkg1:
+      path: ../build_folder
+      spec: mypkg@main
+    mypkg2:
+      path: /some/other/path
+      spec: mypkg@main
+"""
+    spack_yaml = init_env.join('spack.yaml')
+    spack_yaml.write(raw_yaml)
+
+    return init_env, build_folder, dest_env, spack_yaml
+
+
+def test_rewrite_rel_dev_path_new_dir(tmpdir):
+    """Relative develop paths should be rewritten for new environments in
+       a different directory from the original manifest file"""
+    _, build_folder, dest_env, spack_yaml = _setup_develop_packages(tmpdir)
+
+    env('create', '-d', str(dest_env), str(spack_yaml))
+    with ev.Environment(str(dest_env)) as e:
+        assert e.dev_specs['mypkg1']['path'] == str(build_folder)
+        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'
+
+
+def test_rewrite_rel_dev_path_named_env(tmpdir):
+    """Relative develop paths should by default be rewritten for new named
+       environment"""
+    _, build_folder, _, spack_yaml = _setup_develop_packages(tmpdir)
+    env('create', 'named_env', str(spack_yaml))
+    with ev.read('named_env') as e:
+        assert e.dev_specs['mypkg1']['path'] == str(build_folder)
+        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'
+
+
+def test_rewrite_rel_dev_path_original_dir(tmpdir):
+    """Relative devevelop paths should not be rewritten when initializing an
+       environment with root path set to the same directory"""
+    init_env, _, _, spack_yaml = _setup_develop_packages(tmpdir)
+    with ev.Environment(str(init_env), str(spack_yaml)) as e:
+        assert e.dev_specs['mypkg1']['path'] == '../build_folder'
+        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'
+
+
+def test_rewrite_rel_dev_path_create_original_dir(tmpdir):
+    """Relative develop paths should not be rewritten when creating an
+       environment in the original directory"""
+    init_env, _, _, spack_yaml = _setup_develop_packages(tmpdir)
+    env('create', '-d', str(init_env), str(spack_yaml))
+    with ev.Environment(str(init_env)) as e:
+        assert e.dev_specs['mypkg1']['path'] == '../build_folder'
+        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'
+
+
+def test_does_not_rewrite_rel_dev_path_when_keep_relative_is_set(tmpdir):
+    """Relative develop paths should not be rewritten when --keep-relative is
+       passed to create"""
+    _, _, _, spack_yaml = _setup_develop_packages(tmpdir)
+    env('create', '--keep-relative', 'named_env', str(spack_yaml))
+    with ev.read('named_env') as e:
+        print(e.dev_specs)
+        assert e.dev_specs['mypkg1']['path'] == '../build_folder'
+        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'

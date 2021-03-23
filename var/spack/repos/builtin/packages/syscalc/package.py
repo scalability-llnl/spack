@@ -13,7 +13,8 @@ class Syscalc(MakefilePackage):
     url      = "https://bazaar.launchpad.net/~mgtools/mg5amcnlo/SysCalc/tarball/17"
 
     version('1.1.7', sha256='ac73df0f9f195eb62601fafc2eede3db17a562750f7971616870d6df4abd1b6c',
-            url='https://bazaar.launchpad.net/~mgtools/mg5amcnlo/SysCalc/tarball/17')
+            url='https://bazaar.launchpad.net/~mgtools/mg5amcnlo/SysCalc/tarball/17',
+            extension='.tgz')
 
     tags = ['hep']
 
@@ -26,7 +27,12 @@ class Syscalc(MakefilePackage):
         url = url.format(version)
         return url
 
+    def build(self, spec, prefix):
+        with working_dir('mg5amcnlo/SysCalc'):
+            make('all')
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
-        install('sys_calc', prefix.bin)
-        install_tree('include', prefix.include)
+        with working_dir('mg5amcnlo/SysCalc'):
+            install('sys_calc', prefix.bin)
+            install_tree('include', prefix.include)

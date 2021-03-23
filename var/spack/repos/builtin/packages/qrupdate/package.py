@@ -23,12 +23,22 @@ class Qrupdate(MakefilePackage, SourceforgePackage):
     def edit(self, spec, prefix):
         # BSD "install" does not understand GNU -D flag.
         # We will create the parent directory ourselves.
-        makefile = FileFilter('src/Makefile')
         if (sys.platform == 'darwin'):
+            makefile = FileFilter('src/Makefile')
             makefile.filter('-D', '')
+
+        # Concurrent (parallel) Compilation requires calling $(MAKE) not make
+        makefile = FileFilter('Makefile')
+        makefile.filter('make', '$(MAKE)')
+
+        # We may like to compile with any Forran compiler, not always gfortran
+        makefile = FileFilter('Makeconf')
+        makefile.filter('FC=gfortran', 'FC ?= gfortran')
+
         return
 
-    def install(self, spec, prefix):
+    # The Makefile does not take the simple "make" rule
+    def build(self, spec, prefix):
 
         lapack_blas = spec['lapack'].libs + spec['blas'].libs
 
@@ -41,11 +51,17 @@ class Qrupdate(MakefilePackage, SourceforgePackage):
         if (spec.satisfies('^openblas+ilp64') or
             spec.satisfies('^intel-mkl+ilp64') or
             spec.satisfies('^intel-parallel-studio+mkl+ilp64')):
-            make_args.append('FFLAGS=-fdefault-integer-8')
+            if (spec.satisfies('%intel') or spec.satisfies('%oneapi')
+                or spec.satisfies('%nvhpc')):
+                # 64bits integer for ifort and nvfortran are promoted by:
+                make_args.append('FFLAGS=-i8')
+            else:
+                make_args.append('FFLAGS=-fdefault-integer-8')
 
         # Build static and dynamic libraries:
         make('lib', 'solib', *make_args)
 
+    def install(self, spec, prefix):
         # "INSTALL" confuses "make install" on case-insensitive filesystems:
         if os.path.isfile("INSTALL"):
             os.remove("INSTALL")

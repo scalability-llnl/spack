@@ -19,14 +19,18 @@ class OpenkimModels(CMakePackage):
        compatible with the kim-api package.
     """
     homepage = "https://openkim.org/"
-    url      = "https://s3.openkim.org/archives/collection/openkim-models-2019-07-25.txz"
+    url      = "https://s3.openkim.org/archives/collection/openkim-models-2021-01-28.txz"
 
     maintainers = ['ellio167']
 
     extends('kim-api')
+    depends_on('kim-api@2.2.1:', when='@2021.01.28:')
     depends_on('kim-api@2.1.0:', when='@2019-07-25:')
     depends_on('kim-api@:2.0.2', when='@:2019-03-29')
 
+    version(
+        '2021.01.28',
+        sha256='8824adee02ae4583bd378cc81140fbb49515c5965708ee98d856d122d48dd95f')
     version(
         '2019-07-25',
         sha256='50338084ece92ec0fb13b0bbdf357b5d7450e26068ba501f23c315f814befc26')

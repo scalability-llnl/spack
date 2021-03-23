@@ -14,7 +14,7 @@ class Popt(AutotoolsPackage):
 
     version('1.16', sha256='e728ed296fe9f069a0e005003c3d6b2dde3d9cad453422a10d6558616d304cc8')
 
-    depends_on('libiconv')
+    depends_on('iconv')
 
     def patch(self):
         # Remove flags not recognized by the NVIDIA compilers

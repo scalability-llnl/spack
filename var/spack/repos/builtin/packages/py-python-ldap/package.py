@@ -22,3 +22,4 @@ class PyPythonLdap(PythonPackage):
     depends_on('python@2.7:2.8,3.4:', type=('build', 'run'))
     depends_on('py-pyasn1@0.3.7:', type=('build', 'run'))
     depends_on('py-pyasn1-modules@0.1.5:', type=('build', 'run'))
+    depends_on('cyrus-sasl', type='link')

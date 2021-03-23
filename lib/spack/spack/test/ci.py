@@ -114,6 +114,7 @@ def test_get_concrete_specs(config, mock_packages):
     assert('archive-files' in spec_map)
 
 
+@pytest.mark.maybeslow
 def test_register_cdash_build():
     build_name = 'Some pkg'
     base_url = 'http://cdash.fake.org'

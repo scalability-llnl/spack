@@ -1,0 +1,17 @@
+--- blha/njet_olp.cpp.orig	2016-06-09 15:09:37.024953173 +0200
++++ blha/njet_olp.cpp	2016-06-09 15:09:41.783999034 +0200
+@@ -1076,12 +1076,12 @@
+   string line;
+   int linenum = 0;
+ 
+-  while (is_good && (is_good = getline(*input, line))) {
++  while (is_good && (is_good = getline(*input, line).good())) {
+     linenum++;
+     if (line.find(SIGNPREF) == 0) {
+       is_njet = true;
+       if (stringstream(line.substr(SIGNPREF.length())) >> signval) {
+-        is_good = getline(*input, line);
++        is_good = getline(*input, line).good();
+         linenum++;
+         body.push_back(line);
+         continue;

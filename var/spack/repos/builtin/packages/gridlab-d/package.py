@@ -50,6 +50,7 @@ class GridlabD(AutotoolsPackage):
             args.append('CFLAGS=-g -O0 -w')
             args.append('CXXFLAGS=-g -O0 -w -std=c++14')
             args.append('LDFLAGS=-g -O0 -w')
+            args.append('--with-xerces=' + self.spec['xerces-c'].prefix)
 
         return args
 

@@ -17,6 +17,7 @@ class PyOpppy(PythonPackage):
     maintainers = ['clevelam']
 
     version('master', branch='master')
+    version('0_1_5', sha256='d9df166d347c18d4f145059b4c2fb23dbfbecf0dd5a3398f29e52d3e261844b0')
     version('0_1_4', sha256='22d81a64856f4c12f8079440c837d7d1f45153e68c405b45bed8b6d35831e948')
     version('0_1_3', sha256='c3ca97f2ff8ab319b5c7257baa8cab852387dc00d426b4534c06f0894363c541')
     version('0_1_2', sha256='ef3795d3164fa0aa7ea7da7e223d6d0a48d2960aefd03a7d90cdb8b8f480cd4c')
@@ -26,6 +27,5 @@ class PyOpppy(PythonPackage):
     depends_on('py-sphinx',     type=('build'))
     depends_on('py-numpy@1.6:', type=('build', 'run'))
     depends_on('python@3:',     type=('build', 'run'))
-    depends_on('py-argparse',   type=('build', 'run'), when='^python@:2.6')
     depends_on('py-scipy',      type=('build', 'run'))
     depends_on('py-matplotlib', type=('build', 'run'))

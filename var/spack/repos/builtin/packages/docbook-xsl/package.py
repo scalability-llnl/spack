@@ -14,6 +14,7 @@ class DocbookXsl(Package):
     url      = "https://github.com/docbook/xslt10-stylesheets/releases/download/release%2F1.79.2/docbook-xsl-1.79.2.tar.bz2"
 
     version('1.79.2', sha256='316524ea444e53208a2fb90eeb676af755da96e1417835ba5f5eb719c81fa371')
+    version('1.78.1', sha256='c98f7296ab5c8ccd2e0bc07634976a37f50847df2d8a59bdb1e157664700b467', url='https://sourceforge.net/projects/docbook/files/docbook-xsl/1.78.1/docbook-xsl-1.78.1.tar.bz2')
 
     depends_on('docbook-xml')
 

@@ -12,6 +12,8 @@ class Ffb(MakefilePackage):
 
     homepage = "http://www.ciss.iis.u-tokyo.ac.jp/dl/index.php"
     url      = "file://{0}/FrontFlow_blue.8.1.tar.gz".format(os.getcwd())
+    manual_download = True
+
     version('8.1', sha256='1ad008c909152b6c27668bafbad820da3e6ec3309c7e858ddb785f0a3d6e43ae')
 
     patch('revocap_refiner.patch')

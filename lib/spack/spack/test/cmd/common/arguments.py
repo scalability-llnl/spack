@@ -12,6 +12,7 @@ import pytest
 import spack.cmd
 import spack.cmd.common.arguments as arguments
 import spack.config
+import spack.environment as ev
 
 
 @pytest.fixture()
@@ -81,3 +82,40 @@ def test_parse_spec_flags_with_spaces(
 
     assert all(x not in s.variants for x in unexpected_variants)
     assert all(x in s.variants for x in expected_variants)
+
+
+@pytest.mark.usefixtures('config')
+def test_match_spec_env(mock_packages, mutable_mock_env_path):
+    """
+    Concretize a spec with non-default options in an environment. Make
+    sure that when we ask for a matching spec when the environment is
+    active that we get the instance concretized in the environment.
+    """
+    # Initial sanity check: we are planning on choosing a non-default
+    # value, so make sure that is in fact not the default.
+    check_defaults = spack.cmd.parse_specs(['a'], concretize=True)[0]
+    assert not check_defaults.satisfies('foobar=baz')
+
+    e = ev.create('test')
+    e.add('a foobar=baz')
+    e.concretize()
+    with e:
+        env_spec = spack.cmd.matching_spec_from_env(
+            spack.cmd.parse_specs(['a'])[0])
+        assert env_spec.satisfies('foobar=baz')
+        assert env_spec.concrete
+
+
+@pytest.mark.usefixtures('config')
+def test_multiple_env_match_raises_error(mock_packages, mutable_mock_env_path):
+    e = ev.create('test')
+    e.add('a foobar=baz')
+    e.add('a foobar=fee')
+    e.concretize()
+    with e:
+        with pytest.raises(
+                spack.environment.SpackEnvironmentError) as exc_info:
+
+            spack.cmd.matching_spec_from_env(spack.cmd.parse_specs(['a'])[0])
+
+    assert 'matches multiple specs' in exc_info.value.message

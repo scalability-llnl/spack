@@ -23,6 +23,7 @@ class SentieonGenomics(Package):
 
     homepage = "https://www.sentieon.com/"
     url      = "file://{0}/sentieon-genomics-201808.01.tar.gz".format(os.getcwd())
+    manual_download = True
 
     version('201808.07', sha256='fb66b18a7b99e44968eb2c3a6a5b761d6b1e70fba9f7dfc4e5db3a74ab3d3dd9')
     version('201808.01', sha256='6d77bcd5a35539549b28eccae07b19a3b353d027720536e68f46dcf4b980d5f7')

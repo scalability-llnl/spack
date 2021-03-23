@@ -14,3 +14,7 @@ class Libdivsufsort(CMakePackage):
     url      = "https://github.com/y-256/libdivsufsort/archive/2.0.1.tar.gz"
 
     version('2.0.1', sha256='9164cb6044dcb6e430555721e3318d5a8f38871c2da9fd9256665746a69351e0')
+
+    def cmake_args(self):
+        args = ['-DBUILD_DIVSUFSORT64=ON']
+        return args

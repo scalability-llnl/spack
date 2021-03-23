@@ -24,8 +24,11 @@ class ClingoBootstrap(Clingo):
     ]:
         conflicts('%{0}'.format(compiler_spec), when='platform=linux',
                   msg='GCC is required to bootstrap clingo on Linux')
-    conflicts('%gcc@:5.99.99', when='platform=linux',
-              msg='C++14 support is required to bootstrap clingo on Linux')
+        conflicts('%{0}'.format(compiler_spec), when='platform=cray',
+                  msg='GCC is required to bootstrap clingo on Cray')
+    conflicts(
+        '%gcc@:5.99.99', msg='C++14 support is required to bootstrap clingo'
+    )
 
     # On Darwin we bootstrap with Apple Clang
     for compiler_spec in [
@@ -41,7 +44,8 @@ class ClingoBootstrap(Clingo):
     def setup_build_environment(self, env):
         if '%apple-clang platform=darwin' in self.spec:
             opts = '-mmacosx-version-min=10.13'
-        elif '%gcc platform=linux' in self.spec:
+        elif '%gcc' in self.spec:
+            # This is either linux or cray
             opts = '-static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL'
         else:
             msg = 'unexpected compiler for spec "{0}"'.format(self.spec)

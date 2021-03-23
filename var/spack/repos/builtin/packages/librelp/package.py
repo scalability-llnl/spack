@@ -22,5 +22,6 @@ class Librelp(AutotoolsPackage):
     depends_on('automake', type='build')
     depends_on('libtool',  type='build')
     depends_on('m4',       type='build')
+    depends_on('valgrind', type='test')
     depends_on('openssl')
     depends_on('gnutls@2.0.0:')

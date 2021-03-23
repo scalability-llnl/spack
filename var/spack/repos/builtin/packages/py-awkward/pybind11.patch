@@ -1,0 +1,14 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fedfe3a..bf762c9 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -107,7 +107,7 @@ addtest(test0074 tests/test_0074-argsort-and-sort-rawarray.cpp)
+ 
+ # Third tier: Python modules.
+ if (PYBUILD)
+-  add_subdirectory(pybind11)
++  find_package(pybind11)
+ 
+   file(GLOB LAYOUT_SOURCES "src/python/*.cpp")
+   pybind11_add_module(_ext ${LAYOUT_SOURCES})
+

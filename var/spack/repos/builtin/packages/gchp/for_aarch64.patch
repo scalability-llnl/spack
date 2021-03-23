@@ -1,0 +1,24 @@
+diff -uprN spack-src.org/ESMA_cmake/GNU.cmake spack-src/ESMA_cmake/GNU.cmake
+--- spack-src.org/ESMA_cmake/GNU.cmake  2021-02-25 11:28:42.856054566 +0900
++++ spack-src/ESMA_cmake/GNU.cmake      2021-02-25 10:38:06.556356960 +0900
+@@ -125,7 +125,7 @@ set (GEOS_Fortran_Debug_FPE_Flags "${com
+
+ # GEOS Release
+ # ------------
+-set (GEOS_Fortran_Release_Flags "${FOPT3} -march=westmere -mtune=generic -funroll-loops ${DEBINFO}")
++set (GEOS_Fortran_Release_Flags "${FOPT3} -funroll-loops ${DEBINFO}")
+ set (GEOS_Fortran_Release_FPE_Flags "${common_Fortran_fpe_flags}")
+
+ # GEOS Vectorize
+diff -uprN spack-src.org/src/GCHP_GridComp/HEMCO_GridComp/HEMCO/CMakeLists.txt spack-src/src/GCHP_GridComp/HEMCO_GridComp/HEMCO/CMakeLists.txt
+--- spack-src.org/src/GCHP_GridComp/HEMCO_GridComp/HEMCO/CMakeLists.txt 2021-02-25 11:33:57.897033867 +0900
++++ spack-src/src/GCHP_GridComp/HEMCO_GridComp/HEMCO/CMakeLists.txt     2021-02-25 11:22:06.224802880 +0900
+@@ -64,7 +64,7 @@ set(HEMCO_Fortran_FLAGS_DEBUG_Intel
+
+ set(HEMCO_Fortran_FLAGS_GNU
+    -cpp -w -std=legacy -fautomatic -fno-align-commons -fconvert=big-endian
+-   -fno-range-check -mcmodel=medium -fbacktrace -g -DLINUX_GFORTRAN
++   -fno-range-check -mcmodel=small -fbacktrace -g -DLINUX_GFORTRAN
+    -ffree-line-length-none
+    CACHE STRING "HEMCO compiler flags for all build types with GNU compilers"
+ )

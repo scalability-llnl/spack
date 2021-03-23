@@ -7,9 +7,11 @@
 
 """
 
-from os.path import dirname, isdir
+from sys import platform
+from os.path import basename, dirname, isdir, join
 
 from spack.package import Package
+from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 
 from llnl.util.filesystem import find_headers, find_libraries
@@ -22,46 +24,50 @@ class IntelOneApiPackage(Package):
 
     phases = ['install']
 
-    def component_info(self,
-                       dir_name,
-                       components,
-                       releases,
-                       url_name):
-        self._dir_name = dir_name
-        self._components = components
-        self._releases = releases
-        self._url_name = url_name
+    # oneAPI license does not allow mirroring outside of the
+    # organization (e.g. University/Company).
+    redistribute_source = False
 
-    def url_for_version(self, version):
-        release = self._release(version)
-        return 'https://registrationcenter-download.intel.com/akdlm/irc_nas/%s/%s' % (
-            release['irc_id'], self._oneapi_file(version, release))
+    @property
+    def component_dir(self):
+        """Subdirectory for this component in the install prefix."""
+        raise NotImplementedError
 
-    def install(self, spec, prefix):
-        bash = Executable('bash')
+    def install(self, spec, prefix, installer_path=None):
+        """Shared install method for all oneapi packages."""
 
-        # Installer writes files in ~/intel set HOME so it goes to prefix
-        bash.add_default_env('HOME', prefix)
+        # intel-oneapi-compilers overrides the installer_path when
+        # installing fortran, which comes from a spack resource
+        if installer_path is None:
+            installer_path = basename(self.url_for_version(spec.version))
 
-        version = spec.versions.lowest()
-        release = self._release(version)
-        bash('./%s' % self._oneapi_file(version, release),
-             '-s', '-a', '-s', '--action', 'install',
-             '--eula', 'accept',
-             '--components',
-             self._components,
-             '--install-dir', prefix)
+        if platform == 'linux':
+            bash = Executable('bash')
 
-    #
-    # Helper functions
-    #
+            # Installer writes files in ~/intel set HOME so it goes to prefix
+            bash.add_default_env('HOME', prefix)
 
-    def _release(self, version):
-        return self._releases[str(version)]
+            bash(installer_path,
+                 '-s', '-a', '-s', '--action', 'install',
+                 '--eula', 'accept',
+                 '--install-dir', prefix)
 
-    def _oneapi_file(self, version, release):
-        return 'l_%s_p_%s.%s_offline.sh' % (
-            self._url_name, version, release['build'])
+        # Some installers have a bug and do not return an error code when failing
+        if not isdir(join(prefix, self.component_dir)):
+            raise RuntimeError('install failed')
+
+    def setup_run_environment(self, env):
+
+        """Adds environment variables to the generated module file.
+
+        These environment variables come from running:
+
+        .. code-block:: console
+
+           $ source {prefix}/setvars.sh --force
+        """
+        env.extend(EnvironmentModifications.from_sourcing_file(
+            join(self.prefix, self.component_dir, 'latest/env/vars.sh')))
 
 
 class IntelOneApiLibraryPackage(IntelOneApiPackage):
@@ -70,11 +76,11 @@ class IntelOneApiLibraryPackage(IntelOneApiPackage):
     @property
     def headers(self):
         include_path = '%s/%s/latest/include' % (
-            self.prefix, self._dir_name)
+            self.prefix, self.component_dir)
         return find_headers('*', include_path, recursive=True)
 
     @property
     def libs(self):
-        lib_path = '%s/%s/latest/lib/intel64' % (self.prefix, self._dir_name)
+        lib_path = '%s/%s/latest/lib/intel64' % (self.prefix, self.component_dir)
         lib_path = lib_path if isdir(lib_path) else dirname(lib_path)
         return find_libraries('*', root=lib_path, shared=True, recursive=True)

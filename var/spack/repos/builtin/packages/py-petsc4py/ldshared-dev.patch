@@ -1,0 +1,13 @@
+diff --git a/src/binding/petsc4py/conf/baseconf.py b/src/binding/petsc4py/conf/baseconf.py
+index 8a2466a5bd..73c08b923a 100644
+--- a/src/binding/petsc4py/conf/baseconf.py
++++ b/src/binding/petsc4py/conf/baseconf.py
+@@ -211,7 +211,7 @@ class PetscConfig:
+         ldshared = getenv('LDSHARED', ldshared)
+         ldflags = getenv('LDFLAGS', cflags + ' ' + (ldflags or ''))
+         ldcmd = split_quoted(ld) + split_quoted(ldflags)
+-        ldshared = [flg for flg in split_quoted(ldshared) if flg not in ldcmd]
++        ldshared = [flg for flg in split_quoted(ldshared) if flg not in ldcmd and (flg.find('/lib/spack/env')<0)]
+         ldshared = str.join(' ', ldshared)
+         #
+         def get_flags(cmd):

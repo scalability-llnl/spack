@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from llnl.util.filesystem import join_path
 from spack import *
 import os
 
@@ -27,6 +28,7 @@ class Lua(Package):
     version('5.1.4', sha256='b038e225eaf2a5b57c9bcc35cd13aa8c6c8288ef493d52970c9545074098af3a')
     version('5.1.3', sha256='6b5df2edaa5e02bf1a2d85e1442b2e329493b30b0c0780f77199d24f087d296d')
 
+    variant("pcfile", default=False, description="Add patch for lua.pc generation")
     variant('shared', default=True,
             description='Builds a shared version of the library')
 
@@ -36,6 +38,12 @@ class Lua(Package):
     depends_on('readline')
     # luarocks needs unzip for some packages (e.g. lua-luaposix)
     depends_on('unzip', type='run')
+
+    patch(
+        "http://lua.2524044.n2.nabble.com/attachment/7666421/0/pkg-config.patch",
+        sha256="208316c2564bdd5343fa522f3b230d84bd164058957059838df7df56876cb4ae",
+        when="+pcfile"
+    )
 
     resource(
         name="luarocks",
@@ -165,6 +173,12 @@ class Lua(Package):
                 'LUA_CPATH',
                 os.path.join(self.spec.prefix, self.lua_lib_dir, '?.so'),
                 separator=';')
+
+    @run_after('install')
+    def link_pkg_config(self):
+        if "+pcfile" in self.spec:
+            symlink(join_path(self.prefix.lib, 'pkgconfig', 'lua5.3.pc'),
+                    join_path(self.prefix.lib, 'pkgconfig', 'lua.pc'))
 
     @property
     def lua_lib_dir(self):

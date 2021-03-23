@@ -21,3 +21,15 @@ class Genfit(CMakePackage):
     version('02-00-00', sha256='0bfd5dd152ad0573daa4153a731945824e0ce266f844988b6a8bebafb7f2dacc')
 
     depends_on('root')
+
+    def cmake_args(self):
+        args = []
+        # normally, as a cmake package root should be
+        # automatically picked up after 'depends_on'
+        # as it is added to CMAKE_PREFIX_PATH
+        # but genfit cooks its own root cmake config
+        # so this workaround is needed for now.
+        root_prefix = self.spec["root"].prefix
+        args.append('-DROOT_DIR=%s' % root_prefix)
+
+        return args

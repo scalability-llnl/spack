@@ -12,13 +12,15 @@ class AwsParallelcluster(PythonPackage):
     tool to deploy and manage HPC clusters in the AWS cloud."""
 
     homepage = "https://github.com/aws/aws-parallelcluster"
-    pypi = "aws-parallelcluster/aws-parallelcluster-2.10.1.tar.gz"
+    pypi = "aws-parallelcluster/aws-parallelcluster-2.10.3.tar.gz"
 
     maintainers = [
         'sean-smith', 'demartinofra', 'enrico-usai', 'lukeseawalker', 'rexcsn',
         'ddeidda', 'tilne'
     ]
 
+    version('2.10.3', sha256='02016358932375c1abb566c6b7f1c891fa617fc4a4ec4ce9969f87758d4039c7')
+    version('2.10.2', sha256='95853535b82e8087c6635a946556ed886e68d3a77d67a375830c57d80f2bbd6e')
     version('2.10.1', sha256='b3d2ea836c08c9be1667d55a8999aae412d7c2b20f958ca5842e8fa440eb24e0')
     version('2.10.0', sha256='a7a27871b4f54cb913b0c1233e675131e9b2099549af0840d32c36b7e91b104b')
     version('2.9.1', sha256='12dc22286cd447a16931f1f8619bdd47d4543fd0de7905d52b6c6f83ff9db8a3')
@@ -31,7 +33,7 @@ class AwsParallelcluster(PythonPackage):
     version('2.5.1', sha256='4fd6e14583f8cf81f9e4aa1d6188e3708d3d14e6ae252de0a94caaf58be76303')
     version('2.5.0', sha256='3b0209342ea0d9d8cc95505456103ad87c2d4e35771aa838765918194efd0ad3')
 
-    depends_on('python@2.7:', type=('build', 'run'))
+    depends_on('python@2.7:2.8,3.4:', type=('build', 'run'))
 
     depends_on('py-future@0.16.0:0.18.2', type=('build', 'run'))
 
@@ -55,8 +57,7 @@ class AwsParallelcluster(PythonPackage):
 
     depends_on('py-setuptools', when='@2.6:', type=('build', 'run'))
 
-    depends_on('py-enum34@1.1.6:', when='@2.6: ^python@:3.3', type=('build', 'run'))
-    depends_on('py-enum34@1.1.6:', when='@:2.5', type=('build', 'run'))
+    depends_on('py-enum34@1.1.6:', when='^python@:3.3', type=('build', 'run'))
 
     depends_on('py-pyyaml@5.1.2', when='@2.6: ^python@:2,3.5:', type=('build', 'run'))
     depends_on('py-pyyaml@5.1.2:', when='@:2.5', type=('build', 'run'))

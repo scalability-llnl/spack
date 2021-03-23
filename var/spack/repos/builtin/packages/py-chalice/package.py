@@ -27,7 +27,7 @@ class PyChalice(PythonPackage):
     depends_on('py-setuptools', type='build')
     depends_on('py-click@7.0:8.0',           type=('build', 'run'))
     depends_on('py-botocore@1.12.86:2.0.0',  type=('build', 'run'))
-    depends_on('py-typing@3.6.4',            type=('build', 'run'))
+    depends_on('py-typing@3.6.4',            type=('build', 'run'), when='^python@:3.6.999')
     depends_on('py-mypy-extensions@0.4.3',   type=('build', 'run'))
     depends_on('py-six@1.10.0:2.0.0',        type=('build', 'run'))
     depends_on('py-pip@9:20.0',              type=('build', 'run'))

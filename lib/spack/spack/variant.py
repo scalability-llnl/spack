@@ -282,8 +282,21 @@ class AbstractVariant(object):
         # to a set
         self._value = tuple(sorted(set(value)))
 
+    def _cmp_value(self):
+        """Returns a tuple of strings containing the values stored in
+        the variant.
+
+        Returns:
+            tuple of str: values stored in the variant
+        """
+        value = self._value
+        if not isinstance(value, tuple):
+            value = (value,)
+        stringified = tuple(str(x) for x in value)
+        return stringified
+
     def _cmp_key(self):
-        return self.name, self.value
+        return self.name, self._cmp_value()
 
     def copy(self):
         """Returns an instance of a variant equivalent to self

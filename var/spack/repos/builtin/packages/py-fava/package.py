@@ -35,7 +35,6 @@ class PyFava(PythonPackage):
     depends_on('py-click',               type=('build', 'run'))
     depends_on('py-flask@0.10.1:',       type=('build', 'run'))
     depends_on('py-flask-babel@1.0.0:',  type=('build', 'run'))
-    depends_on('py-importlib',           type=('build', 'run'))
     depends_on('py-jinja2@2.10:',        type=('build', 'run'))
     depends_on('py-markdown2@2.3.0:',    type=('build', 'run'))
     depends_on('py-ply',                 type=('build', 'run'))

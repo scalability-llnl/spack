@@ -13,6 +13,8 @@ class Adf(Package):
     theory."""
 
     homepage = "https://www.scm.com/product/adf/"
+    manual_download = True
+
     version('2017.113', '666ef15d253b74c707dd14da35e7cf283ca20e21e24ed43cb953fb9d1f2f1e15')
 
     def url_for_version(self, version):

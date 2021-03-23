@@ -19,6 +19,8 @@ class Miniamr(MakefilePackage):
     tags = ['proxy-app', 'ecp-proxy-app']
 
     version('master', branch='master')
+    version('1.6.6', sha256='a7f79fae49e433ef8350cbd34cbf57c486089cf7ac0d1f1f3b23c820d3e5bb9f')
+    version('1.6.5', sha256='c70f0f648c73ea4497817ceee158334eeb901fc5c32cf804deef3226cd9cf26a')
     version('1.6.4', sha256='807d50608b69fb1a61924718964be96c0a2f9fa2e37fdc027bc3f0f116544732')
     version('1.4.4', sha256='b83f438ff351481b4310c46ddf63b9fffc7f29f916a5717377e72919a5b788b6')
     version('1.4.3', sha256='4c3fbc1662ae3e139669fb3844134486a7488a0b6e085c3b24bebcc8d12d3ac6')

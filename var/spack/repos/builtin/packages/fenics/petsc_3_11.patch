@@ -1,0 +1,31 @@
+diff --git a/dolfin/la/PETScOptions.h b/dolfin/la/PETScOptions.h
+index 37e5054b3..5ae24e6f5 100644
+--- a/dolfin/la/PETScOptions.h
++++ b/dolfin/la/PETScOptions.h
+@@ -22,7 +22,7 @@
+ 
+ #include <string>
+ #include <boost/lexical_cast.hpp>
+-#include <petscoptions.h>
++#include <petscsys.h>
+ #include <dolfin/common/SubSystemsManager.h>
+ #include <dolfin/log/log.h>
+ #include "PETScObject.h"
+diff --git a/dolfin/nls/PETScSNESSolver.cpp b/dolfin/nls/PETScSNESSolver.cpp
+index b3e1d62c5..43923ca7b 100644
+--- a/dolfin/nls/PETScSNESSolver.cpp
++++ b/dolfin/nls/PETScSNESSolver.cpp
+@@ -48,7 +48,10 @@ PETScSNESSolver::_methods
+ = { {"default",      {"default SNES method", ""}},
+     {"newtonls",     {"Line search method", SNESNEWTONLS}},
+     {"newtontr",     {"Trust region method", SNESNEWTONTR}},
++#if PETSC_VERSION_LT(3,9,0)
++    // SNESTEST functionality removed in petsc 3.9
+     {"test",         {"Tool to verify Jacobian approximation", SNESTEST}},
++#endif
+     {"ngmres",       {"Nonlinear generalised minimum residual method",
+                       SNESNGMRES}},
+     {"nrichardson",  {"Richardson nonlinear method (Picard iteration)",
+diff --git a/petsc_3_11.patch b/petsc_3_11.patch
+new file mode 100644
+index 000000000..e69de29bb

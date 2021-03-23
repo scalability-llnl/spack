@@ -38,10 +38,14 @@ def dump(data, stream=None):
 
 
 def _strify(data, ignore_dicts=False):
+    """Converts python 2 unicodes to str in JSON data."""
+    # this is a no-op in python 3
+    if sys.version_info[0] >= 3:
+        return data
+
     # if this is a unicode string in python 2, return its string representation
-    if sys.version_info[0] < 3:
-        if isinstance(data, string_types):
-            return data.encode('utf-8')
+    if isinstance(data, string_types):
+        return data.encode('utf-8')
 
     # if this is a list of values, return list of byteified values
     if isinstance(data, list):

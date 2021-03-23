@@ -10,11 +10,12 @@ import shutil
 import llnl.util.tty as tty
 
 import spack.caches
+import spack.config
 import spack.cmd.test
 import spack.cmd.common.arguments as arguments
+import spack.main
 import spack.repo
 import spack.stage
-import spack.config
 from spack.paths import lib_path, var_path
 
 
@@ -26,7 +27,7 @@ level = "long"
 class AllClean(argparse.Action):
     """Activates flags -s -d -f -m and -p simultaneously"""
     def __call__(self, parser, namespace, values, option_string=None):
-        parser.parse_args(['-sdfmp'], namespace=namespace)
+        parser.parse_args(['-sdfmpb'], namespace=namespace)
 
 
 def setup_parser(subparser):
@@ -46,7 +47,10 @@ def setup_parser(subparser):
         '-p', '--python-cache', action='store_true',
         help="remove .pyc, .pyo files and __pycache__ folders")
     subparser.add_argument(
-        '-a', '--all', action=AllClean, help="equivalent to -sdfmp", nargs=0
+        '-b', '--bootstrap', action='store_true',
+        help="remove software needed to bootstrap Spack")
+    subparser.add_argument(
+        '-a', '--all', action=AllClean, help="equivalent to -sdfmpb", nargs=0
     )
     arguments.add_common_arguments(subparser, ['specs'])
 
@@ -54,7 +58,7 @@ def setup_parser(subparser):
 def clean(parser, args):
     # If nothing was set, activate the default
     if not any([args.specs, args.stage, args.downloads, args.failures,
-                args.misc_cache, args.python_cache]):
+                args.misc_cache, args.python_cache, args.bootstrap]):
         args.stage = True
 
     # Then do the cleaning falling through the cases
@@ -96,3 +100,10 @@ def clean(parser, args):
                         dname = os.path.join(root, d)
                         tty.debug('Removing {0}'.format(dname))
                         shutil.rmtree(dname)
+
+    if args.bootstrap:
+        msg = 'Removing software in "{0}"'
+        tty.msg(msg.format(spack.paths.user_bootstrap_store))
+        with spack.store.use_store(spack.paths.user_bootstrap_store):
+            uninstall = spack.main.SpackCommand('uninstall')
+            uninstall('-a', '-y')

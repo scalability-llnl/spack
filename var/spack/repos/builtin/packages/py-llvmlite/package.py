@@ -28,12 +28,15 @@ class PyLlvmlite(PythonPackage):
     depends_on('py-enum34', type=('build', 'run'), when='^python@:3.3.99')
 
     # llvmlite compatibility information taken from https://github.com/numba/llvmlite#compatibility
-    depends_on('llvm@10.0:10.0.99', when='@0.34.0:')
-    depends_on('llvm@9.0:9.0.99', when='@0.33.0:0.33.99')
-    depends_on('llvm@7.0:8.0.99', when='@0.29.0:0.32.99')
-    depends_on('llvm@7.0:7.0.99', when='@0.27.0:0.28.99')
-    depends_on('llvm@6.0:6.0.99', when='@0.23.0:0.26.99')
-    depends_on('llvm@4.0:4.0.99', when='@0.17.0:0.20.99')
+    for t in ['arm:', 'ppc:', 'ppc64:', 'ppc64le:', 'ppcle:',
+              'sparc:', 'sparc64:', 'x86:', 'x86_64:']:
+        depends_on('llvm@10.0:10.0.99~flang', when='@0.34.0: target={0}'.format(t))
+    depends_on('llvm@9.0:9.0.99~flang', when='@0.34.0: target=aarch64:')
+    depends_on('llvm@9.0:9.0.99~flang', when='@0.33.0:0.33.99')
+    depends_on('llvm@7.0:8.0.99~flang', when='@0.29.0:0.32.99')
+    depends_on('llvm@7.0:7.0.99~flang', when='@0.27.0:0.28.99')
+    depends_on('llvm@6.0:6.0.99~flang', when='@0.23.0:0.26.99')
+    depends_on('llvm@4.0:4.0.99~flang', when='@0.17.0:0.20.99')
     depends_on('binutils', type='build')
 
     def setup_build_environment(self, env):

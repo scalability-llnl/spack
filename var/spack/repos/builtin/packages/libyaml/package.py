@@ -14,6 +14,7 @@ class Libyaml(AutotoolsPackage):
     git      = "https://github.com/yaml/libyaml.git"
 
     version('master', branch='master')
+    version('0.2.5', sha256='c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4')
     version('0.2.4', sha256='d80aeda8747b7c26fbbfd87ab687786e58394a8435ae3970e79cb97882e30557')
     version('0.2.3', sha256='08bbb80284d77092e68a6f69f1e480e8ed93e215c47b2ca29290e3bd5a191108')
     version('0.2.2', sha256='4a9100ab61047fd9bd395bcef3ce5403365cafd55c1e0d0299cde14958e47be9')

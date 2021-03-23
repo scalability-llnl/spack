@@ -1,0 +1,26 @@
+--- src/make/Make.include       2021-03-18 23:20:01.810289245 +0000
++++ src/make/Make.include.new   2021-03-18 23:26:49.319249916 +0000
+@@ -267,21 +267,8 @@
+ #                        COMPILER OPTIONS
+ #-------------------------------------------------------------------
+ 
+-ifeq ($(GOPT_WITH_COMPILER),$(filter $(GOPT_WITH_COMPILER),clang clang++))
+-  # --clang
+-  CXX           = clang++
+-  CC            = clang
+-  LD            = clang++
+-else
+-  ifeq ($(GOPT_WITH_COMPILER),$(filter $(GOPT_WITH_COMPILER),gcc g++))
+-    # -- gcc
+-    CXX = g++
+-    CC  = gcc
+-    LD  = g++
+-  else
+-    $(error GOPT_WITH_COMPILER not set correctly!)
+-  endif
+-endif
++LD=$(CXX)
++
+ #check if we're using clang (complicated because g++ is sometimes a clang alias...)
+ APPLE_CLANG := $(shell $(CXX) -v 2>&1 | sed -n "s/.*clang//p" | cut -d . -f 1)
+ ifneq ($(APPLE_CLANG),)

@@ -1,0 +1,26 @@
+--- a/src/rasmol_install.sh	2021-01-23 02:35:53.420843463 +0900
++++ b/src/rasmol_install.sh	2021-01-23 02:46:42.576839974 +0900
+@@ -226,11 +226,6 @@
+   fi
+ fi
+ 
+-echo -n "Install rasmol into \"$RASMOLPATH\"? [y/N] ";
+-read ok
+-if  [ "$ok" != "y" ] && [ "$ok" != "Y" ]   ; then exit 1 ;
+-fi
+-
+ savecurdir=`pwd` ;
+ cd $RASMOLPATH ;
+ rasmolpath=`pwd` ;
+@@ -245,11 +240,6 @@
+   
+ fi
+ 
+-echo -n "Install rasmol program wrapper in \"$bindest/rasmol\"? [y/N] ";
+-read ok
+-if  [ "$ok" != "y" ] && [ "$ok" != "Y" ]; then unset bindest ;
+-fi
+-
+ 
+ if ! [ -d $bindest ] ; then
+   mkdir -p $bindest ;

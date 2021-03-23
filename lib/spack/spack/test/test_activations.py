@@ -54,7 +54,7 @@ def builtin_and_mock_packages():
     repo_dirs = [spack.paths.packages_path, spack.paths.mock_packages_path]
     path = RepoPath(*repo_dirs)
 
-    with spack.repo.swap(path):
+    with spack.repo.use_repositories(path):
         yield
 
 

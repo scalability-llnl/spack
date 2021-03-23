@@ -20,6 +20,7 @@ class Libcircle(AutotoolsPackage):
 
     depends_on('mpi')
     depends_on('pkgconfig', type='build')
+    depends_on('libpciaccess', type='link')
 
     @when('@master')
     def autoreconf(self, spec, prefix):

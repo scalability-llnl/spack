@@ -53,7 +53,8 @@ class BlisBase(Package):
 
     phases = ['configure', 'build', 'install']
 
-    def configure(self, spec, prefix):
+    def configure_args(self):
+        spec = self.spec
         config_args = []
 
         config_args.append("--enable-threading=" +
@@ -79,7 +80,13 @@ class BlisBase(Package):
         else:
             config_args.append("--disable-static")
 
-        # FIXME: add cpu isa variants.
+        return config_args
+
+    def configure(self, spec, prefix):
+        config_args = self.configure_args()
+
+        # To ensure auto should always be the
+        # last argument for base and derived class
         config_args.append("auto")
 
         configure("--prefix=" + prefix,
@@ -128,6 +135,7 @@ class Blis(BlisBase):
     git = "https://github.com/flame/blis.git"
 
     version('master', branch='master')
+    version('0.8.0', sha256='5e05868c4a6cf5032a7492f8861653e939a8f907a4fa524bbb6e14394e170a3d')
     version('0.7.0', sha256='7e345d666799e15bba570bd125f97042f17bf752a61dcf314486a6cd096d5f68')
     version('0.6.1', sha256='76b22f29b7789cf117c0873d2a6b2a6d61f903869168148f2e7306353c105c37')
     version('0.6.0', sha256='ad5765cc3f492d0c663f494850dafc4d72f901c332eb442f404814ff2995e5a9')

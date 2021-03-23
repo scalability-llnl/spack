@@ -39,7 +39,7 @@ class Unifyfs(AutotoolsPackage):
 
     # Required dependencies
     depends_on('gotcha@1.0.3:', when='@0.9.1:')
-    depends_on('margo@0.4.3')
+    depends_on('mochi-margo@0.4.3')
     depends_on('mercury@1.0.1+bmi+sm')
     depends_on('mpi')
     depends_on('openssl')
@@ -53,6 +53,8 @@ class Unifyfs(AutotoolsPackage):
     depends_on('flatcc', when='@:0.9.0')
     depends_on('gotcha@0.0.2', when='@:0.9.0')
     depends_on('leveldb', when='@:0.9.0')
+
+    patch('unifyfs-sysio.c.patch', when='@0.9.1')
 
     conflicts('^mercury~bmi')
     conflicts('^mercury~sm')

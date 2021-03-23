@@ -24,6 +24,7 @@ class Coinhsl(AutotoolsPackage):
     # exist
     homepage = "http://www.hsl.rl.ac.uk/ipopt/"
     url = "file://{0}/coinhsl-archive-2014.01.17.tar.gz".format(os.getcwd())
+    manual_download = True
 
     # CoinHSL has a few versions that vary with respect to stability/features
     # and licensing terms.

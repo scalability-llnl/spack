@@ -157,6 +157,10 @@ def env_create_setup_parser(subparser):
     subparser.add_argument(
         '-d', '--dir', action='store_true',
         help='create an environment in a specific directory')
+    subparser.add_argument(
+        '--keep-relative', action='store_true',
+        help='copy relative develop paths verbatim into the new environment'
+             ' when initializing from envfile')
     view_opts = subparser.add_mutually_exclusive_group()
     view_opts.add_argument(
         '--without-view', action='store_true',
@@ -184,13 +188,14 @@ def env_create(args):
     if args.envfile:
         with open(args.envfile) as f:
             _env_create(args.create_env, f, args.dir,
-                        with_view=with_view)
+                        with_view=with_view, keep_relative=args.keep_relative)
     else:
         _env_create(args.create_env, None, args.dir,
                     with_view=with_view)
 
 
-def _env_create(name_or_path, init_file=None, dir=False, with_view=None):
+def _env_create(name_or_path, init_file=None, dir=False, with_view=None,
+                keep_relative=False):
     """Create a new environment, with an optional yaml description.
 
     Arguments:
@@ -199,15 +204,18 @@ def _env_create(name_or_path, init_file=None, dir=False, with_view=None):
             spack.yaml or spack.lock
         dir (bool): if True, create an environment in a directory instead
             of a named environment
+        keep_relative (bool): if True, develop paths are copied verbatim into
+            the new environment file, otherwise they may be made absolute if the
+            new environment is in a different location
     """
     if dir:
-        env = ev.Environment(name_or_path, init_file, with_view)
+        env = ev.Environment(name_or_path, init_file, with_view, keep_relative)
         env.write()
         tty.msg("Created environment in %s" % env.path)
         tty.msg("You can activate this environment with:")
         tty.msg("  spack env activate %s" % env.path)
     else:
-        env = ev.create(name_or_path, init_file, with_view)
+        env = ev.create(name_or_path, init_file, with_view, keep_relative)
         env.write()
         tty.msg("Created environment '%s' in %s" % (name_or_path, env.path))
         tty.msg("You can activate this environment with:")

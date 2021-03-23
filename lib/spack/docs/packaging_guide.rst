@@ -4123,9 +4123,9 @@ are copied **after** the package is installed during the build process.
 The method copies files to the package's metadata directory under
 the ``self.install_test_root``. All files in the package source's
 ``tests`` directory for the example above will be copied to the
-``join_path(self.install_test_root, 'tests')`` directory. The files
-will be copied to the ``join_path(self.install_test_root, 'examples')``
-directory.
+``join_path(self.install_test_root, 'tests')`` directory. The two
+files listed under the staged ``examples`` directory will be copied
+to the ``join_path(self.install_test_root, 'examples')`` directory.
 
 .. note::
 

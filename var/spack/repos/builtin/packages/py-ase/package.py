@@ -25,3 +25,4 @@ class PyAse(PythonPackage):
     depends_on('py-matplotlib', type=('build', 'run'))
     depends_on('py-scipy', type=('build', 'run'))
     depends_on('py-flask', type=('build', 'run'))
+    depends_on('py-setuptools', type='build')

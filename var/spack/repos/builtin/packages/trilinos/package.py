@@ -70,7 +70,7 @@ class Trilinos(CMakePackage, CudaPackage):
     variant('float', default=False,
             description='Enable single precision (float) numbers in Trilinos')
     variant('gotype', default='long',
-            values=('int', 'long', 'long_long'),
+            values=('none', 'int', 'long', 'long_long'),
             multi=False,
             description='global ordinal type for Tpetra')
     variant('fortran',      default=True,
@@ -191,6 +191,8 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with Shards')
     variant('shylu',        default=False,
             description='Compile with ShyLU')
+    variant('stokhos',      default=False,
+            description='Compile with Stokhos')
     variant('stratimikos',  default=False,
             description='Compile with Stratimikos')
     variant('teko',         default=False,
@@ -201,10 +203,22 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with Teuchos')
     variant('tpetra',       default=True,
             description='Compile with Tpetra')
+    variant('trilinoscouplings', default=False,
+            description='Compile with TrilinosCouplings')
     variant('zoltan',       default=True,
             description='Compile with Zoltan')
     variant('zoltan2',      default=True,
             description='Compile with Zoltan2')
+
+    # Internal package options (alphabetical order)
+    variant('amesos2basker',             default=False,
+            description='Compile with Basker in Amesos2')
+    variant('epetraextbtf',              default=False,
+            description='Compile with BTF in EpetraExt')
+    variant('epetraextexperimental',     default=False,
+            description='Compile with experimental in EpetraExt')
+    variant('epetraextgraphreorderings', default=False,
+            description='Compile with graph reorderings in EpetraExt')
 
     # External package options
     variant('dtk',          default=False,
@@ -292,6 +306,11 @@ class Trilinos(CMakePackage, CudaPackage):
     conflicts('+zoltan2', when='~teuchos')
     conflicts('+zoltan2', when='~tpetra')
     conflicts('+zoltan2', when='~zoltan')
+
+    conflicts('+epetraextbtf', when='~epetraext')
+    conflicts('+epetraextexperimental', when='~epetraext')
+    conflicts('+epetraextgraphreorderings', when='~epetraext')
+    conflicts('+amesos2basker', when='~amesos2')
 
     conflicts('+dtk', when='~boost')
     conflicts('+dtk', when='~intrepid2')
@@ -451,6 +470,12 @@ class Trilinos(CMakePackage, CudaPackage):
             return self.define_from_variant('TPL_ENABLE_' + cmake_var,
                                             spec_var)
 
+        def define_prefix_enable(prefix, cmake_var, spec_var=None):
+            if spec_var is None:
+                spec_var = cmake_var.lower()
+            return self.define_from_variant(
+                '%s' % prefix, spec_var)
+
         cxx_flags = []
         options = []
 
@@ -516,13 +541,21 @@ class Trilinos(CMakePackage, CudaPackage):
             define_trilinos_enable('Shards'),
             define_trilinos_enable('ShyLU'),
             define_trilinos_enable('STK'),
+            define_trilinos_enable('Stokhos'),
             define_trilinos_enable('Stratimikos'),
             define_trilinos_enable('Teko'),
             define_trilinos_enable('Tempus'),
             define_trilinos_enable('Teuchos'),
             define_trilinos_enable('Tpetra'),
+            define_trilinos_enable('TrilinosCouplings'),
             define_trilinos_enable('Zoltan'),
             define_trilinos_enable('Zoltan2'),
+            define_prefix_enable('EpetraExt_BUILD_BTF', 'epetraextbtf'),
+            define_prefix_enable('EpetraExt_BUILD_EXPERIMENTAL',
+                                 'epetraextexperimental'),
+            define_prefix_enable('EpetraExt_BUILD_GRAPH_REORDERINGS',
+                                 'epetraextgraphreorderings'),
+            define_prefix_enable('Amesos2_ENABLE_Basker', 'amesos2basker'),
         ])
 
         options.append(self.define_from_variant('USE_XSDK_DEFAULTS',

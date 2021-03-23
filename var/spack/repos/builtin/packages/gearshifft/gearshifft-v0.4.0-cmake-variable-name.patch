@@ -1,0 +1,26 @@
+diff --git a/cmake/init_build_type.cmake b/cmake/init_build_type.cmake
+index c826f5d..131c77b 100644
+--- a/cmake/init_build_type.cmake
++++ b/cmake/init_build_type.cmake
+@@ -1,9 +1,9 @@
+ # Default build type to use if none was specified
+-if(NOT DEFINED CMAKE_DEFAULT_BUILD_TYPE)
+-  set(CMAKE_DEFAULT_BUILD_TYPE "Release")
++if(NOT DEFINED GEARSHIFFT_DEFAULT_BUILD_TYPE)
++  set(GEARSHIFFT_DEFAULT_BUILD_TYPE "Release")
+ endif()
+ 
+-set(CMAKE_BUILD_TYPE ${CMAKE_DEFAULT_BUILD_TYPE} CACHE STRING "Build type")
++set(CMAKE_BUILD_TYPE ${GEARSHIFFT_DEFAULT_BUILD_TYPE} CACHE STRING "Build type")
+ # Set the possible values of build type for cmake-gui
+ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+   "Debug"
+@@ -14,6 +14,6 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+ 
+ # sets default build type if none was specified
+ if(NOT CMAKE_BUILD_TYPE)
+-  message(STATUS "No build type selected, default to ${CMAKE_DEFAULT_BUILD_TYPE}")
+-  set(CMAKE_BUILD_TYPE ${CMAKE_DEFAULT_BUILD_TYPE} CACHE STRING "Build type" FORCE)
++  message(STATUS "No build type selected, default to ${GEARSHIFFT_DEFAULT_BUILD_TYPE}")
++  set(CMAKE_BUILD_TYPE ${GEARSHIFFT_DEFAULT_BUILD_TYPE} CACHE STRING "Build type" FORCE)
+ endif()

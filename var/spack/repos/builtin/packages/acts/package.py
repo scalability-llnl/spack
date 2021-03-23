@@ -37,6 +37,7 @@ class Acts(CMakePackage, CudaPackage):
 
     # Supported Acts versions
     version('master', branch='master')
+    version('6.00.0', commit='a5cf04acd4b1a2c625e0826189109472a3392558')
     version('5.00.0', commit='df77b91a7d37b8db6ed028a4d737014b5ad86bb7')
     version('4.01.0', commit='c383bf434ef69939b47e840e0eac0ba632e6af9f')
     version('4.00.0', commit='ed64b4b88d366b63adc4a8d1afe5bc97aa5751eb')
@@ -95,12 +96,14 @@ class Acts(CMakePackage, CudaPackage):
     variant('examples', default=False, description='Build the examples')
     variant('integration_tests', default=False, description='Build the integration tests')
     variant('unit_tests', default=False, description='Build the unit tests')
+    variant('log_failure_threshold', default='MAX', description='Log level above which examples should auto-crash')
 
     # Variants that enable / disable Acts plugins
     variant('autodiff', default=False, description='Build the auto-differentiation plugin')
     variant('dd4hep', default=False, description='Build the DD4hep plugin')
     variant('digitization', default=False, description='Build the geometric digitization plugin')
     variant('fatras', default=False, description='Build the FAst TRAcking Simulation package')
+    variant('fatras_geant4', default=False, description='Build Geant4 Fatras package')
     variant('identification', default=False, description='Build the Identification plugin')
     variant('json', default=False, description='Build the Json plugin')
     variant('legacy', default=False, description='Build the Legacy package')
@@ -121,11 +124,12 @@ class Acts(CMakePackage, CudaPackage):
     depends_on('dd4hep @1.11:', when='+dd4hep')
     depends_on('dd4hep @1.11: +geant4', when='+dd4hep +geant4')
     depends_on('eigen @3.3.7:', type='build')
+    depends_on('geant4', when='+fatras_geant4')
     depends_on('geant4', when='+geant4')
     depends_on('hepmc3 @3.2.1:', when='+hepmc3')
     depends_on('heppdt', when='+hepmc3 @:4.0')
     depends_on('intel-tbb @2020.1:', when='+examples')
-    depends_on('nlohmann-json @3.2.0:', when='@0.14: +json')
+    depends_on('nlohmann-json @3.9.1:', when='@0.14: +json')
     depends_on('pythia8', when='+pythia8')
     depends_on('root @6.10: cxxstd=14', when='+tgeo @:0.8.0')
     depends_on('root @6.20: cxxstd=17', when='+tgeo @0.8.1:')
@@ -191,6 +195,7 @@ class Acts(CMakePackage, CudaPackage):
             example_cmake_variant("HEPMC3", "hepmc3"),
             example_cmake_variant("PYTHIA8", "pythia8"),
             cmake_variant("FATRAS", "fatras"),
+            cmake_variant("FATRAS_GEANT4", "fatras_geant4"),
             plugin_cmake_variant("IDENTIFICATION", "identification"),
             cmake_variant(integration_tests_label, "integration_tests"),
             plugin_cmake_variant("JSON", "json"),
@@ -198,6 +203,9 @@ class Acts(CMakePackage, CudaPackage):
             cmake_variant(legacy_plugin_label, "legacy"),
             plugin_cmake_variant("TGEO", "tgeo")
         ]
+
+        log_failure_threshold = spec.variants['log_failure_threshold'].value
+        args.append("-DACTS_LOG_FAILURE_THRESHOLD={0}".format(log_failure_threshold))
 
         cuda_arch = spec.variants['cuda_arch'].value
         if cuda_arch != 'none':

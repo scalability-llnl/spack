@@ -11,6 +11,8 @@ import pytest
 import spack.config
 import spack.package
 import spack.cmd.install
+
+from spack.cmd.test import has_test_method
 from spack.main import SpackCommand
 
 install = SpackCommand('install')
@@ -181,3 +183,32 @@ def test_test_help_cdash(mock_test_stage):
     """Make sure `spack test --help-cdash` describes CDash arguments"""
     out = spack_test('run', '--help-cdash')
     assert 'CDash URL' in out
+
+
+def test_test_list_all(mock_packages):
+    """make sure `spack test list --all` returns all packages with tests"""
+    pkgs = spack_test("list", "--all").strip().split()
+    assert set(pkgs) == set([
+        "printing-package",
+        "py-extension1",
+        "py-extension2",
+        "test-error",
+        "test-fail",
+    ])
+
+
+def test_test_list(
+    mock_packages, mock_archive, mock_fetch, install_mockery_mutable_config
+):
+    pkg_with_tests = 'printing-package'
+    install(pkg_with_tests)
+    output = spack_test("list")
+    assert pkg_with_tests in output
+
+
+def test_has_test_method_fails(capsys):
+    with pytest.raises(SystemExit):
+        has_test_method('printing-package')
+
+    captured = capsys.readouterr()[1]
+    assert 'is not a class' in captured

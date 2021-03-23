@@ -33,6 +33,7 @@ class Bowtie2(MakefilePackage):
 
     # seems to have trouble with 6's -std=gnu++14
     conflicts('%gcc@6:', when='@:2.3.1')
+    conflicts('^intel-oneapi-tbb', when='@:2.3.5.1')
     conflicts('@:2.3.5.0', when='target=aarch64:')
     conflicts('@2.4.1', when='target=aarch64:')
 
@@ -45,7 +46,7 @@ class Bowtie2(MakefilePackage):
         files = ['bowtie2', ]
         filter_file(match, substitute, *files, **kwargs)
 
-        match = '^#!/usr/bin/env python'
+        match = '^#!/usr/bin/env python.*'
         python = spec['python'].command
         substitute = "#!{python}".format(python=python)
         files = ['bowtie2-build', 'bowtie2-inspect']

@@ -1,0 +1,30 @@
+--- a/tool/cmake/install.sh.in	2021-03-01 15:31:40.510128100 +0900
++++ b/tool/cmake/install.sh.in	2021-03-01 15:33:07.203367716 +0900
+@@ -1,16 +1,9 @@
+-export PYTHONPATH=@DSQSS_PYTHONPATH@
++export PYTHONPATH=$PYTHONPATH:@DSQSS_PYTHONPATH@
+ 
+ cd @CMAKE_CURRENT_BINARY_DIR@
+ 
+-if ! @PYTHON_EXECUTABLE@ -m pip --version >/dev/null 2>/dev/null ;then
+-  set -e
+-  wget https://bootstrap.pypa.io/get-pip.py -O get-pip.py
+-  PIP_USER=0 @PYTHON_EXECUTABLE@ get-pip.py --prefix=@CMAKE_INSTALL_PREFIX@
+-fi
+ 
+ set -e
+-PIP_USER=0 @PYTHON_EXECUTABLE@ -m pip install -U pip --prefix=@CMAKE_INSTALL_PREFIX@ 
+-PIP_USER=0 @PYTHON_EXECUTABLE@ -m pip install wheel --prefix=@CMAKE_INSTALL_PREFIX@ --no-warn-script-location
+ DSQSS_VERSION=$(@PYTHON_EXECUTABLE@ setup.py --version)
+ @PYTHON_EXECUTABLE@ setup.py bdist_wheel --universal
+ mkdir -p temp
+--- a/tool/setup.py	2021-03-01 15:34:16.242136754 +0900
++++ b/tool/setup.py	2021-03-01 15:34:36.381650889 +0900
+@@ -26,7 +26,6 @@
+     license="GPLv3",
+     packages=["dsqss", 'dsqss.lattice_factory'],
+     python_requires=">=2.7",
+-    install_requires=["numpy", "scipy", "toml"],
+     entry_points={
+         "console_scripts": [
+             "dla_hamgen = dsqss.std_model:main",

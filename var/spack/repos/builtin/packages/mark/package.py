@@ -20,6 +20,7 @@ class Mark(Package):
     http://spack.readthedocs.io/en/latest/mirrors.html"""
 
     homepage = "http://www.phidot.org/software/mark/index.html"
+    manual_download = True
 
     version('1.0', sha256='5422c9444d5fa6b3b22f4a9f2ce41af2072a1a7283f6f9099dc02cc5282696bc',
             expand=False)

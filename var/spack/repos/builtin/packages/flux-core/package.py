@@ -176,4 +176,10 @@ class FluxCore(AutotoolsPackage):
                     flags = []
                 flags.append('-Wno-error=stringop-truncation')
 
+            if self.spec.satisfies('%gcc@8:') and \
+               self.spec.satisfies('@0.23.0'):
+                if flags is None:
+                    flags = []
+                flags.append('-Wno-error=maybe-uninitialized')
+
         return (flags, None, None)

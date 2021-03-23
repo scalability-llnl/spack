@@ -12,7 +12,7 @@ env = SpackCommand('env')
 concretize = SpackCommand('concretize')
 
 
-def test_undevelop(tmpdir, mock_packages, mutable_mock_env_path):
+def test_undevelop(tmpdir, config, mock_packages, mutable_mock_env_path):
     # setup environment
     envdir = tmpdir.mkdir('env')
     with envdir.as_cwd():
@@ -39,7 +39,7 @@ env:
     assert not after.satisfies('dev_path=*')
 
 
-def test_undevelop_nonexistent(tmpdir, mock_packages, mutable_mock_env_path):
+def test_undevelop_nonexistent(tmpdir, config, mock_packages, mutable_mock_env_path):
     # setup environment
     envdir = tmpdir.mkdir('env')
     with envdir.as_cwd():

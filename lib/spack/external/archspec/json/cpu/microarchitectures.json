@@ -841,7 +841,7 @@
         ],
         "intel": [
           {
-            "versions": "19.0:",
+            "versions": "19.0.1:",
             "flags": "-march={name} -mtune={name}"
           }
         ]
@@ -1323,6 +1323,49 @@
             "versions": "16.0:",
             "warnings": "Intel's compilers may or may not optimize to the same degree for non-Intel microprocessors for optimizations that are not unique to Intel microprocessors",
             "name": "core-avx2",
+            "flags": "-march={name} -mtune={name}"
+          }
+        ]
+      }
+    },
+    "zen3": {
+      "from": ["zen2"],
+      "vendor": "AuthenticAMD",
+      "features": [
+        "bmi1",
+        "bmi2",
+        "f16c",
+        "fma",
+        "fsgsbase",
+        "avx",
+        "avx2",
+        "rdseed",
+        "clzero",
+        "aes",
+        "pclmulqdq",
+        "cx16",
+        "movbe",
+        "mmx",
+        "sse",
+        "sse2",
+        "sse4a",
+        "ssse3",
+        "sse4_1",
+        "sse4_2",
+        "abm",
+        "xsavec",
+        "xsaveopt",
+        "clflushopt",
+        "popcnt",
+        "clwb",
+        "vaes",
+        "vpclmulqdq"
+      ],
+      "compilers": {
+        "aocc": [
+          {
+            "versions": "3.0:",
+            "name": "znver3",
             "flags": "-march={name} -mtune={name}"
           }
         ]

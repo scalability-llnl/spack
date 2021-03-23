@@ -56,6 +56,7 @@ set. The user can set the front-end and back-end operating setting by the class
 attributes front_os and back_os. The operating system as described earlier,
 will be responsible for compiler detection.
 """
+import contextlib
 import functools
 import inspect
 import warnings
@@ -67,6 +68,8 @@ import llnl.util.tty as tty
 from llnl.util.lang import memoized, list_modules, key_ordering
 
 import spack.compiler
+import spack.compilers
+import spack.config
 import spack.paths
 import spack.error as serr
 import spack.util.executable
@@ -492,7 +495,7 @@ def arch_for_spec(arch_spec):
 
 
 @memoized
-def all_platforms():
+def _all_platforms():
     classes = []
     mod_path = spack.paths.platform_path
     parent_module = "spack.platforms"
@@ -513,7 +516,7 @@ def all_platforms():
 
 
 @memoized
-def platform():
+def _platform():
     """Detects the platform for this machine.
 
     Gather a list of all available subclasses of platforms.
@@ -522,12 +525,25 @@ def platform():
     a file path (/opt/cray...)
     """
     # Try to create a Platform object using the config file FIRST
-    platform_list = all_platforms()
+    platform_list = _all_platforms()
     platform_list.sort(key=lambda a: a.priority)
 
     for platform_cls in platform_list:
         if platform_cls.detect():
             return platform_cls()
+
+
+#: The "real" platform of the host running Spack. This should not be changed
+#: by any method and is here as a convenient way to refer to the host platform.
+real_platform = _platform
+
+#: The current platform used by Spack. May be swapped by the use_platform
+#: context manager.
+platform = _platform
+
+#: The list of all platform classes. May be swapped by the use_platform
+#: context manager.
+all_platforms = _all_platforms
 
 
 @memoized
@@ -564,3 +580,39 @@ def compatible_sys_types():
         arch = Arch(platform(), 'default_os', target)
         compatible_archs.append(str(arch))
     return compatible_archs
+
+
+class _PickleableCallable(object):
+    """Class used to pickle a callable that may substitute either
+    _platform or _all_platforms. Lambda or nested functions are
+    not pickleable.
+    """
+    def __init__(self, return_value):
+        self.return_value = return_value
+
+    def __call__(self):
+        return self.return_value
+
+
+@contextlib.contextmanager
+def use_platform(new_platform):
+    global platform, all_platforms
+
+    msg = '"{0}" must be an instance of Platform'
+    assert isinstance(new_platform, Platform), msg.format(new_platform)
+
+    original_platform_fn, original_all_platforms_fn = platform, all_platforms
+    platform = _PickleableCallable(new_platform)
+    all_platforms = _PickleableCallable([type(new_platform)])
+
+    # Clear configuration and compiler caches
+    spack.config.config.clear_caches()
+    spack.compilers._cache_config_files = []
+
+    yield new_platform
+
+    platform, all_platforms = original_platform_fn, original_all_platforms_fn
+
+    # Clear configuration and compiler caches
+    spack.config.config.clear_caches()
+    spack.compilers._cache_config_files = []

@@ -67,6 +67,19 @@ def setup_parser(subparser):
              " retrieve all versions of each package")
     arguments.add_common_arguments(create_parser, ['specs'])
 
+    # Destroy
+    destroy_parser = sp.add_parser('destroy', help=mirror_destroy.__doc__)
+
+    destroy_target = destroy_parser.add_mutually_exclusive_group(required=True)
+    destroy_target.add_argument('-m', '--mirror-name',
+                                metavar='mirror_name',
+                                type=str,
+                                help="find mirror to destroy by name")
+    destroy_target.add_argument('--mirror-url',
+                                metavar='mirror_url',
+                                type=str,
+                                help="find mirror to destroy by url")
+
     # used to construct scope arguments below
     scopes = spack.config.scopes()
     scopes_metavar = spack.config.scopes_metavar
@@ -360,8 +373,22 @@ def mirror_create(args):
         sys.exit(1)
 
 
+def mirror_destroy(args):
+    """Given a url, recursively delete everything under it."""
+    mirror_url = None
+
+    if args.mirror_name:
+        result = spack.mirror.MirrorCollection().lookup(args.mirror_name)
+        mirror_url = result.push_url
+    elif args.mirror_url:
+        mirror_url = args.mirror_url
+
+    web_util.remove_url(mirror_url, recursive=True)
+
+
 def mirror(parser, args):
     action = {'create': mirror_create,
+              'destroy': mirror_destroy,
               'add': mirror_add,
               'remove': mirror_remove,
               'rm': mirror_remove,

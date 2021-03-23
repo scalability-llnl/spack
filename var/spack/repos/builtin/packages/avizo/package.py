@@ -18,6 +18,8 @@ class Avizo(Package):
 
     homepage = "https://www.thermofisher.com/sa/en/home/industrial/electron-microscopy/electron-microscopy-instruments-workflow-solutions/3d-visualization-analysis-software.html"
 
+    manual_download = True
+
     version('2020.1',
             sha256='9321aaa276567eebf116e268353c33a4c930d768d22793f921338e1d8cefe991',
             url="file://{0}/Avizo-20201-Linux64-gcc48.bin".format(os.getcwd()),

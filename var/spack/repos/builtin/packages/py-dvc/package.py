@@ -45,7 +45,7 @@ class PyDvc(PythonPackage):
     depends_on('py-networkx@2.1:2.4', when='@:1.11.6', type=('build', 'run'))
     depends_on('py-networkx@2.1:', when='@1.11.7:', type=('build', 'run'))
     depends_on('py-pydot@1.2.4:', type=('build', 'run'))
-    depends_on('py-dataclasses@0.7', when='python@:3.6.999', type=('build', 'run'))
+    depends_on('py-dataclasses@0.7', when='^python@:3.6.999', type=('build', 'run'))
     depends_on('py-flatten-dict@0.3.0:0.99', type=('build', 'run'))
     depends_on('py-tabulate@0.8.7:', type=('build', 'run'))
     depends_on('py-pygtrie@2.3.2', type=('build', 'run'))

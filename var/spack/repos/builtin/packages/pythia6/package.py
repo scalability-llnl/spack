@@ -133,6 +133,7 @@ class Pythia6(CMakePackage):
     # majority of cases. If your case is different, platform- or
     # variant-based adjustments should be made.
     patch('pythia6.patch', level=0)
+    patch('pythia6-root.patch', level=1, when='+root')
 
     def patch(self):
         # Use our provided CMakeLists.txt. The Makefile provided with

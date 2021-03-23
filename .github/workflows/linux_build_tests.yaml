@@ -5,6 +5,18 @@ on:
     branches:
     - develop
     - releases/**
+    paths-ignore:
+      # Don't run if we only modified packages in the built-in repository
+      - 'var/spack/repos/builtin/**'
+      - '!var/spack/repos/builtin/packages/lz4/**'
+      - '!var/spack/repos/builtin/packages/mpich/**'
+      - '!var/spack/repos/builtin/packages/tut/**'
+      - '!var/spack/repos/builtin/packages/py-setuptools/**'
+      - '!var/spack/repos/builtin/packages/openjpeg/**'
+      - '!var/spack/repos/builtin/packages/r-rcpp/**'
+      - '!var/spack/repos/builtin/packages/ruby-rake/**'
+      # Don't run if we only modified documentation
+      - 'lib/spack/docs/**'
   pull_request:
     branches:
     - develop

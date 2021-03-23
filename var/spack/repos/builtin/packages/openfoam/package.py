@@ -316,7 +316,8 @@ class Openfoam(Package):
     depends_on('zlib')
     depends_on('fftw-api')
     depends_on('boost')
-    depends_on('cgal')
+    # OpenFOAM does not play nice with CGAL 5.X
+    depends_on('cgal@:4.99')
     # The flex restriction is ONLY to deal with a spec resolution clash
     # introduced by the restriction within scotch!
     depends_on('flex@:2.6.1,2.6.4:')
@@ -405,10 +406,7 @@ class Openfoam(Package):
     def setup_build_environment(self, env):
         """Sets the build environment (prior to unpacking the sources).
         """
-        # Avoid the exception that occurs at runtime
-        # when building with the Fujitsu compiler.
-        if self.spec.satisfies('%fj'):
-            env.set('FOAM_SIGFPE', 'false')
+        pass
 
     def setup_run_environment(self, env):
         """Sets the run environment (post-installation).
@@ -549,6 +547,16 @@ class Openfoam(Package):
                     rcfile,
                     backup=False)
 
+    def configure_trapFpe_off(self):
+        """Disable trapFpe handling.
+        Seems to be needed for several clang-derivatives.
+        """
+        # Set 'trapFpe 0' in etc/controlDict
+        controlDict = 'etc/controlDict'
+        if os.path.exists(controlDict):
+            filter_file(r'trapFpe\s+\d+\s*;', 'trapFpe 0;',
+                        controlDict, backup=False)
+
     @when('@1812: %fj')
     @run_before('configure')
     def make_fujitsu_rules(self):
@@ -560,6 +568,7 @@ class Openfoam(Package):
         arch_rules = 'wmake/rules/linuxARM64'  # self.arch
         src = arch_rules + 'Clang'
         dst = arch_rules + 'Fujitsu'  # self.compiler
+        self.configure_trapFpe_off()  # LLVM may falsely trigger FPE
 
         if os.path.exists(dst):
             return

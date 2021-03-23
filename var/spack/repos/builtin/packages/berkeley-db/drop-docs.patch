@@ -1,0 +1,25 @@
+From 310ecb91e619192fd7097a24889485526315667a Mon Sep 17 00:00:00 2001
+From: Harmen Stoppels <harmenstoppels@gmail.com>
+Date: Thu, 25 Feb 2021 16:32:30 +0100
+Subject: [PATCH] remove smth
+
+---
+ dist/Makefile.in | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/dist/Makefile.in b/dist/Makefile.in
+index e90c0c2..d041d47 100644
+--- a/dist/Makefile.in
++++ b/dist/Makefile.in
+@@ -1160,6 +1160,8 @@ DOCLIST=api_reference articles bdb-sql collections csharp \
+ 	gsg gsg_db_rep gsg_txn index.html installation java \
+ 	license porting programmer_reference upgrading
+ 
++DOCLIST=index.html
++
+ install_docs:
+ 	@echo "Installing documentation: $(DESTDIR)$(docdir) ..."
+ 	@test -d $(DESTDIR)$(docdir) || \
+-- 
+2.25.1
+

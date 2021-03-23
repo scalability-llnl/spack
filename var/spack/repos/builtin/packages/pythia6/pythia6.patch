@@ -276,3 +276,16 @@ diff -Naur upveto.f upveto.f
        RETURN
        END
 + 
+--- pystrf.f.orig	2014-05-14 18:12:02.000000001 +0200
++++ pystrf.f	2014-05-14 18:10:23.000000001 +0200
+@@ -805,7 +805,9 @@
+  
+ C...Closed string: random initial breakup flavour, pT and vertex.
+       ELSE
+-        KFL(3)=INT(1D0+(2D0+PARJ(2))*PYR(0))*(-1)**INT(PYR(0)+0.5D0)
++        RNDM1=PYR(0)
++        RNDM2=PYR(0)
++        KFL(3)=INT(1D0+(2D0+PARJ(2))*RNDM1)*(-1)**INT(RNDM2+0.5D0)
+         IBMO=0
+   770   CALL PYKFDI(KFL(3),0,KFL(1),KDUMP)
+ C.. Closed string: first vertex diq attempt => enforced second

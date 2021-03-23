@@ -19,4 +19,4 @@ class Satsuma2(CMakePackage):
     version('2016-11-22', commit='da694aeecf352e344b790bea4a7aaa529f5b69e6')
 
     def install(self, spec, prefix):
-        install_tree(join_path('spack-build', 'bin'), prefix.bin)
+        install_tree(join_path(self.build_directory, 'bin'), prefix.bin)

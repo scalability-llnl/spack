@@ -79,12 +79,14 @@ Description
 The first thing you'll need to add to your new package is a description.
 The top of the homepage for ``caret`` lists the following description:
 
-   caret: Classification and Regression Training
+   Classification and Regression Training
 
    Misc functions for training and plotting classification and regression models.
 
-You can either use the short description (first line), long description
-(second line), or both depending on what you feel is most appropriate.
+The first line is a short description (title) and the second line is a long
+description. In this case the description is only one line but often the
+description is several lines. Spack makes use of both short and long
+descriptions and convention is to use both when creating an R  package.
 
 ^^^^^^^^
 Homepage
@@ -124,6 +126,67 @@ If you only specify the URL for the latest release, your package will
 no longer be able to fetch that version as soon as a new release comes
 out. To get around this, add the archive directory as a ``list_url``.
 
+^^^^^^^^^^^^^^^^^^^^^
+Bioconductor packages
+^^^^^^^^^^^^^^^^^^^^^
+
+Bioconductor packages are set up in a similar way to CRAN packages, but there
+are some very important distinctions. Bioconductor packages can be found at:
+https://bioconductor.org/. Bioconductor packages are R packages and so follow
+the same packaging scheme as CRAN packages. What is different is that
+Bioconductor itself is versioned and released. This scheme, using the
+Bioconductor package installer, allows further specification of the minimum
+version of R as well as further restrictions on the dependencies between
+packages than what is possible with the native R packaging system. Spack can
+not replicate these extra features and thus Bioconductor packages in Spack need
+to be managed as a group during updates in order to maintain package
+consistency with Bioconductor itself.
+
+Another key difference is that, while previous versions of packages are
+available, they are not available from a site that can be programmatically set,
+thus a ``list_url`` attribute can not be used. However, each package is also
+available in a git repository, with branches corresponding to each Bioconductor
+release. Thus, it is always possible to retrieve the version of any package
+corresponding to a Bioconductor release simply by fetching the branch that
+corresponds to the Bioconductor release of the package repository. For this
+reason, spack Bioconductor R packages use the git repository, with the commit
+of the respective branch used in the ``version()`` attribute of the package.
+
+^^^^^^^^^^^^^^^^^^^^^^^^
+cran and bioc attributes
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Much like the ``pypi`` attribute for python packages, due to the fact that R
+packages are obtained from specific repositories, it is possible to set up shortcut
+attributes that can be used to set ``homepage``, ``url``, ``list_url``, and
+``git``. For example, the following ``cran`` attribute:
+
+.. code-block:: python
+
+   cran = 'caret'
+
+is equivalent to:
+
+.. code-block:: python
+
+   homepage = 'https://cloud.r-project.org/package=caret'
+   url      = 'https://cloud.r-project.org/src/contrib/caret_6.0-86.tar.gz'
+   list_url = 'https://cloud.r-project.org/src/contrib/Archive/caret'
+
+Likewise, the following ``bioc`` attribute:
+
+.. code-block:: python
+
+   bioc = 'BiocVersion'
+
+is equivalent to:
+
+.. code-block:: python
+
+   homepage = 'https://bioconductor.org/packages/BiocVersion/'
+   git      = 'https://git.bioconductor.org/packages/BiocVersion'
+
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 Build system dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -156,7 +219,7 @@ R dependencies
 R packages are often small and follow the classic Unix philosophy
 of doing one thing well. They are modular and usually depend on
 several other packages. You may find a single package with over a
-hundred dependencies. Luckily, CRAN packages are well-documented
+hundred dependencies. Luckily, R packages are well-documented
 and list all of their dependencies in the following sections:
 
 * Depends
@@ -297,8 +360,8 @@ like so:
 
 .. code-block:: python
 
-   def configure_args(self, spec, prefix):
-       mpi_name = spec['mpi'].name
+   def configure_args(self):
+       mpi_name = self.spec['mpi'].name
 
        # The type of MPI. Supported values are:
        # OPENMPI, LAM, MPICH, MPICH2, or CRAY

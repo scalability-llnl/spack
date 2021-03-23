@@ -14,6 +14,9 @@ mirror = SpackCommand('mirror')
 env = SpackCommand('env')
 add = SpackCommand('add')
 concretize = SpackCommand('concretize')
+install = SpackCommand('install')
+buildcache = SpackCommand('buildcache')
+uninstall = SpackCommand('uninstall')
 
 
 @pytest.fixture
@@ -183,3 +186,39 @@ def test_mirror_name_collision(tmp_scope):
 
     with pytest.raises(SpackCommandError):
         mirror('add', '--scope', tmp_scope, 'first', '1')
+
+
+def test_mirror_destroy(install_mockery_mutable_config,
+                        mock_packages, mock_fetch, mock_archive,
+                        mutable_config, monkeypatch, tmpdir):
+    # Create a temp mirror directory for buildcache usage
+    mirror_dir = tmpdir.join('mirror_dir')
+    mirror_url = 'file://{0}'.format(mirror_dir.strpath)
+    mirror('add', 'atest', mirror_url)
+
+    spec_name = 'libdwarf'
+
+    # Put a binary package in a buildcache
+    install('--no-cache', spec_name)
+    buildcache('create', '-u', '-a', '-f', '-d', mirror_dir.strpath, spec_name)
+
+    contents = os.listdir(mirror_dir.strpath)
+    assert('build_cache' in contents)
+
+    # Destroy mirror by name
+    mirror('destroy', '-m', 'atest')
+
+    assert(not os.path.exists(mirror_dir.strpath))
+
+    buildcache('create', '-u', '-a', '-f', '-d', mirror_dir.strpath, spec_name)
+
+    contents = os.listdir(mirror_dir.strpath)
+    assert('build_cache' in contents)
+
+    # Destroy mirror by url
+    mirror('destroy', '--mirror-url', mirror_url)
+
+    assert(not os.path.exists(mirror_dir.strpath))
+
+    uninstall('-y', spec_name)
+    mirror('remove', 'atest')

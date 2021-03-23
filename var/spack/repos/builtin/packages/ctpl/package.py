@@ -19,6 +19,7 @@ class Ctpl(AutotoolsPackage):
     depends_on('automake', type='build')
     depends_on('libtool',  type='build')
     depends_on('m4',       type='build')
+    depends_on('gettext',  type='build')
     depends_on('gtk-doc')
     depends_on('glib@2.10:')
 

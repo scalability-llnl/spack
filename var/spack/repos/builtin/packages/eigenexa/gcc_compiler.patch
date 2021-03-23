@@ -1,0 +1,29 @@
+--- a/configure.ac
++++ c/configure.ac
+@@ -440,7 +440,7 @@ else
+     FFLAGS=${I_BASE}" -Ofast "${I_ARCH}
+     
+   elif test x"${FC_ACT}" = x"gfortran"; then
+-    FFLAGS=${G_BASE}" -O3 "${G_ARCH}
++    FFLAGS=${G_BASE}" -O3 -fopenmp "${G_ARCH}
+     
+   elif test x"${FC_ACT}" = x"mpifrtpx"; then
+     FFLAGS=${F_BASE}" -Kfast,ocl,simd,swp "${F_ARCH}
+@@ -465,7 +465,7 @@ else
+     FCFLAGS=${I_BASE}" -Ofast "${I_ARCH}
+     
+   elif test x"${FC_ACT}" = x"gfortran"; then
+-    FCFLAGS=${G_BASE}" -O3 "${G_ARCH}
++    FCFLAGS=${G_BASE}" -O3 -fopenmp "${G_ARCH}
+     
+   elif test x"${FC_ACT}" = x"mpifrtpx"; then
+     FCFLAGS=${F_BASE}" -Kfast,ocl,simd,swp "${F_ARCH}
+@@ -486,7 +486,7 @@ if   test x"${FC_ACT}" = x"ifort"; then
+   FFLAGS0=${I_BASE}" -O0 "
+   
+ elif test x"${FC_ACT}" = x"gfortran"; then
+-  FFLAGS0=${G_BASE}" -O0"
++  FFLAGS0=${G_BASE}" -O0 -fopenmp "
+   
+ elif test x"${FC_ACT}" = x"mpifrtpx"; then
+   FFLAGS0="-Kopenmp,openmp_ordered_reduction -Cpp"

@@ -326,6 +326,8 @@ class URLFetchStrategy(FetchStrategy):
         # Telling curl to fetch the first byte (-r 0-0) is supposed to be
         # portable.
         curl_args = ['--stderr', '-', '-s', '-f', '-r', '0-0', url]
+        if not spack.config.get('config:verify_ssl'):
+            curl_args.append('-k')
         _ = curl(*curl_args, fail_on_error=False, output=os.devnull)
         return curl.returncode == 0
 

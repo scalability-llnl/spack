@@ -15,7 +15,7 @@ class Dlib(CMakePackage):
     version('master', branch='master')
 
     depends_on('cmake@3.0:', type='build')
-    depends_on('opencv+calib3d+core+features2d+highgui+imgproc')
+    depends_on('opencv+calib3d+core+features2d+highgui+imgproc+imgcodecs')
     # Because concretizer is broken...
     # TODO: remove when original concretizer is obsolete
     depends_on('opencv+flann')

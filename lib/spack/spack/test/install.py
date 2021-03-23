@@ -183,70 +183,70 @@ def test_flatten_deps(
     assert os.path.isdir(dependency_dir)
 
 
-def test_installed_upstream_external(
-        tmpdir_factory, install_mockery, mock_fetch, gen_mock_layout,
-        monkeypatch):
-    """Check that when a dependency package is recorded as installed in
-       an upstream database that it is not reinstalled.
+@pytest.fixture()
+def install_upstream(tmpdir_factory, gen_mock_layout, install_mockery):
+    """Provides a function that installs a specified set of specs to an
+    upstream database. The function returns a store which points to the
+    upstream, as well as the upstream layout (for verifying that dependent
+    installs are using the upstream installs).
     """
     mock_db_root = str(tmpdir_factory.mktemp('mock_db_root'))
     prepared_db = spack.database.Database(mock_db_root)
-
     upstream_layout = gen_mock_layout('/a/')
 
-    dependency = spack.spec.Spec('externaltool')
-    dependency.concretize()
-    prepared_db.add(dependency, upstream_layout)
+    def _install_upstream(*specs):
+        for spec_str in specs:
+            s = spack.spec.Spec(spec_str).concretized()
+            prepared_db.add(s, upstream_layout)
 
-    downstream_db_root = str(
-        tmpdir_factory.mktemp('mock_downstream_db_root'))
-    db_for_test = spack.database.Database(
-        downstream_db_root, upstream_dbs=[prepared_db])
-    monkeypatch.setattr(spack.store, 'db', db_for_test)
-    dependent = spack.spec.Spec('externaltest')
-    dependent.concretize()
+        downstream_root = str(tmpdir_factory.mktemp('mock_downstream_db_root'))
+        db_for_test = spack.database.Database(
+            downstream_root, upstream_dbs=[prepared_db]
+        )
+        store = spack.store.Store(downstream_root)
+        store.db = db_for_test
+        return store, upstream_layout
 
-    new_dependency = dependent['externaltool']
-    assert new_dependency.external
-    assert new_dependency.prefix == '/path/to/external_tool'
-
-    dependent.package.do_install()
-
-    assert not os.path.exists(new_dependency.prefix)
-    assert os.path.exists(dependent.prefix)
+    return _install_upstream
 
 
-def test_installed_upstream(tmpdir_factory, install_mockery, mock_fetch,
-                            gen_mock_layout, monkeypatch):
+def test_installed_upstream_external(install_upstream, mock_fetch):
     """Check that when a dependency package is recorded as installed in
-       an upstream database that it is not reinstalled.
+    an upstream database that it is not reinstalled.
     """
-    mock_db_root = str(tmpdir_factory.mktemp('mock_db_root'))
-    prepared_db = spack.database.Database(mock_db_root)
+    s, _ = install_upstream('externaltool')
+    with spack.store.use_store(s):
+        dependent = spack.spec.Spec('externaltest')
+        dependent.concretize()
 
-    upstream_layout = gen_mock_layout('/a/')
+        new_dependency = dependent['externaltool']
+        assert new_dependency.external
+        assert new_dependency.prefix == '/path/to/external_tool'
 
-    dependency = spack.spec.Spec('dependency-install')
-    dependency.concretize()
-    prepared_db.add(dependency, upstream_layout)
+        dependent.package.do_install()
 
-    downstream_db_root = str(
-        tmpdir_factory.mktemp('mock_downstream_db_root'))
-    db_for_test = spack.database.Database(
-        downstream_db_root, upstream_dbs=[prepared_db])
-    monkeypatch.setattr(spack.store, 'db', db_for_test)
-    dependent = spack.spec.Spec('dependent-install')
-    dependent.concretize()
+        assert not os.path.exists(new_dependency.prefix)
+        assert os.path.exists(dependent.prefix)
 
-    new_dependency = dependent['dependency-install']
-    assert new_dependency.package.installed_upstream
-    assert (new_dependency.prefix ==
-            upstream_layout.path_for_spec(dependency))
 
-    dependent.package.do_install()
+def test_installed_upstream(install_upstream, mock_fetch):
+    """Check that when a dependency package is recorded as installed in
+    an upstream database that it is not reinstalled.
+    """
+    s, upstream_layout = install_upstream('dependency-install')
+    with spack.store.use_store(s):
+        dependency = spack.spec.Spec('dependency-install').concretized()
+        dependent = spack.spec.Spec('dependent-install').concretized()
 
-    assert not os.path.exists(new_dependency.prefix)
-    assert os.path.exists(dependent.prefix)
+        new_dependency = dependent['dependency-install']
+        assert new_dependency.package.installed_upstream
+        assert (new_dependency.prefix ==
+                upstream_layout.path_for_spec(dependency))
+
+        dependent.package.do_install()
+
+        assert not os.path.exists(new_dependency.prefix)
+        assert os.path.exists(dependent.prefix)
 
 
 @pytest.mark.disable_clean_stage_check

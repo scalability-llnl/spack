@@ -27,8 +27,11 @@ class PyFenicsFiat(PythonPackage):
     version('2017.2.0',       sha256='e4d3ffc86a0a717b3f17b9bb2d922214c342be27e5bdfbe50f110030bfff9729')
     version('2017.1.0.post1', sha256='1784fe1cb9479ca7cd85f63b0afa6e07634feec8d8e82fa8be4c480649cb9621')
     version('2017.1.0',       sha256='d4288401ad16c4598720f9db0810a522f7f0eadad35d8211bac7120bce5fde94')
+    version('2016.2.0', tag='fiat-2016.2.0')
 
     depends_on('python@3:', type=('build', 'run'))
     depends_on('py-setuptools', type="build")
     depends_on('py-numpy', type=("build", "run"))
-    depends_on('py-sympy', type=("build", "run"))
+    depends_on('py-sympy', type=("build", "run"), when='@2019.1.0')
+    # avoid compilation error of dolfin (ffc fails with latest sympy)
+    depends_on('py-sympy@1.0', type=("build", "run"), when='@:2018.1.0')

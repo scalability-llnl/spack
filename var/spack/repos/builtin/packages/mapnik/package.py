@@ -36,8 +36,6 @@ class Mapnik(AutotoolsPackage):
     depends_on('sqlite+rtree', type=('build', 'link', 'run'))
     depends_on('libwebp')
 
-    conflicts('%gcc@9.0.0:')
-
     def setup_build_environment(self, env):
         spec = self.spec
         env.set('GDAL_DATA', spec['gdal'].prefix.share.gdal)

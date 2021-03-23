@@ -12,6 +12,7 @@ class PyPythonDateutil(PythonPackage):
     homepage = "https://dateutil.readthedocs.io/"
     pypi = "python-dateutil/python-dateutil-2.8.0.tar.gz"
 
+    version('2.8.1', sha256='73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c')
     version('2.8.0', sha256='c89805f6f4d64db21ed966fda138f8a5ed7a4fdbc1a8ee329ce1b74e3c74da9e')
     version('2.7.5', sha256='88f9287c0174266bb0d8cedd395cfba9c58e87e5ad86b2ce58859bc11be3cf02')
     version('2.5.2', sha256='063907ef47f6e187b8fe0728952e4effb587a34f2dc356888646f9b71fbb2e4b')

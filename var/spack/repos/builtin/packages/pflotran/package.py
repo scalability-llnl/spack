@@ -26,7 +26,7 @@ class Pflotran(AutotoolsPackage):
 
     depends_on('mpi')
     depends_on('hdf5@1.8.12:+mpi+fortran+hl')
-    depends_on('petsc@develop:+hdf5+metis', when='@develop')
+    depends_on('petsc@main:+hdf5+metis', when='@develop')
     depends_on('petsc@3.14:+hdf5+metis', when='@xsdk-0.6.0')
     depends_on('petsc@3.12:+hdf5+metis', when='@xsdk-0.5.0')
     depends_on('petsc@3.10:+hdf5+metis', when='@xsdk-0.4.0')

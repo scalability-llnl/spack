@@ -1,0 +1,55 @@
+From ec6b354c32e939605331e2081590815a86413ca8 Mon Sep 17 00:00:00 2001
+From: Harmen Stoppels <harmenstoppels@gmail.com>
+Date: Wed, 24 Feb 2021 14:07:20 +0100
+Subject: [PATCH] use /usr/bin/env perl
+
+---
+ c_check           | 2 +-
+ exports/gensymbol | 2 +-
+ f_check           | 2 +-
+ interface/create  | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/c_check b/c_check
+index 9c8b1aba..e24943a2 100644
+--- a/c_check
++++ b/c_check
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/bin/env perl
+ 
+ #use File::Basename;
+ # use File::Temp qw(tempfile);
+diff --git a/exports/gensymbol b/exports/gensymbol
+index 857a17a9..e7210a03 100644
+--- a/exports/gensymbol
++++ b/exports/gensymbol
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/bin/env perl
+ 
+ # Changelog
+ # 2017/09/03 staticfloat
+diff --git a/f_check b/f_check
+index ffe9c6b4..d044f254 100644
+--- a/f_check
++++ b/f_check
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/bin/env perl
+ 
+ $hostos   = `uname -s | sed -e s/\-.*//`;    chop($hostos);
+ 
+diff --git a/interface/create b/interface/create
+index b7be8ab6..0b9cefa2 100755
+--- a/interface/create
++++ b/interface/create
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/bin/env perl
+ 
+ $count = 0;
+ 
+-- 
+2.25.1
+

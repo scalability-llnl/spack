@@ -10,9 +10,12 @@
 # Following line is a shell no-op, and starts a multi-line Python comment.
 # See https://stackoverflow.com/a/47886254
 """:"
-# prefer python3, then python, then python2
-for cmd in python3 python python2; do
-   command -v > /dev/null $cmd && exec $cmd $0 "$@"
+# prefer SPACK_PYTHON environment variable, python3, python, then python2
+for cmd in "${SPACK_PYTHON:-}" python3 python python2; do
+    if command -v > /dev/null "$cmd"; then
+        export SPACK_PYTHON="$(command -v "$cmd")"
+        exec "${SPACK_PYTHON}" "$0" "$@"
+    fi
 done
 
 echo "==> Error: spack could not find a python interpreter!" >&2
@@ -26,10 +29,15 @@ from __future__ import print_function
 import os
 import sys
 
-if sys.version_info[:2] < (2, 6):
+min_python3 = (3, 5)
+
+if sys.version_info[:2] < (2, 6) or (
+    sys.version_info[:2] >= (3, 0) and sys.version_info[:2] < min_python3
+):
     v_info = sys.version_info[:3]
-    sys.exit("Spack requires Python 2.6 or higher."
-             "This is Python %d.%d.%d." % v_info)
+    msg = "Spack requires Python 2.6, 2.7 or %d.%d or higher " % min_python3
+    msg += "You are running spack with Python %d.%d.%d." % v_info
+    sys.exit(msg)
 
 # Find spack's location and its prefix.
 spack_file = os.path.realpath(os.path.expanduser(__file__))
@@ -43,9 +51,9 @@ sys.path.insert(0, spack_lib_path)
 spack_external_libs = os.path.join(spack_lib_path, "external")
 
 if sys.version_info[:2] <= (2, 7):
-    sys.path.insert(0, os.path.join(spack_external_libs, 'py2'))
+    sys.path.insert(0, os.path.join(spack_external_libs, "py2"))
 if sys.version_info[:2] == (2, 6):
-    sys.path.insert(0, os.path.join(spack_external_libs, 'py26'))
+    sys.path.insert(0, os.path.join(spack_external_libs, "py26"))
 
 sys.path.insert(0, spack_external_libs)
 
@@ -55,11 +63,11 @@ sys.path.insert(0, spack_external_libs)
 # Briefly: ruamel.yaml produces a .pth file when installed with pip that
 # makes the site installed package the preferred one, even though sys.path
 # is modified to point to another version of ruamel.yaml.
-if 'ruamel.yaml' in sys.modules:
-    del sys.modules['ruamel.yaml']
+if "ruamel.yaml" in sys.modules:
+    del sys.modules["ruamel.yaml"]
 
-if 'ruamel' in sys.modules:
-    del sys.modules['ruamel']
+if "ruamel" in sys.modules:
+    del sys.modules["ruamel"]
 
 import spack.main  # noqa
 

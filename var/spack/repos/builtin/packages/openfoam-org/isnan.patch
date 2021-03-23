@@ -1,0 +1,31 @@
+--- a/src/conversion/ensight/part/ensightPart.C 2021-01-07 15:37:26.650557806 +0100
++++ b/src/conversion/ensight/part/ensightPart.C 2021-01-07 15:38:04.148140312 +0100
+@@ -51,7 +51,7 @@
+         {
+             const label id = idList[i];
+ 
+-            if (id >= field.size() || isnan(field[id]))
++            if (id >= field.size() || std::isnan(field[id]))
+             {
+                 return false;
+             }
+--- a/src/conversion/ensight/part/ensightPartIO.C 2021-01-07 15:37:26.650557806 +0100
++++ b/src/conversion/ensight/part/ensightPartIO.C 2021-01-07 15:38:38.580675503 +0100
+@@ -63,7 +63,7 @@
+     {
+         forAll(idList, i)
+         {
+-            if (idList[i] >= field.size() || isnan(field[idList[i]]))
++            if (idList[i] >= field.size() || std::isnan(field[idList[i]]))
+             {
+                 os.writeUndef();
+             }
+@@ -80,7 +80,7 @@
+         // no idList => perNode
+         forAll(field, i)
+         {
+-            if (isnan(field[i]))
++            if (std::isnan(field[i]))
+             {
+                 os.writeUndef();
+             }

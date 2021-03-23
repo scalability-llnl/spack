@@ -110,6 +110,7 @@ class OpenfoamOrg(Package):
     patch('41-etc.patch', when='@4.1')
     patch('41-site.patch', when='@4.1:')
     patch('240-etc.patch', when='@2.4.0')
+    patch('isnan.patch', when='@:2.4.0')
 
     # The openfoam architecture, compiler information etc
     _foam_arch = None

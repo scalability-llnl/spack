@@ -4,120 +4,132 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
-from spack.compiler import UnsupportedCompilerFlag
 
 
-class Warpx(MakefilePackage):
+class Warpx(CMakePackage):
     """WarpX is an advanced electromagnetic Particle-In-Cell code. It supports
     many features including Perfectly-Matched Layers (PML) and mesh refinement.
     In addition, WarpX is a highly-parallel and highly-optimized code and
     features hybrid OpenMP/MPI parallelization, advanced vectorization
     techniques and load balancing capabilities.
+
+    For WarpX' Python bindings and PICMI input support, see the 'py-warpx' package.
     """
 
-    homepage = "https://ecp-warpx.github.io/index.html"
+    homepage = "https://ecp-warpx.github.io"
     git      = "https://github.com/ECP-WarpX/WarpX.git"
 
     maintainers = ['ax3l', 'dpgrote', 'MaxThevenet', 'RemiLehe']
 
-    version('develop', tag='development')
+    version('develop', branch='development')
 
+    variant('app', default=True,
+            description='Build the WarpX executable application')
+    variant('ascent', default=False,
+            description='Enable Ascent in situ vis')
+    variant('compute',
+            default='omp',
+            values=('omp', 'cuda', 'hip', 'sycl', 'noacc'),
+            multi=False,
+            description='On-node, accelerated computing backend')
     variant('dims',
             default='3',
             values=('2', '3', 'rz'),
             multi=False,
             description='Number of spatial dimensions')
-    variant('backend',
-            default='openmp',
-            values=('openmp', 'cuda', 'hip'),
-            multi=True,
-            description='Programming model for compute kernels')
-    variant('mpi', default=True, description='Enable MPI support')
-    variant('psatd', default=True, description='Enable PSATD solver support')
-    variant('debug', default=False, description='Enable debugging features')
-    variant('tprof', default=True, description='Enable tiny profiling features')
-    variant('openpmd', default=True, description='Enable openPMD I/O')
-    variant('ascent', default=False, description='Enable Ascent in situ vis')
+    variant('eb', default=False,
+            description='Embedded boundary support (in development)')
+    variant('lib', default=True,
+            description='Build WarpX as a shared library')
+    variant('mpi', default=True,
+            description='Enable MPI support')
+    variant('mpithreadmultiple', default=True,
+            description='MPI thread-multiple support, i.e. for async_io')
+    variant('openpmd', default=True,
+            description='Enable openPMD I/O')
+    variant('precision',
+            default='double',
+            values=('single', 'double'),
+            multi=False,
+            description='Floating point precision (single/double)')
+    variant('psatd', default=True,
+            description='Enable PSATD solver support')
+    variant('qed', default=True,
+            description='Enable QED support')
+    variant('qedtablegen', default=False,
+            description='QED table generation support')
+    variant('shared', default=True,
+            description='Build a shared version of the library')
+    variant('tprof', default=True,
+            description='Enable tiny profiling features')
 
-    depends_on('cuda@9.2.88:', when='backend=cuda')
-    depends_on('mpi', when='+mpi')
-    depends_on('fftw@3:', when='+psatd backend=openmp')
-    depends_on('fftw +mpi', when='+psatd +mpi backend=openmp')
+    depends_on('ascent', when='+ascent')
+    depends_on('ascent +cuda', when='+ascent compute=cuda')
+    depends_on('ascent +mpi', when='+ascent +mpi')
     depends_on('blaspp', when='+psatd dims=rz')
+    depends_on('blaspp +cuda', when='+psatd dims=rz compute=cuda')
+    depends_on('boost@1.66.0: +math', when='+qedtablegen')
+    depends_on('cmake@3.15.0:', type='build')
+    depends_on('cuda@9.2.88:', when='compute=cuda')
+    depends_on('fftw@3:', when='+psatd compute=omp')
+    depends_on('fftw +mpi', when='+psatd +mpi compute=omp')
     depends_on('lapackpp', when='+psatd dims=rz')
-    depends_on('pkgconfig', type='build', when='+openpmd')
-    depends_on('python', type='build')  # AMReX' build system info
+    depends_on('mpi', when='+mpi')
     depends_on('openpmd-api@0.13.1:,dev', when='+openpmd')
     depends_on('openpmd-api +mpi', when='+openpmd +mpi')
-    depends_on('ascent', when='+ascent')
-    depends_on('ascent +cuda', when='+ascent backend=cuda')
-    depends_on('ascent +mpi', when='+ascent +mpi')
+    depends_on('pkgconfig', type='build', when='+psatd compute=omp')
+    depends_on('rocfft', when='+psatd compute=hip')
+    depends_on('llvm-openmp', when='%apple-clang compute=omp')
 
-    resource(name='amrex',
-             git='https://github.com/AMReX-Codes/amrex.git',
-             when='@develop',
-             tag='development')
+    conflicts('~qed +qedtablegen',
+              msg='WarpX PICSAR QED table generation needs +qed')
+    conflicts('compute=sycl', when='+psatd',
+              msg='WarpX spectral solvers are not yet tested with SYCL '
+                  '(use "warpx ~psatd")')
 
-    resource(name='picsar',
-             git='https://bitbucket.org/berkeleylab/picsar.git',
-             tag='master')
+    def cmake_args(self):
+        spec = self.spec
 
-    conflicts('backend=cuda', when='backend=hip',
-              msg='WarpX can be compiled with either CUDA or HIP backend')
-    conflicts('backend=hip', msg='WarpX\' HIP backend is not yet implemented')
+        args = [
+            '-DBUILD_SHARED_LIBS:BOOL={0}'.format(
+                'ON' if '+shared' in spec else 'OFF'),
+            '-DCMAKE_INSTALL_LIBDIR=lib',
+            # variants
+            '-DWarpX_APP:BOOL={0}'.format(
+                'ON' if '+app' in spec else 'OFF'),
+            '-DWarpX_ASCENT:BOOL={0}'.format(
+                'ON' if '+ascent' in spec else 'OFF'),
+            '-DWarpX_COMPUTE={0}'.format(
+                spec.variants['compute'].value.upper()),
+            '-DWarpX_DIMS={0}'.format(
+                spec.variants['dims'].value.upper()),
+            '-DWarpX_EB:BOOL={0}'.format(
+                'ON' if '+eb' in spec else 'OFF'),
+            '-DWarpX_LIB:BOOL={0}'.format(
+                'ON' if '+lib' in spec else 'OFF'),
+            '-DWarpX_MPI:BOOL={0}'.format(
+                'ON' if '+mpi' in spec else 'OFF'),
+            '-DWarpX_MPI_THREAD_MULTIPLE:BOOL={0}'.format(
+                'ON' if '+mpithreadmultiple' in spec else 'OFF'),
+            '-DWarpX_OPENPMD:BOOL={0}'.format(
+                'ON' if '+openpmd' in spec else 'OFF'),
+            '-DWarpX_PRECISION={0}'.format(
+                spec.variants['precision'].value.upper()),
+            '-DWarpX_PSATD:BOOL={0}'.format(
+                'ON' if '+psatd' in spec else 'OFF'),
+            '-DWarpX_QED:BOOL={0}'.format(
+                'ON' if '+qed' in spec else 'OFF'),
+            '-DWarpX_QED_TABLE_GEN:BOOL={0}'.format(
+                'ON' if '+qedtablegen' in spec else 'OFF'),
+        ]
 
-    def edit(self, spec, prefix):
-        comp = 'gcc'
-        vendors = {'%gcc': 'gcc', '%intel': 'intel',
-                   '%apple-clang': 'llvm', '%clang': 'llvm'}
-        for key, value in vendors.items():
-            if self.spec.satisfies(key):
-                comp = value
+        return args
 
-        # Returns the string TRUE or FALSE
-        torf = lambda s: repr(s in spec).upper()
-
-        try:
-            self.compiler.openmp_flag
-        except UnsupportedCompilerFlag:
-            use_omp = 'FALSE'
-        else:
-            use_omp = torf('backend=openmp')
-
-        makefile = FileFilter('GNUmakefile')
-        makefile.filter('AMREX_HOME .*', 'AMREX_HOME = amrex')
-        makefile.filter('PICSAR_HOME .*', 'PICSAR_HOME = picsar')
-        makefile.filter('COMP .*', 'COMP = {0}'.format(comp))
-        makefile.filter('USE_MPI .*',
-                        'USE_MPI = {0}'.format(torf('+mpi')))
-        if 'dims=rz' in spec:
-            makefile.filter('USE_RZ .*', 'USE_RZ = TRUE')
-        else:
-            makefile.filter('DIM .*', 'DIM = {0}'.format(
-                int(spec.variants['dims'].value)))
-        makefile.filter('USE_PSATD .*',
-                        'USE_PSATD = {0}'.format(torf('+psatd')))
-        makefile.filter('USE_OMP .*',
-                        'USE_OMP = {0}'.format(use_omp))
-        makefile.filter('USE_GPU .*',
-                        'USE_GPU = {0}'.format(torf('backend=cuda')))
-        makefile.filter('USE_HIP .*',
-                        'USE_HIP = {0}'.format(torf('backend=hip')))
-        makefile.filter('USE_OPENPMD .*',
-                        'USE_OPENPMD = {0}'.format(torf('+openpmd')))
-        makefile.filter('USE_ASCENT_INSITU .*',
-                        'USE_ASCENT_INSITU = {0}'.format(torf('+ascent')))
-        makefile.filter('DEBUG .*',
-                        'DEBUG = {0}'.format(torf('+debug')))
-        makefile.filter('TINY_PROFILE .*',
-                        'TINY_PROFILE = {0}'.format(torf('+tprof')))
-        makefile.filter('EBASE .*', 'EBASE = warpx')
-
-    def setup_build_environment(self, env):
-        # --- Fool the compiler into using the "unknown" configuration.
-        # --- With this, it will use the spack provided mpi.
-        env.set('HOSTNAME', 'unknown')
-        env.set('NERSC_HOST', 'unknown')
-
-    def install(self, spec, prefix):
-        make('WarpxBinDir = {0}'.format(prefix.bin), 'all')
+    @property
+    def libs(self):
+        libsuffix = {'2': '2d', '3': '3d', 'rz': 'rz'}
+        dims = self.spec.variants['dims'].value
+        return find_libraries(
+            ['libwarpx.' + libsuffix[dims]], root=self.prefix, recursive=True,
+            shared=True
+        )

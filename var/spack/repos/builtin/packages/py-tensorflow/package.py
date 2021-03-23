@@ -155,7 +155,9 @@ class PyTensorflow(Package, CudaPackage):
     depends_on('py-google-pasta@0.1.8:', type=('build', 'run'), when='@2.1:2.3')
     depends_on('py-google-pasta@0.1.6:', type=('build', 'run'), when='@1.14:2.0')
     depends_on('py-google-pasta@0.1.2:', type=('build', 'run'), when='@1.12.1')
-    depends_on('py-h5py@2.10.0:2.10.999', type=('build', 'run'), when='@2.2:')
+    # propagate the mpi variant setting for h5py/hdf5 to avoid unexpected crashes
+    depends_on('py-h5py@2.10.0:2.10.999', type=('build', 'run'), when='@2.2:+mpi')
+    depends_on('py-h5py~mpi@2.10.0:2.10.999', type=('build', 'run'), when='@2.2:~mpi')
     depends_on('py-keras-applications@1.0.8:', type=('build', 'run'), when='@1.15:2.1')
     depends_on('py-keras-applications@1.0.6:', type=('build', 'run'), when='@1.12:1.14')
     depends_on('py-keras-applications@1.0.5:', type=('build', 'run'), when='@1.11.0:1.11.999')
@@ -546,7 +548,7 @@ class PyTensorflow(Package, CudaPackage):
         #       ])
         #       to not be nfs. This is only valid for Linux and we'd like to
         #       stay at least also OSX compatible
-        tmp_path = tempfile.mkdtemp(dir='/tmp', prefix='spack')
+        tmp_path = tempfile.mkdtemp(prefix='spack')
         env.set('TEST_TMPDIR', tmp_path)
 
         env.set('TF_SYSTEM_LIBS', 'com_google_protobuf')

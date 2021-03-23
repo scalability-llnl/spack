@@ -28,3 +28,9 @@ class Kmod(AutotoolsPackage):
     def autoreconf(self, spec, prefix):
         bash = which("bash")
         bash('autogen.sh')
+
+    def configure_args(self):
+        args = ["--with-bashcompletiondir=" +
+                join_path(self.spec['kmod'].prefix, 'share',
+                          'bash-completion', 'completions')]
+        return args

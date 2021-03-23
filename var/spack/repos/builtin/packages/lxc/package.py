@@ -31,3 +31,9 @@ class Lxc(AutotoolsPackage):
     depends_on('automake', type='build')
     depends_on('libtool',  type='build')
     depends_on('m4',       type='build')
+
+    def configure_args(self):
+        args = ["bashcompdir=" +
+                join_path(self.spec['lxc'].prefix, 'share',
+                          'bash-completion', 'completions')]
+        return args

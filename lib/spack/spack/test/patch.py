@@ -124,9 +124,9 @@ def test_patch_order(mock_packages, config):
     spec = Spec('dep-diamond-patch-top')
     spec.concretize()
 
-    mid2_sha256 = 'mid21234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234'  # noqa: E501
-    mid1_sha256 = '0b62284961dab49887e31319843431ee5b037382ac02c4fe436955abef11f094'  # noqa: E501
-    top_sha256 = 'f7de2947c64cb6435e15fb2bef359d1ed5f6356b2aebb7b20535e3772904e6db'  # noqa: E501
+    mid2_sha256 = 'mid21234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234'
+    mid1_sha256 = '0b62284961dab49887e31319843431ee5b037382ac02c4fe436955abef11f094'
+    top_sha256 = 'f7de2947c64cb6435e15fb2bef359d1ed5f6356b2aebb7b20535e3772904e6db'
 
     dep = spec['patch']
     patch_order = dep.variants['patches']._patches_in_order_of_appearance
@@ -328,9 +328,25 @@ def test_write_and_read_sub_dags_with_patched_deps(mock_packages, config):
         spec.package.package_dir)
 
 
-def test_file_patch_no_file():
+def test_patch_no_file():
+    # Give it the attributes we need to construct the error message
+    FakePackage = collections.namedtuple(
+        'FakePackage', ['name', 'namespace', 'fullname'])
+    fp = FakePackage('fake-package', 'test', 'fake-package')
+    with pytest.raises(ValueError, match='FilePatch:'):
+        spack.patch.FilePatch(fp, 'nonexistent_file', 0, '')
+
+    patch = spack.patch.Patch(fp, 'nonexistent_file', 0, '')
+    patch.path = 'test'
+    with pytest.raises(spack.patch.NoSuchPatchError, match='No such patch:'):
+        patch.apply('')
+
+
+@pytest.mark.parametrize('level', [-1, 0.0, '1'])
+def test_invalid_level(level):
     # Give it the attributes we need to construct the error message
     FakePackage = collections.namedtuple('FakePackage', ['name', 'namespace'])
     fp = FakePackage('fake-package', 'test')
-    with pytest.raises(ValueError, match=r'FilePatch:.*'):
-        spack.patch.FilePatch(fp, 'nonexistent_file', 0, '')
+    with pytest.raises(ValueError,
+                       match='Patch level needs to be a non-negative integer.'):
+        spack.patch.Patch(fp, 'nonexistent_file', level, '')

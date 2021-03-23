@@ -16,6 +16,7 @@ class DocbookXml(Package):
     list_depth = 1
 
     version('4.5', sha256='4e4e037a2b83c98c6c94818390d4bdd3f6e10f6ec62dd79188594e26190dc7b4')
+    version('4.3', sha256='23068a94ea6fd484b004c5a73ec36a66aa47ea8f0d6b62cc1695931f5c143464')
 
     def install(self, spec, prefix):
         install_tree('.', prefix)

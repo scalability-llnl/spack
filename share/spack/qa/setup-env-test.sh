@@ -109,7 +109,6 @@ succeeds spack -m load b
 fails spack -m load -l
 # test a variable MacOS clears and one it doesn't for recursive loads
 contains "export LD_LIBRARY_PATH=$(spack -m location -i a)/lib:$(spack -m location -i b)/lib" spack -m load --sh a
-contains "export LIBRARY_PATH=$(spack -m location -i a)/lib:$(spack -m location -i b)/lib" spack -m load --sh a
 succeeds spack -m load --only dependencies a
 succeeds spack -m load --only package a
 fails spack -m load d

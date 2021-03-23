@@ -1,0 +1,108 @@
+diff --git a/src_cpp/EXT/EXT_benchmark.cpp b/src_cpp/EXT/EXT_benchmark.cpp
+index b5179ca..62abd64 100644
+--- a/src_cpp/EXT/EXT_benchmark.cpp
++++ b/src_cpp/EXT/EXT_benchmark.cpp
+@@ -70,9 +70,10 @@ extern "C" {
+ 
+ using namespace std;
+ 
+-#define BENCHMARK(BMRK_FN, BMRK_NAME) template class OriginalBenchmark<BenchmarkSuite<BS_EXT>, BMRK_FN>; \
+-DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_EXT>, BMRK_FN>), BMRK_NAME) \
++#define BENCHMARK(BMRK_FN, BMRK_NAME) \
+ template<> smart_ptr<Bmark_descr> OriginalBenchmark<BenchmarkSuite<BS_EXT>, BMRK_FN>::descr = NULL; \
++DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_EXT>, BMRK_FN>), BMRK_NAME) \
++template class OriginalBenchmark<BenchmarkSuite<BS_EXT>, BMRK_FN>; \
+ template<> bool OriginalBenchmark<BenchmarkSuite<BS_EXT>, BMRK_FN>::init_description() 
+ 
+ BENCHMARK(IMB_window, Window)
+diff --git a/src_cpp/IO/IO_benchmark.cpp b/src_cpp/IO/IO_benchmark.cpp
+index 6a99612..27f9771 100644
+--- a/src_cpp/IO/IO_benchmark.cpp
++++ b/src_cpp/IO/IO_benchmark.cpp
+@@ -70,9 +70,10 @@ extern "C" {
+ 
+ using namespace std;
+ 
+-#define BENCHMARK(BMRK_FN, BMRK_NAME) template class OriginalBenchmark<BenchmarkSuite<BS_IO>, BMRK_FN>; \
+-DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_IO>, BMRK_FN>), BMRK_NAME) \
++#define BENCHMARK(BMRK_FN, BMRK_NAME) \
+ template<> smart_ptr<Bmark_descr> OriginalBenchmark<BenchmarkSuite<BS_IO>, BMRK_FN>::descr = NULL; \
++DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_IO>, BMRK_FN>), BMRK_NAME) \
++template class OriginalBenchmark<BenchmarkSuite<BS_IO>, BMRK_FN>; \
+ template<> bool OriginalBenchmark<BenchmarkSuite<BS_IO>, BMRK_FN>::init_description() 
+ 
+ BENCHMARK(IMB_write_indv, S_Write_Indv)
+diff --git a/src_cpp/MPI1/MPI1_benchmark.cpp b/src_cpp/MPI1/MPI1_benchmark.cpp
+index 9f7da65..57a6ceb 100644
+--- a/src_cpp/MPI1/MPI1_benchmark.cpp
++++ b/src_cpp/MPI1/MPI1_benchmark.cpp
+@@ -70,10 +70,11 @@ extern "C" {
+ 
+ using namespace std;
+ 
+-#define BENCHMARK(BMRK_FN, BMRK_NAME) template class OriginalBenchmark<BenchmarkSuite<BS_MPI1>, BMRK_FN>; \
+-DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_MPI1>, BMRK_FN>), BMRK_NAME) \
++#define BENCHMARK(BMRK_FN, BMRK_NAME) \
+ template<> smart_ptr<Bmark_descr> OriginalBenchmark<BenchmarkSuite<BS_MPI1>, BMRK_FN>::descr = NULL; \
+-template<> bool OriginalBenchmark<BenchmarkSuite<BS_MPI1>, BMRK_FN>::init_description() 
++DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_MPI1>, BMRK_FN>), BMRK_NAME) \
++template class OriginalBenchmark<BenchmarkSuite<BS_MPI1>, BMRK_FN>; \
++template<> bool OriginalBenchmark<BenchmarkSuite<BS_MPI1>, BMRK_FN>::init_description()
+ 
+ 
+ BENCHMARK(IMB_pingpong, PingPong)
+diff --git a/src_cpp/MT/MT_benchmark.cpp b/src_cpp/MT/MT_benchmark.cpp
+index 2378fbd..9041364 100644
+--- a/src_cpp/MT/MT_benchmark.cpp
++++ b/src_cpp/MT/MT_benchmark.cpp
+@@ -73,12 +73,14 @@ goods and services.
+         return OLDNAME(repeat, skip, in, out, count, type, comm, rank, size, idata, odata); \
+     }
+ 
+-#define DECLARE_INHERITED_BENCHMARKMT2(BS, FUNC, NAME) template class BenchmarkMT<BS, FUNC>; \
++#define DECLARE_INHERITED_BENCHMARKMT2(BS, FUNC, NAME) \
+     DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME3(BenchmarkMT<BS, FUNC>), NAME)                  \
++    template class BenchmarkMT<BS, FUNC>;                                                    \
+     template <> void BenchmarkMT<BS, FUNC >::init_flags()
+ 
+-#define DECLARE_INHERITED_BENCHMARKMT(BS, FUNC, NAME) template class BenchmarkMT<BS, FUNC>; \
++#define DECLARE_INHERITED_BENCHMARKMT(BS, FUNC, NAME) \
+     DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME2(BenchmarkMT<BS, FUNC>), NAME)                 \
++    template class BenchmarkMT<BS, FUNC>;                                                   \
+     template <> void BenchmarkMT<BS, FUNC >::init_flags()
+ 
+ 
+diff --git a/src_cpp/NBC/NBC_benchmark.cpp b/src_cpp/NBC/NBC_benchmark.cpp
+index 94548fd..fa9101d 100644
+--- a/src_cpp/NBC/NBC_benchmark.cpp
++++ b/src_cpp/NBC/NBC_benchmark.cpp
+@@ -70,9 +70,10 @@ extern "C" {
+ 
+ using namespace std;
+ 
+-#define BENCHMARK(BMRK_FN, BMRK_NAME) template class OriginalBenchmark<BenchmarkSuite<BS_NBC>, BMRK_FN>; \
+-DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_NBC>, BMRK_FN>), BMRK_NAME) \
++#define BENCHMARK(BMRK_FN, BMRK_NAME) \
+ template<> smart_ptr<Bmark_descr> OriginalBenchmark<BenchmarkSuite<BS_NBC>, BMRK_FN>::descr = NULL; \
++DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_NBC>, BMRK_FN>), BMRK_NAME) \
++template class OriginalBenchmark<BenchmarkSuite<BS_NBC>, BMRK_FN>; \
+ template<> bool OriginalBenchmark<BenchmarkSuite<BS_NBC>, BMRK_FN>::init_description() 
+ 
+ BENCHMARK(IMB_ibcast, Ibcast)
+diff --git a/src_cpp/RMA/RMA_benchmark.cpp b/src_cpp/RMA/RMA_benchmark.cpp
+index b33553a..1ed4ce9 100644
+--- a/src_cpp/RMA/RMA_benchmark.cpp
++++ b/src_cpp/RMA/RMA_benchmark.cpp
+@@ -70,9 +70,10 @@ extern "C" {
+ 
+ using namespace std;
+ 
+-#define BENCHMARK(BMRK_FN, BMRK_NAME) template class OriginalBenchmark<BenchmarkSuite<BS_RMA>, BMRK_FN>; \
+-DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_RMA>, BMRK_FN>), BMRK_NAME) \
++#define BENCHMARK(BMRK_FN, BMRK_NAME) \
+ template<> smart_ptr<Bmark_descr> OriginalBenchmark<BenchmarkSuite<BS_RMA>, BMRK_FN>::descr = NULL; \
++DECLARE_INHERITED_TEMPLATE(GLUE_TYPENAME(OriginalBenchmark<BenchmarkSuite<BS_RMA>, BMRK_FN>), BMRK_NAME) \
++template class OriginalBenchmark<BenchmarkSuite<BS_RMA>, BMRK_FN>; \
+ template<> bool OriginalBenchmark<BenchmarkSuite<BS_RMA>, BMRK_FN>::init_description() 
+ 
+ 

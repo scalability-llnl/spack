@@ -19,3 +19,4 @@ class Dbow2(CMakePackage):
     depends_on('opencv+calib3d+core+features2d+highgui+imgproc')
     depends_on('boost')
     depends_on('dlib')
+    depends_on('eigen', type='link')

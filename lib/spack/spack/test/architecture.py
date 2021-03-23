@@ -6,6 +6,7 @@
 """ Test checks if the architecture class is created correctly and also that
     the functions are looking for the correct architecture name
 """
+import itertools
 import os
 import platform as py_platform
 
@@ -116,20 +117,26 @@ def test_user_defaults(config):
     assert default_target == default_spec.architecture.target
 
 
-@pytest.mark.parametrize('operating_system', [
-    x for x in spack.architecture.platform().operating_sys
-] + ["fe", "be", "frontend", "backend"])
-@pytest.mark.parametrize('target', [
-    x for x in spack.architecture.platform().targets
-] + ["fe", "be", "frontend", "backend"])
-def test_user_input_combination(config, operating_system, target):
-    platform = spack.architecture.platform()
-    spec = Spec("libelf os=%s target=%s" % (operating_system, target))
-    spec.concretize()
-    assert spec.architecture.os == str(
-        platform.operating_system(operating_system)
-    )
-    assert spec.architecture.target == platform.target(target)
+def test_user_input_combination(config):
+    valid_keywords = ["fe", "be", "frontend", "backend"]
+
+    possible_targets = ([x for x in spack.architecture.platform().targets]
+                        + valid_keywords)
+
+    possible_os = ([x for x in spack.architecture.platform().operating_sys]
+                   + valid_keywords)
+
+    for target, operating_system in itertools.product(
+        possible_targets, possible_os
+    ):
+        platform = spack.architecture.platform()
+        spec_str = "libelf os={0} target={1}".format(operating_system, target)
+        spec = Spec(spec_str)
+        spec.concretize()
+        assert spec.architecture.os == str(
+            platform.operating_system(operating_system)
+        )
+        assert spec.architecture.target == platform.target(target)
 
 
 def test_operating_system_conversion_to_dict():

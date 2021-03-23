@@ -1,0 +1,20 @@
+--- a/cqrlib.h	2021-01-27 16:52:35.771183668 +0900
++++ b/cqrlib.h	2021-01-27 16:53:22.371528465 +0900
+@@ -573,7 +573,7 @@
+ {
+     CPPQR vquat( 0.0, v[0], v[1], v[2] );
+     const CPPQR wquat = (*this)*vquat;
+-    const CPPQR qconj = *this.Conjugate( );
++    const CPPQR qconj = (*this).Conjugate();
+     vquat = wquat * qconj;
+     w[0] = vquat.x; w[1] = vquat.y; w[2] = vquat.z;
+     return;
+@@ -583,7 +583,7 @@
+ {
+     CPPQR vquat( 0.0, v[0], v[1], v[2] );
+     const CPPQR wquat = (*this)*vquat;
+-    const CPPQR qconj = *this.Conjugate( );
++    const CPPQR qconj = (*this).Conjugate();
+     vquat = wquat * qconj;
+     return VectorType(vquat.x, vquat.y, vquat.z);
+ }

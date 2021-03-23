@@ -1,0 +1,21 @@
+diff -Naur h5py-3.1.0/setup.py h5py-3.1.0.patch/setup.py
+--- h5py-3.1.0/setup.py	2020-11-06 14:25:11.000000000 +0000
++++ h5py-3.1.0.patch/setup.py	2021-03-04 20:12:19.913405154 +0000
+@@ -49,14 +49,14 @@
+     f"Cython >=0.29; python_version<'3.8'",
+     f"Cython >=0.29.14; python_version>='3.8'",
+ ] + [
+-    f"numpy =={np_min}; python_version{py_condition}"
++    f"numpy >={np_min}; python_version{py_condition}"
+     for np_min, py_condition in NUMPY_MIN_VERSIONS
+ ]
+ 
+ if setup_configure.mpi_enabled():
+     RUN_REQUIRES.append('mpi4py >=3.0.0')
+-    SETUP_REQUIRES.append("mpi4py ==3.0.0; python_version<'3.8'")
+-    SETUP_REQUIRES.append("mpi4py ==3.0.3; python_version>='3.8'")
++    SETUP_REQUIRES.append("mpi4py >=3.0.0; python_version<'3.8'")
++    SETUP_REQUIRES.append("mpi4py >=3.0.3; python_version>='3.8'")
+ 
+ # Set the environment variable H5PY_SETUP_REQUIRES=0 if we need to skip
+ # setup_requires for any reason.

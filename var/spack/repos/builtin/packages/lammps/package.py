@@ -21,6 +21,8 @@ class Lammps(CMakePackage, CudaPackage):
     tags = ['ecp', 'ecp-apps']
 
     version('master', branch='master')
+    version('20210310', sha256='25708378dbeccf794bc5045aceb84380bf4a3ca03fc8e5d150a26ca88d371474')
+    version('20201029', sha256='759705e16c1fedd6aa6e07d028cc0c78d73c76b76736668420946a74050c3726')
     version('20200721', sha256='845bfeddb7b667799a1a5dbc166b397d714c3d2720316604a979d3465b4190a9')
     version('20200630', sha256='413cbfabcc1541a339c7a4ab5693fbeb768f46bb1250640ba94686c6e90922fc')
     version('20200505', sha256='c49d77fd602d28ebd8cf10f7359b9fc4d14668c72039028ed7792453d416de73')
@@ -87,6 +89,8 @@ class Lammps(CMakePackage, CudaPackage):
             description='Build with png support')
     variant('ffmpeg', default=True,
             description='Build with ffmpeg support')
+    variant('kim', default=True,
+            description='Build with KIM support')
     variant('openmp', default=True, description='Build with OpenMP')
     variant('opencl', default=False, description='Build with OpenCL')
     variant('exceptions', default=False,
@@ -114,6 +118,7 @@ class Lammps(CMakePackage, CudaPackage):
     depends_on('mpi', when='+user-h5md')
     depends_on('hdf5', when='+user-h5md')
     depends_on('jpeg', when='+jpeg')
+    depends_on('kim-api', when='+kim')
     depends_on('libpng', when='+png')
     depends_on('ffmpeg', when='+ffmpeg')
     depends_on('kokkos+deprecated_code+shared@3.0', when='@20200303+kokkos')
@@ -152,6 +157,9 @@ class Lammps(CMakePackage, CudaPackage):
 
     patch("lib.patch", when="@20170901")
     patch("660.patch", when="@20170922")
+    patch("https://github.com/lammps/lammps/commit/562300996285fdec4ef74542383276898555af06.patch",
+          sha256="7e1610dad4d8203b45ca6dc2c1f97d02a40f98a5e9778f51a3dbcc30ea1dc717",
+          when="@20200721 +cuda")
 
     root_cmakelists_dir = 'cmake'
 
@@ -205,6 +213,8 @@ class Lammps(CMakePackage, CudaPackage):
                 args.append('{0}=ON'.format(opt))
             else:
                 args.append('{0}=OFF'.format(opt))
+        if '+kim' in spec:
+            args.append('-DPKG_KIM=ON')
         if '+kspace' in spec:
             if '^fftw' in spec:
                 args.append('-DFFT=FFTW3')

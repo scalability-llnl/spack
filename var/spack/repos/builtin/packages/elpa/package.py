@@ -29,7 +29,6 @@ class Elpa(AutotoolsPackage, CudaPackage):
     version('2015.11.001', sha256='c0761a92a31c08a4009c9688c85fc3fc8fde9b6ce05e514c3e1587cf045e9eba')
 
     variant('openmp', default=False, description='Activates OpenMP support')
-    variant('optflags', default=True, description='Build with optimization flags')
 
     depends_on('mpi')
     depends_on('blas')
@@ -88,10 +87,18 @@ class Elpa(AutotoolsPackage, CudaPackage):
         if not any(f in spec.target for f in simd_features):
             options.append('--enable-generic')
 
-        if '+optflags' in spec:
+        if self.compiler.name == "gcc":
+            gcc_options = []
+            gfortran_options = ['-ffree-line-length-none']
+
+            if self.compiler.version >= Version("10.0.0") \
+               and spec.version <= Version("2019.11.001"):
+                gfortran_options.append('-fallow-argument-mismatch')
+
+            space_separator = ' '
             options.extend([
-                'FCFLAGS=-O2 -ffree-line-length-none',
-                'CFLAGS=-O2'
+                'CFLAGS=' + space_separator.join(gcc_options),
+                'FCFLAGS=' + space_separator.join(gfortran_options),
             ])
 
         if '%aocc' in spec:

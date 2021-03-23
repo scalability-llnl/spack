@@ -31,6 +31,11 @@ class NcclTests(MakefilePackage, CudaPackage):
             targets.append('MPI=1')
         return targets
 
+    def setup_build_environment(self, env):
+        cuda_arch = self.spec.variants["cuda_arch"].value
+        cuda_gencode = " ".join(self.cuda_flags(cuda_arch))
+        env.set("NVCC_GENCODE", cuda_gencode)
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install_tree('./build', prefix.bin)

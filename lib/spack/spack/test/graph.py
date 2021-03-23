@@ -122,3 +122,12 @@ o  dyninst
 |/
 o  libelf
 '''
+
+
+def test_topo_sort_filtered(mock_packages):
+    """Test topo sort gives correct order when filtering link deps."""
+    s = Spec('both-link-and-build-dep-a').normalized()
+
+    topo = topological_sort(s, deptype=('link',))
+
+    assert topo == ['both-link-and-build-dep-a', 'both-link-and-build-dep-c']

@@ -1,0 +1,60 @@
+stages: [generate, build]
+
+.generate:
+  stage: generate
+  script:
+    - . "./share/spack/setup-env.sh"
+    - spack --version
+    - cd share/spack/gitlab/cloud_e4s_pipelines/stacks/e4s
+    - spack env activate --without-view .
+    - spack ci generate --check-index-only
+      --output-file "${CI_PROJECT_DIR}/jobs_scratch_dir/e4s_pipeline.yml"
+  artifacts:
+    paths:
+      - "${CI_PROJECT_DIR}/jobs_scratch_dir/e4s_pipeline.yml"
+  tags: ["spack", "public", "medium", "x86_64"]
+  interruptible: true
+
+e4s-pr-generate:
+  only:
+  - /^github\/pr[\d]+_.*$/
+  extends: .generate
+  before_script:
+    - export SPACK_PR_BRANCH=${CI_COMMIT_REF_NAME}
+    - export SPACK_IS_PR_PIPELINE="True"
+  image: { "name": "ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01", "entrypoint": [""] }
+
+e4s-develop-generate:
+  only:
+  - /^github\/develop$/
+  extends: .generate
+  image: { "name": "ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01", "entrypoint": [""] }
+
+e4s-pr-build:
+  only:
+  - /^github\/pr[\d]+_.*$/
+  stage: build
+  trigger:
+    include:
+      - artifact: "jobs_scratch_dir/e4s_pipeline.yml"
+        job: e4s-pr-generate
+    strategy: depend
+  variables:
+    AWS_ACCESS_KEY_ID: ${PR_MIRRORS_AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${PR_MIRRORS_AWS_SECRET_ACCESS_KEY}
+    SPACK_PR_BRANCH: ${CI_COMMIT_REF_NAME}
+    SPACK_IS_PR_PIPELINE: "True"
+
+e4s-develop-build:
+  only:
+  - /^github\/develop$/
+  stage: build
+  trigger:
+    include:
+      - artifact: "jobs_scratch_dir/e4s_pipeline.yml"
+        job: e4s-develop-generate
+    strategy: depend
+  variables:
+    AWS_ACCESS_KEY_ID: ${MIRRORS_AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${MIRRORS_AWS_SECRET_ACCESS_KEY}
+    SPACK_SIGNING_KEY: ${PACKAGE_SIGNING_KEY}

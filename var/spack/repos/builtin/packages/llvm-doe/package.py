@@ -37,6 +37,11 @@ class LlvmDoe(CMakePackage, CudaPackage):
         description="Build the LLVM C/C++/Objective-C compiler frontend",
     )
     variant(
+        "flang",
+        default=False,
+        description="Build the LLVM Fortran compiler frontend",
+    )
+    variant(
         "omp_debug",
         default=False,
         description="Include debugging code in OpenMP runtime libraries",
@@ -154,6 +159,8 @@ class LlvmDoe(CMakePackage, CudaPackage):
 
     conflicts("+mlir")
 
+    conflicts("+flang", when="~clang")
+
     # code signing is only necessary on macOS",
     conflicts('+code_signing', when='platform=linux')
     conflicts('+code_signing', when='platform=cray')
@@ -189,7 +196,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
     # detection for LLVM. See:
     #
     # https://spack.readthedocs.io/en/latest/packaging_guide.html#making-a-package-discoverable-with-spack-external-find
-    executables = ['clang', 'ld.lld', 'lldb']
+    executables = ['clang', 'flang', 'ld.lld', 'lldb']
 
     @classmethod
     def filter_detected_exes(cls, prefix, exes_in_prefix):
@@ -242,6 +249,10 @@ class LlvmDoe(CMakePackage, CudaPackage):
                 compilers['cxx'] = exe
             elif 'clang' in exe:
                 compilers['c'] = exe
+            elif 'flang' in exe:
+                variants.append('+flang')
+                compiler['fc'] = exe
+                compilers['f77'] = exe
             elif 'ld.lld' in exe:
                 lld_found = True
                 compilers['ld'] = exe
@@ -287,6 +298,28 @@ class LlvmDoe(CMakePackage, CudaPackage):
             result = os.path.join(self.spec.prefix.bin, 'clang++')
         return result
 
+    @property
+    def fc(self):
+        msg = "cannot retrieve Fortran compiler [spec is not concrete]"
+        assert self.spec.concrete, msg
+        if self.spec.external:
+            return self.spec.extra_attributes['compilers'].get('fc', None)
+        result = None
+        if '+flang' in self.spec:
+            result = os.path.join(self.spec.prefix.bin, 'flang')
+        return result
+
+    @property
+    def f77(self):
+        msg = "cannot retrieve Fortran 77 compiler [spec is not concrete]"
+        assert self.spec.concrete, msg
+        if self.spec.external:
+            return self.spec.extra_attributes['compilers'].get('f77', None)
+        result = None
+        if '+flang' in self.spec:
+            result = os.path.join(self.spec.prefix.bin, 'flang')
+        return result
+
     @run_before('cmake')
     def codesign_check(self):
         if self.spec.satisfies("+code_signing"):
@@ -320,6 +353,9 @@ class LlvmDoe(CMakePackage, CudaPackage):
         if "+clang" in self.spec:
             env.set("CC", join_path(self.spec.prefix.bin, "clang"))
             env.set("CXX", join_path(self.spec.prefix.bin, "clang++"))
+        if "+flang" in self.spec:
+            env.set("FC", join_path(self.spec.prefix.bin, "flang"))
+            env.set("F77", join_path(self.spec.prefix.bin, "flang"))
 
     root_cmakelists_dir = "llvm"
 
@@ -374,12 +410,12 @@ class LlvmDoe(CMakePackage, CudaPackage):
         if "+python" in spec and "+lldb" in spec:
             cmake_args.append("-DLLDB_USE_SYSTEM_SIX:Bool=TRUE")
 
+        if "+lldb" in spec and spec.satisfies("@10.0.0:,doe"):
+            cmake_args.append("-DLLDB_ENABLE_PYTHON:Bool={0}".format(
+                'ON' if '+python' in spec else 'OFF'))
         if "+lldb" in spec and spec.satisfies("@:9.9.9"):
             cmake_args.append("-DLLDB_DISABLE_PYTHON:Bool={0}".format(
                 'ON' if '~python' in spec else 'OFF'))
-        if "+lldb" in spec and spec.satisfies("@10.0.0:"):
-            cmake_args.append("-DLLDB_ENABLE_PYTHON:Bool={0}".format(
-                'ON' if '+python' in spec else 'OFF'))
 
         if "+gold" in spec:
             cmake_args.append(
@@ -390,6 +426,8 @@ class LlvmDoe(CMakePackage, CudaPackage):
             projects.append("clang")
             projects.append("clang-tools-extra")
             projects.append("openmp")
+        if "+flang" in spec:
+            projects.append("flang")
         if "+lldb" in spec:
             projects.append("lldb")
         if "+lld" in spec:

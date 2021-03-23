@@ -8,6 +8,7 @@
 import ordereddict_backport
 
 import spack.util.naming
+import spack.provider_index
 from spack.dependency import Dependency
 from spack.spec import Spec
 from spack.version import Version
@@ -80,6 +81,8 @@ class MockPackageMultiRepo(object):
 
     def __init__(self):
         self.spec_to_pkg = {}
+        self.namespace = ''
+        self.full_namespace = 'spack.pkg.mock'
 
     def get(self, spec):
         if not isinstance(spec, spack.spec.Spec):
@@ -171,3 +174,7 @@ class MockPackageMultiRepo(object):
         self.spec_to_pkg["mockrepo." + name] = mock_package
 
         return mock_package
+
+    @property
+    def provider_index(self):
+        return spack.provider_index.ProviderIndex()

@@ -159,7 +159,13 @@ class Boost(Package):
             description='Default symbol visibility in compiled libraries '
             '(1.69.0 or later)')
 
+    # Unicode support
     depends_on('icu4c', when='+icu')
+    depends_on('icu4c cxxstd=11', when='+icu cxxstd=11')
+    depends_on('icu4c cxxstd=14', when='+icu cxxstd=14')
+    depends_on('icu4c cxxstd=17', when='+icu cxxstd=17')
+    conflicts('cxxstd=98', when='+icu')  # Requires c++11 at least
+
     depends_on('python', when='+python')
     depends_on('mpi', when='+mpi')
     depends_on('bzip2', when='+iostreams')
@@ -260,6 +266,11 @@ class Boost(Package):
     # See https://github.com/boostorg/python/pull/218
     patch('boost_218.patch', when='@1.63.0:1.67.99')
 
+    # Fix B2 bootstrap toolset during installation
+    # See https://github.com/spack/spack/issues/20757
+    # and https://github.com/spack/spack/pull/21408
+    patch("bootstrap-toolset.patch", when="@1.75:")
+
     def patch(self):
         # Disable SSSE3 and AVX2 when using the NVIDIA compiler
         if self.spec.satisfies('%nvhpc'):
@@ -326,6 +337,11 @@ class Boost(Package):
         if '+python' in spec:
             options.append('--with-python=%s' % spec['python'].command.path)
 
+        if '+icu' in spec:
+            options.append('--with-icu')
+        else:
+            options.append('--without-icu')
+
         with open('user-config.jam', 'w') as f:
             # Boost may end up using gcc even though clang+gfortran is set in
             # compilers.yaml. Make sure this does not happen:
@@ -361,8 +377,10 @@ class Boost(Package):
         else:
             options.append('variant=release')
 
-        if '+icu_support' in spec:
-            options.extend(['-s', 'ICU_PATH=%s' % spec['icu'].prefix])
+        if '+icu' in spec:
+            options.extend(['-s', 'ICU_PATH=%s' % spec['icu4c'].prefix])
+        else:
+            options.append('--disable-icu')
 
         if '+iostreams' in spec:
             options.extend([
@@ -527,7 +545,7 @@ class Boost(Package):
 
         threading_opts = self.determine_b2_options(spec, b2_options)
 
-        b2('--clean')
+        b2('--clean', *b2_options)
 
         # In theory it could be done on one call but it fails on
         # Boost.MPI if the threading options are not separated.

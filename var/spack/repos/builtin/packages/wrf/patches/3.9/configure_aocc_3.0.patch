@@ -1,0 +1,53 @@
+--- WRF-3.9.1.1/arch/configure_new.defaults	2021-03-10 10:08:07.885236847 +0530
++++ WRF-3.9.1.1/arch/configure_new_aocc.defaults	2021-03-13 18:30:42.191344515 +0530
+@@ -1917,6 +1917,50 @@
+ CC_TOOLS        =      $(SCC) 
+ 
+ #insert new stanza here
++#############################################################
++#ARCH    AMD EPYC Linux x86_64 AOCC Compilers #dm+sm
++#
++DESCRIPTION     =       AMD AOCC ($SFC/$SCC): EPYC
++DMPARALLEL      =       1
++OMPCPP          =       -D_OPENMP
++OMP             =       -fopenmp
++OMPCC           =       -fopenmp -Mpreprocess
++SFC             =       flang
++SCC             =       clang
++CCOMP           =       clang
++DM_FC           =       mpif90 -DMPI2_SUPPORT
++DM_CC           =       mpicc -DMPI2_SUPPORT
++FC              =       $(DM_FC)
++CC              =       $(DM_CC) -DFSEEKO64_OK
++LD              =       $(FC)
++RWORDSIZE       =       $(NATIVE_RWORDSIZE)
++PROMOTION       =
++ARCH_LOCAL      =       -DNONSTANDARD_SYSTEM_SUBR -DWRF_USE_CLM
++LIBMVEC         =       -mllvm -vector-library=LIBMVEC-X86 -mllvm -enable-boscc -Mstack_arrays
++AOCCOPT         =       -O3 -m64 -Ofast -ffast-math
++CFLAGS_LOCAL    =       -w $(AOCCOPT)
++LDFLAGS_LOCAL   =       -lm -ltirpc -lamdlibm  -ljemalloc -lmvec $(AOCCOPT)
++CPLUSPLUSLIB    =
++ESMF_LDFLAG     =       $(CPLUSPLUSLIB)
++FCOPTIM         =       $(AOCCOPT) -fopenmp
++FCREDUCEDOPT    =       -O2 -Ofast -ffast-math
++FCNOOPT         =       -O0 -DFCNOOPT -fopenmp
++FCDEBUG         =       #-g
++FORMAT_FIXED    =       -Mfixed
++FORMAT_FREE     =       -Mfreeform
++FCSUFFIX        =
++BYTESWAPIO      =       -Mbyteswapio
++FCBASEOPTS_NO_G =       $(FORMAT_FREE) $(BYTESWAPIO) -fopenmp
++FCBASEOPTS      =       $(FCBASEOPTS_NO_G) $(FCDEBUG) -DBASEOPTS -fopenmp
++MODULE_SRCH_FLAG =
++TRADFLAG        =       -traditional
++CPP             =       /lib/cpp -P
++AR              =       llvm-ar
++ARFLAGS         =       ru
++M4              =       m4
++RANLIB          =       llvm-ranlib
++RLFLAGS         =
++CC_TOOLS        =       $(SCC)
+ 
+ ###########################################################
+ #ARCH    Fujitsu FX10/FX100 Linux x86_64 SPARC64IXfx/SPARC64Xlfx, mpifrtpx and mpifccpx compilers #serial smpar dmpar dm+sm

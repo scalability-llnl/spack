@@ -37,17 +37,65 @@ version_satisfies(Package, Constraint)
 #defined version_satisfies/3.
 
 %-----------------------------------------------------------------------------
+% Spec conditions and imposed constraints
+%
+% Given Spack directives like these:
+%    depends_on("foo@1.0+bar", when="@2.0+variant")
+%    provides("mpi@2:", when="@1.9:")
+%
+% The conditions are `@2.0+variant` and `@1.9:`, and the imposed constraints
+% are `@1.0+bar` on `foo` and `@2:` on `mpi`.
+%-----------------------------------------------------------------------------
+% conditions are specified with `condition_requirement` and hold when
+% corresponding spec attributes hold.
+condition_holds(ID) :-
+  condition(ID);
+  attr(Name, A1)         : condition_requirement(ID, Name, A1);
+  attr(Name, A1, A2)     : condition_requirement(ID, Name, A1, A2);
+  attr(Name, A1, A2, A3) : condition_requirement(ID, Name, A1, A2, A3).
+
+% condition_holds(ID) implies all imposed_constraints, unless do_not_impose(ID)
+% is derived. This allows imposed constraints to be canceled in special cases.
+impose(ID) :- condition_holds(ID), not do_not_impose(ID).
+
+% conditions that hold impose constraints on other specs
+attr(Name, A1)         :- impose(ID), imposed_constraint(ID, Name, A1).
+attr(Name, A1, A2)     :- impose(ID), imposed_constraint(ID, Name, A1, A2).
+attr(Name, A1, A2, A3) :- impose(ID), imposed_constraint(ID, Name, A1, A2, A3).
+
+#defined condition/1.
+#defined condition_requirement/3.
+#defined condition_requirement/4.
+#defined condition_requirement/5.
+#defined imposed_constraint/3.
+#defined imposed_constraint/4.
+#defined imposed_constraint/5.
+
+%-----------------------------------------------------------------------------
 % Dependency semantics
 %-----------------------------------------------------------------------------
 % Dependencies of any type imply that one package "depends on" another
 depends_on(Package, Dependency) :- depends_on(Package, Dependency, _).
 
+% a dependency holds if its condition holds
+dependency_holds(Package, Dependency, Type) :-
+  dependency_condition(ID, Package, Dependency),
+  dependency_type(ID, Type),
+  condition_holds(ID),
+  not external(Package).
+
+% We cut off dependencies of externals (as we don't really know them).
+% Don't impose constraints on dependencies that don't exist.
+do_not_impose(ID) :-
+  not dependency_holds(Package, Dependency, _),
+  dependency_condition(ID, Package, Dependency).
+
 % declared dependencies are real if they're not virtual AND
-% the package is not an external
+% the package is not an external.
+% They're only triggered if the associated dependnecy condition holds.
 depends_on(Package, Dependency, Type)
- :- dependency_conditions(Package, Dependency, Type),
-    not virtual(Dependency),
-    not external(Package).
+ :- dependency_holds(Package, Dependency, Type),
+    not virtual(Dependency).
 
 % every root must be a node
 node(Package) :- root(Package).
@@ -69,74 +117,19 @@ path(Parent, Child) :- depends_on(Parent, Child).
 path(Parent, Descendant) :- path(Parent, A), depends_on(A, Descendant).
 :- path(A, B), path(B, A).
 
-%-----------------------------------------------------------------------------
-% Conditional dependencies
-%
-% This takes care of `when=SPEC` in `depends_on("foo@1.0+bar", when="SPEC")`.
-%-----------------------------------------------------------------------------
-% if any individual condition below is true, trigger the dependency.
-dependency_conditions(Package, Dependency, Type) :-
-  dependency_conditions_hold(ID, Package, Dependency),
-  dependency_type(ID, Type).
-
 #defined dependency_type/2.
-
-% collect all the dependency conditions into a single conditional rule
-% distinguishing between Parent and Package (Arg1) is needed to account
-% for conditions like:
-%
-% depends_on('patchelf@0.9', when='@1.0:1.1 ^python@:2')
-%
-% that include dependencies
-dependency_conditions_hold(ID, Parent, Dependency) :-
-  attr(Name, Arg1)             : required_dependency_condition(ID, Name, Arg1);
-  attr(Name, Arg1, Arg2)       : required_dependency_condition(ID, Name, Arg1, Arg2);
-  attr(Name, Arg1, Arg2, Arg3) : required_dependency_condition(ID, Name, Arg1, Arg2, Arg3);
-  dependency_condition(ID, Parent, Dependency);
-  % There must be at least a dependency type declared,
-  % otherwise the dependency doesn't hold
-  dependency_type(ID, _);
-  node(Parent);
-  not external(Parent).
-
 #defined dependency_condition/3.
-#defined required_dependency_condition/3.
-#defined required_dependency_condition/4.
-#defined required_dependency_condition/5.
-
-%-----------------------------------------------------------------------------
-% Imposed constraints on dependencies
-%
-% This handles the `@1.0+bar` in `depends_on("foo@1.0+bar", when="SPEC")`, or
-% the `mpi@2:` in `provides("mpi@2:", when="@1.9:")`.
-%-----------------------------------------------------------------------------
-% NOTE: `attr(Name, Arg1)` is omitted here b/c the only single-arg attribute is
-% NOTE: `node()`, which is handled above under "Dependency Semantics"
-
-attr(Name, Arg1, Arg2) :-
-  dependency_conditions_hold(ID, Package, Dependency),
-  imposed_dependency_condition(ID, Name, Arg1, Arg2).
-
-attr(Name, Arg1, Arg2, Arg3) :-
-  dependency_conditions_hold(ID, Package, Dependency),
-  imposed_dependency_condition(ID, Name, Arg1, Arg2, Arg3).
-
-#defined imposed_dependency_condition/4.
-#defined imposed_dependency_condition/5.
 
 %-----------------------------------------------------------------------------
 % Conflicts
 %-----------------------------------------------------------------------------
-:- not external(Package)        : conflict_condition(ID, "node", Package);
-   attr(Name, Arg1)             : conflict_condition(ID, Name, Arg1);
-   attr(Name, Arg1, Arg2)       : conflict_condition(ID, Name, Arg1, Arg2);
-   attr(Name, Arg1, Arg2, Arg3) : conflict_condition(ID, Name, Arg1, Arg2, Arg3);
-   conflict(ID, Package).
+:- node(Package),
+   not external(Package),
+   conflict(Package, TriggerID, ConstraintID),
+   condition_holds(TriggerID),
+   condition_holds(ConstraintID).
 
-#defined conflict/2.
-#defined conflict_condition/3.
-#defined conflict_condition/4.
-#defined conflict_condition/5.
+#defined conflict/3.
 
 %-----------------------------------------------------------------------------
 % Virtual dependencies
@@ -145,9 +138,14 @@ attr(Name, Arg1, Arg2, Arg3) :-
 % if a package depends on a virtual, it's not external and we have a
 % provider for that virtual then it depends on the provider
 depends_on(Package, Provider, Type)
-  :- dependency_conditions(Package, Virtual, Type),
+  :- dependency_holds(Package, Virtual, Type),
      provides_virtual(Provider, Virtual),
      not external(Package).
+
+% dependencies on virtuals also imply that the virtual is a virtual node
+virtual_node(Virtual)
+  :- dependency_holds(Package, Virtual, Type),
+     virtual(Virtual), not external(Package).
 
 % if there's a virtual node, we must select one provider
 1 { provides_virtual(Package, Virtual) : possible_provider(Package, Virtual) } 1
@@ -158,31 +156,20 @@ virtual_node(Virtual) :- virtual_root(Virtual).
 1 { root(Package) : provides_virtual(Package, Virtual) } 1
   :- virtual_root(Virtual).
 
-% all virtual providers come from provider conditions like this
-dependency_conditions_hold(ID, Provider, Virtual) :-
-  attr(Name, Arg1)             : required_provider_condition(ID, Name, Arg1);
-  attr(Name, Arg1, Arg2)       : required_provider_condition(ID, Name, Arg1, Arg2);
-  attr(Name, Arg1, Arg2, Arg3) : required_provider_condition(ID, Name, Arg1, Arg2, Arg3);
-  virtual(Virtual);
-  provider_condition(ID, Provider, Virtual).
-
 % The provider provides the virtual if some provider condition holds.
 provides_virtual(Provider, Virtual) :-
    provider_condition(ID, Provider, Virtual),
-   dependency_conditions_hold(ID, Provider, Virtual),
+   condition_holds(ID),
    virtual(Virtual).
 
 % a node that provides a virtual is a provider
 provider(Package, Virtual)
   :- node(Package), provides_virtual(Package, Virtual).
 
-% dependencies on virtuals also imply that the virtual is a virtual node
-virtual_node(Virtual)
-  :- dependency_conditions(Package, Virtual, Type),
-     virtual(Virtual), not external(Package).
-
 % for any virtual, there can be at most one provider in the DAG
 0 { node(Package) : provides_virtual(Package, Virtual) } 1 :- virtual(Virtual).
+
+#defined possible_provider/2.
 
 %-----------------------------------------------------------------------------
 % Virtual dependency weights
@@ -227,6 +214,7 @@ provider_weight(Package, 100)
     provider(Package, Virtual),
     not default_provider_preference(Virtual, Package, _).
 
+#defined possible_provider/2.
 #defined provider_condition/3.
 #defined required_provider_condition/3.
 #defined required_provider_condition/4.
@@ -307,32 +295,29 @@ external(Package) :- external_only(Package), node(Package).
 % a package is a real_node if it is not external
 real_node(Package) :- node(Package), not external(Package).
 
-% if an external version is selected, the package is external and
-% we are using the corresponding spec
-external(Package) :-
-    version(Package, Version), version_weight(Package, Weight),
-    external_version_declared(Package, Version, Weight, ID).
+% a package is external if we are using an external spec for it
+external(Package) :- external_spec_selected(Package, _).
+
+% we can't use the weight for an external version if we don't use the
+% corresponding external spec.
+:- version(Package, Version),
+   version_weight(Package, Weight),
+   external_version_declared(Package, Version, Weight, ID),
+   not external(Package).
 
 % determine if an external spec has been selected
-external_spec_selected(ID, Package, LocalIndex) :-
-    version(Package, Version), version_weight(Package, Weight),
-    external_spec_index(ID, Package, LocalIndex),
-    external_version_declared(Package, Version, Weight, LocalIndex),
-    external_spec_conditions_hold(ID, Package).
+external_spec_selected(Package, LocalIndex) :-
+    external_conditions_hold(Package, LocalIndex),
+    node(Package).
 
-% determine if all the conditions on an external spec hold. If they do
-% the spec can be selected.
-external_spec_conditions_hold(ID, Package) :-
-  attr(Name, Arg1)             : external_spec_condition(ID, Name, Arg1);
-  attr(Name, Arg1, Arg2)       : external_spec_condition(ID, Name, Arg1, Arg2);
-  attr(Name, Arg1, Arg2, Arg3) : external_spec_condition(ID, Name, Arg1, Arg2, Arg3);
-  external_spec(ID, Package);
-  node(Package).
+external_conditions_hold(Package, LocalIndex) :-
+    possible_external(ID, Package, LocalIndex), condition_holds(ID).
 
 % it cannot happen that a spec is external, but none of the external specs
 % conditions hold.
-:- external(Package), not external_spec_conditions_hold(_, Package).
+:- external(Package), not external_conditions_hold(Package, _).
 
+#defined possible_external/3.
 #defined external_spec_index/3.
 #defined external_spec_condition/3.
 #defined external_spec_condition/4.

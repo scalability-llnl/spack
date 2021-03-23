@@ -10,12 +10,12 @@ class Silo(AutotoolsPackage):
     """Silo is a library for reading and writing a wide variety of scientific
        data to binary, disk files."""
 
-    homepage = "http://wci.llnl.gov/simulation/computer-codes/silo"
-    url      = "https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/silo-4.10.2.tar.gz"
+    homepage = "https://wci.llnl.gov/simulation/computer-codes/silo"
+    url      = "https://wci.llnl.gov/sites/wci/files/2021-01/silo-4.10.2.tgz"
 
     version('4.10.2', sha256='3af87e5f0608a69849c00eb7c73b11f8422fa36903dd14610584506e7f68e638', preferred=True)
     version('4.10.2-bsd', sha256='4b901dfc1eb4656e83419a6fde15a2f6c6a31df84edfad7f1dc296e01b20140e',
-            url="https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/silo-4.10.2-bsd.tar.gz")
+            url="https://wci.llnl.gov/sites/wci/files/2021-01/silo-4.10.2-bsd.tgz")
     version('4.9', sha256='90f3d069963d859c142809cfcb034bc83eb951f61ac02ccb967fc8e8d0409854')
     version('4.8', sha256='c430c1d33fcb9bc136a99ad473d535d6763bd1357b704a915ba7b1081d58fb21')
 
@@ -28,12 +28,14 @@ class Silo(AutotoolsPackage):
     variant('mpi', default=True,
             description='Compile with MPI Compatibility')
 
+    depends_on('mpi', when='+mpi')
     depends_on('hdf5@:1.10.999', when='@:4.10.2')
     depends_on('hdf5~mpi', when='~mpi')
-    depends_on('mpi', when='+mpi')
     depends_on('hdf5+mpi', when='+mpi')
-    depends_on('qt~framework@4.8:4.9', when='+silex')
+    depends_on('qt+gui~framework@4.8:4.9', when='+silex')
     depends_on('libx11', when='+silex')
+    # Xmu dependency is required on Ubuntu 18-20
+    depends_on('libxmu', when='+silex')
     depends_on('readline')
     depends_on('zlib')
 
@@ -117,3 +119,10 @@ class Silo(AutotoolsPackage):
             config_args.append('FC=%s' % spec['mpi'].mpifc)
 
         return config_args
+
+    @property
+    def libs(self):
+        shared = "+shared" in self.spec
+        return find_libraries(
+            "libsilo*", root=self.prefix, shared=shared, recursive=True
+        )

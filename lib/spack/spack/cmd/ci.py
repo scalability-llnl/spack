@@ -17,6 +17,7 @@ import spack.cmd.buildcache as buildcache
 import spack.environment as ev
 import spack.hash_types as ht
 import spack.util.executable as exe
+import spack.util.url as url_util
 
 
 description = "manage continuous integration pipelines"
@@ -54,12 +55,37 @@ def setup_parser(subparser):
         '--dependencies', action='store_true', default=False,
         help="(Experimental) disable DAG scheduling; use "
              ' "plain" dependencies.')
+    prune_group = generate.add_mutually_exclusive_group()
+    prune_group.add_argument(
+        '--prune-dag', action='store_true', dest='prune_dag',
+        default=True, help="""Do not generate jobs for specs already up to
+date on the mirror""")
+    prune_group.add_argument(
+        '--no-prune-dag', action='store_false', dest='prune_dag',
+        default=True, help="""Generate jobs for specs already up to date
+on the mirror""")
+    generate.add_argument(
+        '--check-index-only', action='store_true', dest='index_only',
+        default=False, help="""Spack always check specs against configured
+binary mirrors when generating the pipeline, regardless of whether or not
+DAG pruning is enabled.  This flag controls whether it might attempt to
+fetch remote spec.yaml files directly (ensuring no spec is rebuilt if it is
+present on the mirror), or whether it should reduce pipeline generation time
+by assuming all remote buildcache indices are up to date and only use those
+to determine whether a given spec is up to date on mirrors.  In the latter
+case, specs might be needlessly rebuilt if remote buildcache indices are out
+of date.""")
     generate.set_defaults(func=ci_generate)
 
     # Check a spec against mirror. Rebuild, create buildcache and push to
     # mirror (if necessary).
     rebuild = subparsers.add_parser('rebuild', help=ci_rebuild.__doc__)
     rebuild.set_defaults(func=ci_rebuild)
+
+    # Rebuild the buildcache index associated with the mirror in the
+    # active, gitlab-enabled environment.
+    index = subparsers.add_parser('rebuild-index', help=ci_reindex.__doc__)
+    index.set_defaults(func=ci_reindex)
 
 
 def ci_generate(args):
@@ -75,6 +101,8 @@ def ci_generate(args):
     copy_yaml_to = args.copy_to
     run_optimizer = args.optimize
     use_dependencies = args.dependencies
+    prune_dag = args.prune_dag
+    index_only = args.index_only
 
     if not output_file:
         output_file = os.path.abspath(".gitlab-ci.yml")
@@ -86,7 +114,8 @@ def ci_generate(args):
 
     # Generate the jobs
     spack_ci.generate_gitlab_ci_yaml(
-        env, True, output_file, run_optimizer=run_optimizer,
+        env, True, output_file, prune_dag=prune_dag,
+        check_index_only=index_only, run_optimizer=run_optimizer,
         use_dependencies=use_dependencies)
 
     if copy_yaml_to:
@@ -131,6 +160,7 @@ def ci_rebuild(args):
     # SPACK_SIGNING_KEY
 
     ci_artifact_dir = get_env_var('CI_PROJECT_DIR')
+    ci_pipeline_id = get_env_var('CI_PIPELINE_ID')
     signing_key = get_env_var('SPACK_SIGNING_KEY')
     root_spec = get_env_var('SPACK_ROOT_SPEC')
     job_spec_pkg_name = get_env_var('SPACK_JOB_SPEC_PKG_NAME')
@@ -191,19 +221,28 @@ def ci_rebuild(args):
 
     spack_is_pr_pipeline = True if pr_env_var == 'True' else False
 
+    pipeline_mirror_url = None
+    temp_storage_url_prefix = None
+    if 'temporary-storage-url-prefix' in gitlab_ci:
+        temp_storage_url_prefix = gitlab_ci['temporary-storage-url-prefix']
+        pipeline_mirror_url = url_util.join(
+            temp_storage_url_prefix, ci_pipeline_id)
+
     enable_artifacts_mirror = False
-    artifact_mirror_url = None
     if 'enable-artifacts-buildcache' in gitlab_ci:
         enable_artifacts_mirror = gitlab_ci['enable-artifacts-buildcache']
-        if enable_artifacts_mirror or spack_is_pr_pipeline:
-            # If this is a PR pipeline, we will override the setting to
-            # make sure that artifacts buildcache is enabled.  Otherwise
-            # jobs will not have binary deps available since we do not
-            # allow pushing binaries to remote mirror during PR pipelines
+        if (enable_artifacts_mirror or (spack_is_pr_pipeline and
+            not enable_artifacts_mirror and not temp_storage_url_prefix)):
+            # If you explicitly enabled the artifacts buildcache feature, or
+            # if this is a PR pipeline but you did not enable either of the
+            # per-pipeline temporary storage features, we force the use of
+            # artifacts buildcache.  Otherwise jobs will not have binary
+            # dependencies from previous stages available since we do not
+            # allow pushing binaries to the remote mirror during PR pipelines.
             enable_artifacts_mirror = True
-            artifact_mirror_url = 'file://' + local_mirror_dir
+            pipeline_mirror_url = 'file://' + local_mirror_dir
             mirror_msg = 'artifact buildcache enabled, mirror url: {0}'.format(
-                artifact_mirror_url)
+                pipeline_mirror_url)
             tty.debug(mirror_msg)
 
     # Clean out scratch directory from last stage
@@ -297,8 +336,8 @@ def ci_rebuild(args):
         if pr_mirror_url:
             add_mirror('ci_pr_mirror', pr_mirror_url)
 
-        if enable_artifacts_mirror:
-            add_mirror('ci_artifact_mirror', artifact_mirror_url)
+        if pipeline_mirror_url:
+            add_mirror(spack_ci.TEMP_STORAGE_MIRROR_NAME, pipeline_mirror_url)
 
         tty.debug('listing spack mirrors:')
         spack_cmd('mirror', 'list')
@@ -306,8 +345,8 @@ def ci_rebuild(args):
 
         # Checks all mirrors for a built spec with a matching full hash
         matches = bindist.get_mirrors_for_spec(
-            job_spec, force=False, full_hash_match=True,
-            mirrors_to_check=mirrors_to_check)
+            job_spec, full_hash_match=True, mirrors_to_check=mirrors_to_check,
+            index_only=False)
 
         if matches:
             # Got at full hash match on at least one configured mirror.  All
@@ -374,38 +413,40 @@ def ci_rebuild(args):
             else:
                 buildcache_mirror_url = remote_mirror_url
 
-            try:
-                spack_ci.push_mirror_contents(
-                    env, job_spec, job_spec_yaml_path, buildcache_mirror_url,
-                    cdash_build_id, sign_binaries)
-            except Exception as inst:
-                # If the mirror we're pushing to is on S3 and there's some
-                # permissions problem, for example, we can't just target
-                # that exception type here, since users of the
-                # `spack ci rebuild' may not need or want any dependency
-                # on boto3.  So we use the first non-boto exception type
-                # in the heirarchy:
-                #     boto3.exceptions.S3UploadFailedError
-                #     boto3.exceptions.Boto3Error
-                #     Exception
-                #     BaseException
-                #     object
-                err_msg = 'Error msg: {0}'.format(inst)
-                if 'Access Denied' in err_msg:
-                    tty.msg('Permission problem writing to mirror')
-                tty.msg(err_msg)
+            # Create buildcache in either the main remote mirror, or in the
+            # per-PR mirror, if this is a PR pipeline
+            spack_ci.push_mirror_contents(
+                env, job_spec, job_spec_yaml_path, buildcache_mirror_url,
+                cdash_build_id, sign_binaries)
 
-            # Create another copy of that buildcache on "local artifact
-            # mirror" (only done if artifacts buildcache is enabled)
-            spack_ci.push_mirror_contents(env, job_spec, job_spec_yaml_path,
-                                          artifact_mirror_url, cdash_build_id,
-                                          sign_binaries)
+            # Create another copy of that buildcache in the per-pipeline
+            # temporary storage mirror (this is only done if either artifacts
+            # buildcache is enabled or a temporary storage url prefix is set)
+            spack_ci.push_mirror_contents(
+                env, job_spec, job_spec_yaml_path, pipeline_mirror_url,
+                cdash_build_id, sign_binaries)
 
             # Relate this build to its dependencies on CDash (if enabled)
             if enable_cdash:
                 spack_ci.relate_cdash_builds(
                     spec_map, cdash_base_url, cdash_build_id, cdash_project,
-                    artifact_mirror_url or pr_mirror_url or remote_mirror_url)
+                    pipeline_mirror_url or pr_mirror_url or remote_mirror_url)
+
+
+def ci_reindex(args):
+    """Rebuild the buildcache index associated with the mirror in the
+       active, gitlab-enabled environment. """
+    env = ev.get_env(args, 'ci rebuild-index', required=True)
+    yaml_root = ev.config_dict(env.yaml)
+
+    if 'mirrors' not in yaml_root or len(yaml_root['mirrors'].values()) < 1:
+        tty.die('spack ci rebuild-index requires an env containing a mirror')
+
+    ci_mirrors = yaml_root['mirrors']
+    mirror_urls = [url for url in ci_mirrors.values()]
+    remote_mirror_url = mirror_urls[0]
+
+    buildcache.update_index(remote_mirror_url, update_keys=True)
 
 
 def ci(parser, args):

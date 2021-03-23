@@ -1088,6 +1088,12 @@ class Spec(object):
         # external specs. None signal that it was not set yet.
         self.extra_attributes = None
 
+        # This attribute holds the original build copy of the spec if it is
+        # deployed differently than it was built. None signals that the spec
+        # is deployed "as built."
+        # Build spec should be the actual build spec unless marked dirty.
+        self._build_spec = None
+
         if isinstance(spec_like, six.string_types):
             spec_list = SpecParser(self).parse(spec_like)
             if len(spec_list) > 1:
@@ -1301,6 +1307,13 @@ class Spec(object):
         values.
         """
         return self._concrete
+
+    @property
+    def spliced(self):
+        """Returns whether or not this Spec is being deployed as built i.e.
+        whether or not this Spec has ever been spliced.
+        """
+        return any(s.build_spec is not s for s in self.traverse(root=True))
 
     def traverse(self, **kwargs):
         direction = kwargs.get('direction', 'children')
@@ -1786,10 +1799,12 @@ class Spec(object):
         name = next(iter(node))
         node = node[name]
 
-        spec = Spec(name, full_hash=node.get('full_hash', None))
+        spec = Spec()
+        spec.name = name
         spec.namespace = node.get('namespace', None)
         spec._hash = node.get('hash', None)
         spec._build_hash = node.get('build_hash', None)
+        spec._full_hash = node.get('full_hash', None)
 
         if 'version' in node or 'versions' in node:
             spec.versions = vn.VersionList.from_dict(node)
@@ -2263,6 +2278,8 @@ class Spec(object):
                 # If replacement is external then trim the dependencies
                 if replacement.external:
                     if (spec._dependencies):
+                        for dep in spec.dependencies():
+                            del dep._dependents[spec.name]
                         changed = True
                         spec._dependencies = DependencyMap()
                     replacement._dependencies = DependencyMap()
@@ -2536,17 +2553,27 @@ class Spec(object):
         else:
             self._old_concretize(tests)
 
+    def _mark_root_concrete(self, value=True):
+        """Mark just this spec (not dependencies) concrete."""
+        if (not value) and self.concrete and self.package.installed:
+            return
+        self._normal = value
+        self._concrete = value
+
     def _mark_concrete(self, value=True):
         """Mark this spec and its dependencies as concrete.
 
         Only for internal use -- client code should use "concretize"
         unless there is a need to force a spec to be concrete.
         """
+        # if set to false, clear out all hashes (set to None or remove attr)
+        # may need to change references to respect None
         for s in self.traverse():
             if (not value) and s.concrete and s.package.installed:
                 continue
-            s._normal = value
-            s._concrete = value
+            elif not value:
+                s.clear_cached_hashes()
+            s._mark_root_concrete(value)
 
     def concretized(self, tests=False):
         """This is a non-destructive version of concretize().
@@ -3359,6 +3386,7 @@ class Spec(object):
         self.compiler_flags = other.compiler_flags.copy()
         self.compiler_flags.spec = self
         self.variants = other.variants.copy()
+        self._build_spec = other._build_spec
 
         # FIXME: we manage _patches_in_order_of_appearance specially here
         # to keep it from leaking out of spec.py, but we should figure
@@ -4218,6 +4246,89 @@ class Spec(object):
         # This property returns the underlying microarchitecture object
         # to give to the attribute the appropriate comparison semantic
         return self.architecture.target.microarchitecture
+
+    @property
+    def build_spec(self):
+        return self._build_spec or self
+
+    @build_spec.setter
+    def build_spec(self, value):
+        self._build_spec = value
+
+    def splice(self, other, transitive):
+        """Splices dependency "other" into this ("target") Spec, and return the
+        result as a concrete Spec.
+        If transitive, then other and its dependencies will be extrapolated to
+        a list of Specs and spliced in accordingly.
+        For example, let there exist a dependency graph as follows:
+        T
+        | \
+        Z<-H
+        In this example, Spec T depends on H and Z, and H also depends on Z.
+        Suppose, however, that we wish to use a differently-built H, known as
+        H'. This function will splice in the new H' in one of two ways:
+        1. transitively, where H' depends on the Z' it was built with, and the
+        new T* also directly depends on this new Z', or
+        2. intransitively, where the new T* and H' both depend on the original
+        Z.
+        Since the Spec returned by this splicing function is no longer deployed
+        the same way it was built, any such changes are tracked by setting the
+        build_spec to point to the corresponding dependency from the original
+        Spec.
+        TODO: Extend this for non-concrete Specs.
+        """
+        assert self.concrete
+        assert other.concrete
+        assert other.name in self
+
+        # Multiple unique specs with the same name will collide, so the
+        # _dependents of these specs should not be trusted.
+        # Variants may also be ignored here for now...
+
+        if transitive:
+            self_nodes = dict((s.name, s.copy(deps=False))
+                              for s in self.traverse(root=True)
+                              if s.name not in other)
+            other_nodes = dict((s.name, s.copy(deps=False))
+                               for s in other.traverse(root=True))
+        else:
+            # If we're not doing a transitive splice, then we only want the
+            # root of other.
+            self_nodes = dict((s.name, s.copy(deps=False))
+                              for s in self.traverse(root=True)
+                              if s.name != other.name)
+            other_nodes = {other.name: other.copy(deps=False)}
+
+        nodes = other_nodes.copy()
+        nodes.update(self_nodes)
+
+        for name in nodes:
+            if name in self_nodes:
+                dependencies = self[name]._dependencies
+                for dep in dependencies:
+                    nodes[name]._add_dependency(nodes[dep],
+                                                dependencies[dep].deptypes)
+                if any(dep not in self_nodes for dep in dependencies):
+                    nodes[name].build_spec = self[name].build_spec
+            else:
+                dependencies = other[name]._dependencies
+                for dep in dependencies:
+                    nodes[name]._add_dependency(nodes[dep],
+                                                dependencies[dep].deptypes)
+                if any(dep not in other_nodes for dep in dependencies):
+                    nodes[name].build_spec = other[name].build_spec
+
+        # Clear cached hashes
+        nodes[self.name].clear_cached_hashes()
+        return nodes[self.name]
+
+    def clear_cached_hashes(self):
+        """
+        Clears all cached hashes in a Spec, while preserving other properties.
+        """
+        for attr in ht.SpecHashDescriptor.hash_types:
+            if hasattr(self, attr):
+                setattr(self, attr, None)
 
 
 class LazySpecCache(collections.defaultdict):

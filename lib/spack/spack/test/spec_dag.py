@@ -75,7 +75,7 @@ w->y deptypes are (link, build), w->x and y->z deptypes are (test)
     y = mock_repo.add_package('y', [z], [test_only])
     w = mock_repo.add_package('w', [x, y], [test_only, default])
 
-    with spack.repo.swap(mock_repo):
+    with spack.repo.use_repositories(mock_repo):
         spec = Spec('w')
         spec.concretize(tests=(w.name,))
 
@@ -114,7 +114,7 @@ def test_installed_deps():
     b = mock_repo.add_package('b', [d, e], [default, default])
     mock_repo.add_package('a', [b, c], [default, default])
 
-    with spack.repo.swap(mock_repo):
+    with spack.repo.use_repositories(mock_repo):
         c_spec = Spec('c')
         c_spec.concretize()
         assert c_spec['d'].version == spack.version.Version('2')
@@ -143,7 +143,7 @@ def test_specify_preinstalled_dep():
     b = mock_repo.add_package('b', [c], [default])
     mock_repo.add_package('a', [b], [default])
 
-    with spack.repo.swap(mock_repo):
+    with spack.repo.use_repositories(mock_repo):
         b_spec = Spec('b')
         b_spec.concretize()
         for spec in b_spec.traverse():
@@ -186,7 +186,7 @@ def test_conditional_dep_with_user_constraints(spec_str, expr_str, expected):
     }
     mock_repo.add_package('x', [y], [default], conditions=x_on_y_conditions)
 
-    with spack.repo.swap(mock_repo):
+    with spack.repo.use_repositories(mock_repo):
         spec = Spec(spec_str)
         spec.concretize()
 

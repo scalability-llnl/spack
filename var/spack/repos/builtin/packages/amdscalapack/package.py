@@ -20,11 +20,12 @@ class Amdscalapack(ScalapackBase):
 
     _name = 'amdscalapack'
     homepage = "https://developer.amd.com/amd-aocl/scalapack/"
-    url = "https://github.com/amd/scalapack/archive/2.2.tar.gz"
+    url = "https://github.com/amd/scalapack/archive/3.0.tar.gz"
     git = "https://github.com/amd/scalapack.git"
 
     maintainers = ['amd-toolchain-support']
 
+    version('3.0', sha256='6e6f3578f44a8e64518d276e7580530599ecfa8729f568303ed2590688e7096f')
     version('2.2', sha256='2d64926864fc6d12157b86e3f88eb1a5205e7fc157bf67e7577d0f18b9a7484c')
 
     variant(
@@ -38,11 +39,13 @@ class Amdscalapack(ScalapackBase):
         args = super(Amdscalapack, self).cmake_args()
         spec = self.spec
 
-        args.extend([
-            "-DUSE_DOTC_WRAPPER:BOOL=%s" % (
-                'ON' if '%aocc ^amdblis' in spec else 'OFF'
-            )
-        ])
+        if spec.satisfies('%gcc@10:'):
+            args.extend(['-DCMAKE_Fortran_FLAGS={0}'.format(
+                        "-fallow-argument-mismatch")])
+
+        if spec.satisfies('@2.2'):
+            args.extend(['-DUSE_DOTC_WRAPPER:BOOL=%s' % (
+                        'ON' if spec.satisfies('%aocc ^amdblis') else 'OFF')])
 
         args.extend([
             '-DUSE_F2C=ON',

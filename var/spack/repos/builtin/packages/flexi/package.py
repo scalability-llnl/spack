@@ -15,6 +15,8 @@ class Flexi(CMakePackage):
 
     version('master')
 
+    patch('for_aarch64.patch', when='target=aarch64:')
+
     variant('mpi', default=True, description='Enable MPI')
 
     depends_on('mpi', when='+mpi')

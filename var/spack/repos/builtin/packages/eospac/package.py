@@ -46,6 +46,9 @@ class Eospac(Package):
     # This patch allows the use of spack's compile wrapper 'flang'
     patch('flang.patch', when='@:6.4.0beta.2%clang')
     patch('frt.patch', when='%fj')
+    # This patch corrects EOSPAC's selection of compiler flags when
+    # compilers are specified using absolute pathnames.
+    patch('cpuinfo_comp_flags_key.patch', when='@:6.4.1,6.4.2beta')
 
     def install(self, spec, prefix):
         with working_dir('Source'):

@@ -1,0 +1,16 @@
+--- spack-src/numpy/distutils/fcompiler/__init__.py.orig	2021-01-04 15:16:38.000000000 +0900
++++ spack-src/numpy/distutils/fcompiler/__init__.py	2021-02-12 17:20:07.327563118 +0900
+@@ -316,7 +316,12 @@
+             if not exe_from_environ:
+                 possibles = [f90, f77] + self.possible_executables
+             else:
+-                possibles = [exe_from_environ] + self.possible_executables
++                matching_executables = []
++                for e in exe_from_environ:
++                    for p in self.possible_executables:
++                        if p in e:
++                            matching_executables.append(e)
++                possibles = [matching_executables] + self.possible_executables
+ 
+             seen = set()
+             unique_possibles = []

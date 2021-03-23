@@ -17,6 +17,7 @@ class Cpmd(MakefilePackage):
     homepage = "https://www.cpmd.org/wordpress/"
     basedir = os.getcwd()
     url = "file://{0}/cpmd-v4.3.tar.gz".format(basedir)
+    manual_download = True
 
     version('4.3', sha256='4f31ddf045f1ae5d6f25559d85ddbdab4d7a6200362849df833632976d095df4')
 
@@ -97,4 +98,8 @@ class Cpmd(MakefilePackage):
             exe_name = 'cpmd.x'
         opts.append(test_file)
         opts.append(test_dir)
-        self.run_test(exe_name, options=opts)
+        expected = ['2       1        H        O              1.84444     0.97604',
+                    '3       1        H        O              1.84444     0.97604',
+                    '2   1   3         H     O     H              103.8663'
+                    ]
+        self.run_test(exe_name, options=opts, expected=expected)

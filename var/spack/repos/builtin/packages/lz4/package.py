@@ -16,6 +16,7 @@ class Lz4(MakefilePackage):
     homepage = "http://lz4.github.io/lz4/"
     url      = "https://github.com/lz4/lz4/archive/v1.9.2.tar.gz"
 
+    version('1.9.3',   sha256='030644df4611007ff7dc962d981f390361e6c97a34e5cbc393ddfbe019ffe2c1')
     version('1.9.2',   sha256='658ba6191fa44c92280d4aa2c271b0f4fbc0e34d249578dd05e50e76d0e5efcc')
     version('1.9.0',   sha256='f8b6d5662fa534bd61227d313535721ae41a68c9d84058b7b7d86e143572dcfb')
     version('1.8.3',   sha256='33af5936ac06536805f9745e0b6d61da606a1f8b4cc5c04dd3cbaca3b9b4fc43')

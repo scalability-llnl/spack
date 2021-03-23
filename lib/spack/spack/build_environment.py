@@ -417,7 +417,7 @@ def set_build_environment_variables(pkg, env, dirty):
     # directory.  Add that to the path too.
     env_paths = []
     compiler_specific = os.path.join(
-        spack.paths.build_env_path, pkg.compiler.name)
+        spack.paths.build_env_path, os.path.dirname(pkg.compiler.link_paths['cc']))
     for item in [spack.paths.build_env_path, compiler_specific]:
         env_paths.append(item)
         ci = os.path.join(item, 'case-insensitive')

@@ -102,12 +102,14 @@ class Scotch(Package):
             '-DCOMMON_RANDOM_FIXED_SEED',
             '-DSCOTCH_DETERMINISTIC',
             '-DSCOTCH_RENAME',
-            '-DIDXSIZE64',  # SCOTCH_Idx typedef: indices for addressing
         ]
 
-        # SCOTCH_Num typedef: size of integers in arguments
         if '+int64' in self.spec:
+            # SCOTCH_Num typedef: size of integers in arguments
             cflags.append('-DINTSIZE64')
+            cflags.append('-DIDXSIZE64')  # SCOTCH_Idx typedef: indices for addressing
+        else:
+            cflags.append('-DIDXSIZE32')  # SCOTCH_Idx typedef: indices for addressing
 
         if self.spec.satisfies('platform=darwin'):
             cflags.extend([

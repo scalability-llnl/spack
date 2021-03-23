@@ -7,18 +7,22 @@ from __future__ import print_function
 import os
 import argparse
 import textwrap
+import inspect
 import fnmatch
 import re
 import shutil
+import sys
 
 import llnl.util.tty as tty
+import llnl.util.tty.colify as colify
 
 import spack.install_test
 import spack.environment as ev
 import spack.cmd
 import spack.cmd.common.arguments as arguments
-import spack.report
 import spack.package
+import spack.repo
+import spack.report
 
 description = "run spack's tests for an install"
 section = "admin"
@@ -78,8 +82,11 @@ def setup_parser(subparser):
     arguments.add_common_arguments(run_parser, ['installed_specs'])
 
     # List
-    sp.add_parser('list', description=test_list.__doc__,
-                  help=first_line(test_list.__doc__))
+    list_parser = sp.add_parser('list', description=test_list.__doc__,
+                                help=first_line(test_list.__doc__))
+    list_parser.add_argument(
+        "-a", "--all", action="store_true", dest="list_all",
+        help="list all packages with tests (not just installed)")
 
     # Find
     find_parser = sp.add_parser('find', description=test_find.__doc__,
@@ -188,18 +195,36 @@ environment variables:
 
 
 def has_test_method(pkg):
-    return pkg.test.__func__ != spack.package.PackageBase.test
+    if not inspect.isclass(pkg):
+        tty.die('{0}: is not a class, it is {1}'.format(pkg, type(pkg)))
+
+    pkg_base = spack.package.PackageBase
+    return (
+        (issubclass(pkg, pkg_base) and pkg.test != pkg_base.test) or
+        (isinstance(pkg, pkg_base) and pkg.test.__func__ != pkg_base.test)
+    )
 
 
 def test_list(args):
-    """List all installed packages with available tests."""
+    """List installed packages with available tests."""
+    if args.list_all:
+        all_packages_with_tests = [
+            pkg_class.name
+            for pkg_class in spack.repo.path.all_package_classes()
+            if has_test_method(pkg_class)
+        ]
+        if sys.stdout.isatty():
+            tty.msg("%d packages with tests." % len(all_packages_with_tests))
+        colify.colify(all_packages_with_tests)
+        return
+
     # TODO: This can be extended to have all of the output formatting options
     # from `spack find`.
     env = ev.get_env(args, 'test')
     hashes = env.all_hashes() if env else None
 
     specs = spack.store.db.query(hashes=hashes)
-    specs = list(filter(lambda s: has_test_method(s.package), specs))
+    specs = list(filter(lambda s: has_test_method(s.package_class), specs))
 
     spack.cmd.display_specs(specs, long=True)
 
