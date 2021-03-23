@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-mode=oneshot
+mode=spackenv
 
 if [ "$( basename "$0" )" '=' 'spack-env' ] ; then
     mode=spackenv
@@ -88,52 +88,6 @@ case "$mode" in
 
             exit 1
         fi
-        ;;
-
-    "oneshot")
-        # Scenario 4: Run a one-shot Spack command from the host command
-        # line.
-        #
-        # Triggered by providing arguments to `docker run`.  Arguments
-        # are passed along to the container's underlying spack
-        # installation, allowing users to use the image as if it were
-        # spack, itself.  Pass volume mount information to `docker run`
-        # to persist the effects of running in this mode.
-        #
-        # This is the default behavior when running with a CMD override.
-        #
-        # Examples:
-        #   # concretize the same spec on different OSes
-        #   docker run --rm spack/ubuntu-xenial spec zlib
-        #   docker run --rm spack/centos7 spec zlib
-        #
-        #   # a "wetter" dry-run;
-        #   # install a package and then throw away the results.
-        #   docker run --rm spack/centos7 install libiconv
-        #   docker run --rm spack/centos7 find libiconv
-        #     ==> No package matches the query: libiconv
-        #
-        #   # use docker volumes to persist changes
-        #   docker run --rm -v ...:/spack spack/centos7 install ...
-        #   docker run --rm -v ...:/spack spack/centos7 install ...
-        #   docker run --rm -v ...:/spack spack/centos7 install ...
-        exec 3>&1
-        exec 4>&2
-
-        exec 1>&-
-        exec 2>&-
-
-        . $SPACK_ROOT/share/spack/setup-env.sh
-        unset CURRENTLY_BUILDING_DOCKER_IMAGE
-
-        exec 1>&3
-        exec 2>&4
-
-        exec 3>&-
-        exec 4>&-
-
-        spack "$@"
-        exit $?
         ;;
 
     *)
