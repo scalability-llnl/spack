@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
+import tempfile
 
 
 class Bazel(Package):
@@ -189,6 +190,10 @@ class Bazel(Package):
                 ' --subcommands=pretty_print'
                 ' --jobs={0}'.format(make_jobs))
 
+        # use mkdtemp for temporary directory
+        tmp_path = tempfile.mkdtemp(dir='/tmp', prefix='spack')
+        env.set('TEST_TMPDIR', tmp_path)
+
     def bootstrap(self, spec, prefix):
         bash = which('bash')
         bash('./compile.sh')
@@ -203,7 +208,9 @@ class Bazel(Package):
         # https://github.com/Homebrew/homebrew-core/blob/master/Formula/bazel.rb
 
         # Bazel does not work properly on NFS, switch to /tmp
-        with working_dir('/tmp/spack/bazel/spack-test', create=True):
+        tmp_path = env['TEST_TMPDIR']
+        workpath = join_path(tmp_path, 'bazel/spack-test')
+        with working_dir(workpath, create=True):
             touch('WORKSPACE')
 
             with open('ProjectRunner.java', 'w') as f:
@@ -224,11 +231,13 @@ java_binary(
 
             # Spack's logs don't handle colored output well
             bazel = Executable(self.prefix.bin.bazel)
-            bazel('--output_user_root=/tmp/spack/bazel/spack-test',
+            bazel('--output_user_root=' + workpath,
                   'build', '--color=no', '//:bazel-test')
 
             exe = Executable('bazel-bin/bazel-test')
             assert exe(output=str) == 'Hi!\n'
+
+        remove_linked_tree(tmp_path)
 
     def setup_dependent_package(self, module, dependent_spec):
         module.bazel = Executable('bazel')
