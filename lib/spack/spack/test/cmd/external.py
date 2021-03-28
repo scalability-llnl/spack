@@ -11,6 +11,16 @@ import spack
 from spack.spec import Spec
 from spack.cmd.external import ExternalPackageEntry
 from spack.main import SpackCommand
+import spack.architecture as architecture
+import archspec.cpu as cpu
+
+target = cpu.host()
+arch = architecture.Arch(architecture.platform(), 'default_os', target.family)
+archstr = 'arch={0}'.format(arch)
+
+
+def addarch(specstr):
+    return specstr + ' ' + archstr
 
 
 def test_find_external_single_package(mock_executable):
@@ -25,7 +35,7 @@ def test_find_external_single_package(mock_executable):
     pkg, entries = next(iter(pkg_to_entries.items()))
     single_entry = next(iter(entries))
 
-    assert single_entry.spec == Spec('cmake@1.foo')
+    assert single_entry.spec == Spec(addarch('cmake@1.foo'))
 
 
 def test_find_external_two_instances_same_package(mock_executable):
@@ -47,9 +57,9 @@ def test_find_external_two_instances_same_package(mock_executable):
 
     pkg, entries = next(iter(pkg_to_entries.items()))
     spec_to_path = dict((e.spec, e.base_dir) for e in entries)
-    assert spec_to_path[Spec('cmake@1.foo')] == (
+    assert spec_to_path[Spec(addarch('cmake@1.foo'))] == (
         spack.cmd.external._determine_base_dir(os.path.dirname(cmake_path1)))
-    assert spec_to_path[Spec('cmake@3.17.2')] == (
+    assert spec_to_path[Spec(addarch('cmake@3.17.2'))] == (
         spack.cmd.external._determine_base_dir(os.path.dirname(cmake_path2)))
 
 
@@ -96,7 +106,8 @@ def test_find_external_cmd(mutable_config, working_env, mock_executable):
     cmake_cfg = pkgs_cfg['cmake']
     cmake_externals = cmake_cfg['externals']
 
-    assert {'spec': 'cmake@1.foo', 'prefix': prefix} in cmake_externals
+    assert {'spec': addarch('cmake@1.foo'),
+            'prefix': prefix} in cmake_externals
 
 
 def test_find_external_cmd_not_buildable(
@@ -191,7 +202,7 @@ def test_packages_yaml_format(mock_executable, mutable_config, monkeypatch):
     externals = packages_yaml['gcc']['externals']
     assert len(externals) == 1
     external_gcc = externals[0]
-    assert external_gcc['spec'] == 'gcc@4.2.1 languages=c'
+    assert external_gcc['spec'] == addarch('gcc@4.2.1 languages=c')
     assert external_gcc['prefix'] == os.path.dirname(prefix)
     assert 'extra_attributes' in external_gcc
     extra_attributes = external_gcc['extra_attributes']
@@ -226,6 +237,64 @@ def test_overriding_prefix(mock_executable, mutable_config, monkeypatch):
     externals = packages_yaml['gcc']['externals']
     assert len(externals) == 1
     assert externals[0]['prefix'] == '/opt/gcc/bin'
+
+
+def test_overriding_arch(mock_executable, mutable_config, monkeypatch):
+    # Prepare an environment to detect a fake gcc that
+    # override its external prefix
+    gcc_exe = mock_executable('gcc', output="echo 4.2.1")
+    prefix = os.path.dirname(gcc_exe)
+    monkeypatch.setenv('PATH', prefix)
+
+    @classmethod
+    def _determine_variants(cls, exes, version_str):
+        return 'os=centos6 target=core2 languages=c', {
+            'compilers': {'c': exes[0]}
+        }
+
+    gcc_cls = spack.repo.path.get_pkg_class('gcc')
+    monkeypatch.setattr(gcc_cls, 'determine_variants', _determine_variants)
+
+    # Find the external spec
+    external('find', 'gcc')
+
+    # Check entries in 'packages.yaml'
+    packages_yaml = spack.config.get('packages')
+    archstr = 'arch={0}-centos6-core2'.format(architecture.platform())
+    assert 'gcc' in packages_yaml
+    assert 'externals' in packages_yaml['gcc']
+    externals = packages_yaml['gcc']['externals']
+    assert len(externals) == 1
+    assert archstr in externals[0]['spec']
+
+
+def test_overriding_arch2(mock_executable, mutable_config, monkeypatch):
+    # Prepare an environment to detect a fake gcc that
+    # override its external prefix
+    gcc_exe = mock_executable('gcc', output="echo 4.2.1")
+    prefix = os.path.dirname(gcc_exe)
+    monkeypatch.setenv('PATH', prefix)
+
+    @classmethod
+    def _determine_variants(cls, exes, version_str):
+        return 'arch=test-centos7-core2 languages=c', {
+            'compilers': {'c': exes[0]}
+        }
+
+    gcc_cls = spack.repo.path.get_pkg_class('gcc')
+    monkeypatch.setattr(gcc_cls, 'determine_variants', _determine_variants)
+
+    # Find the external spec
+    external('find', 'gcc')
+
+    # Check entries in 'packages.yaml'
+    packages_yaml = spack.config.get('packages')
+    archstr = 'arch=test-centos7-core2'
+    assert 'gcc' in packages_yaml
+    assert 'externals' in packages_yaml['gcc']
+    externals = packages_yaml['gcc']['externals']
+    assert len(externals) == 1
+    assert archstr in externals[0]['spec']
 
 
 def test_new_entries_are_reported_correctly(
