@@ -48,6 +48,8 @@ class Hdf(AutotoolsPackage):
     # https://forum.hdfgroup.org/t/cant-build-hdf-4-2-14-with-jdk-11-and-enable-java/5702
     patch('disable_doclint.patch', when='@:4.2.14^java@9:')
 
+    patch('for_aarch64.patch', when='target=aarch64:')
+
     conflicts('^libjpeg@:6a')
 
     # configure: error: Cannot build shared fortran libraries.
@@ -121,6 +123,9 @@ class Hdf(AutotoolsPackage):
                 flags.append(self.compiler.f77_pic_flag)
 
         return flags, None, None
+
+    def setup_build_environment(self, env):
+        env.prepend_path('CPATH', self.spec['libtirpc'].prefix.include.tirpc)
 
     def configure_args(self):
         config_args = ['--enable-production',
