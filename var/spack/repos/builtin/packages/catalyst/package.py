@@ -143,8 +143,8 @@ class Catalyst(CMakePackage):
 
         python_path = (os.path.realpath(
             self.spec['python'].command.path
-              if ('+python3' in self.spec or '+python' in self.spec)
-              else sys.executable))
+            if ('+python3' in self.spec or '+python' in self.spec)
+            else sys.executable))
 
         command = [python_path, catalyst_script,
                    '-r', self.stage.source_path,
