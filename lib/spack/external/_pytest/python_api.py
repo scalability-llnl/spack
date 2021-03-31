@@ -398,10 +398,7 @@ def approx(expected, rel=None, abs=None, nan_ok=False):
        __ https://docs.python.org/3/reference/datamodel.html#object.__ge__
     """
 
-    if sys.version_info >= (3, 3):
-        from collections.abc import Mapping, Sequence
-    else:
-        from collections import Mapping, Sequence
+    from compat import Mapping, Sequence
     from _pytest.compat import STRING_TYPES as String
 
     # Delegate the comparison to a class that knows how to deal with the type

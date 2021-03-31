@@ -15,6 +15,7 @@
 import types
 import operator
 import sys
+from compat import Mapping, MutableMapping, MutableSequence, MutableSet
 from jinja2.environment import Environment
 from jinja2.exceptions import SecurityError
 from jinja2._compat import string_types, PY2
@@ -22,11 +23,6 @@ from jinja2.utils import Markup
 
 from markupsafe import EscapeFormatter
 from string import Formatter
-
-if sys.version_info >= (3, 3):
-    from collections.abc import Mapping
-else:
-    from collections import Mapping
 
 
 #: maximum number of items a range may produce
@@ -84,10 +80,6 @@ except ImportError:
     pass
 
 #: register Python 2.6 abstract base classes
-if sys.version_info >= (3, 3):
-    from collections.abc import MutableSet, MutableMapping, MutableSequence
-else:
-    from collections import MutableSet, MutableMapping, MutableSequence
 _mutable_set_types += (MutableSet,)
 _mutable_mapping_types += (MutableMapping,)
 _mutable_sequence_types += (MutableSequence,)

@@ -12,12 +12,8 @@ import inspect
 import itertools
 import re
 from six import StringIO
+from compat import Sequence
 import sys
-
-if sys.version_info >= (3, 5):
-    from collections.abc import Sequence  # novm
-else:
-    from collections import Sequence
 
 import llnl.util.tty.color
 import llnl.util.lang as lang

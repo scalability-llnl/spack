@@ -33,6 +33,7 @@ import os.path
 import re
 import sys
 
+from compat import Sequence
 from six import string_types
 from typing import Set, List  # novm
 
@@ -48,12 +49,6 @@ from spack.dependency import Dependency, default_deptype, canonical_deptype
 from spack.fetch_strategy import from_kwargs
 from spack.resource import Resource
 from spack.version import Version, VersionChecksumError
-
-
-if sys.version_info >= (3, 3):
-    from collections.abc import Sequence  # novm
-else:
-    from collections import Sequence
 
 
 __all__ = []

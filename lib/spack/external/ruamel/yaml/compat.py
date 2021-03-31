@@ -18,8 +18,8 @@ except:
             from collections import OrderedDict
         except ImportError:
             from ordereddict import OrderedDict
-    # to get the right name import ... as ordereddict doesn't do that
 
+    # Monkey-patch `ordereddict.insert()` for very old Python versions.
     class ordereddict(OrderedDict):
         if not hasattr(OrderedDict, 'insert'):
             def insert(self, pos, key, value):

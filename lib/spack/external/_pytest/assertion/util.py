@@ -5,12 +5,9 @@ import pprint
 import _pytest._code
 import py
 try:
-    from collections.abc import Sequence
+    from compat import Sequence
 except ImportError:
-    try:
-        from collections import Sequence
-    except ImportError:
-        Sequence = list
+    Sequence = list
 
 
 u = py.builtin._totext

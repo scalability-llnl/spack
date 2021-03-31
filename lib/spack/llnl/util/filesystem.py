@@ -19,15 +19,11 @@ import tempfile
 from contextlib import contextmanager
 
 import six
+from compat import Sequence
 from llnl.util import tty
 from llnl.util.lang import dedupe, memoized
 from spack.util.executable import Executable
 
-
-if sys.version_info >= (3, 3):
-    from collections.abc import Sequence  # novm
-else:
-    from collections import Sequence
 
 __all__ = [
     'FileFilter',

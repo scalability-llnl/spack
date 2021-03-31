@@ -19,12 +19,6 @@ import spack.ci_optimization as ci_opt
 import spack.ci_needs_workaround as cinw
 import spack.util.spack_yaml as syaml
 import itertools as it
-import collections
-try:
-    # dynamically import to keep vermin from complaining
-    collections_abc = __import__('collections.abc')
-except ImportError:
-    collections_abc = collections
 
 
 @pytest.fixture

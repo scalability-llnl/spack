@@ -11,14 +11,10 @@
 import operator
 import re
 import sys
+from compat import Mapping
 from jinja2.runtime import Undefined
 from jinja2._compat import text_type, string_types, integer_types
 import decimal
-
-if sys.version_info >= (3, 3):
-    from collections.abc import Mapping
-else:
-    from collections import Mapping
 
 number_re = re.compile(r'^-?\d+(\.\d+)?$')
 regex_type = type(number_re)

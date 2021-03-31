@@ -14,6 +14,7 @@ import os
 import sys
 
 import pytest
+from compat import Iterable, Mapping
 
 import spack.architecture
 import spack.hash_types as ht
@@ -26,12 +27,6 @@ from spack import repo
 from spack.spec import Spec, save_dependency_spec_yamls
 from spack.util.spack_yaml import syaml_dict
 from spack.util.mock_package import MockPackageMultiRepo
-
-
-if sys.version_info >= (3, 3):
-    from collections.abc import Iterable, Mapping  # novm
-else:
-    from collections import Iterable, Mapping
 
 
 def check_yaml_round_trip(spec):

@@ -6,12 +6,7 @@
 import inspect
 import functools
 import sys
-
-
-if sys.version_info >= (3, 3):
-    from collections.abc import MutableSequence  # novm
-else:
-    from collections import MutableSequence
+from compat import MutableSequence
 
 
 class Delegate(object):

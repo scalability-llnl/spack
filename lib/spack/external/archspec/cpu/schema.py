@@ -7,11 +7,7 @@ JSON file and its schema
 """
 import json
 import os.path
-
-try:
-    from collections.abc import MutableMapping  # novm
-except ImportError:
-    from collections import MutableMapping
+from compat import MutableMapping
 
 
 class LazyDictionary(MutableMapping):
