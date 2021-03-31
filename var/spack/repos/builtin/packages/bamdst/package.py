@@ -12,7 +12,7 @@ class Bamdst(MakefilePackage):
     homepage = "https://github.com/shiquan/bamdst"
     git      = "https://github.com/shiquan/bamdst.git"
 
-    version('master', git='https://github.com/shiquan/bamdst.git')
+    version('master')
 
     depends_on('zlib')
 

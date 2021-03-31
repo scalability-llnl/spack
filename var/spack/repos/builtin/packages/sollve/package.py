@@ -77,17 +77,18 @@ class Sollve(CMakePackage):
              svn='http://llvm.org/svn/llvm-project/compiler-rt/trunk',
              destination='projects', when='@develop+compiler-rt',
              placement='compiler-rt')
-    resource(name='openmp', git='https://github.com/pmodels/bolt.git',
+    resource(name='openmp', git='https://github.com/pmodels/bolt.git', branch='master',
              destination='projects', when='@develop+clang', placement='openmp')
-    resource(name='polly', git='https://github.com/SOLLVE/polly.git',
+    resource(name='polly', git='https://github.com/SOLLVE/polly.git', branch='master',
              destination='tools', when='@develop+polly', placement='polly')
-    resource(name='libcxx', git='https://github.com/SOLLVE/libcxx.git',
+    resource(name='libcxx', git='https://github.com/SOLLVE/libcxx.git', branch='master',
              destination='projects', when='@develop+libcxx',
              placement='libcxx')
     resource(name='libcxxabi', git='https://github.com/SOLLVE/libcxxabi.git',
+             branch='master',
              destination='projects', when='@develop+libcxx',
              placement='libcxxabi')
-    resource(name='cfe', git='https://github.com/SOLLVE/clang.git',
+    resource(name='cfe', git='https://github.com/SOLLVE/clang.git', branch='master',
              destination='tools', when='@develop+clang', placement='clang')
     resource(name='lldb', svn='http://llvm.org/svn/llvm-project/lldb/trunk',
              destination='tools', when='@develop+lldb', placement='lldb')

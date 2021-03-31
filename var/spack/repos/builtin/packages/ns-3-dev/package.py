@@ -34,6 +34,7 @@ class Ns3Dev(WafPackage):
     resource(name='helics',
              when='+helics',
              git='https://github.com/GMLC-TDC/helics-ns3.git',
+             branch='master',
              destination='contrib', placement='helics')
 
     def configure_args(self):

@@ -18,11 +18,11 @@ class Breakdancer(CMakePackage):
     100bp) using normally mapped read pairs.."""
 
     homepage = "http://gmt.genome.wustl.edu/packages/breakdancer"
+    git      = "https://github.com/genome/breakdancer.git"
     url      = "https://github.com/genome/breakdancer/archive/v1.4.5.tar.gz"
 
+    version('master', submodules=True, preferred=True)
     version('1.4.5', sha256='5d74f3a90f5c69026ebb4cf4cb9ccc51ec8dd49ac7a88595a1efabd5a73e92b6')
-    version('master', submodules='true',
-            git='https://github.com/genome/breakdancer.git', preferred=True)
 
     phases = ['edit', 'cmake', 'build', 'install']
 

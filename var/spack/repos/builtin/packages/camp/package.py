@@ -16,7 +16,7 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
     git      = "https://github.com/LLNL/camp.git"
     url      = "https://github.com/LLNL/camp/archive/v0.1.0.tar.gz"
 
-    version('master', branch='master', submodules='True')
+    version('master', submodules=True)
     version('0.1.0', sha256='fd4f0f2a60b82a12a1d9f943f8893dc6fe770db493f8fae5ef6f7d0c439bebcc')
 
     # TODO: figure out gtest dependency and then set this default True.

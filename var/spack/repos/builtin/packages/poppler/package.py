@@ -69,6 +69,7 @@ class Poppler(CMakePackage):
     resource(
         name='test',
         git='https://anongit.freedesktop.org/git/poppler/test.git',
+        branch='master',
         placement='testdata'
     )
 

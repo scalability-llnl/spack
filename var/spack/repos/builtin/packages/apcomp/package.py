@@ -32,7 +32,7 @@ class Apcomp(Package):
 
     maintainers = ['mclarsen', 'cyrush']
 
-    version('master', branch='master', submodules='True')
+    version('master', submodules=True)
     version('0.0.1', sha256="cbf85fe58d5d5bc2f468d081386cc8b79861046b3bb7e966edfa3f8e95b998b2")
 
     variant('openmp', default=True, description='Build with openmp support')

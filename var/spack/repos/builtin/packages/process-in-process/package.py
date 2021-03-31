@@ -132,6 +132,7 @@ class ProcessInProcess(Package):
     # PiP testsuite (agnostic with PiP and OS versions)
     resource(name='PiP-Testsuite',
              git='https://github.com/RIKEN-SysSoft/PiP-Testsuite.git',
+             branch='master',
              destination='PiP-Testsuite')
 
     def install(self, spec, prefix):

@@ -28,7 +28,7 @@ class Kealib(CMakePackage):
 
     maintainers = ['gillins']
 
-    version('develop', git=git)
+    version('develop')
     version('1.4.12', sha256='0b100e36b3e25e57487aa197d7be47f22e1b30afb16a57fdaa5f877696ec321e')
     version('1.4.11', sha256='3d64cdec560c7a338ccb38e3a456db4e3b176ac62f945daa6e332e60fe4eca90')
     version('1.4.10', sha256='b1bd2d6834d2fe09ba456fce77f7a9452b406dbe302f7ef1aabe924e45e6bb5e')
