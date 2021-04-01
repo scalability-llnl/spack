@@ -1,0 +1,130 @@
+{
+  "verified": [
+    {
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64",
+      "hash": "y32mbn7swer3yxvgf6tmkgekpo23uo5z",
+      "python": "python@2.7~ucs4",
+      "sha256": "",
+      "compiler": {
+        "spec": "gcc@9.3.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "rhel5",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64",
+      "hash": "rpa6yyujr7ilnfcowq2pbmkmh7uzrijp",
+      "python": "python@2.7+ucs4",
+      "sha256": "",
+      "compiler": {
+        "spec": "gcc@9.3.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "rhel5",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64",
+      "hash": "ohtmyp5c74xt75csx4llbjs5anobryp6",
+      "python": "python@3.5",
+      "sha256": "",
+      "compiler": {
+        "spec": "gcc@9.3.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "rhel5",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64",
+      "hash": "vcipwnf57slgoo7busvvkzjkk7vydeb5",
+      "python": "python@3.6",
+      "sha256": "",
+      "compiler": {
+        "spec": "gcc@9.3.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "rhel5",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64",
+      "hash": "ffoyoewfd6pdwbjniodfkqusyvkrbhyi",
+      "python": "python@3.7",
+      "sha256": "",
+      "compiler": {
+        "spec": "gcc@9.3.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "rhel5",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64",
+      "hash": "kt74l7kjzrlp3cgtj2576o33mhsrgyrw",
+      "python": "python@3.8",
+      "sha256": "",
+      "compiler": {
+        "spec": "gcc@9.3.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "rhel5",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64",
+      "hash": "ffoyoewfd6pdwbjniodfkqusyvkrbhyi",
+      "python": "python@3.7",
+      "sha256": "",
+      "compiler": {
+        "spec": "gcc@9.3.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "rhel5",
+        "target": "x86_64",
+        "modules": []
+      }
+    }
+  ]
+}

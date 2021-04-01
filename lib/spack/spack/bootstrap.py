@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import contextlib
+import json
 import os
 import sys
 try:
@@ -18,6 +19,7 @@ import llnl.util.tty as tty
 
 import spack.architecture
 import spack.config
+import spack.main
 import spack.paths
 import spack.repo
 import spack.spec
@@ -76,7 +78,8 @@ def ensure_module_importable_or_raise(module, abstract_spec=None, install_fn=Non
         2. Search installed specs in the DB that might provide the module
         3. Install new specs that might provide the module (optional)
 
-    If none of the methods succeed, an exception is raised.
+    If none of the methods succeed, an exception is raised. The function exits
+    on first success.
 
     Args:
         module (str): module to be imported in the current interpreter
@@ -249,31 +252,23 @@ def _bootstrap_config_scopes():
 
 
 def _install_clingo_and_try_import(module, abstract_spec):
-    import spack.main
+    # Read information on verified clingo binaries
+    clingo_json_path = os.path.join(
+        spack.paths.share_path, 'bootstrap', 'clingo.json'
+    )
+    with open(clingo_json_path) as f:
+        data = json.load(f)
+
     # Try to install from an unsigned binary cache
-    data = [{
-        'spec': 'clingo-bootstrap%gcc platform=linux target=x86_64',
-        'hash': 'vcipwnf57slgoo7busvvkzjkk7vydeb5',
-        'python': 'python@3.6',
-        'sha256': '',
-        'compiler': {
-            'spec': 'gcc@9.3.0',
-            'paths': {
-                'cc': '/dev/null',
-                'cxx': '/dev/null',
-                'f77': '/dev/null',
-                'fc': '/dev/null'
-            },
-            'operating_system': 'rhel5',
-            'target': 'x86_64',
-            'modules': []
-        }
-    }]
     buildcache = spack.main.SpackCommand('buildcache')
-    for item in data:
+    for item in data['verified']:
         candidate_spec = item['spec']
+        python_spec = item['python']
         # Skip specs which are not compatible
         if not abstract_spec.satisfies(candidate_spec):
+            continue
+
+        if python_spec not in abstract_spec:
             continue
 
         msg = "[BOOTSTRAP MODULE {0}] Try installing '{1}' from binary cache"
