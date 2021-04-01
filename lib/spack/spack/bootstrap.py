@@ -66,69 +66,104 @@ def spack_python_interpreter():
         yield
 
 
-def make_module_available(module, spec=None, install=False):
-    """Ensure module is importable"""
+def ensure_module_importable_or_raise(module, abstract_spec=None, install_fn=None):
+    """Make the requested module available for import, or raise.
+
+    This function tries to import a Python module in the current interpreter
+    using, in the following order, a few different strategies:
+
+        1. Use the default Python import mechanism
+        2. Search installed specs in the DB that might provide the module
+        3. Install new specs that might provide the module (optional)
+
+    If none of the methods succeed, an exception is raised.
+
+    Args:
+        module (str): module to be imported in the current interpreter
+        abstract_spec (Spec): abstract spec that might provide the module. If not
+            given it defaults to Spec(module)
+        install_fn (callable): optional callable to try install software that might
+            provide the required module. The callable takes a module and an abstract
+            spec as arguments
+
+    Raises:
+        ImportError: if the module couldn't be imported
+    """
     # If we already can import it, that's great
+    tty.debug("[BOOTSTRAP MODULE {0}] Try importing from Python".format(module))
+    if _python_import(module):
+        return
+
+    abstract_spec = abstract_spec or spack.spec.Spec(module)
+
+    # We have to run as part of this python interpreter
+    python_requirement = '^' + spec_for_current_python()
+    abstract_spec.constrain(python_requirement)
+
+    # Check if any of the already installed specs provide the import
+    msg = "[BOOTSTRAP MODULE {0}] Try installed specs with query '{1}'"
+    tty.debug(msg.format(module, abstract_spec))
+    if _import_from_store(module, abstract_spec):
+        return
+
+    # Install software and try to import from that
+    install_fn = install_fn or (lambda m, s: False)
+    if install_fn(module, abstract_spec):
+        return
+
+    # We couldn't import in any way, so raise an import error
+    msg = 'cannot import module "{0}"'.format(module)
+    if abstract_spec:
+        msg += ' from spec "{0}'.format(abstract_spec)
+    raise ImportError(msg)
+
+
+def _python_import(module):
     try:
         __import__(module)
-        return
     except ImportError:
-        pass
+        return False
+    return True
 
-    # If it's already installed, use it
-    # Search by spec
-    spec = spack.spec.Spec(spec or module)
 
-    # We have to run as part of this python
-    # We can constrain by a shortened version in place of a version range
-    # because this spec is only used for querying or as a placeholder to be
-    # replaced by an external that already has a concrete version. This syntax
-    # is not sufficient when concretizing without an external, as it will
-    # concretize to python@X.Y instead of python@X.Y.Z
-    python_requirement = '^' + spec_for_current_python()
-    spec.constrain(python_requirement)
+def _import_from_store(module, spec):
     installed_specs = spack.store.db.query(spec, installed=True)
 
     for ispec in installed_specs:
-        # TODO: make sure run-environment is appropriate
-        module_path = os.path.join(ispec.prefix,
-                                   ispec['python'].package.site_packages_dir)
+        module_path = os.path.join(
+            ispec.prefix, ispec['python'].package.site_packages_dir
+        )
         module_path_64 = module_path.replace('/lib/', '/lib64/')
-        try:
-            sys.path.append(module_path)
-            sys.path.append(module_path_64)
-            __import__(module)
-            return
-        except ImportError:
-            tty.warn("Spec %s did not provide module %s" % (ispec, module))
-            sys.path = sys.path[:-2]
-
-    def _raise_error(module_name, module_spec):
-        error_msg = 'cannot import module "{0}"'.format(module_name)
-        if module_spec:
-            error_msg += ' from spec "{0}'.format(module_spec)
-        raise ImportError(error_msg)
-
-    if not install:
-        _raise_error(module, spec)
-
-    with spack_python_interpreter():
-        # We will install for ourselves, using this python if needed
-        # Concretize the spec
-        spec.concretize()
-    spec.package.do_install()
-
-    module_path = os.path.join(spec.prefix,
-                               spec['python'].package.site_packages_dir)
-    module_path_64 = module_path.replace('/lib/', '/lib64/')
-    try:
         sys.path.append(module_path)
         sys.path.append(module_path_64)
-        __import__(module)
-        return
-    except ImportError:
+
+        if _python_import(module):
+            return True
+
+        tty.warn("Spec %s did not provide module %s" % (ispec, module))
         sys.path = sys.path[:-2]
-        _raise_error(module, spec)
+
+    return False
+
+
+def _try_install_from_sources(module, spec):
+    assert spec.concrete, '"{0}" is not a concrete spec'.format(spec)
+
+    # Install the spec that should make the module importable
+    spec.package.do_install()
+
+    module_path = os.path.join(
+        spec.prefix, spec['python'].package.site_packages_dir
+    )
+    module_path_64 = module_path.replace('/lib/', '/lib64/')
+
+    sys.path.append(module_path)
+    sys.path.append(module_path_64)
+    if _python_import(module):
+        return True
+
+    sys.path = sys.path[:-2]
+    return False
 
 
 def get_executable(exe, spec=None, install=False):
@@ -213,6 +248,63 @@ def _bootstrap_config_scopes():
     return config_scopes
 
 
+def _install_clingo_and_try_import(module, abstract_spec):
+    import spack.main
+    # Try to install from an unsigned binary cache
+    data = [{
+        'spec': 'clingo-bootstrap%gcc platform=linux target=x86_64',
+        'hash': 'vcipwnf57slgoo7busvvkzjkk7vydeb5',
+        'python': 'python@3.6',
+        'sha256': '',
+        'compiler': {
+            'spec': 'gcc@9.3.0',
+            'paths': {
+                'cc': '/dev/null',
+                'cxx': '/dev/null',
+                'f77': '/dev/null',
+                'fc': '/dev/null'
+            },
+            'operating_system': 'rhel5',
+            'target': 'x86_64',
+            'modules': []
+        }
+    }]
+    buildcache = spack.main.SpackCommand('buildcache')
+    for item in data:
+        candidate_spec = item['spec']
+        # Skip specs which are not compatible
+        if not abstract_spec.satisfies(candidate_spec):
+            continue
+
+        msg = "[BOOTSTRAP MODULE {0}] Try installing '{1}' from binary cache"
+        tty.debug(msg.format(module, abstract_spec))
+        spec_str = '/' + item['hash']
+        with spack.config.override(
+                'compilers', [{'compiler': item['compiler']}]
+        ):
+            # FIXME: need to check sha256
+            install_args = ['install', '-a', '-u', '-o', '-f', spec_str]
+            buildcache(*install_args, fail_on_error=False)
+            if _import_from_store(module, abstract_spec):
+                return True
+
+        # TODO: uninstall stuff?
+
+    # vcipwnf57slgoo7busvvkzjkk7vydeb5
+    # Try to build and install from sources
+    with spack_python_interpreter():
+        concrete_spec = abstract_spec.copy()
+        # TODO: substitute this call when the old concretizer is deprecated
+        concrete_spec._old_concretize()
+
+    msg = "[BOOTSTRAP MODULE {0}] Try installing '{1}' from sources"
+    tty.debug(msg.format(module, concrete_spec))
+    if _try_install_from_sources(module, concrete_spec):
+        return True
+
+    return False
+
+
 @contextlib.contextmanager
 def ensure_bootstrap_configuration():
     with spack.architecture.use_platform(spack.architecture.real_platform()):
@@ -248,3 +340,12 @@ def clingo_root_spec():
     tty.debug('[BOOTSTRAP ROOT SPEC] clingo: {0}'.format(spec_str))
 
     return spack.spec.Spec(spec_str)
+
+
+def ensure_clingo_importable_or_raise():
+    """Ensure that the clingo module is available for import."""
+    ensure_module_importable_or_raise(
+        module='clingo',
+        abstract_spec=clingo_root_spec(),
+        install_fn=_install_clingo_and_try_import
+    )
