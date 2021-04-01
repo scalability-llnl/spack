@@ -831,6 +831,19 @@ def _headers_default_handler(descriptor, spec, cls):
             msg.format(spec.name, spec.prefix.include))
 
 
+def _all_headers_default_handler(descriptor, spec, cls):
+    """Default handler when looking for the 'all_headers' attribute.
+
+       The default behavior is to combine the 'headers' attributes of spec and
+       all its dependencies.
+    """
+    headers = spec.headers
+    # Use the link dependencies to define the header dependencies.
+    for dep in spec.dependencies(deptype='link'):
+        headers += spec[dep.name].headers
+    return headers
+
+
 def _libs_default_handler(descriptor, spec, cls):
     """Default handler when looking for the 'libs' attribute.
 
@@ -880,6 +893,18 @@ def _libs_default_handler(descriptor, spec, cls):
 
     msg = 'Unable to recursively locate {0} libraries in {1}'
     raise spack.error.NoLibrariesError(msg.format(spec.name, spec.prefix))
+
+
+def _all_libs_default_handler(descriptor, spec, cls):
+    """Default handler when looking for the 'all_libs' attribute.
+
+       The default behavior is to combine the 'libs' attributes of spec and
+       all its dependencies.
+    """
+    libs = spec.libs
+    for dep in spec.dependencies(deptype='link'):
+        libs += spec[dep.name].libs
+    return libs
 
 
 class ForwardQueryToPackage(object):
@@ -1010,9 +1035,19 @@ class SpecBuildInterface(lang.ObjectWrapper):
         default_handler=_headers_default_handler
     )
 
+    all_headers = ForwardQueryToPackage(
+        'all_headers',
+        default_handler=_all_headers_default_handler
+    )
+
     libs = ForwardQueryToPackage(
         'libs',
         default_handler=_libs_default_handler
+    )
+
+    all_libs = ForwardQueryToPackage(
+        'all_libs',
+        default_handler=_all_libs_default_handler
     )
 
     def __init__(self, spec, name, query_parameters):
