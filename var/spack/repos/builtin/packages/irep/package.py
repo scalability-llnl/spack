@@ -9,14 +9,22 @@ class Irep(MakefilePackage):
     format is a set of tables -- Lua's one (and only?) data structure."""
 
     homepage = "https://irep.readthedocs.io/"
-    url      = "ssh://git@github.com:LLNL/irep.git"
+    git      = "ssh://git@github.com:LLNL/irep.git"
 
-    version('master', '5e0c98cd230eaf5bf918dbec3645ac5786aa6c457b573e1091f83d06dc2e1b08')
+    version('master', branch='master')
 
     depends_on('lua-luajit', type=('link', 'run'))
     depends_on('lua', type=('link', 'run'))
 
+    def cmake_args(self):
+        args = []
+        args.append('-DIREP_GENERATE={0}'.format(self.prefix.bin.irep-generate))
+        args.append('-DIREP_LIBRARIES={0}'.format(self.prefix.lib.libIR.a))
+        args.append('-DIREP_INCLUDE_DIR={0}'.format(self.prefix))
+
+        return args
+
     def install(self, spec, prefix):
         # FIXME: Unknown build system
-        make()
-        make('install')
+        mkdirp(prefix.lib)
+        install('irep/libIR.a', prefix.lib)
