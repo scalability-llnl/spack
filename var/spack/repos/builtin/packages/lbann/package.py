@@ -108,8 +108,10 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
     depends_on('aluminum@0.5.0:', when='@:0.90,0.102: +al')
 
     # Add Aluminum variants
-    depends_on('aluminum +cuda +nccl +ht +cuda_rma', when='+al +cuda')
-    depends_on('aluminum +rocm +rccl +ht', when='+al +rocm')
+    # depends_on('aluminum +cuda +nccl +ht +cuda_rma', when='+al +cuda')
+    # depends_on('aluminum +rocm +rccl +ht', when='+al +rocm')
+    depends_on('aluminum +cuda +ht', when='+al +cuda')
+    depends_on('aluminum +rocm +ht', when='+al +rocm')
 
     depends_on('dihydrogen@0.2.0:', when='@:0.90,0.102:')
     depends_on('dihydrogen +openmp', when='+dihydrogen')
@@ -132,7 +134,7 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
         depends_on('hydrogen cuda_arch=%s' % arch, when='+cuda cuda_arch=%s' % arch)
         depends_on('aluminum cuda_arch=%s' % arch, when='+al +cuda cuda_arch=%s' % arch)
         depends_on('dihydrogen cuda_arch=%s' % arch, when='+dihydrogen +cuda cuda_arch=%s' % arch)
-        depends_on('nccl cuda_arch=%s' % arch, when='+cuda cuda_arch=%s' % arch)
+        depends_on('nccl cuda_arch=%s' % arch, when='@0.94:0.98.2 +cuda cuda_arch=%s' % arch)
 
     # variants +rocm and amdgpu_targets are not automatically passed to
     # dependencies, so do it manually.
@@ -358,9 +360,10 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
             archs = self.spec.variants['amdgpu_target'].value
             if archs != 'none':
                 arch_str = ",".join(archs)
+                cxxflags_str = " ".join(self.spec.compiler_flags['cxxflags'])
                 args.append(
                     '-DHIP_HIPCC_FLAGS=--amdgpu-target={0}'
-                    ' -g -fsized-deallocation -fPIC -std=c++17'.format(arch_str)
+                    ' -g -fsized-deallocation -fPIC -std=c++17 {1}'.format(arch_str, cxxflags_str)
                 )
 
         return args

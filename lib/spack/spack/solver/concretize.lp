@@ -218,6 +218,7 @@ provider_weight(Package, 100)
 
 #defined possible_provider/2.
 #defined provider_condition/3.
+#defined possible_provider/2.
 #defined required_provider_condition/3.
 #defined required_provider_condition/4.
 #defined required_provider_condition/5.
