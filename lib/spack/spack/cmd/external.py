@@ -44,7 +44,10 @@ def setup_parser(subparser):
         default=spack.config.default_modify_scope('packages'),
         help="configuration scope to modify")
     spack.cmd.common.arguments.add_common_arguments(find_parser, ['tags'])
-    find_parser.add_argument('packages', nargs=argparse.REMAINDER)
+    find_parser.add_argument(
+        '--exclude',
+        help="do not call binaries with this regular pattern for the search")
+        find_parser.add_argument('packages', nargs=argparse.REMAINDER)
 
     sp.add_parser(
         'list', help='list detectable packages, by repository and name'
@@ -174,7 +177,7 @@ def external_find(args):
     if not args.tags and not packages_to_check:
         packages_to_check = spack.repo.path.all_packages()
 
-    pkg_to_entries = _get_external_packages(packages_to_check)
+    pkg_to_entries = _get_external_packages(packages_to_check,args.exclude)
     new_entries = _update_pkg_config(
         args.scope, pkg_to_entries, args.not_buildable
     )
@@ -257,7 +260,7 @@ def _update_pkg_config(scope, pkg_to_entries, not_buildable):
     return all_new_specs
 
 
-def _get_external_packages(packages_to_check, system_path_to_exe=None):
+def _get_external_packages(packages_to_check,exclude_binaries=None, system_path_to_exe=None):
     if not system_path_to_exe:
         system_path_to_exe = _get_system_executables()
 
@@ -268,12 +271,17 @@ def _get_external_packages(packages_to_check, system_path_to_exe=None):
                 exe_pattern_to_pkgs[exe].append(pkg)
 
     pkg_to_found_exes = defaultdict(set)
+    if exclude_binaries:
+        compiled_exclude = re.compile(exclude_binaries)
+    else:
+        compiled_exclude = None
     for exe_pattern, pkgs in exe_pattern_to_pkgs.items():
         compiled_re = re.compile(exe_pattern)
         for path, exe in system_path_to_exe.items():
-            if compiled_re.search(exe):
-                for pkg in pkgs:
-                    pkg_to_found_exes[pkg].add(path)
+            if not compiled_exclude or not compiled_exclude.search(exe):
+                if compiled_re.search(exe):
+                    for pkg in pkgs:
+                        pkg_to_found_exes[pkg].add(path)
 
     pkg_to_entries = defaultdict(list)
     resolved_specs = {}  # spec -> exe found for the spec
