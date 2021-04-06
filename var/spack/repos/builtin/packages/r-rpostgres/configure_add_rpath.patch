@@ -1,0 +1,11 @@
+--- a/configure	2021-01-19 07:06:02.000000000 -0600
++++ b/configure	2021-03-21 17:13:10.184853541 -0500
+@@ -47,7 +47,7 @@
+ if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
+   echo "Found INCLUDE_DIR and/or LIB_DIR!"
+   PKG_CFLAGS="-I$INCLUDE_DIR $PKG_CFLAGS"
+-  PKG_LIBS="-L$LIB_DIR $PKG_LIBS"
++  PKG_LIBS="-L$LIB_DIR -Wl,-rpath,$LIB_DIR $PKG_LIBS"
+ elif [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
+   echo "Found pkg-config cflags and libs ($PKG_CONFIG_NAME $PKGCONFIG_MODVERSION)!"
+   PKG_CFLAGS=${PKGCONFIG_CFLAGS}
