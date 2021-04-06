@@ -1,0 +1,25 @@
+diff --git a/horton/meanfield/cext.pyx b/horton/meanfield/cext.pyx
+index dc62095..9462860 100644
+--- a/tmp.pyx
++++ b/horton/meanfield/cext.pyx
+@@ -40,7 +40,7 @@ cdef extern from "xc.h":
+         int kind
+         char* name
+         int family
+-        char* refs
++        #char* refs
+ 
+     ctypedef struct xc_func_type:
+         xc_func_info_type* info
+@@ -112,9 +112,9 @@ cdef class LibXCWrapper(object):
+         def __get__(self):
+             return self._func.info[0].family
+ 
+-    property refs:
+-        def __get__(self):
+-            return self._func.info[0].refs
++    #property refs:
++    #    def __get__(self):
++    #        return self._func.info[0].refs
+ 
+     ## HYB GGA
