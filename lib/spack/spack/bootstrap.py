@@ -83,8 +83,8 @@ def ensure_module_importable_or_raise(module, abstract_spec=None, install_fn=Non
 
     Args:
         module (str): module to be imported in the current interpreter
-        abstract_spec (Spec): abstract spec that might provide the module. If not
-            given it defaults to Spec(module)
+        abstract_spec (str): abstract spec that might provide the module. If not
+            given it defaults to "module"
         install_fn (callable): optional callable to try install software that might
             provide the required module. The callable takes a module and an abstract
             spec as arguments
@@ -97,11 +97,10 @@ def ensure_module_importable_or_raise(module, abstract_spec=None, install_fn=Non
     if _python_import(module):
         return
 
-    abstract_spec = abstract_spec or spack.spec.Spec(module)
+    abstract_spec = abstract_spec or module
 
     # We have to run as part of this python interpreter
-    python_requirement = '^' + spec_for_current_python()
-    abstract_spec.constrain(python_requirement)
+    abstract_spec += ' ^' + spec_for_current_python()
 
     # Check if any of the already installed specs provide the import
     msg = "[BOOTSTRAP MODULE {0}] Try installed specs with query '{1}'"
@@ -251,7 +250,10 @@ def _bootstrap_config_scopes():
     return config_scopes
 
 
-def _install_clingo_and_try_import(module, abstract_spec):
+def _install_clingo_and_try_import(module, abstract_spec_str):
+    # This import is local since it is needed only on Cray
+    import spack.platforms.linux
+
     # Read information on verified clingo binaries
     clingo_json_path = os.path.join(
         spack.paths.share_path, 'bootstrap', 'clingo.json'
@@ -260,6 +262,17 @@ def _install_clingo_and_try_import(module, abstract_spec):
         data = json.load(f)
 
     # Try to install from an unsigned binary cache
+    bincache_platform = spack.architecture.real_platform()
+    abstract_spec = spack.spec.Spec(abstract_spec_str)
+
+    # On Cray we want to use Linux binaries if available from mirrors
+    if str(bincache_platform) == 'cray':
+        bincache_platform = spack.platforms.linux.Linux()
+        with spack.architecture.use_platform(bincache_platform):
+            abstract_spec = spack.spec.Spec(abstract_spec_str)
+            if _import_from_store(module, abstract_spec):
+                return True
+
     buildcache = spack.main.SpackCommand('buildcache')
     for item in data['verified']:
         candidate_spec = item['spec']
@@ -274,26 +287,31 @@ def _install_clingo_and_try_import(module, abstract_spec):
         msg = "[BOOTSTRAP MODULE {0}] Try installing '{1}' from binary cache"
         tty.debug(msg.format(module, abstract_spec))
         spec_str = '/' + item['hash']
-        with spack.config.override(
-                'compilers', [{'compiler': item['compiler']}]
-        ):
-            # FIXME: need to check sha256
-            install_args = ['install', '-a', '-u', '-o', '-f', spec_str]
-            buildcache(*install_args, fail_on_error=False)
-            if _import_from_store(module, abstract_spec):
-                return True
+        with spack.architecture.use_platform(bincache_platform):
+            with spack.config.override(
+                    'compilers', [{'compiler': item['compiler']}]
+            ):
+                # FIXME: need to check sha256
+                install_args = ['install', '-a', '-u', '-o', '-f', spec_str]
+                buildcache(*install_args, fail_on_error=False)
+                if _import_from_store(module, abstract_spec):
+                    return True
 
         # TODO: uninstall stuff?
 
-    # vcipwnf57slgoo7busvvkzjkk7vydeb5
     # Try to build and install from sources
     with spack_python_interpreter():
-        concrete_spec = abstract_spec.copy()
+        # Add hint to use frontend operating system on Cray
+        if str(spack.architecture.platform()) == 'cray':
+            abstract_spec_str = clingo_root_spec()
+            abstract_spec_str += ' os=fe ^' + spec_for_current_python()
+
+        concrete_spec = spack.spec.Spec(abstract_spec_str)
         # TODO: substitute this call when the old concretizer is deprecated
         concrete_spec._old_concretize()
 
     msg = "[BOOTSTRAP MODULE {0}] Try installing '{1}' from sources"
-    tty.debug(msg.format(module, concrete_spec))
+    tty.debug(msg.format(module, abstract_spec_str))
     if _try_install_from_sources(module, concrete_spec):
         return True
 
@@ -324,17 +342,13 @@ def clingo_root_spec():
     else:
         spec_str += ' %gcc'
 
-    # Add hint to use frontend operating system on Cray
-    if str(spack.architecture.platform()) == 'cray':
-        spec_str += ' os=fe'
-
     # Add the generic target
     generic_target = archspec.cpu.host().family
     spec_str += ' target={0}'.format(str(generic_target))
 
     tty.debug('[BOOTSTRAP ROOT SPEC] clingo: {0}'.format(spec_str))
 
-    return spack.spec.Spec(spec_str)
+    return spec_str
 
 
 def ensure_clingo_importable_or_raise():
