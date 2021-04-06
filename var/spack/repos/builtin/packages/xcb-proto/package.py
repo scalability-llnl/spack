@@ -25,6 +25,10 @@ class XcbProto(AutotoolsPackage):
 
     patch('xcb-proto-1.12-schema-1.patch', when='@1.12')
 
+    ## fractions.gcd has been deprecated since python 3.5
+    ## and is removed starting from python 3.9, breaking xcb-proto
+    patch('python-gcd-fix.patch', when='^python@3.9:')
+
     def url_for_version(self, version):
         if version >= Version('1.14'):
             url = 'https://xorg.freedesktop.org/archive/individual/proto/xcb-proto-{0}.tar.xz'
