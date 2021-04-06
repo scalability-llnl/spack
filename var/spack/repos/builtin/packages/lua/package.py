@@ -62,7 +62,7 @@ class Lua(Package):
              'MYLDFLAGS=-L%s -L%s' % (
                  spec['readline'].prefix.lib,
                  spec['ncurses'].prefix.lib),
-             'MYLIBS=-lncursesw -ltinfow',
+             'MYLIBS=-lncurses -ltinfo',
              'CC=%s -std=gnu99 %s' % (spack_cc,
                                       self.compiler.cc_pic_flag),
              target)
