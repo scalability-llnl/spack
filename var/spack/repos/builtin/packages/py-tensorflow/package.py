@@ -13,10 +13,13 @@ class PyTensorflow(Package, CudaPackage):
 
     homepage = "https://www.tensorflow.org"
     url      = "https://github.com/tensorflow/tensorflow/archive/v2.3.1.tar.gz"
+    git      = "https://github.com/tensorflow/tensorflow"
 
     maintainers = ['adamjstewart', 'aweits']
     import_modules = ['tensorflow']
 
+    version('master', branch='master')
+    version('2.5.0-rc0', sha256='1eb7ab658bdf64b9df12d695c1a5fa9122ff9e7fc68646343d43ff66bec1bc92')
     version('2.4.1',  sha256='f681331f8fc0800883761c7709d13cda11942d4ad5ff9f44ad855e9dc78387e0')
     version('2.4.0',  sha256='26c833b7e1873936379e810a39d14700281125257ddda8cd822c89111db6f6ae')
     version('2.3.2',  sha256='21a703d2e68cd0677f6f9ce329198c24fd8203125599d791af9f1de61aadf31f')
@@ -111,7 +114,8 @@ class PyTensorflow(Package, CudaPackage):
     # Need to investigate further.
 
     # See _TF_MIN_BAZEL_VERSION and _TF_MAX_BAZEL_VERSION in configure.py
-    depends_on('bazel@3.1.0:3.99.0',  type='build', when='@2.3:')
+    depends_on('bazel@3.7.2:3.99.0',  type='build', when='@2.5:')
+    depends_on('bazel@3.1.0:3.99.0',  type='build', when='@2.3:2.4.999')
     depends_on('bazel@2.0.0',         type='build', when='@2.2.0:2.2.999')
     depends_on('bazel@0.27.1:0.29.1', type='build', when='@2.1.0:2.1.999')
     depends_on('bazel@0.24.1:0.26.1', type='build', when='@1.15:2.0')
@@ -148,7 +152,8 @@ class PyTensorflow(Package, CudaPackage):
     depends_on('py-backports-weakref@1.0rc1', type=('build', 'run'), when='@1.2.0:1.2.1')
     depends_on('py-enum34@1.1.6:', type=('build', 'run'), when='@1.5: ^python@:3.3')
     depends_on('py-enum34@1.1.6:', type=('build', 'run'), when='@1.4.0:1.4.1')
-    depends_on('py-gast@0.3.3', type=('build', 'run'), when='@2.2:')
+    depends_on('py-gast@0.4.0', type=('build', 'run'), when='@2.5:')
+    depends_on('py-gast@0.3.3', type=('build', 'run'), when='@2.2:2.4.999')
     depends_on('py-gast@0.2.2', type=('build', 'run'), when='@1.15:2.1')
     depends_on('py-gast@0.2.0:', type=('build', 'run'), when='@1.6:1.14')
     depends_on('py-google-pasta@0.2:0.999', type=('build', 'run'), when='@2.4.0:')
@@ -156,8 +161,10 @@ class PyTensorflow(Package, CudaPackage):
     depends_on('py-google-pasta@0.1.6:', type=('build', 'run'), when='@1.14:2.0')
     depends_on('py-google-pasta@0.1.2:', type=('build', 'run'), when='@1.12.1')
     # propagate the mpi variant setting for h5py/hdf5 to avoid unexpected crashes
-    depends_on('py-h5py@2.10.0:2.10.999', type=('build', 'run'), when='@2.2:+mpi')
-    depends_on('py-h5py~mpi@2.10.0:2.10.999', type=('build', 'run'), when='@2.2:~mpi')
+    depends_on('py-h5py@3.1.0:3.1.999', type=('build', 'run'), when='@2.5:+mpi')
+    depends_on('py-h5py~mpi@3.1.0:3.1.999', type=('build', 'run'), when='@2.5:~mpi')
+    depends_on('py-h5py@2.10.0:2.10.999', type=('build', 'run'), when='@2.2:2.4.999+mpi')
+    depends_on('py-h5py~mpi@2.10.0:2.10.999', type=('build', 'run'), when='@2.2:2.4.999~mpi')
     depends_on('py-keras-applications@1.0.8:', type=('build', 'run'), when='@1.15:2.1')
     depends_on('py-keras-applications@1.0.6:', type=('build', 'run'), when='@1.12:1.14')
     depends_on('py-keras-applications@1.0.5:', type=('build', 'run'), when='@1.11.0:1.11.999')
@@ -195,6 +202,7 @@ class PyTensorflow(Package, CudaPackage):
     depends_on('flatbuffers+python@1.12.0:1.12.999', type=('build', 'run'), when='@2.4.0:')
     # tensorboard
     # tensorflow-estimator
+    # keras
     depends_on('py-termcolor@1.1.0:1.1.999', type=('build', 'run'), when='@2.4.0:')
     depends_on('py-termcolor@1.1.0:', type=('build', 'run'), when='@1.6:2.3')
     depends_on('py-wrapt@1.12.1:1.12.999', type=('build', 'run'), when='@2.4.0:')
@@ -214,15 +222,16 @@ class PyTensorflow(Package, CudaPackage):
     if sys.byteorder == 'little':
         # Only builds correctly on little-endian machines
         depends_on('py-grpcio@1.8.6:', type=('build', 'run'), when='@1.8:2.3')
-        depends_on('py-grpcio@1.32.0:1.32.999', type=('build', 'run'), when='@2.4:')
-
+        depends_on('py-grpcio@1.32.0:1.32.999', type=('build', 'run'), when='@2.4:2.4.999')
+        depends_on('py-grpcio@1.34.0:1.34.999', type=('build', 'run'), when='@2.5:')
     # TODO: add packages for some of these dependencies
     depends_on('mkl', when='+mkl')
     depends_on('curl', when='+gcp')
     # depends_on('computecpp', when='+opencl+computecpp')
     # depends_on('trisycl',    when='+opencl~computepp')
     depends_on('cuda@:10.2', when='+cuda @:2.3')
-    depends_on('cuda@:11.1', when='+cuda @2.4.0:')
+    depends_on('cuda@:11.1', when='+cuda @2.4.0:2.4.999')
+    depends_on('cuda@:11.2', when='+cuda @2.5.0:')
     depends_on('cudnn', when='+cuda')
     depends_on('cudnn@6.5', when='@0.5:0.6 +cuda')
     # depends_on('tensorrt', when='+tensorrt')
@@ -569,11 +578,16 @@ def protobuf_deps():
 '''
             with open('third_party/systemlibs/protobuf_deps.bzl', 'w') as f:
                 f.write(text)
+
+            file_to_patch = 'tensorflow/workspace.bzl'
+            if self.spec.satisfies('@2.5.0:'):
+                file_to_patch = 'tensorflow/workspace2.bzl'
+
             filter_file(
                 '"//third_party/systemlibs:protobuf.bzl": "protobuf.bzl",',
                 '"//third_party/systemlibs:protobuf.bzl": "protobuf.bzl",\n'
                 '"//third_party/systemlibs:protobuf_deps.bzl": "protobuf_deps.bzl",',  # noqa: E501
-                'tensorflow/workspace.bzl',
+                file_to_patch,
                 string=True)
 
     def configure(self, spec, prefix):
@@ -632,12 +646,10 @@ def protobuf_deps():
             # generation somehow the wrong PYTHONPATH is used...
             # set --distinct_host_configuration=false as a workaround
             # https://github.com/tensorflow/tensorflow/issues/22395#issuecomment-431229451
-            filter_file('build --action_env TF_NEED_OPENCL_SYCL="0"',
-                        'build --action_env TF_NEED_OPENCL_SYCL="0"\n'
-                        'build --distinct_host_configuration=false\n'
-                        'build --action_env PYTHONPATH="{0}"'.format(
-                            env['PYTHONPATH']),
-                        '.tf_configure.bazelrc')
+            with open('.tf_configure.bazelrc', mode='a') as f:
+                f.write('build --distinct_host_configuration=false\n')
+                f.write('build --action_env PYTHONPATH="{0}"\n'.format(
+                    env['PYTHONPATH']))
         if spec.satisfies('@1.13.1'):
             # tensorflow_estimator is an API for tensorflow
             # tensorflow-estimator imports tensorflow during build, so
@@ -684,10 +696,8 @@ def protobuf_deps():
                 libs.extend(spec['tensorrt'].libs.directories)
             slibs = ':'.join(libs)
 
-            filter_file('build --action_env TF_NEED_OPENCL_SYCL="0"',
-                        'build --action_env TF_NEED_OPENCL_SYCL="0"\n'
-                        'build --action_env LD_LIBRARY_PATH="' + slibs + '"',
-                        '.tf_configure.bazelrc')
+            with open('.tf_configure.bazelrc', mode='a') as f:
+                f.write('build --action_env LD_LIBRARY_PATH="' + slibs + '"')
 
         filter_file('build:opt --copt=-march=native', '',
                     '.tf_configure.bazelrc')
