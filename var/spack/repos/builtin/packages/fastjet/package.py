@@ -19,6 +19,7 @@ class Fastjet(AutotoolsPackage):
 
     maintainers = ['drbenmorgan', 'vvolkl']
 
+    version('3.3.4', sha256='432b51401e1335697c9248519ce3737809808fc1f6d1644bfae948716dddfc03')
     version('3.3.3', sha256='30b0a0282ce5aeac9e45862314f5966f0be941ce118a83ee4805d39b827d732b')
     version('3.3.2', sha256='3f59af13bfc54182c6bb0b0a6a8541b409c6fda5d105f17e03c4cce8db9963c2')
     version('3.3.1', sha256='76bfed9b87e5efdb93bcd0f7779e27427fbe38e05fe908c2a2e80a9ca0876c53')
