@@ -11,6 +11,8 @@ class Irep(MakefilePackage):
     homepage = "https://irep.readthedocs.io/"
     git      = "ssh://git@github.com:LLNL/irep.git"
 
+    maintainers = ['tomstitt', 'kennyweiss']
+
     version('master', branch='master')
 
     depends_on('lua-luajit', type=('link', 'run'))
@@ -18,13 +20,27 @@ class Irep(MakefilePackage):
 
     def cmake_args(self):
         args = []
-        args.append('-DIREP_GENERATE={0}'.format(self.prefix.bin.irep-generate))
-        args.append('-DIREP_LIBRARIES={0}'.format(self.prefix.lib.libIR.a))
-        args.append('-DIREP_INCLUDE_DIR={0}'.format(self.prefix))
+        args.append('-DCMAKE_PREFIX_PATH={0}'.format(self.prefix)) # Is there supposed to be more here?
 
         return args
 
     def install(self, spec, prefix):
-        # FIXME: Unknown build system
+        # Library
         mkdirp(prefix.lib)
         install('irep/libIR.a', prefix.lib)
+
+        # Header
+        mkdirp(prefix.include)
+        install('irep/wkt_app.h', prefix.include)
+
+        #mkdirp(prefix.share)
+        #install('cmake/irep-config.cmake', prefix.share)
+        #install('irep/wkt.mk', prefix.share)
+
+        # irep-config.cmake
+        super(self, irep).install(spec, prefix)
+        install('CMAKE_PREFIX_PATH', self.prefix.share)
+
+        # irep-generate
+        mkdirp(prefix.bin)
+        install('bim/irep-generate', prefix.bin)
