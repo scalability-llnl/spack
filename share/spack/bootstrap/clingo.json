@@ -125,6 +125,96 @@
         "target": "x86_64",
         "modules": []
       }
+    },
+    {
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64",
+      "hash": "m4ertsh3ooxdisc5tigglublasu4udfe",
+      "python": "python@3.5",
+      "sha256": "",
+      "compiler": {
+        "spec": "apple-clang@12.0.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "catalina",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64",
+      "hash": "scxnemxpwmjwrwktzkktjdwszjnfprjz",
+      "python": "python@3.6",
+      "sha256": "",
+      "compiler": {
+        "spec": "apple-clang@12.0.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "catalina",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64",
+      "hash": "rjvr6ok2mmvbipwfl7zriwq5c6jakv3z",
+      "python": "python@3.7",
+      "sha256": "",
+      "compiler": {
+        "spec": "apple-clang@12.0.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "catalina",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64",
+      "hash": "zcoki2pu2wizliifbvx6nphykc7uc3tg",
+      "python": "python@3.8",
+      "sha256": "",
+      "compiler": {
+        "spec": "apple-clang@12.0.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "catalina",
+        "target": "x86_64",
+        "modules": []
+      }
+    },
+    {
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64",
+      "hash": "wy745wuzmffpbht2vnlb3uvxdn3ifege",
+      "python": "python@3.9",
+      "sha256": "",
+      "compiler": {
+        "spec": "apple-clang@12.0.0",
+        "paths": {
+          "cc": "/dev/null",
+          "cxx": "/dev/null",
+          "f77": "/dev/null",
+          "fc": "/dev/null"
+        },
+        "operating_system": "catalina",
+        "target": "x86_64",
+        "modules": []
+      }
     }
   ]
 }
