@@ -601,6 +601,8 @@ def write_buildinfo_file(spec, workdir, rel=False):
     import spack.hooks.sbang as sbang
     buildinfo = {}
     buildinfo['sbang_install_path'] = sbang.sbang_install_path()
+    buildinfo['stage_path'] = spec.package.stage.path
+    buildinfo['install_prefix'] = str(spec.package.prefix)
     buildinfo['relative_rpaths'] = rel
     buildinfo['buildpath'] = spack.store.layout.root
     buildinfo['spackprefix'] = spack.paths.prefix
@@ -1175,6 +1177,7 @@ def relocate_package(spec, allow_root):
                                              old_prefix,
                                              new_prefix)
         if 'elf' in platform.binary_formats:
+            # Relocate the elf binaries, including debugedit to change dwarfinfo
             relocate.relocate_elf_binaries(files_to_relocate,
                                            old_layout_root,
                                            new_layout_root,

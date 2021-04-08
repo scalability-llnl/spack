@@ -618,12 +618,47 @@ def _transform_rpaths(orig_rpaths, orig_root, new_prefixes):
     return new_rpaths
 
 
+def run_debugedit(binaries, new_prefix, comp_dirs):
+    """
+    Edit debuginfo section of elf files, specifically the base-dir info.
+
+    This function requires 1) pyelftools to get all previous DW_AT_comp_dir,
+    and 2) debugedit to then change these paths in the binary to the new
+    location.
+
+    Args:
+        binaries (list): list of binaries that might need relocation, located
+            in the new prefix
+        new_prefix (str): prefix where we want to relocate the executables
+        comp_dirs (list): if known, list of compile directories to change,
+    """
+    # Don't run in CI
+    if os.environ.get("CI"):
+        return
+
+    import spack.bootstrap
+    comp_dirs = comp_dirs or []
+
+    # Use debugedit to change the prefix in the binary
+    with spack.bootstrap.ensure_bootstrap_configuration():
+        spec = spack.spec.Spec("debugedit")
+        spec.concretize()
+        debugedit = spack.bootstrap.get_executable(
+            "debugedit", spec=spec, install=True)
+
+        # Change the base-dir information with debugedit!
+        for binary in binaries:
+            for comp_dir in comp_dirs:
+                debugedit('-b', comp_dir, '-d', new_prefix, binary)
+
+
 def relocate_elf_binaries(binaries, orig_root, new_root,
                           new_prefixes, rel, orig_prefix, new_prefix):
     """Relocate the binaries passed as arguments by changing their RPATHs.
 
     Use patchelf to get the original RPATHs and then replace them with
-    rpaths in the new directory layout.
+    rpaths in the new directory layout. Use bootstrapped debugedit to edit
+    the filepaths in the binary headers too.
 
     New RPATHs are determined from a dictionary mapping the prefixes in the
     old directory layout to the prefixes in the new directory layout if the
@@ -640,6 +675,9 @@ def relocate_elf_binaries(binaries, orig_root, new_root,
         orig_prefix (str): prefix where the executable was originally located
         new_prefix (str): prefix where we want to relocate the executable
     """
+    # Use debugedit to change the prefix in the binary
+    run_debugedit(binaries, new_prefix, [orig_prefix])
+
     for new_binary in binaries:
         orig_rpaths = _elf_rpaths_for(new_binary)
         # TODO: Can we deduce `rel` from the original RPATHs?

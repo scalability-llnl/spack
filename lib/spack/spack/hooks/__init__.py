@@ -64,3 +64,5 @@ post_install = HookRunner('post_install')
 
 pre_uninstall = HookRunner('pre_uninstall')
 post_uninstall = HookRunner('post_uninstall')
+
+on_install_success = HookRunner('on_install_success')

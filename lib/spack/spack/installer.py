@@ -1733,6 +1733,9 @@ def build_process(pkg, kwargs):
                     _hms(pkg._total_time)))
     _print_installed_pkg(pkg.prefix)
 
+    # hook for when install finished, stage is cleaned up
+    spack.hooks.on_install_success(pkg.spec)
+
     # preserve verbosity across runs
     return echo
 
