@@ -25,10 +25,19 @@ class Zlib(Package):
             description='Produce position-independent code (for shared libs)')
     variant('shared', default=True,
             description='Enables the build of shared libraries.')
+    variant('debug',   default=False,
+            description='Build debug code (-g -O0)')
     variant('optimize', default=True,
             description='Enable -O2 for a more optimized lib')
 
+    conflicts('+debug+optimize')
+    conflicts('+shared', when='@:1.2.5')
+
     patch('w_patch.patch', when="@1.2.11%cce")
+
+    def patch(self):
+        if self.spec.satisfies('@:1.2.5'):
+            filter_file(r'stdio.h', 'stdio.h>\n#include <errno.h', 'gzio.c')
 
     @property
     def libs(self):
@@ -37,15 +46,21 @@ class Zlib(Package):
             ['libz'], root=self.prefix, recursive=True, shared=shared
         )
 
-    def setup_build_environment(self, env):
-        if '+pic' in self.spec:
-            env.append_flags('CFLAGS', self.compiler.cc_pic_flag)
-        if '+optimize' in self.spec:
-            env.append_flags('CFLAGS', '-O2')
+    def flag_handler(self, name, flags):
+        if name in ('cflags'):
+            if '+pic' in self.spec:
+                flags.append(self.compiler.cc_pic_flag)
+            if '+debug' in self.spec:
+                flags.append('-g -O0')
+                flags = list(map(  # Fix to change all -O to -O0
+                    lambda x: "-O0" if x.startswith('-O') else x, flags))
+            if '+optimize' in self.spec:
+                flags.append('-O2')  # TODO: Really only if no -O already set
+        return (None, flags, None)
 
     def install(self, spec, prefix):
         config_args = []
-        if '~shared' in spec:
+        if '~shared' in spec and spec.satisfies('@1.2.5:'):
             config_args.append('--static')
         configure('--prefix={0}'.format(prefix), *config_args)
 
