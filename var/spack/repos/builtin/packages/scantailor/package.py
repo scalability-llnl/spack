@@ -19,10 +19,10 @@ class Scantailor(CMakePackage):
 
     version(
         "0.2.7",
-        sha256="3e27647621d43638888a268902f8fa098b06a70a5da5d0623b1c11220a367910",
+        sha256="0262079c15a0068412edfb7d6c2ed03159dc71eada4e31e48ac500f924254eca",
     )
 
-    depends_on("qt@5:")
+    depends_on("qt@5.14.2")
     depends_on("libjpeg")
     depends_on("zlib")
     depends_on("libpng")
