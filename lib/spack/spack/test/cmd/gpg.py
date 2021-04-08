@@ -117,6 +117,20 @@ def test_gpg(tmpdir, mock_gnupghome):
     export_path = tmpdir.join('export.testing.key')
     gpg('export', str(export_path))
 
+    # Test exporting the private key
+    private_export_path = tmpdir.join('export-secret.testing.key')
+    gpg('export', '--secret', str(private_export_path))
+
+    # Ensure we exported the right content!
+    with open(str(private_export_path), 'r') as fd:
+        content = fd.read()
+    assert "BEGIN PGP PRIVATE KEY BLOCK" in content
+
+    # and for the public key
+    with open(str(export_path), 'r') as fd:
+        content = fd.read()
+    assert "BEGIN PGP PUBLIC KEY BLOCK" in content
+
     # Create a second key for use in the tests.
     gpg('create',
         '--comment', 'Spack testing key',

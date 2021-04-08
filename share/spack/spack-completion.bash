@@ -979,7 +979,7 @@ _spack_gpg_sign() {
 _spack_gpg_create() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help --comment --expires --export"
+        SPACK_COMPREPLY="-h --help --comment --expires --export --export-secret"
     else
         SPACK_COMPREPLY=""
     fi
@@ -996,7 +996,7 @@ _spack_gpg_init() {
 _spack_gpg_export() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help"
+        SPACK_COMPREPLY="-h --help --secret"
     else
         _keys
     fi

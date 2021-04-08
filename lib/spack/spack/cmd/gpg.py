@@ -60,6 +60,9 @@ def setup_parser(subparser):
                         default='0', help='when the key should expire')
     create.add_argument('--export', metavar='DEST', type=str,
                         help='export the public key to a file')
+    create.add_argument('--export-secret', metavar="DEST", type=str,
+                        dest="secret",
+                        help='export the private key to a file.')
     create.set_defaults(func=gpg_create)
 
     list = subparsers.add_parser('list', help=gpg_list.__doc__)
@@ -79,7 +82,9 @@ def setup_parser(subparser):
                         help='where to export keys')
     export.add_argument('keys', nargs='*',
                         help='the keys to export; '
-                             'all secret keys if unspecified')
+                             'all public keys if unspecified')
+    export.add_argument('--secret', action='store_true',
+                        help='export secret keys')
     export.set_defaults(func=gpg_export)
 
     publish = subparsers.add_parser('publish', help=gpg_publish.__doc__)
@@ -112,22 +117,28 @@ def setup_parser(subparser):
 
 def gpg_create(args):
     """create a new key"""
-    if args.export:
+    if args.export or args.secret:
         old_sec_keys = spack.util.gpg.signing_keys()
+
+    # Create the new key
     spack.util.gpg.create(name=args.name, email=args.email,
                           comment=args.comment, expires=args.expires)
-    if args.export:
+    if args.export or args.secret:
         new_sec_keys = set(spack.util.gpg.signing_keys())
         new_keys = new_sec_keys.difference(old_sec_keys)
-        spack.util.gpg.export_keys(args.export, *new_keys)
+
+    if args.export:
+        spack.util.gpg.export_keys(args.export, new_keys)
+    if args.secret:
+        spack.util.gpg.export_keys(args.secret, new_keys, secret=True)
 
 
 def gpg_export(args):
-    """export a secret key"""
+    """export a gpg key, optionally including secret key."""
     keys = args.keys
     if not keys:
         keys = spack.util.gpg.signing_keys()
-    spack.util.gpg.export_keys(args.location, *keys)
+    spack.util.gpg.export_keys(args.location, keys, args.secret)
 
 
 def gpg_list(args):

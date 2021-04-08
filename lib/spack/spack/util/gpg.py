@@ -336,10 +336,12 @@ class Gpg(object):
                       *args, output=str)
         return parse_public_keys_output(output)
 
-    def export_keys(self, location, *keys):
-        self('--batch', '--yes',
-             '--armor', '--export',
-             '--output', location, *keys)
+    def export_keys(self, location, keys, secret=False):
+        if secret:
+            self("--export-secret-keys", "--armor", "--output", location, *keys)
+        else:
+            self('--batch', '--yes', '--armor', '--export', '--output',
+                 location, *keys)
 
     def trust(self, keyfile):
         self('--import', keyfile)

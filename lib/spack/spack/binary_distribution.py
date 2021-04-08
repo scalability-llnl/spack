@@ -1539,7 +1539,9 @@ def push_keys(*mirrors, **kwargs):
                 filename = fingerprint + '.pub'
 
                 export_target = os.path.join(prefix, filename)
-                spack.util.gpg.export_keys(export_target, fingerprint)
+
+                # Export public keys (private is set to False)
+                spack.util.gpg.export_keys(export_target, [fingerprint])
 
                 # If mirror is local, the above export writes directly to the
                 # mirror (export_target points directly to the mirror).
