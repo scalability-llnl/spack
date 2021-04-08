@@ -78,6 +78,9 @@ spack package at this time.''',
     variant('argobots', default=False,
             description='Enable Argobots support')
     variant('fortran', default=True, description='Enable Fortran support')
+    variant('hcoll', default=False,
+            description='Enable support for Mellanox HCOLL accelerated '
+                        'collective operations library')
 
     provides('mpi')
     provides('mpi@:3.0', when='@3:')
@@ -171,6 +174,8 @@ spack package at this time.''',
     # MPICH's Yaksa submodule requires python to configure
     depends_on("python@3.0:", when="@develop", type="build")
 
+    depends_on('hcoll', when='+hcoll')
+
     conflicts('device=ch4', when='@:3.2')
     conflicts('netmod=ofi', when='@:3.1.4')
     conflicts('netmod=ucx', when='device=ch3')
@@ -189,6 +194,10 @@ spack package at this time.''',
 
     # see https://github.com/pmodels/mpich/pull/5031
     conflicts('%clang@:7', when='@3.4:')
+
+    # Explicit support for Mellanox HCOLL available
+    # from 3.2.x.
+    conflicts('+hcoll', when='@:3.1.999')
 
     @classmethod
     def determine_version(cls, exe):
@@ -281,6 +290,9 @@ spack package at this time.''',
             match = re.search(r'--with-device=ch.\S+(ucx|ofi|mxm|tcp)', output)
             if match:
                 variants += ' netmod=' + match.group(1)
+
+            if re.search(r'--with-hcoll', output):
+                variants += '+hcoll'
 
             match = re.search(r'MPICH CC:\s+(\S+)', output)
             compiler_spec = get_spack_compiler_spec(
@@ -457,5 +469,9 @@ spack package at this time.''',
         if '+argobots' in spec:
             config_args.append('--with-thread-package=argobots')
             config_args.append('--with-argobots=' + spec['argobots'].prefix)
+
+        # If +hcoll specified, add hcoll option
+        if '+hcoll' in spec:
+            config_args.append('--with-hcoll=' + spec['hcoll'].prefix)
 
         return config_args
