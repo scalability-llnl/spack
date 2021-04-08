@@ -23,3 +23,6 @@ class Libtirpc(AutotoolsPackage):
     # FIXME: build error on macOS
     # auth_none.c:81:9: error: unknown type name 'mutex_t'
     conflicts('platform=darwin', msg='Does not build on macOS')
+
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        env.append_path('CPATH', '{0}'.format(join_path(self.prefix.include, 'tirpc')))

@@ -162,7 +162,7 @@ class Mesa(MesonPackage):
         if '+llvm' in spec:
             args.append('-Dllvm=enabled')
             args.append(opt_enable(
-                '+link_dylib' in spec['llvm'], 'shared-llvm'))
+                '+llvm_dylib' in spec['llvm'], 'shared-llvm'))
         else:
             args.append('-Dllvm=disabled')
 
