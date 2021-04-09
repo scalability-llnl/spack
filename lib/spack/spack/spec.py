@@ -83,6 +83,7 @@ import hashlib
 import itertools
 import operator
 import os
+import platform
 import re
 
 import six
@@ -1206,6 +1207,42 @@ class Spec(object):
                 self.variants[name] = vt.BoolValuedVariant(name, value)
             else:
                 self.variants[name] = vt.AbstractVariant(name, value)
+
+    def _apply_architecture(self, **kwargs):
+        """
+        Set architecture for this Spec including dependencies
+
+        Preserves whether the spec is concrete.
+        Arguments:
+            platform (str): new platform (default: current platform)
+            os (str): new operating system (default: default os for current
+                platform)
+            target (str): new target (default: platform.machine())
+        """
+        concrete = self.concrete
+        self._concrete = False
+        for dep in self.traverse(root=True):
+            dep._swap_architecture(**kwargs)
+        if concrete:
+            for hash_type in [ht.dag_hash, ht.build_hash, ht.full_hash]:
+                setattr(self, hash_type.attr, None)
+            self._mark_concrete()
+
+    def _swap_architecture(self, **kwargs):
+        """
+        Swap the architecture on this Spec node.
+
+        Same arguments as Spec._apply_architecture
+        """
+        self.architecture = None
+        if 'platform' not in kwargs:
+            kwargs.update({'platform': str(spack.architecture.platform())})
+        new_plat = spack.architecture.get_platform(kwargs.get('platform'))
+        if 'os' not in kwargs:
+            kwargs.update({'os': str(new_plat.operating_system('default_os'))})
+        if 'target' not in kwargs:
+            kwargs.update({'target': str(new_plat.target(platform.machine()))})
+        self._set_architecture(**kwargs)
 
     def _set_architecture(self, **kwargs):
         """Called by the parser to set the architecture."""

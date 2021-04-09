@@ -105,6 +105,34 @@ def test_user_back_end_input(config):
     assert backend_target == backend_spec.architecture.target
 
 
+def test_arch_swap(config):
+    """Test swapping architectures"""
+    fe_spec = Spec('mpileaks os=fe target=fe')
+    be_spec = fe_spec.copy()
+    be_spec._swap_architecture()
+
+    assert be_spec != fe_spec
+    platform = spack.architecture.platform()
+    assert be_spec.architecture.os == str(platform.operating_system(
+        'default_os'))
+    assert be_spec.architecture.target == py_platform.machine()
+
+
+def test_arch_apply(config, mock_packages):
+    """Test swapping architectures"""
+    fe_spec = Spec('mpileaks os=fe target=fe').concretized()
+    be_spec = fe_spec.copy()
+    be_spec._apply_architecture(os='be', target='be')
+
+    platform = spack.architecture.platform()
+    assert be_spec.concrete
+    assert be_spec.dag_hash() != fe_spec.dag_hash()  # no overeager caching
+    for be, fe in zip(be_spec.traverse(), fe_spec.traverse()):
+        assert be != fe
+        assert be.architecture.os == str(platform.operating_system('be'))
+        assert be.architecture.target == str(platform.target('be'))
+
+
 def test_user_defaults(config):
     platform = spack.architecture.platform()
     default_os = str(platform.operating_system("default_os"))
