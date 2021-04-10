@@ -121,6 +121,199 @@ class TestConcretizePreferences(object):
         spec = concretize('mpileaks os=redhat6')
         assert spec.compiler == spack.spec.CompilerSpec(compiler)
 
+    @pytest.mark.regression('21311')
+    @pytest.mark.parametrize('compiler', ['clang', 'gcc'])
+    def test_preferred_compiler_with_externals(self, compiler):
+        """Test preferred compilers are applied correctly when using externals
+        with compilers in specs
+        """
+        packages_yaml = {
+            'externalprereq': {
+                'externals': [
+                    {'spec': 'externalprereq@1.4%clang',
+                     'prefix': '/clang'},
+                    {'spec': 'externalprereq@1.4%gcc',
+                     'prefix': '/gcc'}
+                ]
+            },
+            'externaltool': {
+                'compiler': [compiler]
+            }
+        }
+
+        for k, v in packages_yaml.items():
+            spack.config.set('packages::{0}'.format(k), v, scope='concretize')
+
+        s = Spec('externaltool').concretized()
+        assert s.satisfies('externaltool%{0}'.format(compiler))
+        assert s['externalprereq'].prefix == s.format('/{compiler.name}')
+
+    @pytest.mark.parametrize('compiler', ['gcc@4.4.0', 'gcc'])
+    def test_preferred_compiler_latest_version_with_externals(self, compiler):
+        """Test the latest version of preferred compiler is applied correctly
+        when using externals with compilers in specs
+        """
+        packages_yaml = {
+            'externalprereq': {
+                'externals': [
+                    {'spec': 'externalprereq@1.4%gcc@4.5.0',
+                     'prefix': '/gcc/4.5.0'},
+                    {'spec': 'externalprereq@1.4%gcc@4.4.0',
+                     'prefix': '/gcc/4.4.0'}
+                ]
+            },
+            'externaltool': {
+                'compiler': [compiler]
+            }
+        }
+
+        for k, v in packages_yaml.items():
+            spack.config.set('packages::{0}'.format(k), v, scope='concretize')
+
+        s = Spec('externaltool').concretized()
+        assert s.satisfies('externaltool%{0}'.format(compiler))
+        assert s['externalprereq'].prefix == s.format(
+            '/{compiler.name}/{compiler.version}')
+
+    def test_preferred_compiler_with_lesser_external_version(self):
+        """Test a lesser version of an externals package with preferred compiler
+         is picked
+         """
+        if spack.config.get('config:concretizer') == 'clingo':
+            pytest.xfail('This is not supported with the ASP-based concretizer')
+
+        packages_yaml = {
+            'externalprereq': {
+                'externals': [
+                    {'spec': 'externalprereq@999%clang',
+                     'prefix': '/clang'},
+                    {'spec': 'externalprereq@998%gcc',
+                     'prefix': '/gcc'}
+                ]
+            },
+            'externaltool': {
+                'compiler': ['gcc']
+            }
+        }
+
+        for k, v in packages_yaml.items():
+            spack.config.set('packages::{0}'.format(k), v, scope='concretize')
+
+        s = Spec('externaltool').concretized()
+        assert s.satisfies('externaltool%gcc')
+        assert s['externalprereq'].prefix == '/gcc'
+
+    @pytest.mark.parametrize('unsupported', [['clingo', 'original']])
+    def test_ignore_externals_with_non_preferred_compilers(self, unsupported):
+        """Test buildable external without no preferred compiler is ignored"""
+        concretizer = spack.config.get('config:concretizer')
+        if unsupported and concretizer in unsupported:
+            pytest.xfail('This is not supported with the {0} concretizer'
+                         .format(concretizer))
+
+        packages_yaml = {
+            'externalprereq': {
+                'externals': [
+                    {'spec': 'externalprereq@1.4%pgi',
+                     'prefix': '/pgi'},
+                    {'spec': 'externalprereq@1.4%clang',
+                     'prefix': '/clang'}
+                ]
+            },
+            'externaltool': {
+                'compiler': ['gcc']
+            }
+        }
+
+        for k, v in packages_yaml.items():
+            spack.config.set('packages::{0}'.format(k), v, scope='concretize')
+
+        s = Spec('externaltool').concretized()
+        assert s.satisfies('externaltool%gcc')
+        assert not s['externalprereq'].external
+
+    @pytest.mark.parametrize(
+        'compiler,unsupported',
+        [('gcc@bad', ['clingo']),
+         # We have gcc@4.5.0, not gcc@4.5
+         ('gcc@4.5', ['clingo']),
+         ('gcc@4.5.0 target=bad', ['clingo', 'original'])])
+    def test_ignore_externals_with_invalid_compilers(
+            self, compiler, unsupported):
+        """Test externals with invalid compilers are ignored
+        """
+        concretizer = spack.config.get('config:concretizer')
+        if unsupported and concretizer in unsupported:
+            pytest.xfail('This is not supported with the {0} concretizer'
+                         .format(concretizer))
+
+        packages_yaml = {
+            'externalprereq': {
+                'externals': [
+                    {'spec': 'externalprereq@1.4%{0}'.format(compiler),
+                     'prefix': '/gcc/bad'}
+                ]
+            },
+            'externaltool': {
+                'compiler': ['gcc']
+            }
+        }
+
+        for k, v in packages_yaml.items():
+            spack.config.set('packages::{0}'.format(k), v, scope='concretize')
+
+        s = Spec('externaltool').concretized()
+        assert s.satisfies('externaltool%gcc')
+        assert not s['externalprereq'].external
+
+    def test_preferred_external_without_compiler_version(self):
+        """Test external without a compiler version (less constrained) is
+        preferred
+        """
+        packages_yaml = {
+            'externalprereq': {
+                'externals': [
+                    {'spec': 'externalprereq@1.4%gcc@4.4.0',
+                     'prefix': '/gcc/4.4.0'},
+                    {'spec': 'externalprereq@1.4%gcc',
+                     'prefix': '/common'}
+                ]
+            }
+        }
+
+        for k, v in packages_yaml.items():
+            spack.config.set('packages::{0}'.format(k), v, scope='concretize')
+
+        s = Spec('externaltool').concretized()
+        assert s.satisfies('externaltool%gcc@4.5.0')
+        assert s['externalprereq'].prefix == '/common'
+
+    def test_preferred_external_without_compiler(self):
+        """Test external without a compiler (less constrained) is preferred
+        """
+        packages_yaml = {
+            'externalprereq': {
+                'externals': [
+                    {'spec': 'externalprereq@1.4%clang',
+                     'prefix': '/clang'},
+                    {'spec': 'externalprereq@1.4%gcc',
+                     'prefix': '/gcc'},
+                    {'spec': 'externalprereq@1.4',
+                     'prefix': '/common'}
+                ]
+            },
+            'externaltool': {
+                'compiler': ['gcc']
+            }
+        }
+
+        for k, v in packages_yaml.items():
+            spack.config.set('packages::{0}'.format(k), v, scope='concretize')
+
+        s = Spec('externaltool').concretized()
+        assert s.satisfies('externaltool%gcc')
+        assert s['externalprereq'].prefix == '/common'
+
     def test_preferred_target(self, mutable_mock_repo):
         """Test preferred targets are applied correctly"""
         # FIXME: This test was a false negative, since the default and
@@ -160,6 +353,56 @@ class TestConcretizePreferences(object):
         update_packages('mixedversions', 'version', ['2.0'])
         spec = concretize('mixedversions')
         assert spec.version == Version('2.0')
+
+    def test_preferred_external_without_version(self):
+        """Test external without a version (less constrained) is preferred
+        """
+        if spack.config.get('config:concretizer') == 'clingo':
+            pytest.xfail('This is not supported with the ASP-based concretizer')
+
+        packages_yaml = {
+            'externalprereq': {
+                'externals': [
+                    {'spec': 'externalprereq@1.4',
+                     'prefix': '/versioned'},
+                    {'spec': 'externalprereq',
+                     'prefix': '/unversioned'}
+                ]
+            }
+        }
+
+        for k, v in packages_yaml.items():
+            spack.config.set('packages::{0}'.format(k), v, scope='concretize')
+
+        s = Spec('externaltool').concretized()
+        assert s['externalprereq'].prefix == '/unversioned'
+
+    @pytest.mark.parametrize('version', ['1.4', '1.3'])
+    def test_preferred_external_version(self, version):
+        """Test preferred package versions are applied correctly when using
+        externals
+        """
+        if spack.config.get('config:concretizer') == 'clingo':
+            pytest.xfail('This is not supported with the ASP-based concretizer')
+
+        packages_yaml = {
+            'externalprereq': {
+                'version': [version],
+                'externals': [
+                    {'spec': 'externalprereq@1.4',
+                     'prefix': '/ver/1.4'},
+                    {'spec': 'externalprereq@1.3',
+                     'prefix': '/ver/1.3'}
+                ]
+            }
+        }
+
+        for k, v in packages_yaml.items():
+            spack.config.set('packages::{0}'.format(k), v, scope='concretize')
+
+        s = Spec('externaltool').concretized()['externalprereq']
+        assert s.satisfies('externalprereq@{0}'.format(version))
+        assert s.prefix == s.format('/ver/{version}')
 
     def test_preferred_providers(self):
         """Test preferred providers of virtual packages are

@@ -2302,6 +2302,16 @@ class Spec(object):
                         changed = True
                         spec._dependencies = DependencyMap()
                     replacement._dependencies = DependencyMap()
+                    if not replacement.compiler:
+                        # Keep the compiler if the external does not have it.
+                        replacement.compiler = self.compiler
+                    elif self.compiler:
+                        # Keep the compiler constraint (e.g. the version)
+                        # if possible.
+                        try:
+                            replacement.compiler.constrain(self.compiler)
+                        except UnsatisfiableCompilerSpecError:
+                            pass
                     replacement.architecture = self.architecture
 
                 # TODO: could this and the stuff in _dup be cleaned up?

@@ -87,14 +87,19 @@ class Concretizer(object):
 
     def _valid_virtuals_and_externals(self, spec):
         """Returns a list of candidate virtual dep providers and external
-           packages that coiuld be used to concretize a spec.
+           packages that could be used to concretize a spec.
 
            Preferred specs come first in the list.
         """
         # First construct a list of concrete candidates to replace spec with.
         candidates = [spec]
-        pref_key = lambda spec: 0  # no-op pref key
 
+        # Construct the compiler preference key based on the preference list of
+        # the root of the spec.
+        pref_comp_key = PackagePrefs(spec.root.name, 'compiler')
+
+        # Construct the provider preference key.
+        pref_prov_key = lambda spec: 0  # no-op pref key
         if spec.virtual:
             candidates = spack.repo.path.providers_for(spec)
             if not candidates:
@@ -108,11 +113,19 @@ class Concretizer(object):
                 spec)  # default to spec itself.
 
             # Create a key to sort candidates by the prefs we found
-            pref_key = PackagePrefs(spec_w_prefs.name, 'providers', spec.name)
+            pref_prov_key = PackagePrefs(spec_w_prefs.name, 'providers',
+                                         spec.name)
+
+        # Construct the version preference keys (create no more than one
+        # instance of PackagePrefs per name).
+        pref_ver_key = llnl.util.lang.memoized(
+            lambda name: PackagePrefs(name, 'version'))
+        # Equals to spec.versions if versions are not specified in the spec.
+        no_versions = VersionList(':')
 
         # For each candidate package, if it has externals, add those
-        # to the usable list.  if it's not buildable, then *only* add
-        # the externals.
+        # to the usable list. if it's not buildable, then *only* add the
+        # externals.
         usable = []
         for cspec in candidates:
             if is_spec_buildable(cspec):
@@ -121,7 +134,16 @@ class Concretizer(object):
             externals = spec_externals(cspec)
             for ext in externals:
                 if ext.satisfies(spec):
-                    usable.append(ext)
+                    # Check whether we have compilers that can satisfy the
+                    # external spec and ignore it if that is not the case.
+                    accept_compiler = (
+                        not self.check_for_compiler_existence or
+                        ext.compiler is None or
+                        any(ext.compiler.satisfies(c)
+                            for c in spack.compilers.all_compiler_specs()))
+                    # TODO: account for the architecture too
+                    if accept_compiler:
+                        usable.append(ext)
 
         # If nothing is in the usable list now, it's because we aren't
         # allowed to build anything.
@@ -130,11 +152,29 @@ class Concretizer(object):
 
         # Use a sort key to order the results
         return sorted(usable, key=lambda spec: (
-            not spec.external,                            # prefer externals
-            pref_key(spec),                               # respect prefs
-            spec.name,                                    # group by name
-            reverse_order(spec.versions),                 # latest version
-            spec                                          # natural order
+            not spec.external,  # prefer externals
+
+            (pref_comp_key(spec.compiler)  # respect compiler prefs (-1 is
+             if spec.compiler else - 1),   # always less than pref_comp_key)
+
+            (bool(spec.compiler) and       # prefer specs without a compiler
+             spec.compiler.versions !=     # and without a compiler version
+             no_versions),
+
+            (reverse_order(spec.compiler.versions)        # prefer the latest
+             if spec.compiler else reverse_order(None)),  # compiler version
+
+            pref_prov_key(spec),  # respect provider prefs
+
+            spec.name,  # group by name
+
+            pref_ver_key(spec.name)(spec.versions),  # respect version prefs
+
+            spec.versions != no_versions,  # prefer without a version
+
+            reverse_order(spec.versions),  # prefer the latest version
+
+            spec  # natural order
         ))
 
     def choose_virtual_or_external(self, spec):
