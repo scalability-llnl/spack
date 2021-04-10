@@ -339,3 +339,8 @@ class PyNumpy(PythonPackage):
     def install_test(self):
         with working_dir('spack-test', create=True):
             python('-c', 'import numpy; numpy.test("full", verbose=2)')
+
+    @property
+    def headers(self):
+        headers = find_all_headers(self.prefix.lib)
+        return headers
