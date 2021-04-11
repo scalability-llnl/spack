@@ -39,6 +39,7 @@ class Xfsdump(MakefilePackage):
              'MSGFMT={0}'.format(self.spec['gettext'].prefix.bin.msgfmt),
              'MSGMERGE={0}'.format(self.spec['gettext'].prefix.bin.msgmerge),
              'XGETTEXT={0}'.format(self.spec['gettext'].prefix.bin.xgettext),
+             'PKG_ROOT_SBIN_DIR={0}'.format(self.spec.prefix),
              'install')
 
     def setup_run_environment(self, env):
