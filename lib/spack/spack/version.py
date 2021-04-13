@@ -37,7 +37,7 @@ from spack.util.spack_yaml import syaml_dict
 __all__ = ['Version', 'VersionRange', 'VersionList', 'ver']
 
 # Valid version characters
-VALID_VERSION = re.compile(r'[A-Za-z0-9_.-]')
+VALID_VERSION = re.compile(r'^[A-Za-z0-9_.-]+$')
 
 # regex for version segments
 SEGMENT_REGEX = re.compile(r'[a-zA-Z]+|[0-9]+')
@@ -103,12 +103,12 @@ class Version(object):
         if not isinstance(string, str):
             string = str(string)
 
-        if not VALID_VERSION.match(string):
-            raise ValueError("Bad characters in version string: %s" % string)
-
         # preserve the original string, but trimmed.
         string = string.strip()
         self.string = string
+
+        if not VALID_VERSION.match(string):
+            raise ValueError("Bad characters in version string: %s" % string)
 
         # Split version into alphabetical and numeric segments
         segments = SEGMENT_REGEX.findall(string)
