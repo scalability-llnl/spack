@@ -1237,12 +1237,19 @@ class Spec(object):
 
     def _add_dependency(self, spec, deptypes):
         """Called by the parser to add another spec as a dependency."""
+        dspec = DependencySpec(self, spec, deptypes)
+
         if spec.name in self._dependencies:
-            raise DuplicateDependencyError(
-                "Cannot depend on '%s' twice" % spec)
+            # allow redundant identical dependency specifications
+            # depspec equality checks by name, so we need to check components
+            # separately to test whether the specs are identical
+            orig = self._dependencies[spec.name]
+            if dspec.spec != orig.spec or dspec.deptypes != orig.deptypes:
+                raise DuplicateDependencyError(
+                    "Cannot depend on conflicting abstract specs %s and %s" %
+                    (spec, orig.spec))
 
         # create an edge and add to parent and child
-        dspec = DependencySpec(self, spec, deptypes)
         self._dependencies[spec.name] = dspec
         spec._dependents[self.name] = dspec
 

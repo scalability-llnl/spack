@@ -259,6 +259,9 @@ class TestSpecSyntax(object):
 
         self.check_parse("x ^y", "x@: ^y@:")
 
+    def test_parse_redundant_deps(self):
+        self.check_parse('x ^y@foo', 'x ^y@foo ^y@foo')
+
     def test_parse_errors(self):
         errors = ['x@@1.2', 'x ^y@@1.2', 'x@1.2::', 'x::']
         self._check_raises(SpecParseError, errors)
@@ -449,7 +452,7 @@ class TestSpecSyntax(object):
         self._check_raises(MultipleVersionError, multiples)
 
     def test_duplicate_dependency(self):
-        self._check_raises(DuplicateDependencyError, ["x ^y ^y"])
+        self._check_raises(DuplicateDependencyError, ["x ^y@1 ^y"])
 
     def test_duplicate_compiler(self):
         duplicates = [
