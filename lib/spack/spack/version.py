@@ -40,18 +40,12 @@ __all__ = ['Version', 'VersionRange', 'VersionList', 'ver']
 VALID_VERSION = re.compile(r'^[A-Za-z0-9_.-]+$')
 
 # regex for version segments
-SEGMENT_REGEX = re.compile(r'[a-zA-Z]+|[0-9]+')
+SEGMENT_REGEX = re.compile(r'(?:(?P<num>[0-9]+)|(?P<str>[a-zA-Z]+))(?P<sep>[_.-]*)')
 
 # Infinity-like versions. The order in the list implies the comparison rules
 infinity_versions = ['develop', 'main', 'master', 'head', 'trunk']
 
-
-def int_if_int(string):
-    """Convert a string to int if possible.  Otherwise, return a string."""
-    try:
-        return int(string)
-    except ValueError:
-        return string
+iv_min_len = min(len(s) for s in infinity_versions)
 
 
 def coerce_versions(a, b):
@@ -96,8 +90,64 @@ def coerced(method):
     return coercing_method
 
 
+class VersionStrComponent(object):
+    # NOTE: this is intentionally not a UserString, the abc instanceof
+    #       check is slow enough to eliminate all gains
+    __slots__ = ['inf_ver', 'data']
+
+    def __init__(self, string):
+        self.inf_ver = None
+        self.data = string
+        if len(string) >= iv_min_len:
+            try:
+                self.inf_ver = infinity_versions.index(string)
+            except ValueError:
+                pass
+
+    def __hash__(self):
+        return hash(self.data)
+
+    def __str__(self):
+        return self.data
+
+    def __eq__(self, other):
+        if isinstance(other, VersionStrComponent):
+            return self.data == other.data
+        return self.data == other
+
+    def __lt__(self, other):
+        if isinstance(other, VersionStrComponent):
+            if self.inf_ver is not None:
+                if other.inf_ver is not None:
+                    return self.inf_ver > other.inf_ver
+                return False
+            if other.inf_ver is not None:
+                return True
+
+            return self.data < other.data
+
+        if self.inf_ver is not None:
+            return False
+
+        # Numbers are always "newer" than letters.
+        # This is for consistency with RPM.  See patch
+        # #60884 (and details) from bugzilla #50977 in
+        # the RPM project at rpm.org.  Or look at
+        # rpmvercmp.c if you want to see how this is
+        # implemented there.
+        if isinstance(other, int):
+            return True
+
+        # if we get here, other should be str
+        return self < VersionStrComponent(other)
+
+    def __gt__(self, other):
+        return not self.__lt__(other)
+
+
 class Version(object):
     """Class to represent versions"""
+    __slots__ = ['version', 'separators', 'string']
 
     def __init__(self, string):
         if not isinstance(string, str):
@@ -110,12 +160,12 @@ class Version(object):
         if not VALID_VERSION.match(string):
             raise ValueError("Bad characters in version string: %s" % string)
 
-        # Split version into alphabetical and numeric segments
+        # Split version into alphabetical and numeric segments simultaneously
         segments = SEGMENT_REGEX.findall(string)
-        self.version = tuple(int_if_int(seg) for seg in segments)
-
-        # Store the separators from the original version string as well.
-        self.separators = tuple(SEGMENT_REGEX.split(string)[1:])
+        self.version = tuple(
+            int(m[0]) if m[0] else VersionStrComponent(m[1]) for m in segments
+        )
+        self.separators = tuple(m[2] for m in segments)
 
     @property
     def dotted(self):
@@ -277,40 +327,8 @@ class Version(object):
         if other is None:
             return False
 
-        # Coerce if other is not a Version
-        # simple equality test first.
-        if self.version == other.version:
-            return False
-
-        # Standard comparison of two numeric versions
-        for a, b in zip(self.version, other.version):
-            if a == b:
-                continue
-            else:
-                if a in infinity_versions:
-                    if b in infinity_versions:
-                        return (infinity_versions.index(a) >
-                                infinity_versions.index(b))
-                    else:
-                        return False
-                if b in infinity_versions:
-                    return True
-
-                # Neither a nor b is infinity
-                # Numbers are always "newer" than letters.
-                # This is for consistency with RPM.  See patch
-                # #60884 (and details) from bugzilla #50977 in
-                # the RPM project at rpm.org.  Or look at
-                # rpmvercmp.c if you want to see how this is
-                # implemented there.
-                if type(a) != type(b):
-                    return type(b) == int
-                else:
-                    return a < b
-
-        # If the common prefix is equal, the one
-        # with more segments is bigger.
-        return len(self.version) < len(other.version)
+        # Use tuple comparison assisted by VersionStrComponent for performance
+        return self.version < other.version
 
     @coerced
     def __eq__(self, other):
@@ -593,7 +611,6 @@ class VersionList(object):
                 else:
                     self.versions = [vlist]
             else:
-                vlist = list(vlist)
                 for v in vlist:
                     self.add(ver(v))
 
