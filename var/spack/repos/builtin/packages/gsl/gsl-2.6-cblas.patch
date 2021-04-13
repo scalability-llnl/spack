@@ -1,0 +1,323 @@
+ Makefile.am                     |   8 +-
+ ax_cblas.m4                     |  69 +++++
+ bspline/Makefile.am             |   2 +-
+ configure.ac                    |  10 +
+ eigen/Makefile.am               |   2 +-
+ gsl-config.in                   |   4 +-
+ gsl.pc.in                       |   2 +-
+ interpolation/Makefile.am       |   2 +-
+ linalg/Makefile.am              |   2 +-
+ multifit/Makefile.am            |   4 +-
+ multimin/Makefile.am            |   4 +-
+ multiroots/Makefile.am          |   2 +-
+ ode-initval/Makefile.am         |   2 +-
+ poly/Makefile.am                |   2 +-
+ specfunc/Makefile.am            |   2 +-
+ wavelet/Makefile.am             |   2 +-
+ 31 files changed, 1157 insertions(+), 19 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index c522001..4513bc8 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -19,7 +19,7 @@ EXTRA_DIST = autogen.sh gsl-config.in gsl.pc.in configure.ac THANKS BUGS gsl.spe
+ 
+ lib_LTLIBRARIES = libgsl.la
+ libgsl_la_SOURCES = version.c
+-libgsl_la_LIBADD = $(GSL_LIBADD) $(SUBLIBS)
++libgsl_la_LIBADD = $(GSL_LIBADD) $(SUBLIBS) @CBLAS_LINK_LIBS@
+ libgsl_la_LDFLAGS = $(GSL_LDFLAGS) -version-info $(GSL_LT_VERSION)
+ noinst_HEADERS = templates_on.h templates_off.h build.h
+ 
+@@ -29,10 +29,10 @@ m4data_DATA = gsl.m4
+ bin_PROGRAMS = gsl-randist gsl-histogram
+ 
+ gsl_randist_SOURCES = gsl-randist.c
+-gsl_randist_LDADD = libgsl.la cblas/libgslcblas.la
++gsl_randist_LDADD = libgsl.la
+ 
+ gsl_histogram_SOURCES = gsl-histogram.c
+-gsl_histogram_LDADD = libgsl.la cblas/libgslcblas.la
++gsl_histogram_LDADD = libgsl.la
+ 
+ check_SCRIPTS = test_gsl_histogram.sh pkgconfig.test
+ TESTS = test_gsl_histogram.sh pkgconfig.test
+@@ -51,6 +51,8 @@ edit = $(SED) \
+ 	-e 's|@GSL_CFLAGS[@]|$(GSL_CFLAGS)|g' \
+ 	-e 's|@GSL_LIBM[@]|$(GSL_LIBM)|g' \
+ 	-e 's|@GSL_LIBS[@]|$(GSL_LIBS)|g' \
++	-e 's|@CBLAS_CFLAGS[@]|$(CBLAS_CFLAGS)|g' \
++	-e 's|@CBLAS_LIBS[@]|$(CBLAS_LIBS)|g' \
+ 	-e 's|@LIBS[@]|$(LIBS)|g' \
+ 	-e 's|@VERSION[@]|$(VERSION)|g'
+ 
+diff --git a/ax_cblas.m4 b/ax_cblas.m4
+new file mode 100644
+index 0000000..6ef143a
+--- /dev/null
++++ b/ax_cblas.m4
+@@ -0,0 +1,69 @@
++AC_DEFUN([AX_CBLAS],[
++
++  ext_cblas=no
++  ext_cblas_libs="-lcblas"
++  ext_cblas_cflags=""
++
++  AC_ARG_WITH(cblas-external,
++	[AS_HELP_STRING([--with-cblas-external], 
++			[Use external CBLAS library (default is no)])],
++	[with_ext_cblas=$withval],
++	[with_ext_cblas=no])
++
++  case $with_ext_cblas in
++	no) ext_cblas=no ;;
++	yes) ext_cblas=yes ;;
++	-* | */* | *.a | *.so | *.so.* | *.o) 
++	   ext_cblas=yes
++	   ext_cblas_libs="$with_cblas" ;;
++	*) ext_cblas=yes
++	   ext_cblas_libs="-l$with_cblas" ;;
++  esac
++
++  AC_ARG_WITH(cblas-external-libs,
++	[AS_HELP_STRING([--with-cblas-external-libs=<libs>],
++			[External cblas libraries to link with (default is "$ext_cblas_libs")])],
++	[ext_cblas_libs=$withval],
++	[])
++
++  AC_ARG_WITH(cblas-external-cflags,
++	[AS_HELP_STRING([--with-cblas-external-cflags=<flags>],
++			[Pre-processing flags to compile with external cblas ("-I<dir>")])],
++	[ext_cblas_cflags=$withval],
++	[])
++
++  if test x$ext_cblas != xno; then
++	if test "x$CBLAS_LIBS" = x; then
++	   CBLAS_LIBS="$ext_cblas_libs"
++     	fi
++     	if test "x$CBLAS_CFLAGS" = x; then
++       	   CBLAS_CFLAGS="$ext_cblas_cflags"
++   	fi
++
++   	CFLAGS_sav="$CFLAGS"
++   	CFLAGS="$CFLAGS $CBLAS_CFLAGS"
++   	AC_CHECK_HEADER(cblas.h, ,
++		[AC_MSG_ERROR([
++	   	*** Header file cblas.h not found.
++	   	*** If you installed cblas header in a non standard place,
++	   	*** specify its install prefix using the following option
++	   	***  --with-cblas-external-cflags="-I<include_dir>"])
++	 	])
++   	CFLAGS="$CFLAGS_sav"
++
++   	LIBS_sav="$LIBS"
++   	LIBS="$LIBS $CBLAS_LIBS -lm"
++   	AC_MSG_CHECKING([for cblas_sgemm in $CBLAS_LIBS])
++   	AC_TRY_LINK_FUNC(cblas_sgemm, [ext_cblas=yes],
++    		[AC_MSG_ERROR([
++	    	*** Linking with cblas with $LIBS failed.
++       	    	*** If you installed cblas library in a non standard place,
++   	    	*** specify its install prefix using the following option
++	    	***  --with-cblas-external-libs="-L<lib_dir> -l<lib>"])
++	 	])
++   	AC_MSG_RESULT($ext_cblas)
++   	LIBS="$LIBS_sav"
++	AC_SUBST([CBLAS_CFLAGS])
++	AC_SUBST([CBLAS_LIBS])
++ fi
++])
+diff --git a/bspline/Makefile.am b/bspline/Makefile.am
+index 3f4f950..d413036 100644
+--- a/bspline/Makefile.am
++++ b/bspline/Makefile.am
+@@ -12,6 +12,6 @@ check_PROGRAMS = test
+ 
+ TESTS = $(check_PROGRAMS)
+ 
+-test_LDADD = libgslbspline.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../cblas/libgslcblas.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la ../statistics/libgslstatistics.la
++test_LDADD = libgslbspline.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la @CBLAS_LINK_LIBS@ ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la ../statistics/libgslstatistics.la
+ 
+ test_SOURCES = test.c
+diff --git a/configure.ac b/configure.ac
+index a26fc1e..564d426 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -208,6 +208,16 @@ if test "x$LIBS" = "x" ; then
+   AC_CHECK_LIB(m, cos)
+ fi
+ 
++sinclude(ax_cblas.m4)
++AX_CBLAS
++if test "x$CBLAS_LIBS" != "x"; then
++   CBLAS_LINK_LIBS="$CBLAS_LIBS"
++else
++   CBLAS_LINK_LIBS="\$(top_builddir)/cblas/libgslcblas.la"
++   CBLAS_LIBS="-lgslcblas"
++fi
++AC_SUBST(CBLAS_LINK_LIBS)
++
+ dnl Remember to put a definition in acconfig.h for each of these
+ AC_CHECK_DECLS(feenableexcept,,,[#define _GNU_SOURCE 1
+ #include <fenv.h>]) 
+diff --git a/eigen/Makefile.am b/eigen/Makefile.am
+index c28bfde..14197a4 100644
+--- a/eigen/Makefile.am
++++ b/eigen/Makefile.am
+@@ -11,7 +11,7 @@ noinst_HEADERS =  qrstep.c
+ 
+ TESTS = $(check_PROGRAMS)
+ 
+-test_LDADD = libgsleigen.la  ../test/libgsltest.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la  ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../sys/libgslsys.la ../err/libgslerr.la ../utils/libutils.la ../rng/libgslrng.la ../sort/libgslsort.la
++test_LDADD = libgsleigen.la  ../test/libgsltest.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la  ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../sys/libgslsys.la ../err/libgslerr.la ../utils/libutils.la ../rng/libgslrng.la ../sort/libgslsort.la
+ 
+ test_SOURCES = test.c
+ 
+diff --git a/gsl-config.in b/gsl-config.in
+old mode 100755
+new mode 100644
+index 3f3fa61..c9c4262
+--- a/gsl-config.in
++++ b/gsl-config.in
+@@ -58,11 +58,11 @@ while test $# -gt 0; do
+ 	;;
+ 
+     --cflags)
+-       	echo @GSL_CFLAGS@ 
++       	echo @GSL_CFLAGS@ @CBLAS_CFLAGS@ 
+        	;;
+ 
+     --libs)
+-        : ${GSL_CBLAS_LIB=-lgslcblas}
++        : ${GSL_CBLAS_LIB=@CBLAS_LIBS@}
+ 	echo @GSL_LIBS@ $GSL_CBLAS_LIB @GSL_LIBM@
+        	;;
+ 
+diff --git a/gsl.pc.in b/gsl.pc.in
+index 5e9ef21..5a7a0f3 100644
+--- a/gsl.pc.in
++++ b/gsl.pc.in
+@@ -2,7 +2,7 @@ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+ libdir=@libdir@
+ includedir=@includedir@
+-GSL_CBLAS_LIB=-lgslcblas
++GSL_CBLAS_LIB=@CBLAS_LIBS@
+ 
+ Name: GSL
+ Description: GNU Scientific Library
+diff --git a/interpolation/Makefile.am b/interpolation/Makefile.am
+index 1d80755..e45bd51 100644
+--- a/interpolation/Makefile.am
++++ b/interpolation/Makefile.am
+@@ -12,7 +12,7 @@ AM_CPPFLAGS = -I$(top_srcdir)
+ 
+ TESTS = $(check_PROGRAMS)
+ 
+-test_LDADD = libgslinterpolation.la ../poly/libgslpoly.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../cblas/libgslcblas.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
++test_LDADD = libgslinterpolation.la ../poly/libgslpoly.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la @CBLAS_LINK_LIBS@ ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
+ 
+ test_SOURCES = test.c
+ 
+diff --git a/linalg/Makefile.am b/linalg/Makefile.am
+index a6c15b0..447ebbe 100644
+--- a/linalg/Makefile.am
++++ b/linalg/Makefile.am
+@@ -13,4 +13,4 @@ TESTS = $(check_PROGRAMS)
+ check_PROGRAMS = test
+ 
+ test_SOURCES = test.c
+-test_LDADD = libgsllinalg.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../permutation/libgslpermutation.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la ../rng/libgslrng.la
++test_LDADD = libgsllinalg.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../permutation/libgslpermutation.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la ../rng/libgslrng.la
+diff --git a/multifit/Makefile.am b/multifit/Makefile.am
+index 988614e..793b485 100644
+--- a/multifit/Makefile.am
++++ b/multifit/Makefile.am
+@@ -67,8 +67,8 @@ check_PROGRAMS = test #demo
+ TESTS = $(check_PROGRAMS)
+ 
+ test_SOURCES = test.c
+-test_LDADD = libgslmultifit.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../matrix/libgslmatrix.la ../sort/libgslsort.la ../statistics/libgslstatistics.la ../vector/libgslvector.la ../block/libgslblock.la  ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../utils/libutils.la ../sys/libgslsys.la ../rng/libgslrng.la ../specfunc/libgslspecfunc.la ../min/libgslmin.la
++test_LDADD = libgslmultifit.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../matrix/libgslmatrix.la ../sort/libgslsort.la ../statistics/libgslstatistics.la ../vector/libgslvector.la ../block/libgslblock.la  ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../utils/libutils.la ../sys/libgslsys.la ../rng/libgslrng.la ../specfunc/libgslspecfunc.la ../min/libgslmin.la
+ 
+ #demo_SOURCES = demo.c
+-#demo_LDADD = libgslmultifit.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../randist/libgslrandist.la ../rng/libgslrng.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../utils/libutils.la ../sys/libgslsys.la
++#demo_LDADD = libgslmultifit.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../randist/libgslrandist.la ../rng/libgslrng.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../utils/libutils.la ../sys/libgslsys.la
+ 
+diff --git a/multimin/Makefile.am b/multimin/Makefile.am
+index 7071359..65a488a 100644
+--- a/multimin/Makefile.am
++++ b/multimin/Makefile.am
+@@ -13,8 +13,8 @@ check_PROGRAMS = test #demo
+ TESTS = $(check_PROGRAMS) 
+ 
+ test_SOURCES = test.c test_funcs.c test_funcs.h
+-test_LDADD = libgslmultimin.la ../min/libgslmin.la ../poly/libgslpoly.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
++test_LDADD = libgslmultimin.la ../min/libgslmin.la ../poly/libgslpoly.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../linalg/libgsllinalg.la ../permutation/libgslpermutation.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
+ 
+ #demo_SOURCES = demo.c 
+-#demo_LDADD = libgslmultimin.la ../min/libgslmin.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../linalg/libgsllinalg.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
++#demo_LDADD = libgslmultimin.la ../min/libgslmin.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../linalg/libgsllinalg.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
+ 
+diff --git a/multiroots/Makefile.am b/multiroots/Makefile.am
+index a351c3f..6178448 100644
+--- a/multiroots/Makefile.am
++++ b/multiroots/Makefile.am
+@@ -15,5 +15,5 @@ check_PROGRAMS = test
+ TESTS = $(check_PROGRAMS)
+ 
+ test_SOURCES = test.c test_funcs.c test_funcs.h
+-test_LDADD = libgslmultiroots.la ../linalg/libgsllinalg.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../permutation/libgslpermutation.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
++test_LDADD = libgslmultiroots.la ../linalg/libgsllinalg.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../permutation/libgslpermutation.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
+ 
+diff --git a/ode-initval/Makefile.am b/ode-initval/Makefile.am
+index 9c774b5..346c381 100644
+--- a/ode-initval/Makefile.am
++++ b/ode-initval/Makefile.am
+@@ -12,7 +12,7 @@ check_PROGRAMS = test
+ 
+ TESTS = $(check_PROGRAMS)
+ 
+-test_LDADD = libgslodeiv.la ../linalg/libgsllinalg.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../matrix/libgslmatrix.la ../permutation/libgslpermutation.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la 
++test_LDADD = libgslodeiv.la ../linalg/libgsllinalg.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../matrix/libgslmatrix.la ../permutation/libgslpermutation.la ../vector/libgslvector.la ../block/libgslblock.la ../complex/libgslcomplex.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la 
+ 
+ test_SOURCES = test.c
+ 
+diff --git a/poly/Makefile.am b/poly/Makefile.am
+index f1dae5d..e0f8e83 100644
+--- a/poly/Makefile.am
++++ b/poly/Makefile.am
+@@ -10,7 +10,7 @@ noinst_HEADERS = balance.c companion.c qr.c
+ 
+ TESTS = $(check_PROGRAMS)
+ 
+-check_PROGRAMS = test
++#check_PROGRAMS = test
+ 
+ test_SOURCES = test.c
+ test_LDADD = libgslpoly.la ../ieee-utils/libgslieeeutils.la ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la ../sort/libgslsort.la
+diff --git a/specfunc/Makefile.am b/specfunc/Makefile.am
+index eba9ab2..772cc7e 100644
+--- a/specfunc/Makefile.am
++++ b/specfunc/Makefile.am
+@@ -12,7 +12,7 @@ TESTS = $(check_PROGRAMS)
+ 
+ check_PROGRAMS = test
+ 
+-test_LDADD = libgslspecfunc.la ../eigen/libgsleigen.la ../linalg/libgsllinalg.la  ../sort/libgslsort.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../block/libgslblock.la ../complex/libgslcomplex.la ../poly/libgslpoly.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
++test_LDADD = libgslspecfunc.la ../eigen/libgsleigen.la ../linalg/libgsllinalg.la  ../sort/libgslsort.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../block/libgslblock.la ../complex/libgslcomplex.la ../poly/libgslpoly.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
+ 
+ test_SOURCES = test_sf.c test_sf.h test_airy.c test_bessel.c test_coulomb.c test_dilog.c test_gamma.c test_hyperg.c test_legendre.c test_mathieu.c
+   
+diff --git a/wavelet/Makefile.am b/wavelet/Makefile.am
+index 9da20d8..8cdbd77 100644
+--- a/wavelet/Makefile.am
++++ b/wavelet/Makefile.am
+@@ -10,7 +10,7 @@ check_PROGRAMS = test
+ 
+ TESTS = $(check_PROGRAMS)
+ 
+-test_LDADD = libgslwavelet.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../blas/libgslblas.la ../cblas/libgslcblas.la ../block/libgslblock.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
++test_LDADD = libgslwavelet.la ../matrix/libgslmatrix.la ../vector/libgslvector.la ../blas/libgslblas.la @CBLAS_LINK_LIBS@ ../block/libgslblock.la ../ieee-utils/libgslieeeutils.la  ../err/libgslerr.la ../test/libgsltest.la ../sys/libgslsys.la ../utils/libutils.la
+ 
+ test_SOURCES = test.c
+ 
