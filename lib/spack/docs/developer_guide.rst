@@ -251,6 +251,17 @@ Unit tests
   This is a fake package hierarchy used to mock up packages for
   Spack's test suite.
 
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Research and Monitoring Modules
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:mod:`spack.diff`
+  Contains :class:`SpecDiff <spack.diff.SpecDiff>` to allow for diffing two
+  specs, and either viewing facts (intersect and differences), exporting json,
+  or generating a colored tree.
+
+
 ^^^^^^^^^^^^^
 Other Modules
 ^^^^^^^^^^^^^
@@ -298,6 +309,179 @@ Conceptually, packages are overloaded.  They contain:
 -------------
 Stage objects
 -------------
+
+.. _using_differs:
+
+-------------
+Using Differs
+-------------
+
+A differ class is broadly one that you can find in ``spack.diff`` that will
+include methods for comparing two objects of interest. For example, a
+``spack.diff.SpecDiff`` will allow you to provide two specs and calculate
+the differences. In that differs can be useful for research purposes or
+development, the usage and instructions for creating them are defined here.
+
+^^^^^^^^^^^^^^^^
+Writing a Differ
+^^^^^^^^^^^^^^^^
+
+While differs can be different based on the use case, generally you want to
+include the following:
+
+
+"""""""""""""""""""
+Differ init funtion
+"""""""""""""""""""
+
+An ``__init__`` function should minimally accept to instances of the objects
+that you want to diff. The order is important. Generally, we might provide
+some instances (or strings that describe the instances that your differ can convert to 
+the instances) ``a`` and ``b``, where ``a`` is the first version, and ``b`` is the second verison.
+We would then compare the changes from ``a`` TO ``b``, meaning that ``b``
+is the newer one, and any additions in ``b`` not in ``a`` will show up in bright
+green. Since the differ has a command line exposure, ``spack diff``, you
+could read this command:
+
+.. code-block::
+
+    $ spack diff singularity-legacy singularity
+
+
+As "Show me changes from singularity-legacy TO singularity," meaning that
+new content in Singularity will show up in green, and anything removed will
+show up in red.
+
+""""""""""""""""
+Differ intersect
+""""""""""""""""
+
+The differ should have a property, ``intersect`` that makes it easy to show
+a list of facts (or attributes) that are different. For example, ``spack.diff.SpecDiff``
+uses the ``spack.solve.asp.SpackSolverSetup`` to generate facts for each of two
+specs, and then those facts can be compared with set intersections and differences.
+
+
+""""""""""""""""""""""""
+Differ a_to_b and b_to_a
+""""""""""""""""""""""""
+
+To show the diff from ``a`` to ``b``, or from ``b`` to ``a`` your differ should
+have properties explicitly named as ``a_to_b`` and ``b_to_a``. A property like
+``b_to_a`` generally means "Attributes that are in B but not A``, and vice
+versa for ``a_to_b``
+
+
+"""""""""""""
+Visualization
+"""""""""""""
+
+While a visualization may not be appropriate for your differ, it's strongly
+recommended. For example, ``spack.diff.SpecDiff`` has a ``colored_diff``
+function that shows a colored, single line that shows additions (bright green)
+and removed content (striked out red) for quick view, and a more robust 
+``tree`` function that shows an entire diff tree colored in the same fashion.
+
+
+^^^^^^^^^^^^^
+Using Differs
+^^^^^^^^^^^^^
+
+Instructions for using existing differs are defined here.
+
+
+"""""""""""""""""""""""
+``spack.diff.SpecDiff``
+"""""""""""""""""""""""
+
+A ``SpecDiff`` is intended to compare two package specs. The input can either
+be strings to describe specs:
+
+.. code-block:: python
+
+    import spack.diff
+    differ = SpecDiff('wget', 'autoconf/yyntxxw')
+
+or you can provide the Spec instances explicitly:
+
+
+.. code-block:: python
+
+    import spack.diff
+    import spack.spec
+    a = spack.spec.Spec('wget')
+    b = spack.spec.Spec('autoconf/yyntxxw')
+    differ = spack.diff.SpecDiff(a, b)
+
+For a quick, single line comparison of the top level attributes, you can print
+the colored diff:
+
+.. code-block:: python
+
+    print(differ.colored_diff())
+    wgetautoconf@1.20.32.69%gcc@9.3.0~libpsl~pcre~python+zlib ssl=opensslarch=linux-ubuntu20.04-skylake
+
+(Note that the documentation here does not show colored output or strikethrough, but in the above "wget" is crossed out,
+along with "1.20.3 and the entire variants string. The common attributes are in white, "%gcc@9.3.0" and
+"arch=linux-ubuntu20.04-skylake." For a more robust tree diff, you can print the tree
+in a similar fashion:
+
+.. code-block:: python
+
+    print(differ.tree())
+
+
+You can quickly identify your ``a`` and ``b`` as follows:
+
+
+.. code-block:: python
+
+    differ.a.name
+    'wget'
+
+    differ.b.name
+    'autoconf'
+
+
+or print their names, colored and formatted, as follows:
+
+.. code-block:: python
+
+    print(differ.a_name)
+    wget@1.20.3/vbmajr6
+
+    print(differ.b_name)
+    autoconf@2.69/yyntxxw
+
+
+Or quickly see the directionality:
+
+
+.. code-block:: python
+
+    print(differ)
+    [spec-diff: wget@1.20.3/vbmajr6 TO autoconf@2.69/yyntxxw]
+
+
+You can also quickly retrieve lists of attributes, the intersect, or any
+set differences between the specs as follows:
+
+.. code-block:: python
+
+    differ.a_facts
+    differ.b_facts
+    differ.a_facts
+    differ.intersect
+    differ.a_to_b
+    differ.b_to_a
+
+And finally, you can export these names, intersect, and differences with ``to_json``:
+
+.. code-block:: python
+
+    differ.to_json()
+
+
 
 .. _writing-commands:
 

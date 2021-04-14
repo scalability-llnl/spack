@@ -25,6 +25,7 @@ Here are some example color expressions:
 Expression  Meaning
 ==========  ============================================================
 @r          Turn on red coloring
+@-r         Turn on red coloring, and strike through text
 @R          Turn on bright red coloring
 @*{foo}     Bold foo, but don't change text color
 @_{bar}     Underline bar, but don't change text color
@@ -78,6 +79,7 @@ class ColorParseError(Exception):
 # Text styles for ansi codes
 styles = {'*': '1',       # bold
           '_': '4',       # underline
+          '-': '9',       # strikethrough
           None: '0'}      # plain
 
 # Dim and bright ansi colors
@@ -91,7 +93,7 @@ colors = {'k': 30, 'K': 90,  # black
           'w': 37, 'W': 97}  # white
 
 # Regex to be used for color formatting
-color_re = r'@(?:@|\.|([*_])?([a-zA-Z])?(?:{((?:[^}]|}})*)})?)'
+color_re = r'@(?:@|\.|([*_-])?([a-zA-Z])?(?:{((?:[^}]|}})*)})?)'
 
 # Mapping from color arguments to values for tty.set_color
 color_when_values = {

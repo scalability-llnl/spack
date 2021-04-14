@@ -689,6 +689,130 @@ structured the way you want:
     }
 
 
+^^^^^^^^^^^^^^
+``spack diff``
+^^^^^^^^^^^^^^
+
+It's often the case that you have two versions of a spec that you need to
+disambiguate. Let's say that we've installed two variants of zlib, one with
+and one without the optimize variant:
+
+.. code-block:: console
+
+   $ spack install zlib
+   $ spack install zlib -optimize
+
+When we do ``spack find`` we see the two versions.
+
+.. code-block:: console
+
+    $ spack find zlib
+    ==> 2 installed packages
+    -- linux-ubuntu20.04-skylake / gcc@9.3.0 ------------------------
+    zlib@1.2.11  zlib@1.2.11
+
+
+Let's now say that we want to uninstall zlib. We run the command, and hit a problem
+real quickly since we have two!
+
+.. code-block:: console
+
+    $ spack uninstall zlib
+    ==> Error: zlib matches multiple packages:
+
+        -- linux-ubuntu20.04-skylake / gcc@9.3.0 ------------------------
+        efzjziy zlib@1.2.11  sl7m27m zlib@1.2.11
+
+    ==> Error: You can either:
+        a) use a more specific spec, or
+        b) specify the spec by its hash (e.g. `spack uninstall /hash`), or
+        c) use `spack uninstall --all` to uninstall ALL matching specs.
+
+Oh no! We can see from the above that we have two different versions of zlib installed,
+and the only difference between the two is the hash. This is a good use case for 
+``spack diff``, which can easily show us the "diff" or set difference 
+between properties for two packages. Let's try it out.
+Since the only difference between these two is the hash, we provide the hashes:
+
+.. code-block::console
+
+    $ spack diff /efzjziy /sl7m27m
+    ==> Showing zlib@1.2.11/efzjziy TO zlib@1.2.11/sl7m27m
+    zlib@1.2.11%gcc@9.3.0+optimize+pic+shared~optimize+pic+shared arch=linux-ubuntu20.04-skylake
+
+
+The documentation here cannot show the colored output or strike throughs, but in the
+above, the first section ``zlib@1.2.11%gcc@9.3.0`` is in white because is has
+not changed between versions, and ``+optimize+pic+shared`` is crossed out and in
+red to indicate that it was removed in favor of the variant (in bright green)
+``~optimize+pic+shared``. The last section for the architecture is also white
+because it has not changed. To make it easy for you to remember the direction
+of the diff, the first line tells you that spack is showing changes from zlib
+with hash ``efzjziy`` to zlib with hash ``sl7m27m``. This means that the second
+hash, ``sl7m27m`` is the newer one. Anything present in the second that is not
+present in the first is new, and will be shown in green. Anything removed from
+the second but present in the first will be bright red and crossed out.
+When you run a diff, you can read the command as follows:
+
+.. code-block::console
+
+    # Show me changes from /efzjziy TO /sl7m27m
+    $ spack diff /efzjziy /sl7m27m
+
+
+And then the terminal output, the common or unchanged attributes are your default color (e.g., white),
+the changed or removed attributes that are present in ``/sl7m27m`` but not 
+``/efzjziy`` are in green, and removed are in red. For zlib, since we
+don't have additional dependencies, by default you are just seeing one line.
+However, ``spack diff`` call shown above will typically print an entire diff
+tree, akin to ``spack spec`` but colored in red and green. But this may not be
+what you want. If you want to force a one line output to only compare the top level
+attributes, add ``--oneline``. Here is an example to look at changes from an old
+version of Singularity to a new one:
+
+.. code-block::console
+
+    $ spack diff --oneline singularity-legacy singularity
+    ==> Showing singularity-legacy@2.6.1/ghrxxnm TO singularity@3.7.2/pueh4ln
+    singularity-legacysingularity@2.6.13.7.2%gcc@9.3.0+network+suidarch=linux-ubuntu20.04-skylake
+
+Remove ``--oneline`` to see the entire tree output. Finally, if you are interested
+in getting the attributes as data, then you likely want to add ``--json``:
+
+
+.. code-block:: console
+
+    $ spack diff --json /efzjziy /sl7m27m
+    {"intersect": [
+      [
+       "node",
+       "zlib"
+      ],
+      ...
+     ],
+     "a_not_b": [
+      [
+       "variant_set",
+       "zlib optimize bool(False)"
+      ]
+     ],
+     "b_not_a": [
+      [
+       "variant_set",
+       "zlib optimize bool(True)"
+      ]
+     ],
+     "a_name": "zlib@1.2.11/efzjziy",
+     "b_name": "zlib@1.2.11/sl7m27m"
+    }
+
+
+A subset of the intersect (common attributes) data is shown, but we can also
+easily see that the variant sets are different. Keep in mind that you can
+also compare completely different packages, if you are interested.
+Finally, if
+    
+
 ------------------------
 Using installed packages
 ------------------------
