@@ -67,4 +67,3 @@ class ClingoBootstrap(Clingo):
             raise RuntimeError(msg)
 
         env.set('CXXFLAGS', opts)
-        env.set('LDFLAGS', opts)
