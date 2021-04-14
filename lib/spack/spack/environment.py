@@ -105,7 +105,7 @@ def validate_env_name(name):
 
 
 def activate(
-    env, use_env_repo=False, add_view=True, shell='sh', prompt=None
+    env, use_env_repo=False, add_view=True, shell='sh', prompt=None, with_env_vars=False
 ):
     """Activate an environment.
 
@@ -181,7 +181,9 @@ def activate(
     try:
         if add_view and default_view_name in env.views:
             with spack.store.db.read_transaction():
-                cmds += env.add_default_view_to_shell(shell)
+                cmds += env.add_default_view_to_shell(
+                    shell, with_env_vars=with_env_vars
+                )
     except (spack.repo.UnknownPackageError,
             spack.repo.UnknownNamespaceError) as e:
         tty.error(e)
@@ -1306,12 +1308,12 @@ class Environment(object):
 
         return all_mods, errors
 
-    def add_default_view_to_shell(self, shell):
+    def add_default_view_to_shell(self, shell, with_env_vars=False):
         env_mod = spack.util.environment.EnvironmentModifications()
 
         if default_view_name not in self.views:
             # No default view to add to shell
-            return env_mod.shell_modifications(shell)
+            return env_mod.shell_modifications(shell, with_env_vars)
 
         env_mod.extend(uenv.unconditional_environment_modifications(
             self.default_view))
@@ -1326,7 +1328,7 @@ class Environment(object):
         for env_var in env_mod.group_by_name():
             env_mod.prune_duplicate_paths(env_var)
 
-        return env_mod.shell_modifications(shell)
+        return env_mod.shell_modifications(shell, with_env_vars)
 
     def rm_default_view_from_shell(self, shell):
         env_mod = spack.util.environment.EnvironmentModifications()

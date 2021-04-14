@@ -59,6 +59,9 @@ def env_activate_setup_parser(subparser):
     shells.add_argument(
         '--fish', action='store_const', dest='shell', const='fish',
         help="print fish commands to activate the environment")
+    subparser.add_argument(
+        '--with-env-vars', action='store_true', default=False,
+        help="print prepend commands to activate the environment")
 
     view_options = subparser.add_mutually_exclusive_group()
     view_options.add_argument(
@@ -110,6 +113,7 @@ def env_activate(args):
                             'activate')
     cmds = ev.activate(
         active_env, add_view=args.with_view, shell=args.shell,
+        with_env_vars=args.with_env_vars,
         prompt=env_prompt if args.prompt else None
     )
     sys.stdout.write(cmds)
