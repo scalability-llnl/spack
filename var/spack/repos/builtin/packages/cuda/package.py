@@ -83,6 +83,17 @@ class Cuda(Package):
 
     homepage = "https://developer.nvidia.com/cuda-zone"
 
+    provides("cublas")
+    provides('cublas@11.2.1.74', when='@11.1.0')
+    provides('cublas@11.2.0.252', when='@11.0.2')
+    provides('cublas@10.2.2', when='@10.2.89')
+    provides('cublas@10.2.0', when='@10.1.243')
+    #provides('cublas@10.2.0', when='@10.0.130')  # Version not mentioned in release notes
+    #provides('cublas@9.2.174', when='@9.2.148')  # CUDA version 9.2.148 not specified in `_versions`
+    provides('cublas@9.1.181', when='@9.1.85')
+    provides('cublas@9.0.333', when='@9.0.176')
+    # No other release notes provide the version of cublas
+
     maintainers = ['ax3l', 'Rombur']
     executables = ['^nvcc$']
 
