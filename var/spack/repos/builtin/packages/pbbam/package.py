@@ -37,7 +37,7 @@ class Pbbam(CMakePackage):
         with working_dir(self.build_directory):
             install_tree('bin', prefix.bin)
             install_tree('lib', prefix.lib)
-            install_tree('pbbam', prefix.include.pbbam)
+            install_tree('generated', prefix.include.pbbam)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.set('PacBioBAM_LIBRARIES', self.prefix.lib)
