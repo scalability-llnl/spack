@@ -780,27 +780,6 @@ class Singleton(object):
         return repr(self.instance)
 
 
-class LazyReference(object):
-    """Lazily evaluated reference to part of a singleton."""
-
-    def __init__(self, ref_function):
-        self.ref_function = ref_function
-
-    def __getattr__(self, name):
-        if name == 'ref_function':
-            raise AttributeError()
-        return getattr(self.ref_function(), name)
-
-    def __getitem__(self, name):
-        return self.ref_function()[name]
-
-    def __str__(self):
-        return str(self.ref_function())
-
-    def __repr__(self):
-        return repr(self.ref_function())
-
-
 def load_module_from_file(module_name, module_path):
     """Loads a python module from the path of the corresponding file.
 

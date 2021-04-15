@@ -10,12 +10,12 @@ import os
 import pytest
 import spack.cmd as cmd
 import spack.cmd.find
+import spack.environment as ev
+import spack.store
 import spack.user_environment as uenv
 from spack.main import SpackCommand
 from spack.spec import Spec
 from spack.util.pattern import Bunch
-import spack.environment as ev
-
 
 find = SpackCommand('find')
 env = SpackCommand('env')
@@ -328,7 +328,7 @@ def test_find_loaded(database, working_env):
     assert output == ''
 
     os.environ[uenv.spack_loaded_hashes_var] = ':'.join(
-        [x.dag_hash() for x in spack.store.db.query()])
+        [x.dag_hash() for x in spack.store.store.db.query()])
     output = find('--loaded')
     expected = find()
     assert output == expected

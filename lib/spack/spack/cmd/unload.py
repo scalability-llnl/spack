@@ -2,15 +2,15 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-import sys
 import os
+import sys
 
 import spack.cmd
 import spack.cmd.common.arguments as arguments
-import spack.util.environment
-import spack.user_environment as uenv
 import spack.error
+import spack.store
+import spack.user_environment as uenv
+import spack.util.environment
 
 description = "remove package from the user environment"
 section = "user environment"
@@ -48,7 +48,7 @@ def unload(parser, args):
         specs = [spack.cmd.disambiguate_spec_from_hashes(spec, hashes)
                  for spec in spack.cmd.parse_specs(args.specs)]
     else:
-        specs = spack.store.db.query(hashes=hashes)
+        specs = spack.store.store.db.query(hashes=hashes)
 
     if not args.shell:
         specs_str = ' '.join(args.specs) or "SPECS"

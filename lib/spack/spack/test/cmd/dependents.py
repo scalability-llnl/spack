@@ -52,10 +52,10 @@ def test_immediate_installed_dependents(mock_packages, database):
     lines = [li for li in out.strip().split('\n') if not li.startswith('--')]
     hashes = set([re.split(r'\s+', li)[0] for li in lines])
 
-    expected = set([spack.store.db.query_one(s).dag_hash(7)
+    expected = set([spack.store.store.db.query_one(s).dag_hash(7)
                     for s in ['dyninst', 'libdwarf']])
 
-    libelf = spack.store.db.query_one('libelf')
+    libelf = spack.store.store.db.query_one('libelf')
     expected = set([d.dag_hash(7) for d in libelf.dependents()])
 
     assert expected == hashes
@@ -69,7 +69,7 @@ def test_transitive_installed_dependents(mock_packages, database):
     lines = [li for li in out.strip().split('\n') if not li.startswith('--')]
     hashes = set([re.split(r'\s+', li)[0] for li in lines])
 
-    expected = set([spack.store.db.query_one(s).dag_hash(7)
+    expected = set([spack.store.store.db.query_one(s).dag_hash(7)
                     for s in ['zmpi', 'callpath^zmpi', 'mpileaks^zmpi']])
 
     assert expected == hashes

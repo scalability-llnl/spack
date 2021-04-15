@@ -20,7 +20,7 @@ def setup_parser(subparser):
 
 
 def gc(parser, args):
-    specs = spack.store.db.unused_specs
+    specs = spack.store.store.db.unused_specs
 
     # Restrict garbage collection to the active environment
     # speculating over roots that are yet to be installed

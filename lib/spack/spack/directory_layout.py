@@ -85,7 +85,7 @@ class DirectoryLayout(object):
         if spec.external:
             return spec.external_path
         if self.check_upstream:
-            upstream, record = spack.store.db.query_by_spec_hash(
+            upstream, record = spack.store.store.db.query_by_spec_hash(
                 spec.dag_hash())
             if upstream:
                 raise SpackError(

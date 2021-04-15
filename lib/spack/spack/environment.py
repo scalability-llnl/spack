@@ -180,7 +180,7 @@ def activate(
     #
     try:
         if add_view and default_view_name in env.views:
-            with spack.store.db.read_transaction():
+            with spack.store.store.db.read_transaction():
                 cmds += env.add_default_view_to_shell(shell)
     except (spack.repo.UnknownPackageError,
             spack.repo.UnknownNamespaceError) as e:
@@ -246,7 +246,7 @@ def deactivate(shell='sh'):
 
     try:
         if default_view_name in _active_environment.views:
-            with spack.store.db.read_transaction():
+            with spack.store.store.db.read_transaction():
                 cmds += _active_environment.rm_default_view_from_shell(shell)
     except (spack.repo.UnknownPackageError,
             spack.repo.UnknownNamespaceError) as e:
@@ -510,9 +510,12 @@ class ViewDescriptor(object):
         root = self.root
         if not os.path.isabs(root):
             root = os.path.normpath(os.path.join(self.base, self.root))
-        return YamlFilesystemView(root, spack.store.layout,
-                                  ignore_conflicts=True,
-                                  projections=self.projections)
+        return YamlFilesystemView(
+            root,
+            spack.store.store.layout,
+            ignore_conflicts=True,
+            projections=self.projections
+        )
 
     def __contains__(self, spec):
         """Is the spec described by the view descriptor
@@ -548,7 +551,7 @@ class ViewDescriptor(object):
 
         # regeneration queries the database quite a bit; this read
         # transaction ensures that we don't repeatedly lock/unlock.
-        with spack.store.db.read_transaction():
+        with spack.store.store.db.read_transaction():
             installed_specs_for_view = set(
                 s for s in specs_for_view if s in self and s.package.installed)
 
@@ -1402,7 +1405,7 @@ class Environment(object):
 
         # if it is a direct dev build, check whether the code changed
         # we already know it is installed
-        _, record = spack.store.db.query_by_spec_hash(spec.dag_hash())
+        _, record = spack.store.store.db.query_by_spec_hash(spec.dag_hash())
         mtime = fs.last_modification_time_recursive(dev_path_var.value)
         return mtime > record.installation_time
 
@@ -1434,7 +1437,7 @@ class Environment(object):
         # Do the installed check across all specs within a single
         # DB read transaction to reduce time spent in lock acquisition.
         uninstalled_specs = []
-        with spack.store.db.read_transaction():
+        with spack.store.store.db.read_transaction():
             for concretized_hash in self.concretized_order:
                 spec = self.specs_by_hash[concretized_hash]
                 if not spec.package.installed or (
@@ -1533,7 +1536,7 @@ class Environment(object):
         """
         # use a transaction to avoid overhead of repeated calls
         # to `package.installed`
-        with spack.store.db.read_transaction():
+        with spack.store.store.db.read_transaction():
             concretized = dict(self.concretized_specs())
             for spec in self.user_specs:
                 concrete = concretized.get(spec)

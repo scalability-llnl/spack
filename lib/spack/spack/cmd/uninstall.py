@@ -84,8 +84,9 @@ def find_matching_specs(env, specs, allow_multiple_matches=False, force=False):
     has_errors = False
     for spec in specs:
         install_query = [InstallStatuses.INSTALLED, InstallStatuses.DEPRECATED]
-        matching = spack.store.db.query_local(spec, hashes=hashes,
-                                              installed=install_query)
+        matching = spack.store.store.db.query_local(
+            spec, hashes=hashes, installed=install_query
+        )
         # For each spec provided, make sure it refers to only one package.
         # Fail and ask user to be unambiguous if it doesn't
         if not allow_multiple_matches and len(matching) > 1:
@@ -133,7 +134,7 @@ def installed_dependents(specs, env):
 
     env_hashes = set(env.all_hashes()) if env else set()
 
-    all_specs_in_db = spack.store.db.query()
+    all_specs_in_db = spack.store.store.db.query()
 
     for spec in specs:
         installed = [x for x in all_specs_in_db if spec in x]
@@ -219,7 +220,7 @@ def do_uninstall(env, specs, force):
 
     # A package is ready to be uninstalled when nothing else references it,
     # unless we are requested to force uninstall it.
-    is_ready = lambda x: not spack.store.db.query_by_spec_hash(x)[1].ref_count
+    is_ready = lambda x: not spack.store.store.db.query_by_spec_hash(x)[1].ref_count
     if force:
         is_ready = lambda x: True
 

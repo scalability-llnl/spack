@@ -56,7 +56,6 @@ import spack.paths
 import spack.package
 import spack.repo
 import spack.schema.environment
-import spack.store
 import spack.install_test
 import spack.subprocess_context
 import spack.architecture as arch

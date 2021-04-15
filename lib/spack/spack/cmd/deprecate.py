@@ -109,7 +109,7 @@ def deprecate(parser, args):
         already_deprecated = []
         already_deprecated_for = []
         for spec in all_deprecate:
-            deprecated_for = spack.store.db.deprecator(spec)
+            deprecated_for = spack.store.store.db.deprecator(spec)
             if deprecated_for:
                 already_deprecated.append(spec)
                 already_deprecated_for.append(deprecated_for)

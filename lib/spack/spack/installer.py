@@ -178,7 +178,8 @@ def _do_fake_install(pkg):
     # Install fake man page
     fs.mkdirp(pkg.prefix.man.man1)
 
-    packages_dir = spack.store.layout.build_packages_path(pkg.spec)
+    layout = spack.store.store.layout
+    packages_dir = layout.build_packages_path(pkg.spec)
     dump_packages(pkg.spec, packages_dir)
 
 
@@ -329,7 +330,7 @@ def _process_external_package(pkg, explicit):
 
         # Update the explicit state if it is necessary
         if explicit:
-            spack.store.db.update_explicit(spec, explicit)
+            spack.store.store.db.update_explicit(spec, explicit)
 
     except KeyError:
         # If not, register it and generate the module file.
@@ -340,7 +341,7 @@ def _process_external_package(pkg, explicit):
 
         # Add to the DB
         tty.debug('{0} registering into DB'.format(pre))
-        spack.store.db.add(spec, None, explicit=explicit)
+        spack.store.store.db.add(spec, None, explicit=explicit)
 
 
 def _process_binary_cache_tarball(pkg, binary_spec, explicit, unsigned,
@@ -374,7 +375,9 @@ def _process_binary_cache_tarball(pkg, binary_spec, explicit, unsigned,
     binary_distribution.extract_tarball(binary_spec, tarball, allow_root=False,
                                         unsigned=unsigned, force=False)
     pkg.installed_from_binary_cache = True
-    spack.store.db.add(pkg.spec, spack.store.layout, explicit=explicit)
+    spack.store.store.db.add(
+        pkg.spec, spack.store.store.layout, explicit=explicit
+    )
     return True
 
 
@@ -409,7 +412,7 @@ def clear_failures():
     """
     Remove all failure tracking markers for the Spack instance.
     """
-    spack.store.db.clear_all_failures()
+    spack.store.store.db.clear_all_failures()
 
 
 def dump_packages(spec, path):
@@ -434,7 +437,7 @@ def dump_packages(spec, path):
         if node is not spec:
             # Locate the dependency package in the install tree and find
             # its provenance information.
-            source = spack.store.layout.build_packages_path(node)
+            source = spack.store.store.layout.build_packages_path(node)
             source_repo_root = os.path.join(source, node.namespace)
 
             # If there's no provenance installed for the package, skip it.
@@ -508,7 +511,7 @@ def log(pkg):
     Args:
         pkg (Package): the package that was built and installed
     """
-    packages_dir = spack.store.layout.build_packages_path(pkg.spec)
+    packages_dir = spack.store.store.layout.build_packages_path(pkg.spec)
 
     # Remove first if we're overwriting another build
     try:
@@ -532,7 +535,7 @@ def log(pkg):
     with fs.working_dir(pkg.stage.path):
         errors = six.StringIO()
         target_dir = os.path.join(
-            spack.store.layout.metadata_path(pkg.spec), 'archived-files')
+            spack.store.store.layout.metadata_path(pkg.spec), 'archived-files')
 
         for glob_expr in pkg.archive_files:
             # Check that we are trying to copy things that are
@@ -631,7 +634,7 @@ class PackageInstaller(object):
         self.installed = set()
 
         # Data store layout
-        self.layout = spack.store.layout
+        self.layout = spack.store.store.layout
 
         # Locks on specs being built, keyed on the package's unique id
         self.locks = {}
@@ -709,7 +712,7 @@ class PackageInstaller(object):
                 otherwise
         """
         try:
-            rec = spack.store.db.get_record(spec)
+            rec = spack.store.store.db.get_record(spec)
             installed_in_db = rec.installed if rec else False
         except KeyError:
             # KeyError is raised if there is no matching spec in the database
@@ -730,7 +733,7 @@ class PackageInstaller(object):
             dep_id = package_id(dep_pkg)
 
             # Check for failure since a prefix lock is not required
-            if spack.store.db.prefix_failed(dep):
+            if spack.store.store.db.prefix_failed(dep):
                 action = "'spack install' the dependency"
                 msg = '{0} is marked as an install failure: {1}' \
                     .format(dep_id, action)
@@ -811,7 +814,7 @@ class PackageInstaller(object):
 
             # Only update the explicit entry once for the explicit package
             if task.explicit:
-                spack.store.db.update_explicit(task.pkg.spec, True)
+                spack.store.store.db.update_explicit(task.pkg.spec, True)
 
             # In case the stage directory has already been created, this
             # check ensures it is removed after we checked that the spec is
@@ -934,7 +937,7 @@ class PackageInstaller(object):
             if lock is None:
                 tty.debug(msg.format('Acquiring', desc, pkg_id, timeout))
                 op = 'acquire'
-                lock = spack.store.db.prefix_lock(pkg.spec, timeout)
+                lock = spack.store.store.db.prefix_lock(pkg.spec, timeout)
                 if timeout != lock.default_timeout:
                     tty.warn('Expected prefix lock timeout {0}, not {1}'
                              .format(timeout, lock.default_timeout))
@@ -1054,13 +1057,13 @@ class PackageInstaller(object):
                 # Clear any persistent failure markings _unless_ they are
                 # associated with another process in this parallel build
                 # of the spec.
-                spack.store.db.clear_failure(dep, force=False)
+                spack.store.store.db.clear_failure(dep, force=False)
 
         install_package = request.install_args.get('install_package')
         if install_package and request.pkg_id not in self.build_tasks:
 
             # Be sure to clear any previous failure
-            spack.store.db.clear_failure(request.spec, force=True)
+            spack.store.store.db.clear_failure(request.spec, force=True)
 
             # If not installing dependencies, then determine their
             # installation status before proceeding
@@ -1125,8 +1128,8 @@ class PackageInstaller(object):
 
             # Note: PARENT of the build process adds the new package to
             # the database, so that we don't need to re-read from file.
-            spack.store.db.add(pkg.spec, spack.store.layout,
-                               explicit=explicit)
+            store = spack.store.store
+            store.db.add(pkg.spec, store.layout, explicit=explicit)
 
             # If a compiler, ensure it is added to the configuration
             if task.compiler:
@@ -1267,7 +1270,7 @@ class PackageInstaller(object):
         if not os.path.exists(pkg.spec.prefix):
             tty.verbose('Creating the installation directory {0}'
                         .format(pkg.spec.prefix))
-            spack.store.layout.create_install_directory(pkg.spec)
+            spack.store.store.layout.create_install_directory(pkg.spec)
         else:
             # Set the proper group for the prefix
             group = prefs.get_package_group(pkg.spec)
@@ -1283,7 +1286,7 @@ class PackageInstaller(object):
                 os.chmod(pkg.spec.prefix, perms)
 
             # Ensure the metadata path exists as well
-            fs.mkdirp(spack.store.layout.metadata_path(pkg.spec), mode=perms)
+            fs.mkdirp(spack.store.store.layout.metadata_path(pkg.spec), mode=perms)
 
     def _update_failed(self, task, mark=False, exc=None):
         """
@@ -1300,7 +1303,7 @@ class PackageInstaller(object):
         err = '' if exc is None else ': {0}'.format(str(exc))
         tty.debug('Flagging {0} as failed{1}'.format(pkg_id, err))
         if mark:
-            self.failed[pkg_id] = spack.store.db.mark_failed(task.pkg.spec)
+            self.failed[pkg_id] = spack.store.store.db.mark_failed(task.pkg.spec)
         else:
             self.failed[pkg_id] = None
         task.status = STATUS_FAILED
@@ -1437,7 +1440,7 @@ class PackageInstaller(object):
 
             # Flag a failed spec.  Do not need an (install) prefix lock since
             # assume using a separate (failed) prefix lock file.
-            if pkg_id in self.failed or spack.store.db.prefix_failed(spec):
+            if pkg_id in self.failed or spack.store.store.db.prefix_failed(spec):
                 tty.warn('{0} failed to install'.format(pkg_id))
                 self._update_failed(task)
 

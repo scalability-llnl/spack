@@ -177,8 +177,8 @@ def test_check_prefix_manifest(tmpdir):
     assert results.errors[malware] == ['added']
 
     manifest_file = os.path.join(spec.prefix,
-                                 spack.store.layout.metadata_dir,
-                                 spack.store.layout.manifest_file_name)
+                                 spack.store.store.layout.metadata_dir,
+                                 spack.store.store.layout.manifest_file_name)
     with open(manifest_file, 'w') as f:
         f.write("{This) string is not proper json")
 
@@ -192,7 +192,7 @@ def test_single_file_verification(tmpdir):
     # to which it belongs
     filedir = os.path.join(str(tmpdir), 'a', 'b', 'c', 'd')
     filepath = os.path.join(filedir, 'file')
-    metadir = os.path.join(str(tmpdir), spack.store.layout.metadata_dir)
+    metadir = os.path.join(str(tmpdir), spack.store.store.layout.metadata_dir)
 
     fs.mkdirp(filedir)
     fs.mkdirp(metadir)
@@ -203,7 +203,7 @@ def test_single_file_verification(tmpdir):
     data = spack.verify.create_manifest_entry(filepath)
 
     manifest_file = os.path.join(metadir,
-                                 spack.store.layout.manifest_file_name)
+                                 spack.store.store.layout.manifest_file_name)
 
     with open(manifest_file, 'w') as f:
         sjson.dump({filepath: data}, f)

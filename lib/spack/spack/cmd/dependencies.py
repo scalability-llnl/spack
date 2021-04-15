@@ -48,7 +48,7 @@ def dependencies(parser, args):
         if sys.stdout.isatty():
             tty.msg(
                 "Dependencies of %s" % spec.format(format_string, color=True))
-        deps = spack.store.db.installed_relatives(
+        deps = spack.store.store.db.installed_relatives(
             spec, 'children', args.transitive, deptype=args.deptype)
         if deps:
             spack.cmd.display_specs(deps, long=True)

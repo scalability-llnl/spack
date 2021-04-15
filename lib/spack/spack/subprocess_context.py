@@ -103,10 +103,6 @@ class TestState(object):
 
             new_store = spack.store.Store.deserialize(self.store_token)
             spack.store.store = new_store
-            spack.store.root = new_store.root
-            spack.store.unpadded_root = new_store.unpadded_root
-            spack.store.db = new_store.db
-            spack.store.layout = new_store.layout
 
             self.test_patches.restore()
 

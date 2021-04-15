@@ -693,7 +693,7 @@ def install_mockery(temporary_store, config, mock_packages):
     # Also wipe out any cached prefix failure locks (associated with
     # the session-scoped mock archive).
     for pkg_id in list(temporary_store.db._prefix_failures.keys()):
-        lock = spack.store.db._prefix_failures.pop(pkg_id, None)
+        lock = spack.store.store.db._prefix_failures.pop(pkg_id, None)
         if lock:
             try:
                 lock.release_write()

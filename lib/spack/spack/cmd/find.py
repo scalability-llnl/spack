@@ -15,6 +15,7 @@ import llnl.util.lang
 
 import spack.environment as ev
 import spack.repo
+import spack.store
 import spack.cmd as cmd
 import spack.cmd.common.arguments as arguments
 import spack.user_environment as uenv

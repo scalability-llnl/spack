@@ -1482,13 +1482,13 @@ class Spec(object):
         if not self._concrete:
             raise spack.error.SpecError("Spec is not concrete: " + str(self))
 
+        store = spack.store.store
         if self._prefix is None:
-            upstream, record = spack.store.db.query_by_spec_hash(
-                self.dag_hash())
+            upstream, record = store.db.query_by_spec_hash(self.dag_hash())
             if record and record.path:
                 self.prefix = record.path
             else:
-                self.prefix = spack.store.layout.path_for_spec(self)
+                self.prefix = store.layout.path_for_spec(self)
         return self._prefix
 
     @prefix.setter
@@ -2514,9 +2514,10 @@ class Spec(object):
             SpecDeprecatedError: is any deprecated spec is found
         """
         deprecated = []
-        with spack.store.db.read_transaction():
+        store = spack.store.store
+        with store.db.read_transaction():
             for x in root.traverse():
-                _, rec = spack.store.db.query_by_spec_hash(x.dag_hash())
+                _, rec = store.db.query_by_spec_hash(x.dag_hash())
                 if rec and rec.deprecated_for:
                     deprecated.append(rec)
         if deprecated:
@@ -3783,7 +3784,7 @@ class Spec(object):
                 write(morph(spec, spack.paths.spack_root))
                 return
             elif attribute == 'spack_install':
-                write(morph(spec, spack.store.layout.root))
+                write(morph(spec, spack.store.store.layout.root))
                 return
             elif re.match(r'hash(:\d)?', attribute):
                 col = '#'
@@ -4101,7 +4102,7 @@ class Spec(object):
                 elif named_str == 'SPACK_ROOT':
                     out.write(fmt % transform(self, spack.paths.prefix))
                 elif named_str == 'SPACK_INSTALL':
-                    out.write(fmt % transform(self, spack.store.root))
+                    out.write(fmt % transform(self, spack.store.store.root))
                 elif named_str == 'PREFIX':
                     out.write(fmt % transform(self, self.prefix))
                 elif named_str.startswith('HASH'):
@@ -4149,7 +4150,7 @@ class Spec(object):
         if not self.concrete:
             return None
         try:
-            record = spack.store.db.get_record(self)
+            record = spack.store.store.db.get_record(self)
             return record.installed
         except KeyError:
             return None
@@ -4159,7 +4160,7 @@ class Spec(object):
         if not self.concrete:
             return None
         try:
-            record = spack.store.db.get_record(self)
+            record = spack.store.store.db.get_record(self)
             return record.explicit
         except KeyError:
             return None
@@ -4580,7 +4581,7 @@ class SpecParser(spack.parse.Parser):
         self.expect(ID)
 
         dag_hash = self.token.value
-        matches = spack.store.db.get_by_hash(dag_hash)
+        matches = spack.store.store.db.get_by_hash(dag_hash)
         if not matches:
             raise NoSuchHashError(dag_hash)
 

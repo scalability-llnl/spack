@@ -17,6 +17,7 @@ import spack.architecture
 import spack.cmd
 import spack.repo
 import spack.spec
+import spack.store
 import spack.util.executable as executable
 
 
@@ -737,7 +738,7 @@ def raise_if_not_relocatable(binaries, allow_root):
     """
     for binary in binaries:
         if not (allow_root or file_is_relocatable(binary)):
-            raise InstallRootStringError(binary, spack.store.layout.root)
+            raise InstallRootStringError(binary, spack.store.store.layout.root)
 
 
 def relocate_links(links, orig_layout_root,
@@ -909,7 +910,7 @@ def file_is_relocatable(filename, paths_to_relocate=None):
 
         ValueError: if the filename does not exist or the path is not absolute
     """
-    default_paths_to_relocate = [spack.store.layout.root, spack.paths.prefix]
+    default_paths_to_relocate = [spack.store.store.layout.root, spack.paths.prefix]
     paths_to_relocate = paths_to_relocate or default_paths_to_relocate
 
     if not (platform.system().lower() == 'darwin'

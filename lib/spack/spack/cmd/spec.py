@@ -72,7 +72,7 @@ def spec(parser, args):
     # spec in the DAG.  This avoids repeatedly querying the DB.
     tree_context = nullcontext
     if args.install_status:
-        tree_context = spack.store.db.read_transaction
+        tree_context = spack.store.store.db.read_transaction
 
     if not args.specs:
         tty.die("spack spec requires at least one spec")

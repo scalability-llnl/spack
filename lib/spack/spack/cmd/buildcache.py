@@ -12,6 +12,7 @@ import spack.architecture
 import spack.binary_distribution as bindist
 import spack.cmd
 import spack.cmd.common.arguments as arguments
+import spack.config
 import spack.environment as ev
 import spack.hash_types as ht
 import spack.mirror
@@ -19,16 +20,11 @@ import spack.relocate
 import spack.repo
 import spack.spec
 import spack.store
-import spack.config
-import spack.repo
-import spack.store
 import spack.util.url as url_util
-
+from spack.cmd import display_specs
 from spack.error import SpecError
 from spack.spec import Spec, save_dependency_spec_yamls
 from spack.util.string import plural
-
-from spack.cmd import display_specs
 
 description = "create, download and install binary packages"
 section = "packaging"
@@ -257,7 +253,7 @@ def find_matching_specs(pkgs, allow_multiple_matches=False, env=None):
     tty.debug('find_matching_specs: about to parse specs for {0}'.format(pkgs))
     specs = spack.cmd.parse_specs(pkgs)
     for spec in specs:
-        matching = spack.store.db.query(spec, hashes=hashes)
+        matching = spack.store.store.db.query(spec, hashes=hashes)
         # For each spec provided, make sure it refers to only one package.
         # Fail and ask user to be unambiguous if it doesn't
         if not allow_multiple_matches and len(matching) > 1:
@@ -372,7 +368,7 @@ def _createtarball(env, spec_yaml=None, packages=None, add_spec=True,
             tty.debug('skipping external or virtual spec %s' %
                       match.format())
         else:
-            lookup = spack.store.db.query_one(match)
+            lookup = spack.store.store.db.query_one(match)
 
             if not add_spec:
                 tty.debug('skipping matching root spec %s' % match.format())
@@ -394,7 +390,7 @@ def _createtarball(env, spec_yaml=None, packages=None, add_spec=True,
                 if d == 0:
                     continue
 
-                lookup = spack.store.db.query_one(node)
+                lookup = spack.store.store.db.query_one(node)
 
                 if node.external or node.virtual:
                     tty.debug('skipping external or virtual dependency %s' %
@@ -501,7 +497,7 @@ def install_tarball(spec, args):
             bindist.extract_tarball(spec, tarball, args.allow_root,
                                     args.unsigned, args.force)
             spack.hooks.post_install(spec)
-            spack.store.db.add(spec, spack.store.layout)
+            spack.store.store.db.add(spec, spack.store.store.layout)
         else:
             tty.die('Download of binary cache file for spec %s failed.' %
                     spec.format())

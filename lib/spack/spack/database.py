@@ -476,7 +476,7 @@ class Database(object):
         containing the spec, in a subdirectory of the database to enable
         persistence across overlapping but separate related build processes.
 
-        The failure lock file, ``spack.store.db.prefix_failures``, lives
+        The failure lock file, ``spack.store.store.db.prefix_failures``, lives
         alongside the install DB. ``n`` is the sys.maxsize-bit prefix of the
         associated DAG hash to make the likelihood of collision very low with
         no cleanup required.
@@ -549,7 +549,7 @@ class Database(object):
 
         Prefix lock is a byte range lock on the nth byte of a file.
 
-        The lock file is ``spack.store.db.prefix_lock`` -- the DB
+        The lock file is ``spack.store.store.db.prefix_lock`` -- the DB
         tells us what to call it and it lives alongside the install DB.
 
         n is the sys.maxsize-bit prefix of the DAG hash.  This makes
@@ -744,7 +744,7 @@ class Database(object):
                     % (version, _db_version)
                 )
 
-                self.reindex(spack.store.layout)
+                self.reindex(spack.store.store.layout)
                 installs = dict(
                     (k, v.to_dict(include_fields=self._record_fields))
                     for k, v in self._data.items()
@@ -905,7 +905,7 @@ class Database(object):
                 tty.debug(
                     'RECONSTRUCTING FROM OLD DB: {0}'.format(entry.spec))
                 try:
-                    layout = spack.store.layout
+                    layout = spack.store.store.layout
                     if entry.spec.external:
                         layout = None
                         install_check = True
@@ -1021,7 +1021,7 @@ class Database(object):
         # reindex() takes its own write lock, so no lock here.
         with lk.WriteTransaction(self.lock):
             self._write(None, None, None)
-        self.reindex(spack.store.layout)
+        self.reindex(spack.store.store.layout)
 
     def _add(
             self,
@@ -1314,7 +1314,7 @@ class Database(object):
         the given spec
         """
         if extensions_layout is None:
-            view = YamlFilesystemView(extendee_spec.prefix, spack.store.layout)
+            view = YamlFilesystemView(extendee_spec.prefix, spack.store.store.layout)
             extensions_layout = view.extensions_layout
         for spec in self.query():
             try:

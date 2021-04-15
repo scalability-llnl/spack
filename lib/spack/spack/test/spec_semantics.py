@@ -791,7 +791,7 @@ class TestSpecSematics(object):
                                  ("{architecture.target}", "target")]
 
         other_segments = [('{spack_root}', spack.paths.spack_root),
-                          ('{spack_install}', spack.store.layout.root),
+                          ('{spack_install}', spack.store.store.layout.root),
                           ('{hash:7}', spec.dag_hash(7)),
                           ('{/hash}', '/' + spec.dag_hash())]
 

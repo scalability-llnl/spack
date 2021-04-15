@@ -90,7 +90,7 @@ def view_copy(src, dst, view, spec=None):
                 prefixes=prefix_to_projection
             )
         else:
-            prefix_to_projection[spack.store.layout.root] = view._root
+            prefix_to_projection[spack.store.store.layout.root] = view._root
             prefix_to_projection[orig_sbang] = new_sbang
             spack.relocate.relocate_text(
                 files=[dst],
@@ -350,8 +350,10 @@ class YamlFilesystemView(FilesystemView):
         if spec.package.extendable:
             # Check for globally activated extensions in the extendee that
             # we're looking at.
-            activated = [p.spec for p in
-                         spack.store.db.activated_extensions_for(spec)]
+            activated = [
+                p.spec for p in
+                spack.store.store.db.activated_extensions_for(spec)
+            ]
             if activated:
                 tty.error("Globally activated extensions cannot be used in "
                           "conjunction with filesystem views. "
@@ -424,8 +426,9 @@ class YamlFilesystemView(FilesystemView):
 
             # check if this spec owns a file of that name (through the
             # manifest in the metadata dir, which we have in the view).
-            manifest_file = os.path.join(self.get_path_meta_folder(spec),
-                                         spack.store.layout.manifest_file_name)
+            manifest_file = os.path.join(
+                self.get_path_meta_folder(spec),
+                spack.store.store.layout.manifest_file_name)
             try:
                 with open(manifest_file, 'r') as f:
                     manifest = s_json.load(f)
@@ -560,17 +563,18 @@ class YamlFilesystemView(FilesystemView):
 
     def get_all_specs(self):
         md_dirs = []
+        layout = spack.store.store.layout
         for root, dirs, files in os.walk(self._root):
-            if spack.store.layout.metadata_dir in dirs:
-                md_dirs.append(os.path.join(root,
-                                            spack.store.layout.metadata_dir))
+            if layout.metadata_dir in dirs:
+                md_dirs.append(os.path.join(root, layout.metadata_dir))
 
         specs = []
         for md_dir in md_dirs:
             if os.path.exists(md_dir):
                 for name_dir in os.listdir(md_dir):
-                    filename = os.path.join(md_dir, name_dir,
-                                            spack.store.layout.spec_file_name)
+                    filename = os.path.join(
+                        md_dir, name_dir, layout.spec_file_name
+                    )
                     spec = get_spec_from_file(filename)
                     if spec:
                         specs.append(spec)
@@ -588,18 +592,18 @@ class YamlFilesystemView(FilesystemView):
     def get_path_meta_folder(self, spec):
         "Get path to meta folder for either spec or spec name."
         return os.path.join(self.get_projection_for_spec(spec),
-                            spack.store.layout.metadata_dir,
+                            spack.store.store.layout.metadata_dir,
                             getattr(spec, "name", spec))
 
     def get_spec(self, spec):
         dotspack = self.get_path_meta_folder(spec)
         filename = os.path.join(dotspack,
-                                spack.store.layout.spec_file_name)
+                                spack.store.store.layout.spec_file_name)
 
         return get_spec_from_file(filename)
 
     def link_meta_folder(self, spec):
-        src = spack.store.layout.metadata_path(spec)
+        src = spack.store.store.layout.metadata_path(spec)
         tgt = self.get_path_meta_folder(spec)
 
         tree = LinkTree(src)

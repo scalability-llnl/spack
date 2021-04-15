@@ -708,7 +708,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
     @property
     def installed_upstream(self):
         if not hasattr(self, '_installed_upstream'):
-            upstream, record = spack.store.db.query_by_spec_hash(
+            upstream, record = spack.store.store.db.query_by_spec_hash(
                 self.spec.dag_hash())
             self._installed_upstream = upstream
 
@@ -1039,7 +1039,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
     @property
     def metadata_dir(self):
         """Return the install metadata directory."""
-        return spack.store.layout.metadata_path(self.spec)
+        return spack.store.store.layout.metadata_path(self.spec)
 
     @property
     def install_env_path(self):
@@ -1238,7 +1238,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
         try:
             # If the spec is in the DB, check the installed
             # attribute of the record
-            rec = spack.store.db.get_record(self.spec)
+            rec = spack.store.store.db.get_record(self.spec)
             db_says_installed = rec.installed
         except KeyError:
             # If the spec is not in the DB, the method
@@ -1284,7 +1284,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
         Removes the prefix for a package along with any empty parent
         directories
         """
-        spack.store.layout.remove_install_directory(self.spec)
+        spack.store.store.layout.remove_install_directory(self.spec)
 
     @property
     def download_instr(self):
@@ -1678,7 +1678,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
     def _stage_and_write_lock(self):
         """Prefix lock nested in a stage."""
         with self.stage:
-            with spack.store.db.prefix_write_lock(self.spec):
+            with spack.store.store.db.prefix_write_lock(self.spec):
                 yield
 
     def do_install(self, **kwargs):
@@ -1932,7 +1932,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
 
         installed = set(os.listdir(self.prefix))
         installed.difference_update(
-            spack.store.layout.hidden_file_paths)
+            spack.store.store.layout.hidden_file_paths)
         if not installed:
             raise InstallError(
                 "Install failed for %s.  Nothing was installed!" % self.name)
@@ -2132,17 +2132,18 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
 
     @staticmethod
     def uninstall_by_spec(spec, force=False, deprecator=None):
+        store = spack.store.store
         if not os.path.isdir(spec.prefix):
             # prefix may not exist, but DB may be inconsistent. Try to fix by
             # removing, but omit hooks.
-            specs = spack.store.db.query(spec, installed=True)
+            specs = store.db.query(spec, installed=True)
             if specs:
                 if deprecator:
-                    spack.store.db.deprecate(specs[0], deprecator)
+                    store.db.deprecate(specs[0], deprecator)
                     tty.debug('Deprecating stale DB entry for {0}'
                               .format(spec.short_spec))
                 else:
-                    spack.store.db.remove(specs[0])
+                    store.db.remove(specs[0])
                     tty.debug('Removed stale DB entry for {0}'
                               .format(spec.short_spec))
                 return
@@ -2150,8 +2151,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
                 raise InstallError(str(spec) + " is not installed.")
 
         if not force:
-            dependents = spack.store.db.installed_relatives(
-                spec, 'parents', True)
+            dependents = store.db.installed_relatives(spec, 'parents', True)
             if dependents:
                 raise PackageStillNeededError(spec, dependents)
 
@@ -2162,7 +2162,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
             pkg = None
 
         # Pre-uninstall hook runs first.
-        with spack.store.db.prefix_write_lock(spec):
+        with store.db.prefix_write_lock(spec):
 
             if pkg is not None:
                 try:
@@ -2189,17 +2189,17 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
                 tty.debug(msg.format(spec.short_spec))
                 # test if spec is already deprecated, not whether we want to
                 # deprecate it now
-                deprecated = bool(spack.store.db.deprecator(spec))
-                spack.store.layout.remove_install_directory(spec, deprecated)
+                deprecated = bool(store.db.deprecator(spec))
+                store.layout.remove_install_directory(spec, deprecated)
             # Delete DB entry
             if deprecator:
                 msg = 'deprecating DB entry [{0}] in favor of [{1}]'
                 tty.debug(msg.format(spec.short_spec, deprecator.short_spec))
-                spack.store.db.deprecate(spec, deprecator)
+                store.db.deprecate(spec, deprecator)
             else:
                 msg = 'Deleting DB entry [{0}]'
                 tty.debug(msg.format(spec.short_spec))
-                spack.store.db.remove(spec)
+                store.db.remove(spec)
 
         if pkg is not None:
             try:
@@ -2227,11 +2227,12 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
     def do_deprecate(self, deprecator, link_fn):
         """Deprecate this package in favor of deprecator spec"""
         spec = self.spec
-
+        store = spack.store.store
         # Check whether package to deprecate has active extensions
         if self.extendable:
-            view = spack.filesystem_view.YamlFilesystemView(spec.prefix,
-                                                            spack.store.layout)
+            view = spack.filesystem_view.YamlFilesystemView(
+                spec.prefix, store.layout
+            )
             active_exts = view.extensions_layout.extension_map(spec).values()
             if active_exts:
                 short = spec.format('{name}/{hash:7}')
@@ -2244,8 +2245,9 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
         # Check whether package to deprecate is an active extension
         if self.is_extension:
             extendee = self.extendee_spec
-            view = spack.filesystem_view.YamlFilesystemView(extendee.prefix,
-                                                            spack.store.layout)
+            view = spack.filesystem_view.YamlFilesystemView(
+                extendee.prefix, store.layout
+            )
 
             if self.is_activated(view):
                 short = spec.format('{name}/{hash:7}')
@@ -2256,26 +2258,24 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
                 tty.die(msg)
 
         # Install deprecator if it isn't installed already
-        if not spack.store.db.query(deprecator):
+        if not store.db.query(deprecator):
             deprecator.package.do_install()
 
-        old_deprecator = spack.store.db.deprecator(spec)
+        old_deprecator = store.db.deprecator(spec)
         if old_deprecator:
             # Find this specs yaml file from its old deprecation
-            self_yaml = spack.store.layout.deprecated_file_path(spec,
-                                                                old_deprecator)
+            self_yaml = store.layout.deprecated_file_path(spec, old_deprecator)
         else:
-            self_yaml = spack.store.layout.spec_file_path(spec)
+            self_yaml = store.layout.spec_file_path(spec)
 
         # copy spec metadata to "deprecated" dir of deprecator
-        depr_yaml = spack.store.layout.deprecated_file_path(spec,
-                                                            deprecator)
+        depr_yaml = store.layout.deprecated_file_path(spec, deprecator)
         fsys.mkdirp(os.path.dirname(depr_yaml))
         shutil.copy2(self_yaml, depr_yaml)
 
         # Any specs deprecated in favor of this spec are re-deprecated in
         # favor of its new deprecator
-        for deprecated in spack.store.db.specs_deprecated_by(spec):
+        for deprecated in store.db.specs_deprecated_by(spec):
             deprecated.package.do_deprecate(deprecator, link_fn)
 
         # Now that we've handled metadata, uninstall and replace with link
@@ -2315,7 +2315,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
         self._sanity_check_extension()
         if not view:
             view = YamlFilesystemView(
-                self.extendee_spec.prefix, spack.store.layout)
+                self.extendee_spec.prefix, spack.store.store.layout)
 
         extensions_layout = view.extensions_layout
 
@@ -2379,7 +2379,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
 
         if not view:
             view = YamlFilesystemView(
-                self.extendee_spec.prefix, spack.store.layout)
+                self.extendee_spec.prefix, spack.store.store.layout)
         extensions_layout = view.extensions_layout
 
         # Allow a force deactivate to happen.  This can unlink
@@ -2432,7 +2432,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
         Extensions added to this view will modify the installation prefix of
         this package.
         """
-        return YamlFilesystemView(self.prefix, spack.store.layout)
+        return YamlFilesystemView(self.prefix, spack.store.store.layout)
 
     def do_restage(self):
         """Reverts expanded/checked out source to a pristine state."""
@@ -2680,7 +2680,7 @@ def flatten_dependencies(spec, flat_dir):
     for dep in spec.traverse(root=False):
         name = dep.name
 
-        dep_path = spack.store.layout.path_for_spec(dep)
+        dep_path = spack.store.store.layout.path_for_spec(dep)
         dep_files = LinkTree(dep_path)
 
         os.mkdir(flat_dir + '/' + name)

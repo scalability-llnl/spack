@@ -87,7 +87,7 @@ def make_module_available(module, spec=None, install=False):
     # concretize to python@X.Y instead of python@X.Y.Z
     python_requirement = '^' + spec_for_current_python()
     spec.constrain(python_requirement)
-    installed_specs = spack.store.db.query(spec, installed=True)
+    installed_specs = spack.store.store.db.query(spec, installed=True)
 
     for ispec in installed_specs:
         # TODO: make sure run-environment is appropriate
@@ -150,7 +150,7 @@ def get_executable(exe, spec=None, install=False):
 
     # Check whether it's already installed
     spec = spack.spec.Spec(spec or exe)
-    installed_specs = spack.store.db.query(spec, installed=True)
+    installed_specs = spack.store.store.db.query(spec, installed=True)
     for ispec in installed_specs:
         # filter out directories of the same name as the executable
         exe_path = [exe_p for exe_p in fs.find(ispec.prefix, exe)

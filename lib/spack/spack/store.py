@@ -232,24 +232,11 @@ def _store_layout():
     return store.layout
 
 
-# convenience accessors for parts of the singleton store
-root = llnl.util.lang.LazyReference(_store_root)
-unpadded_root = llnl.util.lang.LazyReference(_store_unpadded_root)
-db = llnl.util.lang.LazyReference(_store_db)
-layout = llnl.util.lang.LazyReference(_store_layout)
-
-
 def reinitialize():
     """Restore globals to the same state they would have at start-up"""
     global store
-    global root, unpadded_root, db, layout
 
     store = llnl.util.lang.Singleton(_store)
-
-    root = llnl.util.lang.LazyReference(_store_root)
-    unpadded_root = llnl.util.lang.LazyReference(_store_unpadded_root)
-    db = llnl.util.lang.LazyReference(_store_db)
-    layout = llnl.util.lang.LazyReference(_store_layout)
 
 
 def retrieve_upstream_dbs():
@@ -286,7 +273,7 @@ def use_store(store_or_path):
     Returns:
         Store object associated with the context manager's store
     """
-    global store, db, layout, root, unpadded_root
+    global store
 
     # Normalize input arguments
     temporary_store = store_or_path
@@ -296,12 +283,8 @@ def use_store(store_or_path):
     # Swap the store with the one just constructed and return it
     _ = store.db
     original_store, store = store, temporary_store
-    db, layout = store.db, store.layout
-    root, unpadded_root = store.root, store.unpadded_root
 
     yield temporary_store
 
     # Restore the original store
     store = original_store
-    db, layout = original_store.db, original_store.layout
-    root, unpadded_root = original_store.root, original_store.unpadded_root

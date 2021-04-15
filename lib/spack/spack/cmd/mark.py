@@ -70,7 +70,7 @@ def find_matching_specs(specs, allow_multiple_matches=False):
 
     for spec in specs:
         install_query = [InstallStatuses.INSTALLED]
-        matching = spack.store.db.query_local(spec, installed=install_query)
+        matching = spack.store.store.db.query_local(spec, installed=install_query)
         # For each spec provided, make sure it refers to only one package.
         # Fail and ask user to be unambiguous if it doesn't
         if not allow_multiple_matches and len(matching) > 1:
@@ -102,7 +102,7 @@ def do_mark(specs, explicit):
         explicit (bool): whether to mark specs as explicitly installed
     """
     for spec in specs:
-        spack.store.db.update_explicit(spec, explicit)
+        spack.store.store.db.update_explicit(spec, explicit)
 
 
 def mark_specs(args, specs):

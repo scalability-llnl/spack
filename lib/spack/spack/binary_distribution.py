@@ -4,43 +4,39 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import codecs
+import glob
+import hashlib
+import json
 import os
 import re
+import shutil
 import sys
 import tarfile
-import shutil
 import tempfile
-import hashlib
-import glob
-from ordereddict_backport import OrderedDict
-
 from contextlib import closing
-import ruamel.yaml as yaml
-
-import json
-
-from six.moves.urllib.error import URLError, HTTPError
 
 import llnl.util.lang
 import llnl.util.tty as tty
-from llnl.util.filesystem import mkdirp
-
+import ruamel.yaml as yaml
 import spack.cmd
 import spack.config as config
 import spack.database as spack_db
 import spack.fetch_strategy as fs
-import spack.util.file_cache as file_cache
+import spack.mirror
 import spack.relocate as relocate
+import spack.store
+import spack.util.file_cache as file_cache
 import spack.util.gpg
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
-import spack.mirror
 import spack.util.url as url_util
 import spack.util.web as web_util
+from llnl.util.filesystem import mkdirp
+from ordereddict_backport import OrderedDict
+from six.moves.urllib.error import URLError, HTTPError
 from spack.caches import misc_cache_location
 from spack.spec import Spec
 from spack.stage import Stage
-
 
 _build_cache_relative_path = 'build_cache'
 _build_cache_keys_relative_path = '_pgp'
@@ -576,7 +572,7 @@ def write_buildinfo_file(spec, workdir, rel=False):
                 link = os.readlink(path_name)
                 if os.path.isabs(link):
                     # Relocate absolute links into the spack tree
-                    if link.startswith(spack.store.layout.root):
+                    if link.startswith(spack.store.store.layout.root):
                         rel_path_name = os.path.relpath(path_name, prefix)
                         link_to_relocate.append(rel_path_name)
                     else:
@@ -599,17 +595,18 @@ def write_buildinfo_file(spec, workdir, rel=False):
 
     # Create buildinfo data and write it to disk
     import spack.hooks.sbang as sbang
-    buildinfo = {}
-    buildinfo['sbang_install_path'] = sbang.sbang_install_path()
-    buildinfo['relative_rpaths'] = rel
-    buildinfo['buildpath'] = spack.store.layout.root
-    buildinfo['spackprefix'] = spack.paths.prefix
-    buildinfo['relative_prefix'] = os.path.relpath(
-        prefix, spack.store.layout.root)
-    buildinfo['relocate_textfiles'] = text_to_relocate
-    buildinfo['relocate_binaries'] = binary_to_relocate
-    buildinfo['relocate_links'] = link_to_relocate
-    buildinfo['prefix_to_hash'] = prefix_to_hash
+    store_layout_root = spack.store.store.layout.root
+    buildinfo = {
+        'sbang_install_path': sbang.sbang_install_path(),
+        'relative_rpaths': rel,
+        'buildpath': store_layout_root,
+        'spackprefix': spack.paths.prefix,
+        'relative_prefix': os.path.relpath(prefix, store_layout_root),
+        'relocate_textfiles': text_to_relocate,
+        'relocate_binaries': binary_to_relocate,
+        'relocate_links': link_to_relocate,
+        'prefix_to_hash': prefix_to_hash
+    }
     filename = buildinfo_file_name(workdir)
     with open(filename, 'w') as outfile:
         outfile.write(syaml.dump(buildinfo, default_flow_style=True))
@@ -937,10 +934,11 @@ def build_tarball(spec, outdir, force=False, rel=False, unsigned=False,
     spec_dict['binary_cache_checksum'] = bchecksum
     # Add original install prefix relative to layout root to spec.yaml.
     # This will be used to determine is the directory layout has changed.
-    buildinfo = {}
-    buildinfo['relative_prefix'] = os.path.relpath(
-        spec.prefix, spack.store.layout.root)
-    buildinfo['relative_rpaths'] = rel
+    store_layout_root = spack.store.store.layout.root
+    buildinfo = {
+        'relative_prefix': os.path.relpath(spec.prefix, store_layout_root),
+        'relative_rpaths': rel
+    }
     spec_dict['buildinfo'] = buildinfo
 
     with open(specfile_path, 'w') as outfile:
@@ -1092,7 +1090,7 @@ def relocate_package(spec, allow_root):
 
     workdir = str(spec.prefix)
     buildinfo = read_buildinfo_file(workdir)
-    new_layout_root = str(spack.store.layout.root)
+    new_layout_root = str(spack.store.store.layout.root)
     new_prefix = str(spec.prefix)
     new_rel_prefix = str(os.path.relpath(new_prefix, new_layout_root))
     new_spack_prefix = str(spack.paths.prefix)
@@ -1266,8 +1264,9 @@ def extract_tarball(spec, filename, allow_root=False, unsigned=False,
             "Package tarball failed checksum verification.\n"
             "It cannot be installed.")
 
-    new_relative_prefix = str(os.path.relpath(spec.prefix,
-                                              spack.store.layout.root))
+    new_relative_prefix = str(os.path.relpath(
+        spec.prefix, spack.store.store.layout.root
+    ))
     # if the original relative prefix is in the spec file use it
     buildinfo = spec_dict.get('buildinfo', {})
     old_relative_prefix = buildinfo.get('relative_prefix', new_relative_prefix)
@@ -1317,9 +1316,12 @@ def extract_tarball(spec, filename, allow_root=False, unsigned=False,
         shutil.rmtree(spec.prefix)
         raise e
     else:
-        manifest_file = os.path.join(spec.prefix,
-                                     spack.store.layout.metadata_dir,
-                                     spack.store.layout.manifest_file_name)
+        store = spack.store.store
+        manifest_file = os.path.join(
+            spec.prefix,
+            store.layout.metadata_dir,
+            store.layout.manifest_file_name
+        )
         if not os.path.exists(manifest_file):
             spec_id = spec.format('{name}/{hash:7}')
             tty.warn('No manifest file in tarball for spec %s' % spec_id)

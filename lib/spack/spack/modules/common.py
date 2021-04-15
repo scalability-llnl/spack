@@ -37,18 +37,19 @@ import re
 from typing import Optional  # novm
 
 import llnl.util.filesystem
-from llnl.util.lang import dedupe
 import llnl.util.tty as tty
 import spack.build_environment as build_environment
 import spack.error
 import spack.paths
-import spack.schema.environment
 import spack.projections as proj
+import spack.schema.environment
+import spack.store
 import spack.tengine as tengine
 import spack.util.environment
 import spack.util.file_permissions as fp
 import spack.util.path
 import spack.util.spack_yaml as syaml
+from llnl.util.lang import dedupe
 
 
 #: config section for this file
@@ -243,7 +244,7 @@ def generate_module_index(root, modules, overwrite=False):
 def _generate_upstream_module_index():
     module_indices = read_module_indices()
 
-    return UpstreamModuleIndex(spack.store.db, module_indices)
+    return UpstreamModuleIndex(spack.store.store.db, module_indices)
 
 
 upstream_module_index = llnl.util.lang.Singleton(
@@ -350,7 +351,7 @@ def get_module(module_type, spec, get_full_path, required=True):
     try:
         upstream = spec.package.installed_upstream
     except spack.repo.UnknownPackageError:
-        upstream, record = spack.store.db.query_by_spec_hash(spec.dag_hash())
+        upstream, record = spack.store.store.db.query_by_spec_hash(spec.dag_hash())
     if upstream:
         module = (spack.modules.common.upstream_module_index
                   .upstream_module(spec, module_type))

@@ -676,7 +676,7 @@ def print_setup_info(*info):
     if 'modules' in info:
         generic_arch = archspec.cpu.host().family
         module_spec = 'environment-modules target={0}'.format(generic_arch)
-        specs = spack.store.db.query(module_spec)
+        specs = spack.store.store.db.query(module_spec)
         if specs:
             shell_set('_sp_module_prefix', specs[-1].prefix)
         else:

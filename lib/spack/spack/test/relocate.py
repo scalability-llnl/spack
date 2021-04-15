@@ -57,7 +57,7 @@ def source_file(tmpdir, is_relocatable):
         ]
         env = spack.tengine.make_environment(template_dirs)
         template = env.get_template('non_relocatable.c')
-        text = template.render({'prefix': spack.store.layout.root})
+        text = template.render({'prefix': spack.store.store.layout.root})
 
         src = tmpdir.join('non_relocatable.c')
         src.write(text)

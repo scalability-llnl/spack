@@ -53,9 +53,10 @@ def create_manifest_entry(path):
 
 
 def write_manifest(spec):
-    manifest_file = os.path.join(spec.prefix,
-                                 spack.store.layout.metadata_dir,
-                                 spack.store.layout.manifest_file_name)
+    store = spack.store.store
+    manifest_file = os.path.join(
+        spec.prefix, store.layout.metadata_dir, store.layout.manifest_file_name
+    )
 
     if not os.path.exists(manifest_file):
         tty.debug("Writing manifest file: No manifest from binary")
@@ -121,15 +122,16 @@ def check_file_manifest(filename):
     dirname = os.path.dirname(filename)
 
     results = VerificationResults()
-    while spack.store.layout.metadata_dir not in os.listdir(dirname):
+    store = spack.store.store
+    while store.layout.metadata_dir not in os.listdir(dirname):
         if dirname == os.path.sep:
             results.add_error(filename, 'not owned by any package')
             return results
         dirname = os.path.dirname(dirname)
 
-    manifest_file = os.path.join(dirname,
-                                 spack.store.layout.metadata_dir,
-                                 spack.store.layout.manifest_file_name)
+    manifest_file = os.path.join(
+        dirname, store.layout.metadata_dir, store.layout.manifest_file_name
+    )
 
     if not os.path.exists(manifest_file):
         results.add_error(filename, "manifest missing")
@@ -152,10 +154,11 @@ def check_file_manifest(filename):
 def check_spec_manifest(spec):
     prefix = spec.prefix
 
+    store = spack.store.store
     results = VerificationResults()
-    manifest_file = os.path.join(prefix,
-                                 spack.store.layout.metadata_dir,
-                                 spack.store.layout.manifest_file_name)
+    manifest_file = os.path.join(
+        prefix, store.layout.metadata_dir, store.layout.manifest_file_name
+    )
 
     if not os.path.exists(manifest_file):
         results.add_error(prefix, "manifest missing")
@@ -169,8 +172,9 @@ def check_spec_manifest(spec):
         return results
 
     # Get extensions active in spec
-    view = spack.filesystem_view.YamlFilesystemView(prefix,
-                                                    spack.store.layout)
+    view = spack.filesystem_view.YamlFilesystemView(
+        prefix, spack.store.store.layout
+    )
     active_exts = view.extensions_layout.extension_map(spec).values()
     ext_file = ''
     if active_exts:

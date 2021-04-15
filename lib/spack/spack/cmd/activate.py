@@ -40,7 +40,7 @@ def activate(parser, args):
     else:
         target = spec.package.extendee_spec.prefix
 
-    view = YamlFilesystemView(target, spack.store.layout)
+    view = YamlFilesystemView(target, spack.store.store.layout)
 
     if spec.package.is_activated(view):
         tty.msg("Package %s is already activated." % specs[0].short_spec)

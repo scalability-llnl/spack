@@ -4,27 +4,25 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
-import os
 import filecmp
+import os
 import re
-from six.moves import builtins
 import time
 
-import pytest
-
 import llnl.util.filesystem as fs
-
-import spack.config
+import pytest
+import spack.cmd.install
 import spack.compilers as compilers
+import spack.config
+import spack.environment as ev
 import spack.hash_types as ht
 import spack.package
-import spack.cmd.install
-from spack.error import SpackError
-from spack.spec import Spec, CompilerSpec
-from spack.main import SpackCommand
-import spack.environment as ev
-
+import spack.store
+from six.moves import builtins
 from six.moves.urllib.error import HTTPError, URLError
+from spack.error import SpackError
+from spack.main import SpackCommand
+from spack.spec import Spec, CompilerSpec
 
 install = SpackCommand('install')
 env = SpackCommand('env')
@@ -197,8 +195,10 @@ def test_install_overwrite(
 
     install('libdwarf')
 
-    manifest = os.path.join(spec.prefix, spack.store.layout.metadata_dir,
-                            spack.store.layout.manifest_file_name)
+    store = spack.store.store
+    manifest = os.path.join(
+        spec.prefix, store.layout.metadata_dir, store.layout.manifest_file_name
+    )
 
     assert os.path.exists(spec.prefix)
     expected_md5 = fs.hash_directory(spec.prefix, ignore=[manifest])
@@ -246,17 +246,22 @@ def test_install_overwrite_multiple(
 
     install('cmake')
 
-    ld_manifest = os.path.join(libdwarf.prefix,
-                               spack.store.layout.metadata_dir,
-                               spack.store.layout.manifest_file_name)
+    store = spack.store.store
+    ld_manifest = os.path.join(
+        libdwarf.prefix,
+        store.layout.metadata_dir,
+        store.layout.manifest_file_name
+    )
 
     assert os.path.exists(libdwarf.prefix)
     expected_libdwarf_md5 = fs.hash_directory(libdwarf.prefix,
                                               ignore=[ld_manifest])
 
-    cm_manifest = os.path.join(cmake.prefix,
-                               spack.store.layout.metadata_dir,
-                               spack.store.layout.manifest_file_name)
+    cm_manifest = os.path.join(
+        cmake.prefix,
+        store.layout.metadata_dir,
+        store.layout.manifest_file_name
+    )
 
     assert os.path.exists(cmake.prefix)
     expected_cmake_md5 = fs.hash_directory(cmake.prefix, ignore=[cm_manifest])
@@ -440,7 +445,7 @@ def test_extra_files_are_archived(mock_packages, mock_archive, mock_fetch,
     install('archive-files')
 
     archive_dir = os.path.join(
-        spack.store.layout.metadata_path(s), 'archived-files'
+        spack.store.store.layout.metadata_path(s), 'archived-files'
     )
     config_log = os.path.join(archive_dir,
                               mock_archive.expanded_archive_basedir,
@@ -636,7 +641,7 @@ def test_cache_only_fails(tmpdir, mock_fetch, install_mockery, capfd):
     assert 'was not installed' in out
 
     # Check that failure prefix locks are still cached
-    failure_lock_prefixes = ','.join(spack.store.db._prefix_failures.keys())
+    failure_lock_prefixes = ','.join(spack.store.store.db._prefix_failures.keys())
     assert 'libelf' in failure_lock_prefixes
     assert 'libdwarf' in failure_lock_prefixes
 

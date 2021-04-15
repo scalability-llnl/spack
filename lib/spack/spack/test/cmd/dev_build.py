@@ -4,10 +4,12 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import pytest
-import spack.spec
+
 import llnl.util.filesystem as fs
+import pytest
 import spack.environment as ev
+import spack.spec
+import spack.store
 from spack.main import SpackCommand
 
 dev_build = SpackCommand('dev-build')
@@ -66,7 +68,7 @@ def test_dev_build_until(tmpdir, mock_packages, install_mockery):
             assert f.read() == spec.package.replacement_string
 
     assert not os.path.exists(spec.prefix)
-    assert not spack.store.db.query(spec, installed=True)
+    assert not spack.store.store.db.query(spec, installed=True)
 
 
 def test_dev_build_until_last_phase(tmpdir, mock_packages, install_mockery):
@@ -85,7 +87,7 @@ def test_dev_build_until_last_phase(tmpdir, mock_packages, install_mockery):
             assert f.read() == spec.package.replacement_string
 
     assert os.path.exists(spec.prefix)
-    assert spack.store.db.query(spec, installed=True)
+    assert spack.store.store.db.query(spec, installed=True)
     assert os.path.exists(str(tmpdir))
 
 

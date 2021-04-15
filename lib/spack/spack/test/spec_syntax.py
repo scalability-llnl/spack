@@ -357,8 +357,8 @@ class TestSpecSyntax(object):
         x2.concretize()
         x2._hash = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
-        mutable_database.add(x1, spack.store.layout)
-        mutable_database.add(x2, spack.store.layout)
+        mutable_database.add(x1, spack.store.store.layout)
+        mutable_database.add(x2, spack.store.store.layout)
 
         # ambiguity in first hash character
         self._check_raises(AmbiguousHashError, ['/x'])

@@ -88,12 +88,12 @@ def extensions(parser, args):
     else:
         target = spec.prefix
 
-    view = YamlFilesystemView(target, spack.store.layout)
+    view = YamlFilesystemView(target, spack.store.store.layout)
 
     if args.show in ("installed", "all"):
         # List specs of installed extensions.
         installed = [
-            s.spec for s in spack.store.db.installed_extensions_for(spec)]
+            s.spec for s in spack.store.store.db.installed_extensions_for(spec)]
 
         if args.show == "all":
             print

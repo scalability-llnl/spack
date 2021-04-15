@@ -23,6 +23,7 @@ import spack.cmd.common.arguments as arguments
 import spack.package
 import spack.repo
 import spack.report
+import spack.store
 
 description = "run spack's tests for an install"
 section = "admin"
@@ -160,7 +161,7 @@ environment variables:
     specs = spack.cmd.parse_specs(args.specs) if args.specs else [None]
     specs_to_test = []
     for spec in specs:
-        matching = spack.store.db.query_local(spec, hashes=hashes)
+        matching = spack.store.store.db.query_local(spec, hashes=hashes)
         if spec and not matching:
             tty.warn("No installed packages match spec %s" % spec)
         specs_to_test.extend(matching)
@@ -223,7 +224,7 @@ def test_list(args):
     env = ev.get_env(args, 'test')
     hashes = env.all_hashes() if env else None
 
-    specs = spack.store.db.query(hashes=hashes)
+    specs = spack.store.store.db.query(hashes=hashes)
     specs = list(filter(lambda s: has_test_method(s.package_class), specs))
 
     spack.cmd.display_specs(specs, long=True)
@@ -296,7 +297,7 @@ def _report_suite_results(test_suite, args, constraints):
         qspecs = spack.cmd.parse_specs(constraints)
         specs = {}
         for spec in qspecs:
-            for s in spack.store.db.query(spec, installed=True):
+            for s in spack.store.store.db.query(spec, installed=True):
                 specs[s.dag_hash()] = s
         specs = sorted(specs.values())
         test_specs = dict((test_suite.test_pkg_id(s), s) for s in

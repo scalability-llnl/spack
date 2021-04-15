@@ -47,12 +47,12 @@ def deactivate(parser, args):
     elif pkg.extendable:
         target = spec.prefix
 
-    view = YamlFilesystemView(target, spack.store.layout)
+    view = YamlFilesystemView(target, spack.store.store.layout)
 
     if args.all:
         if pkg.extendable:
             tty.msg("Deactivating all extensions of %s" % pkg.spec.short_spec)
-            ext_pkgs = spack.store.db.activated_extensions_for(
+            ext_pkgs = spack.store.store.db.activated_extensions_for(
                 spec, view.extensions_layout)
 
             for ext_pkg in ext_pkgs:

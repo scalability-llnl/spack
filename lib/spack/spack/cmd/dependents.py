@@ -88,7 +88,7 @@ def dependents(parser, args):
         format_string = '{name}{@version}{%compiler}{/hash:7}'
         if sys.stdout.isatty():
             tty.msg("Dependents of %s" % spec.cformat(format_string))
-        deps = spack.store.db.installed_relatives(
+        deps = spack.store.store.db.installed_relatives(
             spec, 'parents', args.transitive)
         if deps:
             spack.cmd.display_specs(deps, long=True)

@@ -683,7 +683,7 @@ def test_config_prefer_upstream(tmpdir_factory, install_mockery, mock_fetch,
         tmpdir_factory.mktemp('mock_downstream_db_root'))
     db_for_test = spack.database.Database(
         downstream_db_root, upstream_dbs=[prepared_db])
-    monkeypatch.setattr(spack.store, 'db', db_for_test)
+    monkeypatch.setattr(spack.store.store, 'db', db_for_test)
 
     output = config('prefer-upstream')
     scope = spack.config.default_modify_scope('packages')

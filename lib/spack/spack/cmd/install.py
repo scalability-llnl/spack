@@ -11,7 +11,6 @@ import textwrap
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
-
 import spack.build_environment
 import spack.cmd
 import spack.cmd.common.arguments as arguments
@@ -19,9 +18,9 @@ import spack.environment as ev
 import spack.fetch_strategy
 import spack.paths
 import spack.report
+import spack.store
 from spack.error import SpackError
 from spack.installer import PackageInstaller
-
 
 description = "build and install packages"
 section = "build"
@@ -346,8 +345,9 @@ environment variables:
     with reporter('build'):
         if args.overwrite:
 
-            installed = list(filter(lambda x: x,
-                                    map(spack.store.db.query_one, specs)))
+            installed = list(filter(
+                lambda x: x, map(spack.store.store.db.query_one, specs))
+            )
             if not args.yes_to_all:
                 display_args = {
                     'long': True,
