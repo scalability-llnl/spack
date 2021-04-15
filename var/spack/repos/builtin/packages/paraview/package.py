@@ -53,9 +53,12 @@ class Paraview(CMakePackage, CudaPackage):
             description='Builds a shared version of the library')
     variant('kits', default=True,
             description='Use module kits')
-    variant('cuda_arch_family', default='native', multi=False,
-            values=('native', 'fermi', 'kepler', 'maxwell',
-                    'pascal', 'volta', 'turing', 'ampere', 'all', 'none'),
+
+    legacy_cuda_values=['native', 'fermi', 'kepler', 'maxwell',
+                        'pascal', 'volta', 'turing', 'all', 'none']
+    cuda_values = legacy_cuda_values.extend(CudaPackage.cuda_arch_values)
+    variant('cuda_arch', default='native', multi=False,
+            values=cuda_values,
             description='CUDA architecture')
     variant('advanced_debug', default=False, description="Enable all other debug flags beside build_type, such as VTK_DEBUG_LEAK")
 
