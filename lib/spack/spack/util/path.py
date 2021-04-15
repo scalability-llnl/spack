@@ -7,9 +7,11 @@
 
 TODO: this is really part of spack.config. Consolidate it.
 """
+import base64
+import getpass
+import hashlib
 import os
 import re
-import getpass
 import subprocess
 import tempfile
 
@@ -24,12 +26,6 @@ __all__ = [
     'substitute_path_variables',
     'canonicalize_path']
 
-# Substitutions to perform
-replacements = {
-    'spack': spack.paths.prefix,
-    'user': getpass.getuser(),
-    'tempdir': tempfile.gettempdir(),
-}
 
 # This is intended to be longer than the part of the install path
 # spack generates from the root path we give it.  Included in the
@@ -69,28 +65,54 @@ def substitute_config_variables(path):
 
     Spack allows paths in configs to have some placeholders, as follows:
 
-    - $spack     The Spack instance's prefix
-    - $user      The current user's username
-    - $tempdir   Default temporary directory returned by tempfile.gettempdir()
-    - $env       The active Spack environment.
+    ``$spack``
+        The Spack instance's prefix.
+
+    ``$user``
+        The current user's username.
+
+    ``$tempdir``
+        Default temporary directory returned by ``tempfile.gettempdir()``.
+
+    ``$env``
+        The active Spack environment.
+
+    ``$instance``
+        Hash of the spack prefix, for creating paths unique to a spack
+        instance outside of that instance (e.g., in $tempdir).
 
     These are substituted case-insensitively into the path, and users can
     use either ``$var`` or ``${var}`` syntax for the variables. $env is only
     replaced if there is an active environment, and should only be used in
     environment yaml files.
-    """
-    import spack.environment as ev  # break circular
-    env = ev.get_env({}, '')
-    if env:
-        replacements.update({'env': env.path})
-    else:
-        # If a previous invocation added env, remove it
-        replacements.pop('env', None)
 
-    # Look up replacements
+    """
+    # Possible replacements
     def repl(match):
-        m = match.group(0).strip('${}')
-        return replacements.get(m.lower(), match.group(0))
+        raw_match = match.group(0)
+        name = raw_match.strip('${}').lower()
+
+        if name == "spack":
+            return spack.paths.prefix
+
+        elif name == "user":
+            return getpass.getuser()
+
+        elif name == "tempdir":
+            return tempfile.gettempdir()
+
+        elif name == "env":
+            import spack.environment as ev  # break circular
+            env = ev.get_env({}, '')
+            if env:
+                return env.path
+
+        elif name == "instance":
+            sha = hashlib.sha1(spack.paths.prefix.encode("utf-8"))
+            b32_hash = base64.b32encode(sha.digest()).lower()
+            return b32_hash[:8].decode("utf-8")
+
+        return raw_match
 
     # Replace $var or ${var}.
     return re.sub(r'(\$\w+\b|\$\{\w+\})', repl, path)

@@ -6,6 +6,7 @@
 import os
 import collections
 import getpass
+import re
 import tempfile
 from six import StringIO
 
@@ -380,6 +381,23 @@ def test_substitute_config_variables(mock_low_high_config, monkeypatch):
     assert spack_path.canonicalize_path(path) == os.path.normpath(
         os.path.join(mock_low_high_config.scopes['low'].path,
                      'foo/bar/baz'))
+
+    # The 'instance' substitution allows us to make a unique hash for the
+    # spack instance. Test that they're all the right length, right
+    # chars, and all different.
+    path = "/foo/$instance/bar/baz"
+    prefixes = [spack.paths.prefix, "/foo/bar/baz", "/foo/bar", "/blah/blah"]
+    paths = []
+    for prefix in prefixes:
+        monkeypatch.setattr(spack.paths, "prefix", prefix)
+        canonical = spack_path.canonicalize_path(path)
+
+        # all hashed paths are 12-character hashes
+        assert re.match("/foo/[0-9a-z]{8}/bar/baz", canonical)
+        paths.append(canonical)
+
+    # ensure all hashed paths are different
+    assert len(set(paths)) == len(prefixes)
 
 
 packages_merge_low = {

@@ -40,35 +40,32 @@ config:
     lmod:   $spack/share/spack/lmod
 
 
-  # Temporary locations Spack can try to use for builds.
+  # `build_stage` determines where Spack builds packages.
   #
-  # Recommended options are given below.
+  # The default build location is `$tempdir/$user/spack-stage/$instance`.
+  # `$tempdir` indicates that we should build in a temporary directory
+  # (i.e., ``$TMP` or ``$TMPDIR``). On most systems (especially HPC
+  # machines), building in a temporary directory is significantly faster
+  # than other locations. `$user` ensures that the directory is unique by
+  # user, so different users do not fight over Spack's build location.
+  # Finally, `$instance` is an 8-digit hash that is unique per instance
+  # of Spack. This ensures that different Spack instances do not fight
+  # over build locations.
   #
-  # Builds can be faster in temporary directories on some (e.g., HPC) systems.
-  # Specifying `$tempdir` will ensure use of the default temporary directory
-  # (i.e., ``$TMP` or ``$TMPDIR``).
+  # The second choice, if Spack cannot create the first one for some
+  # reason, is `~/.spack/stage/$instance`. This is unique to each user's
+  # home directory, and it is also unique to each Spack instance.
   #
-  # Another option that prevents conflicts and potential permission issues is
-  # to specify `~/.spack/stage`, which ensures each user builds in their home
-  # directory.
+  # These choices both have the username in the path. If the username is
+  # NOT in your chosen `build_stage` location, Spack will append it
+  # anyway, to avoid conflicts among users in shared temporary spaces.
   #
-  # A more traditional path uses the value of `$spack/var/spack/stage`, which
-  # builds directly inside Spack's instance without staging them in a
-  # temporary space.  Problems with specifying a path inside a Spack instance
-  # are that it precludes its use as a system package and its ability to be
-  # pip installable.
-  #
-  # In any case, if the username is not already in the path, Spack will append
-  # the value of `$user` in an attempt to avoid potential conflicts between
-  # users in shared temporary spaces.
-  #
-  # The build stage can be purged with `spack clean --stage` and
-  # `spack clean -a`, so it is important that the specified directory uniquely
-  # identifies Spack staging to avoid accidentally wiping out non-Spack work.
+  # The build stage can be purged with `spack clean`, so it is important
+  # to choose a directory that is ONLY used by Spack so that you do not
+  # accidentally wipe out files that have nothing to do with Spack.
   build_stage:
-    - $tempdir/$user/spack-stage
-    - ~/.spack/stage
-  # - $spack/var/spack/stage
+    - $tempdir/$user/spack-stage/$instance
+    - ~/.spack/stage/$instance
 
   # Directory in which to run tests and store test results.
   # Tests will be stored in directories named by date/time and package
