@@ -6,6 +6,8 @@
 import re
 import os.path
 import sys
+import six  # for string type test
+import llnl.util.tty as tty
 
 
 class Mvapich2(AutotoolsPackage):
@@ -347,26 +349,78 @@ class Mvapich2(AutotoolsPackage):
         env.set('MPICH_F90', spack_fc)
         env.set('MPICH_FC', spack_fc)
 
-    def setup_compiler_environment(self, env):
-        # For Cray MPIs, the regular compiler wrappers *are* the MPI wrappers.
-        # Cray MPIs always have cray in the module name, e.g. "cray-mvapich"
+    def _decide_if_external_is_cray(self):
+        '''For Cray MPIs, the regular compiler wrappers *are* the MPI wrappers.
+           Cray MPIs always have cray in the module name, e.g. "cray-mvapich"
+           make no assumption about where the module may be in the module list.
+
+           inspect external modules and:
+               - return True if we believe it is Cray
+               - return False otherwise
+        '''
         external_modules = self.spec.external_modules
-        if external_modules and 'cray' in external_modules[0]:
-            env.set('MPICC',  spack_cc)
-            env.set('MPICXX', spack_cxx)
-            env.set('MPIF77', spack_fc)
-            env.set('MPIF90', spack_fc)
+
+        # make sure we have a list
+        if isinstance(external_modules, six.string_types):
+            external_modules = [external_modules]
+
+        expected_prefix = 'cray-mvapich'
+        have_cray = False
+        if external_modules:
+            tty.debug('Detected external modules, will test for a'
+                      ' module that starts with {0}'.format(expected_prefix))
+            for module_name in external_modules:
+                if module_name.startswith(expected_prefix):
+                    have_cray = True
+                    msg = 'Found module with name {0} - assuming Cray environment'
+                    tty.debug(msg.format(module_name))
+        return have_cray
+
+    def setup_compiler_environment(self, env):
+        have_cray = self._decide_if_external_is_cray()
+
+        # you can't read env[], so set these then set all at once in the end
+        # the point is to allow verbose printing of what's going (if the user
+        # wants to see it)
+        mpi_compilers = {
+            'MPICC':  'Unset',
+            'MPICXX': 'Unset',
+            'MPIF77': 'Unset',
+            'MPIF90': 'Unset',
+        }
+        # use the this (since it's used elsewhere) to tag a package's message
+        pre = '{s.name}@{s.version} :'.format(s=self.spec)
+        if have_cray:
+            # this seems like relevant info to share (since we deviate from the
+            # standard behavior (i.e., cray is en exception not the rule)
+            tty.debug(pre + 'Assuming Cray enviroment and setting MPI ENV'
+                      ' variables to spack wrappers')
+            mpi_compilers['MPICC']  = spack_cc
+            mpi_compilers['MPICXX'] = spack_cxx
+            mpi_compilers['MPIF77'] = spack_fc
+            mpi_compilers['MPIF90'] = spack_fc
         else:
-            env.set('MPICC',  join_path(self.prefix.bin, 'mpicc'))
-            env.set('MPICXX', join_path(self.prefix.bin, 'mpicxx'))
-            env.set('MPIF77', join_path(self.prefix.bin, 'mpif77'))
-            env.set('MPIF90', join_path(self.prefix.bin, 'mpif90'))
+            mpi_compilers['MPICC']  = join_path(self.prefix.bin, 'mpicc')
+            mpi_compilers['MPICXX'] = join_path(self.prefix.bin, 'mpicxx')
+            mpi_compilers['MPIF77'] = join_path(self.prefix.bin, 'mpif77')
+            mpi_compilers['MPIF90'] = join_path(self.prefix.bin, 'mpif90')
+
+        # set the ENV - this is done outside the conditional
+        # so we can provide the user would verbose messages
+        for e in ['MPICC', 'MPICXX', 'MPIF77', 'MPIF90']:
+            env.set(e, mpi_compilers[e])
+            # provide debug messages if the user adds -d
+            tty.debug(pre + 'Set: {0}={1}'.format(e, mpi_compilers[e]))
 
     def setup_dependent_package(self, module, dependent_spec):
-        # For Cray MPIs, the regular compiler wrappers *are* the MPI wrappers.
-        # Cray MPIs always have cray in the module name, e.g. "cray-mvapich"
-        external_modules = self.spec.external_modules
-        if external_modules and 'cray' in external_modules[0]:
+        have_cray = self._decide_if_external_is_cray()
+
+        # use the this (since it's used elsewhere) to tag a package's message
+        pre = '{s.name}@{s.version} :'.format(s=self.spec)
+
+        if have_cray:
+            tty.debug(pre + "Assuming Cray enviroment and setting spec's mpi compilers"
+                      " to spack wrappers")
             self.spec.mpicc = spack_cc
             self.spec.mpicxx = spack_cxx
             self.spec.mpifc = spack_fc
@@ -377,6 +431,13 @@ class Mvapich2(AutotoolsPackage):
             self.spec.mpifc  = join_path(self.prefix.bin, 'mpif90')
             self.spec.mpif77 = join_path(self.prefix.bin, 'mpif77')
 
+        # provide debug messages if the user adds -d
+        for compiler_name in ['mpicc', 'mpicxx', 'mpif77', 'mpifc']:
+            # loop through the spec and print the attribute
+            tty.debug(pre + 'Set: spec.{0}={1}'
+                      ''.format(compiler_name, getattr(self.spec, compiler_name)))
+
+        # what if libmpi has dependencies? E.g., PMI?
         self.spec.mpicxx_shared_libs = [
             os.path.join(self.prefix.lib, 'libmpicxx.{0}'.format(dso_suffix)),
             os.path.join(self.prefix.lib, 'libmpi.{0}'.format(dso_suffix))
