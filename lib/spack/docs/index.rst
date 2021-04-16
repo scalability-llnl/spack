@@ -54,9 +54,15 @@ or refer to the full manual below.
    features
    getting_started
    basic_usage
-   workflows
    Tutorial: Spack 101 <https://spack-tutorial.readthedocs.io>
    known_issues
+
+.. toctree::
+   :maxdepth: 2
+   :caption: How To Guides
+
+   how_to_using_spack
+
 
 .. toctree::
    :maxdepth: 2

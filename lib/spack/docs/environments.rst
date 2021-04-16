@@ -498,6 +498,8 @@ which can currently take either one of the two allowed values ``together`` or ``
    the environment remains consistent. When instead the specs are concretized
    separately only the new specs will be re-concretized after any addition.
 
+.. _environment_spec_matrices:
+
 """""""""""""
 Spec Matrices
 """""""""""""
@@ -559,6 +561,8 @@ the same specs:
 This allows one to create toolchains out of combinations of
 constraints and apply them somewhat indiscriminately to packages,
 without regard for the applicability of the constraint.
+
+.. _environment_spec_list_references:
 
 """"""""""""""""""""
 Spec List References
@@ -696,6 +700,8 @@ For example, the following environment has three root packages:
 This allows for a much-needed reduction in redundancy between packages
 and constraints.
 
+.. _environment_managed_views:
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 Environment-managed Views
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -704,8 +710,7 @@ Spack Environments can define filesystem views of their software,
 which are maintained as packages and can be installed and uninstalled from
 the Environment. Filesystem views provide an access point for packages
 from the filesystem for users who want to access those packages
-directly. For more information on filesystem views, see the section
-:ref:`filesystem-views`.
+directly.
 
 Spack Environment managed views are updated every time the environment
 is written out to the lock file ``spack.lock``, so the concrete
@@ -738,8 +743,7 @@ excludes those built with the PGI compiler at version 18.5.
          projections:
            all: {name}/{version}-{compiler.name}
 
-For more information on using view projections, see the section on
-:ref:`adding_projections_to_views`. The default for the ``select`` and
+The default for the ``select`` and
 ``exclude`` values is to select everything and exclude nothing. The
 default projection is the default view projection (``{}``).
 

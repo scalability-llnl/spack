@@ -1538,8 +1538,6 @@ Activating Extensions in a View
 
 Another way to use extensions is to create a view, which merges the
 python installation along with the extensions into a single prefix.
-See :ref:`filesystem-views` for a more in-depth description of views and
-:ref:`cmd-spack-view` for usage of the ``spack view`` command.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Activating Extensions Globally

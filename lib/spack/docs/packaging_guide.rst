@@ -2389,7 +2389,7 @@ from being linked in at activation time.
 Views
 -----
 
-As covered in :ref:`filesystem-views`, the ``spack view`` command can be
+The ``spack view`` command can be
 used to symlink a number of packages into a merged prefix. The methods of
 ``PackageViewMixin`` can be overridden to customize how packages are added
 to views. Generally this can be used to create copies of specific files rather
