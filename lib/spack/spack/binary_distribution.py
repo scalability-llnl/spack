@@ -29,6 +29,7 @@ import spack.cmd
 import spack.config as config
 import spack.database as spack_db
 import spack.fetch_strategy as fs
+import spack.hooks.sbang
 import spack.util.file_cache as file_cache
 import spack.relocate as relocate
 import spack.util.gpg
@@ -616,9 +617,8 @@ def write_buildinfo_file(spec, workdir, rel=False):
         prefix_to_hash[str(d.prefix)] = d.dag_hash()
 
     # Create buildinfo data and write it to disk
-    import spack.hooks.sbang as sbang
     buildinfo = {}
-    buildinfo['sbang_install_path'] = sbang.sbang_install_path()
+    buildinfo['sbang_install_path'] = spack.hooks.sbang.sbang_install_path()
     buildinfo['relative_rpaths'] = rel
     buildinfo['buildpath'] = spack.store.layout.root
     buildinfo['spackprefix'] = spack.paths.prefix
@@ -1106,8 +1106,6 @@ def relocate_package(spec, allow_root):
     """
     Relocate the given package
     """
-    import spack.hooks.sbang as sbang
-
     workdir = str(spec.prefix)
     buildinfo = read_buildinfo_file(workdir)
     new_layout_root = str(spack.store.layout.root)
@@ -1146,7 +1144,8 @@ def relocate_package(spec, allow_root):
     prefix_to_prefix_bin = OrderedDict({})
 
     if old_sbang_install_path:
-        prefix_to_prefix_text[old_sbang_install_path] = sbang.sbang_install_path()
+        install_path = spack.hooks.sbang.sbang_install_path()
+        prefix_to_prefix_text[old_sbang_install_path] = install_path
 
     prefix_to_prefix_text[old_prefix] = new_prefix
     prefix_to_prefix_bin[old_prefix] = new_prefix
@@ -1160,7 +1159,7 @@ def relocate_package(spec, allow_root):
     # now a POSIX script that lives in the install prefix. Old packages
     # will have the old sbang location in their shebangs.
     orig_sbang = '#!/bin/bash {0}/bin/sbang'.format(old_spack_prefix)
-    new_sbang = sbang.sbang_shebang_line()
+    new_sbang = spack.hooks.sbang.sbang_shebang_line()
     prefix_to_prefix_text[orig_sbang] = new_sbang
 
     tty.debug("Relocating package from",

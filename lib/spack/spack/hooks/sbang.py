@@ -12,7 +12,6 @@ import sys
 import llnl.util.tty as tty
 import llnl.util.filesystem as fs
 
-import spack.modules
 import spack.paths
 import spack.store
 
