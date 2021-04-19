@@ -55,6 +55,7 @@ class Paraview(CMakePackage, CudaPackage):
             values=('native', 'fermi', 'kepler', 'maxwell',
                     'pascal', 'volta', 'turing', 'ampere', 'all', 'none'),
             description='CUDA architecture')
+    variant('vtkm', default=True, description='Build VTKm with ParaView')
 
     conflicts('+python', when='+python3')
     # Python 2 support dropped with 5.9.0
@@ -344,6 +345,13 @@ class Paraview(CMakePackage, CudaPackage):
 
         cmake_args.append(
             '-DPARAVIEW_BUILD_SHARED_LIBS:BOOL=%s' % variant_bool('+shared'))
+
+        # VTKm added to paraview in 5.3.0 and up
+        if spec.satisfies('@5.3.0:'):
+            if '~vtkm' in spec:
+                cmake_args.append('-DPARAVIEW_USE_VTKM:BOOL=OFF')
+            else:
+                cmake_args.append('-DPARAVIEW_USE_VTKM:BOOL=ON')
 
         if spec.satisfies('@5.8:'):
             cmake_args.append('-DPARAVIEW_USE_CUDA:BOOL=%s' %
