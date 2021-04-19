@@ -74,23 +74,16 @@ schema = {
                         },
                     },
                     'develop': {
-                        'type': 'object',
-                        'default': {},
-                        'additionalProperties': False,
-                        'patternProperties': {
-                            r'\w[\w-]*': {
-                                'type': 'object',
-                                'additionalProperties': False,
-                                'properties': {
-                                    'spec': {
-                                        'type': 'string'
-                                    },
-                                    'path': {
-                                        'type': 'string'
-                                    },
-                                },
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'spec': {'type': 'string'},
+                                'path': {'type': 'string'}
                             },
-                        },
+                            'additionalProperties': False,
+                            'required': ['spec']
+                        }
                     },
                     'definitions': {
                         'type': 'array',

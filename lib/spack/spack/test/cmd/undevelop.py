@@ -23,9 +23,8 @@ env:
   - mpich
 
   develop:
-    mpich:
-      spec: mpich@1.0
-      path: /fake/path
+  - spec: mpich@1.0
+    path: /fake/path
 """)
 
         env('create', 'test', './spack.yaml')
@@ -50,9 +49,8 @@ env:
   - mpich
 
   develop:
-    mpich:
-      spec: mpich@1.0
-      path: /fake/path
+  - spec: mpich@1.0
+    path: /fake/path
 """)
 
         env('create', 'test', './spack.yaml')

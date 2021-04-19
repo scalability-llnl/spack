@@ -11,6 +11,7 @@ import spack.environment as ev
 from spack.main import SpackCommand
 
 dev_build = SpackCommand('dev-build')
+concretize = SpackCommand('concretize')
 install = SpackCommand('install')
 env = SpackCommand('env')
 
@@ -199,9 +200,8 @@ env:
   - dev-build-test-install@0.0.0
 
   develop:
-    dev-build-test-install:
-      spec: dev-build-test-install@0.0.0
-      path: %s
+  - spec: dev-build-test-install@0.0.0
+    path: %s
 """ % os.path.relpath(str(build_dir), start=str(envdir)))
 
         env('create', 'test', './spack.yaml')
@@ -211,39 +211,6 @@ env:
     assert spec.package.filename in os.listdir(spec.prefix)
     with open(os.path.join(spec.prefix, spec.package.filename), 'r') as f:
         assert f.read() == spec.package.replacement_string
-
-
-def test_dev_build_env_version_mismatch(tmpdir, mock_packages, install_mockery,
-                                        mutable_mock_env_path):
-    """Test Spack constraints concretization by develop specs."""
-    # setup dev-build-test-install package for dev build
-    build_dir = tmpdir.mkdir('build')
-    spec = spack.spec.Spec('dev-build-test-install@0.0.0 dev_path=%s' % tmpdir)
-    spec.concretize()
-
-    with build_dir.as_cwd():
-        with open(spec.package.filename, 'w') as f:
-            f.write(spec.package.original_string)
-
-    # setup environment
-    envdir = tmpdir.mkdir('env')
-    with envdir.as_cwd():
-        with open('spack.yaml', 'w') as f:
-            f.write("""\
-env:
-  specs:
-  - dev-build-test-install@0.0.0
-
-  develop:
-    dev-build-test-install:
-      spec: dev-build-test-install@1.1.1
-      path: %s
-""" % build_dir)
-
-        env('create', 'test', './spack.yaml')
-        with ev.read('test'):
-            with pytest.raises(spack.spec.UnsatisfiableVersionSpecError):
-                install()
 
 
 def test_dev_build_multiple(tmpdir, mock_packages, install_mockery,
@@ -278,12 +245,10 @@ env:
   - dev-build-test-dependent@0.0.0
 
   develop:
-    dev-build-test-install:
-      path: %s
-      spec: dev-build-test-install@0.0.0
-    dev-build-test-dependent:
-      spec: dev-build-test-dependent@0.0.0
-      path: %s
+  - path: %s
+    spec: dev-build-test-install@0.0.0
+  - spec: dev-build-test-dependent@0.0.0
+    path: %s
 """ % (leaf_dir, root_dir))
 
         env('create', 'test', './spack.yaml')
@@ -299,6 +264,38 @@ env:
         assert spec.package.filename in os.listdir(spec.prefix)
         with open(os.path.join(spec.prefix, spec.package.filename), 'r') as f:
             assert f.read() == spec.package.replacement_string
+
+
+def test_dev_build_env_repeated_package(tmpdir, mock_packages, install_mockery,
+                                        mutable_mock_env_path):
+    """Test Spack does dev builds for multiple specs of same package."""
+
+    # setup environment
+    envdir = tmpdir.mkdir('env')
+    with envdir.as_cwd():
+        with open('spack.yaml', 'w') as f:
+            f.write("""\
+env:
+  specs:
+  - dev-build-test-install@1.1
+  - dev-build-test-install@1.2
+
+  develop:
+  - spec: dev-build-test-install@1.1
+    path: /build-dir-a
+  - spec: dev-build-test-install@1.2
+    path: /build-dir-b
+  - spec: dev-build-test-install@1
+    path: /this-spec-matches-but-appears-later-so-should-not-be-used
+""")
+
+        env('create', 'test', './spack.yaml')
+        with ev.read('test') as e:
+            concretize()
+            assert e.matching_spec(
+                'dev-build-test-install@1.1 dev_path=/build-dir-a')
+            assert e.matching_spec(
+                'dev-build-test-install@1.2 dev_path=/build-dir-b')
 
 
 def test_dev_build_env_dependency(tmpdir, mock_packages, install_mockery,
@@ -325,8 +322,7 @@ env:
   - dependent-of-dev-build@0.0.0
 
   develop:
-    dev-build-test-install:
-      spec: dev-build-test-install@0.0.0
+    - spec: dev-build-test-install@0.0.0
       path: %s
 """ % os.path.relpath(str(build_dir), start=str(envdir)))
 
@@ -382,9 +378,8 @@ env:
   - %s@0.0.0
 
   develop:
-    dev-build-test-install:
-      spec: dev-build-test-install@0.0.0
-      path: %s
+  - spec: dev-build-test-install@0.0.0
+    path: %s
 """ % (test_spec, build_dir))
 
         env('create', 'test', './spack.yaml')

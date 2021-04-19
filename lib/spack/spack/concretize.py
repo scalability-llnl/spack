@@ -34,6 +34,7 @@ import llnl.util.lang
 import spack.repo
 import spack.abi
 import spack.spec
+from spack.spec import Spec
 import spack.compilers
 import spack.architecture
 import spack.error
@@ -69,8 +70,17 @@ class Concretizer(object):
         Add ``dev_path=*`` variant to packages built from local source.
         """
         env = spack.environment.get_env(None, None)
-        dev_info = env.dev_specs.get(spec.name, {}) if env else {}
-        if not dev_info:
+
+        if not env:
+            return False
+
+        # Note: we could to a topological sort of the dev_spec array, but since
+        # that is not unique we prefer to just take the first match and assume
+        # the user has ordered the specs properly in the manifest file
+        dev_info = next((dev for dev in env.dev_specs
+                         if Spec(dev['spec']).satisfies(spec)), None)
+
+        if dev_info is None:
             return False
 
         path = os.path.normpath(os.path.join(env.path, dev_info['path']))

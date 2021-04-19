@@ -2392,12 +2392,10 @@ def _setup_develop_packages(tmpdir):
 spack:
   specs: ['mypkg1', 'mypkg2']
   develop:
-    mypkg1:
-      path: ../build_folder
-      spec: mypkg@main
-    mypkg2:
-      path: /some/other/path
-      spec: mypkg@main
+  - path: ../build_folder
+    spec: mypkg1@main
+  - path: /some/other/path
+    spec: mypkg2@main
 """
     spack_yaml = init_env.join('spack.yaml')
     spack_yaml.write(raw_yaml)
@@ -2412,8 +2410,8 @@ def test_rewrite_rel_dev_path_new_dir(tmpdir):
 
     env('create', '-d', str(dest_env), str(spack_yaml))
     with ev.Environment(str(dest_env)) as e:
-        assert e.dev_specs['mypkg1']['path'] == str(build_folder)
-        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'
+        assert e.dev_specs[0]['path'] == str(build_folder)
+        assert e.dev_specs[1]['path'] == '/some/other/path'
 
 
 def test_rewrite_rel_dev_path_named_env(tmpdir):
@@ -2422,8 +2420,8 @@ def test_rewrite_rel_dev_path_named_env(tmpdir):
     _, build_folder, _, spack_yaml = _setup_develop_packages(tmpdir)
     env('create', 'named_env', str(spack_yaml))
     with ev.read('named_env') as e:
-        assert e.dev_specs['mypkg1']['path'] == str(build_folder)
-        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'
+        assert e.dev_specs[0]['path'] == str(build_folder)
+        assert e.dev_specs[1]['path'] == '/some/other/path'
 
 
 def test_rewrite_rel_dev_path_original_dir(tmpdir):
@@ -2431,8 +2429,8 @@ def test_rewrite_rel_dev_path_original_dir(tmpdir):
        environment with root path set to the same directory"""
     init_env, _, _, spack_yaml = _setup_develop_packages(tmpdir)
     with ev.Environment(str(init_env), str(spack_yaml)) as e:
-        assert e.dev_specs['mypkg1']['path'] == '../build_folder'
-        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'
+        assert e.dev_specs[0]['path'] == '../build_folder'
+        assert e.dev_specs[1]['path'] == '/some/other/path'
 
 
 def test_rewrite_rel_dev_path_create_original_dir(tmpdir):
@@ -2441,8 +2439,8 @@ def test_rewrite_rel_dev_path_create_original_dir(tmpdir):
     init_env, _, _, spack_yaml = _setup_develop_packages(tmpdir)
     env('create', '-d', str(init_env), str(spack_yaml))
     with ev.Environment(str(init_env)) as e:
-        assert e.dev_specs['mypkg1']['path'] == '../build_folder'
-        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'
+        assert e.dev_specs[0]['path'] == '../build_folder'
+        assert e.dev_specs[1]['path'] == '/some/other/path'
 
 
 def test_does_not_rewrite_rel_dev_path_when_keep_relative_is_set(tmpdir):
@@ -2452,5 +2450,5 @@ def test_does_not_rewrite_rel_dev_path_when_keep_relative_is_set(tmpdir):
     env('create', '--keep-relative', 'named_env', str(spack_yaml))
     with ev.read('named_env') as e:
         print(e.dev_specs)
-        assert e.dev_specs['mypkg1']['path'] == '../build_folder'
-        assert e.dev_specs['mypkg2']['path'] == '/some/other/path'
+        assert e.dev_specs[0]['path'] == '../build_folder'
+        assert e.dev_specs[1]['path'] == '/some/other/path'

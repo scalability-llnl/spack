@@ -36,6 +36,7 @@ import spack.dependency
 import spack.directives
 import spack.error
 import spack.spec
+from spack.spec import Spec
 import spack.package
 import spack.package_prefs
 import spack.repo
@@ -1611,8 +1612,14 @@ class SpecBuilder(object):
 
 
 def _develop_specs_from_env(spec, env):
-    dev_info = env.dev_specs.get(spec.name, {}) if env else {}
-    if not dev_info:
+    # Get the first matching dev spec.
+    if not env:
+        return
+
+    dev_info = next((dev for dev in env.dev_specs
+                     if Spec(dev['spec']).satisfies(spec)), None)
+
+    if dev_info is None:
         return
 
     path = os.path.normpath(os.path.join(env.path, dev_info['path']))

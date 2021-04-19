@@ -26,7 +26,7 @@ def undevelop(parser, args):
     env = ev.get_env(args, 'undevelop', required=True)
 
     if args.all:
-        specs = env.dev_specs.keys()
+        specs = [spack.spec.Spec(entry['spec']) for entry in env.dev_specs]
     else:
         specs = spack.cmd.parse_specs(args.specs)
 

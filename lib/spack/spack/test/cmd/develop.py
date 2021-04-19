@@ -10,6 +10,7 @@ import llnl.util.filesystem as fs
 import spack.spec
 import spack.environment as ev
 from spack.main import SpackCommand
+from spack.environment import SpackEnvironmentError
 
 develop = SpackCommand('develop')
 env = SpackCommand('env')
@@ -22,15 +23,19 @@ class TestDevelop(object):
         path = path or spec.name
 
         # check in memory representation
-        assert spec.name in env.dev_specs
-        dev_specs_entry = env.dev_specs[spec.name]
+        matching = [entry for entry in env.dev_specs
+                    if spack.spec.Spec(entry['spec']).satisfies(spec)]
+        assert len(matching) == 1
+        dev_specs_entry = matching[0]
         assert dev_specs_entry['path'] == path
         assert dev_specs_entry['spec'] == str(spec)
 
         # check yaml representation
         yaml = ev.config_dict(env.yaml)
-        assert spec.name in yaml['develop']
-        yaml_entry = yaml['develop'][spec.name]
+        yaml_matching = [entry for entry in yaml['develop']
+                         if spack.spec.Spec(entry['spec']).satisfies(spec)]
+        assert len(yaml_matching) == 1
+        yaml_entry = yaml_matching[0]
         assert yaml_entry['spec'] == str(spec)
         if path == spec.name:
             # default paths aren't written out
@@ -91,10 +96,22 @@ class TestDevelop(object):
             self.check_develop(e, spack.spec.Spec('mpich@1.0'), str(tmpdir))
             assert len(e.dev_specs) == 1
 
-    def test_develop_update_spec(self):
+    def test_develop_same_package_different_spec(self):
+        """We allow for the same package listed multiple times"""
         env('create', 'test')
         with ev.read('test') as e:
-            develop('mpich@1.0')
-            develop('mpich@2.0')
-            self.check_develop(e, spack.spec.Spec('mpich@2.0'))
-            assert len(e.dev_specs) == 1
+            develop('mpich@1.2.3 +shared')
+            develop('mpich@1.2.3 ~shared')
+            self.check_develop(e, spack.spec.Spec('mpich@1.2.3 +shared'))
+            self.check_develop(e, spack.spec.Spec('mpich@1.2.3 ~shared'))
+
+    def test_develop_more_specific_spec_errors(self):
+        """When a new develop spec is included in an existing one we error"""
+        env('create', 'test')
+        with ev.read('test'):
+            develop('mpich@1.0.0')
+            develop('mpich@1')
+
+            msg = "mpich@1.1 is included in mpich@1"
+            with pytest.raises(SpackEnvironmentError, match=msg):
+                develop('mpich@1.1')

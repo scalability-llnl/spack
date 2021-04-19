@@ -641,7 +641,7 @@ class Environment(object):
         if init_file_dir == self.path:
             return
 
-        for name, entry in self.dev_specs.items():
+        for entry in self.dev_specs:
             dev_path = entry['path']
             expanded_path = os.path.normpath(os.path.join(
                 init_file_dir, entry['path']))
@@ -651,9 +651,9 @@ class Environment(object):
                 continue
 
             tty.debug("Expanding develop path for {0} to {1}".format(
-                name, expanded_path))
+                entry['spec'], expanded_path))
 
-            self.dev_specs[name]['path'] = expanded_path
+            entry['path'] = expanded_path
 
     def _re_read(self):
         """Reinitialize the environment object if it has been written (this
@@ -739,13 +739,14 @@ class Environment(object):
         self.concretization = configuration.get('concretization', 'separately')
 
         # Retrieve dev-build packages:
-        self.dev_specs = configuration.get('develop', {})
-        for name, entry in self.dev_specs.items():
+        self.dev_specs = configuration.get('develop', [])
+        for entry in self.dev_specs:
+            spec = Spec(entry['spec'])
             # spec must include a concrete version
-            assert Spec(entry['spec']).version.concrete
+            assert spec.version.concrete
             # default path is the spec name
             if 'path' not in entry:
-                self.dev_specs[name]['path'] = name
+                entry['path'] = spec.name
 
     @property
     def user_specs(self):
@@ -1038,27 +1039,33 @@ class Environment(object):
             raise SpackEnvironmentError(
                 'Cannot develop spec %s without a concrete version' % spec)
 
-        for name, entry in self.dev_specs.items():
-            if name == spec.name:
-                e_spec = Spec(entry['spec'])
-                e_path = entry['path']
+        # Filter already dev'd specs that are more generic than the provided one
+        # e.g. you can't add pkg@1.0.0 if pkg@1.0 is already developed.
+        matching = [dev for dev in self.dev_specs if Spec(dev['spec']) in spec]
 
-                if e_spec == spec:
-                    if path == e_path:
-                        tty.msg("Spec %s already configured for development" %
-                                spec)
-                        return False
-                    else:
-                        tty.msg("Updating development path for spec %s" % spec)
-                        break
-                else:
-                    msg = "Updating development spec for package "
-                    msg += "%s with path %s" % (spec.name, path)
-                    tty.msg(msg)
-                    break
+        # Search for an exact match
+        exact_match = next((dev for dev in matching if Spec(dev['spec']) == spec), None)
+
+        # If we have an exact match, we should update it
+        if exact_match:
+            if exact_match['path'] == path:
+                tty.msg("Spec %s already configured for development" % spec)
+                return False
+            else:
+                tty.msg("Updating development path for spec %s" % spec)
+                exact_match['path'] = path
+
+        # If we have an inclusion of this spec into others without an exact
+        # match, we error, because the spec can never be matched when appended
+        elif matching:
+            raise SpackEnvironmentError(
+                'Spec %s is included in %s' % (spec, matching[0]['spec']))
+
+        # Otherwise we have a truly new spec
         else:
             tty.msg("Configuring spec %s for development at path %s" %
                     (spec, path))
+            self.dev_specs.append({'path': path, 'spec': str(spec)})
 
         if clone:
             # "steal" the source code via staging API
@@ -1067,8 +1074,6 @@ class Environment(object):
             stage = spec.package.stage
             stage.steal_source(abspath)
 
-        # If it wasn't already in the list, append it
-        self.dev_specs[spec.name] = {'path': path, 'spec': str(spec)}
         return True
 
     def undevelop(self, spec):
@@ -1076,9 +1081,14 @@ class Environment(object):
 
         returns True on success, False if no entry existed."""
         spec = Spec(spec)  # In case it's a spec object
-        if spec.name in self.dev_specs:
-            del self.dev_specs[spec.name]
+
+        filtered_specs = [entry for entry in self.dev_specs
+                          if not Spec(entry['spec']).satisfies(spec)]
+
+        if len(filtered_specs) != len(self.dev_specs):
+            self.dev_specs = filtered_specs
             return True
+
         return False
 
     def concretize(self, force=False, tests=False):
@@ -1831,8 +1841,8 @@ class Environment(object):
         if self.dev_specs:
             # Remove entries that are mirroring defaults
             write_dev_specs = copy.deepcopy(self.dev_specs)
-            for name, entry in write_dev_specs.items():
-                if entry['path'] == name:
+            for entry in write_dev_specs:
+                if entry['path'] == Spec(entry['spec']).name:
                     del entry['path']
             yaml_dict['develop'] = write_dev_specs
         else:

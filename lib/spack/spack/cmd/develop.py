@@ -45,8 +45,8 @@ def develop(parser, args):
             raise SpackError("No spec provided to spack develop command")
 
         # download all dev specs
-        for name, entry in env.dev_specs.items():
-            path = entry.get('path', name)
+        for entry in env.dev_specs:
+            path = entry.get('path', spack.spec.Spec(entry['spec']).name)
             abspath = path if os.path.isabs(path) else os.path.join(
                 env.path, path)
 
