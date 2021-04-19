@@ -24,6 +24,7 @@ import spack.store
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
 import llnl.util.tty as tty
+import llnl.util.retry
 from copy import deepcopy
 
 
@@ -231,6 +232,7 @@ class SpackMonitorClient:
 
         return response
 
+    @llnl.util.retry.retry
     def do_request(self, endpoint, data=None, headers=None, url=None):
         """Do a request. If data is provided, it is POST, otherwise GET.
         If an entire URL is provided, don't use the endpoint

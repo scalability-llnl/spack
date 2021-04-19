@@ -62,7 +62,7 @@ class Lock(object):
         always ``os.SEEK_SET`` and ``start`` is always evaluated from the
         beginning of the file.
 
-        Args:
+        Arguments:
             path (str): path to the lock
             start (int): optional byte offset at which the lock starts
             length (int): optional number of bytes to lock
