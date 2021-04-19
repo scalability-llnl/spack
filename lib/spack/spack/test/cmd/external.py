@@ -4,10 +4,12 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import pytest
 
+import contextlib
 import os
 import os.path
 
 import spack
+import spack.paths
 from spack.spec import Spec
 from spack.cmd.external import ExternalPackageEntry
 from spack.main import SpackCommand
@@ -267,3 +269,67 @@ def test_use_tags_for_detection(
     assert 'The following specs have been' in output
     assert 'cmake' in output
     assert 'openssl' not in output
+
+
+def candidate_packages():
+    """Return the list of packages with a corresponding
+    detection_test.yaml file.
+    """
+    # Directory where we store all the data to setup unit tests for detection.
+    data_dir = os.path.join(spack.paths.test_path, 'data', 'detection')
+    to_be_tested = [os.path.basename(x).replace('.yaml', '')
+                    for x in os.listdir(data_dir)]
+    return to_be_tested
+
+
+@pytest.mark.detection
+@pytest.mark.parametrize('package_name', [
+    'gcc', 'intel', 'llvm'
+])
+def test_package_detection(mock_executable, package_name):
+    def detection_tests_for(pkg):
+        module = spack.repo.path.repo_for_pkg(pkg)._get_pkg_module(pkg)
+        return module.detection_tests
+
+    @contextlib.contextmanager
+    def setup_test_layout(layout):
+        exes_by_path, to_be_removed = {}, []
+        for binary in layout:
+            exe = mock_executable(
+                binary['name'], binary['output'], subdir=binary['subdir']
+            )
+            to_be_removed.append(exe)
+            exes_by_path[str(exe)] = os.path.basename(str(exe))
+
+        yield exes_by_path
+
+        for exe in to_be_removed:
+            os.unlink(exe)
+
+    # Retrieve detection test data for this package and cycle over each
+    # of the scenarios that are encoded
+    detection_tests = detection_tests_for(package_name)
+    if 'paths' not in detection_tests:
+        msg = 'Package "{0}" has no detection tests based on PATH'
+        pytest.skip(msg.format(package_name))
+
+    for test in detection_tests['paths']:
+        # Setup the mock layout for detection. The context manager will
+        # remove mock files when it's finished.
+        with setup_test_layout(test['layout']) as abs_path_to_exe:
+            entries = spack.cmd.external._get_external_packages(
+                [spack.repo.get(package_name)], abs_path_to_exe
+            )
+            specs = set(x.spec for x in entries[package_name])
+            results = test['results']
+            # If no result was expected, check that nothing was detected
+            if not results:
+                msg = 'No spec was expected [detected={0}]'
+                assert not specs, msg.format(sorted(specs))
+                continue
+
+            # If we expected results check that all of the expected
+            # specs were detected.
+            for result in results:
+                spec, msg = result['spec'], 'Not able to detect "{0}"'
+                assert spack.spec.Spec(spec) in specs, msg.format(str(spec))

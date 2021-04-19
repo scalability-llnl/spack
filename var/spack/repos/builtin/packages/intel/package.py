@@ -126,3 +126,38 @@ class Intel(IntelPackage):
 
     # Since the current package is a subset of 'intel-parallel-studio',
     # all remaining Spack actions are handled in the package class.
+
+
+# Data used to test external package detection
+detection_tests = {
+    'paths': [
+        {
+            'layout': [
+                {
+                    'subdir': ['bin', 'intel64'], 'name': 'icc',
+                    'output': """
+echo "icc (ICC) 18.0.5 20180823"
+echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+"""
+                },
+                {
+                    'subdir': ['bin', 'intel64'], 'name': 'icpc',
+                    'output': """
+echo "icpc (ICC) 18.0.5 20180823"
+echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+"""
+                },
+                {
+                    'subdir': ['bin', 'intel64'], 'name': 'ifort',
+                    'output': """
+echo "ifort (IFORT) 18.0.5 20180823"
+echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+"""
+                }
+            ],
+            'results': [
+                {'spec': 'intel@18.0.5'}
+            ]
+        }
+    ]
+}

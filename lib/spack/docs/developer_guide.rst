@@ -781,9 +781,119 @@ have the hook defined within the logger) but serves as an example of writing a h
 Unit tests
 ----------
 
-------------
-Unit testing
-------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Add detection tests for packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To ensure that a software is detected correctly for multiple configurations
+and on different systems developers can define a dictionary-variable called
+``detection_tests`` in the same ``package.py`` file where the package recipe
+resides. The data in this variable is used by a parametrized unit test:
+
+.. code-block:: console
+
+   % spack unit-test lib/spack/spack/test/cmd/external.py::test_package_detection
+   =========================================================================== test session starts ============================================================================
+   platform darwin -- Python 3.7.3, pytest-3.2.5, py-1.4.34, pluggy-0.4.0
+   rootdir: /Users/culpo/PycharmProjects/spack, inifile: pytest.ini
+   collected 3 items
+
+   lib/spack/spack/test/cmd/external.py ...
+
+   ======================================================================== slowest 20 test durations =========================================================================
+   2.03s call     lib/spack/spack/test/cmd/external.py::test_package_detection[gcc]
+   1.90s call     lib/spack/spack/test/cmd/external.py::test_package_detection[llvm]
+   0.86s call     lib/spack/spack/test/cmd/external.py::test_package_detection[intel]
+   0.23s setup    lib/spack/spack/test/cmd/external.py::test_package_detection[gcc]
+   0.00s setup    lib/spack/spack/test/cmd/external.py::test_package_detection[llvm]
+   0.00s setup    lib/spack/spack/test/cmd/external.py::test_package_detection[intel]
+   0.00s teardown lib/spack/spack/test/cmd/external.py::test_package_detection[intel]
+   0.00s teardown lib/spack/spack/test/cmd/external.py::test_package_detection[gcc]
+   0.00s teardown lib/spack/spack/test/cmd/external.py::test_package_detection[llvm]
+   ========================================================================= 3 passed in 5.05 seconds =========================================================================
+
+that mock an environment and try to check if the detection logic yields theresults that are expected.
+
+As a general rule, attributes at the top-level of ``detection_tests``
+represent search mechanisms and they all map to a list of tests that should confirm
+the validity of each package detection logic.
+
+""""""""""""""""""""""""""
+Tests for PATH inspections
+""""""""""""""""""""""""""
+
+Detection tests insisting on ``PATH`` inspections are listed under
+the ``paths`` attribute:
+
+.. code-block:: python
+
+   detection_tests = {
+       'paths': [
+           {
+               'layout': [
+                   {
+                       'subdir': ['bin'], 'name': 'clang-3.9',
+                       'output': """
+   echo "clang version 3.9.1-19ubuntu1 (tags/RELEASE_391/rc2)"
+   echo "Target: x86_64-pc-linux-gnu"
+   echo "Thread model: posix"
+   echo "InstalledDir: /usr/bin"
+   """
+                   },
+                   {
+                       'subdir': ['bin'], 'name': 'clang++-3.9',
+                       'output': """
+   echo "clang version 3.9.1-19ubuntu1 (tags/RELEASE_391/rc2)"
+   echo "Target: x86_64-pc-linux-gnu"
+   echo "Thread model: posix"
+   echo "InstalledDir: /usr/bin"
+   """,
+                   }
+               ],
+               'results': [
+                   {'spec': 'llvm@3.9.1 +clang~lld~lldb'}
+               ]
+           },
+       ]
+   }
+
+Each test is performed by first creating a temporary directory structure as
+specified in the corresponding ``layout`` and by then running
+package detection and checking that the outcome matches the expected
+``results``. The exact details on how to specify both the ``layout`` and the
+``results`` are reported in the table below:
+
+.. list-table:: Test based on PATH inspections
+   :header-rows: 1
+
+   * - Option Name
+     - Description
+     - Allowed Values
+     - Required
+   * - ``layout``
+     - Specifies the filesystem tree used for the test
+     - List of objects
+     - Yes
+   * - ``layout:[0]:subdir``
+     - Subdirectory for this executable
+     - List of strings
+     - Yes
+   * - ``layout:[0]:name``
+     - Name of the executable
+     - A valid filename
+     - Yes
+   * - ``layout:[0]:output``
+     - Mock logic for the executable
+     - Any valid shell script
+     - Yes
+   * - ``results``
+     - List of expected results
+     - List of objects (empty if no result is expected)
+     - Yes
+   * - ``results:[0]:spec``
+     - A spec that is expected from detection
+     - Any valid spec
+     - Yes
 
 ------------------
 Developer commands
