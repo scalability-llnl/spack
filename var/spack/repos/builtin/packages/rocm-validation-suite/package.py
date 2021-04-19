@@ -34,6 +34,7 @@ class RocmValidationSuite(CMakePackage):
 
     depends_on('cmake@3.5:', type='build')
     depends_on('zlib', type='link')
+    depends_on('pciutils +lib', type='build')
 
     def setup_build_environment(self, build_env):
         spec = self.spec
@@ -52,7 +53,9 @@ class RocmValidationSuite(CMakePackage):
 
     def cmake_args(self):
         spec = self.spec
+        incl = spec['pciutils'].prefix.include
         args = ['-DHIP_INC_DIR={0}'.format(spec['hip'].prefix),
                 '-DROCM_SMI_DIR={0}'.format(spec['rocm-smi-lib'].prefix),
-                '-DROCBLAS_DIR={0}'.format(spec['rocblas'].prefix)]
+                '-DROCBLAS_DIR={0}'.format(spec['rocblas'].prefix),
+                '-DCMAKE_CXX_FLAGS=-I {0}'.format(incl)]
         return args
