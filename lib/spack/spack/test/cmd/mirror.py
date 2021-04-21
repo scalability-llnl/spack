@@ -40,7 +40,8 @@ def tmp_scope():
 
 @pytest.mark.disable_clean_stage_check
 @pytest.mark.regression('8083')
-def test_regression_8083(tmpdir, capfd, mock_packages, mock_fetch, config):
+def test_regression_8083(mutable_database, tmpdir, capfd, mock_packages, mock_fetch,
+                         config):
     with capfd.disabled():
         output = mirror('create', '-d', str(tmpdir), 'externaltool')
     assert 'Skipping' in output
@@ -48,8 +49,8 @@ def test_regression_8083(tmpdir, capfd, mock_packages, mock_fetch, config):
 
 
 @pytest.mark.regression('12345')
-def test_mirror_from_env(tmpdir, mock_packages, mock_fetch, config,
-                         mutable_mock_env_path):
+def test_mirror_from_env(mutable_database, tmpdir, mock_packages, mock_fetch,
+                         config, mutable_mock_env_path):
     mirror_dir = str(tmpdir)
     env_name = 'test'
 
@@ -80,8 +81,8 @@ def source_for_pkg_with_hash(mock_packages, tmpdir):
     pkg.versions[spack.version.Version('1.0')]['url'] = local_url
 
 
-def test_mirror_skip_unstable(tmpdir_factory, mock_packages, config,
-                              source_for_pkg_with_hash):
+def test_mirror_skip_unstable(mutable_database, tmpdir_factory, mock_packages,
+                              config, source_for_pkg_with_hash):
     mirror_dir = str(tmpdir_factory.mktemp('mirror-dir'))
 
     specs = [spack.spec.Spec(x).concretized() for x in
@@ -105,7 +106,7 @@ class MockMirrorArgs(object):
         self.exclude_specs = exclude_specs
 
 
-def test_exclude_specs(mock_packages, config):
+def test_exclude_specs(mutable_database, mock_packages, config):
     args = MockMirrorArgs(
         specs=['mpich'],
         versions_per_spec='all',
@@ -120,7 +121,7 @@ def test_exclude_specs(mock_packages, config):
     assert (not expected_exclude & set(mirror_specs))
 
 
-def test_exclude_file(mock_packages, tmpdir, config):
+def test_exclude_file(mutable_database, mock_packages, tmpdir, config):
     exclude_path = os.path.join(str(tmpdir), 'test-exclude.txt')
     with open(exclude_path, 'w') as exclude_file:
         exclude_file.write("""\

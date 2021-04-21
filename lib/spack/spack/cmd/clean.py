@@ -94,12 +94,15 @@ def clean(parser, args):
                     if f.endswith('.pyc') or f.endswith('.pyo'):
                         fname = os.path.join(root, f)
                         tty.debug('Removing {0}'.format(fname))
-                        os.remove(fname)
+                        try:
+                            os.remove(fname)
+                        except OSError:
+                            pass
                 for d in dirs:
                     if d == '__pycache__':
                         dname = os.path.join(root, d)
                         tty.debug('Removing {0}'.format(dname))
-                        shutil.rmtree(dname)
+                        shutil.rmtree(dname, ignore_errors=True)
 
     if args.bootstrap:
         msg = 'Removing software in "{0}"'

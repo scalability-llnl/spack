@@ -16,7 +16,7 @@ env = SpackCommand('env')
 
 
 @pytest.mark.usefixtures(
-    'mutable_mock_env_path', 'mock_packages', 'mock_fetch')
+    'mutable_mock_env_path', 'mock_packages', 'mock_fetch', 'mutable_database')
 class TestDevelop(object):
     def check_develop(self, env, spec, path=None):
         path = path or spec.name

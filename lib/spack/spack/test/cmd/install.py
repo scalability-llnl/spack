@@ -306,7 +306,7 @@ def test_install_invalid_spec(invalid_spec):
         install(invalid_spec)
 
 
-@pytest.mark.usefixtures('noop_install', 'config')
+@pytest.mark.usefixtures('mutable_database', 'noop_install', 'config')
 @pytest.mark.parametrize('spec,concretize,error_code', [
     (Spec('mpi'), False, 1),
     (Spec('mpi'), True, 0),
@@ -418,7 +418,7 @@ def test_junit_output_with_errors(
     [['cmake', 'libelf'], []],
     [['cmake', 'libelf'], ['mpi', 'boost']],
 ])
-def test_install_mix_cli_and_files(clispecs, filespecs, tmpdir):
+def test_install_mix_cli_and_files(mutable_database, clispecs, filespecs, tmpdir):
 
     args = clispecs
 

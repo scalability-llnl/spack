@@ -176,7 +176,7 @@ class Changing(Package):
 # This must use the mutable_config fixture because the test
 # adjusting_default_target_based_on_compiler uses the current_host fixture,
 # which changes the config.
-@pytest.mark.usefixtures('mutable_config', 'mock_packages')
+@pytest.mark.usefixtures('mutable_database', 'mutable_config', 'mock_packages')
 class TestConcretize(object):
     def test_concretize(self, spec):
         check_concretize(spec)
@@ -374,8 +374,9 @@ class TestConcretize(object):
         # only relevant when not building compilers as needed
         with spack.concretize.enable_compiler_existence_check():
             s = Spec('a %gcc@0.0.0')
-            with pytest.raises(
-                    spack.concretize.UnavailableCompilerVersionError):
+            with pytest.raises((
+                    spack.concretize.UnavailableCompilerVersionError,
+                    spack.concretize.NoCompilersForArchError)):
                 s.concretize()
 
     def test_no_compilers_for_arch(self):

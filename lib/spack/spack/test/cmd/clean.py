@@ -54,7 +54,7 @@ all_effects = ['stages', 'downloads', 'caches', 'failures']
     ('-a',       all_effects),
     ('',         []),
 ])
-def test_function_calls(command_line, effects, mock_calls_for_clean):
+def test_function_calls(mutable_database, command_line, effects, mock_calls_for_clean):
 
     # Call the command with the supplied command line
     clean(command_line)

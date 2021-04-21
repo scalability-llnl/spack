@@ -69,7 +69,7 @@ def assert_variant_values(spec, **variants):
         assert concrete.variants[variant].value == value
 
 
-@pytest.mark.usefixtures('concretize_scope', 'mock_packages')
+@pytest.mark.usefixtures('mutable_database', 'concretize_scope', 'mock_packages')
 class TestConcretizePreferences(object):
     @pytest.mark.parametrize('package_name,variant_value,expected_results', [
         ('mpileaks', '~debug~opt+shared+static',

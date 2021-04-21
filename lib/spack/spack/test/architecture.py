@@ -75,7 +75,7 @@ def test_boolness():
     assert arch
 
 
-def test_user_front_end_input(config):
+def test_user_front_end_input(config, mutable_database):
     """Test when user inputs just frontend that both the frontend target
     and frontend operating system match
     """
@@ -90,7 +90,7 @@ def test_user_front_end_input(config):
     assert frontend_target == frontend_spec.architecture.target
 
 
-def test_user_back_end_input(config):
+def test_user_back_end_input(config, mutable_database):
     """Test when user inputs backend that both the backend target and
     backend operating system match
     """
@@ -105,7 +105,7 @@ def test_user_back_end_input(config):
     assert backend_target == backend_spec.architecture.target
 
 
-def test_user_defaults(config):
+def test_user_defaults(config, mutable_database):
     platform = spack.architecture.platform()
     default_os = str(platform.operating_system("default_os"))
     default_target = platform.target("default_target")
@@ -117,7 +117,7 @@ def test_user_defaults(config):
     assert default_target == default_spec.architecture.target
 
 
-def test_user_input_combination(config):
+def test_user_input_combination(config, mutable_database):
     valid_keywords = ["fe", "be", "frontend", "backend"]
 
     possible_targets = ([x for x in spack.architecture.platform().targets]
@@ -245,7 +245,7 @@ def test_satisfy_strict_constraint_when_not_concrete(
     # lists with concrete targets, lists compared to ranges
     (('x86_64,haswell', 'core2:broadwell', 'haswell'))
 ])
-@pytest.mark.usefixtures('mock_packages', 'config')
+@pytest.mark.usefixtures('mutable_database', 'mock_packages', 'config')
 def test_concretize_target_ranges(
         root_target_range, dep_target_range, result
 ):
