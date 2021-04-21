@@ -81,6 +81,9 @@ class Ruby(AutotoolsPackage):
             args.append('--disable-dtrace')
         return args
 
+    def setup_build_environment(self, env):
+        env.set('MJIT_CC', self.compiler.cc)
+
     def setup_dependent_build_environment(self, env, dependent_spec):
         # TODO: do this only for actual extensions.
         # Set GEM_PATH to include dependent gem directories
