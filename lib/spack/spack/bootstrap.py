@@ -292,7 +292,11 @@ def _install_clingo_and_try_import(module, abstract_spec_str):
                     'compilers', [{'compiler': item['compiler']}]
             ):
                 # FIXME: need to check sha256
-                install_args = ['install', '-a', '-u', '-o', '-f', spec_str]
+                install_args = [
+                    'install',
+                    '--sha256', item['sha256'],
+                    '-a', '-u', '-o', '-f', spec_str
+                ]
                 buildcache(*install_args, fail_on_error=False)
                 if _import_from_store(module, abstract_spec):
                     return True
