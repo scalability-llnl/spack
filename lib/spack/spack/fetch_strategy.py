@@ -303,6 +303,11 @@ class URLFetchStrategy(FetchStrategy):
         url = None
         errors = []
         for url in self.candidate_urls:
+            if url[0:5] == 'azure':
+                import spack.util.azure_blob as azure_blob_util
+                parsed_url = urllib_parse.urlparse(url)
+                azureblob = azure_blob_util.AzureBlob(parsed_url)
+                url = azureblob.azure_url_sas()
             if not self._existing_url(url):
                 continue
 
@@ -1371,6 +1376,7 @@ def from_url_scheme(url, *args, **kwargs):
             'https': 'url',
             'ftp': 'url',
             'ftps': 'url',
+            'azure': 'url',
         })
 
     scheme = parsed_url.scheme
