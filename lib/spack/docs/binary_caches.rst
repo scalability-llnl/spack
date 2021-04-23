@@ -31,8 +31,24 @@ Build caches are created via:
 
 .. code-block:: console
 
-   $ spack buildcache create spec
+    $ spack buildcache create <spec>
 
+
+If you wanted to create a build cache in a local directory, you would provide
+the ``-d`` argument to target that directory, again also specifying the spec.
+Here is an example creating a local directory, "spack-cache" and creating
+build cache files for the "ninja" spec:
+
+.. code-block:: console
+
+    $ mkdir -p ./spack-cache
+    $ spack buildcache create -d ./spack-cache ninja
+    ==> Buildcache files will be output to file:///home/spackuser/spack/spack-cache/build_cache
+    gpgconf: socketdir is '/run/user/1000/gnupg'
+    gpg: using "E6DF6A8BD43208E4D6F392F23777740B7DBD643D" as default secret key for signing
+
+Note that the targeted spec must already be installed. Once you have a build cache,
+you can add it as a mirror, discussed next.
 
 ---------------------------------------
 Finding or installing build cache files
@@ -43,19 +59,75 @@ with:
 
 .. code-block:: console
 
-   $ spack mirror add <name> <url>
+    $ spack mirror add <name> <url>
 
-Build caches are found via:
 
-.. code-block:: console
+Note that the url can be a web url _or_ a local filesystem location. In the previous
+example, you might add the directory "spack-cache" and call it ``mymirror``:
 
-   $ spack buildcache list
-
-Build caches are installed via:
 
 .. code-block:: console
 
-   $ spack buildcache install
+    $ spack mirror add mymirror ./spack-cache
+
+
+You can see that the mirror is added with ``spack mirror list`` as follows:
+
+.. code-block:: console
+
+
+    $ spack mirror list
+    mymirror           file:///home/spackuser/spack/spack-cache
+    spack-public       https://spack-llnl-mirror.s3-us-west-2.amazonaws.com/
+
+
+At this point, you've create a buildcache, but spack hasn't indexed it, so if
+you run ``spack buildcache list`` you won't see any results. You need to index
+this new build cache as follows:
+
+.. code-block:: console
+
+    $ spack buildcache update-index -d spack-cache/
+
+Now you can use list:
+
+.. code-block:: console
+
+    $  spack buildcache list
+    ==> 1 cached build.
+    -- linux-ubuntu20.04-skylake / gcc@9.3.0 ------------------------
+    ninja@1.10.2
+
+
+Great! So now let's say you have a different spack installation, or perhaps just
+a different environment for the same one, and you want to install a package from
+that build cache. Let's first uninstall the actual library "ninja" to see if we can
+re-install it from the cache.
+
+.. code-block:: console
+
+    $ spack uninstall ninja
+
+
+And now reinstall from the buildcache
+
+.. code-block:: console
+
+    $ spack buildcache install ninja
+    ==> buildcache spec(s) matching ninja 
+    ==> Fetching file:///home/spackuser/spack/spack-cache/build_cache/linux-ubuntu20.04-skylake/gcc-9.3.0/ninja-1.10.2/linux-ubuntu20.04-skylake-gcc-9.3.0-ninja-1.10.2-i4e5luour7jxdpc3bkiykd4imke3mkym.spack
+    ####################################################################################################################################### 100.0%
+    ==> Installing buildcache for spec ninja@1.10.2%gcc@9.3.0 arch=linux-ubuntu20.04-skylake
+    gpgconf: socketdir is '/run/user/1000/gnupg'
+    gpg: Signature made Tue 23 Mar 2021 10:16:29 PM MDT
+    gpg:                using RSA key E6DF6A8BD43208E4D6F392F23777740B7DBD643D
+    gpg: Good signature from "spackuser (GPG created for Spack) <spackuser@noreply.users.github.com>" [ultimate]
+
+
+It worked! You've just completed a full example of creating a build cache with
+a spec of interest, adding it as a mirror, updating it's index, listing the contents,
+and finally, installing from it.
+
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 List of popular build caches
