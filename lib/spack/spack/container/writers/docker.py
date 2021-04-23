@@ -20,10 +20,11 @@ class DockerContext(PathContext):
         # a horrible echo trick to have the manifest in the Dockerfile
         echoed_lines = []
         for idx, line in enumerate(manifest_str.split('\n')):
+            line_dollar_escaped = line.replace('$', r'\$')
             if idx == 0:
-                echoed_lines.append('&&  (echo "' + line + '" \\')
+                echoed_lines.append('&&  (echo "' + line_dollar_escaped + '" \\')
                 continue
-            echoed_lines.append('&&   echo "' + line + '" \\')
+            echoed_lines.append('&&   echo "' + line_dollar_escaped + '" \\')
 
         echoed_lines[-1] = echoed_lines[-1].replace(' \\', ')')
 
