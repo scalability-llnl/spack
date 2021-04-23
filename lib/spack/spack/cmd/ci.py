@@ -316,26 +316,16 @@ def ci_rebuild(args):
         # to add the mirrors too, which in turn means that any code here *not*
         # using the spack command does *not* have access to the mirrors.
         spack_cmd = exe.which('spack')
-        mirrors_to_check = {
-            'ci_remote_mirror': remote_mirror_url,
-        }
 
         def add_mirror(mirror_name, mirror_url):
             m_args = ['mirror', 'add', mirror_name, mirror_url]
             tty.debug('Adding mirror: spack {0}'.format(m_args))
             mirror_add_output = spack_cmd(*m_args)
-            # Workaround: Adding the mirrors above, using "spack_cmd" makes
-            # sure they're available later when we use "spack_cmd" to install
-            # the package.  But then we also need to add them to this dict
-            # below, so they're available in this process (we end up having to
-            # pass them to "bindist.get_mirrors_for_spec()")
-            mirrors_to_check[mirror_name] = mirror_url
             tty.debug('spack mirror add output: {0}'.format(mirror_add_output))
 
         # Configure mirrors
         if pr_mirror_url:
             add_mirror('ci_pr_mirror', pr_mirror_url)
-
         if pipeline_mirror_url:
             add_mirror(spack_ci.TEMP_STORAGE_MIRROR_NAME, pipeline_mirror_url)
 
@@ -344,9 +334,9 @@ def ci_rebuild(args):
         spack_cmd('config', 'blame', 'mirrors')
 
         # Checks all mirrors for a built spec with a matching full hash
-        matches = bindist.get_mirrors_for_spec(
-            job_spec, full_hash_match=True, mirrors_to_check=mirrors_to_check,
-            index_only=False)
+        bindist.binary_index.refresh_mirrors()
+        matches = bindist.binary_index.get_mirrors_for_spec(
+            job_spec, full_hash_match=True)
 
         if matches:
             # Got at full hash match on at least one configured mirror.  All

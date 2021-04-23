@@ -195,7 +195,7 @@ def memoized(func):
     """Decorator that caches the results of a function, storing them in
     an attribute of that function.
     """
-    func.cache = {}
+    cache = {}
 
     @functools.wraps(func)
     def _memoized_function(*args):
@@ -203,10 +203,11 @@ def memoized(func):
             # Not hashable, so just call the function.
             return func(*args)
 
-        if args not in func.cache:
-            func.cache[args] = func(*args)
+        if args not in cache:
+            cache[args] = func(*args)
 
-        return func.cache[args]
+        return cache[args]
+    _memoized_function.cache = cache
 
     return _memoized_function
 

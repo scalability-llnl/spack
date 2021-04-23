@@ -28,7 +28,8 @@ uninstall = spack.main.SpackCommand('uninstall')
 def mock_get_specs(database, monkeypatch):
     specs = database.query_local()
     monkeypatch.setattr(
-        spack.binary_distribution, 'update_cache_and_get_specs', lambda: specs
+        spack.binary_distribution.BinaryCacheIndex, 'query_remote_dbs',
+        lambda self, _: specs
     )
 
 
@@ -43,7 +44,8 @@ def mock_get_specs_multiarch(database, monkeypatch):
             break
 
     monkeypatch.setattr(
-        spack.binary_distribution, 'update_cache_and_get_specs', lambda: specs
+        spack.binary_distribution.BinaryCacheIndex, 'query_remote_dbs',
+        lambda self, _: specs
     )
 
 
@@ -59,8 +61,9 @@ def test_buildcache_preview_just_runs(database):
 @pytest.mark.db
 @pytest.mark.regression('13757')
 def test_buildcache_list_duplicates(mock_get_specs, capsys):
+    spack.binary_distribution.binary_index.refresh_mirrors()
     with capsys.disabled():
-        output = buildcache('list', 'mpileaks', '@2.3')
+        output = buildcache('list', '-l', '-v', 'mpileaks@2.3')
 
     assert output.count('mpileaks') == 3
 
@@ -79,10 +82,11 @@ def test_buildcache_list_allarch(database, mock_get_specs_multiarch, capsys):
     assert output.count('mpileaks') == 2
 
 
-def tests_buildcache_create(
+def test_buildcache_create(
         install_mockery, mock_fetch, monkeypatch, tmpdir):
     """"Ensure that buildcache create creates output files"""
     pkg = 'trivial-install-test-package'
+    spack.binary_distribution.binary_index.refresh_mirrors()
     install(pkg)
 
     buildcache('create', '-d', str(tmpdir), '--unsigned', pkg)
@@ -96,7 +100,7 @@ def tests_buildcache_create(
         os.path.join(str(tmpdir), 'build_cache', tarball))
 
 
-def tests_buildcache_create_env(
+def test_buildcache_create_env(
         install_mockery, mock_fetch, monkeypatch,
         tmpdir, mutable_mock_env_path):
     """"Ensure that buildcache create creates output files from env"""
@@ -132,6 +136,7 @@ def test_buildcache_create_fails_on_noargs(tmpdir):
 def test_buildcache_create_fail_on_perm_denied(
         install_mockery, mock_fetch, monkeypatch, tmpdir):
     """Ensure that buildcache create fails on permission denied error."""
+    spack.binary_distribution.binary_index.refresh_mirrors()
     install('trivial-install-test-package')
 
     tmpdir.chmod(0)

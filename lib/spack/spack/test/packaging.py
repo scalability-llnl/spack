@@ -10,16 +10,15 @@ import os
 import stat
 import shutil
 import pytest
-import argparse
 import re
 import platform
 
 from llnl.util.filesystem import mkdirp
 
+import spack.main
 import spack.repo
 import spack.store
 import spack.binary_distribution as bindist
-import spack.cmd.buildcache as buildcache
 import spack.util.gpg
 from spack.spec import Spec
 from spack.paths import mock_gpg_keys_path
@@ -30,6 +29,9 @@ from spack.relocate import macho_make_paths_relative
 from spack.relocate import macho_make_paths_normal
 from spack.relocate import _placeholder, macho_find_paths
 from spack.relocate import file_is_relocatable
+
+
+buildcache_cmd = spack.main.SpackCommand('buildcache')
 
 
 def fake_fetchify(url, pkg):
@@ -89,10 +91,6 @@ echo $PATH"""
         mirrors['spack-mirror-test'], name="build_cache", keep=True)
     stage.create()
 
-    # setup argument parser
-    parser = argparse.ArgumentParser()
-    buildcache.setup_parser(parser)
-
     create_args = ['create', '-a', '-f', '-d', mirror_path, pkghash]
     # Create a private key to sign package with if gpg2 available
     spack.util.gpg.create(name='test key 1', expires='0',
@@ -101,18 +99,21 @@ echo $PATH"""
 
     create_args.insert(create_args.index('-a'), '--rebuild-index')
 
-    args = parser.parse_args(create_args)
-    buildcache.buildcache(parser, args)
+    create_tuple = tuple(create_args)
+    buildcache_cmd(*create_tuple)
     # trigger overwrite warning
-    buildcache.buildcache(parser, args)
+    buildcache_cmd(*create_tuple)
+
+    # Reread the contents of the mirror so we can install it.
+    bindist.binary_index.refresh_mirrors()
 
     # Uninstall the package
     pkg.do_uninstall(force=True)
 
     install_args = ['install', '-a', '-f', pkghash]
-    args = parser.parse_args(install_args)
+    install_tuple = tuple(install_args)
     # Test install
-    buildcache.buildcache(parser, args)
+    buildcache_cmd(*install_tuple)
 
     files = os.listdir(spec.prefix)
 
@@ -127,51 +128,40 @@ echo $PATH"""
     # create build cache with relative path
     create_args.insert(create_args.index('-a'), '-f')
     create_args.insert(create_args.index('-a'), '-r')
-    args = parser.parse_args(create_args)
-    buildcache.buildcache(parser, args)
+    create_tuple = tuple(create_args)
+    buildcache_cmd(*create_tuple)
 
     # Uninstall the package
     pkg.do_uninstall(force=True)
 
-    args = parser.parse_args(install_args)
-    buildcache.buildcache(parser, args)
+    buildcache_cmd(*install_tuple)
 
     # test overwrite install
     install_args.insert(install_args.index('-a'), '-f')
-    args = parser.parse_args(install_args)
-    buildcache.buildcache(parser, args)
+    install_tuple = tuple(install_args)
+    buildcache_cmd(*install_tuple)
 
     files = os.listdir(spec.prefix)
     assert 'link_to_dummy.txt' in files
     assert 'dummy.txt' in files
-#    assert os.path.realpath(
-#        os.path.join(spec.prefix, 'link_to_dummy.txt')
-#    ) == os.path.realpath(os.path.join(spec.prefix, 'dummy.txt'))
 
-    args = parser.parse_args(['keys'])
-    buildcache.buildcache(parser, args)
+    buildcache_cmd('keys')
 
-    args = parser.parse_args(['list'])
-    buildcache.buildcache(parser, args)
+    buildcache_cmd('list')
 
-    args = parser.parse_args(['list'])
-    buildcache.buildcache(parser, args)
+    buildcache_cmd('list')
 
-    args = parser.parse_args(['list', 'trivial'])
-    buildcache.buildcache(parser, args)
+    buildcache_cmd('list', 'trivial')
 
     # Copy a key to the mirror to have something to download
     shutil.copyfile(mock_gpg_keys_path + '/external.key',
                     mirror_path + '/external.key')
 
-    args = parser.parse_args(['keys'])
-    buildcache.buildcache(parser, args)
+    buildcache_cmd('keys')
 
-    args = parser.parse_args(['keys', '-f'])
-    buildcache.buildcache(parser, args)
+    buildcache_cmd('keys', '-f')
 
-    args = parser.parse_args(['keys', '-i', '-t'])
-    buildcache.buildcache(parser, args)
+    buildcache_cmd('keys', '-i', '-t')
 
     # unregister mirror with spack config
     mirrors = {}

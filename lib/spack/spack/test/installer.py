@@ -138,6 +138,8 @@ def test_install_msg(monkeypatch):
     pid = 123456
     install_msg = 'Installing {0}'.format(name)
 
+    monkeypatch.setattr(tty.color, 'get_color_when', lambda: False)
+
     monkeypatch.setattr(tty, '_debug', 0)
     assert inst.install_msg(name, pid) == install_msg
 
@@ -231,7 +233,7 @@ def test_process_binary_cache_tarball_tar(install_mockery, monkeypatch, capfd):
 def test_try_install_from_binary_cache(install_mockery, mock_packages,
                                        monkeypatch, capsys):
     """Tests SystemExit path for_try_install_from_binary_cache."""
-    def _mirrors_for_spec(spec, full_hash_match=False):
+    def _mirrors_for_spec(self, spec, full_hash_match=False):
         spec = spack.spec.Spec('mpi').concretized()
         return [{
             'mirror_url': 'notused',
@@ -241,8 +243,9 @@ def test_try_install_from_binary_cache(install_mockery, mock_packages,
     spec = spack.spec.Spec('mpich')
     spec.concretize()
 
-    monkeypatch.setattr(
-        spack.binary_distribution, 'get_mirrors_for_spec', _mirrors_for_spec)
+    monkeypatch.setattr(spack.binary_distribution.BinaryCacheIndex,
+                        'get_mirrors_for_spec',
+                        _mirrors_for_spec)
 
     with pytest.raises(SystemExit):
         inst._try_install_from_binary_cache(spec.package, False, False)

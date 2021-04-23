@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import re
 import shutil
 import sys
+from typing import Callable, Iterable  # novm
 
 import llnl.util.tty as tty
 import spack.architecture
@@ -243,7 +245,7 @@ def find_matching_specs(pkgs, allow_multiple_matches=False, env=None):
 
     Args:
         pkgs (string): spec to be matched against installed packages
-        allow_multiple_matches (bool): if True multiple matches are admitted
+        allow_multiple_matches (bool): if False, multiple matches will raise an error.
         env (Environment): active environment, or ``None`` if there is not one
 
     Return:
@@ -279,40 +281,60 @@ def find_matching_specs(pkgs, allow_multiple_matches=False, env=None):
     return specs_from_cli
 
 
-def match_downloaded_specs(pkgs, allow_multiple_matches=False, force=False,
-                           other_arch=False):
-    """Returns a list of specs matching the not necessarily
-       concretized specs given from cli
+# FIXME: after #22503 (which consults remote mirrors for hash prefix strings when
+# parsing specs), this helper method should be removed.
+def _unparsed_remote_spec_matcher(query_spec_string):
+    # type: (str) -> Callable[[Spec], bool]
+    """Query remote mirrors for a spec without parsing it."""
+    # NB: If a hash exists, it must always be at the very end of the string.
+    hash_match = re.match(r'^(.*)/(.*)$', query_spec_string)
+    if hash_match:
+        # NB: If a hash is specified, *only* match that.
+        abstract_spec = hash_match.group(1)
+        hash_section = hash_match.group(2)
+
+        def match(concrete_spec):
+            # type: (Spec) -> bool
+            if not concrete_spec.dag_hash().startswith(hash_section):
+                return False
+            if abstract_spec == '':
+                return True
+            return concrete_spec.satisfies(abstract_spec)
+    else:
+        def match(concrete_spec):
+            # type: (Spec) -> bool
+            return concrete_spec.satisfies(query_spec_string)
+    return match
+
+
+def match_remote_specs(pkgs, allow_multiple_matches=False, force=False,
+                       other_arch=False):
+    # type: (Iterable[str], bool, bool, bool) -> Iterable[Spec]
+    """Returns a list of concrete specs from remote mirrors matching the not
+    necessarily concretized specs given from the cli.
 
     Args:
-        specs: list of specs to be matched against buildcaches on mirror
-        allow_multiple_matches : if True multiple matches are admitted
+        pkgs: list of spec strings to be matched against buildcaches on mirror.
+        allow_multiple_matches (bool): if False, multiple matches will raise an error.
 
     Return:
-        list of specs
+        list of concretized specs
     """
-    # List of specs that match expressions given via command line
+    # List of specs that match expressions given via command line.
     specs_from_cli = []
     has_errors = False
 
-    specs = bindist.update_cache_and_get_specs()
+    # A None spec will produce all concrete specs from all mirrors.
+    specs = sorted(bindist.binary_index.query_remote_dbs(None))
     if not other_arch:
         arch = spack.architecture.default_arch().to_spec()
         specs = [s for s in specs if s.satisfies(arch)]
 
     for pkg in pkgs:
-        matches = []
         tty.msg("buildcache spec(s) matching %s \n" % pkg)
-        for spec in sorted(specs):
-            if pkg.startswith('/'):
-                pkghash = pkg.replace('/', '')
-                if spec.dag_hash().startswith(pkghash):
-                    matches.append(spec)
-            else:
-                if spec.satisfies(pkg):
-                    matches.append(spec)
+        match_remote_spec = _unparsed_remote_spec_matcher(pkg)
+        matches = [s for s in specs if match_remote_spec(s)]
         # For each pkg provided, make sure it refers to only one package.
-        # Fail and ask user to be unambiguous if it doesn't
         if not allow_multiple_matches and len(matches) > 1:
             tty.error('%s matches multiple downloaded packages:' % pkg)
             for match in matches:
@@ -326,6 +348,7 @@ def match_downloaded_specs(pkgs, allow_multiple_matches=False, force=False,
 
         specs_from_cli.extend(matches)
     if has_errors:
+        # FIXME: This can trigger even if no specs were matched above.
         tty.die('use one of the matching specs above')
 
     return specs_from_cli
@@ -476,8 +499,7 @@ def installtarball(args):
         tty.die("build cache file installation requires" +
                 " at least one package spec argument")
     pkgs = set(args.specs)
-    matches = match_downloaded_specs(pkgs, args.multiple, args.force,
-                                     args.otherarch)
+    matches = match_remote_specs(pkgs, args.multiple, args.force, args.otherarch)
 
     for match in matches:
         install_tarball(match, args)
@@ -509,14 +531,21 @@ def install_tarball(spec, args):
 
 def listspecs(args):
     """list binary packages available from mirrors"""
-    specs = bindist.update_cache_and_get_specs()
+    # Ensure the local databases for the configured mirrors are up to date.
+    bindist.binary_index.refresh_mirrors()
+
+    # A None spec will produce all concrete specs from all mirrors.
+    specs = bindist.binary_index.query_remote_dbs(None)
     if not args.allarch:
         arch = spack.architecture.default_arch().to_spec()
         specs = [s for s in specs if s.satisfies(arch)]
 
     if args.specs:
-        constraints = set(args.specs)
-        specs = [s for s in specs if any(s.satisfies(c) for c in constraints)]
+        matched_specs = []
+        for abstract_spec in args.specs:
+            match_remote_spec = _unparsed_remote_spec_matcher(abstract_spec)
+            matched_specs.extend(s for s in specs if match_remote_spec(s))
+        specs = matched_specs
     if sys.stdout.isatty():
         builds = len(specs)
         tty.msg("%s." % plural(builds, 'cached build'))

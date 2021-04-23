@@ -710,7 +710,7 @@ class RepoPath(object):
         Set `use_index` False when calling from a code block that could
         be run during the computation of the provider index."""
         have_name = pkg_name is not None
-        if have_name and not isinstance(pkg_name, str):
+        if have_name and not isinstance(pkg_name, six.string_types):
             raise ValueError(
                 "is_virtual(): expected package name, got %s" % type(pkg_name))
         if use_index:

@@ -235,6 +235,9 @@ class MirrorCollection(Mapping):
     def __len__(self):
         return len(self._mirrors)
 
+    def __bool__(self):
+        return len(self) > 0
+
 
 def _determine_extension(fetcher):
     if isinstance(fetcher, fs.URLFetchStrategy):

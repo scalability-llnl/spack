@@ -1216,8 +1216,8 @@ spack:
     # nothing in the environment needs rebuilding.  With the monkeypatch, the
     # process sees the compiler as needing a rebuild, which should then result
     # in the specs built with that compiler needing a rebuild too.
-    def fake_get_mirrors_for_spec(spec=None, full_hash_match=False,
-                                  mirrors_to_check=None, index_only=False):
+    def fake_get_mirrors_for_spec(self, spec=None, full_hash_match=False,
+                                  index_only=False):
         if spec.name == 'gcc':
             return []
         else:
@@ -1245,7 +1245,7 @@ spack:
             assert(original_yaml_contents)
             assert('no-specs-to-rebuild' in original_yaml_contents)
 
-            monkeypatch.setattr(spack.binary_distribution,
+            monkeypatch.setattr(spack.binary_distribution.BinaryCacheIndex,
                                 'get_mirrors_for_spec',
                                 fake_get_mirrors_for_spec)
 
