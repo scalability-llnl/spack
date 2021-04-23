@@ -89,12 +89,20 @@ class Ascent(Package, CudaPackage):
 
     # Certain CMake versions have been found to break for our use cases
     depends_on("cmake@3.14.1:3.14.99,3.18.2:", type='build')
+
     depends_on("conduit~python", when="~python")
     depends_on("conduit+python", when="+python+shared")
     depends_on("conduit~shared~python", when="~shared")
     depends_on("conduit~python~mpi", when="~python~mpi")
     depends_on("conduit+python~mpi", when="+python+shared~mpi")
     depends_on("conduit~shared~python~mpi", when="~shared~mpi")
+
+    depends_on("conduit@0.6:~python", when="@0.6:~python")
+    depends_on("conduit@0.6:+python", when="@0.6:+python+shared")
+    depends_on("conduit@0.6:~shared~python", when="@0.6:~shared")
+    depends_on("conduit@0.6:~python~mpi", when="@0.6:~python~mpi")
+    depends_on("conduit@0.6:+python~mpi", when="@0.6:+python+shared~mpi")
+    depends_on("conduit@0.6:~shared~python~mpi", when="@0.6:~shared~mpi")
 
     #######################
     # Python
