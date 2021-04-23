@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+import os
 
 
 class Specfem3dGlobe(AutotoolsPackage, CudaPackage):
@@ -22,6 +23,9 @@ class Specfem3dGlobe(AutotoolsPackage, CudaPackage):
             description="Build with OpenMP code generator")
     variant('double-precision', default=False,
             description="Treat REAL as double precision")
+    variant('par_file', values=str, default='original',
+            description="Specify the 'Par_file': parameter file "
+                        "you want to use with the full path")
 
     depends_on('mpi')
     depends_on('opencl', when='+opencl')
@@ -35,6 +39,16 @@ class Specfem3dGlobe(AutotoolsPackage, CudaPackage):
     # in versions up to 7.0.2 of specfem3d-globe.
     # https://github.com/geodynamics/specfem3d_globe/issues/717
     patch('gcc_rm_werror.patch', when='@:7.0.2%gcc')
+
+    @run_before('configure')
+    def copy_parfile(self):
+        parfile = self.spec.variants['par_file'].value
+        dst = join_path(self.stage.source_path, 'DATA', 'Par_file')
+        if parfile != 'original':
+            if os.path.exists(parfile):
+                copy(parfile, dst)
+            else:
+                raise ValueError('Specified Par_file does not exist.')
 
     def configure_args(self):
         args = []
