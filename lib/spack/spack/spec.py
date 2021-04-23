@@ -84,6 +84,7 @@ import itertools
 import operator
 import os
 import re
+from typing import List  # novm
 
 import six
 import ruamel.yaml as yaml
@@ -93,8 +94,8 @@ import llnl.util.lang as lang
 import llnl.util.tty.color as clr
 import llnl.util.tty as tty
 
-import spack.paths
 import spack.architecture
+import spack.binary_distribution
 import spack.compiler
 import spack.compilers as compilers
 import spack.config
@@ -102,6 +103,7 @@ import spack.dependency as dp
 import spack.error
 import spack.hash_types as ht
 import spack.parse
+import spack.paths
 import spack.provider_index
 import spack.repo
 import spack.solver
@@ -4582,11 +4584,20 @@ class SpecParser(spack.parse.Parser):
         self.setup(text)
         return self.compiler()
 
+    @staticmethod
+    def _lookup_local_or_remote_hash(find_hash):
+        # type: (str) -> List[Spec]
+        return (spack.store.db.get_by_hash(find_hash) or
+                # If the hash doesn't exist locally, check the remote.
+                spack.binary_distribution.binary_index.find_prefix_hash(find_hash))
+
     def spec_by_hash(self):
+        # type: () -> Spec
         self.expect(ID)
 
         dag_hash = self.token.value
-        matches = spack.store.db.get_by_hash(dag_hash)
+        matches = self._lookup_local_or_remote_hash(dag_hash)
+
         if not matches:
             raise NoSuchHashError(dag_hash)
 

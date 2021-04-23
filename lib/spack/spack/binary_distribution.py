@@ -13,6 +13,7 @@ import tempfile
 import hashlib
 import glob
 from ordereddict_backport import OrderedDict
+from typing import List  # novm
 
 from contextlib import closing
 import ruamel.yaml as yaml
@@ -35,10 +36,10 @@ import spack.util.gpg
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
 import spack.mirror
+import spack.spec
 import spack.util.url as url_util
 import spack.util.web as web_util
 from spack.caches import misc_cache_location
-from spack.spec import Spec
 from spack.stage import Stage
 
 
@@ -223,12 +224,18 @@ class BinaryCacheIndex(object):
                     ]
         """
         self.regenerate_spec_cache()
+        return self._mirrors_for_spec.get(spec.dag_hash(), None)
 
-        find_hash = spec.dag_hash()
-        if find_hash not in self._mirrors_for_spec:
-            return None
+    def find_prefix_hash(self, find_hash):
+        # type: (str) -> List[spack.spec.Spec]
+        """Similar to ``find_built_spec()``, but ``find_hash`` can be a prefix."""
+        self.regenerate_spec_cache()
 
-        return self._mirrors_for_spec[find_hash]
+        results = []  # type: List[spack.spec.Spec]
+        for dag_hash, info in self._mirrors_for_spec.items():
+            if dag_hash.startswith(find_hash):
+                results.append(info[0]['spec'])
+        return results
 
     def update_spec(self, spec, found_list):
         """
@@ -744,9 +751,7 @@ def generate_package_index(cache_prefix):
             tty.debug('fetching {0}'.format(yaml_url))
             _, _, yaml_file = web_util.read_from_url(yaml_url)
             yaml_contents = codecs.getreader('utf-8')(yaml_file).read()
-            # yaml_obj = syaml.load(yaml_contents)
-            # s = Spec.from_yaml(yaml_obj)
-            s = Spec.from_yaml(yaml_contents)
+            s = spack.spec.Spec.from_yaml(yaml_contents)
             db.add(s, None)
         except (URLError, web_util.SpackWebError) as url_err:
             tty.error('Error reading spec.yaml: {0}'.format(file_path))
@@ -1371,7 +1376,7 @@ def try_direct_fetch(spec, full_hash_match=False, mirrors=None):
         # read the spec from the build cache file. All specs in build caches
         # are concrete (as they are built) so we need to mark this spec
         # concrete on read-in.
-        fetched_spec = Spec.from_yaml(fetched_spec_yaml)
+        fetched_spec = spack.spec.Spec.from_yaml(fetched_spec_yaml)
         fetched_spec._mark_concrete()
 
         # Do not recompute the full hash for the fetched spec, instead just
