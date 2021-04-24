@@ -212,9 +212,10 @@ def test_config_add_update_dict(mutable_empty_config):
     assert output == expected
 
 
-def test_config_with_c_argument(mutable_empty_config):
-
-    # I don't know how to add a spack argument to a Spack Command, so we test this way
+def test_config_with_c_argument_parser(mutable_empty_config):
+    """
+    Test config add with the parser directly.
+    """
     config_file = 'config:install_root:root:/path/to/config.yaml'
     parser = spack.main.make_argument_parser()
     args = parser.parse_args(['-c', config_file])
@@ -223,6 +224,20 @@ def test_config_with_c_argument(mutable_empty_config):
     # Add the path to the config
     config("add", args.config_vars[0], scope='command_line')
     output = config("get", 'config')
+    assert "config:\n  install_root:\n  - root: /path/to/config.yaml" in output
+
+
+def test_config_with_c_argument(mutable_empty_config):
+    """
+    Test config add with the command directly.
+    """
+    config_file = 'config:install_root:root:/path/to/config.yaml'
+
+    # Global args are prepended to the command (spack <global args> ...)
+    global_args = ['-c', config_file]
+
+    # Do a get with the argument
+    output = config("get", 'config', global_args=global_args)
     assert "config:\n  install_root:\n  - root: /path/to/config.yaml" in output
 
 

@@ -521,7 +521,7 @@ def mutable_empty_config(tmpdir_factory, configuration_dir):
     """Empty configuration that can be modified by the tests."""
     mutable_dir = tmpdir_factory.mktemp('mutable_config').join('tmp')
     scopes = [spack.config.ConfigScope(name, str(mutable_dir.join(name)))
-              for name in ['site', 'system', 'user']]
+              for name in ['site', 'system', 'user', 'command_line']]
 
     with spack.config.use_configuration(*scopes) as cfg:
         yield cfg

@@ -487,7 +487,8 @@ def allows_unknown_args(command):
 
 
 def _invoke_command(command, parser, args, unknown_args):
-    """Run a spack command *without* setting spack global options."""
+    """Run a spack command."""
+    setup_main_options(args)
     if allows_unknown_args(command):
         return_val = command(parser, args, unknown_args)
     else:
