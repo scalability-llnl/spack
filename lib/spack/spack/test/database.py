@@ -900,3 +900,64 @@ def test_prefix_write_lock_error(mutable_database, monkeypatch):
     with pytest.raises(Exception):
         with spack.store.db.prefix_write_lock(s):
             assert False
+
+
+@pytest.mark.parametrize("spec, is_explicit", [("mpich@3.0.4", False),
+                                               ("mpileaks@2.3", True)])
+@pytest.mark.parametrize("concretize", [True, False])
+@pytest.mark.parametrize("query_explicit", [True, False, any])
+def test_query_explicit(mutable_database, spec, is_explicit, concretize,
+                        query_explicit):
+    # Test that Database.query() respects the explicit parameter
+    s = spack.spec.Spec(spec)
+    if concretize:
+        s.concretize()
+    expect_result = is_explicit == query_explicit or query_explicit is any
+    assert expect_result == bool(spack.store.db.query(query_spec=s,
+                                                      explicit=query_explicit))
+
+
+@pytest.mark.parametrize("concretize", [True, False])
+@pytest.mark.parametrize("hashes, expect_result", [(None, True),
+                                                   (["nonsense"], False)])
+def test_query_hashes(mutable_database, concretize, hashes, expect_result):
+    # Test that Database.query() respects the hashes parameter
+    s = spack.spec.Spec("mpich@3.0.4")
+    if concretize:
+        s.concretize()
+    assert expect_result == bool(spack.store.db.query(query_spec=s, hashes=hashes))
+
+
+@pytest.mark.parametrize("concretize", [True, False])
+@pytest.mark.parametrize("query_installed", [True, False])
+def test_query_installed(mutable_database, concretize, query_installed):
+    # Test that Database.query() respects the installed parameter
+    s = spack.spec.Spec("mpich@3.0.4")
+    if concretize:
+        s.concretize()
+    assert query_installed == bool(spack.store.db.query(query_spec=s,
+                                                        installed=query_installed))
+
+
+@pytest.mark.parametrize("concretize", [True, False])
+@pytest.mark.parametrize("query_known", [True, False, any])
+def test_query_known(mutable_database, concretize, query_known):
+    # Test that Database.query() respects the known parameter
+    s = spack.spec.Spec("mpich@3.0.4")
+    if concretize:
+        s.concretize()
+    assert bool(query_known) == bool(spack.store.db.query(query_spec=s,
+                                                          known=query_known))
+
+
+@pytest.mark.parametrize("concretize", [True, False])
+@pytest.mark.parametrize("start", [None, datetime.datetime.min, datetime.datetime.max])
+@pytest.mark.parametrize("end", [None, datetime.datetime.min, datetime.datetime.max])
+def test_query_date(mutable_database, concretize, start, end):
+    # Test that Database.query() respects the start/end date parameter
+    s = spack.spec.Spec("mpich@3.0.4")
+    if concretize:
+        s.concretize()
+    expect_result = start != datetime.datetime.max and end != datetime.datetime.min
+    assert expect_result == bool(spack.store.db.query(query_spec=s,
+                                                      start_date=start, end_date=end))

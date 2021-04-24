@@ -1424,23 +1424,19 @@ class Database(object):
         # TODO: like installed and known that can be queried?  Or are
         # TODO: these really special cases that only belong here?
 
-        # Just look up concrete specs with hashes; no fancy search.
+        # Use hash of concrete spec to index into dict, else each record must be tested.
         if isinstance(query_spec, spack.spec.Spec) and query_spec.concrete:
-            # TODO: handling of hashes restriction is not particularly elegant.
             hash_key = query_spec.dag_hash()
-            if (hash_key in self._data and
-                    (not hashes or hash_key in hashes)):
-                return [self._data[hash_key].spec]
-            else:
-                return []
+            record = self._data.get(hash_key, None)
+            records = (record,) if record else ()
+        else:
+            records = self._data.values()
 
-        # Abstract specs require more work -- currently we test
-        # against everything.
         results = []
         start_date = start_date or datetime.datetime.min
         end_date = end_date or datetime.datetime.max
 
-        for key, rec in self._data.items():
+        for rec in records:
             if hashes is not None and rec.spec.dag_hash() not in hashes:
                 continue
 
