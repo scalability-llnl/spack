@@ -53,7 +53,7 @@ class Paraview(CMakePackage, CudaPackage):
             description='Builds a shared version of the library')
     variant('kits', default=True,
             description='Use module kits')
-    variant('cuda_arch', default='native', multi=False,
+    variant('cuda_arch_family', default='native', multi=False,
             values=('native', 'fermi', 'kepler', 'maxwell',
                     'pascal', 'volta', 'turing', 'ampere', 'all', 'none'),
             description='CUDA architecture')
@@ -356,9 +356,40 @@ class Paraview(CMakePackage, CudaPackage):
         else:
             cmake_args.append('-DVTKm_ENABLE_CUDA:BOOL=%s' %
                               variant_bool('+cuda'))
-        if spec.satisfies('+cuda') and not spec.satisfies('cuda_arch=native'):
-            cmake_args.append('-DVTKm_CUDA_Architecture=%s' %
-                              spec.variants['cuda_arch'].value)
+
+        # Extracted from the CudaPackage source code
+        # Note that VTK-m and transitively ParaView does not support Tesla Arch
+        cuda_arch_families = {
+            '20' : 'fermi',
+            '21' : 'fermi',
+            '30' : 'kepler',
+            '32' : 'kepler',
+            '35' : 'kepler',
+            '37' : 'kepler',
+            '50' : 'maxwel',
+            '52' : 'maxwel',
+            '53' : 'maxwel',
+            '60' : 'pascal',
+            '61' : 'pascal',
+            '62' : 'pascal',
+            '70' : 'volta',
+            '72' : 'volta',
+            '75' : 'turing',
+            '80' : 'ampere',
+            '86' : 'ampere'
+        }
+
+        # If we do not specify the cuda family we can guess it by reversing
+        # the cuda_arch_families
+        if spec.satisfies('+cuda') and not spec.satisfies('cuda_arch_family'):
+            cuda_arch_value = spec.variants['cuda_arch'].value
+            if cuda_arch_value not in cuda_arch_families:
+                raise InstallError("Uncompatible cuda_arch=%s" % cuda_arch_value)
+
+            cuda_family = cuda_arch_families[cuda_arch_value]
+
+        if spec.satisfies('+cuda') and not spec.satisfies('cuda_arch_family=native'):
+            cmake_args.append('-DVTKm_CUDA_Architecture=%s' % cuda_family)
 
         if 'darwin' in spec.architecture:
             cmake_args.extend([
