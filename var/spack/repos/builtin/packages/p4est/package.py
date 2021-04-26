@@ -9,14 +9,17 @@ from spack import *
 class P4est(AutotoolsPackage):
     """Dynamic management of a collection (a forest) of adaptive octrees in
     parallel"""
-    homepage = "http://www.p4est.org"
-    url      = "http://p4est.github.io/release/p4est-2.2.tar.gz"
+    homepage = "https://www.p4est.org"
+    url      = "https://github.com/cburstedde/p4est/archive/refs/tags/v2.3.1.tar.gz"
 
     maintainers = ['davydden']
 
-    version('2.2', sha256='1549cbeba29bee2c35e7cc50a90a04961da5f23b6eada9c8047f511b90a8e438')
-    version('2.0', sha256='c522c5b69896aab39aa5a81399372a19a6b03fc6200d2d5d677d9a22fe31029a')
-    version('1.1', sha256='0b5327a35f0c869bf920b8cab5f20caa4eb55692eaaf1f451d5de30285b25139')
+    version('2.3.1', sha256='8acd592863f440656f8a97561f323b7e888fd82127203c06ae2e14753dea66a2')
+    version('2.3',   sha256='3fa2471888e07152d77e002d216d109c0d8bbc144fe3fd89833845883e28d3b8')
+    version('2.2',   sha256='7df0e9a161b6ea680324dfdbc0ffc6e0d0a6c9c9b0ea5b37c973e71a054226c2')
+    version('2.1',   sha256='83938a46a016f1836e63b63800366b8c9906f246bc8340aaebb6e74fd9de590b')
+    version('2.0',   sha256='1533989c089253372bf3a134740a06cad3fff6c6e9969c09dc31ee14b27f1efe')
+    version('1.1',   sha256='14a4ba6c5883ece611c90fae29bc60a454c20db43df646b232bd5aa552acd5cf')
 
     variant('mpi', default=True, description='Enable MPI')
     variant('openmp', default=False, description='Enable OpenMP')
