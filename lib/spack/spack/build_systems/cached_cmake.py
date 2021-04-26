@@ -225,6 +225,10 @@ class CachedCMakePackage(CMakePackage):
             "#------------------{0}\n".format("-" * 60),
         ]
 
+    def initconfig_package_entries(self):
+        """This method is to be overwritten by the package"""
+        return []
+
     def initconfig(self, spec, prefix):
         cache_entries = (self.std_initconfig_entries() +
                          self.initconfig_compiler_entries() +

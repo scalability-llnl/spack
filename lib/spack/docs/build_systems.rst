@@ -39,6 +39,7 @@ on these ideas for each distinct build system that Spack supports:
 
    build_systems/autotoolspackage
    build_systems/cmakepackage
+   build_systems/cachedcmakepackage
    build_systems/mesonpackage
    build_systems/qmakepackage
    build_systems/sippackage
