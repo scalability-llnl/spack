@@ -314,7 +314,7 @@ class PyclingoDriver(object):
             self.assumptions.append(atom)
 
     def solve(
-            self, solver_setup, specs, dump=None, nmodels=0,
+            self, solver_setup, specs, nmodels=0,
             timers=False, stats=False, tests=False
     ):
         timer = Timer()
@@ -459,8 +459,19 @@ class SpackSolverSetup(object):
 
         # Caches to optimize the setup phase of the solver
         self.target_specs_cache = None
-        # Targets that are mandated in the user spec
+
+        # Caches to optimize the ground and solve phases
+
+        # Possible packages that can be used in this spec
+        self.possible_dependencies = None
+        # Targets that are mandated or preferred in the user spec
         self.user_targets = []
+        # Nodes that are mandated in the user spec
+        self.user_nodes = []
+        # Preferred compilers
+        self.preferred_compilers = set()
+        # Preferred providers
+        self.preferred_providers = {}
 
     def pkg_version_rules(self, pkg):
         """Output declared versions of a package.
@@ -621,6 +632,7 @@ class SpackSolverSetup(object):
             self.gen.fact(fn.node_compiler_preference(
                 pkg.name, cspec.name, cspec.version, -i * 100
             ))
+        self.preferred_compilers.add(cspec.name)
 
     def pkg_rules(self, pkg, tests):
         pkg = packagize(pkg)
@@ -782,6 +794,13 @@ class SpackSolverSetup(object):
             if vspec not in self.possible_virtuals:
                 continue
 
+            # Discard providers that are not among possible dependencies.
+            # Sometimes things are listed in preferences but there's no
+            # package for them.
+            providers = [
+                x for x in providers if x in self.possible_dependencies
+            ]
+            self.preferred_providers[vspec] = providers[0]
             for i, provider in enumerate(providers):
                 func(vspec, provider, i + 10)
 
@@ -889,9 +908,9 @@ class SpackSolverSetup(object):
             return
 
         preferred = preferred_targets[0]
-        self.gen.fact(fn.package_target_weight(
-            str(preferred.architecture.target), pkg_name, -30
-        ))
+        target_str = str(preferred.architecture.target)
+        self.user_targets.append(target_str)
+        self.gen.fact(fn.package_target_weight(target_str, pkg_name, -30))
 
     def preferred_versions(self, pkg_name):
         packages_yaml = spack.config.get('packages')
@@ -1356,6 +1375,9 @@ class SpackSolverSetup(object):
         if clause.name == 'node_target_set':
             self.user_targets.append(str(clause.args[1]))
 
+        if clause.name == 'node':
+            self.user_nodes.append(str(clause.args[0]))
+
         self.gen.fact(clause)
 
     def fast_actions(self):
@@ -1373,7 +1395,7 @@ class SpackSolverSetup(object):
             'default_target_weight'
         ]
         result = []
-        default_compiler = None
+        default_compiler, default_providers = None, {}
         for x in self.gen.actions:
             if x[0] == 'fact':
                 # Not one of the likely targets
@@ -1384,15 +1406,54 @@ class SpackSolverSetup(object):
                 if x[1].name == 'compiler_supports_target':
                     if x[1].args[2] not in targets:
                         continue
-                    if x[1].args[0] != default_compiler:
+                    compiler_name = x[1].args[0]
+                    is_not_default = compiler_name != default_compiler
+                    is_not_preferred = compiler_name not in self.preferred_compilers
+                    if is_not_default and is_not_preferred:
                         continue
 
                 # Pick only the default compiler
                 if x[1].name == 'default_compiler_preference':
                     # Not the default compiler
-                    if x[1].args[2] != 0:
+                    if x[1].args[2] != 0 or self.preferred_compilers:
                         continue
                     default_compiler = x[1].args[0]
+
+                # Register default providers and skip non default
+                if x[1].name == 'default_provider_preference':
+                    vspec, provider, weight = x[1].args
+                    if weight > 10 and provider not in self.user_nodes:
+                        continue
+
+                    default_providers[vspec] = provider
+
+                def _discard_provider(p, v):
+                    # Don't discard a provider if it is in the nodes required
+                    # by the user
+                    if p in self.user_nodes:
+                        return False
+
+                    preferred = self.preferred_providers.get(v)
+                    default = default_providers.get(v)
+                    under_consideration = (preferred, default)
+
+                    # Don't discard providers if we have no clue
+                    # which one to prefer
+                    if under_consideration == (None, None):
+                        return False
+
+                    return p not in under_consideration
+
+                # Register default providers and skip non default
+                if x[1].name == 'possible_provider':
+                    provider, vspec = x[1].args
+                    if _discard_provider(provider, vspec):
+                        continue
+
+                if x[1].name == 'provider_condition':
+                    _, provider, vspec = x[1].args
+                    if _discard_provider(provider, vspec):
+                        continue
 
             result.append(x)
 
@@ -1424,7 +1485,7 @@ class SpackSolverSetup(object):
         possible = spack.package.possible_dependencies(
             *specs, virtuals=self.possible_virtuals, deptype=deptypes
         )
-        pkgs = set(possible)
+        self.possible_dependencies = set(possible)
 
         # get possible compilers
         self.possible_compilers = self.generate_possible_compilers(specs)
@@ -1448,7 +1509,7 @@ class SpackSolverSetup(object):
         self.flag_defaults()
 
         self.gen.h1('Package Constraints')
-        for pkg in sorted(pkgs):
+        for pkg in sorted(self.possible_dependencies):
             self.gen.h2('Package rules: %s' % pkg)
             self.pkg_rules(pkg, tests=tests)
             self.gen.h2('Package preferences: %s' % pkg)
@@ -1733,4 +1794,4 @@ def solve(specs, dump=(), models=0, timers=False, stats=False, tests=False):
             spack.spec.Spec.ensure_valid_variants(s)
 
     setup = SpackSolverSetup()
-    return driver.solve(setup, specs, dump, models, timers, stats, tests)
+    return driver.solve(setup, specs, models, timers, stats, tests)
