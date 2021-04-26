@@ -5,7 +5,6 @@
 
 from spack import *
 import platform
-import subprocess
 
 
 class PyNumpy(PythonPackage):
@@ -119,32 +118,12 @@ class PyNumpy(PythonPackage):
     # NVHPC support added in https://github.com/numpy/numpy/pull/17344
     conflicts('%nvhpc', when='@:1.19.999')
 
+    # This originally had a check for gcc < 4.8, but given the order of loading
+    # at the point this is executed, it was not a valid check.
     def flag_handler(self, name, flags):
         # -std=c99 at least required, old versions of GCC default to -std=c90
         if self.spec.satisfies('%gcc@:5.1') and name == 'cflags':
             flags.append(self.compiler.c99_flag)
-        # Check gcc version in use by intel compiler
-        # This will essentially check the system gcc compiler unless a gcc
-        # module is already loaded.
-        if self.spec.satisfies('%intel') and name == 'cflags':
-            p1 = subprocess.Popen(
-                [self.compiler.cc, '-v'],
-                stderr=subprocess.PIPE
-            )
-            p2 = subprocess.Popen(
-                ['grep', 'compatibility'],
-                stdin=p1.stderr,
-                stdout=subprocess.PIPE
-            )
-            p1.stderr.close()
-            out, err = p2.communicate()
-            gcc_version = Version(out.split()[5].decode('utf-8'))
-            if gcc_version < Version('4.8'):
-                raise InstallError('The GCC version that the Intel compiler '
-                                   'uses must be >= 4.8. The GCC in use is '
-                                   '{0}'.format(gcc_version))
-            if gcc_version <= Version('5.1'):
-                flags.append(self.compiler.c99_flag)
         return (flags, None, None)
 
     @run_before('build')
