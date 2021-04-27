@@ -200,8 +200,9 @@ _spack_shell_wrapper() {
 # or   pathadd OTHERPATH /path/to/dir  # add to OTHERPATH
 ########################################################################
 _spack_pathadd() {
-    # If no variable name is supplied, just append to PATH
-    # otherwise append to that variable.
+    # If no variable name is supplied, just prepend to PATH
+    # otherwise prepend to that variable.
+    # If the value is already in the variable, move it to the front
     _pa_varname=PATH
     _pa_new_path="$1"
     if [ -n "$2" ]; then
@@ -209,17 +210,30 @@ _spack_pathadd() {
         _pa_new_path="$2"
     fi
 
-    # Do the actual prepending here.
+    # Get the current value of the variable
+    # This is equivalent to the bashism
+    #      _pa_oldvalue=${!_pa_varname}
+    # but supports all POSIX shells
     eval "_pa_oldvalue=\${${_pa_varname}:-}"
 
-    _pa_canonical=":$_pa_oldvalue:"
-    if [ -d "$_pa_new_path" ] && \
-       [ "${_pa_canonical#*:${_pa_new_path}:}" = "${_pa_canonical}" ];
+    # do nothing if the new path doesn't exist
+    if [ -d "$_pa_new_path" ];
     then
-        if [ -n "$_pa_oldvalue" ]; then
-            eval "export $_pa_varname=\"$_pa_new_path:$_pa_oldvalue\""
-        else
-            export $_pa_varname="$_pa_new_path"
+	if [ -n "$_pa_oldvalue" ];
+	then
+	    # Remove value from variable if it is present
+	    # This ensures we prepend
+	    _pa_canonical=":$_pa_oldvalue:"
+	    _pa_canonical_removed=$(echo $_pa_canonical | sed "s#:\$_pa_new_path:#:#")
+	    # Strip trailing colon. Leave starting colon since we prepend next
+	    # Use a wildcard because colons have meaning for some shells
+	    _pa_removed=${_pa_canonical_removed%?}
+
+	    # Set new value
+	    export $_pa_varname="${_pa_new_path}${_pa_removed}"
+	else
+	    # Set the value
+	    export $_pa_varname="$_pa_new_path"
         fi
     fi
 }

@@ -25,13 +25,23 @@ if ($_pa_set == 1) then
     eval set _pa_old_value='$'$_pa_varname
 endif
 
-# Do the actual prepending here, if it is a dir and not already in the path
-if ( -d $_pa_new_path && \:$_pa_old_value\: !~ *\:$_pa_new_path\:* ) then
-    if ("x$_pa_old_value" == "x") then
-        setenv $_pa_varname $_pa_new_path
+# Do the actual prepending here, if it is a dir
+if ( -d $_pa_new_path) then
+    if ( "x$_pa_old_value" != "x" ) then
+        set _pa_canonical = ':'$_pa_old_value':'
+
+        # strip new value if it's present
+        set _pa_canonical_removed = `echo $_pa_canonical | sed "s#:${_pa_new_path}:#:#"`
+
+        # remove trailing colon. Keep the leading colon since we will prepend next
+        set _pa_removed = `echo $_pa_canonical_removed | rev | cut -c 2- | rev`
+
+        # Add the new path
+        setenv $_pa_varname "${_pa_new_path}${_pa_removed}"
     else
-        setenv $_pa_varname $_pa_new_path\:$_pa_old_value
+        setenv $_pa_varname $_pa_new_path
     endif
 endif
 
 unset _pa_args _pa_new_path _pa_old_value _pa_set _pa_varname
+unset _pa_canonical _pa_canonical_removed _pa_removed

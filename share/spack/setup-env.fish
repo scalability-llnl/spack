@@ -625,21 +625,14 @@ function spack_pathadd -d "Add path to specified variable (defaults to PATH)"
     # skip path is not existing directory
     #  -> Notes: [1] (cf. EOF).
     if test -d "$pa_new_path"
+        # remove path if it is already present to move to front
+        set -l pa_removed (string match --invert $pa_new_path $pa_oldvalue)
 
-        # combine argument array into single string (space seperated), to be
-        # passed to regular expression matching (`string match -r`)
-        set -l _a "$pa_oldvalue"
-
-        # skip path if it is already contained in the variable
-        # note spaces in regular expression: we're matching to a space delimited
-        # list of paths
-        if not echo $_a | string match -q -r " *$pa_new_path *"
-            if test -n "$pa_oldvalue"
-                set $pa_varname $pa_new_path $pa_oldvalue
-            else
-                true # this is a bit of a strange hack! Notes: [3] (cf. EOF)
-                set $pa_varname $pa_new_path
-            end
+        if test -n "$pa_removed"
+            set $pa_varname $pa_new_path $pa_removed
+        else
+            true # this is a bit of a strange hack! Nodes: [3] (cf. EOF)
+            set $pa_varname $pa_new_path
         end
     end
 end
