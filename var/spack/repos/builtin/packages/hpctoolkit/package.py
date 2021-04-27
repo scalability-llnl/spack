@@ -113,6 +113,9 @@ class Hpctoolkit(AutotoolsPackage):
     conflicts('^binutils@2.35:2.35.1',
               msg='avoid binutils 2.35 and 2.35.1 (spews errors)')
 
+    # Fix the build for old revs with gcc 10.x.
+    patch('gcc10-enum.patch', when='@2020.01.01:2020.08.99 %gcc@10.0:')
+
     flag_handler = AutotoolsPackage.build_system_flags
 
     def configure_args(self):

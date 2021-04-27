@@ -12,10 +12,12 @@ class LlvmAmdgpu(CMakePackage):
        optimizers, and run-time environments."""
 
     homepage = "https://github.com/RadeonOpenCompute/llvm-project"
+    git      = "https://github.com/RadeonOpenCompute/llvm-project.git"
     url      = "https://github.com/RadeonOpenCompute/llvm-project/archive/rocm-4.1.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('master', branch='amd-stg-open')
     version('4.1.0', sha256='244e38d824fa7dfa8d0edf3c036b3c84e9c17a16791828e4b745a8d31eb374ae')
     version('4.0.0', sha256='aa1f80f429fded465e86bcfaef72255da1af1c5c52d58a4c979bc2f6c2da5a69')
     version('3.10.0', sha256='8262aff88c1ff6c4deb4da5a4f8cda1bf90668950e2b911f93f73edaee53b370')

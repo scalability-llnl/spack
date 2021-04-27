@@ -14,10 +14,12 @@ class Hip(CMakePackage):
        single source code."""
 
     homepage = "https://github.com/ROCm-Developer-Tools/HIP"
-    url      = "https://github.com/ROCm-Developer-Tools/HIP/archive/rocm-4.0.0.tar.gz"
+    git      = "https://github.com/ROCm-Developer-Tools/HIP.git"
+    url      = "https://github.com/ROCm-Developer-Tools/HIP/archive/rocm-4.1.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('4.1.0', sha256='e21c10b62868ece7aa3c8413ec0921245612d16d86d81fe61797bf9a64bc37eb')
     version('4.0.0', sha256='d7b78d96cec67c55b74ea3811ce861b16d300410bc687d0629e82392e8d7c857')
     version('3.10.0', sha256='0082c402f890391023acdfd546760f41cb276dffc0ffeddc325999fd2331d4e8')
     version('3.9.0', sha256='25ad58691456de7fd9e985629d0ed775ba36a2a0e0b21c086bd96ba2fb0f7ed1')
@@ -29,8 +31,8 @@ class Hip(CMakePackage):
     depends_on('perl@5.10:', type=('build', 'run'))
     depends_on('mesa18~llvm@18.3:')
 
-    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
-        depends_on('hip-rocclr@' + ver,  type='build', when='@' + ver)
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
+        depends_on('hip-rocclr@' + ver,  type=('build', 'run'), when='@' + ver)
         depends_on('hsakmt-roct@' + ver, type='build', when='@' + ver)
         depends_on('hsa-rocr-dev@' + ver, type='link', when='@' + ver)
         depends_on('comgr@' + ver, type=('build', 'link', 'run'), when='@' + ver)
@@ -56,10 +58,11 @@ class Hip(CMakePackage):
     # See https://github.com/ROCm-Developer-Tools/HIP/pull/2218
     patch('0003-Improve-compilation-without-git-repo.3.7.0.patch', when='@3.7.0:3.9.0')
     patch('0003-Improve-compilation-without-git-repo.3.10.0.patch', when='@3.10.0:4.0.0')
+    patch('0003-Improve-compilation-without-git-repo.4.1.0.patch', when='@4.1.0')
 
     # See https://github.com/ROCm-Developer-Tools/HIP/pull/2219
     patch('0004-Drop-clang-rt-builtins-linking-on-hip-host.3.7.0.patch', when='@3.7.0:3.9.0')
-    patch('0004-Drop-clang-rt-builtins-linking-on-hip-host.3.10.0.patch', when='@3.10.0:4.0.0')
+    patch('0004-Drop-clang-rt-builtins-linking-on-hip-host.3.10.0.patch', when='@3.10.0:4.1.0')
 
     def get_paths(self):
         if self.spec.external:
@@ -82,7 +85,7 @@ class Hip(CMakePackage):
                 'llvm-amdgpu': rocm_prefix.llvm,
                 'hsa-rocr-dev': rocm_prefix.hsa,
                 'rocminfo': rocm_prefix,
-                'rocm-device-libs': rocm_prefix
+                'rocm-device-libs': rocm_prefix,
             }
         else:
             paths = {
@@ -90,7 +93,7 @@ class Hip(CMakePackage):
                 'llvm-amdgpu': self.spec['llvm-amdgpu'].prefix,
                 'hsa-rocr-dev': self.spec['hsa-rocr-dev'].prefix,
                 'rocminfo': self.spec['rocminfo'].prefix,
-                'rocm-device-libs': self.spec['rocm-device-libs'].prefix
+                'rocm-device-libs': self.spec['rocm-device-libs'].prefix,
             }
 
         # `device_lib_path` is the path to the bitcode directory
@@ -113,7 +116,11 @@ class Hip(CMakePackage):
         # hipcc recognizes HIP_PLATFORM == hcc and HIP_COMPILER == clang, even
         # though below we specified HIP_PLATFORM=rocclr and HIP_COMPILER=clang
         # in the CMake args.
-        env.set('HIP_PLATFORM', 'hcc')
+        if self.spec.satisfies('@:4.0.0'):
+            env.set('HIP_PLATFORM', 'hcc')
+        else:
+            env.set('HIP_PLATFORM', 'amd')
+
         env.set('HIP_COMPILER', 'clang')
 
         # bin directory where clang++ resides
@@ -185,10 +192,19 @@ class Hip(CMakePackage):
         with working_dir('bin'):
             match = '^#!/usr/bin/perl'
             substitute = "#!{perl}".format(perl=perl)
-            files = [
-                'hipify-perl', 'hipcc', 'extractkernel',
-                'hipconfig', 'hipify-cmakefile'
-            ]
+
+            if self.spec.satisfies('@:4.0.0'):
+                files = [
+                    'hipify-perl', 'hipcc', 'extractkernel',
+                    'hipconfig', 'hipify-cmakefile'
+                ]
+            else:
+                files = [
+                    'hipify-perl', 'hipcc', 'roc-obj-extract',
+                    'hipconfig', 'hipify-cmakefile',
+                    'roc-obj-ls', 'hipvars.pm'
+                ]
+
             filter_file(match, substitute, *files, **kwargs)
 
             # This guy is used during the cmake phase, so we have to fix the
@@ -215,10 +231,14 @@ class Hip(CMakePackage):
     def cmake_args(self):
         args = [
             self.define('HIP_COMPILER', 'clang'),
-            self.define('HIP_PLATFORM', 'rocclr'),
-            self.define('HSA_PATH', self.spec['hsa-rocr-dev'].prefix),
-            self.define('HIP_RUNTIME', 'ROCclr'),
+            self.define('HSA_PATH', self.spec['hsa-rocr-dev'].prefix)
         ]
+        if self.spec.satisfies('@:4.0.0'):
+            args.append(self.define('HIP_RUNTIME', 'ROCclr'))
+            args.append(self.define('HIP_PLATFORM', 'rocclr'))
+        else:
+            args.append(self.define('HIP_RUNTIME', 'rocclr'))
+            args.append(self.define('HIP_PLATFORM', 'amd'))
 
         # LIBROCclr_STATIC_DIR is unused from 3.6.0 and above
         if '@3.5.0' in self.spec:

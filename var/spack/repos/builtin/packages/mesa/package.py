@@ -123,11 +123,17 @@ class Mesa(MesonPackage):
             args.append('-Dlibunwind=disabled')
 
         num_frontends = 0
+
+        if spec.satisfies('@:20.3'):
+            osmesa_enable, osmesa_disable = ('gallium', 'none')
+        else:
+            osmesa_enable, osmesa_disable = ('true', 'false')
+
         if '+osmesa' in spec:
             num_frontends += 1
-            args.append('-Dosmesa=gallium')
+            args.append('-Dosmesa={0}'.format(osmesa_enable))
         else:
-            args.append('-Dosmesa=none')
+            args.append('-Dosmesa={0}'.format(osmesa_disable))
 
         if '+glx' in spec:
             num_frontends += 1

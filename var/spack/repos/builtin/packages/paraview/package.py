@@ -57,13 +57,14 @@ class Paraview(CMakePackage, CudaPackage):
             description='Use module kits')
     variant('cuda_arch', default='native', multi=False,
             values=('native', 'fermi', 'kepler', 'maxwell',
-                    'pascal', 'volta', 'turing', 'all', 'none'),
+                    'pascal', 'volta', 'turing', 'ampere', 'all', 'none'),
             description='CUDA architecture')
     variant('build_edition', default='canonical', multi=False,
             values=('canonical', 'catalyst_rendering',
                     'catalyst', 'rendering', 'core'),
             description='Build editions include only certain modules. '
             'Editions are listed in decreasing order of size.')
+    variant('advanced_debug', default=False, description="Enable all other debug flags beside build_type, such as VTK_DEBUG_LEAK")
 
     conflicts('+python', when='+python3')
     # Python 2 support dropped with 5.9.0
@@ -140,7 +141,7 @@ class Paraview(CMakePackage, CudaPackage):
     depends_on('protobuf@3.4:')
     depends_on('libxml2')
     depends_on('lz4')
-    depends_on('lzma')
+    depends_on('xz')
     depends_on('zlib')
 
     # Older builds of pugi export their symbols differently,
@@ -412,5 +413,8 @@ class Paraview(CMakePackage, CudaPackage):
                     ":".join(self.rpath + pylibdirs)
                 )
             )
+
+        if '+advanced_debug' in spec:
+            cmake_args.append('-DVTK_DEBUG_LEAKS:BOOL=ON')
 
         return cmake_args

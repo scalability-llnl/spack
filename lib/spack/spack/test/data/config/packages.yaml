@@ -36,3 +36,13 @@ packages:
         prefix: /usr
       - spec: external-buildable-with-variant@0.9 +baz
         prefix: /usr
+  'old-external':
+    buildable: True
+    externals:
+      - spec: old-external@1.0.0
+        prefix: /usr
+  'external-non-default-variant':
+    buildable: True
+    externals:
+      - spec: external-non-default-variant@3.8.7~foo~bar
+        prefix: /usr

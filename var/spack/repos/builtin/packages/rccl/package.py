@@ -13,10 +13,12 @@ class Rccl(CMakePackage):
     and reduce-scatter."""
 
     homepage = "https://github.com/RadeonOpenCompute/rccl"
-    url      = "https://github.com/ROCmSoftwarePlatform/rccl/archive/rocm-4.0.0.tar.gz"
+    git      = "https://github.com/RadeonOpenCompute/rccl.git"
+    url      = "https://github.com/ROCmSoftwarePlatform/rccl/archive/rocm-4.1.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('4.1.0', sha256='88ec9b43c31cb054fe6aa28bcc0f4b510213635268f951939d6980eee5bb3680')
     version('4.0.0', sha256='0632a15b3d6b5981c05377cf4aeb51546f4c4901fd7c37fb0c98071851ad531a')
     version('3.10.0', sha256='d9dd0b0d8b9d056fc5e6c7b814520800190952acd30dac3a7c462c4cb6f42bb3')
     version('3.9.0', sha256='ff9d03154d668093309ff814a33788f2cc093b3c627e78e42ae246e6017408b0')
@@ -27,14 +29,16 @@ class Rccl(CMakePackage):
     patch('0001-Fix-numactl-path-issue.patch', when='@3.7.0:')
 
     depends_on('cmake@3:', type='build')
-    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
         depends_on('rocm-cmake@' + ver, type='build', when='@' + ver)
         depends_on('hip@' + ver, type=('build', 'run'), when='@' + ver)
         depends_on('rocm-device-libs@' + ver, type=('build', 'run'), when='@' + ver)
         depends_on('comgr@' + ver, type='build', when='@' + ver)
         depends_on('hsa-rocr-dev@' + ver, type='build', when='@' + ver)
-        if ver in ['3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
+        if ver in ['3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0' '4.1.0']:
             depends_on('numactl@2.0.12', type=('build', 'link'), when='@' + ver)
+        if ver in ['4.1.0']:
+            depends_on('hip-rocclr@' + ver, type='link', when='@' + ver)
 
     def setup_build_environment(self, env):
         env.set('CXX', self.spec['hip'].hipcc)

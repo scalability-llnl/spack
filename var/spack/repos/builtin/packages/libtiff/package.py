@@ -26,6 +26,6 @@ class Libtiff(AutotoolsPackage):
 
     def patch(self):
         # Remove flags not recognized by the NVIDIA compiler
-        if self.spec.satisfies('%nvhpc'):
+        if self.spec.satisfies('%nvhpc@:20.11'):
             filter_file('vl_cv_prog_cc_warnings="-Wall -W"',
                         'vl_cv_prog_cc_warnings="-Wall"', 'configure')

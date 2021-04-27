@@ -21,6 +21,8 @@ class Ssht(CMakePackage):
 
     maintainers = ['eschnett']
 
+    version('1.3.7', sha256='947c11b104734acb124171ff5115d14279b4d09bc297ac989204633919df422e')
+    version('1.3.6', sha256='db652e0f550229a630643bbf4bdb270def25c158be5ccdcf594a24fd8054430d')
     version('1.3.5', sha256='2f71690cbd00f4969d7377e586022397bfb8efb107f7b13bf849a65e61362350')
     version('1.3.4', sha256='dfcceca9a4ffe8973a45e213e8d5331dcee6a504a42601f50fdfa4fd022cce7b')
     version('1.3.3', sha256='1f3b89e29d89fa79170b9979046a55c81b588d9dd563fd36f37887495b71dd28')

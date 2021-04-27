@@ -119,7 +119,9 @@ def test_install_dirty_flag(arguments, expected):
 
 
 def test_package_output(tmpdir, capsys, install_mockery, mock_fetch):
-    """Ensure output printed from pkgs is captured by output redirection."""
+    """
+    Ensure output printed from pkgs is captured by output redirection.
+    """
     # we can't use output capture here because it interferes with Spack's
     # logging. TODO: see whether we can get multiple log_outputs to work
     # when nested AND in pytest
@@ -140,12 +142,15 @@ def test_package_output(tmpdir, capsys, install_mockery, mock_fetch):
 @pytest.mark.disable_clean_stage_check
 def test_install_output_on_build_error(mock_packages, mock_archive, mock_fetch,
                                        config, install_mockery, capfd):
+    """
+    This test used to assume receiving full output, but since we've updated
+    spack to generate logs on the level of phases, it will only return the
+    last phase, install.
+    """
     # capfd interferes with Spack's capturing
     with capfd.disabled():
-        out = install('build-error', fail_on_error=False)
-    assert 'ProcessError' in out
-    assert 'configure: error: in /path/to/some/file:' in out
-    assert 'configure: error: cannot run C compiled programs.' in out
+        out = install('-v', 'build-error', fail_on_error=False)
+    assert 'Installing build-error' in out
 
 
 @pytest.mark.disable_clean_stage_check
@@ -172,20 +177,17 @@ def test_install_with_source(
 @pytest.mark.disable_clean_stage_check
 def test_show_log_on_error(mock_packages, mock_archive, mock_fetch,
                            config, install_mockery, capfd):
-    """Make sure --show-log-on-error works."""
+    """
+    Make sure --show-log-on-error works.
+    """
     with capfd.disabled():
         out = install('--show-log-on-error', 'build-error',
                       fail_on_error=False)
     assert isinstance(install.error, spack.build_environment.ChildError)
     assert install.error.pkg.name == 'build-error'
-    assert 'Full build log:' in out
 
-    print(out)
-
-    # Message shows up for ProcessError (1) and output (1)
-    errors = [line for line in out.split('\n')
-              if 'configure: error: cannot run C compiled programs' in line]
-    assert len(errors) == 2
+    assert '==> Installing build-error' in out
+    assert 'See build log for details:' in out
 
 
 def test_install_overwrite(
@@ -711,7 +713,9 @@ def test_install_only_dependencies_of_all_in_env(
 
 
 def test_install_help_does_not_show_cdash_options(capsys):
-    """Make sure `spack install --help` does not describe CDash arguments"""
+    """
+    Make sure `spack install --help` does not describe CDash arguments
+    """
     with pytest.raises(SystemExit):
         install('--help')
         captured = capsys.readouterr()
@@ -754,7 +758,9 @@ def test_compiler_bootstrap(
 def test_compiler_bootstrap_from_binary_mirror(
         install_mockery_mutable_config, mock_packages, mock_fetch,
         mock_archive, mutable_config, monkeypatch, tmpdir):
-    """Make sure installing compiler from buildcache registers compiler"""
+    """
+    Make sure installing compiler from buildcache registers compiler
+    """
 
     # Create a temp mirror directory for buildcache usage
     mirror_dir = tmpdir.join('mirror_dir')

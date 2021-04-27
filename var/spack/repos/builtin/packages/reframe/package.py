@@ -23,6 +23,8 @@ class Reframe(Package):
     maintainers = ['victorusu', 'vkarak']
 
     version('master', branch='master')
+    version('3.5.2',  sha256='50d461811f6bba7c9b897866a290063e1bd229e7055f5acc2de1f749b99bfce7')
+    version('3.5.1',  sha256='656ac4c5cddd2af3fc358a7782b0a57c86d61adaeec99181ab7e1ddc630427b7')
     version('3.5.0',  sha256='81b501be4252c99f12043cb21b0b7b8059207a340fc94173b180444599773f1a')
     version('3.4.2',  sha256='0c5c6dbd234b8007be929be2ccbe6a00d9a5ec75cc86e129557590b83f71acca')
     version('3.4.1',  sha256='aed5752a2f687002839923c5432784d3a25d3a29d43b69122dcbf72befa0fdbf')
@@ -55,7 +57,7 @@ class Reframe(Package):
 
     # runtime dependencies
     depends_on('py-argcomplete', when='@3.4.1:', type='run')
-    depends_on('py-importlib-metadata', type='run')
+    depends_on('py-importlib-metadata', when='^python@:3.7', type='run')
     depends_on('py-jsonschema', type='run')
     depends_on('py-pyyaml', when='@3.4.1:', type='run')
     depends_on('py-requests', when='@3.4.1:', type='run')

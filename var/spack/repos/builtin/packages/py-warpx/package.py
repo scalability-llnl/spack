@@ -18,14 +18,21 @@ class PyWarpx(PythonPackage):
     """
 
     homepage = "https://ecp-warpx.github.io"
+    url      = "https://github.com/ECP-WarpX/WarpX/archive/refs/tags/21.04.tar.gz"
     git      = "https://github.com/ECP-WarpX/WarpX.git"
 
     maintainers = ['ax3l', 'dpgrote', 'RemiLehe']
 
     version('develop', branch='development')
+    version('21.04', sha256='51d2d8b4542eada96216e8b128c0545c4b7527addc2038efebe586c32c4020a0')
 
     variant('mpi', default=True,
             description='Enable MPI support')
+
+    for v in ['21.04', 'develop']:
+        depends_on('warpx@{0}'.format(v),
+                   when='@{0}'.format(v),
+                   type=['build', 'link'])
 
     depends_on('python@3.6:', type=('build', 'run'))
     depends_on('py-numpy@1.15.0:', type=('build', 'run'))

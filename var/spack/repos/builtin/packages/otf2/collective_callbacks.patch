@@ -1,0 +1,13 @@
+diff --git a/src/otf2_archive_int.c b/src/otf2_archive_int.c
+index db9b7a9..68f1694 100644
+--- a/src/otf2_archive_int.c
++++ b/src/otf2_archive_int.c
+@@ -1083,7 +1083,7 @@ otf2_archive_set_collective_callbacks( OTF2_Archive*                   archive,
+     archive->global_comm_context  = globalCommContext;
+     archive->local_comm_context   = localCommContext;
+ 
+-    OTF2_ErrorCode status;
++    OTF2_ErrorCode status = OTF2_SUCCESS;
+ 
+     /* It is time to create the directories by the root rank. */
+     if ( archive->file_mode == OTF2_FILEMODE_WRITE )

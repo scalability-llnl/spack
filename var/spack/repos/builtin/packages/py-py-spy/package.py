@@ -17,3 +17,4 @@ class PyPySpy(PythonPackage):
     # Need to figure out how to manage these with Spack once we have a
     # CargoPackage base class.
     depends_on('rust', type='build')
+    depends_on('unwind')

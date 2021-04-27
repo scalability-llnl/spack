@@ -19,6 +19,8 @@ class BerkeleyDb(AutotoolsPackage):
     version('5.3.28', sha256='e0a992d740709892e81f9d93f06daf305cf73fb81b545afe72478043172c3628')
 
     variant('docs', default=False)
+    variant('cxx', default=True, description='Build with C++ API')
+    variant('stl', default=True, description='Build with C++ STL API')
 
     configure_directory = 'dist'
     build_directory = 'build_unix'
@@ -27,6 +29,8 @@ class BerkeleyDb(AutotoolsPackage):
 
     conflicts('%clang@7:', when='@5.3.28')
     conflicts('%gcc@8:', when='@5.3.28')
+
+    conflicts('+stl', when='~cxx', msg='+stl implies +cxx')
 
     def patch(self):
         # some of the docs are missing in 18.1.40
@@ -39,15 +43,16 @@ class BerkeleyDb(AutotoolsPackage):
 
         config_args = [
             '--disable-static',
-            '--enable-cxx',
             '--enable-dbm',
-            '--enable-stl',
             # compat with system berkeley-db on darwin
             "--enable-compat185",
             # SSL support requires OpenSSL, but OpenSSL depends on Perl, which
             # depends on Berkey DB, creating a circular dependency
             '--with-repmgr-ssl=no',
         ]
+
+        config_args += self.enable_or_disable('cxx')
+        config_args += self.enable_or_disable('stl')
 
         # The default glibc provided by CentOS 7 and Red Hat 8 does not provide
         # proper atomic support when using the NVIDIA compilers

@@ -19,6 +19,10 @@ from spack.build_systems.makefile import MakefilePackage
 from spack.build_systems.aspell_dict import AspellDictPackage
 from spack.build_systems.autotools import AutotoolsPackage
 from spack.build_systems.cmake import CMakePackage
+from spack.build_systems.cached_cmake import (
+    CachedCMakePackage, cmake_cache_option, cmake_cache_path,
+    cmake_cache_string
+)
 from spack.build_systems.cuda import CudaPackage
 from spack.build_systems.oneapi import IntelOneApiPackage
 from spack.build_systems.oneapi import IntelOneApiLibraryPackage

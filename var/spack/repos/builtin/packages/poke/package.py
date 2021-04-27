@@ -13,7 +13,7 @@ class Poke(AutotoolsPackage, GNUMirrorPackage):
 
     version('1.0', sha256='de930b8700c0772b3c2cd0d0ca35f50fd3d77bdf82c6251eb516b49e8ca25b0a')
 
-    depends_on('pkgconf')
+    depends_on('pkgconfig')
     depends_on('readline')
     depends_on('bdw-gc')
     depends_on('json-c')

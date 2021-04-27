@@ -15,6 +15,7 @@ import collections
 import contextlib
 import copy
 import functools
+import glob
 import hashlib
 import inspect
 import os
@@ -1065,6 +1066,14 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
 
         # Otherwise, return the current log path name.
         return os.path.join(self.stage.path, _spack_build_logfile)
+
+    @property
+    def phase_log_files(self):
+        """Find sorted phase log files written to the staging directory"""
+        logs_dir = os.path.join(self.stage.path, "spack-build-*-out.txt")
+        log_files = glob.glob(logs_dir)
+        log_files.sort()
+        return log_files
 
     @property
     def install_log_path(self):
@@ -2319,8 +2328,13 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
 
         extensions_layout = view.extensions_layout
 
-        extensions_layout.check_extension_conflict(
-            self.extendee_spec, self.spec)
+        try:
+            extensions_layout.check_extension_conflict(
+                self.extendee_spec, self.spec)
+        except spack.directory_layout.ExtensionAlreadyInstalledError as e:
+            # already installed, let caller know
+            tty.msg(e.message)
+            return
 
         # Activate any package dependencies that are also extensions.
         if with_dependencies:

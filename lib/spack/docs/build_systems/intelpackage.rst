@@ -561,43 +561,29 @@ follow `the next section <intel-install-libs_>`_ instead.
              modules:    []
              spec:       intel@18.0.3
              paths:
-               cc:       stub
-               cxx:      stub
-               f77:      stub
-               fc:       stub
+               cc:       /usr/bin/true
+               cxx:      /usr/bin/true
+               f77:      /usr/bin/true
+               fc:       /usr/bin/true
 
       Replace ``18.0.3`` with the version that you determined in the preceding
-      step. The contents under ``paths:`` do not matter yet.
+      step. The exact contents under ``paths:`` do not matter yet, but the paths must exist.
 
-   You are right to ask: "Why on earth is that necessary?" [fn8]_.
-   The answer lies in Spack striving for strict compiler consistency.
-   Consider what happens without such a pre-declared compiler stub:
-   Say, you ask Spack to install a particular version
-   ``intel-parallel-studio@edition.V``.  Spack will apply an unrelated compiler
-   spec to concretize and install your request, resulting in
-   ``intel-parallel-studio@edition.V %X``. That compiler ``%X`` is not going to
-   be the version that this new package itself provides. Rather, it would
-   typically be ``%gcc@...`` in a default Spack installation or possibly indeed
-   ``%intel@...``, but at a version that precedes ``V``.
+   This temporary stub is required such that the ``intel-parallel-studio`` package
+   can be installed for the ``intel`` compiler (which the package itself is going
+   to provide after the installation) rather than an arbitrary system compiler.
+   The paths given in ``cc``, ``cxx``, ``f77``, ``fc`` must exist, but will
+   never be used to build anything during the installation of ``intel-parallel-studio``.
 
-   The problem comes to the fore as soon as you try to use any virtual ``mkl``
-   or ``mpi`` packages that you would expect to now be provided by
-   ``intel-parallel-studio@edition.V``.  Spack will indeed see those virtual
-   packages, but only as being tied to the compiler that the package
-   ``intel-parallel-studio@edition.V`` was concretized with *at installation*.
-   If you were to install a client package with the new compilers now available
-   to you, you would naturally run ``spack install foo +mkl %intel@V``, yet
-   Spack will either complain about ``mkl%intel@V`` being missing (because it
-   only knows about ``mkl%X``) or it will go and attempt to install *another
-   instance* of ``intel-parallel-studio@edition.V %intel@V`` so as to match the
-   compiler spec ``%intel@V`` that you gave for your client package ``foo``.
-   This will be unexpected and will quickly get annoying because each
-   reinstallation takes up time and extra disk space.
+   The reason for this stub is that ``intel-parallel-studio`` also provides the
+   ``mpi`` and ``mkl`` packages and when concretizing a spec, Spack ensures
+   strong consistency of the used compiler across all dependencies:  [fn8]_.
+   Installing a package ``foo +mkl %intel`` will make Spack look for a package
+   ``mkl %intel``, which can be provided by ``intel-parallel-studio+mkl %intel``,
+   but not by ``intel-parallel-studio+mkl %gcc``.
 
-   To escape this trap, put the compiler stub declaration shown here in place,
-   then use that pre-declared compiler spec to install the actual package, as
-   shown next.  This approach works because during installation only the
-   package's own self-sufficient installer will be used, not any compiler.
+   Failure to do so may result in additional installations of ``mkl``, ``intel-mpi`` or
+   even ``intel-parallel-studio`` as dependencies for other packages.
 
    .. _`verify-compiler-anticipated`:
 
@@ -648,10 +634,24 @@ follow `the next section <intel-install-libs_>`_ instead.
      want to use the ``intel64`` variant.  The ``icpc`` and ``ifort`` compilers
      will be located in the same directory as ``icc``.
 
-   * Use the ``modules:`` and/or ``cflags:`` tokens to specify a suitable accompanying
+   * Make sure to specify ``modules: ['intel-parallel-studio-cluster2018.3-intel-18.0.3-HASH']``
+     (with ``HASH`` being the short hash as displayed when running
+     ``spack find -l intel-parallel-studio@cluster.2018.3`` and the versions adapted accordingly)
+     to ensure that the correct and complete environment for the Intel compilers gets
+     loaded when running them. With modern versions of the Intel compiler you may otherwise see
+     issues about missing libraries. Please also note that module name must exactly match
+     the name as returned by ``module avail`` (and shown in the example above).
+
+   * Use the ``modules:`` and/or ``cflags:`` tokens to further specify a suitable accompanying
      ``gcc`` version to help pacify picky client packages that ask for C++
      standards more recent than supported by your system-provided ``gcc`` and its
      ``libstdc++.so``.
+
+   * If you specified a custom variant (for example ``+vtune``) you may want to add this as your
+     preferred variant in the packages configuration for the ``intel-parallel-studio`` package
+     as described in :ref:`concretization-preferences`. Otherwise you will have to specify
+     the variant everytime ``intel-parallel-studio`` is being used as ``mkl``, ``fftw`` or ``mpi``
+     implementation to avoid pulling in a different variant.
 
    * To set the Intel compilers for default use in Spack, instead of the usual ``%gcc``,
      follow section `Selecting Intel compilers`_.

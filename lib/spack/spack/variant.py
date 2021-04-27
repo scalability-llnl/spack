@@ -201,7 +201,7 @@ def implicit_variant_conversion(method):
     return convert
 
 
-@lang.key_ordering
+@lang.lazy_lexicographic_ordering
 class AbstractVariant(object):
     """A variant that has not yet decided who it wants to be. It behaves like
     a multi valued variant which **could** do things.
@@ -282,21 +282,14 @@ class AbstractVariant(object):
         # to a set
         self._value = tuple(sorted(set(value)))
 
-    def _cmp_value(self):
-        """Returns a tuple of strings containing the values stored in
-        the variant.
+    def _cmp_iter(self):
+        yield self.name
 
-        Returns:
-            tuple of str: values stored in the variant
-        """
         value = self._value
         if not isinstance(value, tuple):
             value = (value,)
-        stringified = tuple(str(x) for x in value)
-        return stringified
-
-    def _cmp_key(self):
-        return self.name, self._cmp_value()
+        value = tuple(str(x) for x in value)
+        yield value
 
     def copy(self):
         """Returns an instance of a variant equivalent to self

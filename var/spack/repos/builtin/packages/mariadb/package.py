@@ -56,6 +56,12 @@ class Mariadb(CMakePackage):
 
     conflicts('%gcc@9.1.0:', when='@:5.5')
 
+    # patch needed for cmake-3.20
+    patch('https://github.com/mariadb-corporation/mariadb-connector-c/commit/242cab8c.patch',
+          sha256='bcfa0a73a34654495f5dea3cecdcb7de911c7c2446240aeaa674a4b2ab46f58c',
+          working_dir='libmariadb',
+          when='@10.2.8:')
+
     def cmake_args(self):
         args = []
 

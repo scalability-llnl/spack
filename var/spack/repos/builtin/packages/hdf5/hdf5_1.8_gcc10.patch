@@ -1,0 +1,12 @@
+diff -Naur hdf5.orig/fortran/test/tH5T_F03.f90 hdf5/fortran/test/tH5T_F03.f90
+--- hdf5.orig/fortran/test/tH5T_F03.f90	2021-01-19 13:23:11.298000000 +0100
++++ hdf5/fortran/test/tH5T_F03.f90	2021-01-19 13:19:17.637000000 +0100
+@@ -1541,7 +1541,7 @@
+   INTEGER :: A, B, C, D
+   INTEGER :: Aw, Bw, Cw, Dw
+   INTEGER :: i, j
+-  INTEGER, PARAMETER :: hex =  Z'00000003'
++  INTEGER, PARAMETER :: hex =  INT(Z'00000003')
+   TYPE(C_PTR) :: f_ptr
+   INTEGER :: error     ! Error flag
+   !

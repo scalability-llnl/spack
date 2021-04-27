@@ -6,6 +6,7 @@ import inspect
 import itertools
 import os
 import os.path
+import stat
 from subprocess import PIPE
 from subprocess import check_call
 from typing import List  # novm
@@ -174,7 +175,10 @@ class AutotoolsPackage(PackageBase):
         # Copy the good files over the bad ones
         for abs_path in to_be_patched:
             name = os.path.basename(abs_path)
+            mode = os.stat(abs_path).st_mode
+            os.chmod(abs_path, stat.S_IWUSR)
             fs.copy(substitutes[name], abs_path)
+            os.chmod(abs_path, mode)
 
     @run_before('configure')
     def _set_autotools_environment_variables(self):

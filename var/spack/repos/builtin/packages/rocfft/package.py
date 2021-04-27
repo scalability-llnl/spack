@@ -11,10 +11,12 @@ class Rocfft(CMakePackage):
     """Radeon Open Compute FFT library"""
 
     homepage = "https://github.com/ROCmSoftwarePlatform/rocFFT/"
-    url      = "https://github.com/ROCmSoftwarePlatform/rocfft/archive/rocm-4.0.0.tar.gz"
+    git      = "https://github.com/ROCmSoftwarePlatform/rocFFT.git"
+    url      = "https://github.com/ROCmSoftwarePlatform/rocfft/archive/rocm-4.1.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('4.1.0', sha256='df23fcb05aae72557461ae3687be7e3b8b78be4132daf1aa9dc07339f4eba0cc')
     version('4.0.0', sha256='d1d10d270f822e0bab64307313ef163ba449b058bf3352962bbb26d4f4db89d0')
     version('3.10.0', sha256='9f57226aac7d9a0515e14a5a5b08a85e727de72b3f9c2177daf56749ac2c76ae')
     version('3.9.0', sha256='9c9c0b7f09bab17250f5101d1605e7a61218eae828a3eb8fe048d607181294ce')
@@ -34,11 +36,13 @@ class Rocfft(CMakePackage):
 
     depends_on('cmake@3:', type='build')
 
-    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
         depends_on('rocm-cmake@' + ver, type='build', when='@' + ver)
         depends_on('rocm-device-libs@' + ver, type='build', when='@' + ver)
         depends_on('hip@' + ver, when='@' + ver)
         depends_on('comgr@' + ver, type=('build', 'link'), when='@' + ver)
+    for ver in ['4.1.0']:
+        depends_on('hip-rocclr@' + ver, when='@' + ver)
 
     def setup_build_environment(self, env):
         env.set('CXX', self.spec['hip'].hipcc)

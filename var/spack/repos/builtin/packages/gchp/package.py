@@ -11,14 +11,14 @@ class Gchp(CMakePackage):
     """GEOS-Chem High Performance model of atmospheric chemistry"""
 
     homepage = "https://gchp.readthedocs.io/"
-    url      = "https://github.com/geoschem/GCHP/archive/13.0.0.tar.gz"
+    url      = "https://github.com/geoschem/GCHP/archive/13.0.1.tar.gz"
 
     maintainers = ['williamdowns']
 
-    version('13.0.0', git='https://github.com/geoschem/GCHP.git', preferred=True,
+    version('13.0.1', git='https://github.com/geoschem/GCHP.git',
+            commit='f40a2476fda901eacf78c0972fdb6c20e5a06700',  submodules=True)
+    version('13.0.0', git='https://github.com/geoschem/GCHP.git',
             commit='1f5a5c5630c5d066ff8306cbb8b83e267ca7c265',  submodules=True)
-    version('13.0.0-rc.0', git='https://github.com/geoschem/GCHP.git',
-            commit='4bd15316faf4e5f06517d3a6b1df1986b1126d90',  submodules=True)
 
     patch('for_aarch64.patch', when='target=aarch64:')
 

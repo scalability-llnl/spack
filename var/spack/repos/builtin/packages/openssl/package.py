@@ -114,7 +114,7 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
         if spec.satisfies('@1.0'):
             options.append('no-krb5')
         # clang does not support the .arch directive in assembly files.
-        if 'clang' in self.compiler.cc and \
+        if ('clang' in self.compiler.cc or 'nvc' in self.compiler.cc) and \
            'aarch64' in spack.architecture.sys_type():
             options.append('no-asm')
 

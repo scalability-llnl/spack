@@ -11,12 +11,13 @@ class PyPetsc4py(PythonPackage):
     """
 
     homepage = "https://gitlab.com/petsc/petsc4py"
-    pypi = "petsc4py/petsc4py-3.14.0.tar.gz"
+    url      = "http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc4py-3.15.0.tar.gz"
     git      = "https://gitlab.com/petsc/petsc.git"
 
     maintainers = ['dalcinl', 'balay']
 
     version('main', branch='main')
+    version('3.15.0', sha256='87dcc5ef63a1f0e1a963619f7527e623f52341b2806056b0ef5fdfb0b8b287ad')
     version('3.14.1', sha256='f5f8daf3a4cd1dfc945876b0d83a05b25f3c54e08046312eaa3e3036b24139c0')
     version('3.14.0', sha256='33ac9fb55a541e4c1deabd6e2144da96d5ae70e70c830a55de558000cf3f0ec5')
     version('3.13.0', sha256='0e11679353c0c2938336a3c8d1a439b853e20d3bccd7d614ad1dbea3ec5cb31f')
@@ -44,6 +45,7 @@ class PyPetsc4py(PythonPackage):
     depends_on('petsc+mpi', when='+mpi')
     depends_on('petsc~mpi', when='~mpi')
     depends_on('petsc@main', when='@main')
+    depends_on('petsc@3.15.0:3.15.99', when='@3.15.0:3.15.99')
     depends_on('petsc@3.14.2:3.14.99', when='@3.14.1:3.14.99')
     depends_on('petsc@3.14.0:3.14.1', when='@3.14.0')
     depends_on('petsc@3.13:3.13.99', when='@3.13:3.13.99')

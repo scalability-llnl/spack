@@ -39,6 +39,7 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
     variant('headers', default=False, description='Install extra headers (e.g. ELF)')
     variant('lto', default=False, description='Enable lto.')
     variant('ld', default=False, description='Enable ld.')
+    variant('gas', default=False, description='Enable as assembler.')
     variant('interwork', default=False, description='Enable interwork.')
 
     patch('cr16.patch', when='@:2.29.1')
@@ -60,10 +61,18 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
     conflicts('+gold', when='platform=darwin',
               msg="Binutils cannot build linkers on macOS")
 
+    # When you build binutils with ~ld and +gas and load it in your PATH, you
+    # may end up with incompatibilities between a potentially older system ld
+    # and a recent assembler. For instance the linker on ubuntu 16.04 from
+    # binutils 2.26 and the assembler from binutils 2.36.1 will result in:
+    # "unable to initialize decompress status for section .debug_info"
+    # when compiling with debug symbols on gcc.
+    conflicts('+gas', '~ld', msg="Assembler not always compatible with system ld")
+
     def configure_args(self):
         spec = self.spec
 
-        configure_args = [
+        args = [
             '--disable-dependency-tracking',
             '--disable-werror',
             '--enable-multilib',
@@ -74,37 +83,31 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
             '--with-sysroot=/',
         ]
 
-        if '+lto' in spec:
-            configure_args.append('--enable-lto')
-
-        if '+ld' in spec:
-            configure_args.append('--enable-ld')
-
-        if '+interwork' in spec:
-            configure_args.append('--enable-interwork')
-
-        if '+gold' in spec:
-            configure_args.append('--enable-gold')
-
-        if '+plugins' in spec:
-            configure_args.append('--enable-plugins')
+        args += self.enable_or_disable('lto')
+        args += self.enable_or_disable('ld')
+        args += self.enable_or_disable('gas')
+        args += self.enable_or_disable('interwork')
+        args += self.enable_or_disable('gold')
+        args += self.enable_or_disable('plugins')
 
         if '+libiberty' in spec:
-            configure_args.append('--enable-install-libiberty')
+            args.append('--enable-install-libiberty')
+        else:
+            args.append('--disable-install-libiberty')
 
         if '+nls' in spec:
-            configure_args.append('--enable-nls')
-            configure_args.append('LDFLAGS=-lintl')
+            args.append('--enable-nls')
+            args.append('LDFLAGS=-lintl')
         else:
-            configure_args.append('--disable-nls')
+            args.append('--disable-nls')
 
         # To avoid namespace collisions with Darwin/BSD system tools,
         # prefix executables with "g", e.g., gar, gnm; see Homebrew
         # https://github.com/Homebrew/homebrew-core/blob/master/Formula/binutils.rb
         if spec.satisfies('platform=darwin'):
-            configure_args.append('--program-prefix=g')
+            args.append('--program-prefix=g')
 
-        return configure_args
+        return args
 
     # 2.36 is missing some dependencies and requires serial make install.
     # https://sourceware.org/bugzilla/show_bug.cgi?id=27482

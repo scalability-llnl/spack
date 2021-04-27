@@ -20,6 +20,7 @@ class Vtk(CMakePackage):
 
     maintainers = ['chuckatkins', 'danlipsa']
 
+    version('9.0.1', sha256='1b39a5e191c282861e7af4101eaa8585969a2de05f5646c9199a161213a622c7')
     version('9.0.0', sha256='15def4e6f84d72f82386617fe595ec124dda3cbd13ea19a0dcd91583197d8715')
     version('8.2.0', sha256='34c3dc775261be5e45a8049155f7228b6bd668106c72a3c435d95730d17d57bb')
     version('8.1.2', sha256='0995fb36857dd76ccfb8bb07350c214d9f9099e80b1e66b4a8909311f24ff0db')
@@ -52,7 +53,7 @@ class Vtk(CMakePackage):
     # We need vtk at least 8.0.1 for python@3,
     # and at least 9.0 for python@3.8
     depends_on('python@2.7:2.9', when='@:8.0 +python', type=('build', 'run'))
-    depends_on('python@2.7:3.7.9', when='@8.0.1:8.9 +python',
+    depends_on('python@2.7:3.7.99', when='@8.0.1:8.9 +python',
                type=('build', 'run'))
     depends_on('python@2.7:', when='@9.0: +python', type=('build', 'run'))
 

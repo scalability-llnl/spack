@@ -1,0 +1,33 @@
+From 2d933fe544bd5841e9016ab7e8066521ebe33f30 Mon Sep 17 00:00:00 2001
+From: sbolding <sbolding@lanl.gov>
+Date: Mon, 29 Mar 2021 19:13:28 -0600
+Subject: [PATCH] Apply patch for icpc
+
+icpc in some way utilizes the preprocessor of the associated "developer
+tools" used by the compiler. This leads to, in some cases, a
+preprocessor claiming support for `__tuple_element_packs`, even though
+icpc (as of version 21.1) can't actually parse such code.  Just use the
+MPARK_TUPLE_ELEMENT_PACK impl with __icc until icpc supports it.
+
+Fixes #77
+---
+ include/mpark/config.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/mpark/config.hpp b/include/mpark/config.hpp
+index f85ffb55c..128fa9235 100644
+--- a/include/mpark/config.hpp
++++ b/include/mpark/config.hpp
+@@ -50,7 +50,7 @@
+ #define MPARK_BUILTIN_UNREACHABLE
+ #endif
+ 
+-#if __has_builtin(__type_pack_element)
++#if __has_builtin(__type_pack_element) && !(defined(__ICC))
+ #define MPARK_TYPE_PACK_ELEMENT
+ #endif
+ 
+-- 
+2.24.3 (Apple Git-128)
+
+

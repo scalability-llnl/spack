@@ -11,6 +11,7 @@ class PyCython(PythonPackage):
 
     pypi = "cython/Cython-0.29.21.tar.gz"
 
+    version('0.29.22', sha256='df6b83c7a6d1d967ea89a2903e4a931377634a297459652e4551734c48195406')
     version('0.29.21', sha256='e57acb89bd55943c8d8bf813763d20b9099cc7165c0f16b707631a7654be9cad')
     version('0.29.20', sha256='22d91af5fc2253f717a1b80b8bb45acb655f643611983fd6f782b9423f8171c7')
     version('0.29.16', sha256='232755284f942cbb3b43a06cd85974ef3c970a021aef19b5243c03ee2b08fa05')

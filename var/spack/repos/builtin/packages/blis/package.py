@@ -112,7 +112,10 @@ class BlisBase(Package):
     @property
     def libs(self):
         return find_libraries(
-            ["libblis", "libblis-mt"], root=self.prefix, recursive=True
+            ["libblis", "libblis-mt"],
+            root=self.prefix,
+            shared='+shared' in self.spec,
+            recursive=True
         )
 
 

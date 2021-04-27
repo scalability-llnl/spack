@@ -1,0 +1,11 @@
+--- spack-src/src/cmake/boost.cmake.bak	2019-06-29 07:04:47.000000000 +0900
++++ spack-src/src/cmake/boost.cmake	2021-03-30 11:36:39.000000000 +0900
+@@ -168,6 +168,8 @@
+             message (FATAL_ERROR "Failed to unpack boost library ${THIS_BOOST_VERSION}")
+         endif ()
+         execute_process(
++            COMMAND "sed" -i "s/-m64//g" ${BOOST_BUILD_DIR}/boost_1_58_0/tools/build/src/tools/gcc.jam)
++        execute_process(
+             COMMAND ${CMAKE_COMMAND} -E touch "${BOOST_BUILD_DIR}/boost_unpack_complete")
+     endif ()
+ 

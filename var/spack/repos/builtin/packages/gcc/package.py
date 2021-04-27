@@ -29,6 +29,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
 
     version('master', branch='master')
 
+    version('10.3.0', sha256='64f404c1a650f27fc33da242e1f2df54952e3963a49e06e73f6940f3223ac344')
     version('10.2.0', sha256='b8dd4368bb9c7f0b98188317ee0254dd8cc99d1e3a18d0ff146c855fe16c1d8c')
     version('10.1.0', sha256='b6898a23844b656f1b68691c5c012036c2e694ac4b53a8918d4712ad876e7ea2')
 
@@ -121,13 +122,16 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     depends_on('isl@0.15:0.20', when='@9:9.9 +graphite')
     depends_on('isl@0.15:', when='@10: +graphite')
     depends_on('zlib', when='@6:')
-    depends_on('zstd', when='@10:')
+    # GCC only tries to link with -lzstd but it requires
+    # -pthread too when linking against libzstd.a, so
+    # disable multithreading by default
+    depends_on('zstd ~multithread', when='@10:')
     depends_on('diffutils', type='build')
     depends_on('iconv', when='platform=darwin')
     depends_on('gnat', when='languages=ada')
-    depends_on('binutils~libiberty', when='+binutils', type=('build', 'link', 'run'))
+    depends_on('binutils+ld+plugins~libiberty', when='+binutils', type=('build', 'link', 'run'))
     depends_on('zip', type='build', when='languages=java')
-    depends_on('cuda@:10', when='+nvptx')
+    depends_on('cuda', when='+nvptx')
 
     # The server is sometimes a bit slow to respond
     timeout = {'timeout': 60}
@@ -144,7 +148,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     # nvptx-tools doesn't have any releases, so grabbing the last commit
     resource(name='nvptx-tools',
              git='https://github.com/MentorEmbedded/nvptx-tools',
-             commit='5f6f343a302d620b0868edab376c00b15741e39e',
+             commit='d0524fbdc86dfca068db5a21cc78ac255b335be5',
              when='+nvptx')
 
     # TODO: integrate these libraries.
@@ -441,6 +445,19 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
                         '-I{0}'.format(spec['zlib'].prefix.include),
                         'gcc/Makefile.in')
 
+        if spec.satisfies('+nvptx'):
+            # backport of 383400a6078d upstream to allow support of cuda@11:
+            filter_file('#define ASM_SPEC "%{misa=*:-m %*}"',
+                        '#define ASM_SPEC "%{misa=*:-m %*; :-m sm_35}"',
+                        'gcc/config/nvptx/nvptx.h',
+                        string=True)
+            filter_file('Target RejectNegative ToLower Joined '
+                        'Enum(ptx_isa) Var(ptx_isa_option) Init(PTX_ISA_SM30)',
+                        'Target RejectNegative ToLower Joined '
+                        'Enum(ptx_isa) Var(ptx_isa_option) Init(PTX_ISA_SM35)',
+                        'gcc/config/nvptx/nvptx.opt',
+                        string=True)
+
     # https://gcc.gnu.org/install/configure.html
     def configure_args(self):
         spec = self.spec
@@ -463,7 +480,10 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
             options.append('--with-system-zlib')
 
         if 'zstd' in spec:
-            options.append('--with-zstd={0}'.format(spec['zstd'].prefix))
+            options.append('--with-zstd-include={0}'.format(
+                spec['zstd'].headers.directories[0]))
+            options.append('--with-zstd-lib={0}'.format(
+                spec['zstd'].libs.directories[0]))
 
         # Enabling language "jit" requires --enable-host-shared.
         if 'languages=jit' in spec:

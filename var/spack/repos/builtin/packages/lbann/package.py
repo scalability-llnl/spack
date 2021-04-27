@@ -10,7 +10,8 @@ from spack import *
 class Lbann(CMakePackage, CudaPackage, ROCmPackage):
     """LBANN: Livermore Big Artificial Neural Network Toolkit.  A distributed
     memory, HPC-optimized, model and data parallel training toolkit for deep
-    neural networks."""
+    neural networks.
+    """
 
     homepage = "http://software.llnl.gov/lbann/"
     url      = "https://github.com/LLNL/lbann/archive/v0.91.tar.gz"
@@ -77,6 +78,11 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
     conflicts('~cuda', when='+nvshmem')
     conflicts('+cuda', when='+rocm', msg='CUDA and ROCm support are mutually exclusive')
     conflicts('+extras', when='~pfe', msg='Python extras require the Python front end support')
+
+    conflicts('~vision', when='@0.91:0.101')
+    conflicts('~numpy', when='@0.91:0.101')
+    conflicts('~python', when='@0.91:0.101')
+    conflicts('~pfe', when='@0.91:0.101')
 
     depends_on('cmake@3.17.0:', type='build')
 
@@ -159,17 +165,18 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
     # Additionally disable video related options, they incorrectly link in a
     # bad OpenMP library when building with clang or Intel compilers
     depends_on('opencv@4.1.0: build_type=RelWithDebInfo +core +highgui '
-               '+imgcodecs +imgproc +jpeg +png +tiff +zlib +fast-math ~cuda',
+               '+imgcodecs +imgproc +jpeg +png +tiff +fast-math ~cuda',
                when='+vision')
 
-    # Note that for Power systems we want the environment to add  +powerpc +vsx
-    depends_on('opencv@4.1.0: +powerpc +vsx', when='+vision arch=ppc64le:')
+    # Note that for Power systems we want the environment to add  +powerpc
+    depends_on('opencv@4.1.0: +powerpc', when='+vision arch=ppc64le:')
 
     depends_on('cnpy', when='+numpy')
     depends_on('nccl', when='@0.94:0.98.2 +cuda')
 
     depends_on('conduit@0.4.0: +hdf5~hdf5_compat', when='@0.94:0.99 +conduit')
-    depends_on('conduit@0.4.0: +hdf5~hdf5_compat', when='@:0.90,0.99:')
+    depends_on('conduit@0.5.0:0.6.99 +hdf5~hdf5_compat', when='@0.100:0.101 +conduit')
+    depends_on('conduit@0.6.0: +hdf5~hdf5_compat', when='@:0.90,0.99:')
 
     # LBANN can use Python in two modes 1) as part of an extensible framework
     # and 2) to drive the front end model creation and launch
@@ -182,7 +189,7 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
     depends_on('python@3: +shared', type=('build', 'run'), when='@:0.90,0.99: +pfe')
     extends("python", when='+pfe')
     depends_on('py-setuptools', type='build', when='+pfe')
-    depends_on('py-argparse', type='run', when='@:0.90,0.99: ^python@:2.6 +pfe')
+    depends_on('py-argparse', type='run', when='@:0.90,0.99: +pfe ^python@:2.6')
     depends_on('py-configparser', type='run', when='@:0.90,0.99: +pfe +extras')
     depends_on('py-graphviz@0.10.1:', type='run', when='@:0.90,0.99: +pfe +extras')
     depends_on('py-matplotlib@3.0.0:', type='run', when='@:0.90,0.99: +pfe +extras')
@@ -229,15 +236,6 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
             args.append(
                 '-DCNPY_DIR={0}'.format(spec['cnpy'].prefix),
             )
-        # Use a high performance linker
-        if self.spec.satisfies('%clang'):
-            args.extend([
-                '-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld',
-                '-DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld'])
-        elif self.spec.satisfies('%gcc'):
-            args.extend([
-                '-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold',
-                '-DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=gold'])
 
         return args
 
@@ -358,9 +356,11 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
             archs = self.spec.variants['amdgpu_target'].value
             if archs != 'none':
                 arch_str = ",".join(archs)
+                cxxflags_str = " ".join(self.spec.compiler_flags['cxxflags'])
                 args.append(
                     '-DHIP_HIPCC_FLAGS=--amdgpu-target={0}'
-                    ' -g -fsized-deallocation -fPIC -std=c++17'.format(arch_str)
+                    ' -g -fsized-deallocation -fPIC -std=c++17 {1}'.format(
+                        arch_str, cxxflags_str)
                 )
 
         return args

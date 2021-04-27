@@ -1,0 +1,131 @@
+--- src/analyse.cc.orig	2016-07-11 14:17:56.000000001 +0200
++++ src/analyse.cc	2016-07-11 14:20:55.000000001 +0200
+@@ -4374,8 +4374,8 @@
+       else
+         puts(",");
+ 
+-      printf("[%d, %d, %d, %"PRId64", %"PRId64", %"PRId64", %"PRId64", "
+-              "%"PRId64", %"PRId64", %"PRId64", ",
++      printf("[%d, %d, %d, %" PRId64 ", %" PRId64 ", %" PRId64 ", %" PRId64 ", "
++              "%" PRId64 ", %" PRId64 ", %" PRId64 ", ",
+                 mainRow.rank(), symbolIndex, fileIndex,
+                 mainRow.SELF, mainRow.CUM, mainRow.KIDS,
+                 mainRow.SELF_ALL[1], mainRow.CUM_ALL[1],
+@@ -4445,7 +4445,7 @@
+           first = false;
+         else
+           puts(",");
+-        printf("[%d, %d, %"PRId64", %"PRId64", %"PRId64", ",
++        printf("[%d, %d, %" PRId64 ", %" PRId64 ", %" PRId64 ", ",
+                mainRow.rank(), row.rank(),
+                row.SELF_COUNTS, row.SELF_CALLS, row.SELF_PATHS);
+ 
+@@ -4472,7 +4472,7 @@
+           first = false;
+         else
+           puts(",");
+-        printf("[%d, %d, %"PRId64", %"PRId64", %"PRId64", ",
++        printf("[%d, %d, %" PRId64 ", %" PRId64 ", %" PRId64 ", ",
+                mainRow.rank(), row.rank(),
+                row.SELF_COUNTS, row.SELF_CALLS, row.SELF_PATHS);
+ 
+--- src/buffer.cc.orig	2017-05-31 11:53:55.891358442 +0200
++++ src/buffer.cc	2017-05-31 11:55:03.519291624 +0200
+@@ -62,12 +62,11 @@
+ 		    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+   if (data != MAP_FAILED)
+     return data;
+-  else
+-  {
+-    igprof_debug("failed to allocate memory for profile buffer: %s (%d)\n",
+-                 strerror(errno), errno);
+-    igprof_abort();
+-  }
++
++  igprof_debug("failed to allocate memory for profile buffer: %s (%d)\n",
++                strerror(errno), errno);
++  igprof_abort();
++   __builtin_unreachable();
+ }
+ 
+ void
+
+--- src/profile-perf.cc.orig    2018-07-11 15:11:31.000000001 +0200
++++ src/profile-perf.cc 2018-07-11 15:13:07.000000001 +0200
+@@ -98,7 +98,7 @@
+ 
+   struct sigaction sa;
+   sigemptyset(&sa.sa_mask);
+-  sa.sa_handler = (sighandler_t) &profileSignalHandler;
++  sa.sa_sigaction = &profileSignalHandler;
+   sa.sa_flags = SA_RESTART | SA_SIGINFO;
+   sigaction(s_signal, &sa, 0);
+ }
+@@ -252,13 +252,13 @@
+   struct sigaction sa;
+   if (signum == s_signal
+       && act
+-      && act->sa_handler != (sighandler_t) &profileSignalHandler)
++      && act->sa_sigaction != &profileSignalHandler)
+   {
+     igprof_debug("sigaction(): prevented profiling signal"
+                  " %d from being overridden in thread 0x%lx\n",
+                  s_signal, (unsigned long) pthread_self());
+     sigemptyset(&sa.sa_mask);
+-    sa.sa_handler = (sighandler_t) &profileSignalHandler;
++    sa.sa_sigaction = &profileSignalHandler;
+     sa.sa_flags = SA_RESTART | SA_SIGINFO;
+     act = &sa;
+   }
+
+--- src/profile-energy.cc.orig  2018-07-11 15:14:32.000000001 +0200
++++ src/profile-energy.cc   2018-07-11 15:16:56.000000001 +0200
+@@ -268,7 +268,7 @@
+ 
+   struct sigaction sa;
+   sigemptyset(&sa.sa_mask);
+-  sa.sa_handler = (sighandler_t) &profileSignalHandler;
++  sa.sa_sigaction = &profileSignalHandler;
+   sa.sa_flags = SA_RESTART | SA_SIGINFO;
+   sigaction(s_signal, &sa, 0);
+ }
+@@ -415,13 +415,13 @@
+   struct sigaction sa;
+   if (signum == s_signal
+       && act
+-      && act->sa_handler != (sighandler_t) &profileSignalHandler)
++      && act->sa_sigaction != &profileSignalHandler)
+   {
+     igprof_debug("sigaction(): prevented profiling signal"
+                  " %d from being overridden in thread 0x%lx\n",
+                  s_signal, (unsigned long) pthread_self());
+     sigemptyset(&sa.sa_mask);
+-    sa.sa_handler = (sighandler_t) &profileSignalHandler;
++    sa.sa_sigaction = &profileSignalHandler;
+     sa.sa_flags = SA_RESTART | SA_SIGINFO;
+     act = &sa;
+   }
+
+--- src/profile.cc.orig 2018-07-13 12:03:48.000000001 +0200
++++ src/profile.cc  2018-07-11 15:08:49.000000001 +0200
+@@ -577,7 +577,7 @@
+   igprof_debug("profiler options: %s\n", options);
+ 
+   // Report override function use.
+-  if (igprof_abort != &abort)
++  if ((void (*)())igprof_abort != (void (*)()) &abort)
+     igprof_debug("abort() from system %p, app had %p\n",
+                  __extension__ (void *) igprof_abort,
+         __extension__ (void *) &abort);
+
+--- CMakeLists.txt.orig	2015-10-12 18:36:10.000000000 +0200
++++ CMakeLists.txt	2021-03-31 10:06:59.776974100 +0200
+@@ -80,7 +80,7 @@
+ SET(CMAKE_C_FLAGS "${CMAKE_ANSI_FLAGS} ${CMAKE_C_FLAGS}")
+ SET(CMAKE_REQUIRED_FLAGS ${CMAKE_ANSI_FLAGS})
+ IF(CMAKE_COMPILER_IS_GNUCC)
+-  ADD_DEFINITIONS(-ansi -pedantic -W -Wall -Wno-long-long -Werror)
++  ADD_DEFINITIONS(-ansi -pedantic -W -Wall -Wno-long-long)
+ ENDIF()
+ 
+ IF(UNIX)

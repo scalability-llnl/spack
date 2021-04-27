@@ -1,0 +1,361 @@
+Description: Man page fixes as of mmv 1.01b-15
+ This patch contains the man-page fixes as of mmv 1.01b-15 when it has
+ been converted to the source format "3.0 (quilt)"
+Author: Multiple Authors. See changelog for details.
+Reviewed-By: Axel Beckert <abe@debian.org>
+Last-Update: 2012-12-29
+
+--- mmv-1.01b.orig/mmv.1
++++ mmv-1.01b/mmv.1
+@@ -2,7 +2,7 @@
+ .\" To print the MS-DOS version, use option -rO2.
+ .\" Under System V, take out the '.\"  ' from the next line.
+ .\" .nr O 1
+-.TH MMV 1 "November 20, 1989 (v1.0)"
++.TH MMV 1 "November 20, 2001 (v1.0lfs)"
+ .ie !'\nO'2' \{\
+ .SH NAME
+ mmv \- move/copy/append/link multiple files by wildcard patterns
+@@ -21,13 +21,14 @@ mmv \- move/copy/append multiple files b
+ \}
+ .SH SYNOPSIS
+ .B mmv
+-.if '\nO'2' [\fB-m\fP|\fBx\fP|\fBr\fP|\fBc\fP|\fBo\fP|\fBa\fP|\fBz\fP]
+-.if '\nO'0' [\fB-m\fP|\fBx\fP|\fBr\fP|\fBc\fP|\fBo\fP|\fBa\fP|\fBl\fP|\fBs\fP]
+-.if '\nO'1' [\fB-m\fP|\fBx\fP|\fBr\fP|\fBc\fP|\fBo\fP|\fBa\fP|\fBl\fP]
+-[\fB-h\fP]
+-[\fB-d\fP|\fBp\fP]
+-[\fB-g\fP|\fBt\fP]
+-[\fB-v\fP|\fBn\fP]
++.if '\nO'2' [\fB\-m\fP|\fBx\fP|\fBr\fP|\fBc\fP|\fBo\fP|\fBa\fP|\fBz\fP]
++.if '\nO'0' [\fB\-m\fP|\fBx\fP|\fBr\fP|\fBc\fP|\fBo\fP|\fBa\fP|\fBl\fP|\fBs\fP]
++.if '\nO'1' [\fB\-m\fP|\fBx\fP|\fBr\fP|\fBc\fP|\fBo\fP|\fBa\fP|\fBl\fP]
++[\fB\-h\fP]
++[\fB\-d\fP|\fBp\fP]
++[\fB\-g\fP|\fBt\fP]
++[\fB\-v\fP|\fBn\fP]
++[\fB\-\-\fP]
+ [\fBfrom to\fP]
+ .if '\nO'2' \{\
+ .br
+@@ -56,6 +57,9 @@ from the entire set of actions specified
+ and gives the user the choice of either
+ proceeding by avoiding the offending parts
+ or aborting.
++.I mmv
++does support large files (LFS) but it does *NOT* support 
++sparse files (i.e. it explodes them).
+ 
+ .ce
+ The Task Options
+@@ -71,7 +75,7 @@ If none of these are specified,
+ .ie '\nO'2' \{\
+ a default (patchable by
+ .IR mmvpatch ,
+-and initially -x)
++and initially \-x)
+ determines the task.
+ \}
+ .el \{\
+@@ -81,18 +85,18 @@ was invoked (argv[0]):
+ 
+ 	command name	default task
+ 
+-	mmv			-x
++	mmv			\-x
+ .br
+-	mcp			-c
++	mcp			\-c
+ .br
+-	mad			-a
++	mad			\-a
+ .br
+-	mln			-l
++	mln			\-l
+ \}
+ .PP
+ The task option choices are:
+ .TP
+--m :
++\-m :
+ move source file to target name.
+ Both must be on the same device.
+ Will not move directories.
+@@ -102,8 +106,8 @@ moves the link without checking if the l
+ directory is different than the old.
+ \}
+ .TP
+--x :
+-same as -m, except cross-device moves are done
++\-x :
++same as \-m, except cross-device moves are done
+ by copying, then deleting source.
+ When copying, sets the
+ .ie !'\nO'2' permission bits
+@@ -111,7 +115,7 @@ When copying, sets the
+ and file modification time
+ of the target file to that of the source file.
+ .TP
+--r :
++\-r :
+ rename source file or directory to target name.
+ The target name must not include a path:
+ the file remains in the same directory in all cases.
+@@ -119,7 +123,7 @@ This option is the only way of renaming
+ .IR mmv .
+ .if '\nO'2' It is only available under DOS version 3.0 or higher.
+ .TP
+--c :
++\-c :
+ copy source file to target name.
+ Sets the file modification time and
+ .ie !'\nO'2' permission bits
+@@ -128,7 +132,7 @@ of the target file to that of the source
+ regardless of whether the target file already exists.
+ Chains and cycles (to be explained below) are not allowed.
+ .TP
+--o :
++\-o :
+ overwrite target name with source file.
+ .ie '\nO'2' \{\
+ If target file exists, its attributes are left unchanged.
+@@ -146,38 +150,38 @@ and the execute permission bits copied f
+ In either case, the file modification time is set to the current time.
+ \}
+ .TP
+--a :
++\-a :
+ append contents of source file to target name.
+ Target file modification time is set to the current time.
+ If target file does not exist,
+ it is created with
+ .ie '\nO'2' attributes
+ .el permission bits
+-set as under -o.
+-Unlike all other options, -a allows multiple source files to have the
+-same target name, e.g. "mmv -a
++set as under \-o.
++Unlike all other options, \-a allows multiple source files to have the
++same target name, e.g. "mmv \-a
+ .ie '\nO'2' *.c
+ .el \\*.c
+ big" will append all ".c" files to "big".
+-Chains and cycles are also allowed, so "mmv -a f f" will double up "f".
++Chains and cycles are also allowed, so "mmv \-a f f" will double up "f".
+ .ie '\nO'2' \{\
+ .TP
+--z :
+-same as -a, but if the target file exists, and its last character is a ^Z,
++\-z :
++same as \-a, but if the target file exists, and its last character is a ^Z,
+ and the source file is not empty,
+ this ^Z is truncated before doing the append.
+ \}
+ .el \{\
+ .TP
+--l :
++\-l :
+ link target name to source file.
+ Both must be on the same device,
+ and the source must not be a directory.
+ Chains and cycles are not allowed.
+ .if '\nO'0' \{\
+ .TP
+--s :
+-same as -l, but use symbolic links instead of hard links.
++\-s :
++same as \-l, but use symbolic links instead of hard links.
+ For the resulting link to aim back at the source,
+ either the source name must begin with a '/',
+ or the target must reside in either the current or the source directory.
+@@ -190,7 +194,7 @@ and the source can be a directory.
+ Only one of these option may be given,
+ and it applies to all matching files.
+ Remaining options need not be given separately,
+-i.e. "mmv -mk" is allowed.
++i.e. "mmv \-mk" is allowed.
+ 
+ .ce
+ Multiple Pattern Pairs
+@@ -232,7 +236,7 @@ a b
+ a c
+ .in -3
+ 
+-would give the error message "a -> c : no match" because file "a"
++would give the error message "a \-> c : no match" because file "a"
+ (even if it exists)
+ was already matched by the first pattern pair.
+ 
+@@ -255,10 +259,10 @@ matching any single character,
+ and matching any one of a set of characters.
+ .PP
+ Between the '[' and ']', a range from character 'a' through character 'z'
+-is specified with "a-z".
++is specified with "a\-z".
+ The set of matching characters can be negated by inserting
+ a '^' after the '['.
+-Thus, "[^b-e2-5_]"
++Thus, "[^b\-e2\-5_]"
+ will match any character but 'b' through 'e', '2' through '5', and '_'.
+ .if '\nO'2' \{\
+ .PP
+@@ -305,13 +309,13 @@ However, the '~' is not treated as a wil
+ in the sense that it is not assigned a wildcard index (see below).
+ \}
+ .PP
+-Since matching a directory under a task option other than -r or -s
++Since matching a directory under a task option other than \-r or \-s
+ would result in an error,
+-tasks other than -r and -s
++tasks other than \-r and \-s
+ match directories only against completely explicit
+ .I from
+ patterns (i.e. not containing wildcards).
+-Under -r and -s, this applies only to "." and "..".
++Under \-r and \-s, this applies only to "." and "..".
+ .PP
+ .ie '\nO'2' \{\
+ Hidden and system files are also only matched
+@@ -324,7 +328,7 @@ Files beginning with '.' are only matche
+ .I from
+ patterns that begin with an explicit '.'.
+ \}
+-However, if -h is specified, they are matched normally.
++However, if \-h is specified, they are matched normally.
+ .if !'\nO'2' \{\
+ .PP
+ Warning: since the shell normally expands wildcards
+@@ -332,8 +336,9 @@ before passing the command-line argument
+ .IR mmv ,
+ it is usually necessary to enclose the command-line
+ .I from
+-pattern
+-in quotes.
++and
++.I to
++patterns in quotes.
+ \}
+ 
+ .ce
+@@ -363,7 +368,7 @@ pattern is "abc*.*" and the
+ pattern is "xyz#2.#1",
+ then "abc.txt" is targeted to "xyztxt.".
+ (The first '*' matched "", and the second matched "txt".)
+-Similarly, for the pattern pair ";*.[clp]" -> "#1#3\*(SL#2",
++Similarly, for the pattern pair ";*.[clp]" \-> "#1#3\*(SL#2",
+ "foo1\*(SLfoo2\*(SLprog.c" is targeted to "foo1\*(SLfoo2\*(SLc\*(SLprog".
+ Note that there is no '\*(SL' following the "#1" in the
+ .I to
+@@ -397,7 +402,7 @@ expands the '~' in the exact same manner
+ does not expand it at all).
+ \}
+ .PP
+-For all task options other than -r, if the target name is a directory,
++For all task options other than \-r, if the target name is a directory,
+ the real target name is formed by appending
+ a '\*(SL' followed by the last component
+ of the source file name.
+@@ -434,7 +439,7 @@ a b
+ .br
+ b c
+ 
+-specifies the chain "a" -> "b" -> "c".
++specifies the chain "a" \-> "b" \-> "c".
+ A cycle is a chain where the last target name
+ refers back to the first source file,
+ e.g. "mmv a a".
+@@ -461,9 +466,9 @@ Furthermore,
+ .I mmv
+ checks if any of its actions will result
+ in the destruction of existing files.
+-If the -d (delete) option is specified,
++If the \-d (delete) option is specified,
+ all file deletions or overwrites are done silently.
+-Under -p (protect), all deletions or overwrites
++Under \-p (protect), all deletions or overwrites
+ (except those specified with "(*)" on the standard input, see below)
+ are treated as errors.
+ And if neither option is specified,
+@@ -487,16 +492,16 @@ Once all errors are detected,
+ queries the user whether he wishes
+ to continue by avoiding the erroneous actions or to abort altogether.
+ This and all other queries may be avoided by specifying either the
+--g (go) or -t (terminate) option.
++\-g (go) or \-t (terminate) option.
+ The former will resolve all difficulties by avoiding the erroneous actions;
+ the latter will abort
+ .I mmv
+ if any errors are detected.
+ Specifying either of them defaults
+ .I mmv
+-to -p, unless -d is specified
++to \-p, unless \-d is specified
+ (see above).
+-Thus, -g and -t are most useful when running
++Thus, \-g and \-t are most useful when running
+ .I mmv
+ in the background or in
+ a shell script,
+@@ -508,28 +513,28 @@ Reports
+ Once the actions to be performed are determined,
+ .I mmv
+ performs them silently,
+-unless either the -v (verbose) or -n (no-execute) option is specified.
++unless either the \-v (verbose) or \-n (no-execute) option is specified.
+ The former causes
+ .I mmv
+ to report each performed action
+ on the standard output as
+ 
+-a -> b : done.
++a \-> b : done.
+ 
+ Here, "a" and "b" would be replaced by the source and target names,
+ respectively.
+ If the action deletes the old target,
+ a "(*)" is inserted after the the target name.
+-Also, the "->" symbol is modified when a cycle has to be broken:
++Also, the "\->" symbol is modified when a cycle has to be broken:
+ the '>' is changed to a '^' on the action prior to which the old target
+ is renamed to a temporary,
+-and the '-' is changed to a '=' on the action where the temporary is used.
++and the '\-' is changed to a '=' on the action where the temporary is used.
+ .PP
+-Under -n, none of the actions are performed,
++Under \-n, none of the actions are performed,
+ but messages like the above are printed on the standard output
+ with the ": done." omitted.
+ .PP
+-The output generated by -n can (after editing, if desired)
++The output generated by \-n can (after editing, if desired)
+ be fed back to
+ .I mmv
+ on the standard input
+@@ -545,9 +550,9 @@ To facilitate this,
+ ignores lines on the standard input that look
+ like its own error and "done" messages,
+ as well as all lines beginning with white space,
+-and will accept pattern pairs with or without the intervening "->"
+-(or "-^", "=>", or "=^").
+-Lines with "(*)" after the target pattern have the effect of enabling -d
++and will accept pattern pairs with or without the intervening "\->"
++(or "\-^", "=>", or "=^").
++Lines with "(*)" after the target pattern have the effect of enabling \-d
+ for the files matching this pattern only,
+ so that such deletions are done silently.
+ When feeding
+@@ -596,11 +601,11 @@ on a copy of
+ .I mmv
+ named as follows:
+ 
+-	-x, -m, -r		mmv.exe
++	\-x, \-m, \-r		mmv.exe
+ .br
+-	-c, -o			mcp.exe
++	\-c, \-o			mcp.exe
+ .br
+-	-a, -z			mad.exe
++	\-a, \-z			mad.exe
+ .PP
+ .I Mmvpatch
+ also determines the best way to uniquely identify directories.

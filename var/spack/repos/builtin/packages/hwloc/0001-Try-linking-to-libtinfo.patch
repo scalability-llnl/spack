@@ -1,0 +1,25 @@
+From 0847b85eb65f7648f9104ae1e69e0c657d836031 Mon Sep 17 00:00:00 2001
+From: Harmen Stoppels <harmenstoppels@gmail.com>
+Date: Mon, 5 Apr 2021 12:51:38 +0200
+Subject: [PATCH] Try linking to libtinfo
+
+---
+ configure | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure b/configure
+index b775477..fb89d30 100755
+--- a/configure
++++ b/configure
+@@ -16811,7 +16811,7 @@ done
+     chosen_curses=""
+     for curses in ncurses curses
+     do
+-      for lib in "" -ltermcap -l${curses}w -l$curses
++      for lib in "" -l${curses}w -l$curses -ltinfo -ltermcap
+       do
+         { $as_echo "$as_me:${as_lineno-$LINENO}: checking termcap support using $curses and $lib" >&5
+ $as_echo_n "checking termcap support using $curses and $lib... " >&6; }
+-- 
+2.31.1
+

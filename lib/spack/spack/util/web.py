@@ -20,17 +20,6 @@ import six
 from six.moves.urllib.error import URLError
 from six.moves.urllib.request import urlopen, Request
 
-if sys.version_info < (3, 0):
-    # Python 2 had these in the HTMLParser package.
-    from HTMLParser import HTMLParser, HTMLParseError  # novm
-else:
-    # In Python 3, things moved to html.parser
-    from html.parser import HTMLParser
-
-    # Also, HTMLParseError is deprecated and never raised.
-    class HTMLParseError(Exception):
-        pass
-
 from llnl.util.filesystem import mkdirp
 import llnl.util.tty as tty
 
@@ -45,6 +34,16 @@ import llnl.util.lang
 
 from spack.util.compression import ALLOWED_ARCHIVE_TYPES
 
+if sys.version_info < (3, 0):
+    # Python 2 had these in the HTMLParser package.
+    from HTMLParser import HTMLParser, HTMLParseError  # novm
+else:
+    # In Python 3, things moved to html.parser
+    from html.parser import HTMLParser
+
+    # Also, HTMLParseError is deprecated and never raised.
+    class HTMLParseError(Exception):
+        pass
 
 # Timeout in seconds for web requests
 _timeout = 10
@@ -211,11 +210,10 @@ def url_exists(url):
 
     if url.scheme == 's3':
         s3 = s3_util.create_s3_session(url)
-        from botocore.exceptions import ClientError
         try:
-            s3.get_object(Bucket=url.netloc, Key=url.path)
+            s3.get_object(Bucket=url.netloc, Key=url.path.lstrip('/'))
             return True
-        except ClientError as err:
+        except s3.ClientError as err:
             if err.response['Error']['Code'] == 'NoSuchKey':
                 return False
             raise err

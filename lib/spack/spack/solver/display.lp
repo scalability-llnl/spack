@@ -8,6 +8,9 @@
 %
 % This section determines what parts of the model are printed at the end
 %==============================================================================
+
+% Spec-related functions.
+% Used to build the result of the solve.
 #show node/1.
 #show depends_on/3.
 #show version/2.
@@ -21,12 +24,7 @@
 #show node_flag_compiler_default/1.
 #show node_flag_source/2.
 #show no_flags/2.
-
-#show variant_not_default/4.
-#show provider_weight/2.
-#show version_weight/2.
-#show compiler_version_match/2.
-#show compiler_weight/2.
-#show node_target_match/2.
-#show node_target_weight/2.
 #show external_spec_selected/2.
+
+% names of optimization criteria
+#show opt_criterion/2.

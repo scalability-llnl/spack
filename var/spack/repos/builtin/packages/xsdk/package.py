@@ -41,6 +41,7 @@ class Xsdk(BundlePackage):
     variant('butterflypack', default=True, description='Enable butterflypack package build')
     variant('heffte', default=True, description='Enable heffte package build')
     variant('slate', default=True, description='Enable slate package build')
+    variant('arborx', default=True, description='Enable ArborX build')
 
     depends_on('hypre@develop+superlu-dist+shared', when='@develop')
     depends_on('hypre@2.20.0+superlu-dist+shared', when='@0.6.0')
@@ -175,6 +176,8 @@ class Xsdk(BundlePackage):
     depends_on('tasmanian@7.0+xsdkflags+mpi+blas+cuda+magma' + tasmanian_openmp, when='@0.5.0 +cuda')
     depends_on('tasmanian@6.0+xsdkflags+blas~openmp', when='@0.4.0')
     depends_on('tasmanian@6.0+xsdkflags+blas+cuda+magma~openmp', when='@0.4.0 +cuda')
+
+    depends_on('arborx@1.0', when='@develop +arborx')
 
     # the Fortran 2003 bindings of phist require python@3:, but this
     # creates a conflict with other packages like petsc@main. Actually

@@ -1404,3 +1404,55 @@ spack:
                 # Cleanup job should be 2nd to last, just before rebuild-index
                 assert('stage' in cleanup_job)
                 assert(cleanup_job['stage'] == stages[-2])
+
+
+def test_ci_generate_read_broken_specs_url(tmpdir, mutable_mock_env_path,
+                                           env_deactivate, install_mockery,
+                                           mock_packages, monkeypatch):
+    """Verify that `broken-specs-url` works as intended"""
+    spec_a = Spec('a')
+    spec_a.concretize()
+    a_full_hash = spec_a.full_hash()
+
+    spec_flattendeps = Spec('flatten-deps')
+    spec_flattendeps.concretize()
+    flattendeps_full_hash = spec_flattendeps.full_hash()
+
+    # Mark 'a' as broken (but not 'flatten-deps')
+    broken_spec_a_path = str(tmpdir.join(a_full_hash))
+    with open(broken_spec_a_path, 'w') as bsf:
+        bsf.write('')
+
+    # Test that `spack ci generate` notices this broken spec and fails.
+    filename = str(tmpdir.join('spack.yaml'))
+    with open(filename, 'w') as f:
+        f.write("""\
+spack:
+  specs:
+    - flatten-deps
+    - a
+  mirrors:
+    some-mirror: https://my.fake.mirror
+  gitlab-ci:
+    broken-specs-url: "{0}"
+    mappings:
+      - match:
+          - archive-files
+        runner-attributes:
+          tags:
+            - donotcare
+          image: donotcare
+""".format(tmpdir.strpath))
+
+    with tmpdir.as_cwd():
+        env_cmd('create', 'test', './spack.yaml')
+        with ev.read('test'):
+            # Check output of the 'generate' subcommand
+            output = ci_cmd('generate', output=str, fail_on_error=False)
+            assert('known to be broken' in output)
+
+            ex = '({0})'.format(a_full_hash)
+            assert(ex in output)
+
+            ex = '({0})'.format(flattendeps_full_hash)
+            assert(ex not in output)

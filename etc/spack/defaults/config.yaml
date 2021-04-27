@@ -142,11 +142,13 @@ config:
   locks: true
 
 
-  # The maximum number of jobs to use when running `make` in parallel,
-  # always limited by the number of cores available. For instance:
-  # - If set to 16 on a 4 cores machine `spack install` will run `make -j4`
-  # - If set to 16 on a 18 cores machine `spack install` will run `make -j16`
-  # If not set, Spack will use all available cores up to 16.
+  # The maximum number of jobs to use for the build system (e.g. `make`), when
+  # the -j flag is not given on the command line. Defaults to 16 when not set.
+  # Note that the maximum number of jobs is limited by the number of cores
+  # available, taking thread affinity into account when supported. For instance:
+  # - With `build_jobs: 16` and 4 cores available `spack install` will run `make -j4`
+  # - With `build_jobs: 16` and 32 cores available `spack install` will run `make -j16`
+  # - With `build_jobs: 2` and 4 cores available `spack install -j6` will run `make -j6`
   # build_jobs: 16
 
 

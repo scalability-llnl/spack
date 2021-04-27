@@ -24,6 +24,7 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on('blt', type='build')
     depends_on('blt@0.3.7:', type='build', when='+rocm')
+    depends_on('cub', when='+cuda')
 
     def cmake_args(self):
         spec = self.spec

@@ -60,6 +60,7 @@ class Hypre(Package, CudaPackage):
     variant('openmp', default=False, description='Enable OpenMP support')
     variant('debug', default=False,
             description='Build debug instead of optimized version')
+    variant('unified-memory', default=False, description='Use unified memory')
 
     # Patch to add ppc64le in config.guess
     patch('ibm-ppc64le.patch', when='@:2.11.1')
@@ -79,6 +80,7 @@ class Hypre(Package, CudaPackage):
     depends_on('superlu-dist', when='+superlu-dist+mpi')
 
     conflicts('+cuda', when='+int64')
+    conflicts('+unified-memory', when='~cuda')
 
     # Patch to build shared libraries on Darwin does not apply to
     # versions before 2.13.0
@@ -177,6 +179,9 @@ class Hypre(Package, CudaPackage):
                 '--disable-curand',
                 '--disable-cub'
             ])
+
+        if '+unified-memory' in self.spec:
+            configure_args.append('--enable-unified-memory')
 
         return configure_args
 

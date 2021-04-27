@@ -17,6 +17,8 @@ class Magma(CMakePackage, CudaPackage):
     url = "http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.2.0.tar.gz"
     maintainers = ['stomov', 'luszczek']
 
+    test_requires_compiler = True
+
     version('2.5.4', sha256='7734fb417ae0c367b418dea15096aef2e278a423e527c615aab47f0683683b67')
     version('2.5.3', sha256='c602d269a9f9a3df28f6a4f593be819abb12ed3fa413bba1ff8183de721c5ef6')
     version('2.5.2', sha256='065feb85558f9dd6f4cc4db36ac633a3f787827fc832d0b578a049a43a195620')
@@ -103,3 +105,32 @@ class Magma(CMakePackage, CudaPackage):
         install('control/magma_threadsetting.h', self.prefix.include)
         install('control/pthread_barrier.h', self.prefix.include)
         install('control/magma_internal.h', self.prefix.include)
+
+    test_src_dir = 'example'
+
+    @run_after('install')
+    def cache_test_sources(self):
+        """Copy the example source files after the package is installed to an
+        install test subdirectory for use during `spack test run`."""
+        self.cache_extra_test_sources([self.test_src_dir])
+
+    def test(self):
+        test_dir = join_path(self.install_test_root, self.test_src_dir)
+        with working_dir(test_dir, create=False):
+            magma_dir = 'MAGMADIR={0}'.format(self.prefix)
+            cuda_dir = 'CUDADIR={0}'.format(self.spec['cuda'].prefix)
+            blas_dir = 'OPENBLASDIR={0}'.format(self.spec['blas'].prefix)
+            make(magma_dir, cuda_dir, blas_dir, 'c')
+            self.run_test('./example_sparse',
+                          purpose='MAGMA smoke test - sparse solver')
+            self.run_test('./example_sparse_operator',
+                          purpose='MAGMA smoke test - sparse operator')
+            self.run_test('./example_v1',
+                          purpose='MAGMA smoke test - legacy v1 interface')
+            self.run_test('./example_v2',
+                          purpose='MAGMA smoke test - v2 interface')
+            if '+fortran' in self.spec:
+                make(magma_dir, cuda_dir, blas_dir, 'fortran')
+                self.run_test('./example_f',
+                              purpose='MAGMA smoke test - Fortran interface')
+            make('clean')

@@ -575,6 +575,13 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
     ci_mirrors = yaml_root['mirrors']
     mirror_urls = [url for url in ci_mirrors.values()]
 
+    # Check for a list of "known broken" specs that we should not bother
+    # trying to build.
+    broken_specs_url = ''
+    known_broken_specs_encountered = []
+    if 'broken-specs-url' in gitlab_ci:
+        broken_specs_url = gitlab_ci['broken-specs-url']
+
     enable_artifacts_buildcache = False
     if 'enable-artifacts-buildcache' in gitlab_ci:
         enable_artifacts_buildcache = gitlab_ci['enable-artifacts-buildcache']
@@ -664,6 +671,14 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
                 root_spec = spec_record['rootSpec']
                 pkg_name = pkg_name_from_spec_label(spec_label)
                 release_spec = root_spec[pkg_name]
+
+                # Check if this spec is in our list of known failures.
+                if broken_specs_url:
+                    full_hash = release_spec.full_hash()
+                    broken_spec_path = url_util.join(broken_specs_url, full_hash)
+                    if web_util.url_exists(broken_spec_path):
+                        known_broken_specs_encountered.append('{0} ({1})'.format(
+                            release_spec, full_hash))
 
                 runner_attribs = find_matching_config(
                     release_spec, gitlab_ci)
@@ -1028,6 +1043,14 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
             ]
 
         sorted_output = {'no-specs-to-rebuild': noop_job}
+
+    if known_broken_specs_encountered:
+        error_msg = (
+            'Pipeline generation failed due to the presence of the '
+            'following specs that are known to be broken in develop:\n')
+        for broken_spec in known_broken_specs_encountered:
+            error_msg += '* {0}\n'.format(broken_spec)
+        tty.die(error_msg)
 
     with open(output_file, 'w') as outf:
         outf.write(syaml.dump_config(sorted_output, default_flow_style=True))

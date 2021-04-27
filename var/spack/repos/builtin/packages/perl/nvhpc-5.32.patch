@@ -1,0 +1,42 @@
+--- a/Configure	2021-01-19 09:35:25.337234880 -0800
++++ b/Configure	2021-01-19 09:36:43.001275967 -0800
+@@ -4979,7 +4979,7 @@
+ # and usrinc directly from the compiler.
+ # Note that ccname for clang is also gcc.
+ case "$ccname" in
+-    gcc)
++    XXX)
+ 	$echo 'extern int foo;' > try.c
+ 	set X `$cppstdin -v try.c 2>&1 | $awk '/^#include </,/^End of search /'|$cppfilter $grep '/include'`
+ 	shift
+--- a/Makefile.SH	2021-01-28 15:18:51.559057410 -0800
++++ b/Makefile.SH	2021-01-28 15:20:01.552036603 -0800
+@@ -1143,7 +1143,7 @@
+ # But also this ensures that all extensions are built before we try to scan
+ # them, which picks up Devel::PPPort's documentation.
+ pod/perltoc.pod: $(perltoc_pod_prereqs) $(PERL_EXE) $(ext) pod/buildtoc
+-	$(RUN_PERL) -f pod/buildtoc -q
++	$(MINIPERL) -f pod/buildtoc -q
+ 
+ pod/perlapi.pod: pod/perlintern.pod
+ 
+@@ -1200,8 +1200,8 @@
+         $spitshell >>$Makefile <<EOT
+ 
+ install_$name install-$name: \$(INSTALL_DEPENDENCE) installperl all installman
+-	\$(RUN_PERL) installperl --destdir=\$(DESTDIR) $flags \$(INSTALLFLAGS) \$(STRIPFLAGS)
+-	\$(RUN_PERL) installman --destdir=\$(DESTDIR) $flags
++	\$(MINIPERL) installperl --destdir=\$(DESTDIR) $flags \$(INSTALLFLAGS) \$(STRIPFLAGS)
++	\$(MINIPERL) installman --destdir=\$(DESTDIR) $flags
+ EOT
+     fi
+ 
+@@ -1219,7 +1219,7 @@
+ 	LOCAL_PERL='$(RUN_PERL)'
+ 	$spitshell >>$Makefile <<'!NO!SUBS!'
+ install.perl:	$(INSTALL_DEPENDENCE) installperl
+-	$(RUN_PERL) installperl --destdir=$(DESTDIR) $(INSTALLFLAGS) $(STRIPFLAGS)
++	$(MINIPERL) installperl --destdir=$(DESTDIR) $(INSTALLFLAGS) $(STRIPFLAGS)
+ 	-@test ! -s extras.lst || PATH="`pwd`:\${PATH}" PERL5LIB="`pwd`/lib" \$(RUN_PERL) -Ilib -MCPAN -e '@ARGV&&install(@ARGV)' `cat extras.lst`
+ 
+ !NO!SUBS!

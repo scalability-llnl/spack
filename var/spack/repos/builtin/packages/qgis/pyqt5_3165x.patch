@@ -1,0 +1,29 @@
+diff -ru a/cmake/FindPyQt5.py b/cmake/FindPyQt5.py
+--- a/cmake/FindPyQt5.py	2021-04-18 11:12:34.520409268 -0700
++++ b/cmake/FindPyQt5.py	2021-04-18 11:17:56.574204157 -0700
+@@ -41,6 +41,7 @@
+ 
+     cfg = sipconfig.Configuration()
+     sip_dir = cfg.default_sip_dir
++    pyqt_prefix = os.sep.join(PyQt5.QtCore.__file__.split(os.sep)[0:-5])
+     if sys.platform.startswith('freebsd'):
+         py_version = str(sys.version_info.major) + str(sys.version_info.minor)
+         sip_dir = sip_dir.replace(py_version, '')
+@@ -51,12 +52,12 @@
+         if os.path.exists(os.path.join(p, "QtCore", "QtCoremod.sip")):
+             sip_dir = p
+             break
+-    else:
+-        sys.exit(1)
++#    else:
++#        sys.exit(1)
+     cfg = {
+-        'pyqt_mod_dir': os.path.join(cfg.default_mod_dir, "PyQt5"),
+-        'pyqt_sip_dir': sip_dir,
+-        'pyqt_bin_dir': cfg.default_bin_dir,
++        'pyqt_mod_dir': os.path.dirname(PyQt5.QtCore.__file__),
++        'pyqt_sip_dir': os.path.join(pyqt_prefix,'share','sip','PyQt5'),
++        'pyqt_bin_dir': os.path.join(pyqt_prefix,'bin'),
+     }
+ else:  # Code for SIP v5
+     from distutils.sysconfig import get_python_lib

@@ -11,10 +11,12 @@ class RocprofilerDev(CMakePackage):
     """ROCPROFILER library for AMD HSA runtime API extension support"""
 
     homepage = "https://github.com/ROCm-Developer-Tools/rocprofiler"
-    url      = "https://github.com/ROCm-Developer-Tools/rocprofiler/archive/rocm-4.0.0.tar.gz"
+    git      = "https://github.com/ROCm-Developer-Tools/rocprofiler.git"
+    url      = "https://github.com/ROCm-Developer-Tools/rocprofiler/archive/rocm-4.1.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('4.1.0', sha256='2eead5707016da606d636b97f3af1c98cb471da78659067d5a77d4a2aa43ef4c')
     version('4.0.0', sha256='e9960940d1ec925814a0e55ee31f5fc2fb23fa839d1c6a909f72dd83f657fb25')
     version('3.10.0', sha256='fbf5ce9fbc13ba2b3f9489838e00b54885aba92336f055e8b03fef3e3347071e')
     version('3.9.0', sha256='f07ddd9bf2f86550c8d243f887e9bde9d4f2ceec81ecc6393012aaf2a45999e8')
@@ -23,7 +25,7 @@ class RocprofilerDev(CMakePackage):
     version('3.5.0', sha256='c42548dd467b7138be94ad68c715254eb56a9d3b670ccf993c43cd4d43659937')
 
     depends_on('cmake@3:', type='build')
-    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
         depends_on('hsakmt-roct@' + ver, type='build', when='@' + ver)
         depends_on('hsa-rocr-dev@' + ver, type='link', when='@' + ver)
         depends_on('rocminfo@' + ver, type='build', when='@' + ver)
@@ -75,6 +77,13 @@ class RocprofilerDev(CMakePackage):
              destination='',
              placement='roctracer',
              when='@4.0.0')
+    resource(name='roctracer-dev',
+             url='https://github.com/ROCm-Developer-Tools/roctracer/archive/rocm-4.1.0.tar.gz',
+             sha256='5d93de4e92895b6eb5f9d098f5dbd182d33923bd9b2ab69cf5a1abbf91d70695',
+             expand=True,
+             destination='',
+             placement='roctracer',
+             when='@4.1.0')
 
     def patch(self):
         filter_file('${HSA_RUNTIME_LIB_PATH}/../include',

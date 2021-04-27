@@ -1,0 +1,22 @@
+Description: Provide better diagnostic for directories
+ Provides better diagnostic when renaming directories. Based on patch
+ by Ulrich Eckhardt <doomster@knuut.de>.
+Debian-Bug: 584850
+Author: Axel Beckert <abe@debian.org>
+
+Index: mmv/mmv.c
+===================================================================
+--- mmv.orig/mmv.c	2012-09-16 20:03:04.269626454 +0200
++++ mmv/mmv.c	2012-09-16 20:06:18.220733497 +0200
+@@ -1215,7 +1215,11 @@
+ 	getstat(pathbuf, ffrom);
+ 	if ((ffrom->fi_stflags & FI_ISDIR) ? !dirs : !fils)
+ #endif
++	{
++		if (verbose)
++			printf("ignoring directory %s\n", ffrom->fi_name);
+ 		return(0);
++	}
+ 
+ 	if (needslash) {
+ 		strcpy(pathend + *pk, SLASHSTR);

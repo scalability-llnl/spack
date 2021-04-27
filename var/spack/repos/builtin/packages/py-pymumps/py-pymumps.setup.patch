@@ -1,0 +1,15 @@
+# Add mumps_common to library list
+# This is solution proposed in 
+# https://github.com/PyMumps/pymumps/issues/13
+diff -Naur spack-src/setup.py spack-src.patched/setup.py
+--- spack-src/setup.py	2018-11-05 16:57:21.000000000 -0500
++++ spack-src.patched/setup.py	2020-10-26 11:23:41.363767947 -0400
+@@ -35,7 +35,7 @@
+         Extension(
+             'mumps._dmumps',
+             sources=['mumps/_dmumps.pyx'],
+-            libraries=['dmumps'],
++            libraries=['dmumps', 'mumps_common'],
+         ),
+     ],
+     install_requires=['mpi4py'],

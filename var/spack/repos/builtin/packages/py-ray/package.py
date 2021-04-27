@@ -16,7 +16,7 @@ class PyRay(PythonPackage):
     build_directory = 'python'
 
     depends_on('python@3.6:', type=('build', 'run'))
-    depends_on('bazel@3.2.0:', type='build')
+    depends_on('bazel@3.2.0', type='build')
     depends_on('py-setuptools', type='build')
     depends_on('py-cython@0.29.14:', type='build')
     depends_on('py-wheel', type='build')

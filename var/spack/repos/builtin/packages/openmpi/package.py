@@ -36,9 +36,10 @@ class Openmpi(AutotoolsPackage):
     version('master', branch='master')
 
     # Current
-    version('4.1.0', sha256='73866fb77090819b6a8c85cb8539638d37d6877455825b74e289d647a39fd5b5')  # libmpi.so.40.30.0
+    version('4.1.1', sha256='e24f7a778bd11a71ad0c14587a7f5b00e68a71aa5623e2157bafee3d44c07cda')  # libmpi.so.40.30.1
 
     # Still supported
+    version('4.1.0', sha256='73866fb77090819b6a8c85cb8539638d37d6877455825b74e289d647a39fd5b5')  # libmpi.so.40.30.0
     version('4.0.5', preferred=True, sha256='c58f3863b61d944231077f344fe6b4b8fbb83f3d1bc93ab74640bf3e5acac009')  # libmpi.so.40.20.5
     version('4.0.4', sha256='47e24eb2223fe5d24438658958a313b6b7a55bb281563542e1afc9dec4a31ac4')  # libmpi.so.40.20.4
     version('4.0.3', sha256='1402feced8c3847b3ab8252165b90f7d1fa28c23b6b2ca4632b6e4971267fd03')  # libmpi.so.40.20.3
@@ -173,7 +174,7 @@ class Openmpi(AutotoolsPackage):
     patch('nag_pthread/2.0.0_2.1.1.patch', when='@2.0.0:2.1.1%nag')
     patch('nag_pthread/1.10.4_1.10.999.patch', when='@1.10.4:1.10.999%nag')
 
-    patch('nvhpc-libtool.patch', when='%nvhpc@develop')
+    patch('nvhpc-libtool.patch', when='@develop %nvhpc')
     patch('nvhpc-configure.patch', when='%nvhpc')
 
     # Fix MPI_Sizeof() in the "mpi" Fortran module for compilers that do not
@@ -337,7 +338,7 @@ class Openmpi(AutotoolsPackage):
     # knem support was added in 1.5
     conflicts('fabrics=knem', when='@:1.4')
 
-    conflicts('schedulers=slurm ~pmi', when='@1.5.4:',
+    conflicts('schedulers=slurm ~pmi', when='@1.5.4:2.999.999',
               msg='+pmi is required for openmpi(>=1.5.5) to work with SLURM.')
     conflicts('schedulers=loadleveler', when='@3.0.0:',
               msg='The loadleveler scheduler is not supported with '
@@ -631,7 +632,11 @@ class Openmpi(AutotoolsPackage):
         # for versions older than 3.0.3,3.1.3,4.0.0
         # Presumably future versions after 11/2018 should support slurm+static
         if spec.satisfies('schedulers=slurm'):
-            config_args.append('--with-pmi={0}'.format(spec['slurm'].prefix))
+            if spec.satisfies('+pmi'):
+                config_args.append('--with-pmi={0}'.format(
+                    spec['slurm'].prefix))
+            else:
+                config_args.extend(self.with_or_without('pmi'))
             if spec.satisfies('@3.1.3:') or spec.satisfies('@3.0.3'):
                 if '+static' in spec:
                     config_args.append('--enable-static')
@@ -752,7 +757,7 @@ class Openmpi(AutotoolsPackage):
             else:
                 config_args.append('--without-cuda')
 
-        if spec.satisfies('%nvhpc'):
+        if spec.satisfies('%nvhpc@:20.11'):
             # Workaround compiler issues
             config_args.append('CFLAGS=-O1')
 

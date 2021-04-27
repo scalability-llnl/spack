@@ -1,5 +1,5 @@
 --- WRF-3.9.1.1/arch/configure_new.defaults	2021-03-10 10:08:07.885236847 +0530
-+++ WRF-3.9.1.1/arch/configure_new_aocc.defaults	2021-03-13 18:48:16.981385006 +0530
++++ WRF-3.9.1.1/arch/configure_new_aocc.defaults	2021-04-12 13:24:05.880139431 +0530
 @@ -1917,6 +1917,50 @@
  CC_TOOLS        =      $(SCC) 
  
@@ -23,7 +23,7 @@
 +RWORDSIZE       =       $(NATIVE_RWORDSIZE)
 +PROMOTION       =
 +ARCH_LOCAL      =       -DNONSTANDARD_SYSTEM_SUBR -DWRF_USE_CLM
-+LIBMVEC         =       -mllvm -vector-library=LIBMVEC -mllvm -enable-boscc -Mstack_arrays
++LIBMVEC         =       -mllvm -vector-library=LIBMVEC -Mstack_arrays
 +AOCCOPT         =       -O3 -m64 -Ofast -ffast-math
 +CFLAGS_LOCAL    =       -w $(AOCCOPT)
 +LDFLAGS_LOCAL   =       -lm -ltirpc -lamdlibm  -ljemalloc -lmvec $(AOCCOPT)

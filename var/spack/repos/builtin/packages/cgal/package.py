@@ -31,7 +31,7 @@ class Cgal(CMakePackage):
     variant('build_type', default='Release',
             description='The build type to build',
             values=('Debug', 'Release'))
-    variant('header-only', default=False,
+    variant('header_only', default=False,
             description='Install in header only mode')
 
     # ---- See "7 CGAL Libraries" at:

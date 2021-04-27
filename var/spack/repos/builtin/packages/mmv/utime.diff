@@ -1,0 +1,21 @@
+--- mmv-1.01b.orig/mmv.c
++++ mmv-1.01b/mmv.c
+@@ -123,6 +123,7 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/file.h>
++#include <utime.h>
+ 
+ extern char *getenv();
+ extern long lseek();
+@@ -192,10 +193,6 @@
+ #ifdef IS_SYSV
+ 
+ /* for System V and Version 7*/
+-struct utimbuf {
+-	time_t actime;
+-	time_t modtime;
+-};
+ #define utimes(f, t) utime((f), &(t))
+ 
+ #ifndef HAS_RENAME

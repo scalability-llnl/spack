@@ -963,7 +963,7 @@ Variants are named options associated with a particular package. They are
 optional, as each package must provide default values for each variant it
 makes available. Variants can be specified using
 a flexible parameter syntax ``name=<value>``. For example,
-``spack install libelf debug=True`` will install libelf built with debug
+``spack install mercury debug=True`` will install mercury built with debug
 flags. The names of particular variants available for a package depend on
 what was provided by the package author. ``spack info <package>`` will
 provide information on what build variants are available.
@@ -971,11 +971,11 @@ provide information on what build variants are available.
 For compatibility with earlier versions, variants which happen to be
 boolean in nature can be specified by a syntax that represents turning
 options on and off. For example, in the previous spec we could have
-supplied ``libelf +debug`` with the same effect of enabling the debug
+supplied ``mercury +debug`` with the same effect of enabling the debug
 compile time option for the libelf package.
 
 Depending on the package a variant may have any default value.  For
-``libelf`` here, ``debug`` is ``False`` by default, and we turned it on
+``mercury`` here, ``debug`` is ``False`` by default, and we turned it on
 with ``debug=True`` or ``+debug``.  If a variant is ``True`` by default
 you can turn it off by either adding ``-name`` or ``~name`` to the spec.
 

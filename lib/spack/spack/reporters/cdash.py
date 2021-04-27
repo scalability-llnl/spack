@@ -22,6 +22,7 @@ from ordereddict_backport import OrderedDict
 import spack.build_environment
 import spack.fetch_strategy
 import spack.package
+from spack.error import SpackError
 from spack.reporter import Reporter
 from spack.util.crypto import checksum
 from spack.util.executable import which
@@ -60,6 +61,7 @@ class CDash(Reporter):
     def __init__(self, args):
         Reporter.__init__(self, args)
         tty.set_verbose(args.verbose)
+        self.success = True
         self.template_dir = os.path.join('reports', 'cdash')
         self.cdash_upload_url = args.cdash_upload_url
 
@@ -166,6 +168,7 @@ class CDash(Reporter):
 
             if phase == 'configure' and nerrors > 0:
                 report_data[phase]['status'] = 1
+                self.success = False
 
             if phase == 'build':
                 # Convert log output from ASCII to Unicode and escape for XML.
@@ -190,6 +193,8 @@ class CDash(Reporter):
                 if package['result'] == 'success':
                     warnings = errors + warnings
                     errors = []
+                else:
+                    self.success = False
 
                 report_data[phase]['errors'] = []
                 report_data[phase]['warnings'] = []
@@ -254,7 +259,7 @@ class CDash(Reporter):
             for package in spec['packages']:
                 self.build_report_for_package(
                     directory_name, package, duration)
-        self.print_cdash_link()
+        self.finalize_report()
 
     def test_report_for_package(self, directory_name, package, duration):
         if 'stdout' not in package:
@@ -360,7 +365,7 @@ class CDash(Reporter):
             for package in spec['packages']:
                 self.test_report_for_package(
                     directory_name, package, duration)
-        self.print_cdash_link()
+        self.finalize_report()
 
     def concretization_report(self, directory_name, msg):
         self.buildname = self.base_buildname
@@ -381,7 +386,8 @@ class CDash(Reporter):
         # errors so refer to this report with the base buildname instead.
         self.current_package_name = self.base_buildname
         self.upload(output_filename)
-        self.print_cdash_link()
+        self.success = False
+        self.finalize_report()
 
     def initialize_report(self, directory_name):
         if not os.path.exists(directory_name):
@@ -430,7 +436,7 @@ class CDash(Reporter):
                     buildid = match.group(1)
                     self.buildIds[self.current_package_name] = buildid
 
-    def print_cdash_link(self):
+    def finalize_report(self):
         if self.buildIds:
             print("View your build results here:")
             for package_name, buildid in iteritems(self.buildIds):
@@ -440,3 +446,5 @@ class CDash(Reporter):
                 build_url = build_url[0:build_url.find("submit.php")]
                 build_url += "buildSummary.php?buildid={0}".format(buildid)
                 print("{0}: {1}".format(package_name, build_url))
+        if not self.success:
+            raise SpackError("Errors encountered, see above for more details")

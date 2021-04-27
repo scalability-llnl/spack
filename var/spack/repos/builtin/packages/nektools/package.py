@@ -19,7 +19,7 @@ def is_integral(x):
 
 
 class Nektools(Package):
-    """Tools reuqired by Nek5000"""
+    """Tools required by Nek5000"""
 
     homepage = "https://nek5000.mcs.anl.gov/"
     url      = 'https://github.com/Nek5000/Nek5000/archive/v17.0.tar.gz'
@@ -50,6 +50,7 @@ class Nektools(Package):
     variant('genmap',   default=True, description='Build genmap tool.')
     variant('nekmerge', default=True, description='Build nekmerge tool.')
     variant('prenek',   default=True, description='Build prenek tool.')
+    variant('visit', default=False, description='Enable support for visit')
 
     depends_on('libx11', when="+prenek")
     depends_on('libx11', when="+postnek")

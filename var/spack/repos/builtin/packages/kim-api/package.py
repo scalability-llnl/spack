@@ -39,3 +39,9 @@ class KimApi(CMakePackage):
     # The Fujitsu compiler requires the '--linkfortran'
     # option to combine C++ and Fortran programs.
     patch('fujitsu_add_link_flags.patch', when='%fj')
+
+    def patch(self):
+        # Remove flags not recognized by the NVIDIA compiler
+        if self.spec.satisfies('%nvhpc'):
+            filter_file('-std=gnu', '',
+                        'examples/simulators/simulator-model-example/CMakeLists.txt')

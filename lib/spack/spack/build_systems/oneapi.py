@@ -8,13 +8,13 @@
 """
 
 from sys import platform
-from os.path import basename, dirname, isdir, join
+from os.path import basename, dirname, isdir
 
 from spack.package import Package
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 
-from llnl.util.filesystem import find_headers, find_libraries
+from llnl.util.filesystem import find_headers, find_libraries, join_path
 
 
 class IntelOneApiPackage(Package):
@@ -32,6 +32,11 @@ class IntelOneApiPackage(Package):
     def component_dir(self):
         """Subdirectory for this component in the install prefix."""
         raise NotImplementedError
+
+    @property
+    def component_path(self):
+        """Path to component <prefix>/<component>/<version>."""
+        return join_path(self.prefix, self.component_dir, str(self.spec.version))
 
     def install(self, spec, prefix, installer_path=None):
         """Shared install method for all oneapi packages."""
@@ -53,21 +58,20 @@ class IntelOneApiPackage(Package):
                  '--install-dir', prefix)
 
         # Some installers have a bug and do not return an error code when failing
-        if not isdir(join(prefix, self.component_dir)):
+        if not isdir(join_path(prefix, self.component_dir)):
             raise RuntimeError('install failed')
 
     def setup_run_environment(self, env):
-
         """Adds environment variables to the generated module file.
 
         These environment variables come from running:
 
         .. code-block:: console
 
-           $ source {prefix}/setvars.sh --force
+           $ source {prefix}/{component}/{version}/env/vars.sh
         """
         env.extend(EnvironmentModifications.from_sourcing_file(
-            join(self.prefix, self.component_dir, 'latest/env/vars.sh')))
+            join_path(self.component_path, 'env', 'vars.sh')))
 
 
 class IntelOneApiLibraryPackage(IntelOneApiPackage):
@@ -75,12 +79,11 @@ class IntelOneApiLibraryPackage(IntelOneApiPackage):
 
     @property
     def headers(self):
-        include_path = '%s/%s/latest/include' % (
-            self.prefix, self.component_dir)
+        include_path = join_path(self.component_path, 'include')
         return find_headers('*', include_path, recursive=True)
 
     @property
     def libs(self):
-        lib_path = '%s/%s/latest/lib/intel64' % (self.prefix, self.component_dir)
+        lib_path = join_path(self.component_path, 'lib', 'intel64')
         lib_path = lib_path if isdir(lib_path) else dirname(lib_path)
         return find_libraries('*', root=lib_path, shared=True, recursive=True)

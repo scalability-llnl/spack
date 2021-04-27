@@ -61,14 +61,14 @@ class Elemental(CMakePackage):
     # Allow Elemental to build internally when using 8-byte ints
     depends_on('openblas threads=openmp', when='blas=openblas +openmp_blas ~int64_blas')
 
-    depends_on('intel-mkl', when="blas=mkl ~openmp_blas ~int64_blas")
-    depends_on('intel-mkl threads=openmp', when='blas=mkl +openmp_blas ~int64_blas')
-    depends_on('intel-mkl@2017.1 +openmp +ilp64', when='blas=mkl +openmp_blas +int64_blas')
+    depends_on('intel-mkl', when="blas=mkl")
+    depends_on('intel-mkl threads=openmp', when='blas=mkl +openmp_blas')
+    depends_on('intel-mkl@2017.1 +ilp64', when='blas=mkl +int64_blas')
 
     depends_on('veclibfort', when='blas=accelerate')
 
-    depends_on('essl ~cuda', when='blas=essl ~openmp_blas ~int64_blas')
-    depends_on('essl threads=openmp', when='blas=essl +openmp_blas ~int64_blas')
+    depends_on('essl', when='blas=essl')
+    depends_on('essl threads=openmp', when='blas=essl +openmp_blas')
 
     # Note that this forces us to use OpenBLAS until #1712 is fixed
     depends_on('lapack', when='blas=openblas ~openmp_blas')

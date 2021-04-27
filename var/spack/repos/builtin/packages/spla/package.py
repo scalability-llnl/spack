@@ -15,6 +15,7 @@ class Spla(CMakePackage):
     url      = "https://github.com/eth-cscs/spla/archive/v1.0.0.tar.gz"
     git = 'https://github.com/eth-cscs/spla.git'
 
+    version('1.4.0', sha256='364a9fe759fddec8a0839cf79f1cf0619fc36f4d4c15f1c2b1f437249d7840c6')
     version('1.3.0', sha256='ff05a22bd655607ff941f3228ac8605a813e1eec6eaa49fbcf7b58a3a4cf5f00')
     version('1.2.1', sha256='4d7237f752dc6257778c84ee19c9635072b1cb8ce8d9ab6e34a047f63a736b29')
     version('1.2.0', sha256='96ddd13c155ef3d7e40f87a982cdb439cf9e720523e66b6d20125d346ffe8fca')

@@ -43,6 +43,11 @@ class Mumps(Package):
     variant('int64', default=False,
             description='Use int64_t/integer*8 as default index type')
     variant('shared', default=True, description='Build shared libraries')
+    variant('openmp', default=False,
+            description='Compile MUMPS with OpenMP support')
+    variant('blr_mt', default=False,
+            description='Allow BLAS calls in OpenMP regions ' +
+                        '(warning: might not be supported by all multithread BLAS)')
 
     depends_on('scotch + esmumps', when='~ptscotch+scotch')
     depends_on('scotch + esmumps ~ metis + mpi', when='+ptscotch')
@@ -60,12 +65,16 @@ class Mumps(Package):
     patch('mumps.src-makefile.5.2.patch', when='@5.2.0 +shared')
     patch('mumps.src-makefile.5.3.patch', when='@5.3.0: +shared')
 
-    def write_makefile_inc(self):
-        if ('+parmetis' in self.spec or '+ptscotch' in self.spec) and (
-                '+mpi' not in self.spec):
-            raise RuntimeError(
-                'You cannot use the variants parmetis or ptscotch without mpi')
+    conflicts('+parmetis', when='~mpi',
+              msg="You cannot use the parmetis variant without mpi")
+    conflicts('+parmetis', when='~metis',
+              msg="You cannot use the parmetis variant without metis")
+    conflicts('+ptscotch', when='~mpi',
+              msg="You cannot use the ptscotch variant without mpi")
+    conflicts('+blr_mt', when='~openmp',
+              msg="You cannot use the blr_mt variant without openmp")
 
+    def write_makefile_inc(self):
         # The makefile variables LIBBLAS, LSCOTCH, LMETIS, and SCALAP are only
         # used to link the examples, so if building '+shared' there is no need
         # to explicitly link with the respective libraries because we make sure
@@ -96,7 +105,7 @@ class Mumps(Package):
             if '+ptscotch' in self.spec:
                 orderings.append('-Dptscotch')
 
-        if '+parmetis' in self.spec and '+metis' in self.spec:
+        if '+parmetis' in self.spec:
             makefile_conf.extend([
                 "IMETIS = -I%s" % self.spec['parmetis'].prefix.include,
                 ("LMETIS = -L%s -l%s -L%s -l%s" % (
@@ -136,8 +145,8 @@ class Mumps(Package):
         # when building shared libs need -fPIC, otherwise
         # /usr/bin/ld: graph.o: relocation R_X86_64_32 against `.rodata.str1.1'
         # can not be used when making a shared object; recompile with -fPIC
-        cpic = self.compiler.cc_pic_flag if '+shared' in self.spec else ''
-        fpic = self.compiler.fc_pic_flag if '+shared' in self.spec else ''
+        cpic = self.compiler.cc_pic_flag if shared else ''
+        fpic = self.compiler.fc_pic_flag if shared else ''
         # TODO: test this part, it needs a full blas, scalapack and
         # partitionning environment with 64bit integers
 
@@ -147,34 +156,52 @@ class Mumps(Package):
 
         opt_level = '3' if using_xl else ''
 
+        optc = ['-O{0}'.format(opt_level)]
+        optf = ['-O{0}'.format(opt_level)]
+        optl = ['-O{0}'.format(opt_level)]
+
+        if shared:
+            optc.append(cpic)
+            optf.append(fpic)
+            optl.append(cpic)
+
+        if not using_xlf:
+            optf.append('-DALLOW_NON_INIT')
+
         if '+int64' in self.spec:
-            if using_xlf:
-                makefile_conf.append('OPTF = -O%s' % opt_level)
-            else:
+            if not using_xlf:
                 # the fortran compilation flags most probably are
                 # working only for intel and gnu compilers this is
                 # perhaps something the compiler should provide
-                makefile_conf.extend([
-                    'OPTF = %s -O  -DALLOW_NON_INIT %s' % (
-                        fpic,
-                        '-fdefault-integer-8' if using_gcc else '-i8'),  # noqa
-                ])
+                optf.append('-fdefault-integer-8' if using_gcc else '-i8')
 
-            makefile_conf.extend([
-                'OPTL = %s -O%s' % (cpic, opt_level),
-                'OPTC = %s -O%s -DINTSIZE64' % (cpic, opt_level)
-            ])
+            optc.append('-DINTSIZE64')
         else:
             if using_xlf:
-                makefile_conf.append('OPTF = -O%s -qfixed' % opt_level)
-            else:
-                makefile_conf.append('OPTF = %s -O%s -DALLOW_NON_INIT' % (
-                    fpic, opt_level))
+                optf.append('-qfixed')
 
-            makefile_conf.extend([
-                'OPTL = %s -O%s' % (cpic, opt_level),
-                'OPTC = %s -O%s' % (cpic, opt_level)
-            ])
+        # As of version 5.2.0, MUMPS is able to take advantage
+        # of the GEMMT BLAS extension. MKL is currently the only
+        # known BLAS implementation supported.
+        if '@5.2.0: ^mkl' in self.spec:
+            optf.append('-DGEMMT_AVAILABLE')
+
+        if '+openmp' in self.spec:
+            optc.append(self.compiler.openmp_flag)
+            optf.append(self.compiler.openmp_flag)
+            optl.append(self.compiler.openmp_flag)
+
+        # Using BLR_MT might not be supported by all multithreaded BLAS
+        # (MKL is known to work) but it is not something we can easily
+        # check so we trust that the user knows what he/she is doing.
+        if '+blr_mt' in self.spec:
+            optf.append('-DBLR_MT')
+
+        makefile_conf.extend([
+            'OPTC = {0}'.format(' '.join(optc)),
+            'OPTF = {0}'.format(' '.join(optf)),
+            'OPTL = {0}'.format(' '.join(optl))
+        ])
 
         if '+mpi' in self.spec:
             scalapack = self.spec['scalapack'].libs if not shared \

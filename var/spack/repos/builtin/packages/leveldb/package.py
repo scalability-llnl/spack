@@ -13,6 +13,7 @@ class Leveldb(CMakePackage):
     git      = "https://github.com/google/leveldb.git"
 
     version('master', branch='master')
+    version('1.23', sha256='9a37f8a6174f09bd622bc723b55881dc541cd50747cbd08831c2a82d620f6d76')
     version('1.22', sha256='55423cac9e3306f4a9502c738a001e4a339d1a38ffbee7572d4a07d5d63949b2')
     version('1.20', sha256='f5abe8b5b209c2f36560b75f32ce61412f39a2922f7045ae764a2c23335b6664')
     version('1.18', sha256='4aa1a7479bc567b95a59ac6fb79eba49f61884d6fd400f20b7af147d54c5cee5')
@@ -63,6 +64,11 @@ class Leveldb(CMakePackage):
             args.append('-DBUILD_SHARED_LIBS=ON')
         else:
             args.append('-DBUILD_SHARED_LIBS=OFF')
+
+        # The tarball is missing the benchmark and test submodules
+        if self.spec.satisfies('@1.23:'):
+            args.append('-DLEVELDB_BUILD_BENCHMARKS=OFF')
+            args.append('-DLEVELDB_BUILD_TESTS=OFF')
 
         return args
 

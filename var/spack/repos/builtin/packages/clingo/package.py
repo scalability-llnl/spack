@@ -23,9 +23,11 @@ class Clingo(CMakePackage):
 
     maintainers = ["tgamblin", "alalazo"]
 
-    version('master', branch='master', submodules=True, preferred=True)
+    version('master', branch='master', submodules=True)
     version('spack', commit='2a025667090d71b2c9dce60fe924feb6bde8f667', submodules=True)
 
+    version('5.5.0', sha256='c9d7004a0caec61b636ad1c1960fbf339ef8fdee9719321fc1b6b210613a8499')
+    version('5.4.1', sha256='ac6606388abfe2482167ce8fd4eb0737ef6abeeb35a9d3ac3016c6f715bfee02')
     version('5.4.0', sha256='e2de331ee0a6d254193aab5995338a621372517adcf91568092be8ac511c18f3')
     version('5.3.0', sha256='b0d406d2809352caef7fccf69e8864d55e81ee84f4888b0744894977f703f976')
     version('5.2.2', sha256='da1ef8142e75c5a6f23c9403b90d4f40b9f862969ba71e2aaee9a257d058bfcf')
@@ -39,6 +41,13 @@ class Clingo(CMakePackage):
 
     depends_on('python', type=("build", "link", "run"), when="+python")
     extends('python', when='+python')
+
+    # Clingo 5.5.0 supports Python 3.6 or later and needs CFFI
+    depends_on(
+        'python@3.6.0:',
+        type=('build', 'link', 'run'), when='@5.5.0: +python'
+    )
+    depends_on('py-cffi', type=('build', 'run'), when='@5.5.0: +python')
 
     patch('python38.patch', when="@5.3:5.4")
 

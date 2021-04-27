@@ -338,7 +338,7 @@ class RPackageTemplate(PackageTemplate):
         r_name = parse_name(url)
 
         cran = re.search(
-            r'(?:r-project)[^/]+/src' + '/([^/]+)' * 2,
+            r'(?:r-project|rstudio)[^/]+/src' + '/([^/]+)' * 2,
             url
         )
 

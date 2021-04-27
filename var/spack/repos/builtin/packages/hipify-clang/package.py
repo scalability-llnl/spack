@@ -11,10 +11,11 @@ class HipifyClang(CMakePackage):
     sources into HIP sources"""
 
     homepage = "https://github.com/ROCm-Developer-Tools/HIPIFY"
-    url      = "https://github.com/ROCm-Developer-Tools/HIPIFY/archive/rocm-4.0.0.tar.gz"
+    url      = "https://github.com/ROCm-Developer-Tools/HIPIFY/archive/rocm-4.1.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('4.1.0', sha256='ec9cc410167b6ab31706742f3d7a77dbd29eb548e7371134b3aace8597665475')
     version('4.0.0', sha256='9d3906d606fca2bcb58f5f2a70cc4b9e298ca0e12a84ee5f18e42b7df97b38a4')
     version('3.10.0', sha256='7ebba22ed70100150bedddffa08a84f91b546347662862487b6703a1edce2623')
     version('3.9.0', sha256='07adb98e91ddd7420d873806866d53eaf77527fac57799e846823522191ba89a')
@@ -25,5 +26,5 @@ class HipifyClang(CMakePackage):
     variant('build_type', default='Release', values=("Release", "Debug"), description='CMake build type')
 
     depends_on('cmake@3.5:', type='build')
-    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
         depends_on('llvm-amdgpu@' + ver, when='@' + ver)

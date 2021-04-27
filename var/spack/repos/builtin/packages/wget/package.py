@@ -15,6 +15,7 @@ class Wget(AutotoolsPackage, GNUMirrorPackage):
     homepage = "http://www.gnu.org/software/wget/"
     gnu_mirror_path = "wget/wget-1.19.1.tar.gz"
 
+    version('1.21',   sha256='b3bc1a9bd0c19836c9709c318d41c19c11215a07514f49f89b40b9d50ab49325')
     version('1.20.3', sha256='31cccfc6630528db1c8e3a06f6decf2a370060b982841cfab2b8677400a5092e')
     version('1.19.1', sha256='9e4f12da38cc6167d0752d934abe27c7b1599a9af294e73829be7ac7b5b4da40')
     version('1.17',   sha256='3e04ad027c5b6ebd67c616eec13e66fbedb3d4d8cbe19cc29dadde44b92bda55')

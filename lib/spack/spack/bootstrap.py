@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -196,7 +196,10 @@ def get_executable(exe, spec=None, install=False):
 
 
 def _bootstrap_config_scopes():
-    config_scopes = []
+    tty.debug('[BOOTSTRAP CONFIG SCOPE] name=_builtin')
+    config_scopes = [
+        spack.config.InternalConfigScope('_builtin', spack.config.config_defaults)
+    ]
     for name, path in spack.config.configuration_paths:
         platform = spack.architecture.platform().name
         platform_scope = spack.config.ConfigScope(
@@ -204,7 +207,7 @@ def _bootstrap_config_scopes():
         )
         generic_scope = spack.config.ConfigScope(name, path)
         config_scopes.extend([generic_scope, platform_scope])
-        msg = '[BOOSTRAP CONFIG SCOPE] name={0}, path={1}'
+        msg = '[BOOTSTRAP CONFIG SCOPE] name={0}, path={1}'
         tty.debug(msg.format(generic_scope.name, generic_scope.path))
         tty.debug(msg.format(platform_scope.name, platform_scope.path))
     return config_scopes
@@ -213,12 +216,12 @@ def _bootstrap_config_scopes():
 @contextlib.contextmanager
 def ensure_bootstrap_configuration():
     with spack.architecture.use_platform(spack.architecture.real_platform()):
-        # Default configuration scopes excluding command line and builtin
-        # but accounting for platform specific scopes
-        config_scopes = _bootstrap_config_scopes()
-        with spack.config.use_configuration(*config_scopes):
-            with spack.repo.use_repositories(spack.paths.packages_path):
-                with spack.store.use_store(spack.paths.user_bootstrap_store):
+        with spack.repo.use_repositories(spack.paths.packages_path):
+            with spack.store.use_store(spack.paths.user_bootstrap_store):
+                # Default configuration scopes excluding command line
+                # and builtin but accounting for platform specific scopes
+                config_scopes = _bootstrap_config_scopes()
+                with spack.config.use_configuration(*config_scopes):
                     with spack_python_interpreter():
                         yield
 

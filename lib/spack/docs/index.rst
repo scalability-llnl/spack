@@ -67,6 +67,7 @@ or refer to the full manual below.
    build_settings
    environments
    containers
+   monitoring
    mirrors
    module_file_support
    repositories
@@ -76,6 +77,12 @@ or refer to the full manual below.
    chain
    extensions
    pipelines
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Research
+
+   analyze
 
 .. toctree::
    :maxdepth: 2

@@ -15,7 +15,8 @@ class UtilLinux(AutotoolsPackage):
     list_url = "https://www.kernel.org/pub/linux/utils/util-linux"
     list_depth = 1
 
-    version('2.36', sha256='82942cd877a989f6d12d4ce2c757fb67ec53d8c5cd9af0537141ec5f84a2eea3')
+    version('2.36.2', sha256='f5dbe79057e7d68e1a46fc04083fc558b26a49499b1b3f50e4f4893150970463')
+    version('2.36',   sha256='82942cd877a989f6d12d4ce2c757fb67ec53d8c5cd9af0537141ec5f84a2eea3')
     version('2.35.1', sha256='37ac05d82c6410d89bc05d43cee101fefc8fe6cf6090b3ce7a1409a6f35db606')
     version('2.35',   sha256='98acab129a8490265052e6c1e033ca96d68758a13bb7fcd232c06bf16cc96238')
     version('2.34',   sha256='b62c92e5e1629642113cd41cec1ee86d1ee7e36b8ffe8ec3ac89c11797e9ac25')

@@ -118,10 +118,11 @@ class Qt(Package):
     patch('qt5-11-intel-overflow.patch', when='@5.11 %intel')
     patch('qt5-12-intel-overflow.patch', when='@5.12:5.14.0 %intel')
     # https://bugreports.qt.io/browse/QTBUG-78937
-    patch('qt5-12-configure.patch', when='@5.12')
+    patch('qt5-12-configure.patch', when='@5.12.7')
     # https://bugreports.qt.io/browse/QTBUG-93402
     patch('qt5-15-gcc-10.patch', when='@5.12.7:5.15 %gcc@8:')
     patch('qt514.patch', when='@5.14')
+    patch('qt514-isystem.patch', when='@5.14.2')
     conflicts('%gcc@10:', when='@5.9:5.12.6 +opengl')
 
     # Build-only dependencies
@@ -141,6 +142,7 @@ class Qt(Package):
     depends_on("gperf", when='+webkit')
     depends_on("gtkplus", when='+gtk')
     depends_on("openssl", when='+ssl')
+    depends_on("python@2.7.5:2.999", when='@5.14: +webkit', type='build')
     depends_on("sqlite+column_metadata", when='+sql', type=('build', 'run'))
 
     depends_on("libpng@1.2.57", when='@3')
@@ -242,9 +244,15 @@ class Qt(Package):
 
     def setup_run_environment(self, env):
         env.set('QTDIR', self.prefix)
+        env.set('QTINC', self.prefix.inc)
+        env.set('QTLIB', self.prefix.lib)
+        env.prepend_path('QT_PLUGIN_PATH', self.prefix.plugins)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.set('QTDIR', self.prefix)
+        env.set('QTINC', self.prefix.inc)
+        env.set('QTLIB', self.prefix.lib)
+        env.prepend_path('QT_PLUGIN_PATH', self.prefix.plugins)
 
     def setup_dependent_package(self, module, dependent_spec):
         module.qmake = Executable(join_path(self.spec.prefix.bin, 'qmake'))

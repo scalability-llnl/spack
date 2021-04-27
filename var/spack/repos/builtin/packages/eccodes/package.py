@@ -17,6 +17,7 @@ class Eccodes(CMakePackage):
 
     maintainers = ['skosukhin']
 
+    version('2.21.0', sha256='da0a0bf184bb436052e3eae582defafecdb7c08cdaab7216780476e49b509755')
     version('2.20.0', sha256='207a3d7966e75d85920569b55a19824673e8cd0b50db4c4dac2d3d52eacd7985')
     version('2.19.1', sha256='9964bed5058e873d514bd4920951122a95963128b12f55aa199d9afbafdd5d4b')
     version('2.18.0', sha256='d88943df0f246843a1a062796edbf709ef911de7269648eef864be259e9704e3')
@@ -79,11 +80,13 @@ class Eccodes(CMakePackage):
                 'Fortran interface requires a Fortran compiler!')
 
     def cmake_args(self):
-        var_opt_list = [('+pthreads', 'ECCODES_THREADS'),
-                        ('+openmp', 'ECCODES_OMP_THREADS'),
-                        ('+memfs', 'MEMFS'),
-                        ('+python', 'PYTHON'),
-                        ('+fortran', 'FORTRAN')]
+        var_opt_list = [
+            ('+pthreads', 'ECCODES_THREADS'),
+            ('+openmp', 'ECCODES_OMP_THREADS'),
+            ('+memfs', 'MEMFS'),
+            ('+python',
+             'PYTHON2' if self.spec.satisfies('@2.20.0:') else 'PYTHON'),
+            ('+fortran', 'FORTRAN')]
 
         args = ['-DENABLE_%s=%s' % (opt, 'ON' if var in self.spec else 'OFF')
                 for var, opt in var_opt_list]

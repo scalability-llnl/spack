@@ -23,7 +23,7 @@ class Salmon(CMakePackage):
 
     depends_on('tbb')
     depends_on('boost@:1.66.0', when='@:0.14.1')
-    depends_on('boost@1.72.0', when='@1.4.0')
+    depends_on('boost@1.72.0:', when='@1.4.0:')
     depends_on('cereal')
     depends_on('jemalloc')
     depends_on('xz')
@@ -76,6 +76,11 @@ class Salmon(CMakePackage):
                         'scripts/fetchPufferfish.sh')
             symlink('./salmon-v{0}.zip'.format(self.version),
                     './external/pufferfish.zip')
+            # Fix issues related to lto-wrapper during install
+            filter_file('INTERPROCEDURAL_OPTIMIZATION True',
+                        'INTERPROCEDURAL_OPTIMIZATION False',
+                        'src/CMakeLists.txt', string=True)
+            filter_file('curl -k.*', '', 'scripts/fetchPufferfish.sh')
 
     def cmake_args(self):
         args = [

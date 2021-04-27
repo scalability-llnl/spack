@@ -11,10 +11,12 @@ class Molden(MakefilePackage):
        Ab Initio packages"""
 
     homepage = "https://www3.cmbi.umcn.nl/molden/"
-    url      = "ftp://ftp.cmbi.ru.nl/pub/molgraph/molden/molden6.5.tar.gz"
+    url      = "ftp://ftp.cmbi.umcn.nl/pub/molgraph/molden/molden6.5.tar.gz"
 
     maintainers = ['dev-zero']
 
+    version('6.7', sha256='ebd73e8d95271eb82a1464a7eab28a042662483bbff6e6dcc7db0d1c9b2e4432')
+    version('6.6', sha256='2a2a7a116a336b607b50e8135bc2cca764c50e4a6896013ee3c6f582b741ee72')
     version('6.5', sha256='192631a0996b2bfa9f6b0769f83da38a9e4f83b1db9358982b23d6a594b4e8d4')
 
     depends_on('libx11')

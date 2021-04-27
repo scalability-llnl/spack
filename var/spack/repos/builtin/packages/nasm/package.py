@@ -29,7 +29,7 @@ class Nasm(AutotoolsPackage):
 
     def patch(self):
         # Remove flags not recognized by the NVIDIA compiler
-        if self.spec.satisfies('%nvhpc'):
+        if self.spec.satisfies('%nvhpc@:20.11'):
             filter_file(r'CFLAGS="\$pa_add_cflags__old_cflags -Werror=.*"',
                         'CFLAGS="$pa_add_cflags__old_cflags"', 'configure')
             filter_file(r'CFLAGS="\$pa_add_flags__old_flags -Werror=.*"',

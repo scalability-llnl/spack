@@ -20,3 +20,8 @@ class Libxrender(AutotoolsPackage, XorgPackage):
     depends_on('renderproto@0.9:')
     depends_on('pkgconfig', type='build')
     depends_on('util-macros', type='build')
+
+    @property
+    def libs(self):
+        return find_libraries('libXrender', self.prefix,
+                              shared=True, recursive=True)

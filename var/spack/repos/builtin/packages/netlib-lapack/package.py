@@ -17,6 +17,10 @@ class NetlibLapack(CMakePackage):
     homepage = "http://www.netlib.org/lapack/"
     url = "http://www.netlib.org/lapack/lapack-3.5.0.tgz"
 
+    version('3.9.1', sha256='d0085d2caf997ff39299c05d4bacb6f3d27001d25a4cc613d48c1f352b73e7e0',
+            url='https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.9.1.tar.gz')
+    version('3.9.0', sha256='106087f1bb5f46afdfba7f569d0cbe23dacb9a07cd24733765a0e89dbe1ad573',
+            url='https://github.com/Reference-LAPACK/lapack/archive/v3.9.0.tar.gz')
     version('3.8.0', sha256='deb22cc4a6120bff72621155a9917f485f96ef8319ac074a7afbc68aab88bcf6',
             url='http://www.netlib.org/lapack/lapack-3.8.0.tar.gz')
     version('3.7.1', sha256='f6c53fd9f56932f3ddb3d5e24c1c07e4cd9b3b08e7f89de9c867125eecc9a1c8')
@@ -43,14 +47,10 @@ class NetlibLapack(CMakePackage):
     patch('ibm-xl.patch', when='@3.7: %cce@9:')
 
     # https://github.com/Reference-LAPACK/lapack/issues/228
-    # TODO: update 'when' once the version of lapack
-    # containing the fix is released and added to Spack.
-    patch('undefined_declarations.patch', when='@3.8.0:')
+    patch('undefined_declarations.patch', when='@3.8.0:3.8.9999')
 
     # https://github.com/Reference-LAPACK/lapack/pull/268
-    # TODO: update 'when' once the version of lapack
-    # containing the fix is released and added to Spack.
-    patch('testing.patch', when='@3.7.0:')
+    patch('testing.patch', when='@3.7.0:3.8.9999')
 
     # virtual dependency
     provides('blas', when='~external-blas')

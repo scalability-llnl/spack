@@ -6,6 +6,8 @@
 import shutil
 import sys
 
+from spack.util.environment import is_system_path
+
 
 class Hdf5(AutotoolsPackage):
     """HDF5 is a data model, library, and file format for storing and managing
@@ -139,6 +141,16 @@ class Hdf5(AutotoolsPackage):
     patch('h5public-skip-mpicxx.patch', when='@:1.8.21,1.10.0:1.10.5+mpi~cxx',
           sha256='b61e2f058964ad85be6ee5ecea10080bf79e73f83ff88d1fa4b602d00209da9c')
 
+    # Fixes BOZ literal constant error when compiled with GCC 10.
+    # The issue is described here: https://github.com/spack/spack/issues/18625
+    patch('hdf5_1.8_gcc10.patch', when='@:1.8.21',
+          sha256='0e20187cda3980a4fdff410da92358b63de7ebef2df1d7a425371af78e50f666')
+
+    # Libtool fails to recognize NAG compiler behind the MPI wrappers and apply
+    # correct linker flags enabling shared libraries. # We support only versions
+    # based on Libtool 2.4.6.
+    patch('nag.mpi.libtool.patch', when='@1.8.18:%nag+fortran+mpi+shared')
+
     # The argument 'buf_size' of the C function 'h5fget_file_image_c' is
     # declared as intent(in) though it is modified by the invocation. As a
     # result, aggressive compilers such as Fujitsu's may do a wrong
@@ -244,8 +256,14 @@ class Hdf5(AutotoolsPackage):
         # combinations of other arguments. Enabling it just skips a
         # sanity check in configure, so this doesn't merit a variant.
         extra_args = ['--enable-unsupported',
-                      '--enable-symbols=yes',
-                      '--with-zlib']
+                      '--enable-symbols=yes']
+
+        # Do not specify the prefix of zlib if it is in a system directory
+        # (see https://github.com/spack/spack/pull/21900).
+        zlib_prefix = self.spec['zlib'].prefix
+        extra_args.append('--with-zlib={0}'.format(
+            'yes' if is_system_path(zlib_prefix) else zlib_prefix))
+
         extra_args += self.enable_or_disable('threadsafe')
         extra_args += self.enable_or_disable('cxx')
         extra_args += self.enable_or_disable('hl')

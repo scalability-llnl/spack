@@ -1,5 +1,5 @@
 diff --git a/include/Random123/features/compilerfeatures.h b/include/Random123/features/compilerfeatures.h
-index 2341a7a..3c5d999 100644
+index 2341a7a..0606dee 100644
 --- a/include/Random123/features/compilerfeatures.h
 +++ b/include/Random123/features/compilerfeatures.h
 @@ -206,7 +206,7 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
@@ -11,3 +11,18 @@ index 2341a7a..3c5d999 100644
  #include "xlcfeatures.h"
  #elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
  #include "sunprofeatures.h"
+diff --git a/include/Random123/features/nvccfeatures.h b/include/Random123/features/nvccfeatures.h
+index d1ff8bf..179298c 100644
+--- a/include/Random123/features/nvccfeatures.h
++++ b/include/Random123/features/nvccfeatures.h
+@@ -116,7 +116,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #define R123_ULONG_LONG unsigned long long
+ #endif
+ 
+-#if defined(__GNUC__)
++#if defined(__xlC__) || defined(__ibmxl__)
++#include "xlcfeatures.h"
++#elif defined(__GNUC__)
+ #include "gccfeatures.h"
+ #elif defined(_MSC_FULL_VER)
+ #include "msvcfeatures.h"

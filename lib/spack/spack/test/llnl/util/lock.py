@@ -1192,7 +1192,7 @@ def test_nested_reads(lock_path):
 class LockDebugOutput(object):
     def __init__(self, lock_path):
         self.lock_path = lock_path
-        self.host = socket.getfqdn()
+        self.host = socket.gethostname()
 
     def p1(self, barrier, q1, q2):
         # exchange pids

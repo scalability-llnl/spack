@@ -1,0 +1,125 @@
+stages: [ "generate", "build" ]
+
+default:
+  image: { "name": "ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01", "entrypoint": [""] }
+
+########################################
+# Job templates
+########################################
+
+.pr:
+  only:
+  - /^github\/pr[\d]+_.*$/
+  variables:
+    SPACK_PR_BRANCH: ${CI_COMMIT_REF_NAME}
+    SPACK_IS_PR_PIPELINE: "True"
+
+.develop:
+  only:
+  - /^github\/develop$/
+  variables:
+    SPACK_IS_PR_PIPELINE: "False"
+
+.generate:
+  stage: generate
+  script:
+    - . "./share/spack/setup-env.sh"
+    - spack --version
+    - cd share/spack/gitlab/cloud_pipelines/stacks/${SPACK_CI_STACK_NAME}
+    - spack env activate --without-view .
+    - spack ci generate --check-index-only
+      --output-file "${CI_PROJECT_DIR}/jobs_scratch_dir/cloud-ci-pipeline.yml"
+  artifacts:
+    paths:
+      - "${CI_PROJECT_DIR}/jobs_scratch_dir/cloud-ci-pipeline.yml"
+  tags: ["spack", "public", "medium", "x86_64"]
+  interruptible: true
+
+.pr-generate:
+  extends: [ ".pr", ".generate" ]
+
+.develop-generate:
+  extends: [ ".develop", ".generate" ]
+
+.build:
+  stage: build
+
+.pr-build:
+  extends: [ ".pr", ".build" ]
+  variables:
+    AWS_ACCESS_KEY_ID: ${PR_MIRRORS_AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${PR_MIRRORS_AWS_SECRET_ACCESS_KEY}
+
+.develop-build:
+  extends: [ ".develop", ".build" ]
+  variables:
+    AWS_ACCESS_KEY_ID: ${MIRRORS_AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${MIRRORS_AWS_SECRET_ACCESS_KEY}
+    SPACK_SIGNING_KEY: ${PACKAGE_SIGNING_KEY}
+
+########################################
+# TEMPLATE FOR ADDING ANOTHER PIPELINE
+########################################
+#
+# First add a new spack.yml defining the pipline to run in
+# share/spack/gitlab/cloud_pipelines/stacks/my-super-cool-stack/spack.yaml
+#
+# Then add the following entries at the bottom of this file:
+#
+########################################
+# My Super Cool Pipeline
+########################################
+# .my-super-cool-stack:
+#   variables:
+#     SPACK_CI_STACK_NAME: my-super-cool-stack
+#
+# my-super-cool-stack-pr-generate:
+#   extends: [ ".my-super-cool-stack", ".pr-generate"]
+#
+# my-super-cool-stack-develop-generate:
+#   extends: [ ".my-super-cool-stack", ".develop-generate"]
+#
+# my-super-cool-stack-pr-build:
+#   extends: [ ".my-super-cool-stack", ".pr-build" ]
+#   trigger:
+#     include:
+#       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+#         job: my-super-cool-stack-pr-generate
+#     strategy: depend
+#
+# my-super-cool-stack-develop-build:
+#   extends: [ ".my-super-cool-stack", ".develop-build" ]
+#   trigger:
+#     include:
+#       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+#         job: my-super-cool-stack-develop-generate
+#     strategy: depend
+
+########################################
+# E4S pipeline
+########################################
+.e4s:
+  variables:
+    SPACK_CI_STACK_NAME: e4s
+
+e4s-pr-generate:
+  extends: [ ".e4s", ".pr-generate"]
+
+e4s-develop-generate:
+  extends: [ ".e4s", ".develop-generate"]
+
+e4s-pr-build:
+  extends: [ ".e4s", ".pr-build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: e4s-pr-generate
+    strategy: depend
+
+e4s-develop-build:
+  extends: [ ".e4s", ".develop-build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: e4s-develop-generate
+    strategy: depend

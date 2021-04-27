@@ -1132,3 +1132,24 @@ def test_single_file_scope_cache_clearing(env_yaml):
     after = scope.get_section('config')
     assert after
     assert before == after
+
+
+@pytest.mark.regression('22611')
+def test_internal_config_scope_cache_clearing():
+    """
+    An InternalConfigScope object is constructed from data that is already
+    in memory, therefore it doesn't have any cache to clear. Here we ensure
+    that calling the clear method is consistent with that..
+    """
+    data = {
+        'config': {
+            'build_jobs': 10
+        }
+    }
+    internal_scope = spack.config.InternalConfigScope('internal', data)
+    # Ensure that the initial object is properly set
+    assert internal_scope.sections['config'] == data
+    # Call the clear method
+    internal_scope.clear()
+    # Check that this didn't affect the scope object
+    assert internal_scope.sections['config'] == data

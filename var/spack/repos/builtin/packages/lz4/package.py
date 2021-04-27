@@ -51,7 +51,7 @@ class Lz4(MakefilePackage):
 
     def patch(self):
         # Remove flags not recognized by the NVIDIA compiler
-        if self.spec.satisfies('%nvhpc'):
+        if self.spec.satisfies('%nvhpc@:20.11'):
             filter_file('-fvisibility=hidden', '', 'Makefile')
             filter_file('-fvisibility=hidden', '', 'lib/Makefile')
             filter_file('-pedantic', '', 'Makefile')

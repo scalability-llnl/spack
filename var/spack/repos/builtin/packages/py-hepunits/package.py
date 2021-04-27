@@ -18,6 +18,7 @@ class PyHepunits(PythonPackage):
     maintainers = ['vvolkl']
 
     version('master', branch='master')
+    version('2.1.0', sha256='9e8da814c242579ad1fde6ccff0514195c70ab6d232eab8ff0ad675239686ef6')
     version('1.2.1', sha256='b05b0dda32bf797806d506d7508d4eb23b78f34d67bbba9348a2b4a9712666fa')
 
     depends_on('python@2.7:2.8,3.5:', type=('build', 'run'))

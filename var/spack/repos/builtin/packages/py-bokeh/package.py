@@ -15,6 +15,7 @@ class PyBokeh(PythonPackage):
     version('1.3.4', sha256='e2d97bed5b199a10686486001fed5c854e4c04ebe28859923f27c52b93904754')
     version('0.12.2', sha256='0a840f6267b6d342e1bd720deee30b693989538c49644142521d247c0f2e6939')
 
+    depends_on('py-setuptools', type='build', when="@1.3.4:")
     depends_on('python@2.6:',             type=('build', 'run'), when='@0.12.2')
     depends_on('python@2.7:',             type=('build', 'run'), when='@1.3.4:')
     depends_on('py-requests@1.2.3:',      type=('build', 'run'), when='@0.12.2')

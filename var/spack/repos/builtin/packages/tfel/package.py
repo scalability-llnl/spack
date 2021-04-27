@@ -72,6 +72,8 @@ class Tfel(CMakePackage):
     variant('abaqus', default=True,
             description='Enables Abaqus/Standard and ' +
             'Abaqus/Explicit interfaces')
+    variant('calculix', default=True,
+            description='Enables CalculiX interfaces')
     variant('ansys', default=True,
             description='Enables Ansys APDL interface')
     variant('europlexus', default=True,

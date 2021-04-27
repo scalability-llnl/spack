@@ -81,8 +81,8 @@ class MockPackageMultiRepo(object):
 
     def __init__(self):
         self.spec_to_pkg = {}
-        self.namespace = ''
-        self.full_namespace = 'spack.pkg.mock'
+        self.namespace = 'mock'                 # repo namespace
+        self.full_namespace = 'spack.pkg.mock'  # python import namespace
 
     def get(self, spec):
         if not isinstance(spec, spack.spec.Spec):
@@ -92,6 +92,10 @@ class MockPackageMultiRepo(object):
         return self.spec_to_pkg[spec.name]
 
     def get_pkg_class(self, name):
+        namespace, _, name = name.rpartition(".")
+        if namespace and namespace != self.namespace:
+            raise spack.repo.InvalidNamespaceError(
+                "bad namespace: %s" % self.namespace)
         return self.spec_to_pkg[name]
 
     def exists(self, name):

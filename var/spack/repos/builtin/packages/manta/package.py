@@ -22,3 +22,5 @@ class Manta(CMakePackage):
     depends_on('cmake@2.8.12:', type='build')
     depends_on('python@2.7.0:2.7.999', type=('build', 'run'))
     depends_on('zlib')
+
+    patch('for_aarch64.patch', when='target=aarch64:')

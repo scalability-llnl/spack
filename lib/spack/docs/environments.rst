@@ -248,9 +248,9 @@ Users can add abstract specs to an Environment using the ``spack add``
 command. The most important component of an Environment is a list of
 abstract specs.
 
-Adding a spec adds to the manifest (the ``spack.yaml`` file) and to
-the roots of the Environment, but does not affect the concrete specs
-in the lockfile, nor does it install the spec.
+Adding a spec adds to the manifest (the ``spack.yaml`` file), which is
+used to define the roots of the Environment, but does not affect the
+concrete specs in the lockfile, nor does it install the spec.
 
 The ``spack add`` command is environment aware. It adds to the
 currently active environment. All environment aware commands can also

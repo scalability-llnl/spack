@@ -19,6 +19,7 @@ class Anaconda3(Package):
 
     maintainers = ['ajkotobi']
 
+    version('2020.11', sha256='cf2ff493f11eaad5d09ce2b4feaa5ea90db5174303d5b3fe030e16d29aeef7de', expand=False)
     version('2020.07', sha256='38ce717758b95b3bd0b1797cc6ccfb76f29a90c25bdfa50ee45f11e583edfdbf', expand=False)
     version('2020.02', sha256='2b9f088b2022edb474915d9f69a803d6449d5fdb4c303041f60ac4aefcc208bb', expand=False)
     version('2019.10', sha256='46d762284d252e51cd58a8ca6c8adc9da2eadc82c342927b2f66ed011d1d8b53', expand=False)

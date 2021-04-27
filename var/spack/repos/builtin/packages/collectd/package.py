@@ -10,13 +10,10 @@ class Collectd(AutotoolsPackage):
     """The system statistics collection daemon."""
 
     homepage = "http://collectd.org/"
-    url      = "https://github.com/collectd/collectd/archive/collectd-5.11.0.tar.gz"
+    url      = "https://github.com/collectd/collectd/releases/download/collectd-5.11.0/collectd-5.11.0.tar.bz2"
 
-    version('5.11.0', sha256='639676d09c5980ceea90b5a97811a9647d94e368528cce7cea3d43f0f308465d')
-    version('5.10.0', sha256='bcde95a3997b5eee448d247d9414854994b3592cb9fb4fecd6ff78082cc28a1b')
+    version('5.12.0', sha256='5bae043042c19c31f77eb8464e56a01a5454e0b39fa07cf7ad0f1bfc9c3a09d6')
+    version('5.11.0', sha256='37b10a806e34aa8570c1cafa6006c604796fae13cc2e1b3e630d33dcba9e5db2')
+    version('5.10.0', sha256='a03359f563023e744c2dc743008a00a848f4cd506e072621d86b6d8313c0375b')
 
     depends_on('valgrind', type='test')
-    depends_on('m4',       type='build')
-    depends_on('autoconf', type='build')
-    depends_on('automake', type='build')
-    depends_on('libtool',  type='build')

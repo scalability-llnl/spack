@@ -38,21 +38,25 @@ Intel no longer releases new versions of Parallel Studio, which can be
 used in Spack via the :ref:<intelpackage>. All of its components can
 now be found in oneAPI. 
 
-Example
-=======
+Examples
+========
 
-We start with a simple example that will be sufficient for most
-users. Install the oneAPI compilers::
+Building a Package With icx
+---------------------------
+
+In this example, we build patchelf with ``icc`` and ``icx``. The
+compilers are installed with spack.
+
+Install the oneAPI compilers::
 
   spack install intel-oneapi-compilers
 
-Add the oneAPI compilers to the set of compilers that Spack can use::
+Add the compilers to your ``compilers.yaml`` so spack can use them::
 
   spack compiler add `spack location -i intel-oneapi-compilers`/compiler/latest/linux/bin/intel64
   spack compiler add `spack location -i intel-oneapi-compilers`/compiler/latest/linux/bin
 
-This adds the compilers to your ``compilers.yaml``. Verify that the
-compilers are available::
+Verify that the compilers are available::
 
   spack compiler list
 
@@ -72,9 +76,11 @@ To build with with ``icx``, do ::
 
   spack install patchelf%oneapi
 
-In addition to compilers, oneAPI contains many libraries. The ``hdf5``
-package works with any compatible MPI implementation. To build
-``hdf5`` with Intel oneAPI MPI do::
+Using oneAPI MPI to Satisfy a Virtual Dependence
+------------------------------------------------------
+
+The ``hdf5`` package works with any compatible MPI implementation. To
+build ``hdf5`` with Intel oneAPI MPI do::
 
   spack install hdf5 +mpi ^intel-oneapi-mpi
 
@@ -95,11 +101,23 @@ To use the compilers, add some information about the installation to
   spack compiler add /opt/intel/oneapi/compiler/latest/linux/bin
 
 Adapt the paths above if you did not install the tools in the default
-location. After adding the compilers, using them in Spack will be
-exactly the same as if you had installed the
-``intel-oneapi-compilers`` package.  Another option is to manually add
-the configuration to ``compilers.yaml`` as described in :ref:`Compiler
-configuration <compiler-config>`.
+location. After adding the compilers, using them is the same
+as if you had installed the ``intel-oneapi-compilers`` package.
+Another option is to manually add the configuration to
+``compilers.yaml`` as described in :ref:`Compiler configuration
+<compiler-config>`.
+
+Libraries
+---------
+
+If you want Spack to use MKL that you have installed without Spack in
+the default location, then add the following to
+``~/.spack/packages.yaml``, adjusting the version as appropriate::
+
+  intel-oneapi-mkl:
+    externals:
+    - spec: intel-oneapi-mkl@2021.1.1
+      prefix: /opt/intel/oneapi/
 
 
 Using oneAPI Tools Installed by Spack

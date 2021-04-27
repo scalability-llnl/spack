@@ -49,19 +49,23 @@ class Squashfs(MakefilePackage):
     patch('gcc-10.patch', when="%gcc@10:")
     patch('gcc-10.patch', when="%clang@11:")
 
+    def make_options(self, spec):
+        default = spec.variants['default_compression'].value
+        return [
+            'GZIP_SUPPORT={0}'.format(1 if '+gzip' in spec else 0),
+            'LZ4_SUPPORT={0}' .format(1 if '+lz4'  in spec else 0),
+            'LZO_SUPPORT={0}' .format(1 if '+lzo'  in spec else 0),
+            'XZ_SUPPORT={0}'  .format(1 if '+xz'   in spec else 0),
+            'ZSTD_SUPPORT={0}'.format(1 if '+zstd' in spec else 0),
+            'COMP_DEFAULT={0}'.format(default),
+        ]
+
     def build(self, spec, prefix):
+        options = self.make_options(spec)
         with working_dir('squashfs-tools'):
-            default = spec.variants['default_compression'].value
-            make(
-                'GZIP_SUPPORT={0}'.format(1 if '+gzip' in spec else 0),
-                'LZ4_SUPPORT={0}' .format(1 if '+lz4'  in spec else 0),
-                'LZO_SUPPORT={0}' .format(1 if '+lzo'  in spec else 0),
-                'XZ_SUPPORT={0}'  .format(1 if '+xz'   in spec else 0),
-                'ZSTD_SUPPORT={0}'.format(1 if '+zstd' in spec else 0),
-                'COMP_DEFAULT={0}'.format(default),
-                parallel=False
-            )
+            make(*options, parallel=False)
 
     def install(self, spec, prefix):
+        options = self.make_options(spec)
         with working_dir('squashfs-tools'):
-            make('install', 'INSTALL_DIR=%s' % prefix.bin, parallel=False)
+            make('install', 'INSTALL_DIR=%s' % prefix.bin, *options, parallel=False)

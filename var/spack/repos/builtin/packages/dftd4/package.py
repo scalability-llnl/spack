@@ -23,7 +23,7 @@ class Dftd4(MesonPackage):
     depends_on("cmake", type="build")
     depends_on("lapack")
     depends_on("meson@0.57.1:", type="build")  # mesonbuild/meson#8377
-    depends_on("pkg-config", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("py-cffi", when="+python")
     depends_on("python@3.6:", when="+python")
 

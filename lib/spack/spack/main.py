@@ -528,6 +528,8 @@ class SpackCommand(object):
 
         Keyword Args:
             fail_on_error (optional bool): Don't raise an exception on error
+            global_args (optional list): List of global spack arguments:
+                simulates ``spack [global_args] [command] [*argv]``
 
         Returns:
             (str): combined output and error as a string
@@ -540,8 +542,10 @@ class SpackCommand(object):
         self.returncode = None
         self.error = None
 
+        prepend = kwargs['global_args'] if 'global_args' in kwargs else []
+
         args, unknown = self.parser.parse_known_args(
-            [self.command_name] + list(argv))
+            prepend + [self.command_name] + list(argv))
 
         fail_on_error = kwargs.get('fail_on_error', True)
 

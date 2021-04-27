@@ -18,6 +18,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     maintainers = ['mic84', 'asalmgren']
 
     version('develop', branch='development')
+    version('21.04', sha256='1c610e4b0800b16f7f1da74193ff11af0abfb12198b36a7e565a6a7f793087fa')
     version('21.03', sha256='6307bf75c80c2076bf5bd1cff4d12483280a32b5175fe117f32eed9c89cd1ac5')
     version('21.02', sha256='4a7ef997c43f9f03f1b06dd1aafa01218773a3265a5c1811f77eb4521b5e75b3')
     version('21.01', sha256='59de3ed429347ee6a7ad4f09c0c431248f2e081f59c301db37cacb36993622f4')
@@ -88,8 +89,6 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     depends_on('hypre@2.19.0:', type='link', when='@21.03: ~cuda +hypre')
     depends_on('hypre@2.20.0:', type='link', when='@21.03: +cuda +hypre')
     depends_on('petsc', type='link', when='+petsc')
-    conflicts('%apple-clang')
-    conflicts('%clang')
 
     # these versions of gcc have lambda function issues
     # see https://github.com/spack/spack/issues/22310
@@ -112,7 +111,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     conflicts('+petsc', when='@:20.06',
               msg='PETSc support needs AMReX newer than version 20.06')
     conflicts('+petsc', when='@:20.07 ~fortran',
-              msg='AMReX < 20.08 needs the Fortran API (+fortran) for PETSc supportx')
+              msg='AMReX < 20.08 needs the Fortran API (+fortran) for PETSc support')
     conflicts('+petsc', when='~linear_solvers',
               msg='AMReX PETSc support needs variant +linear_solvers')
     conflicts('+cuda', when='@:19.08',

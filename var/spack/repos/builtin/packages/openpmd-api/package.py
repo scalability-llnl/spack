@@ -7,15 +7,16 @@ from spack import *
 
 
 class OpenpmdApi(CMakePackage):
-    """API for easy reading and writing of openPMD files"""
+    """C++ & Python API for Scientific I/O"""
 
     homepage = "http://www.openPMD.org"
-    url      = "https://github.com/openPMD/openPMD-api/archive/0.13.2.tar.gz"
+    url      = "https://github.com/openPMD/openPMD-api/archive/0.13.3.tar.gz"
     git      = "https://github.com/openPMD/openPMD-api.git"
 
     maintainers = ['ax3l']
 
     version('dev', branch='dev')
+    version('0.13.3', sha256='4b8f84bd89cd540c73ffe8c21085970453cb7f0e4f125f11a4e288433f64b58c')
     version('0.13.2', sha256='2e5170d41bb7b2c0608ec833eee7f9adf8175b46734743f6e46dcce6f6685fb0')
     version('0.13.1', sha256='81ff79419982eb1b0865d1736f73f950f5d4c356d3c78200ceeab7f54dc07fd7')
     version('0.13.0', sha256='97c2e43d80ee5c5288f278bd54f0dcb40e7f48a575b278fcef9660214b779bb0')  # C++14 required

@@ -1,0 +1,314 @@
+diff -rupN ncbi-blast-2.11.0+-src.orig/c++/src/algo/blast/format/blast_format.cpp ncbi-blast-2.11.0+-src/c++/src/algo/blast/format/blast_format.cpp
+--- ncbi-blast-2.11.0+-src.orig/c++/src/algo/blast/format/blast_format.cpp	2020-09-28 11:27:07.000000000 -0700
++++ ncbi-blast-2.11.0+-src/c++/src/algo/blast/format/blast_format.cpp	2021-02-09 13:45:03.737153875 -0800
+@@ -2463,13 +2463,6 @@ void CBlastFormat::LogBlastSearchInfo(CB
+ 			}
+ 		}
+ 		else {
+-			string dir = kEmptyStr;
+-			CFile::SplitPath(m_DbName, &dir);
+-			string db_name = m_DbName;
+-			if (dir != kEmptyStr) {
+-				db_name = m_DbName.substr(dir.length());
+-			}
+-			report.AddParam(CBlastUsageReport::eDBName, db_name);
+ 			report.AddParam(CBlastUsageReport::eDBLength, GetDbTotalLength());
+ 			report.AddParam(CBlastUsageReport::eDBNumSeqs, num_seqs);
+ 			report.AddParam(CBlastUsageReport::eDBDate, m_DbInfo[0].date);
+diff -rupN ncbi-blast-2.11.0+-src.orig/c++/src/app/blast/blast_app_util.cpp ncbi-blast-2.11.0+-src/c++/src/app/blast/blast_app_util.cpp
+--- ncbi-blast-2.11.0+-src.orig/c++/src/app/blast/blast_app_util.cpp	2020-08-31 08:38:53.000000000 -0700
++++ ncbi-blast-2.11.0+-src/c++/src/app/blast/blast_app_util.cpp	2021-02-09 13:43:55.672814151 -0800
+@@ -964,12 +964,6 @@ void LogRPSCmdOptions(blast::CBlastUsage
+ 		args.GetBlastDatabaseArgs()->GetSearchDatabase()->GetSeqDb().NotEmpty()) {
+ 
+ 		CRef<CSeqDB> db = args.GetBlastDatabaseArgs()->GetSearchDatabase()->GetSeqDb();
+-		string db_name = db->GetDBNameList();
+-		int off = db_name.find_last_of(CFile::GetPathSeparator());
+-	    if (off != -1) {
+-	    	db_name.erase(0, off+1);
+-		}
+-		report.AddParam(CBlastUsageReport::eDBName, db_name);
+ 		report.AddParam(CBlastUsageReport::eDBLength, (Int8) db->GetTotalLength());
+ 		report.AddParam(CBlastUsageReport::eDBNumSeqs, db->GetNumSeqs());
+ 		report.AddParam(CBlastUsageReport::eDBDate, db->GetDate());
+diff -rupN ncbi-blast-2.11.0+-src.orig/c++/src/app/blastdb/blastdbcmd.cpp ncbi-blast-2.11.0+-src/c++/src/app/blastdb/blastdbcmd.cpp
+--- ncbi-blast-2.11.0+-src.orig/c++/src/app/blastdb/blastdbcmd.cpp	2020-09-22 06:14:39.000000000 -0700
++++ ncbi-blast-2.11.0+-src/c++/src/app/blastdb/blastdbcmd.cpp	2021-02-09 13:45:40.331798879 -0800
+@@ -1186,12 +1186,6 @@ void CBlastDBCmdApp::x_AddCmdOptions()
+     }
+ 
+ 
+-	string db_name = m_BlastDb->GetDBNameList();
+-	int off = db_name.find_last_of(CFile::GetPathSeparator());
+-    if (off != -1) {
+-    	db_name.erase(0, off+1);
+-	}
+-	m_UsageReport.AddParam(CBlastUsageReport::eDBName, db_name);
+ 	m_UsageReport.AddParam(CBlastUsageReport::eDBLength, (Int8) m_BlastDb->GetTotalLength());
+ 	m_UsageReport.AddParam(CBlastUsageReport::eDBNumSeqs, m_BlastDb->GetNumSeqs());
+ 	m_UsageReport.AddParam(CBlastUsageReport::eDBDate, m_BlastDb->GetDate());
+diff -rupN ncbi-blast-2.11.0+-src.orig/c++/src/app/rmblastn/Makefile.in ncbi-blast-2.11.0+-src/c++/src/app/rmblastn/Makefile.in
+--- ncbi-blast-2.11.0+-src.orig/c++/src/app/rmblastn/Makefile.in	1969-12-31 16:00:00.000000000 -0800
++++ ncbi-blast-2.11.0+-src/c++/src/app/rmblastn/Makefile.in	2021-02-09 13:00:33.072893864 -0800
+@@ -0,0 +1,16 @@
++# $Id: Makefile.in 371962 2012-08-14 09:45:56Z coulouri $
++
++# Meta-makefile("APP" project)
++#################################
++
++REQUIRES = objects algo
++
++APP_PROJ = rmblastn
++
++srcdir = @srcdir@
++include @builddir@/Makefile.meta
++
++.PHONY: all $(APP_PROJ)
++
++rmblastn:
++	${MAKE} ${MFLAGS} -f Makefile.rmblastn_app
+diff -rupN ncbi-blast-2.11.0+-src.orig/c++/src/app/rmblastn/Makefile.rmblastn.app ncbi-blast-2.11.0+-src/c++/src/app/rmblastn/Makefile.rmblastn.app
+--- ncbi-blast-2.11.0+-src.orig/c++/src/app/rmblastn/Makefile.rmblastn.app	1969-12-31 16:00:00.000000000 -0800
++++ ncbi-blast-2.11.0+-src/c++/src/app/rmblastn/Makefile.rmblastn.app	2021-02-09 13:00:33.072893864 -0800
+@@ -0,0 +1,16 @@
++WATCHERS = camacho madden maning
++
++APP = rmblastn
++SRC = rmblastn_app
++LIB_ = $(BLAST_INPUT_LIBS) $(BLAST_LIBS) $(OBJMGR_LIBS)
++LIB = blast_app_util $(LIB_:%=%$(STATIC))
++
++# De-universalize Mac builds to work around a PPC toolchain limitation
++CFLAGS   = $(FAST_CFLAGS:ppc=i386)
++CXXFLAGS = $(FAST_CXXFLAGS:ppc=i386)
++LDFLAGS  = $(FAST_LDFLAGS:ppc=i386)
++
++CPPFLAGS = $(ORIG_CPPFLAGS)
++LIBS = $(CMPRS_LIBS) $(DL_LIBS) $(PCRE_LIBS) $(NETWORK_LIBS) $(ORIG_LIBS)
++
++REQUIRES = objects -Cygwin
+diff -rupN ncbi-blast-2.11.0+-src.orig/c++/src/app/rmblastn/rmblastn_app.cpp ncbi-blast-2.11.0+-src/c++/src/app/rmblastn/rmblastn_app.cpp
+--- ncbi-blast-2.11.0+-src.orig/c++/src/app/rmblastn/rmblastn_app.cpp	1969-12-31 16:00:00.000000000 -0800
++++ ncbi-blast-2.11.0+-src/c++/src/app/rmblastn/rmblastn_app.cpp	2021-02-09 13:55:13.371077793 -0800
+@@ -0,0 +1,197 @@
++/*  $Id: rmblastn_app.cpp 371962 2012-08-14 09:45:56Z coulouri $
++ * ===========================================================================
++ *
++ *                            PUBLIC DOMAIN NOTICE
++ *
++ * ===========================================================================
++ *
++ * Authors:  Robert M. Hubley
++ *           Christiam Camacho ( original blastn_app.cpp )
++ *
++ */
++
++/** @file rmblastn_app.cpp
++ * RMBLASTN command line application
++ */
++
++#include <ncbi_pch.hpp>
++#include <corelib/ncbiapp.hpp>
++#include <algo/blast/api/local_blast.hpp>
++#include <algo/blast/api/remote_blast.hpp>
++#include <algo/blast/blastinput/blast_fasta_input.hpp>
++#include <algo/blast/blastinput/rmblastn_args.hpp>
++#include <algo/blast/api/objmgr_query_data.hpp>
++#include <algo/blast/format/blast_format.hpp>
++#include "../blast/blast_app_util.hpp"
++
++#ifndef SKIP_DOXYGEN_PROCESSING
++USING_NCBI_SCOPE;
++USING_SCOPE(blast);
++USING_SCOPE(objects);
++#endif
++
++class CRMBlastnApp : public CNcbiApplication
++{
++public:
++    /** @inheritDoc */
++    CRMBlastnApp() {
++        CRef<CVersion> version(new CVersion());
++        version->SetVersionInfo(new CBlastVersion());
++        SetFullVersion(version);
++        m_StopWatch.Start();
++        if (m_UsageReport.IsEnabled()) {
++            m_UsageReport.AddParam(CBlastUsageReport::eVersion, GetVersion().Print());
++        }
++    }
++
++    ~CRMBlastnApp() {
++        m_UsageReport.AddParam(CBlastUsageReport::eRunTime, m_StopWatch.Elapsed());
++    }
++private:
++    /** @inheritDoc */
++    virtual void Init();
++    /** @inheritDoc */
++    virtual int Run();
++
++    /// This application's command line args
++    CRef<CRMBlastnAppArgs> m_CmdLineArgs; 
++    CBlastUsageReport m_UsageReport;
++    CStopWatch m_StopWatch;
++};
++
++
++
++void CRMBlastnApp::Init()
++{
++    // formulate command line arguments
++
++    m_CmdLineArgs.Reset(new CRMBlastnAppArgs());
++    // read the command line
++    HideStdArgs(fHideLogfile | fHideConffile | fHideFullVersion | fHideXmlHelp | fHideDryRun);
++    SetupArgDescriptions(m_CmdLineArgs->SetCommandLine());
++}
++
++int CRMBlastnApp::Run(void)
++{
++    int status = BLAST_EXIT_SUCCESS;
++
++    try {
++
++        // Allow the fasta reader to complain on invalid sequence input
++        SetDiagPostLevel(eDiag_Warning);
++
++        /*** Get the BLAST options ***/
++        const CArgs& args = GetArgs();
++        CRef<CBlastOptionsHandle> opts_hndl;
++        if(RecoverSearchStrategy(args, m_CmdLineArgs)){
++           opts_hndl.Reset(&*m_CmdLineArgs->SetOptionsForSavedStrategy(args));
++        }
++        else {
++           opts_hndl.Reset(&*m_CmdLineArgs->SetOptions(args));
++        }
++        const CBlastOptions& opt = opts_hndl->GetOptions();
++
++        /*** Initialize the database/subject ***/
++        CRef<CBlastDatabaseArgs> db_args(m_CmdLineArgs->GetBlastDatabaseArgs());
++        CRef<CLocalDbAdapter> db_adapter;
++        CRef<CScope> scope;
++        InitializeSubject(db_args, opts_hndl, m_CmdLineArgs->ExecuteRemotely(),
++                         db_adapter, scope);
++        _ASSERT(db_adapter && scope);
++
++        /*** Get the query sequence(s) ***/
++        CRef<CQueryOptionsArgs> query_opts = 
++            m_CmdLineArgs->GetQueryOptionsArgs();
++        SDataLoaderConfig dlconfig(query_opts->QueryIsProtein());
++        dlconfig.OptimizeForWholeLargeSequenceRetrieval();
++        CBlastInputSourceConfig iconfig(dlconfig, query_opts->GetStrand(),
++                                     query_opts->UseLowercaseMasks(),
++                                     query_opts->GetParseDeflines(),
++                                     query_opts->GetRange());
++        iconfig.SetSkipSeqCheck(true);
++        CBlastFastaInputSource fasta(m_CmdLineArgs->GetInputStream(), iconfig);
++        CBlastInput input(&fasta, m_CmdLineArgs->GetQueryBatchSize());
++
++        // Initialize the megablast database index now so we can know whether an indexed search will be run.
++        // This is only important for the reference in the report, but would be done anyway.
++        if (opt.GetUseIndex() && !m_CmdLineArgs->ExecuteRemotely()) {
++            CRef<CBlastOptions> my_options(&(opts_hndl->SetOptions()));
++            CSetupFactory::InitializeMegablastDbIndex(my_options);
++        }
++
++        /*** Get the formatting options ***/
++        CRef<CFormattingArgs> fmt_args(m_CmdLineArgs->GetFormattingArgs());
++        CBlastFormat formatter(opt, *db_adapter,
++                               fmt_args->GetFormattedOutputChoice(),
++                               query_opts->GetParseDeflines(),
++                               m_CmdLineArgs->GetOutputStream(),
++                               fmt_args->GetNumDescriptions(),
++                               fmt_args->GetNumAlignments(),
++                               *scope,
++                               opt.GetMatrixName(),
++                               fmt_args->ShowGis(),
++                               fmt_args->DisplayHtmlOutput(),
++                               opt.GetQueryGeneticCode(),
++                               opt.GetDbGeneticCode(),
++                               opt.GetSumStatisticsMode(),
++                               m_CmdLineArgs->ExecuteRemotely(),
++                               db_adapter->GetFilteringAlgorithm(),
++                               fmt_args->GetCustomOutputFormatSpec(),
++                               m_CmdLineArgs->GetTask() == "megablast",
++                               opt.GetMBIndexLoaded());
++                               
++        
++        formatter.PrintProlog();
++        
++        /*** Process the input ***/
++        for (; !input.End(); formatter.ResetScopeHistory()) {
++
++            CRef<CBlastQueryVector> query_batch(input.GetNextSeqBatch(*scope));
++            CRef<IQueryFactory> queries(new CObjMgr_QueryFactory(*query_batch));
++
++            SaveSearchStrategy(args, m_CmdLineArgs, queries, opts_hndl);
++
++            CRef<CSearchResultSet> results;
++
++            if (m_CmdLineArgs->ExecuteRemotely()) {
++                CRef<CRemoteBlast> rmt_blast = 
++                    InitializeRemoteBlast(queries, db_args, opts_hndl,
++                          m_CmdLineArgs->ProduceDebugRemoteOutput());
++                results = rmt_blast->GetResultSet();
++            } else {
++                CLocalBlast lcl_blast(queries, opts_hndl, db_adapter);
++                lcl_blast.SetNumberOfThreads(m_CmdLineArgs->GetNumThreads());
++                results = lcl_blast.Run();
++            }
++
++            ITERATE(CSearchResultSet, result, *results) {
++                formatter.PrintOneResultSet(**result, query_batch);
++            }
++        }
++
++        formatter.PrintEpilog(opt);
++
++        if (m_CmdLineArgs->ProduceDebugOutput()) {
++            opts_hndl->GetOptions().DebugDumpText(NcbiCerr, "BLAST options", 1);
++        }
++
++        LogQueryInfo(m_UsageReport, input);
++        formatter.LogBlastSearchInfo(m_UsageReport);
++    } CATCH_ALL(status)
++
++    // The program and task name are overwritten here to avoid changing the
++    // "true" values of Program and Task everywhere else in the program
++    m_UsageReport.AddParam(CBlastUsageReport::eProgram, (string) "rmblastn");
++    m_UsageReport.AddParam(CBlastUsageReport::eTask, (string) "rmblastn");
++
++	m_UsageReport.AddParam(CBlastUsageReport::eNumThreads, (int) m_CmdLineArgs->GetNumThreads());
++    m_UsageReport.AddParam(CBlastUsageReport::eExitStatus, status);
++    return status;
++}
++
++#ifndef SKIP_DOXYGEN_PROCESSING
++int NcbiSys_main(int argc, ncbi::TXChar* argv[])
++{
++    return CRMBlastnApp().AppMain(argc, argv);
++}
++#endif /* SKIP_DOXYGEN_PROCESSING */
+diff -rupN ncbi-blast-2.11.0+-src.orig/c++/src/connect/ncbi_usage_report.cpp ncbi-blast-2.11.0+-src/c++/src/connect/ncbi_usage_report.cpp
+--- ncbi-blast-2.11.0+-src.orig/c++/src/connect/ncbi_usage_report.cpp	2020-03-03 10:47:23.000000000 -0800
++++ ncbi-blast-2.11.0+-src/c++/src/connect/ncbi_usage_report.cpp	2021-02-23 15:38:56.089137179 -0800
+@@ -46,7 +46,7 @@ BEGIN_NCBI_SCOPE
+ //  All parameters can be redefined in the configuration file.
+ 
+ // Default "pinger" CGI url for reporting statistics.
+-const char* kDefault_URL = "https://www.ncbi.nlm.nih.gov/stat";
++const char* kDefault_URL = "https://www.repeatmasker.org/rmblast/stat";
+ 
+ // Usage logging is disabled by default.
+ const bool  kDefault_IsEnabled = false;
+@@ -265,11 +265,6 @@ void CUsageReportJob::x_CopyFrom(const C
+ 
+ static string s_GetOS()
+ {
+-    // Check NCBI_OS first, configure can define OS name already
+-#if defined(NCBI_OS)
+-    return NCBI_OS;
+-#endif
+-    // Fallback, try to guess
+ #if defined(_WIN32)
+     return "MSWIN";         // Windows
+ #elif defined(__CYGWIN__)

@@ -73,8 +73,8 @@ class Catalyst(CMakePackage):
 
     depends_on('py-numpy', when='+python', type=('build', 'run'))
     depends_on('py-numpy', when='+python3', type=('build', 'run'))
-    depends_on('py-mpi4py', when='+python+mpi', type=('build', 'run'))
-    depends_on('py-mpi4py', when='+python3+mpi', type=('build', 'run'))
+    depends_on('py-mpi4py', when='+python', type=('build', 'run'))
+    depends_on('py-mpi4py', when='+python3', type=('build', 'run'))
 
     depends_on('gl@3.2:', when='+rendering')
     depends_on('osmesa', when='+rendering+osmesa')
@@ -233,7 +233,7 @@ class Catalyst(CMakePackage):
                 '-DPARAVIEW_ENABLE_PYTHON:BOOL=ON',
                 '-DPYTHON_EXECUTABLE:FILEPATH=%s' %
                 spec['python'].command.path,
-                '-DVTK_USE_SYSTEM_MPI4PY:BOOL=%s' % variant_bool('+mpi')
+                '-DVTK_USE_SYSTEM_MPI4PY:BOOL=ON'
             ])
         else:
             cmake_args.append('-DPARAVIEW_ENABLE_PYTHON:BOOL=OFF')

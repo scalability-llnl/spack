@@ -264,7 +264,7 @@ class Lock(object):
         self.old_host = self.host
 
         self.pid = os.getpid()
-        self.host = socket.getfqdn()
+        self.host = socket.gethostname()
 
         # write pid, host to disk to sync over FS
         self._file.seek(0)

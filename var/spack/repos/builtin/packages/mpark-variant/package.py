@@ -9,8 +9,9 @@ from spack import *
 class MparkVariant(CMakePackage):
     """C++17 `std::variant` for C++11/14/17"""
 
-    homepage = "https://mpark.github.io/variant"
-    url      = "https://github.com/mpark/variant/archive/v1.3.0.tar.gz"
+    homepage = "https://github.com/mpark/variant"
+    url      = "https://github.com/mpark/variant/archive/v1.4.0.tar.gz"
+    git      = "https://github.com/mpark/variant.git"
     maintainers = ['ax3l']
 
     version('1.4.0', sha256='8f6b28ab3640b5d76d5b6664dda7257a4405ce59179220431b8fd196c79b2ecb')
@@ -18,6 +19,10 @@ class MparkVariant(CMakePackage):
 
     # Ref.: https://github.com/mpark/variant/pull/73
     patch('nvcc.patch', when='@:1.4.0')
+    # Ref.: https://github.com/mpark/variant/issues/60
+    patch('version.patch', when='@1.4.0')
+    # Ref.: https://github.com/mpark/variant/pull/78
+    patch('icpc.patch', when='@:1.4.0')
 
     cxx11_msg = 'MPark.Variant needs a C++11-capable compiler. ' \
                 'See https://github.com/mpark/variant#requirements'

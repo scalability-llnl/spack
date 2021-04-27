@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 from spack import *
 import datetime as dt
 
@@ -149,11 +148,11 @@ class Lammps(CMakePackage, CudaPackage):
         msg='+user-reaction only supported for version 20200505 and later')
     conflicts('+mliap', when='~snap')
     conflicts(
-        '+adios +mpi', when='^adios2~mpi',
-        msg='With +adios, mpi setting for adios2 and lammps must be the same')
+        '+user-adios +mpi', when='^adios2~mpi',
+        msg='With +user-adios, mpi setting for adios2 and lammps must be the same')
     conflicts(
-        '+adios ~mpi', when='^adios2+mpi',
-        msg='With +adios, mpi setting for adios2 and lammps must be the same')
+        '+user-adios ~mpi', when='^adios2+mpi',
+        msg='With +user-adios, mpi setting for adios2 and lammps must be the same')
 
     patch("lib.patch", when="@20170901")
     patch("660.patch", when="@20170922")

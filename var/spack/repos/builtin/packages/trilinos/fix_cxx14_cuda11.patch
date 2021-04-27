@@ -1,0 +1,110 @@
+diff -ur spack-src.orig/packages/tpetra/core/src/Tpetra_Details_checkPointer.cpp spack-src/packages/tpetra/core/src/Tpetra_Details_checkPointer.cpp
+--- spack-src.orig/packages/tpetra/core/src/Tpetra_Details_checkPointer.cpp	2021-04-13 05:21:37.000000000 +0000
++++ spack-src/packages/tpetra/core/src/Tpetra_Details_checkPointer.cpp	2021-04-13 12:01:46.976127920 +0000
+@@ -74,7 +74,7 @@
+     return EMemoryType::ERROR;
+   }
+ 
+-# if 1
++# if CUDA_VERSION < 11000
+   // cudaPointerAttributes::type doesn't exist yet in CUDA 9.2.  We
+   // must use memoryType, which does not distinguish between types of
+   // device memory.
+@@ -101,7 +101,7 @@
+     return EMemoryType::ERROR;
+   }
+ 
+-# else
++# else // >=CUDA-11
+ 
+   const enum cudaMemoryType theType = attr.type;
+   if (theType == cudaMemoryTypeManaged) {
+@@ -117,7 +117,7 @@
+     return EMemoryType::HOST;
+   }
+ 
+-# endif // 1
++# endif // < CUDA-11
+ #else // NOT HAVE_TPETRACORE_CUDA
+   return EMemoryType::HOST;
+ #endif // HAVE_TPETRACORE_CUDA
+diff -ur spack-src.orig/packages/tpetra/core/src/Tpetra_withLocalAccess.hpp spack-src/packages/tpetra/core/src/Tpetra_withLocalAccess.hpp
+--- spack-src.orig/packages/tpetra/core/src/Tpetra_withLocalAccess.hpp	2021-04-13 05:21:37.000000000 +0000
++++ spack-src/packages/tpetra/core/src/Tpetra_withLocalAccess.hpp	2021-04-13 12:37:34.557170771 +0000
+@@ -820,6 +820,58 @@
+       }
+     };
+ 
++
++    /// \brief Specialization of WithLocalAccess that implements the
++    ///   "base class" of the user providing one GlobalObject
++    ///   arguments, and a function that takes one arguments.
++    ///   Required to workaround a compile error with intel-19 in c++14 mode.
++    template<class FirstLocalAccessType>
++    struct WithLocalAccess<FirstLocalAccessType> {
++      using current_user_function_type =
++        typename ArgsToFunction<FirstLocalAccessType>::type;
++
++      static void
++      withLocalAccess (current_user_function_type userFunction,
++                       FirstLocalAccessType first)
++      {
++        // The "master" local object is the scope guard for local
++        // data.  Its constructor may allocate temporary storage, copy
++        // data to the desired memory space, etc.  Its destructor will
++        // put everything back.  "Put everything back" could be a
++        // no-op, or it could copy data back so where they need to go
++        // and/or free temporary storage.
++        //
++        // Users define this function and the type it returns by
++        // specializing GetMasterLocalObject for LocalAccess
++        // specializations.
++        auto first_lcl_master = getMasterLocalObject (first);
++
++        // The "nonowning" local object is a nonowning view of the
++        // "master" local object.  This is the only local object that
++        // users see, and they see it as input to their function.
++        // Subsequent slices / subviews view this nonowning local
++        // object.  All such nonowning views must have lifetime
++        // contained within the lifetime of the master local object.
++        //
++        // Users define this function and the type it returns by
++        // specializing GetNonowningLocalObject (see above).
++        //
++        // Constraining the nonowning views' lifetime to this scope
++        // means that master local object types may use low-cost
++        // ownership models, like that of std::unique_ptr.  There
++        // should be no need for reference counting (in the manner of
++        // std::shared_ptr) or Herb Sutter's deferred_heap.
++        auto first_lcl_view = getNonowningLocalObject (first, first_lcl_master);
++
++        // Curry the user's function by fixing the first argument.
++
++        WithLocalAccess<>::withLocalAccess
++          ([=] () {
++             userFunction (first_lcl_view);
++           });
++      }
++    };
++
+     /// \brief Specialization of WithLocalAccess that implements the
+     ///   "recursion case."
+     ///
+@@ -867,17 +919,6 @@
+ 
+         // Curry the user's function by fixing the first argument.
+ 
+-        // The commented-out implementation requires C++14, because it
+-        // uses a generic lambda (the special case where parameters
+-        // are "auto").  We do have the types of the arguments,
+-        // though, from ArgsToFunction, so we don't need this feature.
+-
+-        // WithLocalAccess<Rest...>::withLocalAccess
+-        //   (rest...,
+-        //    [=] (auto ... args) {
+-        //      userFunction (first_lcl_view, args...);
+-        //    });
+-
+         WithLocalAccess<Rest...>::withLocalAccess
+           ([=] (with_local_access_function_argument_type<Rest>... args) {
+              userFunction (first_lcl_view, args...);

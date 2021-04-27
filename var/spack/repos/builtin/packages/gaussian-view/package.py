@@ -44,6 +44,15 @@ class GaussianView(Package):
 
     conflicts('+gaussian-src', when='@:6.0.99')
 
+    depends_on('libx11', type=('run', 'link'))
+    depends_on('libxext', type=('run', 'link'))
+    depends_on('gl@3:', type=('run', 'link'))
+    depends_on('glu@1.3', type=('run', 'link'))
+    depends_on('libxrender', type=('run', 'link'))
+    depends_on('libsm', type=('run', 'link'))
+    depends_on('libice', type=('run', 'link'))
+    depends_on('patchelf', type='build')
+
     def url_for_version(self, version):
         return "file://{0}/gv{1}-linux-x86_64.tbz".format(
             os.getcwd(),
@@ -51,6 +60,18 @@ class GaussianView(Package):
 
     def install(self, spec, prefix):
         install_tree('.', prefix)
+
+        # make sure the executable finds and uses the Spack-provided
+        # libraries, otherwise the executable may or may not run depending
+        # on what is installed on the host
+        # the $ORIGIN prefix is required for the executable to find its
+        # own bundled shared libraries
+        patchelf = which('patchelf')
+        rpath = '$ORIGIN:$ORIGIN/lib' + ':'.join(
+            self.spec[dep].libs.directories[0]
+            for dep in ['libx11', 'libxext', 'libxrender', 'libice', 'libsm',
+                        'gl', 'glu'])
+        patchelf('--set-rpath', rpath, join_path(self.prefix, 'gview.exe'))
 
     @run_after('install')
     def caveats(self):

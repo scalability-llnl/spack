@@ -14,18 +14,20 @@ class PyFenicsDolfinx(PythonPackage):
     git = "https://github.com/FEniCS/dolfinx.git"
     maintainers = ["js947", "chrisrichardson"]
 
-    version("master", branch="master")
+    version("main", branch="main")
 
     depends_on("cmake@3.9:", type="build")
     depends_on("pkgconfig", type=("build", "run"))
     depends_on('python@3.5:', type=('build', 'run'))
     depends_on("py-setuptools", type="build")
-    depends_on("fenics-dolfinx@master")
+    depends_on("fenics-dolfinx@main")
+    depends_on("fenics-basix@main", type=("build", "run"))
     depends_on("py-mpi4py", type=("build", "run"))
     depends_on("py-petsc4py", type=("build", "run"))
     depends_on("py-pybind11", type=("build", "run"))
 
     depends_on("py-fenics-ffcx", type=("run"))
+    depends_on("py-fenics-basix", type=("run"))
     depends_on("py-fenics-ufl", type=("run"))
     depends_on("py-cffi", type=("run"))
     depends_on("py-numpy", type=("run"))

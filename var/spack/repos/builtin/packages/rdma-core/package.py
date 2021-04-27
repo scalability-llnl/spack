@@ -12,6 +12,7 @@ class RdmaCore(CMakePackage):
     homepage = "https://github.com/linux-rdma/rdma-core"
     url      = "https://github.com/linux-rdma/rdma-core/releases/download/v17.1/rdma-core-17.1.tar.gz"
 
+    version('34.0', sha256='3d9ccf66468cf78f4c39bebb8bd0c5eb39150ded75f4a88a3455c4f625408be8')
     version('33.1', sha256='d179b102bec551ce62265ed463d1095fb2ae9baff604261ad63327fcd20650e5')
     version('32.0', sha256='8197e20a59990b9b06a2e4c83f4a96802fc080ec1669392b643b59b6023931fc')
     version('31.0', sha256='51ae9a3ab81cd6834436813fafc310c8b7007feae9d09a53fdd5c169e648d50b')
@@ -37,7 +38,11 @@ class RdmaCore(CMakePackage):
 #       system path) as a component in compile-time static strings such as
 #       IBACM_SERVER_PATH.
     def cmake_args(self):
-        cmake_args = ["-DCMAKE_INSTALL_SYSCONFDIR=" +
-                      self.spec.prefix.etc,
-                      "-DCMAKE_INSTALL_RUNDIR=/var/run"]
+        cmake_args = [
+            '-DCMAKE_INSTALL_SYSCONFDIR={0}'.format(self.spec.prefix.etc),
+            '-DCMAKE_INSTALL_RUNDIR=/var/run',
+            '-DPYTHON_LIBRARY={0}'.format(self.spec['python'].libs[0]),
+            '-DPYTHON_INCLUDE_DIR={0}'
+            .format(self.spec['python'].headers.directories[0])
+        ]
         return cmake_args

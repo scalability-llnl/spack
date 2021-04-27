@@ -12,13 +12,16 @@ class Petsc(Package):
     """
 
     homepage = "http://www.mcs.anl.gov/petsc/index.html"
-    url = "http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.13.1.tar.gz"
+    url = "http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-3.15.0.tar.gz"
     git = "https://gitlab.com/petsc/petsc.git"
     maintainers = ['balay', 'barrysmith', 'jedbrown']
 
     version('main', branch='main')
     version('xsdk-0.2.0', tag='xsdk-0.2.0')
 
+    version('3.15.0', sha256='ac46db6bfcaaec8cd28335231076815bd5438f401a4a05e33736b4f9ff12e59a')
+    version('3.14.6', sha256='4de0c8820419fb15bc683b780127ff57067b62ca18749e864a87c6d7c93f1230')
+    version('3.14.5', sha256='8b8ff5c4e10468f696803b354a502d690c7d25c19d694a7e10008a302fdbb048')
     version('3.14.4', sha256='b030969816e02c251a6d010c07a90b69ade44932f9ddfac3090ff5e95ab97d5c')
     version('3.14.3', sha256='63ed7e3440f2bbc732a6c44aa878364f88f5016ab375d9b36d742893a049053d')
     version('3.14.2', sha256='87a04fd05cac20a2ec47094b7d18b96e0651257d8c768ced2ef7db270ecfb9cb')
@@ -244,7 +247,8 @@ class Petsc(Package):
     depends_on('superlu-dist@xsdk-0.2.0+int64', when='@xsdk-0.2.0+superlu-dist+mpi+int64')
     depends_on('superlu-dist@develop~int64', when='@main+superlu-dist+mpi~int64')
     depends_on('superlu-dist@develop+int64', when='@main+superlu-dist+mpi+int64')
-    depends_on('mumps+mpi~int64', when='+mumps')
+    depends_on('mumps+mpi~int64~metis~parmetis', when='+mumps~metis')
+    depends_on('mumps+mpi~int64+metis+parmetis', when='+mumps+metis')
     depends_on('scalapack', when='+mumps')
     depends_on('trilinos@12.6.2:+mpi', when='@3.7.0:+trilinos+mpi')
     depends_on('trilinos@xsdk-0.2.0+mpi', when='@xsdk-0.2.0+trilinos+mpi')
@@ -269,9 +273,12 @@ class Petsc(Package):
     depends_on('saws', when='+saws')
     depends_on('libyaml', when='+libyaml')
 
+    # Using the following tarballs
+    # * petsc-3.12 (and older) - includes docs
+    # * petsc-lite-3.13, petsc-lite-3.14 (without docs)
+    # * petsc-3.15 and newer (without docs)
     def url_for_version(self, version):
-        if version >= Version('3.13.0'):
-            # petsc-lite tarballs are smaller by skipping docs
+        if self.spec.satisfies('@3.13.0:3.14.6'):
             return "http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-{0}.tar.gz".format(version)
         else:
             return "http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-{0}.tar.gz".format(version)

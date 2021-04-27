@@ -14,6 +14,8 @@ class Nccl(MakefilePackage, CudaPackage):
 
     maintainers = ['adamjstewart']
 
+    version('2.9.6-1', sha256='c4b1f5a88f03c0ac8f1dcbe27723cd75cfe051754078d83629efaaed10ce8731')
+    version('2.8.4-1', sha256='a5c1b4da6e1608ee63baa87f6df424bba7a8b1cedad597a25d5b4cf8d56d0865')
     version('2.8.3-1', sha256='3ae89ddb2956fff081e406a94ff54ae5e52359f5d645ce977c7eba09b3b782e6')
     version('2.7.8-1', sha256='fa2bec307270f30fcf6280a85f24ea8801e0ce3b3027937c7325260a890b07e0')
     version('2.7.6-1', sha256='60dd9b1743c2db6c05f60959edf98a4477f218115ef910d7ec2662f2fb5cf626')

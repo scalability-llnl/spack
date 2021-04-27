@@ -10,16 +10,17 @@ class Shuffile(CMakePackage):
     """Shuffle files between MPI ranks"""
 
     homepage = "https://github.com/ecp-veloc/shuffile"
-    url      = "https://github.com/ecp-veloc/shuffile/archive/v0.0.3.zip"
+    url      = "https://github.com/ecp-veloc/shuffile/archive/v0.0.4.tar.gz"
     git      = "https://github.com/ecp-veloc/shuffile.git"
 
     tags = ['ecp']
 
     version('master', branch='master')
-    version('0.0.3', sha256='6debdd9d6e6f1c4ec31015d7956e8b556acd61ce31f757e4d1fa5002029c75e2')
+    version('0.0.4', sha256='f0249ab31fc6123103ad67b1eaf799277c72adcf0dfcddf8c3a18bad2d45031d')
+    version('0.0.3', sha256='a3f685526a1146a5ad8dbacdc5f9c2e1152d9761a1a179c1db34f55afc8372f6')
 
     depends_on('mpi')
-    depends_on('kvtree')
+    depends_on('kvtree+mpi')
 
     def cmake_args(self):
         args = []

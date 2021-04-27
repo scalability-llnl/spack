@@ -1,0 +1,44 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 483f8c9..8ddf76e 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -52,7 +52,16 @@ string(REPLACE "." ";" VERSION_LIST ${HIP_BASE_VERSION})
+ list(GET VERSION_LIST 0 HIP_VERSION_MAJOR)
+ list(GET VERSION_LIST 1 HIP_VERSION_MINOR)
+ 
+-find_package(Git)
++# only look for git when we have a git repo
++if (IS_DIRECTORY "${PROJECT_SOURCE_DIR}/.git")
++  find_package(Git)
++endif()
++
++# FIXME: Two different version strings used.
++
++set(HIP_PACKAGING_VERSION_PATCH "0")
++set(HIP_VERSION_GITDATE "0")
++set(HIP_VERSION_PATCH "0")
+ 
+ # FIXME: Two different version strings used.
+ if(GIT_FOUND)
+@@ -98,9 +107,6 @@ if(GIT_FOUND)
+   else()
+     set(HIP_PACKAGING_VERSION_PATCH ${HIP_VERSION_GITDATE}.${HIP_VERSION_GITCOUNT}-${HIP_VERSION_GITHASH})
+   endif()
+-else()
+-  # FIXME: Some parts depend on this being set.
+-  set(HIP_PACKAGING_VERSION_PATCH "0")
+ endif()
+ 
+ ## Debian package specific variables
+@@ -295,10 +301,6 @@ file(WRITE "${PROJECT_BINARY_DIR}/.hipInfo" ${_buildInfo})
+ # Generate .hipVersion
+ file(WRITE "${PROJECT_BINARY_DIR}/.hipVersion" ${_versionInfo})
+ 
+-if(NOT DEFINED HIP_VERSION_GITDATE)
+-    set(HIP_VERSION_GITDATE 0)
+-endif()
+-
+ # Build doxygen documentation
+ find_program(DOXYGEN_EXE doxygen)
+ if(DOXYGEN_EXE)
+

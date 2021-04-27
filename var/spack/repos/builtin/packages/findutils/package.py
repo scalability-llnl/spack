@@ -12,10 +12,19 @@ class Findutils(AutotoolsPackage, GNUMirrorPackage):
        utilities of the GNU operating system."""
 
     homepage = "https://www.gnu.org/software/findutils/"
-    gnu_mirror_path = "findutils/findutils-4.6.0.tar.gz"
+    gnu_mirror_path = "findutils/findutils-4.8.0.tar.xz"
+
+    def url_for_version(self, version):
+        # Before 4.7.0 it used tar.gz instead of tar.xz
+        if version < Version("4.7.0"):
+            self.gnu_mirror_path = "findutils/findutils-{0}.tar.gz".format(version)
+
+        return super(Findutils, self).url_for_version(version)
 
     executables = ['^find$']
 
+    version('4.8.0',  sha256='57127b7e97d91282c6ace556378d5455a9509898297e46e10443016ea1387164')
+    version('4.7.0',  sha256='c5fefbdf9858f7e4feb86f036e1247a54c79fc2d8e4b7064d5aaa1f47dfa789a')
     version('4.6.0',  sha256='ded4c9f73731cd48fec3b6bdaccce896473b6d8e337e9612e16cf1431bb1169d')
     version('4.4.2',  sha256='434f32d171cbc0a5e72cfc5372c6fc4cb0e681f8dce566a0de5b6fccd702b62a')
     version('4.4.1',  sha256='77a5b85d7fe0dd9c1093e010b61f765707364ec2c89c4f432c1c616215bcc138')
@@ -36,16 +45,6 @@ class Findutils(AutotoolsPackage, GNUMirrorPackage):
     version('4.1.20', sha256='8c5dd50a5ca54367fa186f6294b81ec7a365e36d670d9feac62227cb513e63ab')
     version('4.1',    sha256='487ecc0a6c8c90634a11158f360977e5ce0a9a6701502da6cb96a5a7ec143fac')
 
-    depends_on('autoconf', type='build', when='@4.6.0')
-    depends_on('automake', type='build', when='@4.6.0')
-    depends_on('libtool', type='build', when='@4.6.0')
-    depends_on('m4', type='build', when='@4.6.0')
-    depends_on('texinfo', type='build', when='@4.6.0')
-
-    # findutils does not build with newer versions of glibc
-    patch('https://src.fedoraproject.org/rpms/findutils/raw/97ba2d7a18d1f9ae761b6ff0b4f1c4d33d7a8efc/f/findutils-4.6.0-gnulib-fflush.patch', sha256='84b916c0bf8c51b7e7b28417692f0ad3e7030d1f3c248ba77c42ede5c1c5d11e', when='@4.6.0')
-    patch('https://src.fedoraproject.org/rpms/findutils/raw/97ba2d7a18d1f9ae761b6ff0b4f1c4d33d7a8efc/f/findutils-4.6.0-gnulib-makedev.patch', sha256='bd9e4e5cc280f9753ae14956c4e4aa17fe7a210f55dd6c84aa60b12d106d47a2', when='@4.6.0')
-
     patch('nvhpc.patch', when='%nvhpc')
 
     build_directory = 'spack-build'
@@ -55,20 +54,3 @@ class Findutils(AutotoolsPackage, GNUMirrorPackage):
         output = Executable(exe)('--version', output=str, error=str)
         match = re.search(r'find \(GNU findutils\)\s+(\S+)', output)
         return match.group(1) if match else None
-
-    @property
-    def force_autoreconf(self):
-        # Run autoreconf due to build system patch (gnulib-makedev)
-        return self.spec.satisfies('@4.6.0')
-
-    @when('@4.6.0')
-    def patch(self):
-        # We have to patch out gettext support, otherwise autoreconf tries to
-        # call autopoint, which depends on find, which is part of findutils.
-        filter_file('^AM_GNU_GETTEXT.*',
-                    '',
-                    'configure.ac')
-
-        filter_file(r'^SUBDIRS = (.*) po (.*)',
-                    r'SUBDIRS = \1 \2',
-                    'Makefile.am')

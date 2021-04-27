@@ -1,0 +1,858 @@
+--- mpi/conf.c	2020-12-10 12:02:44.000000000 +0000
++++ mpi/conf.c	2021-04-06 09:06:12.143840994 +0000
+@@ -29,6 +29,8 @@
+      SOLVTAB(XM(transpose_pairwise_register)),
+      SOLVTAB(XM(transpose_alltoall_register)),
+      SOLVTAB(XM(transpose_recurse_register)),
++     SOLVTAB(XM(transpose_pairwise_transposed_register)),
++     SOLVTAB(XM(transpose_alltoall_transposed_register)),
+      SOLVTAB(XM(dft_rank_geq2_register)),
+      SOLVTAB(XM(dft_rank_geq2_transposed_register)),
+      SOLVTAB(XM(dft_serial_register)),
+
+--- mpi/Makefile.am  2020-12-10 12:02:44.000000000 +0000
++++ mpi/Makefile.am  2021-04-06 09:06:12.144841002 +0000
+@@ -17,6 +17,7 @@
+ CLEANFILES = fftw3-mpi.f03 fftw3l-mpi.f03
+ 
+ TRANSPOSE_SRC = transpose-alltoall.c transpose-pairwise.c transpose-recurse.c transpose-problem.c transpose-solve.c mpi-transpose.h
++TRANSPOSE_SRC += transpose-alltoall-transposed.c transpose-pairwise-transposed.c
+ DFT_SRC = dft-serial.c dft-rank-geq2.c dft-rank-geq2-transposed.c dft-rank1.c dft-rank1-bigvec.c dft-problem.c dft-solve.c mpi-dft.h
+ RDFT_SRC = rdft-serial.c rdft-rank-geq2.c rdft-rank-geq2-transposed.c rdft-rank1-bigvec.c rdft-problem.c rdft-solve.c mpi-rdft.h
+ RDFT2_SRC = rdft2-serial.c rdft2-rank-geq2.c rdft2-rank-geq2-transposed.c rdft2-problem.c rdft2-solve.c mpi-rdft2.h
+
+--- mpi/mpi-transpose.h	2020-12-10 12:02:44.000000000 +0000
++++ mpi/mpi-transpose.h	2021-04-06 09:06:12.144841002 +0000
+@@ -59,3 +59,5 @@
+ void XM(transpose_pairwise_register)(planner *p);
+ void XM(transpose_alltoall_register)(planner *p);
+ void XM(transpose_recurse_register)(planner *p);
++void XM(transpose_pairwise_transposed_register)(planner *p);
++void XM(transpose_alltoall_transposed_register)(planner *p);
+
+--- mpi/transpose-alltoall-transposed.c	1970-01-01 00:00:00.000000000 +0000
++++ mpi/transpose-alltoall-transposed.c	2021-04-06 09:06:12.144841002 +0000
+@@ -0,0 +1,280 @@
++/*
++ * Copyright (c) 2003, 2007-11 Matteo Frigo
++ * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
++ * Copyright (c) 2012 Michael Pippig
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ */
++
++/* plans for distributed out-of-place transpose using MPI_Alltoall,
++   and which destroy the input array (also if TRANSPOSED_IN is used) */
++
++#include "mpi-transpose.h"
++#include <string.h>
++
++typedef struct {
++     solver super;
++     int copy_transposed_out; /* whether to copy the output for TRANSPOSED_OUT,
++				which makes the first transpose out-of-place
++				but costs an extra copy and requires us
++				to destroy the input */
++} S;
++
++typedef struct {
++     plan_mpi_transpose super;
++
++     plan *cld1, *cld2, *cld2rest, *cld3;
++
++     MPI_Comm comm;
++     int *send_block_sizes, *send_block_offsets;
++     int *recv_block_sizes, *recv_block_offsets;
++
++     INT rest_Ioff, rest_Ooff;
++
++     int equal_blocks;
++} P;
++
++/* transpose locally to get contiguous chunks
++   this may take two transposes if the block sizes are unequal
++   (3 subplans, two of which operate on disjoint data) */
++static void apply_pretranspose(
++    const P *ego, R *I, R *O
++    )
++{
++  plan_rdft *cld2, *cld2rest, *cld3;
++
++  cld3 = (plan_rdft *) ego->cld3;
++  if (cld3)
++       cld3->apply(ego->cld3, O, O);
++  /* else TRANSPOSED_IN is true and user wants I transposed */
++
++  cld2 = (plan_rdft *) ego->cld2;
++  cld2->apply(ego->cld2, I, O);
++  cld2rest = (plan_rdft *) ego->cld2rest;
++  if (cld2rest) {
++       cld2rest->apply(ego->cld2rest,
++      		       I + ego->rest_Ioff, O + ego->rest_Ooff);
++  }
++}
++
++static void apply(const plan *ego_, R *I, R *O)
++{
++     const P *ego = (const P *) ego_;
++     plan_rdft *cld1 = (plan_rdft *) ego->cld1;
++
++     if (cld1) {
++          /* transpose locally to get contiguous chunks */
++          apply_pretranspose(ego, I, O);
++
++	  /* transpose chunks globally */
++	  if (ego->equal_blocks)
++	       MPI_Alltoall(O, ego->send_block_sizes[0], FFTW_MPI_TYPE,
++			    I, ego->recv_block_sizes[0], FFTW_MPI_TYPE,
++			    ego->comm);
++	  else
++	       MPI_Alltoallv(O, ego->send_block_sizes, ego->send_block_offsets,
++			     FFTW_MPI_TYPE,
++			     I, ego->recv_block_sizes, ego->recv_block_offsets,
++			     FFTW_MPI_TYPE,
++			     ego->comm);
++
++          /* transpose locally to get non-transposed output */
++          cld1->apply(ego->cld1, I, O);
++     } /* else TRANSPOSED_OUT is true and user wants O transposed */
++     else {
++          /* transpose locally to get contiguous chunks */
++          apply_pretranspose(ego, I, I);
++
++          /* transpose chunks globally */
++	  if (ego->equal_blocks)
++	       MPI_Alltoall(I, ego->send_block_sizes[0], FFTW_MPI_TYPE,
++			    O, ego->recv_block_sizes[0], FFTW_MPI_TYPE,
++			    ego->comm);
++	  else
++	       MPI_Alltoallv(I, ego->send_block_sizes, ego->send_block_offsets,
++			     FFTW_MPI_TYPE,
++			     O, ego->recv_block_sizes, ego->recv_block_offsets,
++			     FFTW_MPI_TYPE,
++			     ego->comm);
++     }
++}
++
++static int applicable(const S *ego, const problem *p_,
++		      const planner *plnr)
++{
++     /* in contrast to transpose-alltoall this algorithm can not preserve the input,
++      * since we need at least one transpose before the (out-of-place) Alltoall */
++     const problem_mpi_transpose *p = (const problem_mpi_transpose *) p_;
++     return (1
++	     && p->I != p->O
++	     && (!NO_DESTROY_INPUTP(plnr))  
++	     && ((p->flags & TRANSPOSED_OUT) || !ego->copy_transposed_out)
++	     && ONLY_TRANSPOSEDP(p->flags)
++	  );
++}
++
++static void awake(plan *ego_, enum wakefulness wakefulness)
++{
++     P *ego = (P *) ego_;
++     X(plan_awake)(ego->cld1, wakefulness);
++     X(plan_awake)(ego->cld2, wakefulness);
++     X(plan_awake)(ego->cld2rest, wakefulness);
++     X(plan_awake)(ego->cld3, wakefulness);
++}
++
++static void destroy(plan *ego_)
++{
++     P *ego = (P *) ego_;
++     X(ifree0)(ego->send_block_sizes);
++     MPI_Comm_free(&ego->comm);
++     X(plan_destroy_internal)(ego->cld3);
++     X(plan_destroy_internal)(ego->cld2rest);
++     X(plan_destroy_internal)(ego->cld2);
++     X(plan_destroy_internal)(ego->cld1);
++}
++
++static void print(const plan *ego_, printer *p)
++{
++     const P *ego = (const P *) ego_;
++     p->print(p, "(mpi-transpose-alltoall-transposed%s%(%p%)%(%p%)%(%p%)%(%p%))",
++	      ego->equal_blocks ? "/e" : "",
++	      ego->cld1, ego->cld2, ego->cld2rest, ego->cld3);
++}
++
++static plan *mkplan(const solver *ego_, const problem *p_, planner *plnr)
++{
++     const S *ego = (const S *) ego_;
++     const problem_mpi_transpose *p;
++     P *pln;
++     plan *cld1 = 0, *cld2 = 0, *cld2rest = 0, *cld3 = 0;
++     INT b, bt, vn, rest_Ioff, rest_Ooff;
++     R *O;
++     int *sbs, *sbo, *rbs, *rbo;
++     int pe, my_pe, n_pes;
++     int equal_blocks = 1;
++     static const plan_adt padt = {
++          XM(transpose_solve), awake, print, destroy
++     };
++
++     if (!applicable(ego, p_, plnr))
++          return (plan *) 0;
++
++     p = (const problem_mpi_transpose *) p_;
++     vn = p->vn;
++
++     MPI_Comm_rank(p->comm, &my_pe);
++     MPI_Comm_size(p->comm, &n_pes);
++
++     bt = XM(block)(p->ny, p->tblock, my_pe);
++
++     if (p->flags & TRANSPOSED_OUT) { /* O stays transposed */
++	  if (ego->copy_transposed_out) {
++	       cld1 = X(mkplan_f_d)(plnr,
++				  X(mkproblem_rdft_0_d)(X(mktensor_1d)
++							(bt * p->nx * vn, 1, 1),
++							p->I, O = p->O),
++				    0, 0, NO_SLOW);
++	       if (XM(any_true)(!cld1, p->comm)) goto nada;
++	  }
++	  else /* first transpose is in-place */
++              O = p->I;
++     }
++     else { /* transpose nx x bt x vn -> bt x nx x vn */
++	  cld1 = X(mkplan_f_d)(plnr, 
++			       X(mkproblem_rdft_0_d)(X(mktensor_3d)
++						     (bt, vn, p->nx * vn,
++						      p->nx, bt * vn, vn,
++						      vn, 1, 1),
++						     p->I, O = p->O),
++			       0, 0, NO_SLOW);
++	  if (XM(any_true)(!cld1, p->comm)) goto nada;
++     }
++
++     if (XM(any_true)(!XM(mkplans_pretranspose)(p, plnr, p->I, O, my_pe,
++	 					&cld2, &cld2rest, &cld3,
++						&rest_Ioff, &rest_Ooff),
++		      p->comm)) goto nada;
++
++
++     pln = MKPLAN_MPI_TRANSPOSE(P, &padt, apply);
++
++     pln->cld1 = cld1;
++     pln->cld2 = cld2;
++     pln->cld2rest = cld2rest;
++     pln->rest_Ioff = rest_Ioff;
++     pln->rest_Ooff = rest_Ooff;
++     pln->cld3 = cld3;
++
++     MPI_Comm_dup(p->comm, &pln->comm);
++
++     /* Compute sizes/offsets of blocks to send for all-to-all command. */
++     sbs = (int *) MALLOC(4 * n_pes * sizeof(int), PLANS);
++     sbo = sbs + n_pes;
++     rbs = sbo + n_pes;
++     rbo = rbs + n_pes;
++     b = XM(block)(p->nx, p->block, my_pe);
++     bt = XM(block)(p->ny, p->tblock, my_pe);
++     for (pe = 0; pe < n_pes; ++pe) {
++	  INT db, dbt; /* destination block sizes */
++	  db = XM(block)(p->nx, p->block, pe);
++	  dbt = XM(block)(p->ny, p->tblock, pe);
++	  if (db != p->block || dbt != p->tblock)
++	       equal_blocks = 0;
++
++	  /* MPI requires type "int" here; apparently it
++	     has no 64-bit API?  Grrr. */
++	  sbs[pe] = (int) (b * dbt * vn);
++	  sbo[pe] = (int) (pe * (b * p->tblock) * vn);
++	  rbs[pe] = (int) (db * bt * vn);
++	  rbo[pe] = (int) (pe * (p->block * bt) * vn);
++     }
++     pln->send_block_sizes = sbs;
++     pln->send_block_offsets = sbo;
++     pln->recv_block_sizes = rbs;
++     pln->recv_block_offsets = rbo;
++     pln->equal_blocks = equal_blocks;
++
++     X(ops_zero)(&pln->super.super.ops);
++     if (cld1) X(ops_add2)(&cld1->ops, &pln->super.super.ops);
++     if (cld2) X(ops_add2)(&cld2->ops, &pln->super.super.ops);
++     if (cld2rest) X(ops_add2)(&cld2rest->ops, &pln->super.super.ops);
++     if (cld3) X(ops_add2)(&cld3->ops, &pln->super.super.ops);
++     /* FIXME: should MPI operations be counted in "other" somehow? */
++
++     return &(pln->super.super);
++
++ nada:
++     X(plan_destroy_internal)(cld3);
++     X(plan_destroy_internal)(cld2rest);
++     X(plan_destroy_internal)(cld2);
++     X(plan_destroy_internal)(cld1);
++     return (plan *) 0;
++}
++
++static solver *mksolver(int copy_transposed_out)
++{
++     static const solver_adt sadt = { PROBLEM_MPI_TRANSPOSE, mkplan, 0 };
++     S *slv = MKSOLVER(S, &sadt);
++     slv->copy_transposed_out = copy_transposed_out;
++     return &(slv->super);
++}
++
++void XM(transpose_alltoall_transposed_register)(planner *p)
++{
++     int cto;
++     for (cto = 0; cto <= 1; ++cto)
++	  REGISTER_SOLVER(p, mksolver(cto));
++}
+
+--- mpi/transpose-pairwise.c	2020-12-10 12:02:44.000000000 +0000
++++ mpi/transpose-pairwise.c	2021-04-06 09:08:21.295868925 +0000
+@@ -53,7 +53,6 @@
+ {
+      if (sched) {
+ 	  int i;
+-	  MPI_Status status;
+ 
+ 	  /* TODO: explore non-synchronous send/recv? */
+ 
+@@ -74,7 +73,7 @@
+ 				      O + rbo[pe], (int) (rbs[pe]),
+ 				      FFTW_MPI_TYPE,
+ 				      pe, (pe * n_pes + my_pe) & 0x7fff,
+-				      comm, &status);
++				      comm, MPI_STATUS_IGNORE);
+ 		    }
+ 	       }
+ 
+@@ -92,7 +91,7 @@
+ 				      O + rbo[pe], (int) (rbs[pe]),
+ 				      FFTW_MPI_TYPE,
+ 				      pe, (pe * n_pes + my_pe) & 0x7fff,
+-				      comm, &status);
++				      comm, MPI_STATUS_IGNORE);
+ 	       }
+ 	  }
+      }
+ 
+--- mpi/transpose-pairwise-transposed.c	1970-01-01 00:00:00.000000000 +0000
++++ mpi/transpose-pairwise-transposed.c	2021-04-06 09:06:12.145841010 +0000
+@@ -0,0 +1,510 @@
++/*
++ * Copyright (c) 2003, 2007-11 Matteo Frigo
++ * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
++ * Copyright (c) 2012 Michael Pippig
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ */
++
++/* Distributed transposes using a sequence of carefully scheduled
++   pairwise exchanges.  This has the advantage that it can be done
++   in-place, or out-of-place while preserving the input, using buffer
++   space proportional to the local size divided by the number of
++   processes (i.e. to the total array size divided by the number of
++   processes squared). */
++
++#include "mpi-transpose.h"
++#include <string.h>
++
++typedef struct {
++     solver super;
++     int preserve_input; /* preserve input even if DESTROY_INPUT was passed */
++} S;
++
++typedef struct {
++     plan_mpi_transpose super;
++
++     plan *cld1, *cld2, *cld2rest, *cld3;
++     INT rest_Ioff, rest_Ooff;
++     
++     int n_pes, my_pe, *sched;
++     INT *send_block_sizes, *send_block_offsets;
++     INT *recv_block_sizes, *recv_block_offsets;
++     MPI_Comm comm;
++     int preserve_input;
++} P;
++
++static void transpose_chunks(int *sched, int n_pes, int my_pe,
++			     INT *sbs, INT *sbo, INT *rbs, INT *rbo,
++			     MPI_Comm comm,
++			     R *I, R *O)
++{
++     if (sched) {
++	  int i;
++
++	  /* TODO: explore non-synchronous send/recv? */
++
++	  if (I == O) {
++	       R *buf = (R*) MALLOC(sizeof(R) * sbs[0], BUFFERS);
++	       
++	       for (i = 0; i < n_pes; ++i) {
++		    int pe = sched[i];
++		    if (my_pe == pe) {
++			 if (rbo[pe] != sbo[pe])
++			      memmove(O + rbo[pe], O + sbo[pe],
++				      sbs[pe] * sizeof(R));
++		    }
++		    else {
++			 memcpy(buf, O + sbo[pe], sbs[pe] * sizeof(R));
++			 MPI_Sendrecv(buf, (int) (sbs[pe]), FFTW_MPI_TYPE,
++				      pe, (my_pe * n_pes + pe) & 0xffff,
++				      O + rbo[pe], (int) (rbs[pe]),
++				      FFTW_MPI_TYPE,
++				      pe, (pe * n_pes + my_pe) & 0xffff,
++				      comm, MPI_STATUS_IGNORE);
++		    }
++	       }
++
++	       X(ifree)(buf);
++	  }
++	  else { /* I != O */
++	       for (i = 0; i < n_pes; ++i) {
++		    int pe = sched[i];
++		    if (my_pe == pe)
++			 memcpy(O + rbo[pe], I + sbo[pe], sbs[pe] * sizeof(R));
++		    else
++			 MPI_Sendrecv(I + sbo[pe], (int) (sbs[pe]),
++				      FFTW_MPI_TYPE,
++				      pe, (my_pe * n_pes + pe) & 0xffff,
++				      O + rbo[pe], (int) (rbs[pe]),
++				      FFTW_MPI_TYPE,
++				      pe, (pe * n_pes + my_pe) & 0xffff,
++				      comm, MPI_STATUS_IGNORE);
++	       }
++	  }
++     }
++}
++
++/* transpose locally to get contiguous chunks
++   this may take two transposes if the block sizes are unequal
++   (3 subplans, two of which operate on disjoint data) */
++static void apply_pretranspose(
++    const P *ego, R *I, R *O
++    )
++{
++  plan_rdft *cld2, *cld2rest, *cld3;
++
++  cld3 = (plan_rdft *) ego->cld3;
++  if (cld3)
++       cld3->apply(ego->cld3, O, O);
++  /* else TRANSPOSED_IN is true and user wants I transposed */
++
++  cld2 = (plan_rdft *) ego->cld2;
++  cld2->apply(ego->cld2, I, O);
++  cld2rest = (plan_rdft *) ego->cld2rest;
++  if (cld2rest) {
++       cld2rest->apply(ego->cld2rest,
++      		       I + ego->rest_Ioff, O + ego->rest_Ooff);
++  }
++}
++
++static void apply(const plan *ego_, R *I, R *O)
++{
++     const P *ego = (const P *) ego_;
++     plan_rdft *cld1 = (plan_rdft *) ego->cld1;
++     
++     if (cld1) {
++          /* transpose locally to get contiguous chunks */
++          apply_pretranspose(ego, I, O);
++
++          if(ego->preserve_input) I = O;
++
++          /* transpose chunks globally */
++          transpose_chunks(ego->sched, ego->n_pes, ego->my_pe,
++                           ego->send_block_sizes, ego->send_block_offsets,
++			   ego->recv_block_sizes, ego->recv_block_offsets,
++			   ego->comm, O, I);
++
++          /* transpose locally to get non-transposed output */
++          cld1->apply(ego->cld1, I, O);
++     } /* else TRANSPOSED_OUT is true and user wants O transposed */
++     else if (ego->preserve_input) {
++          /* transpose locally to get contiguous chunks */
++          apply_pretranspose(ego, I, O);
++
++          /* transpose chunks globally */
++          transpose_chunks(ego->sched, ego->n_pes, ego->my_pe,
++             	           ego->send_block_sizes, ego->send_block_offsets,
++			   ego->recv_block_sizes, ego->recv_block_offsets,
++			   ego->comm, O, O);
++     }
++     else {
++          /* transpose locally to get contiguous chunks */
++          apply_pretranspose(ego, I, I);
++
++          /* transpose chunks globally */
++          transpose_chunks(ego->sched, ego->n_pes, ego->my_pe,
++             	           ego->send_block_sizes, ego->send_block_offsets,
++			   ego->recv_block_sizes, ego->recv_block_offsets,
++			   ego->comm, I, O);
++     }
++}
++
++static int applicable(const S *ego, const problem *p_,
++		      const planner *plnr)
++{
++     const problem_mpi_transpose *p = (const problem_mpi_transpose *) p_;
++     /* Note: this is *not* UGLY for out-of-place, destroy-input plans;
++	the planner often prefers transpose-pairwise to transpose-alltoall,
++	at least with LAM MPI on my machine. */
++     return (1
++	     && (!ego->preserve_input || (!NO_DESTROY_INPUTP(plnr)
++					  && p->I != p->O))
++	     && ONLY_TRANSPOSEDP(p->flags));
++}
++
++static void awake(plan *ego_, enum wakefulness wakefulness)
++{
++     P *ego = (P *) ego_;
++     X(plan_awake)(ego->cld1, wakefulness);
++     X(plan_awake)(ego->cld2, wakefulness);
++     X(plan_awake)(ego->cld2rest, wakefulness);
++     X(plan_awake)(ego->cld3, wakefulness);
++}
++
++static void destroy(plan *ego_)
++{
++     P *ego = (P *) ego_;
++     X(ifree0)(ego->sched);
++     X(ifree0)(ego->send_block_sizes);
++     MPI_Comm_free(&ego->comm);
++     X(plan_destroy_internal)(ego->cld3);
++     X(plan_destroy_internal)(ego->cld2rest);
++     X(plan_destroy_internal)(ego->cld2);
++     X(plan_destroy_internal)(ego->cld1);
++}
++
++static void print(const plan *ego_, printer *p)
++{
++     const P *ego = (const P *) ego_;
++     p->print(p, "(mpi-transpose-pairwise-transposed%s%(%p%)%(%p%)%(%p%)%(%p%))", 
++	      ego->preserve_input==2 ?"/p":"",
++	      ego->cld1, ego->cld2, ego->cld2rest, ego->cld3);
++}
++
++/* Given a process which_pe and a number of processes npes, fills
++   the array sched[npes] with a sequence of processes to communicate
++   with for a deadlock-free, optimum-overlap all-to-all communication.
++   (All processes must call this routine to get their own schedules.)
++   The schedule can be re-ordered arbitrarily as long as all processes
++   apply the same permutation to their schedules.
++
++   The algorithm here is based upon the one described in:
++       J. A. M. Schreuder, "Constructing timetables for sport
++       competitions," Mathematical Programming Study 13, pp. 58-67 (1980). 
++   In a sport competition, you have N teams and want every team to
++   play every other team in as short a time as possible (maximum overlap
++   between games).  This timetabling problem is therefore identical
++   to that of an all-to-all communications problem.  In our case, there
++   is one wrinkle: as part of the schedule, the process must do
++   some data transfer with itself (local data movement), analogous
++   to a requirement that each team "play itself" in addition to other
++   teams.  With this wrinkle, it turns out that an optimal timetable
++   (N parallel games) can be constructed for any N, not just for even
++   N as in the original problem described by Schreuder.
++*/
++static void fill1_comm_sched(int *sched, int which_pe, int npes)
++{
++     int pe, i, n, s = 0;
++     A(which_pe >= 0 && which_pe < npes);
++     if (npes % 2 == 0) {
++	  n = npes;
++	  sched[s++] = which_pe;
++     }
++     else
++	  n = npes + 1;
++     for (pe = 0; pe < n - 1; ++pe) {
++	  if (npes % 2 == 0) {
++	       if (pe == which_pe) sched[s++] = npes - 1;
++	       else if (npes - 1 == which_pe) sched[s++] = pe;
++	  }
++	  else if (pe == which_pe) sched[s++] = pe;
++
++	  if (pe != which_pe && which_pe < n - 1) {
++	       i = (pe - which_pe + (n - 1)) % (n - 1);
++	       if (i < n/2)
++		    sched[s++] = (pe + i) % (n - 1);
++	       
++	       i = (which_pe - pe + (n - 1)) % (n - 1);
++	       if (i < n/2)
++		    sched[s++] = (pe - i + (n - 1)) % (n - 1);
++	  }
++     }
++     A(s == npes);
++}
++
++/* Sort the communication schedule sched for npes so that the schedule
++   on process sortpe is ascending or descending (!ascending).  This is
++   necessary to allow in-place transposes when the problem does not
++   divide equally among the processes.  In this case there is one
++   process where the incoming blocks are bigger/smaller than the
++   outgoing blocks and thus have to be received in
++   descending/ascending order, respectively, to avoid overwriting data
++   before it is sent. */
++static void sort1_comm_sched(int *sched, int npes, int sortpe, int ascending)
++{
++     int *sortsched, i;
++     sortsched = (int *) MALLOC(npes * sizeof(int) * 2, OTHER);
++     fill1_comm_sched(sortsched, sortpe, npes);
++     if (ascending)
++	  for (i = 0; i < npes; ++i)
++	       sortsched[npes + sortsched[i]] = sched[i];
++     else
++	  for (i = 0; i < npes; ++i)
++	       sortsched[2*npes - 1 - sortsched[i]] = sched[i];
++     for (i = 0; i < npes; ++i)
++	  sched[i] = sortsched[npes + i];
++     X(ifree)(sortsched);
++}
++
++/* make the plans to do the pre-MPI transpositions (shared with
++   transpose-alltoall-transposed) */
++int XM(mkplans_pretranspose)(const problem_mpi_transpose *p, planner *plnr,
++			      R *I, R *O, int my_pe,
++			      plan **cld2, plan **cld2rest, plan **cld3,
++			      INT *rest_Ioff, INT *rest_Ooff)
++{
++     INT vn = p->vn;
++     INT b = XM(block)(p->nx, p->block, my_pe);
++     INT bt = p->tblock;
++     INT nyb = p->ny / bt; /* number of equal-sized blocks */
++     INT nyr = p->ny - nyb * bt; /* leftover rows after equal blocks */
++
++     *cld2 = *cld2rest = *cld3 = NULL;
++     *rest_Ioff = *rest_Ooff = 0;
++
++     if (!(p->flags & TRANSPOSED_IN) && (nyr == 0 || I != O)) {
++	  INT ny = p->ny * vn;
++	  bt *= vn;
++	  *cld2 = X(mkplan_f_d)(plnr, 
++				X(mkproblem_rdft_0_d)(X(mktensor_3d)
++						      (nyb, bt, b * bt,
++						       b, ny, bt,
++						       bt, 1, 1),
++						      I, O),
++				0, 0, NO_SLOW);
++	  if (!*cld2) goto nada;
++
++	  if (nyr > 0) {
++	       *rest_Ioff = nyb * bt;
++	       *rest_Ooff = nyb * b * bt;
++	       bt = nyr * vn;
++	       *cld2rest = X(mkplan_f_d)(plnr,
++					 X(mkproblem_rdft_0_d)(X(mktensor_2d)
++							       (b, ny, bt,
++								bt, 1, 1),
++							       I + *rest_Ioff,
++							       O + *rest_Ooff),
++                                        0, 0, NO_SLOW);
++               if (!*cld2rest) goto nada;
++	  }
++     }
++     else {
++	  *cld2 = X(mkplan_f_d)(plnr,
++				X(mkproblem_rdft_0_d)(
++				     X(mktensor_4d)
++				     (nyb, b * bt * vn, b * bt * vn,
++				      b, vn, bt * vn,
++				      bt, b * vn, vn,
++				      vn, 1, 1),
++				     I, O),
++				0, 0, NO_SLOW);
++	  if (!*cld2) goto nada;
++
++	  *rest_Ioff = *rest_Ooff = nyb * bt * b * vn;
++	  *cld2rest = X(mkplan_f_d)(plnr,
++				    X(mkproblem_rdft_0_d)(
++					 X(mktensor_3d)
++					 (b, vn, nyr * vn,
++					  nyr, b * vn, vn,
++					  vn, 1, 1),
++					 I + *rest_Ioff, O + *rest_Ooff),
++				    0, 0, NO_SLOW);
++	  if (!*cld2rest) goto nada;
++
++	  if (!(p->flags & TRANSPOSED_IN)) {
++	       *cld3 = X(mkplan_f_d)(plnr,
++				     X(mkproblem_rdft_0_d)(
++					  X(mktensor_3d)
++					  (p->ny, vn, b * vn,
++					   b, p->ny * vn, vn,
++					   vn, 1, 1),
++					  I, I),
++				     0, 0, NO_SLOW);
++	       if (!*cld3) goto nada;
++	  }
++     }
++
++     return 1;
++
++nada:
++     X(plan_destroy_internal)(*cld3);
++     X(plan_destroy_internal)(*cld2rest);
++     X(plan_destroy_internal)(*cld2);
++     *cld2 = *cld2rest = *cld3 = NULL;
++     return 0;
++}
++
++static plan *mkplan(const solver *ego_, const problem *p_, planner *plnr)
++{
++     const S *ego = (const S *) ego_;
++     const problem_mpi_transpose *p;
++     P *pln;
++     plan *cld1 = 0, *cld2 = 0, *cld2rest = 0, *cld3 = 0;
++     INT b, bt, vn, rest_Ioff, rest_Ooff;
++     INT *sbs, *sbo, *rbs, *rbo;
++     int pe, my_pe, n_pes, sort_pe = -1, ascending = 1;
++     R *I, *O;
++     static const plan_adt padt = {
++          XM(transpose_solve), awake, print, destroy
++     };
++
++     UNUSED(ego);
++
++     if (!applicable(ego, p_, plnr))
++          return (plan *) 0;
++
++     p = (const problem_mpi_transpose *) p_;
++     vn = p->vn;
++     I = p->I; O = p->O;
++
++     MPI_Comm_rank(p->comm, &my_pe);
++     MPI_Comm_size(p->comm, &n_pes);
++
++     bt = XM(block)(p->ny, p->tblock, my_pe);
++
++
++     if (ego->preserve_input || NO_DESTROY_INPUTP(plnr)) I = p->O;
++     
++     if (!(p->flags & TRANSPOSED_OUT)) { /* nx x bt x vn -> bt x nx x vn */
++	  cld1 = X(mkplan_f_d)(plnr, 
++			       X(mkproblem_rdft_0_d)(X(mktensor_3d)
++						     (bt, vn, p->nx * vn,
++						      p->nx, bt * vn, vn,
++						      vn, 1, 1),
++						     I, O = p->O),
++			       0, 0, NO_SLOW);
++	  if (XM(any_true)(!cld1, p->comm)) goto nada;
++
++     }
++     else {
++       if (ego->preserve_input || NO_DESTROY_INPUTP(plnr)) 
++         O = p->O;
++       else
++         O = p->I;
++     }
++
++     if (XM(any_true)(!XM(mkplans_pretranspose)(p, plnr, p->I, O, my_pe,
++						&cld2, &cld2rest, &cld3,
++						&rest_Ioff, &rest_Ooff),
++		      p->comm)) goto nada;
++
++     pln = MKPLAN_MPI_TRANSPOSE(P, &padt, apply);
++
++     pln->cld1 = cld1;
++     pln->cld2 = cld2;
++     pln->cld2rest = cld2rest;
++     pln->rest_Ioff = rest_Ioff;
++     pln->rest_Ooff = rest_Ooff;
++     pln->cld3 = cld3;
++     pln->preserve_input = ego->preserve_input ? 2 : NO_DESTROY_INPUTP(plnr);
++
++     MPI_Comm_dup(p->comm, &pln->comm);
++
++     n_pes = (int) X(imax)(XM(num_blocks)(p->nx, p->block),
++			   XM(num_blocks)(p->ny, p->tblock));
++
++     /* Compute sizes/offsets of blocks to exchange between processors */
++     sbs = (INT *) MALLOC(4 * n_pes * sizeof(INT), PLANS);
++     sbo = sbs + n_pes;
++     rbs = sbo + n_pes;
++     rbo = rbs + n_pes;
++     b = XM(block)(p->nx, p->block, my_pe);
++     bt = XM(block)(p->ny, p->tblock, my_pe);
++     for (pe = 0; pe < n_pes; ++pe) {
++	  INT db, dbt; /* destination block sizes */
++	  db = XM(block)(p->nx, p->block, pe);
++	  dbt = XM(block)(p->ny, p->tblock, pe);
++
++	  sbs[pe] = b * dbt * vn;
++	  sbo[pe] = pe * (b * p->tblock) * vn;
++	  rbs[pe] = db * bt * vn;
++	  rbo[pe] = pe * (p->block * bt) * vn;
++
++	  if (db * dbt > 0 && db * p->tblock != p->block * dbt) {
++	       A(sort_pe == -1); /* only one process should need sorting */
++	       sort_pe = pe;
++	       ascending = db * p->tblock > p->block * dbt;
++	  }
++     }
++     pln->n_pes = n_pes;
++     pln->my_pe = my_pe;
++     pln->send_block_sizes = sbs;
++     pln->send_block_offsets = sbo;
++     pln->recv_block_sizes = rbs;
++     pln->recv_block_offsets = rbo;
++
++     if (my_pe >= n_pes) {
++	  pln->sched = 0; /* this process is not doing anything */
++     }
++     else {
++	  pln->sched = (int *) MALLOC(n_pes * sizeof(int), PLANS);
++	  fill1_comm_sched(pln->sched, my_pe, n_pes);
++	  if (sort_pe >= 0)
++	       sort1_comm_sched(pln->sched, n_pes, sort_pe, ascending);
++     }
++
++     X(ops_zero)(&pln->super.super.ops);
++     if (cld1) X(ops_add2)(&cld1->ops, &pln->super.super.ops);
++     if (cld2) X(ops_add2)(&cld2->ops, &pln->super.super.ops);
++     if (cld2rest) X(ops_add2)(&cld2rest->ops, &pln->super.super.ops);
++     if (cld3) X(ops_add2)(&cld3->ops, &pln->super.super.ops);
++     /* FIXME: should MPI operations be counted in "other" somehow? */
++
++     return &(pln->super.super);
++
++ nada:
++     X(plan_destroy_internal)(cld3);
++     X(plan_destroy_internal)(cld2rest);
++     X(plan_destroy_internal)(cld2);
++     X(plan_destroy_internal)(cld1);
++     return (plan *) 0;
++}
++
++static solver *mksolver(int preserve_input)
++{
++     static const solver_adt sadt = { PROBLEM_MPI_TRANSPOSE, mkplan, 0 };
++     S *slv = MKSOLVER(S, &sadt);
++     slv->preserve_input = preserve_input;
++     return &(slv->super);
++}
++
++void XM(transpose_pairwise_transposed_register)(planner *p)
++{
++     int preserve_input;
++     for (preserve_input = 0; preserve_input <= 1; ++preserve_input)
++	  REGISTER_SOLVER(p, mksolver(preserve_input));
++}

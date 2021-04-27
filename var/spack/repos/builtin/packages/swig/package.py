@@ -21,6 +21,7 @@ class Swig(AutotoolsPackage, SourceforgePackage):
 
     homepage = "http://www.swig.org"
     sourceforge_mirror_path = "swig/swig-3.0.12.tar.gz"
+    maintainers = ['sethrj']
 
     version('master', git='https://github.com/swig/swig.git')
     version('4.0.2', sha256='d53be9730d8d58a16bf0cbd1f8ac0c0c3e1090573168bfa151b01eb47fa906fc',
@@ -56,6 +57,8 @@ class Swig(AutotoolsPackage, SourceforgePackage):
     depends_on('pkgconfig', type='build')
 
     build_directory = 'spack-build'
+
+    conflicts('%nvhpc', when='@:4.0.2')
 
     @run_after('install')
     def create_symlink(self):

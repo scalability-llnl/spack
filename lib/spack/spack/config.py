@@ -35,7 +35,6 @@ import functools
 import os
 import re
 import sys
-import multiprocessing
 from contextlib import contextmanager
 from six import iteritems
 from ordereddict_backport import OrderedDict
@@ -61,6 +60,7 @@ import spack.schema.config
 import spack.schema.upstreams
 import spack.schema.env
 from spack.error import SpackError
+from spack.util.cpus import cpus_available
 
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
@@ -110,7 +110,7 @@ config_defaults = {
         'verify_ssl': True,
         'checksum': True,
         'dirty': False,
-        'build_jobs': min(16, multiprocessing.cpu_count()),
+        'build_jobs': min(16, cpus_available()),
         'build_stage': '$tempdir/spack-stage',
         'concretizer': 'original',
     }
@@ -361,6 +361,10 @@ class InternalConfigScope(ConfigScope):
 
     def __repr__(self):
         return '<InternalConfigScope: %s>' % self.name
+
+    def clear(self):
+        # no cache to clear here.
+        pass
 
     @staticmethod
     def _process_dict_keyname_overrides(data):

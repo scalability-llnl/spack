@@ -166,6 +166,12 @@ class Ascent(Package, CudaPackage):
     depends_on("py-sphinx", when="+python+doc", type='build')
     depends_on("py-sphinx-rtd-theme", when="+python+doc", type='build')
 
+    ###########
+    # Conflicts
+    ###########
+    conflicts("+shared", when="+cuda",
+              msg="Ascent needs to be built with ~shared for CUDA builds.")
+
     def setup_build_environment(self, env):
         env.set('CTEST_OUTPUT_ON_FAILURE', '1')
 

@@ -29,10 +29,10 @@ class Upcxx(Package):
     version('develop', branch='develop')
     version('master',  branch='master')
 
+    version('2021.3.0', sha256='3433714cd4162ffd8aad9a727c12dbf1c207b7d6664879fc41259a4b351595b7')
     version('2020.11.0', sha256='f6f212760a485a9f346ca11bb4751e7095bbe748b8e5b2389ff9238e9e321317',
             url='https://bitbucket.org/berkeleylab/upcxx/downloads/upcxx-2020.11.0-memory_kinds_prototype.tar.gz')
-    version('2020.10.0', sha256='623e074b512bf8cad770a04040272e1cc660d2749760398b311f9bcc9d381a37',
-            preferred=True)
+    version('2020.10.0', sha256='623e074b512bf8cad770a04040272e1cc660d2749760398b311f9bcc9d381a37')
     version('2020.3.0', sha256='01be35bef4c0cfd24e9b3d50c88866521b9cac3ad4cbb5b1fc97aea55078810f')
     version('2019.9.0', sha256='7d67ccbeeefb59de9f403acc719f52127a30801a2c2b9774a1df03f850f8f1d4')
     version('2019.3.2', sha256='dcb0b337c05a0feb2ed5386f5da6c60342412b49cab10f282f461e74411018ad')

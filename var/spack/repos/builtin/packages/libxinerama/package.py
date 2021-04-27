@@ -21,3 +21,8 @@ class Libxinerama(AutotoolsPackage, XorgPackage):
     depends_on('xineramaproto@1.1.99.1:')
     depends_on('pkgconfig', type='build')
     depends_on('util-macros', type='build')
+
+    @property
+    def libs(self):
+        return find_libraries('libXinerama', self.prefix,
+                              shared=True, recursive=True)

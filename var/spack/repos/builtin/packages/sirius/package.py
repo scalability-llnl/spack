@@ -21,7 +21,10 @@ class Sirius(CMakePackage, CudaPackage):
     version('develop', branch='develop')
     version('master', branch='master')
 
+    version('7.2.1', sha256='01bf6c9893ff471473e13351ca7fdc2ed6c1f4b1bb7afa151909ea7cd6fa0de7')
+    version('7.2.0', sha256='537800459db8a7553d7aa251c19f3a31f911930194b068bc5bca2dfb2c9b71db')
     version('7.0.2', sha256='ee613607ce3be0b2c3f69b560b2415ce1b0e015179002aa90739430dbfaa0389')
+    version('7.0.1', sha256='cca11433f86e7f4921f7956d6589f27bf0fd5539f3e8f96e66a3a6f274888595')
     version('7.0.0', sha256='da783df11e7b65668e29ba8d55c8a6827e2216ad6d88040f84f42ac20fd1bb99')
     version('6.5.7', sha256='d886c3066163c43666ebac2ea50351df03907b5686671e514a75f131ba51b43c',
             preferred=True)
@@ -112,6 +115,9 @@ class Sirius(CMakePackage, CudaPackage):
     depends_on('hsakmt-roct', when='+rocm', type='link')
     depends_on('hsa-rocr-dev', when='+rocm', type='link')
     depends_on('rocblas', when='+rocm')
+
+    # FindHIP cmake script only works for < 4.1
+    depends_on('hip@:4.0', when='@:7.2.0 +rocm')
 
     extends('python', when='+python')
 

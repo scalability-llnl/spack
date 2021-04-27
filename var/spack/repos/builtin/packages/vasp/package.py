@@ -58,6 +58,7 @@ class Vasp(MakefilePackage):
             make_include = join_path('arch', 'makefile.include.linux_gnu')
         elif '%nvhpc' in spec:
             make_include = join_path('arch', 'makefile.include.linux_pgi')
+            filter_file('-pgc++libs', '-c++libs', make_include, string=True)
             filter_file('pgcc', spack_cc, make_include)
             filter_file('pgc++', spack_cxx, make_include, string=True)
             filter_file('pgfortran', spack_fc, make_include)
@@ -125,11 +126,16 @@ class Vasp(MakefilePackage):
         fflags = []
         if '%gcc' in spec or '%intel' in spec:
             fflags.append('-w')
+        elif '%nvhpc' in spec:
+            fflags.extend(['-Mnoupcase', '-Mbackslash', '-Mlarge_arrays'])
 
         spack_env.set('BLAS', spec['blas'].libs.ld_flags)
         spack_env.set('LAPACK', spec['lapack'].libs.ld_flags)
         spack_env.set('FFTW', spec['fftw'].prefix)
         spack_env.set('MPI_INC', spec['mpi'].prefix.include)
+
+        if '%nvhpc' in spec:
+            spack_env.set('QD', spec['qd'].prefix)
 
         if '+scalapack' in spec:
             cpp_options.append('-DscaLAPACK')

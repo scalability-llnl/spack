@@ -1,0 +1,62 @@
+--- a/bin/ltmain.sh
++++ b/bin/ltmain.sh
+@@ -8881,7 +8881,8 @@ func_mode_link ()
+ 	  xlcverstring="$wl-compatibility_version $wl$minor_current $wl-current_version $wl$minor_current.$revision"
+ 	  verstring="-compatibility_version $minor_current -current_version $minor_current.$revision"
+           # On Darwin other compilers
+-          case $CC in
++          func_cc_basename $CC
++          case $func_cc_basename_result in
+               nagfor*)
+                   verstring="$wl-compatibility_version $wl$minor_current $wl-current_version $wl$minor_current.$revision"
+                   ;;
+--- a/configure
++++ b/configure
+@@ -12817,6 +12817,15 @@ func_cc_basename ()
+         compile | *[\\/]compile | ccache | *[\\/]ccache ) ;;
+         distcc | *[\\/]distcc | purify | *[\\/]purify ) ;;
+         \-*) ;;
++        mpicc | *[\\/]mpicc | \
++        mpic++ | *[\\/]mpic++ | mpicxx | *[\\/]mpicxx | mpiCC | *[\\/]mpiCC | \
++        mpif77 | *[\\/]mpif77 | mpif90 | *[\\/]mpif90 | mpifort | *[\\/]mpifort )
++          # OpenMPI or MPICH wrapper
++          mpi_cc_temp=
++          mpi_show=`$cc_temp -show 2>/dev/null`
++          test $? -eq 0 && mpi_cc_temp=`$ECHO "$mpi_show" | cut -d' ' -f1`
++          test -z $mpi_cc_temp >/dev/null 2>&1 || cc_temp=$mpi_cc_temp
++          break;;
+         *) break;;
+       esac
+     done
+@@ -33230,6 +33239,15 @@ func_cc_basename ()
+         compile | *[\\/]compile | ccache | *[\\/]ccache ) ;;
+         distcc | *[\\/]distcc | purify | *[\\/]purify ) ;;
+         \-*) ;;
++        mpicc | *[\\/]mpicc | \
++        mpic++ | *[\\/]mpic++ | mpicxx | *[\\/]mpicxx | mpiCC | *[\\/]mpiCC | \
++        mpif77 | *[\\/]mpif77 | mpif90 | *[\\/]mpif90 | mpifort | *[\\/]mpifort )
++          # OpenMPI or MPICH wrapper
++          mpi_cc_temp=
++          mpi_show=`$cc_temp -show 2>/dev/null`
++          test $? -eq 0 && mpi_cc_temp=`$ECHO "$mpi_show" | cut -d' ' -f1`
++          test -z $mpi_cc_temp >/dev/null 2>&1 || cc_temp=$mpi_cc_temp
++          break;;
+         *) break;;
+       esac
+     done
+@@ -36300,6 +36318,15 @@ func_cc_basename ()
+         compile | *[\\/]compile | ccache | *[\\/]ccache ) ;;
+         distcc | *[\\/]distcc | purify | *[\\/]purify ) ;;
+         \-*) ;;
++        mpicc | *[\\/]mpicc | \
++        mpic++ | *[\\/]mpic++ | mpicxx | *[\\/]mpicxx | mpiCC | *[\\/]mpiCC | \
++        mpif77 | *[\\/]mpif77 | mpif90 | *[\\/]mpif90 | mpifort | *[\\/]mpifort )
++          # OpenMPI or MPICH wrapper
++          mpi_cc_temp=
++          mpi_show=`$cc_temp -show 2>/dev/null`
++          test $? -eq 0 && mpi_cc_temp=`$ECHO "$mpi_show" | cut -d' ' -f1`
++          test -z $mpi_cc_temp >/dev/null 2>&1 || cc_temp=$mpi_cc_temp
++          break;;
+         *) break;;
+       esac
+     done

@@ -20,6 +20,16 @@ compilers:
     modules: 'None'
     target: x86_64
 - compiler:
+    spec: gcc@4.5.0
+    operating_system: redhat6
+    paths:
+      cc: /path/to/gcc
+      cxx: /path/to/g++
+      f77: None
+      fc: None
+    modules: 'None'
+    target: x86_64
+- compiler:
     spec: clang@3.3
     operating_system: CNL
     paths:

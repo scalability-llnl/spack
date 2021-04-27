@@ -13,3 +13,5 @@ class Sandbox(AutotoolsPackage):
     url      = "https://dev.gentoo.org/~mgorny/dist/sandbox-2.12.tar.xz"
 
     version('2.12', sha256='265a490a8c528237c55ad26dfd7f62336fa5727c82358fc9cfbaa2e52c47fc50')
+
+    depends_on('gawk', type='build')

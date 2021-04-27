@@ -17,7 +17,7 @@ import spack.util.file_cache
 import spack.util.path
 
 
-def _misc_cache():
+def misc_cache_location():
     """The ``misc_cache`` is Spack's cache for small data.
 
     Currently the ``misc_cache`` stores indexes for virtual dependency
@@ -27,7 +27,11 @@ def _misc_cache():
     if not path:
         path = os.path.join(spack.paths.user_config_path, 'cache')
     path = spack.util.path.canonicalize_path(path)
+    return path
 
+
+def _misc_cache():
+    path = misc_cache_location()
     return spack.util.file_cache.FileCache(path)
 
 
@@ -35,7 +39,7 @@ def _misc_cache():
 misc_cache = llnl.util.lang.Singleton(_misc_cache)
 
 
-def _fetch_cache():
+def fetch_cache_location():
     """Filesystem cache of downloaded archives.
 
     This prevents Spack from repeatedly fetch the same files when
@@ -45,7 +49,11 @@ def _fetch_cache():
     if not path:
         path = os.path.join(spack.paths.var_path, "cache")
     path = spack.util.path.canonicalize_path(path)
+    return path
 
+
+def _fetch_cache():
+    path = fetch_cache_location()
     return spack.fetch_strategy.FsCache(path)
 
 

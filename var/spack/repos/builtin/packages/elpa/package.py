@@ -35,6 +35,10 @@ class Elpa(AutotoolsPackage, CudaPackage):
     depends_on('lapack')
     depends_on('scalapack')
     depends_on('libtool', type='build')
+    depends_on('python@:2', type='build', when='@:2020.05.001')
+    depends_on('python@3:', type='build', when='@2020.11.001:')
+
+    patch('python_shebang.patch', when='@:2020.05.001')
 
     def url_for_version(self, version):
         t = 'https://elpa.mpcdf.mpg.de/html/Releases/{0}/elpa-{0}.tar.gz'

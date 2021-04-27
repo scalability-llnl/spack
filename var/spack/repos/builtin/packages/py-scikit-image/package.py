@@ -13,17 +13,21 @@ class PyScikitImage(PythonPackage):
     homepage = "http://scikit-image.org/"
     pypi = "scikit-image/scikit-image-0.17.2.tar.gz"
 
+    version('0.18.1', sha256='fbb618ca911867bce45574c1639618cdfb5d94e207432b19bc19563d80d2f171')
     version('0.17.2', sha256='bd954c0588f0f7e81d9763dc95e06950e68247d540476e06cb77bcbcd8c2d8b3')
     version('0.14.2', sha256='1afd0b84eefd77afd1071c5c1c402553d67be2d7db8950b32d6f773f25850c1f')
     version('0.12.3', sha256='82da192f0e524701e89c5379c79200bc6dc21373f48bf7778a864c583897d7c7')
 
     extends('python', ignore=r'bin/.*\.py$')
 
-    depends_on('python@3.6:', when='@0.16.1:')
+    depends_on('python@3.7:', when='@0.18:', type=('build', 'link', 'run'))
+    depends_on('python@3.6:', when='@0.16.1:', type=('build', 'link', 'run'))
+    depends_on('py-setuptools', type='build')
     depends_on('py-cython@0.23.4:', type='build')
     depends_on('py-numpy', type=('build', 'run'))
-    depends_on('py-numpy@1.14.1:', type=('build', 'run'), when='@0.16.1:')
-    depends_on('py-numpy@1.15.1:', type=('build', 'run'), when='@0.17.1:')
+    depends_on('py-numpy@1.14.1:', type=('build', 'link', 'run'), when='@0.16.1:')
+    depends_on('py-numpy@1.15.1:', type=('build', 'link', 'run'), when='@0.17.1:')
+    depends_on('py-numpy@1.16.5:', type=('build', 'link', 'run'), when='@0.18:')
     depends_on('py-scipy', type=('build', 'run'))
     depends_on('py-scipy@0.19.0:', type=('build', 'run'), when='@0.16.1:')
     depends_on('py-scipy@1.0.1:', type=('build', 'run'), when='@0.17.1:')

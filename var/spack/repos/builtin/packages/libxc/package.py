@@ -13,6 +13,7 @@ class Libxc(AutotoolsPackage, CudaPackage):
     homepage = "https://tddft.org/programs/libxc/"
     url      = "https://www.tddft.org/programs/libxc/down.php?file=2.2.2/libxc-2.2.2.tar.gz"
 
+    version('5.1.3', sha256='0350defdd6c1b165e4cf19995f590eee6e0b9db95a6b221d28cecec40f4e85cd')
     version('5.1.2', sha256='180d52b5552921d1fac8a10869dd30708c0fb41dc202a3bbee0e36f43872718a')
     version('5.1.0', sha256='f67b6e518372871d9eed6e5dba77c3ab5ea030c229ba7a7d44bcf51f3258373f')
     version('5.0.0', sha256='1cdc57930f7b57da4eb9b2c55a50ba1c2c385936ddaf5582fee830994461a892')
@@ -80,6 +81,9 @@ class Libxc(AutotoolsPackage, CudaPackage):
         if '%intel' in self.spec and which('xiar'):
             env.set('AR', 'xiar')
 
+        if '%aocc' in self.spec:
+            env.append_flags('FCFLAGS', '-fPIC')
+
         if '+cuda' in self.spec:
             nvcc = self.spec['cuda'].prefix.bin.nvcc
             env.set('CCLD', '{0} -ccbin {1}'.format(nvcc, spack_cc))
@@ -99,6 +103,15 @@ class Libxc(AutotoolsPackage, CudaPackage):
         ]
 
         return args
+
+    @run_after('configure')
+    def patch_libtool(self):
+        """AOCC support for LIBXC"""
+        if '%aocc' in self.spec:
+            filter_file(
+                r'\$wl-soname \$wl\$soname',
+                r'-fuse-ld=ld -Wl,-soname,\$soname',
+                'libtool', string=True)
 
     def check(self):
         # libxc provides a testsuite, but many tests fail

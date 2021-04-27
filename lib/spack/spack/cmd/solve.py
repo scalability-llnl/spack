@@ -10,6 +10,7 @@ import re
 import sys
 
 import llnl.util.tty as tty
+import llnl.util.tty.color as color
 
 import spack
 import spack.cmd
@@ -23,15 +24,20 @@ section = 'developer'
 level = 'long'
 
 #: output options
-show_options = ('asp', 'output', 'solutions')
+show_options = ('asp', 'opt', 'output', 'solutions')
 
 
 def setup_parser(subparser):
     # Solver arguments
     subparser.add_argument(
-        '--show', action='store', default=('solutions'),
-        help="outputs: a list with any of: "
-        "%s (default), all" % ', '.join(show_options))
+        '--show', action='store', default='opt,solutions',
+        help="select outputs: comma-separated list of: \n"
+        "  asp          asp program text\n"
+        "  opt          optimization criteria for best model\n"
+        "  output       raw clingo output\n"
+        "  solutions    models found by asp program\n"
+        "  all          all of the above"
+    )
     subparser.add_argument(
         '--models', action='store', type=int, default=0,
         help="number of solutions to search (default 0 for all)")
@@ -41,10 +47,10 @@ def setup_parser(subparser):
         subparser, ['long', 'very_long', 'install_status'])
     subparser.add_argument(
         '-y', '--yaml', action='store_const', dest='format', default=None,
-        const='yaml', help='print concrete spec as YAML')
+        const='yaml', help='print concrete spec as yaml')
     subparser.add_argument(
         '-j', '--json', action='store_const', dest='format', default=None,
-        const='json', help='print concrete spec as YAML')
+        const='json', help='print concrete spec as json')
     subparser.add_argument(
         '-c', '--cover', action='store',
         default='nodes', choices=['nodes', 'edges', 'paths'],
@@ -113,9 +119,18 @@ def solve(parser, args):
         best = min(result.answers)
 
         opt, _, answer = best
-        if not args.format:
-            tty.msg("Best of %d answers." % result.nmodels)
-            tty.msg("Optimization: %s" % opt)
+        if ("opt" in dump) and (not args.format):
+            tty.msg("Best of %d considered solutions." % result.nmodels)
+            tty.msg("Optimization Criteria:")
+
+            maxlen = max(len(s) for s in result.criteria)
+            color.cprint(
+                "@*{  Priority  Criterion %sValue}" % ((maxlen - 10) * " ")
+            )
+            for i, (name, val) in enumerate(zip(result.criteria, opt)):
+                fmt = "  @K{%%-8d}  %%-%ds%%5d" % maxlen
+                color.cprint(fmt % (i + 1, name, val))
+            print()
 
         # iterate over roots from command line
         for input_spec in specs:

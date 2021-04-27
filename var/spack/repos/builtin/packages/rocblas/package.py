@@ -11,10 +11,12 @@ class Rocblas(CMakePackage):
     """Radeon Open Compute BLAS library"""
 
     homepage = "https://github.com/ROCmSoftwarePlatform/rocBLAS/"
-    url      = "https://github.com/ROCmSoftwarePlatform/rocBLAS/archive/rocm-4.0.0.tar.gz"
+    git      = "https://github.com/ROCmSoftwarePlatform/rocBLAS.git"
+    url      = "https://github.com/ROCmSoftwarePlatform/rocBLAS/archive/rocm-4.1.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('4.1.0', sha256='8be20c722bab169bc4badd79a9eab9a1aa338e0e5ff58ad85ba6bf09e8ac60f4')
     version('4.0.0', sha256='78e37a7597b581d90a29e4b956fa65d0f8d1c8fb51667906b5fe2a223338d401')
     version('3.10.0', sha256='9bfd0cf99662192b1ac105ab387531cfa9338ae615db80ed690c6a14d987e0e8')
     version('3.9.0', sha256='3ecd2d9fd2be0e1697a191d143a2d447b53a91ae01afb50231d591136ad5e2fe')
@@ -28,14 +30,18 @@ class Rocblas(CMakePackage):
 
     depends_on('cmake@3:', type='build')
 
-    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
         depends_on('rocm-cmake@' + ver, type='build', when='@' + ver)
         depends_on('rocm-device-libs@' + ver, type='build', when='@' + ver)
         depends_on('hip@' + ver, when='@' + ver)
         depends_on('comgr@' + ver, type='build', when='@' + ver)
         # used in Tensile
-        depends_on('rocm-smi@' + ver, type='build', when='@' + ver)
         depends_on('llvm-amdgpu@' + ver, type='build', when='@' + ver)
+
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
+        depends_on('rocm-smi@' + ver, type='build', when='@' + ver)
+    for ver in ['4.1.0']:
+        depends_on('hip-rocclr@' + ver, type='link', when='@' + ver)
 
     # This is the default library format since 3.7.0
     depends_on('msgpack-c@3:', when='@3.7:')
@@ -77,6 +83,11 @@ class Rocblas(CMakePackage):
              commit='ab44bf46b609b5a40053f310bef2ab7511f726ae',
              when='@4.0.0')
 
+    resource(name='Tensile',
+             git='https://github.com/ROCmSoftwarePlatform/Tensile.git',
+             commit='d175277084d3253401583aa030aba121e8875bfd',
+             when='@4.1.0')
+
     # Status: https://github.com/ROCmSoftwarePlatform/Tensile/commit/a488f7dadba34f84b9658ba92ce9ec5a0615a087
     # Not yet landed in 3.7.0, nor 3.8.0.
     patch('0001-Fix-compilation-error-with-StringRef-to-basic-string.patch', when='@:3.8')
@@ -98,7 +109,6 @@ class Rocblas(CMakePackage):
             '-DBUILD_WITH_TENSILE=ON',
             '-DTensile_TEST_LOCAL_PATH={0}'.format(tensile),
             '-DTensile_COMPILER=hipcc',
-            '-DTensile_ARCHITECTURE={0}'.format(arch),
             '-DTensile_LOGIC=asm_full',
             '-DTensile_CODE_OBJECT_VERSION=V3',
             '-DBUILD_WITH_TENSILE_HOST={0}'.format(
@@ -108,5 +118,10 @@ class Rocblas(CMakePackage):
 
         if '@3.7.0:' in self.spec:
             args.append('-DTensile_LIBRARY_FORMAT=msgpack')
+
+        if self.spec.satisfies('@4.1.0:'):
+            if arch == 'gfx906' or arch == 'gfx908':
+                arch = arch + ':xnack-'
+        args.append('-DTensile_ARCHITECTURE={0}'.format(arch))
 
         return args

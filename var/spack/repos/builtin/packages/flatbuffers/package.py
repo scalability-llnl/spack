@@ -28,6 +28,22 @@ class Flatbuffers(CMakePackage):
     depends_on('python@3.6:', when='+python', type=('build', 'run'))
     extends('python', when='+python')
 
+    # Fixes "Class-memaccess" compilation error in test
+    # https://github.com/google/flatbuffers/issues/5930
+    # Possibly affects earlier releases but I haven't tried to apply it.
+    patch('https://raw.githubusercontent.com/Flamefire/easybuild-easyconfigs/'
+          '72ba2a1a0d44fbd96ded9f279373ef804bdf3903/easybuild/easyconfigs/f/'
+          'flatbuffers/flatbuffers-1.12.0_replace-usage-of-memset.patch',
+          sha256='094a98b5a7debbc2c60c2b235942c79e505ec76f9281f87c95d15e9ad8a97c52',
+          when='@1.12.0:%gcc@10:')
+    # Silences false positive "-Wstringop-overflow" on GCC 10+
+    # https://github.com/google/flatbuffers/issues/5950
+    # Possibly affects earlier releases but I haven't tried to apply it.
+    patch('https://patch-diff.githubusercontent.com/raw/google/flatbuffers/pull/'
+          '6020.patch',
+          sha256='4a9a18abc776407f3f97e02c40f349cfb24fe7ddb41df952271d894777a31c88',
+          when='@1.12.0:%gcc@10:')
+
     @run_after('install')
     def python_install(self):
         if '+python' in self.spec:

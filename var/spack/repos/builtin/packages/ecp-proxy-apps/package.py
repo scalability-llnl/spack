@@ -27,6 +27,14 @@ class EcpProxyApps(BundlePackage):
 
     variant('candle', default=False,
             description='Also build CANDLE Benchmarks')
+    variant('ml', default=False,
+            description='Also build Machine Learning Suite')
+
+    # Added as part of ML Suite with 4.0
+    depends_on('minigan@1.0.0', when='+ml @4.0:')
+    depends_on('cradl@master', when='+ml @4.0:')
+    depends_on('cosmoflow-benchmark@master', when='+ml @4.0:')
+    depends_on('mlperf-deepcam@master', when='+ml @4.0:')
 
     # Added with release 4.0
     depends_on('miniamr@1.6.4', when='@4.0:')

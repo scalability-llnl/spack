@@ -32,7 +32,8 @@ class Xxhash(MakefilePackage):
         targets = []
 
         if '%nvhpc' in self.spec:
-            targets.append('CFLAGS=-O1')
+            if self.spec.satisfies('%nvhpc@:20.11'):
+                targets.append('CFLAGS=-O1')
 
             if 'avx512' in self.spec.target:
                 # Workaround AVX512 compiler issue

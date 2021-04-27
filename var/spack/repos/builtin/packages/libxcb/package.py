@@ -53,7 +53,7 @@ class Libxcb(AutotoolsPackage):
         config_args = []
 
         # -Werror flags are not properly interpreted by the NVIDIA compiler
-        if self.spec.satisfies('%nvhpc'):
+        if self.spec.satisfies('%nvhpc@:20.11'):
             config_args.append('--disable-selective-werror')
 
         return config_args

@@ -13,10 +13,12 @@ class Rocthrust(CMakePackage):
        library works on HIP/ROCm platforms"""
 
     homepage = "https://github.com/ROCmSoftwarePlatform/rocThrust"
-    url      = "https://github.com/ROCmSoftwarePlatform/rocThrust/archive/rocm-4.0.0.tar.gz"
+    git      = "https://github.com/ROCmSoftwarePlatform/rocThrust.git"
+    url      = "https://github.com/ROCmSoftwarePlatform/rocThrust/archive/rocm-4.1.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('4.1.0', sha256='e3d06c0387a2a6880776c7423b1acf0808fb8833bc822be75793da8c2f521efd')
     version('4.0.0', sha256='120c87316f44ce8e8975e57c9b9bf1246b1ffc00879d31d744289ba9438a976c')
     version('3.10.0', sha256='31bea6cd19a0ffa15e4ab50ecde2402ea5aaa182149cfab98242357e41f1805b')
     version('3.9.0', sha256='65f5e74d72c5aaee90459468d693b212af7d56e31098ee8237b18d1b4d620eb0')
@@ -30,12 +32,14 @@ class Rocthrust(CMakePackage):
     depends_on('cmake@3:', type='build')
     depends_on('numactl', when='@3.7.0:')
 
-    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
         depends_on('hip@' + ver, type='build', when='@' + ver)
         depends_on('rocm-device-libs@' + ver, type='build', when='@' + ver)
         depends_on('comgr@' + ver, type='build', when='@' + ver)
         depends_on('hsa-rocr-dev@' + ver, type='build', when='@' + ver)
         depends_on('rocprim@' + ver, type='build', when='@' + ver)
+    for ver in ['4.1.0']:
+        depends_on('hip-rocclr@' + ver, type='link', when='@' + ver)
 
     def setup_build_environment(self, env):
         env.set('CXX', self.spec['hip'].hipcc)

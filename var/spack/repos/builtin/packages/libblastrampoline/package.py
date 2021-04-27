@@ -12,6 +12,7 @@ class Libblastrampoline(MakefilePackage):
     homepage = "https://github.com/staticfloat/libblastrampoline"
     git      = "https://github.com/staticfloat/libblastrampoline.git"
 
+    version('3.0.4', commit='23de7a09bf354fe6f655c457bab5bf47fdd2486d')
     version('3.0.3', commit='7b502b7bb5d4663df4a928d0f605924cd1a35c1a')
     version('3.0.2', commit='5882fdf6395afb1ed01a8a10db94b7b3cbd39e16')
     version('3.0.1', commit='e132e645db28bec024be9410467a6c7a2d0937ae')

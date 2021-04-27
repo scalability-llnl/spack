@@ -1,0 +1,35 @@
+--- a/gnu/xalloc-oversized.h
++++ b/gnu/xalloc-oversized.h
+@@ -41,10 +41,10 @@
+    positive and N must be nonnegative.  This is a macro, not a
+    function, so that it works correctly even when SIZE_MAX < N.  */
+ 
+-#if 7 <= __GNUC__ && !defined __clang__
++#if 7 <= __GNUC__ && !defined __clang__ && !defined __NVCOMPILER
+ # define xalloc_oversized(n, s) \
+    __builtin_mul_overflow_p (n, s, (__xalloc_count_type) 1)
+-#elif 5 <= __GNUC__ && !defined __ICC && !__STRICT_ANSI__
++#elif 5 <= __GNUC__ && !defined __ICC && !__STRICT_ANSI__ && !defined __NVCOMPILER
+ # define xalloc_oversized(n, s) \
+    (__builtin_constant_p (n) && __builtin_constant_p (s) \
+     ? __xalloc_oversized (n, s) \
+--- a/gnu/intprops.h
++++ b/gnu/intprops.h
+@@ -228,7 +228,7 @@
+    (A, B, P) work when P is non-null.  */
+ /* __builtin_{add,sub}_overflow exists but is not reliable in GCC 5.x and 6.x,
+    see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98269>.  */
+-#if 7 <= __GNUC__ && !defined __ICC
++#if 7 <= __GNUC__ && !defined __ICC && !defined __NVCOMPILER
+ # define _GL_HAS_BUILTIN_ADD_OVERFLOW 1
+ #elif defined __has_builtin
+ # define _GL_HAS_BUILTIN_ADD_OVERFLOW __has_builtin (__builtin_add_overflow)
+@@ -246,7 +246,7 @@
+ 
+ /* True if __builtin_add_overflow_p (A, B, C) works, and similarly for
+    __builtin_sub_overflow_p and __builtin_mul_overflow_p.  */
+-#if defined __clang__ || defined __ICC
++#if defined __clang__ || defined __ICC || defined __NVCOMPILER
+ /* Clang 11 lacks __builtin_mul_overflow_p, and even if it did it
+    would presumably run afoul of Clang bug 16404.  ICC 2021.1's
+    __builtin_add_overflow_p etc. are not treated as integral constant

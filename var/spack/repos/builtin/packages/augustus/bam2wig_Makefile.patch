@@ -1,0 +1,23 @@
+--- a/auxprogs/bam2wig/Makefile	2020-12-11 09:40:21.000000000 -0600
++++ b/auxprogs/bam2wig/Makefile	2021-04-07 15:20:59.573957969 -0500
+@@ -19,18 +19,8 @@
+ SOURCES = $(PROGRAM)
+ OBJECTS = $(SOURCES:.c=.o)
+ 
+-ifneq ($(wildcard ${TOOLDIR}/htslib/htslib/.),) # if TOOLDIR exists and contains htslib
+-	INCLUDES=-I$(TOOLDIR)/htslib -I$(TOOLDIR)/htslib/htslib
+-	HTSLIBS=-L$(TOOLDIR)/htslib -Wl,-rpath,$(TOOLDIR)/htslib -lhts -lcurses -lm -lz -lpthread -lcurl -lssl -lcrypto -lbz2 -llzma
+-	HTSERRHINT="Check if the installed HTSlib is of version 1.10 or higher - see README.txt"
+-else
+-	INCLUDES=-I/usr/include/htslib
+-	HTSLIBS=-lhts -lz -lpthread
+-	ifdef DEF_TOOLDIR
+-		HTSERRHINT="There is no htslib folder in directory $(TOOLDIR) \n"
+-	endif
+-	HTSERRHINT:=$(HTSERRHINT)"Check if HTSlib is installed and of version 1.10 or higher - see README.txt"
+-endif
++INCLUDES=-I$(HTSLIBDIR)/include/htslib
++HTSLIBS=-L$(HTSLIBDIR)/lib -Wl,-rpath,$(HTSLIBDIR)/lib -lhts -lcurses -lm -lz -lpthread -lcurl -lssl -lcrypto -lbz2 -llzma
+ 
+ CFLAGS:=-Wall -O2 $(CFLAGS)
+ CC?=gcc

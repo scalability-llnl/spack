@@ -352,10 +352,10 @@ class TestSpecSyntax(object):
     def test_ambiguous_hash(self, mutable_database):
         x1 = Spec('a')
         x1.concretize()
-        x1._hash = 'xy'
+        x1._hash = 'xyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
         x2 = Spec('a')
         x2.concretize()
-        x2._hash = 'xx'
+        x2._hash = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
         mutable_database.add(x1, spack.store.layout)
         mutable_database.add(x2, spack.store.layout)
@@ -556,10 +556,6 @@ class TestSpecSyntax(object):
 
         with specfile.open('w') as f:
             f.write(s['libelf'].to_yaml(hash=ht.build_hash))
-
-        print("")
-        print("")
-        print("PARSING HERE")
 
         # Make sure we can use yaml path as dependency, e.g.:
         #     "spack spec libdwarf ^ /path/to/libelf.yaml"

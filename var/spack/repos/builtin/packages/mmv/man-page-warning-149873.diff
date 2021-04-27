@@ -1,0 +1,45 @@
+Description: Add warnings about #149873 to man page
+ This patch adds warnings about issues with spaces in patterns and
+ files when patterns are read from STDIN to the man page
+Debian-Bug: 149873
+Author: Axel Beckert <abe@debian.org>
+Last-Update: 2012-12-29
+
+Index: mmv/mmv.1
+===================================================================
+--- mmv.orig/mmv.1	2012-12-29 02:44:07.591288928 +0100
++++ mmv/mmv.1	2012-12-29 02:56:01.425012596 +0100
+@@ -234,7 +234,7 @@
+ i.e. "mmv \-mk" is allowed.
+ 
+ .ce
+-Multiple Pattern Pairs
++Multiple Pattern Pairs / Reading Patterns from STDIN
+ .PP
+ Multiple
+ .I from
+@@ -277,6 +277,11 @@
+ (even if it exists)
+ was already matched by the first pattern pair.
+ 
++\fBWARNING:\fR This operation mode does \fBnot\fR work if the patterns
++itself contain \fBspaces\fR.  See
++.I http://bugs.debian.org/149873
++for details.
++
+ .ce
+ The \fIFrom\fP Pattern
+ .PP
+@@ -592,6 +597,12 @@
+ Lines with "(*)" after the target pattern have the effect of enabling \-d
+ for the files matching this pattern only,
+ so that such deletions are done silently.
++
++\fBWARNING:\fR This means that \fBunexpected things\fR may happen if
++\fBfiles\fR matched by the patterns contain \fBspaces\fR. See
++.I http://bugs.debian.org/149873
++for details.
++
+ When feeding
+ .I mmv
+ its own output,

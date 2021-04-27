@@ -1,0 +1,17 @@
+Description: Fixes build failure with -Werror=format-security
+ ("format not a string literal and no format arguments")
+Author: Axel Beckert <abe@debian.org>
+
+Index: mmv/mmv.c
+===================================================================
+--- mmv.orig/mmv.c	2012-09-16 18:51:28.000000000 +0200
++++ mmv/mmv.c	2012-09-16 18:59:20.600733584 +0200
+@@ -2828,7 +2828,7 @@
+ 	static FILE *tty = NULL;
+ 	int c, r;
+ 
+-	fprintf(stderr, m);
++	fprintf(stderr, "%s", m);
+ 	if (tty == NULL && (tty = fopen(TTY, "r")) == NULL) {
+ 		fprintf(stderr, "Can not open %s to get reply.\n", TTY);
+ 		if (failact == -1)

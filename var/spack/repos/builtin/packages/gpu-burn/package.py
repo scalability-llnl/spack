@@ -3,20 +3,17 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-
 
 class GpuBurn(MakefilePackage, CudaPackage):
-    """Multi-GPU CUDA stress test. Note that the file pointed to by COMPARE_PTX
-    needs to be copied or linked to the current working directory before
-    running gpu_burn."""
+    """Multi-GPU CUDA stress test."""
 
     homepage = "http://wili.cc/blog/gpu-burn.html"
     url      = "http://wili.cc/blog/entries/gpu-burn/gpu_burn-1.0.tar.gz"
+    git      = "https://github.com/wilicc/gpu-burn"
 
+    version('master', branch='master')
+    version('1.1', sha256='9876dbf7ab17b3072e9bc657034ab39bdedb219478f57c4e93314c78ae2d6376')
     version('1.0', sha256='d55994f0bee8dabf021966dbe574ef52be1e43386faeee91318dd4ebb36aa74a')
-
-    patch('Makefile.patch')
 
     # This package uses CudaPackage to pick up the cuda_arch variant. A side
     # effect is that it also picks up the cuda variant, but cuda is required
@@ -26,31 +23,27 @@ class GpuBurn(MakefilePackage, CudaPackage):
     conflicts('~cuda', msg='gpu-burn requires cuda')
     conflicts('cuda_arch=none', msg='must select a CUDA architecture')
 
-    cuda_arch_values = CudaPackage.cuda_arch_values
-    variant(
-        'cuda_arch',
-        description='CUDA architecture',
-        default='none',
-        values=('none',) + cuda_arch_values,
-        multi=False
-    )
-
     def edit(self, spec, prefix):
         # update cuda architecture if necessary
         if '+cuda' in self.spec:
             cuda_arch = self.spec.variants['cuda_arch'].value
-            archflag = '-arch=compute_{0}'.format(cuda_arch)
-            filter_file('-arch=compute_30', archflag,
-                        'Makefile', string=True)
+            archflag = " ".join(CudaPackage.cuda_flags(cuda_arch))
+            with open('Makefile', 'w') as fh:
+                fh.write('drv:\n')
+                fh.write('\tnvcc {0} -fatbin '
+                         'compare.cu -o compare.ptx\n'.format(archflag))
+                fh.write('\tg++ -O3 -c gpu_burn-drv.cpp\n')
+                fh.write('\tg++ -o gpu_burn gpu_burn-drv.o -O3 -lcuda '
+                         '-lcublas -lcudart -o gpu_burn\n')
+
+            filter_file('compare.ptx',
+                        join_path(prefix.share,
+                                  'compare.ptx'),
+                        'gpu_burn-drv.cpp',
+                        string=True)
 
     def install(self, spec, prefix):
         mkdir(prefix.bin)
         mkdir(prefix.share)
         install('gpu_burn', prefix.bin)
         install('compare.ptx', prefix.share)
-
-    # The gpu_burn program looks for the compare.ptx file in the current
-    # working directory. Create an environment variable that can be pointed to
-    # so that it can be copied or linked.
-    def setup_run_environment(self, env):
-        env.set('COMPARE_PTX', join_path(self.prefix.share, 'compare.ptx'))

@@ -3,7 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from collections import defaultdict
+
 from spack import *
+from spack.util.environment import is_system_path
 
 
 class Cdo(AutotoolsPackage):
@@ -15,7 +18,7 @@ class Cdo(AutotoolsPackage):
     url = 'https://code.mpimet.mpg.de/attachments/download/12760/cdo-1.7.2.tar.gz'
     list_url = 'https://code.mpimet.mpg.de/projects/cdo/files'
 
-    maintainers = ['skosukhin']
+    maintainers = ['skosukhin', 'Try2Code']
 
     version('1.9.10', sha256='cc39c89bbb481d7b3945a06c56a8492047235f46ac363c4f0d980fccdde6677e', url='https://code.mpimet.mpg.de/attachments/download/24638/cdo-1.9.10.tar.gz')
     version('1.9.9', sha256='959b5b58f495d521a7fd1daa84644888ec87d6a0df43f22ad950d17aee5ba98d', url='https://code.mpimet.mpg.de/attachments/download/23323/cdo-1.9.9.tar.gz')
@@ -54,8 +57,8 @@ class Cdo(AutotoolsPackage):
     depends_on('pkgconfig', type='build')
 
     depends_on('netcdf-c', when='+netcdf')
-    # In this case CDO does not depend on hdf5 directly but we need the backend
-    # of netcdf to be thread safe.
+    # The internal library of CDO implicitly links to hdf5.
+    # We also need the backend of netcdf to be thread safe.
     depends_on('hdf5+threadsafe', when='+netcdf')
 
     depends_on('grib-api', when='grib2=grib-api')
@@ -75,25 +78,46 @@ class Cdo(AutotoolsPackage):
     depends_on('magics', when='+magics')
     depends_on('uuid')
 
-    conflicts('grib2=eccodes', when='@:1.8',
-              msg='Eccodes is supported starting version 1.9.0')
     conflicts('+szip', when='+external-grib1 grib2=none',
               msg='The configuration does not support GRIB1')
     conflicts('%gcc@9:', when='@:1.9.6',
               msg='GCC 9 changed OpenMP data sharing behavior')
 
     def configure_args(self):
-        config_args = self.with_or_without(
-            'netcdf',
-            activation_value=lambda x: self.spec['netcdf-c'].prefix)
+        config_args = []
+
+        flags = defaultdict(list)
+
+        def yes_or_prefix(spec_name):
+            prefix = self.spec[spec_name].prefix
+            return 'yes' if is_system_path(prefix) else prefix
+
+        if '+netcdf' in self.spec:
+            config_args.append('--with-netcdf=' + yes_or_prefix('netcdf-c'))
+            # We need to make sure that the libtool script of libcdi - the
+            # internal library of CDO - finds the correct version of hdf5.
+            # Note that the argument of --with-hdf5 is not passed to the
+            # configure script of libcdi, therefore we have to provide
+            # additional flags regardless of whether hdf5 support is enabled.
+            hdf5_spec = self.spec['hdf5']
+            if not is_system_path(hdf5_spec.prefix):
+                flags['LDFLAGS'].append(self.spec['hdf5'].libs.search_flags)
+        else:
+            config_args.append('--without-netcdf')
 
         if self.spec.variants['grib2'].value == 'eccodes':
-            config_args.append('--with-eccodes=' +
-                               self.spec['eccodes'].prefix)
-            config_args.append('--without-grib_api')
+            if self.spec.satisfies('@1.9:'):
+                config_args.append('--with-eccodes=' + yes_or_prefix('eccodes'))
+                config_args.append('--without-grib_api')
+            else:
+                config_args.append('--with-grib_api=yes')
+                eccodes_spec = self.spec['eccodes']
+                eccodes_libs = eccodes_spec.libs
+                flags['LIBS'].append(eccodes_libs.link_flags)
+                if not is_system_path(eccodes_spec.prefix):
+                    flags['LDFLAGS'].append(eccodes_libs.search_flags)
         elif self.spec.variants['grib2'].value == 'grib-api':
-            config_args.append('--with-grib_api=' +
-                               self.spec['grib-api'].prefix)
+            config_args.append('--with-grib_api=' + yes_or_prefix('grib-api'))
             if self.spec.satisfies('@1.9:'):
                 config_args.append('--without-eccodes')
         else:
@@ -107,28 +131,39 @@ class Cdo(AutotoolsPackage):
             config_args.append('--enable-cgribex')
 
         if '+szip' in self.spec:
-            config_args.append('--with-szlib=' + self.spec['szip'].prefix)
+            config_args.append('--with-szlib=' + yes_or_prefix('szip'))
         else:
             config_args.append('--without-szlib')
 
         config_args += self.with_or_without('hdf5',
-                                            activation_value='prefix')
+                                            activation_value=yes_or_prefix)
 
         config_args += self.with_or_without(
             'udunits2',
-            activation_value=lambda x: self.spec['udunits'].prefix)
+            activation_value=lambda x: yes_or_prefix('udunits'))
 
-        config_args += self.with_or_without('libxml2',
-                                            activation_value='prefix')
+        if '+libxml2' in self.spec:
+            libxml2_spec = self.spec['libxml2']
+            if is_system_path(libxml2_spec.prefix):
+                config_args.append('--with-libxml2=yes')
+                # Spack does not inject the header search flag in this case,
+                # which is still required, unless libxml2 is installed to '/usr'
+                # (handled by the configure script of CDO).
+                if libxml2_spec.prefix != '/usr':
+                    flags['CPPFLAGS'].append(libxml2_spec.headers.include_flags)
+            else:
+                config_args.append('--with-libxml2=' + libxml2_spec.prefix)
+        else:
+            config_args.append('--without-libxml2')
 
         config_args += self.with_or_without('proj',
-                                            activation_value='prefix')
+                                            activation_value=yes_or_prefix)
 
         config_args += self.with_or_without('curl',
-                                            activation_value='prefix')
+                                            activation_value=yes_or_prefix)
 
         config_args += self.with_or_without('magics',
-                                            activation_value='prefix')
+                                            activation_value=yes_or_prefix)
 
         config_args += self.with_or_without('fftw3')
 
@@ -140,7 +175,9 @@ class Cdo(AutotoolsPackage):
         # following flags. This works for OpenMPI, MPICH, MVAPICH, Intel MPI,
         # IBM Spectrum MPI, bullx MPI, and Cray MPI.
         if self.spec.satisfies('@1.9:+hdf5^hdf5+mpi'):
-            config_args.append(
-                'CPPFLAGS=-DOMPI_SKIP_MPICXX -DMPICH_SKIP_MPICXX')
+            flags['CPPFLAGS'].append('-DOMPI_SKIP_MPICXX -DMPICH_SKIP_MPICXX')
+
+        config_args.extend(['{0}={1}'.format(var, ' '.join(val))
+                            for var, val in flags.items()])
 
         return config_args

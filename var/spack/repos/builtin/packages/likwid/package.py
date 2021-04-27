@@ -21,6 +21,7 @@ class Likwid(Package):
     git      = "https://github.com/RRZE-HPC/likwid.git"
     maintainers = ['TomTheBear']
 
+    version('5.1.1', sha256='faec7c62987967232f476a6ff0ee85af686fd24b5a360126896b7f435d1f943f')
     version('5.1.0', sha256='5a180702a1656c6315b861a85031ab4cb090424aec42cbbb326b849e29f55571')
     version('5.0.2', sha256='0a1c8984e4b43ea8b99d09456ef05035eb934594af1669432117585c638a2da4')
     version('5.0.1', sha256='3757b0cb66e8af0116f9288c7f90543acbd8e2af8f72f77aef447ca2b3e76453')

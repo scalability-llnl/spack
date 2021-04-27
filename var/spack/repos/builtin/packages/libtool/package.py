@@ -55,7 +55,7 @@ class Libtool(AutotoolsPackage, GNUMirrorPackage):
 
     def patch(self):
         # Remove flags not recognized by the NVIDIA compiler
-        if self.spec.satisfies('%nvhpc'):
+        if self.spec.satisfies('%nvhpc@:20.11'):
             filter_file('-fno-builtin', '-Mnobuiltin', 'configure')
             filter_file('-fno-builtin', '-Mnobuiltin', 'libltdl/configure')
 

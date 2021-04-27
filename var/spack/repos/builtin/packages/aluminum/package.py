@@ -43,7 +43,7 @@ class Aluminum(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on('cmake@3.17.0:', type='build')
     depends_on('mpi')
-    depends_on('nccl', when='+nccl')
+    depends_on('nccl@2.7.0-0:', when='+nccl')
     depends_on('hwloc@1.11:')
     depends_on('hwloc +cuda +nvml', when='+cuda')
     depends_on('hwloc@2.3.0:', when='+rocm')

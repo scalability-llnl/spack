@@ -23,6 +23,12 @@ class Fontconfig(AutotoolsPackage):
     depends_on('font-util')
     depends_on('uuid', when='@2.13.1:')
 
+    # Resolve known issue with tarballs 2.12.3 - 2.13.0 plus
+    # https://gitlab.freedesktop.org/fontconfig/fontconfig/-/issues/10
+    @run_before('configure')
+    def _rm_offending_header(self):
+        force_remove(join_path('src', 'fcobjshash.h'))
+
     def configure_args(self):
         font_path = join_path(self.spec['font-util'].prefix, 'share', 'fonts')
 

@@ -13,7 +13,7 @@ class PyFenicsFfcx(PythonPackage):
     git = "https://github.com/FEniCS/ffcx.git"
     maintainers = ["js947", "chrisrichardson"]
 
-    version("master", branch="master")
+    version("main", branch="main")
 
     depends_on('python@3.5:', type=('build', 'run'))
     depends_on("py-setuptools", type=("build", "run"))

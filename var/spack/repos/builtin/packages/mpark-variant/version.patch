@@ -1,0 +1,11 @@
+--- ./CMakeLists.txt	2021-02-21 17:27:04.709115800 -0700
++++ ./CMakeLists.txt.new	2021-02-21 17:27:35.589115800 -0700
+@@ -7,7 +7,7 @@
+ 
+ cmake_minimum_required(VERSION 3.6.3)
+ 
+-project(MPark.Variant VERSION 1.3.0 LANGUAGES CXX)
++project(MPark.Variant VERSION 1.4.0 LANGUAGES CXX)
+ 
+ # Option.
+ set(MPARK_VARIANT_INCLUDE_TESTS "" CACHE STRING

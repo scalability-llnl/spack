@@ -1,0 +1,38 @@
+--- a/lib/xalloc-oversized.h
++++ b/lib/xalloc-oversized.h
+@@ -41,10 +41,10 @@
+    positive and N must be nonnegative.  This is a macro, not a
+    function, so that it works correctly even when SIZE_MAX < N.  */
+ 
+-#if 7 <= __GNUC__ && !defined __clang__
++#if 7 <= __GNUC__ && !defined __clang__ && !defined __NVCOMPILER
+ # define xalloc_oversized(n, s) \
+    __builtin_mul_overflow_p (n, s, (__xalloc_count_type) 1)
+-#elif 5 <= __GNUC__ && !defined __ICC && !__STRICT_ANSI__
++#elif 5 <= __GNUC__ && !defined __ICC && !__STRICT_ANSI__ && !defined __NVCOMPILER
+ # define xalloc_oversized(n, s) \
+    (__builtin_constant_p (n) && __builtin_constant_p (s) \
+     ? __xalloc_oversized (n, s) \
+--- a/lib/intprops.h
++++ b/lib/intprops.h
+@@ -226,9 +226,9 @@
+ 
+ /* True if __builtin_add_overflow (A, B, P) and __builtin_sub_overflow
+    (A, B, P) work when P is non-null.  */
+-#if 5 <= __GNUC__ && !defined __ICC
++#if 5 <= __GNUC__ && !defined __ICC && !defined __NVCOMPILER
+ # define _GL_HAS_BUILTIN_ADD_OVERFLOW 1
+-#elif defined __has_builtin
++#elif defined __has_builtin && !defined __NVCOMPILER
+ # define _GL_HAS_BUILTIN_ADD_OVERFLOW __has_builtin (__builtin_add_overflow)
+ #else
+ # define _GL_HAS_BUILTIN_ADD_OVERFLOW 0
+@@ -249,7 +249,7 @@
+    presumably run afoul of Clang bug 16404.  */
+ # define _GL_HAS_BUILTIN_OVERFLOW_P 0
+ #else
+-# define _GL_HAS_BUILTIN_OVERFLOW_P (7 <= __GNUC__)
++# define _GL_HAS_BUILTIN_OVERFLOW_P (7 <= __GNUC__ && !defined __NVCOMPILER)
+ #endif
+ 
+ /* The _GL*_OVERFLOW macros have the same restrictions as the

@@ -1,0 +1,368 @@
+Description: Patches as of mmv 1.01b-15
+ This patch contains the functional patches as of mmv 1.01b-15 when it
+ has been converted to the source format "3.0 (quilt)"
+Author: Multiple Authors. See changelog for details.
+Reviewed-By: Axel Beckert <abe@debian.org>
+Last-Update: 2012-12-29
+
+--- mmv-1.01b.orig/mmv.c
++++ mmv-1.01b/mmv.c
+@@ -62,7 +62,8 @@ static char USAGE[] =
+ %s [-m|x%s|c|o|a|z] [-h] [-d|p] [-g|t] [-v|n] [from to]\n\
+ \n\
+ Use #N in the ``to'' pattern to get the string matched\n\
+-by the N'th ``from'' pattern wildcard.\n";
++by the N'th ``from'' pattern wildcard.\n\
++Use -- as the end of options.\n";
+ 
+ #define OTHEROPT (_osmajor < 3 ? "" : "|r")
+ 
+@@ -75,7 +76,9 @@ Use #[l|u]N in the ``to'' pattern to get
+ string matched by the N'th ``from'' pattern wildcard.\n\
+ \n\
+ A ``from'' pattern containing wildcards should be quoted when given\n\
+-on the command line.\n";
++on the command line. Also you may need to quote ``to'' pattern.\n\
++\n\
++Use -- as the end of options.\n";
+ 
+ #ifdef IS_SYSV
+ #define OTHEROPT ""
+@@ -85,6 +88,7 @@ on the command line.\n";
+ 
+ #endif
+ 
++#include <unistd.h>
+ #include <stdio.h>
+ #include <ctype.h>
+ 
+@@ -120,14 +124,12 @@ extern unsigned _stklen = 10000;
+ #else
+ /* for various flavors of UN*X */
+ 
++#include <libgen.h>
++#include <stdlib.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/file.h>
+ 
+-extern char *getenv();
+-extern long lseek();
+-extern char *malloc();
+-
+ #ifdef HAS_DIRENT
+ #include <dirent.h>
+ typedef struct dirent DIRENTRY;
+@@ -390,7 +392,7 @@ static int movealias(/* REP *first, REP
+ static int snap(/* REP *first, REP *p */);
+ static void showdone(/* REP *fin */);
+ static void breakout(/*  */);
+-static int breakrep(/* */);
++static void breakrep(int);
+ static void breakstat(/* */);
+ static void quit(/*  */);
+ static int copymove(/* REP *p */);
+@@ -436,9 +438,11 @@ static CHUNK *freechunks = NULL;
+ static SLICER slicer[2] = {{NULL, NULL, 0}, {NULL, NULL, 0}};
+ 
+ static int badreps = 0, paterr = 0, direrr, failed = 0, gotsig = 0, repbad;
+-static FILE *outfile = stdout;
++static FILE *outfile;
+ 
++#ifdef IS_MSDOS
+ static char IDF[] = "$$mmvdid.";
++#endif
+ static char TEMP[] = "$$mmvtmp.";
+ static char TOOLONG[] = "(too long)";
+ static char EMPTY[] = "(empty)";
+@@ -456,12 +460,12 @@ char pathbuf[MAXPATH];
+ char fullrep[MAXPATH + 1];
+ static char *(start[MAXWILD]);
+ static int len[MAXWILD];
+-static char hasdot[MAXWILD];
+ static REP mistake;
+ #define MISTAKE (&mistake)
+ 
+ #ifdef IS_MSDOS
+ 
++static char hasdot[MAXWILD];
+ static int olddevflag, curdisk, maxdisk;
+ static struct {
+ 	char ph_banner[30];
+@@ -497,6 +501,8 @@ int main(argc, argv)
+ {
+ 	char *frompat, *topat;
+ 
++	outfile = stdout;
++
+ 	init();
+ 	procargs(argc, argv, &frompat, &topat);
+ 	domatch(frompat, topat);
+@@ -560,7 +566,7 @@ static void procargs(argc, argv, pfrompa
+ 	char **pfrompat, **ptopat;
+ {
+ 	char *p, c;
+-	char *cmdname = argv[0];
++	char *cmdname = basename(argv[0]);
+ 
+ #ifdef IS_MSDOS
+ #define CMDNAME (patch.ph_name)
+@@ -575,6 +581,11 @@ static void procargs(argc, argv, pfrompa
+ 	for (argc--, argv++; argc > 0 && **argv == '-'; argc--, argv++)
+ 		for (p = *argv + 1; *p != '\0'; p++) {
+ 			c = mylower(*p);
++			if (c == '-') {
++				argc--;
++				argv++;
++				goto endargs;
++			}
+ 			if (c == 'v' && !noex)
+ 				verbose = 1;
+ 			else if (c == 'n' && !verbose)
+@@ -618,7 +629,8 @@ static void procargs(argc, argv, pfrompa
+ 			}
+ 		}
+ 
+-	if (op == DFLT)
++endargs:
++	if (op == DFLT) {
+ 		if (strcmp(cmdname, MOVENAME) == 0)
+ 			op = XMOVE;
+ 		else if (strcmp(cmdname, COPYNAME) == 0)
+@@ -629,6 +641,8 @@ static void procargs(argc, argv, pfrompa
+ 			op = HARDLINK;
+ 		else
+ 			op = DFLTOP;
++	}
++	
+ 	if (
+ 		op & DIRMOVE &&
+ #ifdef IS_MSDOS
+@@ -775,7 +789,7 @@ static void matchpat()
+ static int parsepat()
+ {
+ 	char *p, *lastname, c;
+-	int totwilds, instage, x, havedot;
++	int totwilds, instage, x;
+ 	static char TRAILESC[] = "%s -> %s : trailing %c is superfluous.\n";
+ 
+ 	lastname = from;
+@@ -999,20 +1013,16 @@ static int parsepat()
+ 				printf(TRAILESC, from, to, ESC);
+ 				return(-1);
+ 			}
++#ifdef IS_MSDOS
+ 		default:
+ 			if (
+-#ifdef IS_MSDOS
+ 				c <= ' ' || c >= 127 ||
+ 				strchr(":/\\*?[]=+;,\"|<>", c) != NULL
+-#else
+-				c & 0x80
+-#endif
+ 			) {
+ 				printf("%s -> %s : illegal character '%c' (0x%02X).\n",
+ 					from, to, c, c);
+ 				return(-1);
+ 			}
+-#ifdef IS_MSDOS
+ 			if (isupper(c))
+ 				*p = c + ('a' - 'A');
+ #endif
+@@ -1042,7 +1052,7 @@ static int dostage(lastend, pathend, sta
+ 	DIRINFO *di;
+ 	HANDLE *h, *hto;
+ 	int prelen, litlen, nfils, i, k, flags, try;
+-	FILEINFO **pf, *fdel;
++	FILEINFO **pf, *fdel = NULL;
+ 	char *nto, *firstesc;
+ 	REP *p;
+ 	int wantdirs, ret = 1, laststage = (stage + 1 == nstages);
+@@ -1172,11 +1182,12 @@ static int trymatch(ffrom, pat)
+ 	if (*p == '.' || (!matchall && ffrom->fi_attrib & (FA_HIDDEN | FA_SYSTEM)))
+ 		return(strcmp(pat, p) == 0);
+ #else
+-	if (*p == '.')
++	if (*p == '.') {
+ 		if (p[1] == '\0' || (p[1] == '.' && p[2] == '\0'))
+ 			return(strcmp(pat, p) == 0);
+ 		else if (!matchall && *pat != '.')
+ 			return(0);
++	}
+ #endif
+ 	return(-1);
+ }
+@@ -1312,7 +1323,7 @@ static int checkto(hfrom, f, phto, pnto,
+ {
+ 	char tpath[MAXPATH + 1];
+ 	char *pathend;
+-	FILEINFO *fdel;
++	FILEINFO *fdel = NULL;
+ 	int hlen, tlen;
+ 
+ 	if (op & DIRMOVE) {
+@@ -1405,7 +1416,9 @@ static char *getpath(tpath)
+ static int badname(s)
+ 	char *s;
+ {
++#ifdef IS_MSDOS
+ 	char *ext;
++#endif
+ 
+ 	return (
+ #ifdef IS_MSDOS
+@@ -1715,20 +1728,19 @@ static HANDLE *checkdir(p, pathend, whic
+ 	struct stat dstat;
+ 	DIRID d;
+ 	DEVID v;
+-	DIRINFO **newdirs, *di;
+-	int nfils;
+-	FILEINFO **fils;
++	DIRINFO *di = NULL;
+ 	char *myp, *lastslash = NULL;
+ 	int sticky;
+ 	HANDLE *h;
+ 
+-	if (hsearch(p, which, &h))
++	if (hsearch(p, which, &h)) {
+ 		if (h->h_di == NULL) {
+ 			direrr = h->h_err;
+ 			return(NULL);
+ 		}
+ 		else
+ 			return(h);
++	}
+ 
+ 	if (*p == '\0')
+ 		myp = ".";
+@@ -1899,7 +1911,10 @@ static int match(pat, s, start1, len1)
+ 	char *pat, *s, **start1;
+ 	int *len1;
+ {
+-	char c, *olds;
++	char c;
++#ifdef IS_MSDOS
++	char *olds;
++#endif
+ 
+ 	*start1 = 0;
+ 	for(;;)
+@@ -2376,9 +2391,9 @@ static void goonordie()
+ static void doreps()
+ {
+ 	char *fstart;
+-	int k, printaliased = 0, alias;
++	int k, printaliased = 0, alias = 0;
+ 	REP *first, *p;
+-	long aliaslen;
++	long aliaslen = 0l;
+ 
+ #ifdef IS_MSDOS
+ 	ctrlbrk(breakrep);
+@@ -2396,11 +2411,12 @@ static void doreps()
+ 			}
+ 			strcpy(fullrep, p->r_hto->h_name);
+ 			strcat(fullrep, p->r_nto);
+-			if (!noex && (p->r_flags & R_ISCYCLE))
++			if (!noex && (p->r_flags & R_ISCYCLE)) {
+ 				if (op & APPEND)
+ 					aliaslen = appendalias(first, p, &printaliased);
+ 				else
+ 					alias = movealias(first, p, &printaliased);
++			}
+ 			strcpy(pathbuf, p->r_hfrom->h_name);
+ 			fstart = pathbuf + strlen(pathbuf);
+ 			if ((p->r_flags & R_ISALIASED) && !(op & APPEND))
+@@ -2459,7 +2475,7 @@ static long appendalias(first, p, pprint
+ 	REP *first, *p;
+ 	int *pprintaliased;
+ {
+-	long ret;
++	long ret = 0l;
+ 
+ #ifdef IS_MSDOS
+ 	int fd;
+@@ -2578,10 +2594,10 @@ static void breakout()
+ }
+ 
+ 
+-static int breakrep()
++static void breakrep(int signum)
+ {
+ 	gotsig = 1;
+-	return(1);
++	return;
+ }
+ 
+ 
+@@ -2624,11 +2640,12 @@ static int copymove(p)
+ 
+ static int copy(ff, len)
+ 	FILEINFO *ff;
+-	long len;
++	off_t len;
+ {
+-	char buf[BUFSIZE], c;
++	char buf[BUFSIZE];
+ 	int f, t, k, mode, perm;
+ #ifdef IS_MSDOS
++        char c;
+ 	struct ftime tim;
+ #else
+ #ifdef IS_SYSV
+@@ -2672,7 +2689,7 @@ static int copy(ff, len)
+ 		return(-1);
+ 	}
+ 	if (op & APPEND)
+-		lseek(t, 0L, 2);
++		lseek(t, (off_t)0, SEEK_END);
+ #ifdef IS_MSDOS
+ 	if (op & ZAPPEND && filelength(t) != 0) {
+ 		if (lseek(t, -1L, 1) == -1L || read(t, &c, 1) != 1) {
+@@ -2684,10 +2701,10 @@ static int copy(ff, len)
+ 			lseek(t, -1L, 1);
+ 	}
+ #endif
+-	if ((op & APPEND) && len != -1L) {
++	if ((op & APPEND) && len != (off_t)-1) {
+ 		while (
+ 			len != 0 &&
+-			(k = read(f, buf, len > BUFSIZE ? BUFSIZE : (unsigned)len)) > 0 &&
++			(k = read(f, buf, (len > BUFSIZE) ? BUFSIZE : (size_t)len)) > 0 &&
+ 			write(t, buf, k) == k
+ 		)
+ 			len -= k;
+@@ -2711,7 +2728,9 @@ static int copy(ff, len)
+ 				tim.modtime = fstat.st_mtime,
+ #else
+ 				tim[0].tv_sec = fstat.st_atime,
++				tim[0].tv_usec = 0,
+ 				tim[1].tv_sec = fstat.st_mtime,
++				tim[1].tv_usec = 0,
+ #endif
+ 				utimes(fullrep, tim)
+ 			)
+Index: mmv/Makefile
+===================================================================
+--- mmv.orig/Makefile	2012-09-16 18:24:31.375886230 +0200
++++ mmv/Makefile	2012-09-16 18:24:46.260122528 +0200
+@@ -1,16 +1,16 @@
+ # Possible defines in CONF:
+ #	IS_MSDOS IS_SYSV IS_V7 IS_BSD HAS_DIRENT HAS_RENAME MV_DIR
+ 
+-CC		=gcc -traditional
++CC		=gcc
+ LD		=$(CC)
+ CONF		=-DIS_SYSV -DHAS_DIRENT -DHAS_RENAME
+-CFLAGS		=-O2 -m486 $(CONF)
++CFLAGS		=-O2 $(CONF)
+ LDFLAGS		=-s -N
+ 
+ #IBIN		=$(LOCAL)$(ARCH)/bin
+ #IMAN		=$(LOCAL)$(ANY)/man
+ IBIN=$(DESTDIR)/usr/bin/
+-IMAN=$(DESTDIR)/usr/man/
++IMAN=$(DESTDIR)/usr/share/man/
+ 
+ mmv:		mmv.o
+ 

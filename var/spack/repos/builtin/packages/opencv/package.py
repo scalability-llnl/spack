@@ -32,62 +32,52 @@ class Opencv(CMakePackage, CudaPackage):
     version('3.3.0',    sha256='8bb312b9d9fd17336dc1f8b3ac82f021ca50e2034afc866098866176d985adc6')
     version('3.2.0',    sha256='9541efbf68f298f45914b4e837490647f4d5e472b4c0c04414a787d116a702b2')
     version('3.1.0',    sha256='f3b160b9213dd17aa15ddd45f6fb06017fe205359dbd1f7219aad59c98899f15')
-    version('2.4.13.2', sha256='4b00c110e6c54943cbbb7cf0d35c5bc148133ab2095ee4aaa0ac0a4f67c58080')
-    version('2.4.13.1', sha256='0d5ce5e0973e3a745f927d1ee097aaf909aae59f787be6d27a03d639e2d96bd7')
-    version('2.4.13',   sha256='94ebcca61c30034d5fb16feab8ec12c8a868f5162d20a9f0396f0f5f6d8bbbff')
-    version('2.4.12.3', sha256='a4cbcd2d470860b0cf1f8faf504619c18a8ac38fd414c5a88ed3e94c963aa750')
-    version('2.4.12.2', sha256='150a165eb14a5ea74fb94dcc16ac7d668a6ff20a4449df2570734a2abaab9c0e')
-    version('2.4.12.1', sha256='c1564771f79304a2597ae4f74f44032021e3a46657e4a117060c08f5ed05ad83')
-
-    # Standard variants
-    variant('shared', default=True,
-            description='Enables the build of shared libraries')
-    variant('lapack', default=False, description='Include Lapack library support')
-    variant('powerpc', default=False, description='Enable PowerPC for GCC')
-    variant('vsx', default=False, description='Enable POWER8 and above VSX (64-bit little-endian)')
-    variant('fast-math', default=False,
-            description='Enable -ffast-math (not recommended for GCC 4.6.x)')
+    version('2.4.13.2', sha256='4b00c110e6c54943cbbb7cf0d35c5bc148133ab2095ee4aaa0ac0a4f67c58080', deprecated=True)
+    version('2.4.13.1', sha256='0d5ce5e0973e3a745f927d1ee097aaf909aae59f787be6d27a03d639e2d96bd7', deprecated=True)
+    version('2.4.13',   sha256='94ebcca61c30034d5fb16feab8ec12c8a868f5162d20a9f0396f0f5f6d8bbbff', deprecated=True)
+    version('2.4.12.3', sha256='a4cbcd2d470860b0cf1f8faf504619c18a8ac38fd414c5a88ed3e94c963aa750', deprecated=True)
+    version('2.4.12.2', sha256='150a165eb14a5ea74fb94dcc16ac7d668a6ff20a4449df2570734a2abaab9c0e', deprecated=True)
+    version('2.4.12.1', sha256='c1564771f79304a2597ae4f74f44032021e3a46657e4a117060c08f5ed05ad83', deprecated=True)
 
     # OpenCV modules
-    variant('calib3d', default=False, description='calib3d module')
-    variant('core', default=True, description='Include opencv_core module into the OpenCV build')
-    variant('cudacodec', default=False, description='Enable video encoding/decoding with CUDA')
-    variant('dnn', default=False, description='Build DNN support')
-    variant('features2d', default=False, description='features2d module')
-    variant('flann', default=False, description='flann module')
-    variant('highgui', default=False, description='Include opencv_highgui module into the OpenCV build')
-    variant('imgcodecs', default=False, description='Include opencv_imgcodecs module into the OpenCV build')
-    variant('imgproc', default=False, description='Include opencv_imgproc module into the OpenCV build')
-    variant('java', default=False,
-            description='Activates support for Java')
-    variant('ml', default=False, description='Build ML support')
-    variant('python', default=False,
-            description='Enables the build of Python extensions')
-    variant('stitching', default=False, description='stitching module')
-    variant('superres', default=False, description='superres module')
-    variant('ts', default=False, description='Include opencv_ts module into the OpenCV build')
-    variant('video', default=False, description='video module')
-    variant('videostab', default=False, description='videostab module')
-    variant('videoio', default=False, description='videoio module')
+    modules = [
+        'apps', 'calib3d', 'core', 'dnn', 'features2d', 'flann', 'gapi', 'highgui',
+        'imgcodecs', 'imgproc', 'java', 'java_bindings_generator', 'js',
+        'js_bindings_generator', 'ml', 'objc_bindings_generator', 'objdetect', 'photo',
+        'python2', 'python3', 'python_bindings_generator', 'python_tests', 'stitching',
+        'ts', 'video', 'videoio', 'world'
+    ]
+
+    for mod in modules:
+        # At least one of these modules must be enabled to build OpenCV
+        variant(mod, default=mod == 'core',
+                description='Include opencv_{0} module into the OpenCV build'.format(
+                    mod))
 
     # Optional 3rd party components
-    variant('eigen', default=False, description='Activates support for eigen')
-    variant('ipp', default=False, description='Activates support for IPP')
-    variant('ipp_iw', default=False, description='Build IPP IW from source')
-    variant('jasper', default=False, description='Activates support for JasPer')
-    variant('jpeg', default=False, description='Include JPEG support')
-    variant('opencl', default=False, description='Include OpenCL Runtime support')
-    variant('opencl_svm', default=False, description='Include OpenCL Shared Virtual Memory support')
-    variant('openclamdfft', default=False, description='Include OpenCL AMD OpenCL FFT library support')
-    variant('openclamdblas', default=False, description='Include OpenCL AMD OpenCL BLAS library support')
-    variant('openmp', default=False, description='Activates support for OpenMP threads')
-    variant('pthreads_pf', default=False, description='Use pthreads-based parallel_for')
-    variant('png', default=False, description='Include PNG support')
-    variant('qt', default=False, description='Activates support for QT')
-    variant('gtk', default=False, description='Activates support for GTK')
-    variant('tiff', default=False, description='Include TIFF support')
-    variant('vtk', default=False, description='Activates support for VTK')
-    variant('zlib', default=False, description='Build zlib from source')
+    components = [
+        '1394', 'ade', 'aravis', 'arith_dec', 'arith_enc', 'avfoundation', 'clp',
+        'cuda', 'eigen', 'ffmpeg', 'freetype', 'gdal', 'gdcm', 'gphoto2', 'gstreamer',
+        'halide', 'hpx', 'imgcodec_hdr', 'imgcode_pfm', 'imgcodec_pxm',
+        'imgcodec_sunraster', 'inf_engine', 'ipp', 'itt', 'jasper', 'jpeg', 'lapack',
+        'librealsense', 'mfx', 'ngraph', 'onnx', 'opencl', 'openclamdblas',
+        'openclamdfft', 'opencl_svm', 'openexr', 'opengl', 'openjpeg', 'openmp',
+        'openni', 'openni2', 'openvx', 'plaidml', 'png', 'protobuf', 'pthreads_pf',
+        'pvapi', 'qt', 'quirc', 'tbb', 'tiff', 'va', 'va_intel', 'vtk', 'vulcan',
+        'webp', 'ximea'
+    ]
+
+    for component in components:
+        variant(component, default=False,
+                description='Include {0} support'.format(component))
+
+    # Other variants
+    variant('shared', default=True,
+            description='Enables the build of shared libraries')
+    variant('powerpc', default=False, description='Enable PowerPC for GCC')
+    variant('fast-math', default=False,
+            description='Enable -ffast-math (not recommended for GCC 4.6.x)')
+    variant('nonfree', default=False, description='Enable non-free algorithms')
 
     variant('contrib', default=False, description='Adds in code from opencv_contrib.')
     contrib_vers = [
@@ -98,6 +88,8 @@ class Opencv(CMakePackage, CudaPackage):
                  git='https://github.com/opencv/opencv_contrib.git',
                  tag="{0}".format(cv),
                  when='@{0}+contrib'.format(cv))
+
+    depends_on('cmake@3.5.1:', type='build')
 
     depends_on('hdf5', when='+contrib')
     depends_on('hdf5', when='+cuda')
@@ -112,250 +104,196 @@ class Opencv(CMakePackage, CudaPackage):
     patch('opencv3.2_vtk.patch', when='@3.2+vtk')
     patch('opencv3.2_regacyvtk.patch', when='@3.2+vtk')
     patch('opencv3.2_ffmpeg.patch', when='@3.2+videoio')
-    patch('opencv3.2_python3.7.patch', when='@3.2+python')
+    patch('opencv3.2_python3.7.patch', when='@3.2+python3')
     patch('opencv3.2_fj.patch', when='@3.2 %fj')
 
+    depends_on('zlib@1.2.3:')
     depends_on('eigen', when='+eigen')
-    depends_on('zlib', when='+zlib')
+    depends_on('ffmpeg', when='+ffmpeg')
+    depends_on('freetype', when='+freetype')
+    depends_on('gdal', when='+gdal')
     depends_on('libpng', when='+png')
     depends_on('jpeg', when='+jpeg')
+    depends_on('openjpeg@2:', when='+openjpeg')
     depends_on('libtiff', when='+tiff')
 
     depends_on('jasper', when='+jasper')
-    depends_on('cuda', when='+cuda')
-    depends_on('gtkplus', when='+gtk')
+    depends_on('cuda@6.5:', when='+cuda')
     depends_on('vtk', when='+vtk')
     depends_on('qt', when='+qt')
-    depends_on('java', when='+java')
-    depends_on('ant', when='+java', type='build')
-    depends_on('py-numpy', when='+python', type=('build', 'run'))
-    depends_on('protobuf@3.5.0:', when='@3.4.1: +dnn')
-    depends_on('protobuf@3.1.0', when='@3.3.0:3.4.0 +dnn')
+    depends_on('java', when='+java_bindings_generator')
+    depends_on('ant', when='+java_bindings_generator', type='build')
+    depends_on('python@2.7:2.8,3.2:', type='build')
+    depends_on('python@2.7:2.8', when='+python2', type=('build', 'link', 'run'))
+    depends_on('python@3.2:', when='+python3', type=('build', 'link', 'run'))
+    depends_on('py-setuptools', when='+python2', type='build')
+    depends_on('py-setuptools', when='+python3', type='build')
+    depends_on('py-numpy', when='+python2', type=('build', 'run'))
+    depends_on('py-numpy', when='+python3', type=('build', 'run'))
+    depends_on('protobuf@3.5.0:', when='@3.4.1: +protobuf')
+    depends_on('protobuf@3.1.0', when='@3.3.0:3.4.0 +protobuf')
 
     depends_on('ffmpeg', when='+videoio')
     depends_on('mpi', when='+videoio')
 
-    # TODO For Cuda >= 10, make sure 'dynlink_nvcuvid.h' or 'nvcuvid.h'
-    # exists, otherwise build will fail
-    # See https://github.com/opencv/opencv_contrib/issues/1786
-    conflicts('^cuda@10:', when='+cudacodec')
     conflicts('+cuda', when='~contrib', msg='cuda support requires +contrib')
 
     # IPP is provided x86_64 only
     conflicts('+ipp', when="arch=aarch64:")
 
-    # Module opencv_calib3d disabled because opencv_flann dependency
-    # can't be resolved!
+    # OpenCV module conflicts
+    # These conflicts can be scraped from CMakeCache.txt, look for:
+    #     OPENCV_MODULE_opencv_*_REQ_DEPS
+    # If these required dependencies aren't found, CMake will silently
+    # disable the requested module
+    conflicts('+calib3d', when='~imgproc')
+    conflicts('+calib3d', when='~features2d')
     conflicts('+calib3d', when='~flann')
+    conflicts('+dnn', when='~core')
+    conflicts('+dnn', when='~imgproc')
+    conflicts('+features2d', when='~imgproc')
+    conflicts('+flann', when='~core')
+    conflicts('+gapi', when='~imgproc')
+    conflicts('+highgui', when='~imgproc')
+    conflicts('+highgui', when='~imgcodecs')
+    conflicts('+imgcodecs', when='~imgproc')
+    conflicts('+imgproc', when='~core')
+    conflicts('+ml', when='~core')
+    conflicts('+objc_bindings_generator', when='~core')
+    conflicts('+objc_bindings_generator', when='~imgproc')
+    conflicts('+objdetect', when='~core')
+    conflicts('+objdetect', when='~imgproc')
+    conflicts('+objdetect', when='~calib3d')
+    conflicts('+photo', when='~imgproc')
+    conflicts('+python2', when='~python_bindings_generator')
+    conflicts('+python3', when='~python_bindings_generator')
+    conflicts('+stitching', when='~imgproc')
+    conflicts('+stitching', when='~features2d')
+    conflicts('+stitching', when='~calib3d')
+    conflicts('+stitching', when='~flann')
+    conflicts('+ts', when='~core')
+    conflicts('+ts', when='~imgproc')
+    conflicts('+ts', when='~imgcodecs')
+    conflicts('+ts', when='~videoio')
+    conflicts('+ts', when='~highgui')
+    conflicts('+video', when='~imgproc')
+    conflicts('+videoio', when='~imgproc')
+    conflicts('+videoio', when='~imgcodecs')
+    conflicts('+world', when='~core')
 
-    extends('python', when='+python')
+    conflicts('+python2', when='+python3')
+    conflicts('+python3', when='+python2')
+
+    extends('python', when='+python2')
+    extends('python', when='+python3')
 
     def cmake_args(self):
         spec = self.spec
+        args = []
 
-        # Standard variants
-        args = [
-            '-DBUILD_SHARED_LIBS:BOOL={0}'.format((
-                'ON' if '+shared' in spec else 'OFF')),
-            '-DENABLE_PRECOMPILED_HEADERS:BOOL=OFF',
-            '-DWITH_LAPACK={0}'.format((
-                'ON' if '+lapack' in spec else 'OFF')),
-            '-DENABLE_POWERPC={0}'.format((
-                'ON' if '+powerpc' in spec else 'OFF')),
-            '-DENABLE_VSX={0}'.format((
-                'ON' if '+vsx' in spec else 'OFF')),
-            '-DENABLE_FAST_MATH={0}'.format((
-                'ON' if '+fast-math' in spec else 'OFF')),
-        ]
+        # OpenCV modules
+        for mod in self.modules:
+            args.append(self.define_from_variant('BUILD_opencv_' + mod, mod))
 
-        # modules
+        # Optional 3rd party components
+        for component in self.components:
+            args.append(self.define_from_variant(
+                'WITH_' + component.upper(), component))
+
+        # Other variants
         args.extend([
-            '-DBUILD_opencv_calib3d={0}'.format((
-                'ON' if '+calib3d' in spec else 'OFF')),
-            '-DBUILD_opencv_core:BOOL={0}'.format((
-                'ON' if '+core' in spec else 'OFF')),
-            '-DBUILD_opencv_cudacodec={0}'.format((
-                'ON' if '+cudacodec' in spec else 'OFF')),
-            '-DBUILD_opencv_dnn:BOOL={0}'.format((
-                'ON' if '+dnn' in spec else 'OFF')),
-            '-DBUILD_opencv_features2d={0}'.format((
-                'ON' if '+features2d' in spec else 'OFF')),
-            '-DBUILD_opencv_flann={0}'.format((
-                'ON' if '+flann' in spec else 'OFF')),
-            '-DBUILD_opencv_highgui:BOOL={0}'.format((
-                'ON' if '+highgui' in spec else 'OFF')),
-            '-DBUILD_opencv_imgcodecs:BOOL={0}'.format((
-                'ON' if '+imgcodecs' in spec else 'OFF')),
-            '-DBUILD_opencv_imgproc:BOOL={0}'.format((
-                'ON' if '+imgproc' in spec else 'OFF')),
-            '-DBUILD_opencv_java:BOOL={0}'.format((
-                'ON' if '+java' in spec else 'OFF')),
-            '-DBUILD_opencv_ml={0}'.format((
-                'ON' if '+ml' in spec else 'OFF')),
-            '-DBUILD_opencv_stitching={0}'.format((
-                'ON' if '+stitching' in spec else 'OFF')),
-            '-DBUILD_opencv_superres={0}'.format((
-                'ON' if '+superres' in spec else 'OFF')),
-            '-DBUILD_opencv_ts={0}'.format((
-                'ON' if '+ts' in spec else 'OFF')),
-            '-DBUILD_opencv_video={0}'.format((
-                'ON' if '+video' in spec else 'OFF')),
-            '-DBUILD_opencv_videostab={0}'.format((
-                'ON' if '+videostab' in spec else 'OFF')),
-            '-DBUILD_opencv_videoio={0}'.format((
-                'ON' if '+videoio' in spec else 'OFF')),
-        ])
-
-        # 3rd party components
-        args.extend([
-            '-DBUILD_IPP_IW:BOOL={0}'.format((
-                'ON' if '+ipp_iw' in spec else 'OFF')),
-            '-DWITH_CUDA:BOOL={0}'.format((
-                'ON' if '+cuda' in spec else 'OFF')),
-            '-DWITH_EIGEN:BOOL={0}'.format((
-                'ON' if '+eigen' in spec else 'OFF')),
-            '-DWITH_IPP:BOOL={0}'.format((
-                'ON' if '+ipp' in spec else 'OFF')),
-            '-DWITH_JASPER:BOOL={0}'.format((
-                'ON' if '+jasper' in spec else 'OFF')),
-            '-DWITH_JPEG:BOOL={0}'.format((
-                'ON' if '+jpeg' in spec else 'OFF')),
-            '-DWITH_OPENCL:BOOL={0}'.format((
-                'ON' if '+opencl' in spec else 'OFF')),
-            '-DWITH_OPENCL_SVM:BOOL={0}'.format((
-                'ON' if '+opencl_svm' in spec else 'OFF')),
-            '-DWITH_OPENCLAMDFFT:BOOL={0}'.format((
-                'ON' if '+openclamdfft' in spec else 'OFF')),
-            '-DWITH_OPENCLAMDBLAS:BOOL={0}'.format((
-                'ON' if '+openclamdblas' in spec else 'OFF')),
-            '-DWITH_OPENMP:BOOL={0}'.format((
-                'ON' if '+openmp' in spec else 'OFF')),
-            '-DWITH_PTHREADS_PF:BOOL={0}'.format((
-                'ON' if '+pthreads_pf' in spec else 'OFF')),
-            '-DWITH_PNG:BOOL={0}'.format((
-                'ON' if '+png' in spec else 'OFF')),
-            '-DWITH_QT:BOOL={0}'.format((
-                'ON' if '+qt' in spec else 'OFF')),
-            '-DWITH_TIFF:BOOL={0}'.format((
-                'ON' if '+tiff' in spec else 'OFF')),
-            '-DWITH_VTK:BOOL={0}'.format((
-                'ON' if '+vtk' in spec else 'OFF')),
-            '-DWITH_PROTOBUF:BOOL={0}'.format((
-                'ON' if '@3.3.0: +dnn' in spec else 'OFF')),
-            '-DBUILD_PROTOBUF:BOOL=OFF',
-            '-DPROTOBUF_UPDATE_FILES={0}'.format('ON')
+            self.define('ENABLE_CONFIG_VERIFICATION', True),
+            self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
+            self.define('ENABLE_PRECOMPILED_HEADERS', False),
+            self.define_from_variant('WITH_LAPACK', 'lapack'),
+            self.define_from_variant('ENABLE_POWERPC', 'powerpc'),
+            self.define_from_variant('ENABLE_FAST_MATH', 'fast-math'),
+            self.define_from_variant('OPENCV_ENABLE_NONFREE', 'nonfree'),
         ])
 
         if '+contrib' in spec:
-            args.append('-DOPENCV_EXTRA_MODULES_PATH={0}'.format(
-                join_path(self.stage.source_path, 'opencv_contrib/modules')))
+            args.append(self.define('OPENCV_EXTRA_MODULES_PATH', join_path(
+                self.stage.source_path, 'opencv_contrib/modules')))
 
         if '+cuda' in spec:
             if spec.variants['cuda_arch'].value[0] != 'none':
-                cuda_arch = [x for x in spec.variants['cuda_arch'].value if x]
-                args.append('-DCUDA_ARCH_BIN={0}'.format(
-                    ' '.join(cuda_arch)))
+                cuda_arch = spec.variants['cuda_arch'].value
+                args.append(self.define('CUDA_ARCH_BIN', ' '.join(cuda_arch)))
+
+        # TODO: this CMake flag is deprecated
+        if spec.target.family == 'ppc64le':
+            args.append(self.define('ENABLE_VSX', True))
 
         # Media I/O
-        if '+zlib' in spec:
-            zlib = spec['zlib']
-            args.extend([
-                '-DZLIB_LIBRARY_{0}:FILEPATH={1}'.format((
-                    'DEBUG' if 'build_type=Debug' in spec else 'RELEASE'),
-                    zlib.libs[0]),
-                '-DZLIB_INCLUDE_DIR:PATH={0}'.format(
-                    zlib.headers.directories[0])
-            ])
+        zlib = spec['zlib']
+        args.extend([
+            self.define('BUILD_ZLIB', False),
+            self.define('ZLIB_LIBRARY', zlib.libs[0]),
+            self.define('ZLIB_INCLUDE_DIR', zlib.headers.directories[0]),
+        ])
 
         if '+png' in spec:
             libpng = spec['libpng']
             args.extend([
-                '-DPNG_LIBRARY_{0}:FILEPATH={1}'.format((
-                    'DEBUG' if 'build_type=Debug' in spec else 'RELEASE'),
-                    libpng.libs[0]),
-                '-DPNG_INCLUDE_DIR:PATH={0}'.format(
-                    libpng.headers.directories[0])
+                self.define('BUILD_PNG', False),
+                self.define('PNG_LIBRARY', libpng.libs[0]),
+                self.define('PNG_INCLUDE_DIR', libpng.headers.directories[0])
             ])
 
         if '+jpeg' in spec:
             libjpeg = spec['jpeg']
             args.extend([
-                '-DBUILD_JPEG:BOOL=OFF',
-                '-DJPEG_LIBRARY:FILEPATH={0}'.format(libjpeg.libs[0]),
-                '-DJPEG_INCLUDE_DIR:PATH={0}'.format(
-                    libjpeg.headers.directories[0])
+                self.define('BUILD_JPEG', False),
+                self.define('JPEG_LIBRARY', libjpeg.libs[0]),
+                self.define('JPEG_INCLUDE_DIR', libjpeg.headers.directories[0])
             ])
 
         if '+tiff' in spec:
             libtiff = spec['libtiff']
             args.extend([
-                '-DTIFF_LIBRARY_{0}:FILEPATH={1}'.format((
-                    'DEBUG' if 'build_type=Debug' in spec else 'RELEASE'),
-                    libtiff.libs[0]),
-                '-DTIFF_INCLUDE_DIR:PATH={0}'.format(
-                    libtiff.headers.directories[0])
+                self.define('BUILD_TIFF', False),
+                self.define('TIFF_LIBRARY', libtiff.libs[0]),
+                self.define('TIFF_INCLUDE_DIR', libtiff.headers.directories[0])
             ])
 
         if '+jasper' in spec:
             jasper = spec['jasper']
             args.extend([
-                '-DJASPER_LIBRARY_{0}:FILEPATH={1}'.format((
-                    'DEBUG' if 'build_type=Debug' in spec else 'RELEASE'),
-                    jasper.libs[0]),
-                '-DJASPER_INCLUDE_DIR:PATH={0}'.format(
-                    jasper.headers.directories[0])
-            ])
-
-        # GUI
-        if '+gtk' not in spec:
-            args.extend([
-                '-DWITH_GTK:BOOL=OFF',
-                '-DWITH_GTK_2_X:BOOL=OFF'
-            ])
-        elif '^gtkplus@3:' in spec:
-            args.extend([
-                '-DWITH_GTK:BOOL=ON',
-                '-DWITH_GTK_2_X:BOOL=OFF'
-            ])
-        elif '^gtkplus@2:3' in spec:
-            args.extend([
-                '-DWITH_GTK:BOOL=OFF',
-                '-DWITH_GTK_2_X:BOOL=ON'
+                self.define('BUILD_JASPER', False),
+                self.define('JASPER_LIBRARY', jasper.libs[0]),
+                self.define('JASPER_INCLUDE_DIR', jasper.headers.directories[0])
             ])
 
         # Python
-        if '+python' in spec:
-            python_exe = spec['python'].command.path
-            python_lib = spec['python'].libs[0]
-            python_include_dir = spec['python'].headers.directories[0]
+        python_exe = spec['python'].command.path
+        python_lib = spec['python'].libs[0]
+        python_include_dir = spec['python'].headers.directories[0]
 
-            if '^python@3:' in spec:
-                args.extend([
-                    '-DBUILD_opencv_python3=ON',
-                    '-DPYTHON3_EXECUTABLE={0}'.format(python_exe),
-                    '-DPYTHON3_LIBRARY={0}'.format(python_lib),
-                    '-DPYTHON3_INCLUDE_DIR={0}'.format(python_include_dir),
-                    '-DBUILD_opencv_python2=OFF',
-                ])
-            elif '^python@2:3' in spec:
-                args.extend([
-                    '-DBUILD_opencv_python2=ON',
-                    '-DPYTHON2_EXECUTABLE={0}'.format(python_exe),
-                    '-DPYTHON2_LIBRARY={0}'.format(python_lib),
-                    '-DPYTHON2_INCLUDE_DIR={0}'.format(python_include_dir),
-                    '-DBUILD_opencv_python3=OFF',
-                ])
+        if '+python2' in spec:
+            args.extend([
+                self.define('PYTHON2_EXECUTABLE', python_exe),
+                self.define('PYTHON2_LIBRARY', python_lib),
+                self.define('PYTHON2_INCLUDE_DIR', python_include_dir),
+                self.define('PYTHON3_EXECUTABLE', '')
+            ])
+        elif '+python3' in spec:
+            args.extend([
+                self.define('PYTHON3_EXECUTABLE', python_exe),
+                self.define('PYTHON3_LIBRARY', python_lib),
+                self.define('PYTHON3_INCLUDE_DIR', python_include_dir),
+                self.define('PYTHON2_EXECUTABLE', '')
+            ])
         else:
             args.extend([
-                '-DBUILD_opencv_python2=OFF',
-                '-DBUILD_opencv_python3=OFF'
+                self.define('PYTHON2_EXECUTABLE', ''),
+                self.define('PYTHON3_EXECUTABLE', ''),
             ])
 
         return args
 
     @property
     def libs(self):
-        shared = "+shared" in self.spec
+        shared = '+shared' in self.spec
         return find_libraries(
-            "libopencv_*", root=self.prefix, shared=shared, recursive=True
+            'libopencv_*', root=self.prefix, shared=shared, recursive=True
         )

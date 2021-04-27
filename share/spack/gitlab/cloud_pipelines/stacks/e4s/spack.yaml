@@ -1,0 +1,151 @@
+spack:
+  view: false
+  concretization: separately
+
+  config:
+    install_tree:
+      root: /home/software/spack
+      padded_length: 512
+      projections:
+        all: '{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'
+
+  packages:
+    all:
+      target: [x86_64]
+      providers:
+        blas:
+        - openblas
+        mpi:
+        - mpich
+      variants: +mpi
+    binutils:
+      variants: +gold+headers+libiberty~nls
+      version:
+      - 2.33.1
+    cmake:
+      version: [3.18.4]
+    hdf5:
+      variants: +fortran
+    mpich:
+      variants: ~wrapperrpath
+    openblas:
+      version: [0.3.10]
+    slepc:
+      version: [3.14.0]
+
+  definitions:
+  - e4s:
+    # - adios
+    # - adios2
+    # - aml
+    # - amrex
+    # - arborx
+    - argobots
+    # - ascent
+    # - axom
+    # - bolt
+    # - caliper
+    # - darshan-runtime
+    - darshan-util
+    # - dyninst
+    # - faodel
+    # - flecsi+cinch
+    # - flit
+    # - gasnet
+    # - ginkgo
+    # - globalarrays
+    # - gotcha
+    # - hdf5
+    # - hpctoolkit
+    # - hpx
+    # - hypre
+    # - kokkos-kernels+openmp
+    # - kokkos+openmp
+    # - legion
+    # - libnrm
+    # - libquo
+    # - magma cuda_arch=70 ^cuda@10.2.89
+    # - mercury
+    # - mfem
+    # - mpifileutils@develop~xattr
+    # - ninja
+    # - omega-h
+    # - openmpi
+    # - openpmd-api
+    # - papi
+    # - papyrus@1.0.1
+    # - parallel-netcdf
+    # - pdt
+    # - petsc
+    # - phist
+    # - plasma
+    # - precice
+    # - pumi
+    # - py-jupyterhub
+    # - py-libensemble
+    # - py-petsc4py
+    # - qthreads scheduler=distrib
+    # - raja
+    # - rempi
+    # - scr
+    # - slate ^openblas@0.3.6 threads=openmp ^cuda@10.2.89
+    # - slepc
+    # - stc
+    # - strumpack ~slate ^openblas@0.3.6 threads=openmp
+    # - sundials
+    # - superlu
+    # - superlu-dist
+    - swig
+    # - sz
+    # - tasmanian
+    # - tau
+    # - trilinos
+    # - turbine
+    # - umap
+    # - umpire
+    # - unifyfs
+    # - upcxx
+    # - veloc
+    # - zfp
+  - arch:
+    - '%gcc@7.5.0 arch=linux-ubuntu18.04-x86_64'
+
+  specs:
+  - matrix:
+    - - $e4s
+    - - $arch
+
+  mirrors: { "mirror": "s3://spack-binaries-develop/e4s-new-cluster" }
+
+  gitlab-ci:
+    script:
+      - . "./share/spack/setup-env.sh"
+      - spack --version
+      - cd share/spack/gitlab/cloud_pipelines/stacks/e4s
+      - spack env activate --without-view .
+      - spack -d ci rebuild
+    mappings:
+      - match: [cuda, dyninst, hpx, precice, strumpack, sundials, trilinos, vtk-h, vtk-m]
+        runner-attributes:
+          image: { "name": "ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01", "entrypoint": [""] }
+          tags: ["spack", "public", "xlarge", "x86_64"]
+      - match: ['os=ubuntu18.04']
+        runner-attributes:
+          image: { "name": "ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01", "entrypoint": [""] }
+          tags: ["spack", "public", "large", "x86_64"]
+    temporary-storage-url-prefix: "s3://spack-binaries-prs/pipeline-storage"
+    service-job-attributes:
+      before_script:
+        - . "./share/spack/setup-env.sh"
+        - spack --version
+        - cd share/spack/gitlab/cloud_pipelines/stacks/e4s
+        - spack env activate --without-view .
+      image: { "name": "ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01", "entrypoint": [""] }
+      tags: ["spack", "public", "medium", "x86_64"]
+
+  cdash:
+    build-group: New PR testing workflow
+    url: https://cdash.spack.io
+    project: Spack Testing
+    site: Cloud Gitlab Infrastructure
+

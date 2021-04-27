@@ -12,6 +12,7 @@ class Htslib(AutotoolsPackage):
     homepage = "https://github.com/samtools/htslib"
     url = "https://github.com/samtools/htslib/releases/download/1.10.2/htslib-1.10.2.tar.bz2"
 
+    version('1.12', sha256='2280141b46e953ba4ae01b98335a84f8e6ccbdb6d5cdbab7f70ee4f7e3b6f4ca')
     version('1.10.2', sha256='e3b543de2f71723830a1e0472cf5489ec27d0fbeb46b1103e14a11b7177d1939')
     version('1.9', sha256='e04b877057e8b3b8425d957f057b42f0e8509173621d3eccaedd0da607d9929a')
     version('1.8', sha256='c0ef1eec954a98cc708e9f99f6037db85db45670b52b6ab37abcc89b6c057ca1')

@@ -622,3 +622,17 @@ def test_filter_enable_new_dtags(wrapper_flags):
         result = cc(*(test_args + ['-Wl,--enable-new-dtags']), output=str)
         result = result.strip().split('\n')
         assert '-Wl,--enable-new-dtags' not in result
+
+
+@pytest.mark.regression('22643')
+def test_linker_strips_loopopt(wrapper_flags):
+    with set_env(SPACK_TEST_COMMAND='dump-args'):
+        # ensure that -loopopt=0 is not present in ld mode
+        result = ld(*(test_args + ["-loopopt=0"]), output=str)
+        result = result.strip().split('\n')
+        assert '-loopopt=0' not in result
+
+        # ensure that -loopopt=0 is present in compile mode
+        result = cc(*(test_args + ["-loopopt=0"]), output=str)
+        result = result.strip().split('\n')
+        assert '-loopopt=0' in result

@@ -70,8 +70,7 @@ from spack.error import NoLibrariesError, NoHeadersError
 from spack.util.executable import Executable
 from spack.util.module_cmd import load_module, path_from_modules, module
 from spack.util.log_parse import parse_log_events, make_log_context
-
-
+from spack.util.cpus import cpus_available
 #
 # This can be set by the user to globally disable parallel builds.
 #
@@ -307,6 +306,19 @@ def set_compiler_environment_variables(pkg, env):
     return env
 
 
+def _place_externals_last(spec_container):
+    """
+    For a (possibly unordered) container of specs, return an ordered list
+    where all external specs are at the end of the list. External packages
+    may be installed in merged prefixes with other packages, and so
+    they should be deprioritized for any search order (i.e. in PATH, or
+    for a set of -L entries in a compiler invocation).
+    """
+    first = list(x for x in spec_container if not x.external)
+    second = list(x for x in spec_container if x.external)
+    return first + second
+
+
 def set_build_environment_variables(pkg, env, dirty):
     """Ensure a clean install environment when we build packages.
 
@@ -324,6 +336,29 @@ def set_build_environment_variables(pkg, env, dirty):
     link_deps       = set(pkg.spec.traverse(root=False, deptype=('link')))
     build_link_deps = build_deps | link_deps
     rpath_deps      = get_rpath_deps(pkg)
+    # This includes all build dependencies and any other dependencies that
+    # should be added to PATH (e.g. supporting executables run by build
+    # dependencies)
+    build_and_supporting_deps = set()
+    for build_dep in build_deps:
+        build_and_supporting_deps.update(build_dep.traverse(deptype='run'))
+
+    # Establish an arbitrary but fixed ordering of specs so that resulting
+    # environment variable values are stable
+    def _order(specs):
+        return sorted(specs, key=lambda x: x.name)
+
+    # External packages may be installed in a prefix which contains many other
+    # package installs. To avoid having those installations override
+    # Spack-installed packages, they are placed at the end of search paths.
+    # System prefixes are removed entirely later on since they are already
+    # searched.
+    build_deps = _place_externals_last(_order(build_deps))
+    link_deps = _place_externals_last(_order(link_deps))
+    build_link_deps = _place_externals_last(_order(build_link_deps))
+    rpath_deps = _place_externals_last(_order(rpath_deps))
+    build_and_supporting_deps = _place_externals_last(
+        _order(build_and_supporting_deps))
 
     link_dirs = []
     include_dirs = []
@@ -370,21 +405,10 @@ def set_build_environment_variables(pkg, env, dirty):
     env.set(SPACK_INCLUDE_DIRS, ':'.join(include_dirs))
     env.set(SPACK_RPATH_DIRS, ':'.join(rpath_dirs))
 
-    build_prefixes      = [dep.prefix for dep in build_deps]
-    build_link_prefixes = [dep.prefix for dep in build_link_deps]
-
-    # add run-time dependencies of direct build-time dependencies:
-    for build_dep in build_deps:
-        for run_dep in build_dep.traverse(deptype='run'):
-            build_prefixes.append(run_dep.prefix)
-
-    # Filter out system paths: ['/', '/usr', '/usr/local']
-    # These paths can be introduced into the build when an external package
-    # is added as a dependency. The problem with these paths is that they often
-    # contain hundreds of other packages installed in the same directory.
-    # If these paths come first, they can overshadow Spack installations.
-    build_prefixes      = filter_system_paths(build_prefixes)
-    build_link_prefixes = filter_system_paths(build_link_prefixes)
+    build_and_supporting_prefixes = filter_system_paths(
+        x.prefix for x in build_and_supporting_deps)
+    build_link_prefixes = filter_system_paths(
+        x.prefix for x in build_link_deps)
 
     # Add dependencies to CMAKE_PREFIX_PATH
     env.set_path('CMAKE_PREFIX_PATH', build_link_prefixes)
@@ -399,7 +423,10 @@ def set_build_environment_variables(pkg, env, dirty):
         env.set('SPACK_COMPILER_EXTRA_RPATHS', extra_rpaths)
 
     # Add bin directories from dependencies to the PATH for the build.
-    for prefix in build_prefixes:
+    # These directories are added to the beginning of the search path, and in
+    # the order given by 'build_and_supporting_prefixes' (the iteration order
+    # is reversed because each entry is prepended)
+    for prefix in reversed(build_and_supporting_prefixes):
         for dirname in ['bin', 'bin64']:
             bin_dir = os.path.join(prefix, dirname)
             if os.path.isdir(bin_dir):
@@ -443,13 +470,45 @@ def set_build_environment_variables(pkg, env, dirty):
         env.set(SPACK_CCACHE_BINARY, ccache)
 
     # Add any pkgconfig directories to PKG_CONFIG_PATH
-    for prefix in build_link_prefixes:
+    for prefix in reversed(build_link_prefixes):
         for directory in ('lib', 'lib64', 'share'):
             pcdir = os.path.join(prefix, directory, 'pkgconfig')
             if os.path.isdir(pcdir):
                 env.prepend_path('PKG_CONFIG_PATH', pcdir)
 
     return env
+
+
+def determine_number_of_jobs(
+        parallel=False, command_line=None, config_default=None, max_cpus=None):
+    """
+    Packages that require sequential builds need 1 job. Otherwise we use the
+    number of jobs set on the command line. If not set, then we use the config
+    defaults (which is usually set through the builtin config scope), but we
+    cap to the number of CPUs available to avoid oversubscription.
+
+    Parameters:
+        parallel (bool): true when package supports parallel builds
+        command_line (int/None): command line override
+        config_default (int/None): config default number of jobs
+        max_cpus (int/None): maximum number of CPUs available. When None, this
+                             value is automatically determined.
+    """
+    if not parallel:
+        return 1
+
+    if command_line is None and 'command_line' in spack.config.scopes():
+        command_line = spack.config.get('config:build_jobs', scope='command_line')
+
+    if command_line is not None:
+        return command_line
+
+    max_cpus = max_cpus or cpus_available()
+
+    # in some rare cases _builtin config may not be set, so default to max 16
+    config_default = config_default or spack.config.get('config:build_jobs', 16)
+
+    return min(max_cpus, config_default)
 
 
 def _set_variables_for_single_module(pkg, module):
@@ -460,8 +519,7 @@ def _set_variables_for_single_module(pkg, module):
     if getattr(module, marker, False):
         return
 
-    jobs = spack.config.get('config:build_jobs', 16) if pkg.parallel else 1
-    jobs = min(jobs, multiprocessing.cpu_count())
+    jobs = determine_number_of_jobs(parallel=pkg.parallel)
 
     m = module
     m.make_jobs = jobs

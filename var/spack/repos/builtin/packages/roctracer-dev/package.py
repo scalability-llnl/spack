@@ -17,6 +17,7 @@ class RoctracerDev(CMakePackage):
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('4.1.0', sha256='5d93de4e92895b6eb5f9d098f5dbd182d33923bd9b2ab69cf5a1abbf91d70695')
     version('4.0.0', sha256='f47859a46173228b597c463eda850b870e810534af5efd5f2a746067ef04edee')
     version('3.10.0', sha256='ac4a1d059fc34377e906071fd0e56f5434a7e0e4ded9db8faf9217a115239dec')
     version('3.9.0', sha256='0678f9faf45058b16923948c66d77ba2c072283c975d167899caef969169b292')
@@ -29,7 +30,7 @@ class RoctracerDev(CMakePackage):
     depends_on('python@:2', type='build')
     depends_on('py-cppheaderparser', type='build')
 
-    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0']:
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
         depends_on('hsakmt-roct@' + ver, type='build', when='@' + ver)
         depends_on('hsa-rocr-dev@' + ver, type='build', when='@' + ver)
         depends_on('rocminfo@' + ver, type='build', when='@' + ver)
@@ -45,7 +46,7 @@ class RoctracerDev(CMakePackage):
                     string=True)
         kwargs = {'ignore_absent': False, 'backup': False, 'string': False}
         with working_dir('script'):
-            match = '^#!/usr/bin/python'
+            match = '^#!/usr/bin/python[2]'
             python = self.spec['python'].command.path
             substitute = "#!{python}".format(python=python)
             files = [

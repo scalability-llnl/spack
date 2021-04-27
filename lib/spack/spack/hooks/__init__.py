@@ -16,6 +16,7 @@
       * post_install(spec)
       * pre_uninstall(spec)
       * post_uninstall(spec)
+      * on_install_failure(exception)
 
    This can be used to implement support for things like module
    systems (e.g. modules, lmod, etc.) or to add other custom
@@ -59,8 +60,20 @@ class HookRunner(object):
                     hook(*args, **kwargs)
 
 
+# pre/post install and run by the install subprocess
 pre_install = HookRunner('pre_install')
 post_install = HookRunner('post_install')
 
+# These hooks are run within an install subprocess
 pre_uninstall = HookRunner('pre_uninstall')
 post_uninstall = HookRunner('post_uninstall')
+on_phase_success = HookRunner('on_phase_success')
+on_phase_error = HookRunner('on_phase_error')
+
+# These are hooks in installer.py, before starting install subprocess
+on_install_start = HookRunner('on_install_start')
+on_install_success = HookRunner('on_install_success')
+on_install_failure = HookRunner('on_install_failure')
+
+# Analyzer hooks
+on_analyzer_save = HookRunner('on_analyzer_save')

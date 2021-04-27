@@ -11,6 +11,8 @@ class IntelParallelStudio(IntelPackage):
 
     homepage = "https://software.intel.com/en-us/intel-parallel-studio-xe"
 
+    maintainers = ['rscohn2', 'danvev']
+
     # As of 2016, the product comes in three "editions" that vary by scope.
     #
     # In Spack, select the edition via the version number in the spec, e.g.:

@@ -17,6 +17,7 @@ from llnl.util.filesystem import mkdirp
 import spack.config
 import spack.hash_types as ht
 import spack.spec
+import spack.util.spack_json as sjson
 from spack.error import SpackError
 
 
@@ -247,6 +248,17 @@ class YamlDirectoryLayout(DirectoryLayout):
             # full provenance by full hash so it's availabe if we want it later
             spec.to_yaml(f, hash=ht.full_hash)
 
+    def write_host_environment(self, spec):
+        """The host environment is a json file with os, kernel, and spack
+        versioning. We use it in the case that an analysis later needs to
+        easily access this information.
+        """
+        from spack.util.environment import get_host_environment_metadata
+        env_file = self.env_metadata_path(spec)
+        environ = get_host_environment_metadata()
+        with open(env_file, 'w') as fd:
+            sjson.dump(environ, fd)
+
     def read_spec(self, path):
         """Read the contents of a file and parse them as a spec"""
         try:
@@ -299,6 +311,9 @@ class YamlDirectoryLayout(DirectoryLayout):
 
     def metadata_path(self, spec):
         return os.path.join(spec.prefix, self.metadata_dir)
+
+    def env_metadata_path(self, spec):
+        return os.path.join(self.metadata_path(spec), "install_environment.json")
 
     def build_packages_path(self, spec):
         return os.path.join(self.metadata_path(spec), self.packages_dir)

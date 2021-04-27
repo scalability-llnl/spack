@@ -18,6 +18,6 @@ class Popt(AutotoolsPackage):
 
     def patch(self):
         # Remove flags not recognized by the NVIDIA compilers
-        if self.spec.satisfies('%nvhpc'):
+        if self.spec.satisfies('%nvhpc@:20.11'):
             filter_file('CFLAGS="$CFLAGS -Wall -W"',
                         'CFLAGS="$CFLAGS -Wall"', 'configure', string=True)

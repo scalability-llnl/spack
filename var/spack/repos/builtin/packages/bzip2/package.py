@@ -52,7 +52,7 @@ class Bzip2(Package, SourcewarePackage):
         )
 
         # The Makefiles use GCC flags that are incompatible with PGI
-        if self.spec.satisfies('%pgi') or self.spec.satisfies('%nvhpc'):
+        if self.spec.satisfies('%pgi') or self.spec.satisfies('%nvhpc@:20.11'):
             filter_file('-Wall -Winline', '-Minform=inform', 'Makefile')
             filter_file('-Wall -Winline', '-Minform=inform',
                         'Makefile-libbz2_so')

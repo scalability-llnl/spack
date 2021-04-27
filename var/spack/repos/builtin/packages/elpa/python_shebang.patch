@@ -1,0 +1,8 @@
+--- a/manual_cpp  2021-01-27 20:21:23.897206207 +0100
++++ b/manual_cpp  2021-01-27 20:13:08.743822289 +0100
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/env python
+ from __future__ import print_function
+ import os
+ import sys

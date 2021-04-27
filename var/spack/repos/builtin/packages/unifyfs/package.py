@@ -16,55 +16,47 @@ class Unifyfs(AutotoolsPackage):
 
     homepage = "https://github.com/LLNL/UnifyFS"
     git      = "https://github.com/LLNL/UnifyFS.git"
-    url      = "https://github.com/LLNL/UnifyFS/releases/download/v0.9.0/unifyfs-0.9.0.tar.gz"
+    url      = "https://github.com/LLNL/UnifyFS/releases/download/v0.9.2/unifyfs-0.9.2.tar.gz"
     maintainers = ['CamStan']
 
     version('develop', branch='dev')
+    version('0.9.2', sha256='7046625dc0677535f5d960187cb2e2d58a6f8cfb4dc6a3604f825257eb0891aa')
     version('0.9.1', sha256='2498a859cfa4961356fdf5c4c17e3afc3de7e034ad013b8c7145a622ef6199a0')
-    version('0.9.0', sha256='e6c73e22ef1c23f3141646aa17058b69c1c4e526886771f8fe982da924265b0f')
 
     variant('auto-mount', default='True', description='Enable automatic mount/unmount in MPI_Init/Finalize')
     variant('hdf5', default='False', description='Build with parallel HDF5 (install with `^hdf5~mpi` for serial)')
     variant('fortran', default='False', description='Build with gfortran support')
-    variant('mdhim', default='False', description='Enable MDHIM build options')
     variant('pmi', default='False', description='Enable PMI2 build options')
     variant('pmix', default='False', description='Enable PMIx build options')
     variant('spath', default='True', description='Use spath library to normalize relative paths')
 
-    depends_on('autoconf',  type='build')
-    depends_on('automake',  type='build')
-    depends_on('libtool',   type='build')
-    depends_on('m4',        type='build')
-    depends_on('pkgconfig', type='build')
+    depends_on('autoconf',        type='build')
+    depends_on('automake',        type='build')
+    depends_on('automake@1.15:',  type='build', when='@0.9.2:')
+    depends_on('libtool',         type='build')
+    depends_on('m4',              type='build')
+    depends_on('pkgconfig',       type='build')
 
     # Required dependencies
-    depends_on('gotcha@1.0.3:', when='@0.9.1:')
-    depends_on('mochi-margo@0.4.3')
-    depends_on('mercury@1.0.1+bmi+sm')
+    depends_on('gotcha@1.0.3:')
+    depends_on('mercury@1.0.1+bmi', when='@:0.9.1')
+    depends_on('mochi-margo@0.4.3', when='@:0.9.1')
+    depends_on('mochi-margo',       when='@0.9.2:')
     depends_on('mpi')
     depends_on('openssl')
 
     # Optional dependencies
     depends_on('hdf5', when='+hdf5')
-    depends_on('leveldb', when='@0.9.1:+mdhim')
-    depends_on('spath', when='@0.9.1:+spath')
+    depends_on('libfabric fabrics=rxm,sockets,tcp', when="^mercury@2:+ofi")
+    depends_on('spath~mpi', when='+spath')
 
-    # Required dependencies for older versions
-    depends_on('flatcc', when='@:0.9.0')
-    depends_on('gotcha@0.0.2', when='@:0.9.0')
-    depends_on('leveldb', when='@:0.9.0')
-
-    patch('unifyfs-sysio.c.patch', when='@0.9.1')
-
-    conflicts('^mercury~bmi')
+    conflicts('^mercury~bmi~ofi')
     conflicts('^mercury~sm')
     # Known compatibility issues with ifort and xlf. Fixes coming.
     conflicts('%intel', when='+fortran')
-    conflicts('%xl', when='+fortran')
+    conflicts('%xl',    when='+fortran')
 
-    # Fix broken --enable-mpi-mount config option for version 0.9.0
-    # See https://github.com/LLNL/UnifyFS/issues/467
-    patch('auto-mount.patch', when='@0.9.0')
+    patch('unifyfs-sysio.c.patch', when='@0.9.1')
 
     # Parallel disabled to prevent tests from being run out-of-order when
     # installed with the --test={root, all} option.
@@ -100,9 +92,6 @@ class Unifyfs(AutotoolsPackage):
 
         if '+fortran' in spec:
             args.append('--enable-fortran')
-
-        if '+mdhim' in spec:
-            args.append('--enable-mdhim')
 
         if '+pmi' in spec:
             args.append('--enable-pmi')

@@ -46,6 +46,7 @@ import spack.binary_distribution as binary_distribution
 import spack.compilers
 import spack.error
 import spack.hooks
+import spack.monitor
 import spack.package
 import spack.package_prefs as prefs
 import spack.repo
@@ -412,6 +413,25 @@ def clear_failures():
     spack.store.db.clear_all_failures()
 
 
+def combine_phase_logs(phase_log_files, log_path):
+    """
+    Read set or list of logs and combine them into one file.
+
+    Each phase will produce it's own log, so this function aims to cat all the
+    separate phase log output files into the pkg.log_path. It is written
+    generally to accept some list of files, and a log path to combine them to.
+
+    Args:
+        phase_log_files (list): a list or iterator of logs to combine
+        log_path (path): the path to combine them to
+    """
+
+    with open(log_path, 'w') as log_file:
+        for phase_log_file in phase_log_files:
+            with open(phase_log_file, 'r') as phase_log:
+                log_file.write(phase_log.read())
+
+
 def dump_packages(spec, path):
     """
     Dump all package information for a spec and its dependencies.
@@ -520,6 +540,12 @@ def log(pkg):
 
     # Archive the whole stdout + stderr for the package
     fs.install(pkg.log_path, pkg.install_log_path)
+
+    # Archive all phase log paths
+    for phase_log in pkg.phase_log_files:
+        log_file = os.path.basename(phase_log)
+        log_file = os.path.join(os.path.dirname(packages_dir), log_file)
+        fs.install(phase_log, log_file)
 
     # Archive the environment used for the build
     fs.install(pkg.env_path, pkg.install_env_path)
@@ -1260,6 +1286,7 @@ class PackageInstaller(object):
     def _setup_install_dir(self, pkg):
         """
         Create and ensure proper access controls for the install directory.
+        Write a small metadata file with the current spack environment.
 
         Args:
             pkg (Package): the package to be built and installed
@@ -1284,6 +1311,9 @@ class PackageInstaller(object):
 
             # Ensure the metadata path exists as well
             fs.mkdirp(spack.store.layout.metadata_path(pkg.spec), mode=perms)
+
+        # Always write host environment - we assume this can change
+        spack.store.layout.write_host_environment(pkg.spec)
 
     def _update_failed(self, task, mark=False, exc=None):
         """
@@ -1388,8 +1418,8 @@ class PackageInstaller(object):
 
         Args:
             pkg (Package): the package to be built and installed"""
-        self._init_queue()
 
+        self._init_queue()
         fail_fast_err = 'Terminating after first install failure'
         single_explicit_spec = len(self.build_requests) == 1
         failed_explicits = []
@@ -1400,6 +1430,7 @@ class PackageInstaller(object):
             if task is None:
                 continue
 
+            spack.hooks.on_install_start(task.request.pkg.spec)
             install_args = task.request.install_args
             keep_prefix = install_args.get('keep_prefix')
 
@@ -1422,6 +1453,10 @@ class PackageInstaller(object):
                     tty.warn('{0} does NOT actually have any uninstalled deps'
                              ' left'.format(pkg_id))
                 dep_str = 'dependencies' if task.priority > 1 else 'dependency'
+
+                # Hook to indicate task failure, but without an exception
+                spack.hooks.on_install_failure(task.request.pkg.spec)
+
                 raise InstallError(
                     'Cannot proceed with {0}: {1} uninstalled {2}: {3}'
                     .format(pkg_id, task.priority, dep_str,
@@ -1440,6 +1475,11 @@ class PackageInstaller(object):
             if pkg_id in self.failed or spack.store.db.prefix_failed(spec):
                 tty.warn('{0} failed to install'.format(pkg_id))
                 self._update_failed(task)
+
+                # Mark that the package failed
+                # TODO: this should also be for the task.pkg, but we don't
+                # model transitive yet.
+                spack.hooks.on_install_failure(task.request.pkg.spec)
 
                 if self.fail_fast:
                     raise InstallError(fail_fast_err)
@@ -1550,6 +1590,7 @@ class PackageInstaller(object):
                 # Only terminate at this point if a single build request was
                 # made.
                 if task.explicit and single_explicit_spec:
+                    spack.hooks.on_install_failure(task.request.pkg.spec)
                     raise
 
                 if task.explicit:
@@ -1561,10 +1602,12 @@ class PackageInstaller(object):
                 err = 'Failed to install {0} due to {1}: {2}'
                 tty.error(err.format(pkg.name, exc.__class__.__name__,
                           str(exc)))
+                spack.hooks.on_install_failure(task.request.pkg.spec)
                 raise
 
             except (Exception, SystemExit) as exc:
                 self._update_failed(task, True, exc)
+                spack.hooks.on_install_failure(task.request.pkg.spec)
 
                 # Best effort installs suppress the exception and mark the
                 # package as a failure.
@@ -1662,6 +1705,7 @@ def build_process(pkg, kwargs):
         echo = spack.package.PackageBase._verbose
 
     pkg.stage.keep = keep_stage
+
     with pkg.stage:
         # Run the pre-install hook in the child process after
         # the directory is created.
@@ -1679,6 +1723,7 @@ def build_process(pkg, kwargs):
 
             # Do the real install in the source directory.
             with fs.working_dir(pkg.stage.source_path):
+
                 # Save the build environment in a file before building.
                 dump_environment(pkg.env_path)
 
@@ -1699,25 +1744,48 @@ def build_process(pkg, kwargs):
                 debug_level = tty.debug_level()
 
                 # Spawn a daemon that reads from a pipe and redirects
-                # everything to log_path
-                with log_output(pkg.log_path, echo, True,
-                                env=unmodified_env) as logger:
+                # everything to log_path, and provide the phase for logging
+                for i, (phase_name, phase_attr) in enumerate(zip(
+                        pkg.phases, pkg._InstallPhase_phases)):
 
-                    for phase_name, phase_attr in zip(
-                            pkg.phases, pkg._InstallPhase_phases):
+                    # Keep a log file for each phase
+                    log_dir = os.path.dirname(pkg.log_path)
+                    log_file = "spack-build-%02d-%s-out.txt" % (
+                        i + 1, phase_name.lower()
+                    )
+                    log_file = os.path.join(log_dir, log_file)
 
-                        with logger.force_echo():
-                            inner_debug_level = tty.debug_level()
-                            tty.set_debug(debug_level)
-                            tty.msg("{0} Executing phase: '{1}'"
-                                    .format(pre, phase_name))
-                            tty.set_debug(inner_debug_level)
+                    try:
+                        # DEBUGGING TIP - to debug this section, insert an IPython
+                        # embed here, and run the sections below without log capture
+                        with log_output(log_file, echo, True,
+                                        env=unmodified_env) as logger:
 
-                        # Redirect stdout and stderr to daemon pipe
-                        phase = getattr(pkg, phase_attr)
-                        phase(pkg.spec, pkg.prefix)
+                            with logger.force_echo():
+                                inner_debug_level = tty.debug_level()
+                                tty.set_debug(debug_level)
+                                tty.msg("{0} Executing phase: '{1}'"
+                                        .format(pre, phase_name))
+                                tty.set_debug(inner_debug_level)
 
-            echo = logger.echo
+                            # Redirect stdout and stderr to daemon pipe
+                            phase = getattr(pkg, phase_attr)
+
+                            # Catch any errors to report to logging
+
+                            phase(pkg.spec, pkg.prefix)
+                            spack.hooks.on_phase_success(pkg, phase_name, log_file)
+
+                    except BaseException:
+                        combine_phase_logs(pkg.phase_log_files, pkg.log_path)
+                        spack.hooks.on_phase_error(pkg, phase_name, log_file)
+                        raise
+
+                    # We assume loggers share echo True/False
+                    echo = logger.echo
+
+            # After log, we can get all output/error files from the package stage
+            combine_phase_logs(pkg.phase_log_files, pkg.log_path)
             log(pkg)
 
         # Run post install hooks before build stage is removed.
@@ -1732,6 +1800,9 @@ def build_process(pkg, kwargs):
             .format(_hms(pkg._fetch_time), _hms(build_time),
                     _hms(pkg._total_time)))
     _print_installed_pkg(pkg.prefix)
+
+    # Send final status that install is successful
+    spack.hooks.on_install_success(pkg.spec)
 
     # preserve verbosity across runs
     return echo

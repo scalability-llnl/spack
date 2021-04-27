@@ -34,7 +34,7 @@ class Libpciaccess(AutotoolsPackage, XorgPackage):
     def configure_args(self):
         config_args = []
 
-        if (self.spec.satisfies('%nvhpc') and
+        if (self.spec.satisfies('%nvhpc@:20.11') and
             (self.spec.target.family == 'aarch64' or
              self.spec.target.family == 'ppc64le')):
             config_args.append('--disable-strict-compilation')

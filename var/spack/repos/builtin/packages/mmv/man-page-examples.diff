@@ -1,0 +1,54 @@
+Description: Add examples section to man page
+ This patch adds several examples of common mmv usage to the man page
+Debian-Bug: 380327
+Author: Axel Beckert <abe@debian.org>
+Last-Update: 2012-12-29
+
+Index: mmv/mmv.1
+===================================================================
+--- mmv.orig/mmv.1	2012-12-29 02:20:59.510075480 +0100
++++ mmv/mmv.1	2012-12-29 02:39:33.591699513 +0100
+@@ -35,6 +35,43 @@
+ .B mmvpatch
+ [\fBexecutable\fP]
+ \}
++.SH "EXAMPLES"
++Rename all
++.I *.jpeg
++files in the current directory to
++\fI*.jpg\fR:
++
++.in +3
++mmv '*.jpeg' '#1.jpg'
++.in -3
++
++Replace the first occurrence of
++.I abc
++with
++.I xyz
++in all files in the current directory:
++
++.in +3
++mmv '*abc*' '#1xyz#2'
++.in -3
++
++Rename files ending in \fI.html.en\fR, \fI.html.de\fR, etc. to ending
++in \fI.en.html\fR, \fI.de.html\fR, etc. in the current directory:
++
++.in +3
++mmv '*.html.??' '#1.#2#3.html'
++.in -3
++
++Rename music files from
++.I <track no.> - <interpreter> - <song title>.ogg
++to
++.I <interpreter> - <track no.> - <song title>.ogg
++in the current directory:
++
++.in +3
++mmv '* - * - *.ogg' '#2 - #1 - #3.ogg'
++.in -3
++
+ .SH "DESCRIPTION"
+ .I Mmv
+ moves (or copies,

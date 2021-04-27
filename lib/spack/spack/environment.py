@@ -9,8 +9,6 @@ import re
 import sys
 import shutil
 import copy
-import socket
-
 import six
 
 from ordereddict_backport import OrderedDict
@@ -33,13 +31,11 @@ import spack.config
 import spack.user_environment as uenv
 from spack.filesystem_view import YamlFilesystemView
 import spack.util.environment
-import spack.architecture as architecture
 from spack.spec import Spec
 from spack.spec_list import SpecList, InvalidSpecConstraintError
 from spack.variant import UnknownVariantError
 import spack.util.lock as lk
 from spack.util.path import substitute_path_variables
-from spack.installer import PackageInstaller
 import spack.util.path
 
 #: environment variable used to indicate the active environment
@@ -447,21 +443,11 @@ def _write_yaml(data, str_or_file):
 
 def _eval_conditional(string):
     """Evaluate conditional definitions using restricted variable scope."""
-    arch = architecture.Arch(
-        architecture.platform(), 'default_os', 'default_target')
-    arch_spec = spack.spec.Spec('arch=%s' % arch)
-    valid_variables = {
-        'target': str(arch.target),
-        'os': str(arch.os),
-        'platform': str(arch.platform),
-        'arch': arch_spec,
-        'architecture': arch_spec,
-        'arch_str': str(arch),
+    valid_variables = spack.util.environment.get_host_environment()
+    valid_variables.update({
         're': re,
         'env': os.environ,
-        'hostname': socket.gethostname()
-    }
-
+    })
     return eval(string, valid_variables)
 
 
@@ -1454,6 +1440,7 @@ class Environment(object):
             args (Namespace): argparse namespace with command arguments
             install_args (dict): keyword install arguments
         """
+        from spack.installer import PackageInstaller
         tty.debug('Assessing installation status of environment packages')
         # If "spack install" is invoked repeatedly for a large environment
         # where all specs are already installed, the operation can take

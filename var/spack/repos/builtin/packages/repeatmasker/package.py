@@ -12,8 +12,8 @@ class Repeatmasker(Package):
        repeats and low complexity DNA sequences."""
 
     homepage = "http://www.repeatmasker.org"
-    url      = "http://www.repeatmasker.org/RepeatMasker-open-4-0-7.tar.gz"
 
+    version('4.1.2-p1', sha256='4be54bf6c050422b211e24a797feb06fd7954c8b4ee6f3ece94cb6faaf6b0e96')
     version('4.0.9', sha256='8d67415d89ed301670b7632ea411f794c6e30d8ed0f007a726c4b0a39c8638e5')
     version('4.0.7', sha256='16faf40e5e2f521146f6692f09561ebef5f6a022feb17031f2ddb3e3aabcf166')
 
@@ -25,15 +25,21 @@ class Repeatmasker(Package):
     depends_on('hmmer')
     depends_on('ncbi-rmblastn')
     depends_on('trf')
+    depends_on('python', when='@4.1:', type=('build', 'run'))
+    depends_on('py-h5py', when='@4.1:', type=('build', 'run'))
 
     depends_on('phrap-crossmatch-swat', type=('build', 'run'),
                when='+crossmatch')
 
-    patch('utf8.patch')
+    patch('utf8.patch', when='@:4.0')
 
     def url_for_version(self, version):
-        url = 'http://www.repeatmasker.org/RepeatMasker-open-{0}.tar.gz'
-        return url.format(version.dashed)
+        if version >= Version('4.1.0'):
+            url = 'http://www.repeatmasker.org/RepeatMasker/RepeatMasker-{0}.tar.gz'
+            return url.format(version)
+        else:
+            url = 'http://www.repeatmasker.org/RepeatMasker/RepeatMasker-open-{0}.tar.gz'
+            return url.format(version.dashed)
 
     def install(self, spec, prefix):
         # Config questions consist of:
@@ -55,14 +61,14 @@ class Repeatmasker(Package):
 
         config_answers = []
 
-        if spec.satisfies('@4.0.9:'):
+        if spec.satisfies('@:4.0.7'):
             # 4.0.9 removes a bunch of the interactive options
-            config_answers.append('')
-        else:
             config_answers.extend(['',
                                    self.spec['perl'].command.path,
-                                   self.stage.source_path,
-                                   self.spec['trf'].prefix.bin.trf])
+                                   self.stage.source_path])
+
+        # set path to trf
+        config_answers.append(self.spec['trf'].prefix.bin.trf)
 
         # add crossmatch search
         if '+crossmatch' in spec:
@@ -75,9 +81,14 @@ class Repeatmasker(Package):
                                'Y'])
 
         # set non-default HMMER search
-        config_answers.extend(['3',
-                               self.spec['hmmer'].prefix,
-                               'N'])
+        if spec.satisfies('@4.0.9:'):
+            config_answers.extend(['3',
+                                   self.spec['hmmer'].prefix.bin,
+                                   'N'])
+        else:
+            config_answers.extend(['4',
+                                   self.spec['hmmer'].prefix.bin,
+                                   'N'])
 
         # end configuration
         config_answers.append('5')

@@ -95,7 +95,7 @@ class Tau(Package):
     depends_on('libdwarf', when='+libdwarf')
     depends_on('libelf', when='+libdwarf')
     # TAU requires the ELF header support, libiberty and demangle.
-    depends_on('binutils@:2.33.1+libiberty+headers', when='+binutils')
+    depends_on('binutils@:2.33.1+libiberty+headers+plugins', when='+binutils')
     depends_on('python@2.7:', when='+python')
     depends_on('libunwind', when='+libunwind')
     depends_on('mpi', when='+mpi', type=('build', 'run', 'link'))

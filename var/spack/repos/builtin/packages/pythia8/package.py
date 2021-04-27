@@ -19,6 +19,7 @@ class Pythia8(AutotoolsPackage):
 
     maintainers = ['ChristianTackeGSI']
 
+    version('8304', sha256='d3897018fb6d545eaf93bf43f32580c984a9bff49259d9dd29dff6edfbe9d9a1')
     version('8303', sha256='cd7c2b102670dae74aa37053657b4f068396988ef7da58fd3c318c84dc37913e')
     version('8302', sha256='7372e4cc6f48a074e6b7bc426b040f218ec4a64b0a55e89da6af56933b5f5085')
     version('8301', sha256='51382768eb9aafb97870dca1909516422297b64ef6a6b94659259b3e4afa7f06')
@@ -58,7 +59,7 @@ class Pythia8(AutotoolsPackage):
         if '+fastjet' in self.spec:
             args.append('--with-fastjet3=%s' % self.spec["fastjet"].prefix)
         else:
-            args.append('--without-fastjet')
+            args.append('--without-fastjet3')
         if '+evtgen' in self.spec:
             args.append('--with-evtgen=%s' % self.spec["evtgen"].prefix)
         else:
@@ -66,7 +67,7 @@ class Pythia8(AutotoolsPackage):
         if '+root' in self.spec:
             args.append('--with-root=%s' % self.spec["root"].prefix)
         else:
-            args.append('--without-evtgen')
+            args.append('--without-root')
 
         return args
 

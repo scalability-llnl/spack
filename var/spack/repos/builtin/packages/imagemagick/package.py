@@ -36,3 +36,7 @@ class Imagemagick(AutotoolsPackage):
         return [
             '--with-gs-font-dir={0}'.format(gs_font_dir)
         ]
+
+    @property
+    def libs(self):
+        return find_libraries('libMagick*', root=self.prefix, recursive=True)

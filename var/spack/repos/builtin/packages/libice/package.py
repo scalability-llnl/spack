@@ -18,3 +18,8 @@ class Libice(AutotoolsPackage, XorgPackage):
     depends_on('xtrans')
     depends_on('pkgconfig', type='build')
     depends_on('util-macros', type='build')
+
+    @property
+    def libs(self):
+        return find_libraries('libICE', self.prefix,
+                              shared=True, recursive=True)

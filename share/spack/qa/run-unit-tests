@@ -37,7 +37,7 @@ bin/spack -h
 bin/spack help -a
 
 # Profile and print top 20 lines for a simple call to spack spec
-spack -p --lines 20 spec mpileaks%gcc ^elfutils@0.170
+spack -p --lines 20 spec mpileaks%gcc ^dyninst@10.0.0 ^elfutils@0.170
 
 #-----------------------------------------------------------
 # Run unit tests with code coverage

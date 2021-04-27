@@ -1,0 +1,107 @@
+diff --git a/qtbase/mkspecs/common/clang.conf b/qtbase/mkspecs/common/clang.conf
+index 2499c8b6d88..dad15a22a88 100644
+--- a/qtbase/mkspecs/common/clang.conf
++++ b/qtbase/mkspecs/common/clang.conf
+@@ -18,7 +18,6 @@ QMAKE_PCH_OUTPUT_EXT    = .pch
+ 
+ QMAKE_CFLAGS_OPTIMIZE_SIZE = -Oz
+ 
+-QMAKE_CFLAGS_ISYSTEM             = -isystem
+ QMAKE_CFLAGS_PRECOMPILE          = -x c-header -c ${QMAKE_PCH_INPUT} -o ${QMAKE_PCH_OUTPUT}
+ QMAKE_CFLAGS_USE_PRECOMPILE      = -Xclang -include-pch -Xclang ${QMAKE_PCH_OUTPUT}
+ QMAKE_CFLAGS_LTCG                = -flto=thin
+diff --git a/qtbase/mkspecs/common/gcc-base.conf b/qtbase/mkspecs/common/gcc-base.conf
+index 3c2d5fdd533..99d77156fd7 100644
+--- a/qtbase/mkspecs/common/gcc-base.conf
++++ b/qtbase/mkspecs/common/gcc-base.conf
+@@ -46,7 +46,6 @@ QMAKE_CFLAGS_DEBUG         += -g
+ QMAKE_CFLAGS_SHLIB         += $$QMAKE_CFLAGS_PIC
+ QMAKE_CFLAGS_STATIC_LIB    += $$QMAKE_CFLAGS_PIC
+ QMAKE_CFLAGS_APP           += $$QMAKE_CFLAGS_PIC
+-QMAKE_CFLAGS_ISYSTEM        = -isystem
+ QMAKE_CFLAGS_YACC          += -Wno-unused -Wno-parentheses
+ QMAKE_CFLAGS_HIDESYMS      += -fvisibility=hidden
+ QMAKE_CFLAGS_EXCEPTIONS_OFF += -fno-exceptions
+diff --git a/qtbase/mkspecs/linux-icc/qmake.conf b/qtbase/mkspecs/linux-icc/qmake.conf
+index 75a601b1f1b..09f897d0934 100644
+--- a/qtbase/mkspecs/linux-icc/qmake.conf
++++ b/qtbase/mkspecs/linux-icc/qmake.conf
+@@ -9,7 +9,6 @@ include(../common/icc-base-unix.conf)
+ # modifications to icc-base-unix.conf
+ 
+ QMAKE_CFLAGS_YACC       =
+-QMAKE_CFLAGS_ISYSTEM    = -isystem
+ QMAKE_CFLAGS_THREAD     = -D_REENTRANT
+ 
+ QMAKE_CXXFLAGS_YACC     = $$QMAKE_CFLAGS_YACC
+diff --git a/qtbase/qmake/generators/unix/unixmake2.cpp b/qtbase/qmake/generators/unix/unixmake2.cpp
+index 0412b528134..ad6a0e94f2b 100644
+--- a/qtbase/qmake/generators/unix/unixmake2.cpp
++++ b/qtbase/qmake/generators/unix/unixmake2.cpp
+@@ -198,18 +198,13 @@ UnixMakefileGenerator::writeMakeParts(QTextStream &t)
+     t << "CXXFLAGS      = " << var("QMAKE_CXXFLAGS") << " $(DEFINES)\n";
+     t << "INCPATH       =";
+     {
+-        QString isystem = var("QMAKE_CFLAGS_ISYSTEM");
+         const ProStringList &incs = project->values("INCLUDEPATH");
+         for(int i = 0; i < incs.size(); ++i) {
+             const ProString &inc = incs.at(i);
+             if (inc.isEmpty())
+                 continue;
+ 
+-            if (!isystem.isEmpty() && isSystemInclude(inc.toQString()))
+-                t << ' ' << isystem << ' ';
+-            else
+-                t << " -I";
+-            t << escapeFilePath(inc);
++            t << " -I" << escapeFilePath(inc);
+         }
+     }
+     if(!project->isEmpty("QMAKE_FRAMEWORKPATH_FLAGS"))
+@@ -1393,8 +1388,7 @@ void UnixMakefileGenerator::init2()
+     }
+ 
+     if (include_deps && project->isActiveConfig("gcc_MD_depends")) {
+-        // use -MMD if we know about -isystem too
+-        ProString MD_flag(project->values("QMAKE_CFLAGS_ISYSTEM").isEmpty() ? "-MD" : "-MMD");
++        ProString MD_flag("-MD");
+         project->values("QMAKE_CFLAGS") += MD_flag;
+         project->values("QMAKE_CXXFLAGS") += MD_flag;
+     }
+diff --git a/qtbase/qmake/generators/win32/mingw_make.cpp b/qtbase/qmake/generators/win32/mingw_make.cpp
+index d778790f8ac..ee9a41838bc 100644
+--- a/qtbase/qmake/generators/win32/mingw_make.cpp
++++ b/qtbase/qmake/generators/win32/mingw_make.cpp
+@@ -200,17 +200,12 @@ void MingwMakefileGenerator::writeIncPart(QTextStream &t)
+ {
+     t << "INCPATH       = ";
+ 
+-    QString isystem = var("QMAKE_CFLAGS_ISYSTEM");
+     const ProStringList &incs = project->values("INCLUDEPATH");
+     for (ProStringList::ConstIterator incit = incs.begin(); incit != incs.end(); ++incit) {
+         QString inc = (*incit).toQString();
+         inc.replace(QRegExp("\\\\$"), "");
+ 
+-        if (!isystem.isEmpty() && isSystemInclude(inc))
+-            t << isystem << ' ';
+-        else
+-            t << "-I";
+-        t << escapeFilePath(inc) << ' ';
++        t << "-I" << escapeFilePath(inc) << ' ';
+     }
+     t << Qt::endl;
+ }
+diff --git a/qtbase/src/plugins/platformthemes/gtk3/gtk3.pro b/qtbase/src/plugins/platformthemes/gtk3/gtk3.pro
+index cac6f7054d3..8d217396d34 100644
+--- a/qtbase/src/plugins/platformthemes/gtk3/gtk3.pro
++++ b/qtbase/src/plugins/platformthemes/gtk3/gtk3.pro
+@@ -10,6 +10,8 @@ QT += core-private gui-private theme_support-private
+ CONFIG += X11
+ QMAKE_USE += gtk3
+ DEFINES += GDK_VERSION_MIN_REQUIRED=GDK_VERSION_3_6
++# Needed for GTK < 3.23
++QMAKE_CXXFLAGS_WARN_ON += -Wno-error=parentheses
+ 
+ HEADERS += \
+         qgtk3dialoghelpers.h \
+

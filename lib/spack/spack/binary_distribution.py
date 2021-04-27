@@ -37,12 +37,10 @@ import spack.util.spack_yaml as syaml
 import spack.mirror
 import spack.util.url as url_util
 import spack.util.web as web_util
+from spack.caches import misc_cache_location
 from spack.spec import Spec
 from spack.stage import Stage
 
-
-#: default root, relative to the Spack install path
-default_binary_index_root = os.path.join(spack.paths.opt_path, 'spack')
 
 _build_cache_relative_path = 'build_cache'
 _build_cache_keys_relative_path = '_pgp'
@@ -67,9 +65,8 @@ class BinaryCacheIndex(object):
     mean we should have paid the price to update the cache earlier?
     """
 
-    def __init__(self, cache_root=None):
-        self._cache_root = cache_root or default_binary_index_root
-        self._index_cache_root = os.path.join(self._cache_root, 'indices')
+    def __init__(self, cache_root):
+        self._index_cache_root = cache_root
 
         # the key associated with the serialized _local_index_cache
         self._index_contents_key = 'contents.json'
@@ -440,13 +437,15 @@ class BinaryCacheIndex(object):
         return True
 
 
+def binary_index_location():
+    """Set up a BinaryCacheIndex for remote buildcache dbs in the user's homedir."""
+    cache_root = os.path.join(misc_cache_location(), 'indices')
+    return spack.util.path.canonicalize_path(cache_root)
+
+
 def _binary_index():
     """Get the singleton store instance."""
-    cache_root = spack.config.get(
-        'config:binary_index_root', default_binary_index_root)
-    cache_root = spack.util.path.canonicalize_path(cache_root)
-
-    return BinaryCacheIndex(cache_root)
+    return BinaryCacheIndex(binary_index_location())
 
 
 #: Singleton binary_index instance
@@ -551,40 +550,38 @@ def read_buildinfo_file(prefix):
     return buildinfo
 
 
-def write_buildinfo_file(spec, workdir, rel=False):
+def get_buildfile_manifest(spec):
     """
-    Create a cache file containing information
-    required for the relocation
+    Return a data structure with information about a build, including
+    text_to_relocate, binary_to_relocate, binary_to_relocate_fullpath
+    link_to_relocate, and other, which means it doesn't fit any of previous
+    checks (and should not be relocated). We blacklist docs (man) and
+    metadata (.spack). This can be used to find a particular kind of file
+    in spack, or to generate the build metadata.
     """
-    prefix = spec.prefix
-    text_to_relocate = []
-    binary_to_relocate = []
-    link_to_relocate = []
+    data = {"text_to_relocate": [], "binary_to_relocate": [],
+            "link_to_relocate": [], "other": [],
+            "binary_to_relocate_fullpath": []}
+
     blacklist = (".spack", "man")
-    prefix_to_hash = dict()
-    prefix_to_hash[str(spec.package.prefix)] = spec.dag_hash()
-    deps = spack.build_environment.get_rpath_deps(spec.package)
-    for d in deps:
-        prefix_to_hash[str(d.prefix)] = d.dag_hash()
+
     # Do this at during tarball creation to save time when tarball unpacked.
     # Used by make_package_relative to determine binaries to change.
-    for root, dirs, files in os.walk(prefix, topdown=True):
+    for root, dirs, files in os.walk(spec.prefix, topdown=True):
         dirs[:] = [d for d in dirs if d not in blacklist]
         for filename in files:
             path_name = os.path.join(root, filename)
             m_type, m_subtype = relocate.mime_type(path_name)
+            rel_path_name = os.path.relpath(path_name, spec.prefix)
+            added = False
+
             if os.path.islink(path_name):
                 link = os.readlink(path_name)
                 if os.path.isabs(link):
                     # Relocate absolute links into the spack tree
                     if link.startswith(spack.store.layout.root):
-                        rel_path_name = os.path.relpath(path_name, prefix)
-                        link_to_relocate.append(rel_path_name)
-                    else:
-                        msg = 'Absolute link %s to %s ' % (path_name, link)
-                        msg += 'outside of prefix %s ' % prefix
-                        msg += 'should not be relocated.'
-                        tty.warn(msg)
+                        data['link_to_relocate'].append(rel_path_name)
+                    added = True
 
             if relocate.needs_binary_relocation(m_type, m_subtype):
                 if ((m_subtype in ('x-executable', 'x-sharedlib')
@@ -592,11 +589,31 @@ def write_buildinfo_file(spec, workdir, rel=False):
                    (m_subtype in ('x-mach-binary')
                     and sys.platform == 'darwin') or
                    (not filename.endswith('.o'))):
-                    rel_path_name = os.path.relpath(path_name, prefix)
-                    binary_to_relocate.append(rel_path_name)
+                    data['binary_to_relocate'].append(rel_path_name)
+                    data['binary_to_relocate_fullpath'].append(path_name)
+                    added = True
+
             if relocate.needs_text_relocation(m_type, m_subtype):
-                rel_path_name = os.path.relpath(path_name, prefix)
-                text_to_relocate.append(rel_path_name)
+                data['text_to_relocate'].append(rel_path_name)
+                added = True
+
+            if not added:
+                data['other'].append(path_name)
+    return data
+
+
+def write_buildinfo_file(spec, workdir, rel=False):
+    """
+    Create a cache file containing information
+    required for the relocation
+    """
+    manifest = get_buildfile_manifest(spec)
+
+    prefix_to_hash = dict()
+    prefix_to_hash[str(spec.package.prefix)] = spec.dag_hash()
+    deps = spack.build_environment.get_rpath_deps(spec.package)
+    for d in deps:
+        prefix_to_hash[str(d.prefix)] = d.dag_hash()
 
     # Create buildinfo data and write it to disk
     import spack.hooks.sbang as sbang
@@ -606,10 +623,10 @@ def write_buildinfo_file(spec, workdir, rel=False):
     buildinfo['buildpath'] = spack.store.layout.root
     buildinfo['spackprefix'] = spack.paths.prefix
     buildinfo['relative_prefix'] = os.path.relpath(
-        prefix, spack.store.layout.root)
-    buildinfo['relocate_textfiles'] = text_to_relocate
-    buildinfo['relocate_binaries'] = binary_to_relocate
-    buildinfo['relocate_links'] = link_to_relocate
+        spec.prefix, spack.store.layout.root)
+    buildinfo['relocate_textfiles'] = manifest['text_to_relocate']
+    buildinfo['relocate_binaries'] = manifest['binary_to_relocate']
+    buildinfo['relocate_links'] = manifest['link_to_relocate']
     buildinfo['prefix_to_hash'] = prefix_to_hash
     filename = buildinfo_file_name(workdir)
     with open(filename, 'w') as outfile:

@@ -17,6 +17,7 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
 
     executables = [r'^tar$']
 
+    version('1.34', sha256='03d908cf5768cfe6b7ad588c921c6ed21acabfb2b79b788d1330453507647aed')
     version('1.32', sha256='b59549594d91d84ee00c99cf2541a3330fed3a42c440503326dab767f2fbb96c')
     version('1.31', sha256='b471be6cb68fd13c4878297d856aebd50551646f4e3074906b1a74549c40d5a2')
     version('1.30', sha256='4725cc2c2f5a274b12b39d1f78b3545ec9ebb06a6e48e8845e1995ac8513b088')
@@ -30,7 +31,12 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
     patch('se-selinux.patch', when='@:1.29')
     patch('argp-pgi.patch',   when='@:1.29')
     patch('gnutar-configure-xattrs.patch', when='@1.28')
-    patch('nvhpc.patch',      when='%nvhpc')
+    # The NVIDIA compilers do not currently support some GNU builtins.
+    # Detect this case and use the fallback path.
+    patch('nvhpc-1.30.patch', when='@1.30:1.32 %nvhpc')
+    patch('nvhpc-1.34.patch', when='@1.34 %nvhpc')
+    # Workaround bug where __LONG_WIDTH__ is not defined
+    patch('nvhpc-long-width.patch', when='@1.34 %nvhpc')
 
     @classmethod
     def determine_version(cls, exe):

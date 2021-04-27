@@ -1,0 +1,17 @@
+--- a/gnu/regex_internal.h	2020-08-21 09:14:20.039942370 -0700
++++ b/gnu/regex_internal.h	2020-08-21 10:06:57.840331452 -0700
+@@ -35,6 +35,14 @@
+ #include <intprops.h>
+ #include <verify.h>
+ 
++#ifndef __LONG_WIDTH__
++#if LONG_WIDTH
++#define __LONG_WIDTH__ LONG_WIDTH
++#else
++#define __LONG_WIDTH__ __WORDSIZE
++#endif
++#endif
++
+ #if defined DEBUG && DEBUG != 0
+ # include <assert.h>
+ # define DEBUG_ASSERT(x) assert (x)

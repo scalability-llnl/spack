@@ -14,10 +14,12 @@ class HsaRocrDev(CMakePackage):
        Linux HSA Runtime for Boltzmann (ROCm) platforms."""
 
     homepage = "https://github.com/RadeonOpenCompute/ROCR-Runtime"
+    git      = "https://github.com/RadeonOpenCompute/ROCR-Runtime.git"
     url      = "https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/rocm-4.1.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
+    version('master', branch='master')
     version('4.1.0', sha256='c223a5f7ccac280520abb6ea49fdd36fa9468718098a9d984be6ef839ccbc6db')
     version('4.0.0', sha256='e84c48e80ea38698a5bd5da3940048ad3cab3696d10a53132acad07ca357f17c')
     version('3.10.0', sha256='58866d8acdb6cc45227f2412098e37c65908b20ed3dd54901dfb515c15ad5f71')
@@ -30,9 +32,10 @@ class HsaRocrDev(CMakePackage):
 
     depends_on('cmake@3:', type="build")
     depends_on('libelf@0.8:', type='link')
-    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
+    for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0',
+                'master']:
         depends_on('hsakmt-roct@' + ver, type=('link', 'run'), when='@' + ver)
-    for ver in ['3.7.0', '3.8.0', '3.9.0', '4.0.0', '4.1.0']:
+    for ver in ['3.7.0', '3.8.0', '3.9.0', '4.0.0', '4.1.0', 'master']:
         depends_on('llvm-amdgpu@' + ver, type=('link', 'run'), when='@' + ver)
 
     # Both 3.5.0 and 3.7.0 force INSTALL_RPATH in different ways

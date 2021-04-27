@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-
 
 class Elmerfem(CMakePackage):
     """Elmer is an open source multiphysical simulation software. It
@@ -17,8 +15,10 @@ class Elmerfem(CMakePackage):
 
     version('ice',   branch='elmerice')
     version('devel', branch='devel')
+    version('9.0', sha256='08c5bf261e87ff37456c1aa0372db3c83efabe4473ea3ea0b8ec66f5944d1aa0')
     version('8.4', sha256='cc3ce807d76798361592cc14952cdc3db1ad8f9bac038017514033ce9badc5b3')
 
+    variant('gui', default=False, description='Enable GUI support.')
     variant('mpi', default=True, description='Enable MPI support.')
     variant('openmp', default=True, description='Enable OpenMP support.')
     variant('mumps', default=False, description='Enable MUMPS support.')
@@ -28,6 +28,9 @@ class Elmerfem(CMakePackage):
     variant('lua', default=False, description='Enable Lua support.')
     variant('scatt2d', default=False, description='Build Scattered2DDataInterpolator solver.')
 
+    depends_on('qt@5:+opengl', when='+gui')
+    depends_on('qwt', when='+gui')
+    depends_on('paraview+qt', when='+gui')
     depends_on('mpi')
     depends_on('netcdf-fortran')
     depends_on('blas')
@@ -46,6 +49,14 @@ class Elmerfem(CMakePackage):
         spec = self.spec
 
         args = ['-DWITH_ElmerIce=ON', '-DWITH_CONTRIB=ON']
+
+        if '+gui' in spec:
+            args.append('-DWITH_ELMERGUI:BOOL=TRUE')
+            args.append('-DWITH_QT5:BOOL=TRUE')
+            args.append('-DWITH_QWT:BOOL=TRUE')
+            args.append('-DWITH_PARAVIEW:BOOL=TRUE')
+        else:
+            args.append('-DWITH_ELMERGUI:BOOL=FALSE')
 
         if '+mpi' in spec:
             args.append('-DWITH_MPI=ON')
@@ -112,6 +123,16 @@ class Elmerfem(CMakePackage):
 
         return args
 
+    def patch(self):
+        if self.spec.satisfies('@8.4'):
+            # from commit f02cb33acd59 upstream
+            filter_file('FOREACH(D RANGE 1 depth)',
+                        'FOREACH(D RANGE 1 ${depth})',
+                        'fem/tests/CMakeLists.txt',
+                        string=True)
+
     def setup_run_environment(self, env):
         env.set('ELMER_HOME', self.prefix)
         env.set('ELMER_Fortran_COMPILER', self.compiler.fc)
+        if '+gui' in self.spec:
+            env.set('ELMERGUI_HOME', self.prefix.share.ElmerGUI)

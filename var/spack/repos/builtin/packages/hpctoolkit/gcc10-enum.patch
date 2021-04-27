@@ -1,0 +1,15 @@
+See: https://github.com/HPCToolkit/hpctoolkit/issues/309
+
+diff --git a/src/tool/hpcrun/gpu/gpu-metrics.h b/src/tool/hpcrun/gpu/gpu-metrics.h
+index ea0958156..fa3bceab1 100644
+--- a/src/tool/hpcrun/gpu/gpu-metrics.h
++++ b/src/tool/hpcrun/gpu/gpu-metrics.h
+@@ -61,7 +61,7 @@
+ //*****************************************************************************
+ 
+ 
+-enum {
++typedef enum {
+   GPU_INST_STALL_ANY                   = 0
+ } gpu_inst_stall_all_t;
+ 

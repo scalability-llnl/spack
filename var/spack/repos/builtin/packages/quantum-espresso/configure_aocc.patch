@@ -1,0 +1,58 @@
+--- spack-src/install/configure.orig	2021-02-11 13:56:58.900212951 +0530
++++ spack-src/install/configure	2021-02-11 15:19:54.726403962 +0530
+@@ -3203,6 +3203,7 @@
+         nagfor_version=`$mpif90 -v 2>&1 | grep "NAG Fortran"`
+         xlf_version=`$mpif90 -v 2>&1 | grep "xlf"`
+         armflang_version=`$mpif90 -v 2>&1 | grep "Arm C/C++/Fortran Compiler version"`
++		aoccflang_version=`$mpif90 -v 2>&1 | grep "AMD clang version"`
+         #
+         if test "$ifort_version" != ""
+         then
+@@ -3227,6 +3228,12 @@
+                 f90_minor_version=`echo $version | cut -d. -f2`
+                 echo "${ECHO_T}gfortran $f90_major_version.$f90_minor_version"
+                 f90_in_mpif90="gfortran"
++		elif test "$aoccflang_version" != ""
++		then
++				version=`echo $aoccflang_version | cut -d" " -f 5`
++				echo "${ECHO_T}mpif90 $version"
++				f90_in_mpif90="mpif90"
++				try_foxflags="-D__PGI"
+         elif test "$nagfor_version" != ""
+         then
+                 # NAG 6.0 has the codename attached to version number... annoying
+@@ -3327,6 +3334,8 @@
+         f90_flavor=ifort
+     elif $f90 -V 2>&1 | grep -q "^pgf" ; then
+         f90_flavor=pgf
++	elif $f90 -v 2>&1 | grep -q "AMD clang version" ; then
++		f90_flavor=mpif90
+     elif $f90 -v 2>&1 | grep -q "gcc version" ; then
+         f90_flavor=gfortran
+     elif $f90 -V 2>&1 | grep -q "Cray Fortran" ; then
+@@ -3385,6 +3394,9 @@
+ *:pgf90 )
+         try_cc="pgcc $try_cc"
+         ;;
++*:mpif90 )
++		try_cc="mpicc $try_cc"
++		;;
+ cray*:* )
+         try_cc="cc"
+         ;;
+@@ -4017,6 +4029,15 @@
+         try_dflags="$try_dflags -D__PGI"
+         have_cpp=1
+         ;;
++*:*mpif90 )
++	try_fflags="-O3 -g"
++		try_fflags_openmp="-fopenmp"
++		try_f90flags="\$(FFLAGS) -cpp"
++		try_fflags_noopt="-O0 -g"
++		try_ldflags="-g"
++		try_ldflags_openmp="-pthread -fopenmp"
++		try_ldflags_static="-static"
++		;;
+ *:*gfortran )
+ 	try_fflags="-O3 -g"
+         if test "$f90_major_version" -ge "10"; then

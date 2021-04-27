@@ -21,7 +21,8 @@ class Libsakura(CMakePackage):
     depends_on('cmake@2.8:', type='build')
 
     depends_on('eigen@3.2:')
-    depends_on('fftw@3.3.2:')
+    depends_on('fftw@3.3.2: precision=float', when='@:3.99')
+    depends_on('fftw@3.3.2: precision=double', when='@4.0.0:')
     depends_on('log4cxx')
 
     patch('cmakelists.patch')

@@ -25,6 +25,7 @@ class Boost(Package):
     maintainers = ['hainest']
 
     version('develop', branch='develop', submodules=True)
+    version('1.76.0', sha256='f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41')
     version('1.75.0', sha256='953db31e016db7bb207f11432bef7df100516eeb746843fa0486a222e3fd49cb')
     version('1.74.0', sha256='83bfc1507731a0906e387fc28b7ef5417d591429e51e788417fe9ff025e116b1')
     version('1.73.0', sha256='4eb3b8d442b426dc35346235c8733b5ae35ba431690e38c6a8263dce9fcbb402')
@@ -269,7 +270,7 @@ class Boost(Package):
     # Fix B2 bootstrap toolset during installation
     # See https://github.com/spack/spack/issues/20757
     # and https://github.com/spack/spack/pull/21408
-    patch("bootstrap-toolset.patch", when="@1.75:")
+    patch("bootstrap-toolset.patch", when="@1.75")
 
     def patch(self):
         # Disable SSSE3 and AVX2 when using the NVIDIA compiler

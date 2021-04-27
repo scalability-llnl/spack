@@ -240,6 +240,13 @@ takes a boolean and determines whether the pipeline uses artifacts to store and
 pass along the buildcaches from one stage to the next (the default if you don't
 provide this option is ``False``).
 
+The optional ``broken-specs-url`` key tells Spack to check against a list of
+specs that are known to be currently broken in ``develop``. If any such specs
+are found, the ``spack ci generate`` command will fail with an error message
+informing the user what broken specs were encountered. This allows the pipeline
+to fail early and avoid wasting compute resources attempting to build packages
+that will not succeed.
+
 The optional ``cdash`` section provides information that will be used by the
 ``spack ci generate`` command (invoked by ``spack ci start``) for reporting
 to CDash.  All the jobs generated from this environment will belong to a
@@ -554,7 +561,7 @@ provision of a custom ``script`` section.  The reason for this is to run
 
 Now imagine you have long pipelines with many specs to be built, and you
 are pointing to a spack repository and branch that has a tendency to change
-frequently, such as the main repo and it's ``develop`` branch.  If each child
+frequently, such as the main repo and its ``develop`` branch.  If each child
 job checks out the ``develop`` branch, that could result in some jobs running
 with one SHA of spack, while later jobs run with another.  To help avoid this
 issue, the pipeline generation process saves global variables called

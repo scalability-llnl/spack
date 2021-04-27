@@ -14,7 +14,9 @@ class Nest(CMakePackage):
 
     homepage = "http://www.nest-simulator.org"
     url      = "https://github.com/nest/nest-simulator/releases/download/v2.12.0/nest-2.12.0.tar.gz"
+    git      = "https://github.com/nest/nest-simulator.git"
 
+    version('master', branch='master')
     version('2.20.0', sha256='40e33187c22d6e843d80095b221fa7fd5ebe4dbc0116765a91fc5c425dd0eca4')
     version('2.14.0', sha256='d6316d6c9153100a3220488abfa738958c4b65bf2622bd15540e4aa81e79f17f')
     version('2.12.0', sha256='bac578f38bb0621618ee9d5f2f1febfee60cddc000ff32e51a5f5470bb3df40d')
@@ -23,7 +25,7 @@ class Nest(CMakePackage):
     version('2.6.0',  sha256='5fe4924bc57d0c7dd820aa371de935eedf7e813832c0eee2c976b33c9a8db4cf')
     version('2.4.2',  sha256='8f86e58c1a12b733ffabd8b0400326e5a3494a458149ea8ebe9f19674d05b91b')
 
-    variant('python', default=True,
+    variant('python', default=False,
             description='Build the PyNest interface')
     variant('mpi', default=True,
             description='Build with MPI bindings')
@@ -103,7 +105,7 @@ class Nest(CMakePackage):
         else:
             args.append('-Dwith-mpi=OFF')
 
-        if '+python':
+        if '+python' in self.spec:
             version = self.spec['python'].version[0]
             args.append('-Dwith-python={0}'.format(version))
             args.append('-Dcythonize-pynest=' + self.spec['py-cython'].prefix)

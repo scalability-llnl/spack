@@ -20,3 +20,8 @@ class Libxext(AutotoolsPackage, XorgPackage):
     depends_on('xextproto@7.1.99:')
     depends_on('pkgconfig', type='build')
     depends_on('util-macros', type='build')
+
+    @property
+    def libs(self):
+        return find_libraries('libXext', self.prefix,
+                              shared=True, recursive=True)

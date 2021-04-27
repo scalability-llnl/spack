@@ -7,6 +7,7 @@ import os
 import platform
 import re
 
+from spack.util.prefix import Prefix
 
 # If you need to add a new version, please be aware that:
 #  - versions in the following dict are automatically added to the package
@@ -23,9 +24,13 @@ _versions = {
     '11.0.0-2020-01-01': {
         'Linux-aarch64': ('05c7d9c90edacd853850fbb0f52f8aa482809d0452c599cb9fe0b28b3b4bf329', 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk11u-2020-01-01-06-13/OpenJDK11U-jdk_aarch64_linux_hotspot_2020-01-01-06-13.tar.gz')},
     '11.0.2': {
-        'Linux-x86_64': ('99be79935354f5c0df1ad293620ea36d13f48ec3ea870c838f20c504c9668b57', 'https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz')},
+        'Linux-x86_64': ('99be79935354f5c0df1ad293620ea36d13f48ec3ea870c838f20c504c9668b57', 'https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz'),
+        'Darwin-x86_64': ('f365750d4be6111be8a62feda24e265d97536712bc51783162982b8ad96a70ee', 'https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_osx-x64_bin.tar.gz')
+    },
     '11.0.1': {
-        'Linux-x86_64': ('7a6bb980b9c91c478421f865087ad2d69086a0583aeeb9e69204785e8e97dcfd', 'https://download.java.net/java/GA/jdk11/13/GPL/openjdk-11.0.1_linux-x64_bin.tar.gz')},
+        'Linux-x86_64': ('7a6bb980b9c91c478421f865087ad2d69086a0583aeeb9e69204785e8e97dcfd', 'https://download.java.net/java/GA/jdk11/13/GPL/openjdk-11.0.1_linux-x64_bin.tar.gz'),
+        'Darwin-x86_64': ('fa07eee08fa0f3de541ee1770de0cdca2ae3876f3bd78c329f27e85c287cd070', 'https://download.java.net/java/GA/jdk11/13/GPL/openjdk-11.0.1_osx-x64_bin.tar.gz')
+    },
     '1.8.0_265-b01': {
         'Linux-x86_64': ('1285da6278f2d38a790a21148d7e683f20de0799c44b937043830ef6b57f58c4', 'https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u265-b01/OpenJDK8U-jdk_x64_linux_hotspot_8u265b01.tar.gz')},
     '1.8.0_191-b12': {
@@ -114,7 +119,8 @@ class Openjdk(Package):
         return find_libraries(['libjvm'], root=self.home, recursive=True)
 
     def install(self, spec, prefix):
-        install_tree('.', prefix)
+        top_dir = 'Contents/Home/' if platform.system() == "Darwin" else '.'
+        install_tree(top_dir, prefix)
 
     def setup_run_environment(self, env):
         """Set JAVA_HOME."""

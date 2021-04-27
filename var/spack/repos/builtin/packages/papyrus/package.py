@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+import os
 
 
 class Papyrus(CMakePackage):
@@ -19,3 +20,13 @@ class Papyrus(CMakePackage):
     version('1.0.0', sha256='5d57c0bcc80de48951e42460785783b882087a5714195599d773a6eabde5c4c4')
 
     depends_on('mpi')
+
+    def setup_run_environment(self, env):
+        if os.path.isdir(self.prefix.lib64):
+            lib_dir = self.prefix.lib64
+        else:
+            lib_dir = self.prefix.lib
+
+        env.prepend_path('CPATH', self.prefix.include)
+        env.prepend_path('LIBRARY_PATH', lib_dir)
+        env.prepend_path('LD_LIBRARY_PATH', lib_dir)

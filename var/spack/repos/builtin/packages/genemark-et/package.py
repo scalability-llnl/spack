@@ -20,17 +20,24 @@ class GenemarkEt(Package):
     homepage = "http://topaz.gatech.edu/GeneMark"
     manual_download = True
 
+    version('4.65', sha256='62ea2dfa1954ab25edcc118dbeaeacf15924274fb9ed47bc54716cfd15ad04fe')
     version('4.46', sha256='856b0b6c7cbd12835e140ff04ecd9124376348efd65f76bfd8b8e08c1834eac0')
     version('4.38', sha256='cee3bd73d331be44159eac15469560d0b07ffa2c98ac764c37219e1f3b7d3146')
 
     depends_on('perl', type=('build', 'run'))
     depends_on('perl-yaml', type=('build', 'run'))
     depends_on('perl-hash-merge', type=('build', 'run'))
-    depends_on('perl-logger-simple', type=('build', 'run'))
     depends_on('perl-parallel-forkmanager', type=('build', 'run'))
+    depends_on('perl-logger-simple', when='@:4.46', type=('build', 'run'))
+    depends_on('perl-mce', when='@4.65:', type=('build', 'run'))
+    depends_on('perl-thread-queue', when='@4.65:', type=('build', 'run'))
+    depends_on('perl-threads', when='@4.65:', type=('build', 'run'))
 
     def url_for_version(self, version):
-        return "file://{0}/gm_et_linux_64.tar.gz".format(os.getcwd())
+        if version >= Version('4.65'):
+            return "file://{0}/gmes_linux_64.tar.gz".format(os.getcwd())
+        else:
+            return "file://{0}/gm_et_linux_64.tar.gz".format(os.getcwd())
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

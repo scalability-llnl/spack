@@ -41,7 +41,7 @@ class Xsbench(MakefilePackage):
         targets = []
         cflags = ''
 
-        if not self.spec.satisfies('%nvhpc'):
+        if not self.spec.satisfies('%nvhpc@:20.11'):
             cflags = '-std=gnu99'
 
         if '+mpi' in self.spec:

@@ -272,6 +272,7 @@ class Cp2k(MakefilePackage, CudaPackage):
         elif '%aocc' in spec:
             fcflags += [
                 '-ffree-form',
+                '-Mbackslash',
             ]
         elif '%pgi' in spec or '%nvhpc' in spec:
             fcflags += ['-Mfreeform', '-Mextend']

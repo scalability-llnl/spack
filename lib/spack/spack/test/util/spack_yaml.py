@@ -65,3 +65,31 @@ def test_config_blame_with_override(config):
         check_blame('verify_ssl', config_file, 13)
         check_blame('checksum', config_file, 14)
         check_blame('dirty', config_file, 15)
+
+
+def test_config_blame_defaults():
+    """check blame for an element from an override scope"""
+    files = {}
+
+    def get_file_lines(filename):
+        if filename not in files:
+            with open(filename, "r") as f:
+                files[filename] = [""] + f.read().split("\n")
+        return files[filename]
+
+    config_blame = config_cmd("blame", "config")
+    for line in config_blame.split("\n"):
+        # currently checking only simple lines with dict keys
+        match = re.match(r"^([^:]+):(\d+)\s+([^:]+):\s+(.*)", line)
+
+        # check that matches are on the lines they say they are
+        if match:
+            filename, line, key, val = match.groups()
+            line = int(line)
+
+            if val.lower() in ("true", "false"):
+                val = val.lower()
+
+            lines = get_file_lines(filename)
+            assert key in lines[line]
+            assert val in lines[line]

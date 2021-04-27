@@ -32,7 +32,7 @@ class Libfuse(MesonPackage):
     # Drops the install script which does system configuration
     patch('0001-Do-not-run-install-script.patch', when='~system_install')
 
-    executables = ['^fusermount$']
+    executables = ['^fusermount3?$']
 
     @classmethod
     def determine_version(cls, exe):

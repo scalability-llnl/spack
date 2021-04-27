@@ -23,6 +23,7 @@ class R(AutotoolsPackage):
 
     maintainers = ['glennpj']
 
+    version('4.0.5', sha256='0a3ee079aa772e131fe5435311ab627fcbccb5a50cabc54292e6f62046f1ffef')
     version('4.0.4', sha256='523f27d69744a08c8f0bd5e1e6c3d89a4db29ed983388ba70963a3cd3a4a802e')
     version('4.0.3', sha256='09983a8a78d5fb6bc45d27b1c55f9ba5265f78fa54a55c13ae691f87c5bb9e0d')
     version('4.0.2', sha256='d3bceab364da0876625e4097808b42512395fdf41292f4915ab1fd257c1bbe75')

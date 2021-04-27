@@ -16,4 +16,6 @@ class OctaveOptim(OctavePackage, SourceforgePackage):
     version('1.5.2', sha256='7b36033c5581559dc3e7616f97d402bc44dde0dfd74c0e3afdf47d452a76dddf')
 
     depends_on('octave-struct@1.0.12:')
-    extends('octave@3.6.0:')
+    depends_on('octave-statistics@1.4.0:')
+    extends('octave@3.6.0:', when='@:1.5.2')
+    extends('octave@4.0.0:', when='@1.6.1:')

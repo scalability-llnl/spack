@@ -26,4 +26,9 @@ class Gdrcopy(MakefilePackage):
     def install(self, spec, prefix):
         mkdir(prefix.include)
         mkdir(prefix.lib64)
-        make('lib_install', 'PREFIX={0}'.format(self.prefix))
+        if spec.satisfies('@2.2:'):
+            make('lib_install',
+                 'prefix={0}'.format(self.prefix))
+        else:
+            make('lib_install',
+                 'PREFIX={0}'.format(self.prefix))

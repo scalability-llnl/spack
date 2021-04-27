@@ -25,8 +25,8 @@ level = "long"
 
 
 # tutorial configuration parameters
-tutorial_branch = "releases/v0.15"
-tutorial_mirror = "s3://spack-tutorial-container/mirror/"
+tutorial_branch = "releases/v0.16"
+tutorial_mirror = "s3://spack-binaries-prs/tutorial/ecp21/mirror"
 tutorial_key    = os.path.join(spack.paths.share_path, "keys", "tutorial.pub")
 
 # configs to remove

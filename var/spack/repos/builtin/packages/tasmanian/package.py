@@ -6,19 +6,20 @@
 from spack import *
 
 
-class Tasmanian(CMakePackage):
+class Tasmanian(CMakePackage, CudaPackage, ROCmPackage):
     """The Toolkit for Adaptive Stochastic Modeling and Non-Intrusive
     ApproximatioN is a robust library for high dimensional integration and
     interpolation as well as parameter calibration."""
 
     homepage = 'http://tasmanian.ornl.gov'
-    url      = 'https://github.com/ORNL/TASMANIAN/archive/v7.1.tar.gz'
+    url      = 'https://github.com/ORNL/TASMANIAN/archive/v7.5.tar.gz'
     git      = 'https://github.com/ORNL/TASMANIAN.git'
 
     maintainers = ['mkstoyanov']
 
     version('develop', branch='master')
 
+    version('7.5', sha256='d621bd36dced4db86ef638693ba89b336762e7a3d7fedb3b5bcefb03390712b3')
     version('7.3', sha256='5bd1dd89cc5c84506f6900b6569b17e50becd73eb31ec85cfa11d6f1f912c4fa')
     version('7.1', sha256='9c24a591506a478745b802f1fa5c557da7bc80b12d8070855de6bc7aaca7547a')
     version('7.0', sha256='4094ba4ee2f1831c575d00368c8471d3038f813398be2e500739cef5c7c4a47b')  # use for xsdk-0.5.0
@@ -43,6 +44,9 @@ class Tasmanian(CMakePackage):
 
     variant('cuda', default=False,
             description='add CUDA support to Tasmanian')
+
+    variant('rocm', default=False,
+            description='add ROCm support to Tasmanian')
 
     variant('magma', default=False,
             description='add UTK MAGMA support to Tasmanian')
@@ -74,12 +78,19 @@ class Tasmanian(CMakePackage):
     depends_on('cuda@8.0.61:', when='+cuda', type=('build', 'run'))
     depends_on('cuda@8.0.61:', when='+magma', type=('build', 'run'))
 
+    depends_on('hip@3.8:', when='+rocm', type=('build', 'run'))
+    depends_on('rocblas@3.8:', when='+rocm', type=('build', 'run'))
+    depends_on('rocsparse@3.8:', when='+rocm', type=('build', 'run'))
+    depends_on('rocsolver@3.8:', when='+rocm', type=('build', 'run'))
+
     depends_on('magma@2.4.0:', when='+magma @6.0:', type=('build', 'run'))
     depends_on('magma@2.5.0:', when='+magma @7.0:', type=('build', 'run'))
 
     conflicts('-cuda', when='+magma')  # currently MAGMA only works with CUDA
+    conflicts('+cuda', when='+rocm')  # can pick CUDA or ROCm, not both
 
     # old versions
+    conflicts('+rocm', when='@:7.3')  # ROCm was added in 7.3, tested in 7.5
     conflicts('+magma', when='@:5.1')  # magma does not work prior to 6.0
     conflicts('+mpi', when='@:5.1')    # MPI is broken prior to 6.0
     conflicts('+xsdkflags', when='@:5.1')  # 6.0 is the first version included in xSDK
@@ -87,6 +98,11 @@ class Tasmanian(CMakePackage):
     # patching some bugs
     patch('addons70.patch', when='@7.0')
     patch('packageconf70.patch', when='@7.0')
+
+    def setup_build_environment(self, env):
+        # needed for the hipcc compiler
+        if "+rocm" in self.spec:
+            env.set('CXX', self.spec['hip'].hipcc)
 
     def cmake_args(self):
         spec = self.spec
@@ -116,9 +132,16 @@ class Tasmanian(CMakePackage):
                 self.define_from_variant('Tasmanian_ENABLE_PYTHON', 'python'),
                 self.define_from_variant('Tasmanian_ENABLE_MPI', 'mpi'),
                 self.define_from_variant('Tasmanian_ENABLE_CUDA', 'cuda'),
+                self.define_from_variant('Tasmanian_ENABLE_HIP', 'rocm'),
                 self.define_from_variant('Tasmanian_ENABLE_MAGMA', 'magma'),
                 self.define_from_variant('Tasmanian_ENABLE_FORTRAN',
                                          'fortran'), ]
+
+        if spec.satisfies('+blas'):
+            args.append('-DBLAS_LIBRARIES={0}'.format(spec['blas'].libs.joined(';')))
+            args.append(
+                '-DLAPACK_LIBRARIES={0}'.format(spec['lapack'].libs.joined(';'))
+            )
 
         if spec.satisfies('+python'):
             args.append('-DPYTHON_EXECUTABLE:FILEPATH={0}'.format(

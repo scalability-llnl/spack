@@ -49,7 +49,7 @@ class Matio(AutotoolsPackage):
         return args
 
     def patch(self):
-        if self.spec.satisfies('%nvhpc'):
+        if self.spec.satisfies('%nvhpc@:20.11'):
             # workaround anonymous version tag linker error for the NVIDIA
             # compilers
             filter_file('${wl}-version-script '

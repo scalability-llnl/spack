@@ -90,10 +90,19 @@ class Hwloc(AutotoolsPackage):
     depends_on('libxml2', when='+libxml2')
     depends_on('cairo', when='+cairo')
     depends_on('numactl', when='@:1.11.11 platform=linux')
-
-    # see https://github.com/open-mpi/hwloc/pull/417
-    depends_on('ncurses ~termlib', when='@:2.2')
     depends_on('ncurses')
+
+    # Before 2.2 hwloc does not consider linking to libtinfo
+    # to detect ncurses, which is considered a bug.
+    # For older versions this can be fixed by depending on
+    # ncurses~termlib, but this could lead to insatisfiable
+    # constraints (e.g. llvm explicitly depends on ncurses+termlib)
+    # Therefore we patch the latest 1.x configure script to make
+    # it consider libtinfo too.
+    # see https://github.com/open-mpi/hwloc/pull/417
+    patch('0001-Try-linking-to-libtinfo.patch', when='@1.11.13')
+    depends_on('ncurses ~termlib', when='@2.0:2.2')
+    depends_on('ncurses ~termlib', when='@1.0:1.11.12')
 
     # When mpi=openmpi, this introduces an unresolvable dependency.
     # See https://github.com/spack/spack/issues/15836 for details

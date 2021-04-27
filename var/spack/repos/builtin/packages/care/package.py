@@ -41,9 +41,10 @@ class Care(CMakePackage, CudaPackage, ROCmPackage):
     # package that uses cub. TODO: have all packages point to the same external
     # cub package.
     depends_on('camp+cuda', when='+cuda')
-    depends_on('umpire+cuda', when='+cuda')
+    depends_on('umpire+cuda~shared', when='+cuda')
+    depends_on('cub', when='+cuda')
     depends_on('raja+cuda~openmp', when='+cuda')
-    depends_on('chai+cuda', when='+cuda')
+    depends_on('chai+cuda~shared', when='+cuda')
 
     # variants +rocm and amdgpu_targets are not automatically passed to
     # dependencies, so do it manually.
@@ -69,13 +70,17 @@ class Care(CMakePackage, CudaPackage, ROCmPackage):
         if '+cuda' in spec:
             options.extend([
                 '-DENABLE_CUDA=ON',
-                '-DCUDA_TOOLKIT_ROOT_DIR=' + spec['cuda'].prefix])
+                '-DCUDA_TOOLKIT_ROOT_DIR=' + spec['cuda'].prefix,
+                '-DNVTOOLSEXT_DIR=' + spec['cuda'].prefix,
+                '-DCUB_DIR=' + spec['cub'].prefix])
 
             if not spec.satisfies('cuda_arch=none'):
                 cuda_arch = spec.variants['cuda_arch'].value
+                # Please note that within care, CUDA_ARCH is assigned to -code
+                # and likewise CUDA_CODE is assigned to -arch, so these are
+                # intentionally flipped here.
                 options.append('-DCUDA_ARCH=sm_{0}'.format(cuda_arch[0]))
-                flag = '-arch sm_{0}'.format(cuda_arch[0])
-                options.append('-DCMAKE_CUDA_FLAGS:STRING={0}'.format(flag))
+                options.append('-DCUDA_CODE=compute_{0}'.format(cuda_arch[0]))
         else:
             options.append('-DENABLE_CUDA=OFF')
 
