@@ -9,7 +9,11 @@ import os
 
 class Paraview(CMakePackage, CudaPackage):
     """ParaView is an open-source, multi-platform data analysis and
-    visualization application."""
+    visualization application. This package includes the Catalyst
+    in-situ library for versions 5.7 and greater, othewise use the
+    catalyst package.
+
+    """
 
     homepage = 'https://www.paraview.org'
     url      = "https://www.paraview.org/files/v5.7/ParaView-v5.7.0.tar.xz"
@@ -37,8 +41,8 @@ class Paraview(CMakePackage, CudaPackage):
     version('5.0.1', sha256='caddec83ec284162a2cbc46877b0e5a9d2cca59fb4ab0ea35b0948d2492950bb')
     version('4.4.0', sha256='c2dc334a89df24ce5233b81b74740fc9f10bc181cd604109fd13f6ad2381fc73')
 
-    variant('plugins', default=True,
-            description='Install include files for plugins support')
+    variant('development_files', default=True,
+            description='Install include files for Catalyst or plugins support')
     variant('python', default=False, description='Enable Python support')
     variant('python3', default=False, description='Enable Python3 support')
     variant('mpi', default=True, description='Enable MPI support')
@@ -55,6 +59,11 @@ class Paraview(CMakePackage, CudaPackage):
             values=('native', 'fermi', 'kepler', 'maxwell',
                     'pascal', 'volta', 'turing', 'ampere', 'all', 'none'),
             description='CUDA architecture')
+    variant('build_edition', default='canonical', multi=False,
+            values=('canonical', 'catalyst_rendering',
+                    'catalyst', 'rendering', 'core'),
+            description='Build editions include only certain modules. '
+            'Editions are listed in decreasing order of size.')
     variant('advanced_debug', default=False, description="Enable all other debug flags beside build_type, such as VTK_DEBUG_LEAK")
 
     conflicts('+python', when='+python3')
@@ -65,6 +74,11 @@ class Paraview(CMakePackage, CudaPackage):
     # Legacy rendering dropped in 5.5
     # See commit: https://gitlab.kitware.com/paraview/paraview/-/commit/798d328c
     conflicts('~opengl2', when='@5.5:')
+    # in 5.7 you cannot reduce the size of the code for Catalyst builds.
+    conflicts('build_edition=catalyst_rendering', when='@:5.7')
+    conflicts('build_edition=catalyst', when='@:5.7')
+    conflicts('build_edition=rendering', when='@:5.7')
+    conflicts('build_edition=core', when='@:5.7')
 
     depends_on('cmake@3.3:', type='build')
 
@@ -258,9 +272,10 @@ class Paraview(CMakePackage, CudaPackage):
             return variant_bool(feature, on='OFF', off='ON')
 
         rendering = variant_bool('+opengl2', 'OpenGL2', 'OpenGL')
-        includes  = variant_bool('+plugins')
+        includes  = variant_bool('+development_files')
 
         cmake_args = [
+            '-DPARAVIEW_BUILD_EDITION:STRING=%s' % spec.variants['build_edition'].value,
             '-DVTK_OPENGL_HAS_OSMESA:BOOL=%s' % variant_bool('+osmesa'),
             '-DVTK_USE_X:BOOL=%s' % nvariant_bool('+osmesa'),
             '-DPARAVIEW_INSTALL_DEVELOPMENT_FILES:BOOL=%s' % includes,
@@ -279,6 +294,7 @@ class Paraview(CMakePackage, CudaPackage):
                     cmake_args.append('-DVTK_PYTHON_OPTIONAL_LINK:BOOL=OFF')
             else:  # @5.7:
                 cmake_args.extend([
+                    '-DPARAVIEW_ENABLE_CATALYST:BOOL=ON',
                     '-DPARAVIEW_BUILD_QT_GUI:BOOL=%s' % variant_bool('+qt'),
                     '-DPARAVIEW_USE_EXTERNAL:BOOL=ON'])
 

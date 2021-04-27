@@ -11,9 +11,12 @@ import llnl.util.tty as tty
 
 
 class Catalyst(CMakePackage):
-    """Catalyst is an in situ use case library, with an adaptable application
-    programming interface (API), that orchestrates the alliance between
-    simulation and analysis and/or visualization tasks."""
+    """Catalyst is an in situ library, with an adaptable application
+    programming interface (API), that orchestrates the alliance
+    between simulation and analysis and/or visualization tasks. For
+    versions 5.7 and greater use the paraview package.
+
+    """
 
     homepage = 'http://www.paraview.org'
     url      = "http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.gz"
@@ -58,11 +61,15 @@ class Catalyst(CMakePackage):
     # extends('python', when='+python')
     extends('python', when='+python')
     extends('python', when='+python3')
+    # VTK < 8.2.1 can't handle Python 3.8
+    # This affects Paraview <= 5.7 (VTK 8.2.0)
+    # https://gitlab.kitware.com/vtk/vtk/-/issues/17670
+    depends_on('python@3:3.7', when='@:5.7 +python3', type=('build', 'run'))
+    depends_on('python@3:', when='@5.8:+python3', type=('build', 'run'))
+    depends_on('python@2.7:2.8', when='+python', type=('build', 'link', 'run'))
 
     depends_on('git', type='build')
     depends_on('mpi')
-    depends_on('python@2.7:2.8', when='+python', type=('build', 'link', 'run'))
-    depends_on('python@3:', when='+python3', type=('build', 'link', 'run'))
 
     depends_on('py-numpy', when='+python', type=('build', 'run'))
     depends_on('py-numpy', when='+python3', type=('build', 'run'))
@@ -135,9 +142,9 @@ class Catalyst(CMakePackage):
         catalyst_source_dir = os.path.abspath(self.root_cmakelists_dir)
 
         python_path = (os.path.realpath(
-            spec['python3'].command.path if '+python3' in self.spec else
-            spec['python'].command.path if '+python' in self.spec else
-            sys.executable))
+            self.spec['python'].command.path
+            if ('+python3' in self.spec or '+python' in self.spec)
+            else sys.executable))
 
         command = [python_path, catalyst_script,
                    '-r', self.stage.source_path,
