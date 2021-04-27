@@ -3,7 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
-from spack import *
+
+from spack.pkgkit import *
 
 
 class Gdl(CMakePackage):

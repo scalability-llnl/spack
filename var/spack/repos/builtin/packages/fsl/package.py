@@ -2,10 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-from spack.util.environment import EnvironmentModifications
 import os
+
+from spack.pkgkit import *
+from spack.util.environment import EnvironmentModifications
 
 
 class Fsl(Package, CudaPackage):

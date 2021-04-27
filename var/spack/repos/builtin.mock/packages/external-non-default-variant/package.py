@@ -2,6 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.pkgkit import *
+
+
 class ExternalNonDefaultVariant(Package):
     """An external that is registered with a non-default value"""
     homepage = "http://www.python.org"

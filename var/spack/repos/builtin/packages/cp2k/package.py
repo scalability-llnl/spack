@@ -2,12 +2,12 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
+import copy
 import os
 import os.path
-import copy
 
 import spack.util.environment
+from spack.pkgkit import *
 
 
 class Cp2k(MakefilePackage, CudaPackage):

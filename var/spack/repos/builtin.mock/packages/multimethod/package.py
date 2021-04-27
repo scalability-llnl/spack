@@ -2,12 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import six
+from spack.pkgkit import *
 
-from six import string_types
-
-from spack import *
 import spack.architecture
-
 from spack.pkg.builtin.mock.multimethod_base import MultimethodBase
 
 
@@ -92,7 +90,7 @@ class Multimethod(MultimethodBase):
     for target in targets:
         @when('target=' + target.name)
         def different_by_target(self):
-            if isinstance(self.spec.architecture.target, string_types):
+            if isinstance(self.spec.architecture.target, six.string_types):
                 return self.spec.architecture.target
             else:
                 return self.spec.architecture.target.name

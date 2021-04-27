@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import glob
 
+from spack.pkgkit import *
+
 
 class Raxml(Package):
     """RAxML (Randomized Axelerated Maximum Likelihood) is a program for

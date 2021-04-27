@@ -2,10 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-from spack.pkg.builtin.fftw import FftwBase
 from spack.error import SpackError
+from spack.pkg.builtin.fftw import FftwBase
+from spack.pkgkit import *
 
 
 def target_check(spec):

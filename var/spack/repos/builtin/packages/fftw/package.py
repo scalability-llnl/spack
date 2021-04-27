@@ -2,11 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import os
 import os.path
+
 import llnl.util.lang
-from spack import *
+from spack.pkgkit import *
 
 
 class FftwBase(AutotoolsPackage):

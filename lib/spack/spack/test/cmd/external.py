@@ -113,7 +113,7 @@ def test_find_external_cmd_not_buildable(
 
 
 def test_find_external_cmd_full_repo(
-        mutable_config, working_env, mock_executable, mutable_mock_repo):
+        mutable_config, working_env, mock_executable, mock_packages):
     """Test invoking 'spack external find' with no additional arguments, which
     iterates through each package in the repository.
     """
@@ -133,7 +133,7 @@ def test_find_external_cmd_full_repo(
     assert {'spec': 'find-externals1@1.foo', 'prefix': prefix} in pkg_externals
 
 
-def test_find_external_merge(mutable_config, mutable_mock_repo):
+def test_find_external_merge(mutable_config, mock_packages):
     """Check that 'spack find external' doesn't overwrite an existing spec
     entry in packages.yaml.
     """
@@ -170,7 +170,7 @@ def test_find_external_merge(mutable_config, mutable_mock_repo):
             'prefix': '/x/y2/'} in pkg_externals
 
 
-def test_list_detectable_packages(mutable_config, mutable_mock_repo):
+def test_list_detectable_packages(mutable_config, mock_packages):
     external("list")
     assert external.returncode == 0
 

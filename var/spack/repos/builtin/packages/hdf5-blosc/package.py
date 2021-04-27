@@ -2,12 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import os
 import shutil
 import sys
 
-from spack import *
+from spack.pkgkit import *
 
 
 def _install_shlib(name, src, dst):

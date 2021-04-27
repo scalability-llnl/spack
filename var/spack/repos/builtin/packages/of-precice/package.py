@@ -2,13 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import os
 
-import llnl.util.tty as tty
-
-from spack import *
+from llnl.util import tty
 from spack.pkg.builtin.openfoam import add_extra_files
+from spack.pkgkit import *
 
 
 class OfPrecice(Package):

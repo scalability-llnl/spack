@@ -2,17 +2,15 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-
-import sys
-import os
-import socket
 import glob
+import os
 import shutil
-
-import llnl.util.tty as tty
+import socket
+import sys
 from os import environ as env
+
+from llnl.util import tty
+from spack.pkgkit import *
 
 
 def cmake_cache_entry(name, value, vtype=None):

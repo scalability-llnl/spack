@@ -6,8 +6,9 @@ import os.path
 import re
 import sys
 
-import llnl.util.tty as tty
 import spack.util.executable
+from llnl.util import tty
+from spack.pkgkit import *
 
 
 class Llvm(CMakePackage, CudaPackage):

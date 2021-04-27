@@ -2,10 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-from os import unlink
 from glob import glob
+from os import unlink
+
+from spack.pkgkit import *
 
 
 class PyDpGpCluster(PythonPackage):

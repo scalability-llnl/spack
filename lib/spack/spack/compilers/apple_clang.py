@@ -9,12 +9,13 @@ import shutil
 import llnl.util.tty as tty
 import llnl.util.lang
 import spack.compiler
-import spack.compilers.clang
 import spack.util.executable
 import spack.version
 
+from .clang import Clang
 
-class AppleClang(spack.compilers.clang.Clang):
+
+class AppleClang(Clang):
     openmp_flag = "-Xpreprocessor -fopenmp"
 
     @classmethod

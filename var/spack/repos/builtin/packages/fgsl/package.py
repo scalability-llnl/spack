@@ -2,12 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-#
-# Author: Gilbert Brietzke
-# Date: June 18, 2019
-
-from spack import *
+from spack.pkgkit import *
 
 
 class Fgsl(AutotoolsPackage):

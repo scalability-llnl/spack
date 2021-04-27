@@ -2,13 +2,16 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
+import platform
+
+from spack.pkgkit import *
+from spack.util.prefix import Prefix
+
+
 #
 # Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
 
-from spack import *
-from spack.util.prefix import Prefix
-import os
-import platform
 
 # FIXME Remove hack for polymorphic versions
 # This package uses a ugly hack to be able to dispatch, given the same

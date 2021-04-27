@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
 
+from spack.pkgkit import *
+
 
 class Nim(Package):
     """Nim is a statically typed compiled systems programming language.

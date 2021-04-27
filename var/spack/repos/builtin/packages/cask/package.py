@@ -2,13 +2,15 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from glob import glob
+
+from spack.pkgkit import *
+
 
 #
 # Based on Homebrew's formula:
 # https://github.com/Homebrew/homebrew-core/blob/master/Formula/cask.rb
 #
-from spack import *
-from glob import glob
 
 
 class Cask(Package):

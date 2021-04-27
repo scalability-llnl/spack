@@ -36,7 +36,6 @@ import spack.error
 import spack.patch
 import spack.spec
 import spack.util.spack_json as sjson
-import spack.util.imp as simp
 import spack.provider_index
 import spack.util.path
 import spack.util.naming as nm
@@ -61,22 +60,6 @@ package_file_name  = 'package.py'  # Filename for packages in a repository.
 
 #: Guaranteed unused default value for some functions.
 NOT_PROVIDED = object()
-
-#: Code in ``_package_prepend`` is prepended to imported packages.
-#:
-#: Spack packages were originally expected to call `from spack import *`
-#: themselves, but it became difficult to manage and imports in the Spack
-#: core the top-level namespace polluted by package symbols this way.  To
-#: solve this, the top-level ``spack`` package contains very few symbols
-#: of its own, and importing ``*`` is essentially a no-op.  The common
-#: routines and directives that packages need are now in ``spack.pkgkit``,
-#: and the import system forces packages to automatically include
-#: this. This way, old packages that call ``from spack import *`` will
-#: continue to work without modification, but it's no longer required.
-#:
-#: TODO: At some point in the future, consider removing ``from spack import *``
-#: TODO: from packages and shifting to from ``spack.pkgkit import *``
-_package_prepend = 'from spack.pkgkit import *'
 
 
 def autospec(function):
@@ -1099,8 +1082,9 @@ class Repo(object):
             fullname = "%s.%s" % (self.full_namespace, pkg_name)
 
             try:
-                module = simp.load_source(fullname, file_path,
-                                          prepend=_package_prepend)
+                module = llnl.util.lang.load_module_from_file(
+                    fullname, file_path
+                )
             except SyntaxError as e:
                 # SyntaxError strips the path from the filename so we need to
                 # manually construct the error message in order to give the
@@ -1111,6 +1095,10 @@ class Repo(object):
             module.__package__ = self.full_namespace
             module.__loader__ = self
             self._modules[pkg_name] = module
+            if fullname in sys.modules:
+                # In this case we have a new Repo object, but a prior Repo
+                # has loaded the module (this only occurs during testing)
+                del sys.modules[fullname]
 
         return self._modules[pkg_name]
 

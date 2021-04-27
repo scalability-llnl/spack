@@ -2,6 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.pkgkit import *
+
+
 class Zig(CMakePackage):
     """A general-purpose programming language and toolchain for maintaining
     robust, optimal, and reusable software.

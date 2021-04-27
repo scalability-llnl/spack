@@ -2,10 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
 import os
 import re
+
+from spack.pkgkit import *
+
 
 tools_url = 'https://github.com/ROCm-Developer-Tools'
 compute_url = 'https://github.com/RadeonOpenCompute'

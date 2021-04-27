@@ -2,6 +2,8 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.pkgkit import *
+
 
 #
 # Author: Darach Golden <dgolden@tchpc.tcd.ie>,
@@ -11,7 +13,6 @@
 # Institution: Trinity Centre for High Performance Computing, https://www.tchpc.tcd.ie/  # noqa: E501
 # Date: May 09, 2019
 #
-from spack import *
 
 
 class Aom(CMakePackage):

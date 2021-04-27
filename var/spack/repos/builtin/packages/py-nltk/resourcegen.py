@@ -2,9 +2,11 @@
 #
 # Helper script for maintainers to autogenerate resources for py-nltk
 #
+import hashlib
 import urllib.request
 import xml.etree.ElementTree
-import hashlib
+
+
 url = 'https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/index.xml'
 document = urllib.request.urlopen(url).read()
 tree = xml.etree.ElementTree.fromstring(document)

@@ -2,11 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-import os
 import glob
-from shutil import copyfile, Error
+import os
+from shutil import Error, copyfile
+
+from spack.pkgkit import *
 
 
 class NetcdfFortran(AutotoolsPackage):

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import bohrium as bh
+
+
 a = bh.array([1, 2, 3])
 b = bh.array([3, 4, 5])
 c = a + b

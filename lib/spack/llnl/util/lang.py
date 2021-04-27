@@ -804,6 +804,9 @@ class LazyReference(object):
 def load_module_from_file(module_name, module_path):
     """Loads a python module from the path of the corresponding file.
 
+    If the module is already in ``sys.modules`` it will be returned as
+    is and not reloaded.
+
     Args:
         module_name (str): namespace where the python module will be loaded,
             e.g. ``foo.bar``
@@ -816,12 +819,28 @@ def load_module_from_file(module_name, module_path):
         ImportError: when the module can't be loaded
         FileNotFoundError: when module_path doesn't exist
     """
+    if module_name in sys.modules:
+        return sys.modules[module_name]
+
+    # This recipe is adapted from https://stackoverflow.com/a/67692/771663
     if sys.version_info[0] == 3 and sys.version_info[1] >= 5:
         import importlib.util
         spec = importlib.util.spec_from_file_location(  # novm
             module_name, module_path)
         module = importlib.util.module_from_spec(spec)  # novm
-        spec.loader.exec_module(module)
+        # The module object needs to exist in sys.modules before the
+        # loader executes the module code.
+        #
+        # See https://docs.python.org/3/reference/import.html#loading
+        sys.modules[spec.name] = module
+        try:
+            spec.loader.exec_module(module)
+        except BaseException:
+            try:
+                del sys.modules[spec.name]
+            except KeyError:
+                pass
+            raise
     elif sys.version_info[0] == 3 and sys.version_info[1] < 5:
         import importlib.machinery
         loader = importlib.machinery.SourceFileLoader(  # novm

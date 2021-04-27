@@ -756,6 +756,9 @@ def parent_class_modules(cls):
         issubclass(spack.package.PackageBase, cls)):
         return []
     result = []
+    # Accessing cls.module ensures that the module is imported
+    cls.module
+
     module = sys.modules.get(cls.__module__)
     if module:
         result = [module]

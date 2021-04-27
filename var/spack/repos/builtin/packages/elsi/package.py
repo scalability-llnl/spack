@@ -2,11 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-# See the Spack documentation for more information on packaging.
-# ----------------------------------------------------------------------------
-
-from spack import *
+from spack.pkgkit import *
 
 
 class Elsi(CMakePackage):

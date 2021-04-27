@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
+from spack.pkgkit import *
+
 
 class Petsc(Package):
     """PETSc is a suite of data structures and routines for the scalable

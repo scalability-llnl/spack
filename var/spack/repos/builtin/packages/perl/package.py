@@ -2,22 +2,12 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-#
-# Author: Milton Woods <milton.woods@bom.gov.au>
-# Date: March 22, 2017
-# Author: George Hartzell <hartzell@alerce.com>
-# Date: July 21, 2016
-# Author: Justin Too <justin@doubleotoo.com>
-# Date: September 6, 2015
-#
-import re
 import os
+import re
 from contextlib import contextmanager
 
 from llnl.util.lang import match_predicate
-
-from spack import *
+from spack.pkgkit import *
 
 
 class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package

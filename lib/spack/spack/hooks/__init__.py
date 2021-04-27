@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 """This package contains modules with hooks for various stages in the
    Spack install process.  You can add modules here and they'll be
    executed by package at various times during the package lifecycle.
@@ -24,26 +23,29 @@
 """
 import os.path
 
+import llnl.util.lang
 import spack.paths
-import spack.util.imp as simp
-from llnl.util.lang import memoized, list_modules
 
 
-@memoized
+@llnl.util.lang.memoized
 def all_hook_modules():
-    modules = []
-    for name in list_modules(spack.paths.hooks_path):
-        mod_name = __name__ + '.' + name
-        path = os.path.join(spack.paths.hooks_path, name) + ".py"
-        mod = simp.load_source(mod_name, path)
+    modules, last_module = [], None
+    for name in llnl.util.lang.list_modules(spack.paths.hooks_path):
+        module_name = __name__ + '.' + name
+        module_path = os.path.join(spack.paths.hooks_path, name) + ".py"
 
+        module_obj = llnl.util.lang.load_module_from_file(
+            module_name, module_path
+        )
         if name == 'write_install_manifest':
-            last_mod = mod
+            last_module = module_obj
         else:
-            modules.append(mod)
+            modules.append(module_obj)
 
     # put `write_install_manifest` as the last hook to run
-    modules.append(last_mod)
+    if last_module:
+        modules.append(last_module)
+
     return modules
 
 

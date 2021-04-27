@@ -2,6 +2,8 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.pkgkit import *
+
 
 #
 # This is a based largely on the Homebrew science formula:
@@ -14,7 +16,6 @@
 #   HOST that's defined to a string.  Hilarity ensues.
 #
 #
-from spack import *
 
 
 class BlastPlus(AutotoolsPackage):

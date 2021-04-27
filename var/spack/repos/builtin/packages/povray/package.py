@@ -2,12 +2,14 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-# For getting fqdn for defaulting COMPILED_BY
-import socket
-# For getting username for defaulting COMPILED_BY
 import getpass
+import socket
+
+from spack.pkgkit import *
+
+
+# For getting fqdn for defaulting COMPILED_BY
+# For getting username for defaulting COMPILED_BY
 
 
 class Povray(AutotoolsPackage):

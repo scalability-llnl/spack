@@ -6,6 +6,8 @@ import os
 import re
 import shutil
 
+from spack.pkgkit import *
+
 
 class Fzf(MakefilePackage):
     """fzf is a general-purpose command-line fuzzy finder."""

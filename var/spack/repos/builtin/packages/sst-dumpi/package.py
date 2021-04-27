@@ -2,12 +2,13 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.pkgkit import *
+
 
 #
 # Author: Samuel Knight <sknigh@sandia.gov>
 # Date: Feb 3, 2017
 #
-from spack import *
 
 
 class SstDumpi(AutotoolsPackage):

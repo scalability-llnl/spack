@@ -2,8 +2,8 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 from llnl.util.filesystem import LibraryList
+from spack.pkgkit import *
 
 
 class Libc(Package):

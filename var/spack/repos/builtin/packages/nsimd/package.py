@@ -2,6 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.pkgkit import *
+
+
 class Nsimd(CMakePackage):
     """NSIMD is a vectorization library that abstracts SIMD programming.
     It was designed to exploit the maximum power of processors

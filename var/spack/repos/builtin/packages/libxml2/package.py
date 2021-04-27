@@ -2,10 +2,8 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import llnl.util.filesystem as fs
-import llnl.util.tty as tty
-
-from spack import *
+from llnl.util import filesystem as fs, tty
+from spack.pkgkit import *
 
 
 class Libxml2(AutotoolsPackage):

@@ -2,12 +2,13 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import os
 import sys
-from spack import *
+
 from spack.operating_systems.mac_os import macos_version
 from spack.pkg.builtin.kokkos import Kokkos
+from spack.pkgkit import *
+
 
 # Trilinos is complicated to build, as an inspiration a couple of links to
 # other repositories which build it:

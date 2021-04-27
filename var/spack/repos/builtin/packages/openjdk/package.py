@@ -2,12 +2,13 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import os
 import platform
 import re
 
+from spack.pkgkit import *
 from spack.util.prefix import Prefix
+
 
 # If you need to add a new version, please be aware that:
 #  - versions in the following dict are automatically added to the package

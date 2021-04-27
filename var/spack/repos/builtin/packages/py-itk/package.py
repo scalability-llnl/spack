@@ -2,11 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import sys
-import archspec
 
-from spack import *
+import archspec
+from spack.pkgkit import *
 
 
 class PyItk(Package):

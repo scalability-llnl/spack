@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from glob import glob
 
+from spack.pkgkit import *
+
 
 class Lmod(AutotoolsPackage):
     """Lmod is a Lua based module system that easily handles the MODULEPATH

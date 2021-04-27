@@ -2,9 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import numbers
-from spack import *
+
+from spack.pkgkit import *
 
 
 def is_multiple_32(x):

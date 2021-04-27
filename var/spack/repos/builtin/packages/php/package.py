@@ -2,10 +2,8 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-
-import spack.hooks.sbang as sbang
+from spack.hooks import sbang
+from spack.pkgkit import *
 
 
 class Php(AutotoolsPackage):

@@ -1,6 +1,6 @@
-from html.parser import HTMLParser
 import re
 import urllib.request
+from html.parser import HTMLParser
 
 
 class my_html_parser(HTMLParser):

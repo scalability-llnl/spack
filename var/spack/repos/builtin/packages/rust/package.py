@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from six import iteritems
 
+from spack.pkgkit import *
+
 
 class Rust(Package):
     """The Rust programming language toolchain

@@ -2,6 +2,14 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import glob
+import os
+import re
+
+from llnl.util import tty
+from spack.pkgkit import *
+from spack.util.environment import EnvironmentModifications
+
 
 #
 # Author: Mark Olesen <mark.olesen@esi-group.com>
@@ -40,13 +48,6 @@
 # WM_PROJECT_VERSION=com naming internally.
 #
 ##############################################################################
-import glob
-import re
-import os
-
-from spack import *
-from spack.util.environment import EnvironmentModifications
-import llnl.util.tty as tty
 
 
 # Not the nice way of doing things, but is a start for refactoring

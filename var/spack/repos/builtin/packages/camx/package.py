@@ -2,11 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import glob
 import os
 
-from spack import *
+from spack.pkgkit import *
 
 
 class Camx(MakefilePackage):

@@ -2,11 +2,12 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.pkgkit import *
+
 
 #
 # Author: Matteo Giantomassi <matteo.giantomassiNOSPAM AT uclouvain.be>
 # Date: October 11, 2016
-from spack import *
 
 
 class GitFatGit(Package):

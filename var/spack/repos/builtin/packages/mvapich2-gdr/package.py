@@ -2,9 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import os.path
 import sys
+
+from spack.pkgkit import *
 
 
 class Mvapich2Gdr(AutotoolsPackage):

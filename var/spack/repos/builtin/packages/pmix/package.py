@@ -2,11 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-
-from spack import *
-import spack.architecture
 import os
+
+import spack.architecture
+from spack.pkgkit import *
 
 
 class Pmix(AutotoolsPackage):

@@ -2,10 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-import sys
 import subprocess
+import sys
+
+from spack.pkgkit import *
 
 
 class NodeJs(Package):

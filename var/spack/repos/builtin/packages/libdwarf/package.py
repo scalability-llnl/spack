@@ -2,10 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-import sys
 import os
+import sys
+
+from spack.pkgkit import *
+
 
 # Only build certain parts of dwarf because the other ones break.
 dwarf_dirs = ['libdwarf', 'dwarfdump2']

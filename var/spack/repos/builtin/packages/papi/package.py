@@ -2,11 +2,12 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 import glob
 import os
 import sys
-import llnl.util.filesystem as fs
+
+from llnl.util import filesystem as fs
+from spack.pkgkit import *
 
 
 class Papi(AutotoolsPackage):

@@ -2,10 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 from collections import defaultdict
 
-from spack import *
+from spack.pkgkit import *
 from spack.util.environment import is_system_path
 
 

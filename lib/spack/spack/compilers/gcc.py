@@ -6,9 +6,9 @@
 import re
 
 import spack.compiler
-import spack.compilers.apple_clang as apple_clang
 
 from spack.version import ver
+from .apple_clang import AppleClang
 
 
 class Gcc(spack.compiler.Compiler):
@@ -145,7 +145,7 @@ class Gcc(spack.compiler.Compiler):
         # Apple's gcc is actually apple clang, so skip it. Returning
         # "unknown" ensures this compiler is not detected by default.
         # Users can add it manually to compilers.yaml at their own risk.
-        if apple_clang.AppleClang.default_version(cc) != 'unknown':
+        if AppleClang.default_version(cc) != 'unknown':
             return 'unknown'
 
         version = super(Gcc, cls).default_version(cc)

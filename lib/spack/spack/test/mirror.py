@@ -16,7 +16,7 @@ from spack.util.executable import which
 
 from llnl.util.filesystem import resolve_link_target_relative_to_the_link
 
-pytestmark = pytest.mark.usefixtures('mutable_config', 'mutable_mock_repo')
+pytestmark = pytest.mark.usefixtures('mutable_config')
 
 # paths in repos that shouldn't be in the mirror tarballs.
 exclude = ['.hg', '.git', '.svn']
@@ -100,7 +100,7 @@ def check_mirror():
                         assert all(left in exclude for left in dcmp.left_only)
 
 
-def test_url_mirror(mock_archive):
+def test_url_mirror(mock_archive, mutable_mock_repo):
     set_up_package('trivial-install-test-package', mock_archive, 'url')
     check_mirror()
     repos.clear()
@@ -108,7 +108,7 @@ def test_url_mirror(mock_archive):
 
 @pytest.mark.skipif(
     not which('git'), reason='requires git to be installed')
-def test_git_mirror(mock_git_repository):
+def test_git_mirror(mock_git_repository, mutable_mock_repo):
     set_up_package('git-test', mock_git_repository, 'git')
     check_mirror()
     repos.clear()
@@ -117,7 +117,7 @@ def test_git_mirror(mock_git_repository):
 @pytest.mark.skipif(
     not which('svn') or not which('svnadmin'),
     reason='requires subversion to be installed')
-def test_svn_mirror(mock_svn_repository):
+def test_svn_mirror(mock_svn_repository, mutable_mock_repo):
     set_up_package('svn-test', mock_svn_repository, 'svn')
     check_mirror()
     repos.clear()
@@ -125,7 +125,7 @@ def test_svn_mirror(mock_svn_repository):
 
 @pytest.mark.skipif(
     not which('hg'), reason='requires mercurial to be installed')
-def test_hg_mirror(mock_hg_repository):
+def test_hg_mirror(mock_hg_repository, mutable_mock_repo):
     set_up_package('hg-test', mock_hg_repository, 'hg')
     check_mirror()
     repos.clear()
@@ -138,7 +138,8 @@ def test_all_mirror(
         mock_git_repository,
         mock_svn_repository,
         mock_hg_repository,
-        mock_archive):
+        mock_archive,
+        mutable_mock_repo):
 
     set_up_package('git-test', mock_git_repository, 'git')
     set_up_package('svn-test', mock_svn_repository, 'svn')

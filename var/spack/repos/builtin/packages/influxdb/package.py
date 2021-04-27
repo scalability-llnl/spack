@@ -2,9 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
 import platform
+
+from spack.pkgkit import *
+
 
 _versions = {
     '1.8.1': {

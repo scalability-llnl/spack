@@ -2,11 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-# Maintainer comments:
-# 18/12/2018: fix python detection
-
-from spack import *
+from spack.pkgkit import *
 
 
 class Tfel(CMakePackage):

@@ -2,11 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-#
-# Author: Matteo Giantomassi <matteo.giantomassiNOSPAM AT uclouvain.be>
-# Date: October 11, 2016
-from spack import *
+from spack.pkgkit import *
 
 
 class Abinit(AutotoolsPackage):

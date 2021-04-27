@@ -2,10 +2,12 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
+
+from spack.pkgkit import *
+
 
 #
-from spack import *
-import os
 
 
 class Xios(Package):

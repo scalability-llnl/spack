@@ -2,9 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
 from os.path import split
+
+from spack.pkgkit import *
 
 
 class Anaconda3(Package):

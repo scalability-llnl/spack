@@ -144,7 +144,7 @@ def test_patch_order(mock_packages, config):
     assert expected_order == tuple(patch_order)
 
 
-def test_nested_directives(mock_packages):
+def test_nested_directives(mutable_mock_repo):
     """Ensure pkg data structures are set up properly by nested directives."""
     # this ensures that the patch() directive results were removed
     # properly from the DirectiveMeta._directives_to_be_executed list
@@ -153,7 +153,7 @@ def test_nested_directives(mock_packages):
 
     # this ensures that results of dependency patches were properly added
     # to Dependency objects.
-    libelf_dep = next(iter(patcher.dependencies['libelf'].values()))
+    libelf_dep = patcher.dependencies['libelf'][Spec('+foo')]
     assert len(libelf_dep.patches) == 1
     assert len(libelf_dep.patches[Spec()]) == 1
 

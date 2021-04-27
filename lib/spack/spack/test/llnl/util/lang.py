@@ -6,6 +6,7 @@
 import pytest
 
 import os.path
+import sys
 from datetime import datetime, timedelta
 
 import llnl.util.lang
@@ -27,7 +28,12 @@ value = 1
 path = os.path.join('/usr', 'bin')
 """
     m.write(content)
-    return str(m)
+
+    yield str(m)
+
+    # Don't leave garbage in the module system
+    if 'foo' in sys.modules:
+        del sys.modules['foo']
 
 
 def test_pretty_date():
@@ -127,8 +133,20 @@ def test_match_predicate():
 
 
 def test_load_modules_from_file(module_path):
+    # Check prerequisites
+    assert 'foo' not in sys.modules
+
+    # Check that the module is loaded correctly from file
     foo = llnl.util.lang.load_module_from_file('foo', module_path)
+    assert 'foo' in sys.modules
     assert foo.value == 1
+    assert foo.path == os.path.join('/usr', 'bin')
+
+    # Check that the module is not reloaded a second time on subsequent calls
+    foo.value = 2
+    foo = llnl.util.lang.load_module_from_file('foo', module_path)
+    assert 'foo' in sys.modules
+    assert foo.value == 2
     assert foo.path == os.path.join('/usr', 'bin')
 
 

@@ -2,11 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
-import os
 import glob
-import llnl.util.tty as tty
+import os
+
+from llnl.util import tty
+from spack.pkgkit import *
 
 
 # This application uses cmake to build, but they wrap it with a

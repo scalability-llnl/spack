@@ -2,11 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from .xl import Xl
 
-import spack.compilers.xl
 
-
-class XlR(spack.compilers.xl.Xl):
+class XlR(Xl):
     # Subclasses use possible names of C compiler
     cc_names = ['xlc_r']
 

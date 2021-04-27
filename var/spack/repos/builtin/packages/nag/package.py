@@ -6,7 +6,8 @@ import os
 import re
 
 import spack.compiler
-import llnl.util.tty as tty
+from llnl.util import tty
+from spack.pkgkit import *
 
 
 class Nag(Package):

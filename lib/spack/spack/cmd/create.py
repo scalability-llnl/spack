@@ -50,7 +50,7 @@ package_template = '''\
 # See the Spack documentation for more information on packaging.
 # ----------------------------------------------------------------------------
 
-from spack import *
+from spack.pkgkit import *
 
 
 class {class_name}({base_class_name}):

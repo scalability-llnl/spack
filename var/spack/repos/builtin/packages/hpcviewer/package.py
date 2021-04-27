@@ -2,10 +2,10 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from spack import *
 import os.path
 import platform
+
+from spack.pkgkit import *
 
 
 # The viewer and trace viewer tar files and sha256sum depend on the

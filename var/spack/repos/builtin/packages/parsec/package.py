@@ -2,9 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from llnl.util import tty
+from spack.pkgkit import *
+
+
 #
-from spack import *
-import llnl.util.tty as tty
 
 
 class Parsec(CMakePackage, CudaPackage):

@@ -121,7 +121,7 @@ class TestConcretizePreferences(object):
         spec = concretize('mpileaks os=redhat6')
         assert spec.compiler == spack.spec.CompilerSpec(compiler)
 
-    def test_preferred_target(self, mutable_mock_repo):
+    def test_preferred_target(self):
         """Test preferred targets are applied correctly"""
         # FIXME: This test was a false negative, since the default and
         # FIXME: the preferred target were the same

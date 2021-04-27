@@ -173,6 +173,35 @@ class Changing(Package):
     return _changing_pkg
 
 
+@pytest.mark.regression('20292')
+@pytest.mark.parametrize('context', [
+    {'add_variant': True, 'delete_variant': False},
+    {'add_variant': False, 'delete_variant': True},
+    {'add_variant': True, 'delete_variant': True}
+])
+@pytest.mark.skipif(
+    True, reason='Uses mock_packages and mutable_mock_repo fixtures'
+)
+def test_reuse_installed_packages(
+        self, context, mutable_config, mutable_database,
+        repo_with_changing_recipe
+):
+    # Install a spec
+    root = Spec('root').concretized()
+    dependency = root['changing'].copy()
+    root.package.do_install(fake=True, explicit=True)
+
+    # Modify package.py
+    repo_with_changing_recipe.change(context)
+
+    # Try to concretize with the spec installed previously
+    new_root = Spec('root ^/{0}'.format(
+        dependency.dag_hash())
+    ).concretized()
+
+    assert root.dag_hash() == new_root.dag_hash()
+
+
 # This must use the mutable_config fixture because the test
 # adjusting_default_target_based_on_compiler uses the current_host fixture,
 # which changes the config.
@@ -343,9 +372,7 @@ class TestConcretize(object):
         """Test a package with multiple virtual dependencies."""
         Spec('hypre').concretize()
 
-    def test_concretize_two_virtuals_with_one_bound(
-            self, mutable_mock_repo
-    ):
+    def test_concretize_two_virtuals_with_one_bound(self):
         """Test a package with multiple virtual dependencies and one preset."""
         Spec('hypre ^openblas').concretize()
 
@@ -1096,31 +1123,6 @@ class TestConcretize(object):
         s = Spec(spec_str).concretized()
         assert s.external == is_external
         assert s.satisfies(expected)
-
-    @pytest.mark.regression('20292')
-    @pytest.mark.parametrize('context', [
-        {'add_variant': True, 'delete_variant': False},
-        {'add_variant': False, 'delete_variant': True},
-        {'add_variant': True, 'delete_variant': True}
-    ])
-    @pytest.mark.xfail()
-    def test_reuse_installed_packages(
-            self, context, mutable_database, repo_with_changing_recipe
-    ):
-        # Install a spec
-        root = Spec('root').concretized()
-        dependency = root['changing'].copy()
-        root.package.do_install(fake=True, explicit=True)
-
-        # Modify package.py
-        repo_with_changing_recipe.change(context)
-
-        # Try to concretize with the spec installed previously
-        new_root = Spec('root ^/{0}'.format(
-            dependency.dag_hash())
-        ).concretized()
-
-        assert root.dag_hash() == new_root.dag_hash()
 
     @pytest.mark.regression('20784')
     def test_concretization_of_test_dependencies(self):
