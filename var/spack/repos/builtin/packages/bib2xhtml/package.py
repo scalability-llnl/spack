@@ -11,6 +11,8 @@ class Bib2xhtml(Package):
 
     version('3.0-79-ge935', sha256='4a2d2d89dd2f3fed1c735055b806809b5cc1cde32dee1aa5987097ec5bf2181f')
 
+    depends_on('texlive', type='run')
+
     def install(self, spec, prefix):
         # Add the bst include files to the install directory
         bst_include = join_path(prefix.share, 'bib2xhtml')
