@@ -8,6 +8,7 @@
 import pytest
 
 import spack.util.spack_yaml as syaml
+import spack
 
 
 @pytest.fixture()
@@ -89,3 +90,9 @@ def test_yaml_aliases():
 
     # ensure no YAML aliases appear in syaml dumps.
     assert '*id' not in string
+
+
+def test_yaml_1_1_implied_booleans(config, mock_packages):
+    spec = spack.spec.Spec('implied-boolean v1=no').concretized()
+    reconstituted = spack.spec.Spec.from_yaml(spec.to_yaml())
+    assert spec == reconstituted

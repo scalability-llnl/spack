@@ -40,14 +40,14 @@ class SafeLoader(Reader, Scanner, Parser, Composer, SafeConstructor, Resolver):
         Resolver.__init__(self)
 
 
-class Loader(Reader, Scanner, Parser, Composer, Constructor, Resolver):
+class Loader(Reader, Scanner, Parser, Composer, Constructor, VersionedResolver):
     def __init__(self, stream, version=None, preserve_quotes=None):
         Reader.__init__(self, stream)
         Scanner.__init__(self)
         Parser.__init__(self)
         Composer.__init__(self)
         Constructor.__init__(self)
-        Resolver.__init__(self)
+        VersionedResolver.__init__(self)
 
 
 class RoundTripLoader(Reader, RoundTripScanner, RoundTripParser, Composer,
