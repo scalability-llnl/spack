@@ -5,6 +5,7 @@
 
 from __future__ import print_function
 
+import inspect
 import textwrap
 from six.moves import zip_longest
 
@@ -262,7 +263,7 @@ def print_text_info(pkg):
     names = []
     if has_test_method(pkg):
         pkg_base = spack.package.PackageBase
-        test_pkgs = [str(cls.test) for cls in pkg.__class__.mro() if
+        test_pkgs = [str(cls.test) for cls in inspect.getmro(pkg) if
                      issubclass(cls, pkg_base) and cls.test != pkg_base.test]
         test_pkgs = list(set(test_pkgs))
         names.extend([(test.split()[1]).lower() for test in test_pkgs])
