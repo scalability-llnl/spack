@@ -81,7 +81,8 @@ def test_force_uninstall_spec_with_ref_count_not_zero(
 
 
 @pytest.mark.db
-def test_force_uninstall_and_reinstall_by_hash(mutable_database):
+def test_force_uninstall_and_reinstall_by_hash(
+        mutable_database, clear_concrete_spec_registry):
     """Test forced uninstall and reinstall of old specs."""
     # this is the spec to be removed
     callpath_spec = spack.store.db.query_one('callpath ^mpich')

@@ -119,7 +119,8 @@ def test_partial_install_delete_prefix_and_stage(install_mockery, mock_fetch):
         pkg.remove_prefix = instance_rm_prefix
 
 
-def test_dont_add_patches_to_installed_package(install_mockery, mock_fetch):
+def test_dont_add_patches_to_installed_package(
+        install_mockery, mock_fetch, clear_concrete_spec_registry):
     dependency = Spec('dependency-install')
     dependency.concretize()
     dependency.package.do_install()
@@ -136,7 +137,8 @@ def test_dont_add_patches_to_installed_package(install_mockery, mock_fetch):
 
 
 def test_installed_dependency_request_conflicts(
-        install_mockery, mock_fetch, mutable_mock_repo):
+        install_mockery, mock_fetch, mutable_mock_repo,
+        clear_concrete_spec_registry):
     dependency = Spec('dependency-install')
     dependency.concretize()
     dependency.package.do_install()

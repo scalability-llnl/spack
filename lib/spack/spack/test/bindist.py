@@ -483,7 +483,8 @@ def test_generate_indices_exception(monkeypatch, capfd):
     assert expect in err
 
 
-@pytest.mark.usefixtures('mock_fetch', 'install_mockery')
+@pytest.mark.usefixtures(
+    'mock_fetch', 'install_mockery', 'clear_concrete_spec_registry')
 def test_update_sbang(tmpdir, test_mirror):
     """Test the creation and installation of buildcaches with default rpaths
     into the non-default directory layout scheme, triggering an update of the

@@ -732,7 +732,8 @@ spack:
                     reason='This test requires gpg')
 def test_push_mirror_contents(tmpdir, mutable_mock_env_path, env_deactivate,
                               install_mockery, mock_packages, mock_fetch,
-                              mock_stage, mock_gnupghome):
+                              mock_stage, mock_gnupghome,
+                              clear_concrete_spec_registry):
     working_dir = tmpdir.join('working_dir')
 
     mirror_dir = working_dir.join('mirror')

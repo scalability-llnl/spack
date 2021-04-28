@@ -394,6 +394,10 @@ class Database(object):
 
         self._record_fields = record_fields
 
+    def all_specs(self):
+        with self.read_transaction():
+            return [(h_key, rec.spec) for h_key, rec in self._data.items()]
+
     def write_transaction(self):
         """Get a write lock context manager for use in a `with` block."""
         return self._write_transaction_impl(

@@ -23,6 +23,10 @@ from spack.spec import SpecFilenameError, NoSuchSpecFileError
 from spack.spec import MultipleVersionError
 from spack.variant import DuplicateVariantError
 
+# everything here needs to clear the concrete spec registry when it's done
+pytestmark = [
+    pytest.mark.usefixtures('clear_concrete_spec_registry')
+]
 
 # Sample output for a complex lexing.
 complex_lex = [Token(sp.ID, 'mvapich_foo'),

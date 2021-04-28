@@ -24,6 +24,7 @@ from llnl.util.filesystem import mkdirp, remove_linked_tree
 import spack.architecture
 import spack.compilers
 import spack.config
+import spack.concrete_specs
 import spack.caches
 import spack.database
 import spack.directory_layout
@@ -733,6 +734,20 @@ def mock_fetch(mock_archive, monkeypatch):
 
     monkeypatch.setattr(
         spack.package.PackageBase, 'fetcher', mock_fetcher)
+
+
+@pytest.fixture()
+def clear_concrete_spec_registry():
+    """Clears the concrete spec registry
+
+    The concrete spec registry (lib/spack/spack/concrete_specs.py) contains
+    a module-level singleton which has a lazy-initialized dictionary mapping
+    DAG hashes to concrete specs.  The initialization happens when the spec
+    parser needs to parse a hash, so any tests that involve parsing cli specs
+    by hash need this fixture.
+    """
+    yield
+    spack.concrete_specs.specs.clear()
 
 
 class MockLayout(object):

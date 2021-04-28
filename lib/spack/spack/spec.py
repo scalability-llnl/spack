@@ -97,6 +97,7 @@ import spack.paths
 import spack.architecture
 import spack.compiler
 import spack.compilers as compilers
+import spack.concrete_specs
 import spack.config
 import spack.dependency as dp
 import spack.error
@@ -4586,7 +4587,7 @@ class SpecParser(spack.parse.Parser):
         self.expect(ID)
 
         dag_hash = self.token.value
-        matches = spack.store.db.get_by_hash(dag_hash)
+        matches = spack.concrete_specs.specs.get_by_hash(dag_hash)
         if not matches:
             raise NoSuchHashError(dag_hash)
 
@@ -4922,7 +4923,7 @@ class InvalidHashError(spack.error.SpecError):
 class NoSuchHashError(spack.error.SpecError):
     def __init__(self, hash):
         super(NoSuchHashError, self).__init__(
-            "No installed spec matches the hash: '%s'"
+            "No known spec matches the hash: '%s'"
             % hash)
 
 

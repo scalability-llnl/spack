@@ -1105,7 +1105,8 @@ class TestConcretize(object):
     ])
     @pytest.mark.xfail()
     def test_reuse_installed_packages(
-            self, context, mutable_database, repo_with_changing_recipe
+            self, context, mutable_database, repo_with_changing_recipe,
+            clear_concrete_spec_registry
     ):
         # Install a spec
         root = Spec('root').concretized()
