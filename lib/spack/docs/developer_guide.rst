@@ -834,7 +834,7 @@ you can specify the interpreter with ``-i``:
 .. code-block:: console
 
    $ spack python -i ipython
-   Python 3.8.3 (default, May 19 2020, 18:47:26) 
+   Python 3.8.3 (default, May 19 2020, 18:47:26)
    Type 'copyright', 'credits' or 'license' for more information
    IPython 7.17.0 -- An enhanced Interactive Python. Type '?' for help.
 
@@ -862,7 +862,7 @@ or a file:
    $ spack python ~/test_fetching.py
    $ spack python -i ipython ~/test_fetching.py
 
-just like you would with the normal ``python`` command. 
+just like you would with the normal ``python`` command.
 
 
 .. _cmd-spack-url:
@@ -1007,8 +1007,10 @@ develop onto release branches. This is typically done by cherry-picking
 bugfix commits off of ``develop``.
 
 To avoid version churn for users of a release series, minor releases
-should **not** make changes that would change the concretization of
+**should not** make changes that would change the concretization of
 packages. They should generally only contain fixes to the Spack core.
+However, sometimes priorities are such that new functionality needs to
+be added to a minor release.
 
 Both major and minor releases are tagged. After each release, we merge
 the release branch back into ``develop`` so that the version bump and any
@@ -1017,50 +1019,51 @@ convenience, we also tag the latest release as ``releases/latest``,
 so that users can easily check it out to get the latest
 stable version. See :ref:`merging-releases` for more details.
 
-
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Scheduling work for releases
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We schedule work for releases by creating `GitHub projects
 <https://github.com/spack/spack/projects>`_. At any time, there may be
-several open release projects. For example, here are two releases (from
+several open release projects. For example, below are two releases (from
 some past version of the page linked above):
 
 .. image:: images/projects.png
 
-Here, there's one release in progress for ``0.15.1`` and another for
+This image shows one release in progress for ``0.15.1`` and another for
 ``0.16.0``. Each of these releases has a project board containing issues
 and pull requests. GitHub shows a status bar with completed work in
 green, work in progress in purple, and work not started yet in gray, so
 it's fairly easy to see progress.
 
-Spack's project boards are not firm commitments, and we move work between
+Spack's project boards are not firm commitments so we move work between
 releases frequently. If we need to make a release and some tasks are not
-yet done, we will simply move them to next minor or major release, rather
+yet done, we will simply move them to the next minor or major release, rather
 than delaying the release to complete them.
 
 For more on using GitHub project boards, see `GitHub's documentation
 <https://docs.github.com/en/github/managing-your-work-on-github/about-project-boards>`_.
 
+
 .. _major-releases:
 
 ^^^^^^^^^^^^^^^^^^^^^
-Making Major Releases
+Making major releases
 ^^^^^^^^^^^^^^^^^^^^^
 
-Assuming you've already created a project board and completed the work
-for a major release, the steps to make the release are as follows:
+Assuming a project board has already been created and all required work
+completed, the steps to make the major release are:
 
 #. Create two new project boards:
 
    * One for the next major release
    * One for the next point release
 
-#. Move any tasks that aren't done yet to one of the new project boards.
-   Small bugfixes should go to the next point release. Major features,
-   refactors, and changes that could affect concretization should go in
-   the next major release.
+#. Move any optional tasks that are not done to one of the new project boards.
+
+   In general, small bugfixes should go to the next point release. Major
+   features, refactors, and changes that could affect concretization should
+   go in the next major release.
 
 #. Create a branch for the release, based on ``develop``:
 
@@ -1072,11 +1075,14 @@ for a major release, the steps to make the release are as follows:
    ``releases/vX.Y``. That is, you should create a ``releases/vX.Y``
    branch if you are preparing the ``X.Y.0`` release.
 
-#. Bump the version in ``lib/spack/spack/__init__.py``. See `this example from 0.13.0
+#. Bump the version in ``lib/spack/spack/__init__.py``.
+
+   See `this example from 0.13.0
    <https://github.com/spack/spack/commit/8eeb64096c98b8a43d1c587f13ece743c864fba9>`_
 
-#. Update ``CHANGELOG.md`` with major highlights in bullet form. Use
-   proper markdown formatting, like `this example from 0.15.0
+#. Update ``CHANGELOG.md`` with major highlights in bullet form.
+
+   Use proper markdown formatting, like `this example from 0.15.0
    <https://github.com/spack/spack/commit/d4bf70d9882fcfe88507e9cb444331d7dd7ba71c>`_.
 
 #. Push the release branch to GitHub.
@@ -1100,33 +1106,33 @@ for a major release, the steps to make the release are as follows:
 .. _point-releases:
 
 ^^^^^^^^^^^^^^^^^^^^^
-Making Point Releases
+Making point releases
 ^^^^^^^^^^^^^^^^^^^^^
 
-This assumes you've already created a project board for a point release
-and completed the work to be done for the release. To make a point
-release:
+Assuming a project board has already been created and all required work
+completed, the steps to make the point release are:
 
-#. Create one new project board for the next point release.
+#. Create a new project board for the next point release.
 
-#. Move any cards that aren't done yet to the next project board.
+#. Move any optional tasks that are not done to the next project board.
 
-#. Check out the release branch (it should already exist). For the
-   ``X.Y.Z`` release, the release branch is called ``releases/vX.Y``. For
-   ``v0.15.1``, you would check out ``releases/v0.15``:
+#. Check out the release branch (it should already exist).
+
+    For the ``X.Y.Z`` release, the release branch is called ``releases/vX.Y``.
+    For ``v0.15.1``, you would check out ``releases/v0.15``:
 
    .. code-block:: console
 
       $ git checkout releases/v0.15
 
 #. Cherry-pick each pull request in the ``Done`` column of the release
-   project onto the release branch.
+   project board onto the release branch.
 
    This is **usually** fairly simple since we squash the commits from the
-   vast majority of pull requests, which means there is only one commit
+   vast majority of pull requests. That means there is only one commit
    per pull request to cherry-pick. For example, `this pull request
    <https://github.com/spack/spack/pull/15777>`_ has three commits, but
-   the were squashed into a single commit on merge. You can see the
+   they were squashed into a single commit on merge. You can see the
    commit that was created here:
 
    .. image:: images/pr-commit.png
@@ -1138,9 +1144,8 @@ release:
 
       $ git cherry-pick 7e46da7
 
-   For pull requests that were rebased, you'll need to cherry-pick each
-   rebased commit individually. There have not been any rebased PRs like
-   this in recent point releases.
+   For pull requests that were rebased (or not squashed), you'll need to
+   cherry-pick each associated commit individually.
 
    .. warning::
 
@@ -1153,30 +1158,35 @@ release:
       cherry-picked all the commits in order. This generally means there
       is some other intervening pull request that the one you're trying
       to pick depends on. In these cases, you'll need to make a judgment
-      call:
+      call regarding those pull requests.  Consider the number of affected
+      files and or the resulting differences.
 
-      1. If the dependency is small, you might just cherry-pick it, too.
-         If you do this, add it to the release board.
+      1. If the dependency changes are small, you might just cherry-pick it,
+         too. If you do this, add the task to the release board.
 
-      2. If it is large, then you may decide that this fix is not worth
-         including in a point release, in which case you should remove it
-         from the release project.
+      2. If the changes are large, then you may decide that this fix is not
+         worth including in a point release, in which case you should remove
+         the task from the release project.
 
       3. You can always decide to manually back-port the fix to the release
          branch if neither of the above options makes sense, but this can
          require a lot of work. It's seldom the right choice.
 
-#. Bump the version in ``lib/spack/spack/__init__.py``. See `this example from 0.14.1
+#. Bump the version in ``lib/spack/spack/__init__.py``.
+
+   See `this example from 0.14.1
    <https://github.com/spack/spack/commit/ff0abb9838121522321df2a054d18e54b566b44a>`_.
 
-#. Update ``CHANGELOG.md`` with a list of bugfixes. This is typically just a
-   summary of the commits you cherry-picked onto the release branch. See
-   `the changelog from 0.14.1
+#. Update ``CHANGELOG.md`` with a list of the changes.
+
+   This is typically a summary of the commits you cherry-picked onto the
+   release branch. See `the changelog from 0.14.1
    <https://github.com/spack/spack/commit/ff0abb9838121522321df2a054d18e54b566b44a>`_.
 
 #. Push the release branch to GitHub.
 
 #. Make sure CI passes on the release branch, including:
+
    * Regular unit tests
    * Build tests
    * The E4S pipeline at `gitlab.spack.io <https://gitlab.spack.io>`_
@@ -1199,23 +1209,26 @@ release:
 Publishing a release on GitHub
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-#. Go to `github.com/spack/spack/releases
-   <https://github.com/spack/spack/releases>`_ and click ``Draft a new
-   release``.  Set the following:
+#. Create the release in GitHub.
 
-   * ``Tag version`` should start with ``v`` and contain *all three*
-     parts of the version, .g. ``v0.15.1``. This is the name of the tag
-     that will be created.
+   * Go to 
+     `github.com/spack/spack/releases <https://github.com/spack/spack/releases>`_
+     and click ``Draft a new release``.
 
-   * ``Target`` should be the ``releases/vX.Y`` branch (e.g., ``releases/v0.15``).
+   * Set ``Tag version`` to the name of the tag that will be created.
 
-   * ``Release title`` should be ``vX.Y.Z`` (To match the tag, e.g., ``v0.15.1``).
+     The name should start with ``v`` and contain *all three*
+     parts of the version (e.g. ``v0.15.0`` or ``v0.15.1``).
 
-   * For the text, paste the latest release markdown from your ``CHANGELOG.md``.
+   * Set ``Target`` to the ``releases/vX.Y`` branch (e.g., ``releases/v0.15``).
 
-   You can save the draft and keep coming back to this as you prepare the release.
+   * Set ``Release title`` to ``vX.Y.Z`` to match the tag (e.g., ``v0.15.1``).
 
-#. When you are done, click ``Publish release``.
+   * Paste the latest release markdown from your ``CHANGELOG.md`` file as the text.
+
+   * Save the draft so you can keep coming back to it as you prepare the release.
+
+#. When you are ready to finalize the release, click ``Publish release``.
 
 #. Immediately after publishing, go back to
    `github.com/spack/spack/releases
@@ -1223,22 +1236,26 @@ Publishing a release on GitHub
    auto-generated ``.tar.gz`` file for the release. It's the ``Source
    code (tar.gz)`` link.
 
-#. Click ``Edit`` on the release you just did and attach the downloaded
+#. Click ``Edit`` on the release you just made and attach the downloaded
    release tarball as a binary. This does two things:
 
-   #. Makes sure that the hash of our releases doesn't change over time.
-      GitHub sometimes annoyingly changes they way they generate
-      tarballs, and then hashes can change if you rely on the
+   #. Makes sure that the hash of our releases does not change over time.
+
+      GitHub sometimes annoyingly changes the way they generate tarballs
+      that can result in the hashes changing if you rely on the
       auto-generated tarball links.
 
-   #. Gets us download counts on releases visible through the GitHub
-      API. GitHub tracks downloads of artifacts, but *not* the source
+   #. Gets download counts on releases visible through the GitHub API.
+
+      GitHub tracks downloads of artifacts, but *not* the source
       links. See the `releases
       page <https://api.github.com/repos/spack/spack/releases>`_ and search
       for ``download_count`` to see this.
 
-#. Go to `readthedocs.org <https://readthedocs.org/projects/spack>`_ and activate
-   the release tag. This builds the documentation and makes the released version
+#. Go to `readthedocs.org <https://readthedocs.org/projects/spack>`_ and
+   activate the release tag.
+
+   This builds the documentation and makes the released version
    selectable in the versions menu.
 
 
@@ -1252,23 +1269,23 @@ If the new release is the **highest** Spack release yet, you should
 also tag it as ``releases/latest``. For example, suppose the highest
 release is currently ``0.15.3``:
 
-     * If you are releasing ``0.15.4`` or ``0.16.0``, then you should tag
-       it with ``releases/latest``, as these are higher than ``0.15.3``.
+* If you are releasing ``0.15.4`` or ``0.16.0``, then you should tag
+  it with ``releases/latest``, as these are higher than ``0.15.3``.
 
-     * If you are making a new release of an **older** major version of
-       Spack, e.g. ``0.14.4``, then you should not tag it as
-       ``releases/latest`` (as there are newer major versions).
+* If you are making a new release of an **older** major version of
+  Spack, e.g. ``0.14.4``, then you should not tag it as
+  ``releases/latest`` (as there are newer major versions).
 
-   To tag ``releases/latest``, do this:
+To tag ``releases/latest``, do this:
 
-   .. code-block:: console
+.. code-block:: console
 
-      $ git checkout releases/vX.Y     # vX.Y is the new release's branch
-      $ git tag --force releases/latest
-      $ git push --tags
+   $ git checkout releases/vX.Y     # vX.Y is the new release's branch
+   $ git tag --force releases/latest
+   $ git push --force --tags
 
-   The ``--force`` argument makes ``git`` overwrite the existing
-   ``releases/latest`` tag with the new one.
+The ``--force`` argument to ``git tag`` makes ``git`` overwrite the existing
+``releases/latest`` tag with the new one.
 
 We also merge each release that we tag as ``releases/latest`` into ``develop``.
 Make sure to do this with a merge commit:
@@ -1276,17 +1293,17 @@ Make sure to do this with a merge commit:
 .. code-block:: console
 
    $ git checkout develop
-   $ git merge --no-ff vX.Y.Z  # vX.Y.Z is the new release's tag
+   $ git merge --no-ff -s ours vX.Y.Z  # vX.Y.Z is the new release's tag
    $ git push
 
 We merge back to ``develop`` because it:
 
-  * updates the version and ``CHANGELOG.md`` on ``develop``.
+  * updates the version and ``CHANGELOG.md`` on ``develop``; and
   * ensures that your release tag is reachable from the head of
-    ``develop``
+    ``develop``.
 
-We *must* use a real merge commit (via the ``--no-ff`` option) because it
-ensures that the release tag is reachable from the tip of ``develop``.
+We *must* use a real merge commit (via the ``--no-ff`` option) to
+ensure that the release tag is reachable from the tip of ``develop``.
 This is necessary for ``spack -V`` to work properly -- it uses ``git
 describe --tags`` to find the last reachable tag in the repository and
 reports how far we are from it. For example:
@@ -1304,6 +1321,7 @@ the release is complete and tagged. If you do it before you've tagged the
 release and later decide you want to tag some later commit, you'll need
 to merge again.
 
+
 .. _announcing-releases:
 
 ^^^^^^^^^^^^^^^^^^^^
@@ -1314,20 +1332,40 @@ We announce releases in all of the major Spack communication channels.
 Publishing the release takes care of GitHub. The remaining channels are
 Twitter, Slack, and the mailing list. Here are the steps:
 
-#. Make a tweet to announce the release. It should link to the release's
-   page on GitHub. You can base it on `this example tweet
-   <https://twitter.com/spackpm/status/1231761858182307840>`_.
+#. Announce the release on Twitter.
 
-#. Ping ``@channel`` in ``#general`` on Slack (`spackpm.slack.com
-   <https://spackpm.slack.com>`_) with a link to the tweet. The tweet
-   will be shown inline so that you do not have to retype your release
-   announcement.
+   * Compose the tweet on the ``@spackpm`` account per the
+     ``spack-twitter`` slack channel.
 
-#. Email the Spack mailing list to let them know about the release. As
-   with the tweet, you likely want to link to the release's page on
-   GitHub. It's also helpful to include some information directly in the
-   email. You can base yours on this `example email
-   <https://groups.google.com/forum/#!topic/spack/WT4CT9i_X4s>`_.
+   * Be sure to include a link to the release's page on GitHub.
 
-Once you've announced the release, congratulations, you're done! You've
-finished making the release!
+     You can base the tweet on `this
+     example <https://twitter.com/spackpm/status/1231761858182307840>`_.
+
+#. Announce the release on Slack.
+
+   * Compose a message in the ``#general`` Slack channel
+     (`spackpm.slack.com <https://spackpm.slack.com>`_).
+
+   * Preface the message with ``@channel`` to notify even those
+     people not currently logged in.
+
+   * Be sure to include a link to the tweet above.
+
+   The tweet will be shown inline so that you do not have to retype
+   your release announcement.
+
+#. Announce the release on the Spack mailing list.
+
+   * Compose an email to the Spack mailing list.
+
+   * Be sure to include a link to the release's page on GitHub.
+
+   * It is also helpful to include some information directly in the
+     email.
+
+   You can base your announcement on this `example
+   email <https://groups.google.com/forum/#!topic/spack/WT4CT9i_X4s>`_.
+
+Once you've completed the above steps, congratulations, you're done!
+You've finished making the release!
