@@ -1,0 +1,31 @@
+name: windows tests
+
+on:
+  push:
+    branches:
+      - features/windows-support
+      - windows-ci
+  pull_request:
+    branches:
+      - features/windows-support
+      - windows-ci
+jobs:
+  # Run style checks on the files that have been changed
+  style:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install Python packages
+      run: |
+        python -m pip install --upgrade pip six setuptools flake8 mypy>=0.800 black
+    - name: Run style tests
+      run: |
+          bin/spack style
+    - name: Verify license headers
+      run: |
+          bin/spack license verify
