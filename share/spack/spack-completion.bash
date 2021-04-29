@@ -694,7 +694,7 @@ _spack_config_revert() {
 }
 
 _spack_containerize() {
-    SPACK_COMPREPLY="-h --help --list-os --bootstrap --build"
+    SPACK_COMPREPLY="-h --help --list-os --last-stage"
 }
 
 _spack_create() {
