@@ -30,6 +30,8 @@ class Scalasca(AutotoolsPackage):
     depends_on("mpi")
 
     # version 2.4+
+    depends_on('scorep@6.0:', when='@2.4:', type=('build', 'run') )
+    depends_on('cube@4.4:', when='@2.4:', type=('build', 'run') )
     depends_on('cubew@4.4:', when='@2.4:')
     depends_on('scorep@6.0:', when='@2.4:', type=('run'))
 
