@@ -32,7 +32,7 @@ def test_bootstrap_phase(minimal_configuration, config_dumper, capsys):
     minimal_configuration['spack']['container']['images'] = {
         'os': 'amazonlinux:2',
         'spack': {
-            'enforce-sha': True
+            'resolve_sha': True
         }
     }
     spack_yaml_dir = config_dumper(minimal_configuration)

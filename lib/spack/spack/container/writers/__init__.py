@@ -110,18 +110,18 @@ def _spack_checkout_config(images_config):
 
     url = 'https://github.com/spack/spack.git'
     ref = 'develop'
-    enforce_sha, verify = False, False
+    resolve_sha, verify = False, False
 
     # Config specific values may override defaults
     if isinstance(spack_info, dict):
         url = spack_info.get('url', url)
         ref = spack_info.get('ref', ref)
-        enforce_sha = spack_info.get('enforce-sha', enforce_sha)
+        resolve_sha = spack_info.get('resolve_sha', resolve_sha)
         verify = spack_info.get('verify', verify)
     else:
         ref = spack_info
 
-    return url, ref, enforce_sha, verify
+    return url, ref, resolve_sha, verify
 
 
 class PathContext(tengine.Context):

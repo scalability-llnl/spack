@@ -287,12 +287,12 @@ verbose when specifying information about Spack in the ``spack.yaml`` file:
        ref: <sha/tag/branch>
        # If true turn a branch name or a tag into the corresponding commit
        # sha at the time of recipe generation
-       enforce-sha: <true/false>
+       resolve_sha: <true/false>
 
 ``url`` specifies the URL from which to clone Spack and defaults to https://github.com/spack/spack.
 The ``ref`` attribute can be either a commit sha, a branch name or a tag. The default value in
 this case is to use the ``develop`` branch, but it may change in the future to point to the latest stable
-release. Finally ``enforce_sha`` transform branch names or tags into the corresponding commit
+release. Finally ``resolve_sha`` transform branch names or tags into the corresponding commit
 shas at the time of recipe generation, to allow for a greater reproducibility of the results
 at a later time.
 
@@ -303,7 +303,7 @@ obtained with:
 
 .. note::
 
-   The ``enforce_sha`` option uses ``git rev-parse`` under the hood and thus it requires
+   The ``resolve_sha`` option uses ``git rev-parse`` under the hood and thus it requires
    to checkout the corresponding Spack repository in a temporary folder before generating
    the recipe. Recipe generation may take longer when this option is set to true because
    of this additional step.
@@ -467,7 +467,7 @@ to customize the generation of container recipes:
      - Reference for the checkout of Spack
      - Either a commit sha, a branch name or a tag
      - No
-   * - ``images:spack:enforce-sha``
+   * - ``images:spack:resolve_sha``
      - Resolve branches and tags in ``spack.yaml`` to commits in the generated recipe
      - True or False (default: False)
      - No

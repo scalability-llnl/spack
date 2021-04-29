@@ -16,7 +16,7 @@ _stages_from_dockerhub = {
              'properties': {
                  'url': {'type': 'string'},
                  'ref': {'type': 'string'},
-                 'enforce-sha': {'type': 'boolean', 'default': False},
+                 'resolve_sha': {'type': 'boolean', 'default': False},
                  'verify': {'type': 'boolean', 'default': False}
              }}
         ]},
