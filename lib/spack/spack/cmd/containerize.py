@@ -27,7 +27,7 @@ def setup_parser(subparser):
     )
     stages.add_argument(
         '--build', action='store_true', default=False,
-        help='print only the bootstrap and build phases in a recipe'
+        help='print only the bootstrap and build stages in a recipe'
     )
 
 

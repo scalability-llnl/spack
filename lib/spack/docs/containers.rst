@@ -260,7 +260,7 @@ software is respectively built and installed:
 
    ENTRYPOINT ["/bin/bash", "--rcfile", "/etc/profile", "-l"]
 
-This method of selecting base images is the simplest of the ones available, and we advise
+This is the simplest available method of selecting base images, and we advise
 to use it whenever possible. There are cases though where using Spack official
 images is not enough to fit production needs. In these situations users can
 extend the recipe to start with the bootstrapping of Spack at a certain pinned
@@ -289,10 +289,9 @@ verbose when specifying information about Spack in the ``spack.yaml`` file:
        # sha at the time of recipe generation
        enforce-sha: <true/false>
 
-The ``url`` attribute permits to specify the URL of the Spack repository we want to use in
-the recipe and defaults to Spack's official repository on Github. The ``ref`` attribute can
-be either a commit sha, a branch name or a tag. The default value in this case is to
-use the ``develop`` branch, but it may change in the future to point to the latest stable
+``url`` specifies the URL from which to clone Spack and defaults to https://github.com/spack/spack.
+The ``ref`` attribute can be either a commit sha, a branch name or a tag. The default value in
+this case is to use the ``develop`` branch, but it may change in the future to point to the latest stable
 release. Finally ``enforce_sha`` transform branch names or tags into the corresponding commit
 shas at the time of recipe generation, to allow for a greater reproducibility of the results
 at a later time.
@@ -469,7 +468,7 @@ to customize the generation of container recipes:
      - Either a commit sha, a branch name or a tag
      - No
    * - ``images:spack:enforce-sha``
-     - Turn a branch name or tag into a commit sha
+     - Resolve branches and tags in ``spack.yaml`` to commits in the generated recipe
      - True or False (default: False)
      - No
    * - ``images:build``

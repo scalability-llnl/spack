@@ -1851,12 +1851,12 @@ def keep_modification_time(*filenames):
 
 @contextmanager
 def temporary_dir(*args, **kwargs):
-    """Create a temporary directory and moves into it. Delete the directory
+    """Create a temporary directory and cd's into it. Delete the directory
     on exit.
 
     Takes the same arguments as tempfile.mkdtemp()
     """
-    tmp_dir = tempfile.mkdtemp()
+    tmp_dir = tempfile.mkdtemp(*args, **kwargs)
     try:
         with working_dir(tmp_dir):
             yield tmp_dir
