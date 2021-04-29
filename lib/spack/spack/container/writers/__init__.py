@@ -272,16 +272,22 @@ class PathContext(tengine.Context):
             }}
             bootstrap_recipe = env.get_template(template_path).render(**context)
 
-        Bootstrap = collections.namedtuple('Build', ['image', 'recipe'])
+        Bootstrap = collections.namedtuple('Bootstrap', ['image', 'recipe'])
         return Bootstrap(image=self.bootstrap_image, recipe=bootstrap_recipe)
 
     @tengine.context_property
-    def render_build_phase(self):
-        return not self.last_phase == 'bootstrap'
-
-    @tengine.context_property
-    def render_final_phase(self):
-        return self.last_phase in (None, 'final')
+    def render_phase(self):
+        render_bootstrap = bool(self.bootstrap_image)
+        render_build = not (self.last_phase == 'bootstrap')
+        render_final = self.last_phase in (None, 'final')
+        Render = collections.namedtuple(
+            'Render', ['bootstrap', 'build', 'final']
+        )
+        return Render(
+            bootstrap=render_bootstrap,
+            build=render_build,
+            final=render_final
+        )
 
     def __call__(self):
         """Returns the recipe as a string"""

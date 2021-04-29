@@ -1,8 +1,8 @@
-{% if bootstrap.image %}
+{% if render_phase.bootstrap %}
 {{ bootstrap.recipe }}
 
 {% endif %}
-{% if render_build_phase %}
+{% if render_phase.build %}
 # Build stage with Spack pre-installed and ready to be used
 FROM {{ build.image }} as builder
 
@@ -38,7 +38,7 @@ RUN cd {{ paths.environment }} && \
 {{ extra_instructions.build }}
 {% endif %}
 {% endif %}
-{% if render_final_phase %}
+{% if render_phase.final %}
 # Bare OS image to run the installed executables
 FROM {{ run.image }}
 
