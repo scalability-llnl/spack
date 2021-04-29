@@ -1,0 +1,10 @@
+--- mfem/miniapps/performance/makefile	2017-06-07 13:51:29.366596901 -0700
++++ mfem/miniapps/performance/makefile.new	2017-06-07 13:51:57.087104178 -0700
+@@ -26,7 +26,6 @@
+ # Compiler specific optimizations.
+ # For best performance, GCC 5 (or newer) is recommended.
+ ifneq (,$(findstring $(MFEM_CXX),g++ mpicxx))
+-   MFEM_CXXFLAGS += -march=native
+    # MFEM_CXXFLAGS += -std=c++03
+    MFEM_CXXFLAGS += -std=c++11
+    MFEM_CXXFLAGS += -pedantic -Wall

@@ -1,0 +1,36 @@
+diff --git a/config/test.mk b/config/test.mk
+index 4821b084d..62479fc63 100644
+--- a/config/test.mk
++++ b/config/test.mk
+@@ -14,11 +14,13 @@
+ # Colors used below:
+ # green    '\033[0;32m'
+ # red      '\033[0;31m'
++# yellow   '\033[0;33m'
+ # no color '\033[0m'
+ COLOR_PRINT = if [ -t 1 ]; then \
+    printf $(1)$(2)'\033[0m'$(3); else printf $(2)$(3); fi
+ PRINT_OK = $(call COLOR_PRINT,'\033[0;32m',OK,"  ($$1 $$2)\n")
+ PRINT_FAILED = $(call COLOR_PRINT,'\033[0;31m',FAILED,"  ($$1 $$2)\n")
++PRINT_SKIP = $(call COLOR_PRINT,'\033[0;33m',SKIP,"\n")
+ 
+ # Timing support
+ define TIMECMD_detect
+diff --git a/examples/pumi/makefile b/examples/pumi/makefile
+index 2f98eeca7..5ff652aca 100644
+--- a/examples/pumi/makefile
++++ b/examples/pumi/makefile
+@@ -51,6 +51,13 @@ endif
+ MFEM_TESTS = EXAMPLES
+ include $(MFEM_TEST_MK)
+ 
++ifneq (,$(filter test%,$(MAKECMDGOALS)))
++   ifeq (,$(wildcard ../../data/pumi))
++      $(info PUMI data directory not found. The PUMI tests will be SKIPPED.)
++      mfem-test = printf "   $(3) [$(2) $(1) ... ]: "; $(PRINT_SKIP)
++   endif
++endif
++
+ # Testing: Parallel vs. serial runs
+ RUN_MPI_NP = $(MFEM_MPIEXEC) $(MFEM_MPIEXEC_NP)
+ RUN_MPI = $(RUN_MPI_NP) $(MFEM_MPI_NP)

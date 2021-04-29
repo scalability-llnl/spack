@@ -1,0 +1,27 @@
+From e2147e51e2bff8907207036557bb9f45d45baaf8 Mon Sep 17 00:00:00 2001
+From: Geoffrey M Oxberry <goxberry@gmail.com>
+Date: Sun, 25 Aug 2019 00:30:15 -0700
+Subject: [PATCH] makefile: add missing parenthesis to conditional
+
+This commit adds a missing parenthesis to a conditional in the MFEM
+makefile that checks if PREFIX is set when MFEM_USE_OCCA equals YES.
+---
+ makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/makefile b/makefile
+index 98a29f3c9..22a9b5bac 100644
+--- a/makefile
++++ b/makefile
+@@ -346,7 +346,7 @@ ifneq (,$(filter install,$(MAKECMDGOALS)))
+       @MFEM_EXT_LIBS@
+    MFEM_LIB_FILE = @MFEM_LIB_DIR@/libmfem.$(if $(shared),$(SO_VER),a)
+    ifeq ($(MFEM_USE_OCCA),YES)
+-      ifneq ($(MFEM_INSTALL_DIR),$(abspath $(PREFIX))
++      ifneq ($(MFEM_INSTALL_DIR),$(abspath $(PREFIX)))
+          $(error OCCA is enabled: PREFIX must be set during configuration!)
+       endif
+    endif
+-- 
+2.23.0
+

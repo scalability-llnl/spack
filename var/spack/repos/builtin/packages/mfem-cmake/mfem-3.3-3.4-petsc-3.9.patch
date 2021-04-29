@@ -1,0 +1,71 @@
+diff --git a/examples/petsc/rc_ex3p b/examples/petsc/rc_ex3p
+index 2cbe07ef2..c585d9b52 100644
+--- a/examples/petsc/rc_ex3p
++++ b/examples/petsc/rc_ex3p
+@@ -6,4 +6,4 @@
+ # it needs PETSc configured with MUMPS
+ 
+ -solver_pc_type cholesky
+--solver_pc_factor_mat_solver_package mumps
++-solver_pc_factor_mat_solver_type mumps
+diff --git a/examples/petsc/rc_ex3p_bddc b/examples/petsc/rc_ex3p_bddc
+index ea887bb29..2e1eba0d5 100644
+--- a/examples/petsc/rc_ex3p_bddc
++++ b/examples/petsc/rc_ex3p_bddc
+@@ -16,7 +16,7 @@
+ #-pc_bddc_adaptive_threshold 10
+ 
+ # Customization of the local solvers
+-#-pc_bddc_neumann_pc_factor_mat_solver_package mumps
+-#-pc_bddc_dirichlet_pc_factor_mat_solver_package mumps
++#-pc_bddc_neumann_pc_factor_mat_solver_type mumps
++#-pc_bddc_dirichlet_pc_factor_mat_solver_type mumps
+ #-pc_bddc_coarse_pc_type cholesky
+-#-pc_bddc_coarse_pc_factor_mat_solver_package mumps
++#-pc_bddc_coarse_pc_factor_mat_solver_type mumps
+diff --git a/examples/petsc/rc_ex4p b/examples/petsc/rc_ex4p
+index f734f35fe..64fbe9427 100644
+--- a/examples/petsc/rc_ex4p
++++ b/examples/petsc/rc_ex4p
+@@ -2,4 +2,4 @@
+ # it needs PETSc configured with MUMPS
+ 
+ -solver_pc_type cholesky
+--solver_pc_factor_mat_solver_package mumps
++-solver_pc_factor_mat_solver_type mumps
+diff --git a/examples/petsc/rc_ex4p_bddc b/examples/petsc/rc_ex4p_bddc
+index 9507ad431..e8ef99db7 100644
+--- a/examples/petsc/rc_ex4p_bddc
++++ b/examples/petsc/rc_ex4p_bddc
+@@ -13,7 +13,7 @@
+ #-pc_bddc_adaptive_threshold 10
+ 
+ # Customization of the local solvers
+-#-pc_bddc_neumann_pc_factor_mat_solver_package mumps
+-#-pc_bddc_dirichlet_pc_factor_mat_solver_package mumps
++#-pc_bddc_neumann_pc_factor_mat_solver_type mumps
++#-pc_bddc_dirichlet_pc_factor_mat_solver_type mumps
+ #-pc_bddc_coarse_pc_type cholesky
+-#-pc_bddc_coarse_pc_factor_mat_solver_package mumps
++#-pc_bddc_coarse_pc_factor_mat_solver_type mumps
+diff --git a/examples/petsc/rc_ex5p_bddc b/examples/petsc/rc_ex5p_bddc
+index b243c53c8..a4bc899c3 100644
+--- a/examples/petsc/rc_ex5p_bddc
++++ b/examples/petsc/rc_ex5p_bddc
+@@ -28,13 +28,13 @@
+ # local solvers (needs PETSc compiled with support for SuiteSparse)
+ # default solvers will fail
+ -prec_pc_bddc_neumann_pc_type lu
+--prec_pc_bddc_neumann_pc_factor_mat_solver_package umfpack
++-prec_pc_bddc_neumann_pc_factor_mat_solver_type umfpack
+ -prec_pc_bddc_dirichlet_pc_type lu
+--prec_pc_bddc_dirichlet_pc_factor_mat_solver_package umfpack
++-prec_pc_bddc_dirichlet_pc_factor_mat_solver_type umfpack
+ 
+ # coarse solver (needs PETSc compiled with support for MUMPS)
+ # default solver may fail
+--prec_pc_bddc_coarse_pc_factor_mat_solver_package mumps
++-prec_pc_bddc_coarse_pc_factor_mat_solver_type mumps
+ -prec_pc_bddc_coarse_pc_type cholesky
+ 
+ # deluxe scaling (needs PETSc compiled with support for MUMPS)
