@@ -30,10 +30,13 @@ possible_version_weight(Package, Weight)
 
 % version_satisfies implies that exactly one of the satisfying versions
 % is the package's version, and vice versa.
-1 { version(Package, Version) : version_satisfies(Package, Constraint, Version) } 1
-  :- version_satisfies(Package, Constraint).
-version_satisfies(Package, Constraint)
+attr("version_satisfies", Package, Constraint)
   :- version(Package, Version), version_satisfies(Package, Constraint, Version).
+
+:- version(Package, Version),
+   attr("version_satisfies", Package, Constraint),
+   not version_satisfies(Package, Constraint, Version).
+
 
 #defined preferred_version_declared/3.
 #defined version_satisfies/3.
@@ -234,7 +237,6 @@ provider_weight(Package, 100)
 % without enumerating all spec attributes every time.
 node(Package)                          :- attr("node", Package).
 version(Package, Version)              :- attr("version", Package, Version).
-version_satisfies(Package, Constraint) :- attr("version_satisfies", Package, Constraint).
 node_platform(Package, Platform)       :- attr("node_platform", Package, Platform).
 node_os(Package, OS)                   :- attr("node_os", Package, OS).
 node_target(Package, Target)           :- attr("node_target", Package, Target).
@@ -250,7 +252,6 @@ node_compiler_version_satisfies(Package, Compiler, Version)
 
 attr("node", Package)                          :- node(Package).
 attr("version", Package, Version)              :- version(Package, Version).
-attr("version_satisfies", Package, Constraint) :- version_satisfies(Package, Constraint).
 attr("node_platform", Package, Platform)       :- node_platform(Package, Platform).
 attr("node_os", Package, OS)                   :- node_os(Package, OS).
 attr("node_target", Package, Target)           :- node_target(Package, Target).
@@ -277,7 +278,6 @@ attr("node_compiler_version_satisfies", Package, Compiler, Version)
 #defined external_only/1.
 #defined pkg_provider_preference/4.
 #defined default_provider_preference/3.
-#defined version_satisfies/2.
 #defined node_compiler_version_satisfies/3.
 #defined root/1.
 
