@@ -20,14 +20,11 @@ def setup_parser(subparser):
         '--list-os', action='store_true', default=False,
         help='list all the OS that can be used in the bootstrap phase and exit'
     )
-    stages = subparser.add_mutually_exclusive_group()
-    stages.add_argument(
-        '--bootstrap', action='store_true', default=False,
-        help='print only the bootstrap phase in a recipe'
-    )
-    stages.add_argument(
-        '--build', action='store_true', default=False,
-        help='print only the bootstrap and build stages in a recipe'
+    subparser.add_argument(
+        '--last-stage',
+        choices=('bootstrap', 'build', 'final'),
+        default='final',
+        help='last stage in the container recipe'
     )
 
 
@@ -47,11 +44,5 @@ def containerize(parser, args):
 
     config = spack.container.validate(config_file)
 
-    last_phase = None
-    if args.bootstrap:
-        last_phase = 'bootstrap'
-    elif args.build:
-        last_phase = 'build'
-
-    recipe = spack.container.recipe(config, last_phase=last_phase)
+    recipe = spack.container.recipe(config, last_phase=args.last_stage)
     print(recipe)
