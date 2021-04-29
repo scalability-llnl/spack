@@ -153,6 +153,20 @@ if [[ -z $mode ]] || [[ $mode == ld ]]; then
     done
 fi
 
+prev_arg=""
+for arg in "$@"; do
+    if [[ $prev_arg == -o ]]; then
+        # Rudimentary check to see if this compilation is intended to produce
+        # a precompiled header. This is not guaranteed to always succeed -
+        # see #8640
+        if [[ $arg == *.pch || $arg == *.gch ]]; then
+            mode=cpp
+            break
+        fi
+    fi
+    prev_arg=$arg
+done
+
 # Finish setting up the mode.
 if [[ -z $mode ]]; then
     mode=ccld
