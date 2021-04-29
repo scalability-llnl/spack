@@ -1,5 +1,12 @@
 {
   "images": {
+    "ubuntu:20.04": {
+      "os_package_manager": "apt",
+      "build": "spack/ubuntu-focal",
+      "build_tags": {
+        "develop": "latest"
+      }
+    },
     "ubuntu:18.04": {
       "os_package_manager": "apt",
       "build": "spack/ubuntu-bionic",

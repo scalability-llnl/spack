@@ -12,6 +12,7 @@ import spack.container
 @pytest.mark.parametrize('image,spack_version,expected', [
     ('ubuntu:18.04', 'develop', ('spack/ubuntu-bionic', 'latest')),
     ('ubuntu:18.04', '0.14.0', ('spack/ubuntu-bionic', '0.14.0')),
+    ('ubuntu:20.04', '0.16.0', ('spack/ubuntu-focal', '0.16.0')),
 ])
 def test_build_info(image, spack_version, expected):
     output = spack.container.images.build_info(image, spack_version)

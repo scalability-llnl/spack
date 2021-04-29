@@ -10,7 +10,8 @@ _stages_from_dockerhub = {
     'properties': {
         'os': {
             'type': 'string',
-            'enum': ['ubuntu:18.04',
+            'enum': ['ubuntu:20.04',
+                     'ubuntu:18.04',
                      'ubuntu:16.04',
                      'centos:7',
                      'centos:6']
