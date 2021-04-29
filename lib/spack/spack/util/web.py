@@ -105,7 +105,8 @@ def read_from_url(url, accept_content_type=None):
         else:
             # User has explicitly indicated that they do not want SSL
             # verification.
-            context = ssl._create_unverified_context()
+            if not __UNABLE_TO_VERIFY_SSL:
+                context = ssl._create_unverified_context()
 
     req = Request(url_util.format(url))
     content_type = None
