@@ -19,14 +19,12 @@ RUN apt-get -yqq update \
         git \
         gnupg2 \
         iproute2 \
-        lmod \
         locales \
         lua-posix \
         make \
         python3 \
         python3-pip \
         python3-setuptools \
-        tcl \
         unzip \
  && locale-gen en_US.UTF-8 \
  && pip3 install boto3 \

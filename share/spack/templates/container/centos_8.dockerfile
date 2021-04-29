@@ -22,9 +22,7 @@ RUN yum update -y \
         python38 \
         python38-pip \
         python38-setuptools \
-        tcl \
         unzip \
-        which \
  && pip3 install boto3 \
  && rm -rf /var/cache/yum \
  && yum clean all
