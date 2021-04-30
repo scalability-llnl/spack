@@ -1,0 +1,52 @@
+spack:
+  view: false
+  concretization: separately
+
+  config:
+    install_tree:
+      root: /home/software/spack
+      padded_length: 512
+      projections:
+        all: '{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'
+
+  # Currently only hdf5 is inebaled to reduce the load on the CI build
+  # cluster.  The spec will be gradually expanded to enable all the SDK
+  # components.
+  specs:
+  - matrix:
+    - - ecp-data-vis-sdk~adios2~darshan~faodel+hdf5~pnetcdf~unifyfs~veloc~ascent~paraview~sz~vtkm~zfp
+
+  mirrors: { "mirror": "s3://spack-binaries-develop/e4s-new-cluster" }
+
+  gitlab-ci:
+    image: { "name": "ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01", "entrypoint": [""] }
+    script:
+      - . "./share/spack/setup-env.sh"
+      - spack --version
+      - cd share/spack/gitlab/cloud_pipelines/stacks/data-vis-sdk
+      - spack env activate --without-view .
+      # - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+      - spack -d ci rebuild
+    mappings:
+      - match: [vtk-h, vtk-m, paraview, llvm, vtk]
+        runner-attributes:
+          tags: ["spack", "public", "xlarge", "x86_64"]
+      - match: ['@:']
+        runner-attributes:
+          tags: ["spack", "public", "large", "x86_64"]
+    temporary-storage-url-prefix: "s3://spack-binaries-prs/pipeline-storage"
+    service-job-attributes:
+      image: { "name": "ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01", "entrypoint": [""] }
+      before_script:
+        - . "./share/spack/setup-env.sh"
+        - spack --version
+        - cd share/spack/gitlab/cloud_pipelines/stacks/data-vis-sdk
+        - spack env activate --without-view .
+      tags: ["spack", "public", "medium", "x86_64"]
+
+  cdash:
+    build-group: Data and Vis SDK
+    url: https://cdash.spack.io
+    project: Spack Testing
+    site: Cloud Gitlab Infrastructure
+
