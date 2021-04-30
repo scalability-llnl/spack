@@ -6,10 +6,8 @@
 import shutil
 import sys
 
-from spack.util.environment import is_system_path
 
-
-class Hdf5(AutotoolsPackage):
+class Hdf5(CMakePackage):
     """HDF5 is a data model, library, and file format for storing and managing
     data. It supports an unlimited variety of datatypes, and is designed for
     flexible and efficient I/O and for high volume and complex data.
@@ -19,20 +17,17 @@ class Hdf5(AutotoolsPackage):
     url      = "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.7/src/hdf5-1.10.7.tar.gz"
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
-    git      = "https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git"
+    git      = "https://github.com/HDFGroup/hdf5.git"
     maintainers = ['lrknox']
 
     test_requires_compiler = True
 
-    # We rely on the *.la files to be removed and, therefore, do not try to make
-    # sure that they are correct. The following is a precaution against someone
-    # blindly changing the value to True, either here or in the baseclass.
-    install_libtool_archives = False
-
     version('develop', branch='develop')
+    version('develop-1.12', branch='hdf5_1_12')
+    version('develop-1.10', branch='hdf5_1_10')
+    version('develop-1.8', branch='hdf5_1_8')
 
     version('1.12.0', sha256='a62dcb276658cb78e6795dd29bf926ed7a9bc4edf6e77025cd2c689a8f97c17a')
-
     # HDF5 1.12 broke API compatibility, so we currently prefer the latest
     # 1.10 release.  packages that want later versions of HDF5 should specify,
     # e.g., depends_on("hdf5@1.12:") to get 1.12 or higher.
@@ -58,8 +53,6 @@ class Hdf5(AutotoolsPackage):
     version('1.8.12', sha256='b5cccea850096962b5fd9e96f22c4f47d2379224bb41130d9bc038bb6c37dfcb')
     version('1.8.10', sha256='4813b79c5fb8701a625b9924b8203bc7154a77f9b826ad4e034144b4056a160a')
 
-    variant('debug', default=False,
-            description='Builds a debug version of the library')
     variant('shared', default=True,
             description='Builds a shared version of the library')
 
@@ -69,31 +62,34 @@ class Hdf5(AutotoolsPackage):
     variant('java', default=False, description='Enable Java support')
     variant('threadsafe', default=False,
             description='Enable thread-safe capabilities')
-
+    variant('tools', default=False, description='Enable build tools')
     variant('mpi', default=True, description='Enable MPI support')
     variant('szip', default=False, description='Enable szip support')
     variant('pic', default=True,
             description='Produce position-independent code (for shared libs)')
-    # Build HDF5 with API compaitibility.
-    variant('api', default='none', description='choose api compatibility', values=('none', 'v114', 'v112', 'v110', 'v18', 'v16'), multi=False)
+    # Build HDF5 with API compatibility.
+    variant('api', default='default', description='Choose api compatibility for earlier version', values=('default', 'v114', 'v112', 'v110', 'v18', 'v16'), multi=False)
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v112', when='@1.6:1.10.99', msg='v112 is not compatible with this release')
     conflicts('api=v110', when='@1.6:1.8.99', msg='v110 is not compatible with this release')
     conflicts('api=v18', when='@1.6:1.6.99', msg='v18 is not compatible with this release')
 
-    depends_on('autoconf', type='build', when='@develop')
-    depends_on('automake', type='build', when='@develop')
-    depends_on('libtool',  type='build', when='@develop')
-    depends_on('m4',       type='build', when='@develop')
+    depends_on('cmake@3.12:')
 
     depends_on('mpi', when='+mpi')
-    depends_on('java', when='+java')
+    depends_on('java', type=('build', 'run'), when='+java')
     # numactl does not currently build on darwin
     if sys.platform != 'darwin':
         depends_on('numactl', when='+mpi+fortran')
     depends_on('szip', when='+szip')
     depends_on('zlib@1.1.2:')
+
+    # The Java wrappers and associated libhdf5_java library
+    # were first available in 1.10
+    conflicts('+java', when='@:1.9')
+    # The Java wrappers cannot be built without shared libs.
+    conflicts('+java', when='~shared')
 
     # There are several officially unsupported combinations of the features:
     # 1. Thread safety is not guaranteed via high-level C-API but in some cases
@@ -138,7 +134,7 @@ class Hdf5(AutotoolsPackage):
 
     # Disable MPI C++ interface when C++ is disabled, otherwise downstream
     # libraries fail to link; see https://github.com/spack/spack/issues/12586
-    patch('h5public-skip-mpicxx.patch', when='@:1.8.21,1.10.0:1.10.5+mpi~cxx',
+    patch('h5public-skip-mpicxx.patch', when='@1.8.10:1.8.21,1.10.0:1.10.5+mpi~cxx',
           sha256='b61e2f058964ad85be6ee5ecea10080bf79e73f83ff88d1fa4b602d00209da9c')
 
     # Fixes BOZ literal constant error when compiled with GCC 10.
@@ -173,11 +169,6 @@ class Hdf5(AutotoolsPackage):
         url = "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-{0}/hdf5-{1}/src/hdf5-{1}.tar.gz"
         return url.format(version.up_to(2), version)
 
-    @when('@develop')
-    def autoreconf(self, spec, prefix):
-        autogen = Executable('./autogen.sh')
-        autogen()
-
     @property
     def libs(self):
         """HDF5 can be queried for the following parameters:
@@ -185,6 +176,7 @@ class Hdf5(AutotoolsPackage):
         - "hl": high-level interface
         - "cxx": C++ APIs
         - "fortran": Fortran APIs
+        - "java": Java APIs
 
         :return: list of matching libraries
         """
@@ -196,11 +188,12 @@ class Hdf5(AutotoolsPackage):
         # to the libraries needed
         query2libraries = {
             tuple(): ['libhdf5'],
-            ('cxx', 'fortran', 'hl'): [
+            ('cxx', 'fortran', 'hl', 'java'): [
                 'libhdf5hl_fortran',
                 'libhdf5_hl_cpp',
                 'libhdf5_hl',
                 'libhdf5_fortran',
+                'libhdf5_java',
                 'libhdf5',
             ],
             ('cxx', 'hl'): [
@@ -230,6 +223,10 @@ class Hdf5(AutotoolsPackage):
             ('fortran',): [
                 'libhdf5_fortran',
                 'libhdf5',
+            ],
+            ('java',): [
+                'libhdf5_java',
+                'libhdf5',
             ]
         }
 
@@ -241,101 +238,101 @@ class Hdf5(AutotoolsPackage):
             libraries, root=self.prefix, shared=shared, recursive=True
         )
 
-    @run_before('configure')
+    @run_before('cmake')
     def fortran_check(self):
         if '+fortran' in self.spec and not self.compiler.fc:
             msg = 'cannot build a Fortran variant without a Fortran compiler'
             raise RuntimeError(msg)
 
-    def with_or_without_szip(self, activated):
-        return '--{0}-szlib'.format('with' if activated else 'without')
+    def cmake_args(self):
+        spec = self.spec
 
-    def configure_args(self):
         # Always enable this option. This does not actually enable any
         # features: it only *allows* the user to specify certain
         # combinations of other arguments. Enabling it just skips a
         # sanity check in configure, so this doesn't merit a variant.
-        extra_args = ['--enable-unsupported',
-                      '--enable-symbols=yes']
+        args = [
+            self.define('ALLOW_UNSUPPORTED', True),
+            self.define('BUILD_TESTING', self.run_tests),
+            self.define('HDF5_ENABLE_Z_LIB_SUPPORT', True),
+            self.define_from_variant('HDF5_ENABLE_SZIP_SUPPORT', 'szip'),
+            self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
+            self.define_from_variant('ONLY_SHARED_LIBS', 'shared'),
+            self.define_from_variant('HDF5_ENABLE_PARALLEL', 'mpi'),
+            self.define_from_variant('HDF5_ENABLE_THREADSAFE', 'threadsafe'),
+            self.define_from_variant('HDF5_BUILD_HL_LIB', 'hl'),
+            self.define_from_variant('HDF5_BUILD_CPP_LIB', 'cxx'),
+            self.define_from_variant('HDF5_BUILD_FORTRAN', 'fortran'),
+            self.define_from_variant('HDF5_BUILD_JAVA', 'java'),
+            self.define_from_variant('HDF5_BUILD_TOOLS', 'tools')
+        ]
 
-        # Do not specify the prefix of zlib if it is in a system directory
-        # (see https://github.com/spack/spack/pull/21900).
-        zlib_prefix = self.spec['zlib'].prefix
-        extra_args.append('--with-zlib={0}'.format(
-            'yes' if is_system_path(zlib_prefix) else zlib_prefix))
-
-        extra_args += self.enable_or_disable('threadsafe')
-        extra_args += self.enable_or_disable('cxx')
-        extra_args += self.enable_or_disable('hl')
-        extra_args += self.enable_or_disable('fortran')
-        extra_args += self.enable_or_disable('java')
-        extra_args += self.with_or_without('szip')
-
-        api = self.spec.variants['api'].value
-        if api != 'none':
-            extra_args.append('--with-default-api-version=' + api)
-
-        if self.spec.satisfies('@1.10:'):
-            if '+debug' in self.spec:
-                extra_args.append('--enable-build-mode=debug')
+        if '+szip' in spec:
+            args.append(self.define('HDF5_ENABLE_SZIP_ENCODING', True))
+            args.append(
+                self.define('SZIP_INCLUDE_DIR', spec['szip'].prefix.include))
+            # args.append(self.define('SZIP_DIR', spec['szip'].prefix.lib)) was
+            # sufficient for HDF5 versions released since 2019, but earlier
+            # versions had a FindSZIP.cmake file that required a full path
+            # to libsz.so.2.  Since this will also work for the newer versions,
+            # that is used below.  The libaec puts its lib files in lib64, so
+            # the 64 is appended to spec['szip'].prefix.lib along with the
+            # /libs.so.2 in the lines below when using szip from Libaec.
+            if '^libaec' in spec:
+                szlib_name = "64/libsz.so.2"
             else:
-                extra_args.append('--enable-build-mode=production')
-        else:
-            if '+debug' in self.spec:
-                extra_args.append('--enable-debug=all')
-            else:
-                extra_args.append('--enable-production')
+                szlib_name = "/libsz.so.2"
+            szlib_path = spec['szip'].prefix.lib + szlib_name
+            args.append(self.define('SZIP_LIBRARY', szlib_path))
 
-            # '--enable-fortran2003' no longer exists as of version 1.10.0
-            if '+fortran' in self.spec:
-                extra_args.append('--enable-fortran2003')
-            else:
-                extra_args.append('--disable-fortran2003')
+        api = spec.variants['api'].value
+        if api != 'default':
+            args.append(self.define('DEFAULT_API_VERSION', api))
 
-        if '+shared' in self.spec:
-            extra_args.append('--enable-shared')
-        else:
-            extra_args.append('--disable-shared')
-            extra_args.append('--enable-static-exec')
-
-        if '+pic' in self.spec:
+        # The variable CMAKE_POSITION_INDEPENDENT_CODE is set to True by default in
+        # HDF5 Cmake code;  this should insure that it is off if '~pic' in spec. The
+        # flags that were previously set for '+pic' in the Autotools version are kept
+        # in case CMake doesn't set them as expected.  Both the 'pic' variant and the
+        # CMAKE_POSITION_INDEPENDENT_CODE variable are True by default, but '~pic'
+        # should disable them both.
+        args.append(self.define_from_variant('CMAKE_POSITION_INDEPENDENT_CODE', 'pic'))
+        if '+pic' in spec:
             # use global spack compiler flags
             _flags = self.compiler.cc_pic_flag
-            _flags += " " + ' '.join(self.spec.compiler_flags['cflags'])
-            extra_args.append('CFLAGS={0}'.format(_flags))
+            _flags += " " + ' '.join(spec.compiler_flags['cflags'])
+            args.append('CFLAGS={0}'.format(_flags))
 
-            if '+cxx' in self.spec:
+            if '+cxx' in spec:
                 _flags = self.compiler.cxx_pic_flag
-                _flags += " " + ' '.join(self.spec.compiler_flags['cxxflags'])
-                extra_args.append('CXXFLAGS={0}'.format(_flags))
+                _flags += " " + ' '.join(spec.compiler_flags['cxxflags'])
+                args.append('CXXFLAGS={0}'.format(_flags))
 
-            if '+fortran' in self.spec:
+            if '+fortran' in spec:
                 _flags = self.compiler.fc_pic_flag
-                _flags += " " + ' '.join(self.spec.compiler_flags['fflags'])
-                extra_args.append('FCFLAGS={0}'.format(_flags))
+                _flags += " " + ' '.join(spec.compiler_flags['fflags'])
+                args.append('FCFLAGS={0}'.format(_flags))
 
         # Fujitsu Compiler does not add Fortran runtime in rpath.
-        if '+fortran %fj' in self.spec:
-            extra_args.append('LDFLAGS=-lfj90i -lfj90f -lfjsrcinfo -lelf')
+        if '+fortran %fj' in spec:
+            args.append('LDFLAGS=-lfj90i -lfj90f -lfjsrcinfo -lelf')
 
-        if '+mpi' in self.spec:
+        if '+mpi' in spec:
             # The HDF5 configure script warns if cxx and mpi are enabled
             # together. There doesn't seem to be a real reason for this, except
             # that parts of the MPI interface are not accessible via the C++
             # interface. Since they are still accessible via the C interface,
             # this is not actually a problem.
-            extra_args += ['--enable-parallel',
-                           'CC=%s' % self.spec['mpi'].mpicc]
+            args.append('CC=%s' % self.spec['mpi'].mpicc)
 
             if '+cxx' in self.spec:
-                extra_args.append('CXX=%s' % self.spec['mpi'].mpicxx)
+                args.append('CXX=%s' % self.spec['mpi'].mpicxx)
 
             if '+fortran' in self.spec:
-                extra_args.append('FC=%s' % self.spec['mpi'].mpifc)
+                args.append('FC=%s' % self.spec['mpi'].mpifc)
 
-        return extra_args
+        return args
 
-    @run_after('configure')
+    @run_after('cmake')
     def patch_postdeps(self):
         if '@:1.8.14' in self.spec:
             # On Ubuntu14, HDF5 1.8.12 (and maybe other versions)
@@ -347,7 +344,7 @@ class Hdf5(AutotoolsPackage):
                     arg for arg in m.group(1).split(' ') if arg != '-l'),
                 'libtool')
 
-    @run_after('configure')
+    @run_after('cmake')
     def patch_libtool(self):
         """AOCC support for HDF5"""
         if '%aocc' in self.spec:
