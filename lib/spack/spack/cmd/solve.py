@@ -103,7 +103,8 @@ def solve(parser, args):
 
     # dump generated ASP program
     result = asp.solve(
-        specs, dump=dump, models=models, timers=args.timers, stats=args.stats
+        specs, dump=dump, models=models, timers=args.timers, stats=args.stats,
+        extra_setup=None  # will be replaced with args.extra
     )
     if 'solutions' not in dump:
         return

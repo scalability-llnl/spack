@@ -22,11 +22,13 @@ class Zlib(Package):
     version('1.2.3', sha256='1795c7d067a43174113fdf03447532f373e1c6c57c08d61d9e4e9be5e244b05e')
 
     variant('pic', default=True,
-            description='Produce position-independent code (for shared libs)')
+            description='Produce position-independent code (for shared libs).')
     variant('shared', default=True,
             description='Enables the build of shared libraries.')
     variant('optimize', default=True,
-            description='Enable -O2 for a more optimized lib')
+            description='Enable -O2 for a more optimized lib.')
+    variant('debug', default=False,
+            description='Build with debug enabled.')
 
     patch('w_patch.patch', when="@1.2.11%cce")
 
@@ -42,6 +44,8 @@ class Zlib(Package):
             env.append_flags('CFLAGS', self.compiler.cc_pic_flag)
         if '+optimize' in self.spec:
             env.append_flags('CFLAGS', '-O2')
+        if '+debug' in self.spec:
+            env.append_flags('CFLAGS', '-g')
 
     def install(self, spec, prefix):
         config_args = []
@@ -49,7 +53,11 @@ class Zlib(Package):
             config_args.append('--static')
         configure('--prefix={0}'.format(prefix), *config_args)
 
-        make()
+        make_args = []
+        if spec.satisfies("+debug"):
+            make_args.append("DEBUG=1")
+
+        make(*make_args)
         if self.run_tests:
             make('check')
         make('install')
