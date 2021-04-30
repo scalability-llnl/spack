@@ -127,6 +127,10 @@ spack package at this time.''',
     # given just to avoid application of the patch to the develop version.
     patch('nag_libtool_2.4.6.patch', when='@3.1.4:3.3%nag')
 
+    # Fix for Fujitsu Compiler.
+    # Cannot detect system libraries for Fortran compiler.
+    patch('fj.3.4.patch', when='@3.4:3.4.1%fj')
+
     depends_on('findutils', type='build')
     depends_on('pkgconfig', type='build')
 
@@ -311,6 +315,9 @@ spack package at this time.''',
         # Same fix but for macOS - avoids issue #17934
         if self.spec.satisfies('%apple-clang@11:'):
             env.set('FFLAGS', '-fallow-argument-mismatch')
+        # avoid Fujitsu compiler fp16 bug
+        if self.spec.satisfies('%fj'):
+            env.set('MPID_NO_FLOAT16', 'yes')
 
     def setup_run_environment(self, env):
         # Because MPI implementations provide compilers, they have to add to
@@ -370,7 +377,8 @@ spack package at this time.''',
         """Not needed usually, configure should be already there"""
         # If configure exists nothing needs to be done
         if (os.path.exists(self.configure_abs_path) and
-            not spec.satisfies('@3.3:3.3.99 +hwloc')):
+            not spec.satisfies('@3.3:3.3.99 +hwloc') and
+            not spec.satisfies('%fj')):
             return
         # Else bootstrap with autotools
         bash = which('bash')

@@ -1,0 +1,140 @@
+--- spack-src/configure.ac	2021-01-21 03:04:56.000000000 +0900
++++ spack-src-fj/configure.ac	2021-03-08 10:39:30.975059712 +0900
+@@ -3390,7 +3390,7 @@
+ if test ${len_long_double__Complex} != 0 ; then
+     MPI_C_LONG_DOUBLE_COMPLEX=0x4c00${len_long_double__Complex}42
+ fi
+-if test ${len__Float16} != 0 ; then
++if test ${len__Float16} != 0 -a "$MPID_NO_FLOAT16" != "yes"; then
+     MPIX_C_FLOAT16=0x4c000246
+ fi
+
+--- spack-src/autogen.sh	2021-01-21 03:04:56.000000000 +0900
++++ spack-src-fj/autogen.sh	2021-03-08 13:16:57.458375128 +0900
+@@ -371,14 +371,14 @@
+ AC_PROG_LIBTOOL
+ AC_OUTPUT
+ _EOF
+-        AUTORECONF="$autoreconf -I $libtoolm4dir"
++        AUTORECONF="$autoreconf -B $libtoolm4dir"
+         if (cd .tmp && $AUTORECONF -ivf >/dev/null 2>&1) ; then
+             new_autoreconf_works=yes
+         fi
+         rm -rf .tmp
+     fi
+     echo "$new_autoreconf_works"
+-    # If autoreconf accepts -I <libtool's m4 dir> correctly, use -I.
++    # If autoreconf accepts -B <libtool's m4 dir> correctly, use -B.
+     # If not, run libtoolize before autoreconf (i.e. for autoconf <= 2.63)
+     # This test is more general than checking the autoconf version.
+     if [ "$new_autoreconf_works" != "yes" ] ; then
+@@ -990,6 +990,8 @@
+                 flang_patch_requires_rebuild=no
+                 arm_patch_requires_rebuild=no
+                 ibm_patch_requires_rebuild=no
++                fujitsu_patch_requires_rebuild=no
++                f77_patch_requires_rebuild=no
+                 sys_lib_dlsearch_path_patch_requires_rebuild=no
+                 macos_patch_requires_rebuild=no
+                 echo_n "Patching libtool.m4 for system dynamic library search path..."
+@@ -1063,11 +1065,32 @@
+                     else
+                         echo "failed"
+                     fi
++		    echo_n "Patching libtool.m4 for Fortran 77 compilers..."
++                    patch -N -s -l $amdir/confdb/libtool.m4 maint/patches/optional/confdb/f77.patch
++                    if [ $? -eq 0 ] ; then
++                        f77_patch_requires_rebuild=yes
++                        # Remove possible leftovers, which don't imply a failure
++                        rm -f $amdir/confdb/libtool.m4.orig
++                        echo "done"
++                    else
++                        echo "failed"
++                    fi
++                    echo_n "Patching libtool.m4 for Fujitsu Fortran compilers..."
++                    patch -N -s -l $amdir/confdb/libtool.m4 maint/patches/optional/confdb/fujitsu.patch
++                    if [ $? -eq 0 ] ; then
++                        fujitsu_patch_requires_rebuild=yes
++                        # Remove possible leftovers, which don't imply a failure
++                        rm -f $amdir/confdb/libtool.m4.orig
++                        echo "done"
++                    else
++                        echo "failed"
++                    fi
+                 fi
+ 
+                 if [ $ifort_patch_requires_rebuild = "yes" ] || [ $oracle_patch_requires_rebuild = "yes" ] \
+                     || [ $arm_patch_requires_rebuild = "yes" ] || [ $ibm_patch_requires_rebuild = "yes" ] \
+                     || [ $sys_lib_dlsearch_path_patch_requires_rebuild = "yes" ] || [ $flang_patch_requires_rebuild = "yes" ] \
++                    || [ $f77_patch_requires_rebuild = "yes" ] || [ $fujitsum_patch_requires_rebuild = "yes" ] \
+                     || [ $macos_patch_requires_rebuild = "yes" ]; then
+                     # Rebuild configure
+                     (cd $amdir && $autoconf -f) || exit 1
+diff -rNu spack-src/maint/patches/optional/confdb/f77.patch spack-src-fj/maint/patches/optional/confdb/f77.patch
+--- spack-src/maint/patches/optional/confdb/f77.patch	1970-01-01 09:00:00.000000000 +0900
++++ spack-src-fj/maint/patches/optional/confdb/f77.patch	2021-03-08 12:36:25.742997550 +0900
+@@ -0,0 +1,18 @@
++--- libtool.m4.org	2021-03-03 16:21:54.800529915 +0900
+++++ libtool.m4	2021-03-03 16:29:34.959297925 +0900
++@@ -6291,6 +6291,7 @@
++ ## the running order or otherwise move them around unless you know exactly
++ ## what you are doing...
++ if test -n "$compiler"; then
+++  _LT_SYS_HIDDEN_LIBDEPS($1)
++   _LT_COMPILER_NO_RTTI($1)
++   _LT_COMPILER_PIC($1)
++   _LT_COMPILER_C_O($1)
++@@ -7829,6 +7830,7 @@
++     ## There is no encapsulation within the following macros, do not change
++     ## the running order or otherwise move them around unless you know exactly
++     ## what you are doing...
+++    _LT_SYS_HIDDEN_LIBDEPS($1)
++     _LT_COMPILER_PIC($1)
++     _LT_COMPILER_C_O($1)
++     _LT_COMPILER_FILE_LOCKS($1)
+diff -rNu spack-src/maint/patches/optional/confdb/fujitsu.patch spack-src-fj/maint/patches/optional/confdb/fujitsu.patch
+--- spack-src/maint/patches/optional/confdb/fujitsu.patch	1970-01-01 09:00:00.000000000 +0900
++++ spack-src-fj/maint/patches/optional/confdb/fujitsu.patch	2021-03-08 12:36:57.654873969 +0900
+@@ -0,0 +1,42 @@
++--- libtool.m4.org	2021-03-03 16:21:54.800529915 +0900
+++++ libtool.m4	2021-03-03 16:34:02.020877909 +0900
++@@ -4789,6 +4789,11 @@
++         # ARM LLVM C/C++/Fortran
++         _LT_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
++         ;;
+++      fcc* | FCC* | frt*)
+++        # Fujitsu C/C++/Fortran
+++        _LT_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
+++       _LT_TAGVAR(lt_prog_compiler_pic, $1)='-KPIC'
+++        ;;
++       *)
++ 	case `$CC -V 2>&1 | sed 5q` in
++ 	*Sun\ Ceres\ Fortran* | *Sun*Fortran*\ [[1-7]].* | *Sun*Fortran*\ 8.[[0-3]]*)
++@@ -7814,6 +7819,13 @@
++ 	  esac
++ 	fi
++         ;;
+++      linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
+++        case $cc_basename in
+++          fcc* | FCC* | frt*)
+++            output_verbose_link_cmd='$CC $CFLAGS -v conftest.$objext 2>&1 | $GREP -v "^Configured with:" | $GREP "\-L"'
+++          ;;
+++        esac
+++        ;;
++     esac
++     AC_MSG_RESULT([$enable_shared])
++ 
++@@ -7952,6 +7964,13 @@
++ 	  esac
++ 	fi
++         ;;
+++      linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
+++        case $cc_basename in
+++          fcc* | FCC* | frt*)
+++            output_verbose_link_cmd='$CC $CFLAGS -v conftest.$objext 2>&1 | $GREP -v "^Configured with:" | $GREP "\-L"'
+++          ;;
+++        esac
+++        ;;
++     esac
++     AC_MSG_RESULT([$enable_shared])
++ 
