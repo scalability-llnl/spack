@@ -147,9 +147,10 @@ def dump_mode(cc, args):
 
 
 def test_vcheck_mode():
+    assert dump_mode(cpp, ['-I/include', '--version']) == 'vcheck'
+    assert dump_mode(ld, ['-rpath foo', '-v']) == 'vcheck'
     assert dump_mode(cc, ['-I/include', '--version']) == 'vcheck'
     assert dump_mode(cc, ['-I/include', '-V']) == 'vcheck'
-    assert dump_mode(cc, ['-I/include', '-v']) == 'vcheck'
     assert dump_mode(cc, ['-I/include', '-dumpversion']) == 'vcheck'
     assert dump_mode(cc, ['-I/include', '--version', '-c']) == 'vcheck'
     assert dump_mode(cc, ['-I/include', '-V', '-o', 'output']) == 'vcheck'
@@ -167,6 +168,7 @@ def test_as_mode():
 
 def test_ccld_mode():
     assert dump_mode(cc, []) == 'ccld'
+    assert dump_mode(cc, ['-I/include', '-v']) == 'ccld'
     assert dump_mode(cc, ['foo.c', '-o', 'foo']) == 'ccld'
     assert dump_mode(cc, ['foo.c', '-o', 'foo', '-Wl,-rpath,foo']) == 'ccld'
     assert dump_mode(cc, [
