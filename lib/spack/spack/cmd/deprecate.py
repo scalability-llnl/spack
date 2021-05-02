@@ -123,7 +123,7 @@ def deprecate(parser, args):
         if not answer:
             tty.die('Will not deprecate any packages.')
 
-    link_fn = os.link if args.link_type == 'hard' else os.symlink
+    link_fn = None if args.link_type == 'hard' else os.symlink
 
     for dcate, dcator in zip(all_deprecate, all_deprecators):
         dcate.package.do_deprecate(dcator, link_fn)

@@ -14,6 +14,23 @@ find = SpackCommand('find')
 activate = SpackCommand('activate')
 
 
+def test_hard_link_deprecate(mock_packages, mock_archive, mock_fetch,
+                             install_mockery):
+    install('libelf@0.8.13')
+    install('libelf@0.8.10')
+
+    all_installed = spack.store.db.query()
+    assert len(all_installed) == 2
+
+    output = deprecate('-y', '-l', 'hard', 'libelf@0.8.10', 'libelf@0.8.13')
+
+    non_deprecated = spack.store.db.query()
+    all_available = spack.store.db.query(installed=any)
+    assert 'Operation not permitted' not in output
+    assert all_available == all_installed
+    assert non_deprecated == spack.store.db.query('libelf@0.8.13')
+
+
 def test_deprecate(mock_packages, mock_archive, mock_fetch, install_mockery):
     install('libelf@0.8.13')
     install('libelf@0.8.10')
