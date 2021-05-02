@@ -174,7 +174,7 @@ config:
   # when Spack needs to manage its own package metadata and all operations are
   # expected to complete within the default time limit. The timeout should
   # therefore generally be left untouched.
-  db_lock_timeout: 3
+  db_lock_timeout: 15
 
 
   # How long to wait when attempting to modify a package (e.g. to install it).
