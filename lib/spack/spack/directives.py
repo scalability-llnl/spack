@@ -22,6 +22,7 @@ The available directives are:
   * ``extends``
   * ``patch``
   * ``provides``
+  * ``requires``
   * ``resource``
   * ``variant``
   * ``version``
@@ -379,6 +380,40 @@ def conflicts(conflict_spec, when=None, msg=None):
         when_spec_list = pkg.conflicts.setdefault(conflict_spec, [])
         when_spec_list.append((when_spec, msg))
     return _execute_conflicts
+
+
+@directive('requires')
+def requires(compiler, when=None):
+    """Allows a package to require a specific compiler
+
+    For example, a package that is known to be
+    buildable only with intel compilers can declare::
+
+        requires('intel')
+
+    To express the same constraint only when the 'foo' variant is
+    activated::
+
+        requires('intel', when='+foo')
+
+    Args:
+        compiler (str): the compiler name to be required
+        when (Spec): optional constraint that triggers the conflict
+        msg (str): optional user defined message
+    """
+    def _execute_requires(pkg):
+        # If when is not specified the requirement always holds
+        when_spec = make_when_spec(when)
+        if not when_spec:
+            return
+
+        # Save in a list the conflicts and the associated custom messages
+        for comp in spack.compilers.supported_compilers():
+            if compiler != comp:
+                when_spec_list = pkg.conflicts.setdefault('%%%s' % (comp), [])
+                msg = '%s compiler is required' % (compiler)
+                when_spec_list.append((when_spec, msg))
+    return _execute_requires
 
 
 @directive(('dependencies'))
