@@ -61,6 +61,9 @@ class Vim(AutotoolsPackage):
     depends_on('findutils', type='build')
     depends_on('fontconfig', when="+gui")
 
+    variant('sys_vimrc_file', default='none',
+            description='Name of the system-wide .vimrc file', multi=False)
+
     def configure_args(self):
         spec = self.spec
         feature_set = None
@@ -130,6 +133,17 @@ class Vim(AutotoolsPackage):
             configure_args.append("--enable-cscope")
 
         return configure_args
+
+    @run_before('configure')
+    def select_features(self):
+        """ Modify the build by editing a header file containing
+            defines for optional code and preferences. """
+        featurefile = FileFilter("src/feature.h")
+        sys_vimrc_file = self.spec.variants['sys_vimrc_file'].value
+        if sys_vimrc_file != 'none':
+            featurefile.filter('/\* #define SYS_VIMRC_FILE	"/etc/vimrc" \*/',
+                               '#define SYS_VIMRC_FILE	"{}"'
+                               .format(sys_vimrc_file))
 
     # Tests must be run in serial
     def check(self):
