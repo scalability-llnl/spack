@@ -196,7 +196,6 @@ class UrlPatch(Patch):
         root = self.stage.path
         if self.archive_sha256:
             self.stage.expand_archive()
-            root = self.stage.source_path
 
         files = os.listdir(root)
         if not files:

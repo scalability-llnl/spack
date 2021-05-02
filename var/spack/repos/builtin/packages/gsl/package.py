@@ -28,8 +28,10 @@ class Gsl(AutotoolsPackage, GNUMirrorPackage):
 
     variant('external-cblas', default=False, description='Build against external blas')
 
-    # from https://dev.gentoo.org/~mgorny/dist/gsl-2.3-cblas.patch.bz2
-    patch('gsl-2.3-cblas.patch', when="+external-cblas")
+    patch('https://dev.gentoo.org/~mgorny/dist/gsl-2.3-cblas.patch.bz2',
+            archive_sha256='aa4173a68a5b4e82659304266419c318054bb88d4257d9e3bbb28eeb1724390e',
+            sha256='41dc907c042631f810739c10058efc5b814b0e3907203c5b5d7292e3e35484bc',
+            when="+external-cblas")
 
     conflicts('+external-cblas', when="@:2.2.9999")
     depends_on('m4',       type='build', when='+external-cblas')
