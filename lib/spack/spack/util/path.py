@@ -24,10 +24,21 @@ __all__ = [
     'substitute_path_variables',
     'canonicalize_path']
 
+
+def get_user():
+    try:
+        # user pwd for unix systems
+        import pwd
+        return pwd.getpwuid(os.getuid()).pw_name
+    except ImportError:
+        # fallback on getpass
+        return getpass.getuser()
+
+
 # Substitutions to perform
 replacements = {
     'spack': spack.paths.prefix,
-    'user': getpass.getuser(),
+    'user': get_user(),
     'tempdir': tempfile.gettempdir(),
 }
 
