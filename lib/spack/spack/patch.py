@@ -120,13 +120,13 @@ class FilePatch(Patch):
         # At different times we call FilePatch on instances and classes
         pkg_cls = pkg if inspect.isclass(pkg) else pkg.__class__
         for cls in inspect.getmro(pkg_cls):
-            if not hasattr(cls, 'module'):
+            if not hasattr(cls, 'phases'):
                 # We've gone too far up the MRO
                 break
 
             # Cannot use pkg.package_dir because it's a property and we have
             # classes, not instances.
-            pkg_dir = os.path.abspath(os.path.dirname(cls.module.__file__))
+            pkg_dir = spack.repo.path.dirname_for_package_name(cls.name)
             path = os.path.join(pkg_dir, self.relative_path)
             if os.path.exists(path):
                 abs_path = path

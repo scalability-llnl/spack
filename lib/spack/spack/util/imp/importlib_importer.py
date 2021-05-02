@@ -8,6 +8,7 @@
 ``importlib`` is only fully implemented in Python 3.
 """
 from importlib.machinery import SourceFileLoader  # novm
+from importlib.util import spec_from_loader, module_from_spec  # novm
 
 
 class PrependFileLoader(SourceFileLoader):
@@ -32,8 +33,6 @@ class PrependFileLoader(SourceFileLoader):
 def load_source(full_name, path, prepend=None):
     """Import a Python module from source.
 
-    Load the source file and add it to ``sys.modules``.
-
     Args:
         full_name (str): full name of the module to be loaded
         path (str): path to the file that should be loaded
@@ -45,4 +44,9 @@ def load_source(full_name, path, prepend=None):
     """
     # use our custom loader
     loader = PrependFileLoader(full_name, path, prepend)
-    return loader.load_module()
+    # Note this is a ModuleSpec object defined in importlib and not a
+    # Spack Spec object
+    module_spec = spec_from_loader(full_name, loader)
+    mod = module_from_spec(module_spec)
+    module_spec.loader.exec_module(mod)
+    return mod

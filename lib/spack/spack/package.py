@@ -364,7 +364,7 @@ class PackageMeta(
         the containing module names.
         """
         if self._name is None:
-            self._name = self.module.__name__
+            self._name = self.__module__
             if '.' in self._name:
                 self._name = self._name[self._name.rindex('.') + 1:]
         return self._name

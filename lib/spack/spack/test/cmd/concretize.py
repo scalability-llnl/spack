@@ -11,7 +11,7 @@ from spack.main import SpackCommand
 
 # everything here uses the mock_env_path
 pytestmark = pytest.mark.usefixtures(
-    'mutable_mock_env_path', 'config', 'mutable_mock_repo')
+    'mutable_mock_env_path', 'config', 'mock_packages')
 
 env        = SpackCommand('env')
 add        = SpackCommand('add')

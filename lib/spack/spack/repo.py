@@ -1111,6 +1111,10 @@ class Repo(object):
             module.__package__ = self.full_namespace
             module.__loader__ = self
             self._modules[pkg_name] = module
+            if fullname in sys.modules:
+                # In this case we have a new Repo object, but a prior Repo
+                # has loaded the module (this only occurs during testing)
+                del sys.modules[fullname]
 
         return self._modules[pkg_name]
 
