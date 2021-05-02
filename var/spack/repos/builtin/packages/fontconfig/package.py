@@ -9,7 +9,7 @@ from spack import *
 class Fontconfig(AutotoolsPackage):
     """Fontconfig is a library for configuring/customizing font access"""
     homepage = "http://www.freedesktop.org/wiki/Software/fontconfig/"
-    url      = "http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.3.tar.gz"
+    url = "http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.3.tar.gz"
 
     version('2.13.1', sha256='9f0d852b39d75fc655f9f53850eb32555394f36104a044bb2b2fc9e66dbbfa7f')
     version('2.12.3', sha256='ffc3cbf6dd9fcd516ee42f48306a715e66698b238933d6fa7cef02ea8b3b818e')
@@ -28,6 +28,14 @@ class Fontconfig(AutotoolsPackage):
     @run_before('configure')
     def _rm_offending_header(self):
         force_remove(join_path('src', 'fcobjshash.h'))
+
+    def setup_build_environment(self, spack_env):
+        spack_env.set(
+            "FREETYPE_CFLAGS",
+            self.spec['freetype'].headers.include_flags + "/freetype2")
+        spack_env.set(
+            "FREETYPE_LIBS",
+            self.spec['freetype'].libs.ld_flags)
 
     def configure_args(self):
         font_path = join_path(self.spec['font-util'].prefix, 'share', 'fonts')
