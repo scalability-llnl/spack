@@ -100,6 +100,7 @@ def test_module_suffixes(module_suffixes_schema):
     'compilers',
     'config',
     'env',
+    'hardware',
     'merged',
     'mirrors',
     'modules',

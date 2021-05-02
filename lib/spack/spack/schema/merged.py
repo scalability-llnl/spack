@@ -15,6 +15,7 @@ import spack.schema.compilers
 import spack.schema.config
 import spack.schema.container
 import spack.schema.gitlab_ci
+import spack.schema.hardware
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
@@ -29,6 +30,7 @@ properties = union_dicts(
     spack.schema.config.properties,
     spack.schema.container.properties,
     spack.schema.gitlab_ci.properties,
+    spack.schema.hardware.properties,
     spack.schema.mirrors.properties,
     spack.schema.modules.properties,
     spack.schema.packages.properties,
