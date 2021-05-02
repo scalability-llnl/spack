@@ -33,6 +33,11 @@ class LinuxDistro(OperatingSystem):
 
         if 'ubuntu' in distname:
             version = '.'.join(version[0:2])
+        # openSUSE Tumbleweed is a rolling release which can change
+        # more than once in a week, so set version to tumbleweed
+        elif 'opensuse-tumbleweed' in distname:
+            distname = 'opensuse'
+            version = 'tumbleweed'
         else:
             version = version[0]
 
