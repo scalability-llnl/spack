@@ -449,6 +449,16 @@ case "$mode" in
         flags=("${flags[@]}" "${SPACK_LDFLAGS[@]}") ;;
 esac
 
+# Add -pipe for gcc and clang
+case "$SPACK_COMPILER_SPEC" in
+	*gcc*|*clang*)
+		case "$mode" in
+			cc|ccld)
+				flags=("${flags[@]}" "-pipe") ;;
+		esac
+		;;
+esac
+
 # On macOS insert headerpad_max_install_names linker flag
 if [[ ($mode == ld || $mode == ccld) && "$SPACK_SHORT_SPEC" =~ "darwin" ]];
 then
