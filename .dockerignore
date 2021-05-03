@@ -8,4 +8,4 @@ share/spack/dotkit/*
 share/spack/lmod/*
 share/spack/modules/*
 lib/spack/spack/test/*
-
+var/spack/cache/*
