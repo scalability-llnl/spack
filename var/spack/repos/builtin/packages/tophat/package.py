@@ -29,5 +29,8 @@ class Tophat(AutotoolsPackage):
 
     parallel = False
 
+    def setup_build_environment(self, env):
+        env.append_flags("CFLAGS", self.compiler.cxx98_flag)
+
     def configure_args(self):
         return ["--with-boost={0}".format(self.spec['boost'].prefix)]
