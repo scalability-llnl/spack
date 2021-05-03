@@ -1731,6 +1731,60 @@ This issue typically manifests with the error below:
 A nicer error message is TBD in future versions of Spack.
 
 
+------------------
+Developer Commands
+------------------
+
+.. _cmd-spack-solve:
+
+^^^^^^^^^^^^^^^
+``spack solve``
+^^^^^^^^^^^^^^^
+
+You can interact with Spack's solver outside of a package install with
+spack solve. For example:
+
+.. command-output:: spack solve zlib
+
+
+If you haven't updated your solver (the default is standard) to use clingo,
+an Answer Set Programming (logic based) solver, then you can edit your configuration
+and change concretizer from "standard" to "clingo":
+
+.. code-block:: console
+
+    $ spack config --scope defaults edit config
+
+Using the clingo solver, you can optionally test different models to solve.
+For example, to update the model to use Dwarf symbols, you'd first want to install
+two packages with debug symbols:
+
+.. code-block:: console
+
+    $ spack install tcl+debug ^zlib+debug
+    
+And then (since we don't have a database of symbols yet) generate facts with the
+elf analyzer:
+
+.. code-block:: console
+
+    $ spack analyze -a elf tcl
+
+And then provide the output file shown to the analyzer as an extra input file. 
+
+.. code-block:: console
+
+    $ spack solve -e symbols --lp /home/vanessa/.spack/analyzers/linux-ubuntu20.04-skylake/gcc-9.3.0/tcl-8.6.11-yl2wyap4fghprlmmf5yqqfie5kdfcrqy/elf/abi-facts.lp tcl
+
+If you don't provide it, it will tell you that it's missing!
+
+
+.. code-block:: console
+
+    $ spack solve -e symbols tcl
+    ==> Error: Missing logic programs for solver: abi-facts.lp
+
+
 ------------
 Getting Help
 ------------

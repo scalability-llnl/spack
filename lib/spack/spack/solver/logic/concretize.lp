@@ -38,6 +38,7 @@ version_satisfies(Package, Constraint)
 #defined preferred_version_declared/3.
 #defined version_satisfies/3.
 
+
 %-----------------------------------------------------------------------------
 % Spec conditions and imposed constraints
 %
@@ -79,13 +80,13 @@ attr(Name, A1, A2, A3) :- impose(ID), imposed_constraint(ID, Name, A1, A2, A3).
 % Dependencies of any type imply that one package "depends on" another
 depends_on(Package, Dependency) :- depends_on(Package, Dependency, _).
 
-% a dependency holds if its condition holds
+% a dependency holds if its condition holds and it is abi compatible
 dependency_holds(Package, Dependency, Type) :-
   dependency_condition(ID, Package, Dependency),
   dependency_type(ID, Type),
   condition_holds(ID),
   not external(Package).
-
+  
 % We cut off dependencies of externals (as we don't really know them).
 % Don't impose constraints on dependencies that don't exist.
 do_not_impose(ID) :-
@@ -121,6 +122,24 @@ path(Parent, Descendant) :- path(Parent, A), depends_on(A, Descendant).
 
 #defined dependency_type/2.
 #defined dependency_condition/3.
+
+%-----------------------------------------------------------------------------
+% ABI Compatibility
+%-----------------------------------------------------------------------------
+
+% compatibility is defined as the absence of any incompatibilities
+compatible(Package, Dependency) :-
+        node(Package),
+        node(Dependency),
+        version(Package, V1),
+        version(Dependency, V2),
+        not incompatible(Package, V1, Dependency, V2).
+
+#defined incompatible/4.
+
+% Do not admit models with ABI-incompatible dependencies
+:- depends_on(Package, Dependency), not compatible(Package, Dependency).
+
 
 %-----------------------------------------------------------------------------
 % Conflicts

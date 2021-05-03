@@ -28,14 +28,29 @@ class Tcl(AutotoolsPackage, SourceforgePackage):
     version('8.6.3', sha256='6ce0778de0d50daaa9c345d7c1fd1288fb658f674028812e7eeee992e3051005')
     version('8.5.19', sha256='d3f04456da873d17f02efc30734b0300fb6c3b85028d445fe284b83253a6db18')
 
+    variant('debug', default=False,
+            description='Build with debug enabled.')
+
     extendable = True
 
     depends_on('zlib')
 
     configure_directory = 'unix'
 
+    def configure_args(self):
+        options = []
+        spec = self.spec
+        if '+debug' in spec:
+            options.append('--enable-symbols')
+        return options
+
     def install(self, spec, prefix):
+        make_args = []
+        if spec.satisfies("+debug"):
+            make_args.append("DEBUG=1")
+
         with working_dir(self.build_directory):
+            make(*make_args)
             make('install')
 
             # http://wiki.tcl.tk/17463
