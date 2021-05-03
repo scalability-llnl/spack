@@ -19,5 +19,10 @@ class Argon2(MakefilePackage):
     version('20171227', sha256='eaea0172c1f4ee4550d1b6c9ce01aab8d1ab66b4207776aa67991eb5872fdcd8')
     version('20161029', sha256='fe0049728b946b58b94cc6db89b34e2d050c62325d16316a534d2bedd78cd5e7')
 
+    # Unlike the distro choice in spack we prefer to have bin/lib
+    # Validated on CentOS7
+    def setup_build_environment(self, env):
+        env.set('LIBRARY_REL', 'lib')
+
     def install(self, spec, prefix):
         make('PREFIX={0}'.format(prefix), 'install')
