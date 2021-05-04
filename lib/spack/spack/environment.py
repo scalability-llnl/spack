@@ -1635,7 +1635,8 @@ class Environment(object):
                 dag_hash_all = s.build_hash()
                 if dag_hash_all not in concrete_specs:
                     spec_dict = s.to_node_dict(hash=ht.build_hash)
-                    spec_dict[s.name]['hash'] = s.dag_hash()
+                    # Assumes new format, since this was just created.
+                    spec_dict['_hash'] = s.dag_hash()
                     concrete_specs[dag_hash_all] = spec_dict
 
         hash_spec_list = zip(
@@ -1681,7 +1682,7 @@ class Environment(object):
             specs_by_hash[dag_hash] = Spec.from_node_dict(node_dict)
 
         for dag_hash, node_dict in json_specs_by_hash.items():
-            for dep_name, dep_hash, deptypes in (
+            for _, dep_hash, deptypes, _ in (
                     Spec.dependencies_from_node_dict(node_dict)):
                 specs_by_hash[dag_hash]._add_dependency(
                     specs_by_hash[dep_hash], deptypes)

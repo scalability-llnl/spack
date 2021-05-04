@@ -44,6 +44,7 @@ import spack.spec
 import spack.store
 import spack.util.lock as lk
 import spack.util.spack_json as sjson
+import spack.hash_types as ht
 from spack.directory_layout import DirectoryLayoutError
 from spack.error import SpackError
 from spack.filesystem_view import YamlFilesystemView
@@ -65,7 +66,7 @@ _db_dirname = '.spack-db'
 # DB version.  This is stuck in the DB file to track changes in format.
 # Increment by one when the database format changes.
 # Versions before 5 were not integers.
-_db_version = Version('5')
+_db_version = Version('6')
 
 # For any version combinations here, skip reindex when upgrading.
 # Reindexing can take considerable time and is not always necessary.
@@ -76,6 +77,7 @@ _skip_reindex = [
     # fields.  So, skip the reindex for this transition. The new
     # version is saved to disk the first time the DB is written.
     (Version('0.9.3'), Version('5')),
+    (Version('5'), Version('6'))
 ]
 
 # Default timeout for spack database locks in seconds or None (no timeout).
@@ -632,7 +634,7 @@ class Database(object):
         except (TypeError, ValueError) as e:
             raise sjson.SpackJSONError("error writing JSON database:", str(e))
 
-    def _read_spec_from_dict(self, hash_key, installs):
+    def _read_spec_from_dict(self, hash_key, installs, hash=ht.dag_hash):
         """Recursively construct a spec from a hash in a YAML database.
 
         Does not do any locking.
@@ -641,8 +643,13 @@ class Database(object):
 
         # Install records don't include hash with spec, so we add it in here
         # to ensure it is read properly.
-        for name in spec_dict:
-            spec_dict[name]['hash'] = hash_key
+        if 'name' not in spec_dict.keys():
+            # old format, can't update format here
+            for name in spec_dict:
+                spec_dict[name]['hash'] = hash_key
+        else:
+            # new format, already a singleton
+            spec_dict[hash.attr] = hash_key
 
         # Build spec from dict first.
         spec = spack.spec.Spec.from_node_dict(spec_dict)
@@ -673,10 +680,13 @@ class Database(object):
         # Add dependencies from other records in the install DB to
         # form a full spec.
         spec = data[hash_key].spec
-        spec_dict = installs[hash_key]['spec']
-        if 'dependencies' in spec_dict[spec.name]:
-            yaml_deps = spec_dict[spec.name]['dependencies']
-            for dname, dhash, dtypes in spack.spec.Spec.read_yaml_dep_specs(
+        spec_node_dict = installs[hash_key]['spec']
+        if 'name' not in spec_node_dict:
+            # old format
+            spec_node_dict = spec_node_dict[spec.name]
+        if 'dependencies' in spec_node_dict:
+            yaml_deps = spec_node_dict['dependencies']
+            for dname, dhash, dtypes, _ in spack.spec.Spec.read_yaml_dep_specs(
                     yaml_deps):
                 # It is important that we always check upstream installations
                 # in the same order, and that we always check the local

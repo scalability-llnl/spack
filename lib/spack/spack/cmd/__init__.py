@@ -278,14 +278,14 @@ def display_specs_as_json(specs, deps=False):
         if spec.dag_hash() in seen:
             continue
         seen.add(spec.dag_hash())
-        records.append(spec.to_record_dict())
+        records.append(spec.to_node_dict())
 
         if deps:
             for dep in spec.traverse():
                 if dep.dag_hash() in seen:
                     continue
                 seen.add(dep.dag_hash())
-                records.append(dep.to_record_dict())
+                records.append(dep.to_node_dict())
 
     sjson.dump(records, sys.stdout)
 

@@ -740,9 +740,9 @@ def generate_package_index(cache_prefix):
         cache_prefix))
     for file_path in file_list:
         try:
-            yaml_url = url_util.join(cache_prefix, file_path)
-            tty.debug('fetching {0}'.format(yaml_url))
-            _, _, yaml_file = web_util.read_from_url(yaml_url)
+            spec_url = url_util.join(cache_prefix, file_path)
+            tty.debug('fetching {0}'.format(spec_url))
+            _, _, yaml_file = web_util.read_from_url(spec_url)
             yaml_contents = codecs.getreader('utf-8')(yaml_file).read()
             # yaml_obj = syaml.load(yaml_contents)
             # s = Spec.from_yaml(yaml_obj)
@@ -885,7 +885,7 @@ def build_tarball(spec, outdir, force=False, rel=False, unsigned=False,
     # need to copy the spec file so the build cache can be downloaded
     # without concretizing with the current spack packages
     # and preferences
-    spec_file = os.path.join(spec.prefix, ".spack", "spec.yaml")
+    spec_file = spack.store.layout.spec_file_path(spec)
     specfile_name = tarball_name(spec, '.spec.yaml')
     specfile_path = os.path.realpath(
         os.path.join(cache_prefix, specfile_name))
@@ -946,6 +946,7 @@ def build_tarball(spec, outdir, force=False, rel=False, unsigned=False,
     checksum = checksum_tarball(tarfile_path)
 
     # add sha256 checksum to spec.yaml
+    spec_dict = spack.store.layout.read_spec(spec_file)
     with open(spec_file, 'r') as inputfile:
         content = inputfile.read()
         spec_dict = yaml.load(content)
@@ -1624,15 +1625,28 @@ def needs_rebuild(spec, mirror_url, rebuild_on_errors=False):
 
     spec_yaml = syaml.load(yaml_contents)
 
-    yaml_spec = spec_yaml['spec']
+    yaml_spec = spec_yaml['spec']['nodes']
     name = spec.name
 
+    # TODO: Modernize this to use the methods for reading YAML in Spec
+    # In the old format:
     # The "spec" key in the yaml is a list of objects, each with a single
     # key that is the package name.  While the list usually just contains
     # a single object, we iterate over the list looking for the object
     # with the name of this concrete spec as a key, out of an abundance
     # of caution.
-    cached_pkg_specs = [item[name] for item in yaml_spec if name in item]
+    # In format version 2:
+    # ['spec']['nodes'] in the yaml is still a list of objects, but with a
+    # multitude of keys. The list will commonly contain many objects, and in the
+    # case of build specs, it is highly likely that the same name will occur
+    # once as the actual package, and then again as the build provenance of that
+    # same package. Hence format version 2 matches on the dag hash, not name.
+    if yaml_spec and 'name' not in yaml_spec[0]:
+        # old style
+        cached_pkg_specs = [item[name] for item in yaml_spec if name in item]
+    elif yaml_spec and spec_yaml['spec']['_meta']['version'] == 2:
+        cached_pkg_specs = [item for item in yaml_spec
+                            if item['_hash'] == spec.dag_hash()]
     cached_target = cached_pkg_specs[0] if cached_pkg_specs else None
 
     # If either the full_hash didn't exist in the .spec.yaml file, or it
@@ -1640,11 +1654,18 @@ def needs_rebuild(spec, mirror_url, rebuild_on_errors=False):
     # just rebuild.  This can be simplified once the dag_hash and the
     # full_hash become the same thing.
     rebuild = False
-    if not cached_target or 'full_hash' not in cached_target:
+
+    # TODO: This '_full_hash' business is going to break all the old style
+    # stuff. Get rid of the underscore in the schema or deal with old format
+    # here.
+    if not cached_target:
+        reason = 'did not find spec in yaml'
+        rebuild = True
+    elif '_full_hash' not in cached_target:
         reason = 'full_hash was missing from remote spec.yaml'
         rebuild = True
     else:
-        full_hash = cached_target['full_hash']
+        full_hash = cached_target['_full_hash']
         if full_hash != pkg_full_hash:
             reason = 'hash mismatch, remote = {0}, local = {1}'.format(
                 full_hash, pkg_full_hash)

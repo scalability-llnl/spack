@@ -525,8 +525,8 @@ class TestSpecSematics(object):
         # Spack's hashing algorithm.  This just reverses s2's hash.
         s2._hash = s1.dag_hash()[-1::-1]
 
-        assert not s1.satisfies(s2)
-        assert not s2.satisfies(s1)
+        assert not s1.satisfies(s2, debug=True)
+        assert not s2.satisfies(s1, debug=True)
 
     # ========================================================================
     # Indexing specs
@@ -1052,6 +1052,39 @@ class TestSpecSematics(object):
         assert (out2['splice-t'].build_spec.full_hash() ==
                 spec['splice-t'].full_hash())
         assert out2.spliced
+
+    @pytest.mark.parametrize('transitive', [True, False])
+    def test_splice_dict(self, transitive):
+        spec = Spec('splice-t')
+        dep = Spec('splice-h+foo')
+        spec.concretize()
+        dep.concretize()
+        out = spec.splice(dep, transitive)
+
+        # Sanity check all hashes are unique...
+        assert spec.full_hash() != dep.full_hash()
+        assert out.full_hash() != dep.full_hash()
+        assert out.full_hash() != spec.full_hash()
+
+        out_rt_spec = Spec.from_dict(out.to_dict())  # rt is "round trip"
+        out_rt_spec_bld_hash = out_rt_spec.build_spec.full_hash()
+        out_rt_spec_h_bld_hash = out_rt_spec['splice-h'].build_spec.full_hash()
+        out_rt_spec_z_bld_hash = out_rt_spec['splice-z'].build_spec.full_hash()
+
+        # In any case, the build spec for splice-t (root) should point to the
+        # original spec, preserving build provenance.
+        assert spec.full_hash() == out_rt_spec_bld_hash
+        assert out_rt_spec.full_hash() != out_rt_spec_bld_hash
+
+        # The build spec for splice-h should always point to the introduced
+        # spec, since that is the spec spliced in.
+        assert dep['splice-h'].full_hash() == out_rt_spec_h_bld_hash
+
+        # The build spec for splice-z will depend on whether or not the splice
+        # was transitive.
+        expected_z_bld_hash = (dep['splice-z'].full_hash() if transitive else
+                               spec['splice-z'].full_hash())
+        assert expected_z_bld_hash == out_rt_spec_z_bld_hash
 
     @pytest.mark.parametrize('spec,constraint,expected_result', [
         ('libelf target=haswell', 'target=broadwell', False),

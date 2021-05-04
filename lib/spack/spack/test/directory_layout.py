@@ -12,7 +12,7 @@ import pytest
 
 import spack.paths
 import spack.repo
-from spack.directory_layout import YamlDirectoryLayout
+from spack.directory_layout import DirectoryLayout
 from spack.directory_layout import InvalidDirectoryLayoutParametersError
 from spack.spec import Spec
 
@@ -27,7 +27,7 @@ def test_yaml_directory_layout_parameters(tmpdir, config):
     spec.concretize()
 
     # Ensure default layout matches expected spec format
-    layout_default = YamlDirectoryLayout(str(tmpdir))
+    layout_default = DirectoryLayout(str(tmpdir))
     path_default = layout_default.relative_path_for_spec(spec)
     assert(path_default == spec.format(
         "{architecture}/"
@@ -35,9 +35,9 @@ def test_yaml_directory_layout_parameters(tmpdir, config):
         "{name}-{version}-{hash}"))
 
     # Test hash_length parameter works correctly
-    layout_10 = YamlDirectoryLayout(str(tmpdir), hash_length=10)
+    layout_10 = DirectoryLayout(str(tmpdir), hash_length=10)
     path_10 = layout_10.relative_path_for_spec(spec)
-    layout_7 = YamlDirectoryLayout(str(tmpdir), hash_length=7)
+    layout_7 = DirectoryLayout(str(tmpdir), hash_length=7)
     path_7 = layout_7.relative_path_for_spec(spec)
 
     assert(len(path_default) - len(path_10) == 22)
@@ -46,8 +46,8 @@ def test_yaml_directory_layout_parameters(tmpdir, config):
     # Test path_scheme
     arch, compiler, package7 = path_7.split('/')
     projections_package7 = {'all': "{name}-{version}-{hash:7}"}
-    layout_package7 = YamlDirectoryLayout(str(tmpdir),
-                                          projections=projections_package7)
+    layout_package7 = DirectoryLayout(str(tmpdir),
+                                      projections=projections_package7)
     path_package7 = layout_package7.relative_path_for_spec(spec)
 
     assert(package7 == path_package7)
@@ -59,7 +59,7 @@ def test_yaml_directory_layout_parameters(tmpdir, config):
     ns_scheme = "${ARCHITECTURE}/${NAMESPACE}/${PACKAGE}-${VERSION}-${HASH:7}"   # NOQA: ignore=E501
     arch_ns_scheme_projections = {'all': arch_scheme,
                                   'python': ns_scheme}
-    layout_arch_ns = YamlDirectoryLayout(
+    layout_arch_ns = DirectoryLayout(
         str(tmpdir), projections=arch_ns_scheme_projections)
 
     arch_path_spec2 = layout_arch_ns.relative_path_for_spec(spec2)
@@ -70,9 +70,9 @@ def test_yaml_directory_layout_parameters(tmpdir, config):
 
     # Ensure conflicting parameters caught
     with pytest.raises(InvalidDirectoryLayoutParametersError):
-        YamlDirectoryLayout(str(tmpdir),
-                            hash_length=20,
-                            projections=projections_package7)
+        DirectoryLayout(str(tmpdir),
+                        hash_length=20,
+                        projections=projections_package7)
 
 
 def test_read_and_write_spec(temporary_store, config, mock_packages):
@@ -228,7 +228,7 @@ def test_yaml_directory_layout_build_path(tmpdir, config):
     spec = Spec('python')
     spec.concretize()
 
-    layout = YamlDirectoryLayout(str(tmpdir))
+    layout = DirectoryLayout(str(tmpdir))
     rel_path = os.path.join(layout.metadata_dir, layout.packages_dir)
     assert layout.build_packages_path(spec) == os.path.join(spec.prefix,
                                                             rel_path)

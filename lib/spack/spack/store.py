@@ -16,9 +16,9 @@ Spack.  The simplest store could just contain prefixes named by DAG hash,
 but we use a fancier directory layout to make browsing the store and
 debugging easier.
 
-The directory layout is currently hard-coded to be a YAMLDirectoryLayout,
+The directory layout is currently hard-coded to be a DirectoryLayout,
 so called because it stores build metadata within each prefix, in
-`spec.yaml` files. In future versions of Spack we may consider allowing
+`spec.json` files. In future versions of Spack we may consider allowing
 install trees to define their own layouts with some per-tree
 configuration.
 
@@ -162,7 +162,7 @@ class Store(object):
         self.hash_length = hash_length
         self.db = spack.database.Database(
             root, upstream_dbs=retrieve_upstream_dbs())
-        self.layout = spack.directory_layout.YamlDirectoryLayout(
+        self.layout = spack.directory_layout.DirectoryLayout(
             root, projections=projections, hash_length=hash_length)
 
     def reindex(self):

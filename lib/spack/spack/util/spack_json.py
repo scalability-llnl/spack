@@ -14,7 +14,7 @@ import spack.error
 __all__ = ['load', 'dump', 'SpackJSONError']
 
 _json_dump_args = {
-    'indent': True,
+    'indent': 2,
     'separators': (',', ': ')
 }
 

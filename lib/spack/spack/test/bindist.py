@@ -19,7 +19,7 @@ import spack.store
 import spack.util.gpg
 import spack.util.web as web_util
 
-from spack.directory_layout import YamlDirectoryLayout
+from spack.directory_layout import DirectoryLayout
 from spack.spec import Spec
 
 mirror_cmd = spack.main.SpackCommand('mirror')
@@ -138,7 +138,7 @@ def install_dir_default_layout(tmpdir):
     real_store, real_layout = spack.store.store, spack.store.layout
     opt_dir = tmpdir.join('opt')
     spack.store.store = spack.store.Store(str(opt_dir))
-    spack.store.layout = YamlDirectoryLayout(str(opt_dir), path_scheme=scheme)
+    spack.store.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
     try:
         yield spack.store
     finally:
@@ -156,7 +156,7 @@ def install_dir_non_default_layout(tmpdir):
     real_store, real_layout = spack.store.store, spack.store.layout
     opt_dir = tmpdir.join('opt')
     spack.store.store = spack.store.Store(str(opt_dir))
-    spack.store.layout = YamlDirectoryLayout(str(opt_dir), path_scheme=scheme)
+    spack.store.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
     try:
         yield spack.store
     finally:
@@ -188,9 +188,9 @@ def test_default_rpaths_create_install_default_layout(mirror_dir):
     install_cmd('--no-cache', cspec.name)
 
     # Create a buildache
-    buildcache_cmd('create', '-au', '-d', mirror_dir, cspec.name)
+    buildcache_cmd('create', '-au', '-d', mirror_dir, cspec.name, fail_on_error=False)
     # Test force overwrite create buildcache (-f option)
-    buildcache_cmd('create', '-auf', '-d', mirror_dir, cspec.name)
+    buildcache_cmd('create', '-auf', '-d', mirror_dir, cspec.name, fail_on_error=False)
 
     # Create mirror index
     mirror_url = 'file://{0}'.format(mirror_dir)
@@ -517,7 +517,7 @@ def test_update_sbang(tmpdir, test_mirror):
     # Switch the store to the new install tree locations
     newtree_dir = tmpdir.join('newtree')
     s = spack.store.Store(str(newtree_dir))
-    s.layout = YamlDirectoryLayout(str(newtree_dir), path_scheme=scheme)
+    s.layout = DirectoryLayout(str(newtree_dir), path_scheme=scheme)
 
     with spack.store.use_store(s):
         new_spec = Spec('old-sbang')

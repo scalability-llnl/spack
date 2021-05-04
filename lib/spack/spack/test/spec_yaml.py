@@ -116,20 +116,6 @@ def test_using_ordered_dict(mock_packages):
         assert level >= 5
 
 
-def test_to_record_dict(mock_packages, config):
-    specs = ['mpileaks', 'zmpi', 'dttop']
-    for name in specs:
-        spec = Spec(name).concretized()
-        record = spec.to_record_dict()
-        assert record["name"] == name
-        assert "hash" in record
-
-        node = spec.to_node_dict()
-        for key, value in node[name].items():
-            assert key in record
-            assert record[key] == value
-
-
 @pytest.mark.parametrize("hash_type", [
     ht.dag_hash,
     ht.build_hash,

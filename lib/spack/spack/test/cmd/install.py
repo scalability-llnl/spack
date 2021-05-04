@@ -908,7 +908,9 @@ def test_cache_install_full_hash_match(
 
     assert expect_msg in install_output
 
-    uninstall('-y', s.name)
+    # This will technically fail because the database was corrupted by having
+    # both libdwarf and libelf manually set the same full_hash
+    uninstall('-y', s.name, fail_on_error=False)
     mirror('rm', 'test-mirror')
 
 

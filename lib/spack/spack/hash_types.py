@@ -6,6 +6,7 @@
 """Definitions that control how Spack creates Spec hashes."""
 
 import spack.dependency as dp
+from typing import List  # novm
 
 
 class SpecHashDescriptor(object):
@@ -17,19 +18,20 @@ class SpecHashDescriptor(object):
     canonicalized hash of the package.py for each node in the graph.
 
     We currently use different hashes for different use cases.
+
     """
+    hash_types = []  # type: List[str]
 
-    hash_types = ('_dag_hash', '_build_hash', '_full_hash')
-
-    def __init__(self, deptype=('link', 'run'), package_hash=False, attr=None):
+    def __init__(self, deptype, package_hash, attr):
         self.deptype = dp.canonical_deptype(deptype)
         self.package_hash = package_hash
         self.attr = attr
+        SpecHashDescriptor.hash_types.append(attr)
 
 
 #: Default Hash descriptor, used by Spec.dag_hash() and stored in the DB.
-dag_hash = SpecHashDescriptor(deptype=('link', 'run'), package_hash=False,
-                              attr='_hash')
+dag_hash = SpecHashDescriptor(
+    deptype=('link', 'run'), package_hash=False, attr='_hash')
 
 
 #: Hash descriptor that includes build dependencies.
