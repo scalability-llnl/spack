@@ -2,7 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
+import argparse
 import os
 import shutil
 import sys
@@ -22,6 +22,7 @@ import spack.store
 import spack.config
 import spack.repo
 import spack.store
+import spack.util.crypto
 import spack.util.url as url_util
 
 from spack.error import SpecError
@@ -100,6 +101,8 @@ def setup_parser(subparser):
     install.add_argument('-o', '--otherarch', action='store_true',
                          help="install specs from other architectures" +
                               " instead of default platform and OS")
+    # This argument is needed by the bootstrapping logic to verify checksums
+    install.add_argument('--sha256', help=argparse.SUPPRESS)
 
     arguments.add_common_arguments(install, ['specs'])
     install.set_defaults(func=installtarball)
@@ -497,6 +500,14 @@ def install_tarball(spec, args):
     else:
         tarball = bindist.download_tarball(spec)
         if tarball:
+            if args.sha256:
+                checker = spack.util.crypto.Checker(args.sha256)
+                msg = ('cannot verify checksum for "{0}"'
+                       ' [expected={1}]')
+                msg = msg.format(tarball, args.sha256)
+                assert checker.check(tarball), msg
+                tty.msg('Verified SHA256 checksum of the build cache')
+
             tty.msg('Installing buildcache for spec %s' % spec.format())
             bindist.extract_tarball(spec, tarball, args.allow_root,
                                     args.unsigned, args.force)
