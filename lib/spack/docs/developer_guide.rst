@@ -867,6 +867,50 @@ just like you would with the normal ``python`` command.
 
 .. _cmd-spack-url:
 
+
+^^^^^^^^^^^^^^^
+``spack blame``
+^^^^^^^^^^^^^^^
+
+Spack blame is a way to quickly see contributors to packages or files
+in the spack repository. You should provide a target package name or 
+file name to the command. Here is an example asking to see contributions
+for the package "python":
+
+.. code-block:: console
+
+    $ spack blame python
+    LAST_COMMIT  LINES  %      AUTHOR            EMAIL
+    2 weeks ago  3      0.3    Mickey Mouse   <cheddar@gmouse.org>
+    a month ago  927    99.7   Minnie Mouse   <swiss@mouse.org>
+                                        
+    2 weeks ago  930    100.0  
+
+
+By default, you will get a table view (shown above) sorted by date of contribution,
+with the most recent contribution at the top.  If you want to sort instead
+by percentage of code contribution, then add ``-p``:
+
+.. code-block:: console
+
+    $ spack blame -p python
+
+
+And to see the git blame view, add ``-g`` instead:
+
+
+.. code-block:: console
+
+    $ spack blame -g python
+
+
+Finally, to get a json export of the data, add ``--json``:
+
+.. code-block:: console
+
+    $ spack blame --json python
+
+
 ^^^^^^^^^^^^^
 ``spack url``
 ^^^^^^^^^^^^^

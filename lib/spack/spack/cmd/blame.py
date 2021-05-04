@@ -5,11 +5,13 @@
 
 import os
 import re
+import sys
 
 import llnl.util.tty as tty
 from llnl.util.lang import pretty_date
 from llnl.util.filesystem import working_dir
 from llnl.util.tty.colify import colify_table
+import spack.util.spack_json as sjson
 
 import spack.paths
 import spack.repo
@@ -33,10 +35,55 @@ def setup_parser(subparser):
     view_group.add_argument(
         '-g', '--git', dest='view', action='store_const', const='git',
         help='show git blame output instead of summary')
+    subparser.add_argument(
+        "--json", action="store_true", default=False,
+        help="output blame as machine-readable json records")
 
     subparser.add_argument(
         'package_or_file', help='name of package to show contributions for, '
         'or path to a file in the spack repo')
+
+
+def print_table(rows, last_mod, total_lines, emails):
+    """
+    Given a set of rows with authors and lines, print a table.
+    """
+    table = [['LAST_COMMIT', 'LINES', '%', 'AUTHOR', 'EMAIL']]
+    for author, nlines in rows:
+        table += [[
+            pretty_date(last_mod[author]),
+            nlines,
+            round(nlines / float(total_lines) * 100, 1),
+            author,
+            emails[author]]]
+
+    table += [[''] * 5]
+    table += [[pretty_date(max(last_mod.values())), total_lines, '100.0'] +
+              [''] * 3]
+
+    colify_table(table)
+
+
+def dump_json(rows, last_mod, total_lines, emails):
+    """
+    Dump the blame as a json object to the terminal.
+    """
+    result = {}
+    authors = []
+    for author, nlines in rows:
+        authors.append({
+            "last_commit": pretty_date(last_mod[author]),
+            "lines": nlines,
+            "percentage": round(nlines / float(total_lines) * 100, 1),
+            "author": author,
+            "email": emails[author]
+        })
+
+    result['authors'] = authors
+    result["totals"] = {"last_commit": pretty_date(max(last_mod.values())),
+                        "lines": total_lines, "percentage": "100.0"}
+
+    sjson.dump(result, sys.stdout)
 
 
 def blame(parser, args):
@@ -96,18 +143,10 @@ def blame(parser, args):
     else:  # args.view == 'percent'
         rows = sorted(counts.items(), key=lambda t: t[1], reverse=True)
 
+    # Dump as json
+    if args.json:
+        dump_json(rows, last_mod, total_lines, emails)
+
     # Print a nice table with authors and emails
-    table = [['LAST_COMMIT', 'LINES', '%', 'AUTHOR', 'EMAIL']]
-    for author, nlines in rows:
-        table += [[
-            pretty_date(last_mod[author]),
-            nlines,
-            round(nlines / float(total_lines) * 100, 1),
-            author,
-            emails[author]]]
-
-    table += [[''] * 5]
-    table += [[pretty_date(max(last_mod.values())), total_lines, '100.0'] +
-              [''] * 3]
-
-    colify_table(table)
+    else:
+        print_table(rows, last_mod, total_lines, emails)

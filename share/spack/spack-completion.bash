@@ -384,7 +384,7 @@ _spack_arch() {
 _spack_blame() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -t --time -p --percent -g --git"
+        SPACK_COMPREPLY="-h --help -t --time -p --percent -g --git --json"
     else
         _all_packages
     fi
