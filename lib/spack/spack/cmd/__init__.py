@@ -157,7 +157,18 @@ def parse_specs(args, **kwargs):
     try:
         sargs = args
         if not isinstance(args, six.string_types):
-            sargs = ' '.join(spack.util.string.quote(args))
+            if len(sargs) == 1:
+                # a single argument contains a full spec and will confuse the
+                # Parser if escaped -> simply take it out of the list
+                if not isinstance(sargs, type([])):
+                    # Since the list keyword is taken we have to get the type
+                    # via the literal.
+                    # Sets do not support indexing -> convert to list as simply
+                    # popping the only element would modify the argument.
+                    sargs = type([])(sargs)
+                sargs = sargs[0]
+            else:
+                sargs = ' '.join(spack.util.string.quote(args))
         specs = spack.spec.parse(sargs)
         for spec in specs:
             if concretize:

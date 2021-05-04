@@ -87,3 +87,9 @@ def test_spec_returncode():
     with pytest.raises(spack.main.SpackCommandError):
         spec()
     assert spec.returncode == 1
+
+
+def test_spec_singlestring():
+    spec('multivalue_variant foo=baz target=x86_64 ^a@1.0')
+
+    assert spec.returncode == 0
