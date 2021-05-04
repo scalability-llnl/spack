@@ -80,6 +80,9 @@ to determine whether a given spec is up to date on mirrors.  In the latter
 case, specs might be needlessly rebuilt if remote buildcache indices are out
 of date.""")
     generate.add_argument(
+        '--force-rebuild', default=False, action='store_true',
+        help="Force each spec in the pipeline to be rebuilt from source")
+    generate.add_argument(
         '--artifacts-root', default=None,
         help="""Path to root of artifacts directory.  If provided, concrete
 environment files (spack.yaml, spack.lock) will be generated under this
@@ -124,6 +127,7 @@ def ci_generate(args):
     use_dependencies = args.dependencies
     prune_dag = args.prune_dag
     index_only = args.index_only
+    force = args.force_rebuild
     artifacts_root = args.artifacts_root
 
     if not output_file:
@@ -134,9 +138,14 @@ def ci_generate(args):
         if not os.path.exists(gen_ci_dir):
             os.makedirs(gen_ci_dir)
 
+    if not force:
+        force_rebuild = os.environ.get('SPACK_CI_FORCE_REBUILD_SPECS', '')
+        if force_rebuild.lower() == 'true':
+            force = True
+
     # Generate the jobs
     spack_ci.generate_gitlab_ci_yaml(
-        env, True, output_file, prune_dag=prune_dag,
+        env, True, output_file, prune_dag=prune_dag, force_rebuild=force,
         check_index_only=index_only, run_optimizer=run_optimizer,
         use_dependencies=use_dependencies, artifacts_root=artifacts_root)
 
@@ -184,6 +193,7 @@ def ci_prebuild(args):
     related_builds = get_env_var('SPACK_RELATED_BUILDS_CDASH')
     pr_env_var = get_env_var('SPACK_IS_PR_PIPELINE')
     remote_mirror_url = get_env_var('SPACK_REMOTE_MIRROR_URL')
+    force_rebuild = get_env_var('SPACK_CI_FORCE_REBUILD_SPECS')
 
     gitlab_ci = None
     if 'gitlab-ci' in yaml_root:
@@ -339,9 +349,11 @@ def ci_prebuild(args):
     if pipeline_mirror_url:
         spack_ci.add_mirror(spack_ci.TEMP_STORAGE_MIRROR_NAME, pipeline_mirror_url)
 
-    # Checks all mirrors for a built spec with a matching full hash
-    matches = bindist.get_mirrors_for_spec(
-        job_spec, full_hash_match=True, index_only=False)
+    matches = None
+    if force_rebuild is None or force_rebuild.lower() == 'false':
+        # Checks all mirrors for a built spec with a matching full hash
+        matches = bindist.get_mirrors_for_spec(
+            job_spec, full_hash_match=True, index_only=False)
 
     if matches:
         # Got at full hash match on at least one configured mirror.  All

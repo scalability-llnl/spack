@@ -944,6 +944,33 @@ spack:
 
                 assert(found_spec_job)
 
+            # Test the --force-rebuild cli option
+            outputfile_forced = str(tmpdir.join('forced_pipeline.yml'))
+            ci_cmd('generate', '--force-rebuild', '--output-file',
+                   outputfile_forced)
+
+            with open(outputfile_forced) as f:
+                contents = f.read()
+                yaml_contents = syaml.load(contents)
+                found_spec_job = False
+
+                for ci_key in yaml_contents.keys():
+                    if '(specs) patchelf' in ci_key:
+                        the_elt = yaml_contents[ci_key]
+                        assert('variables' in the_elt)
+                        job_vars = the_elt['variables']
+                        assert('SPACK_SPEC_NEEDS_REBUILD' in job_vars)
+                        assert(job_vars['SPACK_SPEC_NEEDS_REBUILD'] == 'False')
+                        found_spec_job = True
+
+                assert(found_spec_job)
+
+                assert('variables' in yaml_contents)
+                pipeline_vars = yaml_contents['variables']
+                assert('SPACK_CI_FORCE_REBUILD_SPECS' in pipeline_vars)
+                force_env_var = pipeline_vars['SPACK_CI_FORCE_REBUILD_SPECS']
+                assert(force_env_var.lower() == 'true')
+
             mirror_cmd('rm', 'test-ci')
 
             # Test generating buildcache index while we have bin mirror

@@ -531,7 +531,7 @@ def remove_mirror(name):
 def generate_gitlab_ci_yaml(env, print_summary, output_file,
                             prune_dag=False, check_index_only=False,
                             run_optimizer=False, use_dependencies=False,
-                            artifacts_root=None):
+                            artifacts_root=None, force_rebuild=False):
     # FIXME: What's the difference between one that opens with 'spack'
     # and one that opens with 'env'?  This will only handle the former.
     with spack.concretize.disable_compiler_existence_check():
@@ -801,7 +801,7 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file,
                                          prune_dag, spec_labels,
                                          enable_artifacts_buildcache))
 
-                rebuild_spec = spec_record['needs_rebuild']
+                rebuild_spec = spec_record['needs_rebuild'] or force_rebuild
 
                 # This next section helps gitlab make sure the right
                 # bootstrapped compiler exists in the artifacts buildcache by
@@ -879,7 +879,8 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file,
                         'pipeline': '{0}'.format(parent_pipeline_id)
                     })
 
-                job_vars['SPACK_SPEC_NEEDS_REBUILD'] = str(rebuild_spec)
+                job_vars['SPACK_SPEC_NEEDS_REBUILD'] = str(
+                    spec_record['needs_rebuild'])
 
                 if enable_cdash_reporting:
                     cdash_build_name = get_cdash_build_name(
@@ -1064,7 +1065,8 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file,
             'SPACK_JOB_LOG_DIR': job_log_dir,
             'SPACK_JOB_REPRO_DIR': job_repro_dir,
             'SPACK_LOCAL_MIRROR_DIR': local_mirror_dir,
-            'SPACK_IS_PR_PIPELINE': str(is_pr_pipeline)
+            'SPACK_IS_PR_PIPELINE': str(is_pr_pipeline),
+            'SPACK_CI_FORCE_REBUILD_SPECS': str(force_rebuild)
         }
 
         if pr_mirror_url:
