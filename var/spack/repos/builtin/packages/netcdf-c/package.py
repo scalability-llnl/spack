@@ -13,14 +13,18 @@ class NetcdfC(AutotoolsPackage):
 
     homepage = "http://www.unidata.ucar.edu/software/netcdf"
     git      = "https://github.com/Unidata/netcdf-c.git"
-    url      = "https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-c-4.7.4.tar.gz"
+    urls     = [
+        "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.7.4.tar.gz",
+        "https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-c-4.7.4.tar.gz"
+    ]
 
     def url_for_version(self, version):
-        url = ['https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf']
-        if version >= Version('4.6.2'):
-            url.append("-c")
-        url.extend(["-", str(version.dotted), ".tar.gz"])
-        return "".join(url)
+        needs_c = version > Version('4.6.1')
+        self.urls = [spack.url.substitute_version(
+                         u if needs_c else u.replace('netcdf-c', 'netcdf'),
+                         self.url_version(version)
+                     ) for u in NetcdfC.urls]
+        return self.urls[0]
 
     maintainers = ['skosukhin', 'WardF']
 
