@@ -11,6 +11,8 @@ import inspect
 import llnl.util.filesystem
 import llnl.util.lang
 
+import six.moves.urllib.parse as urllib_parse
+
 import spack.error
 import spack.fetch_strategy as fs
 import spack.repo
@@ -237,7 +239,8 @@ class UrlPatch(Patch):
 
         # The same package can have multiple patches with the same name but
         # with different contents, therefore apply a subset of the hash.
-        name = '{0}-{1}'.format(os.path.basename(self.url), fetch_digest[:7])
+        base = urllib_parse.quote(os.path.basename(self.url))
+        name = '{0}-{1}'.format(base, fetch_digest[:7])
 
         per_package_ref = os.path.join(self.owner.split('.')[-1], name)
         # Reference starting with "spack." is required to avoid cyclic imports
