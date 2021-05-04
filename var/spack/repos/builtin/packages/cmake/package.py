@@ -124,6 +124,14 @@ class Cmake(Package):
     # https://gitlab.kitware.com/cmake/cmake/merge_requests/4075
     patch('fix-xlf-ninja-mr-4075.patch', sha256="42d8b2163a2f37a745800ec13a96c08a3a20d5e67af51031e51f63313d0dedd1", when="@3.15.5")
 
+    # The Fujitsu compiler isn't as universally safe with O3 as other clang
+    # or gnu based compilers so it needs to use O2 for the default release
+    # flags.  Since CMake doesn't currently detect the fujitsu compiler then
+    # this checks for the fujitsu compiler wrapper specificaly used by spack.
+    # This workaround can and should be removed once proper upstream support is
+    # available and can be backported.
+    patch('spack-fj-O2.patch', when='%fj@4.0.0')
+
     # We default ownlibs to true because it greatly speeds up the CMake
     # build, and CMake is built frequently. Also, CMake is almost always
     # a build dependency, and its libs will not interfere with others in

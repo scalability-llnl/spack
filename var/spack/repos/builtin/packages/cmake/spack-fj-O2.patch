@@ -1,0 +1,17 @@
+diff --git a/Modules/Compiler/GNU.cmake b/Modules/Compiler/GNU.cmake
+index 1c050a297e..213d417eb5 100644
+--- a/Modules/Compiler/GNU.cmake
++++ b/Modules/Compiler/GNU.cmake
+@@ -55,7 +55,11 @@ macro(__compiler_gnu lang)
+   string(APPEND CMAKE_${lang}_FLAGS_INIT " ")
+   string(APPEND CMAKE_${lang}_FLAGS_DEBUG_INIT " -g")
+   string(APPEND CMAKE_${lang}_FLAGS_MINSIZEREL_INIT " -Os -DNDEBUG")
+-  string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O3 -DNDEBUG")
++  if(CMAKE_${lang}_COMPILER MATCHES "fj/f(cc|rt)$")
++    string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O2 -DNDEBUG")
++  else()
++    string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O3 -DNDEBUG")
++  endif()
+   string(APPEND CMAKE_${lang}_FLAGS_RELWITHDEBINFO_INIT " -O2 -g -DNDEBUG")
+   set(CMAKE_${lang}_CREATE_PREPROCESSED_SOURCE "<CMAKE_${lang}_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -E <SOURCE> > <PREPROCESSED_SOURCE>")
+   set(CMAKE_${lang}_CREATE_ASSEMBLY_SOURCE "<CMAKE_${lang}_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -S <SOURCE> -o <ASSEMBLY_SOURCE>")
