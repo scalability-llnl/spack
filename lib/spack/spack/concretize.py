@@ -712,6 +712,7 @@ def _compiler_concretization_failure(compiler_spec, arch):
         raise UnavailableCompilerVersionError(compiler_spec, arch)
 
 
+
 def concretize_specs_together(*abstract_specs, **kwargs):
     """Given a number of specs as input, tries to concretize them together.
 
@@ -745,19 +746,61 @@ def concretize_specs_together(*abstract_specs, **kwargs):
         split_specs = [dep.copy(deps=False)
                        for spec in abstract_specs
                        for dep in spec.traverse(root=True)]
+        # check out if any specs should come from a namespace
+        # (possibly not prioritized, but explicitly given
+        specs_ns = [s.namespace for s in split_specs]
+        specs_names = [s.name for s in split_specs]
+        # check for duplicates and make a list of specs to copy
+        checkout_names = []
+        checkout_keys = []
+        checkout_tuples = []
+        for namespace, name in zip(specs_ns, specs_names):
+            key = "{}.{}".format(namespace, name)
+            if namespace is not None:
+                if name in checkout_names and not (key in checkout_keys):
+                    raise spack.error.SpecError(
+                        "Spec can only come from one namespace {} (from {})".format(
+                            name, namespace))
+                elif not (key in checkout_keys):
+                    checkout_names.append(name)
+                    checkout_keys.append(key)
+                    checkout_tuples.append((namespace, name))
+            else:
+                # namespace None → default order, do nothing
+                pass
+
+        map_names_to_repos = {}
+        for src_namespace, pkg_name in checkout_tuples:
+            src_pkgdir = spack.repo.path.repo_for_pkg(
+                "{}.{}".format(src_namespace, pkg_name)
+            ).dirname_for_package_name(pkg_name)
+            dest_pkgdir = os.path.join(repo_path, 'packages', pkg_name)
+            fs.mkdirp(dest_pkgdir)
+            fs.copy_tree(src_pkgdir, dest_pkgdir)
+            map_names_to_repos[pkg_name] = src_namespace
 
         with open(os.path.join(pkg_dir, 'package.py'), 'w') as f:
             f.write(template.render(specs=[str(s) for s in split_specs]))
 
-        return spack.repo.Repo(repo_path)
+        return spack.repo.Repo(repo_path), map_names_to_repos
 
     abstract_specs = [spack.spec.Spec(s) for s in abstract_specs]
-    concretization_repository = make_concretization_repository(abstract_specs)
+    concretization_repository, remap_repos = \
+        make_concretization_repository(abstract_specs)
+    concretization_ns = concretization_repository.namespace
 
     with spack.repo.additional_repository(concretization_repository):
         # Spec from a helper package that depends on all the abstract_specs
         concretization_root = spack.spec.Spec('concretizationroot')
         concretization_root.concretize(tests=kwargs.get('tests', False))
+        # overwrite the temporary namespace
+        for subspec in concretization_root.traverse():
+            if subspec.namespace == concretization_ns:
+                subspec.namespace = remap_repos.get(subspec.name, subspec.namespace)
+            # now remove all stored hashes so that it recalculates with the right specs
+            subspec._hash = None
+            # should clear _dunder/_build/full-_hash and _final_hashes
+            subspec.clear_cached_hashes()
         # Retrieve the direct dependencies
         concrete_specs = [
             concretization_root[spec.name].copy() for spec in abstract_specs
