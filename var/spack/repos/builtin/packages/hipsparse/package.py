@@ -30,7 +30,7 @@ class Hipsparse(CMakePackage):
     for ver in ['3.5.0', '3.7.0', '3.8.0', '3.9.0', '3.10.0', '4.0.0', '4.1.0']:
         depends_on('rocm-cmake@' + ver, type='build', when='@' + ver)
         depends_on('rocm-device-libs@' + ver, type='build', when='@' + ver)
-        depends_on('rocsparse@' + ver, type='build', when='@' + ver)
+        depends_on('rocsparse@' + ver, type='link', when='@' + ver)
         depends_on('hip@' + ver, when='@' + ver)
         depends_on('comgr@' + ver, type='build', when='@' + ver)
         depends_on('hsa-rocr-dev@' + ver, type='link', when='@' + ver)

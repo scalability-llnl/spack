@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
+import glob
 
 from spack import *
 
@@ -40,6 +42,26 @@ class Rocrand(CMakePackage):
 
     def setup_build_environment(self, env):
         env.set('CXX', self.spec['hip'].hipcc)
+
+    @run_after('install')
+    def fix_library_locations(self):
+        """Fix the rocRAND and hipRAND libraries location"""
+        # rocRAND installs librocrand.so* and libhiprand.so* to rocrand/lib and
+        # hiprand/lib, respectively. This confuses spack's RPATH management. We
+        # fix it by adding a symlink to the libraries.
+        hiprand_lib_path = join_path(self.prefix, 'hiprand', 'lib')
+        rocrand_lib_path = join_path(self.prefix, 'rocrand', 'lib')
+        mkdirp(self.prefix.lib)
+        with working_dir(hiprand_lib_path):
+            hiprand_libs = glob.glob('*.so*')
+            for lib in hiprand_libs:
+                os.symlink(join_path(hiprand_lib_path, lib),
+                           join_path(self.prefix.lib, lib))
+        with working_dir(rocrand_lib_path):
+            rocrand_libs = glob.glob('*.so*')
+            for lib in rocrand_libs:
+                os.symlink(join_path(rocrand_lib_path, lib),
+                           join_path(self.prefix.lib, lib))
 
     def cmake_args(self):
         args = ['-DBUILD_BENCHMARK=OFF',
