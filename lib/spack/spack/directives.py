@@ -18,6 +18,7 @@ definition to modify the package, for example:
 The available directives are:
 
   * ``conflicts``
+  * ``requires``
   * ``depends_on``
   * ``extends``
   * ``patch``
@@ -369,6 +370,15 @@ def conflicts(conflict_spec, when=None, msg=None):
         when (Spec): optional constraint that triggers the conflict
         msg (str): optional user defined message
     """
+    return _conflicts(conflict_spec, when, msg, False)
+
+
+@directive('requires')
+def requires(conflict_spec, when=None, msg=None):
+    return _conflicts(conflict_spec, when, msg, True)
+
+
+def _conflicts(conflict_spec, when, msg, negate):
     def _execute_conflicts(pkg):
         # If when is not specified the conflict always holds
         when_spec = make_when_spec(when)
@@ -377,7 +387,7 @@ def conflicts(conflict_spec, when=None, msg=None):
 
         # Save in a list the conflicts and the associated custom messages
         when_spec_list = pkg.conflicts.setdefault(conflict_spec, [])
-        when_spec_list.append((when_spec, msg))
+        when_spec_list.append((when_spec, msg, negate))
     return _execute_conflicts
 
 

@@ -2413,13 +2413,15 @@ class Spec(object):
                 # external specs are already built, don't worry about whether
                 # it's possible to build that configuration with Spack
                 continue
-            for conflict_spec, when_list in x.package_class.conflicts.items():
-                if x.satisfies(conflict_spec, strict=True):
-                    for when_spec, msg in when_list:
-                        if x.satisfies(when_spec, strict=True):
-                            when = when_spec.copy()
-                            when.name = x.name
-                            matches.append((x, conflict_spec, when, msg))
+            for conflict_spec, when_list in \
+                    x.package_class.conflicts.items():
+                conflict_satisfied = x.satisfies(conflict_spec, strict=True)
+                for when_spec, msg, negate in when_list:
+                    when_satisfied = x.satisfies(when_spec, strict=True)
+                    if (conflict_satisfied ^ negate) and when_satisfied:
+                        when = when_spec.copy()
+                        when.name = x.name
+                        matches.append((x, conflict_spec, when, msg, negate))
         if matches:
             raise ConflictsInSpecError(self, matches)
 
@@ -4964,20 +4966,21 @@ class ConflictsInSpecError(spack.error.SpecError, RuntimeError):
 
         long_message = ''
 
-        match_fmt_default = '{0}. "{1}" conflicts with "{2}"\n'
-        match_fmt_custom = '{0}. "{1}" conflicts with "{2}" [{3}]\n'
+        match_fmt_default = '{0}. "{1}" {2} "{3}"\n'
+        match_fmt_custom = '{0}. "{1}" {2} "{3}" [{4}]\n'
 
-        for idx, (s, c, w, msg) in enumerate(matches):
+        for idx, (s, c, w, msg, n) in enumerate(matches):
 
             if s not in visited:
                 visited.add(s)
                 long_message += 'List of matching conflicts for spec:\n\n'
                 long_message += s.tree(indent=4) + '\n'
 
+            n = 'requires' if n else 'conflicts with'
             if msg is None:
-                long_message += match_fmt_default.format(idx + 1, c, w)
+                long_message += match_fmt_default.format(idx + 1, w, n, c)
             else:
-                long_message += match_fmt_custom.format(idx + 1, c, w, msg)
+                long_message += match_fmt_custom.format(idx + 1, w, n, c, msg)
 
         super(ConflictsInSpecError, self).__init__(message, long_message)
 
