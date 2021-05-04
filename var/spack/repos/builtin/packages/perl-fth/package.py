@@ -16,12 +16,13 @@ class PerlFth(Package):
     """
 
     homepage = "https://sourceforge.net/projects/ftagshtml/"
-    url      = "https://downloads.sourceforge.net/project/ftagshtml/ftagshtml-0.523.tgz"
+    url      = "https://downloads.sourceforge.net/project/ftagshtml/ftagshtml-0.524.tgz"
     list_url = "https://downloads.sourceforge.net/project/ftagshtml/download/"
     git      = "https://sourceforge.net/p/ftagshtml/git"
 
     maintainers = ['cessenat']
 
+    version('0.524', sha256='2f378e969d1dd267985342f7fb1b3a0b9fd73334627cbc7ab17d61717bcd3c29')
     version('0.523', sha256='d5d3fbd3caca30eee9de45baa46612841d55b2960db8e11411af6db76cf214ad')
     version('0.522', sha256='acb73eb2c05b1ed7b75f86fbd9656c00158519b3d11d89a082117004deb0fb9e')
     version('0.521', sha256='f980c9cc1ce644340a9e9630ef252f92bc89a411ea0a661fcb80cdae07f0731c')
@@ -37,8 +38,8 @@ class PerlFth(Package):
 
     depends_on('perl', type='run')
     depends_on('perl-cgi', type='run')
-    # Actual dependency is on etags
-    depends_on('emacs', type='run')
+    # Actual dependency was on etags only, but no longer in recent releases:
+    depends_on('emacs', type='run', when='@:0.520')
     # For fth.pl -hevea option
     depends_on('hevea', when='+hevea', type='run')
     # Actual dependency is on pdflatex only for fth.pl -latexindex option
@@ -47,10 +48,23 @@ class PerlFth(Package):
     depends_on('coreutils', type='run')
 
     # Patches to remove the ancient ksh shebang for fth.pl and initmak.pl.
-    # Patches are signed.
     # git diff a/bin/fth.pl b/bin/fth.pl
     patch('fth-shebang.patch', when='@0.517:0.522', sha256='3e82d34c8ae1709e5480fac87db387c1c2e219d7b7d596c8a9d62f0da2439ab3')
     patch('fth-shebang2.patch', when='@0.517:0.522', sha256='839be7c0efad752ae341379c81ee1df4a3a81f608f802998c6b4ebc4bae8e167')
+
+    def _make_executable(self, name):
+        return Executable(join_path(self.prefix.bin, name + '.pl'))
+
+    def setup_dependent_package(self, module, dependent_spec):
+        # https://spack-tutorial.readthedocs.io/en/latest/tutorial_advanced_packaging.html
+        checks = ['fth', 'getin', 'view', 'javatex2', 'tex3ht', 'initmak']
+        for name in checks:
+            setattr(module, name, self._make_executable(name))
+
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        env.set('JAVATEX_DIR', self.prefix)
+        env.set('FTAGSHTML_DIR', self.prefix)
+        env.set('FTAGSHTML_DOC', join_path(self.prefix, 'doc'))
 
     def setup_run_environment(self, env):
         # https://github.com/spack/spack/discussions/13926
@@ -76,7 +90,7 @@ class PerlFth(Package):
             'RSYNC = rsync',
         ]
         makefile_inc.append('install:')
-        makefile_inc.append('	$(RSYNC) $(RSYNC_OPTS) . %s' % prefix)
+        makefile_inc.append('\t$(RSYNC) $(RSYNC_OPTS) . %s' % prefix)
         makefile_inc.append('')
         with working_dir('.'):
             with open('Makefile', 'a') as fh:
