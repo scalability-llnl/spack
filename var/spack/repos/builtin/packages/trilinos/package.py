@@ -223,6 +223,8 @@ class Trilinos(CMakePackage, CudaPackage):
     # External package options
     variant('dtk',          default=False,
             description='Enable DataTransferKit')
+    variant('scorec',       default=False,
+            description='Enable SCOREC')
     variant('mesquite',     default=False,
             description='Enable Mesquite')
 
@@ -243,6 +245,11 @@ class Trilinos(CMakePackage, CudaPackage):
              placement='DataTransferKit',
              submodules=True,
              when='+dtk @develop')
+    resource(name='scorec',
+             git='https://github.com/SCOREC/core.git',
+             commit='73c16eae073b179e45ec625a5abe4915bc589af2',  # tag v2.2.5
+             placement='SCOREC',
+             when='+scorec')
     resource(name='mesquite',
              url='https://github.com/trilinos/mesquite/archive/trilinos-release-12-12-1.tar.gz',
              sha256='e0d09b0939dbd461822477449dca611417316e8e8d8268fd795debb068edcbb5',
@@ -354,6 +361,13 @@ class Trilinos(CMakePackage, CudaPackage):
     conflicts('cxxstd=11', when='+wrapper ^cuda@6.5.14')
     conflicts('cxxstd=14', when='+wrapper ^cuda@6.5.14:8.0.61')
     conflicts('cxxstd=17', when='+wrapper ^cuda@6.5.14:10.2.89')
+
+    # SCOREC requires parmetis, shards, stk, and zoltan
+    conflicts('+scorec', when='~metis')
+    conflicts('+scorec', when='~mpi')
+    conflicts('+scorec', when='~shards')
+    conflicts('+scorec', when='~stk')
+    conflicts('+scorec', when='~zoltan')
 
     # All compilers except for pgi are in conflict:
     for __compiler in spack.compilers.supported_compilers():
@@ -598,6 +612,11 @@ class Trilinos(CMakePackage, CudaPackage):
             options.extend([
                 define('Trilinos_ENABLE_SEACASChaco', False),
                 define('Trilinos_ENABLE_SEACASNemslice', False)
+            ])
+
+        if '+scorec' in spec:
+            options.extend([
+                define('Trilinos_ENABLE_SCOREC', True),
             ])
 
         if '+stratimikos' in spec:
