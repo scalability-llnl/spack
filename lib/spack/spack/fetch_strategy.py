@@ -326,7 +326,7 @@ class URLFetchStrategy(FetchStrategy):
         # Telling curl to fetch the first byte (-r 0-0) is supposed to be
         # portable.
         curl_args = ['--stderr', '-', '-s', '-f', '-r', '0-0', url]
-        if not spack.config.get('config:verify_ssl'):
+        if not spack.config.get('config:verify_ssl', True):
             curl_args.append('-k')
         _ = curl(*curl_args, fail_on_error=False, output=os.devnull)
         return curl.returncode == 0
@@ -354,7 +354,7 @@ class URLFetchStrategy(FetchStrategy):
             url,
         ]
 
-        if not spack.config.get('config:verify_ssl'):
+        if not spack.config.get('config:verify_ssl', True):
             curl_args.append('-k')
 
         if sys.stdout.isatty() and tty.msg_enabled():
@@ -788,7 +788,7 @@ class GitFetchStrategy(VCSFetchStrategy):
 
             # If the user asked for insecure fetching, make that work
             # with git as well.
-            if not spack.config.get('config:verify_ssl'):
+            if not spack.config.get('config:verify_ssl', True):
                 self._git.add_default_env('GIT_SSL_NO_VERIFY', 'true')
 
         return self._git
@@ -831,7 +831,7 @@ class GitFetchStrategy(VCSFetchStrategy):
         if self.commit:
             # Need to do a regular clone and check out everything if
             # they asked for a particular commit.
-            debug = spack.config.get('config:debug')
+            debug = spack.config.get('config:debug', False)
 
             clone_args = ['clone', self.url]
             if not debug:
@@ -851,7 +851,7 @@ class GitFetchStrategy(VCSFetchStrategy):
         else:
             # Can be more efficient if not checking out a specific commit.
             args = ['clone']
-            if not spack.config.get('config:debug'):
+            if not spack.config.get('config:debug', False):
                 args.append('--quiet')
 
             # If we want a particular branch ask for it.
@@ -893,7 +893,7 @@ class GitFetchStrategy(VCSFetchStrategy):
                     # see: https://github.com/git/git/commit/19d122b
                     pull_args = ['pull', '--tags']
                     co_args = ['checkout', self.tag]
-                    if not spack.config.get('config:debug'):
+                    if not spack.config.get('config:debug', False):
                         pull_args.insert(1, '--quiet')
                         co_args.insert(1, '--quiet')
 
@@ -904,7 +904,7 @@ class GitFetchStrategy(VCSFetchStrategy):
             with working_dir(self.stage.source_path):
                 for submodule_to_delete in self.submodules_delete:
                     args = ['rm', submodule_to_delete]
-                    if not spack.config.get('config:debug'):
+                    if not spack.config.get('config:debug', False):
                         args.insert(1, '--quiet')
                     git(*args)
 
@@ -912,7 +912,7 @@ class GitFetchStrategy(VCSFetchStrategy):
         if self.submodules:
             with working_dir(self.stage.source_path):
                 args = ['submodule', 'update', '--init', '--recursive']
-                if not spack.config.get('config:debug'):
+                if not spack.config.get('config:debug', False):
                     args.insert(1, '--quiet')
                 git(*args)
 
@@ -924,7 +924,7 @@ class GitFetchStrategy(VCSFetchStrategy):
         with working_dir(self.stage.source_path):
             co_args = ['checkout', '.']
             clean_args = ['clean', '-f']
-            if spack.config.get('config:debug'):
+            if spack.config.get('config:debug', False):
                 co_args.insert(1, '--quiet')
                 clean_args.insert(1, '--quiet')
 
@@ -1113,7 +1113,7 @@ class HgFetchStrategy(VCSFetchStrategy):
 
         args = ['clone']
 
-        if not spack.config.get('config:verify_ssl'):
+        if not spack.config.get('config:verify_ssl', True):
             args.append('--insecure')
 
         if self.revision:

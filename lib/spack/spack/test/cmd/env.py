@@ -1459,7 +1459,7 @@ env:
 def test_stack_concretize_extraneous_deps(tmpdir, config, mock_packages):
     # FIXME: The new concretizer doesn't handle yet soft
     # FIXME: constraints for stacks
-    if spack.config.get('config:concretizer') == 'clingo':
+    if spack.config.get('config:concretizer', 'original') == 'clingo':
         pytest.skip('Clingo concretizer does not support soft constraints')
 
     filename = str(tmpdir.join('spack.yaml'))

@@ -86,7 +86,7 @@ def editor(*args, **kwargs):
             return True
 
         except OSError as e:
-            if spack.config.get('config:debug'):
+            if spack.config.get('config:debug', False):
                 raise
 
             # Show variable we were trying to use, if it's from one

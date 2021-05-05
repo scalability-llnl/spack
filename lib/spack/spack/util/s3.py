@@ -26,7 +26,7 @@ def create_s3_session(url):
 
     session = Session()
 
-    s3_client_args = {"use_ssl": spack.config.get('config:verify_ssl')}
+    s3_client_args = {"use_ssl": spack.config.get('config:verify_ssl', True)}
 
     endpoint_url = os.environ.get('S3_ENDPOINT_URL')
     if endpoint_url:

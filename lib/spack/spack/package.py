@@ -1318,7 +1318,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
             tty.debug('No fetch required for {0}: package has no code.'
                       .format(self.name))
 
-        checksum = spack.config.get('config:checksum')
+        checksum = spack.config.get('config:checksum', True)
         fetch = self.stage.managed_by_spack
         if checksum and fetch and self.version not in self.versions:
             tty.warn("There is no checksum on file to fetch %s safely." %

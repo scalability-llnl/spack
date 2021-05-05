@@ -92,7 +92,7 @@ def test_installed_deps():
     """
     # FIXME: this requires to concretize build deps separately if we are
     # FIXME: using the clingo based concretizer
-    if spack.config.get('config:concretizer') == 'clingo':
+    if spack.config.get('config:concretizer', 'original') == 'clingo':
         pytest.xfail('requires separate concretization of build dependencies')
 
     default = ('build', 'link')
@@ -172,7 +172,7 @@ def test_conditional_dep_with_user_constraints(spec_str, expr_str, expected):
     # FIXME: We need to tweak optimization rules to make this test
     # FIXME: not prefer a DAG with fewer nodes wrt more recent
     # FIXME: versions of the package
-    if spack.config.get('config:concretizer') == 'clingo':
+    if spack.config.get('config:concretizer', 'original') == 'clingo':
         pytest.xfail('Clingo optimization rules prefer to trim a node')
 
     default = ('build', 'link')

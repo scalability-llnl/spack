@@ -156,7 +156,7 @@ def get_stage_root():
     global _stage_root
 
     if _stage_root is None:
-        candidates = spack.config.get('config:build_stage')
+        candidates = spack.config.get('config:build_stage', '$tempdir/spack-stage')
         if isinstance(candidates, string_types):
             candidates = [candidates]
 
@@ -540,7 +540,7 @@ class Stage(object):
                      "mirror.  This means we cannot know a checksum for the "
                      "tarball in advance. Be sure that your connection to "
                      "this mirror is secure!")
-        elif spack.config.get('config:checksum'):
+        elif spack.config.get('config:checksum', True):
             self.fetcher.check()
 
     def cache_local(self):

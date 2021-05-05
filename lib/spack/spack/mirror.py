@@ -517,7 +517,7 @@ def _add_single_spec(spec, mirror, mirror_stats):
         num_retries -= 1
 
     if exception:
-        if spack.config.get('config:debug'):
+        if spack.config.get('config:debug', False):
             traceback.print_exception(file=sys.stderr, *exc_tuple)
         else:
             tty.warn(

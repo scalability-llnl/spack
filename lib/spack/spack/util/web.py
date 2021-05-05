@@ -90,7 +90,7 @@ def read_from_url(url, accept_content_type=None):
     url = url_util.parse(url)
     context = None
 
-    verify_ssl = spack.config.get('config:verify_ssl')
+    verify_ssl = spack.config.get('config:verify_ssl', True)
 
     # Don't even bother with a context unless the URL scheme is one that uses
     # SSL certs.
@@ -157,7 +157,7 @@ def warn_no_ssl_cert_checking():
 def push_to_url(
         local_file_path, remote_path, keep_original=True, extra_args=None):
     remote_url = url_util.parse(remote_path)
-    verify_ssl = spack.config.get('config:verify_ssl')
+    verify_ssl = spack.config.get('config:verify_ssl', True)
 
     if __UNABLE_TO_VERIFY_SSL and verify_ssl and uses_ssl(remote_url):
         warn_no_ssl_cert_checking()

@@ -125,7 +125,7 @@ class TestConcretizePreferences(object):
         """Test preferred targets are applied correctly"""
         # FIXME: This test was a false negative, since the default and
         # FIXME: the preferred target were the same
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known bug in the original concretizer')
 
         spec = concretize('mpich')

@@ -778,18 +778,18 @@ def main(argv=None):
         e.die()  # gracefully die on any SpackErrors
 
     except Exception as e:
-        if spack.config.get('config:debug'):
+        if spack.config.get('config:debug', False):
             raise
         tty.die(e)
 
     except KeyboardInterrupt:
-        if spack.config.get('config:debug'):
+        if spack.config.get('config:debug', False):
             raise
         sys.stderr.write('\n')
         tty.die("Keyboard interrupt.")
 
     except SystemExit as e:
-        if spack.config.get('config:debug'):
+        if spack.config.get('config:debug', False):
             traceback.print_exc()
         return e.code
 

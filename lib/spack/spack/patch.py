@@ -215,7 +215,7 @@ class UrlPatch(Patch):
 
         # for a compressed archive, Need to check the patch sha256 again
         # and the patch is in a directory, not in the same place
-        if self.archive_sha256 and spack.config.get('config:checksum'):
+        if self.archive_sha256 and spack.config.get('config:checksum', True):
             checker = Checker(self.sha256)
             if not checker.check(self.path):
                 raise fs.ChecksumError(

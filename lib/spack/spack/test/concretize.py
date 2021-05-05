@@ -740,7 +740,7 @@ class TestConcretize(object):
         ('bowtie@1.2.2 os=redhat6', '%gcc@4.7.2'),
     ])
     def test_compiler_conflicts_in_package_py(self, spec_str, expected_str):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.skip('Original concretizer cannot work around conflicts')
 
         s = Spec(spec_str).concretized()
@@ -805,7 +805,7 @@ class TestConcretize(object):
         ('quantum-espresso~veritas', ['^libelf@0.8.13'])
     ])
     def test_working_around_conflicting_defaults(self, spec_str, expected):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known failure of the original concretizer')
 
         s = Spec(spec_str).concretized()
@@ -823,7 +823,7 @@ class TestConcretize(object):
     def test_external_package_and_compiler_preferences(
             self, spec_str, expected
     ):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known failure of the original concretizer')
 
         packages_yaml = {
@@ -852,7 +852,7 @@ class TestConcretize(object):
         packages.yaml, but our spec doesn't allow X.Y as a version, then
         a new version of A is built that meets the requirements.
         """
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known failure of the original concretizer')
 
         packages_yaml = {
@@ -871,7 +871,7 @@ class TestConcretize(object):
 
     @pytest.mark.regression('9744')
     def test_cumulative_version_ranges_with_different_length(self):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known failure of the original concretizer')
 
         s = Spec('cumulative-vrange-root').concretized()
@@ -907,7 +907,7 @@ class TestConcretize(object):
     def test_compiler_constraint_with_external_package(
             self, spec_str, expected
     ):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known failure of the original concretizer')
 
         packages_yaml = {
@@ -948,13 +948,14 @@ class TestConcretize(object):
         spack.config.set('packages', packages_yaml)
 
         s = Spec(spec_str).concretized()
-        if xfailold and spack.config.get('config:concretizer') == 'original':
+        is_original = spack.config.get('config:concretizer', 'original') == 'original'
+        if xfailold and is_original:
             pytest.xfail('This only works on the ASP-based concretizer')
         assert s.satisfies(expected)
         assert 'external-common-perl' not in [d.name for d in s.dependencies()]
 
     def test_external_packages_have_consistent_hash(self):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.skip('This tests needs the ASP-based concretizer')
 
         s, t = Spec('externaltool'), Spec('externaltool')
@@ -983,7 +984,7 @@ class TestConcretize(object):
 
     @pytest.mark.regression('20040')
     def test_conditional_provides_or_depends_on(self):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known failure of the original concretizer')
 
         # Check that we can concretize correctly a spec that can either
@@ -1023,7 +1024,7 @@ class TestConcretize(object):
 
     @pytest.mark.regression('20019')
     def test_compiler_match_is_preferred_to_newer_version(self):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known failure of the original concretizer')
 
         # This spec depends on openblas. Openblas has a conflict
@@ -1054,7 +1055,7 @@ class TestConcretize(object):
 
     @pytest.mark.regression('20055')
     def test_custom_compiler_version(self):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known failure of the original concretizer')
 
         s = Spec('a %gcc@foo os=redhat6').concretized()
@@ -1135,7 +1136,7 @@ class TestConcretize(object):
         'wrong-variant-in-depends-on'
     ])
     def test_error_message_for_inconsistent_variants(self, spec_str):
-        if spack.config.get('config:concretizer') == 'original':
+        if spack.config.get('config:concretizer', 'original') == 'original':
             pytest.xfail('Known failure of the original concretizer')
 
         s = Spec(spec_str)

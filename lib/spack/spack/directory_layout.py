@@ -265,7 +265,7 @@ class YamlDirectoryLayout(DirectoryLayout):
             with open(path) as f:
                 spec = spack.spec.Spec.from_yaml(f)
         except Exception as e:
-            if spack.config.get('config:debug'):
+            if spack.config.get('config:debug', False):
                 raise
             raise SpecReadError(
                 'Unable to read file: %s' % path, 'Cause: ' + str(e))

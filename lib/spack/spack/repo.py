@@ -935,7 +935,7 @@ class Repo(object):
 
             # Make sure other errors in constructors hit the error
             # handler by wrapping them
-            if spack.config.get('config:debug'):
+            if spack.config.get('config:debug', False):
                 sys.excepthook(*sys.exc_info())
             raise FailedConstructorError(spec.fullname, *sys.exc_info())
 
