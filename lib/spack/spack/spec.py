@@ -3141,7 +3141,9 @@ class Spec(object):
                     other._dependencies[name].deptypes)
 
         # Update with additional constraints from other spec
-        for name in other.dep_difference(self):
+        # operate on direct dependencies only, because a concrete dep
+        # represented by hash may have structure that needs to be preserved
+        for name in other.direct_dep_difference(self):
             dep_spec_copy = other.get_dependency(name)
             dep_copy = dep_spec_copy.spec
             deptypes = dep_spec_copy.deptypes
@@ -3164,11 +3166,11 @@ class Spec(object):
         clone.constrain(other, deps)
         return clone
 
-    def dep_difference(self, other):
+    def direct_dep_difference(self, other):
         """Returns dependencies in self that are not in other."""
-        mine = set(s.name for s in self.traverse(root=False))
+        mine = set(dname for dname in self._dependencies)
         mine.difference_update(
-            s.name for s in other.traverse(root=False))
+            dname for dname in other._dependencies)
         return mine
 
     def _autospec(self, spec_like):
