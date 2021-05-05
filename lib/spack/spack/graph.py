@@ -42,7 +42,9 @@ Note that ``graph_ascii`` assumes a single spec while ``graph_dot``
 can take a number of specs as input.
 
 """
+import itertools
 import sys
+
 from heapq import heapify, heappop, heappush
 
 from llnl.util.tty.color import ColorStream
@@ -66,31 +68,47 @@ def topological_sort(spec, reverse=False, deptype='all'):
     spec = spec.copy(deps=deptype)
     nodes = spec.index(deptype=deptype)
 
-    parents = lambda s: [p for p in s.dependents() if p.name in nodes]
-    children = lambda s: s.dependencies()
+    def all_dependencies(specs):
+        return list(set(itertools.chain.from_iterable(
+            s.dependencies(deptype=deptype) for s in specs
+        )))
+
+    def all_dependents(specs):
+        candidates = list(set(itertools.chain.from_iterable(
+            s.dependents(deptype=deptype) for s in specs
+        )))
+        return [x for x in candidates if x.name in nodes]
+
+    parents = all_dependents
+    children = all_dependencies
 
     if reverse:
         parents, children = children, parents
 
-    topo_order = []
-    par = dict((name, parents(nodes[name])) for name in nodes.keys())
-    remaining = [name for name in nodes.keys() if not parents(nodes[name])]
+    topological_order = []
+    par = {}
+    for name, specs in nodes.items():
+        par[name] = [x for x in parents(specs) if x.name in nodes]
+    remaining = [specs for name, specs in nodes.items() if not parents(specs)]
+    remaining = [x for x in itertools.chain.from_iterable(remaining)]
     heapify(remaining)
 
     while remaining:
-        name = heappop(remaining)
-        topo_order.append(name)
+        s = heappop(remaining)
+        topological_order.append(s)
 
-        node = nodes[name]
-        for dep in children(node):
-            par[dep.name].remove(node)
+        # FIXME: node = nodes[spec.name]
+        for dep in children([s]):
+            par[dep.name].remove(s)
             if not par[dep.name]:
-                heappush(remaining, dep.name)
+                heappush(remaining, dep)
 
     if any(par.get(s.name, []) for s in spec.traverse()):
         raise ValueError("Spec has cycles!")
-    else:
-        return topo_order
+
+    # TODO: At the moment return just names to be backward compatible
+    topological_order = [s.name for s in topological_order]
+    return topological_order
 
 
 def find(seq, predicate):
@@ -463,7 +481,8 @@ class AsciiGraph(object):
 
                 # Replace node with its dependencies
                 self._frontier.pop(i)
-                deps = node.dependencies(self.deptype)
+                # TODO: Generalize later to multiple nodes
+                deps = node[0].dependencies(deptype=self.deptype)
                 if deps:
                     deps = sorted((d.name for d in deps), reverse=True)
                     self._connect_deps(i, deps, "new-deps")  # anywhere.

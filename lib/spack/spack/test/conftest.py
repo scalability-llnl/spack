@@ -609,10 +609,11 @@ def mock_store(tmpdir_factory, mock_repo_path, mock_configuration_scopes,
 
 
 @pytest.fixture(scope='function')
-def database(mock_store, mock_packages, config, monkeypatch):
+def database(mock_store, mock_packages, config):
     """This activates the mock store, packages, AND config."""
     with spack.store.use_store(str(mock_store)) as store:
         yield store.db
+        # Force reading the database again between tests
         store.db.last_seen_verifier = ''
 
 

@@ -1494,12 +1494,12 @@ class SpecBuilder(object):
         )
 
     def depends_on(self, pkg, dep, type):
-        dependency = self._specs[pkg]._dependencies.get(dep)
-        if not dependency:
-            self._specs[pkg]._add_dependency(
-                self._specs[dep], (type,))
+        dependencies = self._specs[pkg].edges_to_dependencies(name=dep)
+        if not dependencies:
+            self._specs[pkg].add_dependency_edge(self._specs[dep], (type,))
         else:
-            dependency.add_type(type)
+            # TODO: This assumes that each solve unifies dependencies
+            dependencies[0].add_type(type)
 
     def reorder_flags(self):
         """Order compiler flags on specs in predefined order.
