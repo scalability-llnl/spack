@@ -40,6 +40,7 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
 
     patch('patch_gcc_5.txt', when='@6.0%gcc@5.0:')
     patch('sed_pgi.patch',   when='@:6.0')
+    patch('ncurses-5.9-clang.patch', when='@:5.9%clang')
 
     @classmethod
     def determine_version(cls, exe):
