@@ -2496,18 +2496,30 @@ class Spec(object):
 
     @staticmethod
     def ensure_external_path_if_external(external_spec):
+
         if external_spec.external_modules and not external_spec.external_path:
+            pre = '{s.name}@{s.version} :'.format(s=external_spec)
+            tty.debug('External Package {0} Has modules but no representative `path`'
+                      ' has been chosen to serve as the `external_path`'
+                      ''.format(pre))
             compiler = spack.compilers.compiler_for_spec(
                 external_spec.compiler, external_spec.architecture)
             for mod in compiler.modules:
                 md.load_module(mod)
 
+            tty.debug('External Package {0} Searching modules for a suitable path.'
+                      ' Priority is given to modules with names containing the'
+                      ' package name.'
+                      ''.format(pre))
             # get the path from the module
             # the package can override the default
             external_spec.external_path = getattr(
                 external_spec.package, 'external_prefix',
-                md.path_from_modules(external_spec.external_modules)
+                md.path_from_modules(external_spec.external_modules,
+                                     hint_name=external_spec.name)
             )
+            tty.debug('External Package {0} Selected external_path = {1}'
+                      ''.format(pre, external_spec.external_path))
 
     @staticmethod
     def ensure_no_deprecated(root):

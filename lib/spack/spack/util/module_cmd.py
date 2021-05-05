@@ -12,7 +12,7 @@ import os
 import sys
 import json
 import re
-
+import six  # used for string types check
 import spack
 import llnl.util.tty as tty
 
@@ -135,18 +135,14 @@ def get_path_args_from_module_line(line):
     return paths
 
 
-def path_from_modules(modules):
-    """Inspect a list of TCL modules for entries that indicate the absolute
-    path at which the library supported by said module can be found.
-
-    Args:
-        modules (list): module files to be loaded to get an external package
-
-    Returns:
-        Guess of the prefix path where the package
+def _path_from_modules_helper(modules):
     """
-    assert isinstance(modules, list), 'the "modules" argument must be a list'
+       Helper for path_from_modules
+       Given a list of modules search for a path
 
+       Keep semantics of prior code which returns the last
+       possible path found for a given list of modules
+    """
     best_choice = None
     for module_name in modules:
         # Read the current module and return a candidate path
@@ -162,6 +158,49 @@ def path_from_modules(modules):
         # that we give preference to the last module to be loaded
         # for packages requiring to load multiple modules in sequence
         best_choice = candidate_path or best_choice
+
+    # if we found something return it
+    return best_choice
+
+
+def path_from_modules(modules, hint_name=None):
+    """Inspect a list of TCL modules for entries that indicate the absolute
+    path at which the library supported by said module can be found.
+
+    Args:
+        modules (list): module files to be loaded to get an external package
+        hint_name (str): optional hint giving a name that likely maps
+                         is a better choice than choosing the last
+                         possible path.
+                         A good choice is the package name.
+                         E.g., if operating on an external mvapich,
+                         then give priority to modules with '.*mvapich.*'
+                         in their name. From these, always choose the last
+
+    Returns:
+        Guess of the prefix path where the package
+    """
+    # try to assert that modules need to be strings... we do compare them
+    if isinstance(modules, six.string_types):
+        modules = [modules]
+    else:
+        # this seems to hope for the best
+        modules = list(modules)  # defensive copy for generators
+
+    # hint is None by default, so this logic can be sidestepped
+    # for original behavior.
+    if hint_name:
+        # first choices are those that have the hint in their names
+        first_choice_modules = [m for m in modules if hint_name in m]
+        best_choice = _path_from_modules_helper(first_choice_modules)
+        # if we found something return it
+        if best_choice:
+            return best_choice
+        # if we didn't succeed, then compute the remaining modules
+        modules = [m for m in modules if m not in first_choice_modules]
+
+    # search the final set of modules
+    best_choice = _path_from_modules_helper(modules)
     return best_choice
 
 
