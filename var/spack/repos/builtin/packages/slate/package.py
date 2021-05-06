@@ -20,6 +20,8 @@ class Slate(CMakePackage):
     url      = 'https://bitbucket.org/icl/slate/downloads/slate-2020.10.00.tar.gz'
     maintainers = ['G-Ragghianti', 'mgates3']
 
+    test_requires_compiler = True
+
     version('master', branch='master')
     version('2020.10.00', sha256='ff58840cdbae2991d100dfbaf3ef2f133fc2f43fc05f207dc5e38a41137882ab')
 
@@ -54,3 +56,27 @@ class Slate(CMakePackage):
             '-Duse_mpi=%s'           % ('+mpi' in spec),
             '-DSCALAPACK_LIBRARIES=%s'    % spec['scalapack'].libs.joined(';')
         ]
+
+    examples_src_dir = 'examples'
+
+    @run_after('install')
+    def cache_test_sources(self):
+        """Copy the example source files after the package is installed to an
+        install test subdirectory for use during `spack test run`."""
+        if '@master' in self.spec:
+            self.cache_extra_test_sources([self.examples_src_dir])
+
+    def test(self):
+        if '@master' in self.spec and '+mpi' in self.spec:
+            test_dir = join_path(self.install_test_root,
+                                 self.examples_src_dir)
+            test_bld_dir = join_path(test_dir, 'build')
+            with working_dir(test_bld_dir, create=True):
+                cmake('..')
+                make()
+                test_args = ['-n', '4', './ex05_blas']
+                mpiexe_f = which('srun', 'mpirun', 'mpiexec')
+                if mpiexe_f:
+                    self.run_test(mpiexe_f.command, test_args,
+                                  purpose='SLATE smoke test')
+                make('clean')
