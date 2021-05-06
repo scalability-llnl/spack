@@ -717,7 +717,7 @@ opt_criterion(14, "number of non-default variants (roots)").
 % If the value is a multivalued variant there could be multiple
 % values set as default. Since a default value has a weight of 0 we
 % need to maximize their number below to ensure they're all set
-opt_criterion(13, "multi-valued variants + preferred providers for roots").
+opt_criterion(13, "multi-valued variants").
 #minimize{ 0@13 : #true }.
 #maximize {
     1@13,Package,Variant,Value
@@ -725,8 +725,11 @@ opt_criterion(13, "multi-valued variants + preferred providers for roots").
     not variant_single_value(Package, Variant),
     root(Package)
 }.
+
+opt_criterion(12, "preferred providers for roots").
+#minimize{ 0@12 : #true }.
 #minimize{
-    Weight@13,Provider
+    Weight@12,Provider
     : provider_weight(Provider, Weight), root(Provider)
 }.
 
@@ -740,35 +743,35 @@ opt_criterion(11, "number of non-default variants (non-roots)").
 
 % Minimize the weights of the providers, i.e. use as much as
 % possible the most preferred providers
-opt_criterion(9, "number of non-default providers (non-roots)").
+opt_criterion(9, "preferred providers (non-roots)").
 #minimize{ 0@9 : #true }.
 #minimize{
     Weight@9,Provider
     : provider_weight(Provider, Weight), not root(Provider)
 }.
 
+% Try to minimize the number of compiler mismatches in the DAG.
+opt_criterion(8, "compiler mismatches").
+#minimize{ 0@8 : #true }.
+#minimize{ 1@8,Package,Dependency : compiler_mismatch(Package, Dependency) }.
+
+% Choose more recent versions for nodes
+opt_criterion(7, "version badness").
+#minimize{ 0@7 : #true }.
+#minimize{
+    Weight@7,Package : version_weight(Package, Weight)
+}.
+
 % If the value is a multivalued variant there could be multiple
 % values set as default. Since a default value has a weight of 0 we
 % need to maximize their number below to ensure they're all set
-opt_criterion(8, "count of non-root multi-valued variants").
-#minimize{ 0@8 : #true }.
+opt_criterion(6, "count of non-root multi-valued variants").
+#minimize{ 0@6 : #true }.
 #maximize {
-    1@8,Package,Variant,Value
+    1@6,Package,Variant,Value
     : variant_not_default(Package, Variant, Value, Weight),
     not variant_single_value(Package, Variant),
     not root(Package)
-}.
-
-% Try to minimize the number of compiler mismatches in the DAG.
-opt_criterion(7, "compiler mismatches").
-#minimize{ 0@7 : #true }.
-#minimize{ 1@7,Package,Dependency : compiler_mismatch(Package, Dependency) }.
-
-% Choose more recent versions for nodes
-opt_criterion(6, "version badness").
-#minimize{ 0@6 : #true }.
-#minimize{
-    Weight@6,Package : version_weight(Package, Weight)
 }.
 
 % Try to use preferred compilers
