@@ -242,6 +242,25 @@ def _normalize_packages_yaml(packages_yaml):
     return normalized_yaml
 
 
+class ActionRecorder(object):
+    """Records a series of actions to be executed later by a driver"""
+    def __init__(self):
+        self.actions = []
+
+    def __getattr__(self, item):
+
+        class Record(object):
+            def __init__(self, name, recorder):
+                self.name = name
+                self.recorder = recorder
+
+            def __call__(self, *args):
+                _record = (self.name,) + tuple(args)
+                self.recorder.actions.append(_record)
+
+        return Record(item, self)
+
+
 class PyclingoDriver(object):
     def __init__(self, cores=True, asp=None):
         """Driver for the Python clingo interface.
@@ -295,56 +314,22 @@ class PyclingoDriver(object):
             self.assumptions.append(atom)
 
     def solve(
-            self, solver_setup, specs, dump=None, nmodels=0,
+            self, solver_setup, specs, nmodels=0,
             timers=False, stats=False, tests=False
     ):
         timer = Timer()
-
-        # Initialize the control object for the solver
-        self.control = clingo.Control()
-        self.control.configuration.solve.models = nmodels
-        self.control.configuration.asp.trans_ext = 'all'
-        self.control.configuration.asp.eq = '5'
-        self.control.configuration.configuration = 'tweety'
-        self.control.configuration.solve.parallel_mode = '2'
-        self.control.configuration.solver.opt_strategy = "usc,one"
-
-        # set up the problem -- this generates facts and rules
-        self.assumptions = []
-        with self.control.backend() as backend:
-            self.backend = backend
-            solver_setup.setup(self, specs, tests=tests)
+        fast, complete = solver_setup.setup(specs, tests=tests)
         timer.phase("setup")
 
-        # read in the main ASP program and display logic -- these are
-        # handwritten, not generated, so we load them as resources
-        parent_dir = os.path.dirname(__file__)
-        self.control.load(os.path.join(parent_dir, 'concretize.lp'))
-        self.control.load(os.path.join(parent_dir, "display.lp"))
-        timer.phase("load")
-
-        # Grounding is the first step in the solve -- it turns our facts
-        # and first-order logic rules into propositional logic.
-        self.control.ground([("base", [])])
-        timer.phase("ground")
-
-        # With a grounded program, we can run the solve.
-        result = Result()
-        models = []  # stable models if things go well
-        cores = []   # unsatisfiable cores if they do not
-
-        def on_model(model):
-            models.append((model.cost, model.symbols(shown=True, terms=True)))
-
-        solve_kwargs = {"assumptions": self.assumptions,
-                        "on_model": on_model,
-                        "on_core": cores.append}
-        if clingo_cffi:
-            solve_kwargs["on_unsat"] = cores.append
-        solve_result = self.control.solve(**solve_kwargs)
-        timer.phase("solve")
+        for name, actions in zip(('fast', 'complete'), (fast, complete)):
+            cores, models, solve_result = self._singleshot(
+                name, actions, nmodels, timer
+            )
+            if solve_result.satisfiable:
+                break
 
         # once done, construct the solve result
+        result = Result()
         result.satisfiable = solve_result.satisfiable
 
         def stringify(x):
@@ -403,12 +388,61 @@ class PyclingoDriver(object):
 
         return result
 
+    def _singleshot(self, solve_name, actions, nmodels, timer):
+        # Initialize the control object for the solver
+        self.control = clingo.Control()
+        self.control.configuration.solve.models = nmodels
+        self.control.configuration.asp.trans_ext = 'all'
+        self.control.configuration.asp.eq = '5'
+        self.control.configuration.configuration = 'tweety'
+        self.control.configuration.solver.opt_strategy = "usc,one"
+
+        # set up the problem -- this generates facts and rules
+        self.assumptions = []
+        self.cores = False
+        with self.control.backend() as backend:
+            self.backend = backend
+            # Python 2.7 or less does not support starred assignment
+            for args in actions:
+                getattr(self, args[0])(*args[1:])
+        timer.phase("facts [{0}]".format(solve_name))
+
+        # read in the main ASP program and display logic -- these are
+        # handwritten, not generated, so we load them as resources
+        parent_dir = os.path.dirname(__file__)
+        self.control.load(os.path.join(parent_dir, 'concretize.lp'))
+        self.control.load(os.path.join(parent_dir, "display.lp"))
+        timer.phase("load [{0}]".format(solve_name))
+
+        # Grounding is the first step in the solve -- it turns our facts
+        # and first-order logic rules into propositional logic.
+        self.control.ground([("base", [])])
+        timer.phase("ground [{0}]".format(solve_name))
+        # With a grounded program, we can run the solve.
+        models = []  # stable models if things go well
+        cores = []  # unsatisfiable cores if they do not
+
+        def on_model(model):
+            models.append((model.cost, model.symbols(shown=True, terms=True)))
+
+        solve_kwargs = {
+            "assumptions": self.assumptions,
+            "on_model": on_model,
+            "on_core": cores.append
+        }
+        if clingo_cffi:
+            solve_kwargs["on_unsat"] = cores.append
+
+        solve_result = self.control.solve(**solve_kwargs)
+        timer.phase("solve [{0}]".format(solve_name))
+        return cores, models, solve_result
+
 
 class SpackSolverSetup(object):
     """Class to set up and run a Spack concretization solve."""
 
     def __init__(self):
-        self.gen = None  # set by setup()
+        self.gen = ActionRecorder()
         self.possible_versions = {}
         self.versions_in_package_py = {}
         self.versions_from_externals = {}
@@ -425,6 +459,19 @@ class SpackSolverSetup(object):
 
         # Caches to optimize the setup phase of the solver
         self.target_specs_cache = None
+
+        # Caches to optimize the ground and solve phases
+
+        # Possible packages that can be used in this spec
+        self.possible_dependencies = None
+        # Targets that are mandated or preferred in the user spec
+        self.user_targets = []
+        # Nodes that are mandated in the user spec
+        self.user_nodes = []
+        # Preferred compilers
+        self.preferred_compilers = set()
+        # Preferred providers
+        self.preferred_providers = {}
 
     def pkg_version_rules(self, pkg):
         """Output declared versions of a package.
@@ -585,6 +632,7 @@ class SpackSolverSetup(object):
             self.gen.fact(fn.node_compiler_preference(
                 pkg.name, cspec.name, cspec.version, -i * 100
             ))
+        self.preferred_compilers.add(cspec.name)
 
     def pkg_rules(self, pkg, tests):
         pkg = packagize(pkg)
@@ -746,6 +794,15 @@ class SpackSolverSetup(object):
             if vspec not in self.possible_virtuals:
                 continue
 
+            # Discard providers that are not among possible dependencies.
+            # Sometimes things are listed in preferences but there's no
+            # package for them.
+            providers = [
+                x for x in providers if x in self.possible_dependencies
+            ]
+            if providers:
+                self.preferred_providers[vspec] = providers[0]
+
             for i, provider in enumerate(providers):
                 func(vspec, provider, i + 10)
 
@@ -853,9 +910,9 @@ class SpackSolverSetup(object):
             return
 
         preferred = preferred_targets[0]
-        self.gen.fact(fn.package_target_weight(
-            str(preferred.architecture.target), pkg_name, -30
-        ))
+        target_str = str(preferred.architecture.target)
+        self.user_targets.append(target_str)
+        self.gen.fact(fn.package_target_weight(target_str, pkg_name, -30))
 
     def preferred_versions(self, pkg_name):
         packages_yaml = spack.config.get('packages')
@@ -1316,7 +1373,95 @@ class SpackSolverSetup(object):
         for pkg, variant, value in sorted(self.variant_values_from_specs):
             self.gen.fact(fn.variant_possible_value(pkg, variant, value))
 
-    def setup(self, driver, specs, tests=False):
+    def clause_from_user_spec(self, clause):
+        if clause.name == 'node_target_set':
+            self.user_targets.append(str(clause.args[1]))
+
+        if clause.name == 'node':
+            self.user_nodes.append(str(clause.args[0]))
+
+        self.gen.fact(clause)
+
+    def fast_actions(self):
+        """Filter the entire set of facts according to some
+        heuristics, to throw in a first solve only the target,
+        compilers and providers that are most likely to be chosen.
+        """
+        getattr(spack.architecture.platform, 'clear', lambda: None)()
+        getattr(spack.architecture.default_arch, 'clear', lambda: None)()
+        targets = self.user_targets or [
+            str(spack.architecture.default_arch().target)
+        ]
+        target_facts = [
+            'target', 'target_family', 'target_parent',
+            'default_target_weight'
+        ]
+        result = []
+        default_compiler, default_providers = None, {}
+        for x in self.gen.actions:
+            if x[0] == 'fact':
+                # Not one of the likely targets
+                if x[1].name in target_facts and x[1].args[0] not in targets:
+                    continue
+
+                # Remove facts on the support of targets we won't consider
+                if x[1].name == 'compiler_supports_target':
+                    if x[1].args[2] not in targets:
+                        continue
+                    compiler_name = x[1].args[0]
+                    is_not_default = compiler_name != default_compiler
+                    is_not_preferred = compiler_name not in self.preferred_compilers
+                    if is_not_default and is_not_preferred:
+                        continue
+
+                # Pick only the default compiler
+                if x[1].name == 'default_compiler_preference':
+                    # Not the default compiler
+                    if x[1].args[2] != 0 or self.preferred_compilers:
+                        continue
+                    default_compiler = x[1].args[0]
+
+                # Register default providers and skip non default
+                if x[1].name == 'default_provider_preference':
+                    vspec, provider, weight = x[1].args
+                    if weight > 10 and provider not in self.user_nodes:
+                        continue
+
+                    default_providers[vspec] = provider
+
+                def _discard_provider(p, v):
+                    # Don't discard a provider if it is in the nodes required
+                    # by the user
+                    if p in self.user_nodes:
+                        return False
+
+                    preferred = self.preferred_providers.get(v)
+                    default = default_providers.get(v)
+                    under_consideration = (preferred, default)
+
+                    # Don't discard providers if we have no clue
+                    # which one to prefer
+                    if under_consideration == (None, None):
+                        return False
+
+                    return p not in under_consideration
+
+                # Register default providers and skip non default
+                if x[1].name == 'possible_provider':
+                    provider, vspec = x[1].args
+                    if _discard_provider(provider, vspec):
+                        continue
+
+                if x[1].name == 'provider_condition':
+                    _, provider, vspec = x[1].args
+                    if _discard_provider(provider, vspec):
+                        continue
+
+            result.append(x)
+
+        return result
+
+    def setup(self, specs, tests=False):
         """Generate an ASP program with relevant constraints for specs.
 
         This calls methods on the solve driver to set up the problem with
@@ -1336,16 +1481,13 @@ class SpackSolverSetup(object):
         self.possible_virtuals = set(
             x.name for x in specs if x.virtual
         )
+        deptypes = ('build', 'link', 'run')
+        if tests:
+            deptypes = spack.dependency.all_deptypes
         possible = spack.package.possible_dependencies(
-            *specs,
-            virtuals=self.possible_virtuals,
-            deptype=spack.dependency.all_deptypes
+            *specs, virtuals=self.possible_virtuals, deptype=deptypes
         )
-        pkgs = set(possible)
-
-        # driver is used by all the functions below to add facts and
-        # rules to generate an ASP program.
-        self.gen = driver
+        self.possible_dependencies = set(possible)
 
         # get possible compilers
         self.possible_compilers = self.generate_possible_compilers(specs)
@@ -1369,7 +1511,7 @@ class SpackSolverSetup(object):
         self.flag_defaults()
 
         self.gen.h1('Package Constraints')
-        for pkg in sorted(pkgs):
+        for pkg in sorted(self.possible_dependencies):
             self.gen.h2('Package rules: %s' % pkg)
             self.pkg_rules(pkg, tests=tests)
             self.gen.h2('Package preferences: %s' % pkg)
@@ -1392,7 +1534,7 @@ class SpackSolverSetup(object):
                 else fn.root(spec.name)
             )
             for clause in self.spec_clauses(spec):
-                self.gen.fact(clause)
+                self.clause_from_user_spec(clause)
 
         self.gen.h1("Variant Values defined in specs")
         self.define_variant_values()
@@ -1408,6 +1550,8 @@ class SpackSolverSetup(object):
 
         self.gen.h1("Target Constraints")
         self.define_target_constraints()
+
+        return self.fast_actions(), self.gen.actions
 
 
 class SpecBuilder(object):
@@ -1652,4 +1796,4 @@ def solve(specs, dump=(), models=0, timers=False, stats=False, tests=False):
             spack.spec.Spec.ensure_valid_variants(s)
 
     setup = SpackSolverSetup()
-    return driver.solve(setup, specs, dump, models, timers, stats, tests)
+    return driver.solve(setup, specs, models, timers, stats, tests)
