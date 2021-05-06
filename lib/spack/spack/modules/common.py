@@ -286,6 +286,7 @@ def read_module_indices():
         module_type_to_index = {}
         module_type_to_root = install_properties.get('modules', {})
         for module_type, root in module_type_to_root.items():
+            root = spack.util.path.canonicalize_path(root)
             module_type_to_index[module_type] = read_module_index(root)
         module_indices.append(module_type_to_index)
 
