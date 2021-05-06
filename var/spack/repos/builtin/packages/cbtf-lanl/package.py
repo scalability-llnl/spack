@@ -14,14 +14,16 @@ class CbtfLanl(CMakePackage):
     git      = "https://github.com/OpenSpeedShop/cbtf-lanl.git"
 
     version('develop', branch='master')
+    version('1.9.4.1', branch='1.9.4.1')
     version('1.9.3', branch='1.9.3')
     version('1.9.2', branch='1.9.2')
     version('1.9.1.2', branch='1.9.1.2')
     version('1.9.1.1', branch='1.9.1.1')
     version('1.9.1.0', branch='1.9.1.0')
 
-    variant('build_type', default='None', values=('None',),
-            description='CMake build type')
+    variant('build_type', default='RelWithDebInfo',
+            description='The build type to build',
+            values=('Debug', 'Release', 'RelWithDebInfo'))
 
     variant('runtime', default=False,
             description="build only the runtime libraries and collectors.")
@@ -69,7 +71,7 @@ class CbtfLanl(CMakePackage):
     def cmake_args(self):
 
         spec = self.spec
-        compile_flags = "-O2 -g"
+        compile_flags = "-O2 -g -Wall"
 
         cmake_args = [
             '-DCMAKE_CXX_FLAGS=%s'        % compile_flags,

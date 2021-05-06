@@ -9,15 +9,17 @@ import spack.store
 
 
 class CbtfKrell(CMakePackage):
-    """CBTF Krell project contains the Krell Institute contributions to the
-       CBTF project.  These contributions include many performance data
-       collectors and support libraries as well as some example tools
+    """CBTF Krell project contains collector and runtime contributions
+       to the CBTF project.  These contributions include many performance
+       data collectors and support libraries as well as some example tools
        that drive the data collection at HPC levels of scale.
     """
     homepage = "http://sourceforge.net/p/cbtf/wiki/Home/"
     git      = "https://github.com/OpenSpeedShop/cbtf-krell.git"
 
     version('develop', branch='master')
+    version('1.9.4.1', branch='1.9.4.1')
+    version('1.9.4', branch='1.9.4')
     version('1.9.3', branch='1.9.3')
     version('1.9.2', branch='1.9.2')
     version('1.9.1.2', branch='1.9.1.2')
@@ -39,8 +41,9 @@ class CbtfKrell(CMakePackage):
             description="Build mpi experiment collector for mpich MPI.")
     variant('runtime', default=False,
             description="build only the runtime libraries and collectors.")
-    variant('build_type', default='None', values=('None',),
-            description='CMake build type')
+    variant('build_type', default='RelWithDebInfo',
+            description='The build type to build',
+            values=('Debug', 'Release', 'RelWithDebInfo'))
     variant('cti', default=False,
             description="Build MRNet with the CTI startup option")
     variant('crayfe', default=False,
@@ -51,20 +54,20 @@ class CbtfKrell(CMakePackage):
     depends_on("cmake@3.0.2:", type='build')
 
     # For rpcgen
-    depends_on("rpcsvc-proto")
+    depends_on("rpcsvc-proto", type='build')
 
     # For rpc
     depends_on("libtirpc", type='link')
 
     # For binutils
-    depends_on("binutils")
+    depends_on("binutils+plugins~gold@2.32")
 
     # For boost
-    depends_on("boost@1.66.0:1.69.0")
+    depends_on("boost@1.70.0:")
 
     # For Dyninst
-    depends_on("dyninst@develop", when='@develop')
-    depends_on("dyninst@10:", when='@1.9.1.0:9999')
+    depends_on("dyninst@10.1.0", when='@develop')
+    depends_on("dyninst@10.1.0", when='@1.9.1.0:9999')
 
     # For MRNet
     depends_on("mrnet@5.0.1-3:+cti", when='@develop+cti', type=('build', 'link', 'run'))
@@ -89,7 +92,7 @@ class CbtfKrell(CMakePackage):
     depends_on("cbtf@1.9.1.0:9999+runtime", when='@1.9.1.0:9999+runtime', type=('build', 'link', 'run'))
 
     # for services and collectors
-    depends_on("libmonitor@2013.02.18+krellpatch", type=('build', 'link', 'run'))
+    depends_on("libmonitor@2013.02.18+commrank", type=('build', 'link', 'run'))
 
     depends_on("libunwind", when='@develop')
     depends_on("libunwind@1.2.1", when='@1.9.1.0:9999')
@@ -203,7 +206,7 @@ class CbtfKrell(CMakePackage):
     def cmake_args(self):
         spec = self.spec
 
-        compile_flags = "-O2 -g"
+        compile_flags = "-O2 -g -Wall"
 
         # Add in paths for finding package config files that tell us
         # where to find these packages
@@ -215,7 +218,11 @@ class CbtfKrell(CMakePackage):
             '-DLIBMONITOR_DIR=%s' % spec['libmonitor'].prefix,
             '-DLIBUNWIND_DIR=%s' % spec['libunwind'].prefix,
             '-DPAPI_DIR=%s' % spec['papi'].prefix,
-            '-DBOOST_DIR=%s' % spec['boost'].prefix,
+            '-DBoost_NO_SYSTEM_PATHS=TRUE',
+            '-DBoost_NO_BOOST_CMAKE=TRUE',
+            '-DBOOST_ROOT=%s' % spec['boost'].prefix,
+            '-DBoost_DIR=%s' % spec['boost'].prefix,
+            '-DBOOST_LIBRARYDIR=%s' % spec['boost'].prefix.lib,
             '-DMRNET_DIR=%s' % spec['mrnet'].prefix,
             '-DDYNINST_DIR=%s' % spec['dyninst'].prefix,
             '-DLIBIOMP_DIR=%s' % spec['llvm-openmp-ompt'].prefix,

@@ -38,7 +38,7 @@ class LlvmOpenmpOmpt(CMakePackage):
     depends_on('llvm', when='~standalone')
     depends_on('ninja@1.5:', type='build')
     depends_on('perl@5.22.0:', type='build')
-    depends_on('libelf', when='+libomptarget')
+    depends_on('elf', when='+libomptarget')
     depends_on('libffi', when='+libomptarget')
 
     generator = 'Ninja'

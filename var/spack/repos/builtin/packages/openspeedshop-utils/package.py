@@ -13,28 +13,29 @@ import os.path
 
 
 class OpenspeedshopUtils(CMakePackage):
-    """OpenSpeedShop is a community effort by The Krell Institute with
-       current direct funding from DOEs NNSA.  It builds on top of a
-       broad list of community infrastructures, most notably Dyninst
-       and MRNet from UW, libmonitor from Rice, and PAPI from UTK.
-       OpenSpeedShop is an open source multi platform Linux performance
-       tool which is targeted to support performance analysis of
-       applications running on both single node and large scale IA64,
-       IA32, EM64T, AMD64, PPC, ARM, Power8, Intel Phi, Blue Gene and
-       Cray platforms.  OpenSpeedShop development is hosted by the Krell
-       Institute. The infrastructure and base components of OpenSpeedShop
+    """OpenSpeedShop is a community effort led by Trenza, Inc.
+       It builds on top of a broad list of community infrastructures,
+       most notably Dyninst and MRNet from UW, libmonitor from Rice,
+       and PAPI from UTK.  OpenSpeedShop is an open source multi platform
+       Linux performance tool which is targeted to support performance
+       analysis of applications running on both single node and large
+       scale IA64, IA32, EM64T, AMD64, PPC, ARM, Power8, Intel Phi, Blue
+       Gene and Cray platforms.  OpenSpeedShop development is hosted by
+       Trenza Inc.. The infrastructure and base components of OpenSpeedShop
        are released as open source code primarily under LGPL.
        openspeedshop-utils is a package that does not have the
        qt3 gui.  It was created to avoid a conflict between
        openspeedshop and cbtf-argonavis-gui based on the fact
-       that spack will not allow a qt3 and qt4/qt5 dependency in a packages
-       dependency tree.
+       that spack will not allow a qt3 and qt4/qt5 dependency in a
+       packages dependency tree.
     """
 
     homepage = "http://www.openspeedshop.org"
     git      = "https://github.com/OpenSpeedShop/openspeedshop.git"
 
     version('develop', branch='master')
+    version('2.4.2.1', branch='2.4.2.1')
+    version('2.4.2', branch='2.4.2')
     version('2.4.1', branch='2.4.1')
     version('2.4.0', branch='2.4.0')
     version('2.3.1.5', branch='2.3.1.5')
@@ -51,8 +52,9 @@ class OpenspeedshopUtils(CMakePackage):
     variant('cuda', default=False,
             description="build with cuda packages included.")
 
-    variant('build_type', default='None', values=('None',),
-            description='CMake build type')
+    variant('build_type', default='RelWithDebInfo',
+            description='The build type to build',
+            values=('Debug', 'Release', 'RelWithDebInfo'))
 
     # MPI variants
     variant('openmpi', default=False,
@@ -83,9 +85,9 @@ class OpenspeedshopUtils(CMakePackage):
     depends_on("flex@2.6.1", type='build')
 
     # For binutils
-    depends_on("binutils", type='build')
+    depends_on("binutils+plugins~gold@2.32", type='build')
 
-    depends_on("elf", type="link")
+    depends_on("elfutils", type="link")
     depends_on("libdwarf")
 
     depends_on("sqlite")
@@ -174,7 +176,7 @@ class OpenspeedshopUtils(CMakePackage):
         # Appends base options to cmake_args
         spec = self.spec
 
-        compile_flags = "-O2 -g"
+        compile_flags = "-O2 -g -Wall"
 
         cmake_args = []
 
@@ -227,7 +229,7 @@ class OpenspeedshopUtils(CMakePackage):
         base_options = []
 
         base_options.append('-DBINUTILS_DIR=%s' % spec['binutils'].prefix)
-        base_options.append('-DLIBELF_DIR=%s' % spec['elf'].prefix)
+        base_options.append('-DLIBELF_DIR=%s' % spec['elfutils'].prefix)
         base_options.append('-DLIBDWARF_DIR=%s' % spec['libdwarf'].prefix)
         base_options.append('-DPYTHON_EXECUTABLE=%s' % python_exe)
         base_options.append('-DPYTHON_INCLUDE_DIR=%s' % python_include)

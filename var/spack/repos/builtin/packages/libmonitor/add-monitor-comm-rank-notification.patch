@@ -1,0 +1,77 @@
+--- libmonitor/src/callback.c	2021-04-14 16:48:48.829169067 -0500
++++ libmonitor.fixes1/src/callback.c	2021-04-14 16:54:27.034918247 -0500
+@@ -179,3 +179,10 @@
+     MONITOR_DEBUG1("(default callback)\n");
+     return 0;
+ }
++
++void __attribute__ ((weak))
++monitor_mpi_post_comm_rank(void)
++{
++    MONITOR_DEBUG1("(default callback)\n");
++}
++
+--- libmonitor/src/monitor.h	2021-04-14 16:48:48.829169067 -0500
++++ libmonitor.fixes1/src/monitor.h	2021-04-14 16:55:21.539716667 -0500
+@@ -78,6 +78,7 @@
+ extern void monitor_init_mpi(int *argc, char ***argv);
+ extern void monitor_fini_mpi(void);
+ extern void monitor_mpi_post_fini(void);
++extern void monitor_mpi_post_comm_rank(void);
+ 
+ /*
+  *  Monitor support functions.
+--- libmonitor/src/mpi_comm_c.c	2021-04-14 16:48:48.853168977 -0500
++++ libmonitor.fixes1/src/mpi_comm_c.c	2021-04-14 16:56:42.468417362 -0500
+@@ -35,6 +35,7 @@
+     ret = (*real_mpi_comm_size)(comm, &size);
+     ret = (*real_mpi_comm_rank)(comm, rank);
+     monitor_set_mpi_size_rank(size, *rank);
++    monitor_mpi_post_comm_rank();
+ 
+     return (ret);
+ }
+--- libmonitor/src/mpi_comm_f0.c	2021-04-14 16:48:48.853168977 -0500
++++ libmonitor.fixes1/src/mpi_comm_f0.c	2021-04-14 17:04:22.915714717 -0500
+@@ -34,4 +34,5 @@
+     (*real_mpi_comm_size)(comm, &size, ierror);
+     (*real_mpi_comm_rank)(comm, rank, ierror);
+     monitor_set_mpi_size_rank(size, *rank);
++    monitor_mpi_post_comm_rank();
+ }
+--- libmonitor/src/mpi_comm_f1.c	2021-04-14 16:48:48.853168977 -0500
++++ libmonitor.fixes1/src/mpi_comm_f1.c	2021-04-14 17:04:28.016695854 -0500
+@@ -34,4 +34,5 @@
+     (*real_mpi_comm_size)(comm, &size, ierror);
+     (*real_mpi_comm_rank)(comm, rank, ierror);
+     monitor_set_mpi_size_rank(size, *rank);
++    monitor_mpi_post_comm_rank();
+ }
+--- libmonitor/src/mpi_comm_f2.c	2021-04-14 16:48:48.853168977 -0500
++++ libmonitor.fixes1/src/mpi_comm_f2.c	2021-04-14 17:04:35.276669009 -0500
+@@ -34,4 +34,5 @@
+     (*real_mpi_comm_size)(comm, &size, ierror);
+     (*real_mpi_comm_rank)(comm, rank, ierror);
+     monitor_set_mpi_size_rank(size, *rank);
++    monitor_mpi_post_comm_rank();
+ }
+--- libmonitor/src/pmpi.c	2021-04-14 16:48:48.853168977 -0500
++++ libmonitor.fixes1/src/pmpi.c	2021-04-15 16:54:08.532018684 -0500
+@@ -297,6 +297,7 @@
+     ret = (*real_pmpi_comm_size)(comm, &size);
+     ret = (*real_pmpi_comm_rank)(comm, rank);
+     monitor_set_mpi_size_rank(size, *rank);
++    monitor_mpi_post_comm_rank();
+ 
+     return (ret);
+ }
+@@ -308,7 +309,8 @@
+     MONITOR_GET_REAL_NAME_WRAP(rank_var, rank_fcn);	\
+     (*size_var)(comm, &size, ierror);			\
+     (*rank_var)(comm, rank, ierror);			\
+-    monitor_set_mpi_size_rank(size, *rank);
++    monitor_set_mpi_size_rank(size, *rank);             \
++    monitor_mpi_post_comm_rank();
+ 
+ /*
+  * In Fortran, MPI_Comm is always int.
