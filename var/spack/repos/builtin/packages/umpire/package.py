@@ -18,6 +18,7 @@ class Umpire(CMakePackage, CudaPackage, ROCmPackage):
 
     version('develop', branch='develop', submodules='True')
     version('main', branch='main', submodules='True')
+    version('5.0.0', tag='v5.0.0', submodules='True')
     version('4.1.2', tag='v4.1.2', submodules='True')
     version('4.1.1', tag='v4.1.1', submodules='True')
     version('4.1.0', tag='v4.1.0', submodules='True')
@@ -44,7 +45,7 @@ class Umpire(CMakePackage, CudaPackage, ROCmPackage):
     version('0.1.3', tag='v0.1.3', submodules='True')
 
     patch('camp_target_umpire_3.0.0.patch', when='@3.0.0')
-    patch('cmake_version_check.patch', when='@4.1.0:main')
+    patch('cmake_version_check.patch', when='@4.1')
 
     variant('fortran', default=False, description='Build C/Fortran API')
     variant('c', default=True, description='Build C API')

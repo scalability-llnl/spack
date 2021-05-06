@@ -38,14 +38,18 @@ class Lvarray(CMakePackage, CudaPackage):
     homepage = "https://github.com/GEOSX/lvarray"
     git      = "https://github.com/GEOSX/LvArray.git"
 
-    version('develop', branch='develop', submodules='True')
-    version('main', branch='main', submodules='True')
-    version('0.1.0', tag='v0.1.0', submodules='True')
+    maintainers = ['corbett5']
+
+    version('develop', branch='develop', submodules=False)
+    version('main', branch='main', submodules=False)
+    version('0.2.1', tag='v0.2.1', submodules=False)
+    version('0.1.0', tag='v0.1.0', submodules=True)
 
     variant('shared', default=True, description='Build Shared Libs')
     variant('umpire', default=False, description='Build Umpire support')
     variant('chai', default=False, description='Build Chai support')
     variant('caliper', default=False, description='Build Caliper support')
+    variant('pylvarray', default=False, description='Build Python support')
     variant('tests', default=True, description='Build tests')
     variant('benchmarks', default=False, description='Build benchmarks')
     variant('examples', default=False, description='Build examples')
@@ -53,19 +57,27 @@ class Lvarray(CMakePackage, CudaPackage):
     variant('addr2line', default=True,
             description='Build support for addr2line.')
 
-    depends_on('cmake@3.8:', type='build')
-    depends_on('cmake@3.9:', when='+cuda', type='build')
+    depends_on('blt', when='@0.2.0:', type='build')
+
+    depends_on('camp')
+    depends_on('camp+cuda', when='+cuda')
 
     depends_on('raja')
     depends_on('raja+cuda', when='+cuda')
 
+    # At the moment Umpire doesn't support shared when building with CUDA.
     depends_on('umpire', when='+umpire')
-    depends_on('umpire+cuda', when='+umpire+cuda')
+    depends_on('umpire+cuda~shared', when='+umpire+cuda')
 
     depends_on('chai+raja', when='+chai')
     depends_on('chai+raja+cuda', when='+chai+cuda')
 
     depends_on('caliper', when='+caliper')
+
+    depends_on('python +shared +pic', when='+pylvarray')
+    depends_on('py-numpy@1.19:', when='+pylvarray')
+    depends_on('py-scipy@1.5.2:', when='+pylvarray')
+    depends_on('py-pip', when='+pylvarray')
 
     depends_on('doxygen@1.8.13:', when='+docs', type='build')
     depends_on('py-sphinx@1.6.3:', when='+docs', type='build')
@@ -112,16 +124,13 @@ class Lvarray(CMakePackage, CudaPackage):
         """
         This method creates a 'host-config' file that specifies
         all of the options used to configure and build Umpire.
-
         For more details about 'host-config' files see:
             http://software.llnl.gov/conduit/building.html
-
         Note:
           The `py_site_pkgs_dir` arg exists to allow a package that
           subclasses this package provide a specific site packages
           dir when calling this function. `py_site_pkgs_dir` should
           be an absolute path or `None`.
-
           This is necessary because the spack `site_packages_dir`
           var will not exist in the base class. For more details
           on this issue see: https://github.com/spack/spack/issues/6261
@@ -160,6 +169,9 @@ class Lvarray(CMakePackage, CudaPackage):
         cfg.write("# CMake executable path: %s\n" % cmake_exe)
         cfg.write("#{0}\n\n".format("-" * 80))
 
+        if 'blt' in spec:
+            cfg.write(cmake_cache_entry('BLT_SOURCE_DIR', spec['blt'].prefix))
+
         #######################
         # Compiler Settings
         #######################
@@ -172,10 +184,15 @@ class Lvarray(CMakePackage, CudaPackage):
 
         # use global spack compiler flags
         cflags = ' '.join(spec.compiler_flags['cflags'])
+        cxxflags = ' '.join(spec.compiler_flags['cxxflags'])
+
+        if "%intel" in spec:
+            cflags += ' -qoverride-limits'
+            cxxflags += ' -qoverride-limits'
+
         if cflags:
             cfg.write(cmake_cache_entry("CMAKE_C_FLAGS", cflags))
 
-        cxxflags = ' '.join(spec.compiler_flags['cxxflags'])
         if cxxflags:
             cfg.write(cmake_cache_entry("CMAKE_CXX_FLAGS", cxxflags))
 
@@ -187,6 +204,9 @@ class Lvarray(CMakePackage, CudaPackage):
                                      reldebinf_flags))
         debug_flags = "-O0 -g"
         cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_DEBUG", debug_flags))
+
+        if "%clang arch=linux-rhel7-ppc64le" in spec:
+            cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS", "-Wl,--no-toc-optimize"))
 
         if "+cuda" in spec:
             cfg.write("#{0}\n".format("-" * 80))
@@ -229,11 +249,16 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write(cmake_cache_option("ENABLE_CUDA", False))
 
         cfg.write("#{0}\n".format("-" * 80))
+        cfg.write("# CAMP\n")
+        cfg.write("#{0}\n\n".format("-" * 80))
+
+        cfg.write(cmake_cache_entry("CAMP_DIR", spec['camp'].prefix))
+
+        cfg.write("#{0}\n".format("-" * 80))
         cfg.write("# RAJA\n")
         cfg.write("#{0}\n\n".format("-" * 80))
 
-        raja_dir = spec['raja'].prefix
-        cfg.write(cmake_cache_entry("RAJA_DIR", raja_dir))
+        cfg.write(cmake_cache_entry("RAJA_DIR", spec['raja'].prefix))
 
         cfg.write("#{0}\n".format("-" * 80))
         cfg.write("# Umpire\n")
@@ -241,8 +266,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
         if "+umpire" in spec:
             cfg.write(cmake_cache_option("ENABLE_UMPIRE", True))
-            umpire_dir = spec['umpire'].prefix
-            cfg.write(cmake_cache_entry("UMPIRE_DIR", umpire_dir))
+            cfg.write(cmake_cache_entry("UMPIRE_DIR", spec['umpire'].prefix))
         else:
             cfg.write(cmake_cache_option("ENABLE_UMPIRE", False))
 
@@ -252,8 +276,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
         if "+chai" in spec:
             cfg.write(cmake_cache_option("ENABLE_CHAI", True))
-            chai_dir = spec['chai'].prefix
-            cfg.write(cmake_cache_entry("CHAI_DIR", chai_dir))
+            cfg.write(cmake_cache_entry("CHAI_DIR", spec['chai'].prefix))
         else:
             cfg.write(cmake_cache_option("ENABLE_CHAI", False))
 
@@ -267,15 +290,24 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("#{0}\n\n".format("-" * 80))
 
             cfg.write(cmake_cache_option("ENABLE_CALIPER", True))
-            caliper_dir = spec['caliper'].prefix
-            cfg.write(cmake_cache_entry("CALIPER_DIR", caliper_dir))
+            cfg.write(cmake_cache_entry("CALIPER_DIR", spec['caliper'].prefix))
         else:
             cfg.write(cmake_cache_option("ENABLE_CALIPER", False))
+
+        cfg.write('#{0}\n'.format('-' * 80))
+        cfg.write('# Python\n')
+        cfg.write('#{0}\n\n'.format('-' * 80))
+        if '+pylvarray' in spec:
+            cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', True))
+            cfg.write(cmake_cache_entry('Python3_EXECUTABLE', os.path.join(spec['python'].prefix.bin, 'python3')))
+        else:
+            cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', False))
 
         cfg.write("#{0}\n".format("-" * 80))
         cfg.write("# Documentation\n")
         cfg.write("#{0}\n\n".format("-" * 80))
         if "+docs" in spec:
+            cfg.write(cmake_cache_option("ENABLE_DOCS", True))
             sphinx_dir = spec['py-sphinx'].prefix
             cfg.write(cmake_cache_string('SPHINX_EXECUTABLE',
                                          os.path.join(sphinx_dir,
@@ -287,6 +319,8 @@ class Lvarray(CMakePackage, CudaPackage):
                                          os.path.join(doxygen_dir,
                                                       'bin',
                                                       'doxygen')))
+        else:
+            cfg.write(cmake_cache_option("ENABLE_DOCS", False))
 
         cfg.write("#{0}\n".format("-" * 80))
         cfg.write("# addr2line\n")
