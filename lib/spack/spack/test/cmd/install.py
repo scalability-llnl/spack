@@ -930,3 +930,10 @@ def test_install_env_with_tests_root(tmpdir, mock_packages, mock_fetch,
         add('depb')
         install('--test', 'root')
         assert not os.path.exists(test_dep.prefix)
+
+
+def test_spack_install_does_not_persist_command_line_config(
+        mock_packages, mock_fetch, install_mockery, mutable_mock_env_path):
+    assert spack.config.get('config:checksum', scope='command_line') is not False
+    install('--no-checksum', 'libdwarf')
+    assert spack.config.get('config:checksum', scope='command_line') is not False

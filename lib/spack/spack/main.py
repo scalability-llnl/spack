@@ -40,6 +40,8 @@ import spack.util.path
 import spack.util.executable as exe
 from spack.error import SpackError
 
+import contextlib
+
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
 
@@ -551,11 +553,30 @@ class SpackCommand(object):
 
         fail_on_error = kwargs.get('fail_on_error', True)
 
+        @contextlib.contextmanager
+        def temporary_command_line_scope():
+            """
+            Replace the currently active command_line config scope with a
+            temporary one, so that spack commands are mostly free of side
+            effects.
+            """
+            scopes = spack.config.scopes()
+            if 'command_line' not in scopes:
+                yield
+                return
+            command_line = spack.config.config.pop_scope()
+            spack.config.config.push_scope(
+                spack.config.InternalConfigScope('command_line'))
+            yield
+            spack.config.config.pop_scope()
+            spack.config.config.push_scope(command_line)
+
         out = StringIO()
         try:
             with log_output(out):
-                self.returncode = _invoke_command(
-                    self.command, self.parser, args, unknown)
+                with temporary_command_line_scope():
+                    self.returncode = _invoke_command(
+                        self.command, self.parser, args, unknown)
 
         except SystemExit as e:
             self.returncode = e.code
