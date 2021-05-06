@@ -195,6 +195,11 @@ class Paraview(CMakePackage, CudaPackage):
         if name == 'ldflags' and self.spec.satisfies('%intel'):
             flags.append('-shared-intel')
             return(None, flags, None)
+        # -no-ipo prevents internal compiler error from multi-file
+        # optimization (https://github.com/spack/spack/issues/18192)
+        if (name == 'cflags' or name == 'cxxflags') and self.spec.satisfies('%intel'):
+            flags.append('-no-ipo')
+            return(None, None, flags)
         return(flags, None, None)
 
     def setup_run_environment(self, env):
