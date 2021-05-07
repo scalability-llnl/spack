@@ -1,6 +1,63 @@
 {
   "images": {
+    "alpine:3": {
+      "bootstrap": {
+        "template": "container/alpine_3.dockerfile"
+      },
+      "os_package_manager": "apk"
+    },
+    "amazonlinux:2": {
+      "bootstrap": {
+        "template": "container/amazonlinux_2.dockerfile"
+      },
+      "os_package_manager": "yum"
+    },
+    "centos:8": {
+      "bootstrap": {
+        "template": "container/centos_8.dockerfile"
+      },
+      "os_package_manager": "yum"
+    },
+    "centos:7": {
+      "bootstrap": {
+        "template": "container/centos_7.dockerfile"
+      },
+      "os_package_manager": "yum",
+      "build": "spack/centos7",
+      "build_tags": {
+        "develop": "latest"
+      }
+    },
+    "centos:6": {
+      "bootstrap": {
+        "template": "container/centos_6.dockerfile"
+      },
+      "os_package_manager": "yum",
+      "build": "spack/centos6",
+      "build_tags": {
+        "develop": "latest"
+      }
+    },
+    "nvidia/cuda:11.2.1": {
+      "bootstrap": {
+        "template": "container/cuda_11_2_1.dockerfile",
+        "image": "nvidia/cuda:11.2.1-devel"
+      },
+      "final": {
+        "image": "nvidia/cuda:11.2.1-base"
+      },
+      "os_package_manager": "apt"
+    },
+    "ubuntu:20.04": {
+      "bootstrap": {
+        "template": "container/ubuntu_2004.dockerfile"
+      },
+      "os_package_manager": "apt"
+    },
     "ubuntu:18.04": {
+      "bootstrap": {
+        "template": "container/ubuntu_1804.dockerfile"
+      },
       "os_package_manager": "apt",
       "build": "spack/ubuntu-bionic",
       "build_tags": {
@@ -8,29 +65,22 @@
       }
     },
     "ubuntu:16.04": {
+      "bootstrap": {
+        "template": "container/ubuntu_1604.dockerfile"
+      },
       "os_package_manager": "apt",
       "build": "spack/ubuntu-xenial",
-      "build_tags": {
-        "develop": "latest"
-      }
-    },
-    "centos:7": {
-      "os_package_manager": "yum",
-      "environment": [],
-      "build": "spack/centos7",
-      "build_tags": {
-        "develop": "latest"
-      }
-    },
-    "centos:6": {
-      "os_package_manager": "yum",
-      "build": "spack/centos6",
       "build_tags": {
         "develop": "latest"
       }
     }
   },
   "os_package_managers": {
+    "apk": {
+      "update": "apk update",
+      "install": "apk add --no-cache",
+      "clean": "true"
+    },
     "apt": {
       "update": "apt-get -yqq update && apt-get -yqq upgrade",
       "install": "apt-get -yqq install",

@@ -8,16 +8,18 @@ _stages_from_dockerhub = {
     'type': 'object',
     'additionalProperties': False,
     'properties': {
-        'os': {
-            'type': 'string',
-            'enum': ['ubuntu:18.04',
-                     'ubuntu:16.04',
-                     'centos:7',
-                     'centos:6']
-        },
-        'spack': {
-            'type': 'string',
-        },
+        'os': {'type': 'string'},
+        'spack': {'anyOf': [
+            {'type': 'string'},
+            {'type': 'object',
+             'additional_properties': False,
+             'properties': {
+                 'url': {'type': 'string'},
+                 'ref': {'type': 'string'},
+                 'resolve_sha': {'type': 'boolean', 'default': False},
+                 'verify': {'type': 'boolean', 'default': False}
+             }}
+        ]},
     },
     'required': ['os', 'spack']
 }

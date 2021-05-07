@@ -1847,3 +1847,18 @@ def keep_modification_time(*filenames):
     for f, mtime in mtimes.items():
         if os.path.exists(f):
             os.utime(f, (os.path.getatime(f), mtime))
+
+
+@contextmanager
+def temporary_dir(*args, **kwargs):
+    """Create a temporary directory and cd's into it. Delete the directory
+    on exit.
+
+    Takes the same arguments as tempfile.mkdtemp()
+    """
+    tmp_dir = tempfile.mkdtemp(*args, **kwargs)
+    try:
+        with working_dir(tmp_dir):
+            yield tmp_dir
+    finally:
+        remove_directory_contents(tmp_dir)
