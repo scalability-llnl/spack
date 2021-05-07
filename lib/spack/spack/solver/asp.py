@@ -1560,6 +1560,10 @@ class SpecBuilder(object):
             check_same_flags(spec.compiler_flags, flags)
             spec.compiler_flags.update(flags)
 
+    def deprecated(self, pkg):
+        msg = 'the version used for package "{0}" is deprecated'
+        tty.warn(msg.format(pkg))
+
     def build_specs(self, function_tuples):
         # Functions don't seem to be in particular order in output.  Sort
         # them here so that directives that build objects (like node and

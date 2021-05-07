@@ -28,3 +28,6 @@
 
 % names of optimization criteria
 #show opt_criterion/2.
+
+% deprecated packages
+#show deprecated/1.
