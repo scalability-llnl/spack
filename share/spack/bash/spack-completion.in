@@ -38,12 +38,22 @@
 # See `man bash` for more details.
 
 if test -n "${ZSH_VERSION:-}" ; then
-  if [[ "$(emulate)" = zsh ]] ; then
+  _spack_zsh_completion_init() {
+    emulate -L zsh
+    if test -n "${SPACK_ROOT:-}" ; then
+      SELF="${SPACK_ROOT}/share/spack/spack-completion.bash"
+    else
+      # try to get self from zsh, $0:A doesn't work in a function
+      SELF="${(%):-%x}"
+    fi
     # ensure base completion support is enabled, ignore insecure directories
     autoload -U +X compinit && compinit -i
     # ensure bash compatible completion support is enabled
     autoload -U +X bashcompinit && bashcompinit
-    emulate sh -c "source '$0:A'"
+    emulate sh -c "source '$SELF'"
+  }
+  if ! typeset -f complete > /dev/null ; then
+    _spack_zsh_completion_init "$(emulate)"
     return # stop interpreting file
   fi
 fi
