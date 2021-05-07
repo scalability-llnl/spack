@@ -206,7 +206,8 @@ class Lvarray(CMakePackage, CudaPackage):
         cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_DEBUG", debug_flags))
 
         if "%clang arch=linux-rhel7-ppc64le" in spec:
-            cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS", "-Wl,--no-toc-optimize"))
+            cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS",
+                                        "-Wl,--no-toc-optimize"))
 
         if "+cuda" in spec:
             cfg.write("#{0}\n".format("-" * 80))
@@ -299,7 +300,8 @@ class Lvarray(CMakePackage, CudaPackage):
         cfg.write('#{0}\n\n'.format('-' * 80))
         if '+pylvarray' in spec:
             cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', True))
-            cfg.write(cmake_cache_entry('Python3_EXECUTABLE', os.path.join(spec['python'].prefix.bin, 'python3')))
+            python_exe = os.path.join(spec['python'].prefix.bin, 'python3')
+            cfg.write(cmake_cache_entry('Python3_EXECUTABLE', python_exe))
         else:
             cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', False))
 
