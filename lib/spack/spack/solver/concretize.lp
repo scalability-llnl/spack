@@ -19,6 +19,9 @@ version_declared(Package, Version) :- version_declared(Package, Version, _).
 1 { version(Package, Version) : version_declared(Package, Version) } 1
  :- node(Package).
 
+% If we select a deprecated version, mark the package as deprecated
+deprecated(Package) :- version(Package, Version), deprecated_version(Package, Version).
+
 possible_version_weight(Package, Weight)
  :- version(Package, Version), version_declared(Package, Version, Weight),
     not preferred_version_declared(Package, Version, _).
@@ -37,6 +40,7 @@ version_satisfies(Package, Constraint)
 
 #defined preferred_version_declared/3.
 #defined version_satisfies/3.
+#defined deprecated_version/2.
 
 %-----------------------------------------------------------------------------
 % Spec conditions and imposed constraints
@@ -685,6 +689,11 @@ no_flags(Package, FlagType)
 %   1. an opt_criterion(ID, Name) fact that describes the criterion, and
 %   2. a `#minimize{ 0@2 : #true }.` statement that ensures the criterion
 %      is displayed (clingo doesn't display sums over empty sets by default)
+
+% Minimize the number of deprecated versions being used
+opt_criterion(16, "deprecated versions used").
+#minimize{ 0@16 : #true }.
+#minimize{ 1@16,Package : deprecated(Package)}.
 
 % The highest priority is to minimize the:
 % 1. Version weight
