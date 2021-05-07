@@ -220,6 +220,9 @@ class Cp2k(MakefilePackage, CudaPackage):
                 if os.path.exists(incdir):
                     fftw_header_dir = incdir
                     break
+        elif '^cray-fftw' in spec:
+            fftw = spec['cray-fftw']
+            fftw_header_dir = fftw.headers.directories[0]
 
         optimization_flags = {
             'gcc': [

@@ -4,6 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.util.module_cmd import module
+from spack.util.module_cmd import get_path_args_from_module_line
+import os
 
 
 class CrayMpich(Package):
@@ -27,6 +30,26 @@ class CrayMpich(Package):
 
     provides('mpi@3')
 
+    canonical_names = {
+        'gcc': 'GNU',
+        'cce': 'CRAY',
+        'intel': 'INTEL',
+        'clang': 'ALLINEA',
+        'aocc': 'AOCC'
+    }
+
+    @property
+    def modname(self):
+        return "cray-mpich/{0}".format(self.version)
+
+    @property
+    def external_prefix(self):
+        mpich_module = module("show", self.modname).splitlines()
+
+        for line in mpich_module:
+            if "CRAY_MPICH_DIR" in line:
+                return get_path_args_from_module_line(line)[0]
+
     def setup_run_environment(self, env):
         env.set('MPICC', spack_cc)
         env.set('MPICXX', spack_cxx)
@@ -49,12 +72,34 @@ class CrayMpich(Package):
         spec.mpifc = spack_fc
         spec.mpif77 = spack_f77
 
-        spec.mpicxx_shared_libs = [
-            join_path(self.prefix.lib, 'libmpicxx.{0}'.format(dso_suffix)),
-            join_path(self.prefix.lib, 'libmpi.{0}'.format(dso_suffix))
-        ]
-
     def install(self, spec, prefix):
         raise InstallError(
             self.spec.format('{name} is not installable, you need to specify '
                              'it as an external package in packages.yaml'))
+
+    @property
+    def headers(self):
+        hdrs = find_headers('mpi', self.prefix.include, recursive=True)
+        hdrs.directories = os.path.dirname(hdrs[0])
+        return hdrs
+
+    @property
+    def libs(self):
+        query_parameters = self.spec.last_query.extra_parameters
+
+        libraries = ['libmpich']
+
+        if 'cxx' in query_parameters:
+            libraries.extend(['libmpicxx', 'libmpichcxx'])
+
+        if 'f77' in query_parameters:
+            libraries.extend(['libmpifort', 'libmpichfort',
+                              'libfmpi', 'libfmpich'])
+
+        if 'f90' in query_parameters:
+            libraries.extend(['libmpif90', 'libmpichf90'])
+
+        libs = find_libraries(libraries, root=self.prefix.lib, recursive=True)
+        libs += find_libraries(libraries, root=self.prefix.lib64, recursive=True)
+
+        return libs

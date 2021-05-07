@@ -28,7 +28,48 @@ class CrayFftw(Package):
 
     provides('fftw-api@3')
 
+    variant(
+        'precision', values=any_combination_of(
+            'float', 'double'
+        ).prohibit_empty_set().with_default('float,double'),
+        description='Build the selected floating-point precision libraries'
+    )
+
+    variant('openmp', default=False, description="Enable OpenMP support.")
+    variant('mpi', default=True, description='Activate MPI support')
+    depends_on('mpi', when='+mpi')
+
     def install(self, spec, prefix):
         raise InstallError(
             self.spec.format('{name} is not installable, you need to specify '
                              'it as an external package in packages.yaml'))
+
+    @property
+    def libs(self):
+
+        # Reduce repetitions of entries
+        query_parameters = list(llnl.util.lang.dedupe(
+            self.spec.last_query.extra_parameters
+        ))
+
+        # List of all the suffixes associated with float precisions
+        precisions = [
+            ('float', 'f'),
+            ('double', ''),
+        ]
+
+        # Retrieve the correct suffixes, or use double as a default
+        suffixes = [v for k, v in precisions if k in query_parameters] or ['']
+
+        # Construct the list of libraries that needs to be found
+        libraries = []
+        for sfx in suffixes:
+            if 'mpi' in query_parameters and '+mpi' in self.spec:
+                libraries.append('libfftw3' + sfx + '_mpi')
+
+            if 'openmp' in query_parameters and '+openmp' in self.spec:
+                libraries.append('libfftw3' + sfx + '_omp')
+
+            libraries.append('libfftw3' + sfx)
+
+        return find_libraries(libraries, root=self.prefix, recursive=True)
