@@ -67,6 +67,13 @@ class Extrae(AutotoolsPackage):
     variant('papi', default=True, description="Use PAPI to collect performance counters")
     depends_on('papi', when='+papi')
 
+    variant('cuda', default=False, description="Enable support for tracing CUDA")
+    depends_on('cuda', when='+cuda')
+
+    variant('cupti', default=False, description='Enable CUPTI support')
+    depends_on('cuda', when='+cupti')
+    conflicts('+cupti', when='~cuda', msg='CUPTI requires CUDA')
+
     def configure_args(self):
         spec = self.spec
         args = ["--with-mpi=%s" % spec['mpi'].prefix,
@@ -84,6 +91,14 @@ class Extrae(AutotoolsPackage):
         args += (["--with-dyninst=%s" % spec['dyninst'].prefix]
                  if '+dyninst' in self.spec else
                  ["--without-dyninst"])
+
+        args += (["--with-cuda=%s" % spec['cuda'].prefix]
+                 if '+cuda' in self.spec else
+                 ["--without-cuda"])
+
+        args += (["--with-cupti=%s" % spec['cupti'].prefix]
+                 if '+cupti' in self.spec else
+                 ["--without-cupti"])
 
         if spec.satisfies("^dyninst@9.3.0:"):
             make.add_default_arg("CXXFLAGS=%s" % self.compiler.cxx11_flag)
