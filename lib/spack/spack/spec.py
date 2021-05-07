@@ -882,6 +882,25 @@ def _libs_default_handler(descriptor, spec, cls):
     raise spack.error.NoLibrariesError(msg.format(spec.name, spec.prefix))
 
 
+def _cmake_args_default_handler(descriptor, spec, cls):
+    """Default handler when looking for the 'cmake_args' attribute.
+
+    Packages that don't use or support CMake don't have a cmake_args attribute,
+    so just returns an empty list.
+
+    Parameters:
+        descriptor (ForwardQueryToPackage): descriptor that triggered the call
+        spec (Spec): spec that is being queried
+        cls (type(spec)): type of spec, to match the signature of the
+            descriptor ``__get__`` method
+
+    Returns:
+        list: the nonexistant CMake arguments
+    """
+
+    return []
+
+
 class ForwardQueryToPackage(object):
     """Descriptor used to forward queries from Spec to Package"""
 
@@ -1013,6 +1032,11 @@ class SpecBuildInterface(lang.ObjectWrapper):
     libs = ForwardQueryToPackage(
         'libs',
         default_handler=_libs_default_handler
+    )
+
+    cmake_args = ForwardQueryToPackage(
+        'cmake_args',
+        default_handler=_cmake_args_default_handler
     )
 
     def __init__(self, spec, name, query_parameters):

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.build_systems.cmake import CMakePackage
 
 
 class NetlibLapack(CMakePackage):
@@ -132,6 +133,17 @@ class NetlibLapack(CMakePackage):
         cblas_h = join_path(include_dir, 'cblas.h')
         lapacke_h = join_path(include_dir, 'lapacke.h')
         return HeaderList([cblas_h, lapacke_h])
+
+    @property
+    def blas_cmake_args(self):
+        return [
+            CMakePackage.define('BLA_STATIC', '~shared' in self.spec),
+            CMakePackage.define('BLA_VENDOR', 'Generic'),
+        ]
+
+    @property
+    def lapack_cmake_args(self):
+        return self.blas_cmake_args
 
     @property
     def build_directory(self):

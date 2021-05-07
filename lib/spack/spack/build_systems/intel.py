@@ -24,6 +24,7 @@ from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 from spack.util.prefix import Prefix
 from spack.build_environment import dso_suffix
+from spack.build_systems.cmake import CMakePackage
 
 # A couple of utility functions that might be useful in general. If so, they
 # should really be defined elsewhere, unless deemed heretical.
@@ -849,6 +850,23 @@ class IntelPackage(PackageBase):
         # near the end phase of a client package's build phase.
 
         return sca_libs
+
+    @property
+    def blas_cmake_args(self):
+        vendor = 'Intel10'
+        vendor += '_64ilp' if '+ilp64' in self.spec else '_64lp'
+        if self.spec.satisfies('threads=none'):
+            vendor += '_seq'
+        elif self.spec.satisfies('threads=tbb'):
+            raise_lib_error('CMake FindBLAS doesn\'t support MKL with TBB')
+        return [
+            CMakePackage.define('BLA_STATIC', '~shared' in self.spec),
+            CMakePackage.define('BLA_VENDOR', vendor),
+        ]
+
+    @property
+    def lapack_cmake_args(self):
+        return self.blas_cmake_args
 
     # ---------------------------------------------------------------------
     # Support for virtual 'mpi'

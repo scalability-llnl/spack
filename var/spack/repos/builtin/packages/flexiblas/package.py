@@ -19,3 +19,14 @@ class Flexiblas(CMakePackage):
     # virtual dependency
     provides('blas')
     provides('lapack')
+
+    @property
+    def blas_cmake_args(self):
+        return [
+            CMakePackage.define('BLA_STATIC', False),
+            CMakePackage.define('BLA_VENDOR', 'FlexiBLAS'),
+        ]
+
+    @property
+    def lapack_cmake_args(self):
+        return self.blas_cmake_args

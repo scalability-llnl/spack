@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.build_systems.cmake import CMakePackage
 
 
 class LibflameBase(AutotoolsPackage):
@@ -106,6 +107,14 @@ class LibflameBase(AutotoolsPackage):
         # The shared library is not installed correctly on Darwin; fix this
         if self.spec.satisfies('platform=darwin'):
             fix_darwin_install_name(self.prefix.lib)
+
+    @property
+    def lapack_cmake_args(self):
+        static = '~shared' in self.spec or '+static' in self.spec
+        return [
+            CMakePackage.define('BLA_STATIC', static),
+            CMakePackage.define('BLA_VENDOR', 'FLAME'),
+        ]
 
 
 class Libflame(LibflameBase):

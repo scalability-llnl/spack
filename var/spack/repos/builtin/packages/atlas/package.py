@@ -7,6 +7,7 @@ import os
 
 from spack import *
 from spack.package_test import compile_c_and_execute, compare_output_file
+from spack.build_systems.cmake import CMakePackage
 
 
 class Atlas(Package):
@@ -147,6 +148,17 @@ class Atlas(Package):
         return find_libraries(
             to_find, root=self.prefix, shared=shared, recursive=True
         )
+
+    @property
+    def blas_cmake_args(self):
+        return [
+            CMakePackage.define('BLA_STATIC', '~shared' in self.spec),
+            CMakePackage.define('BLA_VENDOR', 'ATLAS'),
+        ]
+
+    @property
+    def lapack_cmake_args(self):
+        return self.blas_cmake_args
 
     def install_test(self):
         source_file = join_path(os.path.dirname(self.module.__file__),

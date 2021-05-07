@@ -8,6 +8,7 @@ import re
 
 from spack import *
 from spack.package_test import compare_output_file, compile_c_and_execute
+from spack.build_systems.cmake import CMakePackage
 
 
 class Openblas(MakefilePackage):
@@ -326,6 +327,17 @@ class Openblas(MakefilePackage):
         # one of the source files implementing functions declared in these
         # headers.
         return find_headers(['cblas', 'lapacke'], self.prefix.include)
+
+    @property
+    def blas_cmake_args(self):
+        return [
+            CMakePackage.define('BLA_STATIC', '~shared' in self.spec),
+            CMakePackage.define('BLA_VENDOR', 'OpenBLAS'),
+        ]
+
+    @property
+    def lapack_cmake_args(self):
+        return self.blas_cmake_args
 
     @property
     def build_targets(self):

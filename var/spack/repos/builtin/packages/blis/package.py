@@ -8,6 +8,8 @@
 # https://github.com/flame/blis/issues/195
 # https://github.com/flame/blis/issues/197
 
+from spack.build_systems.cmake import CMakePackage
+
 
 class BlisBase(Package):
     """Base class for building BLIS, shared with the AMD optimized version
@@ -117,6 +119,14 @@ class BlisBase(Package):
             shared='+shared' in self.spec,
             recursive=True
         )
+
+    @property
+    def blas_cmake_args(self):
+        static = '~shared' in self.spec or '+static' in self.spec
+        return [
+            CMakePackage.define('BLA_STATIC', static),
+            CMakePackage.define('BLA_VENDOR', 'FLAME'),
+        ]
 
 
 class Blis(BlisBase):

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.build_systems.cmake import CMakePackage
 
 
 class Essl(Package):
@@ -59,6 +60,13 @@ class Essl(Package):
         )
 
         return essl_libs
+
+    @property
+    def blas_cmake_args(self):
+        return [
+            CMakePackage.define('BLA_STATIC', False),
+            CMakePackage.define('BLA_VENDOR', 'IBMESSL'),
+        ]
 
     def install(self, spec, prefix):
         raise InstallError('IBM ESSL is not installable;'
