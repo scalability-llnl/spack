@@ -539,7 +539,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
                             '--with-cuda-driver-include={0}'.format(
                                 spec['cuda'].prefix.include),
                             '--with-cuda-driver-lib={0}'.format(
-                                spec['cuda'].libs.directories[0]),
+                                spec['cuda:cuda'].libs.directories[0]),
                             '--disable-bootstrap',
                             '--disable-multilib'])
 

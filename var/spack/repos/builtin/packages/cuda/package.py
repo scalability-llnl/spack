@@ -5,7 +5,6 @@
 
 from spack import *
 from glob import glob
-from llnl.util.filesystem import LibraryList
 import os
 import re
 import platform
@@ -184,14 +183,11 @@ class Cuda(Package):
 
     @property
     def libs(self):
-        libs = find_libraries('libcudart', root=self.prefix, shared=True,
-                              recursive=True)
-
-        filtered_libs = []
-        # CUDA 10.0 provides Compatability libraries for running newer versions
-        # of CUDA with older drivers. These do not work with newer drivers.
-        for lib in libs:
-            parts = lib.split(os.sep)
-            if 'compat' not in parts and 'stubs' not in parts:
-                filtered_libs.append(lib)
-        return LibraryList(filtered_libs)
+        """
+        Export the libraries of CUDA. For the driver stub library use
+        spec['cuda:cuda'].libs. Defaults to libcudart (the runtime library).
+        """
+        comps = self.spec.last_query.extra_parameters or ['cudart']
+        names = ['lib' + c for c in comps]
+        libs = find_libraries(names, root=self.prefix, recursive=True)
+        return libs
