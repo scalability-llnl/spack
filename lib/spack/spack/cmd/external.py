@@ -189,8 +189,11 @@ def external_find(args):
 
 
 def _group_by_prefix(paths):
+    """Group a list of executables by prefix, canonicalizing symlinks."""
     groups = defaultdict(set)
     for p in paths:
+        # Canonicalize symlinks
+        p = os.path.realpath(p)
         groups[os.path.dirname(p)].add(p)
     return groups.items()
 
