@@ -13,6 +13,7 @@ class PyAstroid(PythonPackage):
     homepage = "https://github.com/PyCQA/astroid"
     url      = "https://github.com/PyCQA/astroid/archive/astroid-1.4.5.tar.gz"
 
+    version('2.5.6', sha256='7fa655511c3726ce7058e9908065c385bcada47cb4cb31d5d6a7248b1fea58fa')
     version('2.3.3', sha256='3a82983cf34dcbfe42ebcffeb98739e8a7bb868f03c1d9e298c530179b5075e7')
     version('2.2.0', sha256='7e289d0aa4a537b4aa798bd609fdf745de0f3c37e6b67642ed328e1482421a6d')
     version('1.6.6', sha256='3fbcc144457ba598fb48e0ddce5eacee62610ab11e6fe374b6eef5f7df2a3fbb')
