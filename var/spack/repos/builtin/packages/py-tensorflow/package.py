@@ -232,6 +232,15 @@ class PyTensorflow(Package, CudaPackage):
     depends_on('mpi', when='+mpi')
     # depends_on('android-ndk@10:18', when='+android')
     # depends_on('android-sdk', when='+android')
+    depends_on('hip', when='+rocm')
+    depends_on('rocrand', when='+rocm')
+    depends_on('rocblas', when='+rocm')
+    depends_on('rocfft', when='+rocm')
+    depends_on('rccl', when='+rocm')
+    depends_on('hipsparse', when='+rocm')
+    depends_on('hipcub', when='+rocm')
+    depends_on('rocprim', when='+rocm')
+    depends_on('miopen-hip', when='+rocm')
 
     # Check configure and configure.py to see when these variants are supported
     conflicts('+mkl', when='@:1.0')
@@ -300,6 +309,7 @@ class PyTensorflow(Package, CudaPackage):
     patch('contrib_cloud_1.9.patch', when='@1.9')
     patch('contrib_cloud_1.4.patch', when='@1.4:1.8')
     patch('contrib_cloud_1.1.patch', when='@1.1:1.3')
+    patch('tensorflow_rocm.patch', when='+rocm')
 
     phases = ['configure', 'build', 'install']
 
@@ -696,6 +706,35 @@ def protobuf_deps():
         filter_file('build:opt --host_copt=-march=native', '',
                     '.tf_configure.bazelrc')
 
+        if spec.satisfies('+rocm'):
+            filter_file(r'\@SPACK_HIP_ROOT\@',
+                        '"{0}"'.format(spec['hip'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_ROCFFT_ROOT\@',
+                        '"{0}"'.format(spec['rocfft'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_ROCBLAS_ROOT\@',
+                        '"{0}"'.format(spec['rocblas'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_MIOPEN_ROOT\@',
+                        '"{0}"'.format(spec['miopen-hip'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_RCCL_ROOT\@',
+                        '"{0}"'.format(spec['rccl'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_HIPRAND_ROOT\@',
+                        '"{0}"'.format(spec['rocrand'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_HIPSPARSE_ROOT\@',
+                        '"{0}"'.format(spec['hipsparse'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_ROCPRIM_ROOT\@',
+                        '"{0}"'.format(spec['rocprim'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+            filter_file(r'\@SPACK_HIPCUB_ROOT\@',
+                        '"{0}"'.format(spec['hipcub'].prefix),
+                        'third_party/gpus/rocm_configure.bzl')
+
     def build(self, spec, prefix):
         tmp_path = env['TEST_TMPDIR']
 
@@ -748,6 +787,9 @@ def protobuf_deps():
 
             if '+cuda' in spec:
                 args.append('--config=cuda')
+
+            if '+rocm' in spec:
+                args.append('--config=rocm')
 
             if '~aws' in spec:
                 args.append('--config=noaws')

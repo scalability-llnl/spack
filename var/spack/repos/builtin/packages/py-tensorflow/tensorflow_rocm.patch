@@ -1,0 +1,122 @@
+diff --git a/third_party/gpus/rocm_configure.bzl b/third_party/gpus/rocm_configure.bzl
+index 10f03bf..e801ee8 100644
+--- a/third_party/gpus/rocm_configure.bzl
++++ b/third_party/gpus/rocm_configure.bzl
+@@ -325,13 +325,15 @@ def _find_libs(repository_ctx, rocm_config, bash_bin):
+     libs_paths = [
+         (name, _rocm_lib_paths(repository_ctx, name, path))
+         for name, path in [
+-            ("amdhip64", rocm_config.rocm_toolkit_path + "/hip"),
+-            ("rocblas", rocm_config.rocm_toolkit_path + "/rocblas"),
+-            ("rocfft", rocm_config.rocm_toolkit_path + "/rocfft"),
+-            ("hiprand", rocm_config.rocm_toolkit_path + "/hiprand"),
+-            ("MIOpen", rocm_config.rocm_toolkit_path + "/miopen"),
+-            ("rccl", rocm_config.rocm_toolkit_path + "/rccl"),
+-            ("hipsparse", rocm_config.rocm_toolkit_path + "/hipsparse"),
++            ("amdhip64", @SPACK_HIP_ROOT@),
++            ("rocblas", @SPACK_ROCBLAS_ROOT@),
++            ("rocfft", @SPACK_ROCFFT_ROOT@),
++            ("hiprand", @SPACK_HIPRAND_ROOT@),
++            ("MIOpen", @SPACK_MIOPEN_ROOT@),
++            ("rccl", @SPACK_RCCL_ROOT@),
++            ("hipsparse", @SPACK_HIPSPARSE_ROOT@),
++            ("hipcub", @SPACK_HIPCUB_ROOT@),
++            ("rocprim", @SPACK_ROCPRIM_ROOT@),
+         ]
+     ]
+ 
+@@ -457,6 +459,8 @@ def _create_dummy_repository(repository_ctx):
+             "%{rocfft_lib}": _lib_name("rocfft"),
+             "%{hiprand_lib}": _lib_name("hiprand"),
+             "%{hipsparse_lib}": _lib_name("hipsparse"),
++            "%{hipcub_lib}": _lib_name("hipcub"),
++            "%{rocprim_lib}": _lib_name("rocprim"),
+             "%{copy_rules}": "",
+             "%{rocm_headers}": "",
+         },
+@@ -547,32 +551,44 @@ def _create_local_rocm_repository(repository_ctx):
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "rocfft-include",
+-            src_dir = rocm_toolkit_path + "/rocfft/include",
+-            out_dir = "rocm/include/rocfft",
++            src_dir = @SPACK_ROCFFT_ROOT@ + "/include",
++            out_dir = "rocm/include",
+         ),
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "rocblas-include",
+-            src_dir = rocm_toolkit_path + "/rocblas/include",
+-            out_dir = "rocm/include/rocblas",
++            src_dir = @SPACK_ROCBLAS_ROOT@ + "/include",
++            out_dir = "rocm/include",
+         ),
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "miopen-include",
+-            src_dir = rocm_toolkit_path + "/miopen/include",
+-            out_dir = "rocm/include/miopen",
++            src_dir = @SPACK_MIOPEN_ROOT@ + "/include",
++            out_dir = "rocm/include",
+         ),
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "rccl-include",
+-            src_dir = rocm_toolkit_path + "/rccl/include",
+-            out_dir = "rocm/include/rccl",
++            src_dir = @SPACK_RCCL_ROOT@ + "/include",
++            out_dir = "rocm/include",
+         ),
+         make_copy_dir_rule(
+             repository_ctx,
+             name = "hipsparse-include",
+-            src_dir = rocm_toolkit_path + "/hipsparse/include",
+-            out_dir = "rocm/include/hipsparse",
++            src_dir = @SPACK_HIPSPARSE_ROOT@ + "/include",
++            out_dir = "rocm/include",
++        ),
++        make_copy_dir_rule(
++            repository_ctx,
++            name = "hipcub-include",
++            src_dir = @SPACK_HIPCUB_ROOT@ + "/include",
++            out_dir = "rocm/include",
++        ),
++        make_copy_dir_rule(
++            repository_ctx,
++            name = "rocprim-include",
++            src_dir = @SPACK_ROCPRIM_ROOT@ + "/include",
++            out_dir = "rocm/include",
+         ),
+     ]
+ 
+@@ -627,12 +643,16 @@ def _create_local_rocm_repository(repository_ctx):
+             "%{miopen_lib}": rocm_libs["MIOpen"].file_name,
+             "%{rccl_lib}": rocm_libs["rccl"].file_name,
+             "%{hipsparse_lib}": rocm_libs["hipsparse"].file_name,
++            "%{hipcub_lib}": rocm_libs["hipcub"].file_name,
++            "%{rocprim_lib}": rocm_libs["rocprim"].file_name,
+             "%{copy_rules}": "\n".join(copy_rules),
+             "%{rocm_headers}": ('":rocm-include",\n' +
+                                 '":rocfft-include",\n' +
+                                 '":rocblas-include",\n' +
+                                 '":miopen-include",\n' +
+                                 '":rccl-include",\n' +
++                                '":hipcub-include",\n' +
++                                '":rocprim-include",\n' +
+                                 '":hipsparse-include",'),
+         },
+     )
+@@ -691,11 +711,11 @@ def _create_local_rocm_repository(repository_ctx):
+         tpl_paths["crosstool:clang/bin/crosstool_wrapper_driver_rocm"],
+         {
+             "%{cpu_compiler}": str(cc),
+-            "%{hipcc_path}": rocm_config.rocm_toolkit_path + "/hip/bin/hipcc",
++            "%{hipcc_path}": @SPACK_HIP_ROOT@ + "/bin/hipcc",
+             "%{hipcc_env}": _hipcc_env(repository_ctx),
+             "%{rocr_runtime_path}": rocm_config.rocm_toolkit_path + "/lib",
+             "%{rocr_runtime_library}": "hsa-runtime64",
+-            "%{hip_runtime_path}": rocm_config.rocm_toolkit_path + "/hip/lib",
++            "%{hip_runtime_path}": @SPACK_HIP_ROOT@ + "/lib",
+             "%{hip_runtime_library}": "amdhip64",
+             "%{crosstool_verbose}": _crosstool_verbose(repository_ctx),
+             "%{gcc_host_compiler_path}": str(cc),
