@@ -1206,7 +1206,7 @@ Variants
 
 Many software packages can be configured to enable optional
 features, which often come at the expense of additional dependencies or
-longer build-times. To be flexible enough and support a wide variety of
+longer build times. To be flexible enough and support a wide variety of
 use cases, Spack permits to expose to the end-user the ability to choose
 which features should be activated in a package at the time it is installed.
 The mechanism to be employed is the :py:func:`spack.directives.variant` directive.
@@ -3911,186 +3911,325 @@ using MPI wrappers will work, even on even on a Cray:
 
 This is because on Cray, ``spec['mpi'].mpicc`` is just ``spack_cc``.
 
-.. _sanity-checks:
+.. _checking_an_installation:
 
 ------------------------
 Checking an installation
 ------------------------
 
-By default, Spack assumes that a build has failed if nothing is
-written to the install prefix, and that it has succeeded if anything
-(a file, a directory, etc.)  is written to the install prefix after
-``install()`` completes.
+A package that *appears* to install successfully does not mean
+it is actually installed correctly or will continue to work indefinitely.
+There are a number of possible points of failure so Spack provides
+features for checking the software along the way.
 
-Consider a simple autotools build like this:
+Failures can occur during and after the installation process. The
+build may start but the software not end up fully installed. The
+installed software may not work at all or as expected. The software
+may work after being installed but, due to changes on the system,
+may stop working days, weeks, or months after being installed.
 
-.. code-block:: python
+This section describes Spack's support for checks that can be performed
+during and after its installation. The former checks are referred to as
+``build-time tests`` and the latter as ``stand-alone (or smoke) tests``.
 
-   def install(self, spec, prefix):
-       configure("--prefix={0}".format(prefix))
-       make()
-       make("install")
-
-If you are using using standard autotools or CMake, ``configure`` and
-``make`` will not write anything to the install prefix.  Only ``make
-install`` writes the files, and only once the build is already
-complete.
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-``sanity_check_is_file`` and ``sanity_check_is_dir``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Unfortunately, many builds of scientific
-software modify the install prefix *before* ``make install``. Builds
-like this can falsely report that they were successfully installed if
-an error occurs before the install is complete but after files have
-been written to the ``prefix``.
-
-You can optionally specify *sanity checks* to deal with this problem.
-Add properties like this to your package:
-
-.. code-block:: python
-
-   class MyPackage(Package):
-       ...
-
-       sanity_check_is_file = ['include/libelf.h']
-       sanity_check_is_dir  = [lib]
-
-       def install(self, spec, prefix):
-           configure("--prefix=" + prefix)
-           make()
-           make("install")
-
-Now, after ``install()`` runs, Spack will check whether
-``$prefix/include/libelf.h`` exists and is a file, and whether
-``$prefix/lib`` exists and is a directory.  If the checks fail, then
-the build will fail and the install prefix will be removed.  If they
-succeed, Spack considers the build successful and keeps the prefix in
-place.
+.. _build_time-tests:
 
 ^^^^^^^^^^^^^^^^
 Build-time tests
 ^^^^^^^^^^^^^^^^
 
-Sometimes packages finish to build "correctly" and issues with their run-time
-behavior are discovered only at a later stage, maybe after a full software stack
-relying on them has already been built. To avoid situations of that kind it's possible
-to write build-time tests that will be executed only if the option ``--run-tests``
-of ``spack install`` has been activated.
+Spack infers the status of a build based on the contents of the install
+prefix. Success is assumed if anything (e.g., a file, directory) is
+written after ``install()`` completes. Otherwise, the build is assumed
+to have failed. However, the presence of install prefix contents
+is not a sufficient indicator of success.
 
-The proper way to write these tests is relying on two decorators that come with
-any base class listed in :ref:`installation_procedure`.
+Consider a simple autotools build using the following commands:
 
-.. code-block:: python
+.. code-block:: console
 
-   @run_after('build')
-   @on_package_attributes(run_tests=True)
-   def check_build(self):
-        # Custom implementation goes here
-        pass
+   $ ./configure --prefix=/path/to/installation/prefix
+   $ make
+   $ make install
 
-The first decorator ``run_after('build')`` schedules this
-function to be invoked after the ``build`` phase has been executed, while the
-second one makes the invocation  conditional on the fact that ``self.run_tests == True``.
-It is also possible to schedule a function to be invoked *before* a given phase
-using the ``run_before`` decorator.
+Standard Autotools and CMake do not write anything to the prefix from
+the ``configure`` and ``make`` commands. Files are only written from
+the ``make install`` after the build completes.
 
 .. note::
 
-    Default implementations for build-time tests
+   If you want to learn more about ``Autotools`` and ``CMake`` packages
+   in Spack, refer to :ref:`AutotoolsPackage <autotoolspackage>` and
+   :ref:`CMakePackage <cmakepackage>`, respectively.
 
-        Packages that are built using specific build systems may already have a
-        default implementation for build-time tests. For instance :py:class:`~.AutotoolsPackage`
-        based packages will try to invoke ``make test`` and ``make check`` if
-        Spack is asked to run tests.
-        More information on each class is available in the the :py:mod:`~.spack.build_systems`
-        documentation.
+What can you do to check that the build is progressing satisfactorily?
+If there are specific files and or directories expected of a successful
+installation, you can add basic, fast ``sanity checks``. You can also add
+checks to be performed after one or more installation phases.
+
+.. _sanity-checks:
+
+""""""""""""""""""""
+Adding sanity checks
+""""""""""""""""""""
+
+Unfortunately, many builds of scientific software modify the installation
+prefix **before** ``make install``. Builds like this can falsely report
+success when an error occurs before the installation is complete. Simple
+sanity checks can be used to identify files and or directories that are
+required of a successful installation. Spack checks for the presence of
+the files and directories after ``install()`` runs. 
+
+If any of the listed files or directories are missing, then the build will
+fail and the install prefix will be removed. If they all exist, then Spack
+considers the build successful from a sanity check perspective and keeps
+the prefix in place.
+
+For example, the sanity checks for the ``reframe`` package below specify
+that eight paths must exist within the installation prefix after the
+``install`` method completes.
+
+.. code-block:: python
+
+   class Reframe(Package):
+       ...
+
+       # sanity check
+       sanity_check_is_file = [join_path('bin', 'reframe')]
+       sanity_check_is_dir  = ['bin', 'config', 'docs', 'reframe', 'tutorials',
+                               'unittests', 'cscs-checks']
+
+Spack will then ensure the installation created the **file**:
+
+* ``self.prefix/bin/reframe``
+
+It will also check for the existence of the following **directories**:
+
+* ``self.prefix/bin``
+* ``self.prefix/config``
+* ``self.prefix/docs``
+* ``self.prefix/reframe``
+* ``self.prefix/tutorials``
+* ``self.prefix/unittests``
+* ``self.prefix/cscs-checks``
+
+.. note::
+
+   You **MUST** use ``sanity_check_is_file`` to specify required
+   files and ``sanity_check_is_dir`` for required directories.
+
+.. _install_phase-tests:
+
+"""""""""""""""""""""""""""""""
+Adding installation phase tests
+"""""""""""""""""""""""""""""""
+
+Sometimes packages appear to build "correctly" only to have run-time
+behavior issues discovered at a later stage, such as after a full
+software stack relying on them has been built. Checks can be performed
+at different phases of the package installation to possibly avoid
+these types of problems. Some checks are built-in to different build
+systems, while others will need to be added to the package.
+
+Built-in installation phase tests are provided by packages inheriting
+from select :ref:`build systems <build-systems>`, where naming conventions
+are used to identify typical test identifiers for those systems. In
+general, you won't need to add anything to your package to take advantage
+of these tests if your software's build system complies with the convention;
+otherwise, you'll want or need to override the post-phase method to perform
+other checks.
+
+.. list-table:: Built-in installation phase tests
+   :header-rows: 1
+
+   * - Build System Class
+     - Post-Build Phase Method (Runs)
+     - Post-Install Phase Method (Runs)
+   * - `AutotoolsPackage <build_systems/autotoolspackage>`
+     - ``check`` (``make test``, ``make check``)
+     - ``installcheck`` (``make installcheck``)
+   * - `CMakePackage <build_systems/cmakepackage>`
+     - ``check`` (``make check``, ``make test``)
+     - Not applicable
+   * - `MakefilePackage <build_systems/makefilepackage>`
+     - ``check`` (``make test``, ``make check``)
+     - ``installcheck`` (``make installcheck``)
+   * - `MesonPackage <build_systems/mesonpackage>`
+     - ``check`` (``make test``, ``make check``)
+     - Not applicable
+   * - `PerlPackage <build_systems/perlpackage>`
+     - ``check`` (``make test``)
+     - Not applicable
+   * - `PythonPackage <build_systems/pythonpackage>`
+     - Not applicable
+     - ``test`` (module imports)
+   * - `QMakePackage <build_systems/qmakepackage>`
+     - ``check`` (``make check``)
+     - Not applicable
+   * - `SConsPackage <build_systems/sconspackage>`
+     - ``build_test`` (must be overridden)
+     - Not applicable
+   * - `SIPPackage <build_systems/sippackage>`
+     - Not applicable
+     - ``test`` (module imports)
+
+For example, the ``Libelf`` package inherits from ``AutotoolsPackage``
+and its ``Makefile`` has a standard ``check`` target. So Spack will
+automatically run ``make check`` after the ``build`` phase when it
+is installed using the ``--test`` option, such as:
+
+.. code-block:: console
+
+   $ spack install --test=root libelf
+
+In addition to overriding any built-in build system installation
+phase tests, you can write your own install phase tests. You will
+need to use two decorators for each phase test method:
+
+* ``run_after``
+* ``on_package_attributes``
+
+The first decorator tells Spack when in the installation process to
+run your test method installation process; namely *after* the provided
+installation phase. The second decorator tells Spack to only run the
+checks when the ``--test`` option is provided on the command line. 
+
+.. note::
+
+   Be sure to place the directives above your test method in the order
+   ``run_after`` *then* ``on_package_attributes``.
+
+.. note::
+
+   You also want to be sure the package supports the phase you use
+   in the ``run_after`` directive. For example, ``PackageBase`` only
+   supports the ``install`` phase while the ``AutotoolsPackage`` and
+   ``MakefilePackage`` support both ``install`` and ``build`` phases.
+
+Assuming both ``build`` and ``install`` phases are available to you,
+you could add additional checks to be performed after each of those
+phases based on the skeleton provided below.
+
+.. code-block:: python
+
+   class YourMakefilePackage(MakefilePackage):
+       ...
+
+       @run_after('build')
+       @on_package_attributes(run_tests=True)
+       def check_build(self):
+            # Add your custom post-build phase tests
+            pass
+
+       @run_after('install')
+       @on_package_attributes(run_tests=True)
+       def check_install(self):
+            # Add your custom post-install phase tests
+            pass
+
+.. note::
+
+    You could also schedule work to be done **before** a given phase
+    using the ``run_before`` decorator.
+
+By way of a concrete example, the ``reframe`` package mentioned
+previously has a simple installation phase check that runs the
+installed executable. The check is implemented as follows:
+
+.. code-block:: python
+
+   class Reframe(Package):
+       ...
+
+       # check if we can run reframe
+       @run_after('install')
+       @on_package_attributes(run_tests=True)
+       def check_list(self):
+            with working_dir(self.stage.source_path):
+                reframe = Executable(join_path(self.prefix, 'bin', 'reframe'))
+                reframe('-l')
 
 .. warning::
 
-    The API for adding tests is not yet considered stable and may change drastically in future releases.
+    The API for adding tests is not yet considered stable and may change
+    in future releases.
 
 .. _cmd-spack-test:
 
-^^^^^^^^^^^^^
-Install Tests
-^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Stand-alone (or smoke) tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. warning::
+While build-time tests are integrated with the installation process,
+stand-alone tests are independent of that process.  Consequently, such
+tests can be performed days, even weeks, after the software is installed.
 
-   The API for adding and running install tests is not yet considered
-   stable and may change drastically in future releases. Packages with
-   install tests will be refactored to match changes to the API.
+Stand-alone tests are checks that should run relatively quickly -- as
+in on the order of at most a few minutes -- and ideally execute all
+aspects of the installed software, or at least key functionality. 
 
-While build tests are integrated with the build system, install tests
-are for testing package installations independent of the build process.
+.. note::
 
-Install tests are executed in a test stage directory that defaults to
-``~/.spack/test``. You can change the location in the high-level ``config``
-by adding the ``test_stage`` path as follows:
+    Execution speed is important because these tests are intended
+    to quickly assess whether the installed software works on the
+    system.
+    
+    Failing stand-alone tests indicate that there is no reason to
+    proceed with more resource-intensive tests.
+    
+    Passing stand-alone (or smoke) tests can lead to more thorough
+    testing, such as extensive unit or regression tests, or tests
+    that run at scale. Spack support for more thorough testing is
+    a work in progress.
+
+Stand-alone tests have their own test stage directory, which can be
+configured. These tests can compile or build software with the compiler
+used to build the package. They can use files cached from the build for
+testing the installation. Custom files, such as source, data, or expected
+outputs can be added for use in these tests.
+
+""""""""""""""""""""""""""""""""""""
+Configuring the test stage directory
+""""""""""""""""""""""""""""""""""""
+
+The default stand-alone test stage directory, ``~/.spack/test``, is
+defined in :ref:`etc/spack/defaults/config.yaml <config-yaml>`.
+You can change the location in the high-level ``config`` by adding
+or changing the ``test_stage`` path in the appropriate ``config.yaml``
+file such that:
 
 .. code-block:: yaml
 
    config:
      test_stage: /path/to/stage
 
-""""""""""""""""""""
-Adding install tests
-""""""""""""""""""""
-
-Install tests are added to a package by defining a ``test`` method
-with the following signature:
-
-.. code-block:: python
-
-   def test(self):
-
-These tests run in an environment that provides access to the
-package and all of its dependencies, including ``test``-type
-dependencies.
-
-Standard python ``assert`` statements and other error reporting
-mechanisms can be used in the ``test`` method. Spack will report
-such errors as test failures.
-
-You can implement multiple tests (or test parts) within the ``test``
-method, where each is run separately and testing continues after
-failures by using the ``run_test`` method. The signature for the
-method is:
-
-.. code-block:: python
-
-   def run_test(self, exe, options=[], expected=[], status=0, installed=False,
-                purpose='', skip_missing=False, work_dir=None):
-
-The test fails if there is no executable named ``exe`` found in the
-paths of the ``PATH`` variable **unless** ``skip_missing`` is ``True``.
-The test also fails if the resulting path is not within the prefix of
-the package being tested when ``installed`` is ``True``.
-
-The executable runs in ``work_dir``, when specified, using the provided
-``options``. The return code is checked against the ``status`` argument,
-which can be an integer or list of integers representing status codes
-corresponding to successful execution (e.g. ``status=[0,3,7]``).
-Spack also checks that every string in ``expected`` is a regex matching
-part of the output from the test run (e.g.
-``expected=['completed successfully', 'converged in']``). Default behavior
-is to behave as though ``status=[0]`` and ``expected=[]`` are specified.
-
-Output from the test is written to its log file. The ``purpose`` argument
-serves as the heading in text logs to highlight the start of each test part.
-
 """""""""""""""""""""""""
 Enabling test compilation
 """""""""""""""""""""""""
 
-Some tests may require access to the compiler with which the package
-was built, especially to test library-only packages. You must enable
-loading the package's compiler configuration by setting the attribute
-``test_requires_compiler`` to ``True``. Doing so makes the compiler
-available in the test environment through the canonical environment
-variables (``CC``, ``CXX``, ``FC``, ``F77``).
+Some stand-alone tests will require access to the compiler with which
+the package was built, especially for library-only packages. You must
+enable loading the package's compiler configuration by setting the
+``test_requires_compiler`` property to ``True`` for your package.
+For example:
+
+.. code-block:: python
+
+   class MyPackage(Package):
+       ...
+
+       test_requires_compiler = True
+
+Setting this property to ``True`` makes the compiler available in the
+test environment through the canonical environment variables (e.g.,
+``CC``, ``CXX``, ``FC``, ``F77``).
+
+.. note::
+
+   We recommend adding the property at the top of the package with the
+   other attributes, such as ``homepage`` and ``url``.
+
+.. _cache_extra_test_sources:
 
 """""""""""""""""""""""
 Adding build-time files
@@ -4098,39 +4237,70 @@ Adding build-time files
 
 .. note::
 
-    We highly recommend the re-use of build-time tests and input files
-    for testing installed software.  These files are easier to keep
-    synchronized with the software than creating custom install tests.
+    We highly recommend re-using build-time tests and input files
+    for testing installed software. These files are easier to keep
+    synchronized since they reside within the software's repository
+    than maintaining custom install test files with the Spack package.
 
-You can use the ``cache_extra_test_sources`` method copy directories
+You can use the ``cache_extra_test_sources`` method to copy directories
 and or files from the build stage directory to the package's installation
 directory.
 
-For example, a package method for copying everything in the ``tests``
-subdirectory plus the ``foo.c`` and ``bar.c`` files from ``examples``
-can be implemented as follows:
+The signature for ``cache_extra_test_sources`` is:
 
 .. code-block:: python
 
-   @run_after('install')
-   def cache_test_sources(self):
-       srcs = ['tests', 'examples/foo.c', 'examples/bar.c']
-       self.cache_extra_test_sources(srcs)
+   def cache_extra_test_sources(self, srcs):
 
-The use of the ``run_after`` directive ensures the associated files
-are copied **after** the package is installed during the build process.
+where ``srcs`` is a string or a list of strings corresponding to
+the paths for the files and or subdirectories, relative to the staged
+source, that are to be copied to the corresponding path relative to
+``self.install_test_root``. All of the contents within each subdirectory
+will be also be copied.
 
-The method copies files to the package's metadata directory under
-the ``self.install_test_root``. All files in the package source's
-``tests`` directory for the example above will be copied to the
-``join_path(self.install_test_root, 'tests')`` directory. The two
-files listed under the staged ``examples`` directory will be copied
-to the ``join_path(self.install_test_root, 'examples')`` directory.
+For example, a package method for copying everything in the ``tests``
+subdirectory plus the ``foo.c`` and ``bar.c`` files from ``examples``
+can be implemented as shown below.
+
+.. note::
+
+   The ``run_after`` directive ensures associated files are copied
+   **after** the package is installed by the build process.
+
+.. code-block:: python
+
+   class MyPackage(Package):
+       ...
+
+       @run_after('install')
+       def copy_test_sources(self):
+           srcs = ['tests',
+                   join_path('examples', 'foo.c'), 
+                   join_path('examples', 'bar.c')]
+           self.cache_extra_test_sources(srcs)
+
+In this case, the method copies the associated files from the build
+stage **after** the software is installed to the package's metadata
+directory. The result is the following directory and files will be
+available for use in stand-alone tests:
+
+* ``join_path(self.install_test_root, 'tests')`` along with its files and subdirectories
+* ``join_path(self.install_test_root, 'examples', 'foo.c')``
+* ``join_path(self.install_test_root, 'examples', 'bar.c')``
 
 .. note::
 
     While source and input files are generally recommended, binaries
-    may also be cached by the build process for install testing.
+    **may** also be cached by the build process for install testing.
+    Only you, as the package writer or maintainer, know whether these
+    would be appropriate stand-alone tests.
+
+.. note::
+
+   You are free to use a method name that is more suitable for
+   your package.
+
+.. _cache_custom_files:
 
 """""""""""""""""""
 Adding custom files
@@ -4145,10 +4315,344 @@ Examples include:
 - expected test output
 
 These extra files should be added to the ``test`` subdirectory of the
-package in the repository. Spack will automaticaly copy any files in
-that directory to the test staging directory during install testing.
+package in the Spack repository. Spack will automatically copy any files
+in that directory to the test staging directory during stand-alone testing.
+
 The ``test`` method can access those files from the
 ``self.test_suite.current_test_data_dir`` directory.
+
+.. _expected_test_output_from_file:
+
+"""""""""""""""""""""""""""""""""""
+Reading expected output from a file
+"""""""""""""""""""""""""""""""""""
+
+The helper function ``get_escaped_text_output`` is available for packages
+to retrieve and properly format the text from a file that contains the
+output that is expected when an executable is run using ``self.run_test``.
+
+The signature for ``get_escaped_text_output`` is:
+
+.. code-block:: python
+
+   def get_escaped_text_output(filename):
+
+where ``filename`` is the path to the file containing the expected output.
+
+The ``filename`` for a :ref:`custom file <cache_custom_files>` can be 
+accessed and used as illustrated by a simplified version of an ``sqlite``
+package check:
+
+.. code-block:: python
+
+   class Sqlite(AutotoolsPackage):
+       ...
+
+       def test(self):
+           test_data_dir = self.test_suite.current_test_data_dir
+           db_filename = test_data_dir.join('packages.db')
+           ..
+
+           expected = get_escaped_text_output(test_data_dir.join('dump.out'))
+           self.run_test('sqlite3',
+                         [db_filename, '.dump'],
+                         expected,
+                         installed=True,
+                         purpose='test: checking dump output',
+                         skip_missing=False)
+
+Expected outputs do not have to be stored with the Spack package.
+Maintaining them with the source is actually preferable.
+
+Suppose a package's source has ``examples/foo.c`` and ``examples/foo.out``
+files that are copied for stand-alone test purposes using
+:ref:`cache_extra_test_sources <cache_extra_test_sources>` and the
+`run_test` method builds the executable ``examples/foo``. The package
+can retrieve the expected output from ``examples/foo.out`` using:
+
+.. code-block:: python
+
+   class MyFooPackage(Package):
+       ...
+
+       def test(self):
+           ..
+           filename = join_path(self.install_test_root, 'examples', 'foo.out')
+           expected = get_escaped_text_output(filename)
+           ..
+
+Alternatively, suppose ``MyFooPackage`` installs tests in ``share/tests``
+and their outputs in ``share/tests/outputs``. The expected output for
+``foo``, assuming it is still called ``foo.out``, can be retrieved as
+follows:
+
+.. code-block:: python
+
+   class MyFooPackage(Package):
+       ...
+
+       def test(self):
+           ..
+           filename = join_path(self.prefix.share.tests.outputs, 'foo.out')
+           expected = get_escaped_text_output(filename)
+           ..
+
+
+""""""""""""""""""""""""
+Adding stand-alone tests
+""""""""""""""""""""""""
+
+Stand-alone tests are defined in the package's ``test`` method. The
+default ``test`` method is a no-op so you'll want to override it to
+implement the tests.
+
+.. note::
+
+   Any package method named ``test`` is automatically executed by
+   Spack when the ``spack test run`` command is performed.
+
+For example, the ``MyPackage`` package below provides a skeleton for
+the test method.
+
+.. code-block:: python
+
+   class MyPackage(Package):
+       ...
+
+       def test(self):
+           # TODO: Add quick checks of the installed software
+           pass
+
+Stand-alone tests run in an environment that provides access to the
+package and all of its dependencies, including ``test``-type
+dependencies.
+
+Standard python ``assert`` statements and other error reporting
+mechanisms can be used in the ``test`` method. Spack will report
+such errors as test failures.
+
+You can implement multiple tests (or test parts) within the ``test``
+method using the ``run_test`` method. Each invocation is run separately
+in a manner that allows testing to continue after failures.
+
+The signature for ``run_test`` is:
+
+.. code-block:: python
+
+   def run_test(self, exe, options=[], expected=[], status=0,
+                installed=False, purpose='', skip_missing=False,
+                work_dir=None):
+
+where each argument has the following meaning:
+
+* ``exe`` is the executable to run.
+
+  If a name, the ``exe`` is required to be found in one of the paths
+  in the ``PATH`` environment variable **unless** ``skip_missing`` is
+  ``True``. Alternatively, a relative (to ``work_dir``) or fully
+  qualified path for the executable can be provided in ``exe``.
+
+  The test will fail if the resulting path is not within the prefix
+  of the package being tested **unless** ``installed`` is ``False``.
+
+* ``options`` is a list of the command line options.
+
+  Options are a list of strings to be passed to the executable when
+  it runs.
+  
+  The default is ``[]``, which means no options are provided to the
+  executable.
+ 
+* ``expected`` is an optional list of expected output strings.
+
+  Spack requires every string in ``expected`` to be a regex matching
+  part of the output from the test run (e.g.,
+  ``expected=['completed successfully', 'converged in']``).  The
+  output can also include expected failure outputs (e.g.,
+  ``expected=['failed to converge']``).
+
+  The expected output can be :ref:`read from a file
+  <expected_test_output_from_file>`.
+  
+  The default is ``expected=[]``, so Spack will not check the output.
+ 
+* ``status`` is the optional expected return code(s).
+
+  A list of return codes corresponding to successful execution can
+  be provided (e.g., ``status=[0,3,7]``). Support for non-zero return
+  codes allows for basic **expected failure** tests as well as different
+  return codes across versions of the software.
+  
+  The default is ``status=[0]``, which corresponds to **successful**
+  execution in the sense that the executable does not exit with a
+  failure code or raise an exception.
+ 
+* ``installed`` is used to require ``exe`` to be within the package
+  prefix.
+  
+  If ``True``, then the path for ``exe`` is required to be within the
+  package prefix; otherwise, the path is not constrained.
+  
+  The default is ``False``, so the fully qualified path for ``exe``
+  does **not** need to be within the installation directory.
+ 
+* ``purpose`` is an optional heading describing the the test part.
+ 
+  Output from the test is written to a test log file so this argument
+  serves as a searchable heading in text logs to highlight the start
+  of the test part. Having a description can be helpful when debugging
+  failing tests.
+
+* ``skip_missing`` is used to determine if the test should be skipped.
+
+  If ``True``, then the test part should be skipped if the executable
+  is missing; otherwise, the executable must exist. This option can
+  be useful when test executables are removed or change as the software
+  evolves in subsequent versions.
+
+  The default is ``False``, which means the test executable must be
+  present for any installable version of the software.
+ 
+* ``work_dir`` is the path to the directory from which the executable
+  will run.
+  
+  The default of ``None`` corresponds to the current directory (``'.'``).
+
+You may need to access files from one or more locations when writing
+the tests. This can happen if the software's repository does not
+include test source files or includes files but no way to build the
+executables using the installed headers and libraries. In these
+cases, you may need to reference the files relative to one or more
+root directory and associated package property. These are given in
+the table below.
+
+.. list-table:: Directory-to-property mapping
+   :header-rows: 1
+
+   * - Root Directory
+     - Package Property
+     - Example(s)
+   * - Package Installation Files
+     - ``self.prefix``
+     - ``self.prefix.include``, ``self.prefix.lib``
+   * - Package Dependency's Files
+     - ``self.spec['<dependency-package>'].prefix``
+     - ``self.spec['trilinos'].prefix.include``
+   * - Copied Build-time Files
+     - ``self.install_test_root``
+     - ``join_path(self.install_test_root, 'examples', 'foo.c')``
+   * - Custom Package Files
+     - ``self.test_suite.current_test_data_dir``
+     - ``join_path(self.test_suite.current_test_data_dir, 'hello.f90')``
+
+""""""""""""""""""""""""""""
+Inheriting stand-alone tests
+""""""""""""""""""""""""""""
+
+Stand-alone tests defined in parent (.e.g., :ref:`build-systems`) and
+virtual (e.g., :ref:`virtual-dependencies`) packages are available to
+packages that inherit from or provide interfaces for those packages,
+respectively. The table below summarizes the tests that will be included
+with those provided in the package itself when executing stand-alone tests.
+
+.. list-table:: Inherited/provided stand-alone tests
+   :header-rows: 1
+
+   * - Parent/Provider Package
+     - Stand-alone Tests
+   * - `C
+       <https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/c>`_
+     - Compiles ``hello.c`` and runs it
+   * - `Cxx
+       <https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/cxx>`_
+     - Compiles and runs several ``hello`` programs
+   * - `Fortan
+       <https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/fortran>`_
+     - Compiles and runs ``hello`` programs (``F`` and ``f90``)
+   * - `Mpi
+       <https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/mpi>`_
+     - Compiles and runs ``mpi_hello`` (``c``, ``fortran``)
+   * - `PythonPackage <build_systems/pythonpackage>`
+     - Imports installed modules
+
+These tests are very generic so it is important that package
+developers and maintainers provide additional stand-alone tests
+customized to the package.
+
+One example of a package that adds its own stand-alone (or smoke)
+tests is the `Openmpi package
+<https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/openmpi/package.py>`_.
+The preliminary set of tests for the package performed the
+following checks:
+
+- installed binaries with the ``--version`` option return the expected
+  version;
+- outputs from (selected) installed binaries match expectations;
+- ``make all`` succeeds when building examples that were copied from the
+  source directory during package installation; and
+- outputs from running the copied and built examples match expectations.
+
+Below is an example of running and viewing the stand-alone tests,
+where only the outputs for the first of each set are shown:
+
+.. code-block:: console
+
+   $ spack test run --alias openmpi-4.0.5 openmpi@4.0.5
+   ==> Spack test openmpi-4.0.5
+   ==> Testing package openmpi-4.0.5-eygjgve
+   $ spack test results -l openmpi-4.0.5
+   ==> Spack test openmpi-4.0.5
+   ==> Testing package openmpi-4.0.5-eygjgve
+   ==> Results for test suite 'openmpi-4.0.5':
+   ==>   openmpi-4.0.5-eygjgve PASSED
+   ==> Testing package openmpi-4.0.5-eygjgve
+   ==> [2021-04-26-17:35:20.259650] test: ensuring version of mpiCC is 8.3.1
+   ==> [2021-04-26-17:35:20.260155] '$SPACK_ROOT/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/openmpi-4.0.5-eygjgvek35awfor2qaljltjind2oa67r/bin/mpiCC' '--version'
+   g++ (GCC) 8.3.1 20190311 (Red Hat 8.3.1-3)
+   Copyright (C) 2018 Free Software Foundation, Inc.
+   This is free software; see the source for copying conditions.  There is NO
+   warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+   
+   PASSED
+   ...
+   ==> [2021-04-26-17:35:20.493921] test: checking mpirun output
+   ==> [2021-04-26-17:35:20.494461] '$SPACK_ROOT/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/openmpi-4.0.5-eygjgvek35awfor2qaljltjind2oa67r/bin/mpirun' '-n' '1' 'ls' '..'
+   openmpi-4.0.5-eygjgve           repo     test_suite.lock
+   openmpi-4.0.5-eygjgve-test-out.txt  results.txt
+   PASSED
+   ...
+   ==> [2021-04-26-17:35:20.630452] test: ensuring ability to build the examples
+   ==> [2021-04-26-17:35:20.630943] '/usr/bin/make' 'all'
+   mpicc -g  hello_c.c  -o hello_c
+   mpicc -g  ring_c.c  -o ring_c
+   mpicc -g  connectivity_c.c  -o connectivity_c
+   mpicc -g  spc_example.c  -o spc_example
+   ...
+   PASSED
+   ==> [2021-04-26-17:35:23.291214] test: checking hello_c example output and status (0)
+   ==> [2021-04-26-17:35:23.291841] './hello_c'
+   Hello, world, I am 0 of 1, (Open MPI v4.0.5, package: Open MPI dahlgren@quartz2300 Distribution, ident: 4.0.5, repo rev: v4.0.5, Aug 26, 2020, 114)
+   PASSED
+   ...
+   ==> [2021-04-26-17:35:24.603152] test: ensuring copied examples cleaned up
+   ==> [2021-04-26-17:35:24.603807] '/usr/bin/make' 'clean'
+   rm -f hello_c hello_cxx hello_mpifh hello_usempi hello_usempif08 hello_oshmem hello_oshmemcxx hello_oshmemfh Hello.class ring_c ring_cxx ring_mpifh ring_usempi ring_usempif08 ring_oshmem ring_oshmemfh Ring.class connectivity_c oshmem_shmalloc oshmem_circular_shift oshmem_max_reduction oshmem_strided_puts oshmem_symmetric_data spc_example *~ *.o
+   PASSED
+   ==> [2021-04-26-17:35:24.643360] test: mpicc: expect command status in [0]
+   ==> [2021-04-26-17:35:24.643834] '$SPACK_ROOT/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/openmpi-4.0.5-eygjgvek35awfor2qaljltjind2oa67r/bin/mpicc' '-o' 'mpi_hello_c' '$HOME/.spack/test/hyzq5eqlqfog6fawlzxwg3prqy5vjhms/openmpi-4.0.5-eygjgve/data/mpi/mpi_hello.c'
+   PASSED
+   ==> [2021-04-26-17:35:24.776765] test: mpirun: expect command status in [0]
+   ==> [2021-04-26-17:35:24.777194] '$SPACK_ROOT/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/openmpi-4.0.5-eygjgvek35awfor2qaljltjind2oa67r/bin/mpirun' '-np' '1' 'mpi_hello_c'
+   Hello world! From rank 0 of 1
+   PASSED
+   ...
+
+
+.. warning::
+
+   The API for adding and running stand-alone tests is not yet considered
+   stable and may change drastically in future releases. Packages with
+   stand-alone tests will be refactored to match changes to the API.
 
 .. _cmd-spack-test-list:
 
@@ -4160,6 +4664,13 @@ Packages available for install testing can be found using the
 ``spack test list`` command. The command outputs all installed
 packages that have defined ``test`` methods.
 
+Alternatively you can use the ``--all`` option to get a list of
+all packages that have defined ``test`` methods even if they are
+not installed.
+
+For more information, refer to `spack test list
+<https://spack.readthedocs.io/en/latest/command_index.html#spack-test-list>`_.
+
 .. _cmd-spack-test-run:
 
 """"""""""""""""""
@@ -4168,7 +4679,7 @@ packages that have defined ``test`` methods.
 
 Install tests can be run for one or more installed packages using
 the ``spack test run`` command. A ``test suite`` is created from
-the provided specs.  If no specs are provided it will test all specs
+the provided specs. If no specs are provided it will test all specs
 in the active environment or all specs installed in Spack if no
 environment is active.
 
@@ -4183,6 +4694,10 @@ Some of the more commonly used debugging options are:
 Test output is written to a text log file by default but ``junit``
 and ``cdash`` are outputs are available through the ``--log-format``
 option.
+
+For more information, refer to `spack test run
+<https://spack.readthedocs.io/en/latest/command_index.html#spack-test-run>`_.
+
 
 .. _cmd-spack-test-results:
 
@@ -4200,6 +4715,9 @@ test(s) to facilitate debugging.
 The ``--failed`` option limits results shown to that of the failed
 tests, if any, of matching packages.
 
+For more information, refer to `spack test results
+<https://spack.readthedocs.io/en/latest/command_index.html#spack-test-results>`_.
+
 .. _cmd-spack-test-find:
 
 """""""""""""""""""
@@ -4208,6 +4726,9 @@ tests, if any, of matching packages.
 
 The ``spack test find`` command lists the aliases or content hashes
 of all test suites whose results are available.
+
+For more information, refer to `spack test find
+<https://spack.readthedocs.io/en/latest/command_index.html#spack-test-find>`_.
 
 .. _cmd-spack-test-remove:
 
@@ -4218,6 +4739,9 @@ of all test suites whose results are available.
 The ``spack test remove`` command removes test suites to declutter
 the test results directory. You are prompted to confirm the removal
 of each test suite **unless** you use the ``--yes-to-all`` option.
+
+For more information, refer to `spack test remove
+<https://spack.readthedocs.io/en/latest/command_index.html#spack-test-remove>`_.
 
 .. _file-manipulation:
 
@@ -4231,9 +4755,9 @@ ways of setting compilers and options, you may need to edit files or
 install some files yourself to get them working with Spack.
 
 You can do this with standard Python code, and Python has rich
-libraries with functions for file manipulation and filtering.  Spack
+libraries with functions for file manipulation and filtering. Spack
 also provides a number of convenience functions of its own to make
-your life even easier.  These functions are described in this section.
+your life even easier. These functions are described in this section.
 
 All of the functions in this section can be included by simply
 running:

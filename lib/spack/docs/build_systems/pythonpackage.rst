@@ -627,7 +627,8 @@ adds:
 Testing
 ^^^^^^^
 
-``PythonPackage`` provides a couple of options for testing packages.
+``PythonPackage`` provides a couple of options for testing packages
+both during and after the installation process.
 
 """"""""""""
 Import tests
@@ -696,16 +697,20 @@ libraries. Make sure not to add modules/packages containing the word
 "test", as these likely won't end up in the installation directory,
 or may require test dependencies like pytest to be installed.
 
-These tests can be triggered by running ``spack install --test=root``
-or by running ``spack test run`` after the installation has finished.
+Import tests can be run during the installation using ``spack install
+--test=root`` or at any time after the installation using
+``spack test run``.
 
 """"""""""
 Unit tests
 """"""""""
 
-The package you want to install may come with additional unit tests.
-You can add additional build-time or install-time tests by adding
-additional testing functions. For example, ``py-numpy`` adds:
+The package may have its own unit or regression tests. Spack can
+run these tests during the installation by adding phase-appropriate
+test methods.
+
+For example, ``py-numpy`` adds the following as a check to run 
+after the ``install`` phase:
 
 .. code-block:: python
 
@@ -716,7 +721,13 @@ additional testing functions. For example, ``py-numpy`` adds:
            python('-c', 'import numpy; numpy.test("full", verbose=2)')
 
 
-These tests can be triggered by running ``spack install --test=root``.
+when testing is enabled during the installation (i.e., ``spack install
+--test=root``).
+
+.. note::
+
+   Additional information is available on :ref:`install phase tests
+   <install_phase-tests>`.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Setup file in a sub-directory

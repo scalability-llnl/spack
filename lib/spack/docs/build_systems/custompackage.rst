@@ -9,7 +9,7 @@
 Custom Build Systems
 --------------------
 
-While the build systems listed above should meet your needs for the
+While the built-in build systems should meet your needs for the
 vast majority of packages, some packages provide custom build scripts.
 This guide is intended for the following use cases:
 
@@ -31,7 +31,7 @@ installation. Both of these packages require custom build systems.
 Base class
 ^^^^^^^^^^
 
-If your package does not belong to any of the aforementioned build
+If your package does not belong to any of the built-in build
 systems that Spack already supports, you should inherit from the
 ``Package`` base class. ``Package`` is a simple base class with a
 single phase: ``install``. If your package is simple, you may be able
@@ -168,7 +168,8 @@ if and only if this flag is set, we would use the following line:
 Testing
 ^^^^^^^
 
-Let's put everything together and add unit tests to our package.
+Let's put everything together and add unit tests to be optionally run
+during the installation of our package.
 In the ``perl`` package, we can see:
 
 .. code-block:: python
@@ -181,12 +182,6 @@ In the ``perl`` package, we can see:
 As you can guess, this runs ``make test`` *after* building the package,
 if and only if testing is requested. Again, this is not specific to
 custom build systems, it can be added to existing build systems as well.
-
-Ideally, every package in Spack will have some sort of test to ensure
-that it was built correctly. It is up to the package authors to make
-sure this happens. If you are adding a package for some software and
-the developers list commands to test the installation, please add these
-tests to your ``package.py``.
 
 .. warning::
 
@@ -207,3 +202,12 @@ tests to your ``package.py``.
    the tests will always be run regardless of whether or not
    ``--test=root`` is requested. See https://github.com/spack/spack/issues/3833
    for more information
+
+Ideally, every package in Spack will have some sort of test to ensure
+that it was built correctly. It is up to the package authors to make
+sure this happens. If you are adding a package for some software and
+the developers list commands to test the installation, please add these
+tests to your ``package.py``.
+
+For more information on other forms of package testing, refer to
+:ref:`Checking an installation <checking_an_installation>`.
