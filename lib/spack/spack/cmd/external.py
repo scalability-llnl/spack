@@ -219,6 +219,7 @@ def _determine_base_dir(prefix):
     assert os.path.isdir(prefix)
     if os.path.basename(prefix) == 'bin':
         return os.path.dirname(prefix)
+    return prefix
 
 
 def _get_predefined_externals():

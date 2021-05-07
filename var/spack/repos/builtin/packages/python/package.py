@@ -6,6 +6,7 @@
 import os
 import platform
 import re
+import sys
 
 import llnl.util.tty as tty
 from llnl.util.lang import match_predicate
@@ -642,6 +643,14 @@ class Python(AutotoolsPackage):
             path = os.path.join(self.prefix.bin, 'python{0}'.format(ver))
             if os.path.exists(path):
                 return Executable(path)
+            else:
+                if sys.platform != "win32":
+                   path = os.path.join(self.prefix.bin, 'python{0}'.format(ver))
+                else:
+                   path = os.path.join(self.prefix, 'python{0}.exe'.format(ver))
+                if os.path.exists(path):
+                    return Executable(path)
+
         else:
             msg = 'Unable to locate {0} command in {1}'
             raise RuntimeError(msg.format(self.name, self.prefix.bin))

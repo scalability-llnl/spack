@@ -2,7 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
+import sys
 
 class Ninja(Package):
     """Ninja is a small build system with a focus on speed. It differs from
@@ -51,9 +51,14 @@ class Ninja(Package):
 
     def install(self, spec, prefix):
         mkdir(prefix.bin)
-        install('ninja', prefix.bin)
+        name = 'ninja'
+        if sys.platform == 'win32':
+            name = name + '.exe'
+        install(name, prefix.bin)
         install_tree('misc', prefix.misc)
 
+        if sys.platform == "win32":
+            return
         # Some distros like Fedora install a 'ninja-build' executable
         # instead of 'ninja'. Install both for uniformity.
         with working_dir(prefix.bin):
