@@ -123,3 +123,31 @@ e4s-develop-build:
       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
         job: e4s-develop-generate
     strategy: depend
+
+########################################
+# ECP Data & Vis SDK
+########################################
+.data-vis-sdk:
+  variables:
+    SPACK_CI_STACK_NAME: data-vis-sdk
+
+data-vis-sdk-pr-generate:
+  extends: [ ".data-vis-sdk", ".pr-generate"]
+
+data-vis-sdk-develop-generate:
+  extends: [ ".data-vis-sdk", ".develop-generate"]
+
+data-vis-sdk-pr-build:
+  extends: [ ".data-vis-sdk", ".pr-build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: data-vis-sdk-pr-generate
+    strategy: depend
+
+data-vis-sdk-develop-build:
+  extends: [ ".data-vis-sdk", ".develop-build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: data-vis-sdk-develop-generate
