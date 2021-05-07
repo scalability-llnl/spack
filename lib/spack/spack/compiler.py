@@ -601,13 +601,21 @@ class Compiler(object):
         backup_env = os.environ.copy()
 
         try:
-            # load modules and set env variables
-            for module in self.modules:
+            if (self.modules
+                and os.environ.get("CRAY_CPU_TARGET") == 'mic-knl'):
                 # On cray, mic-knl module cannot be loaded without cce module
                 # See: https://github.com/spack/spack/issues/3153
-                if os.environ.get("CRAY_CPU_TARGET") == 'mic-knl':
-                    spack.util.module_cmd.load_module('cce')
+                spack.util.module_cmd.load_module('cce')
+
+            # load modules and set env variables
+            for module in self.modules:
                 spack.util.module_cmd.load_module(module)
+
+            loaded_modules = os.environ.get("LOADEDMODULES", "").split(":")
+
+            for module in self.modules:
+                if module not in loaded_modules:
+                    raise InvalidCompilerModuleError(self, module)
 
             # apply other compiler environment changes
             env = spack.util.environment.EnvironmentModifications()
@@ -635,6 +643,13 @@ class InvalidCompilerError(spack.error.SpackError):
     def __init__(self):
         super(InvalidCompilerError, self).__init__(
             "Compiler has no executables.")
+
+
+class InvalidCompilerModuleError(spack.error.SpackError):
+    def __init__(self, compiler, module):
+        msg = ("Module specified for compiler '{0}' could not be loaded: {1}"
+               .format(compiler.spec, module))
+        super(InvalidCompilerModuleError, self).__init__(msg)
 
 
 class UnsupportedCompilerFlag(spack.error.SpackError):

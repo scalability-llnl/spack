@@ -285,6 +285,7 @@ fi
             return ''
         elif args[0] == 'load':
             os.environ['MODULE_LOADED'] = "1"
+            os.environ['LOADEDMODULES'] = "turn_on"
     monkeypatch.setattr(spack.util.module_cmd, 'module', module)
 
     compiler = MockCompiler()
@@ -740,6 +741,7 @@ fi
             return ''
         elif args[0] == 'load':
             os.environ['CMP_ON'] = "1"
+            os.environ['LOADEDMODULES'] = "turn_on"
     monkeypatch.setattr(spack.util.module_cmd, 'module', module)
 
     # Run and confirm output
@@ -790,6 +792,7 @@ fi
             return ''
         elif args[0] == 'load':
             os.environ['SPACK_TEST_CMP_ON'] = "1"
+            os.environ['LOADEDMODULES'] = "turn_on"
     monkeypatch.setattr(spack.util.module_cmd, 'module', module)
 
     # Make compiler fail when getting implicit rpaths
@@ -830,7 +833,7 @@ echo "4.4.4"
         'flags': {},
         'operating_system': 'fake',
         'target': 'fake',
-        'modules': ['turn_on'],
+        'modules': [],
         'environment': {},
         'extra_rpaths': [],
     }
@@ -949,6 +952,27 @@ def test_compiler_executable_verification_raises(tmpdir):
 
     with pytest.raises(spack.compiler.CompilerAccessError):
         compiler.verify_executables()
+
+
+@pytest.mark.enable_compiler_link_paths
+def test_compiler_invalid_module_raises(working_env, monkeypatch):
+    def module(*args):
+        if args[0] == 'show':
+            return ''
+    monkeypatch.setattr(spack.util.module_cmd, 'module', module)
+
+    compiler = MockCompiler()
+    compiler.modules = ['non_existent']
+
+    with pytest.raises(spack.compiler.InvalidCompilerModuleError):
+        compiler._get_compiler_link_paths([compiler.cc])
+
+    def module_error(*args):
+        return '/bin/bash: module: command not found\n'
+
+    monkeypatch.setattr(spack.util.module_cmd, 'module', module_error)
+    with pytest.raises(spack.compiler.InvalidCompilerModuleError):
+        compiler._get_compiler_link_paths([compiler.cc])
 
 
 @pytest.mark.enable_compiler_verification

@@ -292,7 +292,7 @@ def test_xl_version_detection(version_str, expected_version):
 def test_cray_frontend_compiler_detection(
         compiler, version, tmpdir, monkeypatch, working_env
 ):
-    """Test that the Cray frontend properly finds compilers form modules"""
+    """Test that the Cray frontend properly finds compilers from modules"""
     # setup the fake compiler directory
     compiler_dir = tmpdir.join(compiler)
     compiler_exe = compiler_dir.join('cc').ensure()
