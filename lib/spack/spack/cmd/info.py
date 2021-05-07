@@ -5,6 +5,7 @@
 
 from __future__ import print_function
 
+import inspect
 import textwrap
 from six.moves import zip_longest
 
@@ -16,6 +17,7 @@ import spack.cmd.common.arguments as arguments
 import spack.repo
 import spack.spec
 import spack.fetch_strategy as fs
+from spack.cmd.test import has_test_method
 
 
 description = 'get detailed information on a particular package'
@@ -236,6 +238,62 @@ def print_text_info(pkg):
 
     else:
         color.cprint("    None")
+
+    # Some built-in base packages (e.g., Autotools) define callback (e.g.,
+    # check) inherited by descendant packages. These checks may not result
+    # in build-time testing if the package's build does not implement the
+    # expected functionality (e.g., a 'check' or 'test' targets).
+    #
+    # So the presence of a callback in Spack does not necessarily correspond
+    # to the actual presence of built-time tests for a package.
+    for callbacks, phase in [(pkg.build_time_test_callbacks, 'Build'),
+                             (pkg.install_time_test_callbacks, 'Install')]:
+        color.cprint('')
+        color.cprint(section_title('Available {0} Phase Test Methods:'
+                                   .format(phase)))
+        if callbacks:
+            colify(sorted(callbacks), indent=4)
+        else:
+            color.cprint('    None')
+
+    # PackageBase defines an empty install/smoke test but we want to know
+    # if it has been overridden and, therefore, assumed to be implemented.
+    color.cprint('')
+    color.cprint(section_title('Stand-Alone/Smoke Test Methods:'))
+    names = []
+    if has_test_method(pkg):
+        pkg_base = spack.package.PackageBase
+        test_pkgs = [str(cls.test) for cls in inspect.getmro(pkg) if
+                     issubclass(cls, pkg_base) and cls.test != pkg_base.test]
+        test_pkgs = list(set(test_pkgs))
+        names.extend([(test.split()[1]).lower() for test in test_pkgs])
+
+    # TODO Refactor START
+    # Use code from package.py's test_process IF this functionality is
+    # accepted.
+    v_names = list(set([vspec.name for vspec in pkg.virtuals_provided]))
+
+    # hack for compilers that are not dependencies (yet)
+    # TODO: this all eventually goes away
+    c_names = ('gcc', 'intel', 'intel-parallel-studio', 'pgi')
+    if pkg.name in c_names:
+        v_names.extend(['c', 'cxx', 'fortran'])
+    if pkg.spec.satisfies('llvm+clang'):
+        v_names.extend(['c', 'cxx'])
+    # TODO Refactor END
+
+    v_specs = [spack.spec.Spec(v_name) for v_name in v_names]
+    for v_spec in v_specs:
+        try:
+            if has_test_method(v_spec.package):
+                names.append('{0}.test'.format(v_spec.package.name.lower()))
+        except spack.repo.UnknownPackageError:
+            pass
+
+    if names:
+        colify(sorted(names), indent=4)
+    else:
+        color.cprint('    None')
 
     color.cprint('')
 
