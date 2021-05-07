@@ -123,3 +123,9 @@ def test_get_argument_from_module_line():
     for bl in bad_lines:
         with pytest.raises(ValueError):
             get_path_args_from_module_line(bl)
+
+
+def test_lmod_quote_parsing():
+    lines = ['setenv("SOME_PARTICULAR_DIR","-L/opt/cray/pe/mpich/8.1.4/gtl/lib")']
+    result = get_path_from_module_contents(lines, 'some-module')
+    assert '/opt/cray/pe/mpich/8.1.4/gtl' == result

@@ -195,9 +195,11 @@ def get_path_from_module_contents(text, module_name):
     def match_flag_and_strip(line, flag, strip=[]):
         flag_idx = line.find(flag)
         if flag_idx >= 0:
-            end = line.find(' ', flag_idx)
-            if end >= 0:
-                path = line[flag_idx + len(flag):end]
+            seperators = (' ', '"', "'")
+            occurrences = [line.find(s, flag_idx) for s in seperators]
+            indices = [idx for idx in occurrences if idx >= 0]
+            if indices:
+                path = line[flag_idx + len(flag):min(indices)]
             else:
                 path = line[flag_idx + len(flag):]
             path = strip_path(path, strip)
