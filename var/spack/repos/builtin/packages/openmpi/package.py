@@ -9,6 +9,7 @@ import re
 import os
 import sys
 import llnl.util.tty as tty
+from spack.util.mpi import MPIRunner
 
 
 class Openmpi(AutotoolsPackage):
@@ -519,6 +520,29 @@ class Openmpi(AutotoolsPackage):
             join_path(self.prefix.lib, 'libmpi_cxx.{0}'.format(dso_suffix)),
             join_path(self.prefix.lib, 'libmpi.{0}'.format(dso_suffix))
         ]
+
+        # First try specific runner config and then top level config;
+        # if neither is defined initialize the runner according to spec
+        pkg_name = __name__.split('.')[-1]
+        self.spec.mpirunner = MPIRunner.create_from_conf_key(pkg_name)
+
+        if not self.spec.mpirunner:
+            if 'schedulers=slurm' in self.spec:
+                if '+legacylaunchers' in self.spec:
+                    self.spec.mpirunner = MPIRunner(
+                        self.prefix.bin.mpiexec)
+                elif 'slurm' in self.spec:
+                    self.spec.mpirunner = MPIRunner(
+                        self.spec['slurm'].prefix.bin.srun)
+                else:   # external openmpi package
+                    srun_exe = which('srun')
+                    if srun_exe:
+                        self.spec.mpirunner = MPIRunner(srun_exe.command)
+                    else:
+                        self.spec.mpirunner = MPIRunner(
+                            self.prefix.bin.orterun)
+            else:
+                self.spec.mpirunner = MPIRunner(self.prefix.bin.mpiexec)
 
     # Most of the following with_or_without methods might seem redundant
     # because Spack compiler wrapper adds the required -I and -L flags, which

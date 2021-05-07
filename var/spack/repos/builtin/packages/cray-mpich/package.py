@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.util.mpi import MPIRunner
 
 
 class CrayMpich(Package):
@@ -53,6 +54,9 @@ class CrayMpich(Package):
             join_path(self.prefix.lib, 'libmpicxx.{0}'.format(dso_suffix)),
             join_path(self.prefix.lib, 'libmpi.{0}'.format(dso_suffix))
         ]
+
+        self.spec.mpirunner = MPIRunner.create_def_runner(
+            __name__, self.prefix.bin)
 
     def install(self, spec, prefix):
         raise InstallError(

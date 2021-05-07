@@ -5,6 +5,7 @@
 
 import os.path
 import sys
+from spack.util.mpi import MPIRunner
 
 
 class Mvapich2Gdr(AutotoolsPackage):
@@ -202,6 +203,22 @@ class Mvapich2Gdr(AutotoolsPackage):
             os.path.join(self.prefix.lib, 'libmpicxx.{0}'.format(dso_suffix)),
             os.path.join(self.prefix.lib, 'libmpi.{0}'.format(dso_suffix))
         ]
+
+        # First try specific runner config and then top level config;
+        # if neither is defined initialize the runner according to spec
+        pkg_name = __name__.split('.')[-1]
+        self.spec.mpirunner = MPIRunner.create_from_conf_key(pkg_name)
+
+        if not self.spec.mpirunner:
+            if 'process_managers=slurm' in self.spec:
+                if 'slurm' in self.spec:
+                    self.spec.mpirunner = MPIRunner(
+                        self.spec['slurm'].prefix.bin.srun)
+                else:   # external package
+                    self.spec.mpirunner = MPIRunner.query_res_manager(
+                        'srun', self.prefix.bin)
+            else:
+                self.spec.mpirunner = MPIRunner(self.prefix.bin.mpiexec)
 
     def configure_args(self):
         args = ['--disable-hybrid',

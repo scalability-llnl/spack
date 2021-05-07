@@ -7,8 +7,10 @@
 
 from spack import *
 from spack.util.prefix import Prefix
+from spack.util.mpi import MPIRunner
 import os
 import platform
+
 
 # FIXME Remove hack for polymorphic versions
 # This package uses a ugly hack to be able to dispatch, given the same
@@ -150,6 +152,9 @@ class Nvhpc(Package):
             self.spec.mpicxx = join_path(mpi_prefix.bin, 'mpicxx')
             self.spec.mpif77 = join_path(mpi_prefix.bin, 'mpif77')
             self.spec.mpifc  = join_path(mpi_prefix.bin, 'mpif90')
+
+            self.spec.mpirunner = MPIRunner.create_def_runner(
+                __name__, mpi_prefix.bin)
 
     @property
     def libs(self):

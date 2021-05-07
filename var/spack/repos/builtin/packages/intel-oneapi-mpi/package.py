@@ -7,8 +7,8 @@
 import subprocess
 from sys import platform
 
-
 from spack import *
+from spack.util.mpi import MPIRunner
 
 
 class IntelOneapiMpi(IntelOneApiLibraryPackage):
@@ -42,6 +42,8 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
         self.spec.mpicxx = join_path(dir, 'mpicxx')
         self.spec.mpif77 = join_path(dir, 'mpif77')
         self.spec.mpifc  = join_path(dir, 'mpifc')
+
+        self.spec.mpirunner = MPIRunner.create_def_runner(__name__, dir)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.set('MPICH_CC', spack_cc)

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 import re
+from spack.util.mpi import MPIRunner
 
 
 class SpectrumMpi(Package):
@@ -111,6 +112,9 @@ class SpectrumMpi(Package):
             self.spec.mpicxx = os.path.join(self.prefix.bin, 'mpicxx')
             self.spec.mpif77 = os.path.join(self.prefix.bin, 'mpif77')
             self.spec.mpifc = os.path.join(self.prefix.bin, 'mpif90')
+
+        self.spec.mpirunner = MPIRunner.create_def_runner(
+            __name__, self.prefix.bin)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         if '%xl' in dependent_spec or '%xl_r' in dependent_spec:
