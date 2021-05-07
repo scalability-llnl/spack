@@ -8,6 +8,7 @@ import pytest
 from six.moves.urllib.error import URLError
 
 import spack.ci as ci
+import spack.environment as ev
 import spack.main as spack_main
 import spack.config as cfg
 import spack.paths as spack_paths
@@ -88,30 +89,42 @@ def test_configure_compilers(mutable_config):
     assert_present(last_config)
 
 
-def test_get_concrete_specs(config, mock_packages):
-    root_spec = (
-        'eJztkk1uwyAQhfc5BbuuYjWObSKuUlURYP5aDBjjBPv0RU7iRI6qpKuqUtnxzZvRwHud'
-        'YxSt1oCMyuVoBdI5MN8paxDYZK/ZbkLYU3kqAuA0Dtz6BgGtTB8XdG87BCgzwXbwXArY'
-        'CxYQiLtqXxUTpLZxSjN/mWlwwxAQlJ7v8wpFtsvK1UXSOUyTjvRKB2Um7LBPhZD0l1md'
-        'xJ7VCATfszOiXGOR9np7vwDn7lCMS8SXQNf3RCtyBTVzzNTMUMXmfWrFeR+UngEAEncS'
-        'ASjKwZcid7ERNldthBxjX46mMD2PsJnlYXDs2rye3l+vroOkJJ54SXgZPklLRQmx61sm'
-        'cgKNVFRO0qlpf2pojq1Ro7OG56MY+Bgc1PkIo/WkaT8OVcrDYuvZkJdtBl/+XCZ+NQBJ'
-        'oKg1h6X/VdXRoyE2OWeH6lCXZdHGrauUZAWFw/YJ/0/39OefN3F4Kle3cXjYsF684ZqG'
-        'Tbap/uPwbRx+YPStIQ8bvgA7G6YE'
-    )
+def test_get_concrete_specs(config, mutable_mock_env_path, mock_packages):
+    e = ev.create('test1')
+    e.add('dyninst')
+    e.concretize()
 
-    dep_builds = 'diffutils;libiconv'
-    spec_map = ci.get_concrete_specs(root_spec, 'bzip2', dep_builds, 'NONE')
+    dyninst_hash = None
+    hash_dict = {}
 
-    assert('root' in spec_map and 'deps' in spec_map)
+    with e as active_env:
+        for s in active_env.all_specs():
+            hash_dict[s.name] = s.build_hash()
+            if s.name == 'dyninst':
+                dyninst_hash = s.build_hash()
 
-    nonconc_root_spec = 'archive-files'
-    dep_builds = ''
-    spec_map = ci.get_concrete_specs(
-        nonconc_root_spec, 'archive-files', dep_builds, 'FIND_ANY')
+        assert(dyninst_hash)
 
-    assert('root' in spec_map and 'deps' in spec_map)
-    assert('archive-files' in spec_map)
+        dep_builds = 'libdwarf;libelf'
+        spec_map = ci.get_concrete_specs(
+            active_env, dyninst_hash, 'dyninst', dep_builds, 'NONE')
+        assert('root' in spec_map and 'deps' in spec_map)
+
+        concrete_root = spec_map['root']
+        assert(concrete_root.build_hash() == dyninst_hash)
+
+        concrete_deps = spec_map['deps']
+        for key, obj in concrete_deps.items():
+            assert(obj.build_hash() == hash_dict[key])
+
+        s = spec.Spec('dyninst')
+        nonconc_root_spec = 'dyninst'
+        print('nonconc spec name: {0}'.format(nonconc_root_spec))
+
+        spec_map = ci.get_concrete_specs(
+            active_env, 'dyninst', 'dyninst', dep_builds, 'FIND_ANY')
+
+        assert('root' in spec_map and 'deps' in spec_map)
 
 
 @pytest.mark.maybeslow
@@ -126,32 +139,39 @@ def test_register_cdash_build():
         ci.register_cdash_build(build_name, base_url, project, site, track)
 
 
-def test_relate_cdash_builds(config, mock_packages):
-    root_spec = (
-        'eJztkk1uwyAQhfc5BbuuYjWObSKuUlURYP5aDBjjBPv0RU7iRI6qpKuqUtnxzZvRwHud'
-        'YxSt1oCMyuVoBdI5MN8paxDYZK/ZbkLYU3kqAuA0Dtz6BgGtTB8XdG87BCgzwXbwXArY'
-        'CxYQiLtqXxUTpLZxSjN/mWlwwxAQlJ7v8wpFtsvK1UXSOUyTjvRKB2Um7LBPhZD0l1md'
-        'xJ7VCATfszOiXGOR9np7vwDn7lCMS8SXQNf3RCtyBTVzzNTMUMXmfWrFeR+UngEAEncS'
-        'ASjKwZcid7ERNldthBxjX46mMD2PsJnlYXDs2rye3l+vroOkJJ54SXgZPklLRQmx61sm'
-        'cgKNVFRO0qlpf2pojq1Ro7OG56MY+Bgc1PkIo/WkaT8OVcrDYuvZkJdtBl/+XCZ+NQBJ'
-        'oKg1h6X/VdXRoyE2OWeH6lCXZdHGrauUZAWFw/YJ/0/39OefN3F4Kle3cXjYsF684ZqG'
-        'Tbap/uPwbRx+YPStIQ8bvgA7G6YE'
-    )
+def test_relate_cdash_builds(config, mutable_mock_env_path, mock_packages):
+    e = ev.create('test1')
+    e.add('dyninst')
+    e.concretize()
 
-    dep_builds = 'diffutils;libiconv'
-    spec_map = ci.get_concrete_specs(root_spec, 'bzip2', dep_builds, 'NONE')
-    cdash_api_url = 'http://cdash.fake.org'
-    job_build_id = '42'
-    cdash_project = 'spack'
-    cdashids_mirror_url = 'https://my.fake.mirror'
+    dyninst_hash = None
+    hash_dict = {}
 
-    with pytest.raises(web_util.SpackWebError):
-        ci.relate_cdash_builds(spec_map, cdash_api_url, job_build_id,
-                               cdash_project, cdashids_mirror_url)
+    with e as active_env:
+        for s in active_env.all_specs():
+            hash_dict[s.name] = s.build_hash()
+            if s.name == 'dyninst':
+                dyninst_hash = s.build_hash()
 
-    # Just make sure passing None for build id doesn't throw exceptions
-    ci.relate_cdash_builds(spec_map, cdash_api_url, None, cdash_project,
-                           cdashids_mirror_url)
+        assert(dyninst_hash)
+
+        dep_builds = 'libdwarf;libelf'
+        spec_map = ci.get_concrete_specs(
+            active_env, dyninst_hash, 'dyninst', dep_builds, 'NONE')
+        assert('root' in spec_map and 'deps' in spec_map)
+
+        cdash_api_url = 'http://cdash.fake.org'
+        job_build_id = '42'
+        cdash_project = 'spack'
+        cdashids_mirror_url = 'https://my.fake.mirror'
+
+        with pytest.raises(web_util.SpackWebError):
+            ci.relate_cdash_builds(spec_map, cdash_api_url, job_build_id,
+                                   cdash_project, cdashids_mirror_url)
+
+        # Just make sure passing None for build id doesn't throw exceptions
+        ci.relate_cdash_builds(spec_map, cdash_api_url, None, cdash_project,
+                               cdashids_mirror_url)
 
 
 def test_read_write_cdash_ids(config, tmp_scope, tmpdir, mock_packages):
@@ -171,6 +191,16 @@ def test_read_write_cdash_ids(config, tmp_scope, tmpdir, mock_packages):
     read_cdashid = ci.read_cdashid_from_mirror(mock_spec, mirror_url)
 
     assert(str(read_cdashid) == orig_cdashid)
+
+
+def test_download_and_extract_artifacts():
+    os.environ['GITLAB_PRIVATE_TOKEN'] = 'faketoken'
+
+    url = 'http://some.domain/fake/endpoint'
+    work_dir = '/tmp/notused'
+
+    with pytest.raises(URLError):
+        ci.download_and_extract_artifacts(url, work_dir)
 
 
 def test_ci_workarounds():

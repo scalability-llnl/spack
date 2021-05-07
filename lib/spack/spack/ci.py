@@ -10,8 +10,9 @@ import json
 import os
 import re
 import shutil
+import stat
 import tempfile
-import zlib
+import zipfile
 
 from six import iteritems
 from six.moves.urllib.error import HTTPError, URLError
@@ -19,6 +20,7 @@ from six.moves.urllib.parse import urlencode
 from six.moves.urllib.request import build_opener, HTTPHandler, Request
 
 import llnl.util.tty as tty
+import llnl.util.filesystem as fs
 
 import spack
 import spack.binary_distribution as bindist
@@ -27,10 +29,11 @@ import spack.compilers as compilers
 import spack.config as cfg
 import spack.environment as ev
 from spack.error import SpackError
-import spack.hash_types as ht
 import spack.main
+import spack.paths
 import spack.repo
 from spack.spec import Spec
+import spack.util.executable as exe
 import spack.util.spack_yaml as syaml
 import spack.util.web as web_util
 import spack.util.gpg as gpg_util
@@ -197,10 +200,7 @@ def format_root_spec(spec, main_phase, strip_compiler):
         return '{0}@{1} arch={2}'.format(
             spec.name, spec.version, spec.architecture)
     else:
-        spec_yaml = spec.to_yaml(hash=ht.build_hash).encode('utf-8')
-        return str(base64.b64encode(zlib.compress(spec_yaml)).decode('utf-8'))
-        # return '{0}@{1}%{2} arch={3}'.format(
-        #     spec.name, spec.version, spec.compiler, spec.architecture)
+        return spec.build_hash()
 
 
 def spec_deps_key(s):
@@ -513,28 +513,31 @@ def format_job_needs(phase_name, strip_compilers, dep_jobs,
     return needs_list
 
 
-def add_pr_mirror(url):
+def add_mirror(name, url):
     cfg_scope = cfg.default_modify_scope()
     mirrors = cfg.get('mirrors', scope=cfg_scope)
     items = [(n, u) for n, u in mirrors.items()]
-    items.insert(0, ('ci_pr_mirror', url))
+    items.insert(0, (name, url))
     cfg.set('mirrors', syaml.syaml_dict(items), scope=cfg_scope)
 
 
-def remove_pr_mirror():
+def remove_mirror(name):
     cfg_scope = cfg.default_modify_scope()
     mirrors = cfg.get('mirrors', scope=cfg_scope)
-    mirrors.pop('ci_pr_mirror')
+    mirrors.pop(name)
     cfg.set('mirrors', mirrors, scope=cfg_scope)
 
 
-def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
-                            check_index_only=False, run_optimizer=False,
-                            use_dependencies=False):
+def generate_gitlab_ci_yaml(env, print_summary, output_file,
+                            prune_dag=False, check_index_only=False,
+                            run_optimizer=False, use_dependencies=False,
+                            artifacts_root=None, force_rebuild=False):
     # FIXME: What's the difference between one that opens with 'spack'
     # and one that opens with 'env'?  This will only handle the former.
     with spack.concretize.disable_compiler_existence_check():
-        env.concretize()
+        with env.write_transaction():
+            env.concretize()
+            env.write()
 
     yaml_root = ev.config_dict(env.yaml)
 
@@ -559,6 +562,9 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
             tty.verbose("Using CDash auth token from environment")
             cdash_auth_token = os.environ.get('SPACK_CDASH_AUTH_TOKEN')
 
+    generate_job_name = os.environ.get('CI_JOB_NAME', None)
+    parent_pipeline_id = os.environ.get('CI_PIPELINE_ID', None)
+
     is_pr_pipeline = (
         os.environ.get('SPACK_IS_PR_PIPELINE', '').lower() == 'true'
     )
@@ -574,6 +580,7 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
 
     ci_mirrors = yaml_root['mirrors']
     mirror_urls = [url for url in ci_mirrors.values()]
+    remote_mirror_url = mirror_urls[0]
 
     # Check for a list of "known broken" specs that we should not bother
     # trying to build.
@@ -624,7 +631,30 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
     # Add this mirror if it's enabled, as some specs might be up to date
     # here and thus not need to be rebuilt.
     if pr_mirror_url:
-        add_pr_mirror(pr_mirror_url)
+        add_mirror('ci_pr_mirror', pr_mirror_url)
+
+    pipeline_artifacts_dir = artifacts_root
+    if not pipeline_artifacts_dir:
+        proj_dir = os.environ.get('CI_PROJECT_DIR', os.getcwd())
+        pipeline_artifacts_dir = os.path.join(proj_dir, 'jobs_scratch_dir')
+
+    pipeline_artifacts_dir = os.path.abspath(pipeline_artifacts_dir)
+    concrete_env_dir = os.path.join(
+        pipeline_artifacts_dir, 'concrete_environment')
+
+    # Now that we've added the mirrors we know about, they should be properly
+    # reflected in the environment manifest file, so copy that into the
+    # concrete environment directory, along with the spack.lock file.
+    if not os.path.exists(concrete_env_dir):
+        os.makedirs(concrete_env_dir)
+    shutil.copyfile(env.manifest_path,
+                    os.path.join(concrete_env_dir, 'spack.yaml'))
+    shutil.copyfile(env.lock_path,
+                    os.path.join(concrete_env_dir, 'spack.lock'))
+
+    job_log_dir = os.path.join(pipeline_artifacts_dir, 'logs')
+    job_repro_dir = os.path.join(pipeline_artifacts_dir, 'reproduction')
+    local_mirror_dir = os.path.join(pipeline_artifacts_dir, 'mirror')
 
     # Speed up staging by first fetching binary indices from all mirrors
     # (including the per-PR mirror we may have just added above).
@@ -641,7 +671,7 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
     finally:
         # Clean up PR mirror if enabled
         if pr_mirror_url:
-            remove_pr_mirror()
+            remove_mirror('ci_pr_mirror')
 
     all_job_names = []
     output_object = {}
@@ -705,10 +735,17 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
                     except AttributeError:
                         image_name = build_image
 
-                job_script = [
-                    'spack env activate --without-view .',
-                    'spack ci rebuild',
-                ]
+                job_script = ['spack env activate --without-view .']
+
+                if artifacts_root:
+                    job_script.insert(0, 'cd {0}'.format(concrete_env_dir))
+
+                job_script.extend([
+                    'spack ci prebuild',
+                    './install.sh',
+                    'spack ci postbuild'
+                ])
+
                 if 'script' in runner_attribs:
                     job_script = [s for s in runner_attribs['script']]
 
@@ -735,9 +772,9 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
                 job_vars = {
                     'SPACK_ROOT_SPEC': format_root_spec(
                         root_spec, main_phase, strip_compilers),
+                    'SPACK_JOB_SPEC_DAG_HASH': release_spec.dag_hash(),
                     'SPACK_JOB_SPEC_PKG_NAME': release_spec.name,
-                    'SPACK_COMPILER_ACTION': compiler_action,
-                    'SPACK_IS_PR_PIPELINE': str(is_pr_pipeline),
+                    'SPACK_COMPILER_ACTION': compiler_action
                 }
 
                 job_dependencies = []
@@ -764,7 +801,7 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
                                          prune_dag, spec_labels,
                                          enable_artifacts_buildcache))
 
-                rebuild_spec = spec_record['needs_rebuild']
+                rebuild_spec = spec_record['needs_rebuild'] or force_rebuild
 
                 # This next section helps gitlab make sure the right
                 # bootstrapped compiler exists in the artifacts buildcache by
@@ -836,7 +873,14 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
                 if prune_dag and not rebuild_spec:
                     continue
 
-                job_vars['SPACK_SPEC_NEEDS_REBUILD'] = str(rebuild_spec)
+                if artifacts_root:
+                    job_dependencies.append({
+                        'job': generate_job_name,
+                        'pipeline': '{0}'.format(parent_pipeline_id)
+                    })
+
+                job_vars['SPACK_SPEC_NEEDS_REBUILD'] = str(
+                    spec_record['needs_rebuild'])
 
                 if enable_cdash_reporting:
                     cdash_build_name = get_cdash_build_name(
@@ -856,12 +900,13 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
                 variables.update(job_vars)
 
                 artifact_paths = [
-                    'jobs_scratch_dir',
-                    'cdash_report',
+                    job_log_dir,
+                    job_repro_dir
                 ]
 
                 if enable_artifacts_buildcache:
-                    bc_root = 'local_mirror/build_cache'
+                    bc_root = os.path.join(
+                        local_mirror_dir, 'build_cache')
                     artifact_paths.extend([os.path.join(bc_root, p) for p in [
                         bindist.tarball_name(release_spec, '.spec.yaml'),
                         bindist.tarball_name(release_spec, '.cdashid'),
@@ -987,6 +1032,11 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
             ]
             final_job['when'] = 'always'
 
+            if artifacts_root:
+                final_job['variables'] = {
+                    'SPACK_CONCRETE_ENV_DIR': concrete_env_dir
+                }
+
             output_object['rebuild-index'] = final_job
 
         output_object['stages'] = stage_names
@@ -1007,8 +1057,16 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
                 version_to_clone = spack_version
 
         output_object['variables'] = {
+            'SPACK_ARTIFACTS_ROOT': pipeline_artifacts_dir,
+            'SPACK_CONCRETE_ENV_DIR': concrete_env_dir,
             'SPACK_VERSION': spack_version,
             'SPACK_CHECKOUT_VERSION': version_to_clone,
+            'SPACK_REMOTE_MIRROR_URL': remote_mirror_url,
+            'SPACK_JOB_LOG_DIR': job_log_dir,
+            'SPACK_JOB_REPRO_DIR': job_repro_dir,
+            'SPACK_LOCAL_MIRROR_DIR': local_mirror_dir,
+            'SPACK_IS_PR_PIPELINE': str(is_pr_pipeline),
+            'SPACK_CI_FORCE_REBUILD_SPECS': str(force_rebuild)
         }
 
         if pr_mirror_url:
@@ -1131,7 +1189,8 @@ def configure_compilers(compiler_action, scope=None):
     return None
 
 
-def get_concrete_specs(root_spec, job_name, related_builds, compiler_action):
+def get_concrete_specs(env, root_spec, job_name, related_builds,
+                       compiler_action):
     spec_map = {
         'root': None,
         'deps': {},
@@ -1153,8 +1212,7 @@ def get_concrete_specs(root_spec, job_name, related_builds, compiler_action):
         # again.  The reason we take this path in the first case (bootstrapped
         # compiler), is that we can't concretize a spec at this point if we're
         # going to ask spack to "install_missing_compilers".
-        concrete_root = Spec.from_yaml(
-            str(zlib.decompress(base64.b64decode(root_spec)).decode('utf-8')))
+        concrete_root = env.specs_by_hash[root_spec]
 
     spec_map['root'] = concrete_root
     spec_map[job_name] = concrete_root[job_name]
@@ -1335,3 +1393,274 @@ def copy_stage_logs_to_artifacts(job_spec, job_log_dir):
         msg = ('Unable to copy build logs from stage to artifacts '
                'due to exception: {0}').format(inst)
         tty.error(msg)
+
+
+def download_and_extract_artifacts(url, work_dir):
+    tty.msg('Fetching artifacts from: {0}\n'.format(url))
+
+    headers = {
+        'Content-Type': 'application/zip',
+    }
+
+    token = os.environ.get('GITLAB_PRIVATE_TOKEN', None)
+    if token:
+        headers['PRIVATE-TOKEN'] = token
+
+    opener = build_opener(HTTPHandler)
+
+    request = Request(url, headers=headers)
+    request.get_method = lambda: 'GET'
+
+    response = opener.open(request)
+    response_code = response.getcode()
+
+    if response_code != 200:
+        msg = 'Error response code ({0}) in reproduce_ci_job'.format(
+            response_code)
+        raise SpackError(msg)
+
+    artifacts_zip_path = os.path.join(work_dir, 'artifacts.zip')
+
+    if not os.path.exists(work_dir):
+        os.makedirs(work_dir)
+
+    with open(artifacts_zip_path, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)
+
+    with zipfile.ZipFile(artifacts_zip_path, 'r') as zip_ref:
+        zip_ref.extractall(work_dir)
+
+    os.remove(artifacts_zip_path)
+
+
+def get_spack_info():
+    git_path = os.path.join(spack.paths.prefix, ".git")
+    if os.path.exists(git_path):
+        git = exe.which("git")
+        if git:
+            with fs.working_dir(spack.paths.prefix):
+                git_log = git("log", "-1",
+                              output=str, error=os.devnull,
+                              fail_on_error=False)
+
+            return git_log
+
+    return 'no git repo, use spack {0}'.format(spack.spack_version)
+
+
+def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
+    # figure out the path to the spack git version being used for the
+    # reproduction
+    dot_git_path = os.path.join(spack.paths.prefix, ".git")
+    if not os.path.exists(dot_git_path):
+        tty.error('Unable to find the path to your local spack clone')
+        return False
+
+    spack_git_path = spack.paths.prefix
+
+    git = exe.which("git")
+    if not git:
+        tty.error("reproduction of pipeline job requires git")
+        return False
+
+    # Check if we can find the tested commits in your local spack repo
+    with fs.working_dir(spack_git_path):
+        git("log", "-1", checkout_commit, output=str, error=os.devnull,
+            fail_on_error=False)
+
+        if git.returncode != 0:
+            tty.error('Missing commit: {0}'.format(checkout_commit))
+            return False
+
+        if merge_commit:
+            git("log", "-1", merge_commit, output=str, error=os.devnull,
+                fail_on_error=False)
+
+            if git.returncode != 0:
+                tty.error('Missing commit: {0}'.format(merge_commit))
+                return False
+
+    # Next attempt to clone your local spack repo into the repro dir
+    with fs.working_dir(repro_dir):
+        clone_out = git("clone", spack_git_path,
+                        output=str, error=os.devnull,
+                        fail_on_error=False)
+
+        if git.returncode != 0:
+            tty.error('Unable to clone your local spac repo:')
+            tty.msg(clone_out)
+            return False
+
+    # Finally, attempt to put the cloned repo into the same state used during
+    # the pipeline build job
+    repro_spack_path = os.path.join(repro_dir, 'spack')
+    with fs.working_dir(repro_spack_path):
+        co_out = git("checkout", checkout_commit,
+                     output=str, error=os.devnull,
+                     fail_on_error=False)
+
+        if git.returncode != 0:
+            tty.error('Unable to checkout {0}'.format(checkout_commit))
+            tty.msg(co_out)
+            return False
+
+        if merge_commit:
+            merge_out = git("-c", "user.name=cirepro", "-c",
+                            "user.email=user@email.org", "merge",
+                            "--no-edit", merge_commit,
+                            output=str, error=os.devnull,
+                            fail_on_error=False)
+
+            if git.returncode != 0:
+                tty.error('Unable to merge {0}'.format(merge_commit))
+                tty.msg(merge_out)
+                return False
+
+    return True
+
+
+def reproduce_ci_job(url, work_dir):
+    download_and_extract_artifacts(url, work_dir)
+
+    lock_file = fs.find(work_dir, 'spack.lock')[0]
+    concrete_env_dir = os.path.dirname(lock_file)
+
+    tty.debug('Concrete environment directory: {0}'.format(
+        concrete_env_dir))
+
+    yaml_files = fs.find(work_dir, ['*.yaml', '*.yml'])
+
+    tty.debug('yaml files:')
+    for yaml_file in yaml_files:
+        tty.debug('  {0}'.format(yaml_file))
+
+    pipeline_yaml = None
+    pipeline_variables = None
+
+    for yf in yaml_files:
+        with open(yf) as y_fd:
+            yaml_obj = syaml.load(y_fd)
+            if 'variables' in yaml_obj and 'stages' in yaml_obj:
+                pipeline_yaml = yaml_obj
+                pipeline_variables = pipeline_yaml['variables']
+
+    if pipeline_yaml:
+        tty.debug('\n{0} is likely your pipeline file'.format(yf))
+
+    # Find the install script in the unzipped artifacts and make it executable
+    install_script = fs.find(work_dir, 'install.sh')[0]
+    st = os.stat(install_script)
+    os.chmod(install_script, st.st_mode | stat.S_IEXEC)
+
+    # Find the repro details file
+    repro_file = fs.find(work_dir, 'repro.json')[0]
+    repro_details = None
+    with open(repro_file) as fd:
+        repro_details = json.load(fd)
+
+    mount_as_dir = '/work'
+    if pipeline_variables:
+        artifacts_root = pipeline_variables['SPACK_ARTIFACTS_ROOT']
+        mount_as_dir = os.path.dirname(artifacts_root)
+
+    repro_dir = os.path.dirname(repro_file)
+    rel_repro_dir = repro_dir.replace(work_dir, '').lstrip(os.path.sep)
+    mounted_repro_dir = os.path.join(mount_as_dir, rel_repro_dir)
+
+    spack_info_file = fs.find(work_dir, 'spack_info.txt')[0]
+    with open(spack_info_file) as fd:
+        spack_info = fd.read()
+
+    commit_1 = None
+    commit_2 = None
+    commit_regex = re.compile(r"commit\s+([^\s]+)")
+    merge_commit_regex = re.compile(r"Merge\s+([^\s]+)\s+into\s+([^\s]+)")
+
+    # Try the more specific merge commit regex first
+    m = merge_commit_regex.search(spack_info)
+    if m:
+        # This was a merge commit and we captured the parents
+        commit_1 = m.group(1)
+        commit_2 = m.group(2)
+    else:
+        # Not a merge commit, just get the commit sha
+        m = commit_regex.search(spack_info)
+        if m:
+            commit_1 = m.group(1)
+
+    setup_result = False
+    if commit_1:
+        if commit_2:
+            setup_result = setup_spack_repro_version(
+                work_dir, commit_2, merge_commit=commit_1)
+        else:
+            setup_result = setup_spack_repro_version(work_dir, commit_1)
+
+    if not setup_result:
+        setup_msg = """
+    This can happen if the spack you are using to run this command is not a git
+    repo, or if it is a git repo, but it does not have the commits needed to
+    recreate the tested merge commit.  If you are trying to reproduce a spack
+    PR pipeline job failure, try fetching the latest develop commits from
+    mainline spack and make sure you have the most recent commit of the PR
+    branch in your local spack repo.  Then run this command again.
+    Alternatively, you can also manually clone spack if you know the version
+    you want to test.
+        """
+        tty.error('Failed to automatically setup the tested version of spack '
+                  'in your local reproduction directory.')
+        print(setup_msg)
+
+    job_name = repro_details['job_name']
+    job_yaml = None
+
+    if job_name in pipeline_yaml:
+        job_yaml = pipeline_yaml[job_name]
+
+    if job_yaml:
+        tty.debug('Found job:')
+        tty.debug(job_yaml)
+
+    job_image = None
+    if 'image' in job_yaml:
+        job_image_elt = job_yaml['image']
+        if 'name' in job_image_elt:
+            job_image = job_image_elt['name']
+        else:
+            job_image = job_image_elt
+        tty.msg('Job ran with the following image: {0}'.format(job_image))
+
+    job_tags = None
+    if 'tags' in job_yaml:
+        job_tags = job_yaml['tags']
+        tty.msg('Job ran with the following tags: {0}'.format(job_tags))
+
+    inst_list = []
+
+    if job_image:
+        inst_list.append('\nRun the following command:\n\n')
+        inst_list.append('    $ docker run --rm -v {0}:{1} -ti {2}\n'.format(
+            work_dir, mount_as_dir, job_image))
+        inst_list.append('\nOnce inside the container:\n\n')
+    else:
+        inst_list.append('\nOnce on the tagged runner:\n\n')
+
+    if not setup_result:
+        inst_list.append('    - Clone spack and acquire tested commit\n')
+        inst_list.append('{0}'.format(spack_info))
+        spack_root = '<spack-clone-path>'
+    else:
+        spack_root = '{0}/spack'.format(mount_as_dir)
+
+    inst_list.append('    - Activate the environment\n\n')
+    inst_list.append('        $ source {0}/share/spack/setup-env.sh\n'.format(
+        spack_root))
+    inst_list.append(
+        '        $ spack env activate --without-view {0}\n\n'.format(
+            mounted_repro_dir if job_image else repro_dir))
+    inst_list.append('    - Run the install script\n\n')
+    inst_list.append('        $ {0}\n'.format(
+        os.path.join(mounted_repro_dir, 'install.sh')
+        if job_image else install_script))
+
+    print(''.join(inst_list))

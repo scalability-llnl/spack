@@ -495,20 +495,33 @@ _spack_ci() {
     then
         SPACK_COMPREPLY="-h --help"
     else
-        SPACK_COMPREPLY="generate rebuild rebuild-index"
+        SPACK_COMPREPLY="generate rebuild-index prebuild postbuild reproduce-build"
     fi
 }
 
 _spack_ci_generate() {
-    SPACK_COMPREPLY="-h --help --output-file --copy-to --optimize --dependencies --prune-dag --no-prune-dag --check-index-only"
-}
-
-_spack_ci_rebuild() {
-    SPACK_COMPREPLY="-h --help"
+    SPACK_COMPREPLY="-h --help --output-file --copy-to --optimize --dependencies --prune-dag --no-prune-dag --check-index-only --force-rebuild --artifacts-root"
 }
 
 _spack_ci_rebuild_index() {
     SPACK_COMPREPLY="-h --help"
+}
+
+_spack_ci_prebuild() {
+    SPACK_COMPREPLY="-h --help"
+}
+
+_spack_ci_postbuild() {
+    SPACK_COMPREPLY="-h --help"
+}
+
+_spack_ci_reproduce_build() {
+    if $list_options
+    then
+        SPACK_COMPREPLY="-h --help --working-dir"
+    else
+        SPACK_COMPREPLY=""
+    fi
 }
 
 _spack_clean() {

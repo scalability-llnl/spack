@@ -1178,7 +1178,7 @@ def relocate_package(spec, allow_root):
             text_names.append(text_name)
 
     # If we are not installing back to the same install tree do the relocation
-    if old_layout_root != new_layout_root:
+    if old_prefix != new_prefix:
         files_to_relocate = [os.path.join(workdir, filename)
                              for filename in buildinfo.get('relocate_binaries')
                              ]

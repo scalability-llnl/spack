@@ -43,7 +43,7 @@ spack:
     - argobots
     # - ascent
     # - axom
-    # - bolt
+    - bolt
     # - caliper
     # - darshan-runtime
     - darshan-util
@@ -115,15 +115,18 @@ spack:
     - - $e4s
     - - $arch
 
-  mirrors: { "mirror": "s3://spack-binaries-develop/e4s-new-cluster" }
+  mirrors: { "mirror": "s3://spack-binaries-develop/e4s" }
 
   gitlab-ci:
     script:
       - . "./share/spack/setup-env.sh"
       - spack --version
-      - cd share/spack/gitlab/cloud_pipelines/stacks/e4s
+      - cd ${SPACK_CONCRETE_ENV_DIR}
       - spack env activate --without-view .
-      - spack -d ci rebuild
+      - spack -d ci prebuild
+      - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+      - ./install.sh || export SPACK_INSTALL_EXIT_ERROR=$?
+      - spack -d ci postbuild
     mappings:
       - match: [cuda, dyninst, hpx, precice, strumpack, sundials, trilinos, vtk-h, vtk-m]
         runner-attributes:
