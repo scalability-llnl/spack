@@ -47,7 +47,7 @@ class PyIpython(PythonPackage):
     depends_on('py-prompt-toolkit@2.0.0:2.0.999', when='@7.5.0', type=('build', 'run'))
     depends_on('py-prompt-toolkit@3.0.2:3.0.999', when='@7.18:', type=('build', 'run'))
     depends_on('py-pygments', type=('build', 'run'))
-    depends_on('py-backcall', type=('build', 'run'), when='@7.5.0:')
+    depends_on('py-backcall', type=('build', 'run'), when='@7.3.0:')
     depends_on('py-pexpect', type=('build', 'run'))
     depends_on('py-pexpect@4.3:', type=('build', 'run'), when='@7.18:')
     depends_on('py-appnope', type=('build', 'run'), when='platform=darwin')
