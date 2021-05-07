@@ -29,56 +29,64 @@ def module(*args):
         # Do the module manipulation, then output the environment in JSON
         # and read the JSON back in the parent process to update os.environ
         # For python, we use the same python running the Spack process, because
-        # we can guarantee its existence. We have to do some LD_LIBRARY_PATH
+        # we can guarantee its existence. We have to do some environment
         # shenanigans to ensure python will run.
 
-        # LD_LIBRARY_PATH under which Spack ran
-        os.environ['SPACK_LD_LIBRARY_PATH'] = spack.main.spack_ld_library_path
+        # Environment variables under which Spack ran
+        for var, val in spack.main.spack_python_env:
+            os.environ['SPACK_PYTHON_{0}'.format(var)] = val or ''
 
         # suppress output from module function
         module_cmd += ' >/dev/null;'
 
-        # Capture the new LD_LIBRARY_PATH after `module` was run
-        module_cmd += 'export SPACK_NEW_LD_LIBRARY_PATH="$LD_LIBRARY_PATH";'
-
-        # Set LD_LIBRARY_PATH to value at Spack startup time to ensure that
-        # python executable finds its libraries
-        module_cmd += 'LD_LIBRARY_PATH="$SPACK_LD_LIBRARY_PATH" '
+        # Capture the new values (if they had been set) after `module` was run
+        # and set variables to values at Spack startup time to ensure that
+        # python executable finds its libraries.
+        for var, val in spack.main.spack_python_env:
+            module_cmd += ('SPACK_PYTHON_NEW_{0}="${{{0}-SPACKIGNORE}}";'
+                           .format(var))
+            if val is None:
+                module_cmd += '{0}=; unset {0};'.format(var)
+            else:
+                module_cmd += 'export {0}="$SPACK_PYTHON_{0}";'.format(var)
 
         # Execute the python command
         module_cmd += '%s -c "%s";' % (sys.executable, py_cmd)
 
-        # If LD_LIBRARY_PATH was set after `module`, dump the old value because
-        # we have since corrupted it to ensure python would run.
-        # dump SPACKIGNORE as a placeholder for parsing if LD_LIBRARY_PATH null
-        module_cmd += 'echo "${SPACK_NEW_LD_LIBRARY_PATH:-SPACKIGNORE}"'
+        # If a variable was set after `module`, dump the old value because
+        # we have since corrupted it to ensure python would run. Surround the
+        # output with colons to avoid empty strings in the output.
+        for var, _ in spack.main.spack_python_env:
+            module_cmd += 'echo ":${{SPACK_PYTHON_NEW_{0}}}:";'.format(var)
 
-        module_p  = subprocess.Popen(module_cmd,
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.STDOUT,
-                                     shell=True,
-                                     executable="/bin/bash")
+        module_p = subprocess.Popen(module_cmd,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    shell=True,
+                                    executable="/bin/bash")
 
         # Cray modules spit out warnings that we cannot supress.
         # This hack skips to the last output (the environment)
         env_out = str(module_p.communicate()[0].decode()).strip().split('\n')
 
         # The environment dumped as json
-        env_json = env_out[-2]
-        # Either the uncorrupted $LD_LIBRARY_PATH or SPACKIGNORE
-        new_ld_library_path = env_out[-1]
+        env_json_idx = len(env_out) - 1 - len(spack.main.spack_python_env)
+        env_json = env_out[env_json_idx]
 
         # Update os.environ with new dict
         env_dict = json.loads(env_json)
         os.environ.clear()
         os.environ.update(env_dict)
 
-        # Override restored LD_LIBRARY_PATH with pre-python value
-        if new_ld_library_path == 'SPACKIGNORE':
-            os.environ.pop('LD_LIBRARY_PATH', None)
-        else:
-            os.environ['LD_LIBRARY_PATH'] = new_ld_library_path
-
+        # Override restored values with pre-python ones
+        for var_idx in range(len(spack.main.spack_python_env)):
+            var = spack.main.spack_python_env[var_idx][0]
+            os.environ.pop('SPACK_PYTHON_{0}'.format(var))
+            val = env_out[env_json_idx + 1 + var_idx][1:-1]
+            if val == 'SPACKIGNORE':
+                os.environ.pop(var, None)
+            else:
+                os.environ[var] = val
     else:
         # Simply execute commands that don't change state and return output
         module_p = subprocess.Popen(module_cmd,

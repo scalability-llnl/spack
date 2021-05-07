@@ -19,7 +19,11 @@ def test_read_unicode(tmpdir, working_env):
     script_name = 'print_unicode.py'
 
     with tmpdir.as_cwd():
-        os.environ['LD_LIBRARY_PATH'] = spack.main.spack_ld_library_path
+        for var, val in spack.main.spack_python_env:
+            if val is None:
+                os.environ.pop(var, None)
+            else:
+                os.environ[var] = val
         # make a script that prints some unicode
         with open(script_name, 'w') as f:
             f.write('''#!{0}

@@ -91,7 +91,9 @@ required_command_properties = ['level', 'section', 'description']
 
 #: Recorded directory where spack command was originally invoked
 spack_working_dir = None
-spack_ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
+#: Recorded environment variables that affect sys.executable
+spack_python_env = [(var, os.environ.get(var, None))
+                    for var in ('LD_LIBRARY_PATH', 'PYTHONHOME', 'PYTHONPATH')]
 
 
 def set_working_dir():
