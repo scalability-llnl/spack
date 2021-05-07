@@ -13,6 +13,8 @@ class Arborx(CMakePackage):
     url      = "https://github.com/arborx/arborx/archive/v0.9-beta.tar.gz"
     git      = "https://github.com/arborx/arborx.git"
 
+    tags = ['ecp', 'e4s']
+
     maintainers = ['aprokop']
 
     version('master',   branch='master')

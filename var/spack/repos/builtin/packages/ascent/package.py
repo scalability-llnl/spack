@@ -37,6 +37,8 @@ class Ascent(Package, CudaPackage):
     git      = "https://github.com/Alpine-DAV/ascent.git"
     url      = "https://github.com/Alpine-DAV/ascent/releases/download/v0.5.1/ascent-v0.5.1-src-with-blt.tar.gz"
 
+    tags = ['ecp', 'e4s']
+
     maintainers = ['cyrush']
 
     version('develop',

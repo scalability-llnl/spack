@@ -19,6 +19,8 @@ class Adios(AutotoolsPackage):
 
     maintainers = ['ax3l']
 
+    tags = ['ecp', 'e4s']
+
     version('develop', branch='master')
     version('1.13.1', sha256='b1c6949918f5e69f701cabfe5987c0b286793f1057d4690f04747852544e157b')
     version('1.13.0', sha256='7b5ee8ff7a5f7215f157c484b20adb277ec0250f87510513edcc25d2c4739f50')

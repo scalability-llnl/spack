@@ -14,6 +14,8 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     homepage = "https://amrex-codes.github.io/amrex/"
     url      = "https://github.com/AMReX-Codes/amrex/releases/download/20.05/amrex-20.05.tar.gz"
     git      = "https://github.com/AMReX-Codes/amrex.git"
+    
+    tags = ['ecp', 'e4s']
 
     maintainers = ['mic84', 'asalmgren']
 
