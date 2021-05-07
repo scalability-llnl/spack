@@ -53,6 +53,14 @@ class GobjectIntrospection(Package):
     #   inserted into the scripts as they're generated.
     patch("sbang.patch")
 
+    # Drop deprecated xml.etree.ElementTree.Element.getchildren() which leads
+    # to compilation issues with Python 3.9.
+    # https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/325
+    patch('https://gitlab.gnome.org/GNOME/gobject-introspection/-/commit/'
+          '1f9284228092b2a7200e8a78bc0ea6702231c6db.patch',
+          sha256='7700828b638c85255c87fcc317ea7e9572ff443f65c86648796528885e5b4cea',
+          when='@:1.63.1')
+
     def url_for_version(self, version):
         url = 'http://ftp.gnome.org/pub/gnome/sources/gobject-introspection/{0}/gobject-introspection-{1}.tar.xz'
         return url.format(version.up_to(2), version)
