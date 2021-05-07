@@ -27,6 +27,7 @@ from llnl.util.tty.colify import colify
 import spack.repo
 import spack.store
 import spack.database
+import spack.main
 import spack.package
 import spack.spec
 from spack.util.mock_package import MockPackageMultiRepo
@@ -35,6 +36,8 @@ from spack.schema.database_index import schema
 
 
 pytestmark = pytest.mark.db
+
+install = spack.main.SpackCommand('install')
 
 
 @pytest.fixture()
@@ -468,6 +471,27 @@ def test_015_write_and_read(mutable_database):
         assert new_rec.spec == rec.spec
         assert new_rec.path == rec.path
         assert new_rec.installed == rec.installed
+
+
+def test_016_read_multiple_db(tmpdir, mock_fetch, mock_store, install_mockery):
+    '''
+    Because spec.prefix reads from the database to check for existing specs,
+    we need to store the prefix from the database at read time in case the spec
+    comes from a non-default database (like the bootstrap store)
+    '''
+    with spack.store.use_store(str(tmpdir)):
+        with spack.store.db.write_transaction():
+            orig_prefix = spack.spec.Spec('libelf').concretized().prefix
+            install('libelf')
+
+        # Ensure the db is actually read from the file
+        spack.store.db.last_seen_verifier = None
+
+        with spack.store.db.write_transaction():
+            spec = spack.store.db.query('libelf')[0]
+
+    # spec.prefix referenced outside of use_store
+    assert spec.prefix == orig_prefix
 
 
 def test_017_write_and_read_without_uuid(mutable_database, monkeypatch):

@@ -638,7 +638,7 @@ class Database(object):
         Does not do any locking.
         """
         spec_dict = installs[hash_key]['spec']
-
+        spec_path = installs[hash_key].get('path', None)
         # Install records don't include hash with spec, so we add it in here
         # to ensure it is read properly.
         for name in spec_dict:
@@ -646,6 +646,10 @@ class Database(object):
 
         # Build spec from dict first.
         spec = spack.spec.Spec.from_node_dict(spec_dict)
+
+        # Make sure prefix doesn't change
+        if spec_path and spec_path != 'None':
+            spec.prefix = spec_path
         return spec
 
     def db_for_spec_hash(self, hash_key):
