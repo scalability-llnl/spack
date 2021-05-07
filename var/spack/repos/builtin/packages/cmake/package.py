@@ -215,6 +215,27 @@ class Cmake(Package):
         match = re.search(r'cmake.*version\s+(\S+)', output)
         return match.group(1) if match else None
 
+    def patch(self):
+        spec = self.spec
+        if "%pgi" in spec:
+            # Backport https://github.com/Kitware/CMake/commit/52eee1938919deb59cc2b51d44f365f0d9a418e5
+            # from 3.19.0
+            if spec.satisfies("3.9.0:@3.18.6"):
+                filter_file(r" -A", " ", "Modules/Compiler/PGI-CXX.cmake")
+            if spec.satisfies("@3.9.6:"):
+                # PGI doesn't support fPIE, so replace it with fPIC
+                filter_file(r"fPIE", "fPIC", "Modules/Compiler/NVIDIA-CUDA.cmake")
+
+    @run_before('bootstrap')
+    def remove_hugepages(self):
+        # Cmake doesn't build on Cray with this module loaded. by
+        # not linking this at build time, libhugepages.so won't be used
+        # when running CMake either. setup_build_environment may not be
+        # suitable because compiler modules are loaded after that function
+        # is run.
+        if self.spec.compiler.satisfies('platform=cray'):
+            module('unload', 'craype-hugepages2M')
+
     def flag_handler(self, name, flags):
         if name == 'cxxflags' and self.compiler.name == 'fj':
             cxx11plus_flags = (self.compiler.cxx11_flag,
