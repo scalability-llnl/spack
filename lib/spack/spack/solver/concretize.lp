@@ -20,7 +20,9 @@ version_declared(Package, Version) :- version_declared(Package, Version, _).
  :- node(Package).
 
 % If we select a deprecated version, mark the package as deprecated
-deprecated(Package) :- version(Package, Version), deprecated_version(Package, Version).
+deprecated(Package, Version, Reason)
+  :- version(Package, Version),
+     deprecated_version(Package, Version, Reason).
 
 possible_version_weight(Package, Weight)
  :- version(Package, Version), version_declared(Package, Version, Weight),
@@ -693,7 +695,7 @@ no_flags(Package, FlagType)
 % Minimize the number of deprecated versions being used
 opt_criterion(16, "deprecated versions used").
 #minimize{ 0@16 : #true }.
-#minimize{ 1@16,Package : deprecated(Package)}.
+#minimize{ 1@16,Package : deprecated(Package, _, _)}.
 
 % The highest priority is to minimize the:
 % 1. Version weight

@@ -8,5 +8,5 @@ class DeprecatedVersions(Package):
     homepage = "http://www.example.com"
     url = "http://www.example.com/c-1.0.tar.gz"
 
-    version('1.1.0', '0123456789abcdef0123456789abcdef', deprecated=True)
+    version('1.1.0', '0123456789abcdef0123456789abcdef', deprecated='bug')
     version('1.0.0', '0123456789abcdef0123456789abcdef')
