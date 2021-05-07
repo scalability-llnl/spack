@@ -60,6 +60,8 @@ class Visit(CMakePackage):
 
     maintainers = ['cyrush']
 
+    extendable = True
+
     version('develop', branch='develop')
     version('3.1.1', sha256='0b60ac52fd00aff3cf212a310e36e32e13ae3ca0ddd1ea3f54f75e4d9b6c6cf0')
     version('3.0.1', sha256='a506d4d83b8973829e68787d8d721199523ce7ec73e7594e93333c214c2c12bd')
@@ -230,6 +232,9 @@ class Visit(CMakePackage):
             '-DCMAKE_CXX_FLAGS=' + ' '.join(cxx_flags),
             '-DCMAKE_C_FLAGS=' + ' '.join(cc_flags),
         ]
+
+        # Provide the plugin compilation environment so as to extend VisIt
+        args.append('-DVISIT_INSTALL_THIRD_PARTY=ON')
 
         if spec.satisfies('@3.1:'):
             args.append('-DFIXUP_OSX=OFF')
