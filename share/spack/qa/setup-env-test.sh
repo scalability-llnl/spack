@@ -97,6 +97,7 @@ title 'Testing `spack cd`'
 contains "usage: spack cd " spack cd -h
 contains "usage: spack cd " spack cd --help
 contains "cd $b_install" spack cd -i b
+contains "cd $b_install" spack -kc config:ccache:true -cconfig:ccache:false --color always cd -i b
 
 title 'Testing `spack module`'
 contains "usage: spack module " spack -m module -h
@@ -111,6 +112,7 @@ fails spack -m load -l
 contains "export LD_LIBRARY_PATH=$(spack -m location -i a)/lib:$(spack -m location -i b)/lib" spack -m load --sh a
 succeeds spack -m load --only dependencies a
 succeeds spack -m load --only package a
+succeeds spack -m -c config:ccache:true -cconfig:ccache:false --color always load --only package a
 fails spack -m load d
 contains "usage: spack load " spack -m load -h
 contains "usage: spack load " spack -m load -h d
@@ -120,6 +122,7 @@ title 'Testing `spack unload`'
 spack -m load b a  # setup
 succeeds spack -m unload b
 succeeds spack -m unload --all
+succeeds spack -m -c config:ccache:true -cconfig:ccache:false --color always unload --all
 spack -m unload --all # cleanup
 fails spack -m unload -l
 fails spack -m unload d
@@ -133,17 +136,20 @@ contains "usage: spack env " spack env --help
 
 title 'Testing `spack env list`'
 contains " spack env list " spack env list -h
+contains " spack env list " spack -kc config:ccache:true -cconfig:ccache:false --color always env list -h
 contains " spack env list " spack env list --help
 
 title 'Testing `spack env activate`'
 contains "No such environment:" spack env activate no_such_environment
 contains "usage: spack env activate " spack env activate
+contains "usage: spack env activate " spack -kc config:ccache:true -cconfig:ccache:false --color always env activate
 contains "usage: spack env activate " spack env activate -h
 contains "usage: spack env activate " spack env activate --help
 
 title 'Testing `spack env deactivate`'
 contains "Error: No environment is currently active" spack env deactivate
 contains "usage: spack env deactivate " spack env deactivate no_such_environment
+contains "usage: spack env deactivate " spack -kc config:ccache:true -cconfig:ccache:false --color always env deactivate no_such_environment
 contains "usage: spack env deactivate " spack env deactivate -h
 contains "usage: spack env deactivate " spack env deactivate --help
 

@@ -60,21 +60,62 @@ _spack_shell_wrapper() {
         emulate -L sh
     fi
 
-    # accumulate flags meant for the main spack command
-    # the loop condition is unreadable, but it means:
-    #     while $1 is set (while there are arguments)
-    #       and $1 starts with '-' (and the arguments are flags)
+    # accumulate flags meant for spack itself preceding the command
     _sp_flags=""
-    while [ ! -z ${1+x} ] && [ "${1#-}" != "${1}" ]; do
-        _sp_flags="$_sp_flags $1"
-        shift
+    help_or_version_was_used=0
+    while [ -n "$1" ]; do
+        case "$1" in
+            --color|--config|--sorted-profile|--lines|--env-dir|--env)
+                # long flags taking required values
+                _sp_flags="$_sp_flags $1 $2"
+                shift 2
+                ;;
+            --help|--version)
+                # special early return flags
+                help_or_version_was_used=1
+                _sp_flags="$_sp_flags $1"
+                shift
+                ;;
+            --*)
+                # long flags taking no value
+                _sp_flags="$_sp_flags $1"
+                shift
+                ;;
+            -*)
+                # loop over all single character flags (e.g. -kle[env]), but
+                # skip the dash before the flag, so start at 1
+                for (( i=1 ; i<${#1}; i++ )); do
+                    flag="${1:$i:1}"
+                    case "$flag" in
+                        c|C|e|D)
+                            # flags with required values
+                            val="${1:((i+1))}"
+                            if [ -z "$val" ]; then shift; val="$1"; fi
+                            _sp_flags="$_sp_flags -$flag $val"
+                            break
+                            ;;
+                        h|V)
+                            # special early return flags
+                            help_or_version_was_used=1
+                            _sp_flags="$_sp_flags -$flag"
+                            ;;
+                        *)
+                            # flags not taking a value
+                            _sp_flags="$_sp_flags -$flag"
+                            ;;
+                    esac
+                done
+                shift
+                ;;
+            *)
+                # this must be a command
+                break
+                ;;
+        esac
     done
 
-    # h and V flags don't require further output parsing.
-    if [ -n "$_sp_flags" ] && \
-       [ "${_sp_flags#*h}" != "${_sp_flags}" ] || \
-       [ "${_sp_flags#*V}" != "${_sp_flags}" ];
-    then
+    # early return for flags that don't execute a command
+    if [[ "$help_or_version_was_used" == 1 ]]; then
         command spack $_sp_flags "$@"
         return
     fi
@@ -96,9 +137,9 @@ _spack_shell_wrapper() {
                 shift
             fi
             if [ "$_sp_arg" = "-h" ] || [ "$_sp_arg" = "--help" ]; then
-                command spack cd -h
+                command spack $_sp_flags cd -h
             else
-                LOC="$(spack location $_sp_arg "$@")"
+                LOC="$(spack $_sp_flags location $_sp_arg "$@")"
                 if [ -d "$LOC" ] ; then
                     cd "$LOC"
                 else
@@ -115,7 +156,7 @@ _spack_shell_wrapper() {
             fi
 
             if [ "$_sp_arg" = "-h" ] || [ "$_sp_arg" = "--help" ]; then
-                command spack env -h
+                command spack $_sp_flags env -h
             else
                 case $_sp_arg in
                     activate)
@@ -133,7 +174,7 @@ _spack_shell_wrapper() {
                            [ "${_a#* --help}" != "$_a" ];
                         then
                             # No args or args contain --sh, --csh, or -h/--help: just execute.
-                            command spack env activate "$@"
+                            command spack $_sp_flags env activate "$@"
                         else
                             # Actual call to activate: source the output.
                             eval $(command spack $_sp_flags env activate --sh "$@")
@@ -151,17 +192,17 @@ _spack_shell_wrapper() {
                            [ "${_a#* --csh}" != "$_a" ];
                         then
                             # Args contain --sh or --csh: just execute.
-                            command spack env deactivate "$@"
+                            command spack $_sp_flags env deactivate "$@"
                         elif [ -n "$*" ]; then
                             # Any other arguments are an error or -h/--help: just run help.
-                            command spack env deactivate -h
+                            command spack $_sp_flags env deactivate -h
                         else
                             # No args: source the output of the command.
                             eval $(command spack $_sp_flags env deactivate --sh)
                         fi
                         ;;
                     *)
-                        command spack env $_sp_arg "$@"
+                        command spack $_sp_flags env $_sp_arg "$@"
                         ;;
                 esac
             fi
