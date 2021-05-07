@@ -77,6 +77,7 @@ or refer to the full manual below.
    chain
    extensions
    pipelines
+   troubleshooting
 
 .. toctree::
    :maxdepth: 2
