@@ -132,17 +132,20 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
                     extradir)
 
     def flag_handler(self, name, flags):
+        # Use a separate variable for injecting flags. This way, installing
+        # `binutils cflags='-O2'` will still work as expected.
+        iflags = []
         # To ignore the errors of narrowing conversions for
         # the Fujitsu compiler
         if name == 'cxxflags' and (
             self.spec.satisfies('@:2.31.1') and
             self.compiler.name in ('fj', 'clang', 'apple-clang')
         ):
-            flags.append('-Wno-narrowing')
+            iflags.append('-Wno-narrowing')
         elif name == 'cflags':
             if self.spec.satisfies('@:2.34 %gcc@10:'):
-                flags.append('-fcommon')
-        return (flags, None, None)
+                iflags.append('-fcommon')
+        return (iflags, None, flags)
 
     def test(self):
         spec_vers = str(self.spec.version)
