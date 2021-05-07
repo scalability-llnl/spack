@@ -200,6 +200,19 @@ def test_env_modifications_error_on_activate(
     assert "Warning: couldn't get environment settings" in err
 
 
+def test_activate_adds_transitive_run_deps_to_path(
+        install_mockery, mock_fetch, monkeypatch):
+    env('create', 'test')
+    install = SpackCommand('install')
+
+    e = ev.read('test')
+    with e:
+        install('depends-on-run-env')
+
+    cmds = spack.environment.activate(e)
+    assert 'DEPENDENCY_ENV_VAR=1' in cmds
+
+
 def test_env_install_same_spec_twice(install_mockery, mock_fetch):
     env('create', 'test')
 
