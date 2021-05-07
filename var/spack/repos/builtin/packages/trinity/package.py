@@ -20,10 +20,12 @@ class Trinity(MakefilePackage):
     """
 
     homepage = "http://trinityrnaseq.github.io/"
-    url      = "https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.6.6.tar.gz"
+    url      = "https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.12.0/trinityrnaseq-v2.12.0.FULL.tar.gz"
 
+    version('2.12.0.FULL', sha256='0d47dc433cc3003e1c732b97da605e29c6ccafa38cd52cdb8ecc42399a9195d0')
     version('2.6.6', sha256='868dfadeefaf2d3c6150a88d5e86fbc09466d69bbf4a65f70b4f5a7485668984')
 
+    depends_on("cmake", type="build")
     depends_on("java@8:", type=("build", "run"))
     depends_on("bowtie2")
     depends_on("jellyfish")
@@ -36,6 +38,14 @@ class Trinity(MakefilePackage):
     # There is no documented list of these deps, but they're in the Dockerfile
     #  and we have runtime errors without them
     # https://github.com/trinityrnaseq/trinityrnaseq/blob/master/Docker/Dockerfile
+    depends_on("r-dexseq", type="run")
+    depends_on("star", type="run")
+    depends_on("picard", type="run")
+    depends_on("subread", type="run")
+    depends_on("gatk", type="run")
+    depends_on("gmap-gsnap", type="run")
+    depends_on("r-tximport", type="run")
+    depends_on("r-tximportdata", type="run")
     depends_on("blast-plus", type="run")
     depends_on("bowtie", type="run")
     depends_on("r", type="run")
