@@ -74,6 +74,9 @@ class Magma(CMakePackage, CudaPackage):
         options += ['-DBUILD_SHARED_LIBS=%s' %
                     ('ON' if ('+shared' in spec) else 'OFF')]
 
+        if spec.satisfies('%cce'):
+            options += [('-DCUDA_NVCC_FLAGS=-allow-unsupported-compiler')]
+
         if '+fortran' in spec:
             options.extend([
                 '-DUSE_FORTRAN=yes'
@@ -82,6 +85,9 @@ class Magma(CMakePackage, CudaPackage):
                 options.extend([
                     '-DCMAKE_Fortran_COMPILER=%s' % self.compiler.f77
                 ])
+
+            if spec.satisfies('%cce'):
+                options.append('-DCMAKE_Fortran_FLAGS=-ef')
 
         if spec.satisfies('^cuda'):
             cuda_arch = self.spec.variants['cuda_arch'].value
