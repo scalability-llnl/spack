@@ -1,0 +1,11 @@
+--- a/vendor/common/build-config/m4/ac_scorep_sys_detection.m4	2019-07-19 01:31:13.409311556 -0500
++++ b/vendor/common/build-config/m4/ac_scorep_sys_detection.m4	2021-03-04 22:11:30.278313559 -0600
+@@ -100,6 +100,8 @@
+                   [test "x${build_cpu}" = "xpowerpc64" && test -d /bgsys],
+                       [ac_scorep_platform="bgp"],
+                   [(test "x${build_cpu}" = "xx86_64" || test "x${build_cpu}" = "xaarch64") && test -d /opt/cray],
++                      [AS_IF([test -d /opt/cray/cs-prgenv],
++                           [ac_scorep_platform="crayxc"])]
+                       [AS_IF([test -L /opt/cray/pmi/default],
+                            [AS_IF([test "x`readlink -f /opt/cray/pmi/default | grep -o --regexp=[[a-z]]*$ | grep -q ss && echo TRUE`" = "xTRUE"],
+                                    [ac_scorep_platform="crayxt"],
