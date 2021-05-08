@@ -30,6 +30,12 @@ class Kvtree(CMakePackage):
             multi=False,
             description='File locking style for KVTree.')
 
+    def flag_handler(self, name, flags):
+        if '%cce' in self.spec:
+            if name == 'ldflags':
+                flags.append('-Wl,-z,muldefs')
+            return (flags, None, None)
+
     def cmake_args(self):
         args = []
         if self.spec.satisfies('+mpi'):
