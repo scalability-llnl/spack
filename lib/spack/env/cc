@@ -319,11 +319,12 @@ while [ $# -ne 0 ]; do
             fi
             ;;
         -l*)
-            # -loopopt=0 is passed to the linker erroneously in
-            # autoconf <= 2.69. Filter it out.
+            # -loopopt=0 is generated erroneously in autoconf <= 2.69,
+            # and passed by ifx to the linker, which confuses it with a 
+            # library. Filter it out.
             # TODO: generalize filtering of args with an env var, so that
             # TODO: we do not have to special case this here.
-            if [ "$mode" = "ld" ] && [ "$1" != "${1#-loopopt}" ]; then
+            if [ "$mode" = "ccld" ] && [ "$1" != "${1#-loopopt}" ]; then
                 shift
                 continue
             fi
