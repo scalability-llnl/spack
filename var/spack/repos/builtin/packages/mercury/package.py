@@ -59,6 +59,12 @@ class Mercury(CMakePackage):
     # See https://github.com/mercury-hpc/mercury/issues/299
     patch('fix-cmake-3.15-check_symbol_exists.patch', when='@1.0.0:1.0.1')
 
+    def flag_handler(self, name, flags):
+        if ('%cce' in self.spec):
+            if name == 'ldflags':
+                flags.append('-Wl,-z,muldefs')
+            return (None, None, flags)
+
     def cmake_args(self):
         """Populate cmake arguments for Mercury."""
         spec = self.spec
