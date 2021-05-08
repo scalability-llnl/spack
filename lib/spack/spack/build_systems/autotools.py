@@ -83,6 +83,8 @@ class AutotoolsPackage(PackageBase):
     #: after the installation. If True instead it installs them.
     install_libtool_archives = False
 
+    track_dependencies = False
+
     @property
     def _removed_la_files_log(self):
         """File containing the list of remove libtool archives"""
@@ -336,6 +338,12 @@ class AutotoolsPackage(PackageBase):
         """
         options = getattr(self, 'configure_flag_args', [])
         options += ['--prefix={0}'.format(prefix)]
+        if self.track_dependencies is not None:
+            if self.track_dependencies:
+                options += ['--enable-dependency-tracking']
+            else:
+                options += ['--disable-dependency-tracking']
+
         options += self.configure_args()
 
         with working_dir(self.build_directory, create=True):
