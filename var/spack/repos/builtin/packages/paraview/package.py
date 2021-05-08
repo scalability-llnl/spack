@@ -53,10 +53,24 @@ class Paraview(CMakePackage, CudaPackage):
             description='Builds a shared version of the library')
     variant('kits', default=True,
             description='Use module kits')
+
+    legacy_cuda_values = ['native', 'fermi', 'kepler', 'maxwell',
+                          'pascal', 'volta', 'turing', 'all', 'none']
+    cuda_values = legacy_cuda_values.extend(CudaPackage.cuda_arch_values)
     variant('cuda_arch', default='native', multi=False,
-            values=('native', 'fermi', 'kepler', 'maxwell',
-                    'pascal', 'volta', 'turing', 'ampere', 'all', 'none'),
+            values=cuda_values,
             description='CUDA architecture')
+
+    # VTKm do not support these archs
+    unsupported_cuda_archs = [
+        '10', '11', '12', '13'
+    ]
+
+    for value in unsupported_cuda_archs:
+        conflicts('cuda_arch={0}'.format(value), when='+cuda',
+                  msg='CUDA architecture {0} is not supported, Min arch 20'
+                  .format(value))
+
     variant('advanced_debug', default=False, description="Enable all other debug flags beside build_type, such as VTK_DEBUG_LEAK")
 
     conflicts('+python', when='+python3')
@@ -356,9 +370,41 @@ class Paraview(CMakePackage, CudaPackage):
         else:
             cmake_args.append('-DVTKm_ENABLE_CUDA:BOOL=%s' %
                               variant_bool('+cuda'))
-        if spec.satisfies('+cuda') and not spec.satisfies('cuda_arch=native'):
-            cmake_args.append('-DVTKm_CUDA_Architecture=%s' %
-                              spec.variants['cuda_arch'].value)
+
+        # Source from the CudaPackage source code and VTKm CMAKE files
+        # Note that VTK-m and transitively ParaView does not support Tesla Arch
+        supported_cuda_archs = {
+            '20': 'fermi',
+            '21': 'fermi',
+            '30': 'kepler',
+            '32': 'kepler',
+            '35': 'kepler',
+            '37': 'kepler',
+            '50': 'maxwel',
+            '52': 'maxwel',
+            '53': 'maxwel',
+            '60': 'pascal',
+            '61': 'pascal',
+            '62': 'pascal',
+            '70': 'volta',
+            '72': 'volta',
+            '75': 'turing',
+            '80': 'ampere',
+            '86': 'ampere'
+        }
+
+        # If we do not specify the cuda family we can guess it by reversing
+        # the supported_cuda_archs
+        if spec.satisfies('+cuda'):
+            cuda_arch_value = spec.variants['cuda_arch'].value
+            if cuda_arch_value.isdigit():
+                if cuda_arch_value not in supported_cuda_archs:
+                    raise InstallError("Uncompatible cuda_arch=%s" % cuda_arch_value)
+
+                cuda_arch_value = supported_cuda_archs[cuda_arch_value]
+
+            if not spec.satisfies('cuda_arch=native'):
+                cmake_args.append('-DVTKm_CUDA_Architecture=%s' % cuda_arch_value)
 
         if 'darwin' in spec.architecture:
             cmake_args.extend([
