@@ -457,20 +457,27 @@ class BoolValuedVariant(SingleValuedVariant):
 
     def _value_setter(self, value):
         # Check the string representation of the value and turn
-        # it to a boolean
-        if str(value).upper() == 'TRUE':
+        # it to a boolean.
+        s = str(value)
+        if s.upper() == 'TRUE':
             self._original_value = value
             self._value = True
-        elif str(value).upper() == 'FALSE':
+        elif s.upper() == 'FALSE':
             self._original_value = value
             self._value = False
-        elif str(value) == '*':
+        elif s == '*':
             self._original_value = value
             self._value = '*'
+        elif isinstance(value, tuple) and len(value) == 1:
+            # TODO: the value provided should never be a tuple, but it appears that
+            # .validate_or_raise() will convert bools and strs into
+            # single-element tuples.
+            self._value_setter(value[0])
         else:
-            msg = 'cannot construct a BoolValuedVariant for "{0}" from '
-            msg += 'a value that does not represent a bool'
-            raise ValueError(msg.format(self.name))
+            raise ValueError(
+                'cannot construct a BoolValuedVariant for "{0}" from '
+                'a value that does not represent a bool. '
+                'received: {1}'.format(self.name, value))
 
     def __contains__(self, item):
         return item is self.value

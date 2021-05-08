@@ -316,12 +316,9 @@ def test_git_url_top_level_git_versions(mock_packages, config):
     assert fetcher.commit is None
     assert fetcher.branch is None
 
-    fetcher = spack.fetch_strategy.for_package_version(pkg, '3.1')
-    assert isinstance(fetcher, spack.fetch_strategy.GitFetchStrategy)
-    assert fetcher.url == 'https://example.com/some/git/repo'
-    assert fetcher.tag == 'v3.1'
-    assert fetcher.commit == 'abc31'
-    assert fetcher.branch is None
+    # This raises because both tag= and commit= are specified!
+    with pytest.raises(spack.fetch_strategy.FetcherConflict):
+        spack.fetch_strategy.for_package_version(pkg, '3.1')
 
     fetcher = spack.fetch_strategy.for_package_version(pkg, '3.2')
     assert isinstance(fetcher, spack.fetch_strategy.GitFetchStrategy)
@@ -330,18 +327,26 @@ def test_git_url_top_level_git_versions(mock_packages, config):
     assert fetcher.commit is None
     assert fetcher.branch == 'releases/v3.2'
 
-    fetcher = spack.fetch_strategy.for_package_version(pkg, '3.3')
-    assert isinstance(fetcher, spack.fetch_strategy.GitFetchStrategy)
-    assert fetcher.url == 'https://example.com/some/git/repo'
-    assert fetcher.tag is None
-    assert fetcher.commit == 'abc33'
-    assert fetcher.branch == 'releases/v3.3'
+    # This raises because both branch= and commit= are specified!
+    with pytest.raises(spack.fetch_strategy.FetcherConflict):
+        spack.fetch_strategy.for_package_version(pkg, '3.3')
+
+    with pytest.raises(spack.fetch_strategy.FetcherConflict) as exc_info:
+        spack.fetch_strategy.for_package_version(pkg, '3.4-5chars')
+    assert '10-40 character hexadecimal string' in str(exc_info.value)
 
     fetcher = spack.fetch_strategy.for_package_version(pkg, '3.4')
     assert isinstance(fetcher, spack.fetch_strategy.GitFetchStrategy)
     assert fetcher.url == 'https://example.com/some/git/repo'
     assert fetcher.tag is None
-    assert fetcher.commit == 'abc34'
+    assert fetcher.commit == 'abc34389af'
+    assert fetcher.branch is None
+
+    fetcher = spack.fetch_strategy.for_package_version(pkg, '3.4-hexcaps')
+    assert isinstance(fetcher, spack.fetch_strategy.GitFetchStrategy)
+    assert fetcher.url == 'https://example.com/some/git/repo'
+    assert fetcher.tag is None
+    assert fetcher.commit == 'ABC34389AF'
     assert fetcher.branch is None
 
     fetcher = spack.fetch_strategy.for_package_version(pkg, 'submodules')

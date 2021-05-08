@@ -5,18 +5,18 @@
 
 import copy
 import os
-import shutil
+import re
 
 import pytest
 
-from llnl.util.filesystem import working_dir, touch, mkdirp
+from llnl.util.filesystem import working_dir, touch
 
 import spack.repo
 import spack.config
 from spack.spec import Spec
 from spack.stage import Stage
 from spack.version import ver
-from spack.fetch_strategy import GitFetchStrategy
+from spack.fetch_strategy import ConfiguredGit, GitFetchStrategy, GitRef
 from spack.util.executable import which
 
 pytestmark = pytest.mark.skipif(
@@ -50,7 +50,8 @@ def git_version(request, monkeypatch):
         # Patch the fetch strategy to think it's using a lower git version.
         # we use this to test what we'd need to do with older git versions
         # using a newer git installation.
-        monkeypatch.setattr(GitFetchStrategy, 'git_version', test_git_version)
+        monkeypatch.setattr(ConfiguredGit, '_get_git_version',
+                            lambda _: test_git_version)
         yield test_git_version
 
 
@@ -66,8 +67,8 @@ def mock_bad_git(monkeypatch):
 
     # Patch the fetch strategy to think it's using a git version that
     # will error out when git is called.
-    monkeypatch.setattr(GitFetchStrategy, 'git', bad_git)
-    monkeypatch.setattr(GitFetchStrategy, 'git_version', ver('1.7.1'))
+    bad_git = ConfiguredGit(bad_git, ver('1.7.1'))
+    monkeypatch.setattr(ConfiguredGit, 'from_executable', lambda _: bad_git)
     yield
 
 
@@ -83,15 +84,16 @@ def test_bad_git(tmpdir, mock_bad_git):
 
 @pytest.mark.parametrize("type_of_test", ['master', 'branch', 'tag', 'commit'])
 @pytest.mark.parametrize("secure", [True, False])
-def test_fetch(type_of_test,
-               secure,
-               mock_git_repository,
-               config,
-               mutable_mock_repo,
-               git_version):
-    """Tries to:
+def test_git_fetch(type_of_test,
+                   secure,
+                   mock_git_repository,
+                   config,
+                   mutable_mock_repo,
+                   git_version,
+                   patch_from_directive_for_git_ref):
+    """Performs multiple operations in series for a given refspec.
 
-    1. Fetch the repo using a fetch strategy constructed with
+    1. Fetch the repo using a git fetch strategy constructed with
        supplied args (they depend on type_of_test).
     2. Check if the test_file is in the checked out repository.
     3. Assert that the repository is at the revision supplied.
@@ -101,6 +103,16 @@ def test_fetch(type_of_test,
     # Retrieve the right test parameters
     t = mock_git_repository.checks[type_of_test]
     h = mock_git_repository.hash
+
+    if type_of_test == 'master':
+        patch_from_directive_for_git_ref(GitRef.branch('master'))
+    elif type_of_test == 'branch':
+        patch_from_directive_for_git_ref(GitRef.branch(t.revision))
+    elif type_of_test == 'tag':
+        patch_from_directive_for_git_ref(GitRef.tag(t.revision))
+    else:
+        assert type_of_test == 'commit', type_of_test
+        patch_from_directive_for_git_ref(GitRef.commit(t.revision))
 
     # Construct the package under test
     spec = Spec('git-test')
@@ -126,7 +138,13 @@ def test_fetch(type_of_test,
             untracked_file = 'foobarbaz'
             touch(untracked_file)
             assert os.path.isfile(untracked_file)
+
+        # A restage will delete the stage directory, so we need to get out of the above
+        # working_dir() scope and then re-acquire it at the same path.
+        with spack.config.override('config:verify_ssl', secure):
             pkg.do_restage()
+
+        with working_dir(pkg.stage.source_path):
             assert not os.path.isfile(untracked_file)
 
             assert os.path.isdir(pkg.stage.source_path)
@@ -154,22 +172,11 @@ def test_debug_fetch(mock_packages, type_of_test, mock_git_repository, config):
             assert os.path.isdir(pkg.stage.source_path)
 
 
-def test_git_extra_fetch(tmpdir):
-    """Ensure a fetch after 'expanding' is effectively a no-op."""
-    testpath = str(tmpdir)
-
-    fetcher = GitFetchStrategy(git='file:///not-a-real-git-repo')
-    with Stage(fetcher, path=testpath) as stage:
-        mkdirp(stage.source_path)
-        fetcher.fetch()   # Use fetcher to fetch for code coverage
-        shutil.rmtree(stage.source_path)
-
-
 def test_needs_stage():
     """Trigger a NoStageError when attempt a fetch without a stage."""
     with pytest.raises(spack.fetch_strategy.NoStageError,
                        match=r"set_stage.*before calling fetch"):
-        fetcher = GitFetchStrategy(git='file:///not-a-real-git-repo')
+        fetcher = GitFetchStrategy(git='file:///not-a-real-git-repo', branch='master')
         fetcher.fetch()
 
 
@@ -197,25 +204,31 @@ def test_get_full_repo(get_full_repo, git_version, mock_git_repository,
     with pkg.stage:
         with spack.config.override('config:verify_ssl', secure):
             pkg.do_stage()
+
             with working_dir(pkg.stage.source_path):
                 branches\
                     = mock_git_repository.git_exe('branch', '-a',
                                                   output=str).splitlines()
-                nbranches = len(branches)
-                commits\
+                git_log_lines\
                     = mock_git_repository.\
                     git_exe('log', '--graph',
                             '--pretty=format:%h -%d %s (%ci) <%an>',
                             '--abbrev-commit',
                             output=str).splitlines()
-                ncommits = len(commits)
+
+                commits = [re.sub(r'\* ([a-z0-9]+) .*$', r'\1', log_line)
+                           for log_line in git_log_lines]
 
         if get_full_repo:
-            assert(nbranches == 5)
-            assert(ncommits == 2)
+            assert branches[0:2] == ['* (no branch)', '  master']
+            assert branches[2].startswith('+ spack-internal-'), branches
+            assert branches[3:] == ['  tag-branch', '  test-branch']
+            assert len(commits) == 2
         else:
-            assert(nbranches == 2)
-            assert(ncommits == 1)
+            assert branches[0] == '* (no branch)'
+            assert branches[1].startswith('+ spack-internal-'), branches
+            assert branches[2:] == ['  tag-branch']
+            assert len(commits) == 2
 
 
 @pytest.mark.disable_clean_stage_check
