@@ -1730,6 +1730,33 @@ This issue typically manifests with the error below:
 
 A nicer error message is TBD in future versions of Spack.
 
+---------------
+Troubleshooting
+---------------
+
+To troubleshoot issues, Spack provides the ``spack audit`` command:
+
+.. command-output:: spack audit -h
+
+that is meant to run sanity checks on various aspects of Spack,
+such as configuration files, package recipes, etc. A detailed list
+of the checks currently implemented for each subcommand can be
+printed with:
+
+.. command-output:: spack -v audit list
+
+Depending on the use case, users might run the appropriate
+subcommands to obtain diagnostics. Issues, if found, are
+reported to stdout:
+
+.. code-block:: console
+
+   % spack audit packages --name=lammps
+   PKG-DIRECTIVES: 1 issue found
+   1. lammps: wrong variant in "conflicts" directive
+       the variant 'adios' does not exist
+       in /home/spack/spack/var/spack/repos/builtin/packages/lammps/package.py
+
 
 ------------
 Getting Help
