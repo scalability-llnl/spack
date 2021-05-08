@@ -11,8 +11,9 @@ class Rockstar(MakefilePackage):
     """The Rockstar Halo Finder"""
 
     homepage = "https://bitbucket.org/gfcstanford/rockstar"
+    git      = "https://bitbucket.org/gfcstanford/rockstar.git"
 
-    version('develop', git='https://bitbucket.org/gfcstanford/rockstar.git')
+    version('develop')
     version('yt', hg='https://bitbucket.org/MatthewTurk/rockstar')
 
     variant('hdf5', description='Build rockstar with HDF5 support', default=False)

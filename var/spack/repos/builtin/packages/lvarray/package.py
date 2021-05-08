@@ -38,9 +38,9 @@ class Lvarray(CMakePackage, CudaPackage):
     homepage = "https://github.com/GEOSX/lvarray"
     git      = "https://github.com/GEOSX/LvArray.git"
 
-    version('develop', branch='develop', submodules='True')
-    version('main', branch='main', submodules='True')
-    version('0.1.0', tag='v0.1.0', submodules='True')
+    version('develop', submodules=True)
+    version('main', submodules=True)
+    version('0.1.0', tag='v0.1.0', submodules=True)
 
     variant('shared', default=True, description='Build Shared Libs')
     variant('umpire', default=False, description='Build Umpire support')

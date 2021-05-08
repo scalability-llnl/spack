@@ -33,13 +33,13 @@ class Dray(Package, CudaPackage):
 
     maintainers = ['mclarsen', 'cyrush']
 
-    version('develop',  branch='develop', submodules='True')
-    version('0.1.5',  sha256='aaf0975561a8e7910b9353e2dc30bd78abf9f01c306ec042422b7da223d3a8b8')
-    version('0.1.4',  sha256='e763a3aa537b23486a4788f9d68db0a3eb545f6a2e617cd7c8a876682ca2d0a0')
-    version('0.1.3',  sha256='b2f624a072463189997343b1ed911cc34c9bb1b6c7f0c3e48efeb40c05dd0d92')
-    version('0.1.2',  sha256='46937f20124b28dc78a634e8e063a3e7a3bbfd9f424ce2680b08417010c376da')
-    version('0.1.1',  sha256='e5daa49ee3367c087f5028dc5a08655298beb318014c6f3f65ef4a08fcbe346c')
-    version('0.1.0',  sha256='8b341138e1069361351e0a94478608c5af479cca76e2f97d556229aed45c0169')
+    version('develop', submodules=True)
+    version('0.1.5',   sha256='aaf0975561a8e7910b9353e2dc30bd78abf9f01c306ec042422b7da223d3a8b8')
+    version('0.1.4',   sha256='e763a3aa537b23486a4788f9d68db0a3eb545f6a2e617cd7c8a876682ca2d0a0')
+    version('0.1.3',   sha256='b2f624a072463189997343b1ed911cc34c9bb1b6c7f0c3e48efeb40c05dd0d92')
+    version('0.1.2',   sha256='46937f20124b28dc78a634e8e063a3e7a3bbfd9f424ce2680b08417010c376da')
+    version('0.1.1',   sha256='e5daa49ee3367c087f5028dc5a08655298beb318014c6f3f65ef4a08fcbe346c')
+    version('0.1.0',   sha256='8b341138e1069361351e0a94478608c5af479cca76e2f97d556229aed45c0169')
 
     variant('cuda', default=False, description='Build with CUDA backend')
     variant('openmp', default=True, description='Build OpenMP backend')

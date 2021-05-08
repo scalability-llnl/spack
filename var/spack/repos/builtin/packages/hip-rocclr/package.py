@@ -106,6 +106,7 @@ class HipRocclr(CMakePackage):
              when='@4.1.0')
     resource(name='opencl-on-vdi',
              git='https://github.com/RadeonOpenCompute/ROCm-OpenCL-Runtime.git',
+             branch='master',
              destination='',
              placement='opencl-on-vdi',
              when='@master')

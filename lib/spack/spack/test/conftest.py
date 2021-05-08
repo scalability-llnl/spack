@@ -28,6 +28,7 @@ import spack.caches
 import spack.database
 import spack.directory_layout
 import spack.environment as ev
+import spack.fetch_strategy as fs
 import spack.package
 import spack.package_prefs
 import spack.paths
@@ -276,9 +277,12 @@ def check_for_leftover_stage_files(request, mock_stage, ignore_stage_files):
         assert not files_in_stage
 
 
-class MockCache(object):
-    def store(self, copy_cmd, relative_dest):
-        pass
+class MockCache(fs.FsCache):
+    def __init__(self, root):
+        self.root = root
+
+    def persistent_cache_dir_for(self, fetcher):
+        return os.path.join(self.root, fetcher.url_attr)
 
     def fetcher(self, target_path, digest, **kwargs):
         return MockCacheFetcher()
@@ -293,11 +297,12 @@ class MockCacheFetcher(object):
 
 
 @pytest.fixture(autouse=True)
-def mock_fetch_cache(monkeypatch):
+def mock_fetch_cache(monkeypatch, tmpdir_factory):
     """Substitutes spack.paths.fetch_cache with a mock object that does nothing
     and raises on fetch.
     """
-    monkeypatch.setattr(spack.caches, 'fetch_cache', MockCache())
+    root = tmpdir_factory.mktemp('cache_root')
+    monkeypatch.setattr(spack.caches, 'fetch_cache', MockCache(str(root)))
 
 
 @pytest.fixture(autouse=True)
@@ -1234,3 +1239,19 @@ def mock_test_stage(mutable_config, tmpdir):
     mutable_config.set('config:test_stage', tmp_stage)
 
     yield tmp_stage
+
+
+@pytest.fixture(scope='function')
+def patch_from_directive_for_git_ref(monkeypatch):
+    """Ensure the git fetch strategy resolves the desired reference."""
+
+    def from_ref(ref):
+        assert isinstance(ref, fs.GitRef), ref
+
+        def from_directive(*args, **kwargs):
+            return ref
+        # py2 complains unless you bind the .from_directive() classmethod to the class.
+        from_directive = from_directive.__get__(fs.GitRef, fs.GitRef.__class__)
+        monkeypatch.setattr(fs.GitRef, 'from_directive', from_directive)
+
+    return from_ref

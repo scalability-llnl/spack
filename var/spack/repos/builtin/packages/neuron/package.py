@@ -20,9 +20,9 @@ class Neuron(CMakePackage):
     git      = "https://github.com/neuronsimulator/nrn"
     maintainers = ['pramodk', 'nrnhines', 'iomaganaris', 'alexsavulescu']
 
-    version('develop', branch='master', submodules='True')
-    version("7.8.2", tag="7.8.2", submodules='True')
-    version("7.8.1", tag="7.8.1", submodules='True')
+    version('develop', branch='master', submodules=True)
+    version("7.8.2", tag="7.8.2", submodules=True)
+    version("7.8.1", tag="7.8.1", submodules=True)
 
     variant("coreneuron",    default=False, description="Enable CoreNEURON as submodule")
     variant("cross-compile", default=False, description="Build for cross-compile environment")

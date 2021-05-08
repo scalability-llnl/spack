@@ -28,7 +28,7 @@ class Cp2k(MakefilePackage, CudaPackage):
     version('5.1', sha256='e23613b593354fa82e0b8410e17d94c607a0b8c6d9b5d843528403ab09904412')
     version('4.1', sha256='4a3e4a101d8a35ebd80a9e9ecb02697fb8256364f1eccdbe4e5a85d31fe21343')
     version('3.0', sha256='1acfacef643141045b7cbade7006f9b7538476d861eeecd9658c9e468dc61151')
-    version('master', branch='master', submodules="True")
+    version('master', submodules=True)
 
     variant('mpi', default=True, description='Enable MPI support')
     variant('openmp', default=True, description='Enable OpenMP support')

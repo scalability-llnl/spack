@@ -22,18 +22,21 @@ class Qnnpack(CMakePackage):
     resource(
         name='cpuinfo',
         git='https://github.com/Maratyszcza/cpuinfo.git',
+        branch='master',
         destination='deps',
         placement='cpuinfo'
     )
     resource(
         name='fp16',
         git='https://github.com/Maratyszcza/FP16.git',
+        branch='master',
         destination='deps',
         placement='fp16'
     )
     resource(
         name='fxdiv',
         git='https://github.com/Maratyszcza/FXdiv.git',
+        branch='master',
         destination='deps',
         placement='fxdiv'
     )
@@ -54,12 +57,14 @@ class Qnnpack(CMakePackage):
     resource(
         name='psimd',
         git='https://github.com/Maratyszcza/psimd.git',
+        branch='master',
         destination='deps',
         placement='psimd'
     )
     resource(
         name='pthreadpool',
         git='https://github.com/Maratyszcza/pthreadpool.git',
+        branch='master',
         destination='deps',
         placement='pthreadpool'
     )

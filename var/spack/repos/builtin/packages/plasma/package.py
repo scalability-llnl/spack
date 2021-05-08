@@ -20,7 +20,7 @@ class Plasma(CMakePackage):
     git = "https://bitbucket.org/icl/plasma"
     maintainers = ['luszczek']
 
-    version("develop", git=git)
+    version("develop")
     version("20.9.20", sha256="2144a77b739f8dd2f0dbe5b64d94cde0e916f55c4eb170facd168c0db7fc7970")
     version("19.8.1", sha256="3a5db6eabf91aec782b7f27b17a7f6b8ce2c9d8e648c0e9c0ff5d87277ba4d17")
     version("19.8.0", sha256="19a950ade8a7c8d082f372789c9f874274a63217ecff26e33f366402f060f071")
