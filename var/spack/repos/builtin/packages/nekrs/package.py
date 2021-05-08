@@ -22,15 +22,9 @@ class Nekrs(Package, CudaPackage, ROCmPackage):
 
     version('21.0', tag='v21.0')
 
-    variant('cuda',
-            default=False,
-            description='Activates support for CUDA')
     variant('opencl',
             default=False,
             description='Activates support for OpenCL')
-    variant('hip',
-            default=False,
-            description='Activates support for HIP')
 
     # Conflicts:
     # nekrs includes following packages, but in order to build as part of
@@ -43,9 +37,6 @@ class Nekrs(Package, CudaPackage, ROCmPackage):
     depends_on('mpi')
     depends_on('git')
     depends_on('cmake')
-
-    depends_on('cuda', when='+cuda')
-    depends_on('hip', when='+rocm')
 
     @run_before('install')
     def fortran_check(self):

@@ -77,6 +77,7 @@ class Petsc(Package):
             description='Enables the build of shared libraries')
     variant('mpi',     default=True,  description='Activates MPI support')
     variant('cuda',    default=False, description='Activates CUDA support')
+    variant('hip',     default=False, description='Activate HIP support')
     variant('double',  default=True,
             description='Switches between single and double precision')
     variant('complex', default=False, description='Build with complex numbers')
@@ -188,6 +189,7 @@ class Petsc(Package):
     depends_on('lapack')
     depends_on('mpi', when='+mpi')
     depends_on('cuda', when='+cuda')
+    depends_on('hip', when='+hip')
 
     # Build dependencies
     depends_on('python@2.6:2.8', type='build', when='@:3.10.99')
@@ -374,7 +376,7 @@ class Petsc(Package):
         else:
             jpeg_library = 'libjpeg'
 
-        for library in ('cuda', 'metis', 'hypre', 'parmetis', 'mumps',
+        for library in ('cuda', 'hip', 'metis', 'hypre', 'parmetis', 'mumps',
                         'trilinos', 'fftw', 'valgrind', 'gmp', 'libpng',
                         'giflib', 'mpfr', 'netcdf-c', 'parallel-netcdf',
                         'moab', 'random123', 'exodusii', 'cgns', 'memkind',

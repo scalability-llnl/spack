@@ -36,7 +36,7 @@ class SuiteSparse(Package):
     variant('cuda', default=False, description='Build with CUDA')
     variant('openmp', default=False, description='Build with OpenMP')
 
-    depends_on('mpfr', type=('build', 'link'), when='@5.8.0:')
+    depends_on('mpfr@4.0.0:', type=('build', 'link'), when='@5.8.0:')
     depends_on('gmp', type=('build', 'link'), when='@5.8.0:')
     depends_on('blas')
     depends_on('lapack')

@@ -1,0 +1,50 @@
+--- debug.h.orig	2019-01-12 07:24:12.000000000 -0800
++++ debug.h	2020-11-10 14:02:59.269942675 -0800
+@@ -5,12 +5,12 @@
+ !     %---------------------------------%
+ !     | See debug.doc for documentation |
+ !     %---------------------------------%
+-      integer  logfil, ndigit, mgetv0,                                &
+-               msaupd, msaup2, msaitr, mseigt, msapps, msgets, mseupd,&
+-               mnaupd, mnaup2, mnaitr, mneigh, mnapps, mngets, mneupd,&
+-               mcaupd, mcaup2, mcaitr, mceigh, mcapps, mcgets, mceupd
+-      common /debug/                                                  &
+-               logfil, ndigit, mgetv0,                                &
+-               msaupd, msaup2, msaitr, mseigt, msapps, msgets, mseupd,&
+-               mnaupd, mnaup2, mnaitr, mneigh, mnapps, mngets, mneupd,&
+-               mcaupd, mcaup2, mcaitr, mceigh, mcapps, mcgets, mceupd
++      integer  logfil, ndigit, mgetv0,
++     &         msaupd, msaup2, msaitr, mseigt, msapps, msgets, mseupd,
++     &         mnaupd, mnaup2, mnaitr, mneigh, mnapps, mngets, mneupd,
++     &         mcaupd, mcaup2, mcaitr, mceigh, mcapps, mcgets, mceupd
++      common /debug/
++     &         logfil, ndigit, mgetv0,
++     &         msaupd, msaup2, msaitr, mseigt, msapps, msgets, mseupd,
++     &         mnaupd, mnaup2, mnaitr, mneigh, mnapps, mngets, mneupd,
++     &         mcaupd, mcaup2, mcaitr, mceigh, mcapps, mcgets, mceupd
+--- stat.h.orig	2019-01-12 07:24:12.000000000 -0800
++++ stat.h	2020-11-10 14:14:01.276289946 -0800
+@@ -9,13 +9,13 @@
+       save       t0, t1, t2, t3, t4, t5
+ !
+       integer    nopx, nbx, nrorth, nitref, nrstrt
+-      real       tsaupd, tsaup2, tsaitr, tseigt, tsgets, tsapps, tsconv,&
+-                 tnaupd, tnaup2, tnaitr, tneigh, tngets, tnapps, tnconv,&
+-                 tcaupd, tcaup2, tcaitr, tceigh, tcgets, tcapps, tcconv,&
+-                 tmvopx, tmvbx, tgetv0, titref, trvec
+-      common /timing/                                                   &
+-                 nopx, nbx, nrorth, nitref, nrstrt,                     &
+-                 tsaupd, tsaup2, tsaitr, tseigt, tsgets, tsapps, tsconv,&
+-                 tnaupd, tnaup2, tnaitr, tneigh, tngets, tnapps, tnconv,&
+-                 tcaupd, tcaup2, tcaitr, tceigh, tcgets, tcapps, tcconv,&
+-                 tmvopx, tmvbx, tgetv0, titref, trvec
++      real       tsaupd, tsaup2, tsaitr, tseigt, tsgets, tsapps, tsconv,
++     &           tnaupd, tnaup2, tnaitr, tneigh, tngets, tnapps, tnconv,
++     &           tcaupd, tcaup2, tcaitr, tceigh, tcgets, tcapps, tcconv,
++     &           tmvopx, tmvbx, tgetv0, titref, trvec
++      common /timing/
++     &           nopx, nbx, nrorth, nitref, nrstrt,
++     &           tsaupd, tsaup2, tsaitr, tseigt, tsgets, tsapps, tsconv,
++     &           tnaupd, tnaup2, tnaitr, tneigh, tngets, tnapps, tnconv,
++     &           tcaupd, tcaup2, tcaitr, tceigh, tcgets, tcapps, tcconv,
++     &           tmvopx, tmvbx, tgetv0, titref, trvec

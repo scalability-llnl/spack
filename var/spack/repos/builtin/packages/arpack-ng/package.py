@@ -63,6 +63,11 @@ class ArpackNg(Package):
     # Fujitsu compiler does not support 'isnan' function.
     # isnan: function that determines whether it is NaN.
     patch('incompatible_isnan_fix.patch', when='%fj')
+    patch('incompatible_isnan_fix.patch', when='@3.7.0%xl')
+    patch('incompatible_isnan_fix.patch', when='@3.7.0%xl_r')
+
+    patch('xlf.patch', when='@3.7.0%xl', level=0)
+    patch('xlf.patch', when='@3.7.0%xl_r', level=0)
 
     depends_on('blas')
     depends_on('lapack')

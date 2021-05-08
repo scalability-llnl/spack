@@ -1,0 +1,14 @@
+diff --git a/Makefile b/Makefile
+index 4f1737ee..3f1811f2 100644
+--- a/Makefile
++++ b/Makefile
+@@ -403,6 +403,9 @@ ifneq ($(HIP_LIB_DIR),)
+     CPPFLAGS += $(subst =,,$(shell $(HIP_DIR)/bin/hipconfig -C))
+   endif
+   $(libceeds) : CPPFLAGS += -I$(HIP_DIR)/include
++  ifneq ($(HIPBLAS_DIR),)
++    PKG_LIBS += -L$(HIPBLAS_DIR)/lib
++  endif
+   PKG_LIBS += -L$(abspath $(HIP_LIB_DIR)) -lamdhip64 -lhipblas
+   LIBCEED_CONTAINS_CXX = 1
+   libceed.c   += interface/ceed-hip.c
