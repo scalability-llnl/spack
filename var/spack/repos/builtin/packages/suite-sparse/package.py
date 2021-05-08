@@ -35,6 +35,7 @@ class SuiteSparse(Package):
     variant('pic',  default=True,  description='Build position independent code (required to link with shared libraries)')
     variant('cuda', default=False, description='Build with CUDA')
     variant('openmp', default=False, description='Build with OpenMP')
+    variant('mpi', default=False, description="link with mpi libs")
 
     depends_on('mpfr', type=('build', 'link'), when='@5.8.0:')
     depends_on('gmp', type=('build', 'link'), when='@5.8.0:')
@@ -49,6 +50,10 @@ class SuiteSparse(Package):
     depends_on('tbb', when='@4.5.3:+tbb')
 
     depends_on('cuda', when='+cuda')
+
+    # needed  for cce+cray-libsci if scalapack is needed
+    # (cray-libsci's scalapack depends on mpi)
+    depends_on('mpi', when='%cce+mpi')
 
     patch('tbb_453.patch', when='@4.5.3:4.5.5+tbb')
 
