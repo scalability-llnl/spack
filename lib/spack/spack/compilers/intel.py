@@ -32,6 +32,11 @@ class Intel(Compiler):
     version_argument = '--version'
     version_regex = r'\((?:IFORT|ICC)\) ([^ ]+)'
 
+    # Flag defaults for build types
+    debug_optimize_flag = ["-02", "-g"]
+    debug_max_flag = ["-debug=full"]
+    debug_flag = ["-g"]
+
     @property
     def verbose_flag(self):
         return "-v"

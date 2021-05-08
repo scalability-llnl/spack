@@ -188,6 +188,9 @@ class PythonPackage(PackageBase):
         """Build C/C++ extensions (compile/link to build directory)."""
         args = self.build_ext_args(spec, prefix)
 
+        # Add debug flag if debug build type requested
+        if self.build_type.name == "debug":
+            args.append("--debug")
         self.setup_py('build_ext', *args)
 
     def build_ext_args(self, spec, prefix):

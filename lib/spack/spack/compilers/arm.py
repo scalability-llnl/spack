@@ -26,6 +26,10 @@ class Arm(spack.compiler.Compiler):
                   'f77': 'arm/armflang',
                   'fc': 'arm/armflang'}
 
+    debug_optimize_flag = ["-g", "-O2"]
+    debug_max_flag = ["-g"]
+    debug_flag = ["-g"]
+
     # The ``--version`` option seems to be the most consistent one for
     # arm compilers. Output looks like this:
     #

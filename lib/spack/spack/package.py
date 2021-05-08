@@ -32,6 +32,7 @@ from typing import Optional, List, Dict, Any, Callable  # novm
 import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
 
+import spack.build_types
 import spack.compilers
 import spack.config
 import spack.dependency
@@ -676,6 +677,9 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
     #: specs.
     test_suite = None
 
+    spack.directives.variant('spack_build_type', default='rel_with_deb',
+                             values=spack.build_types.build_types.keys())
+
     def __init__(self, spec):
         # this determines how the package should be built.
         self.spec = spec
@@ -1276,6 +1280,10 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
             raise ValueError("Can only get a compiler for a concrete package.")
         return spack.compilers.compiler_for_spec(self.spec.compiler,
                                                  self.spec.architecture)
+
+    @property
+    def build_type(self):
+        return spack.build_types.get_build_type(self.spec)
 
     def url_version(self, version):
         """

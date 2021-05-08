@@ -40,6 +40,11 @@ class Aocc(Compiler):
         return ['-O0', '-O1', '-O2', '-O3', '-Ofast', '-Os', '-Oz', '-Og',
                 '-O', '-O4']
 
+    # https://developer.amd.com/amd-aocc/
+    debug_optimize_flag = ["-g"]
+    debug_max_flag = ["-g"]
+    debug_flag = ["-g"]
+
     @property
     def link_paths(self):
         link_paths = {'cc': 'aocc/clang',

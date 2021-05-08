@@ -38,6 +38,29 @@ class Gcc(spack.compiler.Compiler):
     PrgEnv = 'PrgEnv-gnu'
     PrgEnv_compiler = 'gcc'
 
+    # Flag defaults for build types
+    debug_optimize_flag = ["-g3", "-grecord-gcc-switches",
+                           "-fvar-tracking-assignments",
+                           "-gstatement-frontiers",
+                           "-gvariable-location-views",
+                           "-O2"]
+
+    debug_max_flag = ["-g3", "-fvar-tracking-assignments",
+                      "-gstatement-frontiers",
+                      "-gvariable-location-views",
+                      "-grecord-gcc-switches",
+                      "-Wall", "-Werror=format-security",
+                      "-Wp,-D_FORTIFY_SOURCE=2",
+                      "-fexceptions",
+                      "-Wp,-D_GLIBCXX_ASSERTIONS",
+                      "-fstack-protector-strong",
+                      "-fstack-clash-protection",
+                      "-fcf-protection",
+                      "-fasynchronous-unwind-tables",
+                      "-fallow-argument-mismatch"]
+
+    debug_flag = ["-g3", "-grecord-gcc-switches", "-Og"]
+
     @property
     def verbose_flag(self):
         return "-v"

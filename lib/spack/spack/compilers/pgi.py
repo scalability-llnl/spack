@@ -29,6 +29,11 @@ class Pgi(Compiler):
     PrgEnv = 'PrgEnv-pgi'
     PrgEnv_compiler = 'pgi'
 
+    # https://docs.nvidia.com/hpc-sdk/pgi-compilers/19.7/x86/pgdbg-user-guide/index.htm
+    debug_optimize_flag = ["-02", "-⁠gopt"]
+    debug_max_flag = ["-g"]
+    debug_flag = ["-g"]
+
     version_argument = '-V'
     ignore_version_errors = [2]  # `pgcc -V` on PowerPC annoyingly returns 2
     version_regex = r'pg[^ ]* ([0-9.]+)-[0-9]+ (LLVM )?[^ ]+ target on '

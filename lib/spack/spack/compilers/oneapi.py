@@ -31,6 +31,10 @@ class Oneapi(Compiler):
     version_argument = '--version'
     version_regex = r'(?:(?:oneAPI DPC\+\+ Compiler)|(?:\(IFORT\))) (\S+)'
 
+    debug_optimize_flag = ["-02", "-g"]
+    debug_max_flag = ["-debug=full"]
+    debug_flag = ["-g"]
+
     @property
     def verbose_flag(self):
         return "-v"

@@ -31,6 +31,11 @@ class Nvhpc(Compiler):
     version_argument = '--version'
     version_regex = r'nv[^ ]* (?:[^ ]+ Dev-r)?([0-9.]+)(?:-[0-9]+)?'
 
+    # https://docs.nvidia.com/hpc-sdk/compilers/hpc-compilers-user-guide/
+    debug_optimize_flag = ["-⁠gopt"]
+    debug_max_flag = ["-g"]
+    debug_flag = ["-g"]
+
     @property
     def verbose_flag(self):
         return "-v"

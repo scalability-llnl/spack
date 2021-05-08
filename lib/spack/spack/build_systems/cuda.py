@@ -185,3 +185,7 @@ class CudaPackage(PackageBase):
     # Make sure cuda_arch can not be used without +cuda
     for value in cuda_arch_values:
         conflicts('~cuda', when='cuda_arch=' + value)
+
+    def setup_build_environment(self, env):
+        build_type_flags = self.build_type.get_flags('cudaflags')
+        env.set('NVCC_PREPEND_FLAGS', build_type_flags)

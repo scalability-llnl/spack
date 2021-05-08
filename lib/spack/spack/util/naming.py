@@ -14,6 +14,7 @@ import spack.error
 
 __all__ = [
     'mod_to_class',
+    'class_to_mod',
     'spack_module_to_python_module',
     'valid_module_name',
     'valid_fully_qualified_module_name',
@@ -61,6 +62,17 @@ def mod_to_class(mod_name):
         class_name = "_%s" % class_name
 
     return class_name
+
+
+def class_to_mod(class_name):
+    """
+    Convert a class name to a module name.
+
+    The same conventions are used as in mod_to_class.
+    """
+    # Replace all uppercase characters with _<lowercase>
+    replacer = lambda pattern: "_%s" % pattern.group(1).lower()
+    return re.sub('([A-Z])', replacer, class_name).strip('_')
 
 
 def spack_module_to_python_module(mod_name):

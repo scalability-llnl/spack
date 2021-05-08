@@ -90,6 +90,9 @@ class Cuda(Package):
     maintainers = ['ax3l', 'Rombur']
     executables = ['^nvcc$']
 
+    # Flags retrieved by build_types
+    debug_flag = ["-G"]
+
     for ver, packages in _versions.items():
         key = "{0}-{1}".format(platform.system(), platform.machine())
         pkg = packages.get(key)

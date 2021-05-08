@@ -12,7 +12,7 @@ import llnl.util.tty as tty
 import inspect
 
 __all__ = [
-    'list_classes'
+    'list_classes',
 ]
 
 

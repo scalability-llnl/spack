@@ -32,6 +32,11 @@ class Cce(Compiler):
                   'f77': 'cce/ftn',
                   'fc': 'cce/ftn'}
 
+    # https://user.cscs.ch/computing/compilation/cray/
+    debug_optimize_flag = ["-G02"]
+    debug_max_flag = ["-g"]
+    debug_flag = ["-g"]
+
     @property
     def is_clang_based(self):
         version = self._real_version or self.version

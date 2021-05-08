@@ -280,7 +280,11 @@ def set_compiler_environment_variables(pkg, env):
                 handler = pkg.flag_handler.__func__
             else:
                 handler = pkg.flag_handler.im_func
-        injf, envf, bsf = handler(pkg, flag, spec.compiler_flags[flag])
+
+        flags_from_spec = spec.compiler_flags[flag]
+        flags_from_spec += spec.package.build_type.get_flags(flag)
+
+        injf, envf, bsf = handler(pkg, flag, flags_from_spec)
         inject_flags[flag] = injf or []
         env_flags[flag] = envf or []
         build_system_flags[flag] = bsf or []
@@ -298,9 +302,7 @@ def set_compiler_environment_variables(pkg, env):
     pkg.flags_to_build_system_args(build_system_flags)
 
     env.set('SPACK_COMPILER_SPEC', str(spec.compiler))
-
     env.set('SPACK_SYSTEM_DIRS', ':'.join(system_dirs))
-
     compiler.setup_custom_environment(pkg, env)
 
     return env
@@ -895,7 +897,6 @@ def _setup_pkg_and_run(serialized_pkg, function, kwargs, child_pipe,
                        input_multiprocess_fd):
 
     context = kwargs.get('context', 'build')
-
     try:
         # We are in the child process. Python sets sys.stdin to
         # open(os.devnull) to prevent our process and its parent from
