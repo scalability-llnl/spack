@@ -93,4 +93,8 @@ class OmegaH(CMakePackage):
         flags = list(flags)
         if name == 'cxxflags':
             flags.append(self.compiler.cxx11_flag)
+
+            if self.spec.satisfies('%cce'):
+                flags.append("-Wno-final-dtor-non-final-class")
+
         return (None, None, flags)
