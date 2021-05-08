@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import inspect
+import itertools
 import os
 
 
@@ -58,12 +60,16 @@ class Gromacs(CMakePackage):
     version('4.6.7', sha256='6afb1837e363192043de34b188ca3cf83db6bd189601f2001a1fc5b0b2a214d9')
     version('4.5.5', sha256='e0605e4810b0d552a8761fef5540c545beeaf85893f4a6e21df9905a33f871ba')
 
-    variant('mpi', default=True, description='Activate MPI support (disable for Thread-MPI support)')
+    variant('parallel', default='mpi',
+            values=('thread-mpi', 'mpi'),
+            multi=True,
+            description='parallelization mode (Thread-MPI or MPI support)')
     variant('shared', default=True,
             description='Enables the build of shared libraries')
-    variant(
-        'double', default=False,
-        description='Produces a double precision version of the executables')
+    variant('precision', default='single',
+            values=('single', 'double'),
+            multi=True,
+            description='Floating poing precision of the executables')
     variant('plumed', default=False, description='Enable PLUMED support')
     variant('cuda', default=False, description='Enable CUDA support')
     variant('opencl', default=False, description='Enable OpenCL support')
@@ -165,45 +171,10 @@ class Gromacs(CMakePackage):
                 filter_file(r'-gencode;arch=compute_20,code=sm_21;?', '',
                             'cmake/gmxManageNvccConfig.cmake')
 
-    def cmake_args(self):
-
+    def cmake(self, spec, prefix):
         options = []
-
-        if '+mpi' in self.spec:
-            options.append('-DGMX_MPI:BOOL=ON')
-            if self.version < Version('2020'):
-                # Ensures gmxapi builds properly
-                options.extend([
-                    '-DCMAKE_C_COMPILER=%s' % self.spec['mpi'].mpicc,
-                    '-DCMAKE_CXX_COMPILER=%s' % self.spec['mpi'].mpicxx,
-                    '-DCMAKE_Fortran_COMPILER=%s' % self.spec['mpi'].mpifc,
-                ])
-            elif self.version == Version('2021'):
-                # Work around https://gitlab.com/gromacs/gromacs/-/issues/3896
-                # Ensures gmxapi builds properly
-                options.extend([
-                    '-DCMAKE_C_COMPILER=%s' % self.spec['mpi'].mpicc,
-                    '-DCMAKE_CXX_COMPILER=%s' % self.spec['mpi'].mpicxx,
-                ])
-            else:
-                options.extend([
-                    '-DCMAKE_C_COMPILER=%s' % spack_cc,
-                    '-DCMAKE_CXX_COMPILER=%s' % spack_cxx,
-                    '-DMPI_C_COMPILER=%s' % self.spec['mpi'].mpicc,
-                    '-DMPI_CXX_COMPILER=%s' % self.spec['mpi'].mpicxx
-                ])
-        else:
-            options.extend([
-                '-DCMAKE_C_COMPILER=%s' % spack_cc,
-                '-DCMAKE_CXX_COMPILER=%s' % spack_cxx,
-                '-DGMX_MPI:BOOL=OFF',
-                '-DGMX_THREAD_MPI:BOOL=ON'])
-
         if self.spec.satisfies('@2020:'):
             options.append('-DGMX_INSTALL_LEGACY_API=ON')
-
-        if '+double' in self.spec:
-            options.append('-DGMX_DOUBLE:BOOL=ON')
 
         if '+nosuffix' in self.spec:
             options.append('-DGMX_DEFAULT_SUFFIX:BOOL=OFF')
@@ -353,4 +324,81 @@ class Gromacs(CMakePackage):
                 options.append('-DFFTWF_LIBRARIES={0}'.
                                format(self.spec['amdfftw'].libs.joined(';')))
 
-        return options
+        precisions = []
+        if 'precision=single' in self.spec:
+            precisions.append('single')
+        if 'precision=double' in self.spec:
+            precisions.append('double')
+
+        parallels = []
+
+        self.opts = {'common': options,
+                     'mpi': [],
+                     'thread-mpi': [],
+                     'single': ['-DGMX_DOUBLE:BOOL=OFF'],
+                     'double': ['-DGMX_DOUBLE:BOOL=ON']}
+
+        if 'parallel=mpi' in self.spec:
+            parallels.append('mpi')
+            self.opts['mpi'].append('-DGMX_MPI:BOOL=ON')
+            if self.version < Version('2020'):
+                # Ensures gmxapi builds properly
+                self.opts['mpi'].extend([
+                    '-DCMAKE_C_COMPILER=%s' % self.spec['mpi'].mpicc,
+                    '-DCMAKE_CXX_COMPILER=%s' % self.spec['mpi'].mpicxx,
+                    '-DCMAKE_Fortran_COMPILER=%s' % self.spec['mpi'].mpifc,
+                ])
+            elif self.version == Version('2021'):
+                # Work around https://gitlab.com/gromacs/gromacs/-/issues/3896
+                # Ensures gmxapi builds properly
+                self.opts['mpi'].extend([
+                    '-DCMAKE_C_COMPILER=%s' % self.spec['mpi'].mpicc,
+                    '-DCMAKE_CXX_COMPILER=%s' % self.spec['mpi'].mpicxx,
+                ])
+            else:
+                self.opts['mpi'].extend([
+                    '-DCMAKE_C_COMPILER=%s' % spack_cc,
+                    '-DCMAKE_CXX_COMPILER=%s' % spack_cxx,
+                    '-DMPI_C_COMPILER=%s' % self.spec['mpi'].mpicc,
+                    '-DMPI_CXX_COMPILER=%s' % self.spec['mpi'].mpicxx
+                ])
+
+        if 'parallel=thread-mpi' in self.spec:
+            parallels.append('thread-mpi')
+            self.opts['thread-mpi'].extend([
+                '-DCMAKE_C_COMPILER=%s' % spack_cc,
+                '-DCMAKE_CXX_COMPILER=%s' % spack_cxx,
+                '-DGMX_MPI:BOOL=OFF',
+                '-DGMX_THREAD_MPI:BOOL=ON'])
+
+        self.flavors = [p for p in itertools.product(*[precisions, parallels])]
+        for (precision, parallel) in self.flavors:
+            options = self.std_cmake_args
+            options += self.opts['common']
+            options += self.opts[parallel]
+            options += self.opts[precision]
+            options.append(os.path.abspath(self.root_cmakelists_dir))
+            wdir = join_path(self.build_directory, join_path(precision, parallel))
+            with working_dir(wdir, create=True):
+                inspect.getmodule(self).cmake(*options)
+
+    def build(self, spec, prefix):
+        """Make the build targets"""
+        for (precision, parallel) in self.flavors:
+            wdir = join_path(self.build_directory, join_path(precision, parallel))
+            with working_dir(wdir):
+                if self.generator == 'Unix Makefiles':
+                    inspect.getmodule(self).make(*self.build_targets)
+                elif self.generator == 'Ninja':
+                    self.build_targets.append("-v")
+                    inspect.getmodule(self).ninja(*self.build_targets)
+
+    def install(self, spec, prefix):
+        """Make the install targets"""
+        for (precision, parallel) in self.flavors:
+            wdir = join_path(self.build_directory, join_path(precision, parallel))
+            with working_dir(wdir):
+                if self.generator == 'Unix Makefiles':
+                    inspect.getmodule(self).make(*self.install_targets)
+                elif self.generator == 'Ninja':
+                    inspect.getmodule(self).ninja(*self.install_targets)
