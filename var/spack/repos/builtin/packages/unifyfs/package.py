@@ -110,3 +110,8 @@ class Unifyfs(AutotoolsPackage):
     def autoreconf(self, spec, prefix):
         bash = which('bash')
         bash('./autogen.sh')
+
+    @when('%cce@11.0.3:')
+    def patch(self):
+        filter_file('-Werror', '', 'client/src/Makefile.in')
+        filter_file('-Werror', '', 'client/src/Makefile.am')
