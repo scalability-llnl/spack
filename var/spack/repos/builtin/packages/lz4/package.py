@@ -26,6 +26,9 @@ class Lz4(MakefilePackage):
 
     depends_on('valgrind', type='test')
 
+    variant('shared', default=True, description='Build shared library')
+    variant('static', default=True, description='Build static library')
+
     def url_for_version(self, version):
         url = "https://github.com/lz4/lz4/archive"
 
@@ -47,7 +50,10 @@ class Lz4(MakefilePackage):
             make(parallel=par)
 
     def install(self, spec, prefix):
-        make('install', 'PREFIX={0}'.format(prefix))
+        make('install',
+             'PREFIX={0}'.format(prefix),
+             'BUILD_SHARED={0}'.format('yes' if '+shared' in self.spec else 'no'),
+             'BUILD_STATIC={0}'.format('yes' if '+static' in self.spec else 'no'))
 
     def patch(self):
         # Remove flags not recognized by the NVIDIA compiler
