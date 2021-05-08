@@ -129,8 +129,9 @@ jobs:
       run: |
           sudo apt-get -y update
           # Needed for unit tests
-          sudo apt-get install -y coreutils gfortran graphviz gnupg2 mercurial
-          sudo apt-get install -y ninja-build patchelf
+          sudo apt-get -y install \
+              coreutils cvs gfortran graphviz gnupg2 mercurial  ninja-build \
+              patchelf
           # Needed for kcov
           sudo apt-get -y install cmake binutils-dev libcurl4-openssl-dev
           sudo apt-get -y install zlib1g-dev libdw-dev libiberty-dev
@@ -288,7 +289,7 @@ jobs:
       shell: runuser -u spack-test -- bash {0}
       run: |
           source share/spack/setup-env.sh
-          spack unit-test -k 'not svn and not hg' -x --verbose
+          spack unit-test -k 'not cvs and not svn and not hg' -x --verbose
   # Test for the clingo based solver (using clingo-cffi)
   clingo-cffi:
     needs: [ validate, style, documentation, changes ]
@@ -304,8 +305,9 @@ jobs:
       run: |
           sudo apt-get -y update
           # Needed for unit tests
-          sudo apt-get install -y coreutils gfortran graphviz gnupg2 mercurial
-          sudo apt-get install -y ninja-build patchelf
+          sudo apt-get -y install \
+              coreutils cvs gfortran graphviz gnupg2 mercurial ninja-build \
+              patchelf
           # Needed for kcov
           sudo apt-get -y install cmake binutils-dev libcurl4-openssl-dev
           sudo apt-get -y install zlib1g-dev libdw-dev libiberty-dev

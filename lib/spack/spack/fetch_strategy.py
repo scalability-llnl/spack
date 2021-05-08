@@ -943,6 +943,125 @@ class GitFetchStrategy(VCSFetchStrategy):
 
 
 @fetcher
+class CvsFetchStrategy(VCSFetchStrategy):
+    """Fetch strategy that gets source code from a CVS repository.
+       Use like this in a package:
+
+           version('name',
+                   cvs=':pserver:anonymous@www.example.com:/cvsroot%module=modulename')
+
+       Optionally, you can provide a branch and/or a date for the URL:
+
+           version('name',
+                   cvs=':pserver:anonymous@www.example.com:/cvsroot%module=modulename',
+                   branch='branchname', date='date')
+
+    Repositories are checked out into the standard stage source path directory.
+    """
+    url_attr = 'cvs'
+    optional_attrs = ['branch', 'date']
+
+    def __init__(self, **kwargs):
+        # Discards the keywords in kwargs that may conflict with the next call
+        # to __init__
+        forwarded_args = copy.copy(kwargs)
+        forwarded_args.pop('name', None)
+        super(CvsFetchStrategy, self).__init__(**forwarded_args)
+
+        self._cvs = None
+        self._expect = None
+        if self.branch is not None:
+            self.branch = str(self.branch)
+        if self.date is not None:
+            self.date = str(self.date)
+
+    @property
+    def cvs(self):
+        if not self._cvs:
+            self._cvs = which('cvs', required=True)
+        return self._cvs
+
+    @property
+    def expect(self):
+        if not self._expect:
+            self._expect = which('expect', required=True)
+        return self._expect
+
+    @property
+    def cachable(self):
+        return self.cache_enabled and (bool(self.branch) or bool(self.date))
+
+    def source_id(self):
+        id = 'id'
+        if self.branch:
+            id += '-branch=' + self.branch
+        if self.date:
+            id += '-date=' + self.date
+        return id
+
+    def mirror_id(self):
+        repo_path = url_util.parse(self.url).path
+        result = os.path.sep.join(['cvs', repo_path])
+        if self.branch:
+            result += '%branch=' + self.branch
+        if self.date:
+            result += '%date=' + self.date
+        return result
+
+    @_needs_stage
+    def fetch(self):
+        if self.stage.expanded:
+            tty.debug('Already fetched {0}'.format(self.stage.source_path))
+            return
+
+        tty.debug('Checking out CVS repository: {0}'.format(self.url))
+
+        with temp_cwd():
+            url, module = self.url.split('%module=')
+            if url.startswith(':pserver:'):
+                # Log in
+                cmds = ['-c', 'spawn cvs -q -d ' + url + ' login',
+                        '-c', 'expect',
+                        '-c', 'send "anonymous\n"',
+                        '-c', 'expect eof']
+                self.expect(*cmds, ignore_quotes=True)
+            # Check out files
+            args = ['-z9', '-d', url, 'checkout']
+            if self.branch is not None:
+                args.extend(['-r', self.branch])
+            if self.date is not None:
+                args.extend(['-D', self.date])
+            args.append(module)
+            self.cvs(*args)
+            # Rename repo
+            repo_name = get_single_file('.')
+            self.stage.srcdir = repo_name
+            shutil.move(repo_name, self.stage.source_path)
+
+    def _remove_untracked_files(self):
+        """Removes untracked files in a CVS repository."""
+        with working_dir(self.stage.source_path):
+            status = self.cvs('-qn', 'update', output=str)
+            for line in status.split('\n'):
+                if re.match(r'^[?]', line):
+                    path = line[2:].strip()
+                    if os.path.isfile(path):
+                        os.unlink(path)
+
+    def archive(self, destination):
+        super(CvsFetchStrategy, self).archive(destination, exclude='CVS')
+
+    @_needs_stage
+    def reset(self):
+        self._remove_untracked_files()
+        with working_dir(self.stage.source_path):
+            self.cvs('update', '-C', '.')
+
+    def __str__(self):
+        return "[cvs] %s" % self.url
+
+
+@fetcher
 class SvnFetchStrategy(VCSFetchStrategy):
 
     """Fetch strategy that gets source code from a subversion repository.

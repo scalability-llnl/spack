@@ -23,6 +23,7 @@ before Spack is run:
    executables for extracting source code
 #. The ``patch`` command to apply patches
 #. The ``git`` and ``curl`` commands for fetching
+#. If using CVS, the ``cvs`` and ``expect`` commands for fetching
 #. If using the ``gpg`` subcommand, ``gnupg2`` is required
 
 These requirements can be easily installed on most modern Linux systems;

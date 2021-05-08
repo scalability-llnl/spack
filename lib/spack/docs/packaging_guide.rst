@@ -920,12 +920,13 @@ For some packages, source code is provided in a Version Control System
 (VCS) repository rather than in a tarball.  Spack can fetch packages
 from VCS repositories. Currently, Spack supports fetching with `Git
 <git-fetch_>`_, `Mercurial (hg) <hg-fetch_>`_, `Subversion (svn)
-<svn-fetch_>`_, and `Go <go-fetch_>`_.  In all cases, the destination
+<svn-fetch_>`_, `CVS (cvs) <cvs-fetch_>`_, and `Go <go-fetch_>`_.
+In all cases, the destination
 is the standard stage source path.
 
 To fetch a package from a source repository, Spack needs to know which
 VCS to use and where to download from. Much like with ``url``, package
-authors can specify a class-level ``git``, ``hg``, ``svn``, or ``go``
+authors can specify a class-level ``git``, ``hg``, ``svn``, ``cvs``, or ``go``
 attribute containing the correct download location.
 
 Many packages developed with Git have both a Git repository as well as
@@ -1172,6 +1173,60 @@ Subversion branches are handled as part of the directory structure, so
 you can check out a branch or tag by changing the URL. If you want to
 package multiple branches, simply add a ``svn`` argument to each
 version directive.
+
+.. _cvs-fetch:
+
+^^^
+CVS
+^^^
+
+CVS (Concurrent Versions System) is an old centralized version control
+system. It is a predecessor of Subversion.
+
+To fetch with CVS, use the ``cvs``, branch, and ``date`` parameters.
+The destination directory will be the standard stage source path.
+
+Fetching the head
+  Simply add a ``cvs`` parameter to the package:
+
+  .. code-block:: python
+
+     class Example(Package):
+
+         cvs = ":pserver:outreach.scidac.gov/cvsroot%module=modulename"
+
+         version('1.1.2.4')
+
+  CVS repository locations are described using an older syntax that
+  is different from today's ubiquitous URL syntax. ``:pserver:``
+  denotes the transport method. CVS servers can host multiple
+  repositories (called "modules") at the same location, and one needs
+  to specify both the server location and the module name to access.
+  Spack combines both into one string using the ``%module=modulename``
+  suffix shown above.
+
+  This download method is untrusted.
+
+Fetching a date
+  Versions in CVS are commonly specified by date. To fetch a
+  particular branch or date, add a ``branch`` and/or ``date`` argument
+  to the version directive:
+
+  .. code-block:: python
+
+     version('2021.4.22', branch='branchname', date='2021-04-22')
+
+  This download method is untrusted.
+
+  Unfortunately, CVS has no commit hashing scheme like Git and
+  Mercurial do, so there is no way to guarantee that the download you
+  get is the same as the download used when the package was created.
+  Use at your own risk.
+
+CVS has more features, but since CVS is rarely used these days, Spack
+does not support all of them. Missing features could be added as
+needed, although (in practice) it might be easier to convert a CVS
+repository to Git.
 
 .. _go-fetch:
 

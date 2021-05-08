@@ -885,6 +885,66 @@ def mock_archive(request, tmpdir_factory):
 
 
 @pytest.fixture(scope='session')
+def mock_cvs_repository(tmpdir_factory):
+    """Creates a very simple CVS repository with two commits."""
+    cvs = spack.util.executable.which('cvs', required=True)
+
+    tmpdir = tmpdir_factory.mktemp('mock-cvs-repo-dir')
+    tmpdir.ensure(spack.stage._source_path_subdir, dir=True)
+    repodir = tmpdir.join(spack.stage._source_path_subdir)
+    cvsroot = str(repodir)
+
+    # The CVS repository and source tree need to live in a different directories
+    sourcedirparent = tmpdir_factory.mktemp('mock-cvs-source-dir')
+    module = spack.stage._source_path_subdir
+    url = cvsroot + "%module=" + module
+    sourcedirparent.ensure(module, dir=True)
+    sourcedir = sourcedirparent.join(module)
+
+    # Initialize the repository
+    with sourcedir.as_cwd():
+        cvs('-d', cvsroot, 'init')
+        cvs('-d', cvsroot, 'import', '-m', 'initial mock repo commit',
+            module, 'mockvendor', 'mockrelease')
+        with sourcedirparent.as_cwd():
+            cvs('-d', cvsroot, 'checkout', module)
+
+        # Commit file r0
+        r0_file = 'r0_file'
+        sourcedir.ensure(r0_file)
+        cvs('-d', cvsroot, 'add', r0_file)
+        cvs('-d', cvsroot, 'commit', '-m', 'revision 0', r0_file)
+
+        # Commit file r1
+        r1_file = 'r1_file'
+        sourcedir.ensure(r1_file)
+        cvs('-d', cvsroot, 'add', r1_file)
+        cvs('-d', cvsroot, 'commit', '-m' 'revision 1', r1_file)
+
+    # CVS does not have the notion of a unique branch; branches and revisions
+    # are managed separately for every file
+    def get_branch():
+        return 'main'
+
+    checks = {
+        'default': Bunch(
+            file=r1_file,
+            hash=get_branch,
+            args={'cvs': url}
+        ),
+    }
+
+    t = Bunch(
+        checks=checks,
+        url=url,
+        hash=get_branch,
+        path=str(repodir)
+    )
+
+    yield t
+
+
+@pytest.fixture(scope='session')
 def mock_git_repository(tmpdir_factory):
     """Creates a simple git repository with two branches,
     two commits and two submodules. Each submodule has one commit.
