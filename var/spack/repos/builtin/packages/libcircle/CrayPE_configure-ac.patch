@@ -1,0 +1,17 @@
+diff --git a/configure.ac b/configure.ac_new
+index 49fcc1c..f0d3d2a 100644
+--- a/configure.ac
++++ b/configure.ac_new
+@@ -59,9 +59,9 @@ AC_SUBST([LIBCIRCLE_SO_VERSION], [3:1:1])
+ AC_SUBST([LIBCIRCLE_API_VERSION], [0.3.0])
+ 
+ # Check for MPI
+-LX_FIND_MPI
+-test "x$have_C_mpi" = xyes || \
+-    AC_MSG_ERROR([You should check to see if MPI is setup properly.])
++#LX_FIND_MPI
++#test "x$have_C_mpi" = xyes || \
++#    AC_MSG_ERROR([You should check to see if MPI is setup properly.])
+ AM_CONDITIONAL(HAVE_MPI, [test "x$have_C_mpi" = xyes])
+ 
+ echo
