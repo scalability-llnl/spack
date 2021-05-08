@@ -456,6 +456,12 @@ class ViewDescriptor(object):
                  link=default_view_link):
         self.base = base_path
         self.root = spack.util.path.canonicalize_path(root)
+
+        # construct the names of the implementation diirectories
+        root_name = os.path.basename(self.root)
+        self._real_root_names = ['._{0}_impl_{1}'.format(root_name, idx)
+                                 for idx in range(2)]
+
         self.projections = projections
         self.select = select
         self.select_fn = lambda x: any(x.satisfies(s) for s in self.select)
@@ -492,10 +498,35 @@ class ViewDescriptor(object):
                               d.get('exclude', []),
                               d.get('link', default_view_link))
 
-    def view(self):
-        root = self.root
-        if not os.path.isabs(root):
-            root = os.path.normpath(os.path.join(self.base, self.root))
+    @property
+    def _current_root(self):
+        if os.path.exists(self.root):
+            root = os.readlink(self.root)
+            if not os.path.isabs(root):
+                root_dir = os.path.dirname(self.root)
+                root = os.path.join(root_dir, root)
+            return root
+        else:
+            return None
+
+    @property
+    def _next_root(self):
+        root_dir = os.path.dirname(self.root)
+        current_root = self._current_root
+        candidates = [
+            os.path.join(root_dir, name)
+            for name in self._real_root_names
+            if not current_root or name != os.path.basename(current_root)
+        ]
+        return candidates[0]  # list guaranteed non-empty
+
+    def view(self, new=False):
+        # new=True option to generate a new view during regeneration
+        # should not be used to access specs.
+        # Otherwise, give the current view if there is one.
+        root = self._current_root
+        if new or not root:
+            root = self._next_root
         return YamlFilesystemView(root, spack.store.layout,
                                   ignore_conflicts=True,
                                   projections=self.projections)
@@ -540,36 +571,37 @@ class ViewDescriptor(object):
 
             # To ensure there are no conflicts with packages being installed
             # that cannot be resolved or have repos that have been removed
-            # we always regenerate the view from scratch. We must first make
-            # sure the root directory exists for the very first time though.
-            root = os.path.normpath(
-                self.root if os.path.isabs(self.root) else os.path.join(
-                    self.base, self.root)
-            )
-            fs.mkdirp(root)
+            # we always regenerate the view from scratch.
+            # We will do this by alternating directories in which the real view
+            # is created, and then having a symlink to the real view in the
+            # root. The real root for a view at /dirname/basename will be
+            # /dirname/._basename_impl_0 or dirname/._basename_impl_1
+            # This allows for atomic swaps when we update the view
+            # construct view at new_root
+            tty.msg("Updating view at {0}".format(self.root))
 
-            # The tempdir for the directory transaction must be in the same
-            # filesystem mount as the view for symlinks to work. Provide
-            # dirname(root) as the tempdir for the
-            # replace_directory_transaction because it must be on the same
-            # filesystem mount as the view itself. Otherwise it may be
-            # impossible to construct the view in the tempdir even when it can
-            # be constructed in-place.
-            with fs.replace_directory_transaction(root, os.path.dirname(root)):
-                view = self.view()
+            # cache the roots because the way we determine which is which does
+            # not work while we are updating
+            new_root = self._next_root
+            old_root = self._current_root
 
-                view.clean()
-                specs_in_view = set(view.get_all_specs())
-                tty.msg("Updating view at {0}".format(self.root))
+            view = self.view(new=True)
+            fs.mkdirp(new_root)
+            view.add_specs(*installed_specs_for_view, with_dependencies=False)
 
-                rm_specs = specs_in_view - installed_specs_for_view
-                add_specs = installed_specs_for_view - specs_in_view
+            # create symlink from tmpname to new_root
+            root_dirname = os.path.dirname(self.root)
+            tmp_symlink_name = os.path.join(root_dirname, '._view_impl_link')
+            os.symlink(new_root, tmp_symlink_name)
 
-                # pass all_specs in, as it's expensive to read all the
-                # spec.yaml files twice.
-                view.remove_specs(*rm_specs, with_dependents=False,
-                                  all_specs=specs_in_view)
-                view.add_specs(*add_specs, with_dependencies=False)
+            # mv symlink atomically over root symlink to old_root
+            if os.path.exists(self.root) and not os.path.islink(self.root):
+                raise RuntimeError("Cannot create view: file already exists")
+            os.rename(tmp_symlink_name, self.root)
+
+            # remove old_root
+            if old_root and os.path.exists(old_root):
+                shutil.rmtree(old_root)
 
 
 class Environment(object):
