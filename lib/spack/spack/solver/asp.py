@@ -411,6 +411,7 @@ class SpackSolverSetup(object):
         self.gen = None  # set by setup()
         self.possible_versions = {}
         self.versions_in_package_py = {}
+        self.deprecated_versions = {}
         self.versions_from_externals = {}
         self.possible_virtuals = None
         self.possible_compilers = []
@@ -480,6 +481,11 @@ class SpackSolverSetup(object):
 
         for i, v in enumerate(most_to_least_preferred):
             self.gen.fact(fn.version_declared(pkg.name, v, i))
+
+        # Declare deprecated versions for this package, if any
+        deprecated = self.deprecated_versions[pkg.name]
+        for v, reason in sorted(deprecated):
+            self.gen.fact(fn.deprecated_version(pkg.name, v, reason))
 
     def spec_versions(self, spec):
         """Return list of clauses expressing spec's version constraints."""
@@ -1020,12 +1026,16 @@ class SpackSolverSetup(object):
         self.possible_versions = collections.defaultdict(set)
         self.versions_in_package_py = collections.defaultdict(set)
         self.versions_from_externals = collections.defaultdict(set)
+        self.deprecated_versions = collections.defaultdict(set)
 
         for pkg_name in possible_pkgs:
             pkg = spack.repo.get(pkg_name)
-            for v in pkg.versions:
+            for v, version_info in pkg.versions.items():
                 self.versions_in_package_py[pkg_name].add(v)
                 self.possible_versions[pkg_name].add(v)
+                deprecated = version_info.get('deprecated', False)
+                if deprecated:
+                    self.deprecated_versions[pkg_name].add((v, deprecated))
 
         for spec in specs:
             for dep in spec.traverse():
@@ -1549,6 +1559,22 @@ class SpecBuilder(object):
 
             check_same_flags(spec.compiler_flags, flags)
             spec.compiler_flags.update(flags)
+
+    def deprecated(self, pkg, version, reason):
+        reasons_to_error = ('True', 'vuln')
+        explanations = {
+            'True': ' (generic deprecation of unkown severity)',
+            'vuln': ' (known vulnerabilities)',
+            'bug': ' (known bugs)'
+        }
+        msg = 'using "{0}@{1}" which is deprecated'
+        show_deprecation = tty.warn
+        if reason in reasons_to_error:
+            msg = 'solver can only use "{0}@{1}" which is not permitted'
+            show_deprecation = tty.die
+
+        msg += explanations[reason]
+        show_deprecation(msg.format(pkg, version))
 
     def build_specs(self, function_tuples):
         # Functions don't seem to be in particular order in output.  Sort
