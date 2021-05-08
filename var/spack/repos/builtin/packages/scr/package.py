@@ -123,6 +123,14 @@ class Scr(CMakePackage):
     variant('cntl_base', default=platform_tmp_default,
             description='Compile time default location for control directory.')
 
+    def flag_handler(self, name, flags):
+        if '%cce' in self.spec:
+            if name in ['cflags', 'cxxflags', 'cppflags']:
+                return (None, flags, None)
+            elif name == 'ldflags':
+                flags.append('-ldl')
+            return (flags, None, None)
+
     def get_abs_path_rel_prefix(self, path):
         # Return path if absolute, otherwise prepend prefix
         if os.path.isabs(path):
@@ -135,7 +143,7 @@ class Scr(CMakePackage):
         args = []
 
         if 'platform=cray' in spec:
-            args.append('-DSCR_LINK_STATIC=ON')
+            args.append('-DSCR_LINK_STATIC=OFF')
 
         args.append('-DENABLE_FORTRAN={0}'.format('+fortran' in spec))
 
