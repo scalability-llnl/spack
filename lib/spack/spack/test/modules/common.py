@@ -70,7 +70,7 @@ def test_modules_written_with_proper_permissions(mock_module_filename,
 
     # The code tested is common to all module types, but has to be tested from
     # one. TCL picked at random
-    generator = spack.modules.tcl.TclModulefileWriter(spec)
+    generator = spack.modules.tcl.TclModulefileWriter(spec, 'default')
     generator.write()
 
     assert mock_package_perms & os.stat(

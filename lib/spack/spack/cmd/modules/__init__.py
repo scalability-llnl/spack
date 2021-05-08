@@ -25,6 +25,11 @@ level = "short"
 
 
 def setup_parser(subparser):
+    subparser.add_argument(
+        '-n', '--name',
+        action='store', dest='module_set_name', default='default',
+        help="Named module set to use from modules configuration."
+    )
     sp = subparser.add_subparsers(metavar='SUBCOMMAND', dest='subparser_name')
 
     refresh_parser = sp.add_parser('refresh', help='regenerate module files')
@@ -142,7 +147,8 @@ def loads(module_type, specs, args, out=None):
     modules = list(
         (spec,
          spack.modules.common.get_module(
-             module_type, spec, get_full_path=False, required=False))
+             module_type, spec, get_full_path=False,
+             module_set_name=args.module_set_name, required=False))
         for spec in specs)
 
     module_commands = {
@@ -211,11 +217,13 @@ def rm(module_type, specs, args):
     """
 
     module_cls = spack.modules.module_types[module_type]
-    module_exist = lambda x: os.path.exists(module_cls(x).layout.filename)
+    module_exist = lambda x: os.path.exists(
+        module_cls(x, args.module_set_name).layout.filename)
 
     specs_with_modules = [spec for spec in specs if module_exist(spec)]
 
-    modules = [module_cls(spec) for spec in specs_with_modules]
+    modules = [module_cls(spec, args.module_set_name)
+               for spec in specs_with_modules]
 
     if not modules:
         tty.die('No module file matches your query')
@@ -263,7 +271,7 @@ def refresh(module_type, specs, args):
 
     # Skip unknown packages.
     writers = [
-        cls(spec) for spec in specs
+        cls(spec, args.module_set_name) for spec in specs
         if spack.repo.path.exists(spec.name)]
 
     # Filter blacklisted packages early

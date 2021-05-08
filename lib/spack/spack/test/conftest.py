@@ -763,11 +763,11 @@ class MockConfig(object):
         self._configuration = configuration
         self.writer_key = writer_key
 
-    def configuration(self):
+    def configuration(self, module_set_name):
         return self._configuration
 
-    def writer_configuration(self):
-        return self.configuration()[self.writer_key]
+    def writer_configuration(self, module_set_name):
+        return self.configuration(module_set_name)[self.writer_key]
 
 
 class ConfigUpdate(object):
@@ -780,7 +780,9 @@ class ConfigUpdate(object):
     def __call__(self, filename):
         file = os.path.join(self.root_for_conf, filename + '.yaml')
         with open(file) as f:
-            mock_config = MockConfig(syaml.load_config(f), self.writer_key)
+            config_settings = syaml.load_config(f)
+        spack.config.set('modules:default', config_settings)
+        mock_config = MockConfig(config_settings, self.writer_key)
 
         self.monkeypatch.setattr(
             spack.modules.common,

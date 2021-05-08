@@ -26,8 +26,8 @@ def prefix_inspections(platform):
         A dictionary mapping subdirectory names to lists of environment
             variables to modify with that directory if it exists.
     """
-    inspections = spack.config.get('modules:prefix_inspections', None)
-    if inspections is not None:
+    inspections = spack.config.get('modules:default:prefix_inspections', {})
+    if inspections:
         return inspections
 
     inspections = {

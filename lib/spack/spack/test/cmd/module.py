@@ -32,7 +32,7 @@ def ensure_module_files_are_there(
 def _module_files(module_type, *specs):
     specs = [spack.spec.Spec(x).concretized() for x in specs]
     writer_cls = spack.modules.module_types[module_type]
-    return [writer_cls(spec).layout.filename for spec in specs]
+    return [writer_cls(spec, 'default').layout.filename for spec in specs]
 
 
 @pytest.fixture(
@@ -200,8 +200,10 @@ def test_setdefault_command(
     spack.spec.Spec(preferred).concretized().package.do_install(fake=True)
 
     writers = {
-        preferred: writer_cls(spack.spec.Spec(preferred).concretized()),
-        other_spec: writer_cls(spack.spec.Spec(other_spec).concretized())
+        preferred: writer_cls(
+            spack.spec.Spec(preferred).concretized(), 'default'),
+        other_spec: writer_cls(
+            spack.spec.Spec(other_spec).concretized(), 'default')
     }
 
     # Create two module files for the same software

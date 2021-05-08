@@ -23,6 +23,7 @@ import multiprocessing
 
 import spack.architecture
 import spack.config
+import spack.environment as ev
 
 
 _serialize = sys.version_info >= (3, 8) and sys.platform == 'darwin'
@@ -67,8 +68,10 @@ class PackageInstallContext(object):
     def __init__(self, pkg):
         if _serialize:
             self.serialized_pkg = serialize(pkg)
+            self.serialized_env = serialize(ev._active_environment)
         else:
             self.pkg = pkg
+            self.env = ev._active_environment
         self.spack_working_dir = spack.main.spack_working_dir
         self.test_state = TestState()
 
@@ -76,8 +79,10 @@ class PackageInstallContext(object):
         self.test_state.restore()
         spack.main.spack_working_dir = self.spack_working_dir
         if _serialize:
+            ev._active_environment = pickle.load(self.serialized_env)
             return pickle.load(self.serialized_pkg)
         else:
+            ev._active_environment = self.env
             return self.pkg
 
 

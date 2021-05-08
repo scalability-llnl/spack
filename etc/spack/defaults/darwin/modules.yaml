@@ -14,8 +14,9 @@
 #   ~/.spack/modules.yaml
 # -------------------------------------------------------------------------
 modules:
-  prefix_inspections:
-    lib:
-      - DYLD_FALLBACK_LIBRARY_PATH
-    lib64:
-      - DYLD_FALLBACK_LIBRARY_PATH
+  default:
+    prefix_inspections:
+      lib:
+        - DYLD_FALLBACK_LIBRARY_PATH
+      lib64:
+        - DYLD_FALLBACK_LIBRARY_PATH

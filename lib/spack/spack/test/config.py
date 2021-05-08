@@ -374,9 +374,9 @@ def test_substitute_config_variables(mock_low_high_config, monkeypatch):
 
     # relative paths with source information are relative to the file
     spack.config.set(
-        'config:module_roots', {'lmod': 'foo/bar/baz'}, scope='low')
+        'modules:default', {'roots': {'lmod': 'foo/bar/baz'}}, scope='low')
     spack.config.config.clear_caches()
-    path = spack.config.get('config:module_roots:lmod')
+    path = spack.config.get('modules:default:roots:lmod')
     assert spack_path.canonicalize_path(path) == os.path.normpath(
         os.path.join(mock_low_high_config.scopes['low'].path,
                      'foo/bar/baz'))
@@ -987,8 +987,9 @@ def test_bad_config_yaml(tmpdir):
         check_schema(spack.schema.config.schema, """\
 config:
     verify_ssl: False
-    module_roots:
-        fmod: /some/fake/location
+    install_tree:
+      root:
+        extra_level: foo
 """)
 
 

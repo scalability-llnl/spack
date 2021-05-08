@@ -858,7 +858,7 @@ _spack_env_st() {
 _spack_env_loads() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -m --module-type --input-only -p --prefix -x --exclude -r --dependencies"
+        SPACK_COMPREPLY="-h --help -n --module-set-name -m --module-type --input-only -p --prefix -x --exclude -r --dependencies"
     else
         _environments
     fi
@@ -1218,7 +1218,7 @@ _spack_module() {
 _spack_module_lmod() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help"
+        SPACK_COMPREPLY="-h --help -n --name"
     else
         SPACK_COMPREPLY="refresh find rm loads setdefault"
     fi
@@ -1272,7 +1272,7 @@ _spack_module_lmod_setdefault() {
 _spack_module_tcl() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help"
+        SPACK_COMPREPLY="-h --help -n --name"
     else
         SPACK_COMPREPLY="refresh find rm loads"
     fi

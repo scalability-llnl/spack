@@ -5,11 +5,16 @@
 import re
 import pytest
 
+import spack.environment as ev
+import spack.main
 import spack.modules.lmod
+import spack.spec
 
 mpich_spec_string = 'mpich@3.0.4'
 mpileaks_spec_string = 'mpileaks'
 libdwarf_spec_string = 'libdwarf arch=x64-linux'
+
+install = spack.main.SpackCommand('install')
 
 #: Class of the writer tested in this module
 writer_cls = spack.modules.lmod.LmodModulefileWriter
@@ -314,3 +319,35 @@ class TestLmod(object):
         assert writer.conf.projections == expected
         projection = writer.spec.format(writer.conf.projections['all'])
         assert projection in writer.layout.use_name
+
+    def test_config_backwards_compat(self, mutable_config):
+        settings = {
+            'enable': ['lmod'],
+            'lmod': {
+                'core_compilers': ['%gcc@0.0.0']
+            }
+        }
+
+        spack.config.set('modules:default', settings)
+        new_format = spack.modules.lmod.configuration('default')
+
+        spack.config.set('modules', settings)
+        old_format = spack.modules.lmod.configuration('default')
+
+        assert old_format == new_format
+        assert old_format == settings['lmod']
+
+    def test_modules_relative_to_view(
+            self, tmpdir, modulefile_content, module_configuration, install_mockery):
+        with ev.Environment(str(tmpdir), with_view=True) as e:
+            module_configuration('with_view')
+            install('cmake')
+
+            spec = spack.spec.Spec('cmake').concretized()
+
+            content = modulefile_content('cmake')
+            expected = e.default_view.view().get_projection_for_spec(spec)
+            # Rather than parse all lines, ensure all prefixes in the content
+            # point to the right one
+            assert any(expected in line for line in content)
+            assert not any(spec.prefix in line for line in content)

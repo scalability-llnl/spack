@@ -1,0 +1,6 @@
+enable:
+  - lmod
+use_view: default
+lmod:
+  core_compilers:
+    - 'clang@3.3'

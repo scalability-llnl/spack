@@ -14,8 +14,7 @@
 #   ~/.spack/modules.yaml
 # -------------------------------------------------------------------------
 modules:
-  enable:
-    - tcl
+  # Paths to check when creating modules for all module sets
   prefix_inspections:
     bin:
       - PATH
@@ -34,6 +33,17 @@ modules:
     '':
       - CMAKE_PREFIX_PATH
 
-  lmod:
-    hierarchy:
-      - mpi
+  # These are configurations for the module set named "default"
+  default:
+    # Where to install modules
+    roots:
+      tcl:    $spack/share/spack/modules
+      lmod:   $spack/share/spack/lmod
+    # What time of modules to use
+    enable:
+      - tcl
+
+    # Default configurations if lmod is enabled
+    lmod:
+      hierarchy:
+        - mpi

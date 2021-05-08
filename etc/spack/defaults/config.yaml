@@ -33,13 +33,6 @@ config:
   template_dirs:
     - $spack/share/spack/templates
 
-
-  # Locations where different types of modules should be installed.
-  module_roots:
-    tcl:    $spack/share/spack/modules
-    lmod:   $spack/share/spack/lmod
-
-
   # Temporary locations Spack can try to use for builds.
   #
   # Recommended options are given below.

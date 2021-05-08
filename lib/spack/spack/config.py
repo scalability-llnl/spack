@@ -571,16 +571,17 @@ class Configuration(object):
         YAML config file that looks like this::
 
            config:
-             install_tree: $spack/opt/spack
-             module_roots:
-               lmod:   $spack/share/spack/lmod
+             install_tree:
+               root: $spack/opt/spack
+             build_stage:
+             - $tmpdir/$user/spack-stage
 
         ``get_config('config')`` will return::
 
-           { 'install_tree': '$spack/opt/spack',
-             'module_roots: {
-                 'lmod': '$spack/share/spack/lmod'
+           { 'install_tree': {
+                 'root': '$spack/opt/spack',
              }
+             'build_stage': ['$tmpdir/$user/spack-stage']
            }
 
         """

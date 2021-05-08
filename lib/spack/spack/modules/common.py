@@ -40,6 +40,7 @@ import llnl.util.filesystem
 from llnl.util.lang import dedupe
 import llnl.util.tty as tty
 import spack.build_environment as build_environment
+import spack.environment as ev
 import spack.error
 import spack.paths
 import spack.schema.environment
@@ -52,8 +53,13 @@ import spack.util.spack_yaml as syaml
 
 
 #: config section for this file
-def configuration():
-    return spack.config.get('modules', {})
+def configuration(module_set_name):
+    config_path = 'modules:%s' % module_set_name
+    config = spack.config.get(config_path, {})
+    if not config and module_set_name == 'default':
+        # return old format for backward compatibility
+        return spack.config.get('modules', {})
+    return config
 
 
 #: Valid tokens for naming scheme and env variable names
@@ -204,17 +210,23 @@ def merge_config_rules(configuration, spec):
     return spec_configuration
 
 
-def root_path(name):
+def root_path(name, module_set_name):
     """Returns the root folder for module file installation.
 
     Args:
         name: name of the module system to be used (e.g. 'tcl')
+        module_set_name: name of the set of module configs to use
 
     Returns:
         root folder for module file installation
     """
     # Root folders where the various module files should be written
-    roots = spack.config.get('config:module_roots', {})
+    roots = spack.config.get('modules:%s:roots' % module_set_name, {})
+
+    # For backwards compatibility, read the old module roots for default set
+    if module_set_name == 'default':
+        roots = spack.config.merge_yaml(
+            spack.config.get('config:module_roots', {}), roots)
     path = roots.get(name, os.path.join(spack.paths.share_path, name))
     return spack.util.path.canonicalize_path(path)
 
@@ -326,7 +338,10 @@ class UpstreamModuleIndex(object):
             return None
 
 
-def get_module(module_type, spec, get_full_path, required=True):
+def get_module(
+        module_type, spec, get_full_path,
+        module_set_name='default', required=True
+):
     """Retrieve the module file for a given spec and module type.
 
     Retrieve the module file for the given spec if it is available. If the
@@ -342,6 +357,8 @@ def get_module(module_type, spec, get_full_path, required=True):
             then an exception is raised (regardless of whether it is required)
         get_full_path: if ``True``, this returns the full path to the module.
             Otherwise, this returns the module name.
+        module_set_name: the named module configuration set from modules.yaml
+            for which to retrieve the module.
 
     Returns:
         The module name or path. May return ``None`` if the module is not
@@ -362,7 +379,7 @@ def get_module(module_type, spec, get_full_path, required=True):
         else:
             return module.use_name
     else:
-        writer = spack.modules.module_types[module_type](spec)
+        writer = spack.modules.module_types[module_type](spec, module_set_name)
         if not os.path.isfile(writer.layout.filename):
             if not writer.conf.blacklisted:
                 err_msg = "No module available for package {0} at {1}".format(
@@ -389,20 +406,22 @@ class BaseConfiguration(object):
     default_projections = {
         'all': '{name}-{version}-{compiler.name}-{compiler.version}'}
 
-    def __init__(self, spec):
+    def __init__(self, spec, module_set_name):
         # Module where type(self) is defined
         self.module = inspect.getmodule(self)
         # Spec for which we want to generate a module file
         self.spec = spec
+        self.name = module_set_name
         # Dictionary of configuration options that should be applied
         # to the spec
-        self.conf = merge_config_rules(self.module.configuration(), self.spec)
+        self.conf = merge_config_rules(
+            self.module.configuration(self.name), self.spec)
 
     @property
     def projections(self):
         """Projection from specs to module names"""
         # backwards compatiblity for naming_scheme key
-        conf = self.module.configuration()
+        conf = self.module.configuration(self.name)
         if 'naming_scheme' in conf:
             default = {'all': conf['naming_scheme']}
         else:
@@ -460,7 +479,7 @@ class BaseConfiguration(object):
         """
         # A few variables for convenience of writing the method
         spec = self.spec
-        conf = self.module.configuration()
+        conf = self.module.configuration(self.name)
 
         # Compute the list of whitelist rules that match
         wlrules = conf.get('whitelist', [])
@@ -522,7 +541,7 @@ class BaseConfiguration(object):
     def _create_list_for(self, what):
         whitelist = []
         for item in self.conf[what]:
-            conf = type(self)(item)
+            conf = type(self)(item, self.name)
             if not conf.blacklisted:
                 whitelist.append(item)
         return whitelist
@@ -551,11 +570,10 @@ class BaseFileLayout(object):
         """Spec under consideration"""
         return self.conf.spec
 
-    @classmethod
-    def dirname(cls):
+    def dirname(self):
         """Root folder for module files of this type."""
-        module_system = str(inspect.getmodule(cls).__name__).split('.')[-1]
-        return root_path(module_system)
+        module_system = str(self.conf.module.__name__).split('.')[-1]
+        return root_path(module_system, self.conf.name)
 
     @property
     def use_name(self):
@@ -655,10 +673,30 @@ class BaseContext(tengine.Context):
     @tengine.context_property
     def environment_modifications(self):
         """List of environment modifications to be processed."""
-        # Modifications guessed inspecting the spec prefix
+        # Modifications guessed by inspecting the spec prefix
+        std_prefix_inspections = spack.config.get(
+            'modules:prefix_inspections', {})
+        set_prefix_inspections = spack.config.get(
+            'modules:%s:prefix_inspections' % self.conf.name, {})
+        prefix_inspections = spack.config.merge_yaml(
+            std_prefix_inspections, set_prefix_inspections)
+
+        use_view = spack.config.get(
+            'modules:%s:use_view' % self.conf.name, False)
+
+        spec = self.spec.copy()  # defensive copy before setting prefix
+        if use_view:
+            if use_view is True:
+                use_view = ev.default_view_name
+
+            env = ev.get_env({}, 'post_env_write_hook', required=True)
+            view = env.views[use_view].view()
+
+            spec.prefix = view.get_projection_for_spec(spec)
+
         env = spack.util.environment.inspect_path(
-            self.spec.prefix,
-            spack.config.get('modules:prefix_inspections', {}),
+            spec.prefix,
+            prefix_inspections,
             exclude=spack.util.environment.is_system_path
         )
 
@@ -666,12 +704,12 @@ class BaseContext(tengine.Context):
         # before asking for package-specific modifications
         env.extend(
             build_environment.modifications_from_dependencies(
-                self.spec, context='run'
+                spec, context='run'
             )
         )
         # Package specific modifications
-        build_environment.set_module_variables_for_package(self.spec.package)
-        self.spec.package.setup_run_environment(env)
+        build_environment.set_module_variables_for_package(spec.package)
+        spec.package.setup_run_environment(env)
 
         # Modifications required from modules.yaml
         env.extend(self.conf.env)
@@ -686,17 +724,17 @@ class BaseContext(tengine.Context):
         # tokens uppercase.
         transform = {}
         for token in _valid_tokens:
-            transform[token] = lambda spec, string: str.upper(string)
+            transform[token] = lambda s, string: str.upper(string)
 
         for x in env:
             # Ensure all the tokens are valid in this context
             msg = 'some tokens cannot be expanded in an environment variable name'  # noqa: E501
             _check_tokens_are_valid(x.name, message=msg)
             # Transform them
-            x.name = self.spec.format(x.name, transform=transform)
+            x.name = spec.format(x.name, transform=transform)
             try:
                 # Not every command has a value
-                x.value = self.spec.format(x.value)
+                x.value = spec.format(x.value)
             except AttributeError:
                 pass
             x.name = str(x.name).replace('-', '_')
@@ -714,7 +752,8 @@ class BaseContext(tengine.Context):
 
     def _create_module_list_of(self, what):
         m = self.conf.module
-        return [m.make_layout(x).use_name
+        name = self.conf.name
+        return [m.make_layout(x, name).use_name
                 for x in getattr(self.conf, what)]
 
     @tengine.context_property
@@ -724,7 +763,7 @@ class BaseContext(tengine.Context):
 
 
 class BaseModuleFileWriter(object):
-    def __init__(self, spec):
+    def __init__(self, spec, module_set_name):
         self.spec = spec
 
         # This class is meant to be derived. Get the module of the
@@ -733,9 +772,9 @@ class BaseModuleFileWriter(object):
         m = self.module
 
         # Create the triplet of configuration/layout/context
-        self.conf = m.make_configuration(spec)
-        self.layout = m.make_layout(spec)
-        self.context = m.make_context(spec)
+        self.conf = m.make_configuration(spec, module_set_name)
+        self.layout = m.make_layout(spec, module_set_name)
+        self.context = m.make_context(spec, module_set_name)
 
         # Check if a default template has been defined,
         # throw if not found

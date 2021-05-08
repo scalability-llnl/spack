@@ -22,36 +22,42 @@ from .common import BaseContext, BaseModuleFileWriter
 
 
 #: lmod specific part of the configuration
-def configuration():
-    return spack.config.get('modules:lmod', {})
+def configuration(module_set_name):
+    config_path = 'modules:%s:lmod' % module_set_name
+    config = spack.config.get(config_path, {})
+    if not config and module_set_name == 'default':
+        # return old format for backward compatibility
+        return spack.config.get('modules:lmod', {})
+    return config
 
 
 #: Caches the configuration {spec_hash: configuration}
 configuration_registry = {}  # type: Dict[str, Any]
 
 
-def make_configuration(spec):
+def make_configuration(spec, module_set_name):
     """Returns the lmod configuration for spec"""
-    key = spec.dag_hash()
+    key = (spec.dag_hash(), module_set_name)
     try:
         return configuration_registry[key]
     except KeyError:
-        return configuration_registry.setdefault(key, LmodConfiguration(spec))
+        return configuration_registry.setdefault(
+            key, LmodConfiguration(spec, module_set_name))
 
 
-def make_layout(spec):
+def make_layout(spec, module_set_name):
     """Returns the layout information for spec """
-    conf = make_configuration(spec)
+    conf = make_configuration(spec, module_set_name)
     return LmodFileLayout(conf)
 
 
-def make_context(spec):
+def make_context(spec, module_set_name):
     """Returns the context information for spec"""
-    conf = make_configuration(spec)
+    conf = make_configuration(spec, module_set_name)
     return LmodContext(conf)
 
 
-def guess_core_compilers(store=False):
+def guess_core_compilers(name, store=False):
     """Guesses the list of core compilers installed in the system.
 
     Args:
@@ -81,11 +87,12 @@ def guess_core_compilers(store=False):
         # in the default modify scope (i.e. within the directory hierarchy
         # of Spack itself)
         modules_cfg = spack.config.get(
-            'modules', scope=spack.config.default_modify_scope()
+            'modules:' + name, {}, scope=spack.config.default_modify_scope()
         )
         modules_cfg.setdefault('lmod', {})['core_compilers'] = core_compilers
         spack.config.set(
-            'modules', modules_cfg, scope=spack.config.default_modify_scope()
+            'modules:' + name, modules_cfg,
+            scope=spack.config.default_modify_scope()
         )
 
     return core_compilers or None
@@ -104,9 +111,9 @@ class LmodConfiguration(BaseConfiguration):
                 specified in the configuration file or the sequence
                 is empty
         """
-        value = configuration().get(
+        value = configuration(self.name).get(
             'core_compilers'
-        ) or guess_core_compilers(store=True)
+        ) or guess_core_compilers(self.name, store=True)
 
         if not value:
             msg = 'the key "core_compilers" must be set in modules.yaml'
@@ -116,14 +123,14 @@ class LmodConfiguration(BaseConfiguration):
     @property
     def core_specs(self):
         """Returns the list of "Core" specs"""
-        return configuration().get('core_specs', [])
+        return configuration(self.name).get('core_specs', [])
 
     @property
     def hierarchy_tokens(self):
         """Returns the list of tokens that are part of the modulefile
         hierarchy. 'compiler' is always present.
         """
-        tokens = configuration().get('hierarchy', [])
+        tokens = configuration(self.name).get('hierarchy', [])
 
         # Check if all the tokens in the hierarchy are virtual specs.
         # If not warn the user and raise an error.
@@ -407,7 +414,7 @@ class LmodContext(BaseContext):
     @tengine.context_property
     def unlocked_paths(self):
         """Returns the list of paths that are unlocked unconditionally."""
-        layout = make_layout(self.spec)
+        layout = make_layout(self.spec, self.conf.name)
         return [os.path.join(*parts) for parts in layout.unlocked_paths[None]]
 
     @tengine.context_property
@@ -415,7 +422,7 @@ class LmodContext(BaseContext):
         """Returns the list of paths that are unlocked conditionally.
         Each item in the list is a tuple with the structure (condition, path).
         """
-        layout = make_layout(self.spec)
+        layout = make_layout(self.spec, self.conf.name)
         value = []
         conditional_paths = layout.unlocked_paths
         conditional_paths.pop(None)
