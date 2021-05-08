@@ -41,3 +41,9 @@ class JsonC(CMakePackage):
     @when('@:0.13.1')
     def install(self, spec, prefix):
         make('install')
+
+    @when('%cce@11.0.3:')
+    def patch(self):
+        filter_file('-Werror',
+                    '',
+                    'CMakeLists.txt')
