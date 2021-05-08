@@ -24,6 +24,7 @@ from typing import Optional  # novm
 from types import ModuleType  # novm
 
 import llnl.util.tty as tty
+import llnl.util.filesystem as fs
 
 termios = None  # type: Optional[ModuleType]
 try:
@@ -321,10 +322,8 @@ class FileWrapper(object):
     def unwrap(self):
         if self.open:
             if self.file_like:
-                if sys.version_info < (3,):
-                    self.file = open(self.file_like, 'w')
-                else:
-                    self.file = open(self.file_like, 'w', encoding='utf-8')
+                self.file = fs.open_utf8(self.file_like, 'w',
+                                         limit_buffering=True)
             else:
                 self.file = StringIO()
             return self.file
@@ -723,13 +722,7 @@ def _writer_daemon(stdin_multiprocess_fd, read_multiprocess_fd, write_fd, echo,
     if sys.version_info < (3, 8) or sys.platform != 'darwin':
         os.close(write_fd)
 
-    # Use line buffering (3rd param = 1) since Python 3 has a bug
-    # that prevents unbuffered text I/O.
-    if sys.version_info < (3,):
-        in_pipe = os.fdopen(read_multiprocess_fd.fd, 'r', 1)
-    else:
-        # Python 3.x before 3.7 does not open with UTF-8 encoding by default
-        in_pipe = os.fdopen(read_multiprocess_fd.fd, 'r', 1, encoding='utf-8')
+    in_pipe = fs.open_utf8(read_multiprocess_fd.fd, 'r', limit_buffering=True)
 
     if stdin_multiprocess_fd:
         stdin = os.fdopen(stdin_multiprocess_fd.fd)

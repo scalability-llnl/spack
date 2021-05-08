@@ -8,6 +8,7 @@ import os
 import shutil
 import stat
 import sys
+import codecs
 
 import pytest
 
@@ -569,6 +570,43 @@ def test_safe_remove(files_or_dirs, tmpdir):
     # Assert that files are restored
     for entry in to_be_checked:
         assert os.path.exists(entry)
+
+
+def test_open_utf8_path(tmpdir):
+    unicode_bytes = b'\xED\x95\x9C'
+    target_fname = os.path.join(str(tmpdir), 'unicode.txt')
+    with open(target_fname, 'wb') as target_file:
+        target_file.write(unicode_bytes)
+
+    file = fs.open_utf8(target_fname, 'r')
+    try:
+        file.readline()
+    finally:
+        file.close()
+
+    file = fs.open_utf8(target_fname, 'w')
+    try:
+        file.write(codecs.decode(b'\xED\x95\x9C', 'utf8'))
+    finally:
+        file.close()
+
+
+def test_open_utf8_fd():
+    read_fd, write_fd = os.pipe()
+    read, write = None, None
+    try:
+        read = fs.open_utf8(read_fd, 'r')
+        write = fs.open_utf8(write_fd, 'w')
+
+        write.write(codecs.decode(b'\xED\x95\x9C', 'utf8'))
+        write.close()
+        write = None
+        read.read()
+    finally:
+        if write:
+            write.close()
+        if read:
+            read.close()
 
 
 @pytest.mark.regression('18441')

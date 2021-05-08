@@ -17,6 +17,8 @@ import stat
 import sys
 import tempfile
 from contextlib import contextmanager
+import codecs
+import encodings
 
 import six
 from llnl.util import tty
@@ -70,7 +72,8 @@ __all__ = [
     'traverse_tree',
     'unset_executable_mode',
     'working_dir',
-    'keep_modification_time'
+    'keep_modification_time',
+    'open_utf8'
 ]
 
 
@@ -1801,6 +1804,46 @@ def prefixes(path):
         pass
 
     return paths
+
+
+def open_utf8(path_or_fd, mode, limit_buffering=False):
+    """Python 3.x before 3.7 does not open in UTF-8 by default. Python
+       2.x versions do not support 'encoding' without the 'codecs' module.
+    """
+    # This might receive a spack.util.prefix.Prefix object, which cannot be
+    # converted to an int in Python 2.x
+    path_or_fd = str(path_or_fd)
+    try:
+        fd = int(path_or_fd)
+        path = None
+    except ValueError:
+        path = path_or_fd
+        fd = None
+
+    if fd:
+        if sys.version_info < (3,):
+            if mode == 'r':
+                bytes_mode = 'rb'
+                stream_ctor = encodings.utf_8.StreamReader
+            elif mode == 'w':
+                bytes_mode = 'wb'
+                stream_ctor = encodings.utf_8.StreamWriter
+            else:
+                raise ValueError("Unexpected mode ('r' or 'w' expected): {0}"
+                                 .format(mode))
+            if limit_buffering:
+                buffering = 0  # No buffering
+            else:
+                buffering = -1  # Default
+            file = os.fdopen(fd, bytes_mode, buffering)
+            return stream_ctor(file)
+        else:
+            return os.fdopen(fd, mode, encoding='utf-8')
+    else:
+        if sys.version_info < (3,):
+            return codecs.open(path, mode, 'utf-8')
+        else:
+            return open(path, mode, encoding='utf-8')
 
 
 def md5sum(file):

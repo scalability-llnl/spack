@@ -426,9 +426,9 @@ def combine_phase_logs(phase_log_files, log_path):
         log_path (path): the path to combine them to
     """
 
-    with open(log_path, 'w') as log_file:
+    with fs.open_utf8(log_path, 'w') as log_file:
         for phase_log_file in phase_log_files:
-            with open(phase_log_file, 'r') as phase_log:
+            with fs.open_utf8(phase_log_file, 'r') as phase_log:
                 log_file.write(phase_log.read())
 
 
@@ -590,7 +590,7 @@ def log(pkg):
         if errors.getvalue():
             error_file = os.path.join(target_dir, 'errors.txt')
             fs.mkdirp(target_dir)
-            with open(error_file, 'w') as err:
+            with fs.open_utf8(error_file, 'w') as err:
                 err.write(errors.getvalue())
             tty.warn('Errors occurred when archiving files.\n\t'
                      'See: {0}'.format(error_file))
