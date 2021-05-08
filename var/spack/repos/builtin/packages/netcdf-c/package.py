@@ -67,7 +67,7 @@ class NetcdfC(AutotoolsPackage):
     variant('shared', default=True, description='Enable shared library')
     variant('dap', default=False, description='Enable DAP support')
     variant('jna', default=False, description='Enable JNA support')
-    variant('enable-fsync', default=False, description='Enable fsync support')
+    variant('fsync', default=False, description='Enable fsync sypport')
 
     # It's unclear if cdmremote can be enabled if '--enable-netcdf-4' is passed
     # to the configure script. Since netcdf-4 support is mandatory we comment
@@ -141,9 +141,10 @@ class NetcdfC(AutotoolsPackage):
                        '--enable-largefile',
                        '--enable-netcdf-4']
 
-        # The flag was introduced in version 4.1.0
-        if self.spec.satisfies('@4.1:'):
+        if "+fsync" in self.spec:
             config_args.append('--enable-fsync')
+        else:
+            config_args.append('--disable-fsync')
 
         # The flag was introduced in version 4.3.1
         if self.spec.satisfies('@4.3.1:'):
@@ -188,12 +189,6 @@ class NetcdfC(AutotoolsPackage):
         ldflags.append(hdf5_hl.libs.search_flags)
         if hdf5_hl.satisfies('~shared'):
             libs.append(hdf5_hl.libs.link_flags)
-
-        if '+enable-fsync' in self.spec:
-            # The flag was introduced in version 4.1.0. It was default
-            # `on` until 4.3.0 when it now defaults to `off`.
-            if self.spec.satisfies('@4.1:'):
-                config_args.append('--enable-fsync')
 
         if '+parallel-netcdf' in self.spec:
             config_args.append('--enable-pnetcdf')
