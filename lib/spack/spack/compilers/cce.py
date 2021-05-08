@@ -66,6 +66,32 @@ class Cce(Compiler):
         return "-h std=c++11"
 
     @property
+    def cxx14_flag(self):
+        if self.is_clang_based:
+            if self.real_version < ver('3.4'):
+                raise UnsupportedCompilerFlag(
+                    self, "the C++14 standard", "cxx14_flag", "< 3.4")
+            return '-std=c++14'
+        # Raise an error because I don't know
+        # modern CCE is clang-based, so it's likely old CCE
+        # only supports up to C++11
+        raise UnsupportedCompilerFlag(
+            self, "the C++14 standard", "cxx14_flag", "< unknown")
+
+    @property
+    def cxx17_flag(self):
+        if self.is_clang_based:
+            if self.real_version < ver('5.0'):
+                raise UnsupportedCompilerFlag(
+                    self, "the C++17 standard", "cxx17_flag", "< 5")
+            return '-std=c++17'
+        # Raise an error because I don't know
+        # modern CCE is clang-based, so it's likely old CCE
+        # only supports up to C++11
+        raise UnsupportedCompilerFlag(
+            self, "the C++17 standard", "cxx17_flag", "< unknown")
+
+    @property
     def c99_flag(self):
         if self.is_clang_based:
             return '-std=c99'
