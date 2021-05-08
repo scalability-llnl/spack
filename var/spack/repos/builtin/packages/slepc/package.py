@@ -95,8 +95,12 @@ class Slepc(Package):
         # its symlink in spack/stage/ !
         os.environ['SLEPC_DIR'] = os.getcwd()
 
-        options = []
+        if '%cce' in self.spec:
+            filter_file('          flags = l',
+                        '          flags = l\n        flags += ["-fuse-ld=gold"]',
+                        'config/package.py')
 
+        options = []
         if '+arpack' in spec:
             options.extend([
                 '--with-arpack-dir=%s' % spec['arpack-ng'].prefix,
