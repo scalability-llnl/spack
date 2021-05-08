@@ -41,10 +41,10 @@ class Metall(CMakePackage):
     # (https://github.com/spack/spack/pull/11115)
     # This page has not been updated?
     # https://spack-tutorial.readthedocs.io/en/latest/tutorial_advanced_packaging.html
-    def setup_build_environment(self, spack_env, run_env):
+    def setup_build_environment(self, env):
         # Configure the directories for test
         if self.run_tests:
-            spack_env.set(
+            env.set(
                 'METALL_TEST_DIR',
                 join_path(self.build_directory, 'build_test')
             )
