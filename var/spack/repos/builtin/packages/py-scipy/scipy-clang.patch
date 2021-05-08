@@ -1,0 +1,13 @@
+diff --git a/scipy/special/_faddeeva.cxx b/scipy/special/_faddeeva.cxx
+index 9134516..159122c 100644
+--- a/scipy/special/_faddeeva.cxx
++++ b/scipy/special/_faddeeva.cxx
+@@ -130,7 +130,7 @@ double faddeeva_voigt_profile(double x, double sigma, double gamma)
+ 
+     if(sigma == 0){
+         if (gamma == 0){
+-            if (isnan(x))
++            if (std::isnan(x))
+                 return x;
+             if (x == 0)
+                 return NPY_INFINITY;

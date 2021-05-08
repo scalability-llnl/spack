@@ -75,6 +75,8 @@ class PyScipy(PythonPackage):
     patch('https://git.sagemath.org/sage.git/plain/build/pkgs/scipy/patches/extern_decls.patch?id=711fe05025795e44b84233e065d240859ccae5bd',
           sha256='5433f60831cb554101520a8f8871ac5a32c95f7a971ccd68b69049535b106780', when='@1.2:1.5.3')
 
+    patch('scipy-clang.patch', when='%clang')
+
     def setup_build_environment(self, env):
         # https://github.com/scipy/scipy/issues/9080
         env.set('F90', spack_fc)

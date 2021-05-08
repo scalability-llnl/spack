@@ -17,6 +17,9 @@ class Chai(CMakePackage, CudaPackage, ROCmPackage):
     version('develop', branch='develop', submodules='True')
     version('master', branch='main', submodules='True')
     version('2.3.0', tag='v2.3.0', submodules='True')
+    version('2.2.2', tag='v2.2.2', submodules='True')
+    version('2.2.1', tag='v2.2.1', submodules='True')
+    version('2.2.0', tag='v2.2.0', submodules='True')
     version('2.1.1', tag='v2.1.1', submodules='True')
     version('2.1.0', tag='v2.1.0', submodules='True')
     version('2.0.0', tag='v2.0.0', submodules='True')
@@ -27,7 +30,7 @@ class Chai(CMakePackage, CudaPackage, ROCmPackage):
     variant('enable_pick', default=False, description='Enable pick method')
     variant('shared', default=True, description='Build Shared Libs')
     variant('raja', default=False, description='Build plugin for RAJA')
-    variant('benchmarks', default=True, description='Build benchmarks.')
+    variant('benchmarks', default=False, description='Build benchmarks.')
     variant('examples', default=True, description='Build examples.')
     # TODO: figure out gtest dependency and then set this default True
     # and remove the +tests conflict below.
@@ -100,6 +103,12 @@ class Chai(CMakePackage, CudaPackage, ROCmPackage):
 
         options.append('-DENABLE_TESTS={0}'.format(
             'ON' if '+tests' in spec  else 'OFF'))
+
+        options.append('-DENABLE_BENCHMARKS={0}'.format(
+            'ON' if '+benchmarks' in spec else 'OFF'))
+
+        options.append('-DENABLE_EXAMPLES={0}'.format(
+            'ON' if '+examples' in spec else 'OFF'))
 
         options.append('-DENABLE_BENCHMARKS={0}'.format(
             'ON' if '+benchmarks' in spec else 'OFF'))
