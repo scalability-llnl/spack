@@ -1,0 +1,27 @@
+From 09596b1c780efac7d23c219484581c71a9c250a1 Mon Sep 17 00:00:00 2001
+From: Ethan Stewart <ethan.stewart@amd.com>
+Date: Tue, 15 Mar 2022 20:34:19 -0500
+Subject: [PATCH] Fix conflicting types for alarm issue on centos-9 build.
+
+---
+ runtime/flang/alarm3f.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/runtime/flang/alarm3f.c b/runtime/flang/alarm3f.c
+index bf65ac96c..227829966 100644
+--- a/rocm-openmp-extras/flang/runtime/flang/alarm3f.c
++++ b/rocm-openmp-extras/flang/runtime/flang/alarm3f.c
+@@ -11,12 +11,12 @@
+ 
+ #ifndef WINNT
+ #include <signal.h>
++#include <unistd.h>
+ #include "ent3f.h"
+ 
+ /*
+ extern void (*signal(int, void (*)(int)))(int);
+ */
+-extern int alarm();
+ 
+ int ENT3F(ALARM, alarm)(int *time, void (*proc)())
+ {
