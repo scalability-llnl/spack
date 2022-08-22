@@ -19,29 +19,27 @@ from spack.util.unparse import unparse
 datadir = os.path.join(spack.paths.test_path, "data", "unparse")
 
 
-def compare_sans_name(eq, spec1, spec2):
+def canonical_source_equal_sans_name(spec1, spec2):
     content1 = ph.canonical_source(spec1)
     content1 = content1.replace(spack.repo.PATH.get_pkg_class(spec1.name).__name__, "TestPackage")
     content2 = ph.canonical_source(spec2)
     content2 = content2.replace(spack.repo.PATH.get_pkg_class(spec2.name).__name__, "TestPackage")
-    if eq:
-        assert content1 == content2
-    else:
-        assert content1 != content2
+
+    return content1 == content2
 
 
-def compare_hash_sans_name(eq, spec1, spec2):
+def package_hash_equal_sans_name(spec1, spec2):
     content1 = ph.canonical_source(spec1)
     pkg_cls1 = spack.repo.PATH.get_pkg_class(spec1.name)
     content1 = content1.replace(pkg_cls1.__name__, "TestPackage")
-    hash1 = pkg_cls1(spec1).content_hash(content=content1)
+    hash1 = ph.package_hash(spec1, source=content1)
 
     content2 = ph.canonical_source(spec2)
     pkg_cls2 = spack.repo.PATH.get_pkg_class(spec2.name)
     content2 = content2.replace(pkg_cls2.__name__, "TestPackage")
-    hash2 = pkg_cls2(spec2).content_hash(content=content2)
+    hash2 = ph.package_hash(spec2, source=content2)
 
-    assert (hash1 == hash2) == eq
+    return hash1 == hash2
 
 
 def test_hash(mock_packages, config):
@@ -57,11 +55,11 @@ def test_different_variants(mock_packages, config):
 def test_all_same_but_name(mock_packages, config):
     spec1 = Spec("hash-test1@=1.2")
     spec2 = Spec("hash-test2@=1.2")
-    compare_sans_name(True, spec1, spec2)
+    assert canonical_source_equal_sans_name(spec1, spec2)
 
     spec1 = Spec("hash-test1@=1.2 +varianty")
     spec2 = Spec("hash-test2@=1.2 +varianty")
-    compare_sans_name(True, spec1, spec2)
+    assert canonical_source_equal_sans_name(spec1, spec2)
 
 
 def test_all_same_but_archive_hash(mock_packages, config):
@@ -70,60 +68,63 @@ def test_all_same_but_archive_hash(mock_packages, config):
     """
     spec1 = Spec("hash-test1@=1.3")
     spec2 = Spec("hash-test2@=1.3")
-    compare_sans_name(True, spec1, spec2)
+    assert canonical_source_equal_sans_name(spec1, spec2)
 
 
 def test_all_same_but_patch_contents(mock_packages, config):
     spec1 = Spec("hash-test1@=1.1")
     spec2 = Spec("hash-test2@=1.1")
-    compare_sans_name(True, spec1, spec2)
+    assert canonical_source_equal_sans_name(spec1, spec2)
 
 
 def test_all_same_but_patches_to_apply(mock_packages, config):
     spec1 = Spec("hash-test1@=1.4")
     spec2 = Spec("hash-test2@=1.4")
-    compare_sans_name(True, spec1, spec2)
+    assert canonical_source_equal_sans_name(spec1, spec2)
 
 
 def test_all_same_but_install(mock_packages, config):
     spec1 = Spec("hash-test1@=1.5")
     spec2 = Spec("hash-test2@=1.5")
-    compare_sans_name(False, spec1, spec2)
+    assert not canonical_source_equal_sans_name(spec1, spec2)
 
 
-def test_content_hash_all_same_but_patch_contents(mock_packages, config):
+def test_package_hash_all_same_but_patch_contents_different(mock_packages, config):
     spec1 = Spec("hash-test1@1.1").concretized()
     spec2 = Spec("hash-test2@1.1").concretized()
-    compare_hash_sans_name(False, spec1, spec2)
+
+    assert package_hash_equal_sans_name(spec1, spec2)
+    assert spec1.dag_hash() != spec2.dag_hash()
+    assert spec1.to_node_dict()["patches"] != spec2.to_node_dict()["patches"]
 
 
-def test_content_hash_not_concretized(mock_packages, config):
-    """Check that Package.content_hash() works on abstract specs."""
-    # these are different due to the package hash
+def test_package_hash_not_concretized(mock_packages, config):
+    """Check that ``package_hash()`` works on abstract specs."""
+    # these are different due to patches but not package hash
     spec1 = Spec("hash-test1@=1.1")
     spec2 = Spec("hash-test2@=1.3")
-    compare_hash_sans_name(False, spec1, spec2)
+    assert package_hash_equal_sans_name(spec1, spec2)
 
     # at v1.1 these are actually the same package when @when's are removed
     # and the name isn't considered
     spec1 = Spec("hash-test1@=1.1")
     spec2 = Spec("hash-test2@=1.1")
-    compare_hash_sans_name(True, spec1, spec2)
+    assert package_hash_equal_sans_name(spec1, spec2)
 
-    # these end up being different b/c we can't eliminate much of the package.py
-    # without a version.
+    # these end up being different b/c without a version, we can't eliminate much of the
+    # package.py when canonicalizing source.
     spec1 = Spec("hash-test1")
     spec2 = Spec("hash-test2")
-    compare_hash_sans_name(False, spec1, spec2)
+    assert not package_hash_equal_sans_name(spec1, spec2)
 
 
-def test_content_hash_different_variants(mock_packages, config):
+def test_package_hash_different_variants(mock_packages, config):
     spec1 = Spec("hash-test1@1.2 +variantx").concretized()
     spec2 = Spec("hash-test2@1.2 ~variantx").concretized()
-    compare_hash_sans_name(True, spec1, spec2)
+    assert package_hash_equal_sans_name(spec1, spec2)
 
 
-def test_content_hash_cannot_get_details_from_ast(mock_packages, config):
+def test_package_hash_cannot_get_details_from_ast(mock_packages, config):
     """Packages hash-test1 and hash-test3 would be considered the same
     except that hash-test3 conditionally executes a phase based on
     a "when" directive that Spack cannot evaluate by examining the
@@ -135,18 +136,38 @@ def test_content_hash_cannot_get_details_from_ast(mock_packages, config):
     """
     spec3 = Spec("hash-test1@1.7").concretized()
     spec4 = Spec("hash-test3@1.7").concretized()
-    compare_hash_sans_name(False, spec3, spec4)
+    assert not package_hash_equal_sans_name(spec3, spec4)
 
 
-def test_content_hash_all_same_but_archive_hash(mock_packages, config):
+def test_package_hash_all_same_but_archive_hash(mock_packages, config):
     spec1 = Spec("hash-test1@1.3").concretized()
     spec2 = Spec("hash-test2@1.3").concretized()
-    compare_hash_sans_name(False, spec1, spec2)
+
+    assert package_hash_equal_sans_name(spec1, spec2)
+
+    # the sources for these two packages will not be the same b/c their archive hashes differ
+    assert spec1.to_node_dict()["sources"] != spec2.to_node_dict()["sources"]
+
+    assert spec1.dag_hash() != spec2.dag_hash()
 
 
-def test_content_hash_parse_dynamic_function_call(mock_packages, config):
+def test_package_hash_all_same_but_resources(mock_packages, config):
+    spec1 = Spec("hash-test1@1.7").concretized()
+    spec2 = Spec("hash-test1@1.8").concretized()
+
+    # these should be the same
+    assert canonical_source_equal_sans_name(spec1, spec2)
+    assert package_hash_equal_sans_name(spec1, spec2)
+
+    # but 1.7 has a resource that affects the hash
+    assert spec1.to_node_dict()["sources"] != spec2.to_node_dict()["sources"]
+
+    assert spec1.dag_hash() != spec2.dag_hash()
+
+
+def test_package_hash_parse_dynamic_function_call(mock_packages, config):
     spec = Spec("hash-test4").concretized()
-    spec.package.content_hash()
+    ph.package_hash(spec)
 
 
 many_strings = '''\

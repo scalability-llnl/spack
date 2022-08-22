@@ -9,12 +9,10 @@ The spack package class structure is based strongly on Homebrew
 packages.
 """
 
-import base64
 import collections
 import copy
 import functools
 import glob
-import hashlib
 import importlib
 import io
 import os
@@ -50,6 +48,7 @@ import spack.store
 import spack.url
 import spack.util.environment
 import spack.util.path
+import spack.util.spack_yaml as syaml
 import spack.util.web
 from spack.error import InstallError, NoURLError, PackageError
 from spack.filesystem_view import YamlFilesystemView
@@ -1754,7 +1753,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
 
         return patches
 
-    def content_hash(self, content=None):
+    def artifact_hashes(self, content=None):
         """Create a hash based on the artifacts and patches used to build this package.
 
         This includes:
@@ -1767,52 +1766,47 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         determinable) portions of the hash will be included.
 
         """
-        # list of components to make up the hash
-        hash_content = []
+        hashes = syaml.syaml_dict()
 
         # source artifacts/repositories
         # TODO: resources
         if self.spec.versions.concrete:
+            sources = []
             try:
-                source_id = fs.for_package_version(self).source_id()
+                fetcher = fs.for_package_version(self)
+                sources.append(fetcher.spec_attrs())
+
             except (fs.ExtrapolationError, fs.InvalidArgsError):
                 # ExtrapolationError happens if the package has no fetchers defined.
                 # InvalidArgsError happens when there are version directives with args,
                 #     but none of them identifies an actual fetcher.
-                source_id = None
 
-            if not source_id:
-                # TODO? in cases where a digest or source_id isn't available,
-                # should this attempt to download the source and set one? This
-                # probably only happens for source repositories which are
-                # referenced by branch name rather than tag or commit ID.
+                # if this is a develop spec, say so
                 from_local_sources = "dev_path" in self.spec.variants
+
+                # don't bother setting a source id if none is available, but warn if
+                # it seems like there should be one.
                 if self.has_code and not self.spec.external and not from_local_sources:
                     message = "Missing a source id for {s.name}@{s.version}"
                     tty.debug(message.format(s=self))
-                hash_content.append("".encode("utf-8"))
-            else:
-                hash_content.append(source_id.encode("utf-8"))
+
+            for resource in self._get_needed_resources():
+                sources.append(resource.fetcher.spec_attrs())
+
+            if sources:
+                hashes["sources"] = sources
 
         # patch sha256's
         # Only include these if they've been assigned by the concretizer.
         # We check spec._patches_assigned instead of spec.concrete because
         # we have to call package_hash *before* marking specs concrete
         if self.spec._patches_assigned():
-            hash_content.extend(
-                ":".join((p.sha256, str(p.level))).encode("utf-8") for p in self.spec.patches
-            )
+            hashes["patches"] = [p.sha256 for p in self.spec.patches]
 
         # package.py contents
-        hash_content.append(package_hash(self.spec, source=content).encode("utf-8"))
+        hashes["package_hash"] = package_hash(self.spec, source=content)
 
-        # put it all together and encode as base32
-        b32_hash = base64.b32encode(
-            hashlib.sha256(bytes().join(sorted(hash_content))).digest()
-        ).lower()
-        b32_hash = b32_hash.decode("utf-8")
-
-        return b32_hash
+        return hashes
 
     @property
     def cmake_prefix_paths(self):
