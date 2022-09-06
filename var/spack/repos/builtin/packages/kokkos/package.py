@@ -149,10 +149,10 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     for arch in ROCmPackage.amdgpu_targets:
         if arch not in amdgpu_arch_map:
             conflicts(
-                "+rocm",
-                when="amdgpu_target={0}".format(arch),
-                msg=amd_support_conflict_msg.format(arch),
+                "rocm-config target={0}".format(arch),
+                msg=amd_support_conflict_msg.format(arch)
             )
+    depends_on("rocm-suite", when="+rocm")
 
     intel_gpu_arches = (
         "intel_gen",
@@ -293,7 +293,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             spack_microarches.append(kokkos_microarch_name)
 
         if "+rocm" in spec:
-            for amdgpu_target in spec.variants["amdgpu_target"].value:
+            for amdgpu_target in self.get_amdgpu_targets_without_features(spec):
                 if amdgpu_target != "none":
                     if amdgpu_target in self.amdgpu_arch_map:
                         spack_microarches.append(self.amdgpu_arch_map[amdgpu_target])

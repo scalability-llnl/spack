@@ -12,7 +12,7 @@
 #    clang which is linked against a different version of the gcc library,
 #    you will get errors along the lines of:
 #    undefined reference to
-#       `std::__throw_out_of_range_fmt(char const*, ...)@@GLIBCXX_3.4.20'
+#       `std::__throw_out_of_range_fmt(char const*, ...)@@GLIBCXX_3.4.20`
 #    which is indicative of a mismatch in standard library versions.
 #
 #    in compilers.yaml
@@ -71,79 +71,88 @@
 #
 # 3. In part 2, DO NOT list the path to hsa as /opt/rocm/hsa ! You want spack
 #    to find hsa in /opt/rocm/include/hsa/hsa.h . The directory of
-#    /opt/rocm/hsa also has an hsa.h file, but it won't be found because spack
+#    /opt/rocm/hsa also has an hsa.h file, but it won"t be found because spack
 #    does not like its directory structure.
 #
 
-import spack.variant
-from spack.directives import conflicts, depends_on, variant
+from spack.directives import variant
 from spack.package_base import PackageBase
 
 
 class ROCmPackage(PackageBase):
-    """Auxiliary class which contains ROCm variant, dependencies and conflicts
-    and is meant to unify and facilitate its usage. Closely mimics CudaPackage.
+    """Auxiliary class which contains ROCm variant, and ROCm meta tools
+    and is meant to unify and facilitate its usage.
 
-    Maintainers: dtaller
+    Maintainers: dtaller, kwryankrattiger
     """
 
-    # https://llvm.org/docs/AMDGPUUsage.html
-    # Possible architectures
+    rocm_versions = {
+        "5.4.3":  {"preferred": True},
+        "5.4.0":  {"preferred": False},
+        "5.3.3":  {"preferred": True},
+        "5.3.0":  {"preferred": False},
+        "5.2.2":  {"preferred": True},
+        "5.2.1":  {"preferred": False},
+        "5.2.0":  {"preferred": False},
+        "5.1.3":  {"preferred": True},
+        "5.1.0":  {"preferred": False},
+        # Deprecated Versions
+        "5.0.2":  {"deprecated": True},
+        "5.0.0":  {"deprecated": True},
+        "4.5.2":  {"deprecated": True},
+        "4.5.0":  {"deprecated": True},
+        "4.3.1":  {"deprecated": True},
+        "4.3.0":  {"deprecated": True},
+        "4.2.0":  {"deprecated": True},
+        "4.1.0":  {"deprecated": True},
+        "4.0.0":  {"deprecated": True},
+        "3.10.0": {"deprecated": True},
+        "3.9.0":  {"deprecated": True},
+        "3.8.0":  {"deprecated": True},
+        "3.7.0":  {"deprecated": True},
+        "3.5.0":  {"deprecated": True}
+    }
+
     amdgpu_targets = (
-        "gfx701",
-        "gfx801",
-        "gfx802",
-        "gfx803",
-        "gfx900",
-        "gfx900:xnack-",
-        "gfx902",
-        "gfx904",
-        "gfx906",
-        "gfx906:xnack-",
-        "gfx908",
-        "gfx908:xnack-",
-        "gfx909",
-        "gfx90a",
-        "gfx90a:xnack-",
-        "gfx90a:xnack+",
+       # GCN GFX7 Sea Islands
+        "gfx700", "gfx701", "gfx702", "gfx703", "gfx704", "gfx705",
+        # GCN GFX8 Volcanic Islands
+        "gfx801", "gfx802", "gfx803", "gfx805", "gfx810",
+        # GCN GFX9 Vega
+        "gfx900", "gfx902", "gfx904", "gfx906", "gfx908", "gfx909", "gfx90a",
         "gfx90c",
-        "gfx940",
-        "gfx1010",
-        "gfx1011",
-        "gfx1012",
-        "gfx1013",
-        "gfx1030",
-        "gfx1031",
-        "gfx1032",
-        "gfx1033",
-        "gfx1034",
-        "gfx1035",
-        "gfx1036",
-        "gfx1100",
-        "gfx1101",
-        "gfx1102",
-        "gfx1103",
+        # GCN GFX10 RDNA 1
+        "gfx1010", "gfx1011", "gfx1012", "gfx1013",
+        # GCN GFX10 RDNA 2
+        "gfx1030", "gfx1031", "gfx1032", "gfx1033", "gfx1034", "gfx1035", "gfx1036",
+        # GCN GFX11 RDNA 3
+        "gfx1100", "gfx1101", "gfx1102", "gfx1103",
     )
+
+    amdgpu_target_features = {
+        "cumode": (
+            "gfx1010", "gfx1011", "gfx1012", "gfx1013",
+            "gfx1030", "gfx1031", "gfx1032", "gfx1033", "gfx1034", "gfx1035", "gfx1036",
+            "gfx1100", "gfx1101", "gfx1102", "gfx1103"
+        ),
+        "sramecc": ("gfx906", "gfx908", "gfx90a"),
+        "tgsplit": ("gfx90a"),
+        "wavefrontsize64": (
+            "gfx1010", "gfx1011", "gfx1012", "gfx1013",
+            "gfx1030", "gfx1031", "gfx1032", "gfx1033", "gfx1034", "gfx1035", "gfx1036",
+            "gfx1100", "gfx1101", "gfx1102", "gfx1103"
+        ),
+        "xnack": (
+            "gfx801", "gfx810",
+            "gfx900", "gfx902", "gfx904", "gfx906", "gfx908", "gfx909",
+            "gfx90a", "gfx90c",
+            "gfx1010", "gfx1011", "gfx1012", "gfx1013"
+        )
+    }
 
     variant("rocm", default=False, description="Enable ROCm support")
 
-    # possible amd gpu targets for rocm builds
-    variant(
-        "amdgpu_target",
-        description="AMD GPU architecture",
-        values=spack.variant.any_combination_of(*amdgpu_targets),
-        sticky=True,
-        when="+rocm",
-    )
-
-    depends_on("llvm-amdgpu", when="+rocm")
-    depends_on("hsa-rocr-dev", when="+rocm")
-    depends_on("hip +rocm", when="+rocm")
-
-    conflicts("^blt@:0.3.6", when="+rocm")
-
-    # need amd gpu type for rocm builds
-    conflicts("amdgpu_target=none", when="+rocm")
+    depends_on("rocm-suite", when="+rocm")
 
     # https://github.com/ROCm-Developer-Tools/HIP/blob/master/bin/hipcc
     # It seems that hip-clang does not (yet?) accept this flag, in which case
@@ -154,39 +163,21 @@ class ROCmPackage(PackageBase):
         archs = ",".join(amdgpu_target)
         return "--amdgpu-target={0}".format(archs)
 
-    # HIP version vs Architecture
 
-    # TODO: add a bunch of lines like:
-    # depends_on('hip@:6.0', when='amdgpu_target=gfx701')
-    # to indicate minimum version for each architecture.
+    # Get the config amdgpu_targets
+    @classmethod
+    def get_amdgpu_targets(cls, spec):
+        targets = []
+        if "rocm-config" in spec:
+            targets = spec["rocm-config"].variants["amdgpu_target"].value
+        return targets
 
-    # Add compiler minimum versions based on the first release where the
-    # processor is included in llvm/lib/Support/TargetParser.cpp
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx900:xnack-")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx906:xnack-")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx908:xnack-")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx90c")
-    depends_on("llvm-amdgpu@4.3.0:", when="amdgpu_target=gfx90a")
-    depends_on("llvm-amdgpu@4.3.0:", when="amdgpu_target=gfx90a:xnack-")
-    depends_on("llvm-amdgpu@4.3.0:", when="amdgpu_target=gfx90a:xnack+")
-    depends_on("llvm-amdgpu@5.2.0:", when="amdgpu_target=gfx940")
-    depends_on("llvm-amdgpu@4.5.0:", when="amdgpu_target=gfx1013")
-    depends_on("llvm-amdgpu@3.8.0:", when="amdgpu_target=gfx1030")
-    depends_on("llvm-amdgpu@3.9.0:", when="amdgpu_target=gfx1031")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx1032")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx1033")
-    depends_on("llvm-amdgpu@4.3.0:", when="amdgpu_target=gfx1034")
-    depends_on("llvm-amdgpu@4.5.0:", when="amdgpu_target=gfx1035")
-    depends_on("llvm-amdgpu@5.2.0:", when="amdgpu_target=gfx1036")
-    depends_on("llvm-amdgpu@5.3.0:", when="amdgpu_target=gfx1100")
-    depends_on("llvm-amdgpu@5.3.0:", when="amdgpu_target=gfx1101")
-    depends_on("llvm-amdgpu@5.3.0:", when="amdgpu_target=gfx1102")
-    depends_on("llvm-amdgpu@5.3.0:", when="amdgpu_target=gfx1103")
 
-    # Compiler conflicts
-
-    # TODO: add conflicts statements along the lines of
-    # arch_platform = ' target=x86_64: platform=linux'
-    # conflicts('%gcc@5:', when='+cuda ^cuda@:7.5' + arch_platform)
-    # conflicts('platform=darwin', when='+cuda ^cuda@11.0.2:')
-    # for hip-related limitations.
+    # Get the config amdgpu_targets without feature strings
+    @classmethod
+    def get_amdgpu_targets_without_features(cls, spec):
+        targets = {}
+        if "rocm-config" in spec:
+            for target in spec["rocm-config"].variants["amdgpu_target"].value:
+                targets.add(target.split(":")[0])
+        return [x for x in targets]

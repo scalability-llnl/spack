@@ -36,5 +36,7 @@ class Blt(Package):
 
     depends_on("cmake", type="run")
 
+    conflicts("^rocm-suite", when="@:0.3.6")
+
     def install(self, spec, prefix):
         install_tree(".", prefix)

@@ -1,0 +1,18 @@
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Spack Project Developers. See the top-level COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+from spack.package import BundlePacakge, ROCmPackage
+
+class RocmSuite(BundlePackage):
+    """AMD ROCm Suite"""
+
+    maintainers = ["srekolam", "renjithravindrankannath", "haampie", "kwryankrattiger"]
+    tags = ["rocm"]
+
+    for version in ROCmPackage.rocm_versions:
+        version(version)
+        depends_on("llvm-amdgpu@{0}".format(version), when="@{0}".format(version))
+        depends_on("hsa-rocr-dev@{0}".format(version), when="@{0}".format(version))
+        depends_on("hip@{0}".format(version), when="@{0}".format(version))

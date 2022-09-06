@@ -109,13 +109,13 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
     # may not be used for VTK-m depending on the default selected by Kokkos
     depends_on("kokkos +rocm", when="+kokkos +rocm")
     # Propagate AMD GPU target to kokkos for +rocm
-    for amdgpu_value in ROCmPackage.amdgpu_targets:
-        depends_on(
-            "kokkos amdgpu_target=%s" % amdgpu_value,
-            when="+kokkos +rocm amdgpu_target=%s" % amdgpu_value,
-        )
+    # for amdgpu_value in ROCmPackage.amdgpu_targets:
+    #     depends_on(
+    #         "kokkos amdgpu_target=%s" % amdgpu_value,
+    #         when="+kokkos +rocm amdgpu_target=%s" % amdgpu_value,
+    #     )
 
-    depends_on("hip@3.7:", when="+rocm")
+    depends_on("rocm-suite@3.7:", when="+rocm")
 
     # The rocm variant is only valid options for >= 1.7. It would be better if
     # this could be expressed as a when clause to disable the rocm variant,

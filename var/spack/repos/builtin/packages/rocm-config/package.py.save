@@ -1,0 +1,33 @@
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Spack Project Developers. See the top-level COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import itertools
+from spack.package import BundlePacakge, ROCmPackage
+
+class RocmConfig(BundlePackage):
+    """Target and Version configurations for ROCm Stacks"""
+
+    maintainers = ["kwryankrattiger"]
+    tags = ["rocm"]
+
+    variant(
+        "target",
+        description="AMD GPU architecture",
+        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets)
+    )
+    variant("multi-arch", default=True,
+        description="Allow multiple AMD GPU architectures")
+    variant(
+        "features",
+        description="AMD GPU architecture features",
+        values=[x for x in ROCmPackage.amdgpu_targets_features]
+    )
+
+    for _arch, _other_arch in itertools.permutations(ROCmPackage.amdgpu_targets, 2):
+        conflicts(
+            "target={0}".format(_arch),
+            when="~multi-target target={0}".format(_other_arch),
+            msg="Only one AMD GPU architecture may be enabled."
+        )
