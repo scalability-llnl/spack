@@ -313,10 +313,18 @@ class RocmOpenmpExtras(Package):
         patch("flang-extern-alarm.patch", when="@:5.1")
 
     def setup_run_environment(self, env):
-        devlibs_prefix = self.spec["llvm-amdgpu"].prefix
+        # Handle case when "rocm-openmp-extras" is in an external installation of the
+        # ROCm stack.
+        if "llvm-amdgpu" in self.spec:
+            devlibs_prefix = self.spec["llvm-amdgpu"].prefix
+            llvm_prefix = self.spec["llvm-amdgpu"].prefix
+        else:
+            devlibs_prefix = self.spec["rocm-openmp-extras"].prefix
+            llvm_prefix = self.spec["rocm-openmp-extras"].prefix
+
         openmp_extras_prefix = self.spec["rocm-openmp-extras"].prefix
-        llvm_prefix = self.spec["llvm-amdgpu"].prefix
         hsa_prefix = self.spec["hsa-rocr-dev"].prefix
+
         env.set("AOMP", "{0}".format(llvm_prefix))
         env.set("HIP_DEVICE_LIB_PATH", "{0}/amdgcn/bitcode".format(devlibs_prefix))
         env.prepend_path("CPATH", "{0}/include".format(openmp_extras_prefix))
