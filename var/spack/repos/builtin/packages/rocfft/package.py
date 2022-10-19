@@ -6,6 +6,7 @@
 import re
 
 from spack.package import *
+from spack.pkg.builtin import RocmConfig
 
 
 class Rocfft(CMakePackage):
@@ -99,17 +100,11 @@ class Rocfft(CMakePackage):
         deprecated=True,
     )
 
-    amdgpu_targets = ROCmPackage.amdgpu_targets
-
     variant(
         "build_type",
         default="Release",
         values=("Release", "Debug", "RelWithDebInfo"),
         description="CMake build type",
-    )
-    variant("amdgpu_target", values=auto_or_any_combination_of(*amdgpu_targets), sticky=True)
-    variant(
-        "amdgpu_target_sram_ecc", values=auto_or_any_combination_of(*amdgpu_targets), sticky=True
     )
 
     depends_on("cmake@3.16:", type="build", when="@4.5.0:")
@@ -153,6 +148,7 @@ class Rocfft(CMakePackage):
     ]:
         depends_on("hip@" + ver, when="@" + ver)
         depends_on("rocm-cmake@%s:" % ver, type="build", when="@" + ver)
+        depends_on("rocm-config" + ver, when="@" + ver)
 
     patch("0001-Improve-compilation-by-using-sqlite-recipe-for-rocfft.patch", when="@5.0.0:5.0.2")
     # Patch to add spack build test support. No longer required from 5.2
@@ -176,8 +172,10 @@ class Rocfft(CMakePackage):
         return ver
 
     def cmake_args(self):
-        args = [self.define("BUILD_CLIENTS_TESTS", self.run_tests)]
-        tgt = self.spec.variants["amdgpu_target"]
+        args = [
+            self.define("BUILD_CLIENTS_TESTS", self.run_tests),
+        ]
+        tgt = ROCmPackage.get_amdgpu_targets(self, spec)
 
         if "auto" not in tgt:
             if "@:3.8.0" in self.spec:
@@ -187,14 +185,14 @@ class Rocfft(CMakePackage):
                     )
                 )
             else:
-                args.append(self.define_from_variant("AMDGPU_TARGETS", "amdgpu_target"))
+                args.append(self.define("AMDGPU_TARGETS", tgt))
 
         # From version 3.9 and above we have AMDGPU_TARGETS_SRAM_ECC
-        tgt_sram = self.spec.variants["amdgpu_target_sram_ecc"]
+        tgt_sram = ROCmPackage.get_amdgpu_targets_with_features(spec, "sramecc")
 
         if "auto" not in tgt_sram and self.spec.satisfies("@3.9.0:4.0.0"):
             args.append(
-                self.define_from_variant("AMDGPU_TARGETS_SRAM_ECC", "amdgpu_target_sram_ecc")
+                self.define("AMDGPU_TARGETS_SRAM_ECC", tgt_sram)
             )
 
         # See https://github.com/ROCmSoftwarePlatform/rocFFT/issues/322
