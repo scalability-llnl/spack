@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+from spack.version import Version
 
-from spack.pkg.builtin import RocmConfig
+from spack.pkg.builtin.rocm_config import RocmConfig
 
 class RocmSuite(BundlePackage):
     """AMD ROCm Suite.
@@ -22,11 +23,15 @@ class RocmSuite(BundlePackage):
       # - hipblas
     variant("fft", default=False, description="Enable FFT extensions for ROCm")
     variant("ai", default=False, description="Enable AI tools for ROCm")
+
       # - miopen-hip
     variant("opencl", default=False, description="Enable OpenCL extensions for ROCm")
     # - hip-rocclr # Needs fix for install
     # - rocm-opencl
     # - rocm-clang-ocl
+
+    # variant("sycl", default=False, description="Enable Sycl extensions for ROCm")
+    # - hipsycl # Needs fixes for to use llvm-amdgpu clang and update to package
 
     variant("dev", default=False, description="Enable Development/Debugging tools for ROCm")
 
@@ -38,15 +43,22 @@ class RocmSuite(BundlePackage):
         depends_on("llvm-amdgpu@{0}".format(_version), when="@{0}".format(_version))
         depends_on("hsa-rocr-dev@{0}".format(_version), when="@{0}".format(_version))
 
+        # - rocprim amdgpu_target=gfx1030
+        # - rocrand amdgpu_target=gfx1030
+
+        # Fortran
+        depends_on("hipfort@{0}".format(_version), when="@{0} +fortran".format(_version))
+
         # OpenMP
+        depends_on("rocm-openmp-extras@{0}".format(_version), when="@{0} +fortran".format(_version))
         depends_on("rocm-openmp-extras@{0}".format(_version), when="@{0} +openmp".format(_version))
 
         # Fortran
         depends_on("hipfort@{0}".format(_version), when="@{0} +fortran".format(_version))
 
         # FFT
-        depends_on("hipfft")
-        depends_on("rocfft")
+        depends_on("hipfft@{0}".format(_version), when="@{0} +fft".format(_version))
+        depends_on("rocfft@{0}".format(_version), when="@{0} +fft".format(_version))
 
         # Dev
         depends_on("hipify-clang@{0}".format(_version), when="@{0} +dev".format(_version))
@@ -61,11 +73,25 @@ class RocmSuite(BundlePackage):
 
     """
       - hipcub
+        # - rocm-validation-suite # Needs hip-rocclr
+        # - rocm-smi # Deprecated after 4.1.0 in favor of rocm-smi-lib
+        # - rocm-smi-lib
 
-      - hipsolver
-      - hipsparse
-      - rocsolver ~optimal amdgpu_target=gfx1030 # Disabling optimal to improve build time
-      - rocsparse amdgpu_target=gfx1030
+        # BLAS
+        # - hipblas
+        # - rocblas amdgpu_target=gfx1030
+        # - rocm-tensile # Build issues, excluded from suite because it is implicit with rocblas
+
+        # Thrust (includes CUB)
+        # - rocthrust
+        # - hipcub
+
+        # Linear Algebra Solvers
+        # - hipsolver
+        # - hipsparse
+        # - rocsolver ~optimal amdgpu_target=gfx1030 # Disabling optimal to improve build time
+        # - rocsparse amdgpu_target=gfx1030
+        # - rocalution
 
       - rocalution
       - rocblas amdgpu_target=gfx1030
@@ -81,7 +107,6 @@ class RocmSuite(BundlePackage):
 
     # conflicts("cuda-suite")
     conflicts("rocm-device-libs", msg="ROCm device libs are now built by llvm-amdgpu")
-
 
     # Add compiler minimum versions based on the first release where the
     # processor is included in llvm/lib/Support/TargetParser.cpp

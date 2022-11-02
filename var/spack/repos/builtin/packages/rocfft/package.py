@@ -6,7 +6,6 @@
 import re
 
 from spack.package import *
-from spack.pkg.builtin import RocmConfig
 
 
 class Rocfft(CMakePackage):

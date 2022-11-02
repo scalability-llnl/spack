@@ -84,13 +84,13 @@ class RocmConfig(BundlePackage):
     tags = ["rocm"]
 
     # Setup ROCm versions
-    for _version, _config in ROCmPackage.rocm_versions.items():
-        version(_version, **_config)
+    for _version in rocm_versions.keys():
+        version(_version)
 
     variant(
         "amdgpu_target",
         description="AMD GPU architecture",
-        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets_with_features(["xnact", "sramecc"]))
+        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets_with_features(features=("xnact", "sramecc")))
     )
 
     variant(
@@ -99,7 +99,7 @@ class RocmConfig(BundlePackage):
         description="Allow multiple AMD GPU architectures")
 
     # Setup conflicts for ~multi-target
-    for _target, _other_target in itertools.permutations(amdgpu_targets, 2):
+    for _target, _other_target in itertools.permutations(ROCmPackage.amdgpu_targets, 2):
         conflicts(
             "amdgpu_target={0}".format(_target),
             when="~multi-target amdgpu_target={0}".format(_other_target),
