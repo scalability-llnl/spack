@@ -9,9 +9,9 @@ import os
 import llnl.util.tty as tty
 from llnl.util.filesystem import BaseDirectoryVisitor, visit_directory_tree
 from llnl.util.lang import stable_partition
+
 import spack.config
 import spack.error
-
 import spack.util.elf as elf
 
 skip_list = frozenset(
