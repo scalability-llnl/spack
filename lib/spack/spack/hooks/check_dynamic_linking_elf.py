@@ -9,6 +9,8 @@ import os
 import llnl.util.tty as tty
 from llnl.util.filesystem import BaseDirectoryVisitor, visit_directory_tree
 from llnl.util.lang import stable_partition
+import spack.config
+import spack.error
 
 import spack.util.elf as elf
 
@@ -170,12 +172,23 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
         return False
 
 
+class CannotLocateSharedLibraries(Exception):
+    pass
+
+
+def maybe_decode(byte_str):
+    try:
+        return byte_str.decode("utf-8")
+    except UnicodeDecodeError:
+        return byte_str
+
+
 def post_install(spec):
     """
     Check whether all ELF files participating in dynamic linking can locate libraries
     in dt_needed referred to by name (not by path).
     """
-    if spec.external:
+    if spec.external or spec.platform not in ("linux", "freebsd", "netbsd", "openbsd", "solaris"):
         return
 
     visitor = ResolveSharedElfLibDepsVisitor()
@@ -192,12 +205,18 @@ def post_install(spec):
         output.write(path)
         output.write("\n")
         for needed, full_path in problem.resolved.items():
+            output.write("        ")
             if needed == full_path:
-                output.write("        {}\n".format(needed))
+                output.write(maybe_decode(needed))
             else:
-                output.write("        {} => {}\n".format(needed, full_path))
+                output.write("{} => {}".format(maybe_decode(needed), maybe_decode(full_path)))
+            output.write("\n")
         for not_found in problem.unresolved:
-            output.write("        {} => not found\n".format(not_found))
+            output.write("        {} => not found\n".format(maybe_decode(not_found)))
         output.write("\n")
+
+    # Strict mode = install failure
+    if spack.config.get("config:shared_linking:strict"):
+        raise CannotLocateSharedLibraries(output.getvalue())
 
     tty.error(output.getvalue())
