@@ -22,7 +22,6 @@ skip_list = frozenset(
         b"ld-linux-x86-64",
         b"libc",
         b"libdl",
-        b"libgcc_s",
         b"libm",
         b"libmemusage",
         b"libmvec",
@@ -53,6 +52,8 @@ skip_list = frozenset(
         b"libstdc++",
         b"libtsan",
         b"libubsan",
+        # systemd
+        b"libudev",
     ]
 )
 
