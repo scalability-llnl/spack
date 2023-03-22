@@ -6,8 +6,41 @@
 # ----------------------------------------------------------------------------
 
 import itertools
+import pathlib
 
 from spack.package import *
+
+
+# ask the driver what gpus are installed
+def _query_kfd_gfx_targets(*known_targets, multi=False):
+    targets = []
+    try:
+        nodes = pathlib.Path("/sys/class/kfd/kfd/topology/nodes")
+        for filename in nodes.glob("*/properties"):
+            with filename.open(encoding="utf-8") as f:
+                for line in f:
+                    label = "gfx_target_version "
+                    if not line.startswith(label):
+                        continue
+                    version = int(line[len(label) :])
+                    if not version:
+                        break
+                    major_version = version // 10000
+                    minor_version = (version // 100) % 100
+                    step_version = version % 100
+                    target = "gfx{:d}{:x}{:x}".format(major_version, minor_version, step_version)
+                    if target in known_targets:
+                        targets.append(target)
+                    break
+    except (OSError, ValueError):
+        pass  # query is best-effort
+    if targets:
+        if multi:
+            return targets
+        else:
+            return targets[-1]
+    else:
+        return "none"
 
 def target_strip_feature(target):
     return target.split(":")[0]
@@ -88,15 +121,29 @@ class RocmConfig(BundlePackage):
         version(_version)
 
     variant(
-        "amdgpu_target",
-        description="AMD GPU architecture",
-        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets_with_features(features=("xnact", "sramecc")))
-    )
-
-    variant(
         "multi-target",
         default=True,
         description="Allow multiple AMD GPU architectures")
+
+    variant(
+        "amdgpu_target",
+        description="AMD GPU architecture",
+        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets_with_features(features=("xnact", "sramecc"))).with_default(
+            _query_kfd_gfx_targets(*amdgpu_targets, True)
+        ),
+        sticky=True,
+        when="+multi-target",
+    )
+
+    variant(
+        "amdgpu_target",
+        description="AMD GPU architecture",
+        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets_with_features(features=("xnact", "sramecc"))).with_default(
+            _query_kfd_gfx_targets(*amdgpu_targets)
+        ),
+        sticky=True,
+        when="~multi-target",
+    )
 
     # Setup conflicts for ~multi-target
     for _target, _other_target in itertools.permutations(ROCmPackage.amdgpu_targets, 2):
