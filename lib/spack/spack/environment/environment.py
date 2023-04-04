@@ -1415,6 +1415,10 @@ class Environment:
         """Returns true when the spec is built from local sources"""
         return spec.name in self.dev_specs
 
+    def possible_dependencies(self):
+        """Get a set of names of possible dependencies for all roots."""
+        return set(spack.package_base.possible_dependencies(self.user_specs))
+
     def concretize(self, force=False, tests=False):
         """Concretize user_specs in this environment.
 
