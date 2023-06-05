@@ -172,7 +172,7 @@ class Scorep(AutotoolsPackage):
             "--with-otf2=%s" % spec["otf2"].prefix.bin,
             "--with-opari2=%s" % spec["opari2"].prefix.bin,
             "--enable-shared",
-            "--disable-static"
+            "--disable-static",
         ]
 
         cname = self.clean_compiler(spec.compiler.name)
