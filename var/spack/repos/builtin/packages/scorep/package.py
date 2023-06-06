@@ -99,9 +99,7 @@ class Scorep(AutotoolsPackage):
 
     # SCOREP 8
     depends_on("binutils libs=shared", type="link", when="@8:")
-    conflicts(
-        "binutils libs=static"
-    )  # cap this if and when we find a reliable workaround
+    conflicts("binutils libs=static")  # cap this if and when we find a reliable workaround
     depends_on("otf2@3:", when="@8:")
     depends_on("cubew@4.8.2:", when="@8.3:")
     depends_on("cubelib@4.8.2:", when="@8.3:")
