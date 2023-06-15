@@ -869,6 +869,12 @@ class TestSpecSemantics:
             ("{namespace=namespace}", "namespace=", "namespace", lambda spec: spec),
             ("{compiler.name}", "", "name", lambda spec: spec.compiler),
             ("{compiler.version}", "", "version", lambda spec: spec.compiler),
+            (
+                "{compiler.version.up_to_1}",
+                "",
+                "up_to_1",
+                lambda spec: spec.compiler.version.up_to(1),
+            ),
             ("{%compiler.name}", "%", "name", lambda spec: spec.compiler),
             ("{@compiler.version}", "@", "version", lambda spec: spec.compiler),
             ("{architecture.platform}", "", "platform", lambda spec: spec.architecture),
