@@ -324,6 +324,40 @@ class TestCMakePackage:
 
 
 @pytest.mark.usefixtures("config", "mock_packages")
+class TestMesonPackage:
+
+    def test_define(self, default_mock_concretization):
+        s = default_mock_concretization("meson-client")
+
+        define = s.package.define
+        for cls in (list, tuple):
+            assert define("multi", cls(["right", "up"])) == "-Dmulti=right,up"
+
+        file_list = fs.FileList(["/foo", "/bar"])
+        assert define("multi", file_list) == "-Dmulti=/foo,/bar"
+
+        assert define("enable_truth", False) == "-Denable_truth=false"
+        assert define("enable_truth", True) == "-Denable_truth=true"
+
+        assert define("single", "red") == "-Dsingle=red"
+
+    def test_define_from_variant(self):
+        s = Spec("meson-client multi=up,right ~truthy single=red").concretized()
+
+        arg = s.package.define_from_variant("multi")
+        assert arg == "-Dmulti=right,up"
+
+        arg = s.package.define_from_variant("enable_truth", "truthy")
+        assert arg == "-Denable_truth=false"
+
+        arg = s.package.define_from_variant("single")
+        assert arg == "-Dsingle=red"
+
+        with pytest.raises(KeyError, match="not a variant"):
+            s.package.define_from_variant("nonexistent")
+
+
+@pytest.mark.usefixtures("config", "mock_packages")
 class TestDownloadMixins:
     """Test GnuMirrorPackage, SourceforgePackage, SourcewarePackage and XorgPackage."""
 
