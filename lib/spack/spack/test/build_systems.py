@@ -325,7 +325,6 @@ class TestCMakePackage:
 
 @pytest.mark.usefixtures("config", "mock_packages")
 class TestMesonPackage:
-
     def test_define(self, default_mock_concretization):
         s = default_mock_concretization("meson-client")
 
