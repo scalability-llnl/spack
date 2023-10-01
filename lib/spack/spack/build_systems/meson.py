@@ -192,7 +192,7 @@ class MesonBuilder(BuilderWithDefaults):
         # Create a list of pairs. Each pair includes a configuration
         # option and whether or not that option is activated
         if isinstance(value, bool):
-            value = "ON" if value else "OFF"
+            value = "true" if value else "false"
         else:
             if isinstance(value, collections.abc.Sequence) and not isinstance(value, str):
                 value = ",".join(str(v) for v in value)
