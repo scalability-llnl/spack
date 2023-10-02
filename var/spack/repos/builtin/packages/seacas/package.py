@@ -494,7 +494,7 @@ class Seacas(CMakePackage):
             # leaves off the faodel part
             faodel_incdir = spec["faodel"].prefix.include
             faodel_incdir2 = spec["faodel"].prefix.include.faodel
-            faodel_incdirs = [ faodel_incdir, faodel_incdir2 ]
+            faodel_incdirs = [faodel_incdir, faodel_incdir2]
             options.append(define("Faodel_INCLUDE_DIRS", ";".join(faodel_incdirs)))
             options.append(define("Faodel_LIBRARY_DIRS", spec["faodel"].prefix.lib))
 
