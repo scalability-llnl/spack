@@ -21,6 +21,7 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
 
     license("GPL-3.0-or-later")
 
+    version("1.35", sha256="14d55e32063ea9526e057fbf35fcabd53378e769787eff7919c3755b02d2b57e")
     version("1.34", sha256="03d908cf5768cfe6b7ad588c921c6ed21acabfb2b79b788d1330453507647aed")
     version("1.32", sha256="b59549594d91d84ee00c99cf2541a3330fed3a42c440503326dab767f2fbb96c")
     version("1.31", sha256="b471be6cb68fd13c4878297d856aebd50551646f4e3074906b1a74549c40d5a2")
