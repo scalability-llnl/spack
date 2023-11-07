@@ -1,0 +1,51 @@
+spack:
+  view: false
+
+  concretizer:
+    reuse: false
+    unify: false
+
+  packages:
+    all:
+      require: '%gcc target=x86_64_v3'
+      providers:
+        blas: [openblas]
+    binutils:
+      variants: +ld +gold +headers +libiberty ~nls
+    elfutils:
+      variants: +bzip2 ~nls +xz
+    cuda:
+      version: [11.8.0]
+
+  specs:
+  # CPU
+  - acts +analysis +binaries +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +identification +podio +pythia8 +python +tgeo
+  - dd4hep +ddalign +ddcad +ddcond +dddetectors +dddigi +ddeve +ddg4 +ddrec +edm4hep +hepmc3 +lcio +utilityapps +xercesc
+  - delphes +pythia8
+  - edm4hep
+  - fastjet
+  - fjcontrib
+  - gaudi +aida +examples +heppdt +xercesc
+  - geant4 +opengl +qt +threads +vtk
+  - hepmc
+  - hepmc3 +interface +protobuf +python +rootio
+  - herwig3 +njet +vbfnlo
+  - lhapdf +python
+  - madgraph5amc
+  - opendatadetector
+  - podio +rntuple +sio
+  - py-uproot +lz4 +xrootd +zstd
+  - pythia8 +evtgen +fastjet +hdf5 +hepmc +hepmc3 +lhapdf +madgraph5amc +python +rivet -root # pythia8 and root circularly depend
+  - rivet hepmc=3
+  - root +davix +dcache +examples +fftw +fits +fortran +gdml // TODO
+  - sherpa
+  - vecgeom
+  - xrootd
+
+  ci:
+    pipeline-gen:
+    - build-job:
+        image: "ghcr.io/spack/ubuntu20.04-runner-amd64-gcc-11.4:2023.08.01"
+
+  cdash:
+    build-group: HEP
