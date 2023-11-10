@@ -10,10 +10,40 @@ spack:
       require: '%gcc target=x86_64_v3'
       providers:
         blas: [openblas]
+        mpi: [mpich]
+      variants: +mpi
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
     elfutils:
       variants: +bzip2 ~nls +xz
+    hdf5:
+      variants: +fortran +hl +shared
+    libfabric:
+      variants: fabrics=sockets,tcp,udp,rxm
+    libunwind:
+      variants: +pic +xz
+    openblas:
+      variants: threads=openmp
+    xz:
+      variants: +pic
+    mesa:
+      version: [21.3.8]
+    mpi:
+      require: mpich
+    mpich:
+      require: '~wrapperrpath ~hwloc'
+    ncurses:
+      require: '@6.3 +termlib'
+    tbb:
+      require: intel-tbb
+    boost:
+      version: [1.79.0]
+      variants: +atomic +chrono +container +date_time +exception +filesystem +graph
+        +iostreams +locale +log +math +mpi +multithreaded +program_options +random
+        +regex +serialization +shared +signals +stacktrace +system +test +thread +timer
+        cxxstd=17 visibility=global
+    libffi:
+      require: "@3.4.4"
     cuda:
       version: [11.8.0]
 
