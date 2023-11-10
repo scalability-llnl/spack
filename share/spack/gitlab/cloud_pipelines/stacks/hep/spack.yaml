@@ -40,7 +40,7 @@ spack:
   - pythia8 +evtgen +fastjet +hdf5 +hepmc +hepmc3 +lhapdf +madgraph5amc +python +rivet -root # pythia8 and root circularly depend
   - rivet hepmc=3
   - root +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +oracle +postgres +pythia6 +pythia8 +python +r +roofit +root7 +shadow +spectrum +sqlite +ssl +tbb +threads +tmva +unuran +vc +vdt +veccore +webgui +x +xml +xrootd
-  - sherpa +analysis +blackhat +fastjet +gzip +hepmc2 +hepmc3 +hepmc3root +hztool +lhapdf +lhole +openloops +pythia +python +recola +rivet +root +ufo
+  - sherpa +analysis -blackhat +fastjet +gzip +hepmc2 +hepmc3 +hepmc3root +hztool +lhapdf +lhole +openloops +pythia +python +recola +rivet +root +ufo
   - vecgeom +gdml +geant4 +root
   - xrootd +davix +http +krb5 +python +readline +scitokens-cpp
 
