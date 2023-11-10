@@ -29,7 +29,7 @@ spack:
   - gaudi +aida +examples +heppdt +xercesc
   - geant4 +opengl +qt +threads +vtk
   - hepmc
-  - hepmc3 +interface +protobuf +python +rootio
+  - hepmc3 +interfaces +protobuf +python +rootio
   - herwig3 +njet +vbfnlo
   - lcio +examples +jar +rootdict
   - lhapdf +python
