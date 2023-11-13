@@ -1,0 +1,106 @@
+--- spack_src/ENGINES/SUSHI11.0/Susi/include/ScalarField.h.org	2023-06-23 14:11:48.000000000 +0900
++++ spack_src/ENGINES/SUSHI11.0/Susi/include/ScalarField.h	2023-09-22 15:17:48.000000000 +0900
+@@ -330,7 +330,63 @@ public:
+                                , const string& sp // separator
+                                , const string& name 
+                                , const vector<ScalarField*>& sf
+-							   , int   presisionDegree = 16 );
++							   , int   presisionDegree = 16 )
++{
++//cout << "XXXXXXXXXXXXXXX " << sf[2]->at(0) << endl;
++	os.precision(presisionDegree);
++
++	os << name << " {\n";
++	os << sp << "name \"" << name << "\"\n";
++	os << sp << "num_of_component " << sf.size() << "\n";
++	os << sp << "value [\n";
++
++	if( sf.size() > 0 ) {
++
++		vector<ScalarField*>::const_iterator ite;
++		vector<double*> pValues;
++		for( ite = sf.begin(); ite < sf.end(); ite++ ) {
++#if PARALLELMETHOD==CUDA // add by T.Honda 07/03/2019
++			(*ite)->getFromCUDA();
++#endif
++			pValues.push_back( (*ite)->p_value );
++		}
++
++		vector<double*>::iterator jte;
++
++		// CYLINDRICALMESH only for bug of mesh position
++		// Move to other streams by T. Honda 05/01/2016
++//		if( sf.front()->mesh().type() == MFBaseMesh::CYLINDRICALMESH ) {
++//			CylindricalMesh* pMesh = (CylindricalMesh*) &sf.front()->mesh();
++//			int hSize = pMesh->hsize();
++//			int counter = 0;
++//			for( int j = 0; j < hSize; j++ ) {
++//				for( int i = 0; i < pMesh->nr(); i++ ) {
++//					os << "id" << counter++ << " { [";
++//					for( jte = pValues.begin(); jte < pValues.end(); jte++ ) {
++//						os << " " << (*jte)[ i * hSize + j ];
++//					}
++//					os << " ] }\n";
++//				}
++//			}
++//		}
++
++//cout << "meshSize " << sf.front()->meshSize() << endl;
++		for( int i = 0; i < sf.front()->meshSize(); i++ ) {
++			os << "id" << i << " { [";
++//cout << i << " ";
++			for( jte = pValues.begin(); jte < pValues.end(); jte++ ) {
++//cout << **jte << " ";
++				os << " " << **jte;
++				(*jte)++;
++			}
++//cout << endl;
++			os << " ] }\n";
++		}
++	}
++
++	os << sp << "]\n";
++	os << "}" << endl;
++}
+ 
+ 	//friend void putScalarField(  ostream& os
+     //                           , const string& sp // separator
+diff -urpN -x '*.o' spack_src/ENGINES/SUSHI11.0/Susi/src/Makefile.org spack_src/ENGINES/SUSHI11.0/Susi/src/Makefile
+--- spack_src/ENGINES/SUSHI11.0/Susi/src/Makefile.org	2023-06-23 14:11:49.000000000 +0900
++++ spack_src/ENGINES/SUSHI11.0/Susi/src/Makefile	2023-09-22 14:40:24.000000000 +0900
+@@ -210,6 +210,14 @@ ifeq "$(UNAME)" "Linux" #---------------
+       MPICXX    = mpiFCCpx
+     endif
+   endif
++  ifeq "$(MACHINE)" "aarch64" #-------------------------------------------------------
++    CXX         = mpiFCC
++    OSTYPE      = linux_aarch64
++    OSOPTIONS   = -lstdc++ -Kfast
++    ifeq "${MPI}" "ON"
++      MPICXX    = mpiFCC
++    endif
++  endif
+ endif
+ ifeq "$(UNAME)" "AIX" #---------------------------------------------------------
+   OSTYPE	= aix
+diff -urpN -x '*.o' spack_src/ENGINES/SUSHI11.0/Susi/src/UDF/udfOutput.cpp.org spack_src/ENGINES/SUSHI11.0/Susi/src/UDF/udfOutput.cpp
+--- spack_src/ENGINES/SUSHI11.0/Susi/src/UDF/udfOutput.cpp.org	2023-06-23 14:11:49.000000000 +0900
++++ spack_src/ENGINES/SUSHI11.0/Susi/src/UDF/udfOutput.cpp	2023-09-22 15:17:08.000000000 +0900
+@@ -79,6 +79,7 @@ void putVolumeFraction( ostream& os
+ 	// end volume fractions output
+ }
+ 
++/**
+ void
+ writeScalarField(  ostream& os
+                , const string& sp // separator
+@@ -141,7 +142,8 @@ writeScalarField(  ostream& os
+ 	os << sp << "]\n";
+ 	os << "}" << endl;
+ }
+-
++**/
++    
+ void
+ putStaggeredScalarField(  ostream& os
+                , const string& sp // separator

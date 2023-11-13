@@ -1,0 +1,17 @@
+--- spack_src.org/ENGINES/SUSHI11.0/Susi/src/Makefile	2020-06-01 14:56:46.000000000 +0900
++++ spack_src/ENGINES/SUSHI11.0/Susi/src/Makefile	2023-12-04 19:21:06.000000000 +0900
+@@ -210,6 +210,14 @@ ifeq "$(UNAME)" "Linux" #---------------
+       MPICXX    = mpiFCCpx
+     endif
+   endif
++  ifeq "$(MACHINE)" "aarch64" #-------------------------------------------------------
++    OSTYPE      = linux_aarch64
++    ifeq "${MPI}" "ON"
++	  MPICXX      = mpicxx
++	  #MPILIB	  = -lmpi -lmpi_cxx
++	  MPILIB	  = -lmpi
++    endif
++  endif
+ endif
+ ifeq "$(UNAME)" "AIX" #---------------------------------------------------------
+   OSTYPE	= aix
