@@ -61,7 +61,7 @@ spack:
   - hepmc
   - hepmc3 +interfaces +protobuf +python +rootio
   - herwig3 +njet +vbfnlo
-  - lcio +examples +jar +rootdict
+  - lcio -examples +jar +rootdict  # Note: lcio +examples ^ncurses -termlib, which leads to conflicts
   - lhapdf +python
   - madgraph5amc
   - opendatadetector
