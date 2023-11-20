@@ -799,8 +799,6 @@ hep-generate:
 
 hep-build:
   extends: [ ".hep", ".build" ]
-  rules:
-    - when: never
   trigger:
     include:
       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
