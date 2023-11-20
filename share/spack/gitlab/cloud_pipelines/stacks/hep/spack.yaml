@@ -47,6 +47,14 @@ spack:
     cuda:
       version: [11.8.0]
 
+    # Mark geant4 data as external to prevent wasting bandwidth on GB-scale files
+    geant4-data:
+      externals:
+        - spec: geant4-data@11.1.0
+          prefix: /usr
+        - spec: geant4-data@11.0.0
+          prefix: /usr
+
   specs:
   # CPU
   - acts +analysis +binaries +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +identification +podio +pythia8 +python +tgeo
