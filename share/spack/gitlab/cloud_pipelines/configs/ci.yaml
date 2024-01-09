@@ -116,6 +116,19 @@ ci:
       before_script:: []
       after_script:: []
 
+  # Configure Cacheing
+  - build-job:
+      variables:
+        SCCACHE_DIR: ${CI_PROJECT_DIR}/local-cache/
+        SCCACHE_CONF: ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/configs/sccache.conf
+        SCCACHE_PREFIX: /${CI_COMMIT_REF_NAME}/sccache
+        # Hardcoding for testing
+        SCCACHE_BUCKET: "spack-binaries-prs"
+      before_script:
+      - [ ! -z ${CCACHE_TYPE} ] && source setup-${CCACHE_TYPE}
+      after_script:
+      - [ ! -z ${CCACHE_TYPE} ] && source teardown-${CCACHE_TYPE}
+
   - any-job:
       tags: ["spack"]
       image: "ghcr.io/spack/e4s-ubuntu-18.04:v2021-10-18"

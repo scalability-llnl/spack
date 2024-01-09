@@ -84,6 +84,20 @@ properties: Dict[str, Any] = {
             "build_language": {"type": "string"},
             "build_jobs": {"type": "integer", "minimum": 1},
             "ccache": {"type": "boolean"},
+            "compiler_launcher": {
+                "oneOf": [
+                    {"type": "string"},
+                    {
+                        "type": "object",
+                        "properties": {
+                            "cc": {"type": "string"},
+                            "cxx": {"type": "string"},
+                            "fortran": {"type": "string"},
+                            "rustc": {"type": "string"},
+                        },
+                    },
+                ]
+            },
             "db_lock_timeout": {"type": "integer", "minimum": 1},
             "package_lock_timeout": {
                 "anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]
@@ -134,6 +148,8 @@ def update(data):
     Returns:
         True if data was changed, False otherwise
     """
+    import llnl.util.tty as tty
+
     # currently deprecated properties are
     # install_tree: <string>
     # install_path_scheme: <string>
@@ -159,6 +175,30 @@ def update(data):
         update_data = data.get("install_tree", {})
         update_data = spack.config.merge_yaml(update_data, projections_data)
         data["install_tree"] = update_data
+        changed = True
+
+    use_ccache = data.pop("ccache", None)
+    if use_ccache:
+        if not data.get("compiler_launcher"):
+            data["compiler_launcher"] = {
+                "cxx": "ccache",
+                "cc": "ccache",
+                "fc": "ccache",
+                "f77": "ccache",
+            }
+            tty.warning(
+                "'config:ccache' is deprecated, use 'config:compiler_launcher:ccache' instead"
+            )
+            changed = True
+
+    if type(data.get("compiler_launcher", None)) is str:
+        launcher = data.get("compiler_launcher", "")
+        data["compiler_launcher"] = {
+            "cxx": launcher,
+            "cc": launcher,
+            "fc": launcher,
+            "f77": launcher,
+        }
         changed = True
 
     use_curl = data.pop("use_curl", None)

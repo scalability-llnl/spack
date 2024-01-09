@@ -119,7 +119,7 @@ SPACK_DEBUG = "SPACK_DEBUG"
 SPACK_SHORT_SPEC = "SPACK_SHORT_SPEC"
 SPACK_DEBUG_LOG_ID = "SPACK_DEBUG_LOG_ID"
 SPACK_DEBUG_LOG_DIR = "SPACK_DEBUG_LOG_DIR"
-SPACK_CCACHE_BINARY = "SPACK_CCACHE_BINARY"
+SPACK_COMPILER_LAUNCHER_F = "SPACK_{0}_COMPILER_LAUNCHER"
 SPACK_SYSTEM_DIRS = "SPACK_SYSTEM_DIRS"
 
 # Platform-specific library suffix.
@@ -515,9 +515,15 @@ def set_wrapper_variables(pkg, env):
     env.set(SPACK_DEBUG_LOG_ID, pkg.spec.format("{name}-{hash:7}"))
     env.set(SPACK_DEBUG_LOG_DIR, spack.paths.spack_working_dir)
 
-    if spack.config.get("config:ccache"):
-        # Enable ccache in the compiler wrapper
-        env.set(SPACK_CCACHE_BINARY, spack.util.executable.which_string("ccache", required=True))
+    # Find ccache binary and hand it to build environment
+    if spack.config.get("config:compiler_launcher"):
+        launchers = spack.config.get("config:compiler_launcher")
+        for lang in launchers:
+            launcher = spack.util.executable.which_string(launchers[lang], required=True)
+            if lang == "rustc":
+                env.set("RUSTC_WRAPPER", launcher)
+            else:
+                env.set(SPACK_COMPILER_LAUNCHER_F.format(lang.upper()), launcher)
     else:
         # Avoid cache pollution if a build system forces `ccache <compiler wrapper invocation>`.
         env.set("CCACHE_DISABLE", "1")

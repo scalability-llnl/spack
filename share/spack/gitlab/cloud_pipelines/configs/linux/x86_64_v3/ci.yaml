@@ -1,4 +1,6 @@
 ci:
   pipeline-gen:
   - build-job:
+      variables:
+        CACHE_TYPE: sccache-linux-x86_64
       tags: ["x86_64_v3"]

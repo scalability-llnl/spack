@@ -5,6 +5,8 @@ ci:
       # Test package relocation on linux using a modified prefix
       # This is not well supported on MacOS (https://github.com/spack/spack/issues/37162)
       - - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+      - - [ $(command -v sccache) ] && sccache --start-server
+      - - [ $(command -v sccache) ] && sccache --show-status
   - match_behavior: first
     submapping:
     - match:

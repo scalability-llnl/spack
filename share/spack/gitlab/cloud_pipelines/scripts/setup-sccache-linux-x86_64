@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -e
+set -x
+
+SCCACHE_VERSION=v0.7.4
+SCCACHE_DISTO=x86_64-unknown-linux-musl
+SCCACHE_URL=https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${SCCACHE_DISTRO}.tar.gz
+
+# download and validate
+curl -LSs ${SCCACHE_URL} --output sccache.tar.gz
+echo $(curl -LSs ${SCCACHE_URL}.sha256) sccache.tar.gz > sccache.tar.gz.sha256
+sha256sum --check sccache.tar.gz.sha256
+
+# extract to spack bin
+sccache_path=$(tar --list -f sccache.tar.gz | grep "/sccache")
+tar -x ${sccache_path} -zf ./sccache.tar.gz
+mv ${sccache_path} bin/
+
+sccache --server-start
+sccache --show-stats
