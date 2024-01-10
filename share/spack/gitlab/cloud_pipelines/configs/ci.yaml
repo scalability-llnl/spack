@@ -8,6 +8,9 @@ ci:
   broken-specs-url: "https://dummy.io" # s3://spack-binaries/broken-specs"
 
   pipeline-gen:
+  - any-job-remove:
+      id_tokens:: no-oidc-tokens
+
   - build-job:
       before_script-:
       - - cat /proc/loadavg || true
