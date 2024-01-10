@@ -517,8 +517,12 @@ def set_wrapper_variables(pkg, env):
 
     # Find ccache binary and hand it to build environment
     if spack.config.get("config:compiler_launcher"):
-        launchers = spack.config.get("config:compiler_launcher")
+        launchers = spack.config.get("config:compiler_launcher", {"dummy": None})
         for lang in launchers:
+            launcher_name = launchers.get(lang, None)
+            if not launcher_name:
+                continue
+
             launcher = spack.util.executable.which_string(launchers[lang], required=True)
             if lang == "rustc":
                 env.set("RUSTC_WRAPPER", launcher)

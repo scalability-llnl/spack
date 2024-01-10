@@ -1,3 +1,9 @@
 #!/bin/bash
 
-sccache --server-stop
+set -e
+set -x
+
+# Load the startup environment
+. cache_env.txt
+
+./bin/sccache --stop-server

@@ -179,26 +179,22 @@ def update(data):
 
     use_ccache = data.pop("ccache", None)
     if use_ccache:
-        if not data.get("compiler_launcher"):
-            data["compiler_launcher"] = {
-                "cxx": "ccache",
-                "cc": "ccache",
-                "fc": "ccache",
-                "f77": "ccache",
-            }
+        if not data.get("compiler_launcher", None):
+            data["compiler_launcher"] = {"cxx": "ccache", "cc": "ccache"}
             tty.warning(
                 "'config:ccache' is deprecated, use 'config:compiler_launcher:ccache' instead"
             )
             changed = True
+        else:
+            tty.warning("'config:ccache' is ignored, using 'config:compiler_launcher' instead")
 
-    if type(data.get("compiler_launcher", None)) is str:
-        launcher = data.get("compiler_launcher", "")
-        data["compiler_launcher"] = {
-            "cxx": launcher,
-            "cc": launcher,
-            "fc": launcher,
-            "f77": launcher,
-        }
+    compiler_launcher = data.get("compiler_launcher", None)
+    if isinstance(compiler_launcher, str):
+        # only auto-expand launcher to C and CXX
+        # Fortran and RustC both have additional
+        # restrictions that need to be resolved
+        # by the configuration.
+        data["compiler_launcher"] = {"cxx": compiler_launcher, "cc": compiler_launcher}
         changed = True
 
     use_curl = data.pop("use_curl", None)

@@ -1,21 +1,40 @@
 #!/bin/bash
 
+SCCACHE_VERSION=v0.7.4
+SCCACHE_DIST=x86_64-unknown-linux-musl
+SCCACHE_URL=https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${SCCACHE_DIST}.tar.gz
+
 set -e
 set -x
 
-SCCACHE_VERSION=v0.7.4
-SCCACHE_DISTO=x86_64-unknown-linux-musl
-SCCACHE_URL=https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${SCCACHE_DISTRO}.tar.gz
-
 # download and validate
 curl -LSs ${SCCACHE_URL} --output sccache.tar.gz
-echo $(curl -LSs ${SCCACHE_URL}.sha256) sccache.tar.gz > sccache.tar.gz.sha256
+echo "$(curl -LSs ${SCCACHE_URL}.sha256) sccache.tar.gz" > sccache.tar.gz.sha256
 sha256sum --check sccache.tar.gz.sha256
 
 # extract to spack bin
 sccache_path=$(tar --list -f sccache.tar.gz | grep "/sccache")
 tar -x ${sccache_path} -zf ./sccache.tar.gz
-mv ${sccache_path} bin/
+mv ${sccache_path} ./bin/
 
-sccache --server-start
-sccache --show-stats
+# Compute sccache port to avoid conflicts
+if [ ! -z ${CI_JOB_ID} ];
+then
+  SCCACHE_SERVER_PORT=$(expr 30000 + ${CI_JOB_ID} % 10000)
+else
+  SCCACHE_SERVER_PORT=$(expr 30000 + ${RANDOM} % 10000)
+fi
+
+export SCCACHE_SERVER_PORT
+
+[ -n ${SCCACHE_ERROR_LOG} ] && mkdir -p $(dirname ${SCCACHE_ERROR_LOG})
+
+# Configure environment file
+echo "set -a" > cache_env.txt
+env | grep SCCACHE_ >> cache_env.txt
+echo "set +a" >> cache_env.txt
+
+echo "Starting sccache, listening on ${SCCACHE_SERVER_PORT}"
+
+./bin/sccache --start-server || exit 0
+./bin/sccache --show-stats

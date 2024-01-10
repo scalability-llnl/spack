@@ -1,0 +1,5 @@
+# Load the startup environment
+. cache_env.txt
+
+./bin/sccache --show-stats
+

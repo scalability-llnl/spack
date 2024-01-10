@@ -28,6 +28,7 @@ ci:
       script::
       - - spack config blame mirrors
         - spack --color=always --backtrace ci rebuild --tests > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)
+      - - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/stats-${CACHE_TYPE}"
       after_script:
       - - cat /proc/loadavg || true
         - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
@@ -122,15 +123,21 @@ ci:
   # Configure Cacheing
   - build-job:
       variables:
-        SCCACHE_DIR: "${CI_PROJECT_DIR}/local-cache/"
         SCCACHE_CONF: "${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/configs/sccache.conf"
-        SCCACHE_PREFIX: "/${CI_COMMIT_REF_NAME}/sccache"
+        SCCACHE_S3_KEY_PREFIX: "/${CI_COMMIT_REF_NAME}/sccache"
+        SCCACHE_S3_USE_SSL: "true"
+        SCCACHE_REGION: us-east-1
+        SCCACHE_LOG: "debug"
+        SCCACHE_ERROR_LOG: "${CI_PROJECT_DIR}/${SPACK_JOB_LOG_DIR}/sccache_log.txt"
+        # Bumping this to get results in --show-stats
+        SCCACHE_IDLE_TIMEOUT: "3600"
         # Hardcoding for testing
         SCCACHE_BUCKET: "spack-binaries-prs"
       before_script:
-      - "[ ! -z ${CCACHE_TYPE} ] && source setup-${CCACHE_TYPE}"
+      - - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/setup-${CACHE_TYPE}"
+        - "[ -f cache_env.txt ] && source cache_env.txt"
       after_script:
-      - "[ ! -z ${CCACHE_TYPE} ] && source teardown-${CCACHE_TYPE}"
+      - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/teardown-${CACHE_TYPE}"
 
   - any-job:
       tags: ["spack"]
