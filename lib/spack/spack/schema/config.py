@@ -181,12 +181,12 @@ def update(data):
     if use_ccache:
         if not data.get("compiler_launcher", None):
             data["compiler_launcher"] = {"cxx": "ccache", "cc": "ccache"}
-            tty.warning(
+            tty.warn(
                 "'config:ccache' is deprecated, use 'config:compiler_launcher:ccache' instead"
             )
             changed = True
         else:
-            tty.warning("'config:ccache' is ignored, using 'config:compiler_launcher' instead")
+            tty.warn("'config:ccache' is ignored, using 'config:compiler_launcher' instead")
 
     compiler_launcher = data.get("compiler_launcher", None)
     if isinstance(compiler_launcher, str):
@@ -195,7 +195,6 @@ def update(data):
         # restrictions that need to be resolved
         # by the configuration.
         data["compiler_launcher"] = {"cxx": compiler_launcher, "cc": compiler_launcher}
-        changed = True
 
     use_curl = data.pop("use_curl", None)
     if use_curl is not None:

@@ -29,6 +29,13 @@ export SCCACHE_SERVER_PORT
 
 [ -n ${SCCACHE_ERROR_LOG} ] && mkdir -p $(dirname ${SCCACHE_ERROR_LOG})
 
+# Pull requests are not privileged
+if [ "${SPACK_PIPELINE_TYPE}" == "spack_pull_request"]; then
+  export SCCACHE_S3_NO_CREDENTIALS=true
+else
+  export SCCACHE_S3_NO_CREDENTIALS=false
+fi
+
 # Configure environment file
 echo "set -a" > cache_env.txt
 env | grep SCCACHE_ >> cache_env.txt
@@ -36,5 +43,5 @@ echo "set +a" >> cache_env.txt
 
 echo "Starting sccache, listening on ${SCCACHE_SERVER_PORT}"
 
-./bin/sccache --start-server || exit 0
+./bin/sccache --start-server
 ./bin/sccache --show-stats

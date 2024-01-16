@@ -11,6 +11,28 @@ ci:
   - any-job-remove:
       id_tokens:: no-oidc-tokens
 
+  # Configure sccache
+  - build-job:
+      variables:
+        SCCACHE_CONF: "${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/configs/sccache.conf"
+        SCCACHE_BUCKET: "spack-binaries"
+        SCCACHE_S3_KEY_PREFIX: "/experiments/develop/sccache"
+        SCCACHE_S3_USE_SSL: "true"
+        SCCACHE_REGION: us-east-1
+        SCCACHE_LOG: "debug"
+        SCCACHE_ERROR_LOG: "${CI_PROJECT_DIR}/${SPACK_JOB_LOG_DIR}/sccache_log.txt"
+        # Setting this to avoid phantom servers
+        SCCACHE_IDLE_TIMEOUT: "3600"
+      before_script:
+      - - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/setup-${CACHE_TYPE}"
+        - "[ -f cache_env.txt ] && source cache_env.txt"
+      # Print sccache statistics
+      script-:
+      - - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/stats-${CACHE_TYPE}"
+      # Try to stop the server
+      after_script:
+      - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/teardown-${CACHE_TYPE}"
+
   - build-job:
       before_script-:
       - - cat /proc/loadavg || true
@@ -119,25 +141,6 @@ ci:
         KUBERNETES_MEMORY_REQUEST: "5M"
       before_script:: []
       after_script:: []
-
-  # Configure Cacheing
-  - build-job:
-      variables:
-        SCCACHE_CONF: "${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/configs/sccache.conf"
-        SCCACHE_S3_KEY_PREFIX: "/${CI_COMMIT_REF_NAME}/sccache"
-        SCCACHE_S3_USE_SSL: "true"
-        SCCACHE_REGION: us-east-1
-        SCCACHE_LOG: "debug"
-        SCCACHE_ERROR_LOG: "${CI_PROJECT_DIR}/${SPACK_JOB_LOG_DIR}/sccache_log.txt"
-        # Bumping this to get results in --show-stats
-        SCCACHE_IDLE_TIMEOUT: "3600"
-        # Hardcoding for testing
-        SCCACHE_BUCKET: "spack-binaries-prs"
-      before_script:
-      - - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/setup-${CACHE_TYPE}"
-        - "[ -f cache_env.txt ] && source cache_env.txt"
-      after_script:
-      - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/teardown-${CACHE_TYPE}"
 
   - any-job:
       tags: ["spack"]

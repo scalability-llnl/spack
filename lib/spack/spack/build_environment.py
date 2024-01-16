@@ -515,7 +515,7 @@ def set_wrapper_variables(pkg, env):
     env.set(SPACK_DEBUG_LOG_ID, pkg.spec.format("{name}-{hash:7}"))
     env.set(SPACK_DEBUG_LOG_DIR, spack.paths.spack_working_dir)
 
-    # Find ccache binary and hand it to build environment
+    # Find launcher and hand it to build environment
     if spack.config.get("config:compiler_launcher"):
         launchers = spack.config.get("config:compiler_launcher", {"dummy": None})
         for lang in launchers:
