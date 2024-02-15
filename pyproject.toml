@@ -67,6 +67,21 @@ features = [
   "ci",
 ]
 
+[tool.ruff]
+# smallest version ruff seems to support
+line-length = 99
+target-version = "py37"
+include = ["pyproject.toml", "lib/spack/**/*.py", "var/spack/repos/**/*.py", "bin/spack"]
+exclude = ["lib/spack/external"]
+extend-exclude = ["*.pyi"]
+
+[tool.ruff.lint]
+ignore = ["E731", "E203"]
+
+[tool.ruff.lint.per-file-ignores]
+"var/spack/repos/*/package.py" = ["F403", "F405", "F821"]
+"*-ci-package.py" = ["F403", "F405", "F821"]
+
 [tool.black]
 line-length = 99
 target-version = ['py36', 'py37', 'py38', 'py39', 'py310']
