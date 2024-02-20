@@ -25,6 +25,8 @@ class Gimp(AutotoolsPackage):
 
     license("GPL-3.0-or-later")
 
+    version("2.10.36", sha256="3d3bc3c69a4bdb3aea9ba2d5385ed98ea03953f3857aafd1d6976011ed7cdbb2")
+    version("2.10.34", sha256="84004642d351b398a4293cd7fd3592044a944f05bb52850ee6068f247c657aa3")
     version("2.10.32", sha256="3f15c70554af5dcc1b46e6dc68f3d8f0a6cc9fe56b6d78ac08c0fd859ab89a25")
     version("2.10.30", sha256="88815daa76ed7d4277eeb353358bafa116cd2fcd2c861d95b95135c1d52b67dc")
     version("2.10.28", sha256="4f4dc22cff1ab5f026feaa2ab55e05775b3a11e198186b47bdab79cbfa078826")
@@ -53,8 +55,9 @@ class Gimp(AutotoolsPackage):
 
     # ref. https://www.gimp.org/source/
     depends_on("pkgconfig", type="build")
-    depends_on("babl")
+    depends_on("babl@0.1.90:0.1.98")
     depends_on("fontconfig@2.12.4:")
+    depends_on("gdk-pixbuf")
     depends_on("gegl")
     depends_on("gexiv2")
     depends_on("ghostscript", when="+ghostscript")
@@ -66,7 +69,7 @@ class Gimp(AutotoolsPackage):
     depends_on("jpeg")
     depends_on("libexif")
     # depends_on("libheif+libde265", when="+libheif")
-    depends_on("libjxl", when="+jpegxl")
+    depends_on("libjxl cxxflags='-fpermissive'", when="+jpegxl")
     depends_on("libmng", when="+libmng")
     depends_on("libmypaint@1.4")
     depends_on("libpng")
