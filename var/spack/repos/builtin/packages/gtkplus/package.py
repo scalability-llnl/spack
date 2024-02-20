@@ -24,6 +24,11 @@ class Gtkplus(MesonPackage):
         deprecated=True,
     )
     version(
+        "2.24.33",
+        sha256="ac2ac757f5942d318a311a54b0c80b5ef295f299c2a73c632f6bfb1ff49cc6da",
+        deprecated=False,
+    )
+    version(
         "2.24.32",
         sha256="b6c8a93ddda5eabe3bfee1eb39636c9a03d2a56c7b62828b359bf197943c582e",
         deprecated=True,
