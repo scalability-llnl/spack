@@ -69,7 +69,7 @@ class Emacs(AutotoolsPackage, GNUMirrorPackage):
     depends_on("autoconf", type="build", when="@master:")
     depends_on("automake", type="build", when="@master:")
     depends_on("libtool", type="build", when="@master:")
-    depends_on("texinfo", type="build", when="@master:")
+    depends_on("texinfo", type="build")
     depends_on("gcc@11: +strip languages=jit", when="+native")
     depends_on("jansson@2.7:", when="+json")
 
