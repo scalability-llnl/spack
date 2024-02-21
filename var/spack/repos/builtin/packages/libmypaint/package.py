@@ -33,6 +33,7 @@ class Libmypaint(AutotoolsPackage):
     depends_on("perl-xml-parser")
     depends_on("babl", when="+gegl")
     depends_on("gegl", when="+gegl")
+    depends_on("gettext")
     depends_on("gobject-introspection", when="+introspection")
     depends_on("glib", when="+introspection")
 
