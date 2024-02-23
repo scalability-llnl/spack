@@ -33,6 +33,7 @@ class Yaksa(AutotoolsPackage, CudaPackage, ROCmPackage):
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("m4", type="build")
+    depends_on("perl", type="build")
     depends_on("python@3:", type="build")
 
     def autoreconf(self, spec, prefix):
