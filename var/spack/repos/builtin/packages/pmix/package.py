@@ -85,11 +85,11 @@ class Pmix(AutotoolsPackage):
 
     variant("docs", default=False, description="Build manpages")
 
-    depends_on("m4", type="build", when="@master")
-    depends_on("autoconf", type="build", when="@master")
-    depends_on("automake", type="build", when="@master")
-    depends_on("libtool", type="build", when="@master")
-    depends_on("perl", type="build", when="@master")
+    depends_on("m4", type="build")
+    depends_on("autoconf", type="build")
+    depends_on("automake", type="build")
+    depends_on("libtool", type="build")
+    depends_on("perl", type="build")
     depends_on("pandoc", type="build", when="+docs")
     depends_on("pkgconfig", type="build")
 
