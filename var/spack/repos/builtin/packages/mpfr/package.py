@@ -39,6 +39,7 @@ class Mpfr(AutotoolsPackage, GNUMirrorPackage):
     depends_on("libtool", type="build")
     depends_on("m4", type="build")
     depends_on("autoconf-archive", when="@4.0.0:", type="build")
+    depends_on("perl", type="build")
     depends_on("texinfo", when="@4.1.0:", type="build")
 
     variant(
