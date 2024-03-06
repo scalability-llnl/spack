@@ -89,7 +89,6 @@ class R(AutotoolsPackage):
     depends_on("zlib-api")
     depends_on("zlib@1.2.5:", when="^[virtuals=zlib-api] zlib")
     depends_on("texinfo", type="build")
-
     with when("+X"):
         depends_on("cairo+X+gobject+pdf")
         depends_on("pango+X")
@@ -101,6 +100,7 @@ class R(AutotoolsPackage):
         depends_on("libxmu")
         depends_on("libxt")
         depends_on("tk")
+    depends_on("texlive", type="build")
 
     patch("zlib.patch", when="@:3.3.2")
 
