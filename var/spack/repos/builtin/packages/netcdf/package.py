@@ -15,14 +15,14 @@ class Netcdf(BundlePackage):
     homepage = "https://www.unidata.ucar.edu/software/netcdf"
 
     maintainers = ['vanderwb']
-    
+
     version('4.9.2')
     version('4.9.1')
     version('4.9.0')
     version('4.8.1')
 
     # Inherit relevant variants from netcdf-c package
-    variant('mpi', default=True,
+    variant('mpi', default=False,
             description='Enable parallel I/O for netcdf-4')
     variant('parallel-netcdf', default=False,
             description='Enable parallel I/O for classic files')
@@ -52,7 +52,7 @@ class Netcdf(BundlePackage):
     def install(self, spec, prefix):
         for dep in ['netcdf-c', 'netcdf-fortran', 'netcdf-cxx4']:
             dep_prefix = self.spec[dep].prefix
-            
+
             for subdir in os.listdir(dep_prefix):
                 # Avoid copying Spack metadata - will corrupt database
                 if not subdir.startswith('.'):
@@ -63,9 +63,9 @@ class Netcdf(BundlePackage):
                         distutils.dir_util.copy_tree(dep_sub, my_sub)
                     except:
                         shutil.copytree(dep_sub, my_sub, dirs_exist_ok = True)
-    
+
     def setup_run_environment(self, env):
         """Adds environment variables to the generated module file.
         """
-        
+
         env.set("NETCDF", self.prefix)
