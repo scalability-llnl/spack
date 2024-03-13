@@ -10,9 +10,13 @@ from spack.package import (CMakePackage, depends_on, filter_file, find,
 
 
 class Overflow(CMakePackage):
-    """NASA OVERFLOW."""
+    """OVERFLOW is a Computational Fluid Dynamics (CFD) flow solver under
+       development by NASA. It uses structured overset grids to simulate fluid
+       flow, and is being used on projects for Aeronautics Research, Science,
+       Space Technology, and Human Exploration Mission Directorates."""
 
-    homepage = "https://git.int.archer.com/overflow/"
+
+    homepage = "https://overflow.larc.nasa.gov"
     url = "file:///aerolab/admin/software/dist/overflow/over2.4c.tar.gz"
 
     version("2.4b", sha256="89ba0302477726ca5a49154bb4c50e96ce4c23ec2901f7b03d24e5a197566021")
