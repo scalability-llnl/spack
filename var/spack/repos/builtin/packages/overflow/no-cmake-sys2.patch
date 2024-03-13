@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt.orig
+index 134c952..13e797e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt.orig
+@@ -91,7 +91,7 @@ else ()
+ endif ()
+
+ # Set CUSTOM compiler flags
+-include(cmake.sys)
++#include(cmake.sys)
+
+ # Create overflow libraries
+ add_library(OF_datatypes OBJECT)
