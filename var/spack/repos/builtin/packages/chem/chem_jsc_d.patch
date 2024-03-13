@@ -1,0 +1,17 @@
+diff --git a/src/ic.loci b/src/ic.loci
+index b990411..dd4239d 100644
+--- a/src/ic.loci
++++ b/src/ic.loci
+@@ -881,8 +881,10 @@ namespace chem {
+     Loci::readContainer(file_id,"ncycle",ncycle.Rep(),dom) ;
+     Loci::hdf5CloseFile(file_id) ;
+ 
+-    if(*stime == 0 && *steadyRestartHistory == 0)
+-      *ncycle = 0 ;
++    // Commented out follow code to allow steady state runs to restart
++    // without resetting iterations PLM
++    //if(*stime == 0 && *steadyRestartHistory == 0)
++    //  *ncycle = 0 ;
+   }
+ 
+   $rule singleton(stime{n=0}<-ic_stime) {
