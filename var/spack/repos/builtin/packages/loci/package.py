@@ -32,19 +32,12 @@ class Loci(AutotoolsPackage):
             f"--with-hdf5={spec['hdf5'].prefix}/lib",
         ]
 
-        print(f"spec = {spec}")
-
         if spec.satisfies("+mpi"):
-            print("I found mpi in the spec")
             args.append(f"--with-mpi={spec['mpi'].prefix}")
-        else:
-            print("I did NOT find mpi in the spec")
-
 
         if spec.satisfies("+tecio"):
             f"--with-tec360={spec['tecio'].prefix}/lib",
 
-        print(f"args = {args}")
         return args
 
     def setup_run_environment(self, env):
