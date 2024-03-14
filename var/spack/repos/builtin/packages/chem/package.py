@@ -13,8 +13,10 @@ class Chem(AutotoolsPackage):
 
     variant("mpi",   default=False, description="Enable MPI support")
 
+    depends_on("mpi",      when="+mpi")
+
     depends_on("loci")
-    depends_on("mpi", when="+mpi")
+    depends_on("loci+mpi", when="+mpi")
 
     #def configure_args(self):
     #    spec = self.spec

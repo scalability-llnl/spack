@@ -8,14 +8,16 @@ class Loci(AutotoolsPackage):
 
     version("4.0-p5",  sha256="47b67e7069fd7dc970025612533c4183ac5f8addfe653a96ff7ac4c8a45840f2")
 
-
     variant("mpi",   default=False, description="Enable MPI support")
     variant("tecio", default=True,  description="Enable TecIO support.")
 
     depends_on("libtirpc")
     depends_on("hdf5")
+
     depends_on("mpi", when="+mpi")
-    depends_on("tecio", type=("build", "run"), when="+tecio")
+    depends_on("hdf5+mpi", when="+mpi")
+    depends_on("tecio",     type=("build", "run"), when="+tecio")
+    depends_on("tecio+mpi", type=("build", "run"), when="+tecio+mpi")
 
     # Loci has parmetis internally, so we'll let it use that
     #with when("+metis"):
@@ -30,12 +32,19 @@ class Loci(AutotoolsPackage):
             f"--with-hdf5={spec['hdf5'].prefix}/lib",
         ]
 
-        if "+mpi" in spec:
-            args.append(f"--with-mpi={spec['mpi'].prefix}")
+        print(f"spec = {spec}")
 
-        if "+tecio" in spec:
+        if spec.satisfies("+mpi"):
+            print("I found mpi in the spec")
+            args.append(f"--with-mpi={spec['mpi'].prefix}")
+        else:
+            print("I did NOT find mpi in the spec")
+
+
+        if spec.satisfies("+tecio"):
             f"--with-tec360={spec['tecio'].prefix}/lib",
 
+        print(f"args = {args}")
         return args
 
     def setup_run_environment(self, env):
