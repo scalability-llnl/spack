@@ -18,7 +18,6 @@ _versions = {
     },
 }
 
-
 class Esp(Package):
     """MIT's Engineering Sketch Pad"""
 
@@ -30,50 +29,41 @@ class Esp(Package):
         if pkg:
             version(ver, sha256=pkg[0], url=pkg[1])
 
-    #depends_on("libxml2", type="build")
     depends_on("libxml2")
     depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
 
         # Patch a few Makefiles to for some rpath issues
-        # This line:
+        #
+        # This:
         #     PATH=$(PYTHONLPATH:-L%=-Wl,-rpath %)
         # to:
         #     PATH=$(PYTHONLPATH:-L%=-Wl,-rpath,%)
         #
-        # should look like this (comma instead of space after -rpath):
+        # I.e. use a comma instead of a space after -rpath):
         files=[ 'EngSketchPad/src/CAPS/aim/fun3d/Makefile',
                 'EngSketchPad/src/CAPS/aim/abaqus/Makefile',
                 'EngSketchPad/src/OpenCSM/serveESP.make' ]
         for file in files:
             makefile = FileFilter(file)
-            makefile.filter("-rpath %",  "-rpath,%")
+            makefile.filter("-rpath %", "-rpath,%")
 
-        # Patch a few more Makefiles to look for the right xml2-config
-        #files=[ 'EngSketchPad/src/CAPS/aim/cart3d/xddm/Makefile',
-        #        'EngSketchPad/src/CAPS/aim/cart3d/Makefile']
-        #print(f"spec = {spec}")
-        #print(f"spec['libxml2'] = {spec['libxml2']}")
-        #print(f"spec['libxml2'].prefix = {spec['libxml2'].prefix}")
-        #for file in files:
-        #    makefile = FileFilter(file)
-        #    makefile.filter("xml2-config",  f"{spec['libxml2'].prefix}/bin/xml2-config" )
-        #    f'-DCMAKE_C_COMPILER={spec["mpi"].mpicc}',
-
-        # This copies the source to the prefix
+        # This copies the source to the final installion location
         install_tree(".", prefix)
 
-
         bash = which("bash")
+
+        # This gets the full path to the bash script in this directory
         script=join_path(os.path.dirname(__file__), "finish_setup.sh")
 
+        # Run the setup in the final location.  This is neceessary becase
+        # ESP's scripts reconfigure env vars and other items with full
+        # paths to the current location.  So we can't run this in the
+        # staging area and then transfer.
         with working_dir(prefix):
-            bash("setup.sh")
-            bash(script)
-
-        #with working_dir(prefix.join("EngSketchPad").join("src")):
-        #    make()
+            bash("setup.sh") # Run the setup script that comes with ESP
+            bash(script)     # Run the setup to finish the process
 
     def setup_run_environment(self, env):
         filename = self.prefix.join("EngSketchPad").join("ESPenv.sh")
