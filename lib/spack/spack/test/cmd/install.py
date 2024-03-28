@@ -765,6 +765,12 @@ def test_install_only_dependencies_of_all_in_env(
                 assert os.path.exists(dep.prefix)
 
 
+def hline(label):
+    width = 100 - len(label) - 1
+    print()
+    print(f"{label} {'=' * width}")
+
+
 def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock_env_path):
     # To test behavior of --add option, we create the following environment:
     #
@@ -779,6 +785,9 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
     #         ^pkg-b
     #     pkg-a
     #         ^pkg-b
+
+    hline("START TEST")
+
     e = ev.create("test", with_view=False)
     e.add("mpileaks")
     e.add("libelf@0.8.10")  # so env has both root and dep libelf specs
@@ -786,14 +795,14 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
     e.add("pkg-a ~bvv")
     e.concretize()
     e.write()
-    env_specs = e.all_specs()
+    initial_concrete_specs = e.all_specs()
 
     a_spec = None
     b_spec = None
     mpi_spec = None
 
     # First find and remember some target concrete specs in the environment
-    for e_spec in env_specs:
+    for e_spec in initial_concrete_specs:
         if e_spec.satisfies(Spec("pkg-a ~bvv")):
             a_spec = e_spec
         elif e_spec.name == "pkg-b":
@@ -813,28 +822,92 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
 
     # Activate the environment
     with e:
+        hline("INITIAL CONCRETE SPECS")
+        find_output = find("-lc", output=str)
+        print()
+        initial_spec_tuples = [str((s.dag_hash(7), s.name, id(s))) for s in initial_concrete_specs]
+        print("\n".join(initial_spec_tuples))
+
+        initial_libelf = next(s for s in initial_concrete_specs if s.satisfies("libelf@0.8.10"))
+
         # Assert using --no-add with a spec not in the env fails
+        hline("INSTALLING WITHOUT ADD")
         inst_out = install("--no-add", "boost", fail_on_error=False, output=str)
 
-        assert "You can add specs to the environment with 'spack add " in inst_out
+        assert "You can add specs to the environment with 'spack add boost'" in inst_out
 
         # Without --add, ensure that two packages "a" get installed
+        hline("INSTALLING WITH ADD")
         inst_out = install("pkg-a", output=str)
+
+        # 2 pkg-a's are installed
         assert len([x for x in e.all_specs() if x.installed and x.name == "pkg-a"]) == 2
+
+        hline("AFTER FIRST INSTALL")
+        # debug print output
+        find_output = find("-l", output=str)
 
         # Install an unambiguous dependency spec (that already exists as a dep
         # in the environment) and make sure it gets installed (w/ deps),
         # but is not added to the environment.
+        hline("INSTALLING DYNINST")
         install("dyninst")
 
+        hline("AFTER DYNINST INSTALL")
         find_output = find("-l", output=str)
+
         assert "dyninst" in find_output
         assert "libdwarf" in find_output
         assert "libelf" in find_output
         assert "callpath" not in find_output
 
-        post_install_specs = e.all_specs()
-        assert all([s in env_specs for s in post_install_specs])
+        hline("ARE ALL post_install_concrete_specs IN initial_concrete_specs?")
+        post_install_concrete_specs = e.all_specs()
+
+        post_specs_in_initial_specs = [
+            str((s.dag_hash(7), s.name, id(s), s in initial_concrete_specs))
+            for s in post_install_concrete_specs
+        ]
+        print("\n".join(post_specs_in_initial_specs))
+
+        hline("WEIRD SPECS")
+        final_libelf = next(s for s in post_install_concrete_specs if s.satisfies("libelf@0.8.10"))
+        print(initial_libelf.to_json())
+        print(final_libelf.to_json())
+        print(initial_libelf.to_json() == final_libelf.to_json())
+        print(initial_libelf._package_hash, final_libelf._package_hash)
+        print()
+        print(initial_libelf._artifact_hashes)
+        print(final_libelf._artifact_hashes)
+        print(initial_libelf._artifact_hashes == final_libelf._artifact_hashes)
+        print()
+        print(hash(initial_libelf))
+        print(hash(final_libelf))
+        print()
+        print(tuple(initial_libelf._cmp_iter()))
+        print(tuple(final_libelf._cmp_iter()))
+        print(
+            "\n".join(
+                [
+                    str((x == y, x, y))
+                    for x, y in zip(initial_libelf._cmp_iter(), final_libelf._cmp_iter())
+                ]
+            )
+        )
+        print()
+        print(initial_libelf.variants == final_libelf.variants)
+        print(initial_libelf.variants)
+        print(final_libelf.variants)
+        print()
+        print(initial_libelf == final_libelf)
+        print(id(initial_libelf), id(final_libelf))
+        print(initial_libelf in initial_concrete_specs)
+        print(initial_libelf in post_install_concrete_specs)
+
+        for s in post_install_concrete_specs:
+            assert (
+                s in initial_concrete_specs
+            ), f"installed spec {s.format('{name}{@version}{/hash:7}')} not in original env"
 
         # Make sure we can install a concrete dependency spec from a spec.json
         # file on disk, and the spec is installed but not added as a root
