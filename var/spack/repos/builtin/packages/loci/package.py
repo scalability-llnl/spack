@@ -13,6 +13,7 @@ class Loci(AutotoolsPackage):
 
     depends_on("libtirpc")
     depends_on("hdf5")
+    depends_on("libxml2")
 
     depends_on("mpi", when="+mpi")
     depends_on("hdf5+mpi", when="+mpi")
