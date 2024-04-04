@@ -3,8 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack.package import AutotoolsPackage, depends_on, variant, version, which
+from spack.package import AutotoolsPackage, depends_on, variant, version, which, filter_file, find, patch
 
+from os import environ as env
 
 class Fun3d(AutotoolsPackage):
     """NASA's FUN3D CFD Solver"""
@@ -14,6 +15,7 @@ class Fun3d(AutotoolsPackage):
 
     version("14.0d03712b", sha256="d92cdb39994771389effe99f783fe72094481d6d114518593070017def27c4ac")
 
+    patch("f3d.patch")
 
     variant(
         "ftune",
@@ -25,6 +27,8 @@ class Fun3d(AutotoolsPackage):
     #variant("SNOPT",    default=False, description="Enable SNOPT support.")
     #variant("SPARSKIT", default=False, description="Enable SPARSKIT support.")
     variant("tecio",    default=False, description="Enable TecIO support.")
+    variant("esp",      default=False, description="Enable ESP support.")
+    variant("hefss",    default=False, description="Enable high energy physics.")
 
     # build tools
     depends_on("autoconf", type="build")
@@ -36,13 +40,20 @@ class Fun3d(AutotoolsPackage):
     depends_on("mpi")
     depends_on("metis", type=("build", "link"))
     depends_on("parmetis", type=("build", "link"))
+    depends_on("ruby", type="run")
 
     # optional dependencies
     #depends_on("nanoflann", type="build", when="+yoga")
     #depends_on("sparskit", type="build", when="+SPARSKIT")
     #depends_on("ksopt", type=("build"), when="+KSOPT")
     #depends_on("snopt +static", type=("build", "link"), when="+SNOPT")
-    depends_on("tecio", type="build", when="+tecio")
+    #depends_on("tecio",     type="build", when="+tecio")
+    #depends_on("tecio+mpi", type="build", when="+tecio+mpi") # Only if mpi becomes a variant
+
+    # Right now mpi is requited, so always turn on mpi in tecio
+    depends_on("tecio+mpi", type="build", when="+tecio")
+    depends_on("esp",    when="+esp")
+    depends_on("tetgen", when="+esp", type="run")
 
     force_autoreconf = True
     autoreconf_extra_args = ["-Im4"]
@@ -76,4 +87,17 @@ class Fun3d(AutotoolsPackage):
         if spec.satisfies("+SPARSKIT"):
             args.append(f"--with-SPARSKIT={spec['sparskit'].prefix}/lib")
 
+        if spec.satisfies("+esp"):
+            args.append(f"--with-EGADS={env['ESP_ROOT']}")
+            args.append(f"--with-OpenCASCADE={env['CASROOT']}")
+
+        if spec.satisfies("+hefss"):
+            args.append("--enable-hefss")
+
         return args
+
+    def patch(self):
+        """Find all occurrences of #!/bin/csh and replace them with
+        #!/usr/bin/env csh."""
+        for file in find("fun3d/utils", "*.rb", recursive=True):
+            filter_file("File.exists", "File.file", file)

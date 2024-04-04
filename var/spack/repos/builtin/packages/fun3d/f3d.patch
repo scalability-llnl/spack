@@ -1,0 +1,20 @@
+diff --git a/fun3d/utils/f3d.rb.orig b/fun3d/utils/f3d.rb
+index 7ea2d01..f316af9 100755
+--- a/fun3d/utils/f3d.rb.orig
++++ b/fun3d/utils/f3d.rb
+@@ -569,8 +569,15 @@ class FUN3D
+    @iteration = first_iteration
+    setup if ( 1 == @iteration )
+    while ( @iteration <= last_iteration )
++     start_time = Time.now
+      load_case_specifics
+      iteration_steps
++     jobid = ENV['SLURM_JOBID']
++     printf("%s ID\n",jobid)
++     remain = `squeue --job #{jobid} -o '%L' | tail -1 | awk -F':' '{print $1*3600+$2*60+$3}'`
++     printf("%s remaining time\n", remain)
++     printf("%d seconds used\n", Time.now-start_time)
++     break if ( remain.to_f < (Time.now-start_time)*2.5 )
+      break if ( @iteration >= last_iteration )
+      @iteration += 1
+    end
