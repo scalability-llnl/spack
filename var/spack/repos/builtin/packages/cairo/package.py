@@ -32,10 +32,7 @@ class Cairo(MesonPackage, AutotoolsPackage):
         sha256="6b70d4655e2a47a22b101c666f4b29ba746eda4aa8a0f7255b32b2e9408801df",
         url="https://cairographics.org/snapshots/cairo-1.17.2.tar.xz",
     )  # Snapshot
-    version(
-        "1.16.0",
-        sha256="5e7b29b3f113ef870d1e3ecf8adf21f923396401604bda16d44be45e66052331",
-    )
+    version("1.16.0", sha256="5e7b29b3f113ef870d1e3ecf8adf21f923396401604bda16d44be45e66052331")
     version("1.14.12", sha256="8c90f00c500b2299c0a323dd9beead2a00353752b2092ead558139bd67f7bf16")
     version("1.14.8", sha256="d1f2d98ae9a4111564f6de4e013d639cf77155baf2556582295a0f00a9bc5e20")
     version("1.14.0", sha256="2cf5f81432e77ea4359af9dcd0f4faf37d015934501391c311bfd2d19a0134b7")
@@ -101,7 +98,9 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
             args.extend(["-Dxlib=disabled", "-Dxcb=disabled"])
 
         args.append("-Dzlib=" + ("enabled" if "+pdf" in self.spec else "disabled"))
-        args.append("-Dpng=" + ("enabled" if ("+png" in self.spec or "+svg" in self.spec) else "disabled"))
+        args.append(
+            "-Dpng=" + ("enabled" if ("+png" in self.spec or "+svg" in self.spec) else "disabled")
+        )
         args.append("-Dfreetype=" + ("enabled" if "+ft" in self.spec else "disabled"))
         args.append("-Dfontconfig=" + ("enabled" if "+fc" in self.spec else "disabled"))
         args.append("-Ddefault_library=" + ("shared" if "+shared" in self.spec else "static"))
