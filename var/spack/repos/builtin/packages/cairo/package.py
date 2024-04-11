@@ -90,6 +90,7 @@ class Cairo(MesonPackage, AutotoolsPackage):
         """The checks are only for the cairo devs: They write others shouldn't bother"""
         pass
 
+
 class MesonBuilder(spack.build_systems.meson.MesonBuilder):
     def meson_args(self):
         args = ["-Dtee=enabled"]
@@ -99,12 +100,12 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         else:
             args.extend(["-Dxlib=disabled", "-Dxcb=disabled"])
 
-        args.append("-Dzlib=" + ("enabled" if "pdf" in self.spec else "disabled"))
-        args.append("-Dpng=" + ("enabled" if ("png" in self.spec or "svg" in self.spec) else "disabled"))
-        args.append("-Dfreetype=" + ("enabled" if "ft" in self.spec else "disabled"))
-        args.append("-Dfontconfig=" + ("enabled" if "fc" in self.spec else "disabled"))
-        args.append("-Ddefault_library=" + ("shared" if "shared" in self.spec else "static"))
-        args.append("-Db_staticpic=" + ("true" if "pic" in self.spec else "false"))
+        args.append("-Dzlib=" + ("enabled" if "+pdf" in self.spec else "disabled"))
+        args.append("-Dpng=" + ("enabled" if ("+png" in self.spec or "+svg" in self.spec) else "disabled"))
+        args.append("-Dfreetype=" + ("enabled" if "+ft" in self.spec else "disabled"))
+        args.append("-Dfontconfig=" + ("enabled" if "+fc" in self.spec else "disabled"))
+        args.append("-Ddefault_library=" + ("shared" if "+shared" in self.spec else "static"))
+        args.append("-Db_staticpic=" + ("true" if "+pic" in self.spec else "false"))
 
         return args
 
