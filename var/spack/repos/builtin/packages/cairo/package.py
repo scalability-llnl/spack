@@ -76,6 +76,9 @@ class Cairo(MesonPackage, AutotoolsPackage):
     depends_on("pixman@0.36.0:", when="@1.17.2:")
     depends_on("pixman")
     depends_on("freetype build_system=autotools", when="+ft")
+    # Require freetype with FT_Color
+    # https://gitlab.freedesktop.org/cairo/cairo/-/issues/792
+    depends_on("freetype@2.10:", when="@1.18.0: +ft")
     depends_on("pkgconfig", type="build")
     depends_on("fontconfig@2.10.91:", when="+fc")  # Require newer version of fontconfig.
     depends_on("which", type="build")
