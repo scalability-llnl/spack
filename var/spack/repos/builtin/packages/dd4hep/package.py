@@ -102,7 +102,6 @@ class Dd4hep(CMakePackage):
     with when("+ddeve"):
         depends_on("root @6.08: +x +opengl")
         depends_on("root @:6.27", when="@:1.23")
-        depends_on("root +root7", when="@1.24: ^root@6.27:")  # DDEve_Interface needs ROOT::ROOTGeomViewer
         conflicts("^root ~webgui", when="^root@6.28:")
         # For DD4hep >= 1.24, DDEve_Interface needs ROOT::ROOTGeomViewer only if ROOT >= 6.27
         requires("^root +root7 +webgui", when="@1.24: ^root @6.27:")
