@@ -16,6 +16,8 @@ spack:
       variants: +ld +gold +headers +libiberty ~nls
     elfutils:
       variants: ~nls
+    gdb:
+      version: [14.1]
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
