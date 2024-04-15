@@ -68,7 +68,7 @@ spack:
   - fastjet
   - fjcontrib
   - garfieldpp +examples
-  - gaudi +aida +examples +heppdt +xercesc
+  - gaudi +aida +examples +heppdt +xercesc ^gdb +python
   - geant4 +opengl +qt +threads ~vtk
   - hepmc
   - hepmc3 +interfaces +protobuf +python +rootio
