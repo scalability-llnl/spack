@@ -52,6 +52,8 @@ spack:
     # Mark geant4 data as external to prevent wasting bandwidth on GB-scale files
     geant4-data:
       externals:
+        - spec: geant4-data@11.2.0
+          prefix: /usr
         - spec: geant4-data@11.1.0
           prefix: /usr
         - spec: geant4-data@11.0.0
