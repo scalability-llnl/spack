@@ -67,7 +67,6 @@ spack:
   - edm4hep
   - fastjet
   - fjcontrib
-  - garfieldpp +examples
   - gaudi +aida +examples +heppdt +xercesc ^gdb +python
   - geant4 +opengl +qt +threads ~vtk
   - hepmc
