@@ -97,7 +97,6 @@ class Fun3d(AutotoolsPackage):
         return args
 
     def patch(self):
-        """Find all occurrences of #!/bin/csh and replace them with
-        #!/usr/bin/env csh."""
+        """Find all occurrences of 'File.exists' and replace them with 'File.file'"""
         for file in find("fun3d/utils", "*.rb", recursive=True):
             filter_file("File.exists", "File.file", file)
