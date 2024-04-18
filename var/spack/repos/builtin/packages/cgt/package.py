@@ -113,6 +113,11 @@ class Cgt(AutotoolsPackage):
         env.set("TKDIR_SO",   f"{spec['tk'].prefix}/lib")
 
     def setup_run_environment(self, env):
+        spec = self.spec
         env.set("CGT_DIR", self.prefix)
-        env.set("CGTBINDDIR", self.prefix.bin)
+        env.set("CGTBINDIR", self.prefix.bin)
         env.set("SCRIPTLIB", self.prefix.scriptlib)
+        env.set("TCLDIR_SO",  f"{spec['tcl'].prefix}/lib")
+        env.set("TKDIR_SO",   f"{spec['tk'].prefix}/lib")
+        env.prepend_path("LD_LIBRARY_PATH",   f"{spec['tcl'].prefix}/lib")
+        env.prepend_path("LD_LIBRARY_PATH",   f"{spec['tk'].prefix}/lib")
