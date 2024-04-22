@@ -91,7 +91,8 @@ class Cgt(AutotoolsPackage):
         symlink(bin_dir, join_path(prefix, "bin"))
 
         # Remove the other one for good measure
-        shutil.rmtree(join_path(prefix, f"bin{del_suffix}"))
+        # On 2nd thought... we need both for overgrid to be happy
+        #shutil.rmtree(join_path(prefix, f"bin{del_suffix}"))
 
     def patch(self):
         """Find all occurrences of #!/bin/csh and replace them with
