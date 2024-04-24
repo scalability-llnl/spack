@@ -3,7 +3,7 @@ spack:
 
   concretizer:
     reuse: false
-    unify: false
+    unify: when_possible
 
   packages:
     all:
