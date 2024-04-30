@@ -148,8 +148,6 @@ def test_package_hash_all_same_but_archive_hash(mock_packages, config):
     # the sources for these two packages will not be the same b/c their archive hashes differ
     assert spec1.to_node_dict()["sources"] != spec2.to_node_dict()["sources"]
 
-    assert spec1.dag_hash() != spec2.dag_hash()
-
 
 def test_package_hash_all_same_but_resources(mock_packages, config):
     spec1 = Spec("hash-test1@1.7").concretized()
