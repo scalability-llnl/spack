@@ -1754,16 +1754,31 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         return patches
 
     def artifact_hashes(self, content=None):
-        """Create a hash based on the artifacts and patches used to build this package.
+        """Create a dictionary of hashes of artifacts used in the build of this package.
 
         This includes:
             * source artifacts (tarballs, repositories) used to build;
             * content hashes (``sha256``'s) of all patches applied by Spack; and
             * canonicalized contents the ``package.py`` recipe used to build.
 
-        This hash is only included in Spack's DAG hash for concrete specs, but if it
-        happens to be called on a package with an abstract spec, only applicable (i.e.,
-        determinable) portions of the hash will be included.
+        Example::
+
+            {
+              "package_hash": "qovi2hm2n2qsatng2r4n55yzjlhnwflx",
+              "sources": [
+                {
+                  "sha256": "fc5fd69bb8736323f026672b1b7235da613d7177e72558893a0bdcd320466d60",
+                  "type": "archive"
+                },
+                {
+                  "sha256": "56ab9b90f5acbc42eb7a94cf482e6c058a63e8a1effdf572b8b2a6323a06d923",
+                  "type": "archive"
+                }
+             }
+
+        All hashes are added to concrete specs at the end of concretization. If this
+        method is called on an abstract spec, only hashes that can be known from the
+        abstract spec will be included.
 
         """
         hashes = syaml.syaml_dict()
