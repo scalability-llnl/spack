@@ -1798,10 +1798,10 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
                 # if this is a develop spec, say so
                 from_local_sources = "dev_path" in self.spec.variants
 
-                # don't bother setting a source id if none is available, but warn if
+                # don't bother setting a hash if none is available, but warn if
                 # it seems like there should be one.
                 if self.has_code and not self.spec.external and not from_local_sources:
-                    message = "Missing a source id for {s.name}@{s.version}"
+                    message = "Missing a hash for {s.name}@{s.version}"
                     tty.debug(message.format(s=self))
 
             for resource in self._get_needed_resources():
