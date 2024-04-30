@@ -2923,9 +2923,8 @@ class Spec:
                 # can't use self.package here b/c not concrete yet
                 pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
                 pkg = pkg_cls(spec)
-
-                # TODO: make artifact hashes a static method
                 artifact_hashes = pkg.artifact_hashes()
+
                 spec._package_hash = artifact_hashes.pop("package_hash")
                 spec._artifact_hashes = artifact_hashes
 
