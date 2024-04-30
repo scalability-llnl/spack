@@ -14,14 +14,14 @@ class HashTest1(Package):
     homepage = "http://www.hashtest1.org"
     url = "http://www.hashtest1.org/downloads/hashtest1-1.1.tar.bz2"
 
-    version("1.1", sha256="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-    version("1.2", sha256="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-    version("1.3", sha256="cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
-    version("1.4", sha256="dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-    version("1.5", sha256="dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-    version("1.6", sha256="eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-    version("1.7", sha256="ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
-    version("1.8", sha256="1111111111111111111111111111111111111111111111111111111111111111")
+    version("1.1", sha256="a" * 64)
+    version("1.2", sha256="b" * 64)
+    version("1.3", sha256="c" * 64)
+    version("1.4", sha256="d" * 64)
+    version("1.5", sha256="d" * 64)
+    version("1.6", sha256="e" * 64)
+    version("1.7", sha256="f" * 64)
+    version("1.8", sha256="1" * 64)
 
     patch("patch1.patch", when="@1.1")
     patch("patch2.patch", when="@1.4")
@@ -31,7 +31,7 @@ class HashTest1(Package):
 
     resource(
         url="http://www.example.com/example-1.0-resource.tar.gz",
-        sha256="abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
+        sha256="abcd1234" * 8,
         when="@1.8",
     )
 
