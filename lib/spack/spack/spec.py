@@ -2202,10 +2202,12 @@ class Spec:
             d["concrete"] = False
 
         if self._concrete and hash.package_hash:
-            # We use the attribute here instead of `self.package_hash()` because this should
-            # *always* be assigned at concretization time. We don't want to try to compute a
-            # package hash for concrete spec where a) the package might not exist, or b) the
-            # `dag_hash` didn't include the package hash when the spec was concretized.
+            # We use the `_package_hash` attribute here instead of `self.package_hash()`
+            # because `_package_hash` is *always* assigned at concretization time. If
+            # the attribute is present, we should include it. If it isn't, we avoid
+            # computing it because a) the package may no longer exist, or b) this is an
+            # older spec and the `dag_hash` didn't include the package hash when the
+            # spec was concretized.
             if hasattr(self, "_package_hash") and self._package_hash:
                 d["package_hash"] = self._package_hash
 
