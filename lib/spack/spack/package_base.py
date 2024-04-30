@@ -1769,7 +1769,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         hashes = syaml.syaml_dict()
 
         # source artifacts/repositories
-        # TODO: resources
         if self.spec.versions.concrete:
             sources = []
             try:
