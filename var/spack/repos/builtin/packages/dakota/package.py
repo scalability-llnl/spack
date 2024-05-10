@@ -62,6 +62,8 @@ class Dakota(CMakePackage):
     variant("mpi", default=True, description="Activates MPI support")
     variant("python", default=True, description="Add Python dependency for dakota.interfacing API")
 
+    patch("isnan.patch", when="@6.18:")
+
     # Generic 'lapack' provider won't work, dakota searches for
     # 'LAPACKConfig.cmake' or 'lapack-config.cmake' on the path
     depends_on("netlib-lapack")
