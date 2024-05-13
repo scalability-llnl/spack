@@ -83,6 +83,10 @@ class Cairo(MesonPackage, AutotoolsPackage):
     depends_on("fontconfig@2.10.91:", when="+fc")  # Require newer version of fontconfig.
     depends_on("which", type="build")
     depends_on("zlib", when="+pdf")
+    # lzo is not strictly required, but cannot be disabled and may be pulled in accidentally
+    # https://github.com/mesonbuild/meson/issues/8224
+    # https://github.com/microsoft/vcpkg/pull/38313
+    depends_on("lzo", when="@1.18: build_system=meson")
 
     conflicts("+png", when="platform=darwin")
     conflicts("+svg", when="platform=darwin")
