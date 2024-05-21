@@ -2769,6 +2769,64 @@ class EnvironmentManifestFile(collections.abc.Mapping):
 
         self.changed = True
 
+    def add_includes(
+        self, include: List[str], concrete: bool = False, prepend: bool = False
+    ) -> None:
+        """Appends includes to an environment
+
+        Args:
+            include: list of configuration files or directories containing configs for
+                     concrete environments
+        """
+        include_keyword = "include"
+        if concrete:
+            include_keyword = included_concrete_name
+            set_included_envs_to_env_paths(include)
+            validate_included_envs_exists(include)
+            validate_included_envs_concrete(include)
+
+        if not self.pristine_configuration.get(include_keyword):
+            self.pristine_configuration[include_keyword] = []
+
+        if prepend:
+            self.pristine_configuration[include_keyword][:0] = include
+        else:
+            self.pristine_configuration[include_keyword].extend(include)
+
+        if not self.configuration.get(include_keyword):
+            self.configuration[include_keyword] = []
+
+        if prepend:
+            self.configuration[include_keyword][:0] = include
+        else:
+            self.configuration[include_keyword].extend(include)
+
+        self.changed = True
+
+    def remove_includes(self, include: List[str], concrete=False) -> None:
+        """Removes includes from an environment
+
+        Args:
+            include: list of configuration files or directories containing configs for
+                     concrete environments
+        """
+        include_keyword = "include"
+        if concrete:
+            include_keyword = included_concrete_name
+            set_included_envs_to_env_paths(include)
+            validate_included_envs_exists(include)
+            validate_included_envs_concrete(include)
+
+        if self.pristine_configuration.get(include_keyword):
+            for inc in include:
+                self.pristine_configuration[include_keyword].remove(inc)
+
+        if self.configuration.get(include_keyword):
+            for inc in include:
+                self.configuration[include_keyword].remove(inc)
+
+        self.changed = True
+
     def add_definition(self, user_spec: str, list_name: str) -> None:
         """Appends a user spec to the first active definition matching the name passed as argument.
 

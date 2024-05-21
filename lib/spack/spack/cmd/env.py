@@ -48,6 +48,7 @@ subcommands = [
     ["status", "st"],
     "loads",
     "view",
+    "include",
     "update",
     "revert",
     "depfile",
@@ -809,6 +810,42 @@ def env_view(args):
     elif args.action == ViewAction.disable:
         env.update_default_view(path_or_bool=False)
         env.write()
+
+
+def env_include_setup_parser(subparser):
+    """Add/remove configuration scopes or concrete environments to the environment"""
+    subparser.add_argument(
+        "--remove", action="store_true", help="Remove included path(s) from the environment"
+    )
+    subparser.add_argument(
+        "--concrete",
+        action="store_true",
+        help="Include paths/environment names as concrete environments",
+    )
+    subparser.add_argument(
+        "--prepend", action="store_true", help="Prepend the includes instead of append"
+    )
+    subparser.add_argument(
+        "includes",
+        metavar="include",
+        nargs="+",
+        help="List of path(s) to configs or environments to include",
+    )
+
+
+def env_include(args):
+    env = ev.active_environment()
+
+    if not env:
+        tty.msg("No active environment")
+        return
+
+    if args.remove:
+        env.manifest.remove_includes(args.includes, concrete=args.concrete)
+    else:
+        env.manifest.add_includes(args.includes, concrete=args.concrete, prepend=args.prepend)
+
+    env.write()
 
 
 #
