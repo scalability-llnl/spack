@@ -12,21 +12,21 @@ import spack.spec
 
 def test_build_task_errors(install_mockery):
     with pytest.raises(ValueError, match="must be a package"):
-        inst.BuildTask("abc", None, False, 0, 0, 0, [])
+        inst.BuildTask("abc", None, False, 0, 0, 0, set())
 
     spec = spack.spec.Spec("trivial-install-test-package")
     pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
     with pytest.raises(ValueError, match="must have a concrete spec"):
-        inst.BuildTask(pkg_cls(spec), None, False, 0, 0, 0, [])
+        inst.BuildTask(pkg_cls(spec), None, False, 0, 0, 0, set())
 
     spec.concretize()
     assert spec.concrete
     with pytest.raises(ValueError, match="must have a build request"):
-        inst.BuildTask(spec.package, None, False, 0, 0, 0, [])
+        inst.BuildTask(spec.package, None, False, 0, 0, 0, set())
 
     request = inst.BuildRequest(spec.package, {})
     with pytest.raises(inst.InstallError, match="Cannot create a build task"):
-        inst.BuildTask(spec.package, request, False, 0, 0, inst.STATUS_REMOVED, [])
+        inst.BuildTask(spec.package, request, False, 0, 0, inst.STATUS_REMOVED, set())
 
 
 def test_build_task_basics(install_mockery):
@@ -36,8 +36,8 @@ def test_build_task_basics(install_mockery):
 
     # Ensure key properties match expectations
     request = inst.BuildRequest(spec.package, {})
-    task = inst.BuildTask(spec.package, request, False, 0, 0, inst.STATUS_ADDED, [])
-    assert task.explicit  # package was "explicitly" requested
+    task = inst.BuildTask(spec.package, request, False, 0, 0, inst.STATUS_ADDED, set())
+    assert not task.explicit
     assert task.priority == len(task.uninstalled_deps)
     assert task.key == (task.priority, task.sequence)
 
@@ -58,7 +58,7 @@ def test_build_task_strings(install_mockery):
 
     # Ensure key properties match expectations
     request = inst.BuildRequest(spec.package, {})
-    task = inst.BuildTask(spec.package, request, False, 0, 0, inst.STATUS_ADDED, [])
+    task = inst.BuildTask(spec.package, request, False, 0, 0, inst.STATUS_ADDED, set())
 
     # Cover __repr__
     irep = task.__repr__()

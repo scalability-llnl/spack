@@ -761,12 +761,8 @@ class BuildRequest:
         if not self.pkg.spec.concrete:
             raise ValueError(f"{self.pkg.name} must have a concrete spec")
 
-        # Cache the package phase options with the explicit package,
-        # popping the options to ensure installation of associated
-        # dependencies is NOT affected by these options.
-
-        self.pkg.stop_before_phase = install_args.pop("stop_before", None)  # type: ignore[attr-defined] # noqa: E501
-        self.pkg.last_phase = install_args.pop("stop_at", None)  # type: ignore[attr-defined]
+        self.pkg.stop_before_phase = install_args.get("stop_before")  # type: ignore[attr-defined] # noqa: E501
+        self.pkg.last_phase = install_args.get("stop_at")  # type: ignore[attr-defined]
 
         # Cache the package id for convenience
         self.pkg_id = package_id(pkg.spec)
@@ -1076,19 +1072,17 @@ class BuildTask:
 
     @property
     def explicit(self) -> bool:
-        """The package was explicitly requested by the user."""
-        return self.is_root and self.request.install_args.get("explicit", True)
+        return self.pkg.spec.dag_hash() in self.request.install_args.get("explicit", [])
 
     @property
-    def is_root(self) -> bool:
-        """The package was requested directly, but may or may not be explicit
-        in an environment."""
+    def is_build_request(self) -> bool:
+        """The package was requested directly"""
         return self.pkg == self.request.pkg
 
     @property
     def use_cache(self) -> bool:
         _use_cache = True
-        if self.is_root:
+        if self.is_build_request:
             return self.request.install_args.get("package_use_cache", _use_cache)
         else:
             return self.request.install_args.get("dependencies_use_cache", _use_cache)
@@ -1096,7 +1090,7 @@ class BuildTask:
     @property
     def cache_only(self) -> bool:
         _cache_only = False
-        if self.is_root:
+        if self.is_build_request:
             return self.request.install_args.get("package_cache_only", _cache_only)
         else:
             return self.request.install_args.get("dependencies_cache_only", _cache_only)
@@ -1122,24 +1116,17 @@ class BuildTask:
 
 class PackageInstaller:
     """
-    Class for managing the install process for a Spack instance based on a
-    bottom-up DAG approach.
+    Class for managing the install process for a Spack instance based on a bottom-up DAG approach.
 
-    This installer can coordinate concurrent batch and interactive, local
-    and distributed (on a shared file system) builds for the same Spack
-    instance.
+    This installer can coordinate concurrent batch and interactive, local and distributed (on a
+    shared file system) builds for the same Spack instance.
     """
 
-    def __init__(self, installs: List[Tuple["spack.package_base.PackageBase", dict]] = []) -> None:
-        """Initialize the installer.
-
-        Args:
-            installs (list): list of tuples, where each
-                tuple consists of a package (PackageBase) and its associated
-                 install arguments (dict)
-        """
+    def __init__(
+        self, packages: List["spack.package_base.PackageBase"], install_args: dict
+    ) -> None:
         # List of build requests
-        self.build_requests = [BuildRequest(pkg, install_args) for pkg, install_args in installs]
+        self.build_requests = [BuildRequest(pkg, install_args) for pkg in packages]
 
         # Priority queue of build tasks
         self.build_pq: List[Tuple[Tuple[int, int], BuildTask]] = []
@@ -1562,7 +1549,7 @@ class PackageInstaller:
         #
         # External and upstream packages need to get flagged as installed to
         # ensure proper status tracking for environment build.
-        explicit = request.install_args.get("explicit", True)
+        explicit = request.pkg.spec.dag_hash() in request.install_args.get("explicit", [])
         not_local = _handle_external_and_upstream(request.pkg, explicit)
         if not_local:
             self._flag_installed(request.pkg)
@@ -1682,10 +1669,6 @@ class PackageInstaller:
         # see unit_test_check() docs.
         if not pkg.unit_test_check():
             return
-
-        # Injecting information to know if this installation request is the root one
-        # to determine in BuildProcessInstaller whether installation is explicit or not
-        install_args["is_root"] = task.is_root
 
         try:
             self._setup_install_dir(pkg)
@@ -1998,8 +1981,8 @@ class PackageInstaller:
 
         self._init_queue()
         fail_fast_err = "Terminating after first install failure"
-        single_explicit_spec = len(self.build_requests) == 1
-        failed_explicits = []
+        single_requested_spec = len(self.build_requests) == 1
+        failed_build_requests = []
 
         install_status = InstallStatus(len(self.build_pq))
 
@@ -2197,14 +2180,11 @@ class PackageInstaller:
                 if self.fail_fast:
                     raise InstallError(f"{fail_fast_err}: {str(exc)}", pkg=pkg)
 
-                # Terminate at this point if the single explicit spec has
-                # failed to install.
-                if single_explicit_spec and task.explicit:
-                    raise
-
-                # Track explicit spec id and error to summarize when done
-                if task.explicit:
-                    failed_explicits.append((pkg, pkg_id, str(exc)))
+                # Terminate when a single build request has failed, or summarize errors later.
+                if task.is_build_request:
+                    if single_requested_spec:
+                        raise
+                    failed_build_requests.append((pkg, pkg_id, str(exc)))
 
             finally:
                 # Remove the install prefix if anything went wrong during
@@ -2227,16 +2207,16 @@ class PackageInstaller:
             if request.install_args.get("install_package") and request.pkg_id not in self.installed
         ]
 
-        if failed_explicits or missing:
-            for _, pkg_id, err in failed_explicits:
+        if failed_build_requests or missing:
+            for _, pkg_id, err in failed_build_requests:
                 tty.error(f"{pkg_id}: {err}")
 
             for _, pkg_id in missing:
                 tty.error(f"{pkg_id}: Package was not installed")
 
-            if len(failed_explicits) > 0:
-                pkg = failed_explicits[0][0]
-                ids = [pkg_id for _, pkg_id, _ in failed_explicits]
+            if len(failed_build_requests) > 0:
+                pkg = failed_build_requests[0][0]
+                ids = [pkg_id for _, pkg_id, _ in failed_build_requests]
                 tty.debug(
                     "Associating installation failure with first failed "
                     f"explicit package ({ids[0]}) from {', '.join(ids)}"
@@ -2295,7 +2275,7 @@ class BuildProcessInstaller:
         self.verbose = bool(install_args.get("verbose", False))
 
         # whether installation was explicitly requested by the user
-        self.explicit = install_args.get("is_root", False) and install_args.get("explicit", True)
+        self.explicit = pkg.spec.dag_hash() in install_args.get("explicit", [])
 
         # env before starting installation
         self.unmodified_env = install_args.get("unmodified_env", {})

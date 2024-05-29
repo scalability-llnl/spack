@@ -1876,7 +1876,10 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
             verbose (bool): Display verbose build output (by default,
                 suppresses it)
         """
-        PackageInstaller([(self, kwargs)]).install()
+        explicit = kwargs.get("explicit", True)
+        if isinstance(explicit, bool):
+            kwargs["explicit"] = {self.spec.dag_hash()} if explicit else set()
+        PackageInstaller([self], kwargs).install()
 
     # TODO (post-34236): Update tests and all packages that use this as a
     # TODO (post-34236): package method to the routine made available to
