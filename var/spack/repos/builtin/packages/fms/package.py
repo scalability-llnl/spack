@@ -19,7 +19,10 @@ class Fms(CMakePackage):
     license("LGPL-3.0-or-later")
 
     maintainers("AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett", "rem1776", "climbfuji")
-
+    version(
+        "2024.01.01", sha256="41c8686bad2b1aed76275e35cbe1af855f7dfce9b6d8907744ea2e8174758f6a"
+    )
+    version("2024.01", sha256="29ac23a5a2a4765ae66d218bb261cb04f7ad44618205ab0924c4e66c9ef8fa38")
     version("2023.04", sha256="feb895ea2b3269ca66df296199a36af335f0dc281e2dab2f1bfebb19fd9c22c4")
     version("2023.03", sha256="008a9ff394efe6a8adbcf37dd45ca103e00ae25748fc2960b7bc54f2f3b08d85")
     version(
@@ -57,18 +60,6 @@ class Fms(CMakePackage):
         sha256="f835c54b2898c980a4cc2a9786134af91a8b1e8b1f11b1734227c6dea26c3b79",
         when="@2023.03",
     )
-
-    # DH* 20220602
-    # These versions were adapated by JCSDA and are only meant to be
-    # used temporarily, until the JCSDA changes have found their way
-    # back into the official repository.
-    # Commit corresponds to branch="release-stable" in the JCSDA public fork
-    version("release-jcsda", commit="1f739141ef8b000a0bd75ae8bebfadea340299ba")
-    # version("dev-jcsda", branch="dev/jcsda", no_cache=True)
-
-    with when("@release-jcsda"):
-        git = "https://github.com/JCSDA/fms.git"
-    # *DH 20220602
 
     variant(
         "precision",
@@ -119,13 +110,8 @@ class Fms(CMakePackage):
     depends_on("netcdf-c")
     depends_on("netcdf-fortran")
     depends_on("mpi")
-    depends_on("llvm-openmp", when="+openmp %apple-clang", type=("build", "run"))
     depends_on("libyaml", when="+yaml")
-
-    # DH* 20220602
-    depends_on("ecbuild", type=("build"), when="@release-jcsda")
-    depends_on("jedi-cmake", type=("build"), when="@release-jcsda")
-    # *DH 20220602
+    depends_on("llvm-openmp", when="+openmp %apple-clang", type=("build", "run"))
 
     def cmake_args(self):
         args = [
@@ -141,23 +127,5 @@ class Fms(CMakePackage):
             self.define_from_variant("FPIC", "pic"),
             self.define_from_variant("USE_DEPRECATED_IO", "deprecated_io"),
         ]
-
-        # DH* 20220602
-        if self.spec.satisfies("@release-jcsda"):
-            fflags = []
-
-            if self.compiler.name in ["gcc", "clang", "apple-clang"]:
-                gfortran_major_version = int(
-                    spack.compiler.get_compiler_version_output(
-                        self.compiler.fc, "-dumpversion"
-                    ).split(".")[0]
-                )
-
-                if gfortran_major_version >= 10:
-                    fflags.append("-fallow-argument-mismatch")
-
-            if fflags:
-                args.append(self.define("CMAKE_Fortran_FLAGS", " ".join(fflags)))
-        # *DH 20220602
 
         return args
