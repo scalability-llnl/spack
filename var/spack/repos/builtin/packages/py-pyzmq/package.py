@@ -42,7 +42,7 @@ class PyPyzmq(PythonPackage):
 
     # pyproject.toml
     with when("@26:"):
-        depends_on("py-scikit-build-core", type="build")
+        depends_on("py-scikit-build-core +pyproject", type="build")
     with when("@:25"):
         depends_on("py-setuptools", type="build")
         # https://github.com/zeromq/pyzmq/issues/1278
