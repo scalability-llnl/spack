@@ -2769,39 +2769,53 @@ class EnvironmentManifestFile(collections.abc.Mapping):
 
         self.changed = True
 
+    def list_includes(self, concrete: bool = False) -> List[str]:
+        include_keyword = "include"
+        if concrete:
+            include_keyword = included_concrete_name
+
+        includes = self.pristine_configuration.get(include_keyword, [])
+
+        return includes
+
     def add_includes(
-        self, include: List[str], concrete: bool = False, prepend: bool = False
-    ) -> None:
+        self, include: List[str], concrete: bool = False) -> None:
         """Appends includes to an environment
 
         Args:
             include: list of configuration files or directories containing configs for
                      concrete environments
         """
+
+        if not include:
+            return
+
         include_keyword = "include"
+        # Allow including configs or concrete using the env name
+        set_included_envs_to_env_paths(include)
         if concrete:
             include_keyword = included_concrete_name
-            set_included_envs_to_env_paths(include)
             validate_included_envs_exists(include)
             validate_included_envs_concrete(include)
 
-        if not self.pristine_configuration.get(include_keyword):
-            self.pristine_configuration[include_keyword] = []
+        invalid_paths = []
+        for inc in include:
+            if not os.path.exists(inc):
+                invalid_paths.append(inc)
 
-        if prepend:
-            self.pristine_configuration[include_keyword][:0] = include
-        else:
-            self.pristine_configuration[include_keyword].extend(include)
+        include = [inc for inc in include if inc not in invalid_paths]
 
-        if not self.configuration.get(include_keyword):
-            self.configuration[include_keyword] = []
+        def _add_includes(include_list):
+            if not include_list:
+                include_list = []
+            include_list[:0] = include
 
-        if prepend:
-            self.configuration[include_keyword][:0] = include
-        else:
-            self.configuration[include_keyword].extend(include)
+        _add_includes(self.pristine_configuration.get(include_keyword))
+        _add_includes(self.configuration.get(include_keyword))
 
         self.changed = True
+
+        return invalid_paths
 
     def remove_includes(self, include: List[str], concrete=False) -> None:
         """Removes includes from an environment
@@ -2810,22 +2824,39 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             include: list of configuration files or directories containing configs for
                      concrete environments
         """
+        if not include:
+            return
+
         include_keyword = "include"
+        # Allow removing config paths or concrete using the env name
+        set_included_envs_to_env_paths(include)
         if concrete:
             include_keyword = included_concrete_name
-            set_included_envs_to_env_paths(include)
             validate_included_envs_exists(include)
             validate_included_envs_concrete(include)
 
-        if self.pristine_configuration.get(include_keyword):
-            for inc in include:
-                self.pristine_configuration[include_keyword].remove(inc)
+        # Expand the includes for full path matching
+        include_expanded = [substitute_path_variables(inc) for inc in include]
+        include_idx_map = dict({(idx, inc) for idx, inc in enumerate(include)})
+        def _remove_includes(include_list):
+            if not include_list:
+                return
 
-        if self.configuration.get(include_keyword):
-            for inc in include:
-                self.configuration[include_keyword].remove(inc)
+            expanded_include_list = dict({(substitute_path_variables(inc), idx) for idx, inc in enumerate(include_list)})
+            for ii, inc in enumerate(include_expanded):
+                idx = expanded_include_list.get(inc, -1)
+                if idx >= 0:
+                    include_list.pop(idx)
+                    if ii in include_idx_map:
+                        include_idx_map.pop(ii)
+
+        _remove_includes(self.pristine_configuration.get(include_keyword))
+        _remove_includes(self.configuration.get(include_keyword))
 
         self.changed = True
+
+        # Return the includes that were not found
+        return list(include_idx_map.values())
 
     def add_definition(self, user_spec: str, list_name: str) -> None:
         """Appends a user spec to the first active definition matching the name passed as argument.
