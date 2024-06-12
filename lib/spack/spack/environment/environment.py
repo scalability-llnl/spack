@@ -293,10 +293,13 @@ def environment_from_name_or_dir(name_or_dir):
 
 def read(name):
     """Get an environment with the supplied name."""
-    validate_env_name(name)
-    if not exists(name):
-        raise SpackEnvironmentError("no such environment '%s'" % name)
-    return Environment(root(name))
+    if is_env_dir(name):
+        return Environment(name)
+    else:
+        validate_env_name(name)
+        if not exists(name):
+            raise SpackEnvironmentError("no such environment '%s'" % name)
+        return Environment(root(name))
 
 
 def create(
@@ -2778,8 +2781,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
 
         return includes
 
-    def add_includes(
-        self, include: List[str], concrete: bool = False) -> None:
+    def add_includes(self, include: List[str], concrete: bool = False) -> List[str]:
         """Appends includes to an environment
 
         Args:
@@ -2804,6 +2806,13 @@ class EnvironmentManifestFile(collections.abc.Mapping):
                 invalid_paths.append(inc)
 
         include = [inc for inc in include if inc not in invalid_paths]
+
+        if not include:
+            return invalid_paths
+
+        # Reverse the list of includes so they are applied in
+        # the correct order when the config is loaded.
+        include.reverse()
 
         def _add_includes(include_list):
             if not include_list:
@@ -2838,11 +2847,14 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         # Expand the includes for full path matching
         include_expanded = [substitute_path_variables(inc) for inc in include]
         include_idx_map = dict({(idx, inc) for idx, inc in enumerate(include)})
+
         def _remove_includes(include_list):
             if not include_list:
                 return
 
-            expanded_include_list = dict({(substitute_path_variables(inc), idx) for idx, inc in enumerate(include_list)})
+            expanded_include_list = dict(
+                {(substitute_path_variables(inc), idx) for idx, inc in enumerate(include_list)}
+            )
             for ii, inc in enumerate(include_expanded):
                 idx = expanded_include_list.get(inc, -1)
                 if idx >= 0:

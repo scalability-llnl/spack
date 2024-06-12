@@ -14,19 +14,15 @@ description = "manage included configs and concrete environments in the active e
 section = "environments"
 level = "long"
 
-subcommands = [
-    "add",
-    "remove",
-    "list",
-]
+subcommands = ["add", "remove", "list"]
 
 
 def include_list_setup_parser(subparser):
     """List include(s) in the active environment"""
 
     expand_group = subparser.add_mutually_exclusive_group()
-    expand_group.add_argument('--expand', action='store_true')
-    expand_group.add_argument('--no-expand', action='store_false', dest='expand')
+    expand_group.add_argument("--expand", action="store_true")
+    expand_group.add_argument("--no-expand", action="store_false", dest="expand")
 
     # TODO: Add recursive listing option for environments including environments with include
     #       The default for list should be to only list the comonents listed in the active
@@ -37,7 +33,7 @@ def include_list(env, args):
     include = env.manifest.list_includes(concrete=args.concrete)
 
     if include:
-        tty.msg("Included " + ("Concrete Environments" if args.concrete else "Configuration Scopes"))
+        msg = "Included " + ("Concrete Environments" if args.concrete else "Configuration Scopes")
         for inc in include:
             if args.expand:
                 formatted_inc = substitute_path_variables(inc)
@@ -51,7 +47,9 @@ def include_list(env, args):
             if not env_name == inc:
                 formatted_inc = f"{env_name} ({formatted_inc})"
 
-            tty.msg(f"\t{formatted_inc}")
+            msg += f"\n\t{formatted_inc}"
+
+        tty.msg(msg)
 
 
 def include_add_setup_parser(subparser):
@@ -66,12 +64,19 @@ def include_add_setup_parser(subparser):
 
 def include_add(env, args):
     with env.write_transaction():
-        skipped = env.manifest.add_includes(args.includes, concrete=args.concrete)
+        invalid = env.manifest.add_includes(args.includes, concrete=args.concrete)
         env.write()
 
-        if skipped:
-            msg = "Invalid Paths:"
-            for p in skipped:
+        if not len(invalid) == len(args.includes):
+            msg = f"Adding includes to {env.name}"
+            for inc in args.includes:
+                if inc not in invalid:
+                    msg += f"\n\t{inc}"
+            tty.msg(msg)
+
+        if invalid:
+            msg = "Invalid Paths"
+            for p in invalid:
                 msg = msg + f"\n\t{p}"
 
             tty.warn(msg)
@@ -93,9 +98,10 @@ def include_remove(env, args):
         env.write()
 
         if unknown_includes:
-            tty.warn("Unknown includes")
+            msg = "Unknown includes"
             for inc in unknown_includes:
-                tty.info(f"\t{inc}")
+                msg += f"\n\t{inc}"
+            tty.warn(msg)
 
 
 #: Dictionary mapping subcommand names and aliases to functions
@@ -108,9 +114,7 @@ subcommand_functions = {}
 def setup_parser(subparser):
     # The concrete option applies to all of the subcommands
     subparser.add_argument(
-        "--concrete",
-        action="store_true",
-        help="Include paths/names are concrete environment(s)",
+        "--concrete", action="store_true", help="Include paths/names are concrete environment(s)"
     )
     sp = subparser.add_subparsers(metavar="ACTION", dest="include_command")
 
