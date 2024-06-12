@@ -6,7 +6,6 @@
 import pytest
 
 import spack.environment as ev
-
 from spack.main import SpackCommand
 
 # TODO-27021

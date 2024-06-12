@@ -2790,7 +2790,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         """
 
         if not include:
-            return
+            return []
 
         include_keyword = "include"
         # Allow including configs or concrete using the env name
@@ -2814,19 +2814,19 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         # the correct order when the config is loaded.
         include.reverse()
 
-        def _add_includes(include_list):
-            if not include_list:
-                include_list = []
+        def _add_includes(config):
+            include_list = config.get(include_keyword, [])
             include_list[:0] = include
+            config[include_keyword] = include_list
 
-        _add_includes(self.pristine_configuration.get(include_keyword))
-        _add_includes(self.configuration.get(include_keyword))
+        _add_includes(self.pristine_configuration)
+        _add_includes(self.configuration)
 
         self.changed = True
 
         return invalid_paths
 
-    def remove_includes(self, include: List[str], concrete=False) -> None:
+    def remove_includes(self, include: List[str], concrete=False) -> Optional[List[str]]:
         """Removes includes from an environment
 
         Args:
@@ -2834,7 +2834,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
                      concrete environments
         """
         if not include:
-            return
+            return None
 
         include_keyword = "include"
         # Allow removing config paths or concrete using the env name
