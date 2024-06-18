@@ -173,10 +173,22 @@ def parse_specs(
     arg_string = " ".join([quote_kvp(arg) for arg in args])
 
     specs = spack.parser.parse(arg_string)
-    for spec in specs:
-        if concretize:
-            spec.concretize(tests=tests)
-    return specs
+    unify = spack.config.get("concretizer:unify", False)
+    if unify == "when_possible":
+        concrete_specs = []
+        allow_deprecated = spack.config.get("config:deprecated", False)
+        for result in spack.solver.asp.Solver().solve_in_rounds(
+            specs, tests=tests, allow_deprecated=allow_deprecated
+        ):
+            concrete_specs.extend(result.specs)
+        return concrete_specs
+    elif unify:
+        return spack.concretize.concretize_specs_together(*specs, tests=tests)
+    else:
+        for spec in specs:
+            if concretize:
+                spec.concretize(tests=tests)
+        return specs
 
 
 def matching_spec_from_env(spec):
