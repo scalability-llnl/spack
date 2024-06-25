@@ -6,6 +6,7 @@
 import os
 
 import pytest
+import sys
 
 import spack.util.environment as environment
 from spack.paths import spack_root
@@ -62,6 +63,10 @@ def test_exclude_paths_from_inspection():
     assert len(env) == 0
 
 
+def begin_esc():
+    return "\\" if sys.platform == "win32" else "/"
+
+
 @pytest.fixture()
 def prepare_environment_for_tests(working_env):
     """Sets a few dummy variables in the current environment, that will be
@@ -69,11 +74,13 @@ def prepare_environment_for_tests(working_env):
     """
     os.environ["UNSET_ME"] = "foo"
     os.environ["EMPTY_PATH_LIST"] = ""
-    os.environ["PATH_LIST"] = "/path/second:/path/third"
-    os.environ["REMOVE_PATH_LIST"] = "/a/b:/duplicate:/a/c:/remove/this:/a/d:/duplicate/:/f/g"
-    os.environ["PATH_LIST_WITH_SYSTEM_PATHS"] = "/usr/include:" + os.environ["REMOVE_PATH_LIST"]
+    os.environ["PATH_LIST"] = begin_esc() + os.path.join("path", "second" + os.pathsep, "path", "third")
+    os.environ["REMOVE_PATH_LIST"] = begin_esc() + os.path.join("a","b" + os.pathsep, "duplicate" + os.pathsep,
+                                                                "a", "c" + os.pathsep, "remove", "this" + os.pathsep, 
+                                                                "a", "d" + os.pathsep, "duplicate", os.pathsep, "f", "g" )
+    os.environ["PATH_LIST_WITH_SYSTEM_PATHS"] = os.environ["REMOVE_PATH_LIST"] + os.path.join(os.pathsep, "usr", "include")
     os.environ["PATH_LIST_WITH_DUPLICATES"] = os.environ["REMOVE_PATH_LIST"]
-
+    
 
 @pytest.fixture
 def env(prepare_environment_for_tests):
@@ -158,75 +165,132 @@ def test_unset(env):
         os.environ["UNSET_ME"]
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
-def test_filter_system_paths(miscellaneous_paths):
+@pytest.mark.parametrize(
+        "miscellaneous_paths, expected",
+        [
+            # Windows Paths on Windows Test
+            ([
+                "C:\\",
+                "C:\\Program Files",
+                "C:\\Program Files (x86)",
+                "C:\\Users",
+                "C:\\ProgramData", 
+                "C:\\dev\\spack_window"
+             ],
+             ["C:\\dev\\spack_window"]),
+
+            # Windows and Mac System Paths on Window Test
+            ([
+                "C:\\",
+                "C:\\Program Files",
+                "C:\\Program Files (x86)",
+                "C:\\Users",
+                "C:\\ProgramData", 
+                "C:\\dev\\spack_window",
+                "/usr/bin",
+                "/bin64",
+                "/lib64",
+                "C:\\dev\\spack_window\\lib"
+             ],
+             [
+                "C:\\dev\\spack_window",
+                "/usr/bin",
+                "/bin64",
+                "/lib64",
+                "C:\\dev\\spack_window\\lib",
+             ]),
+            
+            # Mac Paths on Windows Test
+            ([
+                "/usr/local/Cellar/gcc/5.3.0/lib",
+                "/usr/local/lib",
+                "/usr/local/lib64",
+                "/usr/local/opt/some-package/lib",
+                "/lib",
+                "/",
+                "/usr",
+                "/bin64",
+                "/lib64",
+                "/include",
+                "/opt/some-package/include",
+                "/opt/some-package/local/..",
+            ], 
+            [
+                "/usr/local/Cellar/gcc/5.3.0/lib",
+                "/usr/local/lib",
+                "/usr/local/lib64",
+                "/usr/local/opt/some-package/lib",
+                "/lib",
+                "/",
+                "/usr",
+                "/bin64",
+                "/lib64",
+                "/include",
+                "/opt/some-package/include",
+                "/opt/some-package/local/..",
+            ]),
+        ],
+    )
+def test_filter_system_paths(miscellaneous_paths, expected):
     """Tests that the filtering of system paths works as expected."""
     filtered = filter_system_paths(miscellaneous_paths)
-    expected = [
-        "/usr/local/Cellar/gcc/5.3.0/lib",
-        "/usr/local/opt/some-package/lib",
-        "/usr/opt/lib",
-        "/opt/some-package/include",
-        "/opt/some-package/local/..",
-    ]
     assert filtered == expected
 
 
-# TODO 27021
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
-def test_set_path(env):
+@pytest.mark.parametrize(
+        "name,elements,separator,expected",
+        [
+            ("A", ["foo", "bar", "baz"], os.pathsep, "foo;bar;baz"),
+            ("B", ["foo", "bar", "baz"], ":", "foo:bar:baz"),
+            ("Test", ["some", "test", "words"], "|", "some|test|words")
+        ]
+                         )
+def test_set_path(env, name, elements, separator, expected):
     """Tests setting paths in an environment variable."""
 
-    # Check setting paths with the default separator
-    env.set_path("A", ["foo", "bar", "baz"])
+    # Check setting paths with a specific separator
+    env.set_path(name, elements, separator= separator)
     env.apply_modifications()
 
-    assert "foo:bar:baz" == os.environ["A"]
-
-    env.set_path("B", ["foo", "bar", "baz"], separator=";")
-    env.apply_modifications()
-
-    assert "foo;bar;baz" == os.environ["B"]
+    assert expected == os.environ[name]
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
-def test_path_manipulation(env):
+def make_pathlist(recur_path, elements):
+    """Makes a fake path to use for tests"""
+    return os.pathsep.join([begin_esc() + os.path.join(recur_path, element) for element in elements])
+
+
+@pytest.mark.parametrize(
+    "path_name,elements,expected",
+    [
+        ("PATH_LIST", ["first", "fourth", "last"], make_pathlist("path", ["first", "second", "third", "fourth", "last"])),
+        ("EMPTY_PATH_LIST", ["first", "middle", "last"], make_pathlist("path", ["first", "middle", "last"])),
+        ("NEWLY_CREATED_PATH_LIST", ["first", "middle", "last"], make_pathlist("path", ["first", "middle", "last"]))
+    ]
+)
+def test_path_manipulation(env, path_name, elements, expected):
     """Tests manipulating list of paths in the environment."""
 
-    env.append_path("PATH_LIST", "/path/last")
-    env.prepend_path("PATH_LIST", "/path/first")
+    env.prepend_path(path_name, begin_esc() + os.path.join("path", elements[0]))
+    env.append_path(path_name, begin_esc() + os.path.join("path", elements[1]))
+    env.append_path(path_name, begin_esc() + os.path.join("path", elements[2]))
 
-    env.append_path("EMPTY_PATH_LIST", "/path/middle")
-    env.append_path("EMPTY_PATH_LIST", "/path/last")
-    env.prepend_path("EMPTY_PATH_LIST", "/path/first")
-
-    env.append_path("NEWLY_CREATED_PATH_LIST", "/path/middle")
-    env.append_path("NEWLY_CREATED_PATH_LIST", "/path/last")
-    env.prepend_path("NEWLY_CREATED_PATH_LIST", "/path/first")
-
-    env.remove_path("REMOVE_PATH_LIST", "/remove/this")
-    env.remove_path("REMOVE_PATH_LIST", "/duplicate/")
+    env.remove_path("REMOVE_PATH_LIST", begin_esc() + os.path.join("remove", "this"))
+    env.remove_path("REMOVE_PATH_LIST", begin_esc() + "duplicate" + begin_esc())
 
     env.deprioritize_system_paths("PATH_LIST_WITH_SYSTEM_PATHS")
     env.prune_duplicate_paths("PATH_LIST_WITH_DUPLICATES")
 
     env.apply_modifications()
 
-    expected = "/path/first:/path/second:/path/third:/path/last"
-    assert os.environ["PATH_LIST"] == expected
+    assert os.environ[path_name] == expected
 
-    expected = "/path/first:/path/middle:/path/last"
-    assert os.environ["EMPTY_PATH_LIST"] == expected
+    assert os.environ["REMOVE_PATH_LIST"] == make_pathlist("a", ["b", "c", "d"]) + os.pathsep + make_pathlist("f", ["g"])
+    
+    assert not os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].startswith(begin_esc() + os.path.join("usr", "include" + os.pathsep))
+    assert os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].endswith(os.path.join(os.pathsep, "usr", "include"))
 
-    expected = "/path/first:/path/middle:/path/last"
-    assert os.environ["NEWLY_CREATED_PATH_LIST"] == expected
-
-    assert os.environ["REMOVE_PATH_LIST"] == "/a/b:/a/c:/a/d:/f/g"
-
-    assert not os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].startswith("/usr/include:")
-    assert os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].endswith(":/usr/include")
-
-    assert os.environ["PATH_LIST_WITH_DUPLICATES"].count("/duplicate") == 1
+    assert os.environ["PATH_LIST_WITH_DUPLICATES"].count(begin_esc() + "duplicate") == 1
 
 
 def test_extend(env):
