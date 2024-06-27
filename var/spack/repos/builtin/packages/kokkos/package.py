@@ -195,6 +195,8 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         "tests": [False, "Build for tests"],
     }
 
+    conflicts("~cuda_lambda", when="@4.1: +cuda ~deprecated_code")
+
     spack_micro_arch_map = {
         "thunderx2": "THUNDERX2",
         "zen": "ZEN",
