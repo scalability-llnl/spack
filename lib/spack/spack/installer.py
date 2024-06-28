@@ -1544,17 +1544,6 @@ class PackageInstaller:
             tty.warn(f"Installation request refused: {str(err)}")
             return
 
-        # Skip out early if the spec is not being installed locally (i.e., if
-        # external or upstream).
-        #
-        # External and upstream packages need to get flagged as installed to
-        # ensure proper status tracking for environment build.
-        explicit = request.pkg.spec.dag_hash() in request.install_args.get("explicit", [])
-        not_local = _handle_external_and_upstream(request.pkg, explicit)
-        if not_local:
-            self._flag_installed(request.pkg)
-            return
-
         install_compilers = spack.config.get("config:install_missing_compilers", False)
 
         install_deps = request.install_args.get("install_deps")
@@ -2031,11 +2020,10 @@ class PackageInstaller:
             # Skip the installation if the spec is not being installed locally
             # (i.e., if external or upstream) BUT flag it as installed since
             # some package likely depends on it.
-            if not task.explicit:
-                if _handle_external_and_upstream(pkg, False):
-                    term_status.clear()
-                    self._flag_installed(pkg, task.dependents)
-                    continue
+            if _handle_external_and_upstream(pkg, task.explicit):
+                term_status.clear()
+                self._flag_installed(pkg, task.dependents)
+                continue
 
             # Flag a failed spec.  Do not need an (install) prefix lock since
             # assume using a separate (failed) prefix lock file.
