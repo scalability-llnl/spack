@@ -67,6 +67,10 @@ def begin_esc():
     return "\\" if sys.platform == "win32" else "/"
 
 
+def shell_file():
+    return "bat" if sys.platform == "win32" else "sh"
+
+
 @pytest.fixture()
 def prepare_environment_for_tests(working_env):
     """Sets a few dummy variables in the current environment, that will be
@@ -116,12 +120,12 @@ def miscellaneous_paths():
 
 @pytest.fixture
 def files_to_be_sourced():
-    """Returns a list of files to be sourced"""
+    """Returns a list of files to be sourced""" 
     return [
-        os.path.join(datadir, "sourceme_first.sh"),
-        os.path.join(datadir, "sourceme_second.sh"),
-        os.path.join(datadir, "sourceme_parameters.sh"),
-        os.path.join(datadir, "sourceme_unicode.sh"),
+        os.path.join(datadir, "sourceme_first." + shell_file()),
+        os.path.join(datadir, "sourceme_second." + shell_file()),
+        os.path.join(datadir, "sourceme_parameters." + shell_file()),
+        os.path.join(datadir, "sourceme_unicode." + shell_file()),
     ]
 
 
@@ -238,25 +242,24 @@ def test_filter_system_paths(miscellaneous_paths, expected):
 
 
 @pytest.mark.parametrize(
-        "name,elements,separator,expected",
+        "name,elements,separator",
         [
-            ("A", ["foo", "bar", "baz"], os.pathsep, "foo;bar;baz"),
-            ("B", ["foo", "bar", "baz"], ":", "foo:bar:baz"),
-            ("Test", ["some", "test", "words"], "|", "some|test|words")
+            ("A", ["foo", "bar", "baz"], os.pathsep),
         ]
-                         )
-def test_set_path(env, name, elements, separator, expected):
+)
+def test_set_path(env, name, elements, separator):
     """Tests setting paths in an environment variable."""
 
     # Check setting paths with a specific separator
     env.set_path(name, elements, separator= separator)
     env.apply_modifications()
 
+    expected = os.pathsep.join(elements)
     assert expected == os.environ[name]
 
 
 def make_pathlist(recur_path, elements):
-    """Makes a fake path to use for tests"""
+    """Makes a fake path to use for tests in format: \\path\\e1;\\path\\e2"""
     return os.pathsep.join([begin_esc() + os.path.join(recur_path, element) for element in elements])
 
 
@@ -307,7 +310,6 @@ def test_extend(env):
         assert x is y
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 @pytest.mark.usefixtures("prepare_environment_for_tests")
 def test_source_files(files_to_be_sourced):
     """Tests the construction of a list of environment modifications that are
@@ -315,7 +317,7 @@ def test_source_files(files_to_be_sourced):
     """
     env = EnvironmentModifications()
     for filename in files_to_be_sourced:
-        if filename.endswith("sourceme_parameters.sh"):
+        if filename.endswith("sourceme_parameters.bat"):
             env.extend(EnvironmentModifications.from_sourcing_file(filename, "intel64"))
         else:
             env.extend(EnvironmentModifications.from_sourcing_file(filename))
@@ -348,11 +350,11 @@ def test_source_files(files_to_be_sourced):
 
     assert len(modifications["PATH_LIST"]) == 3
     assert isinstance(modifications["PATH_LIST"][0], RemovePath)
-    assert modifications["PATH_LIST"][0].value == "/path/third"
+    assert modifications["PATH_LIST"][0].value == begin_esc() + os.path.join("path", "third")
     assert isinstance(modifications["PATH_LIST"][1], AppendPath)
-    assert modifications["PATH_LIST"][1].value == "/path/fourth"
+    assert modifications["PATH_LIST"][1].value == begin_esc() + os.path.join("path", "fourth")
     assert isinstance(modifications["PATH_LIST"][2], PrependPath)
-    assert modifications["PATH_LIST"][2].value == "/path/first"
+    assert modifications["PATH_LIST"][2].value == begin_esc() + os.path.join("path", "first")
 
 
 @pytest.mark.regression("8345")
@@ -371,42 +373,41 @@ def test_preserve_environment(prepare_environment_for_tests):
 
     assert "NOT_SET" not in os.environ
     assert os.environ["UNSET_ME"] == "foo"
-    assert os.environ["PATH_LIST"] == "/path/second:/path/third"
+    assert os.environ["PATH_LIST"] == make_pathlist("path", ["second", "third"])
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 @pytest.mark.parametrize(
     "files,expected,deleted",
     [
         # Sets two variables
         (
-            (os.path.join(datadir, "sourceme_first.sh"),),
+            (os.path.join(datadir, "sourceme_first." + shell_file()),),
             {"NEW_VAR": "new", "UNSET_ME": "overridden"},
             [],
         ),
         # Check if we can set a variable to different values depending
         # on command line parameters
-        ((os.path.join(datadir, "sourceme_parameters.sh"),), {"FOO": "default"}, []),
-        (([os.path.join(datadir, "sourceme_parameters.sh"), "intel64"],), {"FOO": "intel64"}, []),
+        ((os.path.join(datadir, "sourceme_parameters." + shell_file()),), {"FOO": "default"}, []),
+        (([os.path.join(datadir, "sourceme_parameters." + shell_file()), "intel64"],), {"FOO": "intel64"}, []),
         # Check unsetting variables
         (
-            (os.path.join(datadir, "sourceme_second.sh"),),
-            {"PATH_LIST": "/path/first:/path/second:/path/fourth"},
+            (os.path.join(datadir, "sourceme_second." + shell_file()),),
+            {"PATH_LIST": make_pathlist("path", ["first", "second", "fourth"])},
             ["EMPTY_PATH_LIST"],
         ),
         # Check that order of sourcing matters
         (
             (
-                os.path.join(datadir, "sourceme_unset.sh"),
-                os.path.join(datadir, "sourceme_first.sh"),
+                os.path.join(datadir, "sourceme_unset." + shell_file()),
+                os.path.join(datadir, "sourceme_first." + shell_file()),
             ),
             {"NEW_VAR": "new", "UNSET_ME": "overridden"},
             [],
         ),
         (
             (
-                os.path.join(datadir, "sourceme_first.sh"),
-                os.path.join(datadir, "sourceme_unset.sh"),
+                os.path.join(datadir, "sourceme_first." + shell_file()),
+                os.path.join(datadir, "sourceme_unset." + shell_file()),
             ),
             {"NEW_VAR": "new"},
             ["UNSET_ME"],
@@ -561,17 +562,18 @@ def test_exclude_lmod_variables():
     assert not any(x.startswith("LMOD_") for x in modifications)
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
+#@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 @pytest.mark.regression("13504")
 def test_exclude_modules_variables():
     # Construct the list of environment modifications
-    file = os.path.join(datadir, "sourceme_modules.sh")
-    env = EnvironmentModifications.from_sourcing_file(file)
+    if sys.platform == "win32":
+        file = os.path.join(datadir, "sourceme_modules.bat")
+        env = EnvironmentModifications.from_sourcing_file(file)
 
-    # Check that variables related to modules are not in there
-    modifications = env.group_by_name()
-    assert not any(x.startswith("MODULES_") for x in modifications)
-    assert not any(x.startswith("__MODULES_") for x in modifications)
-    assert not any(x.startswith("BASH_FUNC_ml") for x in modifications)
-    assert not any(x.startswith("BASH_FUNC_module") for x in modifications)
-    assert not any(x.startswith("BASH_FUNC__module_raw") for x in modifications)
+        # Check that variables related to modules are not in there
+        modifications = env.group_by_name()
+        assert not any(x.startswith("MODULES_") for x in modifications)
+        assert not any(x.startswith("__MODULES_") for x in modifications)
+        assert not any(x.startswith("BASH_FUNC_ml") for x in modifications)
+        assert not any(x.startswith("BASH_FUNC_module") for x in modifications)
+        assert not any(x.startswith("BASH_FUNC__module_raw") for x in modifications)

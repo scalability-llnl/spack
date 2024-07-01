@@ -225,7 +225,8 @@ class Executable:
                     "If multiple levels of quotation are required, use " "`ignore_quotes=True`.",
                 )
 
-        cmd = self.exe + list(args)
+        cmds = self.exe + list(args)
+        cmd = ['"' + c + '"' if "import" in c else c for c in cmds]
 
         escaped_cmd = ["'%s'" % arg.replace("'", "'\"'\"'") for arg in cmd]
         cmd_line_string = " ".join(escaped_cmd)
@@ -233,7 +234,7 @@ class Executable:
 
         try:
             proc = subprocess.Popen(
-                cmd, stdin=istream, stderr=estream, stdout=ostream, env=env, close_fds=False
+                " ".join(cmd), stdin=istream, stderr=estream, stdout=ostream, env=env, close_fds=False
             )
             out, err = proc.communicate(timeout=timeout)
 
