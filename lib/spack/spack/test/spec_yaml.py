@@ -13,10 +13,12 @@ import collections
 import collections.abc
 import gzip
 import inspect
+import io
 import json
 import os
 
 import pytest
+import ruamel.yaml
 
 import spack.hash_types as ht
 import spack.paths
@@ -505,3 +507,50 @@ def test_load_json_specfiles(specfile, expected_hash, reader_cls):
     # JSON or YAML file, not a list
     for edge in s2.traverse_edges():
         assert isinstance(edge.virtuals, tuple), edge
+
+
+def test_anchorify_1():
+    """Test that anchorify replaces duplicate values with references to a single instance, and
+    that that results in anchors in the output YAML."""
+    before = {"a": [1, 2, 3], "b": [1, 2, 3]}
+    after = {"a": [1, 2, 3], "b": [1, 2, 3]}
+    syaml.anchorify(after)
+    assert before == after
+    assert after["a"] is after["b"]
+
+    # Check if anchors are used
+    out = io.StringIO()
+    ruamel.yaml.YAML().dump(after, out)
+    assert (
+        out.getvalue()
+        == """\
+a: &id001
+- 1
+- 2
+- 3
+b: *id001
+"""
+    )
+
+
+def test_anchorify_2():
+    before = {"a": {"b": {"c": True}}, "d": {"b": {"c": True}}, "e": {"c": True}}
+    after = {"a": {"b": {"c": True}}, "d": {"b": {"c": True}}, "e": {"c": True}}
+    syaml.anchorify(after)
+    assert before == after
+    assert after["a"] is after["d"]
+    assert after["a"]["b"] is after["e"]
+
+    # Check if anchors are used
+    out = io.StringIO()
+    ruamel.yaml.YAML().dump(after, out)
+    assert (
+        out.getvalue()
+        == """\
+a: &id001
+  b: &id002
+    c: true
+d: *id001
+e: *id002
+"""
+    )

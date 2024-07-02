@@ -22,6 +22,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import HTTPHandler, Request, build_opener
 
+import ruamel.yaml
+
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 from llnl.util.lang import memoized
@@ -1310,8 +1312,11 @@ def generate_gitlab_ci_yaml(
         if not rebuild_everything:
             sys.exit(1)
 
-    with open(output_file, "w") as outf:
-        outf.write(syaml.dump(sorted_output, default_flow_style=True))
+    # Minimize yaml output size through use of anchors
+    syaml.anchorify(sorted_output)
+
+    with open(output_file, "w") as f:
+        ruamel.yaml.YAML().dump(sorted_output, f)
 
 
 def _url_encode_string(input_string):
