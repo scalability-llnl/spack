@@ -31,7 +31,7 @@ class AwsOfiNccl(AutotoolsPackage):
 
     depends_on("libfabric")
     depends_on("cuda")
-    depends_on("nccl")
+    depends_on("nccl fabrics=auto")
     depends_on("mpi")
     depends_on("hwloc", when="@1.7:")
     depends_on("autoconf", type="build")
