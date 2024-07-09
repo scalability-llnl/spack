@@ -32,11 +32,12 @@ class Wxwidgets(AutotoolsPackage):
     version("3.0.1", sha256="bd671b79ec56af8fb3844e11cafceac1a4276fb02c79404d06b91b6c19d2c5f5")
 
     variant("opengl", default=False, description="Enable OpenGL support")
+    variant("gui", default=True, description="Enable GUI support."
 
     patch("math_include.patch", when="@3.0.1:3.0.2")
 
     depends_on("pkgconfig", type="build")
-    depends_on("gtkplus")
+    depends_on("gtkplus", when="+gui")
     depends_on("mesa-glu", when="+opengl")
 
     @when("@:3.0.2")
@@ -49,6 +50,8 @@ class Wxwidgets(AutotoolsPackage):
 
         if self.spec.satisfies("+opengl"):
             options.append("--with-opengl")
+        if not self.spec.satisfies("+gui"):
+            options.append("--disable-gui")
 
         # see https://trac.wxwidgets.org/ticket/17639
         if spec.satisfies("@:3.1.0") and sys.platform == "darwin":
