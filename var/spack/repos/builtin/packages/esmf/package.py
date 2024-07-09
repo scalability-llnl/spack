@@ -337,9 +337,8 @@ class Esmf(MakefilePackage):
             # ESMF code.
             env.set("ESMF_LAPACK", "system")
 
-            # FIXME: determine whether or not we need to set this
             # Specifies the path where the LAPACK library is located.
-            # env.set("ESMF_LAPACK_LIBPATH", spec["lapack"].prefix.lib)
+            env.set("ESMF_LAPACK_LIBPATH", spec["lapack"].prefix.lib)
 
             # Specifies the linker directive needed to link the LAPACK library
             # to the application.
