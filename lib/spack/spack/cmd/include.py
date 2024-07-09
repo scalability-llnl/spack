@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import sys
+
 import llnl.util.tty as tty
 
 import spack.cmd
@@ -32,8 +34,17 @@ def include_list_setup_parser(subparser):
 def include_list(env, args):
     include = env.manifest.list_includes(concrete=args.concrete)
 
+    if sys.stdout.isatty():
+        if include:
+            tty.msg(
+                "Included "
+                + ("Concrete Environments" if args.concrete else "Configuration Scopes")
+            )
+        else:
+            tty.msg("No includes found")
+
     if include:
-        msg = "Included " + ("Concrete Environments" if args.concrete else "Configuration Scopes")
+        msg = ""
         for inc in include:
             if args.expand:
                 formatted_inc = substitute_path_variables(inc)
