@@ -32,7 +32,7 @@ class Wxwidgets(AutotoolsPackage):
     version("3.0.1", sha256="bd671b79ec56af8fb3844e11cafceac1a4276fb02c79404d06b91b6c19d2c5f5")
 
     variant("opengl", default=False, description="Enable OpenGL support")
-    variant("gui", default=True, description="Enable GUI support."
+    variant("gui", default=True, description="Enable GUI support.")
 
     patch("math_include.patch", when="@3.0.1:3.0.2")
 
