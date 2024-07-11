@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,22 +6,22 @@
 from spack.package import *
 
 
-class Mepo(Package):
+class Mepo(PythonPackage):
     """Tool to manage (m)ultiple git r(epo)sitories"""
 
     homepage = "https://github.com/GEOS-ESM/mepo"
-    url = "https://github.com/GEOS-ESM/mepo/archive/refs/tags/v1.51.1.tar.gz"
+    git = "https://github.com/GEOS-ESM/mepo.git"
+    pypi = "mepo/mepo-2.0.0rc4.tar.gz"
 
-    maintainers("mathomp4", "pchakraborty", "climbfuji")
+    maintainers("pchakraborty", "mathomp4")
 
-    version("1.52.0", sha256="553876e9ce13484e25abb2e93b261e9f69b529cd4a62070b23dcbd0115b89ad9")
-    version("1.51.1", sha256="543c1e7487afb2d62e5e8c8a2f69a85af1b1951f588f3dfc7471763e90847360")
+    license("Apache-2.0", checked_by="mathomp4")
 
-    depends_on("python", type="run")
-    depends_on("py-pyyaml@5.4:", type="run")
+    version("2.0.0rc4", sha256="5f6113be565c561c08114355570a259042b25222a9e8e1dc6e6e44448381cd36")
+    version("2.0.0rc3", sha256="c0c897a33f5018489e6cc14892961831c8922a3378ac30436496c52bf877aff7")
 
-    def install(self, spec, prefix):
-        mkdirp(prefix.bin)
-        install_tree(".", prefix)
-        # Symlink mepo to bin directory
-        symlink(join_path(prefix, "mepo"), join_path(prefix.bin, "mepo"))
+    depends_on("python@3.9:", type=("build", "run"))
+    depends_on("py-colorama@0.4.6:", type=("build", "run"))
+    depends_on("py-pyyaml@6.0.1:", type=("build", "run"))
+
+    depends_on("py-hatchling", type="build")
