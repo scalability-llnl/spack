@@ -243,7 +243,7 @@ case "$command" in
         # Edge case for Intel's oneAPI compilers when using the legacy classic compilers:
         # Pass flags to disable deprecation warnings to vcheck mode, since the warnings
         # to stderr confuse tools that parse the output of compiler version checks.
-        case ${SPACK_CXXFLAGS} in
+        case ${SPACK_CFLAGS} in
             *"-diag-disable=10441"* )
                  vcheck_flags="-diag-disable=10441"
                  ;;
@@ -273,9 +273,9 @@ case "$command" in
         # Edge case for Intel's oneAPI compilers when using the legacy classic compilers:
         # Pass flags to disable deprecation warnings to vcheck mode, since the warnings
         # to stderr confuse tools that parse the output of compiler version checks.
-        case ${SPACK_CXXFLAGS} in
-            *"-diag-disable=10441"* )
-                 vcheck_flags="-diag-disable=10441"
+        case ${SPACK_FFLAGS} in
+            *"-diag-disable=10448"* )
+                 vcheck_flags="-diag-disable=10448"
                  ;;
         esac
         command="$SPACK_FC"
