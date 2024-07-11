@@ -641,6 +641,7 @@ class CompilerSpec:
     __slots__ = "name", "versions"
 
     def __init__(self, *args):
+        raise TypeError("CompilerSpec is being removed")
         nargs = len(args)
         if nargs == 1:
             arg = args[0]
