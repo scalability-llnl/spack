@@ -232,7 +232,7 @@ def all_compilers_config(
 def all_compiler_specs(scope=None, init_config=True):
     # Return compiler specs from the merged config.
     return [
-        spack.spec.parse_with_version_concrete(s["compiler"]["spec"], compiler=True)
+        spack.spec.parse_with_version_concrete(s["compiler"]["spec"])
         for s in all_compilers_config(spack.config.CONFIG, scope=scope, init_config=init_config)
     ]
 
@@ -458,7 +458,7 @@ class CacheReference:
 
 
 def compiler_from_dict(items):
-    cspec = spack.spec.parse_with_version_concrete(items["spec"], compiler=True)
+    cspec = spack.spec.parse_with_version_concrete(items["spec"])
     os = items.get("operating_system", None)
     target = items.get("target", None)
 
