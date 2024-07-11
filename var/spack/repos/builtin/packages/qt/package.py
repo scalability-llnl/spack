@@ -259,6 +259,11 @@ class Qt(Package):
     # https://doc.qt.io/qt-5.14/supported-platforms.html
     conflicts("%gcc@:4", when="@5.14:")
 
+    # Compiling with oneAPI compilers icx, icpx requires patching
+    # This has only been tested for 5.15.14 so far
+    conflicts("%oneapi", when="@:5.15.13")
+    patch("qt51514-oneapi.patch", when="@5.15.14: %oneapi")
+
     # Non-macOS dependencies and special macOS constraints
     if MACOS_VERSION is None:
         with when("+gui"):
@@ -288,6 +293,10 @@ class Qt(Package):
     # Mapping for compilers/systems in the QT 'mkspecs'
     compiler_mapping = {
         "intel": ("icc",),
+        # This only works because we apply patch "qt51514-oneapi.patch"
+        # above that replaces calls to "icc" with calls to "icx" in
+        # qtbase/mkspecs/*
+        "oneapi": ("icc",),
         "apple-clang": ("clang-libc++", "clang"),
         "clang": ("clang-libc++", "clang"),
         "aocc": ("clang-libc++", "clang"),
