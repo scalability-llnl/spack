@@ -4796,9 +4796,9 @@ def substitute_abstract_variants(spec: Spec):
         )
 
 
-def parse_with_version_concrete(spec_like: Union[str, Spec], compiler: bool = False):
+def parse_with_version_concrete(spec_like: Union[str, Spec]):
     """Same as Spec(string), but interprets @x as @=x"""
-    s: Union[CompilerSpec, Spec] = CompilerSpec(spec_like) if compiler else Spec(spec_like)
+    s = Spec(spec_like)
     interpreted_version = s.versions.concrete_range_as_version
     if interpreted_version:
         s.versions = vn.VersionList([interpreted_version])
