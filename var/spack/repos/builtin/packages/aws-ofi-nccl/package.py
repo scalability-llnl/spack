@@ -48,6 +48,8 @@ class AwsOfiNccl(AutotoolsPackage):
     def setup_run_environment(self, env):
         aws_ofi_nccl_home = self.spec.prefix
         env.append_path("LD_LIBRARY_PATH", aws_ofi_nccl_home.lib)
+        # Set the this network so that NCCL doesnt pick up anything else.
+        env.set("NCCL_NET", "AWS Libfabric")
 
     # To enable this plug-in to work with NCCL add it to the LD_LIBRARY_PATH
     def setup_dependent_run_environment(self, env, dependent_spec):
