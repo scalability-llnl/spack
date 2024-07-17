@@ -170,7 +170,9 @@ spack:
     url: https://my.fake.cdash
     project: Not used
     site: Nothing
-"""
+""",
+        "--artifacts-root",
+        str(tmp_path / "my_artifacts_root"),
     )
     yaml_contents = syaml.load(outputfile.read_text())
 
@@ -192,7 +194,7 @@ spack:
 
     assert "variables" in yaml_contents
     assert "SPACK_ARTIFACTS_ROOT" in yaml_contents["variables"]
-    assert yaml_contents["variables"]["SPACK_ARTIFACTS_ROOT"] == "jobs_scratch_dir"
+    assert yaml_contents["variables"]["SPACK_ARTIFACTS_ROOT"] == "my_artifacts_root"
 
 
 def test_ci_generate_with_env_missing_section(ci_generate_test, tmp_path, mock_binary_index):
@@ -1359,7 +1361,7 @@ spack:
             f.write(f"\nMerge {last_two_git_commits[1]} into {last_two_git_commits[0]}\n\n")
 
     def fake_download_and_extract_artifacts(url, work_dir):
-        pass
+        return "jobs_scratch_dir"
 
     monkeypatch.setattr(ci, "download_and_extract_artifacts", fake_download_and_extract_artifacts)
     rep_out = ci_cmd(
