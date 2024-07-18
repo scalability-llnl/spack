@@ -44,7 +44,9 @@ class Qwt(QMakePackage):
         depends_on("qt+opengl", when="+opengl")
 
     # Qwt@:6.1 does not support Qt6; this picks the right qmake provider
-    conflicts("^[virtuals=qmake] qt-base", when="@:6.1", msg="Qwt support for Qt6 was added in v6.2.0")
+    conflicts(
+        "^[virtuals=qmake] qt-base", when="@:6.1", msg="Qwt support for Qt6 was added in v6.2.0"
+    )
 
     # the qt@5.14.2 limitation was lifted in qwt@6.1.5
     # https://sourceforge.net/p/qwt/code/HEAD/tree/tags/qwt-6.1.6/CHANGES-6.1
