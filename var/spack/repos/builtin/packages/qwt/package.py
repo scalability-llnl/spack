@@ -19,6 +19,8 @@ class Qwt(QMakePackage):
 
     license("custom")
 
+    version("6.3.0", sha256="dcb085896c28aaec5518cbc08c0ee2b4e60ada7ac929d82639f6189851a6129a")
+    version("6.2.0", sha256="9194f6513955d0fd7300f67158175064460197abab1a92fa127a67a4b0b71530")
     version("6.1.6", sha256="99460d31c115ee4117b0175d885f47c2c590d784206f09815dc058fbe5ede1f6")
     version("6.1.4", sha256="1529215329e51fc562e0009505a838f427919a18b362afff441f035b2d9b5bd9")
     version("6.1.3", sha256="f3ecd34e72a9a2b08422fb6c8e909ca76f4ce5fa77acad7a2883b701f4309733")
@@ -32,11 +34,17 @@ class Qwt(QMakePackage):
     patch("no-designer.patch", when="~designer")
     patch("no-opengl_6_1.patch", when="@6.1 ~opengl")
 
-    depends_on("qt+tools", when="+designer")
-    depends_on("qt+opengl", when="+opengl")
+    depends_on("qmake")
+    with when("^[virtuals=qmake] qt-base"):
+        depends_on("qt-svg")
+        depends_on("qt-tools", when="+designer")
+        depends_on("qt-base+opengl", when="+opengl")
+    with when("^[virtuals=qmake] qt"):
+        depends_on("qt+tools", when="+designer")
+        depends_on("qt+opengl", when="+opengl")
 
-    # Qwt does not support Qt6; this picks the right qmake provider
-    conflicts("^qt-base", msg="Qwt requires Qt5")
+    # Qwt@:6.1 does not support Qt6; this picks the right qmake provider
+    conflicts("^[virtuals=qmake] qt-base", when="@:6.1", msg="Qwt support for Qt6 was added in v6.2.0")
 
     # the qt@5.14.2 limitation was lifted in qwt@6.1.5
     # https://sourceforge.net/p/qwt/code/HEAD/tree/tags/qwt-6.1.6/CHANGES-6.1
