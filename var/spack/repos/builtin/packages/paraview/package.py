@@ -231,11 +231,16 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("mpi", when="+mpi")
     conflicts("mpi", when="~mpi")
 
+    depends_on("qmake", when="@5.12.0:+qt")
+    depends_on("qt", when="@5.3.0:5.11+qt")
+    with when("^[virtuals=qmake] qt-base"):
+        depends_on("qt-base+opengl", when="+opengl2")
+        depends_on("qt-base~opengl", when="~opengl2")
+    with when("^[virtuals=qmake] qt"):
+        depends_on("qt+opengl", when="+opengl2")
+        depends_on("qt~opengl", when="~opengl2")
     depends_on("qt@:4", when="@:5.2.0+qt")
     depends_on("qt+sql", when="+qt")
-    with when("+qt"):
-        depends_on("qt+opengl", when="@5.3.0:+opengl2")
-        depends_on("qt~opengl", when="@5.3.0:~opengl2")
 
     depends_on("gl@3.2:", when="+opengl2")
     depends_on("gl@1.2:", when="~opengl2")
