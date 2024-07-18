@@ -19,9 +19,9 @@ class QtTools(QtPackage):
     version("6.7.2", sha256="3ae2db630606edf94cc368691ee1da9c0bae7a06ff46c544c459cece8b60b62a")
 
     variant(
-          "designer",
-          default=False,
-          description="Qt Widgets Designer for designing and building GUIs with Qt Widgets.",
+        "designer",
+        default=False,
+        description="Qt Widgets Designer for designing and building GUIs with Qt Widgets.",
     )
 
     depends_on("qt-base +network")
