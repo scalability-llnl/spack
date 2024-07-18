@@ -39,7 +39,7 @@ class QtTools(QtPackage):
         def define(cmake_var, value):
             args.append(self.define(cmake_var, value))
 
-        if self.spec.satisfies("+designer"):
+        if spec.satisfies("+designer"):
             define("FEATURE_designer", True)
 
         return args
