@@ -957,3 +957,17 @@ def test_compiler_environment(working_env):
     )
     with compiler.compiler_environment():
         assert os.environ["TEST"] == "yes"
+
+
+def test_compiler_environment_always_flags(working_env):
+    """Test whether flags labeled as "ALWAYS_*FLAGS" are set in the compiler environment"""
+    compiler = Compiler(
+        "oneapi@=2023.2.0",
+        operating_system="ubuntu22.04",
+        target="x86_64",
+        paths=["/test/bin/icc", "/test/bin/icpc", "/test/bin/ifort"],
+    )
+    with compiler.compiler_environment():
+        assert os.environ["SPACK_ALWAYS_CFLAGS"] == "-diag-disable=10441"
+        assert os.environ["SPACK_ALWAYS_CXXFLAGS"] == "-diag-disable=10441"
+        assert os.environ["SPACK_ALWAYS_FCFLAGS"] == "-diag-disable=10448"
