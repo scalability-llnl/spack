@@ -120,10 +120,9 @@ class HdfEos2(AutotoolsPackage):
         filter_file("CC=./\\$SZIP_CC", "", "configure")
 
     def flag_handler(self, name, flags):
-        if name == "cflags":
-            if self.spec.compiler.name == "apple-clang":
+        if self.spec.compiler.name in ["apple-clang", "oneapi"]:
+            if name == "cflags":
                 flags.append("-Wno-error=implicit-function-declaration")
-            flags.append(f"{self.compiler.cc_pic_flag}")
 
         return flags, None, None
 
@@ -160,5 +159,16 @@ class HdfEos2(AutotoolsPackage):
             extra_args.append("--with-szlib={0}".format(self.spec["szip"].prefix))
         if "zlib" in self.spec:
             extra_args.append("--with-zlib={0}".format(self.spec["zlib-api"].prefix))
+
+        # https://forum.hdfgroup.org/t/help-building-hdf4-with-clang-error-implicit-declaration-of-function-test-mgr-szip-is-invalid-in-c99/7680
+        # -fPIC: https://github.com/spack/spack/issues/43792
+        if self.spec.satisfies("%apple-clang"):
+            extra_args.append(
+                "CFLAGS=-Wno-error=implicit-function-declaration {0}".format(
+                    self.compiler.cc_pic_flag
+                )
+            )
+        else:
+            extra_args.append("CFLAGS={0}".format(self.compiler.cc_pic_flag))
 
         return extra_args
