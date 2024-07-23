@@ -123,6 +123,7 @@ class HdfEos2(AutotoolsPackage):
         if self.spec.compiler.name in ["apple-clang", "oneapi"]:
             if name == "cflags":
                 flags.append("-Wno-error=implicit-function-declaration")
+                flags.append("-Wno-error=implicit-int")
 
         return flags, None, None
 
