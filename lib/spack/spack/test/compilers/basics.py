@@ -18,8 +18,8 @@ import spack.util.module_cmd
 from spack.compiler import Compiler
 from spack.compilers.intel import Intel
 from spack.compilers.oneapi import Oneapi
-from spack.util.executable import Executable, ProcessError
 from spack.util.environment import EnvironmentModifications
+from spack.util.executable import Executable, ProcessError
 from spack.version import Version
 
 
