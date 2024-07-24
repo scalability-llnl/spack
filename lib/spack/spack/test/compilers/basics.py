@@ -973,7 +973,7 @@ def test_compiler_environment_always_flags_oneapi(working_env):
 
     with spack.config.override("config:install_missing_compilers", True):
         with spack.concretize.disable_compiler_existence_check():
-            s = spack.spec.Spec("zlib%oneapi@=2023.2.0").concretized()
+            s = spack.spec.Spec("zlib%oneapi@=2023.2.0 ^gcc-runtime%gcc").concretized()
             pkg = spack.package.Package(s)
 
     compiler = MockOneapiCompiler(
@@ -1000,7 +1000,7 @@ def test_compiler_environment_always_flags_intel(working_env):
 
     with spack.config.override("config:install_missing_compilers", True):
         with spack.concretize.disable_compiler_existence_check():
-            s = spack.spec.Spec("zlib%intel@=2023.2.0").concretized()
+            s = spack.spec.Spec("zlib%intel@=2023.2.0 ^gcc-runtime%gcc").concretized()
             pkg = spack.package.Package(s)
 
     compiler = MockIntelCompiler(
