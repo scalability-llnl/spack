@@ -964,7 +964,8 @@ def test_compiler_environment(working_env):
 
 
 def test_compiler_environment_always_flags_oneapi(working_env):
-    """Test whether flags labeled as "ALWAYS_*FLAGS" are set in the Oneapi compiler environment"""
+    """Test whether flags labeled as "SPACK_ALWAYS_*FLAGS" are set in the Oneapi compiler
+    environment"""
 
     class MockOneapiCompiler(Oneapi):
         @property
@@ -973,7 +974,7 @@ def test_compiler_environment_always_flags_oneapi(working_env):
 
     with spack.config.override("config:install_missing_compilers", True):
         with spack.concretize.disable_compiler_existence_check():
-            s = spack.spec.Spec("zlib%oneapi@=2023.2.0 ^gcc-runtime%gcc").concretized()
+            s = spack.spec.Spec("zlib%oneapi@=2023.2.0 ^intel-oneapi-runtime%gcc@10.2.1").concretized()
             pkg = spack.package.Package(s)
 
     compiler = MockOneapiCompiler(
@@ -991,7 +992,8 @@ def test_compiler_environment_always_flags_oneapi(working_env):
 
 
 def test_compiler_environment_always_flags_intel(working_env):
-    """Test whether flags labeled as "ALWAYS_*FLAGS" are set in the Intel compiler environment"""
+    """Test whether flags labeled as "SPACK_ALWAYS_*FLAGS" are set in the Intel compiler
+    environment"""
 
     class MockIntelCompiler(Intel):
         @property
@@ -1000,7 +1002,7 @@ def test_compiler_environment_always_flags_intel(working_env):
 
     with spack.config.override("config:install_missing_compilers", True):
         with spack.concretize.disable_compiler_existence_check():
-            s = spack.spec.Spec("zlib%intel@=2023.2.0 ^gcc-runtime%gcc").concretized()
+            s = spack.spec.Spec("zlib%intel@=2023.2.0 ^gcc-runtime%gcc@10.2.1").concretized()
             pkg = spack.package.Package(s)
 
     compiler = MockIntelCompiler(
