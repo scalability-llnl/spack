@@ -410,7 +410,7 @@ class CMakeBuilder(BaseBuilder):
                 define("CMAKE_FIND_USE_PACKAGE_ROOT_PATH", False),
                 define("CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY", False),
                 define("CMAKE_FIND_USE_PACKAGE_REGISTRY", False),
-                define("CMAKE_FIND_USE_SYSTEM_PATH", False)
+                define("CMAKE_FIND_USE_SYSTEM_PATH", False),
             ]
         )
 
