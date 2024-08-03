@@ -123,7 +123,7 @@ class Ffmpeg(AutotoolsPackage):
     # Solve build failure against vulkan headers 1.3.279
     patch(
         "https://git.ffmpeg.org/gitweb/ffmpeg.git/commitdiff_plain/fef22c87ada4",
-        sha256="856bdc2b6e2a7066cf683a235193b9025d4d73dd7686eda2fbcf83e7e65f8bf9",
+        sha256="5726e8e999e3fc7a5ae4c4c846c9151246e5846c54dc3b8ff8326ee31c59631a",
         when="@6.1.1",
     )
 
@@ -150,12 +150,12 @@ class Ffmpeg(AutotoolsPackage):
     # fix incompatibility with texinfo@7, especially @7.1:
     patch(
         "https://git.ffmpeg.org/gitweb/ffmpeg.git/commitdiff_plain/f01fdedb69e4accb1d1555106d8f682ff1f1ddc7",
-        sha256="416751f41cfbf086c28b4bbf01ace4c08e5651e59911dca6240292bb1b5c6b53",
+        sha256="673813d13f5c37b75ff5bcb56790ccd6b16962fdb9bddcbbeeead979d47d31b3",
         when="@6.0",
     )
     patch(
         "https://git.ffmpeg.org/gitweb/ffmpeg.git/commitdiff_plain/f01fdedb69e4accb1d1555106d8f682ff1f1ddc7",
-        sha256="416751f41cfbf086c28b4bbf01ace4c08e5651e59911dca6240292bb1b5c6b53",
+        sha256="673813d13f5c37b75ff5bcb56790ccd6b16962fdb9bddcbbeeead979d47d31b3",
         when="@5:5.1.3",
     )
 
