@@ -43,6 +43,3 @@ class QtTools(QtPackage):
             define("FEATURE_designer", True)
 
         return args
-
-    def setup_run_environment(self, env):
-        env.prepend_path("QT_PLUGIN_PATH", self.prefix.plugins)
