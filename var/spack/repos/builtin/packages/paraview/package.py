@@ -237,6 +237,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("qt-base+gui+network+widgets")
         depends_on("qt-base+opengl", when="+opengl2")
         depends_on("qt-base~opengl", when="~opengl2")
+        depends_on("qt-5compat")
     with when("^[virtuals=qmake] qt"):
         depends_on("qt+opengl", when="+opengl2")
         depends_on("qt~opengl", when="~opengl2")
