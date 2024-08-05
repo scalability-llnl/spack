@@ -81,8 +81,9 @@ class Dealii(CMakePackage, CudaPackage):
     )
     variant("doc", default=False, description="Compile with documentation")
     variant("examples", default=True, description="Install source files of tutorial programs")
-    variant("examples_compile", default=True,
-            description="Install binary files of tutorial programs")
+    variant(
+        "examples_compile", default=True, description="Install binary files of tutorial programs"
+    )
     variant("int64", default=False, description="Compile with 64 bit indices support")
     variant("mpi", default=True, description="Compile with MPI")
     variant("optflags", default=False, description="Compile using additional optimization flags")
