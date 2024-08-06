@@ -62,6 +62,11 @@ class Cpptrace(CMakePackage):
         variant("symbols-backend", multi=False, default="dbghelp", values=("dbghelp", "nothing"))
         variant("demangling-backend", multi=False, default="winapi", values=("winapi", "nothing"))
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
+    depends_on("cmake@3.14:", type="build")
+
     depends_on("libunwind", when="unwinding-backend=libunwind")
     depends_on("libdwarf", when="symbols-backend=libdwarf")
 
