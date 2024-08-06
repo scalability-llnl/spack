@@ -14,6 +14,8 @@ class QtTools(QtPackage):
     url = QtPackage.get_url(__qualname__)
     list_url = QtPackage.get_list_url(__qualname__)
 
+    maintainers("wdconinc")
+
     license("BSD-3-Clause")
 
     version("6.7.2", sha256="3ae2db630606edf94cc368691ee1da9c0bae7a06ff46c544c459cece8b60b62a")
