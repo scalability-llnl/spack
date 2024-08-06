@@ -106,7 +106,7 @@ class Cpptrace(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         define = self.define
-        from_variant = self.from_variant
+        from_variant = self.define_from_variant
 
         args = [
             from_variant("BUILD_SHARED_LIBS", "shared"),
