@@ -21,6 +21,33 @@ class Cpptrace(CMakePackage):
 
     variant("shared", default=True, description="Build shared libs")
     variant("pic", default=True, description="Build with position independent code")
+
+    with when("platform=linux"):
+        variant(
+            "unwinding-backend",
+            multi=False,
+            default="unwind",
+            values=("unwind", "execinfo", "libunwind", "nothing"),
+        )
+
+    with when("platform=darwin"):
+        variant(
+            "unwinding-backend",
+            multi=False,
+            default="unwind",
+            values=("unwind", "execinfo", "libunwind", "nothing"),
+        )
+
+    with when("platform=windows"):
+        variant(
+            "unwinding-backend",
+            multi=False,
+            default="dbghelp",
+            values=("winapi", "dbghelp", "libunwind", "nothing"),
+        )
+
+    depends_on("libunwind", when="unwinding-backend=libunwind")
+
     depends_on("googletest", type="test")
 
     conflicts("+shared ~pic")
@@ -35,6 +62,9 @@ class Cpptrace(CMakePackage):
             from_variant("CPPTRACE_POSITION_INDEPENDENT_CODE", "pic"),
             define("CPPTRACE_BUILD_TESTING", self.run_tests),
             define("CPPTRACE_USE_EXTERNAL_GTEST", True),
+            define(
+                f"CPPTRACE_UNWIND_WITH_{spec.variants['unwinding-backend'].value.upper()}", True
+            ),
         ]
 
         return args
