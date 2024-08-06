@@ -62,6 +62,7 @@ spack:
   - matrix:
     - [$sdk_base_spec]
     - ["+paraview ~visit"]
+    - ["^sensei ~libsim"]
     - [$^paraview_specs]
   - matrix:
     - [$sdk_base_spec]
