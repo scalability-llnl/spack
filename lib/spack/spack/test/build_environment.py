@@ -6,6 +6,7 @@ import inspect
 import os
 import platform
 import posixpath
+import sys
 
 import pytest
 
@@ -287,9 +288,13 @@ def test_compiler_config_modifications(
 
 
 def test_compiler_custom_env(config, mock_packages, monkeypatch, working_env):
+    if sys.platform == "win32":
+        test_path = r"C:\test\path\element\custom-env\\"
+    else:
+        test_path = r"/test/path/element/custom-env/"
+
     def custom_env(pkg, env):
         env.prepend_path("PATH", "/test/path/element/custom-env/")
-        env.prepend_path("LD_LIBRARY_PATH", "/test/path/element/custom-env/")
         env.append_flags("ENV_CUSTOM_CC_FLAGS", "--custom-env-flag1")
 
     pkg = spack.spec.Spec("cmake").concretized().package
@@ -297,7 +302,7 @@ def test_compiler_custom_env(config, mock_packages, monkeypatch, working_env):
     spack.build_environment.setup_package(pkg, False)
 
     # Note: trailing slash may be stripped by internal logic
-    assert "/test/path/element/custom-env" in os.environ["PATH"]
+    assert test_path[:-1] in os.environ["PATH"]
     assert "--custom-env-flag1" in os.environ["ENV_CUSTOM_CC_FLAGS"]
 
 
