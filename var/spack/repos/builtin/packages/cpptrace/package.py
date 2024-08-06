@@ -8,20 +8,14 @@ from spack.package import *
 
 
 class Cpptrace(CMakePackage):
-    """FIXME: Put a proper description of your package here."""
+    """Simple, portable, and self-contained stacktrace library for C++11 and newer"""
 
-    # FIXME: Add a proper url for your package's homepage here.
-    homepage = "https://www.example.com"
+    homepage = "https://github.com/jeremy-rifkin/cpptrace"
     url = "https://github.com/jeremy-rifkin/cpptrace/archive/refs/tags/v0.6.3.tar.gz"
 
-    # FIXME: Add a list of GitHub accounts to
-    # notify when the package is updated.
-    # maintainers("github_user1", "github_user2")
+    maintainers("pranav-sivaraman")
 
-    # FIXME: Add the SPDX identifier of the project's license below.
-    # See https://spdx.org/licenses/ for a list. Upon manually verifying
-    # the license, set checked_by to your Github username.
-    license("UNKNOWN", checked_by="github_user1")
+    license("MIT", checked_by="pranav-sivaraman")
 
     version("0.6.3", sha256="665bf76645ec7b9e6d785a934616f0138862c36cdb58b0d1c9dd18dd4c57395a")
 
