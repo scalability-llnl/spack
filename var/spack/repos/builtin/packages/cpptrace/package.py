@@ -21,6 +21,8 @@ class Cpptrace(CMakePackage):
 
     variant("shared", default=True, description="Build shared libs")
     variant("pic", default=True, description="Build with position independent code")
+    depends_on("googletest", type="test")
+
     conflicts("+shared ~pic")
 
     def cmake_args(self):
@@ -31,6 +33,8 @@ class Cpptrace(CMakePackage):
         args = [
             from_variant("BUILD_SHARED_LIBS", "shared"),
             from_variant("CPPTRACE_POSITION_INDEPENDENT_CODE", "pic"),
+            define("CPPTRACE_BUILD_TESTING", self.run_tests),
+            define("CPPTRACE_USE_EXTERNAL_GTEST", True),
         ]
 
         return args
