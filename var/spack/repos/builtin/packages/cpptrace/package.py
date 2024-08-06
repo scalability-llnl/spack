@@ -28,14 +28,22 @@ class Cpptrace(CMakePackage):
             multi=False,
             default="unwind",
             values=("unwind", "execinfo", "libunwind", "nothing"),
+            description="Library backend for unwinding",
         )
         variant(
             "symbols-backend",
             multi=False,
             default="libdwarf",
             values=("libdwarf", "libbacktrace", "addr2line", "libdl", "nothing"),
+            description="Library backend for symbols",
         )
-        variant("demangling-backend", multi=False, default="cxxabi", values=("cxxabi", "nothing"))
+        variant(
+            "demangling-backend",
+            multi=False,
+            default="cxxabi",
+            values=("cxxabi", "nothing"),
+            description="Library backend for demangling",
+        )
 
     with when("platform=darwin"):
         variant(
@@ -43,14 +51,22 @@ class Cpptrace(CMakePackage):
             multi=False,
             default="unwind",
             values=("unwind", "execinfo", "libunwind", "nothing"),
+            description="Library backend for unwinding",
         )
         variant(
             "symbols-backend",
             multi=False,
             default="libdwarf",
             values=("libdwarf", "libbacktrace", "addr2line", "libdl", "nothing"),
+            description="Library backend for symbols",
         )
-        variant("demangling-backend", multi=False, default="cxxabi", values=("cxxabi", "nothing"))
+        variant(
+            "demangling-backend",
+            multi=False,
+            default="cxxabi",
+            values=("cxxabi", "nothing"),
+            description="Library backend for demangling",
+        )
 
     with when("platform=windows"):
         variant(
@@ -58,9 +74,22 @@ class Cpptrace(CMakePackage):
             multi=False,
             default="dbghelp",
             values=("winapi", "dbghelp", "libunwind", "nothing"),
+            description="Library backend for unwinding",
         )
-        variant("symbols-backend", multi=False, default="dbghelp", values=("dbghelp", "nothing"))
-        variant("demangling-backend", multi=False, default="winapi", values=("winapi", "nothing"))
+        variant(
+            "symbols-backend",
+            multi=False,
+            default="dbghelp",
+            values=("dbghelp", "nothing"),
+            description="Library backend for symbols",
+        )
+        variant(
+            "demangling-backend",
+            multi=False,
+            default="winapi",
+            values=("winapi", "nothing"),
+            description="Library backend for demangling",
+        )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
