@@ -289,7 +289,7 @@ def test_compiler_config_modifications(
 
 def test_compiler_custom_env(config, mock_packages, monkeypatch, working_env):
     if sys.platform == "win32":
-        test_path = r"C:\test\path\element\custom-env\\"
+        test_path = r"C:\test\path\element\custom-env" + "\\"
     else:
         test_path = r"/test/path/element/custom-env/"
 
