@@ -19,12 +19,18 @@ class Cpptrace(CMakePackage):
 
     version("0.6.3", sha256="665bf76645ec7b9e6d785a934616f0138862c36cdb58b0d1c9dd18dd4c57395a")
 
-    # FIXME: Add dependencies if required.
-    # depends_on("foo")
+    variant("shared", default=True, description="Build shared libs")
+    variant("pic", default=True, description="Build with position independent code")
+    conflicts("+shared ~pic")
 
     def cmake_args(self):
-        # FIXME: Add arguments other than
-        # FIXME: CMAKE_INSTALL_PREFIX and CMAKE_BUILD_TYPE
-        # FIXME: If not needed delete this function
-        args = []
+        spec = self.spec
+        define = self.define
+        from_variant = self.from_variant
+
+        args = [
+            from_variant("BUILD_SHARED_LIBS", "shared"),
+            from_variant("CPPTRACE_POSITION_INDEPENDENT_CODE", "pic"),
+        ]
+
         return args
