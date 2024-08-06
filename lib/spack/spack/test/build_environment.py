@@ -294,7 +294,7 @@ def test_compiler_custom_env(config, mock_packages, monkeypatch, working_env):
         test_path = r"/test/path/element/custom-env/"
 
     def custom_env(pkg, env):
-        env.prepend_path("PATH", "/test/path/element/custom-env/")
+        env.prepend_path("PATH", test_path)
         env.append_flags("ENV_CUSTOM_CC_FLAGS", "--custom-env-flag1")
 
     pkg = spack.spec.Spec("cmake").concretized().package
