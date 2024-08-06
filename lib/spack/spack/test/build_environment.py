@@ -286,6 +286,23 @@ def test_compiler_config_modifications(
         assert name not in os.environ
 
 
+def test_compiler_custom_env(monkeypatch):
+    def custom_env(pkg, env):
+        env.prepend_path("PATH", "/test/path/element/custom-env/")
+        env.prepend_path("LD_LIBRARY_PATH", "/test/path/element/custom-env/")
+        env.append_flags("ENV_CUSTOM_CC_FLAGS", "--custom-env-flag1")
+
+    # Monkeypatch a pkg.compiler.environment with the required modifications
+    pkg = spack.spec.Spec("cmake").concretized().package
+    monkeypatch.setattr(pkg.compiler, "setup_custom_environment", custom_env)
+    # Trigger the modifications
+    spack.build_environment.setup_package(pkg, False)
+
+    # Note: trailing slash may be stripped by internal logic
+    assert "/test/path/element/custom-env" in os.environ["PATH"]
+    assert "--custom-env-flag1" in os.environ["ENV_CUSTOM_CC_FLAGS"]
+
+
 def test_external_config_env(mock_packages, mutable_config, working_env):
     cmake_config = {
         "externals": [

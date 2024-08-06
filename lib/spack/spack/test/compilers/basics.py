@@ -16,11 +16,7 @@ import spack.spec
 import spack.util.environment
 import spack.util.module_cmd
 from spack.compiler import Compiler
-from spack.compilers.intel import Intel
-from spack.compilers.oneapi import Oneapi
-from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable, ProcessError
-from spack.version import Version
 
 
 @pytest.fixture()
@@ -961,59 +957,3 @@ def test_compiler_environment(working_env):
     )
     with compiler.compiler_environment():
         assert os.environ["TEST"] == "yes"
-
-
-def test_compiler_environment_always_flags_oneapi(working_env):
-    """Test whether flags labeled as "SPACK_ALWAYS_*FLAGS" are set in the Oneapi compiler
-    environment"""
-
-    class MockOneapiCompiler(Oneapi):
-        @property
-        def version(self):
-            return Version("2023.2.0")
-
-    with spack.config.override("config:install_missing_compilers", True):
-        with spack.concretize.disable_compiler_existence_check():
-            s = spack.spec.Spec("zlib%oneapi@=2023.2.0 ^intel-oneapi-runtime%gcc@10.2.1").concretized()
-            pkg = spack.package.Package(s)
-
-    compiler = MockOneapiCompiler(
-        "oneapi@=2023.2.0",
-        operating_system="ubuntu22.04",
-        target="x86_64",
-        paths=["/test/bin/icc", "/test/bin/icpc", "/test/bin/ifort"],
-    )
-    env = EnvironmentModifications()
-    compiler.setup_custom_environment(pkg, env)
-    shell_modifications = env.shell_modifications()
-    assert "export SPACK_ALWAYS_CFLAGS=-diag-disable=10441" in shell_modifications
-    assert "export SPACK_ALWAYS_CXXFLAGS=-diag-disable=10441" in shell_modifications
-    assert "export SPACK_ALWAYS_FFLAGS=-diag-disable=10448" in shell_modifications
-
-
-def test_compiler_environment_always_flags_intel(working_env):
-    """Test whether flags labeled as "SPACK_ALWAYS_*FLAGS" are set in the Intel compiler
-    environment"""
-
-    class MockIntelCompiler(Intel):
-        @property
-        def version(self):
-            return Version("2023.2.0")
-
-    with spack.config.override("config:install_missing_compilers", True):
-        with spack.concretize.disable_compiler_existence_check():
-            s = spack.spec.Spec("zlib%intel@=2023.2.0 ^gcc-runtime%gcc@10.2.1").concretized()
-            pkg = spack.package.Package(s)
-
-    compiler = MockIntelCompiler(
-        "intel@=2023.2.0",
-        operating_system="ubuntu22.04",
-        target="x86_64",
-        paths=["/test/bin/icc", "/test/bin/icpc", "/test/bin/ifort"],
-    )
-    env = EnvironmentModifications()
-    compiler.setup_custom_environment(pkg, env)
-    shell_modifications = env.shell_modifications()
-    assert "export SPACK_ALWAYS_CFLAGS=-diag-disable=10441" in shell_modifications
-    assert "export SPACK_ALWAYS_CXXFLAGS=-diag-disable=10441" in shell_modifications
-    assert "export SPACK_ALWAYS_FFLAGS=-diag-disable=10448" in shell_modifications

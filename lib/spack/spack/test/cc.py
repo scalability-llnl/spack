@@ -355,6 +355,15 @@ def test_fc_flags(wrapper_environment, wrapper_flags):
     )
 
 
+def test_always_cflags(wrapper_environment, wrapper_flags):
+    with set_env(SPACK_ALWAYS_CFLAGS="-always1 -always2"):
+        check_args(
+            cc,
+            ["-v", "--cmd-line-v-opt"],
+            [real_cc] + ["-always1", "-always2"] + ["-v", "--cmd-line-v-opt"],
+        )
+
+
 def test_Wl_parsing(wrapper_environment):
     check_args(
         cc,

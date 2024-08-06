@@ -174,6 +174,46 @@ preextend() {
     unset IFS
 }
 
+execute() {
+    # dump the full command if the caller supplies SPACK_TEST_COMMAND=dump-args
+    if [ -n "${SPACK_TEST_COMMAND=}" ]; then
+        case "$SPACK_TEST_COMMAND" in
+            dump-args)
+                IFS="$lsep"
+                for arg in $full_command_list; do
+                    echo "$arg"
+                done
+                unset IFS
+                exit
+                ;;
+            dump-env-*)
+                var=${SPACK_TEST_COMMAND#dump-env-}
+                eval "printf '%s\n' \"\$0: \$var: \$$var\""
+                ;;
+            *)
+                die "Unknown test command: '$SPACK_TEST_COMMAND'"
+                ;;
+        esac
+    fi
+
+    #
+    # Write the input and output commands to debug logs if it's asked for.
+    #
+    if [ "$SPACK_DEBUG" = TRUE ]; then
+        input_log="$SPACK_DEBUG_LOG_DIR/spack-cc-$SPACK_DEBUG_LOG_ID.in.log"
+        output_log="$SPACK_DEBUG_LOG_DIR/spack-cc-$SPACK_DEBUG_LOG_ID.out.log"
+        echo "[$mode] $command $input_command" >> "$input_log"
+        IFS="$lsep"
+        echo "[$mode] "$full_command_list >> "$output_log"
+        unset IFS
+    fi
+
+    # Execute the full command, preserving spaces with IFS set
+    # to the alarm bell separator.
+    IFS="$lsep"; exec $full_command_list
+    exit
+}
+
 # Fail with a clear message if the input contains any bell characters.
 if eval "[ \"\${*#*${lsep}}\" != \"\$*\" ]"; then
     die "Compiler command line contains our separator ('${lsep}'). Cannot parse."
@@ -371,7 +411,11 @@ unset IFS
 export PATH="$new_dirs"
 
 if [ "$mode" = vcheck ]; then
-    exec "${command}" ${vcheck_flags} "$@"
+    full_command_list="$command"
+    args="$@"
+    extend full_command_list vcheck_flags
+    extend full_command_list args
+    execute
 fi
 
 # Darwin's linker has a -r argument that merges object files together.
@@ -943,39 +987,4 @@ if [ -n "$SPACK_CCACHE_BINARY" ]; then
     esac
 fi
 
-# dump the full command if the caller supplies SPACK_TEST_COMMAND=dump-args
-if [ -n "${SPACK_TEST_COMMAND=}" ]; then
-    case "$SPACK_TEST_COMMAND" in
-        dump-args)
-            IFS="$lsep"
-            for arg in $full_command_list; do
-                echo "$arg"
-            done
-            unset IFS
-            exit
-            ;;
-        dump-env-*)
-            var=${SPACK_TEST_COMMAND#dump-env-}
-            eval "printf '%s\n' \"\$0: \$var: \$$var\""
-            ;;
-        *)
-            die "Unknown test command: '$SPACK_TEST_COMMAND'"
-            ;;
-    esac
-fi
-
-#
-# Write the input and output commands to debug logs if it's asked for.
-#
-if [ "$SPACK_DEBUG" = TRUE ]; then
-    input_log="$SPACK_DEBUG_LOG_DIR/spack-cc-$SPACK_DEBUG_LOG_ID.in.log"
-    output_log="$SPACK_DEBUG_LOG_DIR/spack-cc-$SPACK_DEBUG_LOG_ID.out.log"
-    echo "[$mode] $command $input_command" >> "$input_log"
-    IFS="$lsep"
-    echo "[$mode] "$full_command_list >> "$output_log"
-    unset IFS
-fi
-
-# Execute the full command, preserving spaces with IFS set
-# to the alarm bell separator.
-IFS="$lsep"; exec $full_command_list
+execute
