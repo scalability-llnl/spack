@@ -35,6 +35,7 @@ class Cpptrace(CMakePackage):
             default="libdwarf",
             values=("libdwarf", "libbacktrace", "addr2line", "libdl", "nothing"),
         )
+        variant("demangling-backend", multi=False, default="cxxabi", values=("cxxabi", "nothing"))
 
     with when("platform=darwin"):
         variant(
@@ -49,6 +50,7 @@ class Cpptrace(CMakePackage):
             default="libdwarf",
             values=("libdwarf", "libbacktrace", "addr2line", "libdl", "nothing"),
         )
+        variant("demangling-backend", multi=False, default="cxxabi", values=("cxxabi", "nothing"))
 
     with when("platform=windows"):
         variant(
@@ -58,6 +60,7 @@ class Cpptrace(CMakePackage):
             values=("winapi", "dbghelp", "libunwind", "nothing"),
         )
         variant("symbols-backend", multi=False, default="dbghelp", values=("dbghelp", "nothing"))
+        variant("demangling-backend", multi=False, default="winapi", values=("winapi", "nothing"))
 
     depends_on("libunwind", when="unwinding-backend=libunwind")
     depends_on("libdwarf", when="symbols-backend=libdwarf")
@@ -82,6 +85,9 @@ class Cpptrace(CMakePackage):
             ),
             define(
                 f"CPPTRACE_GET_SYMBOLS_WITH_{spec.variants['symbols-backend'].value.upper()}", True
+            ),
+            define(
+                f"CPPTRACE_DEMANGLE_WITH_{spec.variants['demangling-backend'].value.upper()}", True
             ),
         ]
 
