@@ -21,6 +21,8 @@ class PyBakta(PythonPackage):
     version("1.9.4", sha256="ad92853e9d4f022024d393149eb086ad36a7e35f824a5d9efed94c3262f9cf66")
     version("1.5.1", sha256="36781612c4eaa99e6e24a00e8ab5b27dadf21c98ae6d16432f3e78c96a4adb5d")
 
+    variant("deepsig", default=True, description="builds with deepsig to predict signal peptides")
+
     depends_on("python@3.8:3.10", type=("build", "run"))
     depends_on("py-setuptools", type=("build", "run"))
     depends_on("py-biopython@1.78:", type=("build", "run"))
@@ -48,4 +50,6 @@ class PyBakta(PythonPackage):
     depends_on("amrfinder@3.11.26:", when="@1.9.0:", type=("build", "run"))
     depends_on("amrfinder@3.10.23:", when="@1.5.1", type=("build", "run"))
     depends_on("circos@0.69.8:", when="@1.6.0:", type=("build", "run"))
-    depends_on("py-deepsig-biocomp@1.2.5:", type=("build", "run"))
+    depends_on("py-deepsig-biocomp@1.2.5:", when="+deepsig", type=("build", "run"))
+
+    conflicts("platform=darwin", when="+deepsig")
