@@ -20,6 +20,7 @@ class Met(AutotoolsPackage):
     maintainers("AlexanderRichert-NOAA", "climbfuji")
 
     version("develop", branch="develop")
+    version("11.1.1", sha256="d02f9281d46bc45c931ca233a51ce20ba2158c0dd26acac2cb76c5a68788022a")
     version("11.1.0", sha256="e2e371ae1f49185ff8bf08201b1a3e90864a467aa3369b04132d231213c3c9e5")
     version("11.0.2", sha256="f720d15e1d6c235c9a41fd97dbeb0eb1082fb8ae99e1bcdcb5e51be9b50bdfbf")
     version("11.0.1", sha256="48d471ad4634f1b969d9358c51925ce36bf0a1cec5312a6755203a4794b81646")
