@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import sys
 
 import pytest
-import sys
 
 import spack.util.environment as environment
 from spack.paths import spack_root
@@ -78,13 +78,29 @@ def prepare_environment_for_tests(working_env):
     """
     os.environ["UNSET_ME"] = "foo"
     os.environ["EMPTY_PATH_LIST"] = ""
-    os.environ["PATH_LIST"] = begin_esc() + os.path.join("path", "second" + os.pathsep, "path", "third")
-    os.environ["REMOVE_PATH_LIST"] = begin_esc() + os.path.join("a","b" + os.pathsep, "duplicate" + os.pathsep,
-                                                                "a", "c" + os.pathsep, "remove", "this" + os.pathsep, 
-                                                                "a", "d" + os.pathsep, "duplicate", os.pathsep, "f", "g" )
-    os.environ["PATH_LIST_WITH_SYSTEM_PATHS"] = os.environ["REMOVE_PATH_LIST"] + os.path.join(os.pathsep, "usr", "include")
+    os.environ["PATH_LIST"] = begin_esc() + os.path.join(
+        "path", "second" + os.pathsep, "path", "third"
+    )
+    os.environ["REMOVE_PATH_LIST"] = begin_esc() + os.path.join(
+        "a",
+        "b" + os.pathsep,
+        "duplicate" + os.pathsep,
+        "a",
+        "c" + os.pathsep,
+        "remove",
+        "this" + os.pathsep,
+        "a",
+        "d" + os.pathsep,
+        "duplicate",
+        os.pathsep,
+        "f",
+        "g",
+    )
+    os.environ["PATH_LIST_WITH_SYSTEM_PATHS"] = os.environ["REMOVE_PATH_LIST"] + os.path.join(
+        os.pathsep, "usr", "include"
+    )
     os.environ["PATH_LIST_WITH_DUPLICATES"] = os.environ["REMOVE_PATH_LIST"]
-    
+
 
 @pytest.fixture
 def env(prepare_environment_for_tests):
@@ -120,7 +136,7 @@ def miscellaneous_paths():
 
 @pytest.fixture
 def files_to_be_sourced():
-    """Returns a list of files to be sourced""" 
+    """Returns a list of files to be sourced"""
     return [
         os.path.join(datadir, "sourceme_first." + shell_file()),
         os.path.join(datadir, "sourceme_second." + shell_file()),
@@ -170,55 +186,44 @@ def test_unset(env):
 
 
 @pytest.mark.parametrize(
-        "miscellaneous_paths, expected",
-        [
-            # Windows Paths on Windows Test
-            ([
+    "miscellaneous_paths, expected",
+    [
+        # Windows Paths on Windows Test
+        (
+            [
                 "C:\\",
                 "C:\\Program Files",
                 "C:\\Program Files (x86)",
                 "C:\\Users",
-                "C:\\ProgramData", 
-                "C:\\dev\\spack_window"
-             ],
-             ["C:\\dev\\spack_window"]),
-
-            # Windows and Mac System Paths on Window Test
-            ([
-                "C:\\",
-                "C:\\Program Files",
-                "C:\\Program Files (x86)",
-                "C:\\Users",
-                "C:\\ProgramData", 
+                "C:\\ProgramData",
                 "C:\\dev\\spack_window",
-                "/usr/bin",
-                "/bin64",
-                "/lib64",
-                "C:\\dev\\spack_window\\lib"
-             ],
-             [
+            ],
+            ["C:\\dev\\spack_window"],
+        ),
+        # Windows and Mac System Paths on Window Test
+        (
+            [
+                "C:\\",
+                "C:\\Program Files",
+                "C:\\Program Files (x86)",
+                "C:\\Users",
+                "C:\\ProgramData",
                 "C:\\dev\\spack_window",
                 "/usr/bin",
                 "/bin64",
                 "/lib64",
                 "C:\\dev\\spack_window\\lib",
-             ]),
-            
-            # Mac Paths on Windows Test
-            ([
-                "/usr/local/Cellar/gcc/5.3.0/lib",
-                "/usr/local/lib",
-                "/usr/local/lib64",
-                "/usr/local/opt/some-package/lib",
-                "/lib",
-                "/",
-                "/usr",
+            ],
+            [
+                "C:\\dev\\spack_window",
+                "/usr/bin",
                 "/bin64",
                 "/lib64",
-                "/include",
-                "/opt/some-package/include",
-                "/opt/some-package/local/..",
-            ], 
+                "C:\\dev\\spack_window\\lib",
+            ],
+        ),
+        # Mac Paths on Windows Test
+        (
             [
                 "/usr/local/Cellar/gcc/5.3.0/lib",
                 "/usr/local/lib",
@@ -232,26 +237,36 @@ def test_unset(env):
                 "/include",
                 "/opt/some-package/include",
                 "/opt/some-package/local/..",
-            ]),
-        ],
-    )
+            ],
+            [
+                "/usr/local/Cellar/gcc/5.3.0/lib",
+                "/usr/local/lib",
+                "/usr/local/lib64",
+                "/usr/local/opt/some-package/lib",
+                "/lib",
+                "/",
+                "/usr",
+                "/bin64",
+                "/lib64",
+                "/include",
+                "/opt/some-package/include",
+                "/opt/some-package/local/..",
+            ],
+        ),
+    ],
+)
 def test_filter_system_paths(miscellaneous_paths, expected):
     """Tests that the filtering of system paths works as expected."""
     filtered = filter_system_paths(miscellaneous_paths)
     assert filtered == expected
 
 
-@pytest.mark.parametrize(
-        "name,elements,separator",
-        [
-            ("A", ["foo", "bar", "baz"], os.pathsep),
-        ]
-)
+@pytest.mark.parametrize("name,elements,separator", [("A", ["foo", "bar", "baz"], os.pathsep)])
 def test_set_path(env, name, elements, separator):
     """Tests setting paths in an environment variable."""
 
     # Check setting paths with a specific separator
-    env.set_path(name, elements, separator= separator)
+    env.set_path(name, elements, separator=separator)
     env.apply_modifications()
 
     expected = os.pathsep.join(elements)
@@ -260,16 +275,30 @@ def test_set_path(env, name, elements, separator):
 
 def make_pathlist(recur_path, elements):
     """Makes a fake path to use for tests in format: \\path\\e1;\\path\\e2"""
-    return os.pathsep.join([begin_esc() + os.path.join(recur_path, element) for element in elements])
+    return os.pathsep.join(
+        [begin_esc() + os.path.join(recur_path, element) for element in elements]
+    )
 
 
 @pytest.mark.parametrize(
     "path_name,elements,expected",
     [
-        ("PATH_LIST", ["first", "fourth", "last"], make_pathlist("path", ["first", "second", "third", "fourth", "last"])),
-        ("EMPTY_PATH_LIST", ["first", "middle", "last"], make_pathlist("path", ["first", "middle", "last"])),
-        ("NEWLY_CREATED_PATH_LIST", ["first", "middle", "last"], make_pathlist("path", ["first", "middle", "last"]))
-    ]
+        (
+            "PATH_LIST",
+            ["first", "fourth", "last"],
+            make_pathlist("path", ["first", "second", "third", "fourth", "last"]),
+        ),
+        (
+            "EMPTY_PATH_LIST",
+            ["first", "middle", "last"],
+            make_pathlist("path", ["first", "middle", "last"]),
+        ),
+        (
+            "NEWLY_CREATED_PATH_LIST",
+            ["first", "middle", "last"],
+            make_pathlist("path", ["first", "middle", "last"]),
+        ),
+    ],
 )
 def test_path_manipulation(env, path_name, elements, expected):
     """Tests manipulating list of paths in the environment."""
@@ -288,10 +317,16 @@ def test_path_manipulation(env, path_name, elements, expected):
 
     assert os.environ[path_name] == expected
 
-    assert os.environ["REMOVE_PATH_LIST"] == make_pathlist("a", ["b", "c", "d"]) + os.pathsep + make_pathlist("f", ["g"])
-    
-    assert not os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].startswith(begin_esc() + os.path.join("usr", "include" + os.pathsep))
-    assert os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].endswith(os.path.join(os.pathsep, "usr", "include"))
+    assert os.environ["REMOVE_PATH_LIST"] == make_pathlist(
+        "a", ["b", "c", "d"]
+    ) + os.pathsep + make_pathlist("f", ["g"])
+
+    assert not os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].startswith(
+        begin_esc() + os.path.join("usr", "include" + os.pathsep)
+    )
+    assert os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].endswith(
+        os.path.join(os.pathsep, "usr", "include")
+    )
 
     assert os.environ["PATH_LIST_WITH_DUPLICATES"].count(begin_esc() + "duplicate") == 1
 
@@ -388,7 +423,11 @@ def test_preserve_environment(prepare_environment_for_tests):
         # Check if we can set a variable to different values depending
         # on command line parameters
         ((os.path.join(datadir, "sourceme_parameters." + shell_file()),), {"FOO": "default"}, []),
-        (([os.path.join(datadir, "sourceme_parameters." + shell_file()), "intel64"],), {"FOO": "intel64"}, []),
+        (
+            ([os.path.join(datadir, "sourceme_parameters." + shell_file()), "intel64"],),
+            {"FOO": "intel64"},
+            [],
+        ),
         # Check unsetting variables
         (
             (os.path.join(datadir, "sourceme_second." + shell_file()),),
@@ -562,7 +601,7 @@ def test_exclude_lmod_variables():
     assert not any(x.startswith("LMOD_") for x in modifications)
 
 
-#@pytest.mark.not_on_windows("Not supported on Windows (yet)")
+# @pytest.mark.not_on_windows("Not supported on Windows (yet)")
 @pytest.mark.regression("13504")
 def test_exclude_modules_variables():
     # Construct the list of environment modifications

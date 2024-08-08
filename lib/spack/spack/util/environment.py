@@ -746,9 +746,7 @@ class EnvironmentModifications:
 
         # Compute the environments before and after sourcing
         before = sanitize(
-            environment_after_sourcing_files("cd %CD%", **kwargs),
-            exclude=exclude,
-            include=include,
+            environment_after_sourcing_files("cd %CD%", **kwargs), exclude=exclude, include=include
         )
         file_and_args = (filename,) + arguments
         after = sanitize(

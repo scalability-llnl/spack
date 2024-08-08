@@ -234,7 +234,12 @@ class Executable:
 
         try:
             proc = subprocess.Popen(
-                " ".join(cmd), stdin=istream, stderr=estream, stdout=ostream, env=env, close_fds=False
+                " ".join(cmd),
+                stdin=istream,
+                stderr=estream,
+                stdout=ostream,
+                env=env,
+                close_fds=False,
             )
             out, err = proc.communicate(timeout=timeout)
 
