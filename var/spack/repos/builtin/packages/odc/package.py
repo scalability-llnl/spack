@@ -34,4 +34,10 @@ class Odc(CMakePackage):
             # The tests download additional data (~650MB):
             self.define("ENABLE_TESTS", self.run_tests),
         ]
+        # https://github.com/JCSDA/spack-stack/issues/585
+        if self.spec.satisfies("%apple-clang@14.0.3"):
+            args.append(self.define("CMAKE_C_FLAGS_RELEASE", "-O1"))
+            args.append(self.define("CMAKE_CXX_FLAGS_RELEASE", "-O1"))
+            args.append(self.define("CMAKE_C_FLAGS_RELWITHDEBINFO", "-O1"))
+            args.append(self.define("CMAKE_CXX_FLAGS_RELWITHDEBINFO", "-O1"))
         return args
