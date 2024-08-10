@@ -50,7 +50,7 @@ class Cpptrace(CMakePackage):
             "unwinding-backend",
             multi=False,
             default="unwind",
-            values=("unwind", "execinfo", "libunwind", "nothing"),
+            values=("unwind", "execinfo", "nothing"),
             description="Library backend for unwinding",
         )
         variant(
