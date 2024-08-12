@@ -33,6 +33,8 @@ class Qt(Package):
 
     license("LGPL-3.0-only")
 
+    version("5.15.14", sha256="fdd3a4f197d2c800ee0085c721f4bef60951cbda9e9c46e525d1412f74264ed7")
+    version("5.15.13", sha256="9550ec8fc758d3d8d9090e261329700ddcd712e2dda97e5fcfeabfac22bea2ca")
     version("5.15.12", sha256="93f2c0889ee2e9cdf30c170d353c3f829de5f29ba21c119167dee5995e48ccce")
     version("5.15.11", sha256="7426b1eaab52ed169ce53804bdd05dfe364f761468f888a0f15a308dc1dc2951")
     version("5.15.10", sha256="b545cb83c60934adc9a6bbd27e2af79e5013de77d46f5b9f5bb2a3c762bf55ca")
@@ -259,6 +261,11 @@ class Qt(Package):
     # https://doc.qt.io/qt-5.14/supported-platforms.html
     conflicts("%gcc@:4", when="@5.14:")
 
+    # Compiling with oneAPI compilers icx, icpx requires patching
+    # This has only been tested for 5.15.14 so far
+    conflicts("%oneapi", when="@:5.15.13")
+    patch("qt51514-oneapi.patch", when="@5.15.14: %oneapi")
+
     # Non-macOS dependencies and special macOS constraints
     if MACOS_VERSION is None:
         with when("+gui"):
@@ -288,6 +295,10 @@ class Qt(Package):
     # Mapping for compilers/systems in the QT 'mkspecs'
     compiler_mapping = {
         "intel": ("icc",),
+        # This only works because we apply patch "qt51514-oneapi.patch"
+        # above that replaces calls to "icc" with calls to "icx" in
+        # qtbase/mkspecs/*
+        "oneapi": ("icc",),
         "apple-clang": ("clang-libc++", "clang"),
         "clang": ("clang-libc++", "clang"),
         "aocc": ("clang-libc++", "clang"),

@@ -76,6 +76,7 @@ class Fckit(CMakePackage):
 
         if (
             self.spec.satisfies("%intel")
+            or self.spec.satisfies("%oneapi")
             or self.spec.satisfies("%gcc")
             or self.spec.satisfies("%nvhpc")
         ):
