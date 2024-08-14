@@ -18,6 +18,7 @@ from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_
 from llnl.util.symlink import readlink
 
 import spack.error
+import spack.fetch_strategy
 import spack.paths
 import spack.stage
 import spack.util.executable
@@ -323,17 +324,11 @@ def failing_search_fn():
     return _mock
 
 
-@pytest.fixture
-def failing_fetch_strategy():
-    """Returns a fetch strategy that fails."""
-
-    class FailingFetchStrategy(spack.fetch_strategy.FetchStrategy):
-        def fetch(self):
-            raise spack.fetch_strategy.FailedDownloadError(
-                "<non-existent URL>", "This implementation of FetchStrategy always fails"
-            )
-
-    return FailingFetchStrategy()
+class FailingFetchStrategy(spack.fetch_strategy.FetchStrategy):
+    def fetch(self):
+        raise spack.fetch_strategy.FailedDownloadError(
+            "<non-existent URL>", "This implementation of FetchStrategy always fails"
+        )
 
 
 @pytest.fixture
@@ -511,8 +506,8 @@ class TestStage:
             stage.fetch()
         check_destroy(stage, self.stage_name)
 
-    def test_no_search_mirror_only(self, failing_fetch_strategy, failing_search_fn):
-        stage = Stage(failing_fetch_strategy, name=self.stage_name, search_fn=failing_search_fn)
+    def test_no_search_mirror_only(self, failing_search_fn):
+        stage = Stage(FailingFetchStrategy(), name=self.stage_name, search_fn=failing_search_fn)
         with stage:
             try:
                 stage.fetch(mirror_only=True)
@@ -527,8 +522,8 @@ class TestStage:
             (None, "All fetchers failed"),
         ],
     )
-    def test_search_if_default_fails(self, failing_fetch_strategy, search_fn, err_msg, expected):
-        stage = Stage(failing_fetch_strategy, name=self.stage_name, search_fn=search_fn)
+    def test_search_if_default_fails(self, search_fn, err_msg, expected):
+        stage = Stage(FailingFetchStrategy(), name=self.stage_name, search_fn=search_fn)
 
         with stage:
             with pytest.raises(spack.error.FetchError, match=expected):

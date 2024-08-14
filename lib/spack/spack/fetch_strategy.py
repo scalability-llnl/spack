@@ -30,6 +30,7 @@ import re
 import shutil
 import urllib.error
 import urllib.parse
+import urllib.request
 from pathlib import PurePath
 from typing import List, Optional
 
@@ -273,10 +274,7 @@ class URLFetchStrategy(FetchStrategy):
     @property
     def curl(self):
         if not self._curl:
-            try:
-                self._curl = which("curl", required=True)
-            except CommandNotFoundError as exc:
-                tty.error(str(exc))
+            self._curl = web_util.require_curl()
         return self._curl
 
     def source_id(self):
@@ -297,27 +295,23 @@ class URLFetchStrategy(FetchStrategy):
     @_needs_stage
     def fetch(self):
         if self.archive_file:
-            tty.debug("Already downloaded {0}".format(self.archive_file))
+            tty.debug(f"Already downloaded {self.archive_file}")
             return
 
-        url = None
-        errors = []
+        errors: List[Exception] = []
         for url in self.candidate_urls:
-            if not web_util.url_exists(url):
-                tty.debug("URL does not exist: " + url)
-                continue
-
             try:
                 self._fetch_from_url(url)
                 break
             except FailedDownloadError as e:
-                errors.append(str(e))
-
-        for msg in errors:
-            tty.debug(msg)
+                errors.extend(e.exceptions)
+        else:
+            raise FailedDownloadError(*errors)
 
         if not self.archive_file:
-            raise FailedDownloadError(url)
+            raise FailedDownloadError(
+                RuntimeError(f"Missing archive {self.archive_file} after fetching")
+            )
 
     def _fetch_from_url(self, url):
         if spack.config.get("config:url_fetch_method") == "curl":
@@ -336,19 +330,20 @@ class URLFetchStrategy(FetchStrategy):
     @_needs_stage
     def _fetch_urllib(self, url):
         save_file = self.stage.save_filename
-        tty.msg("Fetching {0}".format(url))
 
-        # Run urllib but grab the mime type from the http headers
+        request = urllib.request.Request(url, headers={"User-Agent": web_util.SPACK_USER_AGENT})
+
         try:
-            url, headers, response = web_util.read_from_url(url)
-        except web_util.SpackWebError as e:
+            response = web_util.urlopen(request)
+        except (TimeoutError, urllib.error.URLError) as e:
             # clean up archive on failure.
             if self.archive_file:
                 os.remove(self.archive_file)
             if os.path.lexists(save_file):
                 os.remove(save_file)
-            msg = "urllib failed to fetch with error {0}".format(e)
-            raise FailedDownloadError(url, msg)
+            raise FailedDownloadError(e) from e
+
+        tty.msg(f"Fetching {url}")
 
         if os.path.lexists(save_file):
             os.remove(save_file)
@@ -356,7 +351,7 @@ class URLFetchStrategy(FetchStrategy):
         with open(save_file, "wb") as _open_file:
             shutil.copyfileobj(response, _open_file)
 
-        self._check_headers(str(headers))
+        self._check_headers(str(response.headers))
 
     @_needs_stage
     def _fetch_curl(self, url):
@@ -365,7 +360,7 @@ class URLFetchStrategy(FetchStrategy):
         if self.stage.save_filename:
             save_file = self.stage.save_filename
             partial_file = self.stage.save_filename + ".part"
-        tty.msg("Fetching {0}".format(url))
+        tty.msg(f"Fetching {url}")
         if partial_file:
             save_args = [
                 "-C",
@@ -405,8 +400,8 @@ class URLFetchStrategy(FetchStrategy):
 
             try:
                 web_util.check_curl_code(curl.returncode)
-            except spack.error.FetchError as err:
-                raise spack.fetch_strategy.FailedDownloadError(url, str(err))
+            except spack.error.FetchError as e:
+                raise FailedDownloadError(e) from e
 
         self._check_headers(headers)
 
@@ -560,7 +555,7 @@ class OCIRegistryFetchStrategy(URLFetchStrategy):
                 os.remove(self.archive_file)
             if os.path.lexists(file):
                 os.remove(file)
-            raise FailedDownloadError(self.url, f"Failed to fetch {self.url}: {e}") from e
+            raise FailedDownloadError(e) from e
 
         if os.path.lexists(file):
             os.remove(file)
@@ -1312,35 +1307,41 @@ class S3FetchStrategy(URLFetchStrategy):
     @_needs_stage
     def fetch(self):
         if self.archive_file:
-            tty.debug("Already downloaded {0}".format(self.archive_file))
+            tty.debug(f"Already downloaded {self.archive_file}")
             return
 
         parsed_url = urllib.parse.urlparse(self.url)
         if parsed_url.scheme != "s3":
             raise spack.error.FetchError("S3FetchStrategy can only fetch from s3:// urls.")
 
-        tty.debug("Fetching {0}".format(self.url))
-
         basename = os.path.basename(parsed_url.path)
+        request = urllib.request.Request(
+            self.url, headers={"User-Agent": web_util.SPACK_USER_AGENT}
+        )
 
         with working_dir(self.stage.path):
-            _, headers, stream = web_util.read_from_url(self.url)
+            try:
+                response = web_util.urlopen(request)
+            except (TimeoutError, urllib.error.URLError) as e:
+                raise FailedDownloadError(e) from e
+
+            tty.debug(f"Fetching {self.url}")
 
             with open(basename, "wb") as f:
-                shutil.copyfileobj(stream, f)
+                shutil.copyfileobj(response, f)
 
-            content_type = web_util.get_header(headers, "Content-type")
+            content_type = web_util.get_header(response.headers, "Content-type")
 
         if content_type == "text/html":
             warn_content_type_mismatch(self.archive_file or "the archive")
 
         if self.stage.save_filename:
-            llnl.util.filesystem.rename(
-                os.path.join(self.stage.path, basename), self.stage.save_filename
-            )
+            fs.rename(os.path.join(self.stage.path, basename), self.stage.save_filename)
 
         if not self.archive_file:
-            raise FailedDownloadError(self.url)
+            raise FailedDownloadError(
+                RuntimeError(f"Missing archive {self.archive_file} after fetching")
+            )
 
 
 @fetcher
@@ -1366,17 +1367,23 @@ class GCSFetchStrategy(URLFetchStrategy):
         if parsed_url.scheme != "gs":
             raise spack.error.FetchError("GCSFetchStrategy can only fetch from gs:// urls.")
 
-        tty.debug("Fetching {0}".format(self.url))
-
         basename = os.path.basename(parsed_url.path)
+        request = urllib.request.Request(
+            self.url, headers={"User-Agent": web_util.SPACK_USER_AGENT}
+        )
 
         with working_dir(self.stage.path):
-            _, headers, stream = web_util.read_from_url(self.url)
+            try:
+                response = web_util.urlopen(request)
+            except (TimeoutError, urllib.error.URLError) as e:
+                raise FailedDownloadError(e) from e
+
+            tty.debug(f"Fetching {self.url}")
 
             with open(basename, "wb") as f:
-                shutil.copyfileobj(stream, f)
+                shutil.copyfileobj(response, f)
 
-            content_type = web_util.get_header(headers, "Content-type")
+            content_type = web_util.get_header(response.headers, "Content-type")
 
         if content_type == "text/html":
             warn_content_type_mismatch(self.archive_file or "the archive")
@@ -1385,7 +1392,9 @@ class GCSFetchStrategy(URLFetchStrategy):
             os.rename(os.path.join(self.stage.path, basename), self.stage.save_filename)
 
         if not self.archive_file:
-            raise FailedDownloadError(self.url)
+            raise FailedDownloadError(
+                RuntimeError(f"Missing archive {self.archive_file} after fetching")
+            )
 
 
 @fetcher
@@ -1722,9 +1731,9 @@ class NoCacheError(spack.error.FetchError):
 class FailedDownloadError(spack.error.FetchError):
     """Raised when a download fails."""
 
-    def __init__(self, url, msg=""):
-        super().__init__("Failed to fetch file from URL: %s" % url, msg)
-        self.url = url
+    def __init__(self, *exceptions: Exception):
+        super().__init__("Failed to download")
+        self.exceptions = exceptions
 
 
 class NoArchiveFileError(spack.error.FetchError):

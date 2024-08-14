@@ -432,7 +432,7 @@ def test_ssl_curl_cert_file(cert_exists, tmpdir, ssl_scrubbed_env, mutable_confi
         if cert_exists:
             open(mock_cert, "w").close()
             assert os.path.isfile(mock_cert)
-        curl = spack.util.web._curl()
+        curl = spack.util.web.require_curl()
 
         # arbitrary call to query the run env
         dump_env = {}

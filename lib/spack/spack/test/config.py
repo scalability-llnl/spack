@@ -18,6 +18,7 @@ from llnl.util.filesystem import getuid, join_path, mkdirp, touch, touchp
 import spack.config
 import spack.directory_layout
 import spack.environment as ev
+import spack.fetch_strategy
 import spack.main
 import spack.package_base
 import spack.paths

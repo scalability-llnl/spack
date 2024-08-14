@@ -28,10 +28,11 @@ from llnl.util.filesystem import mkdirp, rename, working_dir
 
 import spack.config
 import spack.error
+import spack.util.executable
 import spack.util.path
 import spack.util.url as url_util
 
-from .executable import CommandNotFoundError, Executable, which
+from .executable import CommandNotFoundError, Executable
 from .gcs import GCSBlob, GCSBucket, GCSHandler
 from .s3 import UrllibS3Handler, get_s3_session
 
@@ -198,7 +199,7 @@ def read_from_url(url, accept_content_type=None):
     try:
         response = urlopen(request)
     except (TimeoutError, URLError) as e:
-        raise SpackWebError(f"Download of {url.geturl()} failed: {e}")
+        raise SpackWebError(f"Download of {url.geturl()} failed: {e.__class__.__name__}: {e}")
 
     if accept_content_type:
         try:
@@ -307,45 +308,44 @@ def base_curl_fetch_args(url, timeout=0):
     return curl_args
 
 
-def check_curl_code(returncode):
+def check_curl_code(returncode: int) -> None:
     """Check standard return code failures for provided arguments.
 
     Arguments:
-        returncode (int): curl return code
+        returncode: curl return code
 
     Raises FetchError if the curl returncode indicates failure
     """
-    if returncode != 0:
-        if returncode == 22:
-            # This is a 404. Curl will print the error.
-            raise spack.error.FetchError("URL was not found!")
+    if returncode == 0:
+        return
+    elif returncode == 22:
+        # This is a 404. Curl will print the error.
+        raise spack.error.FetchError("URL was not found!")
+    elif returncode == 60:
+        # This is a certificate error.  Suggest spack -k
+        raise spack.error.FetchError(
+            "Curl was unable to fetch due to invalid certificate. "
+            "This is either an attack, or your cluster's SSL "
+            "configuration is bad.  If you believe your SSL "
+            "configuration is bad, you can try running spack -k, "
+            "which will not check SSL certificates."
+            "Use this at your own risk."
+        )
 
-        if returncode == 60:
-            # This is a certificate error.  Suggest spack -k
-            raise spack.error.FetchError(
-                "Curl was unable to fetch due to invalid certificate. "
-                "This is either an attack, or your cluster's SSL "
-                "configuration is bad.  If you believe your SSL "
-                "configuration is bad, you can try running spack -k, "
-                "which will not check SSL certificates."
-                "Use this at your own risk."
-            )
-
-        raise spack.error.FetchError("Curl failed with error {0}".format(returncode))
+    raise spack.error.FetchError(f"Curl failed with error {returncode}")
 
 
-def _curl(curl=None):
-    if not curl:
-        try:
-            curl = which("curl", required=True)
-        except CommandNotFoundError as exc:
-            tty.error(str(exc))
-            raise spack.error.FetchError("Missing required curl fetch method")
+def require_curl() -> Executable:
+    try:
+        path = spack.util.executable.which_string("curl", required=True)
+    except CommandNotFoundError as e:
+        raise spack.error.FetchError(f"curl is required but not found: {e}") from e
+    curl = spack.util.executable.Executable(path)
     set_curl_env_for_ssl_certs(curl)
     return curl
 
 
-def fetch_url_text(url, curl=None, dest_dir="."):
+def fetch_url_text(url, curl: Optional[Executable] = None, dest_dir="."):
     """Retrieves text-only URL content using the configured fetch method.
     It determines the fetch method from:
 
@@ -379,10 +379,7 @@ def fetch_url_text(url, curl=None, dest_dir="."):
     fetch_method = spack.config.get("config:url_fetch_method")
     tty.debug("Using '{0}' to fetch {1} into {2}".format(fetch_method, url, path))
     if fetch_method == "curl":
-        curl_exe = _curl(curl)
-        if not curl_exe:
-            raise spack.error.FetchError("Missing required fetch method (curl)")
-
+        curl_exe = curl or require_curl()
         curl_args = ["-O"]
         curl_args.extend(base_curl_fetch_args(url))
 
@@ -439,9 +436,7 @@ def url_exists(url, curl=None):
         "config:url_fetch_method", "urllib"
     ) == "curl" and url_result.scheme not in ("gs", "s3")
     if use_curl:
-        curl_exe = _curl(curl)
-        if not curl_exe:
-            return False
+        curl_exe = curl or require_curl()
 
         # Telling curl to fetch the first byte (-r 0-0) is supposed to be
         # portable.

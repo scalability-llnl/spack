@@ -13,7 +13,7 @@ import shutil
 import stat
 import sys
 import tempfile
-from typing import Callable, Dict, Iterable, Optional, Set
+from typing import Callable, Dict, Iterable, List, Optional, Set
 
 import llnl.string
 import llnl.util.lang
@@ -40,6 +40,7 @@ import spack.paths
 import spack.resource
 import spack.spec
 import spack.stage
+import spack.util.crypto
 import spack.util.lock
 import spack.util.path as sup
 import spack.util.pattern as pattern
@@ -534,32 +535,29 @@ class Stage(LockableStagingDir):
                 for fetcher in dynamic_fetchers:
                     yield fetcher
 
-        def print_errors(errors):
-            for msg in errors:
-                tty.debug(msg)
-
-        errors = []
+        errors: List[str] = []
         for fetcher in generate_fetchers():
             try:
                 fetcher.stage = self
                 self.fetcher = fetcher
                 self.fetcher.fetch()
                 break
-            except spack.fetch_strategy.NoCacheError:
+            except fs.NoCacheError:
                 # Don't bother reporting when something is not cached.
                 continue
+            except fs.FailedDownloadError as f:
+                errors.extend(f"{fetcher}: {e.__class__.__name__}: {e}" for e in f.exceptions)
+                continue
             except spack.error.SpackError as e:
-                errors.append("Fetching from {0} failed.".format(fetcher))
-                tty.debug(e)
+                errors.append(f"{fetcher}: {e.__class__.__name__}: {e}")
                 continue
         else:
-            print_errors(errors)
-
             self.fetcher = self.default_fetcher
-            default_msg = "All fetchers failed for {0}".format(self.name)
-            raise spack.error.FetchError(err_msg or default_msg, None)
-
-        print_errors(errors)
+            if err_msg:
+                raise spack.error.FetchError(err_msg)
+            raise spack.error.FetchError(
+                f"All fetchers failed for {self.name}", "\n".join(f"    {e}" for e in errors)
+            )
 
     def steal_source(self, dest):
         """Copy the source_path directory in its entirety to directory dest
@@ -1188,7 +1186,7 @@ def _fetch_and_checksum(url, options, keep_stage, action_fn=None):
             # Checksum the archive and add it to the list
             checksum = spack.util.crypto.checksum(hashlib.sha256, stage.archive_file)
         return checksum, None
-    except FailedDownloadError:
+    except fs.FailedDownloadError:
         return None, f"[WORKER] Failed to fetch {url}"
     except Exception as e:
         return None, f"[WORKER] Something failed on {url}, skipping.  ({e})"
@@ -1208,7 +1206,3 @@ class RestageError(StageError):
 
 class VersionFetchError(StageError):
     """Raised when we can't determine a URL to fetch a package."""
-
-
-# Keep this in namespace for convenience
-FailedDownloadError = fs.FailedDownloadError
