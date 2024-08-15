@@ -6,6 +6,7 @@ import inspect
 import os
 import platform
 import posixpath
+import sys
 
 import pytest
 
@@ -284,6 +285,25 @@ def test_compiler_config_modifications(
             assert os.environ[name] == value
             continue
         assert name not in os.environ
+
+
+def test_compiler_custom_env(config, mock_packages, monkeypatch, working_env):
+    if sys.platform == "win32":
+        test_path = r"C:\test\path\element\custom-env" + "\\"
+    else:
+        test_path = r"/test/path/element/custom-env/"
+
+    def custom_env(pkg, env):
+        env.prepend_path("PATH", test_path)
+        env.append_flags("ENV_CUSTOM_CC_FLAGS", "--custom-env-flag1")
+
+    pkg = spack.spec.Spec("cmake").concretized().package
+    monkeypatch.setattr(pkg.compiler, "setup_custom_environment", custom_env)
+    spack.build_environment.setup_package(pkg, False)
+
+    # Note: trailing slash may be stripped by internal logic
+    assert test_path[:-1] in os.environ["PATH"]
+    assert "--custom-env-flag1" in os.environ["ENV_CUSTOM_CC_FLAGS"]
 
 
 def test_external_config_env(mock_packages, mutable_config, working_env):
