@@ -411,8 +411,8 @@ class Cmake(Package):
             env.unset("CMAKE_FRAMEWORK_PATH")
         # prevent detection of external copies of our dependent
         # package from being detected
-        env.unset(f"{dependent_spec.name.upper()}_DIR")
-        env.unset(f"{dependent_spec.name.upper()}_ROOT")
+        env.set(f"{dependent_spec.name.upper()}_DIR", dependent_spec.prefix)
+        env.set(f"{dependent_spec.name.upper()}_ROOT", dependent_spec.prefix)
 
 
 
