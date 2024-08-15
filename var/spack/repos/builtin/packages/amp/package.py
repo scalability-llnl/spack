@@ -3,10 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
-class Amp(CMakePackage):
+class Amp(CMakePackage, CudaPackage, ROCmPackage):
     """The Advanced Multi-Physics (AMP) package.
 
     The Advanced Multi-Physics (AMP) package is an open source parallel
@@ -14,114 +13,49 @@ class Amp(CMakePackage):
     and multi-domain multi-physics applications in mind.
     """
 
-    homepage = "https://bitbucket.org/AdvancedMultiPhysics/amp"
-    hg = homepage
+    homepage = "https://github.com/AdvancedMultiPhysics/AMP"
+    git = "https://github.com/AdvancedMultiPhysics/AMP.git"
 
-    version("develop")
+    maintainers("bobby-philip", "gllongo", "rbberger")
 
-    variant("boost", default=True, description="Build with support for Boost")
-    variant("hdf5", default=True, description="Build with support for HDF5")
-    variant("hypre", default=True, description="Build with support for hypre")
-    variant("libmesh", default=True, description="Build with libmesh support")
+    license("UNKNOWN")
+
+    version("master", branch="master")
+    version("3.1.0", tag="3.1.0", commit="c8a52e6f3124e43ebce944ee3fae8b9a994c4dbe")
+
     variant("mpi", default=True, description="Build with MPI support")
-    variant("netcdf", default=True, description="Build with NetCDF support")
-    variant("petsc", default=True, description="Build with Petsc support")
-    variant("shared", default=True, description="Build shared libraries")
-    variant("silo", default=True, description="Build with support for Silo")
-    variant("sundials", default=True, description="Build with support for Sundials")
-    variant("trilinos", default=True, description="Build with support for Trilinos")
-    variant("zlib", default=True, description="Build with support for zlib")
+    variant("hypre", default=False, description="Build with support for hypre")
+    variant("kokkos", default=False, description="Build with support for Kokkos")
+    variant("openmp", default=False, description="Build with OpenMP support")
+    variant("shared", default=False, description="Build shared libraries")
 
-    # Everything should be compiled position independent (-fpic)
-    depends_on("blas")
-    depends_on("lapack")
+    depends_on("cmake@3.26.0:")
+    depends_on("tpl-builder+stacktrace")
 
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants, when="+boost")
-    depends_on("hdf5", when="+hdf5")
-    depends_on("hypre", when="+hypre")
-    depends_on("libmesh", when="+libmesh")
-    depends_on("netcdf-c", when="+netcdf")
-    depends_on("petsc", when="+petsc")
-    depends_on("silo", when="+silo")
-    depends_on("sundials", when="+sundials")
-    depends_on("trilinos", when="+trilinos")
-    depends_on("zlib-api", when="+zlib")
+    tpl_depends = ["hypre", "kokkos", "mpi", "openmp", "cuda", "rocm", "shared"]
 
-    # MPI related dependencies
-    depends_on("mpi", when="+mpi")
+    for v in tpl_depends:
+        depends_on(f"tpl-builder+{v}", when=f"+{v}")
+        depends_on(f"tpl-builder~{v}", when=f"~{v}")
+
+    for _flag in CudaPackage.cuda_arch_values:
+        depends_on(f"tpl-builder+cuda cuda_arch={_flag}", when=f"+cuda cuda_arch={_flag}")
+
+    for _flag in ROCmPackage.amdgpu_targets:
+        depends_on(f"tpl-builder+rocm amdgpu_target={_flag}", when=f"+rocm amdgpu_target={_flag}")
 
     def cmake_args(self):
         spec = self.spec
 
         options = [
-            self.define("TPL_URL", "https://bitbucket.org/AdvancedMultiPhysics/tpl-builder"),
-            self.define(
-                "AMP_DATA_URL",
-                "https://bitbucket.org/AdvancedMultiPhysics/amp/downloads/AMP-Data.tar.gz",
-            ),
-            self.define("AMP_ENABLE_TESTS", "OFF"),
-            self.define("AMP_ENABLE_EXAMPLES", "OFF"),
-            self.define("AMP_ENABLE_CXX11", "ON"),
-            self.define("CXX_STD", "11"),
-            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
-            self.define("USE_MPI", "0"),
+            self.define("TPL_DIRECTORY", spec["tpl-builder"].prefix),
+            self.define("AMP_ENABLE_TESTS", self.run_tests),
+            self.define("EXCLUDE_TESTS_FROM_ALL", not self.run_tests),
+            self.define("AMP_ENABLE_EXAMPLES", False),
+            self.define("CXX_STD", "17"),
         ]
 
-        if spec.satisfies("+mpi"):
-            options.extend(
-                [
-                    self.define("CMAKE_C_COMPILER", spec["mpi"].mpicc),
-                    self.define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx),
-                    self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc),
-                    self.define("MPI_COMPILER", "1"),
-                    self.define("MPIEXEC", spec["mpi"].prefix.bin),
-                ]
-            )
-        else:
-            options.extend(
-                [
-                    self.define("CMAKE_C_COMPILER", self.compiler.cc),
-                    self.define("CMAKE_CXX_COMPILER", self.compiler.cxx),
-                    self.define("CMAKE_Fortran_COMPILER", self.compiler.fc),
-                ]
-            )
+        if "+rocm" in spec:
+            options.append(self.define("COMPILE_CXX_AS_HIP", True))
 
-        tpl_list = ["LAPACK"]
-        blas, lapack = spec["blas"].libs, spec["lapack"].libs
-        options.extend(
-            [
-                self.define("TPL_LAPACK_INSTALL_DIR", spec["lapack"].prefix),
-                self.define("TPL_BLAS_LIBRARY_NAMES", ";".join(blas.names)),
-                self.define("TPL_BLAS_LIBRARY_DIRS", ";".join(blas.directories)),
-                self.define("TPL_LAPACK_LIBRARY_NAMES", ";".join(lapack.names)),
-                self.define("TPL_LAPACK_LIBRARY_DIRS", ";".join(lapack.directories)),
-            ]
-        )
-
-        if spec.satisfies("+zlib"):
-            tpl_list.append("ZLIB")
-            options.append(self.define("TPL_ZLIB_INSTALL_DIR", spec["zlib-api"].prefix))
-
-        for vname in (
-            "boost",
-            "hdf5",
-            "hypre",
-            "libmesh",
-            "petsc",
-            "silo",
-            "sundials",
-            "trilinos",
-        ):
-            if "+" + vname in spec:
-                tpl_list.append(vname.upper())
-                options.append(self.define(f"TPL_{vname.upper()}_INSTALL_DIR", spec[vname].prefix))
-
-        if spec.satisfies("+netcdf"):
-            tpl_list.append("NETCDF")
-            options.append(self.define("TPL_NETCDF_INSTALL_DIR", spec["netcdf-c"].prefix))
-
-        options.append(self.define("TPL_LIST", ";".join(tpl_list)))
         return options
