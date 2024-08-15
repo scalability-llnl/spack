@@ -9,6 +9,7 @@ from os.path import dirname
 from llnl.util import tty
 
 from spack.compiler import Compiler
+from spack.version import Version
 
 
 class Oneapi(Compiler):
@@ -137,6 +138,16 @@ class Oneapi(Compiler):
         #   Executable "sycl-post-link" doesn't exist!
         if self.cxx:
             env.prepend_path("PATH", dirname(self.cxx))
+
+        # Edge cases for Intel's oneAPI compilers when using the legacy classic compilers:
+        # Always pass flags to disable deprecation warnings, since these warnings can
+        # confuse tools that parse the output of compiler commands (e.g. version checks).
+        if self.cc and self.cc.endswith("icc") and self.real_version >= Version("2021"):
+            env.append_flags("SPACK_ALWAYS_CFLAGS", "-diag-disable=10441")
+        if self.cxx and self.cxx.endswith("icpc") and self.real_version >= Version("2021"):
+            env.append_flags("SPACK_ALWAYS_CXXFLAGS", "-diag-disable=10441")
+        if self.fc and self.fc.endswith("ifort") and self.real_version >= Version("2021"):
+            env.append_flags("SPACK_ALWAYS_FFLAGS", "-diag-disable=10448")
 
         # 2024 release bumped the libsycl version because of an ABI
         # change, 2024 compilers are required.  You will see this
