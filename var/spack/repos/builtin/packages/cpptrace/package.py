@@ -91,6 +91,8 @@ class Cpptrace(CMakePackage):
             description="Library backend for demangling",
         )
 
+    conflicts("+shared ~pic")
+
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
@@ -101,8 +103,6 @@ class Cpptrace(CMakePackage):
 
     depends_on("googletest", type="test")
 
-    conflicts("+shared ~pic")
-
     def cmake_args(self):
         spec = self.spec
         define = self.define
@@ -112,8 +112,8 @@ class Cpptrace(CMakePackage):
             from_variant("BUILD_SHARED_LIBS", "shared"),
             from_variant("CPPTRACE_POSITION_INDEPENDENT_CODE", "pic"),
             define("CPPTRACE_BUILD_TESTING", self.run_tests),
+            define("CPPTRACE_USE_EXTERNAL_GTEST", self.run_tests),
             define("CPPTRACE_USE_EXTERNAL_LIBDWARF", True),
-            define("CPPTRACE_USE_EXTERNAL_GTEST", True),
             define(
                 f"CPPTRACE_UNWIND_WITH_{spec.variants['unwinding-backend'].value.upper()}", True
             ),
