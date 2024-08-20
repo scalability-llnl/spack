@@ -199,7 +199,7 @@ class CrayMpich(Package, ROCmPackage):
                     break
 
                 GTL_library_fullpath = list(GTL_shared_libraries)[0]
-                tty.info(f"Selected GTL: {GTL_library_fullpath}")
+                tty.debug(f"Selected GTL: {GTL_library_fullpath}")
 
                 GTL_library_directory = os.path.dirname(GTL_library_fullpath)
                 GTL_library_name = os.path.splitext(
