@@ -8,8 +8,10 @@ import os
 from spack.package import *
 from spack.util.module_cmd import get_path_args_from_module_line, module
 
+import llnl.util.tty as tty
 
-class CrayMpich(Package):
+
+class CrayMpich(Package, ROCmPackage):
     """Cray's MPICH is a high performance and widely portable implementation of
     the Message Passing Interface (MPI) standard."""
 
@@ -136,3 +138,80 @@ class CrayMpich(Package):
         libs += find_libraries(libraries, root=self.prefix.lib64, recursive=True)
 
         return libs
+
+    # @memoized
+    @property
+    def gtl_lib(self):
+        # GPU transport Layer (GTL) handling.
+        #
+        # So in theory the cray-mpich module defines an environment variable per
+        # supported GPU. So we should read the appropriate variable. In practice
+        # loading a module and checking its content is PITA. We simplify by
+        # assuming that the GTL for a given vendor (say, AMD), are all the same
+        # (which is the case for amd, cuda and intel GPUs).
+        # Second, except if you have a very weird mpich layout, the GTL are
+        # located in /opt/cray/pe/mpich/8.1.28/gtl/lib when the mpi libs are in
+        # /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>.
+        # So we go up 3 directory, then into GTL.
+
+        GTL_kinds = [
+            [
+                "+rocm",
+                "amdgpu_target",
+                "libmpi_gtl_hsa",
+                set(["gfx906", "gfx908", "gfx90a", "gfx940", "gfx942"]),
+            ],
+            # [
+            #     "+cuda",
+            #     "cuda_arch",
+            #     "libmpi_gtl_cuda",
+            #     set(["nvidia70", "nvidia80", "nvidia90"]),
+            # ],
+            # ["", "", "libmpi_gtl_ze", ["ponteVecchio"]]
+        ]
+
+        for GTL_kind in GTL_kinds:
+            if self.spec.satisfies(f"{GTL_kind[0]} {GTL_kind[1]}=*"):
+                GPU_architecture_set = set(self.spec.variants[GTL_kind[1]].value)
+                if len(GPU_architecture_set) >= 1 and not GPU_architecture_set.issubset(
+                    GTL_kind[3]
+                ):
+                    tty.error("No GTL can satisfy the targeted GPU architectures.")
+                    break
+
+                # /opt/cray/pe/mpich/8.1.28/gtl/lib when the mpi libs are in
+                # /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>.
+                # /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>/../../../gtl/lib
+                MPI_root = os.path.abspath(
+                    os.path.join(self.prefix, os.pardir, os.pardir, os.pardir)
+                )
+
+                GTL_path = os.path.join(MPI_root, "gtl", "lib")
+
+                GTL_shared_libraries = find_libraries(
+                    [GTL_kind[2]], root=GTL_path, recursive=False
+                )
+
+                if len(GTL_shared_libraries) != 1:
+                    # TODO(Etienne M): Assertion failure. The cray-mpich does
+                    # not offer a GTL for our targets or offers too many ?
+                    tty.error("More than one GTL was found for the targeted GPUs.")
+                    break
+
+                GTL_library_fullpath = list(GTL_shared_libraries)[0]
+                tty.info(f"Selected GTL: {GTL_library_fullpath}")
+
+                GTL_library_directory = os.path.dirname(GTL_library_fullpath)
+                GTL_library_name = os.path.splitext(
+                    os.path.basename(GTL_library_fullpath).split("lib")[1]
+                )[0]
+
+                # Early break. Only one GTL can be active at a given time.
+                return {
+                    "ldflags": [
+                        f"-L{GTL_library_directory}",
+                        f"-Wl,-rpath,{GTL_library_directory}",
+                    ],
+                    "ldlibs": [f"-l{GTL_library_name}"],
+                }
+        return {}
