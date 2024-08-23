@@ -6,5 +6,5 @@ rem Spack Project Developers. See the top-level COPYRIGHT file for details.
 rem
 rem SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-set PATH_LIST=\path\first;\path\second;\path\fourth
+set PATH_LIST=C:\path\first;C:\path\second;C:\path\fourth
 set EMPTY_PATH_LIST=
