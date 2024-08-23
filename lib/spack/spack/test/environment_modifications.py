@@ -187,16 +187,18 @@ def test_unset(env):
                 "C:\\ProgramData",
                 "C:\\dev\\spack_window",
             ],
-            ["C:\\dev\\spack_window"]
-            if sys.platform == "win32"
-            else [
-                "C:\\",
-                "C:\\Program Files",
-                "C:\\Program Files (x86)",
-                "C:\\Users",
-                "C:\\ProgramData",
-                "C:\\dev\\spack_window",
-            ],
+            (
+                ["C:\\dev\\spack_window"]
+                if sys.platform == "win32"
+                else [
+                    "C:\\",
+                    "C:\\Program Files",
+                    "C:\\Program Files (x86)",
+                    "C:\\Users",
+                    "C:\\ProgramData",
+                    "C:\\dev\\spack_window",
+                ],
+            ),
         ),
         # Windows and Mac Paths
         (
@@ -212,36 +214,40 @@ def test_unset(env):
                 "/lib64",
                 "C:\\dev\\spack_window\\lib",
             ],
-            [
-                "C:\\dev\\spack_window",
-                "/usr/bin",
-                "/bin64",
-                "/lib64",
-                "C:\\dev\\spack_window\\lib",
-            ]
-            if sys.platform == "win32"
-            else [
-                "C:\\",
-                "C:\\Program Files",
-                "C:\\Program Files (x86)",
-                "C:\\Users",
-                "C:\\ProgramData",
-                "C:\\dev\\spack_window",
-                "C:\\dev\\spack_window\\lib",
-            ],
+            (
+                [
+                    "C:\\dev\\spack_window",
+                    "/usr/bin",
+                    "/bin64",
+                    "/lib64",
+                    "C:\\dev\\spack_window\\lib",
+                ]
+                if sys.platform == "win32"
+                else [
+                    "C:\\",
+                    "C:\\Program Files",
+                    "C:\\Program Files (x86)",
+                    "C:\\Users",
+                    "C:\\ProgramData",
+                    "C:\\dev\\spack_window",
+                    "C:\\dev\\spack_window\\lib",
+                ],
+            ),
         ),
         # Mac Paths 
         (
             miscellaneous_paths,
-            miscellaneous_paths
-            if sys.platform == "win32"
-            else [
-                "/usr/local/Cellar/gcc/5.3.0/lib",
-                "/usr/local/opt/some-package/lib",
-                "/usr/opt/lib",
-                "/opt/some-package/include",
-                "/opt/some-package/local/..",
-            ],
+            (
+                miscellaneous_paths
+                if sys.platform == "win32"
+                else [
+                    "/usr/local/Cellar/gcc/5.3.0/lib",
+                    "/usr/local/opt/some-package/lib",
+                    "/usr/opt/lib",
+                    "/opt/some-package/include",
+                    "/opt/some-package/local/..",
+                ],
+            ),
         ),
     ],
 )
