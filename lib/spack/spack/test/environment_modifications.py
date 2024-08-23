@@ -101,18 +101,20 @@ def prepare_environment_for_tests(working_env):
     """
     os.environ["UNSET_ME"] = "foo"
     os.environ["EMPTY_PATH_LIST"] = ""
-    os.environ["PATH_LIST"] = make_pathlist([["path","second"], ["path", "third"]])
-    os.environ["REMOVE_PATH_LIST"] = make_pathlist([
-        ["a","b"],
-        ["duplicate"],
-        ["a","c"],
-        ["remove", "this"],
-        ["a","d"],
-        ["duplicate"],
-        ["f","g"]
-    ])
+    os.environ["PATH_LIST"] = make_pathlist([["path", "second"], ["path", "third"]])
+    os.environ["REMOVE_PATH_LIST"] = make_pathlist(
+        [
+            ["a", "b"],
+            ["duplicate"],
+            ["a", "c"],
+            ["remove", "this"],
+            ["a", "d"],
+            ["duplicate"],
+            ["f", "g"],
+        ]
+    )
     os.environ["PATH_LIST_WITH_SYSTEM_PATHS"] = os.environ["REMOVE_PATH_LIST"] + make_pathlist(
-        [["usr","include"]]
+        [["usr", "include"]]
     )
     os.environ["PATH_LIST_WITH_DUPLICATES"] = os.environ["REMOVE_PATH_LIST"]
 
@@ -214,27 +216,19 @@ def test_unset(env):
                 "/lib64",
                 "C:\\dev\\spack_window\\lib",
             ],
-            (
-                [
-                    "C:\\dev\\spack_window",
-                    "/usr/bin",
-                    "/bin64",
-                    "/lib64",
-                    "C:\\dev\\spack_window\\lib",
-                ]
-                if sys.platform == "win32"
-                else [
-                    "C:\\",
-                    "C:\\Program Files",
-                    "C:\\Program Files (x86)",
-                    "C:\\Users",
-                    "C:\\ProgramData",
-                    "C:\\dev\\spack_window",
-                    "C:\\dev\\spack_window\\lib",
-                ],
-            ),
+            ["C:\\dev\\spack_window", "/usr/bin", "/bin64", "/lib64", "C:\\dev\\spack_window\\lib"]
+            if sys.platform == "win32"
+            else [
+                "C:\\",
+                "C:\\Program Files",
+                "C:\\Program Files (x86)",
+                "C:\\Users",
+                "C:\\ProgramData",
+                "C:\\dev\\spack_window",
+                "C:\\dev\\spack_window\\lib",
+            ],
         ),
-        # Mac Paths 
+        # Mac Paths
         (
             miscellaneous_paths,
             (
@@ -276,24 +270,24 @@ def test_set_path(env, name, elements, separator):
             "PATH_LIST",
             ["first", "fourth", "last"],
             make_pathlist(
-            [
-                ["path","first"],
-                ["path","second"],
-                ["path","third"],
-                ["path","fourth"],
-                ["path","last"]
-            ]
+                [
+                    ["path", "first"],
+                    ["path", "second"],
+                    ["path", "third"],
+                    ["path", "fourth"],
+                    ["path", "last"],
+                ]
             ),
         ),
         (
             "EMPTY_PATH_LIST",
             ["first", "middle", "last"],
-            make_pathlist([["path", "first"], ["path","middle"], ["path","last"]]),
+            make_pathlist([["path", "first"], ["path", "middle"], ["path", "last"]]),
         ),
         (
             "NEWLY_CREATED_PATH_LIST",
             ["first", "middle", "last"],
-            make_pathlist([["path", "first"], ["path","middle"], ["path","last"]]),
+            make_pathlist([["path", "first"], ["path", "middle"], ["path", "last"]]),
         ),
     ],
 )
@@ -313,20 +307,14 @@ def test_path_manipulation(env, path_name, elements, expected):
     env.apply_modifications()
 
     assert os.environ[path_name] == expected
-    assert os.environ["REMOVE_PATH_LIST"] == make_pathlist([
-        ["a","b"],
-        ["a", "c"],
-        ["a","d"],
-        ["f","g"],
-    ]
-    ) 
+    assert os.environ["REMOVE_PATH_LIST"] == make_pathlist(
+        [["a", "b"], ["a", "c"], ["a", "d"], ["f", "g"]]
+    )
 
     assert not os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].startswith(
-        make_pathlist([["usr","include" + os.pathsep]])
+        make_pathlist([["usr", "include" + os.pathsep]])
     )
-    assert os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].endswith(
-        make_pathlist([["usr","include"]])
-    )
+    assert os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].endswith(make_pathlist([["usr", "include"]]))
 
     assert os.environ["PATH_LIST_WITH_DUPLICATES"].count(driver + "duplicate") == 1
 
@@ -408,7 +396,7 @@ def test_preserve_environment(prepare_environment_for_tests):
 
     assert "NOT_SET" not in os.environ
     assert os.environ["UNSET_ME"] == "foo"
-    assert os.environ["PATH_LIST"] == make_pathlist([["path","second"],["path","third"]])
+    assert os.environ["PATH_LIST"] == make_pathlist([["path", "second"], ["path", "third"]])
 
 
 @pytest.mark.parametrize(
@@ -422,7 +410,11 @@ def test_preserve_environment(prepare_environment_for_tests):
         ),
         # Check if we can set a variable to different values depending
         # on command line parameters
-        ((os.path.join(datadir, "sourceme_parameters" + shell_extension),), {"FOO": "default"}, []),
+        (
+            (os.path.join(datadir, "sourceme_parameters" + shell_extension),),
+            {"FOO": "default"},
+            [],
+        ),
         (
             ([os.path.join(datadir, "sourceme_parameters" + shell_extension), "intel64"],),
             {"FOO": "intel64"},
@@ -431,7 +423,11 @@ def test_preserve_environment(prepare_environment_for_tests):
         # Check unsetting variables
         (
             (os.path.join(datadir, "sourceme_second" + shell_extension),),
-            {"PATH_LIST": make_pathlist([["path","first"], ["path","second"], ["path","fourth"],])},
+            {
+                "PATH_LIST": make_pathlist(
+                    [["path", "first"], ["path", "second"], ["path", "fourth"]]
+                )
+            },
             ["EMPTY_PATH_LIST"],
         ),
         # Check that order of sourcing matters
@@ -544,34 +540,34 @@ def test_sanitize_regex(env, exclude, include, expected, deleted):
         ({"FOO": "foo"}, {}, [environment.UnsetEnv("FOO")]),
         # Append paths to an environment variable
         (
-            {"FOO_PATH": make_pathlist([["a","path"]])},
-            {"FOO_PATH": make_pathlist([["a","path"], ["b","path"]])},
-            [environment.AppendPath("FOO_PATH", make_pathlist([["b","path"]]))],
+            {"FOO_PATH": make_pathlist([["a", "path"]])},
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            [environment.AppendPath("FOO_PATH", make_pathlist([["b", "path"]]))],
         ),
         (
             {},
-            {"FOO_PATH": make_pathlist([["a","path"], ["b","path"]])},
-            [environment.AppendPath("FOO_PATH", make_pathlist([["a","path"], ["b","path"]]))],
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            [environment.AppendPath("FOO_PATH", make_pathlist([["a", "path"], ["b", "path"]]))],
         ),
         (
-            {"FOO_PATH": make_pathlist([["a","path"], ["b","path"]])},
-            {"FOO_PATH": make_pathlist([["b","path"]])},
-            [environment.RemovePath("FOO_PATH", make_pathlist([["a","path"]]))],
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            {"FOO_PATH": make_pathlist([["b", "path"]])},
+            [environment.RemovePath("FOO_PATH", make_pathlist([["a", "path"]]))],
         ),
         (
-            {"FOO_PATH": make_pathlist([["a","path"], ["b","path"]])},
-            {"FOO_PATH": make_pathlist([["a","path"], ["c","path"]])},
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            {"FOO_PATH": make_pathlist([["a", "path"], ["c", "path"]])},
             [
-                environment.RemovePath("FOO_PATH", make_pathlist([["b","path"]])),
-                environment.AppendPath("FOO_PATH", make_pathlist([["c","path"]])),
+                environment.RemovePath("FOO_PATH", make_pathlist([["b", "path"]])),
+                environment.AppendPath("FOO_PATH", make_pathlist([["c", "path"]])),
             ],
         ),
         (
-            {"FOO_PATH": make_pathlist([["a","path"], ["b","path"]])},
-            {"FOO_PATH": make_pathlist([["c","path"], ["a","path"]])},
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            {"FOO_PATH": make_pathlist([["c", "path"], ["a", "path"]])},
             [
-                environment.RemovePath("FOO_PATH", make_pathlist([["b","path"]])),
-                environment.PrependPath("FOO_PATH", make_pathlist([["c","path"]])),
+                environment.RemovePath("FOO_PATH", make_pathlist([["b", "path"]])),
+                environment.PrependPath("FOO_PATH", make_pathlist([["c", "path"]])),
             ],
         ),
         # Modify two variables in the same environment
