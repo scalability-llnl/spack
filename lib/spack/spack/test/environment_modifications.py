@@ -91,7 +91,12 @@ def test_exclude_paths_from_inspection():
 
 def make_pathlist(paths):
     """Makes a fake list of platform specific paths"""
-    return os.pathsep.join([driver + os.path.join(*path) if isinstance(path,list) else driver + path for path in paths])
+    return os.pathsep.join(
+        [
+            driver + os.path.join(*path) if isinstance(path,list) else driver + path 
+            for path in paths
+        ]
+    )
 
 
 @pytest.fixture()
