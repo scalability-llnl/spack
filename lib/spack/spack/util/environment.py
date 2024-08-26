@@ -785,11 +785,9 @@ class EnvironmentModifications:
         modified_variables.sort()
 
         def return_separator_if_any(*args):
-            separators = ";" if sys.platform == "win32" else ":"
-            for separator in separators:
-                for arg in args:
-                    if separator in arg:
-                        return separator
+            for arg in args:
+                if os.pathsep in arg:
+                    return os.pathsep
             return None
 
         # Add variables to env.
