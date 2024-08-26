@@ -93,7 +93,7 @@ def make_pathlist(paths):
     """Makes a fake list of platform specific paths"""
     return os.pathsep.join(
         [
-            driver + os.path.join(*path) if isinstance(path, list) else driver + path 
+            driver + os.path.join(*path) if isinstance(path, list) else driver + path
             for path in paths
         ]
     )
