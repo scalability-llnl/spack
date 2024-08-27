@@ -77,8 +77,8 @@ def pkg_spec_for_compiler(cspec):
 
 def _auto_compiler_spec(function):
     def converter(cspec_like, *args, **kwargs):
-        if not isinstance(cspec_like, spack.spec.CompilerSpec):
-            cspec_like = spack.spec.CompilerSpec(cspec_like)
+        if not isinstance(cspec_like, spack.spec.Spec):
+            cspec_like = spack.spec.Spec(cspec_like)
         return function(cspec_like, *args, **kwargs)
 
     return converter
