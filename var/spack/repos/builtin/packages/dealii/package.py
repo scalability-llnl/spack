@@ -201,7 +201,8 @@ class Dealii(CMakePackage, CudaPackage):
     depends_on("hdf5+mpi+hl+fortran", when="+hdf5+mpi+petsc")
     depends_on("hdf5+mpi+hl", when="+hdf5+mpi~petsc")
     depends_on("kokkos@3.7:", when="@9.5:+kokkos~trilinos")
-    depends_on("kokkos@3.7:+cuda+cuda_lambda+wrapper", when="@9.5:+kokkos~trilinos+cuda")
+    depends_on("kokkos@3.7:+cuda+cuda_lambda+wrapper", when="@9.5:9.5.99+kokkos~trilinos+cuda")
+    depends_on("kokkos@3.7:+cuda+cuda_lambda+cuda_constexpr+wrapper", when="@9.6:+kokkos~trilinos+cuda")
     # TODO: concretizer bug. The two lines mimic what comes from PETSc
     # but we should not need it
     depends_on("metis@5:+int64", when="+metis+int64")
