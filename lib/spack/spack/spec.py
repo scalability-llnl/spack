@@ -632,7 +632,6 @@ class ArchSpec:
         return string in str(self) or string in self.target
 
 
-@lang.lazy_lexicographic_ordering
 class CompilerSpec:
     """The CompilerSpec field represents the compiler or range of compiler
     versions that a package should be built with.  CompilerSpecs have a
@@ -641,106 +640,14 @@ class CompilerSpec:
     __slots__ = "name", "versions"
 
     def __init__(self, *args):
-        raise TypeError("CompilerSpec is being removed")
-        nargs = len(args)
-        if nargs == 1:
-            arg = args[0]
-            # If there is one argument, it's either another CompilerSpec
-            # to copy or a string to parse
-            if isinstance(arg, str):
-                spec = spack.spec_parser.parse_one_or_raise(f"%{arg}")
-                self.name = spec.compiler.name
-                self.versions = spec.compiler.versions
-
-            elif isinstance(arg, CompilerSpec):
-                self.name = arg.name
-                self.versions = arg.versions.copy()
-
-            else:
-                raise TypeError(
-                    "Can only build CompilerSpec from string or "
-                    + "CompilerSpec. Found %s" % type(arg)
-                )
-
-        elif nargs == 2:
-            name, version = args
-            self.name = name
-            self.versions = vn.VersionList([vn.ver(version)])
-
-        else:
-            raise TypeError("__init__ takes 1 or 2 arguments. (%d given)" % nargs)
-
-    def _autospec(self, compiler_spec_like):
-        if isinstance(compiler_spec_like, CompilerSpec):
-            return compiler_spec_like
-        return CompilerSpec(compiler_spec_like)
-
-    def intersects(self, other: "CompilerSpec") -> bool:
-        """Return True if all concrete specs matching self also match other, otherwise False.
-
-        For compiler specs this means that the name of the compiler must be the same for
-        self and other, and that the versions ranges should intersect.
-
-        Args:
-            other: spec to be satisfied
-        """
-        other = self._autospec(other)
-        return self.name == other.name and self.versions.intersects(other.versions)
-
-    def satisfies(self, other: "CompilerSpec") -> bool:
-        """Return True if all concrete specs matching self also match other, otherwise False.
-
-        For compiler specs this means that the name of the compiler must be the same for
-        self and other, and that the version range of self is a subset of that of other.
-
-        Args:
-            other: spec to be satisfied
-        """
-        other = self._autospec(other)
-        return self.name == other.name and self.versions.satisfies(other.versions)
-
-    def constrain(self, other: "CompilerSpec") -> bool:
-        """Intersect self's versions with other.
-
-        Return whether the CompilerSpec changed.
-        """
-        other = self._autospec(other)
-
-        # ensure that other will actually constrain this spec.
-        if not other.intersects(self):
-            raise UnsatisfiableCompilerSpecError(other, self)
-
-        return self.versions.intersect(other.versions)
-
-    @property
-    def concrete(self):
-        """A CompilerSpec is concrete if its versions are concrete and there
-        is an available compiler with the right version."""
-        return self.versions.concrete
-
-    @property
-    def version(self):
-        if not self.concrete:
-            raise spack.error.SpecError("Spec is not concrete: " + str(self))
-        return self.versions[0]
-
-    def copy(self):
-        clone = CompilerSpec.__new__(CompilerSpec)
-        clone.name = self.name
-        clone.versions = self.versions.copy()
-        return clone
-
-    def _cmp_iter(self):
-        yield self.name
-        yield self.versions
-
-    def to_dict(self):
-        return {"compiler": {"name": self.name, **self.versions.to_dict()}}
+        raise SystemExit("CompilerSpec is being removed")
 
     @staticmethod
     def from_dict(d):
         d = d["compiler"]
-        return CompilerSpec(d["name"], vn.VersionList.from_dict(d))
+        return Spec(
+            f"{d['name']}@{vn.VersionList.from_dict(d)}", external_path="/dev-null/", concrete=True
+        )
 
     @property
     def display_str(self):
@@ -1477,6 +1384,8 @@ def tree(
 
 @lang.lazy_lexicographic_ordering(set_hash=False)
 class Spec:
+    compiler = lang.Const(None)
+
     @staticmethod
     def default_arch():
         """Return an anonymous spec for the default architecture"""
@@ -1506,7 +1415,6 @@ class Spec:
         self.versions = vn.VersionList(":")
         self.variants = VariantMap(self)
         self.architecture = None
-        self.compiler = None
         self.compiler_flags = FlagMap(self)
         self._dependents = _EdgeMap(store_by_child=False)
         self._dependencies = _EdgeMap(store_by_child=True)
@@ -3195,7 +3103,7 @@ class Spec:
 
         if self.compiler is not None and other.compiler is not None:
             changed |= self.compiler.constrain(other.compiler)
-        elif self.compiler is None:
+        elif self.compiler is None and other.compiler is not None:
             changed |= self.compiler != other.compiler
             self.compiler = other.compiler
 
@@ -3627,7 +3535,8 @@ class Spec:
         self.name = other.name
         self.versions = other.versions.copy()
         self.architecture = other.architecture.copy() if other.architecture else None
-        self.compiler = other.compiler.copy() if other.compiler else None
+        # FIXME (compiler as nodes): removing compiler attribute
+        # self.compiler = other.compiler.copy() if other.compiler else None
         self.compiler_flags = other.compiler_flags.copy()
         self.compiler_flags.spec = self
         self.variants = other.variants.copy()
@@ -4883,9 +4792,8 @@ class SpecfileReaderBase:
             spec.architecture = ArchSpec.from_dict(node)
 
         if "compiler" in node:
-            spec.compiler = CompilerSpec.from_dict(node)
-        else:
-            spec.compiler = None
+            # Annotate the compiler spec, might be used later
+            spec.compiler_annotation = CompilerSpec.from_dict(node)
 
         propagated_names = node.get("propagate", [])
         for name, values in node.get("parameters", {}).items():
