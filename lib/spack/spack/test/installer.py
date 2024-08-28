@@ -77,6 +77,13 @@ def create_build_task(
     return inst.BuildTask(pkg, request=request, status=inst.BuildStatus.QUEUED)
 
 
+def create_install_task(
+    pkg: spack.package_base.PackageBase, install_args: Optional[dict] = None
+) -> inst.BuildTask:
+    request = inst.BuildRequest(pkg, {} if install_args is None else install_args)
+    return inst.InstallTask(pkg, request, False, 0, 0, inst.STATUS_ADDED, set())
+
+
 def create_installer(
     specs: Union[List[str], List[spack.spec.Spec]], install_args: Optional[dict] = None
 ) -> inst.PackageInstaller:
@@ -224,54 +231,6 @@ def test_installer_str(install_mockery):
     assert "#tasks=0" in istr
     assert "installed (0)" in istr
     assert "failed (0)" in istr
-
-
-def test_installer_prune_built_build_deps(install_mockery, monkeypatch, tmpdir):
-    r"""
-    Ensure that build dependencies of installed deps are pruned
-    from installer package queues.
-
-               (a)
-              /   \
-             /     \
-           (b)     (c) <--- is installed already so we should
-              \   / | \     prune (f) from this install since
-               \ /  |  \    it is *only* needed to build (b)
-               (d) (e) (f)
-
-    Thus since (c) is already installed our build_pq dag should
-    only include four packages. [(a), (b), (c), (d), (e)]
-    """
-
-    @property
-    def _mock_installed(self):
-        return self.name == "pkg-c"
-
-    # Mock the installed property to say that (b) is installed
-    monkeypatch.setattr(spack.spec.Spec, "installed", _mock_installed)
-
-    # Create mock repository with packages (a), (b), (c), (d), and (e)
-    builder = spack.repo.MockRepositoryBuilder(tmpdir.mkdir("mock-repo"))
-
-    builder.add_package("pkg-a", dependencies=[("pkg-b", "build", None), ("pkg-c", "build", None)])
-    builder.add_package("pkg-b", dependencies=[("pkg-d", "build", None)])
-    builder.add_package(
-        "pkg-c",
-        dependencies=[("pkg-d", "build", None), ("pkg-e", "all", None), ("pkg-f", "build", None)],
-    )
-    builder.add_package("pkg-d")
-    builder.add_package("pkg-e")
-    builder.add_package("pkg-f")
-
-    with spack.repo.use_repositories(builder.root):
-        installer = create_installer(["pkg-a"])
-
-        installer._init_queue()
-
-        # Assert that (c) is not in the build_pq
-        result = {task.pkg_id[:5] for _, task in installer.build_pq}
-        expected = {"pkg-a", "pkg-b", "pkg-c", "pkg-d", "pkg-e"}
-        assert result == expected
 
 
 def test_check_before_phase_error(install_mockery):
@@ -612,7 +571,7 @@ def test_check_deps_status_external(install_mockery, monkeypatch):
     monkeypatch.setattr(spack.spec.Spec, "external", True)
     installer._check_deps_status(request)
 
-    for dep in request.spec.traverse(root=False):
+    for dep in request.spec.traverse(root=False, deptype=request.get_depflags(request.spec)):
         assert inst.package_id(dep) in installer.installed
 
 
@@ -624,7 +583,7 @@ def test_check_deps_status_upstream(install_mockery, monkeypatch):
     monkeypatch.setattr(spack.spec.Spec, "installed_upstream", True)
     installer._check_deps_status(request)
 
-    for dep in request.spec.traverse(root=False):
+    for dep in request.spec.traverse(root=False, deptype=request.get_depflags(request.spec)):
         assert inst.package_id(dep) in installer.installed
 
 
@@ -680,7 +639,8 @@ def test_install_spliced_build_spec_installed(install_mockery, capfd, mock_fetch
     installer = create_installer([out], {"verbose": True, "fail_fast": True})
     installer._init_queue()
     for _, task in installer.build_pq:
-        assert isinstance(task, inst.RewireTask if task.pkg.spec.spliced else inst.BuildTask)
+        assert isinstance(task, inst.RewireTask if task.pkg.spec.spliced else inst.InstallTask)
+
     installer.install()
     for node in out.traverse():
         assert node.installed
@@ -725,7 +685,7 @@ def test_install_splice_root_from_binary(
 def test_install_task_use_cache(install_mockery, monkeypatch):
     installer = create_installer(["trivial-install-test-package"], {})
     request = installer.build_requests[0]
-    task = create_build_task(request.pkg)
+    task = create_install_task(request.pkg)
 
     monkeypatch.setattr(inst, "_install_from_cache", _true)
     installer._install_task(task, None)

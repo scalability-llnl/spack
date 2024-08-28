@@ -118,6 +118,11 @@ class ExecuteResult(enum.Enum):
     FAILED = enum.auto()
     # Task is missing build spec and will be requeued
     MISSING_BUILD_SPEC = enum.auto()
+    # Task is queued to install from binary but no binary found
+    MISSING_BINARY = enum.auto()
+
+
+requeue_results = [ExecuteResult.MISSING_BUILD_SPEC, ExecuteResult.MISSING_BINARY]
 
 
 class InstallAction(enum.Enum):
@@ -806,16 +811,7 @@ class BuildRequest:
         depflag = dt.LINK | dt.RUN
         include_build_deps = self.install_args.get("include_build_deps")
 
-        if self.pkg_id == package_id(pkg.spec):
-            cache_only = self.install_args.get("package_cache_only")
-        else:
-            cache_only = self.install_args.get("dependencies_cache_only")
-
-        # Include build dependencies if pkg is going to be built from sources, or
-        # if build deps are explicitly requested.
-        if include_build_deps or not (
-            cache_only or pkg.spec.installed and not pkg.spec.dag_hash() in self.overwrite
-        ):
+        if include_build_deps:
             depflag |= dt.BUILD
         if self.run_tests(pkg):
             depflag |= dt.TEST
@@ -1143,24 +1139,12 @@ class BuildTask(Task):
         """
         install_args = self.request.install_args
         tests = install_args.get("tests")
-        unsigned = install_args.get("unsigned")
 
         pkg, pkg_id = self.pkg, self.pkg_id
 
         tty.msg(install_msg(pkg_id, self.pid, install_status))
         self.start = self.start or time.time()
         self.status = BuildStatus.INSTALLING
-
-        # Use the binary cache if requested
-        if self.use_cache:
-            if _install_from_cache(pkg, self.explicit, unsigned):
-                return ExecuteResult.SUCCESS
-            elif self.cache_only:
-                raise spack.error.InstallError(
-                    "No binary found when cache-only was specified", pkg=pkg
-                )
-            else:
-                tty.msg(f"No binary for {pkg_id} found: installing from source")
 
         pkg.run_tests = tests is True or tests and pkg.name in tests
 
@@ -1192,6 +1176,70 @@ class BuildTask(Task):
             tty.debug(f"{pid}{str(e)}")
             tty.debug(f"Package stage directory: {pkg.stage.source_path}")
         return ExecuteResult.SUCCESS
+
+
+class InstallTask(Task):
+    """Class for representing a build task for a package."""
+
+    def execute(self, install_status):
+        """
+        Perform the installation of the requested spec and/or dependency
+        represented by the build task.
+        """
+        # no-op and requeue to build if not allowed to use cache
+        # this
+        if not self.use_cache:
+            return ExecuteResult.MISSING_BINARY
+
+        install_args = self.request.install_args
+        unsigned = install_args.get("unsigned")
+
+        pkg, pkg_id = self.pkg, self.pkg_id
+
+        tty.msg(install_msg(pkg_id, self.pid, install_status))
+        self.start = self.start or time.time()
+        self.status = STATUS_INSTALLING
+
+        try:
+            if _install_from_cache(pkg, self.explicit, unsigned):
+                if self.compiler:
+                    _add_compiler_package_to_config(pkg)
+                return ExecuteResult.SUCCESS
+            elif self.cache_only:
+                raise InstallError("No binary found when cache-only was specified", pkg=pkg)
+            else:
+                tty.msg(f"No binary for {pkg_id} found: installing from source")
+                return ExecuteResult.MISSING_BINARY
+        except binary_distribution.NoChecksumException as exc:
+            if self.cache_only:
+                raise
+
+            tty.error(
+                f"Failed to install {self.pkg.name} from binary cache due "
+                f"to {str(exc)}: Requeueing to install from source."
+            )
+            return ExecuteResult.MISSING_BINARY
+
+    def build_task(self, installed):
+        build_task = BuildTask(
+            pkg=self.pkg,
+            request=self.request,
+            compiler=self.compiler,
+            start=0,
+            attempts=self.attempts,
+            status=STATUS_ADDED,
+            installed=installed,
+        )
+
+        # Fixup dependents in case it was changed by `add_dependent`
+        # This would be the case of a `build_spec` for a spliced spec
+        build_task.dependents = self.dependents
+
+        # Same for dependencies
+        build_task.dependencies = self.dependencies
+        build_task.uninstalled_deps = self.uninstalled_deps - installed
+
+        return build_task
 
 
 class RewireTask(Task):
@@ -1377,8 +1425,9 @@ class PackageInstaller:
             request: the associated install request
             all_deps: dictionary of all dependencies and associated dependents
         """
-        cls = RewireTask if pkg.spec.spliced else BuildTask
-        task = cls(pkg, request=request, status=BuildStatus.QUEUED, installed=self.installed)
+        cls = RewireTask if pkg.spec.spliced else InstallTask
+        task: Task = cls(pkg, request=request, status=BuildStatus.QUEUED, installed=self.installed)
+
         for dep_id in task.dependencies:
             all_deps[dep_id].add(package_id(pkg.spec))
 
@@ -1671,7 +1720,7 @@ class PackageInstaller:
         """Requeue the task and its missing build spec dependencies"""
         # Full install of the build_spec is necessary because it didn't already exist somewhere
         spec = task.pkg.spec
-        for dep in spec.build_spec.traverse():
+        for dep in spec.build_spec.traverse(deptype=task.request.get_depflags(task.pkg)):
             dep_pkg = dep.package
 
             dep_id = package_id(dep)
@@ -1693,6 +1742,42 @@ class PackageInstaller:
         build_spec_task.add_dependent(spec_pkg_id)
         spec_task.add_dependency(build_pkg_id)
         self._push_task(spec_task)
+
+    def _requeue_as_build_task(self, task):
+        # TODO: handle the compile bootstrapping stuff?
+        spec = task.pkg.spec
+        build_dep_ids = []
+        for builddep in spec.dependencies(deptype=dt.BUILD):
+            # track which package ids are the direct build deps
+            build_dep_ids.append(package_id(builddep))
+            for dep in builddep.traverse(deptype=task.request.get_depflags(task.pkg)):
+                dep_pkg = dep.package
+                dep_id = package_id(dep)
+
+                if dep_id not in self.build_tasks and dep_id not in self.installed:
+                    self._add_init_task(dep_pkg, task.request, False, self.all_dependencies)
+
+                # Clear any persistent failure markings _unless_ they
+                # are associated with another process in this parallel build
+                spack.store.STORE.failure_tracker.clear(dep, force=False)
+
+        # Remove InstallTask
+        self._remove_task(task.pkg_id)
+
+        # New task to build this spec from source
+        build_task = task.build_task(self.installed)
+        build_task_id = package_id(spec)
+
+        # Attach dependency relationships between spec and build deps
+        for build_dep_id in build_dep_ids:
+            if build_dep_id not in self.installed:
+                build_dep_task = self.build_tasks[build_dep_id]
+                build_dep_task.add_dependent(build_task_id)
+
+                build_task.add_dependency(build_dep_id)
+
+        # Add new Task -- this removes the old task as well
+        self._push_task(build_task)
 
     def _add_tasks(self, request: BuildRequest, all_deps):
         """Add tasks to the priority queue for the given build request.
@@ -1758,8 +1843,11 @@ class PackageInstaller:
         rc = task.execute(install_status)
         if rc == ExecuteResult.MISSING_BUILD_SPEC:
             self._requeue_with_build_spec_tasks(task)
+        elif rc == ExecuteResult.MISSING_BINARY:
+            self._requeue_as_build_task(task)
         else:  # if rc == ExecuteResult.SUCCESS or rc == ExecuteResult.FAILED
             self._update_installed(task)
+        return rc  # Used by reporters to skip requeued tasks
 
     def _next_is_pri0(self) -> bool:
         """
@@ -2176,20 +2264,6 @@ class PackageInstaller:
                 )
                 raise
 
-            except binary_distribution.NoChecksumException as exc:
-                if task.cache_only:
-                    raise
-
-                # Checking hash on downloaded binary failed.
-                tty.error(
-                    f"Failed to install {pkg.name} from binary cache due "
-                    f"to {str(exc)}: Requeueing to install from source."
-                )
-                # this overrides a full method, which is ugly.
-                task.use_cache = False  # type: ignore[misc]
-                self._requeue_task(task, install_status)
-                continue
-
             except (Exception, SystemExit) as exc:
                 self._update_failed(task, True, exc)
 
@@ -2225,7 +2299,12 @@ class PackageInstaller:
             # Perform basic task cleanup for the installed spec to
             # include downgrading the write to a read lock
             if pkg.spec.installed:
-                self._cleanup_task(pkg)
+                # Do not clean up this was an overwrite that wasn't completed
+                overwrite = spec.dag_hash() in task.request.overwrite
+                rec, _ = self._check_db(pkg.spec)
+                incomplete = task.request.overwrite_time > rec.installation_time
+                if not (overwrite and incomplete):
+                    self._cleanup_task(pkg)
 
         # Cleanup, which includes releasing all of the read locks
         self._cleanup_all_tasks()
@@ -2550,7 +2629,11 @@ class OverwriteInstall:
         """
         try:
             with fs.replace_directory_transaction(self.task.pkg.prefix):
-                self.installer._install_task(self.task, self.install_status)
+                rc = self.installer._install_task(self.task, self.install_status)
+                if rc in requeue_results:
+                    raise Requeue  # raise to trigger transactional replacement of directory
+        except Requeue:
+            pass  # this job is requeuing, not failing
         except fs.CouldNotRestoreDirectoryBackup as e:
             self.database.remove(self.task.pkg.spec)
             tty.error(
@@ -2561,6 +2644,24 @@ class OverwriteInstall:
 
             # Unwrap the actual installation exception.
             raise e.inner_exception
+
+
+class Requeue(Exception):
+    """Raised when we need an error to indicate a requeueing situation.
+
+    While this is raised and excepted, it does not represent an Error."""
+
+
+class InstallError(spack.error.SpackError):
+    """Raised when something goes wrong during install or uninstall.
+
+    The error can be annotated with a ``pkg`` attribute to allow the
+    caller to get the package for which the exception was raised.
+    """
+
+    def __init__(self, message, long_msg=None, pkg=None):
+        super().__init__(message, long_msg)
+        self.pkg = pkg
 
 
 class BadInstallPhase(spack.error.InstallError):

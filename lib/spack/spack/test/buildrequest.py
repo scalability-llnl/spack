@@ -58,33 +58,14 @@ def test_build_request_strings(install_mockery):
 
 
 @pytest.mark.parametrize(
-    "package_cache_only,dependencies_cache_only,package_deptypes,dependencies_deptypes",
-    [
-        (False, False, dt.BUILD | dt.LINK | dt.RUN, dt.BUILD | dt.LINK | dt.RUN),
-        (True, False, dt.LINK | dt.RUN, dt.BUILD | dt.LINK | dt.RUN),
-        (False, True, dt.BUILD | dt.LINK | dt.RUN, dt.LINK | dt.RUN),
-        (True, True, dt.LINK | dt.RUN, dt.LINK | dt.RUN),
-    ],
+    "include_build_deps,deptypes", [(True, dt.BUILD | dt.LINK | dt.RUN), (False, dt.LINK | dt.RUN)]
 )
-def test_build_request_deptypes(
-    install_mockery,
-    package_cache_only,
-    dependencies_cache_only,
-    package_deptypes,
-    dependencies_deptypes,
-):
+def test_build_request_deptypes(install_mockery, include_build_deps, deptypes):
     s = spack.spec.Spec("dependent-install").concretized()
 
-    build_request = inst.BuildRequest(
-        s.package,
-        {
-            "package_cache_only": package_cache_only,
-            "dependencies_cache_only": dependencies_cache_only,
-        },
-    )
+    build_request = inst.BuildRequest(s.package, {"include_build_deps": include_build_deps})
 
-    actual_package_deptypes = build_request.get_depflags(s.package)
-    actual_dependency_deptypes = build_request.get_depflags(s["dependency-install"].package)
+    package_deptypes = build_request.get_depflags(s.package)
+    dependency_deptypes = build_request.get_depflags(s["dependency-install"].package)
 
-    assert actual_package_deptypes == package_deptypes
-    assert actual_dependency_deptypes == dependencies_deptypes
+    assert package_deptypes == dependency_deptypes == deptypes
