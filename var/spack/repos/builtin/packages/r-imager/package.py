@@ -30,7 +30,7 @@ class RImager(RPackage):
 
     depends_on("r+X")
     depends_on("r@2.10.0:", type=("build", "run"))
-    depends_on("r@4.0.0:", type=("build", "run") , when="@1.0.0:")
+    depends_on("r@4.0.0:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-magrittr", type=("build", "run"))
     depends_on("r-rcpp@0.11.5:", type=("build", "run"))
     depends_on("r-stringr", type=("build", "run"))

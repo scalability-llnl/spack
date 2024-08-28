@@ -23,7 +23,7 @@ class RSvglite(RPackage):
 
     depends_on("r+X", type=("build", "run"))
     depends_on("r@3.0.0:", type=("build", "run"))
-    depends_on("r@3.5.0:", type=("build", "run") , when="@2.1.2:")
+    depends_on("r@3.5.0:", type=("build", "run"), when="@2.1.2:")
     depends_on("r-systemfonts@1.0.0:", type=("build", "run"))
     depends_on("r-cpp11", type=("build", "run"))
     depends_on("libpng")

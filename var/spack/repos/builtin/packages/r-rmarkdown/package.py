@@ -55,4 +55,3 @@ class RRmarkdown(RPackage):
     depends_on("r-catools", type=("build", "run"), when="@:1.7")
     depends_on("r-base64enc", type=("build", "run"), when="@:1.14")
     depends_on("r-stringr@1.2.0:", type=("build", "run"), when="@1.6:2.25")
-

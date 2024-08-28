@@ -47,4 +47,3 @@ class RGrbase(RPackage):
     depends_on("r-graph", type=("build", "run"), when="@:1.9")
     depends_on("r-rbgl", type=("build", "run"), when="@:1.9")
     depends_on("r-rgraphviz", type=("build", "run"), when="@1.8-6.7:1.9")
-

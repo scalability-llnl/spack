@@ -11,7 +11,9 @@ class RRcppensmallen(RPackage):
 
     cran = "RcppEnsmallen"
 
-    version("0.2.21.1.1", sha256="87396e259666c8797a00c4255d912da58c7880313a8c4e7d48c6384eb6161956")
+    version(
+        "0.2.21.1.1", sha256="87396e259666c8797a00c4255d912da58c7880313a8c4e7d48c6384eb6161956"
+    )
     version(
         "0.2.19.0.1", sha256="b4a9bde4dde309a52a47b56790389ecab14fe64066098d2a38b1b588ba3d8631"
     )

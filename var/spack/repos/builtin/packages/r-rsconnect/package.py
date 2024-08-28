@@ -41,4 +41,3 @@ class RRsconnect(RPackage):
     depends_on("r-rlang@1.0.0:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-rstudioapi@0.5:", type=("build", "run"))
     depends_on("r-yaml@2.1.5:", type=("build", "run"))
-
