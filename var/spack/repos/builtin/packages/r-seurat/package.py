@@ -19,6 +19,7 @@ class RSeurat(RPackage):
 
     cran = "Seurat"
 
+    version("5.1.0", sha256="adcfb43d7a8cc55eaa7a0954a082ac95e14059a82901913379bfec115e224d59")
     version("4.3.0", sha256="7ebacb3b86f74279de60b597f9a6e728f0668719811b0dca3425d21762fff97c")
     version("4.2.1", sha256="410238b6ca147451b43800a6e49c132fa5f6aacfe6b93b39a1e4d61257a9e35e")
     version("4.2.0", sha256="22a3d22a9ba255c4db5b37339b183fdfb91e2d37a8b8d58a9ff45b1bc414ebef")

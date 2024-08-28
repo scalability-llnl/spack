@@ -17,6 +17,7 @@ class RGit2r(RPackage):
 
     license("GPL-2.0-only")
 
+    version("0.33.0", sha256="1855b68d0e22566f1c255fdcb8e13282a2bebf55cbc804a8591dc8047f0e1895")
     version("0.32.0", sha256="1b5d254c0c684a56751d26d482823d0006964eb1f55c558f365d037f5e984671")
     version("0.31.0", sha256="f1db9278fa4604600a64beaedcf86dda595d7c8a10cdb1f7300a6635e73cd66d")
     version("0.30.1", sha256="85d913ddc7659e32c1b98ebc247fa1cc1b7717a5bd413fa78ea84696986ca840")

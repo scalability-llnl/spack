@@ -23,6 +23,7 @@ class RXgboost(RPackage):
 
     license("Apache-2.0 OR custom")
 
+    version("1.7.8.1", sha256="394d6fd00b2fe97549c7a7e6598df86448cdfbd7c0af45b0c17f7b9e81bc1be9")
     version("1.7.5.1", sha256="4ec0833f206f84e5983e9f373ea64903bec488f751fba6f75a6f4702b1c965bc")
     version("1.6.0.1", sha256="9ae99a20997e1b02ffd21cabada2a55e53f5754746238ee900de5eb6cd964ebd")
     version("1.5.0.2", sha256="4750b9a289d8cb685291939eed7c493bb42c5cc154ef98e13100abb1727eab13")

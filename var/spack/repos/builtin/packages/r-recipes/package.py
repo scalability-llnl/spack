@@ -19,6 +19,7 @@ class RRecipes(RPackage):
 
     license("MIT")
 
+    version("1.1.0", sha256="c5dc8876bc680272812bbb4be39a29464c42a7b773f8cc6d07ac4145f830206d")
     version("1.0.6", sha256="105e97127cdd6aaeb9fb3348e51a9c46e21fb8bcb734cb3bbd6dbdf2b6b2fc8f")
     version("1.0.2", sha256="1a7b5a9a2946fa34599935b6d93101ec559d8a901d49cc691972c75df8d5670e")
     version("1.0.1", sha256="9e3ae212413409bf41ec7d1a311586e12c0ca79943cef436707d041c57125bc9")
@@ -33,7 +34,6 @@ class RRecipes(RPackage):
     depends_on("r-dplyr@1.1.0:", type=("build", "run"), when="@1.0.6:")
     depends_on("r-cli", type=("build", "run"), when="@1.0.1:")
     depends_on("r-clock@0.6.1:", type=("build", "run"), when="@1.0.6:")
-    depends_on("r-ellipsis", type=("build", "run"), when="@0.1.17:")
     depends_on("r-generics", type=("build", "run"))
     depends_on("r-generics@0.1.0:", type=("build", "run"), when="@0.1.15:")
     depends_on("r-generics@0.1.0.9000:", type=("build", "run"), when="@0.2.0:")
@@ -66,3 +66,5 @@ class RRecipes(RPackage):
     depends_on("r-vctrs", type=("build", "run"), when="@0.1.17:")
     depends_on("r-vctrs@0.5.0:", type=("build", "run"), when="@1.0.6:")
     depends_on("r-withr", type=("build", "run"))
+
+    depends_on("r-ellipsis", type=("build", "run"), when="@0.1.17:1.1.0")

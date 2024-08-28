@@ -21,6 +21,7 @@ class RCowplot(RPackage):
 
     license("GPL-2.0-only")
 
+    version("1.1.3", sha256="8756971af5c50381cf00ec7ed622fd5cf3d70f534bdfa3ebadd157b5aef5b273")
     version("1.1.1", sha256="c7dce625b456dffc59ba100c816e16226048d12fdd29a7335dc1f6f6e12eed48")
     version("1.0.0", sha256="70f9a7c46d10f409d1599f1afc9fd3c947051cf2b430f01d903c64ef1e6c98a5")
     version("0.9.3", sha256="3e10475fd7506ea9297ed72eb1a3acf858c6fa99d26e46fc39654eba000c3dcb")

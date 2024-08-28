@@ -25,6 +25,7 @@ class RCirclize(RPackage):
 
     license("MIT")
 
+    version("0.4.16", sha256="16dc32c7704906d13a9e5281bb396e92fb89a6b17fa5e201953240726b650b67")
     version("0.4.15", sha256="d602d55313fe7c675109153d6ed3b99bdba5292e1deefed71d5a21e0db595cc7")
     version("0.4.13", sha256="6cbadbf8e8b1abbd71a79080677d2b95f2bdd18f2e4d707c32d5c2ff26c5369b")
     version("0.4.12", sha256="b3b60caa5292cf980cf474c85f59582f6862925631a4da86a78eac05903252f4")

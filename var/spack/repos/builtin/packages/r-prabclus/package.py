@@ -21,6 +21,7 @@ class RPrabclus(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("2.3-3", sha256="005d000a9ac357e670de26e5b8fc4ddb1617351275fa43bf6d2e88b8774358c1")
     version("2.3-2", sha256="f421bcbcb557281e0de4a06b15f9a496adb5c640e883c0f7bb12051efc69e441")
     version("2.3-1", sha256="ef3294767d43bc3f72478fdaf0d1f13c8de18881bf9040c9f1add68af808b3c0")
     version("2.2-7.1", sha256="2c5bf3bbb0d225e04c53bb0e11e9c2a6809f0e46d95b8f6dc14b9dd6a2452975")

@@ -15,6 +15,7 @@ class RRmariadb(RPackage):
 
     cran = "RMariaDB"
 
+    version("1.3.2", sha256="7c87ef0623218b9e79dd6a9b1a25f495520289603ca48f54ea45309bd8826828")
     version("1.2.2", sha256="c97c61ace584f9ad9929d3e3f366556e0eecad12bc98ea2979563a01475f468e")
     version("1.2.1", sha256="c9176a096854ce33a98ce0faef0065c50b5d356174f90cea742c70e130cf5f0c")
     version("1.1.0", sha256="9ffa63a15052876a51a7996ca4e6a5b7b937f594b5cc7ca5a86f43789e22a956")

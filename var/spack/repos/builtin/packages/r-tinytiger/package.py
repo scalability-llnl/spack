@@ -23,6 +23,7 @@ class RTinytiger(RPackage):
 
     license("MIT")
 
+    version("0.0.9", sha256="fe9b1098a2d1d4722f8a7657a9244afcd3d6b7f4f112fc6a92c2fb75da07de59")
     version("0.0.4", sha256="818328b5095d9e8b302f1a04d004cd3ec6e62d945dbd757fe15e9ab768a7459e")
     version("0.0.3", sha256="841d92dd4185b9bff5eef0d3635805c5a3efb1bc4ff0a1101ef264417e37921c")
 

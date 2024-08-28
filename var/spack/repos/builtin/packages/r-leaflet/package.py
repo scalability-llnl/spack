@@ -17,6 +17,7 @@ class RLeaflet(RPackage):
 
     license("GPL-3.0-only")
 
+    version("2.2.2", sha256="d2877b8d394116cc648456a828c5b825728be6a7afbbb3d55cc142c91a1ab8eb")
     version("2.1.2", sha256="26d8671e8c99d85a4c257d8fb8c07ba899a2b95f801652598578f5cc5c724039")
     version("2.1.1", sha256="32f6a043759a0d2d98ea05739b7b4c55a266aa01272e48243e3c44046c7a5677")
     version("2.0.4.1", sha256="b0f038295f1de5d32d9ffa1d0dbc1562320190f2f1365f3a5e95863fff88901f")

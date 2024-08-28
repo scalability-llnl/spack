@@ -27,6 +27,7 @@ class RRcppeigen(RPackage):
 
     license("MPL-2.0")
 
+    version("0.3.4.0.1", sha256="25ed48f148b50aaadd92752d73e3eefe00ab4ecd4ae5662ae91a9ff3f72a4e26")
     version("0.3.3.9.3", sha256="5873a47fd6587d916f86119ab140c6736abf80ac45d06ff1c9d198708e7d1c76")
     version("0.3.3.9.2", sha256="2547e794d5a6fb8d9fbadf19e64afa0bcf413cc69ecf3f428995fa5a0fced493")
     version("0.3.3.9.1", sha256="8a0486249b778a4275a1168fc89fc7fc49c2bb031cb14b50a50089acae7fe962")

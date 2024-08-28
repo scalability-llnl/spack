@@ -21,6 +21,7 @@ class RTidyr(RPackage):
 
     license("MIT")
 
+    version("1.3.1", sha256="e820c261cb5543f572f49276a7bdc7302aa4215da4bf850b1b939a315353835d")
     version("1.3.0", sha256="8d532b9366fdd3ec9827b51830e559a49d073425007c766025f0e603964e0a9d")
     version("1.2.1", sha256="6971766d3663dc75c2328ab257816f4e42d9fdc05c2d87d171b8b9b5ecce61af")
     version("1.2.0", sha256="8cd01da9e97827521d01ea50b9225f2705c46b7538bbf74bec6249a04c1213a8")

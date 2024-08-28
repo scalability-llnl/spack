@@ -22,6 +22,7 @@ class RStringi(RPackage):
 
     license("custom")
 
+    version("1.8.4", sha256="c219f8f64d1a2bfd4ca9528452d44d30db1899af14f4b9ef248412443bc669f3")
     version("1.7.12", sha256="efe8ac2900001f986a75db5641fbb24587a6d23de274a6a85c39dfa58921e009")
     version("1.7.8", sha256="538918b1cd6ed1d8a2dd5ab146ba800a088e99f93c52dcd82615b6e127478b1c")
     version("1.7.6", sha256="0ea3d5afec5701977ff53de9afbaceb53b00aa34f5fb641cadc1eeb7759119ec")

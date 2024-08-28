@@ -16,6 +16,7 @@ class RDplyr(RPackage):
 
     license("MIT")
 
+    version("1.1.4", sha256="cf730414d5d4ab387b4e9890a4b1df9d17a3903488e8da8df1cf2e11e44558cb")
     version("1.1.2", sha256="c220c38a3a44977c43eeae3d9aef90e8bb297150cad0993ea8d3cc13150096e3")
     version("1.0.10", sha256="3ab639f627b4e439052df18f193f0ccab223225a4ae2ff8c18aba4f9807e0f2b")
     version("1.0.9", sha256="e2e1f7312618b4e32ada9a1da79cef32eaec12acd408c973a6b069c6be4fb46b")

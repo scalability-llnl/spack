@@ -15,6 +15,7 @@ class RGoogledrive(RPackage):
 
     license("MIT")
 
+    version("2.1.1", sha256="0b8b4f74ba3630b0347249a32a80bc5fc2e8b63ad2952702f30162bd2d38fb82")
     version("2.1.0", sha256="0d70353bbf1bebc96d3987ebd9cbb2b0902e6ddc4cdccece3d07c2bb688c4b74")
     version("2.0.0", sha256="605c469a6a086ef4b049909c2e20a35411c165ce7ce4f62d68fd39ffed8c5a26")
 

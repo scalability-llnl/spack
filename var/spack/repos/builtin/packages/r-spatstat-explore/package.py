@@ -25,6 +25,7 @@ class RSpatstatExplore(RPackage):
 
     cran = "spatstat.explore"
 
+    version("3.3-2", sha256="a24827d24a86f2f20f8dcbbb5f57f5ab43345fa346c572099b84d867e7bf85ed")
     version("3.1-0", sha256="87ef4882652db3b834214bfc776dd7d23d931a9227de12f19722aeb1029d086e")
     version("3.0-3", sha256="137444a46d26d88241336feece63ed7b006a9328cfe3861d4b8ab7b4bed963a7")
 

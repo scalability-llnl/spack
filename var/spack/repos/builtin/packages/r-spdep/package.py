@@ -23,6 +23,7 @@ class RSpdep(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("1.3-5", sha256="ba8efa06ddbc12408f4f6d4c85606d84922131d9c05953e0b23b81f03e56e626")
     version("1.2-8", sha256="8d9fb4cb10d1035526ad6d9f7a11972efb0e3137dcff176d73df6ebfe96c9190")
     version("1.2-7", sha256="9dac594825bf2d0aa31e845bfec05d8ce206327840fe455391741dbbdf9c9eea")
     version("1.2-4", sha256="a9f4d5af56efb1a2bcd3e85fe4d0e8a42896a2c30a790b2487e1ebadf398a677")

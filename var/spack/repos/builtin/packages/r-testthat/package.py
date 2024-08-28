@@ -17,6 +17,7 @@ class RTestthat(RPackage):
 
     license("MIT")
 
+    version("3.2.1.1", sha256="d785ce3975939e28b61048b0e28d881c80904534ff21e5b1a79a0a934124e9f7")
     version("3.1.7", sha256="1ad86b1739481c6c46359a6634ecc706bf513f34b26d7a62cbc719bbd4658eab")
     version("3.1.5", sha256="a8f56b9426206ddfc30b550c82ff2f042ebe1c2f5bfd4184aec8facac8f5b7fc")
     version("3.1.4", sha256="a47eec031b4e186a8bd331031371b2347063a283050eca2adbfaa37d7a6c9c09")
@@ -37,8 +38,6 @@ class RTestthat(RPackage):
     depends_on("r-cli@3.4.0:", type=("build", "run"), when="@3.1.5:")
     depends_on("r-desc", type=("build", "run"), when="@3.0.1:")
     depends_on("r-digest", type=("build", "run"))
-    depends_on("r-ellipsis", type=("build", "run"), when="@2.3.2:")
-    depends_on("r-ellipsis@0.2.0:", type=("build", "run"), when="@3.0.1:")
     depends_on("r-evaluate", type=("build", "run"), when="@2.2.0:")
     depends_on("r-jsonlite", type=("build", "run"), when="@3.0.1:")
     depends_on("r-lifecycle", type=("build", "run"), when="@3.0.1:")
@@ -60,3 +59,5 @@ class RTestthat(RPackage):
     depends_on("r-withr@2.4.3:", type=("build", "run"), when="@3.1.2:")
 
     depends_on("r-crayon@1.3.4:", type=("build", "run"), when="@:3.1.4")
+    depends_on("r-ellipsis", type=("build", "run"), when="@2.3.2:3.2.0")
+    depends_on("r-ellipsis@0.2.0:", type=("build", "run"), when="@3.0.1:3.2.0")

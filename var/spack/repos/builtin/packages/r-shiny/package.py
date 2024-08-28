@@ -18,6 +18,7 @@ class RShiny(RPackage):
 
     license("GPL-3.0-only OR custom")
 
+    version("1.9.1", sha256="854b6a214f127d652de2e0e02d675fd53209b058c11911f56f8d41382ba654e3")
     version("1.8.1.1", sha256="a38d5fb5d750e2c2091ce9101f138c1f9bc7009bbb195227a3519c5d97e36753")
     version("1.7.4", sha256="bbfcdd7375013b8f59248b3f3f4e752acd445feb25179f3f7f65cd69614da4b5")
     version("1.7.3", sha256="b8ca9a39fa69ea9b270a7e9037198d95122c79bd493b865d909d343dd3523ada")

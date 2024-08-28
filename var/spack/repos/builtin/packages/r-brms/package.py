@@ -29,6 +29,7 @@ class RBrms(RPackage):
 
     license("GPL-2.0-only")
 
+    version("2.21.0", sha256="7289ff33c2a4b83584b7fece0a6aa53fd14b5881a467d417fbca5dbf62ec5d58")
     version("2.19.0", sha256="0e146842c7acfcc6b8273df536eabb5279fb3bf2ae27ce1696f7d838d94fe5c1")
     version("2.18.0", sha256="63914be03cd1c4e6333317d22d7827ba2dc0414cb0dc88337cf74763ba07e111")
     version("2.17.0", sha256="24e5a3a40b81bea558e8f660d0de7fd1a4c2080c7553baac98f34dd2682ece71")

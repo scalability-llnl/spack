@@ -17,6 +17,7 @@ class RPrettyunits(RPackage):
 
     license("MIT")
 
+    version("1.2.0", sha256="f059f27e2a5c82e351fe05b87ad712f7afc273c651450453f59d99af5deeacea")
     version("1.1.1", sha256="9a199aa80c6d5e50fa977bc724d6e39dae1fc597a96413053609156ee7fb75c5")
     version("1.0.2", sha256="35a4980586c20650538ae1e4fed4d80fdde3f212b98546fc3c7d9469a1207f5c")
 

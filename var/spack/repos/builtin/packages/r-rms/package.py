@@ -27,6 +27,7 @@ class RRms(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("6.8-1", sha256="9d38545749430763c242bae1181ce24a7f6f6b244e4c69348ab200b83925596a")
     version("6.6-0", sha256="f3abadb94339f3aedadd27e1aceade069bcb53c94bf246626b0dc94b16b6625c")
     version("6.3-0", sha256="6c41eb670daf5e4391cc2f2a19e20a591f90769c124300a7ccf555820140d3f9")
     version("6.2-0", sha256="10d58cbfe39fb434223834e29e5248c9384cded23e6267cfc99367d0f5ee24b6")

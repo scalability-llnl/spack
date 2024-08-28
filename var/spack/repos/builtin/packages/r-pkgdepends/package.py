@@ -22,6 +22,7 @@ class RPkgdepends(RPackage):
 
     license("MIT")
 
+    version("0.7.2", sha256="b17e22d01250916b06868317359239ca9273d7765b5ead9481b47cf0d96acd26")
     version("0.5.0", sha256="eadc98e335f9d2cc10b31cf7a5b55fe3308266fbd6f46d5dbd37b5d90bfcf1bc")
     version("0.3.2", sha256="61db529965f973847b4d1337c6556527a89953cad09d231a6e6ca2145a426a21")
     version("0.3.1", sha256="8e4263a1792871ee9629b0d6a8caeb53b77012db3b5be91b432f3553cd2a80be")

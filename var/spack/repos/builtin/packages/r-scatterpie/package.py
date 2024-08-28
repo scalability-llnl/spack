@@ -15,6 +15,7 @@ class RScatterpie(RPackage):
 
     license("Artistic-2.0")
 
+    version("0.2.3", sha256="704f1072ff934729aefdd659e5c81e62b59f5ae94dc36a1e1f52085dce896447")
     version("0.1.9", sha256="517fd6cc297aa33f0fbb2643e35ca41dc971166ea2e8ed78460bd4ef7a77a687")
     version("0.1.8", sha256="a6ccc63a8be63fa113704cf5d4893c1ec1b75d3081ab971bd70e650e708872a0")
     version("0.1.7", sha256="3f7807519cfe135066ca79c8d8a09b59da9aa6d8aaee5e9aff40cca3d0bebade")

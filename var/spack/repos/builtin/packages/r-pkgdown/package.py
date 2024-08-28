@@ -17,6 +17,7 @@ class RPkgdown(RPackage):
 
     license("MIT")
 
+    version("2.1.0", sha256="c4d1df3b738d66e60db71e57c01c86c46f2fe58f972c9e2403c07a1436279fb4")
     version("2.0.7", sha256="f33872869dfa8319182d87e90eab3245ff69293b3b791471bf9538afb81b356a")
     version("2.0.6", sha256="d29a65c8a5b189fd89842e769f58f8c2369a55406269eabfb66d41d0fe1c7f69")
 

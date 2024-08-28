@@ -18,6 +18,7 @@ class RBlavaan(RPackage):
 
     license("GPL-3.0-or-later")
 
+    version("0.5-5", sha256="a8d3bc5e9d15a2e8496950e87ed3c6bc6d769e761ec068e1f063f2d255330b6d")
     version("0.4-7", sha256="43577264a1faff3cf98fce2c03b729816b40a82d36846458b8026b62da3008c3")
     version("0.4-3", sha256="a9f9f7b32aab7e7f179340c9f0f9d154b5fac51352c4fd590d317c201fe81b74")
     version("0.4-1", sha256="afb077d72f84ef0b6f45ef2ccb8335358042943c32a3472a9ca239ebca1c4aa4")

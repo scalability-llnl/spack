@@ -16,6 +16,7 @@ class RBookdown(RPackage):
 
     license("GPL-3.0-only")
 
+    version("0.40", sha256="58df4a044704b6c42a397f4e430a7fc8f6171bad1447872119aceafd158eac39")
     version("0.33", sha256="2288e1d0c383e6ab49202a18db6cc1a04c3adc1b25da646cc46167bc6c2892c3")
     version("0.29", sha256="5b4e3dc44a5c6574e3d9e19ebe7897d3ddcf6eaffe8214e1d272b545929ff723")
     version("0.26", sha256="c6207288cb72ea7c555cbad449c61278e94b742cac1f610879fb3f2d60b2b185")

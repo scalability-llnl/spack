@@ -18,6 +18,7 @@ class RRoxygen2(RPackage):
 
     license("MIT")
 
+    version("7.3.2", sha256="b788879f9132b7e2e656f442a6c592314676a9bf32d6a0a56e156cfa1ada011c")
     version("7.2.3", sha256="d844fab977d2575ab942fa1309ac7ff67f35f099a75d8b41c79efe6ea10416da")
     version("7.2.1", sha256="d2f0342591dc2b561fad8f6cf6fb3001e5e0bdd02be68bb2c6315f6bb82cda21")
     version("7.2.0", sha256="2ebfcfd567b9db6c606c6d42be1645b4e987f987995a2ad8954fa963a519448b")

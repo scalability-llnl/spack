@@ -18,6 +18,7 @@ class RDiagrammer(RPackage):
 
     cran = "DiagrammeR"
 
+    version("1.0.11", sha256="e873e3d6e198232408161661001ddcb04c9a56065bb4703c925e538462f4c4df")
     version("1.0.9", sha256="64a426fe27110dddd8b0c1223ae4c397a2e553ae5e81ddd4ff67c026cfc40abf")
     version("1.0.8", sha256="b9157b26215edda4fe0a1b9330a597d5b01a5d7e660a9832f593b87c584dd233")
     version("1.0.7", sha256="6af291a7136657b9f7c67b96cd7f3afe99662cf5a477ebbb213a6c53df623050")

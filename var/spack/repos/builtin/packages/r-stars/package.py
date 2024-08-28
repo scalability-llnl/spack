@@ -15,6 +15,7 @@ class RStars(RPackage):
 
     cran = "stars"
 
+    version("0.6-6", sha256="70ca3509adfb4227ca8910d47c87f587ec06d8ef4577af63fe772757844ec7ac")
     version("0.6-1", sha256="1f78db3adab9ebbfc9d98c6cc592708d893b5d7fd7fd876af454042ef42204a7")
     version("0.5-6", sha256="e0413c95423635f7f7b2520813382e911257da8ace9b743da9fe3eab568a9461")
 

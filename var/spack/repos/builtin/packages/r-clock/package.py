@@ -20,6 +20,7 @@ class RClock(RPackage):
 
     license("MIT")
 
+    version("0.7.1", sha256="432d2fc39d3f20e348f09a9b6136a02a588db585bab428d184da71bf6aa1f0d8")
     version("0.6.1", sha256="f80c385fd8229538968ffb71d7de53ddc82bfcec6641f8e76f299546c43c1702")
 
     depends_on("r@3.4:", type=("build", "run"))

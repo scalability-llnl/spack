@@ -21,6 +21,7 @@ class RProjpred(RPackage):
 
     license("GPL-3.0-only OR custom")
 
+    version("2.8.0", sha256="b383ddc5eca275737b96e4e3e14256b4f4abc4b29d292b5cebf3828d0921a1f6")
     version("2.5.0", sha256="b6ec123f5bf573d14cbd5431e3fbdee3215d71d3e263fcbec72bee5930044e39")
     version("2.2.1", sha256="6825ace07d1e580d5916bcd6bfd163460ae9008926f464e00deb7f2395cc72ad")
     version("2.1.2", sha256="a88a651e533c118aad0e8c2c905cfcf688d9c419ed195896036b8f6667b5cfb0")

@@ -18,6 +18,7 @@ class RUsethis(RPackage):
 
     license("MIT")
 
+    version("3.0.0", sha256="98f850f9ceaae37eb16ccd1232275b4e8f818c115c67151fa99096c477f7ccb5")
     version("2.1.6", sha256="31dc6707577065ac1d4acb7d4cbf135942727c5cc2699092198c544be86f6818")
     version("2.1.5", sha256="7d539e16ecdc1cd45ba1a215d42d8b9c16bc38280ddd27048003dbb37b16f052")
     version("2.0.0", sha256="22aa2b59f36a8701a4648554c7b0e010253bf917a0f431f06efac7d8a6b59854")

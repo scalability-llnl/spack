@@ -18,6 +18,7 @@ class RGargle(RPackage):
 
     license("MIT")
 
+    version("1.5.2", sha256="4a5beb046eb50a168b4baf5d1fcd8ac20d698e7fcb6b6ef46a436ded5b039001")
     version("1.4.0", sha256="8e0f1edf5595d4fd27bd92f98af1cc0c1349975803d9d6f3ff0c25ee2440498b")
     version("1.2.1", sha256="f367e2c82f403167ae84058303a4fb0402664558a2abf0b495474a7ef1a2f020")
     version("1.2.0", sha256="4d46ca2933f19429ca5a2cfe47b4130a75c7cd9931c7758ade55bac0c091d73b")

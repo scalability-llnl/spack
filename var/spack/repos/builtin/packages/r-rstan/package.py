@@ -23,6 +23,7 @@ class RRstan(RPackage):
 
     license("GPL-3.0-or-later")
 
+    version("2.32.6", sha256="3390d00191bbd3b0739dd19fe437b99a041a6b04be208877b48419d1348a1a70")
     version("2.21.8", sha256="b2d4edc315419037970c9fa2e8740b934966d88d40548152811f3d4a28475075")
     version("2.21.7", sha256="4495221310d390925b665c32e05ffabd3ae8857225bda65131a7ed2be41d6d45")
     version("2.21.5", sha256="86e4fe562d8ddcd0b02336f35a420fa8786dd21de7ca2bebb4ed6e9c252bb9ea")

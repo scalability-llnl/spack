@@ -50,6 +50,7 @@ class RSpatstat(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("3.1-1", sha256="5649309818c6e76c8b8ee7b66a25dcbd2b358d90da56f67dd961b5cf9ff55512")
     version("3.0-5", sha256="b926ed55dfeb95b09fb441f44d85204277eee00e42ac258c0a08baa1ce263bb1")
     version("2.3-4", sha256="4ea0f8d70b926b92bf4a06521f985a0bb6d573619f5d526957c87860ccb999da")
     version("2.3-0", sha256="da02443722f2c7ef9d59a2799b7b8002c94cecf73f2b0d2b29280d39f49c4c06")

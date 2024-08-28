@@ -17,6 +17,7 @@ class RTidyselect(RPackage):
 
     license("MIT")
 
+    version("1.2.1", sha256="169e97ba0bbfbcdf4a80534322751f87a04370310c40e27f04aac6525d45903c")
     version("1.2.0", sha256="538d26b727e37d618e2efd3b00836048f103112a03e6994bf07a02392e269e3b")
     version("1.1.2", sha256="0389a3b15417954a30d6d692f6ebdd3d0f318cb94a5c9b05365df2f4ea1d8270")
     version("1.1.1", sha256="18eb6a6746196a81ce19ee6cbf1db0c33f494177b97e2419312ef25a00ae486b")

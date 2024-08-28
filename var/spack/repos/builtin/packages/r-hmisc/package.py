@@ -17,6 +17,7 @@ class RHmisc(RPackage):
 
     cran = "Hmisc"
 
+    version("5.1-3", sha256="3c61772ff7a78ca5855189faa810c74117dc5df240103adc6e90eb94e9c605eb")
     version("5.0-1", sha256="db390f8f8a150cb5cffb812e9609a8e8632ceae0dc198528f190fd670ba8fa59")
     version("4.7-1", sha256="325d571a68b2198eabd258a8d86143cac659ffa70e474088a18e9b58ab882e7f")
     version("4.7-0", sha256="29ec2d9ca11c790c350e93323126bef4f498c69c41c31bb335fd04671e0f87bd")

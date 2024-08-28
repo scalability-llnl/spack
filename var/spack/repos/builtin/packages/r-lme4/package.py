@@ -18,6 +18,7 @@ class RLme4(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("1.1-35.5", sha256="7d6664db7ea96429562efe1058da58985d779d6fe79ec6f4e86ba68047135170")
     version("1.1-33", sha256="d956a5ed7cbcc016114a836bad89acf6cdafcd0f82a7d85e3805ced936b40910")
     version("1.1-31", sha256="5affd1e33d3fece5ec0a6c7663eb12328e64147f8aa92675ce6453c4fe72edfd")
     version("1.1-30", sha256="fdabdfc4b64cff05ae9506a766c948a953eeb6db71761f9401b36d6d9979300f")

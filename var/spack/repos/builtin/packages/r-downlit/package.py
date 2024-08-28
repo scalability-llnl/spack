@@ -18,6 +18,7 @@ class RDownlit(RPackage):
 
     license("MIT")
 
+    version("0.4.4", sha256="55c377dcee4adc48c1060e14079f3d1832453d066a2cf070530caa210c48f828")
     version("0.4.2", sha256="33dff66909104d1a5ba8e57b1288986e82b61fd5e91dce0cd358d53724b37e3c")
 
     depends_on("r@3.4.0:", type=("build", "run"))

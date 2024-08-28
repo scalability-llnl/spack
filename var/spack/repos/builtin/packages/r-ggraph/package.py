@@ -19,6 +19,7 @@ class RGgraph(RPackage):
 
     license("MIT")
 
+    version("2.2.1", sha256="4405f8a907ad8fee68b5d4991f0bc8f35d6c0facbb7467c2ce425d3ec8b23af1")
     version("2.1.0", sha256="686fdb22dc4f613273fb755ec42399a208b4d10348eecd1a217afd4612245c1f")
     version("2.0.6", sha256="7b0ac90d834a3ce5641b4bca159d59d09607ddaab592908361b75cffb648d40a")
     version("2.0.5", sha256="e36ad49dba92ee8652e18b1fb197be0ceb9f0a2f8faee2194453a62578449654")

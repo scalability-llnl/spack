@@ -21,6 +21,7 @@ class RReprex(RPackage):
 
     license("MIT")
 
+    version("2.1.1", sha256="c860368cbc7ef90ea786fb61ab6fa42cd89b5258be48652abc20ad414001879c")
     version("2.0.2", sha256="a85b16e26112364a65c886efea050df08c17aadf1411fd14ec27d9ef13e87092")
     version("2.0.1", sha256="0e6d8667cacb63135476a766fba3a4f91e5ad86274ea66d2b1e6d773b5ca6426")
     version("0.3.0", sha256="203c2ae6343f6ff887e7a5a3f5d20bae465f6e8d9745c982479f5385f4effb6c")

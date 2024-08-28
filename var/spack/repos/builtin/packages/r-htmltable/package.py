@@ -18,6 +18,7 @@ class RHtmltable(RPackage):
 
     cran = "htmlTable"
 
+    version("2.4.3", sha256="3739d01bff313ccd206b63940a8252b037f0521d041c721a4e0d195abd6ef6dd")
     version("2.4.1", sha256="3a7f3e75d886dc398fd1d3cae907b536fff6af3a3d2c18349ef12ec06d310f93")
     version("2.4.0", sha256="4ca2b5616d77cfeee8ae5ca74307b86407d478b12d1ce17ba9c447e233b89a9d")
     version("2.1.0", sha256="4049339b317cbec1c8c7930e2e36cf0fc8b002516092dd270bb794d8db02f0bf")

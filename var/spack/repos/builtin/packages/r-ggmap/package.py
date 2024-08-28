@@ -18,6 +18,7 @@ class RGgmap(RPackage):
 
     license("GPL-2.0-only")
 
+    version("4.0.0", sha256="0de639357c066e3b632eb960fd811276558ce29aefa2f77ef711ff5841c734f5")
     version("3.0.2", sha256="ba5fe3975fd4ca1a5fbda4910c9705ac2edacec75c658177edaf87f1c55cdcae")
     version("3.0.1", sha256="fc824b547f1fd0b52b6fbd18a82fe6f29f97b1f592e2c61baf4686ddfd47e35d")
     version("3.0.0", sha256="96c24ffdc0710d0633ac4721d599d2c06f43a29c59d1e85c94ff0af30dfdb58d")

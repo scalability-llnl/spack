@@ -16,6 +16,7 @@ class RShape(RPackage):
 
     license("GPL-3.0-or-later")
 
+    version("1.4.6.1", sha256="43f9bd0f997fd6cf1838efd8b2509c9a6396513f4e54a20360481634affd22a4")
     version("1.4.6", sha256="b9103e5ed05c223c8147dbe3b87a0d73184697343634a353a2ae722f7ace0b7b")
     version("1.4.5", sha256="094a79b8f42226189227fd7af71868e42106caa25a4d7f80a26977e8bc84189f")
     version("1.4.4", sha256="f4cb1b7d7c84cf08d2fa97f712ea7eb53ed5fa16e5c7293b820bceabea984d41")

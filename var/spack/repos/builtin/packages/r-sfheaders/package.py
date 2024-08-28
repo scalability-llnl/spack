@@ -17,6 +17,7 @@ class RSfheaders(RPackage):
 
     license("MIT")
 
+    version("0.4.4", sha256="f65ffe67b1d07beb6904b8960c66be684f5526b4d6450ab46c630c77e9b9bd07")
     version("0.4.2", sha256="ed9fb934c537fb6f126886f8e5997727de856e32fc3d38911b61a3a83faa7b2c")
     version("0.4.0", sha256="86bcd61018a0491fc8a1e7fb0422c918296287b82be299a79ccee8fcb515e045")
 

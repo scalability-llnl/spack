@@ -23,6 +23,7 @@ class RSpadesCore(RPackage):
 
     maintainers("dorton21")
 
+    version("2.1.0", sha256="aee1a3093dfe04210719a7ced12d522299845bbd794f7eb78308f3a5b613762b")
     version("1.1.0", sha256="67af4f3f153b75a0865fde2457c5d951c2f2184d07c557879b7a8c43a6e7ad66")
     version("1.0.10", sha256="05e20f7d9aeef9ba68e50e993ef3027b8c85afc5e3f83f5ecaee9d1a7873e379")
     version("1.0.9", sha256="1176a41a1af334388c1b16ff4ed9a6f30007bb5ed1fa14d798c59461042537dd")

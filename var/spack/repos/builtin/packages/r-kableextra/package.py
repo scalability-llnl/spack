@@ -18,6 +18,7 @@ class RKableextra(RPackage):
 
     cran = "kableExtra"
 
+    version("1.4.0", sha256="8fe2cc9fc2e8991685c4dc9e4904459e6f572c945319befde36d76f3ab527409")
     version("1.3.4", sha256="091ffac282cf9257edcec1a06da38b5e6516f111296bedb934e32f5692ffbbb0")
 
     depends_on("r@3.1.0:", type=("build", "run"))

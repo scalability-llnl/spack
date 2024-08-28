@@ -18,6 +18,7 @@ class RGeomorph(RPackage):
 
     license("GPL-3.0-or-later")
 
+    version("4.0.8", sha256="14b4ad5a03fb58d9e7d02ddc4d0756553e9480ded3e68fd699249d58870f0c55")
     version("4.0.5", sha256="900d41f95a610b026763797f290ce94c10827a59b05030ed01c841c59264313b")
     version("4.0.4", sha256="dfded29070bc06bf1dc0d6fedaa16fea9f8eef76f0a7443a11f2835c328c6b0a")
     version("4.0.3", sha256="8fd77bedf2ee85f1e4aaac4b22253810d12dba0b79d78d67695d237b7184e263")
