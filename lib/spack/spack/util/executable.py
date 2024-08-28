@@ -226,15 +226,13 @@ class Executable:
                 )
 
         cmd = self.exe + list(args)
-        cmd = (
-            " ".join(['"' + c + '"' if "import" in c else c for c in cmd])
-            if sys.platform == "win32"
-            else cmd
-        )
 
         escaped_cmd = ["'%s'" % arg.replace("'", "'\"'\"'") for arg in cmd]
         cmd_line_string = " ".join(escaped_cmd)
         tty.debug(cmd_line_string)
+
+        if sys.platform == "win32" and any("import" in s for s in cmd):
+            cmd = " ".join(['"' + c + '"' if "import" in c else c for c in cmd])
 
         try:
             proc = subprocess.Popen(
