@@ -81,7 +81,7 @@ class CrayMpich(Package, ROCmPackage):
         elif spack_cc is not None:
             env.set("MPICC", spack_cc)
             env.set("MPICXX", spack_cxx)
-            env.set("MPIF77", spack_fc)
+            env.set("MPIF77", spack_f77)
             env.set("MPIF90", spack_fc)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
@@ -189,7 +189,7 @@ class CrayMpich(Package, ROCmPackage):
                 GTL_path = os.path.join(MPI_root, "gtl", "lib")
 
                 GTL_shared_libraries = find_libraries(
-                    [GTL_kind[2]], root=GTL_path, recursive=False
+                    [GTL_kind[2]], root=GTL_path, shared=True, recursive=False
                 )
 
                 if len(GTL_shared_libraries) != 1:
