@@ -2301,8 +2301,8 @@ class PackageInstaller:
             if pkg.spec.installed:
                 # Do not clean up this was an overwrite that wasn't completed
                 overwrite = spec.dag_hash() in task.request.overwrite
-                rec, _ = self._check_db(pkg.spec)
-                incomplete = rec is None or task.request.overwrite_time > rec.installation_time
+                rec = spack.store.STORE.db.get_record(pkg.spec)
+                incomplete = task.request.overwrite_time > rec.installation_time
                 if not (overwrite and incomplete):
                     self._cleanup_task(pkg)
 
