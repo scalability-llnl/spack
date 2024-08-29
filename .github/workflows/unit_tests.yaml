@@ -61,7 +61,7 @@ jobs:
       run: "brew install kcov"
     - name: Install Python packages
       run: |
-          pip install --upgrade pip setuptools pytest pytest-xdist pytest-cov
+          pip install --upgrade pip setuptools pytest pytest-xdist pytest-cov clingo
           pip install --upgrade flake8 "isort>=4.3.5" "mypy>=0.900" "click" "black"
     - name: Setup git configuration
       run: |
@@ -185,7 +185,6 @@ jobs:
         spack bootstrap disable github-actions-v0.5
         spack bootstrap disable github-actions-v0.6
         spack bootstrap status
-        spack solve zlib
         spack unit-test --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml lib/spack/spack/test/concretization/core.py
     - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       with:
@@ -223,7 +222,7 @@ jobs:
         . share/spack/setup-env.sh
         $(which spack) bootstrap disable spack-install
         $(which spack) solve zlib
-        common_args=(--dist loadfile --tx '4*popen//python=./bin/spack-tmpconfig python -u ./bin/spack python' -x)
+        common_args=(--dist loadfile --tx '4*popen//python=./bin/spack-tmpconfig python -u ./bin/spack python')
         $(which spack) unit-test --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml "${common_args[@]}"
     - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       with:
@@ -254,7 +253,7 @@ jobs:
       env:
         COVERAGE_FILE: coverage/.coverage-windows
       run: |
-        spack unit-test -x --verbose --cov --cov-config=pyproject.toml
+        spack unit-test --verbose --cov --cov-config=pyproject.toml
         ./share/spack/qa/validate_last_exit.ps1
     - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       with:
