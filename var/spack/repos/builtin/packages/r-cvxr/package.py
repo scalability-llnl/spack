@@ -28,7 +28,7 @@ class RCvxr(RPackage):
     depends_on("r@3.4.0:", type=("build", "run"))
     depends_on("r-r6", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))
-    depends_on("r-rcpp", type=("build", "run"))
+    depends_on("r-rcpp@0.12.12:", type=("build", "run"))
     depends_on("r-bit64", type=("build", "run"))
     depends_on("r-clarabel@0.9.0:", type=("build", "run"), when="@1.0-14:")
     depends_on("r-gmp", type=("build", "run"))

@@ -18,4 +18,8 @@ class RProfvis(RPackage):
 
     depends_on("r@3.0:", type=("build", "run"))
     depends_on("r-htmlwidgets@0.3.2:", type=("build", "run"))
+    depends_on("r-purrr", type=("build", "run"), when="@0.3.8:")
+    depends_on("r-rlang@0.4.9:", type=("build", "run"), when="@0.3.8:")
     depends_on("r-stringr", type=("build", "run"))
+    depends_on("r-vctrs", type=("build", "run"), when="@0.3.8:")
+

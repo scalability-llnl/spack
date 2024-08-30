@@ -31,3 +31,6 @@ class RMendelianrandomization(RPackage):
     depends_on("r-quantreg@5.01:", type=("build", "run"))
     depends_on("r-rjson", type=("build", "run"))
     depends_on("r-glmnet", type=("build", "run"))
+    depends_on("r-numderiv", type=("build", "run"), when="@0.10.0:")
+    depends_on("r-rcpp", type=("build", "run"), when="@0.10.0:")
+    depends_on("r-rcpparmadillo", type=("build", "run"), when="@0.10.0:")

@@ -35,6 +35,7 @@ class RRgl(RPackage):
     depends_on("r+X", type=("build", "run"))
     depends_on("r@3.2.0:", type=("build", "run"))
     depends_on("r@3.3.0:", type=("build", "run"), when="@0.108.3:")
+    depends_on("r@3.6.0:", type=("build", "run") , when="@1.3.1:")
     depends_on("r-htmlwidgets", type=("build", "run"))
     depends_on("r-htmlwidgets@1.6.0:", type=("build", "run"), when="@1.1.3:")
     depends_on("r-htmltools", type=("build", "run"))

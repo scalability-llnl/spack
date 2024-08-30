@@ -27,6 +27,7 @@ class RHmisc(RPackage):
     version("4.2-0", sha256="9e9614673288dd00295f250fa0bf96fc9e9fed692c69bf97691081c1a01411d9")
     version("4.1-1", sha256="991db21cdf73ffbf5b0239a4876b2e76fd243ea33528afd88dc968792f281498")
 
+    depends_on("r@4.1.0:", type=("build", "run") , when="@5.1-2:")
     depends_on("r-formula", type=("build", "run"))
     depends_on("r-ggplot2@2.2:", type=("build", "run"))
     depends_on("r-cluster", type=("build", "run"))

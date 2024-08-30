@@ -39,6 +39,7 @@ class RRmarkdown(RPackage):
     depends_on("r-jquerylib", type=("build", "run"), when="@2.11:")
     depends_on("r-jsonlite", type=("build", "run"))
     depends_on("r-knitr@1.22:", type=("build", "run"))
+    depends_on("r-knitr@1.43:", type=("build", "run") , when="@2.26:")
     depends_on("r-tinytex@0.11:", type=("build", "run"), when="@1.10:")
     depends_on("r-tinytex@0.31:", type=("build", "run"), when="@2.8:")
     depends_on("r-xfun", type=("build", "run"), when="@1.13:")

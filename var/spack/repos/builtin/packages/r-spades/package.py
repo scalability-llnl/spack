@@ -34,10 +34,15 @@ class RSpades(RPackage):
 
     depends_on("r@3.6:", type=("build", "run"))
     depends_on("r@4.0:", type=("build", "run"), when="@2.0.8:")
+    depends_on("r@4.2:", type=("build", "run") , when="@2.0.10:")
     depends_on("r-quickplot", type=("build", "run"))
+    depends_on("r-quickplot@1.0.2:", type=("build", "run") , when="@2.0.10:")
     depends_on("r-reproducible@1.2.1.9007:", type=("build", "run"))
     depends_on("r-reproducible@1.2.2:", type=("build", "run"), when="@2.0.9:")
+    depends_on("r-reproducible@2.0.10:", type=("build", "run") , when="@2.0.10:")
     depends_on("r-spades-core@1.0.4:", type=("build", "run"))
+    depends_on("r-spades-core@2.0.3:", type=("build", "run") , when="@2.0.10:")
     depends_on("r-spades-tools", type=("build", "run"))
+    depends_on("r-spades-tools@2.0.5:", type=("build", "run") , when="@2.0.10:")
 
     depends_on("r-spades-addins", type=("build", "run"), when="@:2.0.6")

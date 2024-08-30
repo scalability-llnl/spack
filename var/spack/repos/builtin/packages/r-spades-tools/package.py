@@ -29,6 +29,7 @@ class RSpadesTools(RPackage):
     depends_on("r@3.5.0:", type=("build", "run"))
     depends_on("r@3.6:", type=("build", "run"), when="@0.3.9:")
     depends_on("r@4.0:", type=("build", "run"), when="@0.3.10:")
+    depends_on("r@4.2:", type=("build", "run") , when="@2.0.6:")
     depends_on("r-backports", type=("build", "run"))
     depends_on("r-checkmate@1.8.2:", type=("build", "run"))
     depends_on("r-data-table@1.10.4:", type=("build", "run"))

@@ -34,10 +34,12 @@ class RMapview(RPackage):
     depends_on("r-leafpop", type=("build", "run"))
     depends_on("r-png", type=("build", "run"))
     depends_on("r-raster", type=("build", "run"))
+    depends_on("r-raster@3.6.3:", type=("build", "run") , when="@2.11.2:")
     depends_on("r-satellite", type=("build", "run"))
     depends_on("r-scales@0.2.5:", type=("build", "run"))
     depends_on("r-servr", type=("build", "run"), when="@2.10.0:")
     depends_on("r-sf", type=("build", "run"))
     depends_on("r-sp", type=("build", "run"))
-    depends_on("r-webshot", type=("build", "run"))
     depends_on("gmake", type="build")
+
+    depends_on("r-webshot", type=("build", "run"), when="@:2.11.0")
