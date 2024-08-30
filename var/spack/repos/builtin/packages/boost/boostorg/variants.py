@@ -215,6 +215,19 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "coroutine",
+        when="@1.53.0:",
+        buildable="@1.54.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Coroutine requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Coroutine requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+context", "msg": "Boost.Coroutine requires Boost.Context"}
+        ],
+        description="Coroutine library",
+    )
+    _boost_variant(
         "context-impl",
         when="@1.65.0:",
         default="fcontext",
