@@ -11,8 +11,9 @@ class RProj(RPackage):
 
     A wrapper around the generic coordinate transformation software 'PROJ'
     that transforms coordinates from one coordinate reference system ('CRS')
-    to another. This includes cartographic projections as well as geodetic transformations.  The intention is for this
-    package to be used by user-packages such as 'reproj', and that the older 'PROJ.4' and version 5
+    to another. This includes cartographic projections as well as geodetic
+    transformations.  The intention is for this package to be used by
+    user-packages such as 'reproj', and that the older 'PROJ.4' and version 5
     pathways be provided by the 'proj4' package."""
 
     cran = "PROJ"
