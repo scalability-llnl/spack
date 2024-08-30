@@ -202,5 +202,20 @@ def load():
         when="@1.65.0:",
         description="The backend for Boost.Context",
     )
+    _boost_variant(
+        "coroutine",
+        when="@1.53.0:",
+        buildable="@1.54.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Coroutine requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Coroutine requires cxxstd >= 11"},
+        ],
+        # fmt: off
+        requires=[
+            {"spec": "+context", "msg": "Boost.Coroutine requires Boost.Context"}
+        ],
+        # fmt: on
+        description="Coroutine library.",
+    )
 
     return library_names
