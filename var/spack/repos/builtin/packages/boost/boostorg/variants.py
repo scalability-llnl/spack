@@ -97,6 +97,15 @@ def load():
         multi=False,
         description="C++ standard",
     )
+    # https://boostorg.github.io/build/manual/develop/index.html#bbv2.builtin.features.visibility
+    _boost_variant(
+        "visibility",
+        values=("global", "protected", "hidden"),
+        default="hidden",
+        multi=False,
+        when="@1.69.0:",
+        description="Default symbol visibility in compiled libraries",
+    )
 
     # ----------------------------------------------------------------------
     #  Library-level configurations
