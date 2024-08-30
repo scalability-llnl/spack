@@ -176,6 +176,15 @@ def load():
 
     # ----------------------------------------------------------------------
     _boost_variant(
+        "container",
+        # Can be both header-only and compiled. '+container' indicates the
+        # compiled version which requires Extended Allocator support. The
+        # header-only library is installed when no variant is given.
+        when="@1.48.0:",
+        buildable="@1.56.0:",  # Extended Allocators need to be compiled
+        description="Standard library containers and extensions.",
+    )
+    _boost_variant(
         "context",
         when="@1.51.0:",
         buildable="@1.51.0:",

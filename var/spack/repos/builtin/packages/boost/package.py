@@ -117,7 +117,7 @@ class Boost(Package):
         "charconv",
         "chrono",
         "cobalt",
-        "container",
+        #        "container",
         #        "context",
         "contract",
         "coroutine",
@@ -222,9 +222,6 @@ class Boost(Package):
 
     # boost-python in 1.72.0 broken with cxxstd=98
     conflicts("cxxstd=98", when="+mpi+python @1.72.0")
-
-    # Container's Extended Allocators were not added until 1.56.0
-    conflicts("+container", when="@:1.55")
 
     # Boost.System till 1.76 (included) was relying on mutex, which was not
     # detected correctly on Darwin platform when using GCC
