@@ -115,16 +115,11 @@ class Boost(Package):
     # mpi/python are not installed by default because they pull in many
     # dependencies and/or because there is a great deal of customization
     # possible (and it would be difficult to choose sensible defaults)
-    #
-    # Boost.Container can be both header-only and compiled. '+container'
-    # indicates the compiled version which requires Extended Allocator
-    # support. The header-only library is installed when no variant is given.
     all_libs = [
         "atomic",
         "charconv",
         "chrono",
         "cobalt",
-        "container",
         "contract",
         "coroutine",
         "date_time",
@@ -223,9 +218,6 @@ class Boost(Package):
 
     # boost-mpi depends on boost-python since 1.87.0
     conflicts("~python", when="+mpi @1.87.0:")
-
-    # Container's Extended Allocators were not added until 1.56.0
-    conflicts("+container", when="@:1.55")
 
     # Boost.System till 1.76 (included) was relying on mutex, which was not
     # detected correctly on Darwin platform when using GCC
