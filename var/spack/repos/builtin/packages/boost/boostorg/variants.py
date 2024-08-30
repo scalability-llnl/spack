@@ -194,5 +194,25 @@ def load():
     #  dependencies and/or because there is a great deal of customization
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
+    _boost_variant(
+        "context",
+        when="@1.51.0:",
+        buildable="@1.51.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Context requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Context requires cxxstd >= 11"},
+        ],
+        description="Cooperative multitasking on a single thread",
+    )
+    # fmt: off
+    _boost_variant(
+        "context-impl",
+        when="@1.65.0:",
+        default="fcontext",
+        values=("fcontext", "ucontext", "winfib"),
+        multi=False,
+        description="The backend for Boost.Context",
+    )
+    # fmt: on
 
     return library_names
