@@ -212,15 +212,6 @@ class Boost(Package):
         "for building static libraries",
     )
 
-    # https://boostorg.github.io/build/manual/develop/index.html#bbv2.builtin.features.visibility
-    variant(
-        "visibility",
-        values=("global", "protected", "hidden"),
-        default="hidden",
-        multi=False,
-        description="Default symbol visibility in compiled libraries " "(1.69.0 or later)",
-    )
-
     # C++98/03 support was removed in 1.83.0
     conflicts("cxxstd=98", when="@1.83.0:", msg="This version of Boost requires C++11 or newer")
     conflicts("cxxstd=03", when="@1.83.0:", msg="This version of Boost requires C++11 or newer")
