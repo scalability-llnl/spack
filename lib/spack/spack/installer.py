@@ -1754,8 +1754,14 @@ class PackageInstaller:
                 dep_pkg = dep.package
                 dep_id = package_id(dep)
 
+                # Add a new task if we need one
                 if dep_id not in self.build_tasks and dep_id not in self.installed:
                     self._add_init_task(dep_pkg, task.request, False, self.all_dependencies)
+                # Add edges for an existing task if it exists
+                elif dep_id in self.build_tasks:
+                    for parent in dep.dependents():
+                        parent_id = package_id(parent)
+                        self.build_tasks[dep_id].add_dependent(parent_id)
 
                 # Clear any persistent failure markings _unless_ they
                 # are associated with another process in this parallel build
