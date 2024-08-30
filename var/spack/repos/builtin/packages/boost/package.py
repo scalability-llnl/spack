@@ -121,7 +121,6 @@ class Boost(Package):
         "chrono",
         "cobalt",
         "contract",
-        "coroutine",
         "date_time",
         "exception",
         "fiber",
@@ -199,9 +198,7 @@ class Boost(Package):
         # https://github.com/boostorg/python/issues/431
         depends_on("py-numpy@:1", when="@:1.85", type=("build", "run"))
 
-    # Coroutine, Context, Fiber, etc., are not straightforward.
-    conflicts("+coroutine", when="@:1.52")  # Context since 1.53.0.
-    conflicts("~context", when="+coroutine")  # Coroutine requires Context.
+    # Context, Fiber, etc., are not straightforward.
     conflicts("+fiber", when="@:1.61")  # Fiber since 1.62.0.
     conflicts("cxxstd=98", when="+fiber")  # Fiber requires >=C++11.
     conflicts("~context", when="+fiber")  # Fiber requires Context.
