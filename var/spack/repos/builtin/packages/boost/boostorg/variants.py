@@ -183,7 +183,16 @@ def load():
     #  dependencies and/or because there is a great deal of customization
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
-
+    _boost_variant(
+        "context",
+        when="@1.51.0:",
+        buildable="@1.51.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Context requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Context requires cxxstd >= 11"},
+        ],
+        description="Context-switching library",
+    )
     # fmt: off
     _boost_variant(
         "numpy",
@@ -195,5 +204,13 @@ def load():
         description="Build the Boost NumPy library",
     )
     # fmt: on
+    _boost_variant(
+        "context-impl",
+        when="@1.65.0:",
+        default="fcontext",
+        values=("fcontext", "ucontext", "winfib"),
+        multi=False,
+        description="The backend for Boost.Context",
+    )
 
     return library_names
