@@ -73,4 +73,22 @@ def _boost_variant(name, default=None, buildable=None, conflicts=[], requires=[]
 
 
 def load():
+    _boost_variant(
+        "cxxstd",
+        default="11",
+        values=(
+            sp.conditional("98", when="@:1.83.0"),
+            sp.conditional("03", when="@:1.83.0"),
+            "11",
+            "14",
+            sp.conditional("17", when="@1.63.0:"),
+            sp.conditional("2a", when="@1.73.0:"),
+            sp.conditional("20", when="@1.77.0:"),
+            sp.conditional("23", when="@1.79.0:"),
+            sp.conditional("26", when="@1.79.0:"),
+        ),
+        multi=False,
+        description="Use the specified C++ standard when building",
+    )
+
     return library_names
