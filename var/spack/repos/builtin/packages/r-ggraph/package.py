@@ -28,7 +28,7 @@ class RGgraph(RPackage):
 
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-ggplot2@3.0.0:", type=("build", "run"))
-    depends_on("r-ggplot2@3.5.0:", type=("build", "run") , when="@2.2.0:")
+    depends_on("r-ggplot2@3.5.0:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-dplyr", type=("build", "run"))
     depends_on("r-ggforce@0.3.1:", type=("build", "run"))
     depends_on("r-igraph@1.0.0:", type=("build", "run"))
@@ -39,7 +39,7 @@ class RGgraph(RPackage):
     depends_on("r-rlang", type=("build", "run"))
     depends_on("r-tidygraph", type=("build", "run"))
     depends_on("r-graphlayouts@0.5.0:", type=("build", "run"))
-    depends_on("r-graphlayouts@1.1.0:", type=("build", "run") , when="@2.2.0:")
+    depends_on("r-graphlayouts@1.1.0:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-withr", type=("build", "run"), when="@2.0.4:")
     depends_on("r-lifecycle", type=("build", "run"), when="@2.1.0:")
     depends_on("r-memoise", type=("build", "run"), when="@2.2.0:")

@@ -23,7 +23,7 @@ class RKableextra(RPackage):
 
     depends_on("r@3.1.0:", type=("build", "run"))
     depends_on("r-knitr@1.16:", type=("build", "run"))
-    depends_on("r-knitr@1.33:", type=("build", "run") , when="@1.4.0:")
+    depends_on("r-knitr@1.33:", type=("build", "run"), when="@1.4.0:")
     depends_on("r-magrittr", type=("build", "run"))
     depends_on("r-stringr@1.0:", type=("build", "run"))
     depends_on("r-xml2@1.1.1:", type=("build", "run"))

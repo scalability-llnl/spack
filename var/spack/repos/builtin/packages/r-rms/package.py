@@ -39,11 +39,11 @@ class RRms(RPackage):
     version("5.1-1", sha256="c489948df5c434b40bcf5288844f5b4e08d157f36939d09230c1600f88d1bfe3")
 
     depends_on("r@3.5.0:", type=("build", "run"))
-    depends_on("r@4.1.0:", type=("build", "run") , when="@6.8-0:")
+    depends_on("r@4.1.0:", type=("build", "run"), when="@6.8-0:")
     depends_on("r-hmisc@4.3-0:", type=("build", "run"))
     depends_on("r-hmisc@4.7-0:", type=("build", "run"), when="@6.3-0:")
     depends_on("r-hmisc@4.8-0:", type=("build", "run"), when="@6.6-0:")
-    depends_on("r-hmisc@5.1-0:", type=("build", "run") , when="@6.8-0:")
+    depends_on("r-hmisc@5.1-0:", type=("build", "run"), when="@6.8-0:")
     depends_on("r-survival@3.1-6:", type=("build", "run"))
     depends_on("r-survival@3.1-12:", type=("build", "run"), when="@6.1-0:")
     depends_on("r-ggplot2@2.2:", type=("build", "run"))

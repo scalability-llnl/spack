@@ -31,7 +31,7 @@ class RTidygraph(RPackage):
     depends_on("r-dplyr@0.8.5:", type=("build", "run"), when="@1.2.0:")
     depends_on("r-igraph", type=("build", "run"))
     depends_on("r-igraph@1.3.0:", type=("build", "run"), when="@1.2.3:")
-    depends_on("r-igraph@2.0.0:", type=("build", "run") , when="@1.3.1:")
+    depends_on("r-igraph@2.0.0:", type=("build", "run"), when="@1.3.1:")
     depends_on("r-lifecycle", type=("build", "run"), when="@1.3.0:")
     depends_on("r-magrittr", type=("build", "run"))
     depends_on("r-rlang", type=("build", "run"))

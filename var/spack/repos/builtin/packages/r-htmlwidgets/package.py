@@ -28,7 +28,7 @@ class RHtmlwidgets(RPackage):
 
     depends_on("r-htmltools@0.3:", type=("build", "run"))
     depends_on("r-htmltools@0.5.4:", type=("build", "run"), when="@1.6.2:")
-    depends_on("r-htmltools@0.5.7:", type=("build", "run") , when="@1.6.3:")
+    depends_on("r-htmltools@0.5.7:", type=("build", "run"), when="@1.6.3:")
     depends_on("r-jsonlite@0.9.16:", type=("build", "run"))
     depends_on("r-yaml", type=("build", "run"))
     depends_on("r-rmarkdown", type=("build", "run"), when="@1.6.2:")

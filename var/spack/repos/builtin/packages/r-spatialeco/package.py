@@ -29,7 +29,7 @@ class RSpatialeco(RPackage):
 
     depends_on("r@3.6:", type=("build", "run"))
     depends_on("r@4.0:", type=("build", "run"), when="@1.3-7:")
-    depends_on("r@4.2:", type=("build", "run") , when="@2.0-2:")
+    depends_on("r@4.2:", type=("build", "run"), when="@2.0-2:")
     depends_on("r-sf", type=("build", "run"))
     depends_on("r-terra", type=("build", "run"), when="@2.0-0:")
 

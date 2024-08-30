@@ -29,7 +29,7 @@ class RPkgdepends(RPackage):
     version("0.2.0", sha256="59afdbe0e59663088ba4facac5cd011a0a05b0b9c540103fb8b9f0a673bf4d94")
 
     depends_on("r@3.4:", type=("build", "run"), when="@0.3.1:")
-    depends_on("r@3.5:", type=("build", "run") , when="@0.7.0:")
+    depends_on("r@3.5:", type=("build", "run"), when="@0.7.0:")
     depends_on("r-callr@3.3.1:", type=("build", "run"))
     depends_on("r-cli@2.1.0:", type=("build", "run"))
     depends_on("r-cli@3.6.0:", type=("build", "run"), when="@0.5.0:")
@@ -43,7 +43,7 @@ class RPkgdepends(RPackage):
     depends_on("r-pkgcache@1.3.0:", type=("build", "run"))
     depends_on("r-pkgcache@2.0.0:", type=("build", "run"), when="@0.3.1:")
     depends_on("r-pkgcache@2.1.0:", type=("build", "run"), when="@0.5.0:")
-    depends_on("r-pkgcache@2.2.0:", type=("build", "run") , when="@0.6.0:")
+    depends_on("r-pkgcache@2.2.0:", type=("build", "run"), when="@0.6.0:")
     depends_on("r-processx@3.4.2:", type=("build", "run"))
     depends_on("r-ps", type=("build", "run"))
     depends_on("r-r6", type=("build", "run"))

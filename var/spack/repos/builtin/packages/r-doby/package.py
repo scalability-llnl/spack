@@ -20,8 +20,8 @@ class RDoby(RPackage):
     version("4.6.16", sha256="d5937eb57d293b0bc2e581ff2e1e628671cb4eacddc0b9574dc28a5316ecbbe7")
 
     depends_on("r@3.6.0:", type=("build", "run"))
-    depends_on("r@4.1.0:", type=("build", "run") , when="@4.6.18:")
-    depends_on("r@4.2.0:", type=("build", "run") , when="@4.6.21:")
+    depends_on("r@4.1.0:", type=("build", "run"), when="@4.6.18:")
+    depends_on("r@4.2.0:", type=("build", "run"), when="@4.6.21:")
     depends_on("r-boot", type=("build", "run"), when="@4.6.21:")
     depends_on("r-broom", type=("build", "run"))
     depends_on("r-cowplot", type=("build", "run"), when="@4.6.21:")

@@ -35,7 +35,7 @@ class RReproducible(RPackage):
     depends_on("r@3.5:", type=("build", "run"))
     depends_on("r@3.6:", type=("build", "run"), when="@1.2.8:")
     depends_on("r@4.0:", type=("build", "run"), when="@1.2.10:")
-    depends_on("r@4.1:", type=("build", "run") , when="@2.0.2:")
+    depends_on("r@4.1:", type=("build", "run"), when="@2.0.2:")
     depends_on("r-data-table@1.10.4:", type=("build", "run"))
     depends_on("r-digest", type=("build", "run"))
     depends_on("r-filelock", type=("build", "run"), when="@2.0.2:")

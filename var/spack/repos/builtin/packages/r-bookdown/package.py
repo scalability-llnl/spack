@@ -42,7 +42,7 @@ class RBookdown(RPackage):
     depends_on("r-xfun@0.13:", type=("build", "run"), when="@0.21:")
     depends_on("r-xfun@0.22:", type=("build", "run"), when="@0.24:")
     depends_on("r-xfun@0.29:", type=("build", "run"), when="@0.26:")
-    depends_on("r-xfun@0.39:", type=("build", "run") , when="@0.34:")
+    depends_on("r-xfun@0.39:", type=("build", "run"), when="@0.34:")
     depends_on("r-tinytex@0.12:", type=("build", "run"), when="@0.12:")
     depends_on("r-yaml@2.1.14:", type=("build", "run"))
     depends_on("r-yaml@2.1.19:", type=("build", "run"), when="@0.21:")

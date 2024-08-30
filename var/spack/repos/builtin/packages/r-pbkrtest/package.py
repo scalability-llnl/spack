@@ -36,7 +36,7 @@ class RPbkrtest(RPackage):
     depends_on("r@3.2.3:", type=("build", "run"), when="@0.4-6:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@0.5-0.1:")
     depends_on("r@4.1.0:", type=("build", "run"), when="@0.5.2:")
-    depends_on("r@4.2.0:", type=("build", "run") , when="@0.5.3:")
+    depends_on("r@4.2.0:", type=("build", "run"), when="@0.5.3:")
     depends_on("r-lme4@1.1-10:", type=("build", "run"))
     depends_on("r-lme4@1.1-31:", type=("build", "run"), when="@0.5.2:")
     depends_on("r-broom", type=("build", "run"), when="@0.5-0.1:")

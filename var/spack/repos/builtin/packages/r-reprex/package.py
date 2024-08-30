@@ -33,7 +33,7 @@ class RReprex(RPackage):
     depends_on("r@3.1:", type=("build", "run"), when="@0.2.0:")
     depends_on("r@3.3:", type=("build", "run"), when="@1:")
     depends_on("r@3.4:", type=("build", "run"), when="@2.0.2:")
-    depends_on("r@3.6:", type=("build", "run") , when="@2.1.0:")
+    depends_on("r@3.6:", type=("build", "run"), when="@2.1.0:")
     depends_on("r-callr@2.0.0:", type=("build", "run"))
     depends_on("r-callr@3.3.1:", type=("build", "run"), when="@1:")
     depends_on("r-callr@3.6.0:", type=("build", "run"), when="@2:")

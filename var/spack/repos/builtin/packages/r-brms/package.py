@@ -38,10 +38,10 @@ class RBrms(RPackage):
     version("2.15.0", sha256="c11701d1d8758590b74bb845b568b736e4455a81b114c7dfde0b27b7bd1bcc2f")
 
     depends_on("r@3.5.0:", type=("build", "run"))
-    depends_on("r@3.6.0:", type=("build", "run") , when="@2.20.1:")
+    depends_on("r@3.6.0:", type=("build", "run"), when="@2.20.1:")
     depends_on("r-rcpp@0.12.0:", type=("build", "run"))
     depends_on("r-rstan@2.19.2:", type=("build", "run"))
-    depends_on("r-rstan@2.29.0:", type=("build", "run") , when="@2.21.0:")
+    depends_on("r-rstan@2.29.0:", type=("build", "run"), when="@2.21.0:")
     depends_on("r-ggplot2@2.0.0:", type=("build", "run"))
     depends_on("r-loo@2.3.1:", type=("build", "run"))
     depends_on("r-posterior@1.0.0:", type=("build", "run"), when="@2.16:")

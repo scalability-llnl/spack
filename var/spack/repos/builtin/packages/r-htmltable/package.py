@@ -26,7 +26,7 @@ class RHtmltable(RPackage):
     version("1.11.2", sha256="64a273b1cdf07a7c57b9031315ca665f95d78e70b4320d020f64a139278877d1")
     version("1.9", sha256="5b487a7f33af77db7d987bf61f3ef2ba18bb629fe7b9802409f8b3485c603132")
 
-    depends_on("r@4.1:", type=("build", "run") , when="@2.4.2:")
+    depends_on("r@4.1:", type=("build", "run"), when="@2.4.2:")
     depends_on("r-stringr", type=("build", "run"))
     depends_on("r-knitr@1.6:", type=("build", "run"))
     depends_on("r-magrittr@1.5:", type=("build", "run"))

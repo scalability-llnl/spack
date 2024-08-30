@@ -28,7 +28,7 @@ class RProjpred(RPackage):
     version("2.0.2", sha256="af0a9fb53f706090fe81b6381b27b0b6bd3f7ae1e1e44b0ada6f40972b09a55b")
 
     depends_on("r@3.5.0:", type=("build", "run"))
-    depends_on("r@3.6.0:", type=("build", "run") , when="@2.7.0:")
+    depends_on("r@3.6.0:", type=("build", "run"), when="@2.7.0:")
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-gtools", type=("build", "run"), when="@2.7.0:")
     depends_on("r-ggplot2", type=("build", "run"))

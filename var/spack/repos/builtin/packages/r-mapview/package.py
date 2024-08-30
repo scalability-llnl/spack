@@ -34,7 +34,7 @@ class RMapview(RPackage):
     depends_on("r-leafpop", type=("build", "run"))
     depends_on("r-png", type=("build", "run"))
     depends_on("r-raster", type=("build", "run"))
-    depends_on("r-raster@3.6.3:", type=("build", "run") , when="@2.11.2:")
+    depends_on("r-raster@3.6.3:", type=("build", "run"), when="@2.11.2:")
     depends_on("r-satellite", type=("build", "run"))
     depends_on("r-scales@0.2.5:", type=("build", "run"))
     depends_on("r-servr", type=("build", "run"), when="@2.10.0:")

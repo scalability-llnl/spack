@@ -30,7 +30,7 @@ class RRecipes(RPackage):
 
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@1.0.1:")
-    depends_on("r@3.6:", type=("build", "run") , when="@1.1.0:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.1.0:")
     depends_on("r-dplyr", type=("build", "run"))
     depends_on("r-dplyr@1.1.0:", type=("build", "run"), when="@1.0.6:")
     depends_on("r-cli", type=("build", "run"), when="@1.0.1:")
@@ -57,7 +57,7 @@ class RRecipes(RPackage):
     depends_on("r-purrr@1.0.0:", type=("build", "run"), when="@1.0.6:")
     depends_on("r-rlang@0.4.0:", type=("build", "run"))
     depends_on("r-rlang@1.0.3:", type=("build", "run"), when="@1.0.1:")
-    depends_on("r-rlang@1.1.0:", type=("build", "run") , when="@1.0.9:")
+    depends_on("r-rlang@1.1.0:", type=("build", "run"), when="@1.0.9:")
     depends_on("r-tibble", type=("build", "run"))
     depends_on("r-tidyr", type=("build", "run"))
     depends_on("r-tidyr@1.0.0:", type=("build", "run"), when="@0.1.15:")
