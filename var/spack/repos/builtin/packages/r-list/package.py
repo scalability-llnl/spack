@@ -10,7 +10,7 @@ class RList(RPackage):
     """Allows researchers to conduct multivariate statistical analyses
     of survey data with list experiments."""
 
-    homepage = "https://www.example.com"
+    homepage = "https://cran.r-project.org/web/packages/list/index.html"
     cran = "list"
 
     license("GPL-2.0-or-later", checked_by="wdconinc")
