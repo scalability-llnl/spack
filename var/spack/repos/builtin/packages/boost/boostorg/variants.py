@@ -174,4 +174,24 @@ def load():
         description="Default symbol visibility in compiled libraries",
     )
 
+    # ----------------------------------------------------------------------
+    _boost_variant(
+        "context",
+        when="@1.51.0:",
+        buildable="@1.51.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Context requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Context requires cxxstd >= 11"},
+        ],
+        description="(C++11) Context switching library.",
+    )
+    _boost_variant(
+        "context-impl",
+        default="fcontext",
+        values=("fcontext", "ucontext", "winfib"),
+        multi=False,
+        when="@1.65.0:",
+        description="The backend for Boost.Context",
+    )
+
     return library_names

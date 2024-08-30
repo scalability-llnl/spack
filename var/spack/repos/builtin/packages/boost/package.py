@@ -118,7 +118,7 @@ class Boost(Package):
         "chrono",
         "cobalt",
         "container",
-        "context",
+        #        "context",
         "contract",
         "coroutine",
         "date_time",
@@ -177,15 +177,6 @@ class Boost(Package):
 
         return find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
 
-    variant(
-        "context-impl",
-        default="fcontext",
-        values=("fcontext", "ucontext", "winfib"),
-        multi=False,
-        description="Use the specified backend for boost-context",
-        when="@1.65.0: +context",
-    )
-
     # C++98/03 support was removed in 1.83.0
     conflicts("cxxstd=98", when="@1.83.0:", msg="This version of Boost requires C++11 or newer")
     conflicts("cxxstd=03", when="@1.83.0:", msg="This version of Boost requires C++11 or newer")
@@ -215,14 +206,7 @@ class Boost(Package):
         # https://github.com/boostorg/python/issues/431
         depends_on("py-numpy@:1", when="@:1.85", type=("build", "run"))
 
-    # Improve the error message when the context-impl variant is conflicting
-    conflicts("context-impl=fcontext", when="@:1.65.0")
-    conflicts("context-impl=ucontext", when="@:1.65.0")
-    conflicts("context-impl=winfib", when="@:1.65.0")
-
     # Coroutine, Context, Fiber, etc., are not straightforward.
-    conflicts("+context", when="@:1.50")  # Context since 1.51.0.
-    conflicts("cxxstd=98", when="+context")  # Context requires >=C++11.
     conflicts("+coroutine", when="@:1.52")  # Context since 1.53.0.
     conflicts("~context", when="+coroutine")  # Coroutine requires Context.
     conflicts("+fiber", when="@:1.61")  # Fiber since 1.62.0.
