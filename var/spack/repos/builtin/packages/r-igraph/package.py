@@ -29,9 +29,11 @@ class RIgraph(RPackage):
     version("1.0.1", sha256="dc64ed09b8b5f8d66ed4936cde3491974d6bc5178dd259b6eab7ef3936aa5602")
 
     depends_on("r@3.0.2:", type=("build", "run"), when="@1.4.2:")
+    depends_on("r@3.5.0:", type=("build", "run"), when="@1.5.0:")
 
     depends_on("r-cli", type=("build", "run"), when="@1.5.0:")
     depends_on("r-cpp11@0.2.0:", type=("build", "run"), when="@1.4.2:")
+    depends_on("r-cpp11@0.4.7:", type=("build", "run"), when="@1.6.0:")
     depends_on("r-lifecycle", type=("build", "run"), when="@1.5.0.1:")
     depends_on("r-vctrs", type=("build", "run"), when="@2.0.3:")
     depends_on("r-magrittr", type=("build", "run"))

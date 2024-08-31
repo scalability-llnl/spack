@@ -64,6 +64,7 @@ class RDplyr(RPackage):
     depends_on("r-vctrs@0.3.5:", type=("build", "run"), when="@1.0.3:")
     depends_on("r-vctrs@0.4.1:", type=("build", "run"), when="@1.0.9:")
     depends_on("r-vctrs@0.6.0:", type=("build", "run"), when="@1.1.2:")
+    depends_on("r-vctrs@0.6.4:", type=("build", "run"), when="@1.1.4:")
     depends_on("r-pillar@1.5.1:", type=("build", "run"), when="@1.0.6:")
     depends_on("r-pillar@1.9.0:", type=("build", "run"), when="@1.1.2:")
 

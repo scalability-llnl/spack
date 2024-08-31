@@ -40,5 +40,6 @@ class RForecast(RPackage):
     depends_on("r-timedate", type=("build", "run"))
     depends_on("r-tseries", type=("build", "run"))
     depends_on("r-urca", type=("build", "run"), when="@8.6:")
+    depends_on("r-withr", type=("build", "run"), when="@8.23.0:")
     depends_on("r-zoo", type=("build", "run"))
     depends_on("r-rcpparmadillo@0.2.35:", type=("build", "run"))

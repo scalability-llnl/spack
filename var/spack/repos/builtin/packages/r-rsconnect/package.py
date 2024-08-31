@@ -26,6 +26,7 @@ class RRsconnect(RPackage):
     version("0.8.17", sha256="64767a4d626395b7871375956a9f0455c3d64ff6e779633b0e554921d85da231")
 
     depends_on("r@3.0.0:", type=("build", "run"))
+    depends_on("r@3.5.0:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-curl", type=("build", "run"))
     depends_on("r-cli", type=("build", "run"), when="@1.0.0:")
     depends_on("r-digest", type=("build", "run"))

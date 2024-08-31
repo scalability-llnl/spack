@@ -28,3 +28,4 @@ class RNmof(RPackage):
     version("1.6-0", sha256="5484cd43c28aaf23d560c2dde8bcd8dd440a205d2214eb50e02fe0bb42ec2755")
 
     depends_on("r@2.14:", type=("build", "run"))
+    depends_on("r@3.5:", type=("build", "run"), when="@2.8-0:")

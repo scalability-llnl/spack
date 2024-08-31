@@ -31,6 +31,7 @@ class RDqrng(RPackage):
     version("0.2.1", sha256="e149c105b1db31e7f46b1aebf31d911a109e380923f3696fc56a53197fc1e866")
 
     depends_on("r@3.1.0:", type=("build", "run"))
+    depends_on("r@3.5.0:", type=("build", "run"), when="@0.3.1:")
     depends_on("r-rcpp@0.12.16:", type=("build", "run"))
     depends_on("r-bh@1.64.0-1:", type=("build", "run"))
     depends_on("r-sitmo@2.0.0:", type=("build", "run"))

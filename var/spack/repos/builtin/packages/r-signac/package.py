@@ -24,6 +24,7 @@ class RSignac(RPackage):
     version("1.7.0", sha256="5e4456eeab29fa2df7f6236b050dec8cb9c073d7652a89ee5030a27f94e5e4bf")
 
     depends_on("r@4.0.0:", type=("build", "run"))
+    depends_on("r@4.1.0:", type=("build", "run"), when="@1.14.0:")
     depends_on("r-genomeinfodb@1.29.3:", type=("build", "run"))
     depends_on("r-genomicranges", type=("build", "run"))
     depends_on("r-iranges", type=("build", "run"))
@@ -31,6 +32,7 @@ class RSignac(RPackage):
     depends_on("r-rsamtools", type=("build", "run"))
     depends_on("r-s4vectors", type=("build", "run"))
     depends_on("r-seuratobject@4.0.0:", type=("build", "run"))
+    depends_on("r-seuratobject@5.0.2:", type=("build", "run"), when="@1.14.0:")
     depends_on("r-data-table", type=("build", "run"))
     depends_on("r-dplyr@1.0.0:", type=("build", "run"))
     depends_on("r-future", type=("build", "run"))

@@ -25,6 +25,7 @@ class RGgthemes(RPackage):
 
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r-ggplot2@3.0.0:", type=("build", "run"))
+    depends_on("r-lifecycle", type=("build", "run"), when="@5.0.0:")
     depends_on("r-purrr", type=("build", "run"))
     depends_on("r-scales", type=("build", "run"))
     depends_on("r-stringr", type=("build", "run"))

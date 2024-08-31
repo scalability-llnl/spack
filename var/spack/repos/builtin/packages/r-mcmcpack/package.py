@@ -27,9 +27,8 @@ class RMcmcpack(RPackage):
     depends_on("r@3.6:", type=("build", "run"))
     depends_on("r-coda@0.11-3:", type=("build", "run"))
     depends_on("r-lattice", type=("build", "run"))
+    depends_on("r-mass", type=("build", "run"))
     depends_on("r-mcmc", type=("build", "run"))
     depends_on("r-quantreg", type=("build", "run"))
-
-    depends_on("r-mass", type=("build", "run"), when="@:1.6-0")
 
     conflicts("%gcc@:3")

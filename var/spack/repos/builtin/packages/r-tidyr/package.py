@@ -34,6 +34,7 @@ class RTidyr(RPackage):
 
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.4.0:", type=("build", "run"), when="@1.3.0:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.3.1:")
     depends_on("r-dplyr@0.7.0:", type=("build", "run"))
     depends_on("r-dplyr@0.8.2:", type=("build", "run"), when="@1.1.2:")
     depends_on("r-dplyr@1.0.0:", type=("build", "run"), when="@1.2.0:")
@@ -47,6 +48,7 @@ class RTidyr(RPackage):
     depends_on("r-purrr@1.0.1:", type=("build", "run"), when="@1.3.0:")
     depends_on("r-rlang", type=("build", "run"))
     depends_on("r-rlang@1.0.4:", type=("build", "run"), when="@1.3.0:")
+    depends_on("r-rlang@1.1.1:", type=("build", "run"), when="@1.3.1:")
     depends_on("r-tibble", type=("build", "run"))
     depends_on("r-tibble@2.1.1:", type=("build", "run"), when="@1.1.2:")
     depends_on("r-tidyselect@0.2.5:", type=("build", "run"))

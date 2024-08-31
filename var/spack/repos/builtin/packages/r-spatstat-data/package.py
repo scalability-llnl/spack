@@ -28,4 +28,5 @@ class RSpatstatData(RPackage):
     depends_on("r-spatstat-utils@2.1-0:", type=("build", "run"), when="@2.1-2:")
     depends_on("r-spatstat-utils@3.0-0:", type=("build", "run"), when="@3.0-0:")
     depends_on("r-spatstat-utils@3.0-2:", type=("build", "run"), when="@3.0-1:")
+    depends_on("r-spatstat-utils@3.0-5:", type=("build", "run"), when="@3.1-2:")
     depends_on("r-matrix", type=("build", "run"))

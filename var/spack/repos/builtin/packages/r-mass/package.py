@@ -29,3 +29,4 @@ class RMass(RPackage):
     depends_on("r@3.1.0:", type=("build", "run"))
     depends_on("r@3.3.0:", type=("build", "run"), when="@7.3-55:")
     depends_on("r@4.2.0:", type=("build", "run"), when="@7.3-59:")
+    depends_on("r@4.4.0:", type=("build", "run"), when="@7.3-60.1:")

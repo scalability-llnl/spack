@@ -43,7 +43,7 @@ class RPbkrtest(RPackage):
     depends_on("r-doby", type=("build", "run"), when="@0.5.3:")
     depends_on("r-dplyr", type=("build", "run"), when="@0.5-0.1:")
     depends_on("r-mass", type=("build", "run"))
-    depends_on("r-matrix@1.2.3:", type=("build", "run"))
+    depends_on("r-matrix@1.2-3:", type=("build", "run"))
     depends_on("r-numderiv", type=("build", "run"), when="@0.5-0.1:")
     depends_on("r-knitr", type=("build", "run"), when="@0.5-0.1:0.5.1")
     depends_on("r-magrittr", type=("build", "run"), when="@0.5-0.1:0.5.1")

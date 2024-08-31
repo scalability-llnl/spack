@@ -27,6 +27,7 @@ class RUsethis(RPackage):
 
     depends_on("r@3.2:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@2.1.5:")
+    depends_on("r@3.6:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-cli", type=("build", "run"), when="@1.6.1:")
     depends_on("r-cli@3.0.1:", type=("build", "run"), when="@2.1.5:")
     depends_on("r-clipr@0.3.0:", type=("build", "run"))
@@ -34,6 +35,7 @@ class RUsethis(RPackage):
     depends_on("r-curl@2.7:", type=("build", "run"))
     depends_on("r-desc", type=("build", "run"))
     depends_on("r-desc@1.4.0:", type=("build", "run"), when="@2.1.5:")
+    depends_on("r-desc@1.4.2:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-fs@1.3.0:", type=("build", "run"))
     depends_on("r-gert@1.0.2:", type=("build", "run"), when="@2.0.0:")
     depends_on("r-gert@1.4.1:", type=("build", "run"), when="@2.1.5:")
@@ -51,6 +53,7 @@ class RUsethis(RPackage):
     depends_on("r-rlang@0.4.3:", type=("build", "run"), when="@1.6.1:")
     depends_on("r-rlang@0.4.10:", type=("build", "run"), when="@2.1.5:")
     depends_on("r-rlang@1.0.0:", type=("build", "run"), when="@2.1.6:")
+    depends_on("r-rlang@1.1.0:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-rprojroot@1.2:", type=("build", "run"))
     depends_on("r-rstudioapi", type=("build", "run"))
     depends_on("r-whisker", type=("build", "run"))

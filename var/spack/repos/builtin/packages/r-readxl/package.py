@@ -29,6 +29,7 @@ class RReadxl(RPackage):
 
     depends_on("r@3.4:", type=("build", "run"), when="@1.4.0:")
     depends_on("r@3.5:", type=("build", "run"), when="@1.4.2:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.4.3:")
     depends_on("r-cellranger", type=("build", "run"))
     depends_on("r-tibble@1.3.1:", type=("build", "run"))
     depends_on("r-tibble@2.0.1:", type=("build", "run"), when="@1.4.0:")

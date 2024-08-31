@@ -28,11 +28,12 @@ class RRmariadb(RPackage):
     depends_on("r-dbi@1.1.3:", type=("build", "run"), when="@1.2.2:")
     depends_on("r-hms@0.5.0:", type=("build", "run"))
     depends_on("r-lubridate", type=("build", "run"), when="@1.1.0:")
-    depends_on("r-rcpp@0.12.4:", type=("build", "run"))
+    depends_on("r-cpp11", type=("build", "run"), when="@1.3.0:")
     depends_on("r-rlang", type=("build", "run"), when="@1.2.1:")
     depends_on("r-plogr", type=("build", "run"))
     depends_on("mariadb-client")
 
+    depends_on("r-rcpp@0.12.4:", type=("build", "run"), when="@:1.2.2")
     depends_on("r-bh", type=("build", "run"), when="@:1.1.0")
 
     # Set the library explicitly to prevent configure from finding a system

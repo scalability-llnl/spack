@@ -28,6 +28,7 @@ class RVegan(RPackage):
     depends_on("r@3.1.0:", type=("build", "run"), when="@2.5-1")
     depends_on("r@3.2.0:", type=("build", "run"), when="@2.5-2:")
     depends_on("r@3.4.0:", type=("build", "run"), when="@2.5-5:")
+    depends_on("r@4.1.0:", type=("build", "run"), when="@2.6-6:")
     depends_on("r-permute@0.9-0:", type=("build", "run"))
     depends_on("r-lattice", type=("build", "run"))
     depends_on("r-mass", type=("build", "run"))

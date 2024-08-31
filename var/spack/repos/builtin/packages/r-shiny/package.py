@@ -58,7 +58,9 @@ class RShiny(RPackage):
     depends_on("r-commonmark@1.7:", type=("build", "run"), when="@1.5.0:")
     depends_on("r-glue@1.3.2:", type=("build", "run"), when="@1.5.0:")
     depends_on("r-bslib@0.3.0:", type=("build", "run"), when="@1.7.1:")
+    depends_on("r-bslib@0.6.0:", type=("build", "run"), when="@1.9.0:")
     depends_on("r-cachem", type=("build", "run"), when="@1.7.1:")
+    depends_on("r-cachem@1.1.0:", type=("build", "run"), when="@1.9.0:")
     depends_on("r-lifecycle@0.2.0:", type=("build", "run"), when="@1.7.1:")
 
     depends_on("r-digest", type=("build", "run"), when="@:1.5.0")

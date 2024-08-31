@@ -33,4 +33,5 @@ class RNlme(RPackage):
     depends_on("r@3.3.0:", type=("build", "run"), when="@3.1-131.1")
     depends_on("r@3.5.0:", type=("build", "run"), when="@3.1-134:3.1-135")
     depends_on("r@3.4.0:", type=("build", "run"), when="@3.1-135.5:")
+    depends_on("r@3.6.0:", type=("build", "run"), when="@3.1-165:")
     depends_on("r-lattice", type=("build", "run"))

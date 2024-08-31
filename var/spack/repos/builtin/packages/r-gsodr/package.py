@@ -44,7 +44,7 @@ class RGsodr(RPackage):
     depends_on("r-curl", type=("build", "run"))
     depends_on("r-data-table@1.11.6:", type=("build", "run"), when="@:2.1.2")
     depends_on("r-data-table", type=("build", "run"))
-    depends_on("r-httr", type=("build", "run"))
     depends_on("r-r-utils", type=("build", "run"))
 
+    depends_on("r-httr", type=("build", "run"), when="@:3.1.8")
     depends_on("r-future-apply", type=("build", "run"), when="@:2.1.2")

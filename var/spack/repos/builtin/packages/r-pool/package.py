@@ -22,8 +22,11 @@ class RPool(RPackage):
     version("0.1.6", sha256="cdbe5f6c7f757c01893dc9870df0fb8d300829da0e427f6c2559b01caa52d9e1")
 
     depends_on("r@3.0.0:", type=("build", "run"))
+    depends_on("r@3.6.0:", type=("build", "run"), when="@1.0.2:")
     depends_on("r-dbi", type=("build", "run"))
+    depends_on("r-dbi@1.2.1:", type=("build", "run"), when="@1.0.3:")
     depends_on("r-r6", type=("build", "run"))
-    depends_on("r-withr", type=("build", "run"), when="@1.0.1:")
     depends_on("r-rlang@1.0.0:", type=("build", "run"), when="@1.0.1:")
     depends_on("r-later@1.0.0:", type=("build", "run"))
+
+    depends_on("r-withr", type=("build", "run"), when="@1.0.1")

@@ -33,7 +33,8 @@ class RMatrix(RPackage):
     version("1.2-6", sha256="4b49b639b7bf612fa3d1c1b1c68125ec7859c8cdadae0c13f499f24099fd5f20")
 
     depends_on("r@3.0.1:", type=("build", "run"))
-    depends_on("r@3.2.0:", type=("build", "run"), when="@1.2.13:")
+    depends_on("r@3.2.0:", type=("build", "run"), when="@1.2-13:")
     depends_on("r@3.6.0:", type=("build", "run"), when="@1.3-2:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.3-3:")
+    depends_on("r@4.4.0:", type=("build", "run"), when="@1.7-0:")
     depends_on("r-lattice", type=("build", "run"))

@@ -40,7 +40,6 @@ class RBroom(RPackage):
     depends_on("r-backports", type=("build", "run"), when="@0.5.0:")
     depends_on("r-dplyr", type=("build", "run"))
     depends_on("r-dplyr@1.0.0:", type=("build", "run"), when="@0.7.3:")
-    depends_on("r-ellipsis", type=("build", "run"), when="@0.7.3:")
     depends_on("r-generics@0.0.2:", type=("build", "run"), when="@0.5.1:")
     depends_on("r-glue", type=("build", "run"), when="@0.7.3:")
     depends_on("r-lifecycle", type=("build", "run"), when="@1.0.4:")
@@ -52,6 +51,7 @@ class RBroom(RPackage):
     depends_on("r-tidyr", type=("build", "run"))
     depends_on("r-tidyr@1.0.0:", type=("build", "run"), when="@0.7.3:")
 
+    depends_on("r-ellipsis", type=("build", "run"), when="@0.7.3:1.0.5")
     depends_on("r-plyr", type=("build", "run"), when="@:0.4.2")
     depends_on("r-psych", type=("build", "run"), when="@:0.4.2")
     depends_on("r-reshape2", type=("build", "run"), when="@:0.5.2")

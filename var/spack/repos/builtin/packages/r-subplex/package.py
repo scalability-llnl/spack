@@ -25,3 +25,4 @@ class RSubplex(RPackage):
     version("1.4-1", sha256="94b7b961aaa229a6f025151191ed50272af1394be69f1c41146b9e8c786caec6")
 
     depends_on("r@2.5.1:", type=("build", "run"))
+    depends_on("r@4.1.0:", type=("build", "run"), when="@1.9:")

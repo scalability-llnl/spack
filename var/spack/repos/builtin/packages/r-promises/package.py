@@ -28,5 +28,6 @@ class RPromises(RPackage):
     depends_on("r-fastmap@1.1.0:", type=("build", "run"), when="@1.2.1:")
     depends_on("r-later", type=("build", "run"))
     depends_on("r-magrittr", type=("build", "run"))
+    depends_on("r-magrittr@1.5:", type=("build", "run"), when="@1.2.1:")
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-rlang", type=("build", "run"))

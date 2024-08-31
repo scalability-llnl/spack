@@ -32,6 +32,7 @@ class RSurvey(RPackage):
     depends_on("r@2.16.0:", type=("build", "run"), when="@3.32:")
     depends_on("r@3.1.0:", type=("build", "run"), when="@3.35:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@4.1-1:")
+    depends_on("r@4.1.0:", type=("build", "run"), when="@4.4-2:")
     depends_on("r-matrix", type=("build", "run"), when="@3.31:")
     depends_on("r-survival", type=("build", "run"), when="@3.31:")
     depends_on("r-lattice", type=("build", "run"), when="@3.31:")

@@ -29,3 +29,4 @@ class RROo(RPackage):
     depends_on("r-r-methodss3@1.7.1:", type=("build", "run"))
     depends_on("r-r-methodss3@1.8.0:", type=("build", "run"), when="@1.24.0:")
     depends_on("r-r-methodss3@1.8.1:", type=("build", "run"), when="@1.25.0:")
+    depends_on("r-r-methodss3@1.8.2:", type=("build", "run"), when="@1.26.0:")

@@ -29,6 +29,7 @@ class RGooglesheets4(RPackage):
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@1.0.1:")
     depends_on("r@3.5:", type=("build", "run"), when="@1.1.0:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.1.1:")
     depends_on("r-cellranger", type=("build", "run"))
     depends_on("r-cli@3.0.0:", type=("build", "run"))
     depends_on("r-curl", type=("build", "run"))

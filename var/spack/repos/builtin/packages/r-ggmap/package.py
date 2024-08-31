@@ -27,7 +27,6 @@ class RGgmap(RPackage):
 
     depends_on("r@3.1.0:", type=("build", "run"))
     depends_on("r-ggplot2@2.2.0:", type=("build", "run"))
-    depends_on("r-rgooglemaps", type=("build", "run"))
     depends_on("r-png", type=("build", "run"))
     depends_on("r-plyr", type=("build", "run"))
     depends_on("r-jpeg", type=("build", "run"))
@@ -45,6 +44,7 @@ class RGgmap(RPackage):
     depends_on("r-cli", type=("build", "run"), when="@3.0.1:")
     depends_on("r-rlang", type=("build", "run"), when="@3.0.1:")
 
+    depends_on("r-rgooglemaps", type=("build", "run"), when="@:3.0.2")
     depends_on("r-proto", type=("build", "run"), when="@:2.6.2")
     depends_on("r-reshape2", type=("build", "run"), when="@:2.6.2")
     depends_on("r-mapproj", type=("build", "run"), when="@:2.6.2")

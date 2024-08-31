@@ -32,6 +32,7 @@ class RReadr(RPackage):
     depends_on("r@3.1:", type=("build", "run"), when="@1.3.0:")
     depends_on("r@3.4:", type=("build", "run"), when="@2.1.3:")
     depends_on("r@3.5:", type=("build", "run"), when="@2.1.4:")
+    depends_on("r@3.6:", type=("build", "run"), when="@2.1.5:")
     depends_on("r-cli", type=("build", "run"), when="@1.4.0:")
     depends_on("r-cli@3.0.0:", type=("build", "run"), when="@2.1.2:")
     depends_on("r-cli@3.2.0:", type=("build", "run"), when="@2.1.3:")

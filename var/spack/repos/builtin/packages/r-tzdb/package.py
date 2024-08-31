@@ -29,5 +29,6 @@ class RTzdb(RPackage):
 
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r@3.4.0:", type=("build", "run"), when="@0.3.0:")
+    depends_on("r@3.5.0:", type=("build", "run"), when="@0.4.0:")
     depends_on("r-cpp11@0.4.0:", type=("build", "run"))
     depends_on("r-cpp11@0.4.2:", type=("build", "run"), when="@0.3.0:")

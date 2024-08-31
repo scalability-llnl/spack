@@ -38,3 +38,4 @@ class RRaster(RPackage):
     depends_on("r-terra@1.5-12:", type=("build", "run"), when="@3.5-15:")
     depends_on("r-terra@1.6-16:", type=("build", "run"), when="@3.6-3:")
     depends_on("r-terra@1.6-41:", type=("build", "run"), when="@3.6-20:")
+    depends_on("r-terra@1.7-29:", type=("build", "run"), when="@3.6-23:")

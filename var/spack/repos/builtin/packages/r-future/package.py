@@ -53,3 +53,4 @@ class RFuture(RPackage):
     depends_on("r-parallelly@1.30.0:", type=("build", "run"), when="@1.24.0:")
     depends_on("r-parallelly@1.32.1:", type=("build", "run"), when="@1.28.0:")
     depends_on("r-parallelly@1.34.0:", type=("build", "run"), when="@1.32.0:")
+    depends_on("r-parallelly@1.38.0:", type=("build", "run"), when="@1.34.0:")

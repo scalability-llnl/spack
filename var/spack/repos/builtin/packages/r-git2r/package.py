@@ -31,6 +31,7 @@ class RGit2r(RPackage):
 
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@0.31.0:")
+    depends_on("r@4.0:", type=("build", "run"), when="@0.33.0:")
     depends_on("libgit2")
     depends_on("zlib-api")
     depends_on("openssl")

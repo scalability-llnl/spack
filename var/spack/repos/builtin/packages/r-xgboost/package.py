@@ -41,9 +41,6 @@ class RXgboost(RPackage):
     depends_on("r-jsonlite@1.0:", type=("build", "run"), when="@1.5.0.2:")
     depends_on("gmake", type="build")
 
-    # This is not listed as required, but installation fails without it
-    # ERROR: dependency 'stringr' is not available for package 'xgboost'
-    depends_on("r-stringr", type=("build", "run"))
-
+    depends_on("r-stringr", type=("build", "run"), when="@:0.7")
     depends_on("r-stringi@0.5.2:", type=("build", "run"), when="@:0.90.0.2")
     depends_on("r-magrittr@1.5:", type=("build", "run"), when="@:1.3.2.1")

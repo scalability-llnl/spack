@@ -23,6 +23,7 @@ class RProgress(RPackage):
     version("1.2.1", sha256="7401e86ff76bef4d26508b74ee8bd169a0377b2738d9ec79ebff0b7fd5c55326")
     version("1.1.2", sha256="a9f4abfd9579b80967cd681041643fe9dfcc4eb3beeba45391bb64e9209baabb")
 
+    depends_on("r@3.6:", type=("build", "run"), when="@1.2.3:")
     depends_on("r-r6", type=("build", "run"))
     depends_on("r-prettyunits", type=("build", "run"))
     depends_on("r-hms", type=("build", "run"), when="@1.2.0:")

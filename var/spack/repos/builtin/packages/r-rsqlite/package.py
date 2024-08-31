@@ -31,6 +31,8 @@ class RRsqlite(RPackage):
     depends_on("r-blob@1.2.0:", type=("build", "run"))
     depends_on("r-dbi@1.0.0:", type=("build", "run"))
     depends_on("r-dbi@1.1.0:", type=("build", "run"), when="@2.2.10:")
+    depends_on("r-dbi@1.2.0:", type=("build", "run"), when="@2.3.5:")
+    depends_on("r-rlang", type=("build", "run"), when="@2.3.4:")
     depends_on("r-memoise", type=("build", "run"))
     depends_on("r-pkgconfig", type=("build", "run"))
     depends_on("r-plogr@0.2.0:", type=("build", "run"))

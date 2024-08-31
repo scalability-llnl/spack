@@ -22,3 +22,4 @@ class RVipor(RPackage):
     version("0.4.4", sha256="5abfd7869dae42ae2e4f52206c23433a43b485b1220685e445877ee5864a3f5c")
 
     depends_on("r@3.0.0:", type=("build", "run"))
+    depends_on("r@3.5.0:", type=("build", "run"), when="@0.4.7:")

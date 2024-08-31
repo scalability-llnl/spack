@@ -28,5 +28,6 @@ class RPrabclus(RPackage):
     version("2.2-6", sha256="41792980e40ba18204fab92d85120dcd468860e2204e52fb42636c6f7aee5a62")
 
     depends_on("r@2.1.0:", type=("build", "run"))
+    depends_on("r@2.10:", type=("build", "run"), when="@2.2-2:")
     depends_on("r-mass", type=("build", "run"))
     depends_on("r-mclust", type=("build", "run"))

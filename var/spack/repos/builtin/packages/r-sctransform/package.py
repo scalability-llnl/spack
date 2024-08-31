@@ -29,6 +29,7 @@ class RSctransform(RPackage):
     depends_on("r@3.0.2:", type=("build", "run"))
     depends_on("r@3.1.0:", type=("build", "run"), when="@0.3.2:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@0.3.3:")
+    depends_on("r@3.6.0:", type=("build", "run"), when="@0.4.0:")
     depends_on("r-dplyr", type=("build", "run"), when="@0.3.3:")
     depends_on("r-magrittr", type=("build", "run"), when="@0.3.3:")
     depends_on("r-mass", type=("build", "run"))

@@ -60,3 +60,4 @@ class RRcpparmadillo(RPackage):
 
     depends_on("r@3.3.0:", type=("build", "run"), when="@0.8.500.0:")
     depends_on("r-rcpp@0.11.0:", type=("build", "run"))
+    depends_on("r-rcpp@1.0.8:", type=("build", "run"), when="@0.12.8.4.0:")

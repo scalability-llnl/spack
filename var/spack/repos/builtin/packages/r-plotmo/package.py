@@ -26,4 +26,5 @@ class RPlotmo(RPackage):
     depends_on("r@3.4.0:", type=("build", "run"))
     depends_on("r-formula@1.2-3:", type=("build", "run"))
     depends_on("r-plotrix", type=("build", "run"))
-    depends_on("r-teachingdemos", type=("build", "run"))
+
+    depends_on("r-teachingdemos", type=("build", "run"), when="@:3.6.2")

@@ -25,6 +25,7 @@ class RGargle(RPackage):
 
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r@3.5:", type=("build", "run"), when="@1.2.1:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.5.0:")
     depends_on("r-cli@3.0.0:", type=("build", "run"))
     depends_on("r-cli@3.0.1:", type=("build", "run"), when="@1.4.0:")
     depends_on("r-fs@1.3.1:", type=("build", "run"))

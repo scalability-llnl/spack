@@ -24,6 +24,7 @@ class RQuickplot(RPackage):
 
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r@4.0:", type=("build", "run"), when="@0.1.8:")
+    depends_on("r@4.1:", type=("build", "run"), when="@1.0.1:")
     depends_on("r-data-table@1.10.4:", type=("build", "run"))
     depends_on("r-fpcompare", type=("build", "run"))
     depends_on("r-terra", type=("build", "run"), when="@1.0.1:")

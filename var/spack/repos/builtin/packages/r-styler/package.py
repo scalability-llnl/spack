@@ -25,6 +25,7 @@ class RStyler(RPackage):
 
     depends_on("r@3.4.0:", type=("build", "run"), when="@1.7.0:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.8.0:")
+    depends_on("r@3.6.0:", type=("build", "run"), when="@1.10.0:")
     depends_on("r-cli@1.1.0:", type=("build", "run"))
     depends_on("r-cli@3.1.1:", type=("build", "run"), when="@1.7.0:")
     depends_on("r-magrittr@1.0.1:", type=("build", "run"))
@@ -33,6 +34,7 @@ class RStyler(RPackage):
     depends_on("r-r-cache@0.14.0:", type=("build", "run"))
     depends_on("r-r-cache@0.15.0:", type=("build", "run"), when="@1.6.2:")
     depends_on("r-rlang@0.1.1:", type=("build", "run"))
+    depends_on("r-rlang@1.0.0:", type=("build", "run"), when="@1.10.0:")
     depends_on("r-rprojroot@1.1:", type=("build", "run"))
     depends_on("r-vctrs@0.4.1:", type=("build", "run"), when="@1.8.0:")
     depends_on("r-withr@1.0.0:", type=("build", "run"))

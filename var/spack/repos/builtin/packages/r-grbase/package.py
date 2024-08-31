@@ -36,6 +36,7 @@ class RGrbase(RPackage):
     depends_on("r+X", type=("build", "run"))
     depends_on("r@3.0.2:", type=("build", "run"))
     depends_on("r@3.6.0:", type=("build", "run"), when="@1.8-6.7:")
+    depends_on("r@4.2.0:", type=("build", "run"), when="@2.0.2:")
     depends_on("r-igraph", type=("build", "run"))
     depends_on("r-magrittr", type=("build", "run"), when="@:2.0.1")
     depends_on("r-matrix", type=("build", "run"))

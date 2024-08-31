@@ -39,6 +39,7 @@ class RKnitr(RPackage):
     depends_on("r-evaluate@0.10:", type=("build", "run"))
     depends_on("r-evaluate@0.15:", type=("build", "run"), when="@1.39:")
     depends_on("r-highr", type=("build", "run"))
+    depends_on("r-highr@0.11:", type=("build", "run"), when="@1.47:")
     depends_on("r-yaml@2.1.19:", type=("build", "run"))
     depends_on("r-xfun", type=("build", "run"), when="@1.23:")
     depends_on("r-xfun@0.15:", type=("build", "run"), when="@1.30")
@@ -47,6 +48,9 @@ class RKnitr(RPackage):
     depends_on("r-xfun@0.27:", type=("build", "run"), when="@1.37:")
     depends_on("r-xfun@0.29:", type=("build", "run"), when="@1.39:")
     depends_on("r-xfun@0.34:", type=("build", "run"), when="@1.42:")
+    depends_on("r-xfun@0.39:", type=("build", "run"), when="@1.43:")
+    depends_on("r-xfun@0.43:", type=("build", "run"), when="@1.46:")
+    depends_on("r-xfun@0.44:", type=("build", "run"), when="@1.47:")
     depends_on("pandoc", type="build")
     depends_on("py-rst2pdf", type=("build", "run"))
 

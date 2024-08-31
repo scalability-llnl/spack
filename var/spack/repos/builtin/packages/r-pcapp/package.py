@@ -29,4 +29,5 @@ class RPcapp(RPackage):
     version("1.9-60", sha256="9a4b471957ac39ed7c860e3165bf8e099b5b55cf814654adb58f9d19df2718e7")
     version("1.9-50", sha256="137637314fba6e11883c63b0475d8e50aa7f363e064baa1e70245f7692565b56")
 
+    depends_on("r@3.6.2:", type=("build", "run"), when="@2.0-4:")
     depends_on("r-mvtnorm", type=("build", "run"))

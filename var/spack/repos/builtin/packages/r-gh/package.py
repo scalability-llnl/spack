@@ -24,6 +24,7 @@ class RGh(RPackage):
     version("1.0.1", sha256="f3c02b16637ae390c3599265852d94b3de3ef585818b260d00e7812595b391d2")
 
     depends_on("r@3.4:", type=("build", "run"), when="@1.3.1:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.4.1:")
 
     depends_on("r-cli", type=("build", "run"), when="@1.1.0:")
     depends_on("r-cli@2.0.1:", type=("build", "run"), when="@1.2.0:")

@@ -34,6 +34,7 @@ class RCowplot(RPackage):
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-ggplot2@2.1.1:", type=("build", "run"))
     depends_on("r-ggplot2@2.2.1:", type=("build", "run"), when="@1.1.1:")
+    depends_on("r-ggplot2@3.4.0:", type=("build", "run"), when="@1.1.2:")
     depends_on("r-gtable", type=("build", "run"))
     depends_on("r-rlang", type=("build", "run"), when="@1.0.0:")
     depends_on("r-scales", type=("build", "run"))

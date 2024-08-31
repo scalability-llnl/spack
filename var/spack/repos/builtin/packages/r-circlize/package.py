@@ -34,6 +34,7 @@ class RCirclize(RPackage):
     version("0.4.0", sha256="abdc1bbe264be42c1d7b65869979da7cd131032fd6fd3f11f9744dae54e83f5c")
 
     depends_on("r@3.0.0:", type=("build", "run"))
+    depends_on("r@4.0.0:", type=("build", "run"), when="@0.4.16:")
     depends_on("r-globaloptions@0.1.0:", type=("build", "run"))
     depends_on("r-globaloptions@0.1.2:", type=("build", "run"), when="@0.4.12:")
     depends_on("r-shape", type=("build", "run"))

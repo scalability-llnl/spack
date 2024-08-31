@@ -20,5 +20,6 @@ class RPamr(RPackage):
     version("1.55", sha256="ed910194937a6097ec79234d84777856fd520b111a7c79f7c86dc607169cc3c3")
 
     depends_on("r@2.10:", type=("build", "run"))
+    depends_on("r@3.5:", type=("build", "run"), when="@1.57:")
     depends_on("r-cluster", type=("build", "run"))
     depends_on("r-survival", type=("build", "run"))

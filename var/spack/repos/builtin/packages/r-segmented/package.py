@@ -34,5 +34,6 @@ class RSegmented(RPackage):
     version("0.5-2.2", sha256="3aa7136370dd77911ba8e061b5215560d120bc71f355eeadc0856389dfecb2f1")
     version("0.5-1.4", sha256="b1dc5f79ccc076c2943b15fe4f339368afa241797b7e80c91b62132cfa66809c")
 
+    depends_on("r@3.5.0:", type=("build", "run"), when="@2.0-3:")
     depends_on("r-mass", type=("build", "run"), when="@1.4-0:")
     depends_on("r-nlme", type=("build", "run"), when="@1.6-0:")

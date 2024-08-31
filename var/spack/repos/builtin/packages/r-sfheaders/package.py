@@ -23,6 +23,7 @@ class RSfheaders(RPackage):
 
     depends_on("r-geometries@0.2.0:", type=("build", "run"))
     depends_on("r-geometries@0.2.2:", type=("build", "run"), when="@0.4.2:")
+    depends_on("r-geometries@0.2.4:", type=("build", "run"), when="@0.4.4:")
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-rcpp@1.0.10:", type=("build", "run"), when="@0.4.2:")
     depends_on("r@3.0.2:", type=("build", "run"), when="@0.4.2:")

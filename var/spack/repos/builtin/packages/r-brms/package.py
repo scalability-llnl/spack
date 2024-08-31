@@ -45,7 +45,7 @@ class RBrms(RPackage):
     depends_on("r-ggplot2@2.0.0:", type=("build", "run"))
     depends_on("r-loo@2.3.1:", type=("build", "run"))
     depends_on("r-posterior@1.0.0:", type=("build", "run"), when="@2.16:")
-    depends_on("r-matrix@1.1.1:", type=("build", "run"))
+    depends_on("r-matrix@1.1-1:", type=("build", "run"))
     depends_on("r-mgcv@1.8-13:", type=("build", "run"))
     depends_on("r-rstantools@2.1.1:", type=("build", "run"))
     depends_on("r-bayesplot@1.5.0:", type=("build", "run"))

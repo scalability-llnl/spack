@@ -26,3 +26,4 @@ class RRjson(RPackage):
 
     depends_on("r@3.1.0:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@0.2.21:")
+    depends_on("r@4.4.0:", type=("build", "run"), when="@0.2.22:")

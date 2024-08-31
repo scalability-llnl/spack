@@ -27,4 +27,6 @@ class REarth(RPackage):
     depends_on("r-formula@1.2-3:", type=("build", "run"))
     depends_on("r-plotmo@3.5.4:", type=("build", "run"))
     depends_on("r-plotmo@3.6.0:", type=("build", "run"), when="@5.3.0")
-    depends_on("r-teachingdemos@2.10:", type=("build", "run"))
+    depends_on("r-plotmo@3.6.0:", type=("build", "run"), when="@5.3.3:")
+
+    depends_on("r-teachingdemos@2.10:", type=("build", "run"), when="@:5.3.2")

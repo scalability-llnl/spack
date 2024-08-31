@@ -45,9 +45,11 @@ class RSpatialreg(RPackage):
 
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r-spdata", type=("build", "run"))
+    depends_on("r-spdata@2.3.1:", type=("build", "run"), when="@1.3-4:")
     depends_on("r-matrix", type=("build", "run"))
     depends_on("r-sf", type=("build", "run"), when="@1.2-1:")
     depends_on("r-spdep", type=("build", "run"))
+    depends_on("r-spdep@1.3-1:", type=("build", "run"), when="@1.3-1:")
     depends_on("r-expm", type=("build", "run"), when="@:1.2-10")
     depends_on("r-coda", type=("build", "run"))
     depends_on("r-mass", type=("build", "run"))

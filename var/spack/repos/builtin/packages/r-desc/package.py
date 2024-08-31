@@ -26,7 +26,7 @@ class RDesc(RPackage):
     depends_on("r@3.4:", type=("build", "run"), when="@1.4.1:")
     depends_on("r-cli", type=("build", "run"), when="@1.4.1:")
     depends_on("r-r6", type=("build", "run"))
-    depends_on("r-rprojroot", type=("build", "run"))
 
+    depends_on("r-rprojroot", type=("build", "run"), when="@:1.4.2")
     depends_on("r-assertthat", type=("build", "run"), when="@:1.2")
     depends_on("r-crayon", type=("build", "run"), when="@:1.4.0")

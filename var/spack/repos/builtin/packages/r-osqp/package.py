@@ -24,5 +24,6 @@ class ROsqp(RPackage):
 
     depends_on("r-rcpp@0.12.14:", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))
+    depends_on("r-matrix@1.6-1:", type=("build", "run"), when="@0.6.3:")
     depends_on("r-r6", type=("build", "run"))
     depends_on("cmake", type="build")

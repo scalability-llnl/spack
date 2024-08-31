@@ -34,3 +34,4 @@ class RInsight(RPackage):
 
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r@3.5:", type=("build", "run"), when="@0.18.4:")
+    depends_on("r@3.6:", type=("build", "run"), when="@0.19.2:")

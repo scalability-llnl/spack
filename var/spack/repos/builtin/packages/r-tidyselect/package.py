@@ -39,10 +39,11 @@ class RTidyselect(RPackage):
     depends_on("r-vctrs@0.2.2:", type=("build", "run"), when="@1.1.0:")
     depends_on("r-vctrs@0.3.0:", type=("build", "run"), when="@1.1.1:")
     depends_on("r-vctrs@0.4.1:", type=("build", "run"), when="@1.2.0:")
+    depends_on("r-vctrs@0.5.2:", type=("build", "run"), when="@1.2.1:")
 
     depends_on("r-rcpp@0.12.0:", type=("build", "run"), when="@:0.2.5")
     depends_on("r-cli@3.3.0:", type=("build", "run"), when="@1.2.0:")
     depends_on("r-ellipsis", type=("build", "run"), when="@1.1.0:1.1.2")
 
-    depends_on("r-purrr", type=("build", "run"))
+    depends_on("r-purrr", type=("build", "run"), when="@:1.1.2")
     depends_on("r-purrr@0.3.2:", type=("build", "run"), when="@1.1.0:1.1.2")

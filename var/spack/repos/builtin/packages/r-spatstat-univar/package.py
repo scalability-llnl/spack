@@ -19,4 +19,5 @@ class RSpatstatUnivar(RPackage):
 
     version("3.0-0", sha256="00bc501d9bec32231207f0562433193bd680606ce465131caa5e2704b4ff4771")
 
+    depends_on("r@3.5.0:", type=("build", "run"), when="@3.0-0:")
     depends_on("r-spatstat-utils@3.0-5:", type=("build", "run"), when="@2.0-3.011:")

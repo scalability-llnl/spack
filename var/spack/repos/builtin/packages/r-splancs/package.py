@@ -22,5 +22,5 @@ class RSplancs(RPackage):
     version("2.01-42", sha256="8c0af4764521e20b629dba6afd5c284e7be48786f378c37668eacfa26d2ef0aa")
     version("2.01-40", sha256="79744381ebc4a361740a36dca3c9fca9ae015cfe0bd585b7856a664a3da74363")
 
-    depends_on("r@2.10:", type=("build", "run"))
+    depends_on("r@2.10.0:", type=("build", "run"))
     depends_on("r-sp@0.9:", type=("build", "run"))

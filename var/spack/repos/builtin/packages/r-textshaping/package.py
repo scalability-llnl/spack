@@ -25,6 +25,7 @@ class RTextshaping(RPackage):
     depends_on("r-cpp11@0.2.1:", type=("build", "run"))
     depends_on("r-lifecycle", type=("build", "run"), when="@0.4.0:")
     depends_on("r-systemfonts@1.0.0:", type=("build", "run"))
+    depends_on("r-systemfonts@1.1.0:", type=("build", "run"), when="@0.4.0:")
     depends_on("pkgconfig", type="build")
     depends_on("freetype")
     depends_on("harfbuzz")

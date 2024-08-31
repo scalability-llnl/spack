@@ -27,6 +27,7 @@ class RVroom(RPackage):
 
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@1.6.0:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.6.4:")
     depends_on("r-bit64", type=("build", "run"))
     depends_on("r-crayon", type=("build", "run"))
     depends_on("r-cli", type=("build", "run"))

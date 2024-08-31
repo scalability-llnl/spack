@@ -26,3 +26,5 @@ class RPatchwork(RPackage):
 
     depends_on("r-ggplot2@3.0.0:", type=("build", "run"))
     depends_on("r-gtable", type=("build", "run"))
+    depends_on("r-cli", type=("build", "run"), when="@1.1.3:")
+    depends_on("r-rlang", type=("build", "run"), when="@1.1.3:")

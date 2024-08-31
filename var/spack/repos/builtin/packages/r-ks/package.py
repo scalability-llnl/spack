@@ -37,5 +37,6 @@ class RKs(RPackage):
     depends_on("r-mgcv", type=("build", "run"))
     depends_on("r-multicool", type=("build", "run"))
     depends_on("r-mvtnorm@1.0-0:", type=("build", "run"))
-    depends_on("r-plot3d", type=("build", "run"), when="@1.13.3:")
     depends_on("r-pracma", type=("build", "run"), when="@1.13.3:")
+
+    depends_on("r-plot3d", type=("build", "run"), when="@1.13.3:1.14.1")

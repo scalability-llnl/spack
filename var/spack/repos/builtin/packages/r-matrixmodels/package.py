@@ -23,3 +23,4 @@ class RMatrixmodels(RPackage):
     depends_on("r@3.6.0:", type=("build", "run"), when="@0.5-1:")
     depends_on("r-matrix@1.1-5:", type=("build", "run"))
     depends_on("r-matrix@1.4-2:", type=("build", "run"), when="@0.5-1:")
+    depends_on("r-matrix@1.6-0:", type=("build", "run"), when="@0.5-2:")

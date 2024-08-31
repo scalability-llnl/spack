@@ -27,4 +27,5 @@ class RServr(RPackage):
     depends_on("r-mime@0.2:", type=("build", "run"))
     depends_on("r-httpuv@1.5.2:", type=("build", "run"))
     depends_on("r-xfun", type=("build", "run"))
+    depends_on("r-xfun@0.42:", type=("build", "run"), when="@0.29:")
     depends_on("r-jsonlite", type=("build", "run"))

@@ -38,6 +38,7 @@ class RSpdep(RPackage):
     depends_on("r@3.3.0:", type=("build", "run"), when="@0.7-8:")
     depends_on("r-sp@1.0:", type=("build", "run"))
     depends_on("r-spdata@0.2.6.0:", type=("build", "run"), when="@1.0-2:")
+    depends_on("r-spdata@2.3.1:", type=("build", "run"), when="@1.3-5:")
     depends_on("r-sf", type=("build", "run"), when="@1.0-2:")
     depends_on("r-deldir", type=("build", "run"))
     depends_on("r-boot@1.3-1:", type=("build", "run"))

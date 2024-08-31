@@ -24,6 +24,7 @@ class RGgbeeswarm(RPackage):
     depends_on("r@3.0.0:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@0.7.1:")
     depends_on("r-beeswarm", type=("build", "run"))
+    depends_on("r-cli", type=("build", "run"), when="@0.7.2:")
     depends_on("r-lifecycle", type=("build", "run"), when="@0.7.1:")
     depends_on("r-ggplot2@2.0:", type=("build", "run"))
     depends_on("r-ggplot2@3.3.0:", type=("build", "run"), when="@0.7.1:")

@@ -31,6 +31,7 @@ class RTclust(RPackage):
     version("1.1-02", sha256="f73c0d7a495552f901b710cf34e114c0ba401d5a17c48156313245904bcccad4")
 
     depends_on("r@2.12.0:", type=("build", "run"))
+    depends_on("r@3.6.2:", type=("build", "run"), when="@1.5-6:")
 
     depends_on("r-doparallel", type=("build", "run"), when="@2.0:")
     depends_on("r-foreach", type=("build", "run"), when="@2.0:")

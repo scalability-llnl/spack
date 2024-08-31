@@ -38,5 +38,7 @@ class RStanheaders(RPackage):
     depends_on("r+X", type=("build", "run"))
     depends_on("r@3.4.0:", type=("build", "run"), when="@2.18.0:")
     depends_on("r-rcppparallel@5.0.1:", type=("build", "run"), when="@2.21.0:")
+    depends_on("r-rcppparallel@5.1.4:", type=("build", "run"), when="@2.26.25:")
     depends_on("r-rcppeigen", type=("build", "run"), when="@2.21.0:")
+    depends_on("r-rcppeigen@0.3.4.0.0:", type=("build", "run"), when="@2.32.8:")
     depends_on("pandoc", type="build")
