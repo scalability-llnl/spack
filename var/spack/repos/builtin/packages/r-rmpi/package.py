@@ -25,10 +25,13 @@ class RRmpi(RPackage):
     depends_on("mpi")
 
     # The following MPI types are not supported
-    conflicts("^intel-mpi")
-    conflicts("^intel-parallel-studio")
-    conflicts("^mvapich2")
-    conflicts("^spectrum-mpi")
+    conflicts("^[virtuals=mpi] intel-mpi")
+    conflicts("^[virtuals=mpi] intel-parallel-studio")
+    conflicts("^[virtuals=mpi] mvapich2")
+    conflicts("^[virtuals=mpi] spectrum-mpi")
+
+    # Rmpi's Open MPI implementation depends on v4.x ORTE runtime environment
+    conflicts("^[virtuals=mpi] openmpi@5:")
 
     def configure_args(self):
         spec = self.spec
