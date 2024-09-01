@@ -35,5 +35,12 @@ class RCairo(RPackage):
 
     depends_on("r+X", type=("build", "run"))
     depends_on("r@2.4.0:", type=("build", "run"))
-    depends_on("cairo@1.2:")
+    # "The Cairo package requires cairo library 1.2.0 or higher with PNG support enabled"
+    # See https://www.rforge.net/Cairo/
+    depends_on("cairo@1.2: +png")
+    # Disabled PDF support results in compilation failures in 1.6-1:1.6-2
+    # See https://github.com/s-u/Cairo/pull/48
+    depends_on("cairo +pdf", type=("build", "run"), when="@1.6-1:1.6-2")
+    # When cairo +ft, must also have +fc, for cairo_ft_font_face_create_for_pattern test
+    conflicts("^cairo ~fc", when="^cairo +ft", msg="For cairo freetype support, also need fontconfig.")
     depends_on("libxt")
