@@ -29,3 +29,9 @@ class RProj(RPackage):
     depends_on("r-wk", type=("build", "run"), when="@0.5.0:")
 
     depends_on("proj@6.3.1:", type=("build", "run"), when="@0.4.5:")
+    # pkgconfig for proj requires libtiff-4 and libcurl
+    depends_on("libtiff@4", type=("build", "run"))
+    depends_on("curl", type=("build", "run"))
+
+    def setup_build_environment(self, env):
+        env.prepend_path("LD_LIBRARY_PATH", self.spec["proj"].prefix.lib)
