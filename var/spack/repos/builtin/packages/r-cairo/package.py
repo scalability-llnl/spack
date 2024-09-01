@@ -42,5 +42,7 @@ class RCairo(RPackage):
     # See https://github.com/s-u/Cairo/pull/48
     depends_on("cairo +pdf", type=("build", "run"), when="@1.6-1:1.6-2")
     # When cairo +ft, must also have +fc, for cairo_ft_font_face_create_for_pattern test
-    conflicts("^cairo ~fc", when="^cairo +ft", msg="For cairo freetype support, also need fontconfig.")
+    conflicts(
+        "^cairo ~fc", when="^cairo +ft", msg="For cairo freetype support, also need fontconfig."
+    )
     depends_on("libxt")
