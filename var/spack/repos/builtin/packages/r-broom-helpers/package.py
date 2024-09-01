@@ -19,6 +19,7 @@ class RBroomHelpers(RPackage):
 
     version("1.16.0", sha256="9a7bac8678cdcc9a7e0f3b6d287d375fd5f1e880c916ac4d661f02c2c84e2715")
 
+    depends_on("r@4.2:", type=("build", "run"), when="@1.16.0:")
     depends_on("r-broom@0.8:", type=("build", "run"))
     depends_on("r-cli", type=("build", "run"))
     depends_on("r-dplyr", type=("build", "run"))

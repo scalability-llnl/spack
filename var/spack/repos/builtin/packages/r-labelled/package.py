@@ -35,5 +35,6 @@ class RLabelled(RPackage):
     depends_on("r-vctrs", type=("build", "run"))
     depends_on("r-stringr", type=("build", "run"), when="@2.9.0:")
     depends_on("r-tidyr", type=("build", "run"))
+    depends_on("r-tidyselect", type=("build", "run"), when="@2.13.0:")
 
     depends_on("r-pillar", type=("build", "run"), when="@:2.7.0")

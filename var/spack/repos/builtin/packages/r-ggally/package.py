@@ -28,6 +28,7 @@ class RGgally(RPackage):
     depends_on("r-ggplot2@2.2.0:", type=("build", "run"))
     depends_on("r-ggplot2@3.3.0:", type=("build", "run"), when="@2.1.0:")
     depends_on("r-ggplot2@3.3.4:", type=("build", "run"), when="@2.1.2:")
+    depends_on("r-ggplot2@3.4.4:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-dplyr@1.0.0:", type=("build", "run"), when="@2.1.0:")
     depends_on("r-ggstats", type=("build", "run"), when="@2.2.0:")
     depends_on("r-gtable@0.2.0:", type=("build", "run"))
@@ -38,6 +39,7 @@ class RGgally(RPackage):
     depends_on("r-rlang", type=("build", "run"), when="@1.4.0:")
     depends_on("r-scales@1.1.0:", type=("build", "run"), when="@2.1.0:")
     depends_on("r-tidyr", type=("build", "run"), when="@2.1.0:")
+    depends_on("r-tidyr@1.3.0:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-magrittr", type=("build", "run"), when="@2.2.0:")
     depends_on("openssl", when="@1.4.0:")
 

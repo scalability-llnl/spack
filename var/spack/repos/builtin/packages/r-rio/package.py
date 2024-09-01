@@ -38,6 +38,6 @@ class RRio(RPackage):
     depends_on("r-r-utils", when="@1:", type=("build", "run"))
     depends_on("r-readr", when="@1.2.1:", type=("build", "run"))
     depends_on("r-readxl@0.1.1:", type=("build", "run"))
-    depends_on("r-openxlsx", type=("build", "run"))
+    depends_on("r-openxlsx", type=("build", "run"), when="@:0.5.30")
     depends_on("r-tibble", type=("build", "run"))
     depends_on("r-writexl", when="@1:", type=("build", "run"))
