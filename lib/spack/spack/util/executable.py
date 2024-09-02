@@ -232,7 +232,7 @@ class Executable:
         tty.debug(cmd_line_string)
 
         if sys.platform == "win32" and any("import" in s for s in cmd):
-            cmd = " ".join(['"' + c + '"' if "import" in c else c for c in cmd])
+            cmd = " ".join([f'"{c}"' if "import" in c else c for c in cmd])
 
         try:
             proc = subprocess.Popen(
