@@ -270,7 +270,7 @@ class URLFetchStrategy(FetchStrategy):
         self._effective_url: Optional[str] = None
 
     def spec_attrs(self):
-        attrs = super(URLFetchStrategy, self).spec_attrs()
+        attrs = super().spec_attrs()
         if self.digest:
             try:
                 hash_type = spack.util.crypto.hash_algo_for_digest(self.digest)
@@ -758,6 +758,16 @@ class GitFetchStrategy(VCSFetchStrategy):
         self.submodules_delete = kwargs.get("submodules_delete", False)
         self.get_full_repo = kwargs.get("get_full_repo", False)
         self.git_sparse_paths = kwargs.get("git_sparse_paths", None)
+
+    def spec_attrs(self):
+        attrs = super().spec_attrs()
+
+        # need to fully resolve submodule callbacks for node dicts
+        submodules = attrs.get("submodules", None)
+        if submodules and callable(submodules):
+            attrs["submodules"] = submodules(self.package)
+
+        return attrs
 
     @property
     def git_version(self):

@@ -6,6 +6,11 @@
 from spack.package import *
 
 
+def use_submodules(pkg):
+    """test example of a submodule callback"""
+    return ["a", "b"]
+
+
 class GitUrlTopLevel(Package):
     """Mock package that top-level git and url attributes.
 
@@ -22,6 +27,7 @@ class GitUrlTopLevel(Package):
     # These resolve to git fetchers
     version("develop", branch="develop")
     version("submodules", submodules=True)
+    version("submodules_callback", submodules=use_submodules)
     version("3.4", commit="abc34")
     version("3.3", branch="releases/v3.3", commit="abc33")
     version("3.2", branch="releases/v3.2")

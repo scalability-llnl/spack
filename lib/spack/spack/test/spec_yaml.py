@@ -96,6 +96,22 @@ def test_invalid_json_spec(invalid_json, error_message):
         # Virtuals on edges
         "callpath",
         "mpileaks",
+        # all types of git versions
+        # ensure that we try to serialize all the things that might be in the node dict,
+        # e.g., submodule callbacks can fail serialization if they're not fully resolved.
+        "git-url-top-level@develop",
+        "git-url-top-level@submodules",
+        "git-url-top-level@submodules_callback",
+        "git-url-top-level@3.4",
+        "git-url-top-level@3.3",
+        "git-url-top-level@3.2",
+        "git-url-top-level@3.1",
+        "git-url-top-level@3.0",
+        "git-url-top-level@2.3",
+        "git-url-top-level@2.2",
+        "git-url-top-level@2.1",
+        "git-url-top-level@2.0",
+        "git-url-top-level@2.3",
     ],
 )
 def test_roundtrip_concrete_specs(abstract_spec, default_mock_concretization):
