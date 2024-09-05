@@ -56,9 +56,6 @@ class PyCython(PythonPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
-    # https://github.com/cython/cython/issues/5751 (distutils not yet dropped)
-    depends_on("python@:3.11", type=("build", "link", "run"))
-
     # https://github.com/cython/cython/commit/1cd24026e9cf6d63d539b359f8ba5155fd48ae21
     # collections.Iterable was removed in Python 3.10
     depends_on("python@:3.9", when="@:0.29.14", type=("build", "link", "run"))
