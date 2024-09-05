@@ -34,7 +34,7 @@ class PyCffi(PythonPackage):
     depends_on("pkgconfig", type="build")
     depends_on("py-setuptools@66.1:", type="build", when="@1.17:")
     depends_on("py-setuptools", type="build")
-    depends_on("py-setuptools@66.1:", type="build", when="@1.16:")
+    depends_on("py-setuptools", type="run", when="^python@3.12:")
     depends_on("py-pycparser", type=("build", "run"))
     depends_on("libffi")
 
