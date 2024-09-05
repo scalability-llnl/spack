@@ -1838,7 +1838,7 @@ class PackageInstaller:
         fail_fast = bool(request.install_args.get("fail_fast"))
         self.fail_fast = self.fail_fast or fail_fast
 
-    def _install_task(self, task: Task, install_status: InstallStatus) -> None:
+    def _install_task(self, task: Task, install_status: InstallStatus) -> ExecuteResult:
         """
         Perform the installation of the requested spec and/or dependency
         represented by the task.
