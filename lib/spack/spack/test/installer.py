@@ -1138,7 +1138,7 @@ def test_install_implicit(install_mockery, mock_fetch):
     assert not create_build_task(pkg).explicit
 
 
-def test_overwrite_install_backup_success(temporary_store, config, mock_packages, tmpdir):
+def test_overwrite_install_backup_success(temporary_store, config, mock_packages, monkeypatch):
     """
     When doing an overwrite install that fails, Spack should restore the backup
     of the original prefix, and leave the original spec marked installed.
@@ -1152,11 +1152,12 @@ def test_overwrite_install_backup_success(temporary_store, config, mock_packages
     installed_file = os.path.join(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
 
-    class InstallerThatWipesThePrefixDir:
-        def _install_task(self, task, install_status):
-            shutil.rmtree(task.pkg.prefix, ignore_errors=True)
-            fs.mkdirp(task.pkg.prefix)
-            raise Exception("Some fatal install error")
+    def _install_task(self, task, install_status):
+        shutil.rmtree(task.pkg.prefix, ignore_errors=True)
+        fs.mkdirp(task.pkg.prefix)
+        raise Exception("Some fatal install error")
+
+    monkeypatch.setattr(inst.PackageInstaller, "_install_task", _install_task)
 
     class FakeDatabase:
         called = False
@@ -1164,45 +1165,25 @@ def test_overwrite_install_backup_success(temporary_store, config, mock_packages
         def remove(self, spec):
             self.called = True
 
-    fake_installer = InstallerThatWipesThePrefixDir()
-    fake_db = FakeDatabase()
-    overwrite_install = inst.OverwriteInstall(fake_installer, fake_db, task, None)
+    monkeypatch.setattr(spack.store.STORE, "db", FakeDatabase())
 
     # Installation should throw the installation exception, not the backup
     # failure.
     with pytest.raises(Exception, match="Some fatal install error"):
-        overwrite_install.install()
+        installer._overwrite_install_task(task, None)
 
     # Make sure the package is not marked uninstalled and the original dir
     # is back.
-    assert not fake_db.called
+    assert not spack.store.STORE.db.called
     assert os.path.exists(installed_file)
 
 
-def test_overwrite_install_backup_failure(temporary_store, config, mock_packages, tmpdir):
+def test_overwrite_install_backup_failure(temporary_store, config, mock_packages, monkeypatch):
     """
     When doing an overwrite install that fails, Spack should try to recover the
     original prefix. If that fails, the spec is lost, and it should be removed
     from the database.
     """
-
-    class InstallerThatAccidentallyDeletesTheBackupDir:
-        def _install_task(self, task, install_status):
-            # Remove the backup directory, which is at the same level as the prefix,
-            # starting with .backup
-            backup_glob = os.path.join(
-                os.path.dirname(os.path.normpath(task.pkg.prefix)), ".backup*"
-            )
-            for backup in glob.iglob(backup_glob):
-                shutil.rmtree(backup)
-            raise Exception("Some fatal install error")
-
-    class FakeDatabase:
-        called = False
-
-        def remove(self, spec):
-            self.called = True
-
     # Get a build task. TODO: refactor this to avoid calling internal methods
     installer = create_installer(["pkg-b"])
     installer._init_queue()
@@ -1212,18 +1193,32 @@ def test_overwrite_install_backup_failure(temporary_store, config, mock_packages
     installed_file = os.path.join(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
 
-    fake_installer = InstallerThatAccidentallyDeletesTheBackupDir()
-    fake_db = FakeDatabase()
-    overwrite_install = inst.OverwriteInstall(fake_installer, fake_db, task, None)
+    def _install_task(self, task, install_status):
+        # Remove the backup directory, which is at the same level as the prefix,
+        # starting with .backup
+        backup_glob = os.path.join(os.path.dirname(os.path.normpath(task.pkg.prefix)), ".backup*")
+        for backup in glob.iglob(backup_glob):
+            shutil.rmtree(backup)
+        raise Exception("Some fatal install error")
+
+    monkeypatch.setattr(inst.PackageInstaller, "_install_task", _install_task)
+
+    class FakeDatabase:
+        called = False
+
+        def remove(self, spec):
+            self.called = True
+
+    monkeypatch.setattr(spack.store.STORE, "db", FakeDatabase())
 
     # Installation should throw the installation exception, not the backup
     # failure.
     with pytest.raises(Exception, match="Some fatal install error"):
-        overwrite_install.install()
+        installer._overwrite_install_task(task, None)
 
     # Make sure that `remove` was called on the database after an unsuccessful
     # attempt to restore the backup.
-    assert fake_db.called
+    assert spack.store.STORE.db.called
 
 
 def test_term_status_line():
