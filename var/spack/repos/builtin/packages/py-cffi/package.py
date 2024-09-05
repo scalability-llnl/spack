@@ -30,7 +30,9 @@ class PyCffi(PythonPackage):
 
     depends_on("c", type="build")
 
+    depends_on("python", type=("build", "link", "run"))
     depends_on("pkgconfig", type="build")
+    depends_on("py-setuptools@66.1:", type="build", when="@1.17:")
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools@66.1:", type="build", when="@1.16:")
     depends_on("py-pycparser", type=("build", "run"))
