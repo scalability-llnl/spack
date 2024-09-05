@@ -231,8 +231,16 @@ class Executable:
         cmd_line_string = " ".join(escaped_cmd)
         tty.debug(cmd_line_string)
 
-        if sys.platform == "win32" and any("import" in s for s in cmd):
-            cmd = " ".join([f'"{c}"' if "import" in c else c for c in cmd])
+        if self.exe[0].lower().startswith(("pwsh", "powershell", "cmd")):
+            spaced_args = [arg for arg in cmd if re.search(r'.*\s.*', arg)]
+            cmd = " ".join([f'"{arg}"' if " " in arg else arg for arg in cmd])
+            if spaced_args:
+                tty.warn(
+                    "Spaces in command arguments can can confuse script parsing.",
+                    "The following arguments may cause problems when executed:",
+                    str("\n".join(["    " + arg for arg in spaced_args])),
+                    "Such arguments are encased in double quotes to make it work."
+                )
 
         try:
             proc = subprocess.Popen(
