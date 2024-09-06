@@ -161,19 +161,16 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
                 "libmpi_gtl_hsa",
                 set(["gfx906", "gfx908", "gfx90a", "gfx940", "gfx942"]),
             ],
-            [
-                "+cuda",
-                "cuda_arch",
-                "libmpi_gtl_cuda",
-                set(["nvidia70", "nvidia80", "nvidia90"]),
-            ],
+            ["+cuda", "cuda_arch", "libmpi_gtl_cuda", set(["nvidia70", "nvidia80", "nvidia90"])],
             # ["", "", "libmpi_gtl_ze", ["ponteVecchio"]]
         ]
 
         for GTL_kind in GTL_kinds:
             if self.spec.satisfies(f"{GTL_kind[0]} {GTL_kind[1]}=*"):
                 if GTL_kind[0] == "+cuda":
-                    GPU_architecture_set = set([f"nvidia{x}" for x in self.spec.variants[GTL_kind[1]].value])
+                    GPU_architecture_set = set(
+                        [f"nvidia{x}" for x in self.spec.variants[GTL_kind[1]].value]
+                    )
                 else:
                     GPU_architecture_set = set(self.spec.variants[GTL_kind[1]].value)
                 if len(GPU_architecture_set) >= 1 and not GPU_architecture_set.issubset(
