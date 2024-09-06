@@ -839,6 +839,11 @@ if [ "$mode" = ccld ] || [ "$mode" = ld ]; then
         # it is assumed that paths have already been confirmed.
         extend spack_store_rpath_dirs_list SPACK_STORE_RPATH_DIRS
         extend rpath_dirs_list SPACK_RPATH_DIRS
+    else 
+        # If a compiler is configured with extra_rpaths, these are passed in as `-Wl,-rpath`
+        # which are ultimately stored in spack_store_rpath_dirs_list via parse_Wl. These
+        # are added even when $add_rpaths=false, causing issues.
+        spack_store_rpath_dirs_list=""
     fi
 fi
 
