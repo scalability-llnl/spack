@@ -232,14 +232,14 @@ class Executable:
         tty.debug(cmd_line_string)
 
         if self.exe[0].lower().startswith(("pwsh", "powershell", "cmd")):
-            spaced_args = [arg for arg in cmd if re.search(r'.*\s.*', arg)]
+            spaced_args = [arg for arg in cmd if " " in arg]
             cmd = " ".join([f'"{arg}"' if " " in arg else arg for arg in cmd])
             if spaced_args:
                 tty.warn(
                     "Spaces in command arguments can can confuse script parsing.",
                     "The following arguments may cause problems when executed:",
                     str("\n".join(["    " + arg for arg in spaced_args])),
-                    "Such arguments are encased in double quotes to make it work."
+                    "Such arguments are encased in double quotes to make it work.",
                 )
 
         try:
