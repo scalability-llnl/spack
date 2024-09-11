@@ -2267,8 +2267,26 @@ def find_libraries(libraries, root, shared=True, recursive=False, runtime=True):
     else:
         suffixes = [static_ext]
 
+    # some library names are prefixed with "lib" or similar prefixes on
+    # some platforms
+    # attempt to find names with platform appropriate prefixes
+    prefixes = []
+    if not sys.platform == "win32":
+        prefixes.append("lib")
+
+
+    # Search heuristics (example find_libraries(z))
+    #   Search for literal name provided to find_libraries (i.e. z)
+    #   Search for name with platform specific suffix for lib type (i.e. z.a)
+    #   Search for name with platform specific prefix (i.e. libz)
+    #   Search for both (i.e. libz.a)
+    #   Search for all of the above with a regex to handle any verseioning suffixes (libz.so.2.3)
+    #   On Windows search for static libs with name suffix _static
+
     # List of libraries we are searching with suffixes
-    libraries = ["{0}.{1}".format(lib, suffix) for lib in libraries for suffix in suffixes]
+    libraries.extend(["{0}.{1}".format(lib, suffix) for lib in libraries for suffix in suffixes])
+    if prefixes:
+        libraries.extend()
 
     if not recursive:
         # If not recursive, look for the libraries directly in root
