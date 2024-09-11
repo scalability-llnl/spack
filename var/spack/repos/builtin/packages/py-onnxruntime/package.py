@@ -42,7 +42,9 @@ class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage):
     depends_on("cmake@3.1:", type="build")
     # Needs absl/strings/has_absl_stringify.h
     # cxxstd=20 may also work, but cxxstd=14 does not
-    depends_on("abseil-cpp@20240116.0: cxxstd=17", when="@1.17:")
+    # Fix absl namespace to 20240722.0
+    # this is necessary for gcc14 compilation
+    depends_on("abseil-cpp@20240722.0 cxxstd=17", when="@1.17:")
 
     extends("python")
     depends_on("python", type=("build", "run"))
@@ -120,6 +122,10 @@ class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage):
         "https://github.com/microsoft/onnxruntime/commit/a3a443c80431c390cbf8855e9c7b2a95d413cd54.patch?full_index=1",
         sha256="537c43b061d31bf97d2778d723a41fbd390160f9ebc304f06726e3bfd8dc4583",
         when="@1.10:1.15",
+    )
+    patch(
+        "add-absl-to-cmake.patch",
+        when="@1.19.0:"
     )
 
     # ORT is assuming all ROCm components are installed in a single path,
