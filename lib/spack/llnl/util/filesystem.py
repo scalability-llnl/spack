@@ -247,7 +247,7 @@ def path_contains_subdirectory(path, root):
 
 
 #: This generates the library filenames that may appear on any OS.
-library_extensions = ["a", "la", "so", "tbd", "dylib"]
+library_extensions = ["a", "la", "so", "tbd", "dylib", "lib", "dll"]
 
 
 def possible_library_filenames(library_names):
@@ -259,6 +259,20 @@ def possible_library_filenames(library_names):
         ".".join((lib, extension))
         for lib, extension in itertools.product(library_names, lib_extensions)
     )
+
+
+def get_filepath_component(*files):
+    def get_filepath(file):
+        ext_parsed, ext = os.path.splitext(file)
+        if ext:
+            return get_filepath(ext_parsed)
+        else:
+            return ext_parsed
+
+    filepaths = []
+    for file in files:
+        filepaths.append(get_filepath(file))
+    return filepaths
 
 
 def paths_containing_libs(paths, library_names):
@@ -2151,10 +2165,10 @@ class LibraryList(FileList):
         return self.search_flags + " " + self.link_flags
 
 
-def find_system_libraries(libraries, shared=True):
+def find_system_libraries(libraries, shared=True, runtime=False):
     """Searches the usual system library locations for ``libraries``.
 
-    Search order is as follows:
+    Search order is as follows on Unix:
 
     1. ``/lib64``
     2. ``/lib``
@@ -2162,6 +2176,10 @@ def find_system_libraries(libraries, shared=True):
     4. ``/usr/lib``
     5. ``/usr/local/lib64``
     6. ``/usr/local/lib``
+
+    On Windows:
+
+    1. ``%SystemRoot%\system32``
 
     Accepts any glob characters accepted by fnmatch:
 
@@ -2178,6 +2196,8 @@ def find_system_libraries(libraries, shared=True):
         libraries (str or list): Library name(s) to search for
         shared (bool): if True searches for shared libraries,
             otherwise for static. Defaults to True.
+        runtime (bool): if True, searches for a .dll as opposed to a
+            .lib (Windows only, no-op elsewhere)
 
     Returns:
         LibraryList: The libraries that have been found
@@ -2198,7 +2218,9 @@ def find_system_libraries(libraries, shared=True):
         "/usr/lib",
         "/usr/local/lib64",
         "/usr/local/lib",
-    ]
+    ] if not sys.platform == "win32" else ["C:/system32"]
+    # TODO (johnwparent): Determine if there should be more directories here
+    # and port homedrive and windows kit path logic from detection to here
 
     for library in libraries:
         for root in search_locations:
@@ -2260,12 +2282,12 @@ def find_libraries(libraries, root, shared=True, recursive=False, runtime=True):
     # Construct the right suffix for the library
     if shared:
         # Used on both Linux and macOS
-        suffixes = [shared_ext]
+        extensions = [shared_ext]
         if sys.platform == "darwin":
             # Only used on macOS
-            suffixes.append("dylib")
+            extensions.append("dylib")
     else:
-        suffixes = [static_ext]
+        extensions = [static_ext]
 
     # some library names are prefixed with "lib" or similar prefixes on
     # some platforms
@@ -2274,6 +2296,11 @@ def find_libraries(libraries, root, shared=True, recursive=False, runtime=True):
     if not sys.platform == "win32":
         prefixes.append("lib")
 
+    version_suffix = [r"\.[0-9]*", ]
+
+    suffixes = []
+    if sys.platform == "win32" and not shared:
+        suffixes = ["_static"]
 
     # Search heuristics (example find_libraries(z))
     #   Search for literal name provided to find_libraries (i.e. z)
@@ -2284,9 +2311,9 @@ def find_libraries(libraries, root, shared=True, recursive=False, runtime=True):
     #   On Windows search for static libs with name suffix _static
 
     # List of libraries we are searching with suffixes
-    libraries.extend(["{0}.{1}".format(lib, suffix) for lib in libraries for suffix in suffixes])
-    if prefixes:
-        libraries.extend()
+    libraries.extend(["{0}{1}".format(lib, suffix) for lib in libraries for suffix in suffixes])
+    libraries.extend(["{0}.{1}".format(lib, ext) for lib in libraries for ext in extensions])
+    libraries.extend(["{0}{1}".format(prefix, lib) for lib in libraries for prefix in prefixes])
 
     if not recursive:
         # If not recursive, look for the libraries directly in root
