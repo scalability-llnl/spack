@@ -142,76 +142,79 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
     # @memoized
     @property
     def gtl_lib(self):
-        # GPU transport Layer (GTL) handling.
-        #
-        # So in theory the cray-mpich module defines an environment variable per
-        # supported GPU. So we should read the appropriate variable. In practice
-        # loading a module and checking its content is PITA. We simplify by
-        # assuming that the GTL for a given vendor (say, AMD), are all the same
-        # (which is the case for amd, cuda and intel GPUs).
-        # Second, except if you have a very weird mpich layout, the GTL are
-        # located in /opt/cray/pe/mpich/8.1.28/gtl/lib when the mpi libs are in
-        # /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>.
-        # So we go up 3 directory, then into GTL.
+        # GPU transport Layer (GTL) handling background:
+        # - The cray-mpich module defines an environment variable per supported
+        # GPU (say, PE_MPICH_GTL_LIBS_amd_gfx942). So we should read the
+        # appropriate variable.
+        # In practice loading a module and checking its content is a PITA. We
+        # simplify by assuming that the GTL for a given vendor (say, AMD), is
+        # one and the same for all the targets of this vendor (one GTL for all
+        # Nvidia or one GTL for all AMD devices).
+        # - Second, except if you have a very weird mpich layout, the GTL are
+        # located in /opt/cray/pe/mpich/<cray_mpich_version>/gtl/lib when the
+        # MPI libraries are in
+        # /opt/cray/pe/mpich/<cray_mpich_version>/ofi/<vendor>/<vendor_version>.
+        # Example:
+        #   /opt/cray/pe/mpich/8.1.28/gtl/lib
+        #   /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>
+        #   /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>/../../../gtl/lib
 
-        GTL_kinds = [
+        gtl_kinds = [
             [
                 "+rocm",
                 "amdgpu_target",
                 "libmpi_gtl_hsa",
                 set(["gfx906", "gfx908", "gfx90a", "gfx940", "gfx942"]),
             ],
-            ["+cuda", "cuda_arch", "libmpi_gtl_cuda", set(["nvidia70", "nvidia80", "nvidia90"])],
+            ["+cuda", "cuda_arch", "libmpi_gtl_cuda", set(["70", "80", "90"])],
             # ["", "", "libmpi_gtl_ze", ["ponteVecchio"]]
         ]
 
-        for GTL_kind in GTL_kinds:
-            if self.spec.satisfies(f"{GTL_kind[0]} {GTL_kind[1]}=*"):
-                if GTL_kind[0] == "+cuda":
-                    GPU_architecture_set = set(
-                        [f"nvidia{x}" for x in self.spec.variants[GTL_kind[1]].value]
-                    )
-                else:
-                    GPU_architecture_set = set(self.spec.variants[GTL_kind[1]].value)
-                if len(GPU_architecture_set) >= 1 and not GPU_architecture_set.issubset(
-                    GTL_kind[3]
+        for gtl_kind in gtl_kinds:
+            if self.spec.satisfies(f"{gtl_kind[0]} {gtl_kind[1]}=*"):
+                accelerator_architecture_set = set(self.spec.variants[gtl_kind[1]].value)
+
+                if len(accelerator_architecture_set) >= 1 and not accelerator_architecture_set.issubset(
+                    gtl_kind[3]
                 ):
-                    tty.error("No GTL can satisfy the targeted GPU architectures.")
+                    tty.error(
+                        f"cray-mpich variant '{gtl_kind[0]} {gtl_kind[1]}'"
+                        " was specified but no GTL support could be found for it."
+                    )
                     break
 
-                # /opt/cray/pe/mpich/8.1.28/gtl/lib when the mpi libs are in
-                # /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>.
-                # /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>/../../../gtl/lib
-                MPI_root = os.path.abspath(
+                mpi_root = os.path.abspath(
                     os.path.join(self.prefix, os.pardir, os.pardir, os.pardir)
                 )
 
-                GTL_path = os.path.join(MPI_root, "gtl", "lib")
+                gtl_root = os.path.join(mpi_root, "gtl", "lib")
 
-                GTL_shared_libraries = find_libraries(
-                    [GTL_kind[2]], root=GTL_path, shared=True, recursive=False
+                gtl_shared_libraries = find_libraries(
+                    [gtl_kind[2]], root=gtl_root, shared=True, recursive=False
                 )
 
-                if len(GTL_shared_libraries) != 1:
-                    # TODO(Etienne M): Assertion failure. The cray-mpich does
-                    # not offer a GTL for our targets or offers too many ?
-                    tty.error("More than one GTL was found for the targeted GPUs.")
+                if len(gtl_shared_libraries) != 1:
+                    tty.error(
+                        f"cray-mpich variant '{gtl_kind[0]} {gtl_kind[1]}'"
+                        " was specified and GTL support was found for it but"
+                        f" the '{gtl_kind[2]}' could not be correctly found on disk."
+                    )
                     break
 
-                GTL_library_fullpath = list(GTL_shared_libraries)[0]
-                tty.debug(f"Selected GTL: {GTL_library_fullpath}")
+                gtl_library_fullpath = list(gtl_shared_libraries)[0]
+                tty.debug(f"Selected GTL: {gtl_library_fullpath}")
 
-                GTL_library_directory = os.path.dirname(GTL_library_fullpath)
-                GTL_library_name = os.path.splitext(
-                    os.path.basename(GTL_library_fullpath).split("lib")[1]
+                gtl_library_directory = os.path.dirname(gtl_library_fullpath)
+                gtl_library_name = os.path.splitext(
+                    os.path.basename(gtl_library_fullpath).split("lib")[1]
                 )[0]
 
                 # Early break. Only one GTL can be active at a given time.
                 return {
                     "ldflags": [
-                        f"-L{GTL_library_directory}",
-                        f"-Wl,-rpath,{GTL_library_directory}",
+                        f"-L{gtl_library_directory}",
+                        f"-Wl,-rpath,{gtl_library_directory}",
                     ],
-                    "ldlibs": [f"-l{GTL_library_name}"],
+                    "ldlibs": [f"-l{gtl_library_name}"],
                 }
         return {}
