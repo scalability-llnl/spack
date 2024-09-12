@@ -174,9 +174,9 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
             if self.spec.satisfies(f"{gtl_kind[0]} {gtl_kind[1]}=*"):
                 accelerator_architecture_set = set(self.spec.variants[gtl_kind[1]].value)
 
-                if len(accelerator_architecture_set) >= 1 and not accelerator_architecture_set.issubset(
-                    gtl_kind[3]
-                ):
+                if len(
+                    accelerator_architecture_set
+                ) >= 1 and not accelerator_architecture_set.issubset(gtl_kind[3]):
                     tty.error(
                         f"cray-mpich variant '{gtl_kind[0]} {gtl_kind[1]}'"
                         " was specified but no GTL support could be found for it."
