@@ -15,12 +15,11 @@
 # -------------------------------------------------------------------------
 packages:
   all:
-    compiler:
-    - apple-clang
-    - clang
-    - gcc
     providers:
+      c: [apple-clang, llvm, gcc]
+      cxx: [apple-clang, llvm, gcc]
       elf: [libelf]
+      fortran: [gcc]
       fuse: [macfuse]
       gl: [apple-gl]
       glu: [apple-glu]
