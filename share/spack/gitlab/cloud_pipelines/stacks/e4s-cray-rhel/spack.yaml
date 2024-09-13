@@ -14,10 +14,15 @@ spack:
 
   packages:
     all:
-      require: "%cce@18.0.0 target=x86_64_v3"
-      compiler: [cce]
+      require:
+      - target=x86_64_v3
+      prefer:
+      - "%cce"
       providers:
         blas: [cray-libsci]
+        c: [cce]
+        cxx: [cce]
+        fortran: [cce]
         lapack: [cray-libsci]
         mpi: [cray-mpich]
         tbb: [intel-tbb]
@@ -140,8 +145,8 @@ spack:
   # - gptune              # py-scipy: meson.build:82:0: ERROR: Unknown compiler(s): [['/home/gitlab-runner-3/builds/dWfnZWPh/0/spack/spack/lib/spack/env/cce/ftn']]
   # - hpctoolkit          # dyninst requires %gcc
   # - hpx max_cpu_count=512 networking=mpi  # libxcrypt-4.4.35
-  # - lammps              # lammps-20240829.1: Reversed (or previously applied) patch detected!  Assume -R? [n] 
-  # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +mgard # mgard: 
+  # - lammps              # lammps-20240829.1: Reversed (or previously applied) patch detected!  Assume -R? [n]
+  # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +mgard # mgard:
   # - mgard +serial +openmp +timing +unstructured ~cuda # mgard
   # - nrm                 # py-scipy: meson.build:82:0: ERROR: Unknown compiler(s): [['/home/gitlab-runner-3/builds/dWfnZWPh/0/spack/spack/lib/spack/env/cce/ftn']]
   # - nvhpc               # requires %gcc
