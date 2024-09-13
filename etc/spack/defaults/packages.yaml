@@ -15,19 +15,18 @@
 # -------------------------------------------------------------------------
 packages:
   all:
-    compiler: [gcc, clang, oneapi, xl, nag, fj, aocc]
     providers:
       awk: [gawk]
       armci: [armcimpi]
       blas: [openblas, amdblis]
-      c: [gcc]
-      cxx: [gcc]
+      c: [gcc, llvm, intel-oneapi-compilers, xl, aocc]
+      cxx: [gcc, llvm, intel-oneapi-compilers, xl, aocc]
       D: [ldc]
       daal: [intel-oneapi-daal]
       elf: [elfutils]
       fftw-api: [fftw, amdfftw]
       flame: [libflame, amdlibflame]
-      fortran: [gcc]
+      fortran: [gcc, llvm]
       fortran-rt: [gcc-runtime, intel-oneapi-runtime]
       fuse: [libfuse]
       gl: [glx, osmesa]
