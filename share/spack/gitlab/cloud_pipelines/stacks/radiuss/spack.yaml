@@ -2,48 +2,40 @@ spack:
   view: false
   packages:
     all:
-      require: target=x86_64_v3
+      require:
+      - target=x86_64_v3
+      - '%gcc@7.5.0'
 
       providers:
         mpi: [mvapich2]
 
-  definitions:
-    #- compilers: ['%gcc@8.3.1', '%clang@10.0.0']
-    - compilers: ['%gcc@7.5.0']
-
-    # Note skipping spot since no spack package for it
-    - radiuss:
-      - ascent  # ^conduit@0.6.0
-      - axom
-      - blt
-      - caliper
-      - care  # ~benchmarks ~examples ~tests
-      - chai  # ~examples
-      - conduit  # ^hdf5+shared
-      - flux-core
-      #- flux-sched
-      - hypre
-      - lbann
-      - lvarray ~tests  # per Spack issue #23192  # ~examples
-      - mfem
-      - py-hatchet
-      - py-maestrowf
-      - py-merlin
-      - py-shroud
-      - raja # ~examples  # ~tests
-      - raja-perf
-      - samrai
-      - scr
-      - sundials
-      - umpire # ~openmp
-      #- visit   # ^mesa-glu@9.0.0
-      - xbraid
-      - zfp
-
   specs:
-  - matrix:
-    - [$radiuss]
-    - [$compilers]
+  - ascent  # ^conduit@0.6.0
+  - axom
+  - blt
+  - caliper
+  - care  # ~benchmarks ~examples ~tests
+  - chai  # ~examples
+  - conduit  # ^hdf5+shared
+  - flux-core
+  # - flux-sched
+  - hypre
+  - lbann
+  - lvarray ~tests  # per Spack issue #23192  # ~examples
+  - mfem
+  - py-hatchet
+  - py-maestrowf
+  - py-merlin
+  - py-shroud
+  - raja # ~examples  # ~tests
+  - raja-perf
+  - samrai
+  - scr
+  - sundials
+  - umpire # ~openmp
+  # - visit   # ^mesa-glu@9.0.0
+  - xbraid
+  - zfp
 
   cdash:
     build-group: RADIUSS
