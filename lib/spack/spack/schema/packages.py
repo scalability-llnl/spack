@@ -137,6 +137,15 @@ properties: Dict[str, Any] = {
                     },
                     "variants": variants,
                 },
+                "deprecatedProperties": [
+                    {
+                        "names": ["compiler"],
+                        "message": "The packages:all:compiler preference has been deprecated in "
+                        "Spack v0.24, and is currently ignored. It will be removed from config in "
+                        "Spack v0.26.",
+                        "error": False,
+                    }
+                ],
             }
         },
         "additionalProperties": {  # package name
