@@ -262,4 +262,16 @@ def load():
             " Python, and vice-versa, using no special tools -- just your C++ compiler."
         ),
     )
+    _boost_variant(
+        "signals",
+        default=False,
+        when="@1.29.0:1.68.0",
+        buildable="@1.29.0:1.68.0",
+        description="Managed signals & slots callback implementation.",
+    )
+    _boost_variant(
+        "signals2",
+        when="@1.39.0:",
+        description="Managed signals & slots callback implementation (thread-safe version 2).",
+    )
     return library_names
