@@ -195,6 +195,14 @@ def load():
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
     _boost_variant(
+        "graph",
+        when="@1.18.0:",
+        buildable="@1.18.0:",
+        description=(
+            "Generic components for mathematical graphs (collections of nodes and edges)."
+        ),
+    )
+    _boost_variant(
         "python",
         default=False,
         sticky=False,
@@ -256,6 +264,7 @@ def load():
             "C++ wrapper to the Message Passing Interface for distributed-memory parallelism."
         ),
     )
+    # fmt: off
     _boost_variant(
         "exception",
         when="@1.36.0:",
