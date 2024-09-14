@@ -118,6 +118,10 @@ def load():
         description="Build in debug mode",
     )
     _boost_variant(
+        "pic",
+        description="Build Boost libraries with position-independent code (PIC)",
+    )
+    _boost_variant(
         "multithreaded",
         description="Enable use of multiple threads in the Boost libraries",
     )
