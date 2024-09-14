@@ -263,6 +263,19 @@ def load():
         description="Coroutine library",
     )
     _boost_variant(
+        "fiber",
+        when="@1.62.0:",
+        buildable="@1.62.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Fiber requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Fiber requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+context", "msg": "Boost.Fiber requires Boost.Context"}
+        ],
+        description="Lightweight userland threads",
+    )
+    _boost_variant(
         "context-impl",
         when="@1.65.0:",
         default="fcontext",
