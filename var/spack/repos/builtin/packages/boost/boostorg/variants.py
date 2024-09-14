@@ -224,6 +224,15 @@ def load():
     )
     # fmt: on
     _boost_variant(
+        "filesystem",
+        when="@1.30.0:",
+        buildable="@1.30.0:",
+        description=(
+            "The Boost Filesystem Library provides portable facilities to query and manipulate"
+            " paths, files, and directories."
+        ),
+    )
+    _boost_variant(
         "iostreams",
         when="@1.33.0:",
         buildable="@1.33.0:",
