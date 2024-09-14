@@ -207,6 +207,12 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "date_time",
+        when="@1.29.0:",
+        buildable="@1.29.0:",
+        description="Calculate, format, and convert dates and times",
+    )
+    _boost_variant(
         "signals",
         default=False,
         when="@1.29.0:1.68.0",
