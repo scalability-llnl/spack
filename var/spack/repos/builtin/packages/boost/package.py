@@ -189,8 +189,6 @@ class Boost(Package):
         when="@1.65.0: +context",
     )
 
-    variant("numpy", default=False, description="Build the Boost NumPy library (requires +python)")
-
     with when("+icu"):
         depends_on("icu4c")
 
@@ -209,9 +207,12 @@ class Boost(Package):
     depends_on("zlib-api", when="+iostreams")
     depends_on("zstd", when="+iostreams")
     depends_on("xz", when="+iostreams")
-    depends_on("py-numpy", when="+numpy", type=("build", "run"))
-    # https://github.com/boostorg/python/issues/431
-    depends_on("py-numpy@:1", when="@:1.86+numpy", type=("build", "run"))
+
+    with when("+numpy"):
+        depends_on("py-numpy", type=("build", "run"))
+
+        # https://github.com/boostorg/python/issues/431
+        depends_on("py-numpy@:1", when="@:1.85", type=("build", "run"))
 
     # Improve the error message when the context-impl variant is conflicting
     conflicts("context-impl=fcontext", when="@:1.65.0")
@@ -233,8 +234,6 @@ class Boost(Package):
     #       See: https://github.com/spack/spack/issues/3963
     conflicts("@1.64.0", when="+python", msg="Errors with out-of-date API calls from Python")
     conflicts("@1.64.0", when="+mpi", msg="Errors with out-of-date API calls from MPI")
-
-    conflicts("+numpy", when="~python")
 
     # boost-python in 1.72.0 broken with cxxstd=98
     conflicts("cxxstd=98", when="+mpi+python @1.72.0")

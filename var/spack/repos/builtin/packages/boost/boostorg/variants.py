@@ -173,6 +173,17 @@ def load():
         when="@1.69.0:",
         description="Default symbol visibility in compiled libraries",
     )
+    # fmt: off
+    _boost_variant(
+        "numpy",
+        when="@1.63.0:",
+        default=False,
+        requires=[
+            {"spec": "+python", "msg": "Numpy requires python support"}
+        ],
+        description="Enable numpy support in Boost.Python",
+    )
+    # fmt: on
 
     # ----------------------------------------------------------------------
     #  Library-level configurations
