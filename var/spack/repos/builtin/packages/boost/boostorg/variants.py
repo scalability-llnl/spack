@@ -200,6 +200,24 @@ def load():
         description="Useful time utilities. C++11.",
     )
     _boost_variant(
+        "cobalt",
+        default=False,
+        when="@1.84.0:",
+        buildable="@1.84.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.cobalt requires cxxstd >= 20"},
+            {"when": "cxxstd=03", "msg": "Boost.cobalt requires cxxstd >= 20"},
+            {"when": "cxxstd=11", "msg": "Boost.cobalt requires cxxstd >= 20"},
+            {"when": "cxxstd=14", "msg": "Boost.cobalt requires cxxstd >= 20"},
+            {"when": "cxxstd=17", "msg": "Boost.cobalt requires cxxstd >= 20"},
+        ],
+        requires=[
+            # {"spec": "+leaf", "msg": "Boost.cobalt requires Boost.leaf"},
+            {"spec": "+variant2", "msg": "Boost.cobalt requires Boost.variant2"}
+        ],
+        description="Coroutines. Basic Algorithms & Types",
+    )
+    _boost_variant(
         "container",
         # Can be both header-only and compiled. '+container' indicates the
         # compiled version which requires Extended Allocator support. The
