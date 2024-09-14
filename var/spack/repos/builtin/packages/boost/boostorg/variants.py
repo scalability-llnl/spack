@@ -316,6 +316,14 @@ def load():
         description="The backend for Boost.Context",
     )
     _boost_variant(
+        "contract",
+        when="@1.67.0:",
+        buildable="@1.67.0:",
+        description=(
+            "Contract programming with subcontracting, class invariants, and pre/postconditions."
+        ),
+    )
+    _boost_variant(
         "leaf",
         when="@1.75.0:",
         conflicts=[
