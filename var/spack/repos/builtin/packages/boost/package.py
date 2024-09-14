@@ -204,9 +204,6 @@ class Boost(Package):
         default=False,
         description="Augment library layout with versioned subdirs",
     )
-    variant(
-        "clanglibcpp", default=False, description="Compile with clang libc++ instead of libstdc++"
-    )
     variant("numpy", default=False, description="Build the Boost NumPy library (requires +python)")
     variant(
         "pic",
@@ -280,13 +277,6 @@ class Boost(Package):
     # Boost 1.80 does not build with the Intel oneapi compiler
     # (https://github.com/spack/spack/pull/32879#issuecomment-1265933265)
     conflicts("%oneapi", when="@1.80")
-
-    # Boost 1.85.0 stacktrace added a hard compilation error that has to
-    # explicitly be suppressed on some platforms:
-    # https://github.com/boostorg/stacktrace/pull/150. This conflict could be
-    # turned into a variant that allows users to opt-in when they know it is
-    # safe to do so on affected platforms.
-    conflicts("+clanglibcpp", when="@1.85: +stacktrace")
 
     # On Windows, the signals variant is required when building any of
     # the all_libs variants.
@@ -656,11 +646,8 @@ class Boost(Package):
             if spec.variants["cxxstd"].value == "11":
                 cxxflags.append("-std=c++11")
 
-        # See conflict above and
-        # https://github.com/boostorg/stacktrace/pull/150. This suppresses a
-        # compilation error that must be explicitly suppressed. Because of the
-        # conflict we can suppress the error without input from a user.
-        if spec.satisfies("@1.85: +stacktrace"):
+        # https://github.com/boostorg/stacktrace/pull/150
+        if spec.satisfies("@1.85: +stacktrace+clanglibcpp"):
             cxxflags.append("-DBOOST_STACKTRACE_LIBCXX_RUNTIME_MAY_CAUSE_MEMORY_LEAK")
 
         if cxxflags:
