@@ -274,6 +274,15 @@ def load():
         description="A set of date-time libraries based on generic programming concepts.",
     )
     _boost_variant(
+        "exception",
+        when="@1.36.0:",
+        buildable="@1.47.0:",
+        description=(
+            "The Boost Exception library supports transporting of arbitrary data in exception"
+            " objects, and transporting of exceptions between threads."
+        ),
+    )
+    _boost_variant(
         "fiber",
         when="@1.62.0:",
         buildable="@1.62.0:",

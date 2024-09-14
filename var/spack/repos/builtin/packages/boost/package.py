@@ -123,7 +123,7 @@ class Boost(Package):
         #        "contract",
         #        "coroutine",
         #        "date_time",
-        "exception",
+        #        "exception",
         #        "fiber",
         "filesystem",
         "graph",
