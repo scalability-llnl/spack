@@ -205,6 +205,18 @@ def load():
         ],
         description="C++ wrapper for interacting with Python.",
     )
+    # fmt: off
+    _boost_variant(
+        "signals",
+        default=False,
+        when="@1.29.0:1.68.0",
+        buildable="@1.29.0:1.68.0",
+        conflicts=[
+            {"when": "@1.69.0:", "msg": "Boost.signals was removed in 1.68.0"}
+        ],
+        description="Managed signals & slots callback implementation",
+    )
+    # fmt: on
     _boost_variant(
         "iostreams",
         when="@1.33.0:",
@@ -228,6 +240,11 @@ def load():
         description=(
             "C++ wrapper to the Message Passing Interface for distributed-memory parallelism."
         ),
+    )
+    _boost_variant(
+        "signals2",
+        when="@1.39.0:",
+        description="Thread-safe managed signals & slots callback implementation",
     )
     _boost_variant(
         "container",
