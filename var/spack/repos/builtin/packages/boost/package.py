@@ -198,12 +198,6 @@ class Boost(Package):
         "singlethreaded", default=False, description="Build single-threaded versions of libraries"
     )
     variant("icu", default=False, description="Build with Unicode and ICU suport")
-    variant("taggedlayout", default=False, description="Augment library names with build options")
-    variant(
-        "versionedlayout",
-        default=False,
-        description="Augment library layout with versioned subdirs",
-    )
     variant("numpy", default=False, description="Build the Boost NumPy library (requires +python)")
     variant(
         "pic",
@@ -254,7 +248,6 @@ class Boost(Package):
     conflicts("@1.64.0", when="+python", msg="Errors with out-of-date API calls from Python")
     conflicts("@1.64.0", when="+mpi", msg="Errors with out-of-date API calls from MPI")
 
-    conflicts("+taggedlayout", when="+versionedlayout")
     conflicts("+numpy", when="~python")
 
     # boost-python in 1.72.0 broken with cxxstd=98

@@ -111,6 +111,23 @@ def load():
         multi=False,
         description="C++ standard",
     )
+    _boost_variant(
+        "taggedlayout",
+        default=False,
+        when="@1.40.0:",
+        conflicts=[
+            {"when": "+versionedlayout", "msg": "Layouts cannot be both tagged and versioned"}
+        ],
+        description="Augment library names with build options",
+    )
+    _boost_variant(
+        "versionedlayout",
+        default=False,
+        conflicts=[
+            {"when": "+taggedlayout", "msg": "Layouts cannot be both tagged and versioned"}
+        ],
+        description="Augment library layout with versioned subdirs",
+    )
     # https://boostorg.github.io/build/manual/develop/index.html#bbv2.builtin.features.visibility
     _boost_variant(
         "visibility",
