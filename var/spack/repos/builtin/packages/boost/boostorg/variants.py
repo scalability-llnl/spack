@@ -109,6 +109,15 @@ def load():
         description="Switch to the debug version of Boost",
     )
     _boost_variant(
+        "icu",
+        default=False,
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "ICU requires at least c++11"},
+            {"when": "cxxstd=03", "msg": "ICU requires at least c++11"},
+        ],
+        description="Build with Unicode and ICU suport",
+    )
+    _boost_variant(
         "multithreaded",
         description="Build multi-threaded versions of libraries",
     )
