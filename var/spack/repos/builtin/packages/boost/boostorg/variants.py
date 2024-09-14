@@ -268,6 +268,12 @@ def load():
         description="Coroutine library.",
     )
     _boost_variant(
+        "date_time",
+        when="@1.29.0:",
+        buildable="@1.29.0:",
+        description="A set of date-time libraries based on generic programming concepts.",
+    )
+    _boost_variant(
         "fiber",
         when="@1.62.0:",
         buildable="@1.62.0:",
