@@ -218,6 +218,15 @@ def load():
         description="Coroutine library.",
     )
     _boost_variant(
+        "iostreams",
+        when="@1.33.0:",
+        buildable="@1.33.0:",
+        description=(
+            "Boost.IOStreams provides a framework for defining streams, stream buffers and i/o"
+            " filters."
+        ),
+    )
+    _boost_variant(
         "mpi",
         default=False,
         when="@1.35.0:",

@@ -128,7 +128,7 @@ class Boost(Package):
         "filesystem",
         "graph",
         "graph_parallel",
-        "iostreams",
+        #        "iostreams",
         "json",
         "locale",
         "log",
@@ -198,10 +198,11 @@ class Boost(Package):
         # https://github.com/boostorg/python/commit/cbd2d9f033c61d29d0a1df14951f4ec91e7d05cd
         depends_on("python@:3.9", when="@:1.75")
 
-    depends_on("bzip2", when="+iostreams")
-    depends_on("zlib-api", when="+iostreams")
-    depends_on("zstd", when="+iostreams")
-    depends_on("xz", when="+iostreams")
+    with when("+iostreams"):
+        depends_on("bzip2")
+        depends_on("zlib-api")
+        depends_on("zstd")
+        depends_on("xz")
 
     with when("+numpy"):
         depends_on("py-numpy", type=("build", "run"))
