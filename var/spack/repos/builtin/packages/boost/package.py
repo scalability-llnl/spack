@@ -89,7 +89,6 @@ class Boost(Package):
 
     with_default_variants = "boost" + "".join(
         [
-            "+exception",
             "+filesystem",
             "+graph",
             "+locale",
@@ -111,7 +110,6 @@ class Boost(Package):
     # dependencies and/or because there is a great deal of customization
     # possible (and it would be difficult to choose sensible defaults)
     all_libs = [
-        "exception",
         "filesystem",
         "graph",
         "graph_parallel",
