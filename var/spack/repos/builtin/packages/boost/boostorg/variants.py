@@ -195,6 +195,17 @@ def load():
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
     _boost_variant(
+        "python",
+        default=False,
+        sticky=False,
+        when="@1.19.0:",
+        buildable="@1.19.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.python requires cxxstd >= 03"},
+        ],
+        description="C++ wrapper for interacting with Python.",
+    )
+    _boost_variant(
         "container",
         # Can be both header-only and compiled. '+container' indicates the
         # compiled version which requires Extended Allocator support. The
