@@ -307,5 +307,15 @@ def load():
         description="The backend for Boost.Context",
     )
     # fmt: on
+    _boost_variant(
+        "charconv",
+        when="@1.85.0:",
+        buildable="@1.85.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Charconv requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Charconv requires cxxstd >= 11"},
+        ],
+        description="An implementation of C++20's <charconv> in C++11.",
+    )
 
     return library_names
