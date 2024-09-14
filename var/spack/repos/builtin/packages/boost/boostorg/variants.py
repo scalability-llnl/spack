@@ -102,6 +102,13 @@ def load():
         multi=False,
         description="Use the specified C++ standard when building",
     )
+    # fmt: off
+    _boost_variant(
+        "debug",
+        default=False,
+        description="Switch to the debug version of Boost",
+    )
+    # fmt: on
     _boost_variant(
         "taggedlayout",
         default=False,
