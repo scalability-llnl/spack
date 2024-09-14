@@ -316,6 +316,33 @@ def load():
         description="The backend for Boost.Context",
     )
     _boost_variant(
+        "leaf",
+        when="@1.75.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.LEAF requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.LEAF requires cxxstd >= 11"},
+        ],
+        description="Lightweight error-handling",
+    )
+    _boost_variant(
+        "cobalt",
+        default=False,
+        when="@1.84.0:",
+        buildable="@1.84.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.cobalt requires cxxstd >= 20"},
+            {"when": "cxxstd=03", "msg": "Boost.cobalt requires cxxstd >= 20"},
+            {"when": "cxxstd=11", "msg": "Boost.cobalt requires cxxstd >= 20"},
+            {"when": "cxxstd=14", "msg": "Boost.cobalt requires cxxstd >= 20"},
+            {"when": "cxxstd=17", "msg": "Boost.cobalt requires cxxstd >= 20"},
+        ],
+        requires=[
+            {"spec": "+leaf", "msg": "Boost.cobalt requires Boost.leaf"},
+            {"spec": "+variant2", "msg": "Boost.cobalt requires Boost.variant2"},
+        ],
+        description="Coroutines. Basic Algorithms & Types",
+    )
+    _boost_variant(
         "charconv",
         when="@1.85.0:",
         buildable="@1.85.0:",
