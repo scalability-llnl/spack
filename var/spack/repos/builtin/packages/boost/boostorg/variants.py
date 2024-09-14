@@ -206,6 +206,12 @@ def load():
         description="C++ wrapper for interacting with Python.",
     )
     _boost_variant(
+        "iostreams",
+        when="@1.33.0:",
+        buildable="@1.33.0:",
+        description=("Streams, stream buffers, and i/o filters"),
+    )
+    _boost_variant(
         "mpi",
         default=False,
         sticky=False,
