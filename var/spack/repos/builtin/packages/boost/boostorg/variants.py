@@ -248,6 +248,15 @@ def load():
         ),
     )
     _boost_variant(
+        "exception",
+        when="@1.36.0:",
+        buildable="@1.47.0:",
+        description=(
+            "Transport arbitrary data in exceptions, and exceptions between threads"
+        ),
+    )
+    # fmt: on
+    _boost_variant(
         "signals2",
         when="@1.39.0:",
         description="Thread-safe managed signals & slots callback implementation",
