@@ -132,7 +132,6 @@ class Boost(Package):
         "locale",
         "log",
         "math",
-        "mpi",
         "nowide",
         "program_options",
         "random",
@@ -187,7 +186,6 @@ class Boost(Package):
         # https://github.com/boostorg/python/commit/cbd2d9f033c61d29d0a1df14951f4ec91e7d05cd
         depends_on("python@:3.9", when="@:1.75")
 
-    depends_on("mpi", when="+mpi")
     depends_on("bzip2", when="+iostreams")
     depends_on("zlib-api", when="+iostreams")
     depends_on("zstd", when="+iostreams")
@@ -213,18 +211,8 @@ class Boost(Package):
     conflicts("cxxstd=98", when="+fiber")  # Fiber requires >=C++11.
     conflicts("~context", when="+fiber")  # Fiber requires Context.
 
-    # NOTE: 1.64.0 seems fine for *most* applications, but if you need
-    #       +python and +mpi, there seem to be errors with out-of-date
-    #       API calls from mpi/python.
-    #       See: https://github.com/spack/spack/issues/3963
-    conflicts("@1.64.0", when="+python", msg="Errors with out-of-date API calls from Python")
-    conflicts("@1.64.0", when="+mpi", msg="Errors with out-of-date API calls from MPI")
-
-    # boost-python in 1.72.0 broken with cxxstd=98
-    conflicts("cxxstd=98", when="+mpi+python @1.72.0")
-
-    # boost-mpi depends on boost-python since 1.87.0
-    conflicts("~python", when="+mpi @1.87.0:")
+    with when("+mpi"):
+        depends_on("mpi")
 
     # Boost.System till 1.76 (included) was relying on mutex, which was not
     # detected correctly on Darwin platform when using GCC

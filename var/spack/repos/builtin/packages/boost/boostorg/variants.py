@@ -192,6 +192,27 @@ def load():
         description="C++ wrapper for interacting with Python.",
     )
     _boost_variant(
+        "mpi",
+        default=False,
+        sticky=False,
+        when="@1.35.0:",
+        buildable="@1.35.0:",
+        conflicts=[
+            # NOTE: 1.64.0 seems fine for *most* applications, but if you need
+            #       +python and +mpi, there seem to be errors with out-of-date
+            #       API calls from mpi/python.
+            #       See: https://github.com/spack/spack/issues/3963
+            {"when": "@1.64.0 +python", "msg": "Boost.MPI@1.64.0 does not support python"},
+            {"when": "@1.72.0 cxxstd=98", "msg": "Boost.MPI@1.72.0 does not support C++98"},
+        ],
+        requires=[
+            {"spec": "+python", "when": "@1.87.0:", "msg": "Boost.MPI requires Boost.Numpy"}
+        ],
+        description=(
+            "C++ wrapper to the Message Passing Interface for distributed-memory parallelism."
+        ),
+    )
+    _boost_variant(
         "container",
         # Can be both header-only and compiled. '+container' indicates the
         # compiled version which requires Extended Allocator support. The
