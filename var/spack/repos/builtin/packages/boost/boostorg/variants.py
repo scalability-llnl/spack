@@ -121,6 +121,14 @@ def load():
         "multithreaded",
         description="Build multi-threaded versions of libraries",
     )
+    _boost_variant(
+        "numpy",
+        default=False,
+        requires=[
+            {"spec": "+python", "msg": "Numpy requires python support"}
+        ],
+        description="Build the Boost NumPy library",
+    )
     # fmt: on
     _boost_variant(
         "pic",
