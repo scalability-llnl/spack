@@ -180,23 +180,30 @@ build --local_cpu_resources={make_jobs}
         )
 
     def install(self, spec, prefix):
-        args = []
-        args.append("build/build.py")
-        if "+cuda" in spec:
-            args.append("--enable_cuda")
-            args.append("--cuda_path={0}".format(self.spec["cuda"].prefix))
-            args.append("--cudnn_path={0}".format(self.spec["cudnn"].prefix))
-            capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
-            args.append("--cuda_compute_capabilities={0}".format(",".join(capabilities)))
-        args.append(
-            "--bazel_startup_options="
-            "--output_user_root={0}".format(self.wrapped_package_object.buildtmp)
-        )
-        if "+rocm" in spec:
-            args.append("--enable_rocm")
-            args.append("--rocm_path={0}".format(self.spec["hip"].prefix))
+        buildtmp = self.wrapped_package_object.buildtmp
+        args = ["build/build.py", f"--bazel_startup_options=--output_user_root={buildtmp}"]
 
-        # https://github.com/google/jax/commit/a498c1e66836a1b8f3c2ce67c53ba0f6caeadbc1
+        if "+cuda" in spec:
+            capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
+            args.extend(["--enable_cuda", f"--cuda_compute_capabilities={','.join(capabilities)}"])
+            if spec.satisfies("@0.4.32:"):
+                args.extend(
+                    [
+                        f"--bazel_options=--repo_env=LOCAL_CUDA_PATH={spec['cuda'].prefix}",
+                        f"--bazel_options=--repo_env=LOCAL_CUDNN_PATH={spec['cudnn'].prefix}",
+                    ]
+                )
+            else:
+                args.extend(
+                    [f"--cuda_path={spec['cuda'].prefix}", f"--cudnn_path={spec['cudnn'].prefix}"]
+                )
+
+        if "+nccl" in spec and spec.satisfies("@0.4.32:"):
+            args.append(f"--bazel_options=--repo_env=LOCAL_NCCL_PATH={spec['nccl'].prefix}")
+
+        if "+rocm" in spec:
+            args.extend(["--enable_rocm", f"--rocm_path={self.spec['hip'].prefix}"])
+
         if spec.satisfies("@0.4.32:"):
             args.append("--nouse_clang")
 
