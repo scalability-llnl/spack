@@ -184,6 +184,16 @@ def load():
     )
     # fmt: on
     _boost_variant(
+        "charconv",
+        when="@1.85.0:",
+        buildable="@1.85.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Context requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Context requires cxxstd >= 11"},
+        ],
+        description="An implementation of <charconv> in C++11.",
+    )
+    _boost_variant(
         "container",
         # Can be both header-only and compiled. '+container' indicates the
         # compiled version which requires Extended Allocator support. The
