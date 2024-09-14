@@ -217,5 +217,15 @@ def load():
         # fmt: on
         description="Coroutine library.",
     )
-
+    _boost_variant(
+        "python",
+        default=False,
+        when="@1.19.0:",
+        buildable="@1.19.0:",
+        description=(
+            "The Boost Python Library is a framework for interfacing Python and C++. It allows"
+            " you to quickly and seamlessly expose C++ classes functions and objects to"
+            " Python, and vice-versa, using no special tools -- just your C++ compiler."
+        ),
+    )
     return library_names
