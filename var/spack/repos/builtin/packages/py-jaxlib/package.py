@@ -196,6 +196,10 @@ build --local_cpu_resources={make_jobs}
             args.append("--enable_rocm")
             args.append("--rocm_path={0}".format(self.spec["hip"].prefix))
 
+        # https://github.com/google/jax/commit/a498c1e66836a1b8f3c2ce67c53ba0f6caeadbc1
+        if spec.satisfies("@0.4.32:"):
+            args.append("--nouse_clang")
+
         python(*args)
         with working_dir(self.wrapped_package_object.tmp_path):
             pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
