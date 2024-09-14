@@ -108,6 +108,15 @@ def load():
         default=False,
         description="Switch to the debug version of Boost",
     )
+    _boost_variant(
+        "multithreaded",
+        description="Build multi-threaded versions of libraries",
+    )
+    _boost_variant(
+        "singlethreaded",
+        default=False,
+        description="Build single-threaded versions of libraries",
+    )
     # fmt: on
     _boost_variant(
         "taggedlayout",
