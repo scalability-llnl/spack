@@ -184,6 +184,14 @@ def load():
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
     _boost_variant(
+        "graph",
+        when="@1.18.0:",
+        buildable="@1.39.0:",
+        description=(
+            "Generic components for mathematical graphs (collections of nodes and edges)."
+        ),
+    )
+    _boost_variant(
         "python",
         default=False,
         sticky=False,
