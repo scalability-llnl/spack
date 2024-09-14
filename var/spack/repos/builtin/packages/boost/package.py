@@ -189,7 +189,6 @@ class Boost(Package):
         when="@1.65.0: +context",
     )
 
-    variant("debug", default=False, description="Switch to the debug version of Boost")
     variant("shared", default=True, description="Additionally build shared libraries")
     variant(
         "multithreaded", default=True, description="Build multi-threaded versions of libraries"

@@ -111,6 +111,13 @@ def load():
         multi=False,
         description="C++ standard",
     )
+    # fmt: off
+    _boost_variant(
+        "debug",
+        default=False,
+        description="Build in debug mode",
+    )
+    # fmt: on
     _boost_variant(
         "taggedlayout",
         default=False,
