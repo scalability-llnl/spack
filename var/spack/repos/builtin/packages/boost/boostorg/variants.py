@@ -247,6 +247,16 @@ def load():
         description="Thread-safe managed signals & slots callback implementation",
     )
     _boost_variant(
+        "chrono",
+        when="@1.47.0:",
+        buildable="@1.47.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.chrono requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.chrono requires cxxstd >= 11"},
+        ],
+        description="Extended version of C++11 time utilities",
+    )
+    _boost_variant(
         "container",
         # Can be both header-only and compiled. '+container' indicates the
         # compiled version which requires Extended Allocator support. The
