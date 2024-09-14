@@ -121,6 +121,10 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "shared",
+        description="Additionally build shared libraries",
+    )
+    _boost_variant(
         "singlethreaded",
         default=False,
         description="Build single-threaded versions of libraries",
