@@ -112,6 +112,14 @@ def load():
         "multithreaded",
         description="Build multi-threaded versions of libraries",
     )
+    # fmt: on
+    _boost_variant(
+        "pic",
+        default=False,
+        description="Generate position-independent code (PIC), useful for building static"
+        " libraries",
+    )
+    # fmt: off
     _boost_variant(
         "singlethreaded",
         default=False,

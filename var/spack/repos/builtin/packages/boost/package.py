@@ -189,12 +189,6 @@ class Boost(Package):
     variant("shared", default=True, description="Additionally build shared libraries")
     variant("icu", default=False, description="Build with Unicode and ICU suport")
     variant("numpy", default=False, description="Build the Boost NumPy library (requires +python)")
-    variant(
-        "pic",
-        default=False,
-        description="Generate position-independent code (PIC), useful "
-        "for building static libraries",
-    )
 
     # C++98/03 support was removed in 1.83.0
     conflicts("cxxstd=98", when="@1.83.0:", msg="This version of Boost requires C++11 or newer")
