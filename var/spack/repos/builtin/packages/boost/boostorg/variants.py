@@ -74,6 +74,18 @@ def _boost_variant(name, default=None, buildable=None, conflicts=[], requires=[]
 
 def load():
     _boost_variant(
+        "clanglibcpp",
+        default=False,
+        when="@1.73.0:",
+        conflicts=[
+            # Boost 1.85.0 stacktrace added a hard compilation error that has to
+            # explicitly be suppressed on some platforms:
+            # https://github.com/boostorg/stacktrace/issues/163
+            {"when": "@1.85: +stacktrace", "msg": "Stacktrace cannot be used with libc++"}
+        ],
+        description="Compile with clang's libc++ instead of libstdc++",
+    )
+    _boost_variant(
         "cxxstd",
         default="11",
         values=(
