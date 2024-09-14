@@ -252,6 +252,19 @@ def load():
         description="Coroutine library.",
     )
     _boost_variant(
+        "fiber",
+        when="@1.62.0:",
+        buildable="@1.62.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Fiber requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Fiber requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+context", "msg": "Boost.Fiber requires Boost.Context"}
+        ],
+        description="Userland threads",
+    )
+    _boost_variant(
         "numpy",
         when="@1.63.0:",
         default=False,
