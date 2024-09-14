@@ -237,6 +237,14 @@ def load():
         description="(C++11) Context switching library.",
     )
     _boost_variant(
+        "contract",
+        when="@1.67.0:",
+        buildable="@1.67.0:",
+        description=(
+            "Contract programming with subcontracting, class invariants, and pre/postconditions."
+        ),
+    )
+    _boost_variant(
         "context-impl",
         default="fcontext",
         values=("fcontext", "ucontext", "winfib"),

@@ -120,7 +120,7 @@ class Boost(Package):
         #        "cobalt",
         #        "container",
         #        "context",
-        "contract",
+        #        "contract",
         #        "coroutine",
         "date_time",
         "exception",
