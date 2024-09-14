@@ -175,6 +175,14 @@ def load():
     )
 
     # ----------------------------------------------------------------------
+    # fmt: off
+    _boost_variant(
+        "atomic",
+        when="@1.53.0:",
+        buildable="@1.53.0:",
+        description="C++11-style atomic<>.",
+    )
+    # fmt: on
     _boost_variant(
         "container",
         # Can be both header-only and compiled. '+container' indicates the
