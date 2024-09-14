@@ -267,6 +267,12 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "atomic",
+        when="@1.53.0:",
+        buildable="@1.53.0:",
+        description="C++11-style atomic<>.",
+    )
+    _boost_variant(
         "coroutine",
         when="@1.53.0:",
         buildable="@1.54.0:",
