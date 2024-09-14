@@ -307,6 +307,15 @@ def load():
         ),
     )
     _boost_variant(
+        "graph",
+        when="@1.18.0:",
+        buildable="@1.18.0:",
+        description=(
+            "The BGL graph interface and graph components are generic, in the same sense as"
+            " the Standard Template Library (STL)."
+        ),
+    )
+    _boost_variant(
         "iostreams",
         when="@1.33.0:",
         buildable="@1.33.0:",
