@@ -125,7 +125,7 @@ class Boost(Package):
         #        "date_time",
         #        "exception",
         #        "fiber",
-        "filesystem",
+        #        "filesystem",
         "graph",
         "graph_parallel",
         #        "iostreams",
