@@ -218,6 +218,21 @@ def load():
         description="Coroutine library.",
     )
     _boost_variant(
+        "fiber",
+        when="@1.62.0:",
+        buildable="@1.62.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Fiber requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Fiber requires cxxstd >= 11"},
+        ],
+        # fmt: off
+        requires=[
+            {"spec": "+context", "msg": "Boost.Fiber requires Boost.Context"}
+        ],
+        # fmt: on
+        description="(C++11) Userland threads library.",
+    )
+    _boost_variant(
         "iostreams",
         when="@1.33.0:",
         buildable="@1.33.0:",
