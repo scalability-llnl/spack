@@ -218,6 +218,16 @@ def load():
         description="Coroutine library.",
     )
     _boost_variant(
+        "mpi",
+        default=False,
+        when="@1.35.0:",
+        buildable="@1.35.0:",
+        description=(
+            "Message Passing Interface library, for use in distributed-memory parallel"
+            " application programming."
+        ),
+    )
+    _boost_variant(
         "python",
         default=False,
         when="@1.19.0:",
