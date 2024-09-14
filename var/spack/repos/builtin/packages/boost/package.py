@@ -190,12 +190,6 @@ class Boost(Package):
     )
 
     variant("shared", default=True, description="Additionally build shared libraries")
-    variant(
-        "multithreaded", default=True, description="Build multi-threaded versions of libraries"
-    )
-    variant(
-        "singlethreaded", default=False, description="Build single-threaded versions of libraries"
-    )
     variant("icu", default=False, description="Build with Unicode and ICU suport")
     variant("numpy", default=False, description="Build the Boost NumPy library (requires +python)")
     variant(
