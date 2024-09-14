@@ -187,11 +187,17 @@ def load():
         "charconv",
         when="@1.85.0:",
         buildable="@1.85.0:",
+        description="An implementation of <charconv> in C++11.",
+    )
+    _boost_variant(
+        "chrono",
+        when="@1.47.0:",
+        buildable="@1.47.0:",
         conflicts=[
             {"when": "cxxstd=98", "msg": "Boost.Context requires cxxstd >= 11"},
             {"when": "cxxstd=03", "msg": "Boost.Context requires cxxstd >= 11"},
         ],
-        description="An implementation of <charconv> in C++11.",
+        description="Useful time utilities. C++11.",
     )
     _boost_variant(
         "container",

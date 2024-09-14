@@ -116,7 +116,7 @@ class Boost(Package):
     all_libs = [
         #        "atomic",
         #        "charconv",
-        "chrono",
+        #        "chrono",
         "cobalt",
         #        "container",
         #        "context",
