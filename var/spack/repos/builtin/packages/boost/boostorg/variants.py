@@ -184,4 +184,16 @@ def load():
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
 
+    # fmt: off
+    _boost_variant(
+        "numpy",
+        when="@1.63.0:",
+        default=False,
+        requires=[
+            {"spec": "+python", "msg": "Numpy requires python support"}
+        ],
+        description="Build the Boost NumPy library",
+    )
+    # fmt: on
+
     return library_names
