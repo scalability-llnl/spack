@@ -134,7 +134,7 @@ class Boost(Package):
         #        "log",
         #        "math",
         #        "mpi",
-        "nowide",
+        #        "nowide",
         "program_options",
         #        "python",
         "random",
