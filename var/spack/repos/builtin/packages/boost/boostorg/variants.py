@@ -249,6 +249,12 @@ def load():
     )
     # fmt: on
     _boost_variant(
+        "thread",
+        when="@1.25.0:",
+        buildable="@1.25.0:",
+        description="Portable C++ multi-threading. C++03, C++11, C++14, C++17.",
+    )
+    _boost_variant(
         "date_time",
         when="@1.29.0:",
         buildable="@1.29.0:",
