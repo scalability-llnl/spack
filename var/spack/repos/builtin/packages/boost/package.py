@@ -90,7 +90,6 @@ class Boost(Package):
     # fmt: off
     with_default_variants = "boost" + "".join(
         [
-            "+serialization",
             "+system",
             "+test",
             "+thread",
@@ -103,8 +102,8 @@ class Boost(Package):
     # mpi/python are not installed by default because they pull in many
     # dependencies and/or because there is a great deal of customization
     # possible (and it would be difficult to choose sensible defaults)
+    # fmt: off
     all_libs = [
-        "serialization",
         "stacktrace",
         "system",
         "test",
@@ -114,6 +113,7 @@ class Boost(Package):
         "url",
         "wave",
     ]
+    # fmt: on
 
     _buildable_libraries = boostvariants.load()
 
