@@ -463,6 +463,12 @@ def load():
     )
     # fmt: on
     _boost_variant(
+        "serialization",
+        when="@1.32.0:",
+        buildable="@1.32.0:",
+        description="Serialization for persistence and marshalling.",
+    )
+    _boost_variant(
         "signals",
         default=False,
         when="@1.29.0:1.68.0",

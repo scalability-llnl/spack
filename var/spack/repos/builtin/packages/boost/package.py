@@ -139,7 +139,7 @@ class Boost(Package):
         #        "python",
         #        "random",
         #        "regex",
-        "serialization",
+        #        "serialization",
         #        "signals",
         "stacktrace",
         "system",
