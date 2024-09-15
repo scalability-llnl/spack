@@ -271,6 +271,16 @@ def load():
         description="Quaternions.",
     )
     _boost_variant(
+        "thread",
+        when="@1.25.0:",
+        buildable="@1.25.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.thread requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.thread requires cxxstd >= 11"},
+        ],
+        description="Portable C++ multi-threading",
+    )
+    _boost_variant(
         "date_time",
         when="@1.29.0:",
         buildable="@1.29.0:",

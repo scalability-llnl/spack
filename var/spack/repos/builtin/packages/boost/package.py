@@ -90,7 +90,6 @@ class Boost(Package):
     # fmt: off
     with_default_variants = "boost" + "".join(
         [
-            "+thread",
             "+timer",
             "+wave",
         ]
@@ -102,7 +101,6 @@ class Boost(Package):
     # possible (and it would be difficult to choose sensible defaults)
     # fmt: off
     all_libs = [
-        "thread",
         "timer",
         "type_erasure",
         "url",
