@@ -145,7 +145,7 @@ class Boost(Package):
         #        "system",
         #        "test",
         #        "thread",
-        "timer",
+        #        "timer",
         "type_erasure",
         "url",
         "wave",

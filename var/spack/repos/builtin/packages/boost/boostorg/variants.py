@@ -509,4 +509,10 @@ def load():
         buildable="@1.25.0:",
         description="Portable C++ multi-threading. C++03, C++11, C++14, C++17.",
     )
+    _boost_variant(
+        "timer",
+        when="@1.9.0:",
+        buildable="@1.48.0:",
+        description="Event timer, progress timer, and progress display classes.",
+    )
     return library_names
