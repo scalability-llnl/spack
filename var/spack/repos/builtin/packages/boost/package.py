@@ -90,7 +90,6 @@ class Boost(Package):
     # fmt: off
     with_default_variants = "boost" + "".join(
         [
-            "+regex",
             "+serialization",
             "+system",
             "+test",
@@ -105,7 +104,6 @@ class Boost(Package):
     # dependencies and/or because there is a great deal of customization
     # possible (and it would be difficult to choose sensible defaults)
     all_libs = [
-        "regex",
         "serialization",
         "stacktrace",
         "system",
