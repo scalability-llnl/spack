@@ -138,7 +138,7 @@ class Boost(Package):
         #        "program_options",
         #        "python",
         #        "random",
-        "regex",
+        #        "regex",
         "serialization",
         #        "signals",
         "stacktrace",

@@ -454,6 +454,14 @@ def load():
         buildable="@1.43.0:",
         description="A complete system for random number generation.",
     )
+    # fmt: off
+    _boost_variant(
+        "regex",
+        when="@1.18.0:",
+        buildable="@1.18.0:",
+        description="Regular expression library.",
+    )
+    # fmt: on
     _boost_variant(
         "signals",
         default=False,
