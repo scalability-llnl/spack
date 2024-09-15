@@ -144,7 +144,7 @@ class Boost(Package):
         #        "stacktrace",
         #        "system",
         #        "test",
-        "thread",
+        #        "thread",
         "timer",
         "type_erasure",
         "url",
