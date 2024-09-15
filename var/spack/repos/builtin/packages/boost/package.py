@@ -100,7 +100,6 @@ class Boost(Package):
     # possible (and it would be difficult to choose sensible defaults)
     # fmt: off
     all_libs = [
-        "type_erasure",
         "url",
         "wave",
     ]
