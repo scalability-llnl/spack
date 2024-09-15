@@ -127,7 +127,7 @@ class Boost(Package):
         #        "fiber",
         #        "filesystem",
         #        "graph",
-        "graph_parallel",
+        #        "graph_parallel",
         #        "iostreams",
         "json",
         "locale",
