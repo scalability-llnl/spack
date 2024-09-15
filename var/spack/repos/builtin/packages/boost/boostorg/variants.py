@@ -201,6 +201,31 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "math",
+        when="@1.23.0:",
+        buildable="@1.23.0:",
+        requires=[
+            {"spec": "+octonions", "msg": "Boost.Math requires Math.Octonions (+octonions)"},
+            {"spec": "+quaternions", "msg": "Boost.Math requires Math.Quaternions (+quaternions)"},
+        ],
+        description=(
+            "Common integer mathematical operations (gcd, lcd, etc.), special functions, "
+            "complex numbers, quaternions, and octonions."
+        ),
+    )
+    # fmt: off
+    _boost_variant(
+        "octonions",
+        when="@1.23.0:",
+        description="Octonions.",
+    )
+    _boost_variant(
+        "quaternions",
+        when="@1.23.0:",
+        description="Quaternions.",
+    )
+    # fmt: on
+    _boost_variant(
         "date_time",
         when="@1.29.0:",
         buildable="@1.29.0:",
