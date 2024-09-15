@@ -444,6 +444,12 @@ def load():
     )
     # fmt: on
     _boost_variant(
+        "stacktrace",
+        when="@1.65.0:",
+        buildable="@1.65.0:",
+        description="Gather, store, copy, and print backtraces",
+    )
+    _boost_variant(
         "contract",
         when="@1.67.0:",
         buildable="@1.67.0:",
