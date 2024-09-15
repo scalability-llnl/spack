@@ -295,6 +295,12 @@ def load():
         ),
     )
     _boost_variant(
+        "serialization",
+        when="@1.32.0:",
+        buildable="@1.32.0:",
+        description="Serialization for persistence and marshalling.",
+    )
+    _boost_variant(
         "iostreams",
         when="@1.33.0:",
         buildable="@1.33.0:",
