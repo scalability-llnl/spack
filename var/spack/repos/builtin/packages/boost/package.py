@@ -137,7 +137,7 @@ class Boost(Package):
         #        "nowide",
         #        "program_options",
         #        "python",
-        "random",
+        #        "random",
         "regex",
         "serialization",
         #        "signals",

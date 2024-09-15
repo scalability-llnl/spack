@@ -449,6 +449,12 @@ def load():
     )
     # fmt: on
     _boost_variant(
+        "random",
+        when="@1.15.0:",
+        buildable="@1.43.0:",
+        description="A complete system for random number generation.",
+    )
+    _boost_variant(
         "signals",
         default=False,
         when="@1.29.0:1.68.0",
