@@ -413,6 +413,21 @@ def load():
         ),
     )
     _boost_variant(
+        "nowide",
+        default=False,
+        when="@1.73.0:",
+        buildable="@1.73.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Nowide requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Nowide requires cxxstd >= 11"},
+        ],
+        requires=[
+            # It doesn't require Windows, but it makes no sense to build it anywhere else.
+            {"spec": "platform=windows", "msg": "Boost.Nowide can only be built on Windows"}
+        ],
+        description="Standard library functions with UTF-8 API on Windows.",
+    )
+    _boost_variant(
         "json",
         when="@1.75.0:",
         buildable="@1.75.0:",
