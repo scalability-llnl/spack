@@ -264,6 +264,16 @@ def load():
         ),
     )
     _boost_variant(
+        "program_options",
+        when="@1.32.0:",
+        buildable="@1.32.0:",
+        description=(
+            "The program_options library allows program developers to obtain program options,"
+            " that is (name, value) pairs from the user, via conventional methods such as"
+            " command line and config file."
+        ),
+    )
+    _boost_variant(
         "iostreams",
         when="@1.33.0:",
         buildable="@1.33.0:",
