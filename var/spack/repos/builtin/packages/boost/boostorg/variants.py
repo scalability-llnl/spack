@@ -368,6 +368,26 @@ def load():
     )
     # fmt: on
     _boost_variant(
+        "math",
+        when="@1.23.0:",
+        buildable="@1.23.0:",
+        requires=[
+            {"spec": "+octonions", "msg": "Boost.Math requires Math.Octonions (+octonions)"},
+            {"spec": "+quaternions", "msg": "Boost.Math requires Math.Quaternions (+quaternions)"},
+        ],
+        description=(
+            "Boost.Math includes several contributions in the domain of mathematics: The"
+            " Greatest Common Divisor and Least Common Multiple library provides run-time and"
+            " compile-time evaluation of the greatest common divisor (GCD) or least common"
+            " multiple (LCM) of two integers. The Special Functions library currently provides"
+            " eight templated special functions, in namespace boost. The Complex Number"
+            " Inverse Trigonometric Functions are the inverses of trigonometric functions"
+            " currently present in the C++ standard. Quaternions are a relative of complex"
+            " numbers often used to parameterise rotations in three dimentional space."
+            " Octonions, like quaternions, are a relative of complex numbers."
+        ),
+    )
+    _boost_variant(
         "mpi",
         default=False,
         when="@1.35.0:",
@@ -377,6 +397,13 @@ def load():
             " application programming."
         ),
     )
+    # fmt: off
+    _boost_variant(
+        "octonions",
+        when="@1.23.0:",
+        description="Octonions.",
+    )
+    # fmt: on
     _boost_variant(
         "python",
         default=False,
@@ -388,6 +415,13 @@ def load():
             " Python, and vice-versa, using no special tools -- just your C++ compiler."
         ),
     )
+    # fmt: off
+    _boost_variant(
+        "quaternions",
+        when="@1.23.0:",
+        description="Quaternions.",
+    )
+    # fmt: on
     _boost_variant(
         "signals",
         default=False,

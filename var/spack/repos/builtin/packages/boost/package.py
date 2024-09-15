@@ -132,7 +132,7 @@ class Boost(Package):
         #        "json",
         #        "locale",
         #        "log",
-        "math",
+        #        "math",
         #        "mpi",
         "nowide",
         "program_options",
