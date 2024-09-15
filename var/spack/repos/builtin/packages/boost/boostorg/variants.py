@@ -456,6 +456,12 @@ def load():
         description="Logging library.",
     )
     _boost_variant(
+        "type_erasure",
+        when="@1.54.0:",
+        buildable="@1.60.0:",
+        description="Runtime polymorphism based on concepts.",
+    )
+    _boost_variant(
         "fiber",
         when="@1.62.0:",
         buildable="@1.62.0:",
