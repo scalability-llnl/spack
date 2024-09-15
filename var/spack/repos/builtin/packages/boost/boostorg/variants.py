@@ -195,6 +195,12 @@ def load():
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
     _boost_variant(
+        "timer",
+        when="@1.9.0:",
+        buildable="@1.48.0:",
+        description="Timers for measuring wallclock and CPU times",
+    )
+    _boost_variant(
         "random",
         when="@1.15.0:",
         buildable="@1.43.0:",
