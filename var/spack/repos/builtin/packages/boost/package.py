@@ -129,7 +129,7 @@ class Boost(Package):
         #        "graph",
         #        "graph_parallel",
         #        "iostreams",
-        "json",
+        #        "json",
         "locale",
         "log",
         "math",

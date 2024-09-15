@@ -339,6 +339,16 @@ def load():
         ),
     )
     _boost_variant(
+        "json",
+        when="@1.75.0:",
+        buildable="@1.75.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.JSON requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.JSON requires cxxstd >= 11"},
+        ],
+        description="JSON parsing, serialization, and DOM in C++11",
+    )
+    _boost_variant(
         "mpi",
         default=False,
         when="@1.35.0:",
