@@ -515,4 +515,10 @@ def load():
         buildable="@1.48.0:",
         description="Event timer, progress timer, and progress display classes.",
     )
+    _boost_variant(
+        "type_erasure",
+        when="@1.54.0:",
+        buildable="@1.60.0:",
+        description="Runtime polymorphism based on concepts.",
+    )
     return library_names
