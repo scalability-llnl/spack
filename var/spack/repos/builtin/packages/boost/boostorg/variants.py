@@ -349,6 +349,17 @@ def load():
         description="JSON parsing, serialization, and DOM in C++11",
     )
     _boost_variant(
+        "locale",
+        when="@1.48.0:",
+        buildable="@1.48.0:",
+        # fmt: off
+        requires=[
+            {"spec": "+icu", "msg": "Boost.Locale requires Unicode support (+icu)"}
+        ],
+        # fmt: on
+        description="Provide localization and Unicode handling tools for C++.",
+    )
+    _boost_variant(
         "mpi",
         default=False,
         when="@1.35.0:",
