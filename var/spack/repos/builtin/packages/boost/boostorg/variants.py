@@ -268,6 +268,20 @@ def load():
         description="Thread-safe managed signals & slots callback implementation",
     )
     _boost_variant(
+        "graph_parallel",
+        default=False,
+        when="@1.40.0:",
+        buildable="@1.40.0:",
+        requires=[
+            {"spec": "+mpi", "msg": "Boost.GraphParallel requires Boost.MPI"},
+            {"spec": "+graph", "msg": "Boost.GraphParallel requires Boost.Graph"},
+        ],
+        description=(
+            "The PBGL graph interface and graph components are generic, in the same sense as"
+            " the Standard Template Library (STL)."
+        ),
+    )
+    _boost_variant(
         "chrono",
         when="@1.47.0:",
         buildable="@1.47.0:",
