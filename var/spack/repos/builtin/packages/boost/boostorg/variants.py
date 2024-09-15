@@ -480,4 +480,10 @@ def load():
         when="@1.39.0:",
         description="Managed signals & slots callback implementation (thread-safe version 2).",
     )
+    _boost_variant(
+        "stacktrace",
+        when="@1.65.0:",
+        buildable="@1.65.0:",
+        description="Gather, store, copy and print backtraces.",
+    )
     return library_names

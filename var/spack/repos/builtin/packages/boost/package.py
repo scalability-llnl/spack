@@ -141,7 +141,7 @@ class Boost(Package):
         #        "regex",
         #        "serialization",
         #        "signals",
-        "stacktrace",
+        #        "stacktrace",
         "system",
         "test",
         "thread",
