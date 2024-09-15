@@ -184,6 +184,12 @@ def load():
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
     _boost_variant(
+        "random",
+        when="@1.15.0:",
+        buildable="@1.43.0:",
+        description="A complete system for random number generation.",
+    )
+    _boost_variant(
         "graph",
         when="@1.18.0:",
         buildable="@1.39.0:",
