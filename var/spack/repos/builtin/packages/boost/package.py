@@ -147,8 +147,8 @@ class Boost(Package):
         #        "thread",
         #        "timer",
         #        "type_erasure",
-        "url",
-        "wave",
+        #        "url",
+        "wave"
     ]
 
     _buildable_libraries = boostvariants.load()

@@ -521,4 +521,19 @@ def load():
         buildable="@1.60.0:",
         description="Runtime polymorphism based on concepts.",
     )
+    _boost_variant(
+        "url",
+        when="@1.81.0:",
+        buildable="@1.81.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.URL requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.URL requires cxxstd >= 11"},
+        ],
+        # fmt: off
+        requires=[
+            {"spec": "+variant2", "msg": "Boost.url requires Boost.variant2"},
+        ],
+        # fmt: on
+        description="URL parsing in C++11",
+    )
     return library_names
