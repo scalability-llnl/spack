@@ -356,6 +356,12 @@ def load():
         description="Coroutine library",
     )
     _boost_variant(
+        "log",
+        when="@1.54.0:",
+        buildable="@1.54.0:",
+        description="Logging library.",
+    )
+    _boost_variant(
         "fiber",
         when="@1.62.0:",
         buildable="@1.62.0:",
