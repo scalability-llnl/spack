@@ -420,6 +420,17 @@ def load():
         description="Standard library functions with UTF-8 API on Windows.",
     )
     _boost_variant(
+        "program_options",
+        default=False,
+        when="@1.32.0:",
+        buildable="@1.32.0:",
+        description=(
+            "The program_options library allows program developers to obtain program options,"
+            " that is (name, value) pairs from the user, via conventional methods such as"
+            " command line and config file."
+        ),
+    )
+    _boost_variant(
         "python",
         default=False,
         when="@1.19.0:",
