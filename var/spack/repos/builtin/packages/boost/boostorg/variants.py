@@ -204,6 +204,17 @@ def load():
         ],
         description="A complete system for random number generation.",
     )
+    # fmt: off
+    _boost_variant(
+        "regex",
+        when="@1.18.0:",
+        buildable="@1.18.0:",
+        conflicts=[
+            {"when": "cxxstd=03", "msg": "Boost.regex requires cxxstd >= 11"},
+        ],
+        description="Perl and POSIX regular expressions",
+    )
+    # fmt: on
     _boost_variant(
         "graph",
         when="@1.18.0:",
