@@ -131,7 +131,7 @@ class Boost(Package):
         #        "iostreams",
         #        "json",
         #        "locale",
-        "log",
+        #        "log",
         "math",
         #        "mpi",
         "nowide",

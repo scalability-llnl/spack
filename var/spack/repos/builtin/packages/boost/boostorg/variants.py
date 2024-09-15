@@ -359,6 +359,14 @@ def load():
         # fmt: on
         description="Provide localization and Unicode handling tools for C++.",
     )
+    # fmt: off
+    _boost_variant(
+        "log",
+        when="@1.54.0:",
+        buildable="@1.54.0:",
+        description="Logging library.",
+    )
+    # fmt: on
     _boost_variant(
         "mpi",
         default=False,
