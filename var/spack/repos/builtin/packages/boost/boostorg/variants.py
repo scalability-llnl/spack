@@ -532,6 +532,21 @@ def load():
         description="Lightweight error-handling",
     )
     _boost_variant(
+        "url",
+        when="@1.81.0:",
+        buildable="@1.81.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.URL requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.URL requires cxxstd >= 11"},
+        ],
+        # fmt: off
+        requires=[
+            {"spec": "+variant2", "msg": "Boost.url requires Boost.variant2"},
+        ],
+        # fmt: on
+        description="Portable model for parsing URLs and URIs",
+    )
+    _boost_variant(
         "cobalt",
         default=False,
         when="@1.84.0:",
