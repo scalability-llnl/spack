@@ -2871,6 +2871,18 @@ class TestConcretizeSeparately:
         assert any(x.satisfies(hdf5_str) for x in result.specs)
         assert any(x.satisfies(pinned_str) for x in result.specs)
 
+    def test_solve_with_profile(self, capsys):
+        """For now, just ensure that the profiler runs."""
+        solver = spack.solver.asp.Solver()
+        solver.solve([Spec("hdf5")], profile=True)
+
+        out, _ = capsys.readouterr()
+        assert "Profile:" in out
+        assert "Symbol" in out
+        assert "Prop" in out
+        assert "Undo" in out
+        assert "internal_error" in out  # symbol is always in small solves
+
 
 @pytest.mark.parametrize(
     "v_str,v_opts,checksummed",

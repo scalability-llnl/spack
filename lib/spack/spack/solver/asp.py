@@ -64,6 +64,7 @@ from .core import (
     parse_term,
 )
 from .counter import FullDuplicatesCounter, MinimalDuplicatesCounter, NoDuplicatesCounter
+from .profiler import ProfilePropagator
 from .version_order import concretization_version_order
 
 GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVersion]
@@ -800,7 +801,16 @@ class PyclingoDriver:
         # This attribute will be reset at each call to solve
         self.control = None
 
-    def solve(self, setup, specs, reuse=None, output=None, control=None, allow_deprecated=False):
+    def solve(
+        self,
+        setup,
+        specs,
+        reuse=None,
+        output=None,
+        control=None,
+        allow_deprecated=False,
+        profile=False,
+    ):
         """Set up the input and solve for dependencies of ``specs``.
 
         Arguments:
@@ -825,6 +835,11 @@ class PyclingoDriver:
 
         # Initialize the control object for the solver
         self.control = control or default_clingo_control()
+
+        # if profiling is enabled, register a profiling propagator
+        if profile:
+            propagator = ProfilePropagator()
+            self.control.register_propagator(propagator)
 
         # ensure core deps are present on Windows
         # needs to modify active config scope, so cannot be run within
@@ -925,12 +940,17 @@ class PyclingoDriver:
             result.cores.extend(cores)
 
         if output.timers:
+            tty.msg("Timers:")
             timer.write_tty()
             print()
 
         if output.stats:
-            print("Statistics:")
+            tty.msg("Statistics:")
             pprint.pprint(self.control.statistics)
+
+        if profile:
+            tty.msg("Profile:")
+            propagator.print_profile(40)
 
         result.raise_if_unsat()
 
@@ -4361,6 +4381,7 @@ class Solver:
         tests=False,
         setup_only=False,
         allow_deprecated=False,
+        profile=False,
     ):
         """
         Concretize a set of specs and track the timing and statistics for the solve
@@ -4382,7 +4403,12 @@ class Solver:
         setup = SpackSolverSetup(tests=tests)
         output = OutputConfiguration(timers=timers, stats=stats, out=out, setup_only=setup_only)
         return self.driver.solve(
-            setup, specs, reuse=reusable_specs, output=output, allow_deprecated=allow_deprecated
+            setup,
+            specs,
+            reuse=reusable_specs,
+            output=output,
+            allow_deprecated=allow_deprecated,
+            profile=profile,
         )
 
     def solve(self, specs, **kwargs):

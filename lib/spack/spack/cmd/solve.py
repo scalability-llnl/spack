@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import argparse
 import re
 import sys
 
@@ -48,6 +49,13 @@ def setup_parser(subparser):
     subparser.add_argument(
         "--stats", action="store_true", default=False, help="print out statistics from clingo"
     )
+    subparser.add_argument(
+        "--profile",
+        action="store_true",
+        default=False,
+        help="profile the solve phase and print out statistics on atoms",
+    )
+    subparser.add_argument("specs", nargs=argparse.REMAINDER, help="specs of packages")
 
     spack.cmd.spec.setup_parser(subparser)
 
@@ -147,6 +155,7 @@ def solve(parser, args):
             stats=args.stats,
             setup_only=setup_only,
             allow_deprecated=allow_deprecated,
+            profile=args.profile,
         )
         if not setup_only:
             _process_result(result, show, required_format, kwargs)

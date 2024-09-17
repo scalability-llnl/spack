@@ -2799,8 +2799,9 @@ complete -c spack -n '__fish_spack_using_command restage' -s h -l help -f -a hel
 complete -c spack -n '__fish_spack_using_command restage' -s h -l help -d 'show this help message and exit'
 
 # spack solve
-set -g __fish_spack_optspecs_spack_solve h/help show= timers stats l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json format= c/cover= t/types U/fresh reuse fresh-roots deprecated
+set -g __fish_spack_optspecs_spack_solve h/help show= timers stats profile l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json format= c/cover= t/types U/fresh reuse fresh-roots deprecated
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 solve' -f -k -a '(__fish_spack_specs_or_id)'
+complete -c spack -n '__fish_spack_using_command_pos_remainder 1 solve' -f -k -a '(__fish_spack_specs_or_id)'
 complete -c spack -n '__fish_spack_using_command solve' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command solve' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command solve' -l show -r -f -a show
@@ -2809,6 +2810,8 @@ complete -c spack -n '__fish_spack_using_command solve' -l timers -f -a timers
 complete -c spack -n '__fish_spack_using_command solve' -l timers -d 'print out timers for different solve phases'
 complete -c spack -n '__fish_spack_using_command solve' -l stats -f -a stats
 complete -c spack -n '__fish_spack_using_command solve' -l stats -d 'print out statistics from clingo'
+complete -c spack -n '__fish_spack_using_command solve' -l profile -f -a profile
+complete -c spack -n '__fish_spack_using_command solve' -l profile -d 'profile the solve phase and print out statistics on atoms'
 complete -c spack -n '__fish_spack_using_command solve' -s l -l long -f -a long
 complete -c spack -n '__fish_spack_using_command solve' -s l -l long -d 'show dependency hashes as well as versions'
 complete -c spack -n '__fish_spack_using_command solve' -s L -l very-long -f -a very_long
