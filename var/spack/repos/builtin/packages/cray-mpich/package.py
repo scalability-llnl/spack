@@ -18,7 +18,7 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
     homepage = "https://docs.nersc.gov/development/compilers/wrappers/"
     has_code = False  # Skip attempts to fetch source that is not available
 
-    maintainers("haampie")
+    maintainers("etiennemlb", "haampie")
 
     version("8.1.25")
     version("8.1.24")
