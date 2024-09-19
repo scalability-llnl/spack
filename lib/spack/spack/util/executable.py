@@ -231,6 +231,7 @@ class Executable:
         cmd_line_string = " ".join(escaped_cmd)
         tty.debug(cmd_line_string)
 
+        # Test if reverting changes will get ci to pass
         if self.exe[0].lower().startswith(("pwsh", "powershell", "cmd")):
             spaced_args = [arg for arg in cmd if " " in arg]
             cmd = " ".join([f'"{arg}"' if " " in arg else arg for arg in cmd])
