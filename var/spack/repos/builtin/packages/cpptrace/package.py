@@ -24,6 +24,12 @@ class Cpptrace(CMakePackage):
     variant("shared", default=True, description="Build shared libs")
     variant("pic", default=True, description="Build with position independent code")
 
+    patch(
+        "https://github.com/jeremy-rifkin/cpptrace/commit/f671819510fffa3f953c2437fb7114068c8765d0.patch?full_index=1",
+        sha256="7610b1e52c422023fa84899d7568958e509f5c14ddedced148f495502c6828b7",
+        when="@:0.7.0",
+    )
+
     with when("platform=linux"):
         variant(
             "unwinding-backend",
@@ -51,10 +57,11 @@ class Cpptrace(CMakePackage):
         variant(
             "unwinding-backend",
             multi=False,
-            default="unwind",
-            values=("unwind", "execinfo", "nothing"),
+            default="execinfo",
+            values=("unwind", "execinfo", "libunwind", "nothing"),
             description="Library backend for unwinding",
         )
+
         variant(
             "symbols-backend",
             multi=False,
@@ -100,7 +107,7 @@ class Cpptrace(CMakePackage):
 
     depends_on("cmake@3.14:", type="build")
 
-    depends_on("libunwind", when="unwinding-backend=libunwind")
+    depends_on("unwind", when="unwinding-backend=libunwind")
     depends_on("libdwarf", when="symbols-backend=libdwarf")
 
     depends_on("googletest", type="test")
