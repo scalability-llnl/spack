@@ -90,11 +90,41 @@ def load():
         multi=False,
         description="Use the specified C++ standard when building",
     )
+    _boost_variant(
+        "date_time",
+        buildable="@1.29.0:",
+        description="A set of date-time libraries based on generic programming concepts.",
+    )
     # fmt: off
     _boost_variant(
         "debug",
         default=False,
         description="Switch to the debug version of Boost",
+    )
+    # fmt: on
+    _boost_variant(
+        "exception",
+        buildable="@1.47.0:",
+        description=(
+            "The Boost Exception library supports transporting of arbitrary data in exception"
+            " objects, and transporting of exceptions between threads."
+        ),
+    )
+    _boost_variant(
+        "filesystem",
+        buildable="@1.30.0:",
+        description=(
+            "The Boost Filesystem Library provides portable facilities to query and manipulate"
+            " paths, files, and directories."
+        ),
+    )
+    _boost_variant(
+        "graph",
+        buildable="@1.18.0:",
+        description=(
+            "The BGL graph interface and graph components are generic, in the same sense as"
+            " the Standard Template Library (STL)."
+        ),
     )
     _boost_variant(
         "icu",
@@ -106,103 +136,15 @@ def load():
         description="Build with Unicode and ICU suport",
     )
     _boost_variant(
-        "multithreaded",
-        description="Build multi-threaded versions of libraries",
-    )
-    _boost_variant(
-        "numpy",
-        default=False,
-        requires=[
-            {"spec": "+python", "msg": "Numpy requires python support"}
-        ],
-        description="Build the Boost NumPy library",
-    )
-    # fmt: on
-    _boost_variant(
-        "pic",
-        default=False,
-        description="Generate position-independent code (PIC), useful for building static"
-        " libraries",
-    )
-    # fmt: off
-    _boost_variant(
-        "shared",
-        description="Additionally build shared libraries",
-    )
-    _boost_variant(
-        "singlethreaded",
-        default=False,
-        description="Build single-threaded versions of libraries",
-    )
-    # fmt: on
-    _boost_variant(
-        "versionedlayout",
-        default=False,
-        conflicts=[
-            {"when": "+taggedlayout", "msg": "Layouts cannot be both tagged and versioned"}
-        ],
-        description="Augment library layout with versioned subdirs",
-    )
-
-    # ----------------------------------------------------------------------
-    #
-    # mpi and python are not enabled by default because they pull in many
-    # dependencies and/or because there is a great deal of customization
-    # possible (and it would be difficult to choose sensible defaults)
-    #
-    # ----------------------------------------------------------------------
-    _boost_variant(
-        "timer",
-        when="@1.9.0:",
-        buildable="@1.48.0:",
-        description="Event timer, progress timer, and progress display classes.",
-    )
-    _boost_variant(
-        "random",
-        when="@1.15.0:",
-        buildable="@1.43.0:",
-        description="A complete system for random number generation.",
-    )
-    _boost_variant(
-        "graph",
-        when="@1.18.0:",
-        buildable="@1.18.0:",
+        "iostreams",
+        buildable="@1.33.0:",
         description=(
-            "The BGL graph interface and graph components are generic, in the same sense as"
-            " the Standard Template Library (STL)."
-        ),
-    )
-    # fmt: off
-    _boost_variant(
-        "regex",
-        when="@1.18.0:",
-        buildable="@1.18.0:",
-        description="Regular expression library.",
-    )
-    # fmt: on
-    _boost_variant(
-        "python",
-        default=False,
-        when="@1.19.0:",
-        buildable="@1.19.0:",
-        description=(
-            "The Boost Python Library is a framework for interfacing Python and C++. It allows"
-            " you to quickly and seamlessly expose C++ classes functions and objects to"
-            " Python, and vice-versa, using no special tools -- just your C++ compiler."
-        ),
-    )
-    _boost_variant(
-        "test",
-        when="@1.21.0:",
-        buildable="@1.21.0:",
-        description=(
-            "Support for simple program testing, full unit testing, and for program execution"
-            " monitoring."
+            "Boost.IOStreams provides a framework for defining streams, stream buffers and i/o"
+            " filters."
         ),
     )
     _boost_variant(
         "math",
-        when="@1.23.0:",
         buildable="@1.23.0:",
         requires=[
             {"spec": "+octonions", "msg": "Boost.Math requires Math.Octonions (+octonions)"},
@@ -220,86 +162,9 @@ def load():
             " Octonions, like quaternions, are a relative of complex numbers."
         ),
     )
-    # fmt: off
-    _boost_variant(
-        "octonions",
-        when="@1.23.0:",
-        description="Octonions.",
-    )
-    _boost_variant(
-        "quaternions",
-        when="@1.23.0:",
-        description="Quaternions.",
-    )
-    # fmt: on
-    _boost_variant(
-        "thread",
-        when="@1.25.0:",
-        buildable="@1.25.0:",
-        description="Portable C++ multi-threading. C++03, C++11, C++14, C++17.",
-    )
-    _boost_variant(
-        "date_time",
-        when="@1.29.0:",
-        buildable="@1.29.0:",
-        description="A set of date-time libraries based on generic programming concepts.",
-    )
-    _boost_variant(
-        "signals",
-        default=False,
-        when="@1.29.0:1.68.0",
-        buildable="@1.29.0:1.68.0",
-        description="Managed signals & slots callback implementation.",
-    )
-    _boost_variant(
-        "filesystem",
-        when="@1.30.0:",
-        buildable="@1.30.0:",
-        description=(
-            "The Boost Filesystem Library provides portable facilities to query and manipulate"
-            " paths, files, and directories."
-        ),
-    )
-    _boost_variant(
-        "program_options",
-        default=False,
-        when="@1.32.0:",
-        buildable="@1.32.0:",
-        description=(
-            "The program_options library allows program developers to obtain program options,"
-            " that is (name, value) pairs from the user, via conventional methods such as"
-            " command line and config file."
-        ),
-    )
-    _boost_variant(
-        "serialization",
-        when="@1.32.0:",
-        buildable="@1.32.0:",
-        description="Serialization for persistence and marshalling.",
-    )
-    _boost_variant(
-        "iostreams",
-        when="@1.33.0:",
-        buildable="@1.33.0:",
-        description=(
-            "Boost.IOStreams provides a framework for defining streams, stream buffers and i/o"
-            " filters."
-        ),
-    )
-    _boost_variant(
-        "wave",
-        when="@1.33.0:",
-        buildable="@1.33.0:",
-        description=(
-            "The Boost.Wave library is a Standards conformant, and highly configurable"
-            " implementation of the mandated C99/C++ preprocessor functionality packed behind"
-            " an easy to use iterator interface."
-        ),
-    )
     _boost_variant(
         "mpi",
         default=False,
-        when="@1.35.0:",
         buildable="@1.35.0:",
         description=(
             "Message Passing Interface library, for use in distributed-memory parallel"
@@ -308,20 +173,138 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "multithreaded",
+        description="Build multi-threaded versions of libraries",
+    )
+    # fmt: on
+    _boost_variant(
+        "numpy",
+        default=False,
+        # fmt: off
+        requires=[
+            {"spec": "+python", "msg": "Numpy requires python support"}
+        ],
+        # fmt: on
+        description="Build the Boost NumPy library",
+    )
+    # fmt: off
+    _boost_variant(
+        "octonions",
+        description="Octonions.",
+    )
+    # fmt: on
+    _boost_variant(
+        "program_options",
+        buildable="@1.32.0:",
+        description=(
+            "The program_options library allows program developers to obtain program options,"
+            " that is (name, value) pairs from the user, via conventional methods such as"
+            " command line and config file."
+        ),
+    )
+    _boost_variant(
+        "python",
+        default=False,
+        buildable="@1.19.0:",
+        description=(
+            "The Boost Python Library is a framework for interfacing Python and C++. It allows"
+            " you to quickly and seamlessly expose C++ classes functions and objects to"
+            " Python, and vice-versa, using no special tools -- just your C++ compiler."
+        ),
+    )
+    _boost_variant(
+        "pic",
+        default=False,
+        description="Generate position-independent code (PIC), useful for building static"
+        " libraries",
+    )
+    # fmt: off
+    _boost_variant(
+        "quaternions",
+        description="Quaternions.",
+    )
+    # fmt: on
+    _boost_variant(
+        "random",
+        buildable="@1.43.0:",
+        description="A complete system for random number generation.",
+    )
+    # fmt: off
+    _boost_variant(
+        "regex",
+        buildable="@1.18.0:",
+        description="Regular expression library.",
+    )
+    _boost_variant(
+        "serialization",
+        buildable="@1.32.0:",
+        description="Serialization for persistence and marshalling.",
+    )
+    _boost_variant(
+        "shared",
+        description="Additionally build shared libraries",
+    )
+    _boost_variant(
+        "singlethreaded",
+        default=False,
+        description="Build single-threaded versions of libraries",
+    )
+    # fmt: off
+    _boost_variant(
         "system",
-        when="@1.35.0:",
         buildable="@1.35.0:",
         description="Extensible error reporting.",
     )
     # fmt: on
     _boost_variant(
-        "exception",
-        when="@1.36.0:",
-        buildable="@1.47.0:",
+        "test",
+        buildable="@1.21.0:",
         description=(
-            "The Boost Exception library supports transporting of arbitrary data in exception"
-            " objects, and transporting of exceptions between threads."
+            "Support for simple program testing, full unit testing, and for program execution"
+            " monitoring."
         ),
+    )
+    _boost_variant(
+        "thread",
+        buildable="@1.25.0:",
+        description="Portable C++ multi-threading. C++03, C++11, C++14, C++17.",
+    )
+    _boost_variant(
+        "timer",
+        buildable="@1.48.0:",
+        description="Event timer, progress timer, and progress display classes.",
+    )
+    _boost_variant(
+        "versionedlayout",
+        default=False,
+        conflicts=[
+            {"when": "+taggedlayout", "msg": "Layouts cannot be both tagged and versioned"}
+        ],
+        description="Augment library layout with versioned subdirs",
+    )
+    _boost_variant(
+        "wave",
+        buildable="@1.33.0:",
+        description=(
+            "The Boost.Wave library is a Standards conformant, and highly configurable"
+            " implementation of the mandated C99/C++ preprocessor functionality packed behind"
+            " an easy to use iterator interface."
+        ),
+    )
+
+    # ----------------------------------------------------------------------
+    #
+    # mpi and python are not enabled by default because they pull in many
+    # dependencies and/or because there is a great deal of customization
+    # possible (and it would be difficult to choose sensible defaults)
+    #
+    # ----------------------------------------------------------------------
+    _boost_variant(
+        "signals",
+        default=False,
+        when="@1.29.0:1.68.0",
+        buildable="@1.29.0:1.68.0",
+        description="Managed signals & slots callback implementation.",
     )
     _boost_variant(
         "signals2",
