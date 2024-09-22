@@ -213,13 +213,11 @@ def load():
         "quaternions",
         description="Quaternions.",
     )
-    # fmt: on
     _boost_variant(
         "random",
         buildable="@1.43.0:",
         description="A complete system for random number generation.",
     )
-    # fmt: off
     _boost_variant(
         "regex",
         buildable="@1.18.0:",
@@ -239,7 +237,6 @@ def load():
         default=False,
         description="Disable use of multiple threads in the Boost libraries",
     )
-    # fmt: off
     _boost_variant(
         "system",
         buildable="@1.35.0:",
