@@ -335,6 +335,12 @@ def load():
         description=("Streams, stream buffers, and i/o filters"),
     )
     _boost_variant(
+        "wave",
+        when="@1.33.0:",
+        buildable="@1.33.0:",
+        description="Highly configurable implementation of the mandatory C99/C++ preprocessor.",
+    )
+    _boost_variant(
         "mpi",
         default=False,
         sticky=False,
