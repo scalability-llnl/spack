@@ -191,6 +191,13 @@ def load():
         "octonions",
         description="Octonions.",
     )
+    _boost_variant(
+        "parameter",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Parameter requires at least c++03"},
+        ],
+        description="Write functions that accept arguments by name.",
+    )
     # fmt: on
     _boost_variant(
         "program_options",
