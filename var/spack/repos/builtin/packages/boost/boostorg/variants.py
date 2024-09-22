@@ -536,4 +536,14 @@ def load():
         # fmt: on
         description="URL parsing in C++11",
     )
+    _boost_variant(
+        "wave",
+        when="@1.33.0:",
+        buildable="@1.33.0:",
+        description=(
+            "The Boost.Wave library is a Standards conformant, and highly configurable"
+            " implementation of the mandated C99/C++ preprocessor functionality packed behind"
+            " an easy to use iterator interface."
+        ),
+    )
     return library_names
