@@ -87,22 +87,7 @@ class Boost(Package):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    # fmt: off
-    with_default_variants = "boost" + "".join(
-        [
-            "+wave",
-        ]
-    )
-    # fmt: on
-
-    # mpi/python are not installed by default because they pull in many
-    # dependencies and/or because there is a great deal of customization
-    # possible (and it would be difficult to choose sensible defaults)
-    # fmt: off
-    all_libs = [
-        "wave"
-    ]
-    # fmt: on
+    with_default_variants = "boost"
 
     _buildable_libraries = boostvariants.load()
 
