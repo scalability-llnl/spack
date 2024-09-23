@@ -401,6 +401,7 @@ def load():
     )
     _boost_variant(
         "locale",
+        default=False,
         when="@1.48.0:",
         buildable="@1.48.0:",
         # fmt: off
