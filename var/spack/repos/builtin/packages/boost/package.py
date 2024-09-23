@@ -520,7 +520,7 @@ class Boost(Package):
             force_symlink("/usr/bin/libtool", join_path(newdir, "libtool"))
             env["PATH"] = newdir + ":" + env["PATH"]
 
-        with_libs = {f"{lib}" for lib in Boost.all_libs if f"+{lib}" in spec}
+        with_libs = {f"{lib}" for lib, _ in self._buildable_libraries.items() if f"+{lib}" in spec}
 
         if self.spec.satisfies("platform=windows"):
             self.bootstrap_windows()
