@@ -522,32 +522,6 @@ class Boost(Package):
 
         with_libs = {f"{lib}" for lib in Boost.all_libs if f"+{lib}" in spec}
 
-        # Remove libraries that the release version does not support
-        if not spec.satisfies("@1.85.0:"):
-            with_libs.discard("charconv")
-        if not spec.satisfies("@1.84.0:"):
-            with_libs.discard("cobalt")
-        if not spec.satisfies("@1.81.0:"):
-            with_libs.discard("url")
-        if not spec.satisfies("@1.75.0:"):
-            with_libs.discard("json")
-        if spec.satisfies("@1.69.0:"):
-            with_libs.discard("signals")
-        if not spec.satisfies("@1.54.0:"):
-            with_libs.discard("log")
-        if not spec.satisfies("@1.53.0:"):
-            with_libs.discard("atomic")
-        if not spec.satisfies("@1.48.0:"):
-            with_libs.discard("locale")
-        if not spec.satisfies("@1.47.0:"):
-            with_libs.discard("chrono")
-        if not spec.satisfies("@1.43.0:"):
-            with_libs.discard("random")
-        if not spec.satisfies("@1.39.0:"):
-            with_libs.discard("exception")
-        if spec.satisfies("+graph") and spec.satisfies("+mpi"):
-            with_libs.add("graph_parallel")
-
         if self.spec.satisfies("platform=windows"):
             self.bootstrap_windows()
         else:
