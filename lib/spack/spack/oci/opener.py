@@ -377,9 +377,10 @@ def credentials_from_mirrors(
         # Prefer push credentials over fetch. Unlikely that those are different
         # but our config format allows it.
         for direction in ("push", "fetch"):
-            pair = mirror.get_access_pair(direction)
-            if pair is None:
+            pair = mirror.get_credentials(direction).get("access_pair")
+            if not pair:
                 continue
+
             url = mirror.get_url(direction)
             if not url.startswith("oci://"):
                 continue

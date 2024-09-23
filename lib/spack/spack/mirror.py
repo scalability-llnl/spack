@@ -18,7 +18,7 @@ import os.path
 import sys
 import traceback
 import urllib.parse
-from typing import List, Optional, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import llnl.url
 import llnl.util.symlink
@@ -155,7 +155,20 @@ class Mirror:
         return self.get_url("push")
 
     def _update_connection_dict(self, current_data: dict, new_data: dict, top_level: bool):
-        keys = ["url", "access_pair", "access_token", "profile", "endpoint_url"]
+        # Only allow one to exist in the config
+        if "access_token" in current_data and "access_token_variable" in new_data:
+            current_data.pop("access_token")
+        elif "access_token_variable" in current_data and "access_token" in new_data:
+            current_data.pop("access_token_variable")
+
+        keys = [
+            "url",
+            "access_pair",
+            "access_token",
+            "access_token_variable",
+            "profile",
+            "endpoint_url",
+        ]
         if top_level:
             keys += ["binary", "source", "signed", "autopush"]
         changed = False
@@ -271,11 +284,57 @@ class Mirror:
 
         return _url_or_path_to_url(url)
 
-    def get_access_token(self, direction: str) -> Optional[str]:
-        return self._get_value("access_token", direction)
+    def get_credentials(self, direction: str) -> Dict[str, Any]:
+        """Get the mirror credentials from the mirror config
 
-    def get_access_pair(self, direction: str) -> Optional[List]:
-        return self._get_value("access_pair", direction)
+        Args:
+            direction: fetch or push mirror config
+
+        Returns:
+            Dictionary from credential type string to value
+
+            Credential Type Map:
+                access_token -> str
+                access_pair  -> tuple(str,str)
+                profile      -> str
+        """
+        creddict: Dict[str, Any] = {}
+        access_token = self.get_access_token(direction)
+        if access_token:
+            creddict["access_token"] = access_token
+
+        access_pair = self.get_access_pair(direction)
+        if access_pair:
+            creddict.update({"access_pair": access_pair})
+
+        profile = self.get_profile(direction)
+        if profile:
+            creddict["profile"] = profile
+
+        return creddict
+
+    @staticmethod
+    def _extract_credential_value(tok):
+        return os.environ.get(tok["variable"]) if isinstance(tok, dict) else tok
+
+    def get_access_token(self, direction: str) -> Optional[str]:
+        tok = self._get_value("access_token_variable", direction)
+        if tok:
+            return os.environ.get(tok)
+        else:
+            return self._get_value("access_token", direction)
+        return None
+
+    def get_access_pair(self, direction: str) -> Optional[Tuple[str, str]]:
+        pair = self._get_value("access_pair", direction)
+        if type(pair) in (tuple, list):
+            return tuple(map(self._extract_credential_value, pair))
+        elif isinstance(pair, dict):
+            id_ = os.environ.get(pair["id_variable"]) if "id_variable" in pair else pair["id"]
+            secret = os.environ.get(pair["secret_variable"])
+            return (str(id_), str(secret)) if id_ and secret else None
+        else:
+            return None
 
     def get_profile(self, direction: str) -> Optional[str]:
         return self._get_value("profile", direction)
