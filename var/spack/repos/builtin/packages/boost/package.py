@@ -97,7 +97,7 @@ class Boost(Package):
         """
         return [
             name
-            for name, version in _buildable_libraries.items()
+            for name, version in Boost._buildable_libraries.items()
             if self.spec.satisfies("+{0:s} {1:s}".format(name, version))
         ]
 
@@ -367,7 +367,7 @@ class Boost(Package):
             Path(spec["python"].libs[0]).parent.as_posix(),
         )
 
-    def determine_bootstrap_options(self, spec, with_libs, options):
+    def determine_bootstrap_options(self, spec, options):
         boost_toolset_id = self.determine_toolset(spec)
 
         # Arm compiler bootstraps with 'gcc' (but builds as 'clang')
@@ -375,6 +375,10 @@ class Boost(Package):
             options.append("--with-toolset=gcc")
         else:
             options.append("--with-toolset=%s" % boost_toolset_id)
+
+        with_libs = {
+            f"{lib}" for lib, _ in Boost._buildable_libraries.items() if f"+{lib}" in spec
+        }
         if with_libs:
             options.append("--with-libraries=%s" % ",".join(sorted(with_libs)))
         else:
@@ -487,7 +491,7 @@ class Boost(Package):
 
             # Any lib that is in self.all_libs AND in the variants dictionary
             # AND is set to False should be added to options in a --without flag
-            for lib in self.all_libs:
+            for lib in Boost._buildable_libraries:
                 if lib not in self.spec.variants.dict or self.spec.satisfies(f"+{lib}"):
                     continue
                 options.append(f"--without-{lib}")
@@ -580,41 +584,13 @@ class Boost(Package):
             force_symlink("/usr/bin/libtool", join_path(newdir, "libtool"))
             env["PATH"] = newdir + ":" + env["PATH"]
 
-        with_libs = {f"{lib}" for lib in Boost.all_libs if f"+{lib}" in spec}
-
-        # Remove libraries that the release version does not support
-        if not spec.satisfies("@1.85.0:"):
-            with_libs.discard("charconv")
-        if not spec.satisfies("@1.84.0:"):
-            with_libs.discard("cobalt")
-        if not spec.satisfies("@1.81.0:"):
-            with_libs.discard("url")
-        if not spec.satisfies("@1.75.0:"):
-            with_libs.discard("json")
-        if spec.satisfies("@1.69.0:"):
-            with_libs.discard("signals")
-        if not spec.satisfies("@1.54.0:"):
-            with_libs.discard("log")
-        if not spec.satisfies("@1.53.0:"):
-            with_libs.discard("atomic")
-        if not spec.satisfies("@1.48.0:"):
-            with_libs.discard("locale")
-        if not spec.satisfies("@1.47.0:"):
-            with_libs.discard("chrono")
-        if not spec.satisfies("@1.43.0:"):
-            with_libs.discard("random")
-        if not spec.satisfies("@1.39.0:"):
-            with_libs.discard("exception")
-        if spec.satisfies("+graph") and spec.satisfies("+mpi"):
-            with_libs.add("graph_parallel")
-
         if self.spec.satisfies("platform=windows"):
             self.bootstrap_windows()
         else:
             # to make Boost find the user-config.jam
             env["BOOST_BUILD_PATH"] = self.stage.source_path
             bootstrap_options = ["--prefix=%s" % prefix]
-            self.determine_bootstrap_options(spec, with_libs, bootstrap_options)
+            self.determine_bootstrap_options(spec, bootstrap_options)
             bootstrap = Executable("./bootstrap.sh")
             bootstrap(*bootstrap_options)
 
