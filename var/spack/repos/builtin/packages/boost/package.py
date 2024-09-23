@@ -113,50 +113,8 @@ class Boost(Package):
         ]
     )
 
-    all_libs = [
-        #        "atomic",
-        #        "charconv",
-        #        "chrono",
-        #        "cobalt",
-        #        "container",
-        #        "context",
-        #        "contract",
-        #        "coroutine",
-        #        "date_time",
-        #        "exception",
-        #        "fiber",
-        #        "filesystem",
-        #        "graph",
-        #        "graph_parallel",
-        #        "iostreams",
-        #        "json",
-        #        "locale",
-        #        "log",
-        #        "math",
-        #        "mpi",
-        #        "nowide",
-        #        "program_options",
-        #        "python",
-        #        "random",
-        #        "regex",
-        #        "serialization",
-        #        "signals",
-        #        "stacktrace",
-        #        "system",
-        #        "test",
-        #        "thread",
-        #        "timer",
-        #        "type_erasure",
-        #        "url",
-        #        "wave"
-    ]
-
     _buildable_libraries = boostvariants.load()
     boostpatches.load()
-
-    for lib in all_libs:
-        lib_opts = all_libs_opts.get(lib, {})
-        variant(lib, default=False, description="Compile with {0} library".format(lib), **lib_opts)
 
     def _libraries_to_build(self):
         """
@@ -429,7 +387,7 @@ class Boost(Package):
 
             # Any lib that is in self.all_libs AND in the variants dictionary
             # AND is set to False should be added to options in a --without flag
-            for lib in self.all_libs:
+            for lib in self._buildable_libraries:
                 if lib not in self.spec.variants.dict or self.spec.satisfies(f"+{lib}"):
                     continue
                 options.append(f"--without-{lib}")
