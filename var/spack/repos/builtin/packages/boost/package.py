@@ -307,7 +307,7 @@ class Boost(Package):
             Path(spec["python"].libs[0]).parent.as_posix(),
         )
 
-    def determine_bootstrap_options(self, spec, with_libs, options):
+    def determine_bootstrap_options(self, spec, options):
         boost_toolset_id = self.determine_toolset(spec)
 
         # Arm compiler bootstraps with 'gcc' (but builds as 'clang')
@@ -315,6 +315,8 @@ class Boost(Package):
             options.append("--with-toolset=gcc")
         else:
             options.append("--with-toolset=%s" % boost_toolset_id)
+
+        with_libs = {f"{lib}" for lib, _ in self._buildable_libraries.items() if f"+{lib}" in spec}
         if with_libs:
             options.append("--with-libraries=%s" % ",".join(sorted(with_libs)))
         else:
@@ -520,15 +522,13 @@ class Boost(Package):
             force_symlink("/usr/bin/libtool", join_path(newdir, "libtool"))
             env["PATH"] = newdir + ":" + env["PATH"]
 
-        with_libs = {f"{lib}" for lib, _ in self._buildable_libraries.items() if f"+{lib}" in spec}
-
         if self.spec.satisfies("platform=windows"):
             self.bootstrap_windows()
         else:
             # to make Boost find the user-config.jam
             env["BOOST_BUILD_PATH"] = self.stage.source_path
             bootstrap_options = ["--prefix=%s" % prefix]
-            self.determine_bootstrap_options(spec, with_libs, bootstrap_options)
+            self.determine_bootstrap_options(spec, bootstrap_options)
             bootstrap = Executable("./bootstrap.sh")
             bootstrap(*bootstrap_options)
 
