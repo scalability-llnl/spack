@@ -700,10 +700,8 @@ def load():
         when="@1.67.0:",
         buildable="@1.67.0:",
         description=(
-            "Contract programming for C++. All contract programming features are supported:"
-            " Subcontracting, class invariants, postconditions (with old and return values),"
-            " preconditions, customizable actions on assertion failure (e.g., terminate or"
-            " throw), optional compilation and checking of assertions, etc."
+            "Contract programming with subcontracting, class invariants, pre/postconditions, "
+            "and customizable actions on assertion failure."
         ),
     )
     # fmt: off
