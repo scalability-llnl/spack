@@ -404,7 +404,7 @@ class Boost(Package):
             cxxflags.append("-DBOOST_STACKTRACE_LIBCXX_RUNTIME_MAY_CAUSE_MEMORY_LEAK")
 
         if cxxflags:
-            options.append('cxxflags="{0}"'.format(" ".join(cxxflags)))
+            options.append("cxxflags={0}".format(" ".join(cxxflags)))
 
         # Visibility was added in 1.69.0.
         if spec.satisfies("@1.69.0:"):
