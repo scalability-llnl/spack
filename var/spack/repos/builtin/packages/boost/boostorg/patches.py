@@ -108,16 +108,15 @@ def load():
 
     # Support bzip2 and gzip in other directory
     # See https://github.com/boostorg/build/pull/154
-    sp.patch("patches/boost_154.patch", when="@1.56.0:1.63")
+    sp.patch("patches/build_PR154.patch", when="@1.56.0:1.63")
 
     # Backport Python3 import problem
     # See https://github.com/boostorg/python/pull/218
-    sp.patch("patches/boost_218.patch", when="@1.63.0:1.67")
+    sp.patch("patches/python_PR218.patch", when="@1.63.0:1.67")
 
     # Fix: "Unable to compile code using boost/process.hpp"
     # See: https://github.com/boostorg/process/issues/116
-    # Patch: https://github.com/boostorg/process/commit/6a4d2ff72114ef47c7afaf92e1042aca3dfa41b0.patch
-    sp.patch("patches/1.72_boost_process.patch", level=2, when="@1.72.0")
+    sp.patch("patches/process_PR116.patch", level=2, when="@1.72.0")
 
     # Patch fix for warnings from commits 2d37749, af1dc84, c705bab, and
     # 0134441 on https://github.com/boostorg/system.
@@ -168,13 +167,13 @@ def load():
     with sp.when("@1.78.0"):
         # https://github.com/bfgroup/b2/pull/113
         sp.patch(
-            "patches/build_1780_PR113.patch",
+            "patches/build_PR113.patch",
             sha256="0e1b19e91e0fef2906b3e1bed1ba06b277ff84942bb8ac9e645dd93ad3532b4e",
         )
 
         # UWP support for atomic
         sp.patch(
-            "patches/atomic_1780_PR54.patch",
+            "patches/atomic_PR54.patch",
             when="+atomic",
             sha256="1be9f01f238d54ce311c2a8a5ddbdd3f97268c0c011460e41033443d70280a18",
         )
@@ -187,4 +186,4 @@ def load():
     )
 
     # https://github.com/boostorg/phoenix/issues/111
-    sp.patch("patches/boost_phoenix_1.81.0.patch", level=2, when="@1.81.0:1.82.0")
+    sp.patch("patches/phoenix_PR111.patch", level=2, when="@1.81.0:1.82.0")
