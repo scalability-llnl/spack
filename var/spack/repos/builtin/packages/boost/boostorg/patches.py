@@ -9,43 +9,43 @@ def load():
     with sp.when("%gcc"):
         with sp.when("%gcc@4.4.7"):
             # https://svn.boost.org/trac/boost/ticket/11856
-            sp.patch("boost_11856.patch", when="@1.60.0")
-        
+            sp.patch("patches/boost_11856.patch", when="@1.60.0")
+
         with sp.when("%gcc@5.0:"):
             # https://svn.boost.org/trac/boost/ticket/10125
-            sp.patch("call_once_variadic.patch", when="@1.54.0:1.55")
-        
+            sp.patch("patches/call_once_variadic.patch", when="@1.54.0:1.55")
+
         with sp.when("%gcc@8.3"):
             # Workaround gcc-8.3 compiler issue https://github.com/boostorg/mpl/issues/44
-            sp.patch("boost_gcc83_cpp17_fix.patch", when="@1.69:")
+            sp.patch("patches/boost_gcc83_cpp17_fix.patch", when="@1.69:")
 
     with sp.when("%fj"):
         # Change the method for version analysis when using Fujitsu compiler.
-        sp.patch("fujitsu_version_analysis.patch", when="@1.67.0:1.76.0")
-        sp.patch("fujitsu_version_analysis-1.77.patch", when="@1.77.0:")
+        sp.patch("patches/fujitsu_version_analysis.patch", when="@1.67.0:1.76.0")
+        sp.patch("patches/fujitsu_version_analysis-1.77.patch", when="@1.77.0:")
 
     with sp.when("%xl"):
         # IBM XL C
-        sp.patch("xl_1_62_0_le.patch", when="@1.62.0")
+        sp.patch("patches/xl_1_62_0_le.patch", when="@1.62.0")
 
     with sp.when("%xl_r"):
         # IBM XL C++
-        sp.patch("xl_1_62_0_le.patch", when="@1.62.0")
+        sp.patch("patches/xl_1_62_0_le.patch", when="@1.62.0")
 
     with sp.when("%pgi"):
-        sp.patch("boost_1.67.0_pgi.patch", when="@1.67.0:1.68")
-        sp.patch("boost_1.63.0_pgi.patch", when="@1.63.0")
+        sp.patch("patches/boost_1.67.0_pgi.patch", when="@1.67.0:1.68")
+        sp.patch("patches/boost_1.63.0_pgi.patch", when="@1.63.0")
 
         with sp.when("%pgi@17.4"):
-            sp.patch("boost_1.63.0_pgi_17.4_workaround.patch", when="@1.63.0")
+            sp.patch("patches/boost_1.63.0_pgi_17.4_workaround.patch", when="@1.63.0")
 
     with sp.when("%nvhpc"):
         # Override the PGI toolset when using the NVIDIA compilers
-        sp.patch("nvhpc-1.74.patch", when="@1.74.0:1.75")
-        sp.patch("nvhpc-1.76.patch", when="@1.76.0:1.76")
+        sp.patch("patches/nvhpc-1.74.patch", when="@1.74.0:1.75")
+        sp.patch("patches/nvhpc-1.76.patch", when="@1.76.0:1.76")
 
         # Workaround compiler bug
-        sp.patch("nvhpc-find_address.patch", when="@1.75.0:1.76")
+        sp.patch("patches/nvhpc-find_address.patch", when="@1.75.0:1.76")
 
     with sp.when("%cce"):
         with sp.when("%cce@:1.76"):
@@ -59,7 +59,7 @@ def load():
 
     with sp.when("%oneapi"):
         # https://www.intel.com/content/www/us/en/developer/articles/technical/building-boost-with-oneapi.html
-        sp.patch("intel-oneapi-linux-jam.patch", when="@1.76:")
+        sp.patch("patches/intel-oneapi-linux-jam.patch", when="@1.76:")
 
     #
     # ----- Platform-specific ---------
@@ -68,12 +68,12 @@ def load():
         # Fix for version comparison on newer Clang on darwin
         # See: https://github.com/boostorg/build/issues/440
         # See: https://github.com/macports/macports-ports/pull/6726
-        sp.patch("darwin_clang_version.patch", level=0, when="@1.56.0:1.72.0")
+        sp.patch("patches/darwin_clang_version.patch", level=0, when="@1.56.0:1.72.0")
 
         # Allow building context asm sources with GCC on Darwin
         # See https://github.com/spack/spack/pull/24889
         # and https://github.com/boostorg/context/issues/177
-        sp.patch("context-macho-gcc.patch", when="@1.65:1.76 +context %gcc")
+        sp.patch("patches/context-macho-gcc.patch", when="@1.65:1.76 +context %gcc")
 
     with sp.when("platform=windows"):
         # https://github.com/boostorg/filesystem/issues/284
@@ -88,9 +88,9 @@ def load():
     #
     with sp.when("^python@3:"):
         # Patch fix from https://svn.boost.org/trac/boost/ticket/11120
-        sp.patch("python_jam-1_77.patch", when="@1.77:")
-        sp.patch("python_jam.patch", when="@1.56:1.76")
-        sp.patch("python_jam_pre156.patch", when="@:1.55.0")
+        sp.patch("patches/python_jam-1_77.patch", when="@1.77:")
+        sp.patch("patches/python_jam.patch", when="@1.56:1.76")
+        sp.patch("patches/python_jam_pre156.patch", when="@:1.55.0")
 
     #
     # ----- Generic Fixes ---------
@@ -104,32 +104,35 @@ def load():
     )
 
     # Add option to C/C++ compile commands in clang-linux.jam
-    sp.patch("clang-linux_add_option.patch", when="@1.56.0:1.63.0")
-    sp.patch("clang-linux_add_option2.patch", when="@1.47.0:1.55.0")
+    sp.patch("patches/clang-linux_add_option.patch", when="@1.56.0:1.63.0")
+    sp.patch("patches/clang-linux_add_option2.patch", when="@1.47.0:1.55.0")
 
     # Support bzip2 and gzip in other directory
     # See https://github.com/boostorg/build/pull/154
-    sp.patch("boost_154.patch", when="@1.56.0:1.63")
+    sp.patch("patches/boost_154.patch", when="@1.56.0:1.63")
 
     # Backport Python3 import problem
     # See https://github.com/boostorg/python/pull/218
-    sp.patch("boost_218.patch", when="@1.63.0:1.67")
+    sp.patch("patches/boost_218.patch", when="@1.63.0:1.67")
 
     # Fix: "Unable to compile code using boost/process.hpp"
     # See: https://github.com/boostorg/process/issues/116
     # Patch: https://github.com/boostorg/process/commit/6a4d2ff72114ef47c7afaf92e1042aca3dfa41b0.patch
-    sp.patch("1.72_boost_process.patch", level=2, when="@1.72.0")
+    sp.patch("patches/1.72_boost_process.patch", level=2, when="@1.72.0")
 
     # Patch fix for warnings from commits 2d37749, af1dc84, c705bab, and
     # 0134441 on https://github.com/boostorg/system.
-    sp.patch("system-non-virtual-dtor-include.patch", when="@1.69.0", level=2)
+    sp.patch("patches/system-non-virtual-dtor-include.patch", when="@1.69.0", level=2)
     sp.patch(
-        "system-non-virtual-dtor-test.patch", when="@1.69.0", working_dir="libs/system", level=1
+        "patches/system-non-virtual-dtor-test.patch",
+        when="@1.69.0",
+        working_dir="libs/system",
+        level=1
     )
 
     # Fix issues with PTHREAD_STACK_MIN not being a DEFINED constant in newer glibc
     # See https://github.com/spack/spack/issues/28273
-    sp.patch("pthread-stack-min-fix.patch", when="@1.69.0:1.72.0")
+    sp.patch("patches/pthread-stack-min-fix.patch", when="@1.69.0:1.72.0")
 
     # C++20 concepts fix for Beast
     # See https://github.com/boostorg/beast/pull/1927 for details
@@ -150,10 +153,10 @@ def load():
     # Fix B2 bootstrap toolset during installation
     # See https://github.com/spack/spack/issues/20757
     # and https://github.com/spack/spack/pull/21408
-    sp.patch("bootstrap-toolset.patch", when="@1.75")
+    sp.patch("patches/bootstrap-toolset.patch", when="@1.75")
 
     # Fix compiler used for building bjam during bootstrap
-    sp.patch("bootstrap-compiler.patch", when="@1.76:")
+    sp.patch("patches/bootstrap-compiler.patch", when="@1.76:")
 
     # Fix building with Intel compilers
     sp.patch(
@@ -166,23 +169,23 @@ def load():
     with sp.when("@1.78.0"):
         # https://github.com/bfgroup/b2/pull/113
         sp.patch(
-            "build_1780_PR113.patch",
+            "patches/build_1780_PR113.patch",
             sha256="0e1b19e91e0fef2906b3e1bed1ba06b277ff84942bb8ac9e645dd93ad3532b4e",
         )
 
         # UWP support for atomic
         sp.patch(
-            "atomic_1780_PR54.patch",
+            "patches/atomic_1780_PR54.patch",
             when="+atomic",
             sha256="1be9f01f238d54ce311c2a8a5ddbdd3f97268c0c011460e41033443d70280a18",
         )
 
     # https://github.com/boostorg/json/issues/692
     sp.patch(
-        "json_PR695.patch",
+        "patches/json_PR695.patch",
         when="@1.79.0 +json",
         sha256="0edcb348b9c6f6ab8c67735881dccd9759af852830ffe651ae51248e24ff11ac",
     )
 
     # https://github.com/boostorg/phoenix/issues/111
-    sp.patch("boost_phoenix_1.81.0.patch", level=2, when="@1.81.0:1.82.0")
+    sp.patch("patches/boost_phoenix_1.81.0.patch", level=2, when="@1.81.0:1.82.0")
