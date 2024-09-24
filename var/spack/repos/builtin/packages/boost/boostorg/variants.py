@@ -338,6 +338,12 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "system",
+        when="@1.35.0:",
+        buildable="@1.35.0:",
+        description="Extensible error reporting.",
+    )
+    _boost_variant(
         "exception",
         when="@1.36.0:",
         buildable="@1.47.0:",
