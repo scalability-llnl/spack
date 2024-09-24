@@ -486,6 +486,14 @@ def load():
         buildable="@1.65.0:",
         description="Gather, store, copy and print backtraces.",
     )
+    # fmt: off
+    _boost_variant(
+        "system",
+        when="@1.35.0:",
+        buildable="@1.35.0:",
+        description="Extensible error reporting.",
+    )
+    # fmt: on
     _boost_variant(
         "test",
         when="@1.21.0:",
