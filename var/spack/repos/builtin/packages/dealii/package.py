@@ -96,6 +96,9 @@ class Dealii(CMakePackage, CudaPackage):
     variant("arpack", default=True, description="Compile with Arpack and PArpack (only with MPI)")
     variant("adol-c", default=True, description="Compile with ADOL-C")
     variant("cgal", default=True, when="@9.4:~cuda", description="Compile with CGAL")
+    variant(
+        "complex", default=False, when="@9.1.0:", description="Compile with complex value support"
+    )
     variant("ginkgo", default=True, description="Compile with Ginkgo")
     variant("gmsh", default=True, description="Compile with GMSH")
     variant("gsl", default=True, description="Compile with GSL")
@@ -549,6 +552,9 @@ class Dealii(CMakePackage, CudaPackage):
             if spec.satisfies("+trilinos"):
                 options.extend([self.define("CMAKE_CXX_COMPILER", spec["trilinos"].kokkos_cxx)])
 
+        # Complex support
+        options.append(self.define_from_variant("DEAL_II_WITH_COMPLEX_VALUES", "complex"))
+
         # Python bindings
         if spec.satisfies("@8.5.0:"):
             options.append(self.define_from_variant("DEAL_II_COMPONENT_PYTHON_BINDINGS", "python"))
@@ -662,6 +668,7 @@ class Dealii(CMakePackage, CudaPackage):
             options.append(self.define_from_variant("DEAL_II_WITH_OPENCASCADE", "oce"))
             options.append(self.define("OPENCASCADE_DIR", spec["oce"].prefix))
 
+        # Open Cascade -- OpenCascade
         if "+opencascade" in spec:
             options.append(self.define_from_variant("DEAL_II_WITH_OPENCASCADE", "opencascade"))
             options.append(self.define("OPENCASCADE_DIR", spec["opencascade"].prefix))
