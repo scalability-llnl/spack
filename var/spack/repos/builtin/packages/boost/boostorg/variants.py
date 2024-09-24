@@ -317,6 +317,10 @@ def load():
     _boost_variant(
         "wave",
         buildable="@1.33.0:",
+        conflicts=[
+            {"when": "@1.79.0: cxxstd=98", "msg": "Boost.Wave requires cxxstd >= 11"},
+            {"when": "@1.79.0: cxxstd=03", "msg": "Boost.Wave requires cxxstd >= 11"},
+        ],
         description="Highly configurable implementation of the mandatory C99/C++ preprocessor.",
     )
 
