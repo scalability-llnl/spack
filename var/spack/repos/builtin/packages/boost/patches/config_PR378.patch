@@ -1,0 +1,28 @@
+From fee1ad07968386b6d547f089311b7a2c1bf7fa55 Mon Sep 17 00:00:00 2001
+From: jzmaddock <john@johnmaddock.co.uk>
+Date: Thu, 1 Apr 2021 17:01:29 +0100
+Subject: [PATCH] Tentative fix for CUDA/Clang/Cray issue reported here
+ https://github.com/boostorg/math/issues/181.
+
+---
+ include/boost/config/detail/suffix.hpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/include/boost/config/detail/suffix.hpp b/include/boost/config/detail/suffix.hpp
+index 1bd57c134d69517cb8e80f75716b795f9682ef14..afcf1b432170b45fee56898b58eaf5b08ebb1411 100644
+--- a/include/boost/config/detail/suffix.hpp
++++ b/include/boost/config/detail/suffix.hpp
+@@ -475,6 +475,13 @@ namespace std {
+ #  define BOOST_CTOR_TYPENAME
+ #endif
+ 
++//
++// If we're on a CUDA device (note DEVICE not HOST, irrespective of compiler) then disable __float128 support if present:
++//
++#if defined(__CUDA_ARCH__) && defined(BOOST_HAS_FLOAT128)
++#  undef BOOST_HAS_FLOAT128
++#endif
++
+ // long long workaround ------------------------------------------//
+ // On gcc (and maybe other compilers?) long long is alway supported
+ // but it's use may generate either warnings (with -ansi), or errors

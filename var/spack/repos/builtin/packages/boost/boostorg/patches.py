@@ -50,9 +50,8 @@ def load():
     with sp.when("%cce"):
         with sp.when("%cce@:1.76"):
             # Fix float128 support when building with CUDA and Cray compiler
-            # See https://github.com/boostorg/config/pull/378
             sp.patch(
-                "https://github.com/boostorg/config/commit/fee1ad07968386b6d547f089311b7a2c1bf7fa55.patch?full_index=1",
+                "patches/config_PR378.patch",
                 sha256="666eec8cfb0f71a87443ab27d179a9771bda32bcb8ff5e16afa3767f7b7f1e70",
                 level=2,
             )
@@ -78,7 +77,7 @@ def load():
     with sp.when("platform=windows"):
         # https://github.com/boostorg/filesystem/issues/284
         sp.patch(
-            "https://www.boost.org/patches/1_82_0/0002-filesystem-fix-win-smbv1-dir-iterator.patch",
+            "patches/filesystem_PR284.patch",
             when="@1.82.0",
             sha256="738ba8e0d7b5cdcf5fae4998f9450b51577bbde1bb0d220a0721551609714ca4",
         )
@@ -98,7 +97,7 @@ def load():
 
     # Fix missing declaration of uintptr_t with glibc>=2.17 - https://bugs.gentoo.org/482372
     sp.patch(
-        "https://482372.bugs.gentoo.org/attachment.cgi?id=356970",
+        "patches/glibc_gentoo_v1.53.0.patch",
         when="@1.53.0:1.54",
         sha256="b6f6ce68282159d46c716a1e6c819c815914bdb096cddc516fa48134209659f2",
     )
@@ -127,7 +126,7 @@ def load():
         "patches/system-non-virtual-dtor-test.patch",
         when="@1.69.0",
         working_dir="libs/system",
-        level=1
+        level=1,
     )
 
     # Fix issues with PTHREAD_STACK_MIN not being a DEFINED constant in newer glibc
@@ -137,7 +136,7 @@ def load():
     # C++20 concepts fix for Beast
     # See https://github.com/boostorg/beast/pull/1927 for details
     sp.patch(
-        "https://www.boost.org/patches/1_73_0/0002-beast-coroutines.patch",
+        "patches/beast_PR1927.patch",
         sha256="4dd507e1f5a29e3b87b15321a4d8c74afdc8331433edabf7aeab89b3c405d556",
         when="@1.73.0",
     )
@@ -145,7 +144,7 @@ def load():
     # Cloning a status_code with indirecting_domain leads to segmentation fault
     # See https://github.com/ned14/outcome/issues/223 for details
     sp.patch(
-        "https://www.boost.org/patches/1_73_0/0001-outcome-assert.patch",
+        "patches/outcome_PR223.patch",
         sha256="246508e052c44b6f4e8c2542a71c06cacaa72cd1447ab8d2a542b987bc35ace9",
         when="@1.73.0",
     )
@@ -160,7 +159,7 @@ def load():
 
     # Fix building with Intel compilers
     sp.patch(
-        "https://github.com/bfgroup/b2/commit/23212066f0f20358db54568bb16b3fe1d76f88ce.patch?full_index=1",
+        "patches/b2_PR79.patch",
         sha256="4849671f9df4b8f3c962130d7f6d44eba3b20d113e84f9faade75e6469e90310",
         when="@1.77.0",
         working_dir="tools/build",
