@@ -117,6 +117,7 @@ def load():
         default=False,
         description="Build in debug mode",
     )
+    # fmt: on
     _boost_variant(
         "icu",
         default=False,
@@ -126,6 +127,7 @@ def load():
         ],
         description="Build with Unicode and ICU suport",
     )
+    # fmt: off
     _boost_variant(
         "pic",
         description="Build Boost libraries with position-independent code (PIC)",
@@ -141,12 +143,12 @@ def load():
         "multithreaded",
         description="Enable use of multiple threads in the Boost libraries",
     )
+    # fmt: on
     _boost_variant(
         "singlethreaded",
         default=False,
         description="Disable use of multiple threads in the Boost libraries",
     )
-    # fmt: on
     _boost_variant(
         "taggedlayout",
         default=False,
@@ -260,6 +262,15 @@ def load():
         when="@1.25.0:",
         buildable="@1.25.0:",
         description="Portable C++ multi-threading. C++03, C++11, C++14, C++17.",
+    )
+    _boost_variant(
+        "preprocessor",
+        when="@1.26.0:",
+        conflicts=[
+            {"when": "@1.75.0: cxxstd=98", "msg": "Boost.Preprocessor requires cxxstd >= 11"},
+            {"when": "@1.75.0: cxxstd=03", "msg": "Boost.Preprocessor requires cxxstd >= 11"},
+        ],
+        description="Preprocessor metaprogramming tools including repetition and recursion.",
     )
     _boost_variant(
         "date_time",
@@ -396,6 +407,32 @@ def load():
         ],
         description="Useful time utilities. C++11.",
     )
+    _boost_variant(
+        "geometry",
+        when="@1.47.0:",
+        conflicts=[
+            {"when": "@1.75.0: cxxstd=98", "msg": "Boost.Geometry requires cxxstd >= 14"},
+            {"when": "@1.75.0: cxxstd=03", "msg": "Boost.Geometry requires cxxstd >= 14"},
+            {"when": "@1.75.0: cxxstd=11", "msg": "Boost.Geometry requires cxxstd >= 14"},
+        ],
+        description="Geometric algorithms, primitives, and spatial indices.",
+    )
+    _boost_variant(
+        "phoenix",
+        when="@1.47.0:",
+        description="Define small unnamed function objects at the actual call site, and more.",
+    )
+    # fmt: off
+    _boost_variant(
+        "ratio",
+        when="@1.47.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Ratio requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Ratio requires cxxstd >= 11"},
+        ],
+        description="Compile-time rational arithmetic.",
+    )
+    # fmt: on
     _boost_variant(
         "container",
         # Can be both header-only and compiled. '+container' indicates the
@@ -627,6 +664,18 @@ def load():
         ],
         description="Lightweight error-handling",
     )
+    # fmt: off
+    _boost_variant(
+        "pfr",
+        when="@1.75.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.PFR requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.PFR requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.PFR requires cxxstd >= 14"},
+        ],
+        description="Basic reflection for user defined types.",
+    )
+    # fmt: on
     _boost_variant(
         "url",
         when="@1.81.0:",
