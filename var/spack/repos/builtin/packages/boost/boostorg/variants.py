@@ -192,6 +192,11 @@ def load():
         description="Octonions.",
     )
     _boost_variant(
+        "operators",
+        when="@1.9.0:",
+        description="Templates ease arithmetic classes and iterators.",
+    )
+    _boost_variant(
         "parameter",
         conflicts=[
             {"when": "cxxstd=98", "msg": "Boost.Parameter requires at least c++03"},
@@ -214,6 +219,15 @@ def load():
     _boost_variant(
         "pic",
         description="Build Boost libraries with position-independent code (PIC)",
+    )
+    _boost_variant(
+        "preprocessor",
+        when="@1.26.0:",
+        conflicts=[
+            {"when": "@1.75.0: cxxstd=98", "msg": "Boost.Preprocessor requires cxxstd >= 11"},
+            {"when": "@1.75.0: cxxstd=03", "msg": "Boost.Preprocessor requires cxxstd >= 11"},
+        ],
+        description="Preprocessor metaprogramming tools including repetition and recursion.",
     )
     _boost_variant(
         "quaternions",
@@ -374,6 +388,11 @@ def load():
     _boost_variant(
         "geometry",
         when="@1.47.0:",
+        conflicts=[
+            {"when": "@1.75.0: cxxstd=98", "msg": "Boost.Geometry requires cxxstd >= 14"},
+            {"when": "@1.75.0: cxxstd=03", "msg": "Boost.Geometry requires cxxstd >= 14"},
+            {"when": "@1.75.0: cxxstd=11", "msg": "Boost.Geometry requires cxxstd >= 14"},
+        ],
         description="Geometric algorithms, primitives, and spatial indices.",
     )
     _boost_variant(
