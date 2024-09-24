@@ -215,6 +215,15 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "test",
+        when="@1.21.0:",
+        buildable="@1.21.0:",
+        description=(
+            "Support for simple program testing, full unit testing, and for program execution"
+            " monitoring."
+        ),
+    )
+    _boost_variant(
         "math",
         when="@1.23.0:",
         buildable="@1.23.0:",
