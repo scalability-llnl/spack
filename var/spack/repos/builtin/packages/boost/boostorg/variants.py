@@ -151,8 +151,26 @@ def load():
         description="A framework for defining streams, stream buffers and i/o filters.",
     )
     _boost_variant(
+        "lexical_cast",
+        when="@1.20.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.LexicalCast requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.LexicalCast requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+math", "when": "@:1.76.0", "msg": "Boost.LexicalCast requires Boost.Math"}
+        ],
+        description=(
+            "General literal text conversions, such as an int represented a string, or vice-versa."
+        ),
+    )
+    _boost_variant(
         "math",
         buildable="@1.23.0:",
+        conflicts=[
+            {"when": "@1.76.0: cxxstd=98", "msg": "Boost.Math requires at least c++11"},
+            {"when": "@1.76.0: cxxstd=03", "msg": "Boost.Math requires at least c++11"},
+        ],
         requires=[
             {"spec": "+octonions", "msg": "Boost.Math requires Math.Octonions (+octonions)"},
             {"spec": "+quaternions", "msg": "Boost.Math requires Math.Quaternions (+quaternions)"},
@@ -515,6 +533,10 @@ def load():
     _boost_variant(
         "multiprecision",
         when="@1.53.0:",
+        conflicts=[
+            {"when": "@1.76.0: cxxstd=98", "msg": "Boost.Multiprecision requires cxxstd >= 11"},
+            {"when": "@1.76.0: cxxstd=03", "msg": "Boost.Multiprecision requires cxxstd >= 11"},
+        ],
         description=(
             "Extended precision arithmetic for floating point, integer, and rational types."
         ),
