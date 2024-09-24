@@ -117,6 +117,7 @@ def load():
         default=False,
         description="Build in debug mode",
     )
+    # fmt: on
     _boost_variant(
         "icu",
         default=False,
@@ -126,6 +127,7 @@ def load():
         ],
         description="Enable Unicode support via ICU",
     )
+    # fmt: off
     _boost_variant(
         "pic",
         description="Generate binaries with position-independent code (PIC)",
@@ -146,7 +148,6 @@ def load():
         default=False,
         description="Disable use of multiple threads",
     )
-    # fmt: on
     _boost_variant(
         "taggedlayout",
         default=False,
@@ -204,6 +205,17 @@ def load():
         description="Type traits and math functions for integral values",
     )
     # fmt: on
+    _boost_variant(
+        "operators",
+        when="@1.9.0:",
+        conflicts=[
+            {"when": "cxxstd=2a", "msg": "Boost.Operators requires cxxstd <= 17"},
+            {"when": "cxxstd=20", "msg": "Boost.Operators requires cxxstd <= 17"},
+            {"when": "cxxstd=23", "msg": "Boost.Operators requires cxxstd <= 17"},
+            {"when": "cxxstd=26", "msg": "Boost.Operators requires cxxstd <= 17"},
+        ],
+        description="CRTP helpers to define arithmetic operators for a class",
+    )
     _boost_variant(
         "timer",
         when="@1.9.0:",
@@ -371,10 +383,10 @@ def load():
         "preprocessor",
         when="@1.26.0:",
         conflicts=[
-            {"when": "cxxstd=98", "msg": "Boost.thread requires cxxstd >= 11"},
-            {"when": "cxxstd=03", "msg": "Boost.thread requires cxxstd >= 11"},
+            {"when": "@1.75.0: cxxstd=98", "msg": "Boost.Preprocessor requires cxxstd >= 11"},
+            {"when": "@1.75.0: cxxstd=03", "msg": "Boost.Preprocessor requires cxxstd >= 11"},
         ],
-        description="Portable C++ multi-threading",
+        description="Preprocessor metaprogramming tools including repetition and recursion.",
     )
     _boost_variant(
         "date_time",
@@ -615,6 +627,7 @@ def load():
         when="@1.47.0:",
         description="Functional programming for C++",
     )
+    # fmt: off
     _boost_variant(
         "ratio",
         when="@1.47.0:",
