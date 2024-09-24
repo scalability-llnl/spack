@@ -143,7 +143,7 @@ class Boost(Package):
         #        "signals",
         #        "stacktrace",
         "system",
-        "test",
+        #        "test",
         "thread",
         "timer",
         "type_erasure",

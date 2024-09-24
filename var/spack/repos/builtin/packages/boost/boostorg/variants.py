@@ -486,4 +486,13 @@ def load():
         buildable="@1.65.0:",
         description="Gather, store, copy and print backtraces.",
     )
+    _boost_variant(
+        "test",
+        when="@1.21.0:",
+        buildable="@1.21.0:",
+        description=(
+            "Support for simple program testing, full unit testing, and for program execution"
+            " monitoring."
+        ),
+    )
     return library_names
