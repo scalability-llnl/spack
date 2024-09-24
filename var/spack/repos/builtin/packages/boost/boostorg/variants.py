@@ -236,6 +236,18 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "test",
+        when="@1.21.0:",
+        buildable="@1.21.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.test requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.test requires cxxstd >= 11"},
+        ],
+        description=(
+            "Simple program testing, full unit testing, and program execution monitoring"
+        ),
+    )
+    _boost_variant(
         "math",
         when="@1.23.0:",
         buildable="@1.23.0:",
