@@ -236,6 +236,9 @@ def load():
     )
     _boost_variant(
         "shared",
+        requires=[
+            {"spec": "+pic", "msg": "Cannot build non-PIC shared libraries."},
+        ],
         description="Build Boost libraries as shared libraries (DSO, DLL, etc.)",
     )
     _boost_variant(
