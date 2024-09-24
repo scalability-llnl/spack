@@ -228,6 +228,11 @@ def load():
         description="Parse command-line options similar to POSIX getops or from config files.",
     )
     _boost_variant(
+        "property_map",
+        when="@1.19.0:",
+        description="Concepts defining interfaces which map key objects to value objects.",
+    )
+    _boost_variant(
         "python",
         default=False,
         buildable="@1.19.0:",
@@ -919,6 +924,44 @@ def load():
         description="Basic reflection for user defined types.",
     )
     # fmt: on
+    _boost_variant(
+        "describe",
+        when="@1.77.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Describe requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.Describe requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.Describe requires cxxstd >= 14"},
+        ],
+        description="A C++14 reflection library.",
+    )
+    _boost_variant(
+        "lambda2",
+        when="@1.77.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.lambda2 requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.lambda2 requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.lambda2 requires cxxstd >= 14"},
+        ],
+        description="A C++14 lambda library.",
+    )
+    _boost_variant(
+        "property_map_parallel",
+        default=False,
+        when="@1.77.0:",
+        # fmt: off
+        requires=[
+            {
+                "spec": "+graph_parallel",
+                "msg": "Boost.PropertyMap (Parallel) requires Boost.GraphParallel"
+            },
+            {
+                "spec": "+property_map",
+                "msg": "Boost.PropertyMap (Parallel) requires Boost.PropertyMap"
+            }
+        ],
+        # fmt: on
+        description="Parallel extensions to Property Map for use with Parallel Graph.",
+    )
     _boost_variant(
         "url",
         when="@1.81.0:",
