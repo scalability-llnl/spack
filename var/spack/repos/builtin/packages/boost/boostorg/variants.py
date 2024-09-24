@@ -210,12 +210,11 @@ def load():
         buildable="@1.19.0:",
         description="C++ wrapper for interacting with Python.",
     )
+    # fmt: off
     _boost_variant(
         "pic",
-        default=False,
         description="Build Boost libraries with position-independent code (PIC)",
     )
-    # fmt: off
     _boost_variant(
         "quaternions",
         description="Quaternions.",
