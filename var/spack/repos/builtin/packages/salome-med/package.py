@@ -32,20 +32,13 @@ class SalomeMed(CMakePackage):
     variant("mpi", default=False, description="Enable MPI")
     variant("static", default=False, description="Enable static library build")
     variant("fortran", default=False, description="Enable Fortran")
+    variant("int64", default=False, description="Use 64-bit integers as indices.")
 
     depends_on("mpi", when="+mpi")
 
-    depends_on("hdf5@1.10.3+mpi", when="@4.1.0+mpi")
-    depends_on("hdf5@1.10.3~mpi", when="@4.1.0~mpi")
-
-    depends_on("hdf5@1.10.3+mpi", when="@4.0.0+mpi")
-    depends_on("hdf5@1.10.3~mpi", when="@4.0.0~mpi")
-
-    depends_on("hdf5@1.8.14+mpi", when="@3.3.1+mpi")
-    depends_on("hdf5@1.8.14~mpi", when="@3.3.1~mpi")
-
-    depends_on("hdf5@1.8.14+mpi", when="@3.2.0+mpi")
-    depends_on("hdf5@1.8.14~mpi", when="@3.2.0~mpi")
+    for _mpi_flag in ("~mpi", "+mpi"):
+        depends_on("hdf5@1.10.3{}".format(_mpi_flag), when="@4.0.0:4.1.0{}".format(_mpi_flag))
+        depends_on("hdf5@1.8.14{}".format(_mpi_flag), when="@3.2.0:3.3.1{}".format(_mpi_flag))
 
     patch("MAJ_400_410_champs.patch", when="@4.1.0+static", working_dir="./tools/medimport/4.0.0")
 
@@ -84,6 +77,11 @@ class SalomeMed(CMakePackage):
             options.extend(["-DCMAKE_Fortran_COMPILER=%s" % self.compiler.fc])
         else:
             options.extend(["-DCMAKE_Fortran_COMPILER="])
+
+        if "+int64" in spec:
+            options.append("-DMED_MEDINT_TYPE=long")
+        else:
+            options.append("-DMED_MEDINT_TYPE=int")
 
         options.extend(
             [
