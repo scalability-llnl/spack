@@ -20,6 +20,12 @@ class SalomeMed(CMakePackage):
 
     license("LGPL-3.0-only")
 
+    version(
+        "5.0.0",
+        sha256="267e76d0c67ec51c10e3199484ec1508baa8d5ed845c628adf660529dce7a3d4",
+        url="ftp://ftp.cea.fr/pub/salome/prerequisites/med-5.0.0.tar.bz2",
+    )
+    version("4.1.1", sha256="a082b705d1aafe95d3a231d12c57f0b71df554c253e190acca8d26fc775fb1e6")
     version("4.1.0", sha256="847db5d6fbc9ce6924cb4aea86362812c9a5ef6b9684377e4dd6879627651fce")
     version("4.0.0", sha256="a474e90b5882ce69c5e9f66f6359c53b8b73eb448c5f631fa96e8cd2c14df004")
     version("3.3.1", sha256="856e9c4bb75eb0cceac3d5a5c65b1ce52fb3c46b9182920e1c9f34ae69bd2d5f")
@@ -36,9 +42,10 @@ class SalomeMed(CMakePackage):
 
     depends_on("mpi", when="+mpi")
 
-    for _mpi_flag in ("~mpi", "+mpi"):
-        depends_on("hdf5@1.10.3{}".format(_mpi_flag), when="@4.0.0:4.1.0{}".format(_mpi_flag))
-        depends_on("hdf5@1.8.14{}".format(_mpi_flag), when="@3.2.0:3.3.1{}".format(_mpi_flag))
+    for _mpi_variant in ("~mpi", "+mpi"):
+        depends_on(f"hdf5@1.12{_mpi_variant}", when=f"@5:{_mpi_variant}")
+        depends_on(f"hdf5@1.10{_mpi_variant}", when=f"@4{_mpi_variant}")
+        depends_on(f"hdf5@1.8{_mpi_variant}", when=f"@3{_mpi_variant}")
 
     patch("MAJ_400_410_champs.patch", when="@4.1.0+static", working_dir="./tools/medimport/4.0.0")
 
