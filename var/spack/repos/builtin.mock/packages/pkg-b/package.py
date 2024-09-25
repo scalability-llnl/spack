@@ -18,4 +18,5 @@ class PkgB(Package):
         "foo", description="", values=any_combination_of("bar", "baz", "fee").with_default("bar")
     )
 
+    depends_on("c", type="build")
     depends_on("test-dependency", type="test")

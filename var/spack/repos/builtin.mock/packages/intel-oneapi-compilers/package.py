@@ -26,6 +26,8 @@ class IntelOneapiCompilers(Package, CompilerPackage):
         r"(?:(?:oneAPI DPC\+\+(?:\/C\+\+)? Compiler)|(?:\(IFORT\))|(?:\(IFX\))) (\S+)"
     )
 
+    depends_on("c", type="build")
+
     @property
     def compiler_search_prefix(self):
         return self.prefix.foo.bar.baz.bin
