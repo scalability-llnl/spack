@@ -14,6 +14,7 @@ import archspec.cpu
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 
+import spack.compilers.libraries
 import spack.package_base
 import spack.paths
 import spack.util.executable
@@ -101,6 +102,7 @@ class CompilerPackage(spack.package_base.PackageBase):
                     f"[{__file__}] Cannot detect a valid version for the executable "
                     f"{str(exe)}, for package '{cls.name}': {e}"
                 )
+        return ""
 
     @classmethod
     def compiler_bindir(cls, prefix: Path) -> Path:
@@ -199,6 +201,9 @@ class CompilerPackage(spack.package_base.PackageBase):
             ("fortran", "fortran", "F77", "SPACK_F77"),
             ("fortran", "fortran", "FC", "SPACK_FC"),
         ]:
+            if language not in dependent_spec or dependent_spec[language].name != self.spec.name:
+                continue
+
             if not hasattr(self, attr_name):
                 continue
 
@@ -210,12 +215,14 @@ class CompilerPackage(spack.package_base.PackageBase):
 
             wrapper_path = link_dir / self.link_paths.get(language)
             env.set(wrapper_var_name, str(wrapper_path))
+            env.set(f"SPACK_{wrapper_var_name}_RPATH_ARG", self.rpath_arg)
 
-        env.set("SPACK_CC_RPATH_ARG", self.rpath_arg)
-        env.set("SPACK_CXX_RPATH_ARG", self.rpath_arg)
-        env.set("SPACK_F77_RPATH_ARG", self.rpath_arg)
-        env.set("SPACK_FC_RPATH_ARG", self.rpath_arg)
         env.set("SPACK_LINKER_ARG", self.linker_arg)
+
+        detector = spack.compilers.libraries.CompilerPropertyDetector(self.spec)
+        paths = detector.implicit_rpaths()
+        if paths:
+            env.set("SPACK_COMPILER_IMPLICIT_RPATHS", ":".join(paths))
 
         # Check whether we want to force RPATH or RUNPATH
         if spack.config.CONFIG.get("config:shared_linking:type") == "rpath":
@@ -239,14 +246,9 @@ class CompilerPackage(spack.package_base.PackageBase):
         env.set("SPACK_COMPILER_SPEC", spec.format("{name}{@version}{variants}{/hash:7}"))
 
         if spec.extra_attributes:
-            environment = spec.extra_attributes.get("environment")
-            if environment:
-                env.extend(spack.schema.environment.parse(environment))
-
             extra_rpaths = spec.extra_attributes.get("extra_rpaths")
             if extra_rpaths:
-                extra_rpaths = ":".join(compiler.extra_rpaths)
-                env.set("SPACK_COMPILER_EXTRA_RPATHS", extra_rpaths)
+                env.append_path("SPACK_COMPILER_EXTRA_RPATHS", ":".join(extra_rpaths))
 
         # Add spack build environment path with compiler wrappers first in
         # the path. We add the compiler wrapper path, which includes default
