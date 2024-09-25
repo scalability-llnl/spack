@@ -9,3 +9,6 @@ class PkgB(Package):
     has_code = False
 
     version("1.0")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
