@@ -1053,7 +1053,7 @@ def environment_after_sourcing_files(
         cmd = " ".join(cmd) if sys.platform == "win32" else cmd
 
         with subprocess.Popen(
-            cmd, env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            cmd, env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ) as shell:
             output, _ = shell.communicate()
 
