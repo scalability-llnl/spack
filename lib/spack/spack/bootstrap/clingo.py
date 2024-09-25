@@ -15,8 +15,7 @@ from typing import Dict, Optional, Tuple
 
 import archspec.cpu
 
-import spack.compiler
-import spack.compilers
+import spack.compilers.config
 import spack.platforms
 import spack.spec
 import spack.traverse
@@ -38,7 +37,7 @@ class ClingoBootstrapConcretizer:
 
         self.external_cmake, self.external_bison = self._externals_from_yaml(configuration)
 
-    def _valid_compiler_or_raise(self) -> "spack.compiler.Compiler":
+    def _valid_compiler_or_raise(self):
         if str(self.host_platform) == "linux":
             compiler_name = "gcc"
         elif str(self.host_platform) == "darwin":
@@ -49,7 +48,7 @@ class ClingoBootstrapConcretizer:
             compiler_name = "clang"
         else:
             raise RuntimeError(f"Cannot bootstrap clingo from sources on {self.host_platform}")
-        candidates = spack.compilers.compilers_for_spec(
+        candidates = spack.compilers.config.compilers_for_spec(
             compiler_name, arch_spec=self.host_architecture
         )
         if not candidates:

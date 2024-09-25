@@ -11,6 +11,7 @@ import llnl.util.tty as tty
 
 import spack.build_environment
 import spack.builder
+import spack.compilers.libraries
 import spack.error
 import spack.package_base
 import spack.phase_callbacks
@@ -398,33 +399,44 @@ To resolve this problem, please try the following:
             markers[tag] = "LIBTOOL TAG CONFIG: {0}".format(tag.upper())
 
         # Replace empty linker flag prefixes:
-        if self.pkg.compiler.name == "nag":
+        if self.spec.satisfies("%nag"):
             # Nag is mixed with gcc and g++, which are recognized correctly.
             # Therefore, we change only Fortran values:
+            nag_pkg = self.spec["fortran"].package
             for tag in ["fc", "f77"]:
                 marker = markers[tag]
                 x.filter(
                     regex='^wl=""$',
-                    repl='wl="{0}"'.format(self.pkg.compiler.linker_arg),
-                    start_at="# ### BEGIN {0}".format(marker),
-                    stop_at="# ### END {0}".format(marker),
+                    repl=f'wl="{nag_pkg.linker_arg}"',
+                    start_at=f"# ### BEGIN {marker}",
+                    stop_at=f"# ### END {marker}",
                 )
         else:
-            x.filter(regex='^wl=""$', repl='wl="{0}"'.format(self.pkg.compiler.linker_arg))
+            compiler_spec = spack.compilers.libraries.compiler_spec(self.spec)
+            if compiler_spec:
+                x.filter(regex='^wl=""$', repl='wl="{0}"'.format(compiler_spec.package.linker_arg))
 
         # Replace empty PIC flag values:
-        for cc, marker in markers.items():
+        for compiler, marker in markers.items():
+            if compiler == "cc":
+                language = "c"
+            elif compiler == "cxx":
+                language = "cxx"
+            else:
+                language = "fortran"
+
+            if language not in self.spec:
+                continue
+
             x.filter(
                 regex='^pic_flag=""$',
-                repl='pic_flag="{0}"'.format(
-                    getattr(self.pkg.compiler, "{0}_pic_flag".format(cc))
-                ),
-                start_at="# ### BEGIN {0}".format(marker),
-                stop_at="# ### END {0}".format(marker),
+                repl=f'pic_flag="{self.spec[language].package.pic_flag}"',
+                start_at=f"# ### BEGIN {marker}",
+                stop_at=f"# ### END {marker}",
             )
 
         # Other compiler-specific patches:
-        if self.pkg.compiler.name == "fj":
+        if self.spec.satisfies("%fj"):
             x.filter(regex="-nostdlib", repl="", string=True)
             rehead = r"/\S*/"
             for o in [
@@ -437,7 +449,7 @@ To resolve this problem, please try the following:
                 r"crtendS\.o",
             ]:
                 x.filter(regex=(rehead + o), repl="")
-        elif self.pkg.compiler.name == "nag":
+        elif self.spec.satisfies("%nag"):
             for tag in ["fc", "f77"]:
                 marker = markers[tag]
                 start_at = "# ### BEGIN {0}".format(marker)

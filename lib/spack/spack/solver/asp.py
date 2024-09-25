@@ -27,9 +27,8 @@ from llnl.util.lang import elide_list
 
 import spack
 import spack.binary_distribution
-import spack.compiler
-import spack.compilers
-import spack.concretize
+import spack.compilers.config
+import spack.compilers.flags
 import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
@@ -49,6 +48,7 @@ import spack.variant as vt
 import spack.version as vn
 import spack.version.git_ref_lookup
 from spack import traverse
+from spack.compilers.libraries import CompilerPropertyDetector
 
 from .core import (
     AspFunction,
@@ -71,10 +71,6 @@ from .version_order import concretization_version_order
 GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVersion]
 
 TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunction]]
-
-#: Enable the addition of a runtime node
-WITH_RUNTIME = sys.platform != "win32"
-
 
 class OutputConfiguration(NamedTuple):
     """Data class that contains configuration on what a clingo solve should output."""
@@ -281,7 +277,7 @@ def all_libcs() -> Set[spack.spec.Spec]:
 
     libcs = {
         CompilerPropertyDetector(c).default_libc()
-        for c in spack.compilers.all_compilers_from(spack.config.CONFIG)
+        for c in spack.compilers.config.all_compilers_from(spack.config.CONFIG)
     }
     libcs.discard(None)
 
@@ -305,7 +301,7 @@ def using_libc_compatibility() -> bool:
     return spack.platforms.host().name == "linux"
 
 
-def c_compiler_runs(compiler: spack.compiler.Compiler) -> bool:
+def c_compiler_runs(compiler) -> bool:
     return CompilerPropertyDetector(compiler).compiler_verbose_output() is not None
 
 
@@ -596,7 +592,7 @@ def _external_config_with_implicit_externals(configuration):
     if not using_libc_compatibility():
         return packages_yaml
 
-    for compiler in spack.compilers.all_compilers_from(configuration):
+    for compiler in spack.compilers.config.all_compilers_from(configuration):
         libc = CompilerPropertyDetector(compiler).default_libc()
         if libc:
             entry = {"spec": f"{libc}", "prefix": libc.external_path}
@@ -738,27 +734,6 @@ class ErrorHandler:
             )
             raise spack.error.SpackError(msg) from e
         raise UnsatisfiableSpecError(msg)
-
-
-class KnownCompiler(NamedTuple):
-    """Data class to collect information on compilers"""
-
-    spec: spack.spec.Spec
-    os: str
-    target: Optional[str]
-    available: bool
-    compiler_obj: Optional[spack.compiler.Compiler]
-
-    def _key(self):
-        return self.spec, self.os, self.target
-
-    def __eq__(self, other: object):
-        if not isinstance(other, KnownCompiler):
-            return NotImplemented
-        return self._key() == other._key()
-
-    def __hash__(self):
-        return hash(self._key())
 
 
 class PyclingoDriver:
@@ -2300,7 +2275,9 @@ class SpackSolverSetup:
             try:
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    target.optimization_flags(compiler_name, str(compiler_version))
+                    target.optimization_flags(
+                        compiler_name, compiler_version.dotted_numeric_string
+                    )
                 supported.append(target)
             except archspec.cpu.UnsupportedMicroarchitecture:
                 continue
@@ -2716,9 +2693,8 @@ class SpackSolverSetup:
         self.gen.h1("Variant Values defined in specs")
         self.define_variant_values()
 
-        if WITH_RUNTIME:
-            self.gen.h1("Runtimes")
-            self.define_runtime_constraints()
+        self.gen.h1("Runtimes")
+        self.define_runtime_constraints()
 
         self.gen.h1("Version Constraints")
         self.collect_virtual_constraints()
@@ -2768,13 +2744,16 @@ class SpackSolverSetup:
                 # Inject default flags for compilers
                 recorder("*").default_flags(compiler)
 
+            if not using_libc_compatibility():
+                continue
+
             current_libc = CompilerPropertyDetector(compiler).default_libc()
             # If this is a compiler yet to be built infer libc from the Python process
             # FIXME (compiler as nodes): recover this use case
             # if not current_libc and compiler.compiler_obj.cc is None:
             #    current_libc = spack.util.libc.libc_from_current_python_process()
 
-            if using_libc_compatibility() and current_libc:
+            if current_libc:
                 recorder("*").depends_on(
                     "libc",
                     when=f"%{compiler.name}@{compiler.versions}",
@@ -2924,8 +2903,6 @@ class _Head:
     node_os = fn.attr("node_os_set")
     node_target = fn.attr("node_target_set")
     variant_value = fn.attr("variant_set")
-    node_compiler = fn.attr("node_compiler_set")
-    node_compiler_version = fn.attr("node_compiler_version_set")
     node_flag = fn.attr("node_flag_set")
     propagate = fn.attr("propagate")
 
@@ -2940,8 +2917,6 @@ class _Body:
     node_os = fn.attr("node_os")
     node_target = fn.attr("node_target")
     variant_value = fn.attr("variant_value")
-    node_compiler = fn.attr("node_compiler")
-    node_compiler_version = fn.attr("node_compiler_version")
     node_flag = fn.attr("node_flag")
     propagate = fn.attr("propagate")
 
@@ -2994,7 +2969,7 @@ class ProblemInstanceBuilder:
 
 def possible_compilers(*, configuration) -> List["spack.spec.Spec"]:
     result = set()
-    for c in spack.compilers.all_compilers_from(configuration):
+    for c in spack.compilers.config.all_compilers_from(configuration):
         # FIXME (compiler as nodes): Discard early specs that are not marked for this target?
 
         if using_libc_compatibility() and not c_compiler_runs(c):
@@ -3013,10 +2988,7 @@ def possible_compilers(*, configuration) -> List["spack.spec.Spec"]:
             continue
 
         if c in result:
-            warnings.warn(
-                f"duplicate found for {c.spec} on {c.operating_system}/{c.target}. "
-                f"Edit your compilers.yaml configuration to remove it."
-            )
+            warnings.warn(f"duplicate {c} compiler found. Edit your packages.yaml to remove it.")
             continue
 
         result.add(c)
@@ -3125,15 +3097,20 @@ class RuntimePropertyRecorder:
 
         self.reset()
 
+    @staticmethod
+    def node_for(name: str) -> str:
+        return f'node(ID{name.replace("-", "_")}, "{name}")'
+
     def rule_body_from(self, when_spec: "spack.spec.Spec") -> Tuple[str, str]:
         """Computes the rule body from a "when" spec, and returns it, along with the
         node variable.
         """
+
         node_placeholder = "XXX"
         node_variable = "node(ID, Package)"
         when_substitutions = {}
         for s in when_spec.traverse(root=False):
-            when_substitutions[f'"{s.name}"'] = f'node(ID{s.name}, "{s.name}")'
+            when_substitutions[f'"{s.name}"'] = self.node_for(s.name)
         when_spec.name = node_placeholder
         body_clauses = self._setup.spec_clauses(when_spec, body=True)
         for clause in body_clauses:
@@ -3188,7 +3165,7 @@ class RuntimePropertyRecorder:
 
         when_substitutions = {}
         for s in when_spec.traverse(root=False):
-            when_substitutions[f'"{s.name}"'] = f'node(ID{s.name}, "{s.name}")'
+            when_substitutions[f'"{s.name}"'] = self.node_for(s.name)
 
         body_str, node_variable = self.rule_body_from(when_spec)
         constraint_spec = spack.spec.Spec(constraint_str)
@@ -3273,7 +3250,6 @@ class SpecBuilder:
                 r"^compatible_libc$",
                 r"^dependency_holds$",
                 r"^external_conditions_hold$",
-                r"^node_compiler$",
                 r"^package_hash$",
                 r"^root$",
                 r"^track_dependencies$",
@@ -3353,10 +3329,6 @@ class SpecBuilder:
 
     def version(self, node, version):
         self._specs[node].versions = vn.VersionList([vn.Version(version)])
-
-    def node_compiler_version(self, node, compiler, version):
-        self._specs[node].compiler = spack.spec.CompilerSpec(compiler)
-        self._specs[node].compiler.versions = vn.VersionList([vn.Version(version)])
 
     def node_flag(self, node, node_flag):
         self._specs[node].compiler_flags.add_flag(
@@ -3467,7 +3439,7 @@ class SpecBuilder:
 
                 for grp in prioritized_groups:
                     grp_flags = tuple(
-                        x for (x, y) in spack.compiler.tokenize_flags(grp.flag_group)
+                        x for (x, y) in spack.compilers.flags.tokenize_flags(grp.flag_group)
                     )
                     if grp_flags == from_compiler:
                         continue
@@ -3535,9 +3507,8 @@ class SpecBuilder:
             return (-1, 0)
 
     def build_specs(self, function_tuples):
-        # Functions don't seem to be in particular order in output.  Sort
-        # them here so that directives that build objects (like node and
-        # node_compiler) are called in the right order.
+        # Functions don't seem to be in particular order in output. Sort them here so that
+        # directives that build objects, like node, are called in the right order.
         self.function_tuples = sorted(set(function_tuples), key=self.sort_fn)
         self._specs = {}
         for name, args in self.function_tuples:
@@ -3737,9 +3708,6 @@ def _is_reusable(spec: spack.spec.Spec, packages, local: bool) -> bool:
 
 
 def _has_runtime_dependencies(spec: spack.spec.Spec) -> bool:
-    if not WITH_RUNTIME:
-        return True
-
     if "gcc" in spec and "gcc-runtime" not in spec:
         return False
 

@@ -35,8 +35,7 @@ from llnl.util.filesystem import copy_tree, mkdirp, remove_linked_tree, touchp, 
 import spack.binary_distribution
 import spack.bootstrap.core
 import spack.caches
-import spack.compiler
-import spack.compilers
+import spack.compilers.libraries
 import spack.concretize
 import spack.config
 import spack.directives_meta
@@ -48,7 +47,6 @@ import spack.paths
 import spack.platforms
 import spack.repo
 import spack.solver.asp
-import spack.solver.libc
 import spack.spec
 import spack.stage
 import spack.store
@@ -296,23 +294,6 @@ def archspec_host_is_spack_test_host(monkeypatch):
     monkeypatch.setattr(archspec.cpu, "host", _host)
 
 
-#
-# Disable checks on compiler executable existence
-#
-@pytest.fixture(scope="function", autouse=True)
-def mock_compiler_executable_verification(request, monkeypatch):
-    """Mock the compiler executable verification to allow missing executables.
-
-    This fixture can be disabled for tests of the compiler verification
-    functionality by::
-
-        @pytest.mark.enable_compiler_verification
-
-    If a test is marked in that way this is a no-op."""
-    if "enable_compiler_verification" not in request.keywords:
-        monkeypatch.setattr(spack.compiler.Compiler, "verify_executables", _return_none)
-
-
 # Hooks to add command line options or set other custom behaviors.
 # They must be placed here to be found by pytest. See:
 #
@@ -502,22 +483,20 @@ def mock_binary_index(monkeypatch, tmpdir_factory):
 
 
 @pytest.fixture(autouse=True)
-def _skip_if_missing_executables(request):
+def _skip_if_missing_executables(request, monkeypatch):
     """Permits to mark tests with 'require_executables' and skip the
     tests if the executables passed as arguments are not found.
     """
-    if hasattr(request.node, "get_marker"):
-        # TODO: Remove the deprecated API as soon as we drop support for Python 2.6
-        marker = request.node.get_marker("requires_executables")
-    else:
-        marker = request.node.get_closest_marker("requires_executables")
-
+    marker = request.node.get_closest_marker("requires_executables")
     if marker:
         required_execs = marker.args
         missing_execs = [x for x in required_execs if spack.util.executable.which(x) is None]
         if missing_execs:
             msg = "could not find executables: {0}"
             pytest.skip(msg.format(", ".join(missing_execs)))
+
+        # In case we require a compiler, clear the caches used to speed-up detection
+        monkeypatch.setattr(spack.compilers.libraries.DefaultDynamicLinkerFilter, "_CACHE", {})
 
 
 @pytest.fixture(scope="session")
@@ -962,26 +941,11 @@ def _return_none(*args):
     return None
 
 
-def _compiler_output(self):
-    return ""
-
-
-def _get_real_version(self):
-    return str(self.version)
-
-
-@pytest.fixture(scope="function", autouse=True)
-def disable_compiler_execution(monkeypatch, request):
-    """Disable compiler execution to determine implicit link paths and libc flavor and version.
-    To re-enable use `@pytest.mark.enable_compiler_execution`"""
-    if "enable_compiler_execution" not in request.keywords:
-        monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _compiler_output)
-        monkeypatch.setattr(spack.compiler.Compiler, "get_real_version", _get_real_version)
-
-
 @pytest.fixture(autouse=True)
 def disable_compiler_output_cache(monkeypatch):
-    monkeypatch.setattr(spack.compiler, "COMPILER_CACHE", spack.compiler.CompilerCache())
+    monkeypatch.setattr(
+        spack.compilers.libraries, "COMPILER_CACHE", spack.compilers.libraries.CompilerCache()
+    )
 
 
 @pytest.fixture(scope="function")
@@ -2108,11 +2072,11 @@ def do_not_check_runtimes_on_reuse(monkeypatch):
 def _c_compiler_always_exists():
     fn = spack.solver.asp.c_compiler_runs
     spack.solver.asp.c_compiler_runs = _true
-    mthd = spack.solver.libc.CompilerPropertyDetector.default_libc
-    spack.solver.libc.CompilerPropertyDetector.default_libc = _libc_from_python
+    mthd = spack.compilers.libraries.CompilerPropertyDetector.default_libc
+    spack.compilers.libraries.CompilerPropertyDetector.default_libc = _libc_from_python
     yield
     spack.solver.asp.c_compiler_runs = fn
-    spack.solver.libc.CompilerPropertyDetector.default_libc = mthd
+    spack.compilers.libraries.CompilerPropertyDetector.default_libc = mthd
 
 
 @pytest.fixture(scope="session")
