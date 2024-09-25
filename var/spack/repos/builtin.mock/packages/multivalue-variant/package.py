@@ -41,3 +41,5 @@ class MultivalueVariant(Package):
     depends_on("callpath")
     depends_on("pkg-a")
     depends_on("pkg-a@1.0", when="fee=barbaz")
+
+    depends_on("c", type="build")
