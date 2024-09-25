@@ -16,7 +16,7 @@ import pytest
 import spack
 import spack.cmd
 import spack.cmd.external
-import spack.compilers
+import spack.compilers.config
 import spack.cray_manifest as cray_manifest
 import spack.platforms
 import spack.platforms.test
@@ -306,7 +306,7 @@ def test_translate_compiler_name(_common_arch):
 def test_failed_translate_compiler_name(_common_arch):
     unknown_compiler = JsonCompilerEntry(name="unknown", version="1.0")
 
-    with pytest.raises(spack.compilers.UnknownCompilerError):
+    with pytest.raises(spack.compilers.config.UnknownCompilerError):
         compiler_from_entry(unknown_compiler.compiler_json(), "/example/file")
 
     spec_json = JsonSpecEntry(
@@ -320,7 +320,7 @@ def test_failed_translate_compiler_name(_common_arch):
         parameters={},
     ).to_dict()
 
-    with pytest.raises(spack.compilers.UnknownCompilerError):
+    with pytest.raises(spack.compilers.config.UnknownCompilerError):
         entries_to_specs([spec_json])
 
 
@@ -366,7 +366,7 @@ def test_read_cray_manifest_add_compiler_failure(
     """Check that cray manifest can be read even if some compilers cannot
     be added.
     """
-    orig_add_compiler_to_config = spack.compilers.add_compiler_to_config
+    orig_add_compiler_to_config = spack.compilers.config.add_compiler_to_config
 
     class fail_for_clang:
         def __init__(self):
@@ -379,7 +379,7 @@ def test_read_cray_manifest_add_compiler_failure(
             return orig_add_compiler_to_config(compiler, **kwargs)
 
     checker = fail_for_clang()
-    monkeypatch.setattr(spack.compilers, "add_compiler_to_config", checker)
+    monkeypatch.setattr(spack.compilers.config, "add_compiler_to_config", checker)
 
     with tmpdir.as_cwd():
         test_db_fname = "external-db.json"
@@ -404,7 +404,7 @@ def test_read_cray_manifest_twice_no_compiler_duplicates(
         cray_manifest.read(test_db_fname, True)
         cray_manifest.read(test_db_fname, True)
 
-        compilers = spack.compilers.all_compilers()
+        compilers = spack.compilers.config.all_compilers()
         filtered = list(
             c for c in compilers if c.spec == spack.spec.CompilerSpec("gcc@=10.2.0.2112")
         )

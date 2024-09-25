@@ -32,7 +32,7 @@ import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 from llnl.util.link_tree import LinkTree
 
-import spack.compilers
+import spack.compilers.config
 import spack.config
 import spack.dependency
 import spack.deptypes as dt
@@ -1608,7 +1608,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         self.stage.create()
 
         # Fetch/expand any associated code.
-        if self.has_code:
+        if self.has_code and not self.spec.external:
             self.do_fetch(mirror_only)
             self.stage.expand_archive()
         else:
@@ -1939,7 +1939,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
     def do_test(self, dirty=False, externals=False):
         if self.test_requires_compiler:
-            compilers = spack.compilers.compilers_for_spec(
+            compilers = spack.compilers.config.compilers_for_spec(
                 self.spec.compiler, arch_spec=self.spec.architecture
             )
             if not compilers:
