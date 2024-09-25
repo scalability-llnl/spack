@@ -748,7 +748,7 @@ class EnvironmentModifications:
         null_fd = "cd %CD%" if sys.platform == "win32" else os.devnull
         # Compute the environments before and after sourcing
         before = sanitize(
-            environment_after_sourcing_files(null_fd, **kwargs), exclude=exclude, include=include,
+            environment_after_sourcing_files(null_fd, **kwargs), exclude=exclude, include=include
         )
         file_and_args = (filename,) + arguments
         after = sanitize(
@@ -1053,10 +1053,7 @@ def environment_after_sourcing_files(
         cmd = " ".join(cmd) if sys.platform == "win32" else cmd
 
         with subprocess.Popen(
-            cmd,
-            env=environment,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            cmd, env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         ) as shell:
             output, _ = shell.communicate()
 
