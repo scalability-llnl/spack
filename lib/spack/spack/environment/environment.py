@@ -23,6 +23,7 @@ from llnl.util.symlink import islink, readlink, symlink
 
 import spack
 import spack.caches
+import spack.compilers.config
 import spack.concretize
 import spack.config
 import spack.deptypes as dt

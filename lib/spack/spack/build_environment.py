@@ -70,7 +70,7 @@ import spack.build_systems.cmake
 import spack.build_systems.meson
 import spack.build_systems.python
 import spack.builder
-import spack.compilers
+import spack.compilers.libraries
 import spack.config
 import spack.deptypes as dt
 import spack.error
@@ -84,7 +84,6 @@ import spack.stage
 import spack.store
 import spack.subprocess_context
 import spack.util.executable
-import spack.util.libc
 from spack import traverse
 from spack.context import Context
 from spack.error import InstallError, NoHeadersError, NoLibrariesError
@@ -529,17 +528,15 @@ def set_wrapper_variables(pkg, env):
         lib_path = os.path.join(pkg.prefix, libdir)
         rpath_dirs.insert(0, lib_path)
 
-    # FIXME (compiler as nodes): recover this filter
-    # filter_default_dynamic_linker_search_paths = FilterDefaultDynamicLinkerSearchPaths(
-    #    pkg.compiler.default_dynamic_linker
-    # )
-
     # TODO: filter_system_paths is again wrong (and probably unnecessary due to the is_system_path
     # branch above). link_dirs should be filtered with entries from _parse_link_paths.
     link_dirs = list(dedupe(filter_system_paths(link_dirs)))
     include_dirs = list(dedupe(filter_system_paths(include_dirs)))
     rpath_dirs = list(dedupe(filter_system_paths(rpath_dirs)))
-    # rpath_dirs = filter_default_dynamic_linker_search_paths(rpath_dirs)
+
+    default_dynamic_linker_filter = spack.compilers.libraries.dynamic_linker_filter_for(pkg.spec)
+    if default_dynamic_linker_filter:
+        rpath_dirs = default_dynamic_linker_filter(rpath_dirs)
 
     # Spack managed directories include the stage, store and upstream stores. We extend this with
     # their real paths to make it more robust (e.g. /tmp vs /private/tmp on macOS).

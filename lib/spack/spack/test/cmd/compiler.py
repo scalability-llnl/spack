@@ -7,7 +7,7 @@ import shutil
 import pytest
 
 import spack.cmd.compiler
-import spack.compilers
+import spack.compilers.config
 import spack.config
 import spack.main
 import spack.spec
@@ -83,11 +83,13 @@ def test_compiler_find_without_paths(no_packages_yaml, working_env, mock_executa
 @pytest.mark.regression("37996")
 def test_compiler_remove(mutable_config, mock_packages):
     """Tests that we can remove a compiler from configuration."""
-    assert any(compiler.satisfies("gcc@=9.4.0") for compiler in spack.compilers.all_compilers())
+    assert any(
+        compiler.satisfies("gcc@=9.4.0") for compiler in spack.compilers.config.all_compilers()
+    )
     args = spack.util.pattern.Bunch(all=True, compiler_spec="gcc@9.4.0", add_paths=[], scope=None)
     spack.cmd.compiler.compiler_remove(args)
     assert not any(
-        compiler.satisfies("gcc@=9.4.0") for compiler in spack.compilers.all_compilers()
+        compiler.satisfies("gcc@=9.4.0") for compiler in spack.compilers.config.all_compilers()
     )
 
 
@@ -97,11 +99,13 @@ def test_removing_compilers_from_multiple_scopes(mutable_config, mock_packages):
     site_config = spack.config.get("packages", scope="site")
     spack.config.set("packages", site_config, scope="user")
 
-    assert any(compiler.satisfies("gcc@=9.4.0") for compiler in spack.compilers.all_compilers())
+    assert any(
+        compiler.satisfies("gcc@=9.4.0") for compiler in spack.compilers.config.all_compilers()
+    )
     args = spack.util.pattern.Bunch(all=True, compiler_spec="gcc@9.4.0", add_paths=[], scope=None)
     spack.cmd.compiler.compiler_remove(args)
     assert not any(
-        compiler.satisfies("gcc@=9.4.0") for compiler in spack.compilers.all_compilers()
+        compiler.satisfies("gcc@=9.4.0") for compiler in spack.compilers.config.all_compilers()
     )
 
 
@@ -122,7 +126,7 @@ done
     bin_dir = gcc_path.parent
     root_dir = bin_dir.parent
 
-    compilers_before_find = set(spack.compilers.all_compilers())
+    compilers_before_find = set(spack.compilers.config.all_compilers())
     args = spack.util.pattern.Bunch(
         all=None,
         compiler_spec=None,
@@ -132,7 +136,7 @@ done
         jobs=1,
     )
     spack.cmd.compiler.compiler_find(args)
-    compilers_after_find = set(spack.compilers.all_compilers())
+    compilers_after_find = set(spack.compilers.config.all_compilers())
 
     compilers_added_by_find = compilers_after_find - compilers_before_find
     assert len(compilers_added_by_find) == 1
@@ -154,7 +158,7 @@ def test_compiler_find_prefer_no_suffix(no_packages_yaml, working_env, compilers
     assert "llvm@11.0.0" in output
     assert "gcc@8.4.0" in output
 
-    compilers = spack.compilers.all_compilers_from(no_packages_yaml, scope="site")
+    compilers = spack.compilers.config.all_compilers_from(no_packages_yaml, scope="site")
     clang = [x for x in compilers if x.satisfies("llvm@11")]
 
     assert len(clang) == 1
@@ -174,7 +178,7 @@ def test_compiler_find_path_order(no_packages_yaml, working_env, compilers_dir):
 
     compiler("find", "--scope=site")
 
-    compilers = spack.compilers.all_compilers(scope="site")
+    compilers = spack.compilers.config.all_compilers(scope="site")
     gcc = [x for x in compilers if x.satisfies("gcc@8.4")]
 
     # Ensure we found both duplicates

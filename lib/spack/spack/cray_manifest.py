@@ -13,7 +13,7 @@ import jsonschema.exceptions
 import llnl.util.tty as tty
 
 import spack.cmd
-import spack.compilers
+import spack.compilers.config
 import spack.deptypes as dt
 import spack.error
 import spack.hash_types as hash_types
@@ -33,7 +33,7 @@ compiler_name_translation = {"nvidia": "nvhpc", "rocm": "rocmcc"}
 def translated_compiler_name(manifest_compiler_name):
     """
     When creating a Compiler object, Spack expects a name matching
-    one of the classes in `spack.compilers`. Names in the Cray manifest
+    one of the classes in `spack.compilers.config`. Names in the Cray manifest
     may differ; for cases where we know the name refers to a compiler in
     Spack, this function translates it automatically.
 
@@ -42,10 +42,10 @@ def translated_compiler_name(manifest_compiler_name):
     """
     if manifest_compiler_name in compiler_name_translation:
         return compiler_name_translation[manifest_compiler_name]
-    elif manifest_compiler_name in spack.compilers.supported_compilers():
+    elif manifest_compiler_name in spack.compilers.config.supported_compilers():
         return manifest_compiler_name
     else:
-        raise spack.compilers.UnknownCompilerError(
+        raise spack.compilers.config.UnknownCompilerError(
             "Manifest parsing - unknown compiler: {0}".format(manifest_compiler_name)
         )
 
@@ -79,7 +79,7 @@ def compiler_from_entry(entry: dict, manifest_path: str):
     operating_system = arch["os"]
     target = arch["target"]
 
-    compiler_cls = spack.compilers.class_for_compiler_name(compiler_name)
+    compiler_cls = spack.compilers.config.class_for_compiler_name(compiler_name)
     spec = spack.spec.CompilerSpec(compiler_cls.name, version)
     path_list = [paths.get(x, None) for x in ("cc", "cxx", "f77", "fc")]
 
@@ -224,11 +224,11 @@ def read(path, apply_updates):
         compilers.extend(compiler_from_entry(x, path) for x in json_data["compilers"])
     tty.debug(f"{path}: {str(len(compilers))} compilers read from manifest")
     # Filter out the compilers that already appear in the configuration
-    compilers = spack.compilers.select_new_compilers(compilers)
+    compilers = spack.compilers.config.select_new_compilers(compilers)
     if apply_updates and compilers:
         for compiler in compilers:
             try:
-                spack.compilers.add_compiler_to_config(compiler)
+                spack.compilers.config.add_compiler_to_config(compiler)
             except Exception:
                 warnings.warn(
                     f"Could not add compiler {str(compiler.spec)}: "

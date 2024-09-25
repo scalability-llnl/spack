@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Tuple
 import llnl.util.filesystem as fs
 import llnl.util.lang as lang
 
-import spack.compilers
+import spack.compilers.config
 import spack.config
 import spack.error
 import spack.repo
@@ -69,7 +69,7 @@ def guess_core_compilers(name, store=False) -> List[spack.spec.CompilerSpec]:
         List of found core compilers
     """
     core_compilers = []
-    for compiler in spack.compilers.all_compilers():
+    for compiler in spack.compilers.config.all_compilers():
         try:
             # A compiler is considered to be a core compiler if any of the
             # C, C++ or Fortran compilers reside in a system directory
@@ -199,11 +199,11 @@ class LmodConfiguration(BaseConfiguration):
         # virtual dependencies in spack
 
         # If it is in the list of supported compilers family -> compiler
-        if self.spec.name in spack.compilers.supported_compilers():
+        if self.spec.name in spack.compilers.config.supported_compilers():
             provides["compiler"] = spack.spec.CompilerSpec(self.spec.format("{name}{@versions}"))
-        elif self.spec.name in spack.compilers.package_name_to_compiler_name:
+        elif self.spec.name in spack.compilers.config.package_name_to_compiler_name:
             # If it is the package for a supported compiler, but of a different name
-            cname = spack.compilers.package_name_to_compiler_name[self.spec.name]
+            cname = spack.compilers.config.package_name_to_compiler_name[self.spec.name]
             provides["compiler"] = spack.spec.CompilerSpec(cname, self.spec.versions)
 
         # All the other tokens in the hierarchy must be virtual dependencies
