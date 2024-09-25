@@ -27,7 +27,7 @@ from llnl.util.symlink import readlink
 
 import spack.binary_distribution as bindist
 import spack.caches
-import spack.compilers
+import spack.compilers.config
 import spack.concretize
 import spack.config
 import spack.fetch_strategy
@@ -87,7 +87,7 @@ def config_directory(tmp_path_factory):
         for name in [f"site/{platform.system().lower()}", "site", "user"]
     ]
     with spack.config.use_configuration(*cfg_scopes):
-        _ = spack.compilers.find_compilers(scope="site")
+        _ = spack.compilers.config.find_compilers(scope="site")
 
     yield defaults_dir
 

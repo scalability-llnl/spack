@@ -84,8 +84,8 @@ import llnl.util.tty as tty
 import llnl.util.tty.color as clr
 
 import spack
-import spack.compiler
-import spack.compilers
+import spack.compilers.flags
+import spack.config
 import spack.deptypes as dt
 import spack.error
 import spack.hash_types as ht
@@ -1670,7 +1670,7 @@ class Spec:
             self.namespace = value
         elif name in valid_flags:
             assert self.compiler_flags is not None
-            flags_and_propagation = spack.compiler.tokenize_flags(value, propagate)
+            flags_and_propagation = spack.compilers.flags.tokenize_flags(value, propagate)
             flag_group = " ".join(x for (x, y) in flags_and_propagation)
             for flag, propagation in flags_and_propagation:
                 self.compiler_flags.add_flag(name, flag, propagation, flag_group)
