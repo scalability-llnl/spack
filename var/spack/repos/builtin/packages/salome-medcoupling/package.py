@@ -31,7 +31,7 @@ class SalomeMedcoupling(CMakePackage):
 
     variant("static", default=False, description="Enable static library build")
     variant("mpi", default=False, description="Enable MPI")
-    variant("in64", default=False, description="Enable 64 bits indexes")
+    variant("int64", default=False, description="Use 64 bits indices")
     variant("partitioner", default=False, description="Enable partitioner")
     variant("metis", default=False, description="Enable Metis")
     variant("scotch", default=False, description="Enable Scotch")
@@ -49,35 +49,18 @@ class SalomeMedcoupling(CMakePackage):
     depends_on("scotch@6.0.4:", when="+scotch")
     depends_on("mpi", when="+mpi")
 
-    depends_on("salome-configuration@9.7.0", when="@9.7.0")
-    depends_on("salome-med@4.1.0+mpi+static", when="@9.7.0+mpi+static")
-    depends_on("salome-med@4.1.0+mpi", when="@9.7.0+mpi")
-    depends_on("salome-med@4.1.0+static", when="@9.7.0~mpi+static")
-    depends_on("salome-med@4.1.0", when="@9.7.0~mpi")
+    for _ver in ("9.3.0", "9.4.0", "9.5.0", "9.6.0", "9.7.0"):
+        depends_on("salome-configuration@{}".format(_ver), when="@{}".format(_ver))
 
-    depends_on("salome-configuration@9.6.0", when="@9.6.0")
-    depends_on("salome-med@4.1.0+mpi+static", when="@9.6.0+mpi+static")
-    depends_on("salome-med@4.1.0+mpi", when="@9.6.0+mpi")
-    depends_on("salome-med@4.1.0+static", when="@9.6.0~mpi+static")
-    depends_on("salome-med@4.1.0", when="@9.6.0~mpi")
+    for _flags in zip(("~mpi", "+mpi"), ("~static", "+static"), ("~int64", "+int64")):
+        depends_on(
+            "salome-med@4.1.0{}{}{}".format(*_flags), when="@9.5.0:9.7.0{}{}{}".format(*_flags)
+        )
 
-    depends_on("salome-configuration@9.5.0", when="@9.5.0")
-    depends_on("salome-med@4.1.0+mpi+static", when="@9.5.0+mpi+static")
-    depends_on("salome-med@4.1.0+mpi", when="@9.5.0+mpi")
-    depends_on("salome-med@4.1.0+static", when="@9.5.0~mpi+static")
-    depends_on("salome-med@4.1.0", when="@9.5.0~mpi")
-
-    depends_on("salome-configuration@9.4.0", when="@9.4.0")
-    depends_on("salome-med@4.0.0+mpi+static", when="@9.4.0+mpi+static")
-    depends_on("salome-med@4.0.0+mpi", when="@9.4.0+mpi")
-    depends_on("salome-med@4.0.0+static", when="@9.4.0~mpi+static")
-    depends_on("salome-med@4.0.0", when="@9.4.0~mpi")
-
-    depends_on("salome-configuration@9.3.0", when="@9.3.0")
-    depends_on("salome-med@4.0.0+mpi+static", when="@9.3.0+mpi+static")
-    depends_on("salome-med@4.0.0+mpi", when="@9.3.0+mpi")
-    depends_on("salome-med@4.0.0+static", when="@9.3.0~mpi+static")
-    depends_on("salome-med@4.0.0", when="@9.3.0~mpi")
+    for _flags in zip(("~mpi", "+mpi"), ("~static", "+static"), ("~int64", "+int64")):
+        depends_on(
+            "salome-med@4.0.0{}{}{}".format(*_flags), when="@9.3.0:9.4.0{}{}{}".format(*_flags)
+        )
 
     def check(self):
         pass
@@ -113,7 +96,7 @@ class SalomeMedcoupling(CMakePackage):
         else:
             options.extend(["-DMEDCOUPLING_USE_MPI=OFF", "-DSALOME_USE_MPI=OFF"])
 
-        if "+in64" in spec:
+        if "+int64" in spec:
             options.extend(["-DMEDCOUPLING_USE_64BIT_IDS=ON"])
         else:
             options.extend(["-DMEDCOUPLING_USE_64BIT_IDS=OFF"])
