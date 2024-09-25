@@ -2279,6 +2279,9 @@ def find_libraries(libraries, root, shared=True, recursive=False, runtime=True):
         static_ext = "a"
         shared_ext = "so"
 
+    if sys.platform == "win32":
+        libraries.extend([x.replace("lib", "") for x in libraries])
+
     # Construct the right suffix for the library
     if shared:
         # Used on both Linux and macOS
@@ -2307,13 +2310,12 @@ def find_libraries(libraries, root, shared=True, recursive=False, runtime=True):
     #   Search for name with platform specific suffix for lib type (i.e. z.a)
     #   Search for name with platform specific prefix (i.e. libz)
     #   Search for both (i.e. libz.a)
-    #   Search for all of the above with a regex to handle any verseioning suffixes (libz.so.2.3)
     #   On Windows search for static libs with name suffix _static
 
     # List of libraries we are searching with suffixes
     libraries.extend(["{0}{1}".format(lib, suffix) for lib in libraries for suffix in suffixes])
     libraries.extend(["{0}.{1}".format(lib, ext) for lib in libraries for ext in extensions])
-    libraries.extend(["{0}{1}".format(prefix, lib) for lib in libraries for prefix in prefixes])
+    libraries.extend(["{0}{1}".format(prefix, lib) for lib in libraries for prefix in prefixes if not lib.startswith(prefix)])
 
     if not recursive:
         # If not recursive, look for the libraries directly in root
