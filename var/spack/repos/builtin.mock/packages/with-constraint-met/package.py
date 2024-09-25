@@ -14,6 +14,8 @@ class WithConstraintMet(Package):
     version("2.0", md5="0123456789abcdef0123456789abcdef")
     version("1.0", md5="0123456789abcdef0123456789abcdef")
 
+    depends_on("c", type="build")
+
     with when("@1.0"):
         depends_on("pkg-b")
         conflicts("%gcc", when="+foo")

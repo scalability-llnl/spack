@@ -18,4 +18,6 @@ class Fftw(Package):
 
     variant("mpi", default=False, description="Enable MPI")
 
+    depends_on("c", type="build")
+
     depends_on("mpi", when="+mpi")

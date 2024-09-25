@@ -15,3 +15,5 @@ class StickyVariant(AutotoolsPackage):
     variant("allow-gcc", description="", default=False, sticky=True)
 
     conflicts("%gcc", when="~allow-gcc")
+
+    depends_on("c", type="build")

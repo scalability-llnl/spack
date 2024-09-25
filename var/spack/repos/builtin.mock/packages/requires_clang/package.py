@@ -15,3 +15,5 @@ class RequiresClang(Package):
     version("0.9", md5="abcd456789abcdef0123456789abcdef")
 
     requires("%clang", msg="can only be compiled with Clang")
+
+    depends_on("c", type="build")

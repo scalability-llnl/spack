@@ -15,3 +15,5 @@ class RequiresClangOrGcc(Package):
     version("0.9", md5="abcd456789abcdef0123456789abcdef")
 
     requires("%gcc", "%clang", policy="one_of")
+
+    depends_on("c", type="build")

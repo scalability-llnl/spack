@@ -15,5 +15,7 @@ class Libelf(Package):
 
     patch("local.patch", when="@0.8.10")
 
+    depends_on("c", type="build")
+
     def install(self, spec, prefix):
         touch(prefix.libelf)
