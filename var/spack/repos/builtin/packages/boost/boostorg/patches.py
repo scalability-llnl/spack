@@ -304,6 +304,48 @@ def load():
         sha256="0edcb348b9c6f6ab8c67735881dccd9759af852830ffe651ae51248e24ff11ac",
     )
 
+    with sp.when("@1.80.0"):
+        # libcpp@15 removes std::unary{binary}_function
+        sp.patch(
+            "patches/config_libcpp15.patch",
+            when="+clanglibcpp %clang@15",
+            sha256="dc43a069c55c0fbea0bc2bd78924835cb3c915b75ec30692f4748147d104ee8a",
+        )
+
+        with sp.when("+filesystem"):
+            # Compilation failure on POSIX systems that don't support *at APIs
+            sp.patch(
+                "patches/filesystem_PR250.patch",
+                sha256="3bc4efd085d25e0e32abbf2b652412c80281247c8e8ba0a99cd28011d6986826",
+            )
+
+            with sp.when("platform=windows"):
+                # Directory iterators for a network share on Windows
+                sp.patch(
+                    "patches/filesystem_PR246.patch",
+                    sha256="938e19f55238e168a2170bb68c3b4544fc5db1ba6bc2c03e5eedff89a987f018",
+                )
+
+                # Allow weakly_canonical to be used with Windows long paths
+                sp.patch(
+                    "patches/filesystem_PR247.patch",
+                    sha256="f1b2add065611700def7ae727ebb01790f5ac52ab7a04e197d4714e416558303",
+                )
+
+        with sp.when("+unordered"):
+            # Containers are not in a valid state after moving
+            sp.patch(
+                "patches/unordered_PR139.patch",
+                sha256="6aff29ac5cbded7e5b8c629c6a8cdda2039ff691a7ebebb8c25c3121781a8837",
+            )
+
+            with sp.when("platform=windows"):
+                # MSVC /RTCc build runtime failures
+                sp.patch(
+                    "patches/unordered_PR165.patch",
+                    sha256="db93780fdcf95275f90094ea8fb7901bb790a030055d6e9354357a130c5bd8cb",
+                )
+
     # https://github.com/boostorg/phoenix/issues/111
     sp.patch(
         "patches/phoenix_PR111.patch",

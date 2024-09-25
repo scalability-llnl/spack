@@ -76,6 +76,9 @@ def load():
     # fmt: off
     _boost_variant(
         "asio",
+        requires=[
+            {"spec": "+context", "when": "@1.80.0:", "msg": "Boost.Asio requires Boost.Context"},
+        ],
         description="Portable networking and other low-level I/O.",
     )
     # fmt: on
@@ -126,6 +129,8 @@ def load():
         conflicts=[
             {"when": "cxxstd=98", "msg": "Boost.GIL requires at least c++11"},
             {"when": "cxxstd=03", "msg": "Boost.GIL requires at least c++11"},
+            {"when": "cxxstd=11 @1.80.0:", "msg": "Boost.GIL requires at least c++14"},
+            {"when": "%gcc@5 @1.80.0:", "msg": "Boost.GIL requires gcc-6 or newer"},
         ],
         description="Generic Image Library",
     )
