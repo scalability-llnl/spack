@@ -29,6 +29,8 @@ class CmakeClient(CMakePackage):
     variant("single", description="", default="blue", values=("blue", "red", "green"), multi=False)
     variant("truthy", description="", default=True)
 
+    depends_on("c", type="build")
+
     callback_counter = 0
 
     flipped = False

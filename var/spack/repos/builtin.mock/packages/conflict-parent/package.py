@@ -14,6 +14,7 @@ class ConflictParent(Package):
     version("1.0", md5="0123456789abcdef0123456789abcdef")
 
     depends_on("conflict")
+    depends_on("c", type="build")
 
     conflicts("^conflict~foo", when="@0.9")
 

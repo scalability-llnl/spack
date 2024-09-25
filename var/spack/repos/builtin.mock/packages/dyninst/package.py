@@ -28,6 +28,8 @@ class Dyninst(Package):
     depends_on("libelf")
     depends_on("libdwarf")
 
+    depends_on("c", type="build")
+
     def install(self, spec, prefix):
         mkdirp(prefix)
         touch(join_path(prefix, "dummyfile"))
