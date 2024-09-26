@@ -702,6 +702,10 @@ def load():
         default=False,
         when="@1.48.0:",
         buildable="@1.48.0:",
+        conflicts=[
+            {"when": "@1.81.0: cxxstd=98", "msg": "Boost.Locale requires cxxstd >= 11"},
+            {"when": "@1.81.0: cxxstd=03", "msg": "Boost.Locale requires cxxstd >= 11"},
+        ],
         requires=[
             {"spec": "+icu", "msg": "Boost.Locale requires Unicode support"}
         ],
