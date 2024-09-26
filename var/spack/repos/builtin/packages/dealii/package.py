@@ -230,6 +230,7 @@ class Dealii(CMakePackage, CudaPackage):
     depends_on("sundials@5:6.7", when="@9.3.4:+sundials")
     depends_on("taskflow@3.4:", when="@9.6:+taskflow")
     depends_on("trilinos gotype=int", when="+trilinos@12.18.1:")
+    depends_on("trilinos+cuda+cuda_constexpr", when="@9.6:+trilinos+cuda")
     # TODO: next line fixes concretization with trilinos and adol-c
     depends_on("trilinos~exodus", when="@9.0:+adol-c+trilinos")
     # Both Trilinos and SymEngine bundle the Teuchos RCP library.
