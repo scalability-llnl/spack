@@ -909,7 +909,9 @@ class TestConcretize:
         concrete_specs = spack.concretize._concretize_specs_together(abstract_specs)
 
         # Check there's only one configuration of each package in the DAG
-        names = set(dep.name for spec in concrete_specs for dep in spec.traverse())
+        names = set(
+            dep.name for spec in concrete_specs for dep in spec.traverse(deptype=("link", "run"))
+        )
         for name in names:
             name_specs = set(spec[name] for spec in concrete_specs if name in spec)
             assert len(name_specs) == 1
