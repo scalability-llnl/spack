@@ -41,6 +41,7 @@ from typing import (
     Union,
 )
 
+import spack
 import spack.repo
 
 try:
@@ -81,7 +82,7 @@ _DB_DIRNAME = ".spack-db"
 #: DB version.  This is stuck in the DB file to track changes in format.
 #: Increment by one when the database format changes.
 #: Versions before 5 were not integers.
-_DB_VERSION = vn.Version("7")
+_DB_VERSION = vn.Version("8")
 
 #: For any version combinations here, skip reindex when upgrading.
 #: Reindexing can take considerable time and is not always necessary.
@@ -94,6 +95,8 @@ _SKIP_REINDEX = [
     (vn.Version("0.9.3"), vn.Version("5")),
     (vn.Version("5"), vn.Version("6")),
     (vn.Version("6"), vn.Version("7")),
+    (vn.Version("6"), vn.Version("8")),
+    (vn.Version("7"), vn.Version("8")),
 ]
 
 #: Default timeout for spack database locks in seconds or None (no timeout).
@@ -151,6 +154,7 @@ def reader(version: vn.StandardVersion) -> Type["spack.spec.SpecfileReaderBase"]
         vn.Version("5"): spack.spec.SpecfileV1,
         vn.Version("6"): spack.spec.SpecfileV3,
         vn.Version("7"): spack.spec.SpecfileV4,
+        vn.Version("8"): spack.spec.SpecfileV5,
     }
     return reader_cls[version]
 
