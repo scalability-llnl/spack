@@ -258,6 +258,7 @@ def load():
         conflicts=[
             {"when": "@1.76.0: cxxstd=98", "msg": "Boost.Math requires at least c++11"},
             {"when": "@1.76.0: cxxstd=03", "msg": "Boost.Math requires at least c++11"},
+            {"when": "@1.82.0: cxxstd=11", "msg": "Boost.Math requires at least c++14"},
         ],
         requires=[
             {"spec": "+octonions", "msg": "Boost.Math requires Math.Octonions (+octonions)"},
@@ -548,6 +549,7 @@ def load():
         conflicts=[
             {"when": "@1.76.0: cxxstd=98", "msg": "Boost.Multiprecision requires cxxstd >= 11"},
             {"when": "@1.76.0: cxxstd=03", "msg": "Boost.Multiprecision requires cxxstd >= 11"},
+            {"when": "@1.82.0: cxxstd=11", "msg": "Boost.Multiprecision requires cxxstd >= 14"},
         ],
         description=(
             "Extended precision arithmetic for floating point, integer, and rational types."
@@ -793,6 +795,21 @@ def load():
         ],
         # fmt: on
         description="URL parsing in C++11",
+    )
+    _boost_variant(
+        "mysql",
+        when="@1.82.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.mysql requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.mysql requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+describe", "msg": "Boost.mysql requires Boost.describe"},
+            {"spec": "+pfr", "msg": "Boost.mysql requires Boost.pfr"},
+            {"spec": "+variant2", "msg": "Boost.mysql requires Boost.variant2"},
+            {"spec": "+asio", "msg": "Boost.mysql requires Boost.Asio"},
+        ],
+        description="MySQL client library built on top of Boost.Asio.",
     )
     _boost_variant(
         "cobalt",
