@@ -197,7 +197,7 @@ CLEARSIGN_FILE_REGEX = re.compile(
 )
 
 #: specfile format version. Must increase monotonically
-SPECFILE_FORMAT_VERSION = 4
+SPECFILE_FORMAT_VERSION = 5
 
 
 class InstallStatus(enum.Enum):
@@ -643,41 +643,10 @@ class ArchSpec:
             self.target = default_architecture.target
 
 
+# FIXME (compiler as nodes): remove this class
 class CompilerSpec:
-    """The CompilerSpec field represents the compiler or range of compiler
-    versions that a package should be built with.  CompilerSpecs have a
-    name and a version list."""
-
-    __slots__ = "name", "versions"
-
     def __init__(self, *args):
         raise SystemExit("CompilerSpec is being removed")
-
-    @staticmethod
-    def from_dict(d):
-        d = d["compiler"]
-        return Spec(
-            f"{d['name']}@{vn.VersionList.from_dict(d)}", external_path="/dev-null/", concrete=True
-        )
-
-    @property
-    def display_str(self):
-        """Equivalent to {compiler.name}{@compiler.version} for Specs, without extra
-        @= for readability."""
-        if self.concrete:
-            return f"{self.name}@{self.version}"
-        elif self.versions != vn.any_version:
-            return f"{self.name}@{self.versions}"
-        return self.name
-
-    def __str__(self):
-        out = self.name
-        if self.versions and self.versions != vn.any_version:
-            out += f"@{self.versions}"
-        return out
-
-    def __repr__(self):
-        return str(self)
 
 
 @lang.lazy_lexicographic_ordering
@@ -2668,8 +2637,10 @@ class Spec:
             spec = SpecfileV2.load(data)
         elif int(data["spec"]["_meta"]["version"]) == 3:
             spec = SpecfileV3.load(data)
-        else:
+        elif int(data["spec"]["_meta"]["version"]) == 4:
             spec = SpecfileV4.load(data)
+        else:
+            spec = SpecfileV5.load(data)
 
         # Any git version should
         for s in spec.traverse():
@@ -4803,7 +4774,7 @@ class SpecfileReaderBase:
 
         if "compiler" in node:
             # Annotate the compiler spec, might be used later
-            spec.compiler_annotation = CompilerSpec.from_dict(node)
+            spec.compiler_annotation = cls.legacy_compiler(node)
 
         propagated_names = node.get("propagate", [])
         for name, values in node.get("parameters", {}).items():
@@ -4848,6 +4819,13 @@ class SpecfileReaderBase:
         # spec.
 
         return spec
+
+    @classmethod
+    def legacy_compiler(cls, node):
+        d = node["compiler"]
+        return Spec(
+            f"{d['name']}@{vn.VersionList.from_dict(d)}", external_path="/dev-null/", concrete=True
+        )
 
     @classmethod
     def _load(cls, data):
@@ -5053,6 +5031,12 @@ class SpecfileV4(SpecfileV2):
     @classmethod
     def load(cls, data):
         return cls._load(data)
+
+
+class SpecfileV5(SpecfileV4):
+    @classmethod
+    def legacy_compiler(cls, node):
+        raise RuntimeError("The 'compiler' option is unexpected in specfiles at v5 or greater")
 
 
 class LazySpecCache(collections.defaultdict):
