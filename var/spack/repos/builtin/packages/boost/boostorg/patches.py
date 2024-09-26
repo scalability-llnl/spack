@@ -117,9 +117,6 @@ def load():
             sha256="8e3faa26450312e5ea8db8f32afda109b8559ba496e6a5799ddde271c9a6fc44",
         )
 
-    #
-    # ----- Platform-specific ---------
-    #
     with sp.when("platform=darwin"):
         # Fix for version comparison on newer Clang on darwin
         # See: https://github.com/boostorg/build/issues/440
@@ -138,14 +135,6 @@ def load():
             "patches/context-macho-gcc.patch",
             when="@1.65:1.76 +context %gcc",
             sha256="6edc1de3dcb931939a875796207057c00708525d86926b588ba55f65c18dc611",
-        )
-
-    with sp.when("platform=windows"):
-        # https://github.com/boostorg/filesystem/issues/284
-        sp.patch(
-            "patches/filesystem_PR284.patch",
-            when="@1.82.0",
-            sha256="738ba8e0d7b5cdcf5fae4998f9450b51577bbde1bb0d220a0721551609714ca4",
         )
 
     #
@@ -353,3 +342,18 @@ def load():
         when="@1.81.0:1.83.0",
         sha256="a7c807fcd855aa70ba839c0bdfcf5877dc9a37f8026211ccda9c676b42431b17",
     )
+
+    with sp.when("@1.82.0"):
+        with sp.when("+filesystem"):
+            # OpenBSD has broken support for -Wl,--no-undefined for shared libraries
+            sp.patch(
+                "patches/filesystem_PR283.patch",
+                sha256="53a37c8673b20ee697b48bbee0370334958775d7824d43f533672b2c22f523c0",
+            )
+
+        with sp.when("platform=windows"):
+            # Directory iterators for Windows SMBv1 shares may fail
+            sp.patch(
+                "patches/filesystem_PR284.patch",
+                sha256="738ba8e0d7b5cdcf5fae4998f9450b51577bbde1bb0d220a0721551609714ca4",
+            )
