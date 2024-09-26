@@ -667,15 +667,22 @@ class DependencySpec:
         virtuals: virtual packages provided from child to parent node.
     """
 
-    __slots__ = "parent", "spec", "depflag", "virtuals"
+    __slots__ = "parent", "spec", "depflag", "virtuals", "direct"
 
     def __init__(
-        self, parent: "Spec", spec: "Spec", *, depflag: dt.DepFlag, virtuals: Tuple[str, ...]
+        self,
+        parent: "Spec",
+        spec: "Spec",
+        *,
+        depflag: dt.DepFlag,
+        virtuals: Tuple[str, ...],
+        direct: bool = False,
     ):
         self.parent = parent
         self.spec = spec
         self.depflag = depflag
         self.virtuals = tuple(sorted(set(virtuals)))
+        self.direct = direct
 
     def update_deptypes(self, depflag: dt.DepFlag) -> bool:
         """Update the current dependency types"""
@@ -1670,10 +1677,18 @@ class Spec:
                 else:
                     setattr(self.architecture, new_attr, new_value)
 
-    def _add_dependency(self, spec: "Spec", *, depflag: dt.DepFlag, virtuals: Tuple[str, ...]):
-        """Called by the parser to add another spec as a dependency."""
+    def _add_dependency(
+        self, spec: "Spec", *, depflag: dt.DepFlag, virtuals: Tuple[str, ...], direct: bool = False
+    ):
+        """Called by the parser to add another spec as a dependency.
+
+        Args:
+            depflag: dependency type for this edge
+            virtuals: virtuals on this edge
+            direct: if True denotes a direct dependency (associated with the % sigil)
+        """
         if spec.name not in self._dependencies or not spec.name:
-            self.add_dependency_edge(spec, depflag=depflag, virtuals=virtuals)
+            self.add_dependency_edge(spec, depflag=depflag, virtuals=virtuals, direct=direct)
             return
 
         # Keep the intersection of constraints when a dependency is added multiple times with
@@ -1708,7 +1723,12 @@ class Spec:
             )
 
     def add_dependency_edge(
-        self, dependency_spec: "Spec", *, depflag: dt.DepFlag, virtuals: Tuple[str, ...]
+        self,
+        dependency_spec: "Spec",
+        *,
+        depflag: dt.DepFlag,
+        virtuals: Tuple[str, ...],
+        direct: bool = False,
     ):
         """Add a dependency edge to this spec.
 
@@ -1716,6 +1736,7 @@ class Spec:
             dependency_spec: spec of the dependency
             deptypes: dependency types for this edge
             virtuals: virtuals provided by this edge
+            direct: if True denotes a direct dependency
         """
         # Check if we need to update edges that are already present
         selected = self._dependencies.select(child=dependency_spec.name)
@@ -1754,7 +1775,9 @@ class Spec:
                 edge.update_virtuals(virtuals=virtuals)
                 return
 
-        edge = DependencySpec(self, dependency_spec, depflag=depflag, virtuals=virtuals)
+        edge = DependencySpec(
+            self, dependency_spec, depflag=depflag, virtuals=virtuals, direct=direct
+        )
         self._dependencies.add(edge)
         dependency_spec._dependents.add(edge)
 
@@ -1981,15 +2004,28 @@ class Spec:
     def long_spec(self):
         """Returns a string of the spec with the dependencies completely
         enumerated."""
-        root_str = [self.format()]
-        sorted_dependencies = sorted(
-            self.traverse(root=False), key=lambda x: (x.name, x.abstract_hash)
+        name_conversion = {
+            "llvm": "clang",
+            "intel-oneapi-compilers": "oneapi",
+            "llvm-amdgpu": "rocmcc",
+            "intel-oneapi-compiler-classic": "intel",
+            "acfl": "arm",
+        }
+        parts = [self.format()]
+        direct, transitive = lang.stable_partition(
+            self.edges_to_dependencies(), predicate_fn=lambda x: x.direct
         )
-        sorted_dependencies = [
-            d.format("{edge_attributes} " + DEFAULT_FORMAT) for d in sorted_dependencies
-        ]
-        spec_str = " ^".join(root_str + sorted_dependencies)
-        return spec_str.strip()
+        for item in sorted(direct, key=lambda x: x.spec.name):
+            current_name = item.spec.name
+            new_name = name_conversion.get(current_name, current_name)
+            parts.append(f"%{item.spec.format()}".replace(current_name, new_name))
+        for item in sorted(transitive, key=lambda x: x.spec.name):
+            # Recurse to attach build deps in order
+            edge_attributes = ""
+            if item.virtuals or item.depflag:
+                edge_attributes = item.spec.format("{edge_attributes}") + " "
+            parts.append(f"^{edge_attributes}{str(item.spec)}")
+        return " ".join(parts).strip()
 
     @property
     def short_spec(self):
@@ -2224,9 +2260,6 @@ class Spec:
 
         if self.architecture:
             d.update(self.architecture.to_dict())
-
-        if self.compiler:
-            d.update(self.compiler.to_dict())
 
         if self.namespace:
             d["namespace"] = self.namespace
@@ -2464,8 +2497,6 @@ class Spec:
             else:
                 raise ValueError("{0} is not a variant of {1}".format(vname, new_spec.name))
 
-        if change_spec.compiler:
-            new_spec.compiler = change_spec.compiler
         if change_spec.compiler_flags:
             for flagname, flagvals in change_spec.compiler_flags.items():
                 new_spec.compiler_flags[flagname] = flagvals
@@ -3082,12 +3113,6 @@ class Spec:
             self.namespace = other.namespace
             changed = True
 
-        if self.compiler is not None and other.compiler is not None:
-            changed |= self.compiler.constrain(other.compiler)
-        elif self.compiler is None and other.compiler is not None:
-            changed |= self.compiler != other.compiler
-            self.compiler = other.compiler
-
         changed |= self.versions.intersect(other.versions)
         changed |= self.variants.constrain(other.variants)
 
@@ -3108,10 +3133,8 @@ class Spec:
 
         return changed
 
-    def _constrain_dependencies(self, other):
+    def _constrain_dependencies(self, other: "Spec") -> bool:
         """Apply constraints of other spec's dependencies to this spec."""
-        other = self._autospec(other)
-
         if not other._dependencies:
             return False
 
@@ -3126,8 +3149,10 @@ class Spec:
 
         # Handle common first-order constraints directly
         changed = False
-        for name in self.common_dependencies(other):
-            changed |= self[name].constrain(other[name], deps=False)
+        common_dependencies = {x.name for x in self.dependencies()}
+        common_dependencies &= {x.name for x in other.dependencies()}
+        for name in common_dependencies:
+            changed |= self[name].constrain(other[name], deps=True)
             if name in self._dependencies:
                 # WARNING: This function is an implementation detail of the
                 # WARNING: original concretizer. Since with that greedy
@@ -3156,7 +3181,7 @@ class Spec:
         return changed
 
     def common_dependencies(self, other):
-        """Return names of dependencies that self an other have in common."""
+        """Return names of dependencies that self and other have in common."""
         common = set(s.name for s in self.traverse(root=False))
         common.intersection_update(s.name for s in other.traverse(root=False))
         return common
@@ -3258,10 +3283,6 @@ class Spec:
             if not self.versions.intersects(other.versions):
                 return False
 
-        if self.compiler and other.compiler:
-            if not self.compiler.intersects(other.compiler):
-                return False
-
         if not self.variants.intersects(other.variants):
             return False
 
@@ -3284,8 +3305,10 @@ class Spec:
             return True
 
         # Handle first-order constraints directly
-        for name in self.common_dependencies(other):
-            if not self[name].intersects(other[name], deps=False):
+        common_dependencies = {x.name for x in self.dependencies()}
+        common_dependencies &= {x.name for x in other.dependencies()}
+        for name in common_dependencies:
+            if not self[name].intersects(other[name], deps=True):
                 return False
 
         # For virtual dependencies, we need to dig a little deeper.
@@ -3362,12 +3385,6 @@ class Spec:
             return False
 
         if not self.versions.satisfies(other.versions):
-            return False
-
-        if self.compiler and other.compiler:
-            if not self.compiler.satisfies(other.compiler):
-                return False
-        elif other.compiler and not self.compiler:
             return False
 
         if not self.variants.satisfies(other.variants):
@@ -3501,7 +3518,6 @@ class Spec:
                 self.name != other.name
                 and self.versions != other.versions
                 and self.architecture != other.architecture
-                and self.compiler != other.compiler
                 and self.variants != other.variants
                 and self.concrete != other.concrete
                 and self.external_path != other.external_path
@@ -3516,8 +3532,6 @@ class Spec:
         self.name = other.name
         self.versions = other.versions.copy()
         self.architecture = other.architecture.copy() if other.architecture else None
-        # FIXME (compiler as nodes): removing compiler attribute
-        # self.compiler = other.compiler.copy() if other.compiler else None
         self.compiler_flags = other.compiler_flags.copy()
         self.compiler_flags.spec = self
         self.variants = other.variants.copy()
@@ -3643,9 +3657,8 @@ class Spec:
             query_parameters = re.split(r"\s*,\s*", csv)
 
         order = lambda: itertools.chain(
-            self.traverse_edges(deptype=dt.LINK, order="breadth", cover="edges"),
-            self.edges_to_dependencies(depflag=dt.BUILD | dt.RUN | dt.TEST),
-            self.traverse_edges(deptype=dt.ALL, order="breadth", cover="edges"),
+            self.traverse_edges(deptype=dt.LINK | dt.RUN, order="breadth", cover="edges"),
+            self.edges_to_dependencies(depflag=dt.BUILD | dt.TEST),
         )
 
         # Consider runtime dependencies and direct build/test deps before transitive dependencies,
@@ -3676,8 +3689,11 @@ class Spec:
         # if anonymous or same name, we only have to look at the root
         if not spec.name or spec.name == self.name:
             return self.satisfies(spec)
-        else:
-            return any(s.satisfies(spec) for s in self.traverse(root=False))
+
+        try:
+            return self[spec.name].satisfies(spec)
+        except KeyError:
+            return False
 
     def eq_dag(self, other, deptypes=True, vs=None, vo=None):
         """True if the full dependency DAGs of specs are equal."""
@@ -3727,7 +3743,6 @@ class Spec:
         yield self.namespace
         yield self.versions
         yield self.variants
-        yield self.compiler
         yield self.compiler_flags
         yield self.architecture
         yield self.abstract_hash
@@ -3788,9 +3803,6 @@ class Spec:
 
             name
             version
-            compiler
-            compiler.name
-            compiler.version
             compiler_flags
             variants
             architecture
