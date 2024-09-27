@@ -842,7 +842,9 @@ def load():
             # Boost 1.85.0 stacktrace added a hard compilation error that has to
             # explicitly be suppressed on some platforms:
             # https://github.com/boostorg/stacktrace/issues/163
-            {"when": "@1.85: +stacktrace", "msg": "Stacktrace cannot be used with libc++"}
+            {"when": "@1.85: +stacktrace", "msg": "Stacktrace cannot be used with libc++"},
+            # gcc doesn't support libc++
+            {"when": "%gcc", "msg": "gcc doesn't support libc++"},
         ],
         description="Compile with clang's libc++ instead of libstdc++",
     )
