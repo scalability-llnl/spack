@@ -209,6 +209,11 @@ def load():
         "graph",
         when="@1.18.0:",
         buildable="@1.39.0:",
+        conflicts=[
+            {"when": "@1.85.0: cxxstd=98", "msg": "Boost.Graph requires at least c++14"},
+            {"when": "@1.85.0: cxxstd=03", "msg": "Boost.Graph requires at least c++14"},
+            {"when": "@1.85.0: cxxstd=11", "msg": "Boost.Graph requires at least c++14"},
+        ],
         description=(
             "Generic components for mathematical graphs (collections of nodes and edges)."
         ),
@@ -568,6 +573,9 @@ def load():
     _boost_variant(
         "odeint",
         when="@1.53.0:",
+        requires=[
+            {"spec": "+math", "msg": "Boost.odeint requires Boost.Math"}
+        ],
         description="Solver for ordinary differential equations.",
     )
     _boost_variant(
@@ -732,6 +740,9 @@ def load():
             {"when": "cxxstd=98", "msg": "Boost.JSON requires cxxstd >= 11"},
             {"when": "cxxstd=03", "msg": "Boost.JSON requires cxxstd >= 11"},
         ],
+        requires=[
+            {"spec": "+endian", "when": "@1.85.0:", "msg": "Boost.JSON requires Boost.Endian"}
+        ],
         description="JSON parsing, serialization, and DOM in C++11",
     )
     _boost_variant(
@@ -820,6 +831,11 @@ def load():
             {"spec": "+pfr", "msg": "Boost.mysql requires Boost.pfr"},
             {"spec": "+variant2", "msg": "Boost.mysql requires Boost.variant2"},
             {"spec": "+asio", "msg": "Boost.mysql requires Boost.Asio"},
+            {
+                "spec": "+charconv",
+                "when": "@1.85.0:",
+                "msg": "Boost.mysql requires Boost.Charconv",
+            },
         ],
         description="MySQL client library built on top of Boost.Asio.",
     )
@@ -848,6 +864,7 @@ def load():
         # fmt: on
         description="Redis async client library built on top of Boost.Asio.",
     )
+    # fmt: off
     _boost_variant(
         "cobalt",
         default=False,
@@ -866,6 +883,7 @@ def load():
         ],
         description="Coroutines. Basic Algorithms & Types",
     )
+    # fmt: on
     _boost_variant(
         "charconv",
         when="@1.85.0:",
@@ -876,5 +894,12 @@ def load():
         ],
         description="An implementation of C++20's <charconv> in C++11.",
     )
+    # fmt: off
+    _boost_variant(
+        "scope",
+        when="@1.85.0:",
+        description="A collection of scope guards and a unique_resource wrapper.",
+    )
+    # fmt: on
 
     return library_names
