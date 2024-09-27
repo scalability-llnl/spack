@@ -8,7 +8,6 @@ def load():
     #
     with sp.when("%gcc"):
         with sp.when("%gcc@4.4.7"):
-            # https://svn.boost.org/trac/boost/ticket/11856
             sp.patch(
                 "patches/boost_11856.patch",
                 when="@1.60.0",
@@ -16,7 +15,6 @@ def load():
             )
 
         with sp.when("%gcc@5.0:"):
-            # https://svn.boost.org/trac/boost/ticket/10125
             sp.patch(
                 "patches/call_once_variadic.patch",
                 when="@1.54.0:1.55",
@@ -141,7 +139,6 @@ def load():
     # ----- Python ---------
     #
     with sp.when("^python@3:"):
-        # Patch fix from https://svn.boost.org/trac/boost/ticket/11120
         sp.patch(
             "patches/python_jam-1_77.patch",
             when="@1.77:",
