@@ -354,3 +354,18 @@ def load():
                 "patches/filesystem_PR284.patch",
                 sha256="738ba8e0d7b5cdcf5fae4998f9450b51577bbde1bb0d220a0721551609714ca4",
             )
+
+    with sp.when("@1.83.0"):
+        with sp.when("+json"):
+            # Compilation on Windows ARM platforms may fail for missing intrinsics
+            sp.patch(
+                "patches/json_PR926.patch",
+                sha256="af68f8be3fedcbc2eca8fff625c7bd3cfeb0f0611e1579ba9901bd5282da5909",
+            )
+
+        with sp.when("+unordered"):
+            # ix erroneous copy assigment operator that would destroy non-existent elements
+            sp.patch(
+                "patches/unordered_PR205.patch",
+                sha256="c6e04429fbf1629f10f456d47d9cfda1a89c4b1f242665cb4c091cd84b0d4626",
+            )
