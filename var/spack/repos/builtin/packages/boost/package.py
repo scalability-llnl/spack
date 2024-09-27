@@ -137,9 +137,9 @@ class Boost(Package):
 
         return find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
 
-    # C++98/03 support was removed in 1.83.0
-    conflicts("cxxstd=98", when="@1.83.0:", msg="This version of Boost requires C++11 or newer")
-    conflicts("cxxstd=03", when="@1.83.0:", msg="This version of Boost requires C++11 or newer")
+    # C++98/03 support was removed in 1.84.0
+    conflicts("cxxstd=98", when="@1.84.0:", msg="This version of Boost requires C++11 or newer")
+    conflicts("cxxstd=03", when="@1.84.0:", msg="This version of Boost requires C++11 or newer")
 
     with when("+icu"):
         depends_on("icu4c")
