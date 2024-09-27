@@ -364,8 +364,17 @@ def load():
             )
 
         with sp.when("+unordered"):
-            # ix erroneous copy assigment operator that would destroy non-existent elements
+            # Fix erroneous copy assigment operator that would destroy non-existent elements
             sp.patch(
                 "patches/unordered_PR205.patch",
                 sha256="c6e04429fbf1629f10f456d47d9cfda1a89c4b1f242665cb4c091cd84b0d4626",
+            )
+
+    with sp.when("@1.85.0"):
+        with sp.when("+container"):
+            # flat_map/multimap containers can crash due to UB
+            sp.patch(
+                "patches/container_PR273.patch",
+                level=0,
+                sha256="28118307582c3ce716d010fc89c3cd749066b333f3859c6b533613f59394df81",
             )
