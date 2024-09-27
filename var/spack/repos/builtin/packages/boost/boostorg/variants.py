@@ -247,6 +247,11 @@ def load():
         "graph",
         when="@1.18.0:",
         buildable="@1.18.0:",
+        conflicts=[
+            {"when": "@1.85.0: cxxstd=98", "msg": "Boost.Graph requires at least c++14"},
+            {"when": "@1.85.0: cxxstd=03", "msg": "Boost.Graph requires at least c++14"},
+            {"when": "@1.85.0: cxxstd=11", "msg": "Boost.Graph requires at least c++14"},
+        ],
         description=(
             "Generic components for mathematical graphs (collections of nodes and edges)."
         ),
@@ -1226,6 +1231,9 @@ def load():
             {"when": "cxxstd=98", "msg": "Boost.JSON requires cxxstd >= 11"},
             {"when": "cxxstd=03", "msg": "Boost.JSON requires cxxstd >= 11"},
         ],
+        requires=[
+            {"spec": "+endian", "when": "@1.85.0:", "msg": "Boost.JSON requires Boost.Endian"}
+        ],
         description="JSON parsing, serialization, and DOM in C++11",
     )
     _boost_variant(
@@ -1317,6 +1325,11 @@ def load():
             {"spec": "+pfr", "msg": "Boost.mysql requires Boost.pfr"},
             {"spec": "+variant2", "msg": "Boost.mysql requires Boost.variant2"},
             {"spec": "+asio", "msg": "Boost.mysql requires Boost.Asio"},
+            {
+                "spec": "+charconv",
+                "when": "@1.85.0:",
+                "msg": "Boost.mysql requires Boost.Charconv",
+            },
         ],
         description="MySQL client library built on top of Boost.Asio.",
     )
@@ -1344,6 +1357,7 @@ def load():
         # fmt: on
         description="Redis async client library built on top of Boost.Asio.",
     )
+    # fmt: off
     _boost_variant(
         "cobalt",
         default=False,
@@ -1362,11 +1376,19 @@ def load():
             "Simple single-threaded asynchronicity akin to node.js and asyncio in python"
         ),
     )
+    # fmt: on
     _boost_variant(
         "charconv",
         when="@1.85.0:",
         buildable="@1.85.0:",
         description="An implementation of C++20's <charconv> in C++11.",
     )
+    # fmt: off
+    _boost_variant(
+        "scope",
+        when="@1.85.0:",
+        description="Scope guards and a unique_resource wrapper",
+    )
+    # fmt: on
 
     return library_names
