@@ -345,13 +345,14 @@ def load():
             # OpenBSD has broken support for -Wl,--no-undefined for shared libraries
             sp.patch(
                 "patches/filesystem_PR283.patch",
+                when="platform=freebsd",
                 sha256="53a37c8673b20ee697b48bbee0370334958775d7824d43f533672b2c22f523c0",
             )
 
-        with sp.when("platform=windows"):
             # Directory iterators for Windows SMBv1 shares may fail
             sp.patch(
                 "patches/filesystem_PR284.patch",
+                when="platform=windows",
                 sha256="738ba8e0d7b5cdcf5fae4998f9450b51577bbde1bb0d220a0721551609714ca4",
             )
 
@@ -360,6 +361,7 @@ def load():
             # Compilation on Windows ARM platforms may fail for missing intrinsics
             sp.patch(
                 "patches/json_PR926.patch",
+                when="platform=windows",
                 sha256="af68f8be3fedcbc2eca8fff625c7bd3cfeb0f0611e1579ba9901bd5282da5909",
             )
 
