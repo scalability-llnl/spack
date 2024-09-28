@@ -6,28 +6,6 @@ def load():
     #
     # ----- Compilers ---------
     #
-    with sp.when("%gcc"):
-        with sp.when("%gcc@4.4.7"):
-            sp.patch(
-                "patches/boost_11856.patch",
-                when="@1.60.0",
-                sha256="cfd4e6e1e9747def96adeae0075994a03a10e1bfb471900ecb52b7839afa9ca2",
-            )
-
-        with sp.when("%gcc@5.0:"):
-            sp.patch(
-                "patches/call_once_variadic.patch",
-                when="@1.54.0:1.55",
-                sha256="4f2b06f77ad5e485e9debb769199414b2d6ebc0784aa1a8e28c1144fa971e155",
-            )
-        with sp.when("%gcc@8.3"):
-            # Workaround gcc-8.3 compiler issue https://github.com/boostorg/mpl/issues/44
-            sp.patch(
-                "patches/boost_gcc83_cpp17_fix.patch",
-                when="@1.69:",
-                sha256="53e492188ab40abcb01a2d8b3ab1a61e2bf575070fcd4f54e72145f0281bc2b5",
-            )
-
     with sp.when("%fj"):
         # Change the method for version analysis when using Fujitsu compiler.
         sp.patch(
@@ -156,7 +134,7 @@ def load():
         )
 
     #
-    # ----- Generic Fixes ---------
+    # --------------------------------------------------------------------------------------
     #
 
     # Fix missing declaration of uintptr_t with glibc>=2.17 - https://bugs.gentoo.org/482372
@@ -164,6 +142,12 @@ def load():
         "patches/glibc_gentoo_v1.53.0.patch",
         when="@1.53.0:1.54",
         sha256="b6f6ce68282159d46c716a1e6c819c815914bdb096cddc516fa48134209659f2",
+    )
+
+    sp.patch(
+        "patches/thread_svn10125.patch",
+        when="%gcc@5.0: @1.54.0:1.55",
+        sha256="4f2b06f77ad5e485e9debb769199414b2d6ebc0784aa1a8e28c1144fa971e155",
     )
 
     # Add option to C/C++ compile commands in clang-linux.jam
@@ -187,6 +171,12 @@ def load():
         sha256="fb7d84358c36309062fa4aaaa187343eb16871bd95893f0270e0941955c488ab",
     )
 
+    sp.patch(
+        "patches/container_svn11856.patch",
+        when="%gcc@4.4.7 @1.60.0",
+        sha256="cfd4e6e1e9747def96adeae0075994a03a10e1bfb471900ecb52b7839afa9ca2",
+    )
+
     # Backport Python3 import problem
     # See https://github.com/boostorg/python/pull/218
     sp.patch(
@@ -195,30 +185,29 @@ def load():
         sha256="7f95f95be9645eb7f10a7222173c8549501aebbe1db12b955442a7554dc59f3e",
     )
 
-    # Fix: "Unable to compile code using boost/process.hpp"
-    # See: https://github.com/boostorg/process/issues/116
-    sp.patch(
-        "patches/process_PR116.patch",
-        level=2,
-        when="@1.72.0",
-        sha256="e13cca1cfad7dcce9ed3d4ef989c14e464c4ea00caaf335f762e3677b35cab61",
-    )
+    with sp.when("@1.69.0"):
+        # Patch fix for warnings from commits 2d37749, af1dc84, c705bab, and
+        # 0134441 on https://github.com/boostorg/system.
+        sp.patch(
+            "patches/system-non-virtual-dtor-include.patch",
+            when="+system",
+            level=2,
+            sha256="3a83d907043708218325c35ffc318fd6d6cfd78ba89a78f2c70013c72603e5b8",
+        )
 
-    # Patch fix for warnings from commits 2d37749, af1dc84, c705bab, and
-    # 0134441 on https://github.com/boostorg/system.
-    sp.patch(
-        "patches/system-non-virtual-dtor-include.patch",
-        when="@1.69.0",
-        level=2,
-        sha256="3a83d907043708218325c35ffc318fd6d6cfd78ba89a78f2c70013c72603e5b8",
-    )
+        sp.patch(
+            "patches/system-non-virtual-dtor-test.patch",
+            when="+system",
+            working_dir="libs/system",
+            level=1,
+            sha256="607b0772dec1287c9084ae3b36ee32bff945a2fe5e608823ed47a1ea765c84cd",
+        )
 
+    # MPL compile error with gcc 8.3.1 and C++17 mode
     sp.patch(
-        "patches/system-non-virtual-dtor-test.patch",
-        when="@1.69.0",
-        working_dir="libs/system",
-        level=1,
-        sha256="607b0772dec1287c9084ae3b36ee32bff945a2fe5e608823ed47a1ea765c84cd",
+        "patches/mpl_PR44.patch",
+        when="+mpl %gcc@8.3 @1.69:",
+        sha256="53e492188ab40abcb01a2d8b3ab1a61e2bf575070fcd4f54e72145f0281bc2b5",
     )
 
     # Fix issues with PTHREAD_STACK_MIN not being a DEFINED constant in newer glibc
@@ -229,12 +218,21 @@ def load():
         sha256="5da7ad24de07adc1e99b2bab8b5aeefa0059d0f0ace932788c7746f9117d9917",
     )
 
+    # Fix: "Unable to compile code using boost/process.hpp"
+    # See: https://github.com/boostorg/process/issues/116
+    sp.patch(
+        "patches/process_PR116.patch",
+        level=2,
+        when="+process @1.72.0",
+        sha256="e13cca1cfad7dcce9ed3d4ef989c14e464c4ea00caaf335f762e3677b35cab61",
+    )
+
     # C++20 concepts fix for Beast
     # See https://github.com/boostorg/beast/pull/1927 for details
     sp.patch(
         "patches/beast_PR1927.patch",
+        when="+beast @1.73.0",
         sha256="4dd507e1f5a29e3b87b15321a4d8c74afdc8331433edabf7aeab89b3c405d556",
-        when="@1.73.0",
     )
 
     # Cloning a status_code with indirecting_domain leads to segmentation fault
@@ -332,13 +330,14 @@ def load():
                     sha256="db93780fdcf95275f90094ea8fb7901bb790a030055d6e9354357a130c5bd8cb",
                 )
 
-    # https://github.com/boostorg/phoenix/issues/111
-    sp.patch(
-        "patches/phoenix_PR111.patch",
-        level=2,
-        when="@1.81.0:1.83.0",
-        sha256="a7c807fcd855aa70ba839c0bdfcf5877dc9a37f8026211ccda9c676b42431b17",
-    )
+    with sp.when("@1.81.0:1.83.0"):
+        # https://github.com/boostorg/phoenix/issues/111
+        sp.patch(
+            "patches/phoenix_PR111.patch",
+            level=2,
+            when="+phoenix",
+            sha256="a7c807fcd855aa70ba839c0bdfcf5877dc9a37f8026211ccda9c676b42431b17",
+        )
 
     with sp.when("@1.82.0"):
         with sp.when("+filesystem"):
