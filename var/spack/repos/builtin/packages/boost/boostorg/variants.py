@@ -54,8 +54,10 @@ def _boost_variant(name, default=None, buildable=None, conflicts=[], requires=[]
     """
 
     if default is None:
-        kwargs["sticky"] = True
         default = True
+
+    if "sticky" not in kwargs:
+        kwargs["sticky"] = True
 
     sp.variant(name, default=default, **kwargs)
 
@@ -189,6 +191,7 @@ def load():
     _boost_variant(
         "mpi",
         default=False,
+        sticky=False,
         buildable="@1.35.0:",
         description=(
             "C++ wrapper to the Message Passing Interface for distributed-memory parallelism."
@@ -241,6 +244,7 @@ def load():
     _boost_variant(
         "python",
         default=False,
+        sticky=False,
         buildable="@1.19.0:",
         description="C++ wrapper for interacting with Python.",
     )
