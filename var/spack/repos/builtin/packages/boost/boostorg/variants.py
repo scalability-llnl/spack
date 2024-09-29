@@ -351,6 +351,11 @@ def load():
         default=False,
         when="@1.29.0:1.68.0",
         buildable="@1.29.0:1.68.0",
+        # fmt: off
+        conflicts=[
+            {"when": "@1.69.0:", "msg": "Boost.signals was removed in 1.68.0"}
+        ],
+        # fmt: on
         description="Managed signals & slots callback implementation.",
     )
     _boost_variant(
