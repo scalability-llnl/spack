@@ -86,7 +86,7 @@ def load():
     # fmt: on
     _boost_variant(
         "cxxstd",
-        default="11",
+        default="14",
         values=(
             sp.conditional("98", when="@:1.83.0"),
             sp.conditional("03", when="@:1.83.0"),
