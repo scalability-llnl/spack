@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
 import collections.abc
+import ctypes
 import errno
 import fnmatch
 import glob
@@ -192,7 +193,6 @@ def getuid() -> Union[str, int]:
     always returns the login string on Windows
     """
     if sys.platform == "win32":
-        import ctypes
 
         # If not admin, use the string name of the login as a unique ID
         if ctypes.windll.shell32.IsUserAnAdmin() == 0:
@@ -1212,7 +1212,6 @@ def windows_sfn(path: os.PathLike):
     if sys.platform != "win32":
         return path
     path = str(path)
-    import ctypes
 
     k32 = ctypes.WinDLL("kernel32", use_last_error=True)
     # Method with null values returns size of short path name
@@ -1653,6 +1652,192 @@ def safe_remove(*files_or_dirs):
         for original_path, temporary_path in removed.items():
             shutil.move(temporary_path, original_path)
         raise
+
+
+class WinGUID(ctypes.Structure):
+    _fields_ = [
+        ("Data1", ctypes.c_long),
+        ("Data2", ctypes.c_short),
+        ("Data3", ctypes.c_short),
+        ("Data4", ctypes.POINTER(ctypes.c_char_p * 8))
+    ]
+    def __init__(self, guid):
+        super(WinGUID, self).__init__()
+        from uuid import UUID
+        self.Data1, self.Data2, self.Data3, self.Data4[0], self.Data4[1], remainder = UUID(guid).fields
+        self.Data4[2:8] = [remainder>>(8-x-1)*8&0xff for x in range(2,8)]
+
+
+class WinKnownLibTypes:
+    FOLDERID_System = WinGUID("{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}")
+    FOLDERID_UserProfiles = WinGUID("{0762D272-C50A-4BB0-A382-697DCD729B80}")
+    FOLDERID_Windows = WinGUID("{F38BF404-1D43-42F2-9305-67DE0B28FC23}")
+
+    @staticmethod
+    def get_known_folder_path(folder_type):
+        ret_ptr = ctypes.c_wchar_p()
+        s32 = ctypes.WinDLL("shell32", use_last_error=True)
+        s32.SHGetKnownFolderPath(ctypes.byref(folder_type), 0, 0, ctypes.byref(ret_ptr))
+        return ret_ptr.value
+
+
+
+def _windows_drive() -> str:
+    """Return Windows drive string extracted from the PROGRAMFILES environment variable,
+    which is guaranteed to be defined for all logins.
+    """
+    drive_re = re.compile(r"([a-zA-Z]:)")
+    sys_path = WinKnownLibTypes.get_known_folder_path(WinKnownLibTypes.FOLDERID_Windows)
+    drive = re.match(drive_re, sys_path)
+    if not drive:
+        raise RuntimeError(f"Unable to extact drive from system path: {ssy_path}")
+    return drive.group(1)
+
+
+class WindowsCompilerExternalPaths:
+    @staticmethod
+    def find_windows_compiler_root_paths() -> List[str]:
+        """Helper for Windows compiler installation root discovery
+
+        At the moment simply returns location of VS install paths from VSWhere
+        But should be extended to include more information as relevant"""
+        return list(winOs.WindowsOs().vs_install_paths)
+
+    @staticmethod
+    def find_windows_compiler_cmake_paths() -> List[str]:
+        """Semi hard-coded search path for cmake bundled with MSVC"""
+        return [
+            os.path.join(
+                path, "Common7", "IDE", "CommonExtensions", "Microsoft", "CMake", "CMake", "bin"
+            )
+            for path in WindowsCompilerExternalPaths.find_windows_compiler_root_paths()
+        ]
+
+    @staticmethod
+    def find_windows_compiler_ninja_paths() -> List[str]:
+        """Semi hard-coded search heuristic for locating ninja bundled with MSVC"""
+        return [
+            os.path.join(path, "Common7", "IDE", "CommonExtensions", "Microsoft", "CMake", "Ninja")
+            for path in WindowsCompilerExternalPaths.find_windows_compiler_root_paths()
+        ]
+
+    @staticmethod
+    def find_windows_compiler_bundled_packages() -> List[str]:
+        """Return all MSVC compiler bundled packages"""
+        return (
+            WindowsCompilerExternalPaths.find_windows_compiler_cmake_paths()
+            + WindowsCompilerExternalPaths.find_windows_compiler_ninja_paths()
+        )
+
+
+class WindowsKitExternalPaths:
+    @staticmethod
+    def find_windows_kit_roots() -> List[str]:
+        """Return Windows kit root, typically %programfiles%\\Windows Kits\\10|11\\"""
+        if sys.platform != "win32":
+            return []
+        program_files = os.environ["PROGRAMFILES(x86)"]
+        kit_base = os.path.join(program_files, "Windows Kits", "**")
+        return glob.glob(kit_base)
+
+    @staticmethod
+    def find_windows_kit_bin_paths(
+        kit_base: Union[Optional[str], Optional[list]] = None
+    ) -> List[str]:
+        """Returns Windows kit bin directory per version"""
+        kit_base = WindowsKitExternalPaths.find_windows_kit_roots() if not kit_base else kit_base
+        assert kit_base, "Unexpectedly empty value for Windows kit base path"
+        if isinstance(kit_base, str):
+            kit_base = kit_base.split(";")
+        kit_paths = []
+        for kit in kit_base:
+            kit_bin = os.path.join(kit, "bin")
+            kit_paths.extend(glob.glob(os.path.join(kit_bin, "[0-9]*", "*\\")))
+        return kit_paths
+
+    @staticmethod
+    def find_windows_kit_lib_paths(
+        kit_base: Union[Optional[str], Optional[list]] = None
+    ) -> List[str]:
+        """Returns Windows kit lib directory per version"""
+        kit_base = WindowsKitExternalPaths.find_windows_kit_roots() if not kit_base else kit_base
+        assert kit_base, "Unexpectedly empty value for Windows kit base path"
+        if isinstance(kit_base, str):
+            kit_base = kit_base.split(";")
+        kit_paths = []
+        for kit in kit_base:
+            kit_lib = os.path.join(kit, "Lib")
+            kit_paths.extend(glob.glob(os.path.join(kit_lib, "[0-9]*", "*", "*\\")))
+        return kit_paths
+
+    @staticmethod
+    def find_windows_driver_development_kit_paths() -> List[str]:
+        """Provides a list of all installation paths
+        for the WDK by version and architecture
+        """
+        wdk_content_root = os.getenv("WDKContentRoot")
+        return WindowsKitExternalPaths.find_windows_kit_lib_paths(wdk_content_root)
+
+    @staticmethod
+    def find_windows_kit_reg_installed_roots_paths() -> List[str]:
+        reg = spack.util.windows_registry.WindowsRegistryView(
+            "SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots",
+            root_key=spack.util.windows_registry.HKEY.HKEY_LOCAL_MACHINE,
+        )
+        if not reg:
+            # couldn't find key, return empty list
+            return []
+        kit_root_reg = re.compile(r"KitsRoot[0-9]+")
+        root_paths = []
+        for kit_root in filter(kit_root_reg.match, reg.get_values().keys()):
+            root_paths.extend(
+                WindowsKitExternalPaths.find_windows_kit_lib_paths(reg.get_value(kit_root).value)
+            )
+        return root_paths
+
+    @staticmethod
+    def find_windows_kit_reg_sdk_paths() -> List[str]:
+        sdk_paths = []
+        sdk_regex = re.compile(r"v[0-9]+.[0-9]+")
+        windows_reg = spack.util.windows_registry.WindowsRegistryView(
+            "SOFTWARE\\WOW6432Node\\Microsoft\\Microsoft SDKs\\Windows",
+            root_key=spack.util.windows_registry.HKEY.HKEY_LOCAL_MACHINE,
+        )
+        for key in filter(sdk_regex.match, [x.name for x in windows_reg.get_subkeys()]):
+            reg = windows_reg.get_subkey(key)
+            sdk_paths.extend(
+                WindowsKitExternalPaths.find_windows_kit_lib_paths(
+                    reg.get_value("InstallationFolder").value
+                )
+            )
+        return sdk_paths
+
+
+def find_win32_additional_install_paths() -> List[str]:
+    """Not all programs on Windows live on the PATH
+    Return a list of other potential install locations.
+    """
+    drive_letter = _windows_drive()
+    windows_search_ext = []
+    cuda_re = r"CUDA_PATH[a-zA-Z1-9_]*"
+    # The list below should be expanded with other
+    # common Windows install locations as neccesary
+    path_ext_keys = ["I_MPI_ONEAPI_ROOT", "MSMPI_BIN", "MLAB_ROOT", "NUGET_PACKAGES"]
+    user = os.environ["USERPROFILE"]
+    add_path = lambda key: re.search(cuda_re, key) or key in path_ext_keys
+    windows_search_ext.extend([os.environ[key] for key in os.environ.keys() if add_path(key)])
+    # note windows paths are fine here as this method should only ever be invoked
+    # to interact with Windows
+    # Add search path for default Chocolatey (https://github.com/chocolatey/choco)
+    # install directory
+    windows_search_ext.append("%s\\ProgramData\\chocolatey\\bin" % drive_letter)
+    # Add search path for NuGet package manager default install location
+    windows_search_ext.append(os.path.join(user, ".nuget", "packages"))
+    windows_search_ext.extend(
+        spack.config.get("config:additional_external_search_paths", default=[])
+    )
+    windows_search_ext.extend(spack.util.environment.get_path("PATH"))
+    return windows_search_ext
 
 
 def find_first(root: str, files: Union[Iterable[str], str], bfs_depth: int = 2) -> Optional[str]:
@@ -2179,7 +2364,7 @@ def find_system_libraries(libraries, shared=True, runtime=False):
 
     On Windows:
 
-    1. ``%SystemRoot%\system32``
+    1. ``%SystemRoot%\\system32``
 
     Accepts any glob characters accepted by fnmatch:
 
@@ -2211,14 +2396,12 @@ def find_system_libraries(libraries, shared=True, runtime=False):
         raise TypeError(message)
 
     libraries_found = []
-    search_locations = [
-        "/lib64",
-        "/lib",
-        "/usr/lib64",
-        "/usr/lib",
-        "/usr/local/lib64",
-        "/usr/local/lib",
-    ] if not sys.platform == "win32" else ["C:/system32"]
+    search_locations = (
+        ["/lib64", "/lib", "/usr/lib64", "/usr/lib", "/usr/local/lib64", "/usr/local/lib"]
+        if not sys.platform == "win32"
+        else [WinKnownLibTypes.get_known_folder_path(WinKnownLibTypes.FOLDERID_System),
+              WinKnownLibTypes.get_known_folder_path(WinKnownLibTypes.FOLDERID_Windows)]
+    )
     # TODO (johnwparent): Determine if there should be more directories here
     # and port homedrive and windows kit path logic from detection to here
 
@@ -2298,9 +2481,6 @@ def find_libraries(libraries, root, shared=True, recursive=False, runtime=True):
     prefixes = []
     if not sys.platform == "win32":
         prefixes.append("lib")
-
-    version_suffix = [r"\.[0-9]*", ]
-
     suffixes = []
     if sys.platform == "win32" and not shared:
         suffixes = ["_static"]
@@ -2315,7 +2495,14 @@ def find_libraries(libraries, root, shared=True, recursive=False, runtime=True):
     # List of libraries we are searching with suffixes
     libraries.extend(["{0}{1}".format(lib, suffix) for lib in libraries for suffix in suffixes])
     libraries.extend(["{0}.{1}".format(lib, ext) for lib in libraries for ext in extensions])
-    libraries.extend(["{0}{1}".format(prefix, lib) for lib in libraries for prefix in prefixes if not lib.startswith(prefix)])
+    libraries.extend(
+        [
+            "{0}{1}".format(prefix, lib)
+            for lib in libraries
+            for prefix in prefixes
+            if not lib.startswith(prefix)
+        ]
+    )
 
     if not recursive:
         # If not recursive, look for the libraries directly in root

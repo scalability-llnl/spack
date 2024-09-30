@@ -18,6 +18,11 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple, Type
 import llnl.util.filesystem
 import llnl.util.lang
 import llnl.util.tty
+from llnl.util.filesystem import (
+    WindowsCompilerExternalPaths,
+    WindowsKitExternalPaths,
+    find_win32_additional_install_paths,
+)
 
 import spack.error
 import spack.spec
@@ -28,13 +33,10 @@ import spack.util.ld_so_conf
 import spack.util.parallel
 
 from .common import (
-    WindowsCompilerExternalPaths,
-    WindowsKitExternalPaths,
     _convert_to_iterable,
     compute_windows_program_path_for_package,
     compute_windows_user_path_for_package,
     executable_prefix,
-    find_win32_additional_install_paths,
     library_prefix,
     path_to_dict,
 )
