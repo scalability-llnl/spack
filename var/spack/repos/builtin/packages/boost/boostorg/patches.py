@@ -379,3 +379,13 @@ def load():
                 level=0,
                 sha256="28118307582c3ce716d010fc89c3cd749066b333f3859c6b533613f59394df81",
             )
+
+    with sp.when("@:1.87.0"):
+        with sp.when("+numpy"):
+            # Support for numpy >= 2
+            sp.patch(
+                "patches/python_PR432.patch",
+                working_dir="libs/python",
+                level=0,
+                sha256="41d0e85c8f29d2b13e259d43f7fa9e44d3ab402a9b8c3d351334feb958c9199e",
+            )

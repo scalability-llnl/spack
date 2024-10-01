@@ -165,9 +165,6 @@ class Boost(Package):
     with when("+numpy"):
         depends_on("py-numpy", type=("build", "run"))
 
-        # https://github.com/boostorg/python/issues/431
-        depends_on("py-numpy@:1", when="@:1.85", type=("build", "run"))
-
     with when("+mpi"):
         depends_on("mpi")
 
