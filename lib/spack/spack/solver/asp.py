@@ -2628,6 +2628,7 @@ class SpackSolverSetup:
                 self.register_concrete_spec(reusable_spec, self.pkgs)
         self.concrete_specs()
 
+        _ = spack.compilers.config.all_compilers(init_config=True)
         self.possible_compilers = possible_compilers(configuration=spack.config.CONFIG)
 
         self.gen.h1("Generic statements on possible packages")

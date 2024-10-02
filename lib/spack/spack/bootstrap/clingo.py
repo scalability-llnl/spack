@@ -16,6 +16,8 @@ from typing import Dict, Optional, Tuple
 import archspec.cpu
 
 import spack.compilers.config
+import spack.compilers.libraries
+import spack.config
 import spack.platforms
 import spack.spec
 import spack.traverse
@@ -45,17 +47,24 @@ class ClingoBootstrapConcretizer:
         elif str(self.host_platform) == "windows":
             compiler_name = "msvc"
         elif str(self.host_platform) == "freebsd":
-            compiler_name = "clang"
+            compiler_name = "llvm"
         else:
             raise RuntimeError(f"Cannot bootstrap clingo from sources on {self.host_platform}")
-        candidates = spack.compilers.config.compilers_for_spec(
-            compiler_name, arch_spec=self.host_architecture
-        )
+
+        candidates = [
+            x
+            for x in spack.compilers.config.CompilerFactory.from_packages_yaml(spack.config.CONFIG)
+            if x.name == compiler_name
+        ]
         if not candidates:
             raise RuntimeError(
                 f"Cannot find any version of {compiler_name} to bootstrap clingo from sources"
             )
-        candidates.sort(key=lambda x: x.spec.version, reverse=True)
+        candidates.sort(key=lambda x: x.version, reverse=True)
+        best = candidates[0]
+        # FIXME (compiler as nodes): we need to find a better place for setting namespaces
+        best.namespace = "builtin"
+        # TODO: check it has C and C++, and supports C++14
         return candidates[0]
 
     def _externals_from_yaml(
@@ -72,9 +81,6 @@ class ClingoBootstrapConcretizer:
             for candidate in candidates:
                 s = spack.spec.Spec(candidate["spec"], external_path=candidate["prefix"])
                 if not s.satisfies(requirements[pkg_name]):
-                    continue
-
-                if not s.intersects(f"%{self.host_compiler.spec}"):
                     continue
 
                 if not s.intersects(f"arch={self.host_architecture}"):
@@ -109,11 +115,10 @@ class ClingoBootstrapConcretizer:
         # Tweak it to conform to the host architecture
         for node in s.traverse():
             node.architecture.os = str(self.host_os)
-            node.compiler = self.host_compiler.spec
             node.architecture = self.host_architecture
 
             if node.name == "gcc-runtime":
-                node.versions = self.host_compiler.spec.versions
+                node.versions = self.host_compiler.versions
 
         for edge in spack.traverse.traverse_edges([s], cover="edges"):
             if edge.spec.name == "python":
@@ -124,6 +129,9 @@ class ClingoBootstrapConcretizer:
 
             if edge.spec.name == "cmake" and self.external_cmake:
                 edge.spec = self.external_cmake
+
+            if edge.spec.name == self.host_compiler.name:
+                edge.spec = self.host_compiler
 
             if "libc" in edge.virtuals:
                 edge.spec = self.host_libc
@@ -140,12 +148,12 @@ class ClingoBootstrapConcretizer:
         return self._external_spec(result)
 
     def libc_external_spec(self) -> "spack.spec.Spec":
-        result = self.host_compiler.default_libc
+        detector = spack.compilers.libraries.CompilerPropertyDetector(self.host_compiler)
+        result = detector.default_libc()
         return self._external_spec(result)
 
     def _external_spec(self, initial_spec) -> "spack.spec.Spec":
         initial_spec.namespace = "builtin"
-        initial_spec.compiler = self.host_compiler.spec
         initial_spec.architecture = self.host_architecture
         for flag_type in spack.spec.FlagMap.valid_compiler_flags():
             initial_spec.compiler_flags[flag_type] = []
