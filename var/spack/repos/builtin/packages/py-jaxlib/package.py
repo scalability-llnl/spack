@@ -191,7 +191,7 @@ build --local_cpu_resources={make_jobs}
                     [
                         f"--bazel_options=--repo_env=LOCAL_CUDA_PATH={spec['cuda'].prefix}",
                         f"--bazel_options=--repo_env=LOCAL_CUDNN_PATH={spec['cudnn'].prefix}",
-                        "--bazel_options=--action_env=CUDA_NVCC=1",
+                        "--bazel_options=--action_env=TF_NVCC_CLANG=1",
                         "--bazel_options=--@local_config_cuda//:cuda_compiler=nvcc",
                     ]
                 )
