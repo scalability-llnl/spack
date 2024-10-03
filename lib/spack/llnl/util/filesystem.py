@@ -1659,13 +1659,17 @@ class WinGUID(ctypes.Structure):
         ("Data1", ctypes.c_long),
         ("Data2", ctypes.c_short),
         ("Data3", ctypes.c_short),
-        ("Data4", ctypes.c_byte * 8)
+        ("Data4", ctypes.c_byte * 8),
     ]
+
     def __init__(self, guid):
         super(WinGUID, self).__init__()
         from uuid import UUID
-        self.Data1, self.Data2, self.Data3, self.Data4[0], self.Data4[1], remainder = UUID(guid).fields
-        self.Data4[2:8] = [remainder>>(8-x-1)*8&0xff for x in range(2,8)]
+
+        self.Data1, self.Data2, self.Data3, self.Data4[0], self.Data4[1], remainder = UUID(
+            guid
+        ).fields
+        self.Data4[2:8] = [remainder >> (8 - x - 1) * 8 & 0xFF for x in range(2, 8)]
 
 
 class WinKnownLibTypes:
@@ -1681,7 +1685,6 @@ class WinKnownLibTypes:
         return ret_ptr.value
 
 
-
 def _windows_drive() -> str:
     """Return Windows drive string extracted from the PROGRAMFILES environment variable,
     which is guaranteed to be defined for all logins.
@@ -1690,7 +1693,7 @@ def _windows_drive() -> str:
     sys_path = WinKnownLibTypes.get_known_folder_path(WinKnownLibTypes.FOLDERID_Windows)
     drive = re.match(drive_re, sys_path)
     if not drive:
-        raise RuntimeError(f"Unable to extact drive from system path: {ssy_path}")
+        raise RuntimeError(f"Unable to extact drive from system path: {sys_path}")
     return drive.group(1)
 
 
@@ -2399,8 +2402,10 @@ def find_system_libraries(libraries, shared=True, runtime=False):
     search_locations = (
         ["/lib64", "/lib", "/usr/lib64", "/usr/lib", "/usr/local/lib64", "/usr/local/lib"]
         if not sys.platform == "win32"
-        else [WinKnownLibTypes.get_known_folder_path(WinKnownLibTypes.FOLDERID_System),
-              WinKnownLibTypes.get_known_folder_path(WinKnownLibTypes.FOLDERID_Windows)]
+        else [
+            WinKnownLibTypes.get_known_folder_path(WinKnownLibTypes.FOLDERID_System),
+            WinKnownLibTypes.get_known_folder_path(WinKnownLibTypes.FOLDERID_Windows),
+        ]
     )
     # TODO (johnwparent): Determine if there should be more directories here
     # and port homedrive and windows kit path logic from detection to here

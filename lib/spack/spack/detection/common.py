@@ -13,12 +13,10 @@ The update in packages.yaml can then be done using the function provided here.
 The module also contains other functions that might be useful across different
 detection mechanisms.
 """
-import glob
 import itertools
 import os
 import os.path
 import pathlib
-import re
 import sys
 from typing import Dict, List, Optional, Set, Tuple, Union
 
