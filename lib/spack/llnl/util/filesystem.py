@@ -1659,7 +1659,7 @@ class WinGUID(ctypes.Structure):
         ("Data1", ctypes.c_long),
         ("Data2", ctypes.c_short),
         ("Data3", ctypes.c_short),
-        ("Data4", ctypes.POINTER(ctypes.c_char_p * 8))
+        ("Data4", ctypes.c_byte * 8)
     ]
     def __init__(self, guid):
         super(WinGUID, self).__init__()
