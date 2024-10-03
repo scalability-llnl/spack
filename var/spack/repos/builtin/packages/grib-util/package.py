@@ -50,6 +50,10 @@ class GribUtil(CMakePackage):
         ]
         return args
 
+    @when("@1.4.0 %intel@:20")
+    def patch(self):
+        filter_file("stop iret", "stop 9", "src/grb2index/grb2index.F90")
+
     def check(self):
         with working_dir(self.builder.build_directory):
             make("test")
