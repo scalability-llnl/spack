@@ -19,24 +19,8 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
 
     version("develop", branch="development")
     version("24.10", sha256="dc1752ed3fbd5113dcfdbddcfe6c3c458e572b288ac9d41ed3ed7db130591d74")
-    version(
-        "24.08",
-        sha256="e7179d88261f64744f392a2194ff2744fe323fe0e21d0742ba60458709a1b47e",
-        deprecated=True,
-    )
-    version(
-        "24.04",
-        sha256="ab85695bb9644b702d0fc84e77205d264d27ba94999cab912c8a3212a7eb77fc",
-        deprecated=True,
-    )
 
-    version(
-        "24.03",
-        sha256="bf85b4ad35b623278cbaae2c07e22138545dec0732d15c4ab7c53be76a7f2315",
-        deprecated=True,
-    )
-
-    for v in ["24.10", "24.08", "24.04", "24.03"]:
+    for v in ["24.10", "develop"]:
         depends_on("amrex@{0}".format(v), when="@{0}".format(v), type=("build", "link"))
 
     variant(
@@ -121,25 +105,14 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
     tests_src_dir = "tests/"
 
     def cmake_args(self):
-        args = ["-DpyAMReX_amrex_internal=OFF", "-DpyAMReX_pybind11_internal=OFF"]
-        return args
-
-    def pip_install_nodeps(self, spec, prefix):
-        """Install everything from build directory."""
-        pip = spec["python"].command
-        pip.add_default_arg("-m", "pip")
-
-        args = PythonPipBuilder.std_args(self) + [
-            f"--prefix={prefix}",
-            "--find-links=amrex-whl",
-            "amrex",
+        pip_args = PythonPipBuilder.std_args(self) + [f"--prefix={self.prefix}"]
+        args = [
+            "-DpyAMReX_amrex_internal=OFF",
+            "-DpyAMReX_pybind11_internal=OFF",
+            # Additional parameters to pass to `pip install`
+            self.define("PY_PIP_INSTALL_OPTIONS", " ".join(pip_args)),
         ]
-
-        with working_dir(self.build_directory):
-            pip(*args)
-
-        # todo: from PythonPipBuilder
-        # ....execute_install_time_tests()
+        return args
 
     def check(self):
         """Checks after the build phase"""
