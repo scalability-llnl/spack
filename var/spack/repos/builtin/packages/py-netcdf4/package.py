@@ -50,7 +50,7 @@ class PyNetcdf4(PythonPackage):
 
     def flag_handler(self, name, flags):
         if name == "cflags":
-            if self.spec.satisfies("%oneapi"):
+            if self.spec.satisfies("%oneapi") or self.spec.satisfies("%apple-clang@15:"):
                 flags.append("-Wno-error=int-conversion")
 
         return flags, None, None
