@@ -13,7 +13,7 @@ import stat
 import urllib.parse
 import urllib.request
 import warnings
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
@@ -2929,95 +2929,15 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             SpackEnvironmentError: if the manifest includes a remote file but
                 no configuration stage directory has been identified
         """
-        scopes: List[spack.config.ConfigScope] = []
-
-        # load config scopes added via 'include:', in reverse so that
-        # highest-precedence scopes are last.
         includes = self[TOP_LEVEL_KEY].get("include", [])
-        missing = []
-        for i, config_path in enumerate(reversed(includes)):
-            # allow paths to contain spack config/environment variables, etc.
-            config_path = substitute_path_variables(config_path)
-            include_url = urllib.parse.urlparse(config_path)
 
-            # If scheme is not valid, config_path is not a url
-            # of a type Spack is generally aware
-            if spack.util.url.validate_scheme(include_url.scheme):
-                # Transform file:// URLs to direct includes.
-                if include_url.scheme == "file":
-                    config_path = urllib.request.url2pathname(include_url.path)
+        def resolve_relative(cfg_path):
+            cfg_path = os.path.join(self.manifest_dir, cfg_path)
+            return os.path.normpath(os.path.realpath(cfg_path))
 
-                # Any other URL should be fetched.
-                elif include_url.scheme in ("http", "https", "ftp"):
-                    # Stage any remote configuration file(s)
-                    staged_configs = (
-                        os.listdir(self.config_stage_dir)
-                        if os.path.exists(self.config_stage_dir)
-                        else []
-                    )
-                    remote_path = urllib.request.url2pathname(include_url.path)
-                    basename = os.path.basename(remote_path)
-                    if basename in staged_configs:
-                        # Do NOT re-stage configuration files over existing
-                        # ones with the same name since there is a risk of
-                        # losing changes (e.g., from 'spack config update').
-                        tty.warn(
-                            "Will not re-stage configuration from {0} to avoid "
-                            "losing changes to the already staged file of the "
-                            "same name.".format(remote_path)
-                        )
-
-                        # Recognize the configuration stage directory
-                        # is flattened to ensure a single copy of each
-                        # configuration file.
-                        config_path = self.config_stage_dir
-                        if basename.endswith(".yaml"):
-                            config_path = os.path.join(config_path, basename)
-                    else:
-                        staged_path = spack.config.fetch_remote_configs(
-                            config_path, str(self.config_stage_dir), skip_existing=True
-                        )
-                        if not staged_path:
-                            raise SpackEnvironmentError(
-                                "Unable to fetch remote configuration {0}".format(config_path)
-                            )
-                        config_path = staged_path
-
-                elif include_url.scheme:
-                    raise ValueError(
-                        f"Unsupported URL scheme ({include_url.scheme}) for "
-                        f"environment include: {config_path}"
-                    )
-
-            # treat relative paths as relative to the environment
-            if not os.path.isabs(config_path):
-                config_path = os.path.join(self.manifest_dir, config_path)
-                config_path = os.path.normpath(os.path.realpath(config_path))
-
-            if os.path.isdir(config_path):
-                # directories are treated as regular ConfigScopes
-                config_name = f"env:{self.name}:{os.path.basename(config_path)}"
-                tty.debug(f"Creating DirectoryConfigScope {config_name} for '{config_path}'")
-                scopes.append(spack.config.DirectoryConfigScope(config_name, config_path))
-            elif os.path.exists(config_path):
-                # files are assumed to be SingleFileScopes
-                config_name = f"env:{self.name}:{config_path}"
-                tty.debug(f"Creating SingleFileScope {config_name} for '{config_path}'")
-                scopes.append(
-                    spack.config.SingleFileScope(
-                        config_name, config_path, spack.schema.merged.schema
-                    )
-                )
-            else:
-                missing.append(config_path)
-                continue
-
-        if missing:
-            msg = "Detected {0} missing include path(s):".format(len(missing))
-            msg += "\n   {0}".format("\n   ".join(missing))
-            raise spack.config.ConfigFileError(msg)
-
-        return scopes
+        return scopes_from_paths(
+            includes, f"env:{self.name}", self.config_stage_dir, resolve_relative
+        )
 
     @property
     def env_config_scopes(self) -> List[spack.config.ConfigScope]:
@@ -3080,6 +3000,108 @@ def environment_path_scopes(name: str, path: str) -> Optional[List[spack.config.
         scope.writable = False
 
     return manifest.env_config_scopes
+
+
+def scopes_from_paths(
+    includes: List[str],
+    name_prefix: str,
+    config_stage_dir: str,
+    resolve_relative: Callable[[str], str],
+):
+    """Load included config scopes
+
+    Scopes are added in reverse order so that highest-precedence scopes are last.
+
+    Args:
+        includes: list of paths to be included
+        name_prefix: environment's name prefix
+        config_stage_dir: path to directory to be used to stage remote includes
+        resolve_relative: method to use to resolve relative paths
+
+    Raises:
+        ValueError: included path has an unsupported URL scheme
+    """
+    scopes: List[spack.config.ConfigScope] = []
+
+    missing = []
+    for i, config_path in enumerate(reversed(includes)):
+        # allow paths to contain spack config/environment variables, etc.
+        config_path = substitute_path_variables(config_path)
+        include_url = urllib.parse.urlparse(config_path)
+
+        # If scheme is not valid, config_path is not a url
+        # of a type Spack is generally aware
+        if spack.util.url.validate_scheme(include_url.scheme):
+            # Transform file:// URLs to direct includes.
+            if include_url.scheme == "file":
+                config_path = urllib.request.url2pathname(include_url.path)
+
+            # Any other URL should be fetched.
+            elif include_url.scheme in ("http", "https", "ftp"):
+                # Stage any remote configuration file(s)
+                staged_configs = (
+                    os.listdir(config_stage_dir) if os.path.exists(config_stage_dir) else []
+                )
+                remote_path = urllib.request.url2pathname(include_url.path)
+                basename = os.path.basename(remote_path)
+                if basename in staged_configs:
+                    # Do NOT re-stage configuration files over existing
+                    # ones with the same name since there is a risk of
+                    # losing changes (e.g., from 'spack config update').
+                    tty.warn(
+                        f"Will not re-stage configuration from {remote_path} "
+                        "to avoid losing changes to the already staged file of "
+                        "the same name."
+                    )
+
+                    # Recognize the configuration stage directory
+                    # is flattened to ensure a single copy of each
+                    # configuration file.
+                    config_path = config_stage_dir
+                    if basename.endswith(".yaml"):
+                        config_path = os.path.join(config_path, basename)
+                else:
+                    staged_path = spack.config.fetch_remote_configs(
+                        config_path, str(config_stage_dir), skip_existing=True
+                    )
+                    if not staged_path:
+                        raise SpackEnvironmentError(
+                            f"Unable to fetch remote configuration {config_path}"
+                        )
+                    config_path = staged_path
+
+            elif include_url.scheme:
+                raise ValueError(
+                    f"Unsupported URL scheme ({include_url.scheme}) for "
+                    f"environment include: {config_path}"
+                )
+
+        # treat relative paths as relative to the environment
+        if not os.path.isabs(config_path):
+            config_path = resolve_relative(config_path)
+
+        if os.path.isdir(config_path):
+            # directories are treated as regular ConfigScopes
+            config_name = f"{name_prefix}:{os.path.basename(config_path)}"
+            tty.debug(f"Creating DirectoryConfigScope {config_name} for '{config_path}'")
+            scopes.append(spack.config.DirectoryConfigScope(config_name, config_path))
+        elif os.path.exists(config_path):
+            # files are assumed to be SingleFileScopes
+            config_name = f"{name_prefix}:{config_path}"
+            tty.debug(f"Creating SingleFileScope {config_name} for '{config_path}'")
+            scopes.append(
+                spack.config.SingleFileScope(config_name, config_path, spack.schema.merged.schema)
+            )
+        else:
+            missing.append(config_path)
+            continue
+
+    if missing:
+        msg = f"Detected {len(missing)} missing include path(s):"
+        msg += "\n   {0}".format("\n   ".join(missing))
+        raise spack.config.ConfigFileError(msg)
+
+    return scopes
 
 
 class SpackEnvironmentError(spack.error.SpackError):
