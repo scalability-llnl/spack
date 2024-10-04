@@ -18,6 +18,7 @@ properties: Dict[str, Any] = {
     "config": {
         "type": "object",
         "default": {},
+        "additionalProperties": False,
         "properties": {
             "flags": {
                 "type": "object",
@@ -73,6 +74,7 @@ properties: Dict[str, Any] = {
             "misc_cache": {"type": "string"},
             "environments_root": {"type": "string"},
             "connect_timeout": {"type": "integer", "minimum": 0},
+            "fail_fast": {"type": "boolean"},
             "verify_ssl": {"type": "boolean"},
             "ssl_certs": {"type": "string"},
             "suppress_gpg_warnings": {"type": "boolean"},
@@ -95,6 +97,25 @@ properties: Dict[str, Any] = {
             "additional_external_search_paths": {"type": "array", "items": {"type": "string"}},
             "binary_index_ttl": {"type": "integer", "minimum": 0},
             "aliases": {"type": "object", "patternProperties": {r"\w[\w-]*": {"type": "string"}}},
+            "include": {
+                "type": "array",
+                "default": [],
+                "items": {
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "when": {"type": "string"},
+                                "path": {"type": "string"},
+                                "optional": {"type": "boolean"},
+                            },
+                            "required": ["path"],
+                            "additionalProperties": False,
+                        },
+                        {"type": "string"},
+                    ]
+                },
+            },
         },
         "deprecatedProperties": [
             {
