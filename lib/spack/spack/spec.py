@@ -4466,6 +4466,10 @@ class Spec:
             if isinstance(v, vn.GitVersion) and v._ref_version is None:
                 v.attach_lookup(spack.version.git_ref_lookup.GitRefLookup(self.fullname))
 
+    def compiler_as_nodes(self) -> bool:
+        """Returns True if compiler are treated as nodes"""
+        return not hasattr(self, "compiler_annotation")
+
 
 class VariantMap(lang.HashableMap):
     """Map containing variant instances. New values can be added only

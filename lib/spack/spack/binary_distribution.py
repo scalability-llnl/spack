@@ -629,11 +629,13 @@ def tarball_directory_name(spec):
     Return name of the tarball directory according to the convention
     <os>-<architecture>/<compiler>/<package>-<version>/
     """
-    # FIXME (compiler as nodes): fix the naming scheme later to avoid using compiler
-    return spec.format_path(
-        f"{spec.architecture}/{spec.compiler_annotation.name}-{spec.compiler_annotation.version}/"
-        f"{spec.name}-{spec.version}"
-    )
+    if not spec.compiler_as_nodes():
+        return spec.format_path(
+            f"{spec.architecture}/{spec.compiler_annotation.name}"
+            f"-{spec.compiler_annotation.version}/{spec.name}-{spec.version}"
+        )
+
+    return spec.format_path(f"{spec.architecture.platform}/{spec.name}-{spec.version}")
 
 
 def tarball_name(spec, ext):
@@ -641,12 +643,16 @@ def tarball_name(spec, ext):
     Return the name of the tarfile according to the convention
     <os>-<architecture>-<package>-<dag_hash><ext>
     """
-    # FIXME (compiler as nodes): fix the naming scheme later to avoid using compiler
-    spec_formatted = (
-        f"{spec.architecture}-{spec.compiler_annotation.name}"
-        f"-{spec.compiler_annotation.version}-{spec.name}"
-        f"-{spec.version}-{spec.dag_hash()}"
-    )
+    if not spec.compiler_as_nodes():
+        spec_formatted = (
+            f"{spec.architecture}-{spec.compiler_annotation.name}"
+            f"-{spec.compiler_annotation.version}-{spec.name}"
+            f"-{spec.version}-{spec.dag_hash()}"
+        )
+    else:
+        spec_formatted = (
+            f"{spec.architecture.platform}-{spec.name}-{spec.version}-{spec.dag_hash()}"
+        )
     return f"{spec_formatted}{ext}"
 
 
