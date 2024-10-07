@@ -33,6 +33,11 @@ class Arkouda(MakefilePackage):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
+    variant(
+        "distributed",
+        default=False,
+        description="Build Arkouda for distributed execution on a cluster or supercomputer",
+    )
 
     depends_on("chapel@2.1 +hdf5 +zmq", type=("build", "link", "run", "test"))
     depends_on("cmake@3.13.4:", type="build")
@@ -44,6 +49,15 @@ class Arkouda(MakefilePackage):
     depends_on(
         "arrow +parquet +snappy +zlib +brotli +bz2 +lz4 +zstd",
         type=("build", "link", "run", "test"),
+    )
+
+    requires("^chapel comm=none", when="~distributed")
+    requires(
+        "^chapel comm=gasnet",
+        "^chapel comm=ugni",
+        "^chapel comm=ofi",
+        policy="one_of",
+        when="+distributed",
     )
 
     # Shamelessly copied from the Chapel package.py
