@@ -29,8 +29,8 @@ rocm_dependencies = [
 class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
     """XLA library for Jax"""
 
-    homepage = "https://github.com/google/jax"
-    url = "https://github.com/google/jax/archive/refs/tags/jaxlib-v0.4.27.tar.gz"
+    homepage = "https://github.com/jax-ml/jax"
+    url = "https://github.com/jax-ml/jax/archive/refs/tags/jax-v0.4.34.tar.gz"
 
     tmp_path = ""
     buildtmp = ""
@@ -38,6 +38,8 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "jonas-eschle")
 
+    version("0.4.34", sha256="d3a75ad667772309ade81350fa70c4a78028a920028800282e46d8383c0ee6bb")
+    version("0.4.33", sha256="122a806e80fc1cd7d8ffaf9620701f2cb8e4fe22271c2cec53a9c60b30bd4c31")
     version("0.4.32", sha256="3fe36d596e4d640443c0a5c533845c74fbc4341e024d9bb1cd75cb49f5f419c2")
     version("0.4.31", sha256="022ea1347f9b21cbea31410b3d650d976ea4452a48ea7317a5f91c238031bf94")
     version("0.4.30", sha256="0ef9635c734d9bbb44fcc87df4f1c3ccce1cfcfd243572c80d36fcdf826fe1e6")
@@ -145,6 +147,14 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
 
     # https://github.com/google/jax/issues/19992
     conflicts("@0.4.4:", when="target=ppc64le:")
+
+    def url_for_version(self, version):
+        url = "https://github.com/jax-ml/jax/archive/refs/tags/{}-v{}.tar.gz"
+        if version >= Version("0.4.33"):
+            name = "jax"
+        else:
+            name = "jaxlib"
+        return url.format(name, version)
 
     def patch(self):
         self.tmp_path = tempfile.mkdtemp(prefix="spack")
