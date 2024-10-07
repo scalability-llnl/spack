@@ -174,6 +174,9 @@ def parse_specs(
 
     specs = spack.parser.parse(arg_string)
     unify = spack.config.get("concretizer:unify", False)
+    if not concretize:
+        return specs
+
     if unify == "when_possible":
         concrete_specs = []
         allow_deprecated = spack.config.get("config:deprecated", False)
@@ -186,8 +189,7 @@ def parse_specs(
         return spack.concretize.concretize_specs_together(*specs, tests=tests)
     else:
         for spec in specs:
-            if concretize:
-                spec.concretize(tests=tests)
+            spec.concretize(tests=tests)
         return specs
 
 
