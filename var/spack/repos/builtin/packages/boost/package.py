@@ -7,11 +7,12 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.append(os.path.dirname(__file__))
+from spack.package import *
 
-from spack.package import *  # noqa: E402
-import boostorg.variants as boostvariants  # noqa: E402
+sys.path.append(os.path.dirname(__file__))  # noqa: E402
+
 import boostorg.patches as boostpatches  # noqa: E402
+import boostorg.variants as boostvariants  # noqa: E402
 
 
 class Boost(Package):
