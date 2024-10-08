@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import glob
 import tempfile
 
 from spack.build_systems.python import PythonPipBuilder
@@ -190,6 +191,7 @@ build --local_cpu_resources={make_jobs}
         )
 
     def install(self, spec, prefix):
+        # https://jax.readthedocs.io/en/latest/developer.html
         buildtmp = self.wrapped_package_object.buildtmp
         args = ["build/build.py", f"--bazel_startup_options=--output_user_root={buildtmp}"]
 
@@ -221,6 +223,6 @@ build --local_cpu_resources={make_jobs}
 
         python(*args)
         with working_dir(self.wrapped_package_object.tmp_path):
-            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", glob.glob("dist", "*.whl")[0])
         remove_linked_tree(self.wrapped_package_object.tmp_path)
         remove_linked_tree(self.wrapped_package_object.buildtmp)
