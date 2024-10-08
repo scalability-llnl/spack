@@ -99,18 +99,26 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
     depends_on("py-pandas", type="test")
     depends_on("py-cupy", type="test", when="+cuda")
 
-    phases = ("cmake", "build", "install", "pip_install_nodeps")
-    build_targets = ["all", "pip_wheel"]
+    phases = ("cmake", "build", "install")
+    build_targets = ["all", "pip_wheel", "pip_install_nodeps"]
 
     tests_src_dir = "tests/"
 
     def cmake_args(self):
-        pip_args = PythonPipBuilder.std_args(self) + [f"--prefix={self.prefix}"]
+        pip_args = PythonPipBuilder.std_args(self)
+        pip_args_install_index = pip_args.index("install")
+        pip_args_before_install = pip_args[:pip_args_install_index]
+        pip_args_after_install = pip_args[pip_args_install_index + 1 :] + [
+            f"--prefix={self.prefix}"
+        ]
+
         args = [
             "-DpyAMReX_amrex_internal=OFF",
             "-DpyAMReX_pybind11_internal=OFF",
+            # Additional parameters to pass to `pip`
+            '-DPY_PIP_OPTIONS="' + " ".join(pip_args_before_install) + '"',
             # Additional parameters to pass to `pip install`
-            self.define("PY_PIP_INSTALL_OPTIONS", " ".join(pip_args)),
+            '-DPY_PIP_INSTALL_OPTIONS="' + " ".join(pip_args_after_install) + '"',
         ]
         return args
 
@@ -119,7 +127,7 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
         pytest = which("pytest")
         pytest(join_path(self.stage.source_path, self.tests_src_dir))
 
-    @run_after("pip_install_nodeps")
+    @run_after("install")
     def copy_test_sources(self):
         """Copy the example test files after the package is installed to an
         install test subdirectory for use during `spack test run`."""

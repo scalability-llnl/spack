@@ -209,12 +209,20 @@ class Warpx(CMakePackage, PythonExtension):
             args.append("-DWarpX_openpmd_internal=OFF")
 
         if "+python" in spec:
-            pip_args = PythonPipBuilder.std_args(self) + [f"--prefix={self.prefix}"]
+            pip_args = PythonPipBuilder.std_args(self)
+            pip_args_install_index = pip_args.index("install")
+            pip_args_before_install = pip_args[:pip_args_install_index]
+            pip_args_after_install = pip_args[pip_args_install_index + 1 :] + [
+                f"--prefix={self.prefix}"
+            ]
+
             args.append("-DWarpX_pyamrex_internal=OFF")
             args.append("-DWarpX_pybind11_internal=OFF")
             args.append(self.define_from_variant("WarpX_PYTHON_IPO", "python_ipo"))
+            # Additional parameters to pass to `pip`
+            args.append('-DPY_PIP_OPTIONS="' + " ".join(pip_args_before_install) + '"'),
             # Additional parameters to pass to `pip install`
-            args.append(self.define("PY_PIP_INSTALL_OPTIONS", " ".join(pip_args)))
+            args.append('-DPY_PIP_INSTALL_OPTIONS="' + " ".join(pip_args_after_install) + '"'),
 
         # Work-around for SENSEI 4.0: wrong install location for CMake config
         #   https://github.com/SENSEI-insitu/SENSEI/issues/79
@@ -226,10 +234,10 @@ class Warpx(CMakePackage, PythonExtension):
 
         return args
 
-    phases = ("cmake", "build", "install", "pip_install_nodeps")
+    phases = ("cmake", "build", "install")
     build_targets = ["all"]
     with when("+python"):
-        build_targets += ["pip_wheel"]
+        build_targets += ["pip_wheel", "pip_install_nodeps"]
 
     @property
     def libs(self):
