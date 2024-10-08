@@ -105,22 +105,18 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
     tests_src_dir = "tests/"
 
     def cmake_args(self):
-        pip_args = PythonPipBuilder.std_args(self)
-        pip_args_install_index = pip_args.index("install")
-        pip_args_before_install = pip_args[:pip_args_install_index]
-        pip_args_after_install = pip_args[pip_args_install_index + 1 :] + [
-            f"--prefix={self.prefix}"
-        ]
-
-        args = [
+        args = PythonPipBuilder.std_args(self) + [f"--prefix={self.prefix}"]
+        idx = args.index("install")
+        # Docs: https://pyamrex.readthedocs.io/en/24.10/install/cmake.html#build-options
+        return [
             "-DpyAMReX_amrex_internal=OFF",
             "-DpyAMReX_pybind11_internal=OFF",
-            # Additional parameters to pass to `pip`
-            '-DPY_PIP_OPTIONS="' + " ".join(pip_args_before_install) + '"',
-            # Additional parameters to pass to `pip install`
-            '-DPY_PIP_INSTALL_OPTIONS="' + " ".join(pip_args_after_install) + '"',
+            # CMake lists are ;-separated, so we need to join the arguments with semicolons:
+            # CMake will split them again into a list when running the pip command:
+            # Spaces are not split by CMake and would be passed as a single argument to pip!
+            "-DPY_PIP_OPTIONS=" + ";".join(args[:idx]),
+            "-DPY_PIP_INSTALL_OPTIONS=" + ";".join(args[idx + 1 :]),
         ]
-        return args
 
     def check(self):
         """Checks after the build phase"""
