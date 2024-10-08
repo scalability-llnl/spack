@@ -209,20 +209,21 @@ class Warpx(CMakePackage, PythonExtension):
             args.append("-DWarpX_openpmd_internal=OFF")
 
         if "+python" in spec:
-            pip_args = PythonPipBuilder.std_args(self)
-            pip_args_install_index = pip_args.index("install")
-            pip_args_before_install = pip_args[:pip_args_install_index]
-            pip_args_after_install = pip_args[pip_args_install_index + 1 :] + [
-                f"--prefix={self.prefix}"
-            ]
-
-            args.append("-DWarpX_pyamrex_internal=OFF")
-            args.append("-DWarpX_pybind11_internal=OFF")
-            args.append(self.define_from_variant("WarpX_PYTHON_IPO", "python_ipo"))
-            # Additional parameters to pass to `pip`
-            args.append('-DPY_PIP_OPTIONS="' + " ".join(pip_args_before_install) + '"'),
-            # Additional parameters to pass to `pip install`
-            args.append('-DPY_PIP_INSTALL_OPTIONS="' + " ".join(pip_args_after_install) + '"'),
+            pip_args = PythonPipBuilder.std_args(self) + [f"--prefix={self.prefix}"]
+            idx = pip_args.index("install")
+            # Docs: https://warpx.readthedocs.io/en/latest/install/cmake.html#build-options
+            args.extend(
+                [
+                    "-DWarpX_pyamrex_internal=OFF",
+                    "-DWarpX_pybind11_internal=OFF",
+                    self.define_from_variant("WarpX_PYTHON_IPO", "python_ipo"),
+                    # CMake lists are ;-separated: We need to join the arguments with semicolons:
+                    # CMake splits them again into a list when running the pip command: Spaces
+                    # aren't split by CMake: They would be passed as a single argument to pip:
+                    "-DPY_PIP_OPTIONS=" + ";".join(pip_args[:idx]),
+                    "-DPY_PIP_INSTALL_OPTIONS=" + ";".join(pip_args[idx + 1 :]),
+                ]
+            )
 
         # Work-around for SENSEI 4.0: wrong install location for CMake config
         #   https://github.com/SENSEI-insitu/SENSEI/issues/79
