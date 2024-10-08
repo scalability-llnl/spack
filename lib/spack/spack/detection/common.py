@@ -21,11 +21,10 @@ import sys
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 import llnl.util.tty
-from llnl.util.filesystem import _windows_drive
+from llnl.util.filesystem import windows_drive
 
 import spack.config
 import spack.error
-import spack.operating_systems.windows_os as winOs
 import spack.spec
 import spack.util.environment
 import spack.util.spack_yaml
@@ -264,7 +263,7 @@ def compute_windows_program_path_for_package(pkg: "spack.package_base.PackageBas
     # note windows paths are fine here as this method should only ever be invoked
     # to interact with Windows
     program_files = "{}\\Program Files{}\\{}"
-    drive_letter = _windows_drive()
+    drive_letter = windows_drive()
 
     return [
         program_files.format(drive_letter, arch, name)
