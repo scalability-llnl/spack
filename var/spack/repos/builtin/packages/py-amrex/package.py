@@ -23,6 +23,13 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
     for v in ["24.10", "develop"]:
         depends_on("amrex@{0}".format(v), when="@{0}".format(v), type=("build", "link"))
 
+    # CMake: Fix List of Pip Options
+    patch(
+        "https://github.com/AMReX-Codes/pyamrex/pull/377.patch?full_index=1",
+        sha256="57e3e0a777b69895026f1527dc062647a7f2cc356154fa6e05a48f1d7c9bee16",
+        when="@24.10",
+    )
+
     variant(
         "dimensions",
         default="1,2,3",
@@ -105,17 +112,14 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
     tests_src_dir = "tests/"
 
     def cmake_args(self):
-        args = PythonPipBuilder.std_args(self) + [f"--prefix={self.prefix}"]
-        idx = args.index("install")
+        pip_args = PythonPipBuilder.std_args(self) + [f"--prefix={self.prefix}"]
+        idx = pip_args.index("install")
         # Docs: https://pyamrex.readthedocs.io/en/24.10/install/cmake.html#build-options
         return [
             "-DpyAMReX_amrex_internal=OFF",
             "-DpyAMReX_pybind11_internal=OFF",
-            # CMake lists are ;-separated, so we need to join the arguments with semicolons:
-            # CMake will split them again into a list when running the pip command:
-            # Spaces are not split by CMake and would be passed as a single argument to pip!
-            "-DPY_PIP_OPTIONS=" + ";".join(args[:idx]),
-            "-DPY_PIP_INSTALL_OPTIONS=" + ";".join(args[idx + 1 :]),
+            "-DPY_PIP_OPTIONS=" + ";".join(pip_args[:idx]),
+            "-DPY_PIP_INSTALL_OPTIONS=" + ";".join(pip_args[idx + 1 :]),
         ]
 
     def check(self):
