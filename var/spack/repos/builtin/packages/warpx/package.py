@@ -35,6 +35,13 @@ class Warpx(CMakePackage, PythonExtension):
         when="@24.10",
     )
 
+    # CMake: No FFTW Needed for SYCL anymore
+    patch(
+        "https://github.com/ECP-WarpX/WarpX/pull/5380.patch?full_index=1",
+        sha256="9ec092c7efc5b3aaec0d6cd383e681ad163358153b30b77fc49a4fba2a195d01",
+        when="@24.10",
+    )
+
     variant("app", default=True, description="Build the WarpX executable application")
     variant("ascent", default=False, description="Enable Ascent in situ visualization")
     variant(
@@ -141,6 +148,8 @@ class Warpx(CMakePackage, PythonExtension):
         depends_on("rocfft", when="+fft")
         depends_on("rocprim")
         depends_on("rocrand")
+    with when("compute=sycl"):
+        depends_on("amrex +sycl")
     with when("compute=noacc"):
         depends_on("amrex ~cuda ~openmp ~rocm ~sycl")
         with when("+fft"):
