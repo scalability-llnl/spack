@@ -29,6 +29,13 @@ class Warpx(CMakePackage, PythonExtension):
     # 22.01+ requires C++17 or newer
     # 20.01+ requires C++14 or newer
 
+    # CMake: Fix List of Pip Options
+    patch(
+        "https://github.com/ECP-WarpX/WarpX/pull/5378.patch?full_index=1",
+        sha256="7357a1001426d5eb633df993b2a719f738e8073f08876c4a90e32b1d4f11ebea",
+        when="@24.10",
+    )
+
     variant("app", default=True, description="Build the WarpX executable application")
     variant("ascent", default=False, description="Enable Ascent in situ visualization")
     variant(
@@ -217,9 +224,6 @@ class Warpx(CMakePackage, PythonExtension):
                     "-DWarpX_pyamrex_internal=OFF",
                     "-DWarpX_pybind11_internal=OFF",
                     self.define_from_variant("WarpX_PYTHON_IPO", "python_ipo"),
-                    # CMake lists are ;-separated: We need to join the arguments with semicolons:
-                    # CMake splits them again into a list when running the pip command: Spaces
-                    # aren't split by CMake: They would be passed as a single argument to pip:
                     "-DPY_PIP_OPTIONS=" + ";".join(pip_args[:idx]),
                     "-DPY_PIP_INSTALL_OPTIONS=" + ";".join(pip_args[idx + 1 :]),
                 ]
