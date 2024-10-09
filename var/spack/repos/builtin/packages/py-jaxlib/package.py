@@ -222,8 +222,8 @@ build --local_cpu_resources={make_jobs}
             args.append("--nouse_clang")
 
         python(*args)
+        whl = glob.glob(join_path("dist", "*.whl"))[0]
         with working_dir(self.wrapped_package_object.tmp_path):
-            whl = glob.glob(join_path("dist", "*.whl"))[0]
             pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", whl)
         remove_linked_tree(self.wrapped_package_object.tmp_path)
         remove_linked_tree(self.wrapped_package_object.buildtmp)
