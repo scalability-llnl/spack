@@ -43,6 +43,13 @@ class Warpx(CMakePackage, PythonExtension):
         when="@24.10",
     )
 
+    # SYCL: 1D compiles with +eb
+    patch(
+        "https://github.com/ECP-WarpX/WarpX/pull/5384.patch?full_index=1",
+        sha256="dadc7f864c84be7e9693936309105e49caaafd97cc6e5256386650513020c9ac",
+        when="@24.10",
+    )
+
     variant("app", default=True, description="Build the WarpX executable application")
     variant("ascent", default=False, description="Enable Ascent in situ visualization")
     variant(
