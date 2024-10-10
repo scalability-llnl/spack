@@ -434,6 +434,7 @@ def display_specs(specs, args=None, **kwargs):
 
     """
 
+    # FIXME (compiler as nodes): remove the "show full compiler" arguments, and its use
     def get_arg(name, default=None):
         """Prefer kwargs, then args, then default."""
         if name in kwargs:
