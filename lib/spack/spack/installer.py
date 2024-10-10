@@ -65,6 +65,7 @@ import spack.store
 import spack.util.executable
 import spack.util.path
 import spack.util.timer as timer
+from spack.traverse import CoverNodesVisitor, traverse_breadth_first_with_visitor
 from spack.util.environment import EnvironmentModifications, dump_environment
 from spack.util.executable import which
 
@@ -129,22 +130,46 @@ class InstallAction(enum.Enum):
     OVERWRITE = enum.auto()
 
 
-class InstallStatus:
-    def __init__(self, pkg_count: int):
-        # Counters used for showing status information
-        self.pkg_num: int = 0
-        self.pkg_count: int = pkg_count
+class InstallerProgress:
+    """Installation progress tracker"""
+
+    def __init__(self, packages: List["spack.package_base.PackageBase"]):
+        self.counter = SpecsCount(dt.BUILD | dt.LINK | dt.RUN)
+        self.pkg_count: int = self.counter.total([pkg.spec for pkg in packages])
         self.pkg_ids: Set[str] = set()
+        self.pkg_num: int = 0
+        self.add_progress: bool = spack.config.get("config:install_status", True)
 
-    def next_pkg(self, pkg: "spack.package_base.PackageBase"):
+    def set_installed(self, pkg: "spack.package_base.PackageBase", message: str) -> None:
+        """
+        Flag package as installed and output the installation status if
+        enabled by config:install_status.
+
+        Args:
+            pkg: installed package
+            message: message to be output
+        """
         pkg_id = package_id(pkg.spec)
-
         if pkg_id not in self.pkg_ids:
-            self.pkg_num += 1
             self.pkg_ids.add(pkg_id)
+            visited = max(len(self.pkg_ids), self.counter.total([pkg.spec]), self.pkg_num + 1)
+            self.pkg_num = visited
+
+        if tty.msg_enabled():
+            post = self.get_progress() if self.add_progress else ""
+            print(
+                colorize("@*g{[+]} ") + spack.util.path.debug_padded_filter(message) + f" {post}"
+            )
+
+        self.set_term_title("Installed")
 
     def set_term_title(self, text: str):
-        if not spack.config.get("config:install_status", True):
+        """Update the terminal title bar.
+
+        Args:
+            text: message to output in the terminal title bar
+        """
+        if not self.add_progress:
             return
 
         if not sys.stdout.isatty():
@@ -155,7 +180,11 @@ class InstallStatus:
         sys.stdout.flush()
 
     def get_progress(self) -> str:
-        return f"[{self.pkg_num}/{self.pkg_count}]"
+        """Current installation progress
+
+        Returns:  string showing the current installation progress
+        """
+        return f"[{self.pkg_num}/{self.pkg_count} completed]"
 
 
 class TermStatusLine:
@@ -224,7 +253,9 @@ def _check_last_phase(pkg: "spack.package_base.PackageBase") -> None:
         pkg.last_phase = None  # type: ignore[attr-defined]
 
 
-def _handle_external_and_upstream(pkg: "spack.package_base.PackageBase", explicit: bool) -> bool:
+def _handle_external_and_upstream(
+    pkg: "spack.package_base.PackageBase", explicit: bool, progress: InstallerProgress
+) -> bool:
     """
     Determine if the package is external or upstream and register it in the
     database if it is external package.
@@ -232,6 +263,8 @@ def _handle_external_and_upstream(pkg: "spack.package_base.PackageBase", explici
     Args:
         pkg: the package whose installation is under consideration
         explicit: the package was explicitly requested by the user
+        progress: installation progress tracker
+
     Return:
         ``True`` if the package is not to be installed locally, otherwise ``False``
     """
@@ -239,7 +272,7 @@ def _handle_external_and_upstream(pkg: "spack.package_base.PackageBase", explici
     # consists in module file generation and registration in the DB.
     if pkg.spec.external:
         _process_external_package(pkg, explicit)
-        _print_installed_pkg(f"{pkg.prefix} (external {package_id(pkg.spec)})")
+        progress.set_installed(pkg, f"{pkg.prefix} (external {package_id(pkg.spec)})")
         return True
 
     if pkg.spec.installed_upstream:
@@ -247,7 +280,7 @@ def _handle_external_and_upstream(pkg: "spack.package_base.PackageBase", explici
             f"{package_id(pkg.spec)} is installed in an upstream Spack instance at "
             f"{pkg.spec.prefix}"
         )
-        _print_installed_pkg(pkg.prefix)
+        progress.set_installed(pkg, pkg.prefix)
 
         # This will result in skipping all post-install hooks. In the case
         # of modules this is considered correct because we want to retrieve
@@ -323,17 +356,6 @@ def _log_prefix(pkg_name) -> str:
     return f"{pid}{pkg_name}:"
 
 
-def _print_installed_pkg(message: str) -> None:
-    """
-    Output a message with a package icon.
-
-    Args:
-        message (str): message to be output
-    """
-    if tty.msg_enabled():
-        print(colorize("@*g{[+]} ") + spack.util.path.debug_padded_filter(message))
-
-
 def print_install_test_log(pkg: "spack.package_base.PackageBase") -> None:
     """Output install test log file path but only if have test failures.
 
@@ -354,13 +376,17 @@ def _print_timer(pre: str, pkg_id: str, timer: timer.BaseTimer) -> None:
 
 
 def _install_from_cache(
-    pkg: "spack.package_base.PackageBase", explicit: bool, unsigned: Optional[bool] = False
+    pkg: "spack.package_base.PackageBase",
+    progress: InstallerProgress,
+    explicit: bool,
+    unsigned: Optional[bool] = False,
 ) -> bool:
     """
     Install the package from binary cache
 
     Args:
         pkg: package to install from the binary cache
+        progress: installation status tracker
         explicit: ``True`` if installing the package was explicitly
             requested by the user, otherwise, ``False``
         unsigned: if ``True`` or ``False`` override the mirror signature verification defaults
@@ -380,7 +406,7 @@ def _install_from_cache(
 
     _write_timer_json(pkg, t, True)
     _print_timer(pre=_log_prefix(pkg.name), pkg_id=pkg_id, timer=t)
-    _print_installed_pkg(pkg.spec.prefix)
+    progress.set_installed(pkg, pkg.spec.prefix)
     spack.hooks.post_install(pkg.spec, explicit)
     return True
 
@@ -591,7 +617,7 @@ def get_dependent_ids(spec: "spack.spec.Spec") -> List[str]:
     return [package_id(d) for d in spec.dependents()]
 
 
-def install_msg(name: str, pid: int, install_status: InstallStatus) -> str:
+def install_msg(name: str, pid: int) -> str:
     """
     Colorize the name/id of the package being installed
 
@@ -602,12 +628,7 @@ def install_msg(name: str, pid: int, install_status: InstallStatus) -> str:
     Return: Colorized installing message
     """
     pre = f"{pid}: " if tty.show_pid() else ""
-    post = (
-        " @*{%s}" % install_status.get_progress()
-        if install_status and spack.config.get("config:install_status", True)
-        else ""
-    )
-    return pre + colorize("@*{Installing} @*g{%s}%s" % (name, post))
+    return pre + colorize("@*{Installing} @*g{%s}" % (name))
 
 
 def archive_install_logs(pkg: "spack.package_base.PackageBase", phase_log_dir: str) -> None:
@@ -714,6 +735,18 @@ def package_id(spec: "spack.spec.Spec") -> str:
         raise ValueError("Cannot provide a unique, readable id when the spec is not concretized.")
 
     return f"{spec.name}-{spec.version}-{spec.dag_hash()}"
+
+
+class SpecsCount:
+    def __init__(self, depflag: int):
+        self.depflag = depflag
+
+    def total(self, specs: List["spack.spec.Spec"]):
+        visitor = CoverNodesVisitor(
+            spack.spec.DagCountVisitor(self.depflag), key=lambda s: package_id(s)
+        )
+        traverse_breadth_first_with_visitor(specs, visitor)
+        return visitor.visitor.number
 
 
 class BuildRequest:
@@ -967,11 +1000,14 @@ class Task:
         self.attempts = attempts
         self._update()
 
-    def execute(self, install_status: InstallStatus) -> ExecuteResult:
+    def execute(self, progress: InstallerProgress) -> ExecuteResult:
         """Execute the work of this task.
 
-        The ``install_status`` is an ``InstallStatus`` object used to format progress reporting for
-        this task in the context of the full ``BuildRequest``."""
+        Args:
+            progress:  installation progress tracker
+
+        Returns: execution result
+        """
         raise NotImplementedError
 
     def __eq__(self, other):
@@ -1136,24 +1172,29 @@ class Task:
 class BuildTask(Task):
     """Class for representing a build task for a package."""
 
-    def execute(self, install_status):
+    def execute(self, progress: InstallerProgress) -> ExecuteResult:
         """
         Perform the installation of the requested spec and/or dependency
         represented by the build task.
+
+        Args:
+            progress:  installation progress tracker
+
+        Returns: execution result
         """
         install_args = self.request.install_args
-        tests = install_args.get("tests")
+        tests = install_args.get("tests", False)
         unsigned = install_args.get("unsigned")
 
         pkg, pkg_id = self.pkg, self.pkg_id
 
-        tty.msg(install_msg(pkg_id, self.pid, install_status))
+        tty.msg(install_msg(pkg_id, self.pid))
         self.start = self.start or time.time()
         self.status = BuildStatus.INSTALLING
 
         # Use the binary cache if requested
         if self.use_cache:
-            if _install_from_cache(pkg, self.explicit, unsigned):
+            if _install_from_cache(pkg, progress, self.explicit, unsigned):
                 return ExecuteResult.SUCCESS
             elif self.cache_only:
                 raise spack.error.InstallError(
@@ -1162,7 +1203,7 @@ class BuildTask(Task):
             else:
                 tty.msg(f"No binary for {pkg_id} found: installing from source")
 
-        pkg.run_tests = tests is True or tests and pkg.name in tests
+        pkg.run_tests = tests is True or (tests and pkg.name in tests)
 
         # hook that allows tests to inspect the Package before installation
         # see unit_test_check() docs.
@@ -1185,6 +1226,8 @@ class BuildTask(Task):
             # Note: PARENT of the build process adds the new package to
             # the database, so that we don't need to re-read from file.
             spack.store.STORE.db.add(pkg.spec, explicit=self.explicit)
+
+            progress.set_installed(self.pkg, self.pkg.prefix)
         except spack.error.StopPhase as e:
             # A StopPhase exception means that do_install was asked to
             # stop early from clients, and is not an error at this point
@@ -1197,7 +1240,7 @@ class BuildTask(Task):
 class RewireTask(Task):
     """Class for representing a rewire task for a package."""
 
-    def execute(self, install_status):
+    def execute(self, progress: InstallerProgress) -> ExecuteResult:
         """Execute rewire task
 
         Rewire tasks are executed by either rewiring self.package.spec.build_spec that is already
@@ -1206,24 +1249,30 @@ class RewireTask(Task):
         If not available installed or as binary, return ExecuteResult.MISSING_BUILD_SPEC.
         This will prompt the Installer to requeue the task with a dependency on the BuildTask
         to install self.pkg.spec.build_spec
+
+        Args:
+            progress:  installation progress tracker
+
+        Returns: execution result
         """
         oldstatus = self.status
         self.status = BuildStatus.INSTALLING
-        tty.msg(install_msg(self.pkg_id, self.pid, install_status))
+        tty.msg(install_msg(self.pkg_id, self.pid))
         self.start = self.start or time.time()
         if not self.pkg.spec.build_spec.installed:
             try:
                 install_args = self.request.install_args
                 unsigned = install_args.get("unsigned")
                 _process_binary_cache_tarball(self.pkg, explicit=self.explicit, unsigned=unsigned)
-                _print_installed_pkg(self.pkg.prefix)
+                progress.set_installed(self.pkg, self.pkg.prefix)
                 return ExecuteResult.SUCCESS
             except BaseException as e:
                 tty.error(f"Failed to rewire {self.pkg.spec} from binary. {e}")
                 self.status = oldstatus
                 return ExecuteResult.MISSING_BUILD_SPEC
+
         spack.rewiring.rewire_node(self.pkg.spec, self.explicit)
-        _print_installed_pkg(self.pkg.prefix)
+        progress.set_installed(self.pkg, self.pkg.prefix)
         return ExecuteResult.SUCCESS
 
 
@@ -1322,6 +1371,9 @@ class PackageInstaller:
 
         # Priority queue of tasks
         self.build_pq: List[Tuple[Tuple[int, int], Task]] = []
+
+        # Installation status tracker
+        self.progress: InstallerProgress = InstallerProgress(packages)
 
         # Mapping of unique package ids to task
         self.build_tasks: Dict[str, Task] = {}
@@ -1747,15 +1799,15 @@ class PackageInstaller:
         fail_fast = bool(request.install_args.get("fail_fast"))
         self.fail_fast = self.fail_fast or fail_fast
 
-    def _install_task(self, task: Task, install_status: InstallStatus) -> None:
+    def _install_task(self, task: Task) -> None:
         """
         Perform the installation of the requested spec and/or dependency
         represented by the task.
 
         Args:
             task: the installation task for a package
-            install_status: the installation status for the package"""
-        rc = task.execute(install_status)
+        """
+        rc = task.execute(self.progress)
         if rc == ExecuteResult.MISSING_BUILD_SPEC:
             self._requeue_with_build_spec_tasks(task)
         else:  # if rc == ExecuteResult.SUCCESS or rc == ExecuteResult.FAILED
@@ -1863,7 +1915,7 @@ class PackageInstaller:
         else:
             return None
 
-    def _requeue_task(self, task: Task, install_status: InstallStatus) -> None:
+    def _requeue_task(self, task: Task) -> None:
         """
         Requeues a task that appears to be in progress by another process.
 
@@ -1871,10 +1923,7 @@ class PackageInstaller:
             task (Task): the installation task for a package
         """
         if task.status not in [BuildStatus.INSTALLED, BuildStatus.INSTALLING]:
-            tty.debug(
-                f"{install_msg(task.pkg_id, self.pid, install_status)} "
-                "in progress by another process"
-            )
+            tty.debug(f"{install_msg(task.pkg_id, self.pid)} in progress by another process")
 
         new_task = task.next_attempt(self.installed)
         new_task.status = BuildStatus.INSTALLING
@@ -2020,8 +2069,6 @@ class PackageInstaller:
         single_requested_spec = len(self.build_requests) == 1
         failed_build_requests = []
 
-        install_status = InstallStatus(len(self.build_pq))
-
         # Only enable the terminal status line when we're in a tty without debug info
         # enabled, so that the output does not get cluttered.
         term_status = TermStatusLine(
@@ -2037,8 +2084,7 @@ class PackageInstaller:
             keep_prefix = install_args.get("keep_prefix")
 
             pkg, pkg_id, spec = task.pkg, task.pkg_id, task.pkg.spec
-            install_status.next_pkg(pkg)
-            install_status.set_term_title(f"Processing {pkg.name}")
+            self.progress.set_term_title(f"Processing {pkg.name}")
             tty.debug(f"Processing {pkg_id}: task={task}")
             # Ensure that the current spec has NO uninstalled dependencies,
             # which is assumed to be reflected directly in its priority.
@@ -2067,7 +2113,7 @@ class PackageInstaller:
             # Skip the installation if the spec is not being installed locally
             # (i.e., if external or upstream) BUT flag it as installed since
             # some package likely depends on it.
-            if _handle_external_and_upstream(pkg, task.explicit):
+            if _handle_external_and_upstream(pkg, task.explicit, self.progress):
                 term_status.clear()
                 self._flag_installed(pkg, task.dependents)
                 continue
@@ -2088,7 +2134,7 @@ class PackageInstaller:
             # another process is likely (un)installing the spec or has
             # determined the spec has already been installed (though the
             # other process may be hung).
-            install_status.set_term_title(f"Acquiring lock for {pkg.name}")
+            self.progress.set_term_title(f"Acquiring lock for {pkg.name}")
             term_status.add(pkg_id)
             ltype, lock = self._ensure_locked("write", pkg)
             if lock is None:
@@ -2100,7 +2146,7 @@ class PackageInstaller:
             # can check the status presumably established by another process
             # -- failed, installed, or uninstalled -- on the next pass.
             if lock is None:
-                self._requeue_task(task, install_status)
+                self._requeue_task(task)
                 continue
 
             term_status.clear()
@@ -2111,7 +2157,7 @@ class PackageInstaller:
                 task.request.overwrite_time = time.time()
 
             # Determine state of installation artifacts and adjust accordingly.
-            install_status.set_term_title(f"Preparing {pkg.name}")
+            self.progress.set_term_title(f"Preparing {pkg.name}")
             self._prepare_for_install(task)
 
             # Flag an already installed package
@@ -2123,7 +2169,7 @@ class PackageInstaller:
                 if lock is not None:
                     self._update_installed(task)
                     path = spack.util.path.debug_padded_filter(pkg.prefix)
-                    _print_installed_pkg(path)
+                    self.progress.set_installed(pkg, path)
                 else:
                     # At this point we've failed to get a write or a read
                     # lock, which means another process has taken a write
@@ -2134,7 +2180,7 @@ class PackageInstaller:
                     # established by the other process -- failed, installed,
                     # or uninstalled -- on the next pass.
                     self.installed.remove(pkg_id)
-                    self._requeue_task(task, install_status)
+                    self._requeue_task(task)
                 continue
 
             # Having a read lock on an uninstalled pkg may mean another
@@ -2147,21 +2193,21 @@ class PackageInstaller:
             # uninstalled -- on the next pass.
             if ltype == "read":
                 lock.release_read()
-                self._requeue_task(task, install_status)
+                self._requeue_task(task)
                 continue
 
             # Proceed with the installation since we have an exclusive write
             # lock on the package.
-            install_status.set_term_title(f"Installing {pkg.name}")
+            self.progress.set_term_title(f"Installing {pkg.name}")
             try:
                 action = self._install_action(task)
 
                 if action == InstallAction.INSTALL:
-                    self._install_task(task, install_status)
+                    self._install_task(task)
                 elif action == InstallAction.OVERWRITE:
                     # spack.store.STORE.db is not really a Database object, but a small
                     # wrapper -- silence mypy
-                    OverwriteInstall(self, spack.store.STORE.db, task, install_status).install()  # type: ignore[arg-type] # noqa: E501
+                    OverwriteInstall(self, spack.store.STORE.db, task, self.progress).install()  # type: ignore[arg-type] # noqa: E501
 
                 # If we installed then we should keep the prefix
                 stop_before_phase = getattr(pkg, "stop_before_phase", None)
@@ -2187,7 +2233,7 @@ class PackageInstaller:
                 )
                 # this overrides a full method, which is ugly.
                 task.use_cache = False  # type: ignore[misc]
-                self._requeue_task(task, install_status)
+                self._requeue_task(task)
                 continue
 
             except (Exception, SystemExit) as exc:
@@ -2377,7 +2423,6 @@ class BuildProcessInstaller:
 
         print_install_test_log(self.pkg)
         _print_timer(pre=self.pre, pkg_id=self.pkg_id, timer=self.timer)
-        _print_installed_pkg(self.pkg.prefix)
 
         # preserve verbosity across runs
         return self.echo
@@ -2534,12 +2579,12 @@ class OverwriteInstall:
         installer: PackageInstaller,
         database: spack.database.Database,
         task: Task,
-        install_status: InstallStatus,
+        progress: InstallerProgress,
     ):
         self.installer = installer
         self.database = database
         self.task = task
-        self.install_status = install_status
+        self.progress = progress
 
     def install(self):
         """
@@ -2550,7 +2595,7 @@ class OverwriteInstall:
         """
         try:
             with fs.replace_directory_transaction(self.task.pkg.prefix):
-                self.installer._install_task(self.task, self.install_status)
+                self.installer._install_task(self.task)
         except fs.CouldNotRestoreDirectoryBackup as e:
             self.database.remove(self.task.pkg.spec)
             tty.error(
