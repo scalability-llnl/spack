@@ -98,7 +98,7 @@ def setup_parser(subparser):
         "--show-full-compiler",
         action="store_true",
         dest="show_full_compiler",
-        help="show full compiler specs",
+        help="(DEPRECATED) show full compiler specs",
     )
     implicit_explicit = subparser.add_mutually_exclusive_group()
     implicit_explicit.add_argument(
