@@ -289,7 +289,7 @@ def test_failed_translate_compiler_name(_common_arch):
     unknown_compiler = JsonCompilerEntry(name="unknown", version="1.0")
 
     with pytest.raises(spack.compilers.config.UnknownCompilerError):
-        compiler_from_entry(unknown_compiler.compiler_json(), "/example/file")
+        compiler_from_entry(unknown_compiler.compiler_json(), manifest_path="/example/file")
 
     spec_json = JsonSpecEntry(
         name="packagey",
