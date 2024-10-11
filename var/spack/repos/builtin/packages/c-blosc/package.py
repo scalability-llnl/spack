@@ -47,7 +47,7 @@ class CBlosc(CMakePackage):
     # enables c-blosc to properly engage lz4's config module
     patch(
         "https://patch-diff.githubusercontent.com/raw/Blosc/c-blosc/pull/386.patch",
-        sha256="5ed8a9187f86e741d539283ad7402ac5985dba6ab7ef757ee4368b42f1eacad3",
+        sha256="ef340ca029ef08729a14789e04bd7f26adf1438ddafbd92beb3c1197b7bd2e1f",
         when="@1.21.2:",
     )
     patch("gcc.patch", when="@1.12.1:1.17.0")
