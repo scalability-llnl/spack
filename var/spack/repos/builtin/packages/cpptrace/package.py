@@ -17,6 +17,7 @@ class Cpptrace(CMakePackage):
 
     license("MIT", checked_by="pranav-sivaraman")
 
+    version("0.7.2", sha256="62835abfd91a840e4d212c850695b576523fe6f9036bc5c3e52183b6eb9905c5")
     version("0.7.1", sha256="63df54339feb0c68542232229777df057e1848fc8294528613971bbf42889e83")
     version("0.7.0", sha256="b5c1fbd162f32b8995d9b1fefb1b57fac8b1a0e790f897b81cdafe3625d12001")
     version("0.6.3", sha256="665bf76645ec7b9e6d785a934616f0138862c36cdb58b0d1c9dd18dd4c57395a")
