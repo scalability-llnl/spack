@@ -770,8 +770,6 @@ def test_rpath_with_duplicate_link_deps():
         # Check that the special case for Apple's clang is treated correctly
         # i.e. it won't try to detect the version again
         ("apple-clang@=9.1.0", "x86_64", "-march=x86-64"),
-        # FIXME (compiler as nodes): Check mixed toolchain
-        # ("clang@8.0.0", "broadwell", ""),
     ],
 )
 @pytest.mark.filterwarnings("ignore:microarchitecture specific")
