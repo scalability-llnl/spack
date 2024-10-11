@@ -5,6 +5,7 @@
 import collections
 import itertools
 import os
+import pathlib
 from typing import Dict, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
@@ -58,7 +59,7 @@ def make_context(
     return LmodContext(make_configuration(spec, module_set_name, explicit))
 
 
-def guess_core_compilers(name, store=False) -> List[spack.spec.CompilerSpec]:
+def guess_core_compilers(name, store=False) -> List[spack.spec.Spec]:
     """Guesses the list of core compilers installed in the system.
 
     Args:
@@ -71,14 +72,10 @@ def guess_core_compilers(name, store=False) -> List[spack.spec.CompilerSpec]:
     core_compilers = []
     for compiler in spack.compilers.config.all_compilers():
         try:
-            # A compiler is considered to be a core compiler if any of the
-            # C, C++ or Fortran compilers reside in a system directory
-            is_system_compiler = any(
-                os.path.dirname(getattr(compiler, x, "")) in spack.util.environment.SYSTEM_DIRS
-                for x in ("cc", "cxx", "f77", "fc")
-            )
+            cc_dir = pathlib.Path(compiler.package.cc).parent
+            is_system_compiler = str(cc_dir) in spack.util.environment.SYSTEM_DIRS
             if is_system_compiler:
-                core_compilers.append(compiler.spec)
+                core_compilers.append(compiler)
         except (KeyError, TypeError, AttributeError):
             continue
 
@@ -100,18 +97,32 @@ class LmodConfiguration(BaseConfiguration):
 
     default_projections = {"all": "{name}/{version}"}
 
+    def __init__(self, spec: spack.spec.Spec, module_set_name: str, explicit: bool) -> None:
+        super().__init__(spec, module_set_name, explicit)
+
+        # FIXME (compiler as nodes): make this a bit more robust
+        candidates = collections.defaultdict(list)
+        for node in spec.traverse(deptype=("link", "run")):
+            candidates["c"].extend(node.dependencies(virtuals="c"))
+            candidates["cxx"].extend(node.dependencies(virtuals="c"))
+
+        # FIXME (compiler as nodes): decide what to do when we have more than one C compiler
+        if candidates["c"] and len(set(candidates["c"])) == 1:
+            self.compiler = candidates["c"][0]
+        elif not candidates["c"]:
+            self.compiler = None
+
     @property
-    def core_compilers(self) -> List[spack.spec.CompilerSpec]:
+    def core_compilers(self) -> List[spack.spec.Spec]:
         """Returns the list of "Core" compilers
 
         Raises:
-            CoreCompilersNotFoundError: if the key was not
-                specified in the configuration file or the sequence
-                is empty
+            CoreCompilersNotFoundError: if the key was not specified in the configuration file or
+                the sequence is empty
         """
-        compilers = [
-            spack.spec.CompilerSpec(c) for c in configuration(self.name).get("core_compilers", [])
-        ]
+        compilers = []
+        for c in configuration(self.name).get("core_compilers", []):
+            compilers.extend(spack.spec.Spec(f"%{c}").dependencies())
 
         if not compilers:
             compilers = guess_core_compilers(self.name, store=True)
@@ -160,12 +171,15 @@ class LmodConfiguration(BaseConfiguration):
     @property
     @lang.memoized
     def requires(self):
-        """Returns a dictionary mapping all the requirements of this spec
-        to the actual provider. 'compiler' is always present among the
-        requirements.
+        """Returns a dictionary mapping all the requirements of this spec to the actual provider.
+
+        The 'compiler' key is always present among the requirements.
         """
         # If it's a core_spec, lie and say it requires a core compiler
-        if any(self.spec.satisfies(core_spec) for core_spec in self.core_specs):
+        if (
+            any(self.spec.satisfies(core_spec) for core_spec in self.core_specs)
+            or self.compiler is None
+        ):
             return {"compiler": self.core_compilers[0]}
 
         hierarchy_filter_list = []
@@ -176,7 +190,8 @@ class LmodConfiguration(BaseConfiguration):
 
         # Keep track of the requirements that this package has in terms
         # of virtual packages that participate in the hierarchical structure
-        requirements = {"compiler": self.spec.compiler}
+
+        requirements = {"compiler": self.compiler}
         # For each virtual dependency in the hierarchy
         for x in self.hierarchy_tokens:
             # Skip anything filtered for this spec
@@ -200,11 +215,11 @@ class LmodConfiguration(BaseConfiguration):
 
         # If it is in the list of supported compilers family -> compiler
         if self.spec.name in spack.compilers.config.supported_compilers():
-            provides["compiler"] = spack.spec.CompilerSpec(self.spec.format("{name}{@versions}"))
+            provides["compiler"] = spack.spec.Spec(self.spec.format("{name}{@versions}"))
         elif self.spec.name in spack.compilers.config.package_name_to_compiler_name:
             # If it is the package for a supported compiler, but of a different name
             cname = spack.compilers.config.package_name_to_compiler_name[self.spec.name]
-            provides["compiler"] = spack.spec.CompilerSpec(cname, self.spec.versions)
+            provides["compiler"] = spack.spec.Spec(cname, self.spec.versions)
 
         # All the other tokens in the hierarchy must be virtual dependencies
         for x in self.hierarchy_tokens:
@@ -300,12 +315,10 @@ class LmodFileLayout(BaseFileLayout):
 
         # If we are dealing with a core compiler, return 'Core'
         core_compilers = self.conf.core_compilers
-        if name == "compiler" and any(
-            spack.spec.CompilerSpec(value).satisfies(c) for c in core_compilers
-        ):
+        if name == "compiler" and any(spack.spec.Spec(value).satisfies(c) for c in core_compilers):
             return "Core"
 
-        # CompilerSpec does not have a hash, as we are not allowed to
+        # Spec does not have a hash, as we are not allowed to
         # use different flavors of the same compiler
         if name == "compiler":
             return path_part_fmt(token=value)
