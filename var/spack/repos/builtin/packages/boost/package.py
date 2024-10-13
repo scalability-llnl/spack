@@ -105,7 +105,6 @@ class Boost(Package):
             "+random",
             "+regex",
             "+serialization",
-            "+signals",
             "+system",
             "+test",
             "+thread",
