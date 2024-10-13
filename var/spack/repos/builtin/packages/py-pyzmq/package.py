@@ -31,7 +31,11 @@ class PyPyzmq(PythonPackage):
     version("18.0.1", sha256="8b319805f6f7c907b101c864c3ca6cefc9db8ce0791356f180b1b644c7347e4c")
     version("17.1.2", sha256="a72b82ac1910f2cf61a49139f4974f994984475f771b0faa730839607eeedddf")
     version("16.0.2", sha256="0322543fff5ab6f87d11a8a099c4c07dd8a1719040084b6ce9162bcdf5c45c9d")
-    version("14.7.0", sha256="77994f80360488e7153e64e5959dc5471531d1648e3a4bff14a714d074a38cc2")
+    version(
+        "14.7.0",
+        sha256="77994f80360488e7153e64e5959dc5471531d1648e3a4bff14a714d074a38cc2",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
