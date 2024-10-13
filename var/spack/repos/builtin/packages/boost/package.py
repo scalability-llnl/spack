@@ -5,6 +5,7 @@
 
 import os
 import sys
+from pathlib import Path
 
 from spack.package import *
 
@@ -20,7 +21,7 @@ class Boost(Package):
     """
 
     homepage = "https://www.boost.org"
-    url = "http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.bz2"
+    url = "https://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.bz2"
     git = "https://github.com/boostorg/boost.git"
     list_url = "https://sourceforge.net/projects/boost/files/boost/"
     list_depth = 1
@@ -29,6 +30,7 @@ class Boost(Package):
     license("BSL-1.0")
 
     version("develop", branch="develop", submodules=True)
+    version("1.86.0", sha256="1bed88e40401b2cb7a1f76d4bab499e352fa4d0c5f31c0dbae64e24d34d7513b")
     version("1.85.0", sha256="7009fe1faa1697476bdc7027703a2badb84e849b7b0baad5086b087b971f8617")
     version("1.84.0", sha256="cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454")
     version("1.83.0", sha256="6478edfe2f3305127cffe8caf73ea0176c53769f4bf1585be237eb30798c3b8e")
@@ -116,7 +118,9 @@ class Boost(Package):
     # support. The header-only library is installed when no variant is given.
     all_libs = [
         "atomic",
+        "charconv",
         "chrono",
+        "cobalt",
         "container",
         "context",
         "contract",
@@ -146,6 +150,7 @@ class Boost(Package):
         "thread",
         "timer",
         "type_erasure",
+        "url",
         "wave",
     ]
 
@@ -300,6 +305,11 @@ class Boost(Package):
     # safe to do so on affected platforms.
     conflicts("+clanglibcpp", when="@1.85: +stacktrace")
 
+    # On Windows, the signals variant is required when building any of
+    # the all_libs variants.
+    for lib in all_libs:
+        requires("+signals", when=f"+{lib} platform=windows")
+
     # Patch fix from https://svn.boost.org/trac/boost/ticket/11856
     patch("boost_11856.patch", when="@1.60.0%gcc@4.4.7")
 
@@ -450,7 +460,7 @@ class Boost(Package):
         if version >= Version("1.63.0"):
             url = "https://archives.boost.io/release/{0}/source/boost_{1}.tar.bz2"
         else:
-            url = "http://downloads.sourceforge.net/project/boost/boost/{0}/boost_{1}.tar.bz2"
+            url = "https://downloads.sourceforge.net/project/boost/boost/{0}/boost_{1}.tar.bz2"
 
         return url.format(version.dotted, version.underscored)
 
@@ -462,24 +472,24 @@ class Boost(Package):
 
     def determine_toolset(self, spec):
         toolsets = {
-            "g++": "gcc",
-            "icpc": "intel",
-            "icpx": "intel",
-            "clang++": "clang",
-            "armclang++": "clang",
-            "xlc++": "xlcpp",
-            "xlc++_r": "xlcpp",
-            "pgc++": "pgi",
-            "nvc++": "pgi",
-            "FCC": "clang",
+            "%gcc": "gcc",
+            "%intel": "intel",
+            "%oneapi": "intel",
+            "%clang": "clang",
+            "%arm": "clang",
+            "%xl": "xlcpp",
+            "%xl_r": "xlcpp",
+            "%pgi": "pgi",
+            "%nvhpc": "pgi",
+            "%fj": "clang",
         }
 
         if spec.satisfies("@1.47:"):
-            toolsets["icpc"] += "-linux"
-            toolsets["icpx"] += "-linux"
+            toolsets["%intel"] += "-linux"
+            toolsets["%oneapi"] += "-linux"
 
         for cc, toolset in toolsets.items():
-            if cc in self.compiler.cxx_names:
+            if self.spec.satisfies(cc):
                 return toolset
 
         # fallback to gcc if no toolset found
@@ -492,9 +502,9 @@ class Boost(Package):
 
         return "using python : {0} : {1} : {2} : {3} ;\n".format(
             spec["python"].version.up_to(2),
-            spec["python"].command.path,
-            spec["python"].headers.directories[0],
-            spec["python"].libs[0],
+            Path(spec["python"].command.path).as_posix(),
+            Path(spec["python"].headers.directories[0]).as_posix(),
+            Path(spec["python"].libs[0]).parent.as_posix(),
         )
 
     def determine_bootstrap_options(self, spec, with_libs, options):
@@ -505,7 +515,10 @@ class Boost(Package):
             options.append("--with-toolset=gcc")
         else:
             options.append("--with-toolset=%s" % boost_toolset_id)
-        options.append("--with-libraries=%s" % ",".join(with_libs))
+        if with_libs:
+            options.append("--with-libraries=%s" % ",".join(sorted(with_libs)))
+        else:
+            options.append("--with-libraries=headers")
 
         if spec.satisfies("+python"):
             options.append("--with-python=%s" % spec["python"].command.path)
@@ -515,6 +528,9 @@ class Boost(Package):
         else:
             options.append("--without-icu")
 
+        self.write_jam_file(spec, boost_toolset_id)
+
+    def write_jam_file(self, spec, boost_toolset_id=None):
         with open("user-config.jam", "w") as f:
             # Boost may end up using gcc even though clang+gfortran is set in
             # compilers.yaml. Make sure this does not happen:
@@ -529,7 +545,7 @@ class Boost(Package):
                 # similar, but that doesn't work with the Cray compiler
                 # wrappers.  Since Boost doesn't use the MPI C++ bindings,
                 # that can be used as a compiler option instead.
-                mpi_line = "using mpi : %s" % spec["mpi"].mpicxx
+                mpi_line = "using mpi : %s" % Path(spec["mpi"].mpicxx).as_posix()
                 f.write(mpi_line + " ;\n")
 
             if spec.satisfies("+python"):
@@ -602,6 +618,16 @@ class Boost(Package):
 
         options.extend(["link=%s" % ",".join(link_types), "--layout=%s" % layout])
 
+        if spec.satisfies("platform=windows"):
+            # The runtime link must either be shared or static, not both.
+            if "+shared" in spec:
+                options.append("runtime-link=shared")
+            else:
+                options.append("runtime-link=static")
+            for lib in self.all_libs:
+                if f"+{lib}" not in spec:
+                    options.append(f"--without-{lib}")
+
         if not spec.satisfies("@:1.75 %intel") and not spec.satisfies("platform=windows"):
             # When building any version >= 1.76, the toolset must be specified.
             # Earlier versions could not specify Intel as the toolset
@@ -665,6 +691,23 @@ class Boost(Package):
                     prefix, remainder = lib.split(".", 1)
                     symlink(lib, "%s-mt.%s" % (prefix, remainder))
 
+    def bootstrap_windows(self):
+        """Run the Windows-specific bootstrap.bat. The only bootstrapping command
+        line option that is accepted by the bootstrap.bat script is the compiler
+        information: either the vc version (e.g. MSVC 14.3.x would be vc143)
+        or gcc or clang.
+        """
+        bootstrap_options = list()
+        if self.spec.satisfies("%msvc"):
+            bootstrap_options.append(f"vc{self.compiler.platform_toolset_ver}")
+        elif self.spec.satisfies("%gcc"):
+            bootstrap_options.append("gcc")
+        elif self.spec.satisfies("%clang"):
+            bootstrap_options.append("clang")
+
+        bootstrap = Executable("cmd.exe")
+        bootstrap("/c", ".\\bootstrap.bat", *bootstrap_options)
+
     def install(self, spec, prefix):
         # On Darwin, Boost expects the Darwin libtool. However, one of the
         # dependencies may have pulled in Spack's GNU libtool, and these two
@@ -676,49 +719,41 @@ class Boost(Package):
             force_symlink("/usr/bin/libtool", join_path(newdir, "libtool"))
             env["PATH"] = newdir + ":" + env["PATH"]
 
-        with_libs = list()
-        for lib in Boost.all_libs:
-            if "+{0}".format(lib) in spec:
-                with_libs.append(lib)
+        with_libs = {f"{lib}" for lib in Boost.all_libs if f"+{lib}" in spec}
 
         # Remove libraries that the release version does not support
-        if spec.satisfies("@1.69.0:") and "signals" in with_libs:
-            with_libs.remove("signals")
-        if not spec.satisfies("@1.54.0:") and "log" in with_libs:
-            with_libs.remove("log")
-        if not spec.satisfies("@1.53.0:") and "atomic" in with_libs:
-            with_libs.remove("atomic")
-        if not spec.satisfies("@1.48.0:") and "locale" in with_libs:
-            with_libs.remove("locale")
-        if not spec.satisfies("@1.47.0:") and "chrono" in with_libs:
-            with_libs.remove("chrono")
-        if not spec.satisfies("@1.43.0:") and "random" in with_libs:
-            with_libs.remove("random")
-        if not spec.satisfies("@1.39.0:") and "exception" in with_libs:
-            with_libs.remove("exception")
+        if not spec.satisfies("@1.85.0:"):
+            with_libs.discard("charconv")
+        if not spec.satisfies("@1.84.0:"):
+            with_libs.discard("cobalt")
+        if not spec.satisfies("@1.81.0:"):
+            with_libs.discard("url")
+        if not spec.satisfies("@1.75.0:"):
+            with_libs.discard("json")
+        if spec.satisfies("@1.69.0:"):
+            with_libs.discard("signals")
+        if not spec.satisfies("@1.54.0:"):
+            with_libs.discard("log")
+        if not spec.satisfies("@1.53.0:"):
+            with_libs.discard("atomic")
+        if not spec.satisfies("@1.48.0:"):
+            with_libs.discard("locale")
+        if not spec.satisfies("@1.47.0:"):
+            with_libs.discard("chrono")
+        if not spec.satisfies("@1.43.0:"):
+            with_libs.discard("random")
+        if not spec.satisfies("@1.39.0:"):
+            with_libs.discard("exception")
         if spec.satisfies("+graph") and spec.satisfies("+mpi"):
-            with_libs.append("graph_parallel")
-
-        if not with_libs:
-            # if no libraries are specified for compilation, then you dont have
-            # to configure/build anything, just copy over to the prefix
-            # directory.
-            src = join_path(self.stage.source_path, "boost")
-            mkdirp(join_path(prefix, "include"))
-            dst = join_path(prefix, "include", "boost")
-            install_tree(src, dst)
-            return
-
-        # to make Boost find the user-config.jam
-        env["BOOST_BUILD_PATH"] = self.stage.source_path
-
-        bootstrap_options = ["--prefix=%s" % prefix]
-        self.determine_bootstrap_options(spec, with_libs, bootstrap_options)
+            with_libs.add("graph_parallel")
 
         if self.spec.satisfies("platform=windows"):
-            bootstrap = Executable("cmd.exe")
-            bootstrap("/c", ".\\bootstrap.bat", *bootstrap_options)
+            self.bootstrap_windows()
         else:
+            # to make Boost find the user-config.jam
+            env["BOOST_BUILD_PATH"] = self.stage.source_path
+            bootstrap_options = ["--prefix=%s" % prefix]
+            self.determine_bootstrap_options(spec, with_libs, bootstrap_options)
             bootstrap = Executable("./bootstrap.sh")
             bootstrap(*bootstrap_options)
 
@@ -741,15 +776,24 @@ class Boost(Package):
         if jobs > 64 and spec.satisfies("@:1.58"):
             jobs = 64
 
-        # Windows just wants a b2 call with no args
-        b2_options = []
-        if not self.spec.satisfies("platform=windows"):
-            path_to_config = "--user-config=%s" % os.path.join(
-                self.stage.source_path, "user-config.jam"
-            )
-            b2_options = ["-j", "%s" % jobs]
-            b2_options.append(path_to_config)
+        if self.spec.satisfies("platform=windows"):
 
+            def is_64bit():
+                # TODO: This method should be abstracted to a more general location
+                #  as it is repeated in many places (msmpi.py for one)
+                return "64" in str(self.spec.target.family)
+
+            b2_options = [f"--prefix={self.prefix}", f"address-model={64 if is_64bit() else 32}"]
+            if not self.spec.satisfies("+python"):
+                b2_options.append("--without-python")
+
+            self.write_jam_file(self.spec)
+        else:
+            b2_options = ["-j", "%s" % jobs]
+        path_to_config = "--user-config=%s" % os.path.join(
+            self.stage.source_path, "user-config.jam"
+        )
+        b2_options.append(path_to_config)
         threading_opts = self.determine_b2_options(spec, b2_options)
 
         # Create headers if building from a git checkout

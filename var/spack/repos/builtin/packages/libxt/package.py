@@ -21,14 +21,14 @@ class Libxt(AutotoolsPackage, XorgPackage):
     version("1.2.0", sha256="d4bee88898fc5e1dc470e361430c72fbc529b9cdbbb6c0ed3affea3a39f97d8d")
     version("1.1.5", sha256="b59bee38a9935565fa49dc1bfe84cb30173e2e07e1dcdf801430d4b54eb0caa3")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libsm")
     depends_on("libice")
     depends_on("libx11")
 
-    depends_on("xproto")
-    depends_on("kbproto")
+    depends_on("xproto", type=("build", "link"))
+    depends_on("kbproto", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
 

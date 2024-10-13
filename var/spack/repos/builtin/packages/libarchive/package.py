@@ -136,7 +136,7 @@ class Libarchive(AutotoolsPackage):
         args += self.with_or_without("xar")
         args += self.enable_or_disable("programs")
 
-        if "+iconv" in spec:
+        if spec.satisfies("+iconv"):
             if spec["iconv"].name == "libiconv":
                 args.append(f"--with-libiconv-prefix={spec['iconv'].prefix}")
             else:

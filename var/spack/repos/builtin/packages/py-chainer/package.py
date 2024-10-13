@@ -52,14 +52,14 @@ class PyChainer(PythonPackage):
     @run_after("install")
     def cache_test_sources(self):
         if "+mn" in self.spec:
-            self.cache_extra_test_sources("examples")
+            cache_extra_test_sources(self, "examples")
 
     def test_chainermn(self):
         """run the ChainerMN test"""
         if "+mn" not in self.spec:
             raise SkipTest("Test only supported when built with +mn")
 
-        mnist_file = join_path(self.install_test_root.examples.chainermn.mnist, "train_mnist.py")
+        mnist_file = join_path(install_test_root(self).examples.chainermn.mnist, "train_mnist.py")
         mpirun = which(self.spec["mpi"].prefix.bin.mpirun)
         opts = ["-n", "4", python.path, mnist_file, "-o", "."]
         env["OMP_NUM_THREADS"] = "4"

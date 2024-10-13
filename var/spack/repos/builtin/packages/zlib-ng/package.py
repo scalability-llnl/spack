@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import sys
+
 from spack.build_systems import autotools, cmake
 from spack.package import *
 
@@ -45,7 +47,7 @@ class ZlibNg(AutotoolsPackage, CMakePackage):
     build_system("autotools", "cmake", default="autotools")
 
     # fix building with NVHPC, see https://github.com/zlib-ng/zlib-ng/pull/1698
-    patch("pr-1698.patch", when="@2.1.4:%nvhpc+opt")
+    patch("pr-1698.patch", when="@2.1.4:2.1.6%nvhpc+opt")
 
     with when("build_system=cmake"):
         depends_on("cmake@3.5.1:", type="build")
@@ -55,9 +57,15 @@ class ZlibNg(AutotoolsPackage, CMakePackage):
 
     @property
     def libs(self):
-        name = "libz" if self.spec.satisfies("+compat") else "libz-ng"
+        compat_name = "zlib" if sys.platform == "win32" else "libz"
+        non_compat_name = "zlib-ng" if sys.platform == "win32" else "libz-ng"
+        name = compat_name if self.spec.satisfies("+compat") else non_compat_name
         return find_libraries(
-            name, root=self.prefix, recursive=True, shared=self.spec.satisfies("+shared")
+            name,
+            root=self.prefix,
+            recursive=True,
+            shared=self.spec.satisfies("+shared"),
+            runtime=False,
         )
 
     def flag_handler(self, name, flags):

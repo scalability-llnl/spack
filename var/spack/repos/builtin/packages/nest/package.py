@@ -53,7 +53,7 @@ class Nest(CMakePackage):
 
     depends_on("gsl", when="+gsl")
     depends_on("readline")
-    depends_on("libtool")
+    depends_on("libtool", type="link")  # links against libltdl
     depends_on("pkgconfig", type="build")
 
     extends("python", when="+python")

@@ -53,7 +53,7 @@ class Dssp(AutotoolsPackage):
     @run_after("install")
     def cache_test_sources(self):
         """Save off the pdb sources for stand-alone testing."""
-        self.cache_extra_test_sources("pdb")
+        cache_extra_test_sources(self, "pdb")
 
     def test_mkdssp(self):
         """calculate structure for example"""

@@ -663,11 +663,7 @@ build the package.
 
 When including a bootstrapping phase as in the example above, the result is that
 the bootstrapped compiler packages will be pushed to the binary mirror (and the
-local artifacts mirror) before the actual release specs are built. In this case,
-the jobs corresponding to subsequent release specs are configured to
-``install_missing_compilers``, so that if spack is asked to install a package
-with a compiler it doesn't know about, it can be quickly installed from the
-binary mirror first.
+local artifacts mirror) before the actual release specs are built.
 
 Since bootstrapping compilers is optional, those items can be left out of the
 environment/stack file, and in that case no bootstrapping will be done (only the

@@ -9,7 +9,7 @@ from spack.package import *
 class Squashfs(MakefilePackage):
     """Squashfs - read only compressed filesystem"""
 
-    homepage = "http://squashfs.sourceforge.net"
+    homepage = "https://squashfs.sourceforge.net"
     url = "https://downloads.sourceforge.net/project/squashfs/squashfs/squashfs4.3/squashfs4.3.tar.gz"
 
     license("GPL-2.0-or-later")

@@ -14,7 +14,6 @@ from llnl.util.lang import union_dicts
 
 import spack.schema.gitlab_ci  # DEPRECATED
 import spack.schema.merged
-import spack.schema.projections
 
 from .spec_list import spec_list_schema
 

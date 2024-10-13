@@ -116,7 +116,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
         filter_file(r"include \.\./" + filename, "include ./" + filename, makefile)
 
         # Cache the examples directory for use by stand-alone tests
-        self.pkg.cache_extra_test_sources(self.pkg.examples_src_dir)
+        cache_extra_test_sources(self.pkg, self.pkg.examples_src_dir)
 
     def _make_hdr_for_test(self, lib):
         """Standard configure arguments for make.inc"""

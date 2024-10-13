@@ -9,7 +9,7 @@ from spack.package import *
 class Cvector(MakefilePackage):
     """CVector -- ANSI C API for Dynamic Arrays"""
 
-    homepage = "http://cvector.sourceforge.net/"
+    homepage = "https://cvector.sourceforge.net/"
     url = "https://downloads.sourceforge.net/project/cvector/cvector/CVector-1.0.3/CVector-1.0.3.tar.gz"
 
     license("LGPL-2.1-or-later")

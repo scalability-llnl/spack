@@ -12,7 +12,7 @@ class Libmng(CMakePackage):
     extension to the popular PNG image format."""
 
     homepage = "https://sourceforge.net/projects/libmng/"
-    url = "http://downloads.sourceforge.net/project/libmng/libmng-devel/2.0.3/libmng-2.0.3.tar.gz"
+    url = "https://downloads.sourceforge.net/project/libmng/libmng-devel/2.0.3/libmng-2.0.3.tar.gz"
 
     license("custom")
 

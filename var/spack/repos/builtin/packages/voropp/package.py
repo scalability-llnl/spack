@@ -11,8 +11,8 @@ class Voropp(MakefilePackage):
     Voronoi diagram, a widely-used tessellation that has applications in many
     scientific fields."""
 
-    homepage = "http://math.lbl.gov/voro++/about.html"
-    url = "http://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz"
+    homepage = "https://math.lbl.gov/voro++/about.html"
+    url = "https://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz"
 
     variant("pic", default=True, description="Position independent code")
 

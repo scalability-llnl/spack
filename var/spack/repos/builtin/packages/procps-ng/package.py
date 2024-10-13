@@ -9,7 +9,7 @@ from spack.package import *
 class ProcpsNg(AutotoolsPackage):
     """Utilities that provide system information."""
 
-    homepage = "https://sourceforge.net/projects/procps-ng"
+    homepage = "https://sourceforge.net/projects/procps-ng/"
     url = "https://udomain.dl.sourceforge.net/project/procps-ng/Production/procps-ng-3.3.16.tar.xz"
 
     license("GPL-2.0-or-later AND LGPL-2.1-or-later", checked_by="tgamblin")

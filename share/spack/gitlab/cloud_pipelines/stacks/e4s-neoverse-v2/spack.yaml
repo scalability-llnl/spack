@@ -133,7 +133,6 @@ spack:
   - py-jupyterhub
   - py-libensemble
   - py-petsc4py
-  - py-warpx
   - qthreads scheduler=distrib
   - quantum-espresso
   - raja
@@ -157,6 +156,7 @@ spack:
   - upcxx
   # - veloc
   - wannier90
+  - warpx +python
   - xyce +mpi +shared +pymi +pymi_static_tpls
   # INCLUDED IN ECP DAV CPU
   # - adios2

@@ -55,7 +55,7 @@ class Kvtree(CMakePackage):
         spec = self.spec
         args = []
         args.append(self.define_from_variant("MPI"))
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append(self.define("MPI_C_COMPILER", spec["mpi"].mpicc))
 
         args.append(self.define_from_variant("KVTREE_FILE_LOCK", "file_lock"))

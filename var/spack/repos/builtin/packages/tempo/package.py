@@ -9,7 +9,7 @@ from spack.package import *
 class Tempo(AutotoolsPackage):
     """Tempo is a program for pulsar timing data analysis."""
 
-    homepage = "http://tempo.sourceforge.net/"
+    homepage = "https://tempo.sourceforge.net/"
     git = "git://git.code.sf.net/p/tempo/tempo.git"
 
     version("develop")

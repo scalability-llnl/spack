@@ -14,7 +14,7 @@ class Optipng(AutotoolsPackage, SourceforgePackage):
     integrity checks and corrections.
     """
 
-    homepage = "http://optipng.sourceforge.net/"
+    homepage = "https://optipng.sourceforge.net/"
     sourceforge_mirror_path = "optipng/optipng-0.7.7.tar.gz"
 
     license("Zlib")

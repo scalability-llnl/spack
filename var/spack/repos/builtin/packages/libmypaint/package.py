@@ -41,10 +41,10 @@ class Libmypaint(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+gegl" in self.spec:
+        if self.spec.satisfies("+gegl"):
             args.append("--enable-gegl=yes")
 
-        if "+introspection" in self.spec:
+        if self.spec.satisfies("+introspection"):
             args.extend(
                 ["--enable-introspection=yes", "--with-glib={0}".format(self.spec["glib"].prefix)]
             )

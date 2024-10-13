@@ -10,20 +10,20 @@ import pytest
 
 from llnl.util.symlink import resolve_link_target_relative_to_the_link
 
+import spack.caches
+import spack.config
+import spack.fetch_strategy
 import spack.mirror
-import spack.repo
+import spack.patch
+import spack.stage
 import spack.util.executable
 import spack.util.spack_json as sjson
 import spack.util.url as url_util
 from spack.spec import Spec
-from spack.stage import Stage
 from spack.util.executable import which
 from spack.util.spack_yaml import SpackYAMLError
 
-pytestmark = [
-    pytest.mark.not_on_windows("does not run on windows"),
-    pytest.mark.usefixtures("mutable_config", "mutable_mock_repo"),
-]
+pytestmark = [pytest.mark.usefixtures("mutable_config", "mutable_mock_repo")]
 
 # paths in repos that shouldn't be in the mirror tarballs.
 exclude = [".hg", ".git", ".svn"]
@@ -51,7 +51,7 @@ def set_up_package(name, repository, url_attr):
 
 
 def check_mirror():
-    with Stage("spack-mirror-test") as stage:
+    with spack.stage.Stage("spack-mirror-test") as stage:
         mirror_root = os.path.join(stage.path, "test-mirror")
         # register mirror with spack config
         mirrors = {"spack-mirror-test": url_util.path_to_file_url(mirror_root)}
@@ -66,8 +66,8 @@ def check_mirror():
             for spec in specs:
                 fetcher = spec.package.fetcher
                 per_package_ref = os.path.join(spec.name, "-".join([spec.name, str(spec.version)]))
-                mirror_paths = spack.mirror.mirror_archive_paths(fetcher, per_package_ref)
-                expected_path = os.path.join(mirror_root, mirror_paths.storage_path)
+                mirror_layout = spack.mirror.default_mirror_layout(fetcher, per_package_ref)
+                expected_path = os.path.join(mirror_root, mirror_layout.path)
                 assert os.path.exists(expected_path)
 
             # Now try to fetch each package.
@@ -202,14 +202,12 @@ def test_invalid_json_mirror_collection(invalid_json, error_message):
 
 def test_mirror_archive_paths_no_version(mock_packages, mock_archive):
     spec = Spec("trivial-install-test-package@=nonexistingversion").concretized()
-    fetcher = spack.fetch_strategy.URLFetchStrategy(mock_archive.url)
-    spack.mirror.mirror_archive_paths(fetcher, "per-package-ref", spec)
+    fetcher = spack.fetch_strategy.URLFetchStrategy(url=mock_archive.url)
+    spack.mirror.default_mirror_layout(fetcher, "per-package-ref", spec)
 
 
 def test_mirror_with_url_patches(mock_packages, monkeypatch):
-    spec = Spec("patch-several-dependencies")
-    spec.concretize()
-
+    spec = Spec("patch-several-dependencies").concretized()
     files_cached_in_mirror = set()
 
     def record_store(_class, fetcher, relative_dst, cosmetic_path=None):
@@ -228,30 +226,25 @@ def test_mirror_with_url_patches(mock_packages, monkeypatch):
     def successful_apply(*args, **kwargs):
         pass
 
-    def successful_symlink(*args, **kwargs):
+    def successful_make_alias(*args, **kwargs):
         pass
 
-    with Stage("spack-mirror-test") as stage:
+    with spack.stage.Stage("spack-mirror-test") as stage:
         mirror_root = os.path.join(stage.path, "test-mirror")
 
         monkeypatch.setattr(spack.fetch_strategy.URLFetchStrategy, "fetch", successful_fetch)
         monkeypatch.setattr(spack.fetch_strategy.URLFetchStrategy, "expand", successful_expand)
         monkeypatch.setattr(spack.patch, "apply_patch", successful_apply)
         monkeypatch.setattr(spack.caches.MirrorCache, "store", record_store)
-        monkeypatch.setattr(spack.caches.MirrorCache, "symlink", successful_symlink)
+        monkeypatch.setattr(spack.mirror.DefaultLayout, "make_alias", successful_make_alias)
 
         with spack.config.override("config:checksum", False):
             spack.mirror.create(mirror_root, list(spec.traverse()))
 
-        assert not (
-            set(
-                [
-                    "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
-                    "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd.gz",
-                ]
-            )
-            - files_cached_in_mirror
-        )
+        assert {
+            "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
+            "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd.gz",
+        }.issubset(files_cached_in_mirror)
 
 
 class MockFetcher:
@@ -266,23 +259,21 @@ class MockFetcher:
 
 
 @pytest.mark.regression("14067")
-def test_mirror_cache_symlinks(tmpdir):
+def test_mirror_layout_make_alias(tmpdir):
     """Confirm that the cosmetic symlink created in the mirror cache (which may
     be relative) targets the storage path correctly.
     """
-    cosmetic_path = "zlib/zlib-1.2.11.tar.gz"
-    global_path = "_source-cache/archive/c3/c3e5.tar.gz"
-    cache = spack.caches.MirrorCache(str(tmpdir), False)
-    reference = spack.mirror.MirrorReference(cosmetic_path, global_path)
+    alias = os.path.join("zlib", "zlib-1.2.11.tar.gz")
+    path = os.path.join("_source-cache", "archive", "c3", "c3e5.tar.gz")
+    cache = spack.caches.MirrorCache(root=str(tmpdir), skip_unstable_versions=False)
+    layout = spack.mirror.DefaultLayout(alias, path)
 
-    cache.store(MockFetcher(), reference.storage_path)
-    cache.symlink(reference)
+    cache.store(MockFetcher(), layout.path)
+    layout.make_alias(cache.root)
 
-    link_target = resolve_link_target_relative_to_the_link(
-        os.path.join(cache.root, reference.cosmetic_path)
-    )
+    link_target = resolve_link_target_relative_to_the_link(os.path.join(cache.root, layout.alias))
     assert os.path.exists(link_target)
-    assert os.path.normpath(link_target) == os.path.join(cache.root, reference.storage_path)
+    assert os.path.normpath(link_target) == os.path.join(cache.root, layout.path)
 
 
 @pytest.mark.regression("31627")

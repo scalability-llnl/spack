@@ -13,7 +13,6 @@ import pytest
 
 import spack.build_environment
 import spack.config
-import spack.spec
 from spack.paths import build_env_path
 from spack.util.environment import SYSTEM_DIR_CASE_ENTRY, set_env
 from spack.util.executable import Executable, ProcessError
@@ -353,6 +352,15 @@ def test_fc_flags(wrapper_environment, wrapper_flags):
         + ["-Wl,--gc-sections"]
         + spack_ldlibs,
     )
+
+
+def test_always_cflags(wrapper_environment, wrapper_flags):
+    with set_env(SPACK_ALWAYS_CFLAGS="-always1 -always2"):
+        check_args(
+            cc,
+            ["-v", "--cmd-line-v-opt"],
+            [real_cc] + ["-always1", "-always2"] + ["-v", "--cmd-line-v-opt"],
+        )
 
 
 def test_Wl_parsing(wrapper_environment):

@@ -9,7 +9,7 @@ from spack.package import *
 class Erne(AutotoolsPackage):
     """The Extended Randomized Numerical alignEr using BWT"""
 
-    homepage = "http://erne.sourceforge.net/"
+    homepage = "https://erne.sourceforge.net/"
     url = "https://downloads.sourceforge.net/project/erne/2.1.1/erne-2.1.1-source.tar.gz"
 
     license("GPL-3.0-only")
@@ -30,7 +30,7 @@ class Erne(AutotoolsPackage):
     depends_on("openmpi", type=("build", "run"), when="+mpi")
 
     def configure_args(self):
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             return ["--enable-openmpi"]
         else:
             return ["--disable-openmpi"]

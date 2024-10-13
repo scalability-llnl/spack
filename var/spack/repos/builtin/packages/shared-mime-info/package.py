@@ -10,7 +10,7 @@ class SharedMimeInfo(AutotoolsPackage):
     """Database of common MIME types."""
 
     homepage = "https://freedesktop.org/wiki/Software/shared-mime-info"
-    url = "http://freedesktop.org/~hadess/shared-mime-info-1.8.tar.xz"
+    url = "https://people.freedesktop.org/~hadess/shared-mime-info-1.8.tar.xz"
 
     license("GPL-2.0-or-later")
 

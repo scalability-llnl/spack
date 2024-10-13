@@ -10,12 +10,11 @@ import pytest
 import llnl.util.filesystem as fs
 
 import spack.ci as ci
-import spack.config
 import spack.environment as ev
 import spack.error
 import spack.paths as spack_paths
+import spack.spec
 import spack.util.git
-import spack.util.gpg
 
 
 @pytest.fixture
@@ -286,7 +285,7 @@ def test_ci_process_command_fail(repro_dir, monkeypatch):
 def test_ci_create_buildcache(tmpdir, working_env, config, mock_packages, monkeypatch):
     """Test that create_buildcache returns a list of objects with the correct
     keys and types."""
-    monkeypatch.setattr(spack.ci, "_push_to_build_cache", lambda a, b, c: True)
+    monkeypatch.setattr(ci, "push_to_build_cache", lambda a, b, c: True)
 
     results = ci.create_buildcache(
         None, destination_mirror_urls=["file:///fake-url-one", "file:///fake-url-two"]

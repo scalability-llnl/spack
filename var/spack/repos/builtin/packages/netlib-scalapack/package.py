@@ -41,15 +41,14 @@ class ScalapackBase(CMakePackage):
     patch("fix-build-macos.patch", when="@2.2.0")
 
     def flag_handler(self, name, flags):
-        iflags = []
         if name == "cflags":
             if self.spec.satisfies("%gcc@14:"):
                 # https://bugzilla.redhat.com/show_bug.cgi?id=2178710
-                iflags.append("-std=gnu89")
+                flags.append("-std=gnu89")
         elif name == "fflags":
             if self.spec.satisfies("%cce"):
-                iflags.append("-hnopattern")
-        return (iflags, None, None)
+                flags.append("-hnopattern")
+        return (flags, None, None)
 
     @property
     def libs(self):

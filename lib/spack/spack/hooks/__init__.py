@@ -20,6 +20,7 @@ This can be used to implement support for things like module
 systems (e.g. modules, lmod, etc.) or to add other custom
 features.
 """
+import importlib
 
 from llnl.util.lang import ensure_last, list_modules
 
@@ -46,11 +47,7 @@ class _HookRunner:
 
         for name in relative_names:
             module_name = __name__ + "." + name
-            # When importing a module from a package, __import__('A.B', ...)
-            # returns package A when 'fromlist' is empty. If fromlist is not
-            # empty it returns the submodule B instead
-            # See: https://stackoverflow.com/a/2725668/771663
-            module_obj = __import__(module_name, fromlist=[None])
+            module_obj = importlib.import_module(module_name)
             cls._hooks.append((module_name, module_obj))
 
     @property

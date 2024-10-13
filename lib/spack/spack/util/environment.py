@@ -11,6 +11,8 @@ import os
 import os.path
 import pickle
 import re
+import shlex
+import subprocess
 import sys
 from functools import wraps
 from typing import Any, Callable, Dict, List, MutableMapping, Optional, Tuple, Union
@@ -18,8 +20,6 @@ from typing import Any, Callable, Dict, List, MutableMapping, Optional, Tuple, U
 from llnl.path import path_to_os_path, system_path_filter
 from llnl.util import tty
 from llnl.util.lang import dedupe
-
-from .executable import Executable, which
 
 if sys.platform == "win32":
     SYSTEM_PATHS = [
@@ -61,26 +61,6 @@ TRACING_ENABLED = False
 
 Path = str
 ModificationList = List[Union["NameModifier", "NameValueModifier"]]
-
-
-_find_unsafe = re.compile(r"[^\w@%+=:,./-]", re.ASCII).search
-
-
-def double_quote_escape(s):
-    """Return a shell-escaped version of the string *s*.
-
-    This is similar to how shlex.quote works, but it escapes with double quotes
-    instead of single quotes, to allow environment variable expansion within
-    quoted strings.
-    """
-    if not s:
-        return '""'
-    if _find_unsafe(s) is None:
-        return s
-
-    # use double quotes, and escape double quotes in the string
-    # the string $"b is then quoted as "$\"b"
-    return '"' + s.replace('"', r"\"") + '"'
 
 
 def system_env_normalize(func):
@@ -182,7 +162,7 @@ def _nix_env_var_to_source_line(var: str, val: str) -> str:
             fname=BASH_FUNCTION_FINDER.sub(r"\1", var), decl=val
         )
     else:
-        source_line = f"{var}={double_quote_escape(val)}; export {var}"
+        source_line = f"{var}={shlex.quote(val)}; export {var}"
     return source_line
 
 
@@ -691,11 +671,10 @@ class EnvironmentModifications:
                 if new is None:
                     cmds += _SHELL_UNSET_STRINGS[shell].format(name)
                 else:
-                    if sys.platform != "win32":
-                        new_env_name = double_quote_escape(new_env[name])
-                    else:
-                        new_env_name = new_env[name]
-                    cmd = _SHELL_SET_STRINGS[shell].format(name, new_env_name)
+                    value = new_env[name]
+                    if shell not in ("bat", "pwsh"):
+                        value = shlex.quote(value)
+                    cmd = _SHELL_SET_STRINGS[shell].format(name, value)
                     cmds += cmd
         return cmds
 
@@ -1054,8 +1033,6 @@ def environment_after_sourcing_files(
         source_command = kwargs.get("source_command", "source")
     concatenate_on_success = kwargs.get("concatenate_on_success", "&&")
 
-    shell = Executable(shell_cmd)
-
     def _source_single_file(file_and_args, environment):
         shell_options_list = shell_options.split()
 
@@ -1063,26 +1040,21 @@ def environment_after_sourcing_files(
         source_file.extend(x for x in file_and_args)
         source_file = " ".join(source_file)
 
-        # If the environment contains 'python' use it, if not
-        # go with sys.executable. Below we just need a working
-        # Python interpreter, not necessarily sys.executable.
-        python_cmd = which("python3", "python", "python2")
-        python_cmd = python_cmd.path if python_cmd else sys.executable
-
         dump_cmd = "import os, json; print(json.dumps(dict(os.environ)))"
-        dump_environment_cmd = python_cmd + f' -E -c "{dump_cmd}"'
+        dump_environment_cmd = sys.executable + f' -E -c "{dump_cmd}"'
 
         # Try to source the file
         source_file_arguments = " ".join(
             [source_file, suppress_output, concatenate_on_success, dump_environment_cmd]
         )
-        output = shell(
-            *shell_options_list,
-            source_file_arguments,
-            output=str,
+
+        with subprocess.Popen(
+            [shell_cmd, *shell_options_list, source_file_arguments],
             env=environment,
-            ignore_quotes=True,
-        )
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as shell:
+            output, _ = shell.communicate()
 
         return json.loads(output)
 

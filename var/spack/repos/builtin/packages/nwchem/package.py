@@ -20,6 +20,12 @@ class Nwchem(Package):
     maintainers("jeffhammond")
 
     version(
+        "7.2.3",
+        sha256="8cb4ec065215bc0316d8e01f67f1674a572f7d0f565c52e4a327975c04ddb6eb",
+        url="https://github.com/nwchemgit/nwchem/releases/download/v7.2.3-release/nwchem-7.2.3-release.revision-d690e065-srconly.2024-08-27.tar.bz2",
+    )
+
+    version(
         "7.2.2",
         sha256="6b68e9c12eec38c09d92472bdd1ff130b93c1b5e1f65e4702aa7ee36c80e4af7",
         url="https://github.com/nwchemgit/nwchem/releases/download/v7.2.2-release/nwchem-7.2.2-release.revision-74936fb9-srconly.2023-11-03.tar.bz2",
@@ -71,7 +77,11 @@ class Nwchem(Package):
     # https://github.com/nwchemgit/nwchem/commit/376f86f96eb982e83f10514e9dcd994564f973b4
     # https://github.com/nwchemgit/nwchem/commit/c89fc9d1eca6689bce12564a63fdea95d962a123
     # Prior versions of NWChem, including 7.0.2, were not able to link with FFTW
-    patch("fftw_splans.patch", when="@7.2.0:7.2.2 +fftw3")
+    patch("fftw_splans.patch", when="@7.2.0:7.2.3 +fftw3")
+    # This patch is for including a working link for dft-d3 download as existing link
+    # https://www.chemiebn.uni-bonn.de/pctc/mulliken-center/software/dft-d3//dftd3.tgz is not active
+    # Same is mentioned in https://metadata.ftp-master.debian.org/changelogs/main/n/nwchem/unstable_changelog
+    patch("dft-d3_url.patch", when="@7.2.0:7.2.2")
 
     depends_on("blas")
     depends_on("lapack")

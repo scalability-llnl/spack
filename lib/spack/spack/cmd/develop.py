@@ -12,6 +12,7 @@ import spack.config
 import spack.fetch_strategy
 import spack.repo
 import spack.spec
+import spack.stage
 import spack.util.path
 import spack.version
 from spack.cmd.common import arguments
@@ -62,7 +63,7 @@ def _update_config(spec, path):
     spack.config.change_or_add("develop", find_fn, change_fn)
 
 
-def _retrieve_develop_source(spec, abspath):
+def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
     # "steal" the source code via staging API. We ask for a stage
     # to be created, then copy it afterwards somewhere else. It would be
     # better if we can create the `source_path` directly into its final
@@ -71,13 +72,13 @@ def _retrieve_develop_source(spec, abspath):
     # We construct a package class ourselves, rather than asking for
     # Spec.package, since Spec only allows this when it is concrete
     package = pkg_cls(spec)
-    source_stage = package.stage[0]
+    source_stage: spack.stage.Stage = package.stage[0]
     if isinstance(source_stage.fetcher, spack.fetch_strategy.GitFetchStrategy):
         source_stage.fetcher.get_full_repo = True
         # If we retrieved this version before and cached it, we may have
         # done so without cloning the full git repo; likewise, any
         # mirror might store an instance with truncated history.
-        source_stage.disable_mirrors()
+        source_stage.default_fetcher_only = True
 
     source_stage.fetcher.set_package(package)
     package.stage.steal_source(abspath)

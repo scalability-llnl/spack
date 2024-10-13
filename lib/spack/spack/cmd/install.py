@@ -13,18 +13,15 @@ import llnl.util.filesystem as fs
 from llnl.string import plural
 from llnl.util import lang, tty
 
-import spack.build_environment
 import spack.cmd
 import spack.config
 import spack.environment as ev
-import spack.fetch_strategy
-import spack.package_base
 import spack.paths
 import spack.report
 import spack.spec
 import spack.store
 from spack.cmd.common import arguments
-from spack.error import SpackError
+from spack.error import InstallError, SpackError
 from spack.installer import PackageInstaller
 
 description = "build and install packages"
@@ -287,7 +284,7 @@ def require_user_confirmation_for_overwrite(concrete_specs, args):
         tty.die("Reinstallation aborted.")
 
 
-def _dump_log_on_error(e: spack.build_environment.InstallError):
+def _dump_log_on_error(e: InstallError):
     e.print_context()
     assert e.pkg, "Expected InstallError to include the associated package"
     if not os.path.exists(e.pkg.log_path):
@@ -352,7 +349,7 @@ def install(parser, args):
             install_with_active_env(env, args, install_kwargs, reporter_factory)
         else:
             install_without_active_env(args, install_kwargs, reporter_factory)
-    except spack.build_environment.InstallError as e:
+    except InstallError as e:
         if args.show_log_on_error:
             _dump_log_on_error(e)
         raise
@@ -477,5 +474,5 @@ def install_without_active_env(args, install_kwargs, reporter_factory):
 
         installs = [s.package for s in concrete_specs]
         install_kwargs["explicit"] = [s.dag_hash() for s in concrete_specs]
-        builder = PackageInstaller(installs, install_kwargs)
+        builder = PackageInstaller(installs, **install_kwargs)
         builder.install()

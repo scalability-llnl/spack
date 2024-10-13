@@ -1,0 +1,38 @@
+From 6eb75bd029d17dbe53a6470ca357b2721ba9d87e Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Mon, 12 Aug 2024 20:43:05 +0000
+Subject: [PATCH] add CPack include and find glog and fmt
+
+---
+ cmake/rocprofiler_register_config_packaging.cmake | 1 +
+ source/lib/rocprofiler-register/CMakeLists.txt    | 3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/rocprofiler_register_config_packaging.cmake b/cmake/rocprofiler_register_config_packaging.cmake
+index 5e98f3e..88c4155 100644
+--- a/cmake/rocprofiler_register_config_packaging.cmake
++++ b/cmake/rocprofiler_register_config_packaging.cmake
+@@ -81,6 +81,7 @@ foreach(COMPONENT_GROUP ${ROCPROFILER_REGISTER_COMPONENT_GROUPS})
+     set(_NAME "${COMPONENT_NAME_${COMPONENT_GROUP}}")
+     set(_DESC "${COMPONENT_DESC_${COMPONENT_GROUP}}")
+
++    include(CPack)
+     cpack_add_component_group(
+         ${COMPONENT_GROUP}
+         DISPLAY_NAME "${_NAME}"
+diff --git a/source/lib/rocprofiler-register/CMakeLists.txt b/source/lib/rocprofiler-register/CMakeLists.txt
+index 840fbed..4e30a3f 100644
+--- a/source/lib/rocprofiler-register/CMakeLists.txt
++++ b/source/lib/rocprofiler-register/CMakeLists.txt
+@@ -16,7 +16,8 @@ endif()
+ target_include_directories(
+     rocprofiler-register PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/source
+                                  ${PROJECT_BINARY_DIR}/source)
+-
++find_package(fmt CONFIG REQUIRED)
++find_package(glog CONFIG REQUIRED)
+ target_link_libraries(
+     rocprofiler-register
+     PUBLIC rocprofiler-register::headers
+--
+2.43.5

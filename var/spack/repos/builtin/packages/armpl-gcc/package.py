@@ -24,6 +24,7 @@ _os_map_before_23 = {
 _os_map_before_24 = {
     "ubuntu20.04": "Ubuntu-20.04",
     "ubuntu22.04": "Ubuntu-22.04",
+    "debian12": "Ubuntu-22.04",
     "sles15": "SLES-15",
     "centos7": "RHEL-7",
     "centos8": "RHEL-8",
@@ -39,6 +40,7 @@ _os_map_before_24 = {
 _os_pkg_map = {
     "ubuntu20.04": "deb",
     "ubuntu22.04": "deb",
+    "debian12": "deb",
     "sles15": "rpm",
     "centos7": "rpm",
     "centos8": "rpm",
@@ -430,16 +432,10 @@ class ArmplGcc(Package):
         with when("@23:"):
             armpl_version = spec.version.string.split("_")[0]
 
-        if spec.satisfies("@:23"):
-            exe = Executable(
-                f"./arm-performance-libraries_{armpl_version}_"
-                + f"{get_os_or_pkg_manager(armpl_version)}.sh"
-            )
-        else:
-            package_type = (
-                "deb" if spack.platforms.host().default_os.startswith("ubuntu") else "rpm"
-            )
-            exe = Executable(f"./arm-performance-libraries_{armpl_version}_{package_type}.sh")
+        exe = Executable(
+            f"./arm-performance-libraries_{armpl_version}_"
+            + f"{get_os_or_pkg_manager(armpl_version)}.sh"
+        )
         exe("--accept", "--force", "--install-to", prefix)
 
     @property

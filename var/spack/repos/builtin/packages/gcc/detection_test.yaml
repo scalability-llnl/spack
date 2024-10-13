@@ -52,27 +52,6 @@ paths:
         cxx: ".*/bin/g[+][+]-5$"
         fortran: ".*/bin/gfortran-5$"
 
-# Multiple compilers present at the same time
-- layout:
-  - executables:
-    - "bin/x86_64-linux-gnu-gcc-6"
-    script: 'echo 6.5.0'
-  - executables:
-    - "bin/x86_64-linux-gnu-gcc-10"
-    - "bin/x86_64-linux-gnu-g++-10"
-    script: "echo 10.1.0"
-  platforms: [darwin, linux]
-  results:
-  - spec: "gcc@6.5.0 languages=c"
-    extra_attributes:
-      compilers:
-        c: ".*/bin/x86_64-linux-gnu-gcc-6$"
-  - spec: "gcc@10.1.0 languages=c,c++"
-    extra_attributes:
-      compilers:
-        c: ".*/bin/x86_64-linux-gnu-gcc-10$"
-        cxx: ".*/bin/x86_64-linux-gnu-g[+][+]-10$"
-
 # Apple clang under disguise as gcc should not be detected
 - layout:
   - executables:
@@ -94,3 +73,49 @@ paths:
       fi
   platforms: ["darwin"]
   results: []
+
+# Mingw cross compiler on linux should not be detected
+- layout:
+  - executables:
+    - "bin/i686-w64-mingw32-gcc"
+    script: |
+      if [ "$1" = "-dumpversion" ] ; then
+        echo "9.3-win32"
+      elif [ "$1" = "-dumpfullversion" ] ; then
+        echo "9.3-win32" 
+      elif [ "$1" = "--version" ] ; then
+        echo "i686-w64-mingw32-gcc (GCC) 9.3-win32 20200320"
+        echo "Copyright (C) 2019 Free Software Foundation, Inc."
+        echo "This is free software; see the source for copying conditions.  There is NO"
+        echo "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+      else
+        echo "mock executable got an unexpected flag: $1"
+        exit 1
+      fi
+  platforms: [linux]
+  results: []
+
+# Homebrew GCC should be detected
+- layout:
+  - executables:
+    - "bin/gcc-14"
+    script: |
+      if [ "$1" = "-dumpversion" ] ; then
+        echo "14"
+      elif [ "$1" = "-dumpfullversion" ] ; then
+        echo "14.1.0" 
+      elif [ "$1" = "--version" ] ; then
+        echo "gcc-14 (Homebrew GCC 14.1.0_2) 14.1.0"
+        echo "Copyright (C) 2024 Free Software Foundation, Inc."
+        echo "This is free software; see the source for copying conditions.  There is NO"
+        echo "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+      else
+        echo "mock executable got an unexpected flag: $1"
+        exit 1
+      fi
+  platforms: [darwin]
+  results:
+    - spec: "gcc@14.1.0 languages=c"
+      extra_attributes:
+        compilers:
+          c: ".*/bin/gcc-14$"

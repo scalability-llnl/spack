@@ -30,6 +30,7 @@ class Libdwarf(CMakePackage, Package):
 
     license("LGPL-2.1-only")
 
+    version("0.11.0", sha256="846071fb220ac1952f9f15ebbac6c7831ef50d0369b772c07a8a8139a42e07d2")
     version("0.10.1", sha256="b511a2dc78b98786064889deaa2c1bc48a0c70115c187900dd838474ded1cc19")
     with default_args(deprecated=True):
         version(

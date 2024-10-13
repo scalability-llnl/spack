@@ -1263,6 +1263,11 @@ Git fetching supports the following parameters to ``version``:
   option ``--depth 1`` will be used if the version of git and the specified
   transport protocol support it, and ``--single-branch`` will be used if the
   version of git supports it.
+* ``git_sparse_paths``: Use ``sparse-checkout`` to only clone these relative paths.
+  This feature requires ``git`` to be version ``2.25.0`` or later but is useful for
+  large repositories that have separate portions that can be built independently.
+  If paths provided are directories then all the subdirectories and associated files
+  will also be cloned. 
 
 Only one of ``tag``, ``branch``, or ``commit`` can be used at a time.
 
@@ -1360,6 +1365,41 @@ Submodules
 
   For more information about git submodules see the manpage of git: ``man
   git-submodule``.
+
+Sparse-Checkout
+  You can supply ``git_sparse_paths`` at the package or version level to utilize git's 
+  sparse-checkout feature. This will only clone the paths that are specified in the 
+  ``git_sparse_paths`` attribute for the package along with the files in the top level directory.
+  This feature allows you to only clone what you need from a large repository.
+  Note that this is a newer feature in git and requries git ``2.25.0`` or greater.
+  If ``git_sparse_paths`` is supplied and the git version is too old
+  then a warning will be issued and that package will use the standard cloning operations instead.
+  ``git_sparse_paths`` should be supplied as a list of paths, a callable function for versions,
+  or a more complex package attribute using the ``@property`` decorator. The return value should be
+  a list for a callable implementation of ``git_sparse_paths``.
+
+  .. code-block:: python
+
+    def sparse_path_function(package)
+        """a callable function that can be used in side a version"""
+        # paths can be directories or functions, all subdirectories and files are included
+        paths = ["doe", "rae", "me/file.cpp"]
+        if package.spec.version >  Version("1.2.0"):
+            paths.extend(["fae"])
+        return paths
+
+    class MyPackage(package):
+        # can also be a package attribute that will be used if not specified in versions
+        git_sparse_paths = ["doe", "rae"]
+
+        # use the package attribute
+        version("1.0.0")
+        version("1.1.0")
+        # use the function
+        version("1.1.5", git_sparse_paths=sparse_path_func)
+        version("1.2.0", git_sparse_paths=sparse_path_func)
+        version("1.2.5", git_sparse_paths=sparse_path_func)
+        version("1.1.5", git_sparse_paths=sparse_path_func)
 
 .. _github-fetch:
 

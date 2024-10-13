@@ -32,5 +32,8 @@ class PyGreenlet(PythonPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
-    depends_on("python", type=("build", "link", "run"))
+    with default_args(type=("build", "link", "run")):
+        depends_on("python")
+        depends_on("python@:3.11", when="@:2")
+
     depends_on("py-setuptools", type="build")

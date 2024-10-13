@@ -32,6 +32,7 @@ class Curl(NMakePackage, AutotoolsPackage):
 
     license("curl")
 
+    version("8.8.0", sha256="40d3792d38cfa244d8f692974a567e9a5f3387c547579f1124e95ea2a1020d0d")
     version("8.7.1", sha256="05bbd2b698e9cfbab477c33aa5e99b4975501835a41b7ca6ca71de03d8849e76")
     version("8.6.0", sha256="b4785f2d8877fa92c0e45d7155cf8cc6750dbda961f4b1a45bcbec990cf2fa9b")
     version("8.4.0", sha256="e5250581a9c032b1b6ed3cf2f9c114c811fc41881069e9892d115cc73f9e88c6")
@@ -112,8 +113,12 @@ class Curl(NMakePackage, AutotoolsPackage):
     depends_on("pkgconfig", type="build", when="platform=freebsd")
 
     depends_on("gnutls", when="tls=gnutls")
-    depends_on("mbedtls@2: +pic", when="@7.79: tls=mbedtls")
-    depends_on("mbedtls@:2 +pic", when="@:7.78 tls=mbedtls")
+
+    with when("tls=mbedtls"):
+        depends_on("mbedtls@:2 +pic", when="@:7.78")
+        depends_on("mbedtls@2: +pic", when="@7.79:")
+        depends_on("mbedtls@3.6.0: +pic", when="@8.8.0:")
+
     depends_on("nss", when="tls=nss")
 
     with when("tls=openssl"):

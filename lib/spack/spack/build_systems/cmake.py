@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections.abc
-import inspect
 import os
 import pathlib
 import platform
@@ -16,6 +15,7 @@ import llnl.util.filesystem as fs
 import spack.build_environment
 import spack.builder
 import spack.deptypes as dt
+import spack.error
 import spack.package_base
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
@@ -108,6 +108,11 @@ def _conditional_cmake_defaults(pkg: spack.package_base.PackageBase, args: List[
     if _supports_compilation_databases(pkg):
         args.append(CMakeBuilder.define("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
+    # Enable MACOSX_RPATH by default when cmake_minimum_required < 3
+    # https://cmake.org/cmake/help/latest/policy/CMP0042.html
+    if pkg.spec.satisfies("platform=darwin") and cmake.satisfies("@3:"):
+        args.append(CMakeBuilder.define("CMAKE_POLICY_DEFAULT_CMP0042", "NEW"))
+
 
 def generator(*names: str, default: Optional[str] = None):
     """The build system generator to use.
@@ -141,6 +146,7 @@ def generator(*names: str, default: Optional[str] = None):
         default=default,
         values=_values,
         description="the build system generator to use",
+        when="build_system=cmake",
     )
     for x in not_used:
         conflicts(f"generator={x}")
@@ -340,7 +346,7 @@ class CMakeBuilder(BaseBuilder):
             msg = "Invalid CMake generator: '{0}'\n".format(generator)
             msg += "CMakePackage currently supports the following "
             msg += "primary generators: '{0}'".format("', '".join(valid_primary_generators))
-            raise spack.package_base.InstallError(msg)
+            raise spack.error.InstallError(msg)
 
         try:
             build_type = pkg.spec.variants["build_type"].value
@@ -500,7 +506,7 @@ class CMakeBuilder(BaseBuilder):
         if variant is None:
             variant = cmake_var.lower()
 
-        if variant not in self.pkg.variants:
+        if not self.pkg.has_variant(variant):
             raise KeyError('"{0}" is not a variant of "{1}"'.format(variant, self.pkg.name))
 
         if variant not in self.pkg.spec.variants:
@@ -535,28 +541,35 @@ class CMakeBuilder(BaseBuilder):
 
     def cmake(self, pkg, spec, prefix):
         """Runs ``cmake`` in the build directory"""
+
+        # skip cmake phase if it is an incremental develop build
+        if spec.is_develop and os.path.isfile(
+            os.path.join(self.build_directory, "CMakeCache.txt")
+        ):
+            return
+
         options = self.std_cmake_args
         options += self.cmake_args()
         options.append(os.path.abspath(self.root_cmakelists_dir))
         with fs.working_dir(self.build_directory, create=True):
-            inspect.getmodule(self.pkg).cmake(*options)
+            pkg.module.cmake(*options)
 
     def build(self, pkg, spec, prefix):
         """Make the build targets"""
         with fs.working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
-                inspect.getmodule(self.pkg).make(*self.build_targets)
+                pkg.module.make(*self.build_targets)
             elif self.generator == "Ninja":
                 self.build_targets.append("-v")
-                inspect.getmodule(self.pkg).ninja(*self.build_targets)
+                pkg.module.ninja(*self.build_targets)
 
     def install(self, pkg, spec, prefix):
         """Make the install targets"""
         with fs.working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
-                inspect.getmodule(self.pkg).make(*self.install_targets)
+                pkg.module.make(*self.install_targets)
             elif self.generator == "Ninja":
-                inspect.getmodule(self.pkg).ninja(*self.install_targets)
+                pkg.module.ninja(*self.install_targets)
 
     spack.builder.run_after("build")(execute_build_time_tests)
 

@@ -75,6 +75,7 @@ class Openfast(CMakePackage):
                 self.define_from_variant("DOUBLE_PRECISION", "double-precision"),
                 self.define_from_variant("USE_DLL_INTERFACE", "dll-interface"),
                 self.define_from_variant("BUILD_OPENFAST_CPP_API", "cxx"),
+                self.define_from_variant("BUILD_OPENFAST_CPP_DRIVER", "cxx"),
                 self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
             ]
         )

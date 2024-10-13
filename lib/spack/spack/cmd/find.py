@@ -10,10 +10,11 @@ import llnl.util.lang
 import llnl.util.tty as tty
 import llnl.util.tty.color as color
 
-import spack.bootstrap
 import spack.cmd as cmd
+import spack.config
 import spack.environment as ev
 import spack.repo
+import spack.spec
 import spack.store
 from spack.cmd.common import arguments
 from spack.database import InstallStatuses

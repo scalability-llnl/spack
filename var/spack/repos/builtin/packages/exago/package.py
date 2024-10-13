@@ -199,7 +199,7 @@ class Exago(CMakePackage, CudaPackage, ROCmPackage):
         args = []
         spec = self.spec
 
-        if "~mpi" in self.spec:
+        if self.spec.satisfies("~mpi"):
             args.append(self.define("CMAKE_C_COMPILER", os.environ["CC"]))
             args.append(self.define("CMAKE_CXX_COMPILER", os.environ["CXX"]))
         else:
@@ -207,7 +207,7 @@ class Exago(CMakePackage, CudaPackage, ROCmPackage):
             args.append(self.define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx))
             args.append(self.define("MPI_C_COMPILER", spec["mpi"].mpicc))
             args.append(self.define("MPI_CXX_COMPILER", spec["mpi"].mpicxx))
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 args.append(self.define("MPI_CXX_HEADER_DIR", spec["mpi"].prefix.include))
 
         # NOTE: If building with spack develop on a cluster, you may want to
@@ -233,7 +233,7 @@ class Exago(CMakePackage, CudaPackage, ROCmPackage):
             ]
         )
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cuda_arch_list = spec.variants["cuda_arch"].value
             if cuda_arch_list[0] != "none":
                 args.append(self.define("CMAKE_CUDA_ARCHITECTURES", cuda_arch_list))
@@ -246,7 +246,7 @@ class Exago(CMakePackage, CudaPackage, ROCmPackage):
         # args.append(
         #     self.define('HIP_CLANG_INCLUDE_PATH',
         #         '/opt/rocm-X.Y.Z/llvm/lib/clang/14.0.0/include/'))
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             args.append(self.define("CMAKE_CXX_COMPILER", spec["hip"].hipcc))
 
             rocm_arch_list = spec.variants["amdgpu_target"].value

@@ -10,6 +10,7 @@ import ctypes
 import errno
 import io
 import multiprocessing
+import multiprocessing.connection
 import os
 import re
 import select

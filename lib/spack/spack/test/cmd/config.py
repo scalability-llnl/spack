@@ -591,14 +591,12 @@ def test_config_prefer_upstream(
     """
 
     mock_db_root = str(tmpdir_factory.mktemp("mock_db_root"))
-    prepared_db = spack.database.Database(mock_db_root)
-
-    upstream_layout = gen_mock_layout("/a/")
+    prepared_db = spack.database.Database(mock_db_root, layout=gen_mock_layout("/a/"))
 
     for spec in ["hdf5 +mpi", "hdf5 ~mpi", "boost+debug~icu+graph", "dependency-install", "patch"]:
         dep = spack.spec.Spec(spec)
         dep.concretize()
-        prepared_db.add(dep, upstream_layout)
+        prepared_db.add(dep)
 
     downstream_db_root = str(tmpdir_factory.mktemp("mock_downstream_db_root"))
     db_for_test = spack.database.Database(downstream_db_root, upstream_dbs=[prepared_db])

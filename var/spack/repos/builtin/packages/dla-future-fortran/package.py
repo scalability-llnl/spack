@@ -31,6 +31,7 @@ class DlaFutureFortran(CMakePackage):
 
     generator("ninja")
     depends_on("cmake@3.22:", type="build")
+    depends_on("pkgconfig", type="build")
 
     depends_on("dla-future@0.4.1:0.5 +scalapack", when="@0.1.0")
     depends_on("dla-future@0.6.0: +scalapack", when="@0.2.0:")
@@ -50,3 +51,9 @@ class DlaFutureFortran(CMakePackage):
             args.append(self.define("MPIEXEC_MAX_NUMPROCS", 6))
 
         return args
+
+    @property
+    def libs(self):
+        return find_libraries(
+            "libDLAF_Fortran", root=self.home, shared=self.spec.satisfies("+shared")
+        )

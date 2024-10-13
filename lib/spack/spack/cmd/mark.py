@@ -8,9 +8,6 @@ import sys
 from llnl.util import tty
 
 import spack.cmd
-import spack.error
-import spack.package_base
-import spack.repo
 import spack.store
 from spack.cmd.common import arguments
 from spack.database import InstallStatuses

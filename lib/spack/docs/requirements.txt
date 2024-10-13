@@ -5,8 +5,8 @@ sphinx-rtd-theme==2.0.0
 python-levenshtein==0.25.1
 docutils==0.20.1
 pygments==2.18.0
-urllib3==2.2.2
-pytest==8.3.2
+urllib3==2.2.3
+pytest==8.3.3
 isort==5.13.2
 black==24.8.0
 flake8==7.1.1

@@ -192,7 +192,7 @@ class Fenics(CMakePackage):
     # build python interface of dolfin
     @run_after("install")
     def install_python_interface(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             with working_dir("python"):
                 args = std_pip_args + ["--prefix=" + self.prefix, "."]
                 pip(*args)

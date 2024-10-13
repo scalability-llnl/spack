@@ -41,12 +41,37 @@ class Go(Package):
 
     license("BSD-3-Clause")
 
+    version("1.23.1", sha256="6ee44e298379d146a5e5aa6b1c5b5d5f5d0a3365eabdd70741e6e21340ec3b0d")
+    version("1.22.6", sha256="9e48d99d519882579917d8189c17e98c373ce25abaebb98772e2927088992a51")
     version("1.22.4", sha256="fed720678e728a7ca30ba8d1ded1caafe27d16028fab0232b8ba8e22008fb784")
-    version("1.22.2", sha256="374ea82b289ec738e968267cac59c7d5ff180f9492250254784b2044e90df5a9")
-    version("1.22.1", sha256="79c9b91d7f109515a25fc3ecdaad125d67e6bdb54f6d4d98580f46799caea321")
-    version("1.22.0", sha256="4d196c3d41a0d6c1dfc64d04e3cc1f608b0c436bd87b7060ce3e23234e1f4d5c")
-    version("1.21.6", sha256="124926a62e45f78daabbaedb9c011d97633186a33c238ffc1e25320c02046248")
-    version("1.21.5", sha256="285cbbdf4b6e6e62ed58f370f3f6d8c30825d6e56c5853c66d3c23bcdb09db19")
+
+    # https://nvd.nist.gov/vuln/detail/CVE-2024-24790
+    # https://nvd.nist.gov/vuln/detail/CVE-2024-24789
+    version(
+        "1.22.2",
+        sha256="374ea82b289ec738e968267cac59c7d5ff180f9492250254784b2044e90df5a9",
+        deprecated=True,
+    )
+    version(
+        "1.22.1",
+        sha256="79c9b91d7f109515a25fc3ecdaad125d67e6bdb54f6d4d98580f46799caea321",
+        deprecated=True,
+    )
+    version(
+        "1.22.0",
+        sha256="4d196c3d41a0d6c1dfc64d04e3cc1f608b0c436bd87b7060ce3e23234e1f4d5c",
+        deprecated=True,
+    )
+    version(
+        "1.21.6",
+        sha256="124926a62e45f78daabbaedb9c011d97633186a33c238ffc1e25320c02046248",
+        deprecated=True,
+    )
+    version(
+        "1.21.5",
+        sha256="285cbbdf4b6e6e62ed58f370f3f6d8c30825d6e56c5853c66d3c23bcdb09db19",
+        deprecated=True,
+    )
 
     provides("golang")
 

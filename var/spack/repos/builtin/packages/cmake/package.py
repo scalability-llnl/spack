@@ -29,6 +29,9 @@ class Cmake(Package):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("3.30.5", sha256="9f55e1a40508f2f29b7e065fa08c29f82c402fa0402da839fffe64a25755a86d")
+    version("3.30.4", sha256="c759c97274f1e7aaaafcb1f0d261f9de9bf3a5d6ecb7e2df616324a46fe704b2")
+    version("3.30.3", sha256="6d5de15b6715091df7f5441007425264bdd477809f80333fdf95f846aaff88e4")
     version("3.30.2", sha256="46074c781eccebc433e98f0bbfa265ca3fd4381f245ca3b140e7711531d60db2")
     version("3.30.1", sha256="df9b3c53e3ce84c3c1b7c253e5ceff7d8d1f084ff0673d048f260e04ccb346e1")
     version("3.30.0", sha256="157e5be6055c154c34f580795fe5832f260246506d32954a971300ed7899f579")
@@ -114,6 +117,23 @@ class Cmake(Package):
         values=("Debug", "Release", "RelWithDebInfo", "MinSizeRel"),
     )
 
+    # We default ownlibs to true because it greatly speeds up the CMake
+    # build, and CMake is built frequently. Also, CMake is almost always
+    # a build dependency, and its libs will not interfere with others in
+    # the build.
+    variant("ownlibs", default=True, description="Use CMake-provided third-party libraries")
+    variant(
+        "doc",
+        default=False,
+        description="Enables the generation of html and man page documentation",
+    )
+    variant(
+        "ncurses",
+        default=sys.platform != "win32",
+        description="Enables the build of the ncurses gui",
+    )
+    variant("qtgui", default=False, description="Enables the build of the Qt GUI")
+
     # Revert the change that introduced a regression when parsing mpi link
     # flags, see: https://gitlab.kitware.com/cmake/cmake/issues/19516
     patch("cmake-revert-findmpi-link-flag-list.patch", when="@3.15.0")
@@ -139,21 +159,7 @@ class Cmake(Package):
     depends_on("gmake", when="platform=darwin")
     depends_on("gmake", when="platform=freebsd")
 
-    # We default ownlibs to true because it greatly speeds up the CMake
-    # build, and CMake is built frequently. Also, CMake is almost always
-    # a build dependency, and its libs will not interfere with others in
-    # the build.
-    variant("ownlibs", default=True, description="Use CMake-provided third-party libraries")
-    variant(
-        "doc",
-        default=False,
-        description="Enables the generation of html and man page documentation",
-    )
-    variant(
-        "ncurses",
-        default=sys.platform != "win32",
-        description="Enables the build of the ncurses gui",
-    )
+    depends_on("qt", when="+qtgui")
 
     # See https://gitlab.kitware.com/cmake/cmake/-/issues/21135
     conflicts(
@@ -183,7 +189,7 @@ class Cmake(Package):
     with when("~ownlibs"):
         depends_on("expat")
         # expat/zlib are used in CMake/CTest, so why not require them in libarchive.
-        for plat in ["darwin", "linux"]:
+        for plat in ["darwin", "linux", "freebsd"]:
             with when("platform=%s" % plat):
                 depends_on("libarchive@3.1.0: xar=expat compression=zlib")
                 depends_on("libarchive@3.3.3:", when="@3.15.0:")
@@ -311,11 +317,15 @@ class Cmake(Package):
 
             # Whatever +/~ownlibs, use system curl.
             args.append("--system-curl")
-            args.append("--no-qt-gui")
 
             if spec.satisfies("+doc"):
                 args.append("--sphinx-html")
                 args.append("--sphinx-man")
+
+            if spec.satisfies("+qtgui"):
+                args.append("--qt-gui")
+            else:
+                args.append("--no-qt-gui")
 
             # Now for CMake arguments to pass after the initial bootstrap
             args.append("--")
@@ -329,6 +339,7 @@ class Cmake(Package):
                 # inside a ctest environment
                 "-DCMake_TEST_INSTALL=OFF",
                 f"-DBUILD_CursesDialog={'ON' if '+ncurses' in spec else 'OFF'}",
+                f"-DBUILD_QtDialog={'ON' if spec.satisfies('+qtgui') else 'OFF'}",
             ]
         )
 

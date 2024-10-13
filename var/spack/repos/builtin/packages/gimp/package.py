@@ -25,6 +25,7 @@ class Gimp(AutotoolsPackage):
 
     license("GPL-3.0-or-later")
 
+    version("2.10.38", sha256="50a845eec11c8831fe8661707950f5b8446e35f30edfb9acf98f85c1133f856e")
     version("2.10.32", sha256="3f15c70554af5dcc1b46e6dc68f3d8f0a6cc9fe56b6d78ac08c0fd859ab89a25")
     version("2.10.30", sha256="88815daa76ed7d4277eeb353358bafa116cd2fcd2c861d95b95135c1d52b67dc")
     version("2.10.28", sha256="4f4dc22cff1ab5f026feaa2ab55e05775b3a11e198186b47bdab79cbfa078826")
@@ -100,7 +101,7 @@ class Gimp(AutotoolsPackage):
             "GIO_USE_TLS=gnutls",
             "GIO_EXTRA_MODULES={0}/lib/gio/modules".format(self.spec["glib-networking"].prefix),
         ]
-        if "+libxpm" in self.spec:
+        if self.spec.satisfies("+libxpm"):
             args.append("--with-libxpm={0}".format(self.spec["libxpm"].prefix))
         return args
 

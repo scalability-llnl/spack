@@ -14,7 +14,7 @@ class Antlr(AutotoolsPackage):
     walk parse trees."""
 
     homepage = "https://www.antlr2.org/"
-    url = "http://www.antlr2.org/download/antlr-2.7.7.tar.gz"
+    url = "https://www.antlr2.org/download/antlr-2.7.7.tar.gz"
 
     license("ANTLR-PD")
 

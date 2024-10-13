@@ -22,6 +22,7 @@ class Xmlto(AutotoolsPackage):
     depends_on("c", type="build")  # generated
 
     # FIXME: missing a lot of dependencies
+    depends_on("flex", type=("build"))
     depends_on("docbook-xsl", type=("build", "run"))
     depends_on("libxml2", type=("build", "run"))  # xmllint
     depends_on("libxslt", type=("build", "run"))  # xsltconf

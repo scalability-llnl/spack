@@ -82,14 +82,13 @@ class DarshanUtil(AutotoolsPackage):
         spec = self.spec
         extra_args = []
 
-        extra_args.append("CC=%s" % self.compiler.cc)
         extra_args.append("--with-zlib=%s" % spec["zlib-api"].prefix)
-        if "+apmpi" in spec:
+        if spec.satisfies("+apmpi"):
             if self.version < Version("3.3.2"):
                 extra_args.append("--enable-autoperf-apmpi")
             else:
                 extra_args.append("--enable-apmpi-mod")
-        if "+apxc" in spec:
+        if spec.satisfies("+apxc"):
             if self.version < Version("3.3.2"):
                 extra_args.append("--enable-autoperf-apxc")
             else:
@@ -113,7 +112,7 @@ class DarshanUtil(AutotoolsPackage):
     @run_after("install")
     def _copy_test_inputs(self):
         test_inputs = [self.tests_log_path]
-        self.cache_extra_test_sources(test_inputs)
+        cache_extra_test_sources(self, test_inputs)
 
     def test_parser(self):
         """process example log and check counters"""

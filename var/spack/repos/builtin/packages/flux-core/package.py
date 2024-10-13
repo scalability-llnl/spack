@@ -22,6 +22,8 @@ class FluxCore(AutotoolsPackage):
     license("LGPL-3.0-only")
 
     version("master", branch="master")
+    version("0.66.0", sha256="0a25cfb1ebc033c249614eb2350c6fb57b00cdf3c584d0759c787f595c360daa")
+    version("0.65.0", sha256="a60bc7ed13b8e6d09e99176123a474aad2d9792fff6eb6fd4da2a00e1d2865ab")
     version("0.64.0", sha256="0334d6191915f1b89b70cdbf14f24200f8899da31090df5f502020533b304bb3")
     version("0.63.0", sha256="f0fd339f0e24cb26331ad55062d3c1e1c7c81df41c0d7f8727aa0700c7baa1ae")
     version("0.62.0", sha256="54a227741901ca758236c024296b8cd53718eea0050fc6363d2b2979aa0bf1e9")
@@ -209,7 +211,7 @@ class FluxCore(AutotoolsPackage):
         args = ["--enable-pylint=no"]
         if "+docs" not in self.spec:
             args.append("--disable-docs")
-        if "+security" in self.spec:
+        if self.spec.satisfies("+security"):
             args.append("--with-flux-security")
         return args
 

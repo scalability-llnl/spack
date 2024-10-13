@@ -21,36 +21,36 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
     homepage = "https://m.vtk.org/"
     maintainers("kmorel", "vicentebolea")
 
-    url = "https://gitlab.kitware.com/vtk/vtk-m/-/archive/v1.5.1/vtk-m-v1.5.1.tar.gz"
-    git = "https://gitlab.kitware.com/vtk/vtk-m.git"
+    url = "https://github.com/Kitware/VTK-m/archive/refs/tags/v2.2.0.tar.gz"
+    git = "https://github.com/Kitware/VTK-m.git"
     tags = ["e4s"]
 
     test_requires_compiler = True
 
     version("master", branch="master")
     version("release", branch="release")
-    version("2.2.0-rc1", sha256="32643cf3564fa77f8e2a2a5456a574b6b2355bb68918eb62ccde493993ade1a3")
     version(
-        "2.1.0",
-        sha256="9cf3522b6dc0675281a1a16839464ebd1cc5f9c08c20eabee1719b3bcfdcf41f",
+        "2.2.0",
+        sha256="f40d6b39ca1bcecd232571c92ce606627811909f4e21972d1823e605f686bcf5",
         preferred=True,
     )
-    version("2.0.0", sha256="32643cf3564fa77f8e2a2a5456a574b6b2355bb68918eb62ccde493993ade1a3")
-    version("1.9.0", sha256="12355dea1a24ec32767260068037adeb71abb3df2f9f920c92ce483f35ff46e4")
-    version("1.8.0", sha256="fcedee6e8f4ac50dde56e8c533d48604dbfb663cea1561542a837e8e80ba8768")
-    version("1.7.1", sha256="7ea3e945110b837a8c2ba49b41e45e1a1d8d0029bb472b291f7674871dbbbb63")
-    version("1.7.0", sha256="a86667ac22057462fc14495363cfdcc486da125b366cb568ec23c86946439be4")
-    version("1.6.0", sha256="14e62d306dd33f82eb9ddb1d5cee987b7a0b91bf08a7a02ca3bce3968c95fd76")
+    version("2.1.0", sha256="7b224f1f91e5ef140e193338bf091133b1e9f40d323bccdc8bb80bfc2675e6ea")
+    version("2.0.0", sha256="21c8b2cb8f3d4116a4f90c1d08c9f5e27b25c7a0951f7b403eced94576f84880")
+    version("1.9.0", sha256="f9862d9d24deae32063ba1ea3d9a42900ac0cdd7f98412d960249a7cac35d47f")
+    version("1.8.0", sha256="17f875e62b4c412574109af9b1bdbedbef49ab8797b113b69b21e6cfc64077d4")
+    version("1.7.1", sha256="c623895edde050f79d2d48e1abbaf4d537eaf544bc12bae0d4350614eb888011")
+    version("1.7.0", sha256="c334ce01aa1e6a506c9395789d41dc80c62234c3108506021b0cb104ba2eba7a")
+    version("1.6.0", sha256="6ab2124e51a2fbfcf2a90587d7b242e39afe08e75ea497a953c865741be3cc79")
     version("1.5.5", commit="d2d1c854adc8c0518802f153b48afd17646b6252")
     version("1.5.4", commit="bbba2a1967b271cc393abd043716d957bca97972")
     version("1.5.3", commit="a3b8525ef97d94996ae843db0dd4f675c38e8b1e")
     version("1.5.2", commit="c49390f2537c5ba8cf25bd39aa5c212d6eafcf61")
-    version("1.5.1", sha256="64c19e66c0d579cfb21bb0df10d649b523b470b0c9a6c2ea5fd979dfeda2c25e")
-    version("1.5.0", sha256="b1b13715c7fcc8d17f5c7166ff5b3e9025f6865dc33eb9b06a63471c21349aa8")
-    version("1.4.0", sha256="8d83cca7cd5e204d10da151ce4f1846c1f7414c7c1e579173d15c5ea0631555a")
-    version("1.3.0", sha256="f88c1b0a1980f695240eeed9bcccfa420cc089e631dc2917c9728a2eb906df2e")
-    version("1.2.0", sha256="607272992e05f8398d196f0acdcb4af025a4a96cd4f66614c6341f31d4561763")
-    version("1.1.0", sha256="78618c81ca741b1fbba0853cb5d7af12c51973b514c268fc96dfb36b853cdb18")
+    version("1.5.1", sha256="c6652fc03c9648b06f856231c270fc832e527d633d4bf6a9600b2175172f0a27")
+    version("1.5.0", sha256="d4ffc6f1176c1fda41852a3e8b83650b6765205b829b70f014f4100dd51161b8")
+    version("1.4.0", sha256="c70a9a19058dd32f15b1845b4bb40c0d3ad2b3916267c434e62cd3f6f256c1e6")
+    version("1.3.0", sha256="2d05a6545abfaa7594ef344389617fdca48c7f5ebddc617038544317b70ba19e")
+    version("1.2.0", sha256="44596e88b844e7626248fb8e96a38be25a0e585a22256b1c859208b23ef45171")
+    version("1.1.0", sha256="55f42c417d3a41893230b2fd3b5c192daeee689a2193de10bf22a1ef5c24c7ad")
 
     depends_on("cxx", type="build")  # generated
 
@@ -121,7 +121,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("hip@3.7:", when="+rocm")
     # CUDA thrust is already include in the CUDA pkg
-    depends_on("rocthrust", when="@2.1: +kokkos+rocm")
+    depends_on("rocthrust", when="@2.2: +kokkos+rocm ^cmake@3.24:")
 
     # The rocm variant is only valid options for >= 1.7. It would be better if
     # this could be expressed as a when clause to disable the rocm variant,
@@ -152,13 +152,21 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
 
     # VTK-M PR#3160
     # https://gitlab.kitware.com/vtk/vtk-m/-/merge_requests/3160
-    patch("mr3160-rocthrust-fix.patch", when="@2.1:")
+    patch("mr3160-rocthrust-fix.patch", when="@2.1")
+
+    # VTK-M PR#3258
+    # https://gitlab.kitware.com/vtk/vtk-m/-/merge_requests/3258
+    patch("mr3258-fix-typo-thrust-dependency-with-rocm.patch", when="@2.2:")
+
+    # VTK-M PR#3259
+    # https://gitlab.kitware.com/vtk/vtk-m/-/merge_requests/3259
+    patch("mr3259-thrust-is_arithmetic-fix.patch", when="@2.0.0:2.2.0 +cuda ^cuda@12.6:")
 
     # Disable Thrust patch that is no longer needed in modern Thrust
     patch(
         "https://github.com/Kitware/VTK-m/commit/4a4466e7c8cd44d2be2bd3fe6f359faa8e9547aa.patch?full_index=1",
         sha256="58dc104ba05ec99c359eeec3ac094cdb071053a4250f4ad9d72ef6a356c4346e",
-        when="@1.6.0: +cuda ^cuda@12.5:",
+        when="@1.6.0:2.1 +cuda ^cuda@12.5:",
     )
 
     def cmake_args(self):

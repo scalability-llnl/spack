@@ -6,12 +6,12 @@ import collections
 import collections.abc
 import copy
 import functools
-import inspect
 from typing import List, Optional, Tuple
 
 from llnl.util import lang
 
-import spack.build_environment
+import spack.error
+import spack.multimethod
 
 #: Builder classes, as registered by the "builder" decorator
 BUILDER_CLS = {}
@@ -96,11 +96,10 @@ def _create(pkg):
     Args:
         pkg (spack.package_base.PackageBase): package object for which we need a builder
     """
-    package_module = inspect.getmodule(pkg)
     package_buildsystem = buildsystem_name(pkg)
     default_builder_cls = BUILDER_CLS[package_buildsystem]
     builder_cls_name = default_builder_cls.__name__
-    builder_cls = getattr(package_module, builder_cls_name, None)
+    builder_cls = getattr(pkg.module, builder_cls_name, None)
     if builder_cls:
         return builder_cls(pkg)
 
@@ -295,7 +294,11 @@ class PhaseCallbacksMeta(type):
         return _decorator
 
 
-class BuilderMeta(PhaseCallbacksMeta, type(collections.abc.Sequence)):  # type: ignore
+class BuilderMeta(
+    PhaseCallbacksMeta,
+    spack.multimethod.MultiMethodMeta,
+    type(collections.abc.Sequence),  # type: ignore
+):
     pass
 
 
@@ -458,15 +461,13 @@ class InstallationPhase:
         # If a phase has a matching stop_before_phase attribute,
         # stop the installation process raising a StopPhase
         if getattr(instance, "stop_before_phase", None) == self.name:
-            raise spack.build_environment.StopPhase(
-                "Stopping before '{0}' phase".format(self.name)
-            )
+            raise spack.error.StopPhase("Stopping before '{0}' phase".format(self.name))
 
     def _on_phase_exit(self, instance):
         # If a phase has a matching last_phase attribute,
         # stop the installation process raising a StopPhase
         if getattr(instance, "last_phase", None) == self.name:
-            raise spack.build_environment.StopPhase("Stopping at '{0}' phase".format(self.name))
+            raise spack.error.StopPhase("Stopping at '{0}' phase".format(self.name))
 
     def copy(self):
         return copy.deepcopy(self)
@@ -519,10 +520,6 @@ class Builder(collections.abc.Sequence, metaclass=BuilderMeta):
     @property
     def prefix(self):
         return self.pkg.prefix
-
-    def test(self):
-        # Defer tests to virtual and concrete packages
-        pass
 
     def setup_build_environment(self, env):
         """Sets up the build environment for a package.

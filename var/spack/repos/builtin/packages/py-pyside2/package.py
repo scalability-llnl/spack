@@ -11,6 +11,7 @@ class PyPyside2(PythonPackage):
 
     homepage = "https://www.pyside.org/"
     git = "https://code.qt.io/pyside/pyside-setup.git"
+    url = "https://download.qt.io/official_releases/QtForPython/pyside2/PySide2-5.15.14-src/pyside-setup-opensource-src-5.15.14.tar.xz"
 
     # More recent versions of PySide2 (for Qt5) have been taken under
     # the offical Qt umbrella.  For more information, see:
@@ -19,6 +20,7 @@ class PyPyside2(PythonPackage):
     license("LGPL-3.0-or-later")
 
     version("develop", tag="dev")
+    version("5.15.14", sha256="32651194f6a6b7bce42f04e68b1401ad2087e4789a4c8f3fb8649e86189c6372")
     version(
         "5.15.2.1",
         tag="v5.15.2.1",
@@ -52,13 +54,20 @@ class PyPyside2(PythonPackage):
         description="Enables the generation of html and man page documentation",
     )
 
-    depends_on("python@2.7.0:2.7,3.5.0:3.5,3.6.1:", type=("build", "run"))
-    depends_on("python@2.7.0:2.7,3.5.0:3.5,3.6.1:3.8", when="@:5.14", type=("build", "run"))
+    # see https://wiki.qt.io/Qt_for_Python#Python_compatibility_matrix
+    depends_on("python@2.7.0:2.7,3.5.0:3.5,3.6.1:3.8", when="@:5.15.0", type=("build", "run"))
+    depends_on(
+        "python@2.7.0:2.7,3.5.0:3.5,3.6.1:3.9", when="@5.15.1:5.15.7", type=("build", "run")
+    )
+    depends_on("python@2.7:3.10", when="@5.15.8", type=("build", "run"))
+    depends_on("python@3.5:3.10", when="@5.15.9:5.15.10", type=("build", "run"))
+    depends_on("python@3.6:3.11", when="@5.15.11:5.15.15", type=("build", "run"))
 
     depends_on("cmake@3.1:", type="build")
     # libclang versioning from sources/shiboken2/doc/gettingstarted.rst
     depends_on("llvm@6", type="build", when="@5.12:5.13")
-    depends_on("llvm@10:", type="build", when="@5.15:")
+    # clang >= 16 doesn't work, see https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=270715#c6
+    depends_on("llvm@10:15 +clang", type="build", when="@5.15")
     depends_on("py-setuptools", type="build")
     depends_on("py-packaging", type="build")
     depends_on("py-wheel", type="build")
@@ -98,8 +107,13 @@ class PyPyside2(PythonPackage):
             # "--verbose-build",
             "--qmake={0}".format(spec["qt"].prefix.bin.qmake),
         ]
-        if spec.satisfies("^python@3.10:"):
+        # older versions allow some limited api for @3.10:
+        # (prevented currently by dependency matrix above!)
+        if spec.satisfies("@:5.15.2 ^python@3.10:"):
             args.append("--limited-api=yes")
+
+        # fix rpaths
+        args.append("--rpath={0}".format(":".join(self.rpath)))
 
         if self.run_tests:
             args.append("--build-tests")

@@ -8,6 +8,7 @@ import os
 import sys
 import tempfile
 
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 rocm_dependencies = [
@@ -377,12 +378,11 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     conflicts("+rocm", when="@:2.7.4-a,2.7.4.0:2.11.0-a,2.11.0.0:2.14-a,2.14-z:2.16.1-a,2.16.1-z:")
     # wheel 0.40 upgrades vendored packaging, trips over tensorflow-io-gcs-filesystem identifier
     conflicts("^py-wheel@0.40:", when="@2.11:2.13")
-    # Must be matching versions of py-protobuf and protobuf
-    conflicts("^py-protobuf~cpp")
 
     # https://www.tensorflow.org/install/source#tested_build_configurations
     # https://github.com/tensorflow/tensorflow/issues/70199
     # (-mavx512fp16 exists in gcc@12:)
+    conflicts("%gcc@13:", when="@:2.14")
     conflicts("%gcc@:11", when="@2.17:")
     conflicts("%gcc@:9.3.0", when="@2.9:")
     conflicts("%gcc@:7.3.0")
@@ -449,6 +449,22 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         when="@2.16.1-rocm-enhanced +rocm",
     )
     phases = ["configure", "build", "install"]
+
+    def flag_handler(self, name, flags):
+        spec = self.spec
+        # ubuntu gcc has this workaround turned on by default in aarch64
+        # and it causes issues with symbol relocation during link
+        # note, archspec doesn't currently ever report cortex_a53!
+        if (
+            name == "ldflags"
+            and spec.target.family == "aarch64"
+            and "ubuntu" in spec.os
+            and spec.compiler.name == "gcc"
+            and "cortex_a53" not in spec.target.name
+        ):
+            flags.append("-mno-fix-cortex-a53-843419")
+
+        return (flags, None, None)
 
     # https://www.tensorflow.org/install/source
     def setup_build_environment(self, env):
@@ -630,10 +646,8 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
             # Please note that each additional compute capability significantly
             # increases your build time and binary size, and that TensorFlow
             # only supports compute capabilities >= 3.5
-            capabilities = ",".join(
-                "{0:.1f}".format(float(i) / 10.0) for i in spec.variants["cuda_arch"].value
-            )
-            env.set("TF_CUDA_COMPUTE_CAPABILITIES", capabilities)
+            capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
+            env.set("TF_CUDA_COMPUTE_CAPABILITIES", ",".join(capabilities))
         else:
             env.set("TF_NEED_CUDA", "0")
 
@@ -658,7 +672,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
         # Please specify optimization flags to use during compilation when
         # bazel option '--config=opt' is specified
-        env.set("CC_OPT_FLAGS", spec.architecture.target.optimization_flags(spec.compiler))
+        env.set("CC_OPT_FLAGS", optimization_flags(self.compiler, spec.target))
 
         # Would you like to interactively configure ./WORKSPACE for
         # Android builds?

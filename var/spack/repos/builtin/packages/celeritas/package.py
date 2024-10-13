@@ -19,6 +19,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
 
     license("Apache-2.0")
 
+    version("0.5.0", sha256="4a8834224d96fd01897e5872ac109f60d91ef0bd7b63fac05a73dcdb61a5530e")
     version("0.4.4", sha256="8b5ae63aa2d50c2ecf48d752424e4a33c50c07d9f0f5ca5448246de3286fd836")
     version("0.4.3", sha256="b4f603dce1dc9c4894ea4c86f6574026ea8536714982e7dc6dff7472c925c892")
     version("0.4.2", sha256="eeca9705413f5e16e0fb81154e042600c8df125af7049912757feb01d43730e2")
@@ -96,7 +97,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     variant("openmp", default=False, description="Use OpenMP multithreading")
     variant("root", default=False, description="Use ROOT I/O")
     variant("shared", default=True, description="Build shared libraries")
-    variant("swig", default=False, description="Generate SWIG Python bindings")
+    variant("swig", default=False, when="@:0.4", description="Generate SWIG Python bindings")
     variant("vecgeom", default=True, description="Use VecGeom geometry")
 
     depends_on("cmake@3.13:", type="build")

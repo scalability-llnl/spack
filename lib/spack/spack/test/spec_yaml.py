@@ -117,8 +117,9 @@ def test_yaml_subdag(config, mock_packages):
         assert spec[dep].eq_dag(json_spec[dep])
 
 
-def test_using_ordered_dict(mock_packages):
-    """Checks that dicts are ordered
+@pytest.mark.parametrize("spec_str", ["mpileaks ^zmpi", "dttop", "dtuse"])
+def test_using_ordered_dict(default_mock_concretization, spec_str):
+    """Checks that we use syaml_dicts for spec serialization.
 
     Necessary to make sure that dag_hash is stable across python
     versions and processes.
@@ -136,14 +137,10 @@ def test_using_ordered_dict(mock_packages):
                     max_level = nlevel
         return max_level
 
-    specs = ["mpileaks ^zmpi", "dttop", "dtuse"]
-    for spec in specs:
-        dag = Spec(spec)
-        dag.normalize()
-        level = descend_and_check(dag.to_node_dict())
-
-        # level just makes sure we are doing something here
-        assert level >= 5
+    s = default_mock_concretization(spec_str)
+    level = descend_and_check(s.to_node_dict())
+    # level just makes sure we are doing something here
+    assert level >= 5
 
 
 def test_ordered_read_not_required_for_consistent_dag_hash(config, mock_packages):

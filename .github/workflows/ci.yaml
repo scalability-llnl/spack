@@ -15,18 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prechecks:
-    needs: [ changes ]
-    uses: ./.github/workflows/valid-style.yml
-    secrets: inherit
-    with:
-      with_coverage: ${{ needs.changes.outputs.core }}
-  all-prechecks:
-    needs: [ prechecks ]
-    runs-on: ubuntu-latest
-    steps:
-    - name: Success
-      run: "true"
   # Check which files have been updated by the PR
   changes:
     runs-on: ubuntu-latest
@@ -36,7 +24,7 @@ jobs:
       core: ${{ steps.filter.outputs.core }}
       packages: ${{ steps.filter.outputs.packages }}
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
         if: ${{ github.event_name == 'push' }}
         with:
           fetch-depth: 0
@@ -79,13 +67,34 @@ jobs:
     needs: [ prechecks, changes ]
     uses: ./.github/workflows/bootstrap.yml
     secrets: inherit
+
   unit-tests:
     if: ${{ github.repository == 'spack/spack' && needs.changes.outputs.core == 'true' }}
     needs: [ prechecks, changes ]
     uses: ./.github/workflows/unit_tests.yaml
     secrets: inherit
+
+  prechecks:
+    needs: [ changes ]
+    uses: ./.github/workflows/valid-style.yml
+    secrets: inherit
+    with:
+      with_coverage: ${{ needs.changes.outputs.core }}
+
+  all-prechecks:
+    needs: [ prechecks ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Success
+      run: "true"
+
+  coverage:
+    needs: [ unit-tests, prechecks ]
+    uses: ./.github/workflows/coverage.yml
+    secrets: inherit
+
   all:
-    needs: [ unit-tests, bootstrap ]
+    needs: [ coverage, bootstrap ]
     runs-on: ubuntu-latest
     steps:
     - name: Success

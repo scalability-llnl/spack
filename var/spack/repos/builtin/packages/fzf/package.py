@@ -11,7 +11,7 @@ class Fzf(MakefilePackage):
     """fzf is a general-purpose command-line fuzzy finder."""
 
     homepage = "https://github.com/junegunn/fzf"
-    url = "https://github.com/junegunn/fzf/archive/0.17.5.tar.gz"
+    url = "https://github.com/junegunn/fzf/archive/v0.54.0.tar.gz"
 
     maintainers("alecbcs")
 
@@ -19,6 +19,10 @@ class Fzf(MakefilePackage):
 
     license("MIT")
 
+    version("0.55.0", sha256="805383f71bca7f8fb271ecd716852aea88fd898d5027d58add9e43df6ea766da")
+    version("0.54.3", sha256="6413f3916f8058b396820f9078b1336d94c72cbae39c593b1d16b83fcc4fdf74")
+    version("0.53.0", sha256="d45abbfb64f21913c633d46818d9d3eb3d7ebc7e94bd16f45941958aa5480e1d")
+    version("0.52.1", sha256="96848746ca78249c1fdd16f170776ce2f667097b60e4ffbd5ecdbd7dfac72ef9")
     version("0.48.1", sha256="c8dbb545d651808ef4e1f51edba177fa918ea56ac53376c690dc6f2dd0156a71")
     version("0.47.0", sha256="bc566cb4630418bc9981898d3350dbfddc114637a896acaa8d818a51945bdf30")
     version("0.46.1", sha256="b0d640be3ae79980fdf461096f7d9d36d38ec752e25f8c4d2ca3ca6c041c2491")
@@ -29,6 +33,7 @@ class Fzf(MakefilePackage):
     version("0.40.0", sha256="9597f297a6811d300f619fff5aadab8003adbcc1566199a43886d2ea09109a65")
 
     depends_on("go@1.17:", type="build")
+    depends_on("go@1.20:", type="build", when="@0.49.0:")
 
     variant("vim", default=False, description="Install vim plugins for fzf")
 
@@ -37,6 +42,10 @@ class Fzf(MakefilePackage):
         output = Executable(exe)("--version", output=str, error=str)
         match = re.match(r"(^[\d.]+)", output)
         return match.group(1) if match else None
+
+    def url_for_version(self, version):
+        base = "refs/tags/v" if self.spec.satisfies("@:0.53.0") else ""
+        return f"https://github.com/junegunn/fzf/archive/{base}{version}.tar.gz"
 
     def setup_build_environment(self, env):
         # Point GOPATH at the top of the staging dir for the build step.

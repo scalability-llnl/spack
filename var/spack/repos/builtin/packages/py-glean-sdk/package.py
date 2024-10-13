@@ -13,8 +13,9 @@ class PyGleanSdk(PythonPackage):
 
     license("MPL-2.0", checked_by="teaguesterling")
 
+    version("60.5.0", sha256="0a23adad449c05d2cc522dc28ef98287b59a42ff112e53e3c8b4cfe9c938f6ae")
     version("60.4.0", sha256="24bc608e06580962ce029cc4c09a51af75e4a29b3d889232b298f87208acbf62")
-    version("60.0.1", sha256="160d054b27b8ef221cfd143b531d120ed0ee6a3d0e858eb80560f56dcfb12f35")
+    version("60.0.1", sha256="ba7fb8b1e4ecd50da4dc2e02ef887a71d93f848580e17a6f3e947ed3bcf68726")
 
     depends_on("python@3.8:")
     depends_on("py-semver@2.13.0:")

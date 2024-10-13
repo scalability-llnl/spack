@@ -70,6 +70,7 @@ spack:
   - cabana
   - caliper
   - chai
+  - chapel ~rocm ~cuda
   - charliecloud
   - conduit
   - cp2k +mpi
@@ -87,6 +88,7 @@ spack:
   - fortrilinos
   - fpm
   - gasnet
+  - geopm-runtime
   - ginkgo
   - globalarrays
   - gmp
@@ -146,7 +148,6 @@ spack:
   - py-jupyterhub
   - py-libensemble
   - py-petsc4py
-  - py-warpx
   - qthreads scheduler=distrib
   - quantum-espresso
   - raja
@@ -170,6 +171,8 @@ spack:
   - upcxx
   - variorum
   - wannier90
+  - wps
+  - wrf
   - xyce +mpi +shared +pymi +pymi_static_tpls
   # INCLUDED IN ECP DAV CPU
   - adios2
@@ -187,9 +190,9 @@ spack:
   - veloc
   - visit                           # silo: https://github.com/spack/spack/issues/39538
   - vtk-m
+  - warpx +python
   - zfp
   # --
-  # - geopm                           # geopm: https://github.com/spack/spack/issues/38795
   - glvis                           # glvis: https://github.com/spack/spack/issues/42839
   # - nek5000 +mpi +visit             # nek5000:  Error: AttributeError: 'str' object has no attribute 'propagate': 'VISIT_INSTALL="' + spec["visit"].prefix.bin + '"',
 
@@ -231,6 +234,7 @@ spack:
   - cabana +cuda cuda_arch=80 ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=80
   - caliper +cuda cuda_arch=80
   - chai +cuda cuda_arch=80 ^umpire ~shared
+  - chapel +cuda cuda_arch=80
   - cusz +cuda cuda_arch=80
   - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=80 # +ascent fails because fides fetch error
   - exago +mpi +python +raja +hiop ~rocm +cuda cuda_arch=80 ~ipopt ^hiop@1.0.0 ~sparse +mpi +raja ~rocm +cuda cuda_arch=80 #^raja@0.14.0
@@ -278,6 +282,7 @@ spack:
   - cabana +cuda cuda_arch=90 ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=90
   - caliper +cuda cuda_arch=90
   - chai +cuda cuda_arch=90 ^umpire ~shared
+  - chapel +cuda cuda_arch=90
   - flecsi +cuda cuda_arch=90
   - ginkgo +cuda cuda_arch=90
   - gromacs +cuda cuda_arch=90
@@ -354,6 +359,7 @@ spack:
   # - adios2 +kokkos +rocm amdgpu_target=gfx90a # +kokkos: https://github.com/spack/spack/issues/44832
   # - arborx +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   # - cabana +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
+  # - chapel +rocm amdgpu_target=gfx90a         # chapel: need chapel >= 2.2 to support ROCm >5.4
   # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop@1.0.0 ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # hiop: CMake Error at cmake/FindHiopHipLibraries.cmake:23 (find_package)
   # - kokkos +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   # - lbann ~cuda +rocm amdgpu_target=gfx90a    # aluminum: https://github.com/spack/spack/issues/38807

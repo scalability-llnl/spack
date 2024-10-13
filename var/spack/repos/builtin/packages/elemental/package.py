@@ -102,7 +102,7 @@ class Elemental(CMakePackage):
     def cmake_args(self):
         spec = self.spec
 
-        if "@:0.87.7" in spec and "%intel@:17.0.2" in spec:
+        if spec.satisfies("@:0.87.7") and spec.satisfies("%intel@:17.0.2"):
             raise UnsupportedCompilerError(
                 "Elemental {0} has a known bug with compiler: {1} {2}".format(
                     spec.version, spec.compiler.name, spec.compiler.version
@@ -150,7 +150,7 @@ class Elemental(CMakePackage):
 
         # If using 64bit int BLAS libraries, elemental has to build
         # them internally
-        if "+int64_blas" in spec:
+        if spec.satisfies("+int64_blas"):
             args.extend(
                 [
                     "-DEL_BLAS_SUFFIX:STRING={0}".format(
@@ -159,7 +159,7 @@ class Elemental(CMakePackage):
                     "-DCUSTOM_BLAS_SUFFIX:BOOL=TRUE",
                 ]
             ),
-            if "+scalapack" in spec:
+            if spec.satisfies("+scalapack"):
                 args.extend(
                     [
                         "-DEL_LAPACK_SUFFIX:STRING={0}".format(
@@ -171,7 +171,7 @@ class Elemental(CMakePackage):
         else:
             math_libs = spec["lapack"].libs + spec["blas"].libs
 
-            if "+scalapack" in spec:
+            if spec.satisfies("+scalapack"):
                 math_libs = spec["scalapack"].libs + math_libs
 
             args.extend(["-DMATH_LIBS:STRING={0}".format(math_libs.ld_flags)])

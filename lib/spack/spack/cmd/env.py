@@ -21,15 +21,12 @@ from llnl.util.tty.color import cescape, colorize
 import spack.cmd
 import spack.cmd.common
 import spack.cmd.common.arguments
-import spack.cmd.install
 import spack.cmd.modules
-import spack.cmd.uninstall
 import spack.config
 import spack.environment as ev
 import spack.environment.depfile as depfile
+import spack.environment.environment
 import spack.environment.shell
-import spack.schema.env
-import spack.spec
 import spack.tengine
 from spack.cmd.common import arguments
 from spack.util.environment import EnvironmentModifications
@@ -273,7 +270,7 @@ def env_activate_setup_parser(subparser):
         nargs="?",
         default=None,
         help=(
-            "name of managed environment or directory of the anonymous env"
+            "name of managed environment or directory of the independent env"
             " (when using --dir/-d) to activate"
         ),
     )
@@ -468,32 +465,30 @@ def env_remove(args):
     This removes an environment managed by Spack. Directory environments
     and manifests embedded in repositories should be removed manually.
     """
-    read_envs = []
+    remove_envs = []
     valid_envs = []
     bad_envs = []
-    invalid_envs = []
 
     for env_name in ev.all_environment_names():
         try:
             env = ev.read(env_name)
-            valid_envs.append(env_name)
+            valid_envs.append(env)
 
             if env_name in args.rm_env:
-                read_envs.append(env)
+                remove_envs.append(env)
         except (spack.config.ConfigFormatError, ev.SpackEnvironmentConfigError):
-            invalid_envs.append(env_name)
-
             if env_name in args.rm_env:
                 bad_envs.append(env_name)
 
-        # Check if env is linked to another before trying to remove
-        for name in valid_envs:
+    # Check if remove_env is included from another env before trying to remove
+    for env in valid_envs:
+        for remove_env in remove_envs:
             # don't check if environment is included to itself
-            if name == env_name:
+            if env.name == remove_env.name:
                 continue
-            environ = ev.Environment(ev.root(name))
-            if ev.root(env_name) in environ.included_concrete_envs:
-                msg = f'Environment "{env_name}" is being used by environment "{name}"'
+
+            if remove_env.path in env.included_concrete_envs:
+                msg = f'Environment "{remove_env.name}" is being used by environment "{env.name}"'
                 if args.force:
                     tty.warn(msg)
                 else:
@@ -506,7 +501,7 @@ def env_remove(args):
         if not answer:
             tty.die("Will not remove any environments")
 
-    for env in read_envs:
+    for env in remove_envs:
         name = env.name
         if env.active:
             tty.die(f"Environment {name} can't be removed while activated.")
@@ -545,7 +540,7 @@ def env_rename_setup_parser(subparser):
 def env_rename(args):
     """Rename an environment.
 
-    This renames a managed environment or moves an anonymous environment.
+    This renames a managed environment or moves an independent environment.
     """
 
     # Directory option has been specified

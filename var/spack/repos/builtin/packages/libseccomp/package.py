@@ -27,6 +27,6 @@ class Libseccomp(AutotoolsPackage):
 
     def configure_args(self):
         args = []
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args.append("--enable-python")
         return args

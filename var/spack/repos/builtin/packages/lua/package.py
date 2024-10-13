@@ -259,7 +259,7 @@ class Lua(LuaImplPackage):
     def install(self, spec, prefix):
         make("INSTALL_TOP=%s" % prefix, "install")
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             static_to_shared_library(
                 join_path(prefix.lib, "liblua.a"),
                 arguments=["-lm", "-ldl"],
@@ -269,7 +269,7 @@ class Lua(LuaImplPackage):
 
         # compatibility with ax_lua.m4 from autoconf-archive
         # https://www.gnu.org/software/autoconf-archive/ax_lua.html
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             with working_dir(prefix.lib):
                 # e.g., liblua.so.5.1.5
                 src_path = "liblua.{0}.{1}".format(dso_suffix, str(self.version.up_to(3)))
@@ -290,7 +290,7 @@ class Lua(LuaImplPackage):
 
     @run_after("install")
     def link_pkg_config(self):
-        if "+pcfile" in self.spec:
+        if self.spec.satisfies("+pcfile"):
             versioned_pc_file_name = "lua{0}.pc".format(self.version.up_to(2))
             symlink(
                 join_path(self.prefix.lib, "pkgconfig", versioned_pc_file_name),

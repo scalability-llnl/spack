@@ -7,7 +7,6 @@ spack:
     reuse: false
     unify: false
   config:
-    concretizer: clingo
     db_lock_timeout: 120
     install_tree:
       padded_length: 256

@@ -11,7 +11,9 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.config
 import spack.environment as ev
+import spack.solver.asp
 import spack.spec
 from spack.environment.environment import (
     EnvironmentManifestFile,
@@ -573,9 +575,6 @@ def test_conflicts_with_packages_that_are_not_dependencies(
     """Tests that we cannot concretize two specs together, if one conflicts with the other,
     even though they don't have a dependency relation.
     """
-    if spack.config.get("config:concretizer") == "original":
-        pytest.xfail("Known failure of the original concretizer")
-
     manifest = tmp_path / "spack.yaml"
     manifest.write_text(
         f"""\
@@ -597,7 +596,6 @@ spack:
 
 
 @pytest.mark.regression("39455")
-@pytest.mark.only_clingo("Known failure of the original concretizer")
 @pytest.mark.parametrize(
     "possible_mpi_spec,unify", [("mpich", False), ("mpich", True), ("zmpi", False), ("zmpi", True)]
 )
@@ -698,7 +696,6 @@ def test_removing_spec_from_manifest_with_exact_duplicates(
 
 
 @pytest.mark.regression("35298")
-@pytest.mark.only_clingo("Propagation not supported in the original concretizer")
 def test_variant_propagation_with_unify_false(tmp_path, mock_packages, config):
     """Spack distributes concretizations to different processes, when unify:false is selected and
     the number of roots is 2 or more. When that happens, the specs to be concretized need to be
@@ -814,7 +811,6 @@ def test_deconcretize_then_concretize_does_not_error(mutable_mock_env_path, mock
 
 
 @pytest.mark.regression("44216")
-@pytest.mark.only_clingo()
 def test_root_version_weights_for_old_versions(mutable_mock_env_path, mock_packages):
     """Tests that, when we select two old versions of root specs that have the same version
     optimization penalty, both are considered.
@@ -866,3 +862,33 @@ def test_env_view_on_non_empty_dir_errors(tmp_path, config, mock_packages, tempo
     env.install_all(fake=True)
     with pytest.raises(ev.SpackEnvironmentError, match="because it is a non-empty dir"):
         env.regenerate_views()
+
+
+@pytest.mark.parametrize(
+    "matrix_line", [("^zmpi", "^mpich"), ("~shared", "+shared"), ("shared=False", "+shared-libs")]
+)
+@pytest.mark.regression("40791")
+def test_stack_enforcement_is_strict(tmp_path, matrix_line, config, mock_packages):
+    """Ensure that constraints in matrices are applied strictly after expansion, to avoid
+    inconsistencies between abstract user specs and concrete specs.
+    """
+    manifest = tmp_path / "spack.yaml"
+    manifest.write_text(
+        f"""\
+spack:
+  definitions:
+    - packages: [libelf, mpileaks]
+    - install:
+        - matrix:
+            - [$packages]
+            - [{", ".join(item for item in matrix_line)}]
+  specs:
+    - $install
+  concretizer:
+    unify: false
+"""
+    )
+    # Here we raise different exceptions depending on whether we solve serially or not
+    with pytest.raises(Exception):
+        with ev.Environment(tmp_path) as e:
+            e.concretize()

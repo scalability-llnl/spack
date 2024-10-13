@@ -29,6 +29,7 @@ class IntelOneapiRuntime(Package):
     LIBRARIES = [
         "imf",
         "intlc",
+        "irc",
         "irng",
         "svml",
         "ifcore",  # Fortran

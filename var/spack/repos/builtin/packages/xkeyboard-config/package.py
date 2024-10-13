@@ -24,7 +24,7 @@ class XkeyboardConfig(AutotoolsPackage, XorgPackage):
     depends_on("libxslt", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("intltool@0.30:", type="build")
-    depends_on("xproto@7.0.20:")
+    depends_on("xproto@7.0.20:", type="build")
 
     # TODO: missing dependencies
     # xgettext

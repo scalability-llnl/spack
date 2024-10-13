@@ -43,6 +43,12 @@ class Dakota(CMakePackage):
     license("LGPL-2.1-or-later")
 
     version(
+        "6.20.0",
+        tag="v6.20.0",
+        commit="494027b37264ec9268f2de8649d071de0232c534",
+        submodules=submodules,
+    )
+    version(
         "6.19.0",
         tag="v6.19.0",
         commit="603f448b916a8f629d258922e26e7e40dcaaf8ce",
@@ -76,7 +82,7 @@ class Dakota(CMakePackage):
     depends_on("python", when="+python")
     depends_on("perl-data-dumper", type="build", when="@6.12:")
     depends_on("boost@:1.68.0", when="@:6.12")
-    depends_on("boost@1.69.0:", when="@6.18:")
+    depends_on("boost@1.69.0:1.84.0", when="@6.18:6.20")
     depends_on("boost +filesystem +program_options +regex +serialization +system")
 
     # TODO: replace this with an explicit list of components of Boost,
@@ -94,7 +100,7 @@ class Dakota(CMakePackage):
             self.define_from_variant("DAKOTA_PYTHON", "python"),
         ]
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.extend(
                 [
                     "-DDAKOTA_HAVE_MPI:BOOL=ON",

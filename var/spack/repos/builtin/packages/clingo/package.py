@@ -74,6 +74,7 @@ class Clingo(CMakePackage):
     patch("size-t.patch", when="%msvc")
     patch("vs2022.patch", when="%msvc@19.30:")
     patch("clingo_msc_1938_native_handle.patch", when="@:5.7.0 %msvc@19.38:")
+    patch("PyEval_InitThreads.patch", when="@spack,5.3:5.4 ^python@3.9:")
 
     def patch(self):
         # Doxygen is optional but can't be disabled with a -D, so patch

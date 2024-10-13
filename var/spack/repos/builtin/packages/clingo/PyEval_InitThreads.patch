@@ -1,0 +1,12 @@
+diff --git a/libpyclingo/pyclingo.cc b/libpyclingo/pyclingo.cc
+index ec4a33c6..ee903cd0 100644
+--- a/libpyclingo/pyclingo.cc
++++ b/libpyclingo/pyclingo.cc
+@@ -10463,7 +10463,6 @@ void addEmptyClass(Reference module, char const *name) {
+ 
+ PyObject *initclingo_() {
+     PY_TRY {
+-        if (!PyEval_ThreadsInitialized()) { PyEval_InitThreads(); }
+ #if PY_MAJOR_VERSION >= 3
+         Object m = PyModule_Create(&clingoModule);
+ #else

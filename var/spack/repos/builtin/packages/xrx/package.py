@@ -19,7 +19,7 @@ class Xrx(AutotoolsPackage, XorgPackage):
 
     version("1.0.4", sha256="1ffa1c2af28587c6ed7ded3af2e62e93bad8f9900423d09c45b1d59449d15134")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11")
     depends_on("libxt")
@@ -29,6 +29,6 @@ class Xrx(AutotoolsPackage, XorgPackage):
     depends_on("libxaw")
 
     depends_on("xtrans")
-    depends_on("xproxymanagementprotocol")
+    depends_on("xproxymanagementprotocol", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

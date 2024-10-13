@@ -140,7 +140,7 @@ _versions = {
 class Miniconda3(Package):
     """The minimalist bootstrap toolset for conda and Python3."""
 
-    homepage = "https://conda.io/miniconda.html"
+    homepage = "https://docs.anaconda.com/miniconda/"
 
     for ver, packages in _versions.items():
         key = "{0}-{1}".format(platform.system(), platform.machine())

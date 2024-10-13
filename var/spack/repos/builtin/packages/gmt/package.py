@@ -130,16 +130,16 @@ class CMakeBuilder(CMakeBuilder):
             self.define("DCW_PATH", "dcw"),
         ]
 
-        if "+ghostscript" in spec:
+        if spec.satisfies("+ghostscript"):
             args.append(self.define("GS", spec["ghostscript"].prefix.bin.gs))
 
-        if "+geos" in spec:
+        if spec.satisfies("+geos"):
             args.append(self.define("GEOS_CONFIG", spec["geos"].prefix.bin.join("geos-config")))
 
-        if "+pcre" in spec:
+        if spec.satisfies("+pcre"):
             args.append(self.define("PCRE2_CONFIG", spec["pcre2"].prefix.bin.join("pcre2-config")))
 
-        if "+fftw" in spec:
+        if spec.satisfies("+fftw"):
             args.extend(
                 [
                     self.define("FFTW3_INCLUDE_DIR", spec["fftw"].headers.directories[0]),
@@ -147,7 +147,7 @@ class CMakeBuilder(CMakeBuilder):
                 ]
             )
 
-        if "+glib" in spec:
+        if spec.satisfies("+glib"):
             args.extend(
                 [
                     self.define("GLIB_INCLUDE_DIR", spec["glib"].headers.directories[0]),
@@ -155,7 +155,7 @@ class CMakeBuilder(CMakeBuilder):
                 ]
             )
 
-        if "graphicsmagick" in spec:
+        if spec.satisfies("graphicsmagick"):
             args.extend(
                 [
                     self.define("GM", spec["graphicsmagick"].prefix.bin.gm),
@@ -163,7 +163,7 @@ class CMakeBuilder(CMakeBuilder):
                 ]
             )
 
-        if "+ffmpeg" in spec:
+        if spec.satisfies("+ffmpeg"):
             args.append(self.define("FFMPEG", spec["ffmpeg"].prefix.bin.ffmpeg))
 
         return args

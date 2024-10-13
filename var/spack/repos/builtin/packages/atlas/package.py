@@ -17,7 +17,7 @@ class Atlas(Package):
     (BLAS), and a subset of the linear algebra routines in the LAPACK library.
     """
 
-    homepage = "http://math-atlas.sourceforge.net/"
+    homepage = "https://math-atlas.sourceforge.net/"
 
     license("Apache-2.0")
 

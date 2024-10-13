@@ -402,6 +402,12 @@ class Wrf(Package):
         if self.spec.satisfies("@:4.0.3 %intel@2018:"):
             config.filter(r"-openmp", "-qopenmp")
 
+        if self.spec.satisfies("%gcc@14:"):
+            config.filter(
+                "^CFLAGS_LOCAL(.*?)=([^#\n\r]*)(.*)$", r"CFLAGS_LOCAL\1= \2 -fpermissive \3"
+            )
+            config.filter("^CC_TOOLS(.*?)=([^#\n\r]*)(.*)$", r"CC_TOOLS\1=\2 -fpermissive \3")
+
     @run_before("configure")
     def fortran_check(self):
         if not self.compiler.fc:

@@ -15,7 +15,7 @@ class GoblinHmcSim(MakefilePackage):
     homepage = "https://github.com/tactcomplabs/gc64-hmcsim"
     git = "https://github.com/tactcomplabs/gc64-hmcsim"
     # The version numbers track the SST they were released with
-    url = "https://github.com/tactcomplabs/gc64-hmcsim/archive/sst-8.0.0-release.tar.gz"
+    url = "https://github.com/tactcomplabs/gc64-hmcsim/archive/refs/tags/sst-8.0.0-release.tar.gz"
     # This works with parallel builds outside Spack
     # For some reason .o files get thrashed inside Spack
     parallel = False

@@ -100,10 +100,12 @@ def view_copy(
 
         spack.relocate.relocate_text(files=[dst], prefixes=prefix_to_projection)
 
-    try:
-        os.chown(dst, src_stat.st_uid, src_stat.st_gid)
-    except OSError:
-        tty.debug(f"Can't change the permissions for {dst}")
+    # The os module on Windows does not have a chown function.
+    if sys.platform != "win32":
+        try:
+            os.chown(dst, src_stat.st_uid, src_stat.st_gid)
+        except OSError:
+            tty.debug(f"Can't change the permissions for {dst}")
 
 
 #: supported string values for `link_type` in an env, mapped to canonical values

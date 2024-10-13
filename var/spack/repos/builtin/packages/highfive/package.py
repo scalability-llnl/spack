@@ -58,8 +58,8 @@ class Highfive(CMakePackage):
 
     def cmake_args(self):
         args = [
-            "-DUSE_BOOST:Bool={0}".format("+boost" in self.spec),
-            "-DHIGHFIVE_PARALLEL_HDF5:Bool={0}".format("+mpi" in self.spec),
+            "-DUSE_BOOST:Bool={0}".format(self.spec.satisfies("+boost")),
+            "-DHIGHFIVE_PARALLEL_HDF5:Bool={0}".format(self.spec.satisfies("+mpi")),
             "-DHIGHFIVE_UNIT_TESTS:Bool=false",
             "-DHIGHFIVE_EXAMPLES:Bool=false",
         ]

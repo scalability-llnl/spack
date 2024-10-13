@@ -10,7 +10,7 @@ from spack.package import *
 class LuaLpeg(LuaPackage):
     """pattern-matching for lua"""
 
-    homepage = "http://www.inf.puc-rio.br/~roberto/lpeg/"
+    homepage = "https://www.inf.puc-rio.br/~roberto/lpeg/"
     url = "https://luarocks.org/manifests/gvvaughan/lpeg-1.0.2-1.src.rock"
 
     license("MIT")

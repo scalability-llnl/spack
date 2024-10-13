@@ -31,6 +31,7 @@ from llnl.util.tty.color import cescape, colorize
 
 import spack
 import spack.binary_distribution as bindist
+import spack.concretize
 import spack.config as cfg
 import spack.environment as ev
 import spack.main
@@ -1107,9 +1108,10 @@ def generate_gitlab_ci_yaml(
     if cdash_handler and cdash_handler.auth_token:
         try:
             cdash_handler.populate_buildgroup(all_job_names)
-        except (SpackError, HTTPError, URLError) as err:
+        except (SpackError, HTTPError, URLError, TimeoutError) as err:
             tty.warn(f"Problem populating buildgroup: {err}")
-    else:
+    elif cdash_config:
+        # warn only if there was actually a CDash configuration.
         tty.warn("Unable to populate buildgroup without CDash credentials")
 
     service_job_retries = {
@@ -1217,8 +1219,8 @@ def generate_gitlab_ci_yaml(
         # Capture the version of Spack used to generate the pipeline, that can be
         # passed to `git checkout` for version consistency. If we aren't in a Git
         # repository, presume we are a Spack release and use the Git tag instead.
-        spack_version = spack.main.get_version()
-        version_to_clone = spack.main.get_spack_commit() or f"v{spack.spack_version}"
+        spack_version = spack.get_version()
+        version_to_clone = spack.get_spack_commit() or f"v{spack.spack_version}"
 
         output_object["variables"] = {
             "SPACK_ARTIFACTS_ROOT": rel_artifacts_root,
@@ -1270,7 +1272,9 @@ def generate_gitlab_ci_yaml(
     else:
         # No jobs were generated
         noop_job = spack_ci_ir["jobs"]["noop"]["attributes"]
-        noop_job["retry"] = service_job_retries
+        # If this job fails ignore the status and carry on
+        noop_job["retry"] = 0
+        noop_job["allow_failure"] = True
 
         if copy_only_pipeline and config_deprecated:
             tty.debug("Generating no-op job as copy-only is unsupported here.")
@@ -1370,15 +1374,6 @@ def can_verify_binaries():
     return len(gpg_util.public_keys()) >= 1
 
 
-def _push_to_build_cache(spec: spack.spec.Spec, sign_binaries: bool, mirror_url: str) -> None:
-    """Unchecked version of the public API, for easier mocking"""
-    bindist.push_or_raise(
-        spec,
-        spack.mirror.Mirror.from_url(mirror_url).push_url,
-        bindist.PushOptions(force=True, unsigned=not sign_binaries),
-    )
-
-
 def push_to_build_cache(spec: spack.spec.Spec, mirror_url: str, sign_binaries: bool) -> bool:
     """Push one or more binary packages to the mirror.
 
@@ -1389,20 +1384,15 @@ def push_to_build_cache(spec: spack.spec.Spec, mirror_url: str, sign_binaries: b
         sign_binaries: If True, spack will attempt to sign binary package before pushing.
     """
     tty.debug(f"Pushing to build cache ({'signed' if sign_binaries else 'unsigned'})")
+    signing_key = bindist.select_signing_key() if sign_binaries else None
+    mirror = spack.mirror.Mirror.from_url(mirror_url)
     try:
-        _push_to_build_cache(spec, sign_binaries, mirror_url)
+        with bindist.make_uploader(mirror, signing_key=signing_key) as uploader:
+            uploader.push_or_raise([spec])
         return True
     except bindist.PushToBuildCacheError as e:
-        tty.error(str(e))
+        tty.error(f"Problem writing to {mirror_url}: {e}")
         return False
-    except Exception as e:
-        # TODO (zackgalbreath): write an adapter for boto3 exceptions so we can catch a specific
-        # exception instead of parsing str(e)...
-        msg = str(e)
-        if any(x in msg for x in ["Access Denied", "InvalidAccessKeyId"]):
-            tty.error(f"Permission problem writing to {mirror_url}: {msg}")
-            return False
-        raise
 
 
 def remove_other_mirrors(mirrors_to_keep, scope=None):
@@ -1448,10 +1438,6 @@ def copy_stage_logs_to_artifacts(job_spec: spack.spec.Spec, job_log_dir: str) ->
         job_log_dir: path into which build log should be copied
     """
     tty.debug(f"job spec: {job_spec}")
-    if not job_spec:
-        msg = f"Cannot copy stage logs: job spec ({job_spec}) is required"
-        tty.error(msg)
-        return
 
     try:
         pkg_cls = spack.repo.PATH.get_pkg_class(job_spec.name)
@@ -2083,7 +2069,7 @@ def read_broken_spec(broken_spec_url):
     """
     try:
         _, _, fs = web_util.read_from_url(broken_spec_url)
-    except (URLError, web_util.SpackWebError, HTTPError):
+    except web_util.SpackWebError:
         tty.warn(f"Unable to read broken spec from {broken_spec_url}")
         return None
 

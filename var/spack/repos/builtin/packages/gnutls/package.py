@@ -38,6 +38,9 @@ class Gnutls(AutotoolsPackage):
 
     variant("zlib", default=True, description="Enable zlib compression support")
     variant("guile", default=False, description="Enable Guile bindings")
+    variant(
+        "brotli", default=True, description="Enable brotli compression support", when="@3.7.4:"
+    )
 
     # gnutls+guile is currently broken on MacOS.  See Issue #11668
     conflicts("+guile", when="platform=darwin")
@@ -54,6 +57,7 @@ class Gnutls(AutotoolsPackage):
     depends_on("libidn2@:2.0", when="@:3.5")
     depends_on("libidn2")
     depends_on("zlib-api", when="+zlib")
+    depends_on("brotli", when="+brotli")
     depends_on("gettext")
 
     depends_on("pkgconfig", type="build")
@@ -66,7 +70,7 @@ class Gnutls(AutotoolsPackage):
 
     def setup_build_environment(self, env):
         spec = self.spec
-        if "+guile" in spec:
+        if spec.satisfies("+guile"):
             env.set("GUILE", spec["guile"].prefix.bin.guile)
 
     def configure_args(self):
@@ -79,15 +83,9 @@ class Gnutls(AutotoolsPackage):
             args.append("--with-included-unistring")
             args.append("--without-p11-kit")  # p11-kit@0.23.1: ...
 
-        if "+zlib" in spec:
-            args.append("--with-zlib")
-        else:
-            args.append("--without-zlib")
-
-        if "+guile" in spec:
-            args.append("--enable-guile")
-        else:
-            args.append("--disable-guile")
+        args += self.with_or_without("zlib")
+        args += self.with_or_without("brotli")
+        args += self.enable_or_disable("guile")
 
         if self.run_tests:
             args.extend(["--enable-tests", "--enable-valgrind-tests", "--enable-full-test-suite"])

@@ -19,7 +19,6 @@ import spack.cmd
 import spack.cmd.buildcache as buildcache
 import spack.config as cfg
 import spack.environment as ev
-import spack.environment.depfile
 import spack.hash_types as ht
 import spack.mirror
 import spack.util.gpg as gpg_util

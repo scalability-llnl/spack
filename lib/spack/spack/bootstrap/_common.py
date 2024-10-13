@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Common basic functions used through the spack.bootstrap package"""
 import fnmatch
+import importlib
 import os.path
 import re
 import sys
@@ -28,7 +29,7 @@ QueryInfo = Dict[str, "spack.spec.Spec"]
 
 def _python_import(module: str) -> bool:
     try:
-        __import__(module)
+        importlib.import_module(module)
     except ImportError:
         return False
     return True

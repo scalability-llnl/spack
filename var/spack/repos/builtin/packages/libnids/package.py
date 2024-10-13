@@ -11,7 +11,7 @@ class Libnids(AutotoolsPackage):
     NIDS (Network Intrusion Detection System) components, namely
     E-component."""
 
-    homepage = "http://libnids.sourceforge.net/"
+    homepage = "https://libnids.sourceforge.net/"
     url = "https://github.com/MITRECND/libnids/archive/1.25.tar.gz"
     git = "https://github.com/MITRECND/libnids.git"
 

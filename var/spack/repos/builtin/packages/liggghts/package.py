@@ -67,7 +67,7 @@ class Liggghts(MakefilePackage):
         )
         makefile.filter(r"^#(VTK_LIB_USR=-L).*", r"\1{0}".format(vtk.prefix.lib))
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             mpi = spec["mpi"]
             makefile.filter(r"^#(MPICXX_USR=).*", r"\1{0}".format(mpi.mpicxx))
             makefile.filter(r"^#(MPI_INC_USR=).*", r"\1{0}".format(mpi.prefix.include))
@@ -81,19 +81,19 @@ class Liggghts(MakefilePackage):
             # builds using its own target!
             makefile_auto.filter(r"^(.+)(EXTRA_ADDLIBS.*mpi_stubs.*)", r"\1#\2")
 
-        if "+jpeg" in spec:
+        if spec.satisfies("+jpeg"):
             jpeg = spec["jpeg"]
             makefile.filter(r"^(USE_JPG = ).*", r'\1"ON"')
             makefile.filter(r"^#(JPG_INC_USR=-I).*", r"\1{0}".format(jpeg.prefix.include))
             makefile.filter(r"^#(JPG_LIB_USR=-L).*", r"\1{0}".format(jpeg.prefix.lib))
 
-        if "+gzip" in spec:
+        if spec.satisfies("+gzip"):
             makefile.filter(r"^(USE_GZIP = ).*", r'\1"ON"')
 
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             makefile.filter(r"^(USE_DEBUG = ).*", r'\1"ON"')
 
-        if "+profile" in spec:
+        if spec.satisfies("+profile"):
             makefile.filter(r"^(USE_PROFILE = ).*", r'\1"ON"')
 
         # Enable debug output of Makefile.auto in the log file

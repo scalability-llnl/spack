@@ -181,10 +181,6 @@ Spec-related modules
 :mod:`spack.parser`
   Contains :class:`~spack.parser.SpecParser` and functions related to parsing specs.
 
-:mod:`spack.concretize`
-  Contains :class:`~spack.concretize.Concretizer` implementation,
-  which allows site administrators to change Spack's :ref:`concretization-policies`.
-
 :mod:`spack.version`
   Implements a simple :class:`~spack.version.Version` class with simple
   comparison semantics.  Also implements :class:`~spack.version.VersionRange`

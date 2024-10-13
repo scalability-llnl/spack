@@ -13,6 +13,7 @@ class Grpc(CMakePackage):
 
     license("Apache-2.0 AND BSD-3-Clause AND MIT")
 
+    version("1.66.1", sha256="79ed4ab72fa9589b20f8b0b76c16e353e4cfec1d773d33afad605d97b5682c61")
     version("1.64.0", sha256="d5509e40fb24f6390deeef8a88668124f4ec77d2ebb3b1a957b235a2f08b70c0")
     version("1.63.0", sha256="493d9905aa09124c2f44268b66205dd013f3925a7e82995f36745974e97af609")
     version("1.62.2", sha256="e5d5e0dd96fe9452fe24cc8c827381dca484c54d171fb512a198025fec81a3c8")
@@ -46,8 +47,8 @@ class Grpc(CMakePackage):
     version("1.24.3", sha256="c84b3fa140fcd6cce79b3f9de6357c5733a0071e04ca4e65ba5f8d306f10f033")
     version("1.23.1", sha256="dd7da002b15641e4841f20a1f3eb1e359edb69d5ccf8ac64c362823b05f523d9")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=False, description="Build shared instead of static libraries")
     variant(
@@ -64,6 +65,7 @@ class Grpc(CMakePackage):
     )
 
     depends_on("protobuf")
+    depends_on("protobuf@3.22:", when="@1.55:")
     depends_on("openssl")
     depends_on("zlib-api")
     depends_on("c-ares")

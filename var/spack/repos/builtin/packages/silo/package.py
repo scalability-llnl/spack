@@ -54,6 +54,7 @@ class Silo(AutotoolsPackage):
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
 
+    variant("python", default=True, description="Enable Python support")
     variant("fortran", default=True, description="Enable Fortran support")
     variant("shared", default=True, description="Build shared libraries")
     variant("silex", default=False, description="Builds Silex, a GUI for viewing Silo files")
@@ -198,14 +199,14 @@ class Silo(AutotoolsPackage):
 
     def configure_args(self):
         spec = self.spec
-        config_args = [
-            "--enable-install-lite-headers",
-            "--enable-fortran" if "+fortran" in spec else "--disable-fortran",
-            "--enable-silex" if "+silex" in spec else "--disable-silex",
-            "--enable-shared" if "+shared" in spec else "--disable-shared",
-            "--enable-hzip" if "+hzip" in spec else "--disable-hzip",
-            "--enable-fpzip" if "+fpzip" in spec else "--disable-fpzip",
-        ]
+        config_args = ["--enable-install-lite-headers"]
+
+        config_args.extend(self.enable_or_disable("pythonmodule", variant="python"))
+        config_args.extend(self.enable_or_disable("fortran"))
+        config_args.extend(self.enable_or_disable("silex"))
+        config_args.extend(self.enable_or_disable("shared"))
+        config_args.extend(self.enable_or_disable("hzip"))
+        config_args.extend(self.enable_or_disable("fpzip"))
 
         # Do not specify the prefix of zlib if it is in a system directory
         # (see https://github.com/spack/spack/pull/21900).

@@ -144,13 +144,13 @@ class Icon(AutotoolsPackage):
         ]:
             args += self.enable_or_disable(x)
 
-        if "+art" in self.spec:
+        if self.spec.satisfies("+art"):
             args.append("--enable-art")
             libs += self.spec["libxml2"].libs
         else:
             args.append("--disable-art")
 
-        if "+coupling" in self.spec:
+        if self.spec.satisfies("+coupling"):
             args.append("--enable-coupling")
             libs += self.spec["libfyaml"].libs
         else:
@@ -168,7 +168,7 @@ class Icon(AutotoolsPackage):
             )
             libs += self.spec["serialbox:fortran"].libs
 
-        if "+grib2" in self.spec:
+        if self.spec.satisfies("+grib2"):
             args.append("--enable-grib2")
             libs += self.spec["eccodes:c"].libs
         else:
@@ -179,7 +179,7 @@ class Icon(AutotoolsPackage):
         libs += self.spec["netcdf-fortran"].libs
         libs += self.spec["netcdf-c"].libs
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             args.extend(
                 [
                     "--enable-mpi",
@@ -214,7 +214,7 @@ class Icon(AutotoolsPackage):
             flags["ICON_BUNDLED_CFLAGS"].append("-O2")
             flags["FCFLAGS"].append("-g")
             flags["ICON_FCFLAGS"].append("-O2")
-            if "+ocean" in self.spec:
+            if self.spec.satisfies("+ocean"):
                 flags["ICON_OCEAN_FCFLAGS"].extend(["-O3", "-fno-tree-loop-vectorize"])
                 args.extend(
                     ["--enable-fcgroup-OCEAN", "ICON_OCEAN_PATH=src/hamocc:src/ocean:src/sea_ice"]
@@ -239,10 +239,10 @@ class Icon(AutotoolsPackage):
                 ]
             )
 
-            if "%oneapi+coupling" in self.spec:
+            if self.spec.satisfies("%oneapi+coupling"):
                 flags["ICON_YAC_CFLAGS"].extend(["-O2", "-fp-model precise"])
 
-            if "+ocean" in self.spec:
+            if self.spec.satisfies("+ocean"):
                 flags["ICON_OCEAN_FCFLAGS"].extend(
                     ["-O3", "-assume norealloc_lhs", "-reentrancy threaded"]
                 )
@@ -250,10 +250,10 @@ class Icon(AutotoolsPackage):
                     ["--enable-fcgroup-OCEAN", "ICON_OCEAN_PATH=src/hamocc:src/ocean:src/sea_ice"]
                 )
 
-                if "+openmp" in self.spec:
+                if self.spec.satisfies("+openmp"):
                     flags["ICON_OCEAN_FCFLAGS"].extend(["-DOCE_SOLVE_OMP"])
 
-            if "+ecrad" in self.spec:
+            if self.spec.satisfies("+ecrad"):
                 flags["ICON_ECRAD_FCFLAGS"].extend(["-qno-opt-dynamic-align", "-no-fma", "-fpe0"])
 
         elif self.compiler.name == "nvhpc":
@@ -267,7 +267,7 @@ class Icon(AutotoolsPackage):
                     ["-acc=gpu", "-gpu=cc{0}".format(self.nvidia_targets[gpu])]
                 )
 
-            if "%nvhpc@:23.9+coupling" in self.spec:
+            if self.spec.satisfies("%nvhpc@:23.9+coupling"):
                 args.append("yac_cv_fc_is_contiguous_works=yes")
 
         else:

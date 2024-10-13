@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Gtkplus(MesonPackage):
+class Gtkplus(AutotoolsPackage, MesonPackage):
     """The GTK+ package contains libraries used for creating graphical user
     interfaces for applications."""
 
@@ -14,6 +14,12 @@ class Gtkplus(MesonPackage):
     url = "https://download.gnome.org/sources/gtk+/3.24/gtk+-3.24.26.tar.xz"
 
     license("LGPL-2.0-or-later")
+
+    build_system(
+        conditional("autotools", when="@:3.24.35"),
+        conditional("meson", when="@3.24.9:"),
+        default="autotools",
+    )
 
     version("3.24.41", sha256="47da61487af3087a94bc49296fd025ca0bc02f96ef06c556e7c8988bd651b6fa")
     version("3.24.29", sha256="f57ec4ade8f15cab0c23a80dcaee85b876e70a8823d9105f067ce335a8268caa")
@@ -45,8 +51,8 @@ class Gtkplus(MesonPackage):
     variant("cups", default=False, description="enable cups support")
 
     # See meson.build for version requirements
-    depends_on("meson@0.48.0:", when="@3.24:", type="build")
-    depends_on("ninja", when="@3.24:", type="build")
+    depends_on("meson@0.48.0:", when="build_system=meson", type="build")
+    depends_on("ninja", when="build_system=meson", type="build")
     # Needed to build man pages:
     # depends_on('docbook-xml', when='@3.24:', type='build')
     # depends_on('docbook-xsl', when='@3.24:', type='build')
@@ -70,6 +76,7 @@ class Gtkplus(MesonPackage):
     depends_on("fixesproto", when="@3:")
     depends_on("gettext", when="@3:")
     depends_on("cups", when="+cups")
+    depends_on("libxfixes", when="@:2")
 
     patch("no-demos.patch", when="@2.0:2")
 
@@ -91,13 +98,19 @@ class Gtkplus(MesonPackage):
     def setup_run_environment(self, env):
         env.prepend_path("GI_TYPELIB_PATH", join_path(self.prefix.lib, "girepository-1.0"))
 
+    def setup_dependent_run_environment(self, env, dependent_spec):
+        env.prepend_path("XDG_DATA_DIRS", self.prefix.share)
+        env.prepend_path("GI_TYPELIB_PATH", join_path(self.prefix.lib, "girepository-1.0"))
+
+
+class BuildEnvironment:
+
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.prepend_path("XDG_DATA_DIRS", self.prefix.share)
         env.prepend_path("GI_TYPELIB_PATH", join_path(self.prefix.lib, "girepository-1.0"))
 
-    def setup_dependent_run_environment(self, env, dependent_spec):
-        env.prepend_path("XDG_DATA_DIRS", self.prefix.share)
-        env.prepend_path("GI_TYPELIB_PATH", join_path(self.prefix.lib, "girepository-1.0"))
+
+class MesonBuilder(BuildEnvironment, spack.build_systems.meson.MesonBuilder):
 
     def meson_args(self):
         args = []
@@ -113,6 +126,13 @@ class Gtkplus(MesonPackage):
 
         return args
 
+    def check(self):
+        """All build time checks open windows in the X server, don't do that"""
+        pass
+
+
+class AutotoolsBuilder(BuildEnvironment, spack.build_systems.autotools.AutotoolsBuilder):
+
     def configure_args(self):
         true = which("true")
         args = [
@@ -124,21 +144,9 @@ class Gtkplus(MesonPackage):
             "GTKDOC_MKPDF={0}".format(true),
             "GTKDOC_REBASE={0}".format(true),
         ]
-        if "~cups" in self.spec:
+        if self.spec.satisfies("~cups"):
             args.append("--disable-cups")
         return args
-
-    @when("@:3.20.10")
-    def meson(self, spec, prefix):
-        configure(*self.configure_args())
-
-    @when("@:3.20.10")
-    def build(self, spec, prefix):
-        make()
-
-    @when("@:3.20.10")
-    def install(self, spec, prefix):
-        make("install")
 
     def check(self):
         """All build time checks open windows in the X server, don't do that"""

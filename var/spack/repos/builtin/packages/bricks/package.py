@@ -76,7 +76,7 @@ class Bricks(CMakePackage):
             join_path("examples", "external", "main.cpp"),
             join_path("examples", "external", "7pt.py"),
         ]
-        self.cache_extra_test_sources(srcs)
+        cache_extra_test_sources(self, srcs)
 
     def test_bricklib_example(self):
         """build and run pre-built example"""

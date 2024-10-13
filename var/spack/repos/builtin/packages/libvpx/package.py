@@ -30,6 +30,6 @@ class Libvpx(AutotoolsPackage):
 
     def configure_args(self):
         extra_args = []
-        if "+pic" in self.spec:
+        if self.spec.satisfies("+pic"):
             extra_args.append("--enable-pic")
         return extra_args

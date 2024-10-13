@@ -13,7 +13,7 @@ class Expect(AutotoolsPackage):
     """Expect is a tool for automating interactive applications such as
     telnet, ftp, passwd, fsck, rlogin, tip, etc."""
 
-    homepage = "http://expect.sourceforge.net/"
+    homepage = "https://expect.sourceforge.net/"
     url = (
         "https://sourceforge.net/projects/expect/files/Expect/5.45.4/expect5.45.4.tar.gz/download"
     )

@@ -10,8 +10,11 @@ import pytest
 import spack.cmd.mirror
 import spack.config
 import spack.environment as ev
+import spack.error
+import spack.mirror
 import spack.spec
 import spack.util.url as url_util
+import spack.version
 from spack.main import SpackCommand, SpackCommandError
 
 mirror = SpackCommand("mirror")

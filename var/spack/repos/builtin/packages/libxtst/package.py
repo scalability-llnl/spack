@@ -29,15 +29,15 @@ class Libxtst(AutotoolsPackage, XorgPackage):
     version("1.2.3", sha256="a0c83acce02d4923018c744662cb28eb0dbbc33b4adc027726879ccf68fbc2c2")
     version("1.2.2", sha256="221838960c7b9058cd6795c1c3ee8e25bae1c68106be314bc3036a4f26be0e6c")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11")
     depends_on("libxext@1.0.99.4:")
     depends_on("libxi")
 
-    depends_on("recordproto@1.13.99.1:")
-    depends_on("xextproto@7.0.99.3:")
-    depends_on("inputproto")
-    depends_on("fixesproto")
+    depends_on("recordproto@1.13.99.1:", type=("build", "link"))
+    depends_on("xextproto@7.0.99.3:", type="build")
+    depends_on("inputproto", type="build")
+    depends_on("fixesproto", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

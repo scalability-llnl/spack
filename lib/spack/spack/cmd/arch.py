@@ -11,6 +11,7 @@ import llnl.util.tty.colify as colify
 import llnl.util.tty.color as color
 
 import spack.platforms
+import spack.spec
 
 description = "print architecture information about this machine"
 section = "system"

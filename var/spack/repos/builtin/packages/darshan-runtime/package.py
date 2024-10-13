@@ -58,6 +58,7 @@ class DarshanRuntime(AutotoolsPackage):
     depends_on("zlib-api")
     depends_on("hdf5", when="+hdf5")
     depends_on("parallel-netcdf", when="+parallel-netcdf")
+    depends_on("lustre", when="+lustre")
     depends_on("papi", when="+apxc")
     depends_on("autoconf", type="build", when="@main")
     depends_on("automake", type="build", when="@main")
@@ -76,6 +77,7 @@ class DarshanRuntime(AutotoolsPackage):
         description="Compile with Parallel NetCDF module",
         when="@3.4.1:",
     )
+    variant("lustre", default=False, description="Compile with Lustre module", when="@3.1:")
     variant("apmpi", default=False, description="Compile with AutoPerf MPI module", when="@3.3:")
     variant(
         "apmpi_sync",
@@ -87,10 +89,18 @@ class DarshanRuntime(AutotoolsPackage):
     variant(
         "scheduler",
         default="NONE",
-        description="queue system scheduler JOB ID",
+        description="Queue system scheduler JOB ID",
         values=("NONE", "cobalt", "pbs", "sge", "slurm"),
         multi=False,
     )
+    variant(
+        "log_path",
+        values=str,
+        default="none",
+        description="Path to centralized, formatted Darshan log directory",
+    )
+    variant("mmap_logs", default=False, description="Use mmap to store Darshan log data")
+    variant("group_readable_logs", default=False, description="Write group-readable logs")
 
     @property
     def configure_directory(self):
@@ -101,46 +111,56 @@ class DarshanRuntime(AutotoolsPackage):
         extra_args = []
 
         job_id = "NONE"
-        if "+slurm" in spec:
+        if spec.satisfies("scheduler=slurm"):
             job_id = "SLURM_JOBID"
-        if "+cobalt" in spec:
+        elif spec.satisfies("scheduler=cobalt"):
             job_id = "COBALT_JOBID"
-        if "+pbs" in spec:
+        elif spec.satisfies("scheduler=pbs"):
             job_id = "PBS_JOBID"
-        if "+sge" in spec:
+        elif spec.satisfies("scheduler=sge"):
             job_id = "JOB_ID"
 
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             if self.version < Version("3.3.2"):
                 extra_args.append("--enable-hdf5-mod=%s" % spec["hdf5"].prefix)
             else:
                 extra_args.append("--enable-hdf5-mod")
-        if "+parallel-netcdf" in spec:
+        if spec.satisfies("+parallel-netcdf"):
             extra_args.append("--enable-pnetcdf-mod")
-        if "+apmpi" in spec:
+        if spec.satisfies("+lustre"):
+            extra_args.append("--enable-lustre-mod")
+        else:
+            extra_args.append("--disable-lustre-mod")
+        if spec.satisfies("+apmpi"):
             extra_args.append("--enable-apmpi-mod")
-        if "+apmpi_sync" in spec:
+        if spec.satisfies("+apmpi_sync"):
             extra_args.extend(["--enable-apmpi-mod", "--enable-apmpi-coll-sync"])
-        if "+apxc" in spec:
+        if spec.satisfies("+apxc"):
             extra_args.append("--enable-apxc-mod")
+        if spec.satisfies("+group_readable_logs"):
+            extra_args.append("--enable-group-readable-logs")
+        if spec.satisfies("+mmap_logs"):
+            extra_args.append("--enable-mmap-logs")
+        log_path = self.spec.variants["log_path"].value
+        if log_path != "none":
+            extra_args.append("--with-log-path=" + log_path)
+        else:
+            extra_args.append("--with-log-path-by-env=DARSHAN_LOG_DIR_PATH")
 
         extra_args.append("--with-mem-align=8")
-        extra_args.append("--with-log-path-by-env=DARSHAN_LOG_DIR_PATH")
         extra_args.append("--with-jobid-env=%s" % job_id)
         extra_args.append("--with-zlib=%s" % spec["zlib-api"].prefix)
 
-        if "+mpi" in spec:
-            extra_args.append("CC=%s" % self.spec["mpi"].mpicc)
-        else:
-            extra_args.append("CC=%s" % self.compiler.cc)
+        if "+mpi" not in spec:
             extra_args.append("--without-mpi")
 
         return extra_args
 
     def setup_run_environment(self, env):
-        # default path for log file, could be user or site specific setting
-        darshan_log_dir = os.environ["HOME"]
-        env.set("DARSHAN_LOG_DIR_PATH", darshan_log_dir)
+        if self.spec.variants["log_path"].value == "none":
+            # set a default path for log file that can be overrode by user
+            darshan_log_dir = os.environ["HOME"]
+            env.set("DARSHAN_LOG_DIR_PATH", darshan_log_dir)
 
     @property
     def basepath(self):
@@ -149,7 +169,7 @@ class DarshanRuntime(AutotoolsPackage):
     @run_after("install")
     def _copy_test_inputs(self):
         test_inputs = [join_path(self.basepath, "mpi-io-test.c")]
-        self.cache_extra_test_sources(test_inputs)
+        cache_extra_test_sources(self, test_inputs)
 
     def test_mpi_io_test(self):
         """build, run, and check outputs"""

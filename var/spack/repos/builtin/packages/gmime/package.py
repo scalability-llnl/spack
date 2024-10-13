@@ -11,7 +11,7 @@ class Gmime(AutotoolsPackage):
     parsing of messages using the Multipurpose Internet Mail Extension (MIME).
     """
 
-    homepage = "http://spruce.sourceforge.net/gmime/"
+    homepage = "https://spruce.sourceforge.net/gmime/"
     url = "https://download.gnome.org/sources/gmime/2.6/gmime-2.6.23.tar.xz"
 
     license("LGPL-2.1-or-later")

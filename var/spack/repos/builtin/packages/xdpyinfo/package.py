@@ -22,16 +22,16 @@ class Xdpyinfo(AutotoolsPackage, XorgPackage):
     version("1.3.3", sha256="2ae7b8213ea839b8376843477496276e8d69550c48bff081e16376539fc27c5a")
     version("1.3.2", sha256="ef39935e8e9b328e54a85d6218d410d6939482da6058db1ee1b39749d98cbcf2")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libxext")
     depends_on("libx11")
     depends_on("libxtst")
     depends_on("libxcb")
 
-    depends_on("xproto@7.0.22:")
-    depends_on("recordproto")
-    depends_on("inputproto")
-    depends_on("fixesproto")
+    depends_on("xproto@7.0.22:", type="build")
+    depends_on("recordproto", type="build")
+    depends_on("inputproto", type="build")
+    depends_on("fixesproto", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

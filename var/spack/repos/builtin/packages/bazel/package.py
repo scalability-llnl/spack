@@ -120,6 +120,14 @@ class Bazel(Package):
     # https://blog.bazel.build/2021/05/21/bazel-4-1.html
     conflicts("platform=darwin target=aarch64:", when="@:4.0")
 
+    # https://github.com/bazelbuild/bazel/issues/18642
+    patch(
+        "https://github.com/bazelbuild/bazel/pull/20785.patch?full_index=1",
+        sha256="85dde31d129bbd31e004c5c87f23cdda9295fbb22946dc6d362f23d83bae1fd8",
+        when="@6.0:6.4",
+    )
+    conflicts("%gcc@13:", when="@:5")
+
     # Patches for compiling various older bazels which had ICWYU violations revealed by
     # (but not unique to) GCC 11 header changes. These are derived from
     # https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/29084/
@@ -131,8 +139,6 @@ class Bazel(Package):
     # Bazel-4.0.0 does not compile with gcc-11
     # Newer versions of grpc and abseil dependencies are needed but are not in bazel-4.0.0
     conflicts("@4.0.0", when="%gcc@11:")
-    # https://github.com/bazelbuild/bazel/issues/18642
-    conflicts("@:6", when="%gcc@13:")
 
     executables = ["^bazel$"]
 
@@ -143,6 +149,11 @@ class Bazel(Package):
         "url": "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.1/bazel-skylib-1.0.1.tar.gz",
         "sha256": "f1c8360c01fcf276778d3519394805dc2a71a64274a3a0908bc9edff7b5aebc8",
         "when": "@4:6",
+    }
+    resource_dictionary["com_google_absl"] = {
+        "url": "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.0.tar.gz",
+        "sha256": "59d2976af9d6ecf001a81a35749a6e551a335b949d34918cfade07737b9d93c5",
+        "when": "@6.0:6.4",
     }
     resource_dictionary["zulu_11_56_19"] = {
         "url": "https://mirror.bazel.build/cdn.azul.com/zulu/bin/zulu11.56.19-ca-jdk11.0.15-linux_x64.tar.gz",

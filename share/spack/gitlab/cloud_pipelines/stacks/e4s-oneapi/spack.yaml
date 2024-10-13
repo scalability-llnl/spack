@@ -94,7 +94,6 @@ spack:
   - flux-core
   - fortrilinos
   - gasnet
-  - geopm-service
   - ginkgo
   - globalarrays
   - glvis ^llvm
@@ -143,12 +142,11 @@ spack:
   - precice
   - pruners-ninja
   - pumi
-  - py-amrex
+  - py-amrex ~ipo                   # oneAPI 2024.2.0 builds do not support IPO/LTO says CMake, even though pybind11 strongly encourages it
   - py-h5py
   - py-jupyterhub
   - py-libensemble
   - py-petsc4py
-  - py-warpx
   - qthreads scheduler=distrib
   - raja
   - rempi
@@ -171,6 +169,7 @@ spack:
   - upcxx
   - variorum
   - wannier90
+  - wrf
   - xyce +mpi +shared +pymi +pymi_static_tpls
   # INCLUDED IN ECP DAV CPU
   - adios2
@@ -188,14 +187,17 @@ spack:
   - veloc
   # - visit                                                 # visit: +visit: visit_vtk/lightweight/vtkSkewLookupTable.C:32:10: error: cannot initialize return object of type 'unsigned char *' with an rvalue of type 'const unsigned char *'
   - vtk-m ~openmp
+  - warpx +python ~python_ipo ^py-amrex ~ipo                # oneAPI 2024.2.0 builds do not support IPO/LTO says CMake, even though pybind11 strongly encourages it
   - zfp
   # --
+  # - chapel ~cuda ~rocm                                    # llvm: closures.c:(.text+0x305e): undefined reference to `_intel_fast_memset'
   # - cp2k +mpi                                             # dbcsr: dbcsr_api.F(973): #error: incomplete macro call DBCSR_ABORT.
   # - geopm-runtime                                         # libelf: configure: error: installation or configuration problem: C compiler cannot create executables.
   # - hpctoolkit                                            # dyninst@13.0.0%gcc: libiberty/./d-demangle.c:142: undefined reference to `_intel_fast_memcpy'
   # - lbann                                                 # 2024.2 internal compiler error
   # - plasma                                                # 2024.2 internal compiler error
   # - quantum-espresso                                      # quantum-espresso: external/mbd/src/mbd_c_api.F90(392): error #6645: The name of the module procedure conflicts with a name in the encompassing scoping unit.   [F_C_STRING]
+  # - wps                                                   # wps: InstallError: Compiler not recognized nor supported.
 
   # PYTHON PACKAGES
   - opencv +python3
@@ -231,16 +233,16 @@ spack:
   - sundials +sycl cxxstd=17 +examples-install
   - tau +mpi +opencl +level_zero ~pdt +syscall                # requires libdrm.so to be installed
   - upcxx +level_zero
+  - warpx ~qed +python ~python_ipo compute=sycl ^py-amrex ~ipo  # qed for https://github.com/ECP-WarpX/picsar/pull/53 prior to 24.09 release; ~ipo for oneAPI 2024.2.0 GPU builds do not support IPO/LTO says CMake, even though pybind11 strongly encourages it
   # --
   # - hpctoolkit +level_zero                                  # dyninst@12.3.0%gcc: /usr/bin/ld: libiberty/./d-demangle.c:142: undefined reference to `_intel_fast_memcpy'; can't mix intel-tbb@%oneapi with dyninst%gcc
   # - slate +sycl                                             # slate: ifx: error #10426: option '-fopenmp-targets' requires '-fiopenmp'
-  # - warpx compute=sycl                                      # warpx: fetchedamrex-src/Src/Base/AMReX_RandomEngine.H:18:10: fatal error: 'oneapi/mkl/rng/device.hpp' file not found
 
 
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/ubuntu22.04-runner-amd64-oneapi-2024.2:2024.06.21
+        image: ecpe4s/ubuntu22.04-runner-amd64-oneapi-2024.2:2024.09.06
 
   cdash:
     build-group: E4S OneAPI

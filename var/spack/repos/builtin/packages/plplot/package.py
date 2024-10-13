@@ -9,7 +9,7 @@ from spack.package import *
 class Plplot(CMakePackage):
     """PLplot is a cross-platform package for creating scientific plots."""
 
-    homepage = "http://plplot.sourceforge.net/"
+    homepage = "https://plplot.sourceforge.net/"
     url = "https://sourceforge.net/projects/plplot/files/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz/download"
 
     license("LGPL-2.0-or-later")

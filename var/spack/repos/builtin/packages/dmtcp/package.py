@@ -11,7 +11,7 @@ class Dmtcp(AutotoolsPackage):
     checkpoints a single-host or distributed computation in user-space --
     with no modifications to user code or to the O/S."""
 
-    homepage = "http://dmtcp.sourceforge.net/"
+    homepage = "https://dmtcp.sourceforge.net/"
     url = "https://github.com/dmtcp/dmtcp/archive/refs/tags/3.0.0.tar.gz"
     git = "https://github.com/dmtcp/dmtcp.git"
 

@@ -34,6 +34,8 @@ class Root(CMakePackage):
     version("develop", branch="master")
 
     # Production version
+    version("6.32.06", sha256="3fc032d93fe848dea5adb1b47d8f0a86279523293fee0aa2b3cd52a1ffab7247")
+    version("6.32.04", sha256="132f126aae7d30efbccd7dcd991b7ada1890ae57980ef300c16421f9d4d07ea8")
     version("6.32.02", sha256="3d0f76bf05857e1807ccfb2c9e014f525bcb625f94a2370b455f4b164961602d")
     version("6.32.00", sha256="12f203681a59041c474ce9523761e6f0e8861b3bee78df5f799a8db55189e5d2")
     version("6.30.08", sha256="8bb8594867b9ded20a65e59f2cb6da965aa30851b8960f8cbf76293aec046b69")
@@ -107,6 +109,12 @@ class Root(CMakePackage):
     # 6.16.00 fails to handle particular build option combinations, _cf_
     # https://github.com/root-project/ROOT/commit/e0ae0483985d90a71a6cabd10d3622dfd1c15611.
     patch("root7-webgui.patch", level=1, when="@6.16.00")
+    # Missing includes in libcpp_string_view.h
+    patch(
+        "https://github.com/root-project/root/pull/8289.patch?full_index=1",
+        sha256="5d91d78bcecd4fdbce9c829554a563234a9cb99eaf91dbc14fb85c3de33bac34",
+        when="@6.22:6.22.08",
+    )
     # 6.26.00:6.26.06 can fail with empty string COMPILE_DEFINITIONS, which this patch
     # protects against
     patch(
@@ -164,6 +172,12 @@ class Root(CMakePackage):
             "https://github.com/root-project/root/pull/15044.patch?full_index=1",
             sha256="e68be5fe7b1ec873da134bd39c5c72730c4ca06d51b52eb436ae44fe81cd472d",
             when="@:6.30.04 +x",
+        )
+        # Fix rpath for loading cppyy
+        patch(
+            "https://github.com/root-project/root/pull/15925.diff?full_index=1",
+            sha256="1937290a4d54cd2e3e8a8d23d93b8dedaca9ed8dcfdcfa2f0d16629ff53fb3b7",
+            when="@6.28: +python",
         )
 
     # ###################### Variants ##########################
@@ -329,6 +343,7 @@ class Root(CMakePackage):
     depends_on("gl2ps", when="+opengl")
     depends_on("gl", when="+opengl")
     depends_on("glu", when="+opengl")
+    depends_on("libglx", when="+opengl+x")
 
     # Qt4
     depends_on("qt@:4", when="+qt4")
@@ -412,7 +427,9 @@ class Root(CMakePackage):
     conflicts("target=ppc64le:", when="@:6.24")
 
     # Incompatible variants
-    if sys.platform != "darwin":
+    if sys.platform == "darwin":
+        conflicts("+opengl", when="~x ~aqua", msg="root+opengl requires X or Aqua")
+    else:
         conflicts("+opengl", when="~x", msg="root+opengl requires X")
     conflicts("+math", when="~gsl", msg="root+math requires GSL")
     conflicts("+tmva", when="~gsl", msg="root+tmva requires GSL")
@@ -422,7 +439,7 @@ class Root(CMakePackage):
     conflicts("+tmva-gpu", when="~cuda", msg="root+tmva-gpu requires CUDA")
     conflicts("+tmva-pymva", when="~tmva", msg="root+tmva-pymva requires TMVA")
     conflicts("+tmva-sofie", when="~tmva", msg="root+tmva-sofie requires TMVA")
-    conflicts("~http", when="@6.29.00: +webgui", msg="root+webgui requires HTTP")
+    conflicts("~http", when="+webgui", msg="root+webgui requires HTTP")
     conflicts("cxxstd=11", when="+root7", msg="root7 requires at least C++14")
     conflicts("cxxstd=11", when="@6.25.02:", msg="This version of root requires at least C++14")
     conflicts("cxxstd=14", when="@6.30.00:", msg="This version of root requires at least C++17")
@@ -433,9 +450,17 @@ class Root(CMakePackage):
     # See https://github.com/root-project/root/issues/11128
     conflicts("%clang@16:", when="@:6.26.07", msg="clang 16+ support was added in root 6.26.08")
 
+    # See https://github.com/spack/spack/pull/44826
+    if sys.platform == "darwin" and macos_version() == Version("12"):
+        conflicts("@:6.27", when="+python", msg="macOS 12 python support for 6.28: only")
+
     # See https://github.com/root-project/root/issues/11714
     if sys.platform == "darwin" and macos_version() >= Version("13"):
         conflicts("@:6.26.09", msg="macOS 13 support was added in root 6.26.10")
+
+    # See https://github.com/root-project/root/issues/16219
+    if sys.platform == "darwin" and macos_version() >= Version("15"):
+        conflicts("@:6.32.05", msg="macOS 15 support was added in root 6.32.06")
 
     # ROOT <6.14 is incompatible with Python >=3.7, which is the minimum supported by spack
     conflicts("+python", when="@:6.13", msg="Spack wants python >=3.7, too new for ROOT <6.14")
@@ -600,7 +625,7 @@ class Root(CMakePackage):
             define("builtin_freetype", False),
             define("builtin_ftgl", False),
             define("builtin_gl2ps", False),
-            define("builtin_glew", False),
+            define("builtin_glew", self.spec.satisfies("platform=darwin")),
             define("builtin_gsl", False),
             define("builtin_llvm", True),
             define("builtin_lz4", self.spec.satisfies("@6.12.02:6.12")),

@@ -181,6 +181,7 @@ default:
     - cat /proc/loadavg || true
     - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
     - . "./share/spack/setup-env.sh"
+    - spack arch
   after_script:
     - cat /proc/loadavg || true
     - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
@@ -218,7 +219,7 @@ default:
     - $ErrorActionPreference=$ErrorActionOld
 
   tags: ["spack", "public", "medium", "x86_64-win"]
-  image: "ghcr.io/johnwparent/windows-server21h2:sha-c749cf3"
+  image: "ghcr.io/johnwparent/windows-server21h2:sha-1c12b61"
 
 .generate-deprecated:
   extends: [ ".base-job" ]
@@ -376,7 +377,7 @@ e4s-neoverse_v1-build:
 
 e4s-rocm-external-generate:
   extends: [ ".e4s-rocm-external", ".generate-x86_64"]
-  image: ecpe4s/ubuntu22.04-runner-amd64-gcc-11.4-rocm6.1.2:2024.07.22
+  image: ecpe4s/ubuntu22.04-runner-amd64-gcc-11.4-rocm6.2.0:2024.09.11
 
 e4s-rocm-external-build:
   extends: [ ".e4s-rocm-external", ".build" ]
@@ -422,7 +423,7 @@ e4s-rocm-external-build:
 
 e4s-oneapi-generate:
   extends: [ ".e4s-oneapi", ".generate-x86_64"]
-  image:  ecpe4s/ubuntu22.04-runner-amd64-oneapi-2024.2:2024.06.21
+  image: ecpe4s/ubuntu22.04-runner-amd64-oneapi-2024.2:2024.09.06
 
 e4s-oneapi-build:
   extends: [ ".e4s-oneapi", ".build" ]
@@ -690,7 +691,7 @@ tutorial-build:
 
 ml-linux-x86_64-cpu-generate:
   extends: [ ".generate-x86_64", .ml-linux-x86_64-cpu, ".tags-x86_64_v4" ]
-  image: ghcr.io/spack/ubuntu-22.04:v2024-05-07
+  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
 
 ml-linux-x86_64-cpu-build:
   extends: [ ".build", ".ml-linux-x86_64-cpu" ]
@@ -713,7 +714,7 @@ ml-linux-x86_64-cpu-build:
 
 ml-linux-x86_64-cuda-generate:
   extends: [ ".generate-x86_64", .ml-linux-x86_64-cuda, ".tags-x86_64_v4" ]
-  image: ghcr.io/spack/ubuntu-22.04:v2024-05-07
+  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
 
 ml-linux-x86_64-cuda-build:
   extends: [ ".build", ".ml-linux-x86_64-cuda"  ]
@@ -736,7 +737,7 @@ ml-linux-x86_64-cuda-build:
 
 ml-linux-x86_64-rocm-generate:
   extends: [ ".generate-x86_64", .ml-linux-x86_64-rocm, ".tags-x86_64_v4" ]
-  image: ghcr.io/spack/ubuntu-22.04:v2024-05-07
+  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
 
 ml-linux-x86_64-rocm-build:
   extends: [ ".build", ".ml-linux-x86_64-rocm" ]
@@ -798,7 +799,7 @@ deprecated-ci-build:
 ########################################
 
 .aws-pcluster-generate:
-  image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-01-29", "entrypoint": [""] }
+  image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07", "entrypoint": [""] }
   before_script:
     # Use gcc from pre-installed spack store
     - - . "./share/spack/setup-env.sh"
@@ -885,6 +886,7 @@ e4s-cray-rhel-generate:
   extends: [ ".generate-cray-rhel", ".e4s-cray-rhel" ]
 
 e4s-cray-rhel-build:
+  allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
   extends: [ ".build", ".e4s-cray-rhel" ]
   trigger:
     include:
@@ -907,6 +909,7 @@ e4s-cray-sles-generate:
   extends: [ ".generate-cray-sles", ".e4s-cray-sles" ]
 
 e4s-cray-sles-build:
+  allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
   extends: [ ".build", ".e4s-cray-sles" ]
   trigger:
     include:

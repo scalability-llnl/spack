@@ -66,6 +66,7 @@ spack:
   - cabana
   - caliper
   - chai
+  - chapel ~cuda ~rocm
   - charliecloud
   - conduit
   - cp2k +mpi
@@ -133,7 +134,6 @@ spack:
   - py-jupyterhub
   - py-libensemble
   - py-petsc4py
-  - py-warpx
   - qthreads scheduler=distrib
   - quantum-espresso
   - raja
@@ -156,6 +156,9 @@ spack:
   - umpire
   - upcxx
   - wannier90
+  - warpx +python
+  - wps
+  - wrf
   - xyce +mpi +shared +pymi +pymi_static_tpls
   # INCLUDED IN ECP DAV CPU
   - adios2
@@ -219,6 +222,7 @@ spack:
   - cabana +cuda cuda_arch=75 ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=75
   - caliper +cuda cuda_arch=75
   - chai +cuda cuda_arch=75 ^umpire ~shared
+  - chapel +cuda cuda_arch=75
   - cusz +cuda cuda_arch=75
   - dealii +cuda cuda_arch=75
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=75  # # +paraview: job killed oom?
@@ -266,6 +270,7 @@ spack:
   - cabana +cuda cuda_arch=80 ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=80
   - caliper +cuda cuda_arch=80
   - chai +cuda cuda_arch=80 ^umpire ~shared
+  - chapel +cuda cuda_arch=80
   - cusz +cuda cuda_arch=80
   - dealii +cuda cuda_arch=80
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=80 # +paraview: job killed oom?
@@ -313,6 +318,7 @@ spack:
   - cabana +cuda cuda_arch=90  ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=90
   - caliper +cuda cuda_arch=90
   - chai +cuda cuda_arch=90 ^umpire ~shared
+  - chapel +cuda cuda_arch=90
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=90 # +paraview: vtkm/exec/cuda/internal/ThrustPatches.h(213): error: this declaration has no storage class or type specifier
   - flecsi +cuda cuda_arch=90
   - ginkgo +cuda cuda_arch=90

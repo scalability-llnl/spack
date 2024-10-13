@@ -9,7 +9,7 @@ from spack.package import *
 class Pism(CMakePackage):
     """Parallel Ice Sheet Model"""
 
-    homepage = "http://pism-docs.org/wiki/doku.php:="
+    homepage = "https://pism-docs.org/wiki/doku.php:="
     url = "https://github.com/pism/pism/archive/v1.1.4.tar.gz"
     git = "https://github.com/pism/pism.git"
 

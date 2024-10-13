@@ -10,7 +10,7 @@ spack:
       # editors
     - neovim~no_luajit
     - py-pynvim
-    - emacs@29.1+json+native+treesitter   # note, pulls in gcc
+    - emacs+json+native+treesitter   # note, pulls in gcc
       # - tree-sitter is a dep, should also have cli but no package
     - nano   # just in case
       # tags and scope search helpers

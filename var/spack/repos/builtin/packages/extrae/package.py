@@ -94,7 +94,7 @@ class Extrae(AutotoolsPackage):
 
     def configure_args(self):
         spec = self.spec
-        if "^intel-oneapi-mpi" in spec:
+        if spec.satisfies("^[virtuals=mpi] intel-oneapi-mpi"):
             mpiroot = spec["mpi"].component_prefix
         else:
             mpiroot = spec["mpi"].prefix
@@ -127,7 +127,7 @@ class Extrae(AutotoolsPackage):
             else ["--without-cuda"]
         )
 
-        if "+cupti" in self.spec:
+        if self.spec.satisfies("+cupti"):
             cupti_h = find_headers("cupti", spec["cuda"].prefix, recursive=True)
             cupti_dir = os.path.dirname(os.path.dirname(cupti_h[0]))
 

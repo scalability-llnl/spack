@@ -9,10 +9,8 @@ from typing import Union
 
 import llnl.util.lang
 from llnl.util.filesystem import mkdirp
-from llnl.util.symlink import symlink
 
 import spack.config
-import spack.error
 import spack.fetch_strategy
 import spack.paths
 import spack.util.file_cache
@@ -73,23 +71,6 @@ class MirrorCache:
         dst = os.path.join(self.root, relative_dest)
         mkdirp(os.path.dirname(dst))
         fetcher.archive(dst)
-
-    def symlink(self, mirror_ref):
-        """Symlink a human readible path in our mirror to the actual
-        storage location."""
-
-        cosmetic_path = os.path.join(self.root, mirror_ref.cosmetic_path)
-        storage_path = os.path.join(self.root, mirror_ref.storage_path)
-        relative_dst = os.path.relpath(storage_path, start=os.path.dirname(cosmetic_path))
-
-        if not os.path.exists(cosmetic_path):
-            if os.path.lexists(cosmetic_path):
-                # In this case the link itself exists but it is broken: remove
-                # it and recreate it (in order to fix any symlinks broken prior
-                # to https://github.com/spack/spack/pull/13908)
-                os.unlink(cosmetic_path)
-            mkdirp(os.path.dirname(cosmetic_path))
-            symlink(relative_dst, cosmetic_path)
 
 
 #: Spack's local cache for downloaded source archives

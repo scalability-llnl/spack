@@ -17,7 +17,7 @@ class Yambo(AutotoolsPackage):
     to its release under the GPL license, yambo was known as SELF.
     """
 
-    homepage = "http://www.yambo-code.org/index.php"
+    homepage = "https://www.yambo-code.org/index.php"
     url = "https://github.com/yambo-code/yambo/archive/4.2.2.tar.gz"
 
     license("GPL-2.0-or-later")

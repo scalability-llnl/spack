@@ -6,6 +6,7 @@
 import os
 import re
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 tools_url = "https://github.com/ROCm"
@@ -30,6 +31,8 @@ aomp = [
     "832b7c48149a730619b577a2863b8d1bf1b2551eda5b815e1865a044929ab9fa",
     "62a5036a2299ed2e3053ee00b7ea1800469cd545fea486fa17266a8b3acfaf5d",
     "3de1c7a31a88c3f05a6a66ba6854ac8fdad1ce44462e561cb1e6ad59629029ce",
+    "5f54d7c7c798bcf1cd47d3a7f17ceaf79991bf166cc5e47e5372a68e7cf7d520",
+    "ac82e8da0c210ee14b911c833ae09a029a41541689930759737c135db52464a3",
 ]
 
 devlib = [
@@ -48,6 +51,8 @@ devlib = [
     "6bd9912441de6caf6b26d1323e1c899ecd14ff2431874a2f5883d3bc5212db34",
     "f1a67efb49f76a9b262e9735d3f75ad21e3bd6a05338c9b15c01e6c625c4460d",
     "300e9d6a137dcd91b18d5809a316fddb615e0e7f982dc7ef1bb56876dff6e097",
+    "12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200",
+    "4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7",
 ]
 
 llvm = [
@@ -66,6 +71,8 @@ llvm = [
     "6bd9912441de6caf6b26d1323e1c899ecd14ff2431874a2f5883d3bc5212db34",
     "f1a67efb49f76a9b262e9735d3f75ad21e3bd6a05338c9b15c01e6c625c4460d",
     "300e9d6a137dcd91b18d5809a316fddb615e0e7f982dc7ef1bb56876dff6e097",
+    "12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200",
+    "4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7",
 ]
 
 flang = [
@@ -84,6 +91,8 @@ flang = [
     "51ecd2c154568c971f5b46ff0e1e1b57063afe28d128fc88c503de88f7240267",
     "1bcaa73e73a688cb092f01987cf3ec9ace4aa1fcaab2b812888c610722c4501d",
     "12418ea61cca58811b7e75fd9df48be568b406f84a489a41ba5a1fd70c47f7ba",
+    "6af7785b1776aeb9229ce4e5083dcfd451e8450f6e5ebe34214560b13f679d96",
+    "409ee98bf15e51ac68b7ed351f4582930dfa0288de042006e17eea6b64df5ad6",
 ]
 
 extras = [
@@ -102,6 +111,8 @@ extras = [
     "57d6d9d26c0cb6ea7f8373996c41165f463ae7936d32e5793822cfae03900f8f",
     "3dc837fbfcac64e000e1b5518e4f8a6b260eaf1a3e74152d8b8c22f128f575b7",
     "2b9351fdb1cba229669233919464ae906ca8f70910c6fa508a2812b7c3bed123",
+    "7cef51c980f29d8b46d8d4b110e4f2f75d93544cf7d63c5e5d158cf531aeec7d",
+    "4b0d250b5ebd997ed6d5d057689c3f67dfb4d82f09f582ebb439ca9134fae48d",
 ]
 
 versions = [
@@ -120,6 +131,8 @@ versions = [
     "6.1.0",
     "6.1.1",
     "6.1.2",
+    "6.2.0",
+    "6.2.1",
 ]
 versions_dict = dict()  # type: Dict[str,Dict[str,str]]
 components = ["aomp", "devlib", "llvm", "flang", "extras"]
@@ -143,6 +156,8 @@ class RocmOpenmpExtras(Package):
     license("Apache-2.0")
 
     maintainers("srekolam", "renjithravindrankannath", "estewart08")
+    version("6.2.1", sha256=versions_dict["6.2.1"]["aomp"])
+    version("6.2.0", sha256=versions_dict["6.2.0"]["aomp"])
     version("6.1.2", sha256=versions_dict["6.1.2"]["aomp"])
     version("6.1.1", sha256=versions_dict["6.1.1"]["aomp"])
     version("6.1.0", sha256=versions_dict["6.1.0"]["aomp"])
@@ -187,6 +202,8 @@ class RocmOpenmpExtras(Package):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -247,7 +264,7 @@ class RocmOpenmpExtras(Package):
             placement="llvm-project",
             when=f"@{ver}",
         )
-    for ver in ["6.1.0", "6.1.1", "6.1.2"]:
+    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
@@ -288,6 +305,8 @@ class RocmOpenmpExtras(Package):
         working_dir="rocm-openmp-extras/llvm-project/openmp/libomptarget",
         when="@6.1",
     )
+    patch("0001-Avoid-duplicate-registration-on-cuda-env.patch", when="@6.1")
+    patch("0001-Avoid-duplicate-registration-on-cuda-env-6.2.patch", when="@6.2")
 
     def setup_run_environment(self, env):
         devlibs_prefix = self.spec["llvm-amdgpu"].prefix
@@ -308,6 +327,8 @@ class RocmOpenmpExtras(Package):
         llvm_prefix = self.spec["llvm-amdgpu"].prefix
         env.set("AOMP", "{0}".format(llvm_prefix))
         env.set("FC", "{0}/bin/flang".format(openmp_extras_prefix))
+        if self.spec.satisfies("@6.1:"):
+            env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
         if self.spec.satisfies("+asan"):
             env.set("SANITIZER", 1)
             env.set("VERBOSE", 1)
@@ -361,80 +382,83 @@ class RocmOpenmpExtras(Package):
             "",
             libomptarget.format(src) + "/cmake/Modules/LibomptargetGetDependencies.cmake",
         )
+        if self.spec.satisfies("@:6.1"):
+            filter_file(
+                r"{OPENMP_INSTALL_LIBDIR}",
+                "{OPENMP_INSTALL_LIBDIR}/libdevice",
+                libomptarget.format(src) + "/deviceRTLs/amdgcn/CMakeLists.txt",
+            )
+            filter_file(
+                "-nogpulib",
+                "-nogpulib -nogpuinc",
+                libomptarget.format(src) + "/deviceRTLs/amdgcn/CMakeLists.txt",
+            )
+            filter_file(
+                "-x hip",
+                "-x hip -nogpulib -nogpuinc",
+                libomptarget.format(src) + "/deviceRTLs/amdgcn/CMakeLists.txt",
+            )
+            filter_file(
+                "-c ",
+                "-c -nogpulib -nogpuinc -I{LIMIT}",
+                libomptarget.format(src) + "/hostrpc/CMakeLists.txt",
+            )
+            filter_file(
+                r"${ROCM_DIR}/hsa/include ${ROCM_DIR}/hsa/include/hsa",
+                "${HSA_INCLUDE}/hsa/include ${HSA_INCLUDE}/hsa/include/hsa",
+                libomptarget.format(src) + plugin,
+                string=True,
+            )
 
-        filter_file(
-            r"{OPENMP_INSTALL_LIBDIR}",
-            "{OPENMP_INSTALL_LIBDIR}/libdevice",
-            libomptarget.format(src) + "/deviceRTLs/amdgcn/CMakeLists.txt",
-        )
+            filter_file("{ROCM_DIR}/hsa/lib", "{HSA_LIB}", libomptarget.format(src) + plugin)
 
-        filter_file(
-            "-nogpulib",
-            "-nogpulib -nogpuinc",
-            libomptarget.format(src) + "/deviceRTLs/amdgcn/CMakeLists.txt",
-        )
+            filter_file(
+                r"{ROCM_DIR}/lib\)",
+                "{HSAKMT_LIB})\nset(HSAKMT_LIB64 ${HSAKMT_LIB64})",
+                libomptarget.format(src) + plugin,
+            )
 
-        filter_file(
-            "-x hip",
-            "-x hip -nogpulib -nogpuinc",
-            libomptarget.format(src) + "/deviceRTLs/amdgcn/CMakeLists.txt",
-        )
+            filter_file(
+                r"-L${LIBOMPTARGET_DEP_LIBHSAKMT_LIBRARIES_DIRS}",
+                "-L${LIBOMPTARGET_DEP_LIBHSAKMT_LIBRARIES_DIRS} -L${HSAKMT_LIB64}",
+                libomptarget.format(src) + plugin,
+                string=True,
+            )
 
-        filter_file(
-            "-c ",
-            "-c -nogpulib -nogpuinc -I{LIMIT}",
-            libomptarget.format(src) + "/hostrpc/CMakeLists.txt",
-        )
+            filter_file(
+                r"-rpath,${LIBOMPTARGET_DEP_LIBHSAKMT_LIBRARIES_DIRS}",
+                "-rpath,${LIBOMPTARGET_DEP_LIBHSAKMT_LIBRARIES_DIRS}" + ",-rpath,${HSAKMT_LIB64}",
+                libomptarget.format(src) + plugin,
+                string=True,
+            )
 
-        filter_file(
-            r"${ROCM_DIR}/hsa/include ${ROCM_DIR}/hsa/include/hsa",
-            "${HSA_INCLUDE}/hsa/include ${HSA_INCLUDE}/hsa/include/hsa",
-            libomptarget.format(src) + plugin,
-            string=True,
-        )
+            filter_file("{ROCM_DIR}/include", "{COMGR_INCLUDE}", libomptarget.format(src) + plugin)
 
-        filter_file("{ROCM_DIR}/hsa/lib", "{HSA_LIB}", libomptarget.format(src) + plugin)
+            filter_file(
+                r"-L${LLVM_LIBDIR}${OPENMP_LIBDIR_SUFFIX}",
+                "-L${LLVM_LIBDIR}${OPENMP_LIBDIR_SUFFIX} -L${COMGR_LIB}",
+                libomptarget.format(src) + plugin,
+                string=True,
+            )
 
-        filter_file(
-            r"{ROCM_DIR}/lib\)",
-            "{HSAKMT_LIB})\nset(HSAKMT_LIB64 ${HSAKMT_LIB64})",
-            libomptarget.format(src) + plugin,
-        )
-
-        filter_file(
-            r"-L${LIBOMPTARGET_DEP_LIBHSAKMT_LIBRARIES_DIRS}",
-            "-L${LIBOMPTARGET_DEP_LIBHSAKMT_LIBRARIES_DIRS} -L${HSAKMT_LIB64}",
-            libomptarget.format(src) + plugin,
-            string=True,
-        )
-
-        filter_file(
-            r"-rpath,${LIBOMPTARGET_DEP_LIBHSAKMT_LIBRARIES_DIRS}",
-            "-rpath,${LIBOMPTARGET_DEP_LIBHSAKMT_LIBRARIES_DIRS}" + ",-rpath,${HSAKMT_LIB64}",
-            libomptarget.format(src) + plugin,
-            string=True,
-        )
-
-        filter_file("{ROCM_DIR}/include", "{COMGR_INCLUDE}", libomptarget.format(src) + plugin)
-
-        filter_file(
-            r"-L${LLVM_LIBDIR}${OPENMP_LIBDIR_SUFFIX}",
-            "-L${LLVM_LIBDIR}${OPENMP_LIBDIR_SUFFIX} -L${COMGR_LIB}",
-            libomptarget.format(src) + plugin,
-            string=True,
-        )
-
-        filter_file(
-            r"rpath,${LLVM_LIBDIR}${OPENMP_LIBDIR_SUFFIX}",
-            "rpath,${LLVM_LIBDIR}${OPENMP_LIBDIR_SUFFIX}" + "-Wl,-rpath,${COMGR_LIB}",
-            libomptarget.format(src) + plugin,
-            string=True,
-        )
+            filter_file(
+                r"rpath,${LLVM_LIBDIR}${OPENMP_LIBDIR_SUFFIX}",
+                "rpath,${LLVM_LIBDIR}${OPENMP_LIBDIR_SUFFIX}" + "-Wl,-rpath,${COMGR_LIB}",
+                libomptarget.format(src) + plugin,
+                string=True,
+            )
 
         filter_file(
             "ADDITIONAL_VERSIONS 2.7",
             "ADDITIONAL_VERSIONS 3",
             flang.format(src) + "CMakeLists.txt",
+        )
+
+        filter_file(
+            "if (LIBOMPTARGET_DEP_CUDA_FOUND)",
+            "if (LIBOMPTARGET_DEP_CUDA_FOUND AND NOT LIBOMPTARGET_AMDGPU_ARCH)",
+            libomptarget.format(src) + "/hostexec/CMakeLists.txt",
+            string=True,
         )
 
     def install(self, spec, prefix):
@@ -463,6 +487,8 @@ class RocmOpenmpExtras(Package):
         libpgmath = "/rocm-openmp-extras/flang/runtime/libpgmath/lib/common"
         elfutils_inc = spec["elfutils"].prefix.include
         ffi_inc = spec["libffi"].prefix.include
+        if self.spec.satisfies("@6.2:"):
+            ncurses_lib_dir = self.spec["ncurses"].prefix.lib
 
         # flang1 and flang2 symlink needed for build of flang-runtime
         # libdevice symlink to rocm-openmp-extras for runtime
@@ -471,6 +497,9 @@ class RocmOpenmpExtras(Package):
             os.unlink(os.path.join(bin_dir, "flang1"))
         if os.path.islink((os.path.join(bin_dir, "flang2"))):
             os.unlink(os.path.join(bin_dir, "flang2"))
+        if self.spec.version >= Version("6.1.0"):
+            if os.path.islink((os.path.join(bin_dir, "flang-legacy"))):
+                os.unlink(os.path.join(bin_dir, "flang-legacy"))
         if os.path.islink((os.path.join(lib_dir, "libdevice"))):
             os.unlink(os.path.join(lib_dir, "libdevice"))
         if os.path.islink((os.path.join(llvm_prefix, "lib-debug"))):
@@ -478,6 +507,11 @@ class RocmOpenmpExtras(Package):
 
         os.symlink(os.path.join(omp_bin_dir, "flang1"), os.path.join(bin_dir, "flang1"))
         os.symlink(os.path.join(omp_bin_dir, "flang2"), os.path.join(bin_dir, "flang2"))
+
+        if self.spec.version >= Version("6.1.0"):
+            os.symlink(
+                os.path.join(omp_bin_dir, "flang-legacy"), os.path.join(bin_dir, "flang-legacy")
+            )
         os.symlink(os.path.join(omp_lib_dir, "libdevice"), os.path.join(lib_dir, "libdevice"))
         os.symlink(
             os.path.join(openmp_extras_prefix, "lib-debug"), os.path.join(llvm_prefix, "lib-debug")
@@ -569,6 +603,48 @@ class RocmOpenmpExtras(Package):
 
         components["pgmath"] += flang_common_args
 
+        flang_legacy_version = "17.0-4"
+
+        components["flang-legacy-llvm"] = [
+            "-DLLVM_ENABLE_PROJECTS=clang",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DLLVM_ENABLE_ASSERTIONS=ON",
+            "-DLLVM_TARGETS_TO_BUILD=AMDGPU;X86",
+            "-DCLANG_DEFAULT_LINKER=lld",
+            "-DLLVM_INCLUDE_BENCHMARKS=0",
+            "-DLLVM_INCLUDE_RUNTIMES=0",
+            "-DLLVM_INCLUDE_EXAMPLES=0",
+            "-DLLVM_INCLUDE_TESTS=0",
+            "-DLLVM_INCLUDE_DOCS=0",
+            "-DLLVM_INCLUDE_UTILS=0",
+            "-DCLANG_DEFAULT_PIE_ON_LINUX=0",
+            "../../rocm-openmp-extras/flang/flang-legacy/{0}/llvm-legacy/llvm".format(
+                flang_legacy_version
+            ),
+        ]
+
+        components["flang-legacy"] = [
+            "-DCMAKE_C_COMPILER={0}/clang".format(bin_dir),
+            "-DCMAKE_CXX_COMPILER={0}/clang++".format(bin_dir),
+            "../rocm-openmp-extras/flang/flang-legacy/{0}".format(flang_legacy_version),
+        ]
+
+        flang_legacy_flags = []
+        if (
+            self.compiler.name == "gcc"
+            and self.compiler.version >= Version("7.0.0")
+            and self.compiler.version < Version("9.0.0")
+        ):
+            flang_legacy_flags.append("-D_GLIBCXX_USE_CXX11_ABI=0")
+        if self.spec.satisfies("@6.2:"):
+            flang_legacy_flags.append("-L{0}".format(ncurses_lib_dir))
+        components["flang-legacy-llvm"] += [
+            "-DCMAKE_CXX_FLAGS={0}".format(",".join(flang_legacy_flags))
+        ]
+        components["flang-legacy"] += [
+            "-DCMAKE_CXX_FLAGS={0}".format(",".join(flang_legacy_flags))
+        ]
+
         components["flang"] = [
             "../rocm-openmp-extras/flang",
             "-DFLANG_OPENMP_GPU_AMD=ON",
@@ -585,22 +661,39 @@ class RocmOpenmpExtras(Package):
         ]
         components["flang-runtime"] += flang_common_args
 
-        build_order = ["aomp-extras", "openmp", "openmp-debug", "pgmath", "flang", "flang-runtime"]
+        build_order = ["aomp-extras", "openmp"]
+        if self.spec.version >= Version("6.1.0"):
+            build_order += ["flang-legacy-llvm", "flang-legacy"]
 
+        build_order += ["pgmath", "flang", "flang-runtime"]
         # Override standard CMAKE_BUILD_TYPE
+        std_cmake_args = CMakeBuilder.std_args(self, generator="Unix Makefiles")
         for arg in std_cmake_args:
             found = re.search("CMAKE_BUILD_TYPE", arg)
             if found:
                 std_cmake_args.remove(arg)
         for component in build_order:
-            with working_dir("spack-build-{0}".format(component), create=True):
-                cmake_args = components[component]
-                cmake_args.extend(std_cmake_args)
-                # OpenMP build needs to be run twice(Release, Debug)
-                if component == "openmp-debug":
-                    cmake_args.append("-DCMAKE_BUILD_TYPE=Debug")
-                else:
+            cmake_args = components[component]
+            cmake_args.extend(std_cmake_args)
+            if component == "flang-legacy-llvm":
+                with working_dir("spack-build-{0}/llvm-legacy".format(component), create=True):
                     cmake_args.append("-DCMAKE_BUILD_TYPE=Release")
-                cmake(*cmake_args)
-                make()
-                make("install")
+                    cmake(*cmake_args)
+                    make()
+            elif component == "flang-legacy":
+                with working_dir("spack-build-flang-legacy-llvm"):
+                    cmake_args.append("-DCMAKE_BUILD_TYPE=Release")
+                    cmake(*cmake_args)
+                    make()
+                    make("install")
+                    os.symlink(os.path.join(bin_dir, "clang"), os.path.join(omp_bin_dir, "clang"))
+            else:
+                with working_dir("spack-build-{0}".format(component), create=True):
+                    # OpenMP build needs to be run twice(Release, Debug)
+                    if component == "openmp-debug":
+                        cmake_args.append("-DCMAKE_BUILD_TYPE=Debug")
+                    else:
+                        cmake_args.append("-DCMAKE_BUILD_TYPE=Release")
+                    cmake(*cmake_args)
+                    make()
+                    make("install")

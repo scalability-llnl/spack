@@ -18,11 +18,11 @@ class Xset(AutotoolsPackage, XorgPackage):
     version("1.2.4", sha256="3a05e8626298c7a79002ec5fb4949dcba8abc7a2b95c03ed5e0f5698c3b4dea0")
     version("1.2.3", sha256="5ecb2bb2cbf3c9349b735080b155a08c97b314dacedfc558c7f5a611ee1297f7")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libxmu")
     depends_on("libx11")
 
-    depends_on("xproto@7.0.17:")
+    depends_on("xproto@7.0.17:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

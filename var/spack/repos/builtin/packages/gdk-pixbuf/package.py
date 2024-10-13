@@ -15,15 +15,34 @@ class GdkPixbuf(Package):
 
     homepage = "https://gitlab.gnome.org/GNOME/gdk-pixbuf"
     url = "https://ftp.acc.umu.se/pub/gnome/sources/gdk-pixbuf/2.40/gdk-pixbuf-2.40.0.tar.xz"
+    git = "https://gitlab.gnome.org/GNOME/gdk-pixbuf"
     list_url = "https://ftp.acc.umu.se/pub/gnome/sources/gdk-pixbuf/"
     list_depth = 1
 
-    license("LGPL-2.1-or-later")
+    license("LGPL-2.1-or-later", checked_by="wdconinc")
 
-    version("2.42.10", sha256="ee9b6c75d13ba096907a2e3c6b27b61bcd17f5c7ebeab5a5b439d2f2e39fe44b")
-    version("2.42.9", sha256="28f7958e7bf29a32d4e963556d241d0a41a6786582ff6a5ad11665e0347fc962")
-    version("2.42.6", sha256="c4a6b75b7ed8f58ca48da830b9fa00ed96d668d3ab4b1f723dcf902f78bde77f")
-    version("2.42.2", sha256="83c66a1cfd591d7680c144d2922c5955d38b4db336d7cd3ee109f7bcf9afef15")
+    version("2.42.12", sha256="b9505b3445b9a7e48ced34760c3bcb73e966df3ac94c95a148cb669ab748e3c7")
+    # https://nvd.nist.gov/vuln/detail/CVE-2022-48622
+    version(
+        "2.42.10",
+        sha256="ee9b6c75d13ba096907a2e3c6b27b61bcd17f5c7ebeab5a5b439d2f2e39fe44b",
+        deprecated=True,
+    )
+    version(
+        "2.42.9",
+        sha256="28f7958e7bf29a32d4e963556d241d0a41a6786582ff6a5ad11665e0347fc962",
+        deprecated=True,
+    )
+    version(
+        "2.42.6",
+        sha256="c4a6b75b7ed8f58ca48da830b9fa00ed96d668d3ab4b1f723dcf902f78bde77f",
+        deprecated=True,
+    )
+    version(
+        "2.42.2",
+        sha256="83c66a1cfd591d7680c144d2922c5955d38b4db336d7cd3ee109f7bcf9afef15",
+        deprecated=True,
+    )
     # https://nvd.nist.gov/vuln/detail/CVE-2021-20240
     version(
         "2.40.0",
@@ -46,7 +65,7 @@ class GdkPixbuf(Package):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("x11", default=False, description="Enable X11 support", when="@:2.41")
     variant("tiff", default=False, description="Enable TIFF support(partially broken)")
@@ -100,7 +119,7 @@ class GdkPixbuf(Package):
                 meson_args += ["-Dtests={0}".format(self.run_tests)]
             # Based on suggestion by luigi-calori and the fixup shown by lee218llnl:
             # https://github.com/spack/spack/pull/27254#issuecomment-974464174
-            if "+x11" in spec:
+            if spec.satisfies("+x11"):
                 if self.version >= Version("2.42"):
                     raise InstallError("+x11 is not valid for {0}".format(self.version))
                 meson_args += ["-Dx11=true"]

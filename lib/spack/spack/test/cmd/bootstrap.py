@@ -15,6 +15,7 @@ import spack.config
 import spack.environment as ev
 import spack.main
 import spack.mirror
+import spack.spec
 
 _bootstrap = spack.main.SpackCommand("bootstrap")
 

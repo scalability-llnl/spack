@@ -15,6 +15,9 @@ class BigdftCore(AutotoolsPackage, CudaPackage):
     git = "https://gitlab.com/l_sim/bigdft-suite.git"
 
     version("develop", branch="devel")
+    version("1.9.5", sha256="5fe51e92bb746569207295feebbcd154ce4f1b364a3981bace75c45e983b2741")
+    version("1.9.4", sha256="fa22115e6353e553d2277bf054eb73a4710e92dfeb1ed9c5bf245337187f393d")
+    # version("1.9.3", sha256="f5f3da95d7552219f94366b4d2a524b2beac988fb2921673a65a128f9a8f0489") # broken
     version("1.9.2", sha256="dc9e49b68f122a9886fa0ef09970f62e7ba21bb9ab1b86be9b7d7e22ed8fbe0f")
     version("1.9.1", sha256="3c334da26d2a201b572579fc1a7f8caad1cbf971e848a3e10d83bc4dc8c82e41")
     version("1.9.0", sha256="4500e505f5a29d213f678a91d00a10fef9dc00860ea4b3edf9280f33ed0d1ac8")
@@ -34,6 +37,7 @@ class BigdftCore(AutotoolsPackage, CudaPackage):
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
+    depends_on("pkg-config", type="build")
 
     depends_on("python@3.0:", type=("build", "run"))
 
@@ -48,11 +52,14 @@ class BigdftCore(AutotoolsPackage, CudaPackage):
     depends_on("libxc@:4.3.4", when="@1.9.2:")
     depends_on("libxc@:4.3.4", when="@develop")
 
-    for vers in ["1.9.0", "1.9.1", "1.9.2", "develop"]:
+    for vers in ["1.9.0", "1.9.1", "1.9.2", "1.9.4", "1.9.5", "develop"]:
         depends_on(f"bigdft-futile@{vers}", when=f"@{vers}")
         depends_on(f"bigdft-chess@{vers}", when=f"@{vers}")
         depends_on(f"bigdft-psolver@{vers}", when=f"@{vers}")
         depends_on(f"bigdft-libabinit@{vers}", when=f"@{vers}")
+
+    for vers in ["1.9.3", "1.9.4", "1.9.5", "develop"]:
+        depends_on(f"bigdft-liborbs@{vers}", when=f"@{vers}")
 
     configure_directory = "bigdft"
 

@@ -27,7 +27,7 @@ class Tfel(CMakePackage):
     constraints on each component of the strain or the stress.
     """
 
-    homepage = "http://tfel.sourceforge.net"
+    homepage = "https://tfel.sourceforge.net"
     url = "https://github.com/thelfer/tfel/archive/TFEL-4.0.tar.gz"
     git = "https://github.com/thelfer/tfel.git"
     maintainers("thelfer")

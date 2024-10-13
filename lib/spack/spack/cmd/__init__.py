@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
+import importlib
 import os
 import re
 import sys
@@ -16,7 +17,7 @@ from llnl.util.lang import attr_setdefault, index_by
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
 
-import spack.config
+import spack.config  # breaks a cycle.
 import spack.environment as ev
 import spack.error
 import spack.extensions
@@ -114,8 +115,8 @@ def get_module(cmd_name):
 
     try:
         # Try to import the command from the built-in directory
-        module_name = "%s.%s" % (__name__, pname)
-        module = __import__(module_name, fromlist=[pname, SETUP_PARSER, DESCRIPTION], level=0)
+        module_name = f"{__name__}.{pname}"
+        module = importlib.import_module(module_name)
         tty.debug("Imported {0} from built-in commands".format(pname))
     except ImportError:
         module = spack.extensions.get_module(cmd_name)

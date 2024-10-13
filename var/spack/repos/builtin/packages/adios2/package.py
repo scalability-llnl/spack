@@ -364,7 +364,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
         install test subdirectory for use during `spack test run`.
         """
         extra_install_tests = [join_path("testing", "install", "C")]
-        self.cache_extra_test_sources(extra_install_tests)
+        cache_extra_test_sources(self, extra_install_tests)
 
     def test_run_executables(self):
         """Run installed adios2 executables"""

@@ -8,7 +8,6 @@ import os
 from llnl.util import tty
 
 from spack.package import *
-from spack.util.cpus import determine_number_of_jobs
 
 
 class Amdlibm(SConsPackage):

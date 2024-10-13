@@ -19,6 +19,8 @@ class PyTorchvision(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("0.19.1", sha256="083e75c467285595ec3eb3c7aa8493c19e53d7eb42f13046fb56a07c8897e5a8")
+    version("0.19.0", sha256="4c499d0a412b5a21d55ac3c0a37e80ecd7e1f002f2a7b6b3b38a2de2544acbb6")
     version("0.18.1", sha256="347d472a9ceecc44e0bee1eda140d63cfaffc74a54ec07d4b98da7698ce75516")
     version("0.18.0", sha256="3e61cbac33986a862a59cd733fd65da8b2c2a6160a66556cfa0e850f62fd43c7")
     version("0.17.2", sha256="0f9304acd77aafb7cfaf3fd5e318b2986ecc73547394b971d710eacd59f3e78e")
@@ -51,14 +53,17 @@ class PyTorchvision(PythonPackage):
     version("0.6.0", sha256="02de11b3abe6882de4032ce86dab9c7794cbc84369b44d04e667486580f0f1f7")
     version("0.5.0", sha256="eb9afc93df3d174d975ee0914057a9522f5272310b4d56c150b955c287a4d74d")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("cxx", type="build")
 
     desc = "Enable support for native encoding/decoding of {} formats in torchvision.io"
     variant("png", default=True, description=desc.format("PNG"))
     variant("jpeg", default=True, description=desc.format("JPEG"))
-    variant("nvjpeg", default=False, description=desc.format("JPEG"))
+    variant("nvjpeg", default=False, description=desc.format("NVJPEG"))
     variant("ffmpeg", default=False, description=desc.format("FFMPEG"))
     variant("video_codec", default=False, description=desc.format("video_codec"))
+    # torchvision does not yet support disabling giflib:
+    # https://github.com/pytorch/vision/pull/8406#discussion_r1590926939
+    # variant("gif", default=False, description=desc.format("GIF"), when="@0.19:")
 
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
@@ -70,6 +75,8 @@ class PyTorchvision(PythonPackage):
 
         # https://github.com/pytorch/vision#installation
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.4.1", when="@0.19.1")
+        depends_on("py-torch@2.4.0", when="@0.19.0")
         depends_on("py-torch@2.3.1", when="@0.18.1")
         depends_on("py-torch@2.3.0", when="@0.18.0")
         depends_on("py-torch@2.2.2", when="@0.17.2")
@@ -118,6 +125,9 @@ class PyTorchvision(PythonPackage):
     depends_on("cuda", when="+nvjpeg")
     depends_on("ffmpeg@3.1:", when="+ffmpeg")
     depends_on("cuda", when="+video_codec")
+    # torchvision does not yet support externally-installed giflib:
+    # https://github.com/pytorch/vision/pull/8406#discussion_r1590926939
+    # depends_on("giflib", when="+gif")
 
     # Historical dependencies
     depends_on("py-requests", when="@0.12:0.17.0", type=("build", "run"))
@@ -141,6 +151,13 @@ class PyTorchvision(PythonPackage):
 
     # Many of the datasets require additional dependencies to use.
     # These can be installed after the fact.
+
+    def flag_handler(self, name, flags):
+        # https://github.com/pytorch/vision/issues/8653
+        if name == "ldflags":
+            if self.spec.satisfies("%apple-clang@15:"):
+                flags.append("-Wl,-ld_classic")
+        return (flags, None, None)
 
     def setup_build_environment(self, env):
         # The only documentation on building is what is found in setup.py and:

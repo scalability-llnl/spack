@@ -9,21 +9,10 @@ from os.path import dirname, join
 from llnl.util import tty
 
 from spack.compiler import Compiler
+from spack.version import Version
 
 
 class Oneapi(Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["icx"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["icpx"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["ifx"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["ifx"]
-
     # Named wrapper links within build_env_path
     link_paths = {
         "cc": os.path.join("oneapi", "icx"),
@@ -31,9 +20,6 @@ class Oneapi(Compiler):
         "f77": os.path.join("oneapi", "ifx"),
         "fc": os.path.join("oneapi", "ifx"),
     }
-
-    PrgEnv = "PrgEnv-oneapi"
-    PrgEnv_compiler = "oneapi"
 
     version_argument = "--version"
     version_regex = r"(?:(?:oneAPI DPC\+\+(?:\/C\+\+)? Compiler)|(?:\(IFORT\))|(?:\(IFX\))) (\S+)"
@@ -141,6 +127,16 @@ class Oneapi(Compiler):
         if self.cxx and pkg.spec.satisfies("%oneapi@:2024.1"):
             env.prepend_path("PATH", dirname(self.cxx))
             env.prepend_path("LD_LIBRARY_PATH", join(dirname(dirname(self.cxx)), "lib"))
+
+        # Edge cases for Intel's oneAPI compilers when using the legacy classic compilers:
+        # Always pass flags to disable deprecation warnings, since these warnings can
+        # confuse tools that parse the output of compiler commands (e.g. version checks).
+        if self.cc and self.cc.endswith("icc") and self.real_version >= Version("2021"):
+            env.append_flags("SPACK_ALWAYS_CFLAGS", "-diag-disable=10441")
+        if self.cxx and self.cxx.endswith("icpc") and self.real_version >= Version("2021"):
+            env.append_flags("SPACK_ALWAYS_CXXFLAGS", "-diag-disable=10441")
+        if self.fc and self.fc.endswith("ifort") and self.real_version >= Version("2021"):
+            env.append_flags("SPACK_ALWAYS_FFLAGS", "-diag-disable=10448")
 
         # 2024 release bumped the libsycl version because of an ABI
         # change, 2024 compilers are required.  You will see this

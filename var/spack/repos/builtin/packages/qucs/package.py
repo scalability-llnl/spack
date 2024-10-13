@@ -17,7 +17,7 @@ class Qucs(AutotoolsPackage):
     on a presentation page or window.
     """
 
-    homepage = "http://qucs.sourceforge.net/"
+    homepage = "https://qucs.sourceforge.net/"
     url = "https://sourceforge.net/projects/qucs/files/qucs/0.0.19/qucs-0.0.19.tar.gz"
     git = "https://git.code.sf.net/p/qucs/git"
 

@@ -14,7 +14,7 @@ import llnl.util.tty as tty
 from spack.package import *
 
 
-def cmake_cache_entry(name, value, vtype=None):
+def cmake_cache_entry(name, value, vtype=None, force=False):
     """
     Helper that creates CMake cache entry strings used in
     'host-config' files.
@@ -24,7 +24,8 @@ def cmake_cache_entry(name, value, vtype=None):
             vtype = "BOOL"
         else:
             vtype = "PATH"
-    return 'set({0} "{1}" CACHE {2} "")\n\n'.format(name, value, vtype)
+    force_str = " FORCE" if force else ""
+    return 'set({0} "{1}" CACHE {2} ""{3})\n\n'.format(name, value, vtype, force_str)
 
 
 class Conduit(CMakePackage):
@@ -76,6 +77,8 @@ class Conduit(CMakePackage):
 
     maintainers("cyrush")
 
+    root_cmakelists_dir = "src"
+
     ###########################################################################
     # package variants
     ###########################################################################
@@ -120,6 +123,12 @@ class Conduit(CMakePackage):
     ###########################################################################
     # package dependencies
     ###########################################################################
+
+    #######################
+    # BLT
+    #######################
+    depends_on("blt", type="build")
+    depends_on("blt@0.6.2:", type="build", when="@0.9:")
 
     #######################
     # CMake
@@ -245,7 +254,7 @@ class Conduit(CMakePackage):
     def cmake_args(self):
         host_config = self._get_host_config_path(self.spec)
         options = []
-        options.extend(["-C", host_config, "../spack-src/src/"])
+        options.extend(["-C", host_config])
         return options
 
     @run_after("build")
@@ -254,6 +263,13 @@ class Conduit(CMakePackage):
         with working_dir("spack-build"):
             print("Running Conduit Unit Tests...")
             make("test")
+
+    # Copy the generated host-config to install directory for downstream use
+    @run_before("install")
+    def copy_host_config(self):
+        src = self._get_host_config_path(self.spec)
+        dst = join_path(self.spec.prefix, os.path.basename(src))
+        copy(src, dst)
 
     @run_after("install")
     @on_package_attributes(run_tests=True)
@@ -291,7 +307,8 @@ class Conduit(CMakePackage):
         host_config_path = "{0}-{1}-{2}-conduit-{3}.cmake".format(
             socket.gethostname(), sys_type, spec.compiler, spec.dag_hash()
         )
-        dest_dir = spec.prefix
+
+        dest_dir = self.stage.source_path
         host_config_path = os.path.abspath(join_path(dest_dir, host_config_path))
         return host_config_path
 
@@ -392,15 +409,31 @@ class Conduit(CMakePackage):
         if fflags:
             cfg.write(cmake_cache_entry("CMAKE_Fortran_FLAGS", fflags))
 
+        # Add various rpath linker flags
+        rpaths = []
+        if self.compiler.extra_rpaths:
+            rpaths += self.compiler.extra_rpaths
+
+        # Note: This is not needed if we add `extra_rpaths` to this compiler spec case
         if (f_compiler is not None) and ("gfortran" in f_compiler) and ("clang" in cpp_compiler):
             libdir = os.path.join(os.path.dirname(os.path.dirname(f_compiler)), "lib")
-            flags = ""
             for _libpath in [libdir, libdir + "64"]:
                 if os.path.exists(_libpath):
-                    flags += " -Wl,-rpath,{0}".format(_libpath)
-            description = "Adds a missing libstdc++ rpath"
-            if flags:
-                cfg.write(cmake_cache_entry("BLT_EXE_LINKER_FLAGS", flags, description))
+                    rpaths.append(_libpath)
+
+        linkerflags = ""
+        for rpath in rpaths:
+            linkerflags += "-Wl,-rpath,{} ".format(rpath)
+        cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS", linkerflags))
+        if spec.satisfies("+shared"):
+            cfg.write(cmake_cache_entry("CMAKE_SHARED_LINKER_FLAGS", linkerflags))
+        else:
+            cfg.write(cmake_cache_entry("CMAKE_STATIC_LINKER_FLAGS", linkerflags))
+
+        #######################
+        # BLT
+        #######################
+        cfg.write(cmake_cache_entry("BLT_SOURCE_DIR", spec["blt"].prefix))
 
         #######################
         # Examples/Utilities
@@ -436,7 +469,7 @@ class Conduit(CMakePackage):
             cfg.write(cmake_cache_entry("BLT_EXE_LINKER_FLAGS", flags))
             if spec.satisfies("+shared"):
                 flags = "${CMAKE_SHARED_LINKER_FLAGS} " + rpaths
-                cfg.write(cmake_cache_entry("CMAKE_SHARED_LINKER_FLAGS", flags))
+                cfg.write(cmake_cache_entry("CMAKE_SHARED_LINKER_FLAGS", flags, force=True))
 
         #######################
         # Python

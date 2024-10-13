@@ -1,5 +1,4 @@
 config:
-  concretizer: clingo
   db_lock_timeout: 120
   install_tree:
     root: /home/software/spack

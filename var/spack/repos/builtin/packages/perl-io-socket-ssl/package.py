@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import inspect
-
 from spack.package import *
 
 
@@ -23,7 +21,7 @@ class PerlIoSocketSsl(PerlPackage):
 
     def configure(self, spec, prefix):
         self.build_method = "Makefile.PL"
-        self.build_executable = inspect.getmodule(self).make
+        self.build_executable = make
         # Should I do external tests?
         config_answers = ["n\n"]
         config_answers_filename = "spack-config.in"
@@ -32,4 +30,4 @@ class PerlIoSocketSsl(PerlPackage):
             f.writelines(config_answers)
 
         with open(config_answers_filename, "r") as f:
-            inspect.getmodule(self).perl("Makefile.PL", f"INSTALL_BASE={prefix}", input=f)
+            perl("Makefile.PL", f"INSTALL_BASE={prefix}", input=f)

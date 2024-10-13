@@ -213,9 +213,9 @@ class Abinit(AutotoolsPackage):
         is_using_intel_libraries = spec["lapack"].name in INTEL_MATH_LIBRARIES
         if is_using_intel_libraries:
             linalg_flavor = "mkl"
-        if spec.satisfies("@9:") and spec.satisfies("^openblas"):
+        elif spec.satisfies("@9:") and spec.satisfies("^openblas"):
             linalg_flavor = "openblas"
-        if spec.satisfies("@9:") and spec.satisfies("^fujitsu-ssl2"):
+        elif spec.satisfies("@9:") and spec.satisfies("^fujitsu-ssl2"):
             linalg_flavor = "openblas"
         else:
             linalg_flavor = "custom"

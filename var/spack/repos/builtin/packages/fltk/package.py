@@ -61,16 +61,16 @@ class Fltk(Package):
             "--enable-localzlib",
         ]
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             options.append("--enable-shared")
 
-        if "+xft" in spec:
+        if spec.satisfies("+xft"):
             # https://www.fltk.org/articles.php?L374+I0+TFAQ+P1+Q
             options.append("--enable-xft")
         else:
             options.append("--disable-xft")
 
-        if "~gl" in spec:
+        if spec.satisfies("~gl"):
             options.append("--disable-gl")
 
         # FLTK needs to be built in-source

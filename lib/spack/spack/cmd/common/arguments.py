@@ -15,7 +15,6 @@ import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
 import spack.mirror
-import spack.modules
 import spack.reporters
 import spack.spec
 import spack.store

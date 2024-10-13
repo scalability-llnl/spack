@@ -109,7 +109,7 @@ class Draco(CMakePackage):
                 "-DUSE_QT={0}".format("ON" if "+qt" in self.spec else "OFF"),
             ]
         )
-        if "+fast_fma" in self.spec:
+        if self.spec.satisfies("+fast_fma"):
             options.extend(
                 [
                     "-DDRACO_ROUNDOFF_MODE={0}".format(

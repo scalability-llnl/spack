@@ -35,7 +35,7 @@ class Libepoxy(AutotoolsPackage):
         # --enable-glx defaults to auto and was failing on PPC64LE systems
         # because libx11 was missing from the dependences. This explicitly
         # enables/disables glx support.
-        if "+glx" in self.spec:
+        if self.spec.satisfies("+glx"):
             args.append("--enable-glx=yes")
         else:
             args.append("--enable-glx=no")

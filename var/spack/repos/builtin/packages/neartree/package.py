@@ -10,7 +10,7 @@ class Neartree(MakefilePackage):
     """This is a release of an API for finding nearest neighbors among
     points in spaces of arbitrary dimensions."""
 
-    homepage = "http://neartree.sourceforge.net/"
+    homepage = "https://neartree.sourceforge.net/"
     url = "https://downloads.sourceforge.net/project/neartree/neartree/NearTree-3.1/NearTree-3.1.tar.gz"
 
     license("LGPL-2.1-or-later")

@@ -121,7 +121,7 @@ class Hdf(AutotoolsPackage):
         elif "static" in query_parameters:
             shared = False
         else:
-            shared = "+shared" in self.spec
+            shared = self.spec.satisfies("+shared")
 
         libs = find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
 
@@ -134,15 +134,15 @@ class Hdf(AutotoolsPackage):
         if not shared and "transitive" in query_parameters:
             libs += self.spec["jpeg:transitive"].libs
             libs += self.spec["zlib:transitive"].libs
-            if "+szip" in self.spec:
+            if self.spec.satisfies("+szip"):
                 libs += self.spec["szip:transitive"].libs
-            if "+external-xdr" in self.spec and self.spec["rpc"].name == "libtirpc":
+            if self.spec.satisfies("+external-xdr") and self.spec["rpc"].name == "libtirpc":
                 libs += self.spec["rpc:transitive"].libs
 
         return libs
 
     def flag_handler(self, name, flags):
-        if "+pic" in self.spec:
+        if self.spec.satisfies("+pic"):
             if name == "cflags":
                 flags.append(self.compiler.cc_pic_flag)
             elif name == "fflags":
@@ -175,12 +175,12 @@ class Hdf(AutotoolsPackage):
         config_args += self.enable_or_disable("fortran")
         config_args += self.enable_or_disable("java")
 
-        if "+szip" in self.spec:
+        if self.spec.satisfies("+szip"):
             config_args.append("--with-szlib=%s" % self.spec["szip"].prefix)
         else:
             config_args.append("--without-szlib")
 
-        if "~external-xdr" in self.spec:
+        if self.spec.satisfies("~external-xdr"):
             config_args.append("--enable-hdf4-xdr")
         elif self.spec["rpc"].name == "libtirpc":
             # We should not specify '--disable-hdf4-xdr' due to a bug in the
@@ -218,7 +218,7 @@ class Hdf(AutotoolsPackage):
     def setup_build_tests(self):
         """Copy the build test files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(self.extra_install_tests)
+        cache_extra_test_sources(self, self.extra_install_tests)
 
     def _check_version_match(self, exe):
         """Ensure exe version check yields spec version."""

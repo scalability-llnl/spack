@@ -22,7 +22,7 @@ class MlperfDeepcam(Package, CudaPackage):
     depends_on("py-pycuda", type=("build", "run"))
     depends_on("py-mpi4py", type=("build", "run"))
     depends_on("py-torch+cuda", when="+cuda", type=("build", "run"))
-    depends_on("py-torch~cuda~cudnn~nccl", when="~cuda", type=("build", "run"))
+    depends_on("py-torch~cuda~nccl", when="~cuda", type=("build", "run"))
     depends_on("py-matplotlib", type=("build", "run"))
     depends_on("py-basemap", type=("build", "run"))
     depends_on("py-pillow", type=("build", "run"))

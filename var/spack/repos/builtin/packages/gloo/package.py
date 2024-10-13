@@ -31,7 +31,7 @@ class Gloo(CMakePackage, CudaPackage):
     version("2018-05-29", commit="69eef748cc1dfbe0fefed69b34e6545495f67ac5")  # py-torch@0.4.1
     version("2018-04-06", commit="aad0002fb40612e991390d8e807f247ed23f13c5")  # py-torch@:0.4.0
 
-    depends_on("cxx", type="build")  # generated
+    variant("libuv", default=False, description="Build libuv transport")
 
     # Gloo does not build on Linux >=6.0.3 (fixed in master)
     # See: https://github.com/facebookincubator/gloo/issues/345
@@ -48,7 +48,14 @@ class Gloo(CMakePackage, CudaPackage):
     )
 
     generator("ninja")
+    depends_on("cxx", type="build")
+    depends_on("pkgconfig", type="build")
+    depends_on("libuv@1.26:", when="+libuv")
     depends_on("cmake@2.8.12:", type="build")
+    depends_on("libuv", when="platform=windows")
 
     def cmake_args(self):
-        return [self.define_from_variant("USE_CUDA", "cuda")]
+        return [
+            self.define_from_variant("USE_CUDA", "cuda"),
+            self.define_from_variant("USE_LIBUV", "libuv"),
+        ]

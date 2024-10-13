@@ -17,19 +17,20 @@ import pytest
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
+import spack.build_environment
 import spack.cmd.common.arguments
 import spack.cmd.install
-import spack.compilers as compilers
 import spack.config
 import spack.environment as ev
+import spack.error
 import spack.hash_types as ht
+import spack.installer
 import spack.package_base
 import spack.store
-import spack.util.executable
-from spack.error import SpackError
+from spack.error import SpackError, SpecSyntaxError
+from spack.installer import PackageInstaller
 from spack.main import SpackCommand
-from spack.parser import SpecSyntaxError
-from spack.spec import CompilerSpec, Spec
+from spack.spec import Spec
 
 install = SpackCommand("install")
 env = SpackCommand("env")
@@ -136,7 +137,7 @@ def test_package_output(tmpdir, capsys, install_mockery, mock_fetch):
     # when nested AND in pytest
     spec = Spec("printing-package").concretized()
     pkg = spec.package
-    pkg.do_install(verbose=True)
+    PackageInstaller([pkg], explicit=True, verbose=True).install()
 
     with gzip.open(pkg.install_log_path, "rt") as f:
         out = f.read()
@@ -261,7 +262,7 @@ def test_install_commit(mock_git_version_info, install_mockery, mock_packages, m
 
     # Use the earliest commit in the respository
     spec = Spec(f"git-test-commit@{commits[-1]}").concretized()
-    spec.package.do_install()
+    PackageInstaller([spec.package], explicit=True).install()
 
     # Ensure first commit file contents were written
     installed = os.listdir(spec.prefix.bin)
@@ -422,7 +423,7 @@ def test_junit_output_with_failures(tmpdir, exc_typename, msg):
 @pytest.mark.parametrize(
     "exc_typename,expected_exc,msg",
     [
-        ("RuntimeError", spack.installer.InstallError, "something weird happened"),
+        ("RuntimeError", spack.error.InstallError, "something weird happened"),
         ("KeyboardInterrupt", KeyboardInterrupt, "Ctrl-C strikes again"),
     ],
 )
@@ -706,7 +707,7 @@ def test_install_only_package(tmpdir, mock_fetch, install_mockery, capfd):
     with capfd.disabled():
         try:
             install("--only", "package", "dependent-install")
-        except spack.installer.InstallError as e:
+        except spack.error.InstallError as e:
             msg = str(e)
 
     assert "Cannot proceed with dependent-install" in msg
@@ -914,68 +915,6 @@ def test_cdash_configure_warning(tmpdir, mock_fetch, install_mockery, capfd):
         assert report_file in report_dir.listdir()
         content = report_file.open().read()
         assert "foo: No such file or directory" in content
-
-
-@pytest.mark.not_on_windows("ArchSpec gives test platform debian rather than windows")
-def test_compiler_bootstrap(
-    install_mockery, mock_packages, mock_fetch, mock_archive, mutable_config, monkeypatch
-):
-    monkeypatch.setattr(spack.concretize.Concretizer, "check_for_compiler_existence", False)
-    spack.config.set("config:install_missing_compilers", True)
-    assert CompilerSpec("gcc@=12.0") not in compilers.all_compiler_specs()
-
-    # Test succeeds if it does not raise an error
-    install("pkg-a%gcc@=12.0")
-
-
-@pytest.mark.not_on_windows("Binary mirrors not supported on windows")
-def test_compiler_bootstrap_from_binary_mirror(
-    install_mockery, mock_packages, mock_fetch, mock_archive, mutable_config, monkeypatch, tmpdir
-):
-    """
-    Make sure installing compiler from buildcache registers compiler
-    """
-
-    # Create a temp mirror directory for buildcache usage
-    mirror_dir = tmpdir.join("mirror_dir")
-    mirror_url = "file://{0}".format(mirror_dir.strpath)
-
-    # Install a compiler, because we want to put it in a buildcache
-    install("gcc@=10.2.0")
-
-    # Put installed compiler in the buildcache
-    buildcache("push", "-u", "-f", mirror_dir.strpath, "gcc@10.2.0")
-
-    # Now uninstall the compiler
-    uninstall("-y", "gcc@10.2.0")
-
-    monkeypatch.setattr(spack.concretize.Concretizer, "check_for_compiler_existence", False)
-    spack.config.set("config:install_missing_compilers", True)
-    assert CompilerSpec("gcc@=10.2.0") not in compilers.all_compiler_specs()
-
-    # Configure the mirror where we put that buildcache w/ the compiler
-    mirror("add", "test-mirror", mirror_url)
-
-    # Now make sure that when the compiler is installed from binary mirror,
-    # it also gets configured as a compiler.  Test succeeds if it does not
-    # raise an error
-    install("--no-check-signature", "--cache-only", "--only", "dependencies", "pkg-b%gcc@=10.2.0")
-    install("--no-cache", "--only", "package", "pkg-b%gcc@10.2.0")
-
-
-@pytest.mark.not_on_windows("ArchSpec gives test platform debian rather than windows")
-@pytest.mark.regression("16221")
-def test_compiler_bootstrap_already_installed(
-    install_mockery, mock_packages, mock_fetch, mock_archive, mutable_config, monkeypatch
-):
-    monkeypatch.setattr(spack.concretize.Concretizer, "check_for_compiler_existence", False)
-    spack.config.set("config:install_missing_compilers", True)
-
-    assert CompilerSpec("gcc@=12.0") not in compilers.all_compiler_specs()
-
-    # Test succeeds if it does not raise an error
-    install("gcc@=12.0")
-    install("pkg-a%gcc@=12.0")
 
 
 def test_install_fails_no_args(tmpdir):

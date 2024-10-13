@@ -9,7 +9,7 @@ from spack.package import *
 class Sox(AutotoolsPackage):
     """SoX, the Swiss Army knife of sound processing programs."""
 
-    homepage = "http://sox.sourceforge.net/Main/HomePage"
+    homepage = "https://sox.sourceforge.net/Main/HomePage"
     url = "https://downloads.sourceforge.net/project/sox/sox/14.4.2/sox-14.4.2.tar.bz2"
 
     version("14.4.2", sha256="81a6956d4330e75b5827316e44ae381e6f1e8928003c6aa45896da9041ea149c")

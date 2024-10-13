@@ -9,7 +9,7 @@ from spack.package import *
 class Cqrlib(MakefilePackage):
     """CQRlib -- ANSI C API for Quaternion Rotations"""
 
-    homepage = "http://cqrlib.sourceforge.net/"
+    homepage = "https://cqrlib.sourceforge.net/"
     url = (
         "https://downloads.sourceforge.net/project/cqrlib/cqrlib/CQRlib-1.1.2/CQRlib-1.1.2.tar.gz"
     )

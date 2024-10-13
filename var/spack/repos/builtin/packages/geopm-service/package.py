@@ -67,6 +67,7 @@ class GeopmService(AutotoolsPackage):
 
     # Autotools dependencies
     depends_on("automake", type="build")
+    depends_on("autoconf", type="build")
     depends_on("libtool", type="build")
     depends_on("file")
 
@@ -141,7 +142,7 @@ class GeopmService(AutotoolsPackage):
 
         args += self.enable_or_disable("levelzero")
         args += self.enable_or_disable("nvml")
-        if "+nvml" in self.spec:
+        if self.spec.satisfies("+nvml"):
             args += [
                 "--with-nvml="
                 + join_path(

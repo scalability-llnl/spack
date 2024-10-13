@@ -122,7 +122,7 @@ class Tasmanian(CMakePackage, CudaPackage, ROCmPackage):
     @run_after("install")
     def setup_smoke_test(self):
         install_tree(
-            self.prefix.share.Tasmanian.testing, join_path(self.install_test_root, "testing")
+            self.prefix.share.Tasmanian.testing, join_path(install_test_root(self), "testing")
         )
 
     def test_make_test(self):

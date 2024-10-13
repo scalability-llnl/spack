@@ -92,6 +92,9 @@ class Whizard(AutotoolsPackage):
     # that happens, this needs to be adapted with a when clause
     patch("parallel_build_fix.patch", when="@3:3.1.3")
     patch("parallel_build_fix_2.8.patch", when="@2.8")
+
+    # Subset of https://gitlab.tp.nt.uni-siegen.de/whizard/public/-/commit/f6048e4
+    patch("hepmc3.3.0.patch", when="@3:3.1.4^hepmc3@3.3.0:")
     # Make sure that the patch actually has an effect by running autoreconf
     force_autoreconf = True
     # Which then requires the following build dependencies

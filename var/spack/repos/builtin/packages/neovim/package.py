@@ -143,6 +143,8 @@ class Neovim(CMakePackage):
         depends_on("cmake@3.13:", type="build")
         depends_on("libvterm@0.3.3:")
         depends_on("tree-sitter@0.20.9:")
+    with when("@master"):
+        depends_on("utf8proc", type="link")
 
     # Support for `libvterm@0.2:` has been added in neovim@0.8.0
     # term: Add support for libvterm >= 0.2 (https://github.com/neovim/neovim/releases/tag/v0.8.0)

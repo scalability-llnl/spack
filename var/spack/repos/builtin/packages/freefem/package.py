@@ -19,6 +19,10 @@ class Freefem(AutotoolsPackage):
 
     maintainers("corentin-dev")
 
+    version("4.14", sha256="931cbfe9ef6f6530756c300c5ae47bfdaca21c560a5407cb33325a376a3b6af8")
+    version("4.13", sha256="aefd4ff02333209f7433abef2e74acb621b6946063ff27e81cf2da43120b6ae4")
+    version("4.12", sha256="291c5f46761711d6303914f9c4f165fd85a7b7b69141f7473e0b6484ce6ab0f5")
+    version("4.11", sha256="d0c6921791e5f94646d8dde4d9ed3c11b979e47e7bbb3c0a66467b04dd56983a")
     version("4.10", sha256="957994c8f24cc2a671b8c116ae530796c3a431d4157ee71a3d6aab7122e7570d")
     version("4.9", sha256="299ba2b73dfff578b7890f693c1e835680bf55eba87263cabd60d81909e1e0e4")
     version("4.8", sha256="499b1ca24d45088226a238412ea1492d9cc3eb6088866904145511469780180d")
@@ -71,7 +75,7 @@ class Freefem(AutotoolsPackage):
             "CXXFLAGS=%s" % " ".join(spec.compiler_flags["cxxflags"]),
         ]
 
-        if "+petsc" in spec:
+        if spec.satisfies("+petsc"):
             options.append("--with-petsc=%s" % spec["petsc"].prefix.lib.petsc.conf.petscvariables)
             options.append("--with-slepc-ldflags=%s" % spec["slepc"].libs.ld_flags)
             options.append("--with-slepc-include=%s" % spec["slepc"].headers.include_flags)

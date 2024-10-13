@@ -27,6 +27,8 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master")
     version("develop", branch="develop")
+    version("4.4.01", sha256="3f7096d17eaaa4004c7497ac082bf1ae3ff47b5104149e54af021a89414c3682")
+    version("4.4.00", sha256="c638980cb62c34969b8c85b73e68327a2cb64f763dd33e5241f5fd437170205a")
     version("4.3.01", sha256="5998b7c732664d6b5e219ccc445cd3077f0e3968b4be480c29cd194b4f45ec70")
     version("4.3.00", sha256="53cf30d3b44dade51d48efefdaee7a6cf109a091b702a443a2eda63992e5fe0d")
     version("4.2.01", sha256="cbabbabba021d00923fb357d2e1b905dda3838bd03c885a6752062fe03c67964")
@@ -50,9 +52,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     version("3.1.00", sha256="b935c9b780e7330bcb80809992caa2b66fd387e3a1c261c955d622dae857d878")
     version("3.0.00", sha256="c00613d0194a4fbd0726719bbed8b0404ed06275f310189b3493f5739042a92b")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("cxx", type="build")  # Kokkos requires a C++ compiler
 
     depends_on("cmake@3.16:", type="build")
     conflicts("cmake@3.28", when="@:4.2.01 +cuda")
@@ -265,6 +265,13 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         "KokkosConfigCommon.cmake", relative_root=os.path.join("lib64", "cmake", "Kokkos")
     )
 
+    # sanity check
+    sanity_check_is_file = [
+        join_path("include", "KokkosCore_config.h"),
+        join_path("include", "Kokkos_Core.hpp"),
+    ]
+    sanity_check_is_dir = ["bin", "include"]
+
     @classmethod
     def get_microarch(cls, target):
         """Get the Kokkos microarch name for a Spack target (spec.target)."""
@@ -313,7 +320,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         ]
 
         spack_microarches = []
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             if isinstance(spec.variants["cuda_arch"].value, str):
                 cuda_arch = spec.variants["cuda_arch"].value
             else:
@@ -329,7 +336,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         if kokkos_microarch_name:
             spack_microarches.append(kokkos_microarch_name)
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             for amdgpu_target in spec.variants["amdgpu_target"].value:
                 if amdgpu_target != "none":
                     if amdgpu_target in self.amdgpu_arch_map:
@@ -353,10 +360,10 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             if spec.variants[tpl].value:
                 options.append(self.define(tpl + "_DIR", spec[tpl].prefix))
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
             options.append(self.define("Kokkos_ENABLE_ROCTHRUST", True))
-        elif "+wrapper" in self.spec:
+        elif self.spec.satisfies("+wrapper"):
             options.append(
                 self.define("CMAKE_CXX_COMPILER", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
             )
@@ -368,11 +375,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         # which breaks GPU-aware with Cray-MPICH
         # See https://github.com/kokkos/kokkos/pull/6402
         # TODO: disable this once Cray-MPICH is fixed
-        if (
-            self.spec.satisfies("@4.2.00:")
-            and "mpi" in self.spec
-            and self.spec["mpi"].name == "cray-mpich"
-        ):
+        if self.spec.satisfies("@4.2.00:") and self.spec.satisfies("^[virtuals=mpi] cray-mpich"):
             options.append(self.define("Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC", False))
 
         # Remove duplicate options
@@ -392,12 +395,12 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             cmake_source_path,
             "-DSPACK_PACKAGE_SOURCE_DIR:PATH={0}".format(self.stage.source_path),
             "-DSPACK_PACKAGE_TEST_ROOT_DIR:PATH={0}".format(
-                join_path(self.install_test_root, cmake_out_path)
+                join_path(install_test_root(self), cmake_out_path)
             ),
             "-DSPACK_PACKAGE_INSTALL_DIR:PATH={0}".format(self.prefix),
         ]
         cmake(*cmake_args)
-        self.cache_extra_test_sources(cmake_out_path)
+        cache_extra_test_sources(self, cmake_out_path)
 
     def test_run(self):
         """Test if kokkos builds and runs"""
@@ -409,8 +412,12 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             raise SkipTest(f"{cmake_path} is missing")
 
         cmake = self.spec["cmake"].command
-        cmake(cmake_path, "-DEXECUTABLE_OUTPUT_PATH=" + cmake_path)
+        cmake_args = ["-DEXECUTABLE_OUTPUT_PATH=" + cmake_path]
+        if self.spec.satisfies("+rocm"):
+            prefix_paths = ";".join(spack.build_environment.get_cmake_prefix_path(self))
+            cmake_args.append("-DCMAKE_PREFIX_PATH={0}".format(prefix_paths))
 
+        cmake(cmake_path, *cmake_args)
         make = which("make")
         make()
         make(cmake_path, "test")

@@ -17,6 +17,10 @@ class PyLightning(PythonPackage):
 
     license("Apache-2.0")
 
+    version("2.4.0", sha256="9156604cc56e4b2b603f34fa7f0fe5107375c8e6d85e74544b319a15faa9ed0e")
+    version("2.3.3", sha256="7f454711895c1c6e455766f01fa39522e25e5ab54c15c5e5fbad342fa92bc93c")
+    version("2.3.2", sha256="6d02862e7e8c9e6903c06314296d0950e677f7e67ad615c3262fe7c73d95f4b8")
+    version("2.3.1", sha256="29cf87270a1779984d3614f7f748af57e3695396a25e814119840894505c334c")
     version("2.3.0", sha256="4bb4d6e3650d2d5f544ad60853a22efc4e164aa71b9596d13f0454b29df05130")
     version("2.2.5", sha256="a6c31a2052fc30fee34aec7e31ea2a117a005d049c3593fc9cfb867a34f962bf")
     version("2.2.4", sha256="4cc3fb3edf04fcd63c0ecf75087d2fa06163759fc8c1fc500b16404ac1854f77")
@@ -49,6 +53,7 @@ class PyLightning(PythonPackage):
 
     with default_args(type=("build", "run")):
         # src/lightning/__setup__.py
+        depends_on("python@3.9:", when="@2.4:")
         depends_on("python@3.8:", when="@2:")
 
         # src/lightning.egg-info/requires.txt
@@ -58,13 +63,14 @@ class PyLightning(PythonPackage):
         depends_on("py-fsspec@2021.6.1:2024+http", when="@2.1.0:2.1.2")
         depends_on("py-fsspec@2022.5:2024+http", when="@2.0.5:2.0")
         depends_on("py-fsspec@2022.5:2023+http", when="@:2.0.4")
-        depends_on("py-lightning-utilities@0.8:1", when="@2.1:")
+        depends_on("py-lightning-utilities@0.10:1", when="@2.4:")
+        depends_on("py-lightning-utilities@0.8:1", when="@2.1:2.3")
         depends_on("py-lightning-utilities@0.7:1", when="@2.0")
         depends_on("py-lightning-utilities@0.6.0.post0:1", when="@:1")
-        depends_on("py-numpy@1.17.2:2")
         depends_on("py-packaging@20:24", when="@2.1:")
         depends_on("py-packaging@17.1:24", when="@:2.0")
-        depends_on("py-torch@2:3", when="@2.3:")
+        depends_on("py-torch@2.1:3", when="@2.4:")
+        depends_on("py-torch@2:3", when="@2.3")
         depends_on("py-torch@1.13:3", when="@2.2:")
         depends_on("py-torch@1.12:3", when="@2.1")
         depends_on("py-torch@1.11:3", when="@2.0")
@@ -81,6 +87,7 @@ class PyLightning(PythonPackage):
         # Historical requirements
         # https://github.com/Lightning-AI/pytorch-lightning/pull/20081
         depends_on("py-setuptools", when="@:2.3")
+        depends_on("py-numpy@1.17.2:2", when="@:2.3")
 
         with when("@:2.0"):
             depends_on("py-jinja2@:4")

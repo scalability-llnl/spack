@@ -3,16 +3,18 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import pathlib
+
 from spack.package import *
 
 
-class Lcms(AutotoolsPackage):
+class Lcms(AutotoolsPackage, MSBuildPackage):
     """Little cms is a color management library. Implements fast
     transforms between ICC profiles. It is focused on speed, and is
     portable across several platforms (MIT license)."""
 
     homepage = "https://www.littlecms.com"
-    url = "http://downloads.sourceforge.net/project/lcms/lcms/2.9/lcms2-2.9.tar.gz"
+    url = "https://downloads.sourceforge.net/project/lcms/lcms/2.9/lcms2-2.9.tar.gz"
 
     license("MIT")
 
@@ -28,13 +30,34 @@ class Lcms(AutotoolsPackage):
     depends_on("cxx", type="build")  # generated
 
     def url_for_version(self, version):
-        url = "http://downloads.sourceforge.net/project/lcms/lcms/{0}/lcms2-{1}.tar.gz"
+        url = "https://downloads.sourceforge.net/project/lcms/lcms/{0}/lcms2-{1}.tar.gz"
         return url.format(version.up_to(2), version)
 
     depends_on("jpeg")
     depends_on("libtiff")
     depends_on("zlib-api")
 
+    build_system("autotools", "msbuild")
+
     @property
     def libs(self):
         return find_libraries("liblcms2", root=self.prefix, recursive=True)
+
+
+class MSBuildBuilder(spack.build_systems.msbuild.MSBuildBuilder):
+    @property
+    def build_directory(self):
+        return (
+            pathlib.Path(self.pkg.stage.source_path)
+            / "Projects"
+            / f"VC{self.pkg.compiler.visual_studio_version}"
+        )
+
+    def setup_build_environment(self, env):
+        env.prepend_path(
+            "INCLUDE",
+            ";".join([dep.prefix.include for dep in self.spec.dependencies(deptype="link")]),
+        )
+
+    def msbuild_args(self):
+        return ["lcms2.sln"]

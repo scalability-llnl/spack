@@ -388,7 +388,7 @@ class TestTcl:
 
         spec = spack.spec.Spec("mpileaks")
         spec.concretize()
-        content = modulefile_content(str(spec["callpath"]))
+        content = modulefile_content(spec["callpath"])
 
         assert len([x for x in content if "setenv FOOBAR" in x]) == 1
         assert len([x for x in content if "setenv FOOBAR {callpath}" in x]) == 1
