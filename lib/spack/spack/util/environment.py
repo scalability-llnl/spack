@@ -745,7 +745,7 @@ class EnvironmentModifications:
         )
 
         # Implements a no op during forwards operation on respective os
-        null_fd = "cd %CD%" if sys.platform == "win32" else os.devnull
+        null_fd = "echo > NUL" if sys.platform == "win32" else os.devnull
         # Compute the environments before and after sourcing
         before = sanitize(
             environment_after_sourcing_files(null_fd, **kwargs), exclude=exclude, include=include
@@ -1048,7 +1048,7 @@ def environment_after_sourcing_files(
             [source_file, suppress_output, concatenate_on_success, dump_environment_cmd]
         )
 
-        # List fails to preserve nested double quotes on Windows
+        # Windows requires Popen's string arg to avoid unexpected parsing by subprocess
         cmd = [shell_cmd, *shell_options_list, source_file_arguments]
         cmd = " ".join(cmd) if sys.platform == "win32" else cmd
 
