@@ -178,6 +178,8 @@ class W4(Package):
     depends_on("w2")
     depends_on("w2@:2.0", when="@:2.0")
 
+    # test_errmsg_requirements stresses these constraints and generates
+    # a good error message: "w4@:2.0 ^w3@2.1"
     depends_on("w3")
     depends_on("w3~v1", when="@2.0")
 """,
@@ -238,6 +240,8 @@ class T4(Package):
 
     variant("v1", default=True)
 
+    # test_errmsg_requirements_2 stresses these constraints and
+    # generates a bad error message: "t4@:2.0 ^t2+v1"
     depends_on("t2")
     depends_on("t2@:2.0", when="@:2.0")
 
