@@ -211,6 +211,8 @@ class W2(Package):
 
     variant("v1", default=True)
 
+    requires("~v1", when="@:2.0")
+
     depends_on("w1")
 """,
 )
@@ -276,7 +278,8 @@ class T2(Package):
 
     variant("v1", default=True)
 
-    requires("~v1", when="@:2.0")
+    # requires("~v1", when="@:2.0")
+    conflicts("+v1", when="@:2.0")
 
     depends_on("t1")
 """,
@@ -364,6 +367,10 @@ def test_null_variant_for_requested_version(concretize_scope, test_repo):
 # definition seems OK: requirements generate `condition`s, which
 # should be traceable as condition causes in error_messages.lp
 def test_errmsg_requirements(concretize_scope, test_repo):
+    # output = solve("--show=asp", "w4@:2.0 ^w3@2.1")
+    # with open("/Users/scheibel1/Desktop/spack/spack/err-msg-asp/good-w.txt", "w") as f:
+    #    f.write(output)
+
     Spec("w4@:2.0 ^w3@2.1").concretized()
 
 
@@ -377,9 +384,13 @@ packages:
     - spec: "~v1"
       when: "@2.0"
 """
-    update_packages_config(conf_str)
+    # update_packages_config(conf_str)
 
-    Spec("w4@2.0").concretized()
+    # Spec("w4@2.0").concretized()
+
+    # output = solve("--show=asp", "w4@2.0 ^w2+v1")
+    # with open("/Users/scheibel1/Desktop/spack/spack/err-msg-asp/bad-w.txt", "w") as f:
+    #    f.write(output)
 
     Spec("w4@2.0 ^w2+v1").concretized()
 

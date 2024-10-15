@@ -43,7 +43,10 @@ condition_cause(Condition2, ID2, Condition1, ID1) :-
 condition_cause(Condition2, ID2, Condition1, ID1) :-
   condition_holds(Condition2, node(ID2, Package2)),
   pkg_fact(Package2, condition_trigger(Condition2, Trigger)),
+  % The effects imposed by Condition1 have to be a trigger
+  % for Condition2
   condition_requirement(Trigger, Name, Package, A1, A2),
+  % should I comment out the next two?
   condition_nodes(Trigger, TriggerNode, node(ID, Package)),
   trigger_node(Trigger, TriggerNode, node(ID2, Package2)),
   %attr(Name, node(ID, Package), A1, A2),
