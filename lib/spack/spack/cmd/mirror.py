@@ -231,31 +231,87 @@ def setup_parser(subparser):
     )
 
 
+def _configure_access_pair(args, id_tok, id_variable_tok, secret_tok, secret_variable_tok):
+    """Configure the access_pair options"""
+    id_ = getattr(args, id_tok)
+    id_variable = getattr(args, id_variable_tok)
+    secret = getattr(args, secret_tok)
+    secret_variable = getattr(args, secret_variable_tok)
+
+    if (id_ or id_variable) and (secret or secret_variable):
+        if secret:
+            if not id_:
+                raise SpackError("Cannot add mirror with a variable id and text secret")
+
+            return [id_, secret]
+        else:
+            return dict(
+                [
+                    (("id", id_) if id_ else ("id_variable", id_variable)),
+                    ("secret_variable", secret_variable),
+                ]
+            )
+    else:
+        if id_ or id_variable or secret or secret_variable is not None:
+            id_arg_tok = id_tok.replace("_", "-")
+            secret_arg_tok = secret_tok.replace("_", "-")
+            tty.warn(
+                "Exepected both parts of the access pair to be specified. "
+                f"(ie. --{id_arg_tok} and {secret_arg_tok})"
+            )
+
+        return None
+
+
 def mirror_add(args):
     """add a mirror to Spack"""
     if (
         args.s3_access_key_id
         or args.s3_access_key_secret
         or args.s3_access_token
+        or args.s3_access_key_id_variable
+        or args.s3_access_key_secret_variable
+        or args.s3_access_token_variable
         or args.s3_profile
         or args.s3_endpoint_url
         or args.type
         or args.oci_username
         or args.oci_password
+        or args.oci_username_variable
+        or args.oci_password_variable
         or args.autopush
         or args.signed is not None
     ):
         connection = {"url": args.url}
-        if args.s3_access_key_id and args.s3_access_key_secret:
-            connection["access_pair"] = [args.s3_access_key_id, args.s3_access_key_secret]
+        # S3 Connection
+        access_pair = _configure_access_pair(
+            args,
+            "s3_access_key_id",
+            "s3_access_key_id_variable",
+            "s3_access_key_secret",
+            "s3_access_key_secret_variable",
+        )
+        if access_pair:
+            connection["access_pair"] = access_pair
+
         if args.s3_access_token:
             connection["access_token"] = args.s3_access_token
+        elif args.s3_access_token_variable:
+            connection["access_token_variable"] = args.s3_access_token_variable
+
         if args.s3_profile:
             connection["profile"] = args.s3_profile
+
         if args.s3_endpoint_url:
             connection["endpoint_url"] = args.s3_endpoint_url
-        if args.oci_username and args.oci_password:
-            connection["access_pair"] = [args.oci_username, args.oci_password]
+
+        # OCI Connection
+        access_pair = _configure_access_pair(
+            args, "oci_username", "oci_username_variable", "oci_password", "oci_password_variable"
+        )
+        if access_pair:
+            connection["access_pair"] = access_pair
+
         if args.type:
             connection["binary"] = "binary" in args.type
             connection["source"] = "source" in args.type
@@ -285,16 +341,27 @@ def _configure_mirror(args):
     changes = {}
     if args.url:
         changes["url"] = args.url
-    if args.s3_access_key_id and args.s3_access_key_secret:
-        changes["access_pair"] = [args.s3_access_key_id, args.s3_access_key_secret]
+
+    access_pair = _configure_access_pair(
+        args,
+        "s3_access_key_id",
+        "s3_access_key_id_variable",
+        "s3_access_key_secret",
+        "s3_access_key_secret_variable",
+    )
+    if access_pair:
+        changes["access_pair"] = access_pair
     if args.s3_access_token:
         changes["access_token"] = args.s3_access_token
     if args.s3_profile:
         changes["profile"] = args.s3_profile
     if args.s3_endpoint_url:
         changes["endpoint_url"] = args.s3_endpoint_url
-    if args.oci_username and args.oci_password:
-        changes["access_pair"] = [args.oci_username, args.oci_password]
+    access_pair = _configure_access_pair(
+        args, "oci_username", "oci_username_variable", "oci_password", "oci_password_variable"
+    )
+    if access_pair:
+        changes["access_pair"] = access_pair
     if getattr(args, "signed", None) is not None:
         changes["signed"] = args.signed
     if getattr(args, "autopush", None) is not None:

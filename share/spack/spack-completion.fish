@@ -2273,7 +2273,7 @@ complete -c spack -n '__fish_spack_using_command mirror destroy' -l mirror-url -
 complete -c spack -n '__fish_spack_using_command mirror destroy' -l mirror-url -r -d 'find mirror to destroy by url'
 
 # spack mirror add
-set -g __fish_spack_optspecs_spack_mirror_add h/help scope= type= autopush unsigned signed s3-access-key-id= s3-access-key-secret= s3-access-token= s3-profile= s3-endpoint-url= oci-username= oci-password=
+set -g __fish_spack_optspecs_spack_mirror_add h/help scope= type= autopush unsigned signed s3-access-key-id= s3-access-key-id-variable= s3-access-key-secret= s3-access-key-secret-variable= s3-access-token= s3-access-token-variable= s3-profile= s3-endpoint-url= oci-username= oci-username-variable= oci-password= oci-password-variable=
 complete -c spack -n '__fish_spack_using_command_pos 0 mirror add' -f
 complete -c spack -n '__fish_spack_using_command mirror add' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command mirror add' -s h -l help -d 'show this help message and exit'
@@ -2289,18 +2289,28 @@ complete -c spack -n '__fish_spack_using_command mirror add' -l signed -f -a sig
 complete -c spack -n '__fish_spack_using_command mirror add' -l signed -d 'require signing and signature verification when pushing and installing from this build cache'
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-key-id -r -f -a s3_access_key_id
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-key-id -r -d 'ID string to use to connect to this S3 mirror'
+complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-key-id-variable -r -f -a s3_access_key_id_variable
+complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-key-id-variable -r -d 'environment variable containing ID string to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-key-secret -r -f -a s3_access_key_secret
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-key-secret -r -d 'secret string to use to connect to this S3 mirror'
+complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-key-secret-variable -r -f -a s3_access_key_secret_variable
+complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-key-secret-variable -r -d 'environment variable containing secret string to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-token -r -f -a s3_access_token
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-token -r -d 'access token to use to connect to this S3 mirror'
+complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-token-variable -r -f -a s3_access_token_variable
+complete -c spack -n '__fish_spack_using_command mirror add' -l s3-access-token-variable -r -d 'environment variable containing access token to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-profile -r -f -a s3_profile
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-profile -r -d 'S3 profile name to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-endpoint-url -r -f -a s3_endpoint_url
 complete -c spack -n '__fish_spack_using_command mirror add' -l s3-endpoint-url -r -d 'endpoint URL to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror add' -l oci-username -r -f -a oci_username
 complete -c spack -n '__fish_spack_using_command mirror add' -l oci-username -r -d 'username to use to connect to this OCI mirror'
+complete -c spack -n '__fish_spack_using_command mirror add' -l oci-username-variable -r -f -a oci_username_variable
+complete -c spack -n '__fish_spack_using_command mirror add' -l oci-username-variable -r -d 'environment variable containing username to use to connect to this OCI mirror'
 complete -c spack -n '__fish_spack_using_command mirror add' -l oci-password -r -f -a oci_password
 complete -c spack -n '__fish_spack_using_command mirror add' -l oci-password -r -d 'password to use to connect to this OCI mirror'
+complete -c spack -n '__fish_spack_using_command mirror add' -l oci-password-variable -r -f -a oci_password_variable
+complete -c spack -n '__fish_spack_using_command mirror add' -l oci-password-variable -r -d 'environment variable containing password to use to connect to this OCI mirror'
 
 # spack mirror remove
 set -g __fish_spack_optspecs_spack_mirror_remove h/help scope=
@@ -2319,7 +2329,7 @@ complete -c spack -n '__fish_spack_using_command mirror rm' -l scope -r -f -a '_
 complete -c spack -n '__fish_spack_using_command mirror rm' -l scope -r -d 'configuration scope to modify'
 
 # spack mirror set-url
-set -g __fish_spack_optspecs_spack_mirror_set_url h/help push fetch scope= s3-access-key-id= s3-access-key-secret= s3-access-token= s3-profile= s3-endpoint-url= oci-username= oci-password=
+set -g __fish_spack_optspecs_spack_mirror_set_url h/help push fetch scope= s3-access-key-id= s3-access-key-id-variable= s3-access-key-secret= s3-access-key-secret-variable= s3-access-token= s3-access-token-variable= s3-profile= s3-endpoint-url= oci-username= oci-username-variable= oci-password= oci-password-variable=
 complete -c spack -n '__fish_spack_using_command_pos 0 mirror set-url' -f -a '(__fish_spack_mirrors)'
 complete -c spack -n '__fish_spack_using_command mirror set-url' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command mirror set-url' -s h -l help -d 'show this help message and exit'
@@ -2331,21 +2341,31 @@ complete -c spack -n '__fish_spack_using_command mirror set-url' -l scope -r -f 
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l scope -r -d 'configuration scope to modify'
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-key-id -r -f -a s3_access_key_id
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-key-id -r -d 'ID string to use to connect to this S3 mirror'
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-key-id-variable -r -f -a s3_access_key_id_variable
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-key-id-variable -r -d 'environment variable containing ID string to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-key-secret -r -f -a s3_access_key_secret
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-key-secret -r -d 'secret string to use to connect to this S3 mirror'
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-key-secret-variable -r -f -a s3_access_key_secret_variable
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-key-secret-variable -r -d 'environment variable containing secret string to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-token -r -f -a s3_access_token
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-token -r -d 'access token to use to connect to this S3 mirror'
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-token-variable -r -f -a s3_access_token_variable
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-access-token-variable -r -d 'environment variable containing access token to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-profile -r -f -a s3_profile
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-profile -r -d 'S3 profile name to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-endpoint-url -r -f -a s3_endpoint_url
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l s3-endpoint-url -r -d 'endpoint URL to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l oci-username -r -f -a oci_username
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l oci-username -r -d 'username to use to connect to this OCI mirror'
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l oci-username-variable -r -f -a oci_username_variable
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l oci-username-variable -r -d 'environment variable containing username to use to connect to this OCI mirror'
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l oci-password -r -f -a oci_password
 complete -c spack -n '__fish_spack_using_command mirror set-url' -l oci-password -r -d 'password to use to connect to this OCI mirror'
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l oci-password-variable -r -f -a oci_password_variable
+complete -c spack -n '__fish_spack_using_command mirror set-url' -l oci-password-variable -r -d 'environment variable containing password to use to connect to this OCI mirror'
 
 # spack mirror set
-set -g __fish_spack_optspecs_spack_mirror_set h/help push fetch type= url= autopush no-autopush unsigned signed scope= s3-access-key-id= s3-access-key-secret= s3-access-token= s3-profile= s3-endpoint-url= oci-username= oci-password=
+set -g __fish_spack_optspecs_spack_mirror_set h/help push fetch type= url= autopush no-autopush unsigned signed scope= s3-access-key-id= s3-access-key-id-variable= s3-access-key-secret= s3-access-key-secret-variable= s3-access-token= s3-access-token-variable= s3-profile= s3-endpoint-url= oci-username= oci-username-variable= oci-password= oci-password-variable=
 complete -c spack -n '__fish_spack_using_command_pos 0 mirror set' -f -a '(__fish_spack_mirrors)'
 complete -c spack -n '__fish_spack_using_command mirror set' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command mirror set' -s h -l help -d 'show this help message and exit'
@@ -2369,18 +2389,28 @@ complete -c spack -n '__fish_spack_using_command mirror set' -l scope -r -f -a '
 complete -c spack -n '__fish_spack_using_command mirror set' -l scope -r -d 'configuration scope to modify'
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-key-id -r -f -a s3_access_key_id
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-key-id -r -d 'ID string to use to connect to this S3 mirror'
+complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-key-id-variable -r -f -a s3_access_key_id_variable
+complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-key-id-variable -r -d 'environment variable containing ID string to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-key-secret -r -f -a s3_access_key_secret
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-key-secret -r -d 'secret string to use to connect to this S3 mirror'
+complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-key-secret-variable -r -f -a s3_access_key_secret_variable
+complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-key-secret-variable -r -d 'environment variable containing secret string to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-token -r -f -a s3_access_token
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-token -r -d 'access token to use to connect to this S3 mirror'
+complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-token-variable -r -f -a s3_access_token_variable
+complete -c spack -n '__fish_spack_using_command mirror set' -l s3-access-token-variable -r -d 'environment variable containing access token to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-profile -r -f -a s3_profile
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-profile -r -d 'S3 profile name to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-endpoint-url -r -f -a s3_endpoint_url
 complete -c spack -n '__fish_spack_using_command mirror set' -l s3-endpoint-url -r -d 'endpoint URL to use to connect to this S3 mirror'
 complete -c spack -n '__fish_spack_using_command mirror set' -l oci-username -r -f -a oci_username
 complete -c spack -n '__fish_spack_using_command mirror set' -l oci-username -r -d 'username to use to connect to this OCI mirror'
+complete -c spack -n '__fish_spack_using_command mirror set' -l oci-username-variable -r -f -a oci_username_variable
+complete -c spack -n '__fish_spack_using_command mirror set' -l oci-username-variable -r -d 'environment variable containing username to use to connect to this OCI mirror'
 complete -c spack -n '__fish_spack_using_command mirror set' -l oci-password -r -f -a oci_password
 complete -c spack -n '__fish_spack_using_command mirror set' -l oci-password -r -d 'password to use to connect to this OCI mirror'
+complete -c spack -n '__fish_spack_using_command mirror set' -l oci-password-variable -r -f -a oci_password_variable
+complete -c spack -n '__fish_spack_using_command mirror set' -l oci-password-variable -r -d 'environment variable containing password to use to connect to this OCI mirror'
 
 # spack mirror list
 set -g __fish_spack_optspecs_spack_mirror_list h/help scope=

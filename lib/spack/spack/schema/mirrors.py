@@ -10,19 +10,6 @@
 """
 from typing import Any, Dict
 
-string_or_variable = {
-    "oneOf": [
-        {
-            "type": "object",
-            "required": ["variable"],
-            "additionalProperties": False,
-            "properties": {"variable": {"type": "string"}},
-        },
-        {"type": "string"},
-    ]
-}
-
-
 #: Common properties for connection specification
 connection = {
     "url": {"type": "string"},
@@ -31,7 +18,7 @@ connection = {
         "oneOf": [
             {
                 "type": "array",
-                "items": {"minItems": 2, "maxItems": 2, **string_or_variable},
+                "items": {"minItems": 2, "maxItems": 2, "type": ["string", "null"]},
             },  # deprecated
             {
                 "type": "object",

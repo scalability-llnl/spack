@@ -181,19 +181,73 @@ def test_mirror_crud(mutable_config, capsys):
         output = mirror("remove", "mirror")
         assert "Removed mirror" in output
 
-        # Test S3 connection info id/key
-        mirror(
-            "add",
-            "--s3-access-key-id",
-            "foo",
-            "--s3-access-key-secret",
-            "bar",
-            "mirror",
-            "s3://spack-public",
-        )
+        # Test S3 connection info token as variable
+        mirror("add", "--s3-access-token-variable", "aaaaaazzzzz", "mirror", "s3://spack-public")
 
         output = mirror("remove", "mirror")
         assert "Removed mirror" in output
+
+        def do_add_set_seturl_access_pair(
+            id_arg, secret_arg, mirror_name="mirror", mirror_url="s3://spack-public"
+        ):
+            # Test S3 connection info id/key
+            mirror("add", id_arg, "foo", secret_arg, "bar", mirror_name, mirror_url)
+            mirror(
+                "set-url",
+                id_arg,
+                "foo_set_url",
+                secret_arg,
+                "bar_set_url",
+                mirror_name,
+                mirror_url,
+            )
+            mirror("set", id_arg, "foo_set", secret_arg, "bar_set", mirror_name)
+
+            output = mirror("set", id_arg, "cat", mirror_name)
+            assert "Exepected both parts of the access pair to be specified. " in output
+            output = mirror("set", secret_arg, "cat", mirror_name)
+            assert "Exepected both parts of the access pair to be specified. " in output
+
+            output = mirror("set-url", id_arg, "cat", mirror_name, mirror_url)
+            output = mirror("set-url", secret_arg, "cat", mirror_name, mirror_url)
+            assert "Exepected both parts of the access pair to be specified. " in output
+
+            output = mirror("remove", mirror_name)
+            assert "Removed mirror" in output
+
+            output = mirror("add", id_arg, "foo", mirror_name, mirror_url)
+            assert "Exepected both parts of the access pair to be specified. " in output
+
+            output = mirror("remove", mirror_name)
+            assert "Removed mirror" in output
+
+            output = mirror("add", secret_arg, "bar", mirror_name, mirror_url)
+            assert "Exepected both parts of the access pair to be specified. " in output
+
+            output = mirror("remove", mirror_name)
+            assert "Removed mirror" in output
+
+            output = mirror("list")
+            assert "No mirrors configured" in output
+
+        do_add_set_seturl_access_pair("--s3-access-key-id", "--s3-access-key-secret")
+        do_add_set_seturl_access_pair("--s3-access-key-id", "--s3-access-key-secret-variable")
+        do_add_set_seturl_access_pair(
+            "--s3-access-key-id-variable", "--s3-access-key-secret-variable"
+        )
+        with pytest.raises(
+            spack.error.SpackError, match="Cannot add mirror with a variable id and text secret"
+        ):
+            do_add_set_seturl_access_pair("--s3-access-key-id-variable", "--s3-access-key-secret")
+
+        # Test OCI connection info user/password
+        do_add_set_seturl_access_pair("--oci-username", "--oci-password")
+        do_add_set_seturl_access_pair("--oci-username", "--oci-password-variable")
+        do_add_set_seturl_access_pair("--oci-username-variable", "--oci-password-variable")
+        with pytest.raises(
+            spack.error.SpackError, match="Cannot add mirror with a variable id and text secret"
+        ):
+            do_add_set_seturl_access_pair("--s3-access-key-id-variable", "--s3-access-key-secret")
 
         # Test S3 connection info with endpoint URL
         mirror(
@@ -217,6 +271,9 @@ def test_mirror_crud(mutable_config, capsys):
 
         output = mirror("remove", "mirror")
         assert "Removed mirror" in output
+
+        output = mirror("list")
+        assert "No mirrors configured" in output
 
 
 def test_mirror_nonexisting(mutable_config):
