@@ -204,6 +204,7 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
             entries.append(cmake_cache_path("adiak_DIR", spec["adiak"].prefix))
         if spec.satisfies("+papi"):
             entries.append(cmake_cache_path("PAPI_PREFIX", spec["papi"].prefix))
+            entries.append(cmake_cache_option("WITH_PAPI_RDPMC", spec["papi"].satisfies("+rdpmc")))
         if spec.satisfies("+libdw"):
             entries.append(cmake_cache_path("LIBDW_PREFIX", spec["elfutils"].prefix))
         if spec.satisfies("+libpfm"):
@@ -234,6 +235,7 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_option("WITH_VARIORUM", spec.satisfies("+variorum")))
         entries.append(cmake_cache_option("WITH_VTUNE", spec.satisfies("+vtune")))
         entries.append(cmake_cache_option("WITH_PYTHON_BINDINGS", spec.satisfies("+python")))
+        entries.append(cmake_cache_option("WITH_ARCH", str(spec.target)))
 
         # -DWITH_CALLPATH was renamed -DWITH_LIBUNWIND in 2.5
         callpath_flag = "LIBUNWIND" if spec.satisfies("@2.5:") else "CALLPATH"
