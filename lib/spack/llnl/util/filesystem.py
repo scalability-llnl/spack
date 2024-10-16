@@ -2473,7 +2473,10 @@ class WindowsSimulatedRPath:
         """
         Set of directories where package binaries/libraries are located.
         """
-        return set([pathlib.Path(self.pkg.prefix.bin)]) | self._additional_library_dependents
+        base_pths = set()
+        if self.link_install_prefix:
+            base_pths.add(pathlib.Path(self.pkg.prefix.bin))
+        return base_pths | self._additional_library_dependents
 
     def add_library_dependent(self, *dest):
         """
@@ -2575,6 +2578,26 @@ class WindowsSimulatedRPath:
         if "windows-system" not in getattr(self.pkg, "tags", []):
             for library, lib_dir in itertools.product(self.rpaths, self.library_dependents):
                 self._link(library, lib_dir)
+
+
+def make_package_test_rpath(pkg, test_dir):
+    """Establishes a temp rpath for the pkg in the testing directory
+    so an executable can test the libraries/executables with proper access
+    to dependent dlls
+
+    Args:
+        pkg (spack.package_base.PackageBase): the package for which the rpath should be computed
+        test_dir (StrPath): the testing directory in which we should construct an rpath
+    """
+    # link_install_prefix as false ensures we're not linking into the install prefix
+    mini_rpath = WindowsSimulatedRPath(pkg, link_install_prefix=False)
+    # add the testing directory as a location to install rpath symlinks
+    mini_rpath.add_library_dependent(test_dir)
+    # add the build dir & build dir bin
+    mini_rpath.add_rpath(os.path.join(pkg.build_directory, "bin"))
+    mini_rpath.add_rpath(os.path.join(pkg.build_directory))
+    # construct rpath
+    mini_rpath.establish_link()
 
 
 @system_path_filter
