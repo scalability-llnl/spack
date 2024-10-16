@@ -28,6 +28,7 @@ class PyBiopython(PythonPackage):
     version("1.65", sha256="6d591523ba4d07a505978f6e1d7fac57e335d6d62fb5b0bcb8c40bdde5c8998e")
 
     depends_on("c", type="build")  # generated
+    depends_on("libxcrypt", when="%apple-clang")
 
     depends_on("python@2.6:2.7,3.3:3.9", type=("build", "run"), when="@1.63:1.68")
     depends_on("python@2.7,3.3:3.9", type=("build", "run"), when="@1.69")
