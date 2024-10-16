@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Path primitives that just require Python standard library."""
 import functools
+import pathlib
 import sys
 from typing import List, Optional
 from urllib.parse import urlparse
@@ -31,10 +32,10 @@ def format_os_path(path: str, mode: int = Path.unix) -> str:
     if not path:
         return path
     if mode == Path.windows:
-        path = path.replace("/", "\\")
+        path = pathlib.PureWindowsPath(path)
     else:
-        path = path.replace("\\", "/")
-    return path
+        path = pathlib.PurePosixPath(path)
+    return str(path)
 
 
 def convert_to_posix_path(path: str) -> str:
