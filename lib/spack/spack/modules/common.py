@@ -330,17 +330,16 @@ class BaseConfiguration:
     default_projections = {"all": "{name}/{version}-{compiler.name}-{compiler.version}"}
 
     def __init__(self, spec: spack.spec.Spec, module_set_name: str, explicit: bool) -> None:
-        # Module where type(self) is defined
-        m = inspect.getmodule(self)
-        assert m is not None  # make mypy happy
-        self.module = m
         # Spec for which we want to generate a module file
         self.spec = spec
         self.name = module_set_name
         self.explicit = explicit
-        # Dictionary of configuration options that should be applied
-        # to the spec
+        # Dictionary of configuration options that should be applied to the spec
         self.conf = merge_config_rules(self.module.configuration(self.name), self.spec)
+
+    @property
+    def module(self):
+        return inspect.getmodule(self)
 
     @property
     def projections(self):
