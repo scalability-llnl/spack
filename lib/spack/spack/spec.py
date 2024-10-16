@@ -174,15 +174,13 @@ HASH_COLOR = "@K"  #: color for highlighting package hashes
 #: Default format for Spec.format(). This format can be round-tripped, so that:
 #:     Spec(Spec("string").format()) == Spec("string)"
 DEFAULT_FORMAT = (
-    "{name}{@versions}"
-    "{%compiler.name}{@compiler.versions}{compiler_flags}"
+    "{name}{@versions}{compiler_flags}"
     "{variants}{ namespace=namespace_if_anonymous}{ arch=architecture}{/abstract_hash}"
 )
 
 #: Display format, which eliminates extra `@=` in the output, for readability.
 DISPLAY_FORMAT = (
-    "{name}{@version}"
-    "{%compiler.name}{@compiler.version}{compiler_flags}"
+    "{name}{@version}{compiler_flags}"
     "{variants}{ namespace=namespace_if_anonymous}{ arch=architecture}{/abstract_hash}"
 )
 
@@ -643,10 +641,69 @@ class ArchSpec:
             self.target = default_architecture.target
 
 
-# FIXME (compiler as nodes): remove this class
 class CompilerSpec:
-    def __init__(self, *args):
-        raise SystemExit("CompilerSpec is being removed")
+    """Adaptor to the old compiler spec interface. Exposes just a few attributes"""
+
+    def __init__(self, spec):
+        self.spec = spec
+
+    @property
+    def name(self):
+        return self.spec.name
+
+    @property
+    def version(self):
+        return self.spec.version
+
+    @property
+    def versions(self):
+        return self.spec.versions
+
+    @property
+    def display_str(self):
+        """Equivalent to {compiler.name}{@compiler.version} for Specs, without extra
+        @= for readability."""
+        if self.spec.concrete:
+            return f"{self.name}@{self.version}"
+        elif self.versions != vn.any_version:
+            return f"{self.name}@{self.versions}"
+        return self.name
+
+    def __lt__(self, other):
+        if not isinstance(other, CompilerSpec):
+            return self.spec < other
+        return self.spec < other.spec
+
+    def __eq__(self, other):
+        if not isinstance(other, CompilerSpec):
+            return self.spec == other
+        return self.spec == other.spec
+
+    def __hash__(self):
+        return hash(self.spec)
+
+    def __str__(self):
+        return str(self.spec)
+
+    def _cmp_iter(self):
+        return self.spec._cmp_iter()
+
+    def __bool__(self):
+        if self.spec == Spec():
+            return False
+        return bool(self.spec)
+
+
+class DeprecatedCompilerSpec(lang.DeprecatedProperty):
+    def __init__(self):
+        super().__init__(name="compiler")
+
+    def factory(self, instance, owner):
+        for language in ("c", "cxx", "fortran"):
+            deps = instance.dependencies(virtuals=language)
+            if deps:
+                return CompilerSpec(deps[0])
+        return CompilerSpec(Spec())
 
 
 @lang.lazy_lexicographic_ordering
@@ -1371,7 +1428,7 @@ def tree(
 
 @lang.lazy_lexicographic_ordering(set_hash=False)
 class Spec:
-    compiler = lang.Const(None)
+    compiler = DeprecatedCompilerSpec()
 
     @staticmethod
     def default_arch():
@@ -1442,7 +1499,7 @@ class Spec:
             spack.spec_parser.parse_one_or_raise(spec_like, self)
 
         elif spec_like is not None:
-            raise TypeError("Can't make spec out of %s" % type(spec_like))
+            raise TypeError(f"Can't make spec out of {type(spec_like)}")
 
     @staticmethod
     def _format_module_list(modules):
@@ -2216,10 +2273,6 @@ class Spec:
                         'platform': 'darwin',
                         'platform_os': 'mojave',
                         'target': 'x86_64',
-                    },
-                    'compiler': {
-                        'name': 'apple-clang',
-                        'version': '10.0.0',
                     },
                     'namespace': 'builtin',
                     'parameters': {
