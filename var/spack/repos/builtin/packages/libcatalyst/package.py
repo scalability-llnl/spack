@@ -89,6 +89,5 @@ class Libcatalyst(CMakePackage):
             cmake(*cmake_args)
             cmake(*(["--build", "."]))
             tty.info("Running Catalyst test")
-            if
             res = subprocess.run([adapter0_test_path, "catalyst"])
             assert res.returncode == 0
