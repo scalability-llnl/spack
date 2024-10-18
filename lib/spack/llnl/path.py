@@ -32,9 +32,9 @@ def format_os_path(path: str, mode: int = Path.unix) -> str:
     if not path:
         return path
     if mode == Path.windows:
-        path = pathlib.PureWindowsPath(path)
+        path = path.replace("/", "\\")
     else:
-        path = pathlib.PurePosixPath(path)
+        path = path.replace("\\", "/")
     return str(path)
 
 
