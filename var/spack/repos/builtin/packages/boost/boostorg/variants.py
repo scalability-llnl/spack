@@ -862,7 +862,11 @@ def load():
         when="@1.70.0:",
         # fmt: off
         requires=[
-            {"spec": "+variant2", "msg": "Boost.Histogram requires Boost.Variant2"},
+            {
+                "spec": "+variant2",
+                "when": "@1.71.0:",
+                "msg": "Boost.Histogram requires Boost.Variant2"
+            },
         ],
         # fmt: on
         conflicts=[
