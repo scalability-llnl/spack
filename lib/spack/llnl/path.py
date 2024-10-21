@@ -35,7 +35,7 @@ def format_os_path(path: str, mode: int = Path.unix) -> str:
         path = path.replace("/", "\\")
     else:
         path = path.replace("\\", "/")
-    return str(path)
+    return path
 
 
 def convert_to_posix_path(path: str) -> str:
