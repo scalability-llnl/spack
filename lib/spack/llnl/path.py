@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Path primitives that just require Python standard library."""
 import functools
-import pathlib
 import sys
 from typing import List, Optional
 from urllib.parse import urlparse
