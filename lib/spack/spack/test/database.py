@@ -1141,3 +1141,20 @@ def test_database_errors_with_just_a_version_key(tmp_path):
 
     with pytest.raises(spack.database.InvalidDatabaseVersionError):
         spack.database.Database(root).query_local()
+
+
+@pytest.mark.regression("47101")
+def test_query_with_predicate_fn(database):
+    all_specs = database.query()
+
+    # Name starts with a string
+    specs = database.query(predicate_fn=lambda x: x.spec.name.startswith("mpil"))
+    assert specs and all(x.name.startswith("mpil") for x in specs)
+    assert len(specs) < len(all_specs)
+
+    # Recipe is currently known/unknown
+    specs = database.query(predicate_fn=lambda x: spack.repo.PATH.exists(x.spec.name))
+    assert specs == all_specs
+
+    specs = database.query(predicate_fn=lambda x: not spack.repo.PATH.exists(x.spec.name))
+    assert not specs

@@ -283,12 +283,9 @@ _QUERY_DOCSTRING = """
                 database.  If it is a spec, we'll evaluate
                 ``spec.satisfies(query_spec)``
 
-            known (bool or None): Specs that are "known" are those
-                for which Spack can locate a ``package.py`` file -- i.e.,
-                Spack "knows" how to install them.  Specs that are unknown may
-                represent packages that existed in a previous version of
-                Spack, but have since either changed their name or
-                been removed
+            predicate_fn: optional predicate taking an InstallRecord as argument, and returning
+                whether that record is selected for the query. It can be used to craft criteria
+                that need some data for selection not provided by the Database itself.
 
             installed (bool or InstallStatus or typing.Iterable or None):
                 if ``True``, includes only installed
@@ -586,6 +583,9 @@ class FailureTracker:
         """Return the path to the spec's failure file, which may not exist."""
         assert spec.concrete, "concrete spec required for failure path"
         return self.dir / f"{spec.name}-{spec.dag_hash()}"
+
+
+SelectType = Callable[[InstallRecord], bool]
 
 
 class Database:
@@ -1516,7 +1516,7 @@ class Database:
     def _query(
         self,
         query_spec=any,
-        known=any,
+        predicate_fn: Optional[SelectType] = None,
         installed=True,
         explicit=any,
         start_date=None,
@@ -1524,7 +1524,7 @@ class Database:
         hashes=None,
         in_buildcache=any,
         origin=None,
-    ):
+    ) -> List["spack.spec.Spec"]:
         """Run a query on the database."""
 
         # TODO: Specs are a lot like queries.  Should there be a
@@ -1570,7 +1570,7 @@ class Database:
             if explicit is not any and rec.explicit != explicit:
                 continue
 
-            if known is not any and known(rec.spec.name):
+            if predicate_fn is not None and not predicate_fn(rec):
                 continue
 
             if start_date or end_date:
@@ -1655,14 +1655,14 @@ class Database:
         query.__doc__ = ""
     query.__doc__ += _QUERY_DOCSTRING
 
-    def query_one(self, query_spec, known=any, installed=True):
+    def query_one(self, query_spec, predicate_fn=None, installed=True):
         """Query for exactly one spec that matches the query spec.
 
         Raises an assertion error if more than one spec matches the
         query. Returns None if no installed package matches.
 
         """
-        concrete_specs = self.query(query_spec, known=known, installed=installed)
+        concrete_specs = self.query(query_spec, predicate_fn=predicate_fn, installed=installed)
         assert len(concrete_specs) <= 1
         return concrete_specs[0] if concrete_specs else None
 
