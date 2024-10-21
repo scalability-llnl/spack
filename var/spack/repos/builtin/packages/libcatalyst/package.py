@@ -70,14 +70,10 @@ class Libcatalyst(CMakePackage):
         ]
         adapter0_test_path = join_path(testdir, "adaptor0/adaptor0_test")
         if sys.platform == "win32":
-            # Default generator on Windows is visual studio, Spack uses
-            # ninja
-            # If visual studio is used the path to the test exe is
-            # adapter0/<CONFIG>/adaptor0_test
-            # due to the nature of VS as a multi-config generator
-            # Use ninja to keep the path/logic the same here
-            # This package is a CMake package so we're already guaranteed to have
-            # ninja in the DAG, so no need to re-depend on it for this purpose
+            # Specify ninja generator for `cmake` call used to generate test artifact
+            # (this differs from the build of `libcatalyst` itself); if unspecified, the
+            # default is to use Visual Studio, which generates a more-complex path
+            # (adapter0/<CONFIG>/adaptor0_test rather than adaptor0/adaptor0_test).
             cmake_args.append("-GNinja")
             # To run the test binary on Windows, we need to construct an rpath
             # for the current package being tested, including the package
