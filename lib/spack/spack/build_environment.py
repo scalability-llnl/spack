@@ -45,6 +45,7 @@ from enum import Flag, auto
 from itertools import chain
 from multiprocessing.connection import Connection
 from typing import (
+    Any,
     Callable,
     Dict,
     List,
@@ -1235,6 +1236,41 @@ class SetupContext:
                 env.prepend_path("PATH", bin_dir)
 
 
+class ProcessHandle:
+    """
+    This class manages and monitors the state of a child process for a task
+    used for the building and installation of a package.
+    """
+
+    def __init__(
+        self,
+        pkg: "spack.package_base.PackageBase",
+        process: multiprocessing.Process,
+        read_pipe: multiprocessing.connection.Connection,
+    ):
+        """
+        Parameters:
+           pkg: The package to be built and installed through the child process.
+           process: The child process instance being managed/monitored.
+           read_pipe: The pipe used for receiving information from the child process.
+        """
+        self.pkg = pkg
+        self.process = process
+        self.read_pipe = read_pipe
+
+    def poll(self) -> bool:
+        """Checks if there is data available to receive from the read pipe"""
+        return self.read_pipe.poll()
+
+    def complete(self):
+        """Waits (if needed) for the child process to complete
+        and returns its exit status.
+
+        See ``complete_build_process()``.
+        """
+        return complete_build_process(self)
+
+
 def _setup_pkg_and_run(
     serialized_pkg: "spack.subprocess_context.PackageInstallContext",
     function: Callable,
@@ -1248,7 +1284,7 @@ def _setup_pkg_and_run(
 
     ``_setup_pkg_and_run`` is called by the child process created in
     ``start_build_process()``, and its main job is to run ``function()`` on behalf of
-    some Spack installation (see :ref:`spack.installer.PackageInstaller._install_task`).
+    some Spack installation (see :ref:`spack.installer.PackageInstaller._complete_task`).
 
     The child process is passed a ``write_pipe``, on which it's expected to send one of
     the following:
@@ -1362,17 +1398,20 @@ def _setup_pkg_and_run(
             input_pipe.close()
 
 
-def start_build_process(pkg, function, kwargs):
+def start_build_process(
+    pkg: "spack.package_base.PackageBase", function: Callable, kwargs: Dict[str, Any]
+):
     """Create a child process to do part of a spack build.
 
     Args:
 
-        pkg (spack.package_base.PackageBase): package whose environment we should set up the
-            child process for.
-        function (typing.Callable): argless function to run in the child
+        pkg: package whose environment we should set up the
+             child process for.
+        function: argless function to run in the child
             process.
+        kwargs: additional keyword arguments to pass to ``function()``
 
-    Usage::
+    Usage:
 
         def child_fun():
             # do stuff
@@ -1383,9 +1422,6 @@ def start_build_process(pkg, function, kwargs):
     control over the environment, etc. without affecting other builds
     that might be executed in the same spack call.
 
-    If something goes wrong, the child process catches the error and
-    passes it to the parent wrapped in a ChildError.  The parent is
-    expected to handle (or re-raise) the ChildError.
     """
     read_pipe, write_pipe = multiprocessing.Pipe(duplex=False)
     input_fd = None
@@ -1398,7 +1434,7 @@ def start_build_process(pkg, function, kwargs):
         # Forward sys.stdin when appropriate, to allow toggling verbosity
         if sys.platform != "win32" and sys.stdin.isatty() and hasattr(sys.stdin, "fileno"):
             input_fd = Connection(os.dup(sys.stdin.fileno()))
-        mflags = os.environ.get("MAKEFLAGS", False)
+        mflags = os.environ.get("MAKEFLAGS")
         if mflags:
             m = re.search(r"--jobserver-[^=]*=(\d),(\d)", mflags)
             if m:
@@ -1435,26 +1471,43 @@ def start_build_process(pkg, function, kwargs):
         if input_fd is not None:
             input_fd.close()
 
-    def exitcode_msg(p):
-        typ = "exit" if p.exitcode >= 0 else "signal"
-        return f"{typ} {abs(p.exitcode)}"
+    # Create a ProcessHandle that the caller can use to track
+    # and complete the process started by this function.
+    process_handle = ProcessHandle(pkg, p, read_pipe)
+    return process_handle
+
+
+def complete_build_process(handle: ProcessHandle):
+    """
+    Waits for the child process to complete and handles its exit status.
+
+    If something goes wrong, the child process catches the error and
+    passes it to the parent wrapped in a ChildError.  The parent is
+    expected to handle (or re-raise) the ChildError.
+    """
+
+    def exitcode_msg(process):
+        typ = "exit" if handle.process.exitcode >= 0 else "signal"
+        return f"{typ} {abs(handle.process.exitcode)}"
 
     try:
-        child_result = read_pipe.recv()
+        # Check if information from the read pipe has been received.
+        child_result = handle.read_pipe.recv()
     except EOFError:
-        p.join()
-        raise InstallError(f"The process has stopped unexpectedly ({exitcode_msg(p)})")
+        handle.process.join()
+        raise InstallError(
+            f"The process has stopped unexpectedly ({exitcode_msg(handle.process)})"
+        )
 
-    p.join()
+    handle.process.join()
 
     # If returns a StopPhase, raise it
     if isinstance(child_result, spack.error.StopPhase):
-        # do not print
         raise child_result
 
     # let the caller know which package went wrong.
     if isinstance(child_result, InstallError):
-        child_result.pkg = pkg
+        child_result.pkg = handle.pkg
 
     if isinstance(child_result, ChildError):
         # If the child process raised an error, print its output here rather
@@ -1465,8 +1518,8 @@ def start_build_process(pkg, function, kwargs):
         raise child_result
 
     # Fallback. Usually caught beforehand in EOFError above.
-    if p.exitcode != 0:
-        raise InstallError(f"The process failed unexpectedly ({exitcode_msg(p)})")
+    if handle.process.exitcode != 0:
+        raise InstallError(f"The process failed unexpectedly ({exitcode_msg(handle.process)})")
 
     return child_result
 

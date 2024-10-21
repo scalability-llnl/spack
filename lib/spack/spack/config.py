@@ -1598,7 +1598,7 @@ def determine_number_of_jobs(
     except ValueError:
         pass
 
-    return min(max_cpus, cfg.get("config:build_jobs", 16))
+    return min(max_cpus, cfg.get("config:build_jobs", 4))
 
 
 class ConfigSectionError(spack.error.ConfigError):

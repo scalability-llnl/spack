@@ -63,6 +63,7 @@ def install_kwargs_from_args(args):
         "unsigned": args.unsigned,
         "install_deps": ("dependencies" in args.things_to_install),
         "install_package": ("package" in args.things_to_install),
+        "concurrent_packages": args.concurrent_packages,
     }
 
 
@@ -84,6 +85,7 @@ def setup_parser(subparser):
         default=None,
         help="phase to stop after when installing (default None)",
     )
+    arguments.add_common_arguments(subparser, ["concurrent_packages"])
     arguments.add_common_arguments(subparser, ["jobs"])
     subparser.add_argument(
         "--overwrite",
