@@ -2476,7 +2476,8 @@ class WindowsSimulatedRPath:
         base_pths = set()
         if self.link_install_prefix:
             base_pths.add(pathlib.Path(self.pkg.prefix.bin))
-        return base_pths | self._additional_library_dependents
+            base_pths |= self._additional_library_dependents
+        return base_pths
 
     def add_library_dependent(self, *dest):
         """
@@ -2581,9 +2582,11 @@ class WindowsSimulatedRPath:
 
 
 def make_package_test_rpath(pkg, test_dir):
-    """Establishes a temp rpath for the pkg in the testing directory
+    """Establishes a temp Windows simulated rpath for the pkg in the testing directory
     so an executable can test the libraries/executables with proper access
     to dependent dlls
+
+    Note: this is a no-op on all other platforms besides Windows
 
     Args:
         pkg (spack.package_base.PackageBase): the package for which the rpath should be computed
