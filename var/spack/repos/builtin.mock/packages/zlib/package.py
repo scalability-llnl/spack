@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+import sys
+
 from spack.package import *
 
 
@@ -43,12 +45,15 @@ class Zlib(Package):
             env.append_flags("CFLAGS", "-O2")
 
     def install(self, spec, prefix):
-        config_args = []
-        if "~shared" in spec:
-            config_args.append("--static")
-        configure("--prefix={0}".format(prefix), *config_args)
+        if sys.platform == "win32":
+            touch(prefix.zlib)
+        else:
+            config_args = []
+            if "~shared" in spec:
+                config_args.append("--static")
+            configure("--prefix={0}".format(prefix), *config_args)
 
-        make()
-        if self.run_tests:
-            make("check")
-        make("install")
+            make()
+            if self.run_tests:
+                make("check")
+            make("install")

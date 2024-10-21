@@ -9,6 +9,7 @@ parsing environment modules.
 """
 import os
 import re
+import sys
 import subprocess
 from typing import MutableMapping, Optional
 
@@ -27,6 +28,8 @@ def module(
     module_template: Optional[str] = None,
     environb: Optional[MutableMapping[bytes, bytes]] = None,
 ):
+    if sys.platform == "win32":
+        raise RuntimeError("module operations unsupported on Windows")
     module_cmd = module_template or ("module " + " ".join(args))
     environb = environb or os.environb
 

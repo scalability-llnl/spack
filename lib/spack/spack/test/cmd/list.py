@@ -59,7 +59,7 @@ def test_list_filter(mock_packages):
 
 
 def test_list_search_description(mock_packages):
-    output = list("--search-description", "one build dependency")
+    output = list("--search-description", "one direct dependency")
     assert "depb" in output
 
 
