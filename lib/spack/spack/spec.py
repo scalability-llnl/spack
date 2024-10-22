@@ -1426,6 +1426,26 @@ def tree(
     return out
 
 
+class SpecAnnotations:
+    def __init__(self) -> None:
+        self.original_spec_format = SPECFILE_FORMAT_VERSION
+        self.compiler_node_attribute: Optional["spack.spec.Spec"] = None
+
+    def with_spec_format(self, spec_format: int) -> "SpecAnnotations":
+        self.original_spec_format = spec_format
+        return self
+
+    def with_compiler(self, compiler: "spack.spec.Spec") -> "SpecAnnotations":
+        self.compiler_node_attribute = compiler
+        return self
+
+    def __repr__(self) -> str:
+        result = f"SpecAnnotations().with_spec_format({self.original_spec_format})"
+        if self.compiler_node_attribute:
+            result += f"with_compiler({str(self.compiler_node_attribute)})"
+        return result
+
+
 @lang.lazy_lexicographic_ordering(set_hash=False)
 class Spec:
     compiler = DeprecatedCompilerSpec()
@@ -1494,6 +1514,7 @@ class Spec:
         # is deployed "as built."
         # Build spec should be the actual build spec unless marked dirty.
         self._build_spec = None
+        self.annotations = SpecAnnotations()
 
         if isinstance(spec_like, str):
             spack.spec_parser.parse_one_or_raise(spec_like, self)
@@ -2397,6 +2418,12 @@ class Spec:
                 "name": self.build_spec.name,
                 hash.name: self.build_spec._cached_hash(hash),
             }
+
+        # Annotations
+        d["annotations"] = {"original_specfile_version": self.annotations.original_spec_format}
+        if self.annotations.original_spec_format < 5:
+            d["annotations"]["compiler"] = str(self.annotations.compiler_node_attribute)
+
         return d
 
     def to_dict(self, hash=ht.dag_hash):
@@ -3585,6 +3612,7 @@ class Spec:
         self.name = other.name
         self.versions = other.versions.copy()
         self.architecture = other.architecture.copy() if other.architecture else None
+
         if hasattr(other, "compiler_annotation"):
             self.compiler_annotation = other.compiler_annotation
 
@@ -3610,6 +3638,7 @@ class Spec:
         self.external_modules = other.external_modules
         self.extra_attributes = other.extra_attributes
         self.namespace = other.namespace
+        self.annotations = other.annotations
 
         # If we copy dependencies, preserve DAG structure in the new spec
         if deps:
@@ -4522,9 +4551,9 @@ class Spec:
             if isinstance(v, vn.GitVersion) and v._ref_version is None:
                 v.attach_lookup(spack.version.git_ref_lookup.GitRefLookup(self.fullname))
 
-    def compiler_as_nodes(self) -> bool:
-        """Returns True if compiler are treated as nodes"""
-        return not hasattr(self, "compiler_annotation")
+    def original_spec_format(self) -> int:
+        """Returns the spec format originally used for this spec."""
+        return self.annotations.original_spec_format
 
 
 class VariantMap(lang.HashableMap):
@@ -4844,10 +4873,6 @@ class SpecfileReaderBase:
         if "arch" in node:
             spec.architecture = ArchSpec.from_dict(node)
 
-        if "compiler" in node:
-            # Annotate the compiler spec, might be used later
-            spec.compiler_annotation = cls.legacy_compiler(node)
-
         propagated_names = node.get("propagate", [])
         for name, values in node.get("parameters", {}).items():
             propagate = name in propagated_names
@@ -4886,6 +4911,17 @@ class SpecfileReaderBase:
                 # FIXME: Monkey patches mvar to store patches order
                 mvar._patches_in_order_of_appearance = patches
 
+        # Annotate the compiler spec, might be used later
+        if "annotations" not in node:
+            # Specfile v4 and earlier
+            spec.annotations.with_spec_format(cls.SPEC_VERSION)
+            if "compiler" in node:
+                spec.annotations.with_compiler(cls.legacy_compiler(node))
+        else:
+            spec.annotations.with_spec_format(node["annotations"]["original_specfile_version"])
+            if "compiler" in node["annotations"]:
+                spec.annotations.with_compiler(Spec(f"{node['annotations']['compiler']}"))
+
         # Don't read dependencies here; from_dict() is used by
         # from_yaml() and from_json() to read the root *and* each dependency
         # spec.
@@ -4895,9 +4931,7 @@ class SpecfileReaderBase:
     @classmethod
     def legacy_compiler(cls, node):
         d = node["compiler"]
-        return Spec(
-            f"{d['name']}@{vn.VersionList.from_dict(d)}", external_path="/dev-null/", concrete=True
-        )
+        return Spec(f"{d['name']}@{vn.VersionList.from_dict(d)}")
 
     @classmethod
     def _load(cls, data):
@@ -4965,6 +4999,8 @@ class SpecfileReaderBase:
 
 
 class SpecfileV1(SpecfileReaderBase):
+    SPEC_VERSION = 1
+
     @classmethod
     def load(cls, data):
         """Construct a spec from JSON/YAML using the format version 1.
@@ -5034,6 +5070,8 @@ class SpecfileV1(SpecfileReaderBase):
 
 
 class SpecfileV2(SpecfileReaderBase):
+    SPEC_VERSION = 2
+
     @classmethod
     def load(cls, data):
         result = cls._load(data)
@@ -5088,10 +5126,12 @@ class SpecfileV2(SpecfileReaderBase):
 
 
 class SpecfileV3(SpecfileV2):
-    pass
+    SPEC_VERSION = 3
 
 
 class SpecfileV4(SpecfileV2):
+    SPEC_VERSION = 4
+
     @classmethod
     def extract_info_from_dep(cls, elt, hash):
         dep_hash = elt[hash.name]
@@ -5106,6 +5146,8 @@ class SpecfileV4(SpecfileV2):
 
 
 class SpecfileV5(SpecfileV4):
+    SPEC_VERSION = 5
+
     @classmethod
     def legacy_compiler(cls, node):
         raise RuntimeError("The 'compiler' option is unexpected in specfiles at v5 or greater")

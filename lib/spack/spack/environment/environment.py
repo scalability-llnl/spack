@@ -23,7 +23,6 @@ from llnl.util.symlink import islink, readlink, symlink
 
 import spack
 import spack.caches
-import spack.compilers.config
 import spack.concretize
 import spack.config
 import spack.deptypes as dt
@@ -134,7 +133,7 @@ spack:
 valid_environment_name_re = r"^\w[\w-]*$"
 
 #: version of the lockfile format. Must increase monotonically.
-lockfile_format_version = 5
+lockfile_format_version = 6
 
 
 READER_CLS = {
@@ -143,6 +142,7 @@ READER_CLS = {
     3: spack.spec.SpecfileV2,
     4: spack.spec.SpecfileV3,
     5: spack.spec.SpecfileV4,
+    6: spack.spec.SpecfileV5,
 }
 
 
