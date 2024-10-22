@@ -60,6 +60,9 @@ class Arkouda(MakefilePackage):
         when="+distributed",
     )
 
+    # Some systems need explicit -fPIC flag when building the Arrow functions
+    patch("makefile-fpic.patch")
+
     # Shamelessly copied from the Chapel package.py
     def prepend_cpath_include(self, env, prefix):
         if not is_system_path(prefix):
