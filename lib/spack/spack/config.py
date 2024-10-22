@@ -72,6 +72,7 @@ SECTION_SCHEMAS: Dict[str, Any] = {
     "concretizer": spack.schema.concretizer.schema,
     "definitions": spack.schema.definitions.schema,
     "env_vars": spack.schema.env_vars.schema,
+    "include": spack.schema.include.schema,
     "view": spack.schema.view.schema,
     "develop": spack.schema.develop.schema,
     "mirrors": spack.schema.mirrors.schema,
