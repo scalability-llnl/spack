@@ -33,8 +33,8 @@ class Binder(CMakePackage):
     depends_on("cxx", type="build")  # generated
 
     # Add dependencies
-    depends_on("llvm+clang+llvm_dylib@7.0:9", when="@:1.3.0")
-    depends_on("llvm+clang+llvm_dylib@7.0:", when="@1.4.2:")
+    depends_on("llvm+clang+shared@7.0:9", when="@:1.3.0")
+    depends_on("llvm+clang+shared@7.0:", when="@1.4.2:")
 
     patch("llvm_dir.patch", when="@1.4.2:")
 

@@ -64,7 +64,7 @@ class Halide(CMakePackage, PythonExtension):
     variant("sharedllvm", default=False, description="Link to the shared version of LLVM.")
 
     depends_on("cmake@3.22:", type="build")
-    depends_on("llvm+clang+lld build_type=Release", type=("link", "run"))
+    depends_on("llvm+clang+lld", type=("link", "run"))
     depends_on("llvm@14.0.0:14", type=("link", "run"), when="@14.0.0:14")
     depends_on("llvm@15.0.0:15", type=("link", "run"), when="@15.0.0:15")
     depends_on("llvm@16.0.0:16", type=("link", "run"), when="@16.0.0:16")
@@ -75,7 +75,7 @@ class Halide(CMakePackage, PythonExtension):
         depends_on(
             "llvm targets={0}".format(v), type=("link", "run"), when="targets={0}".format(v)
         )
-    depends_on("llvm+llvm_dylib", type=("link", "run"), when="+sharedllvm")
+    depends_on("llvm+shared", type=("link", "run"), when="+sharedllvm")
 
     depends_on("libjpeg", type=("build", "link", "run"))
     depends_on("libpng", type=("build", "link", "run"))
