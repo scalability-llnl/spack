@@ -5,7 +5,7 @@
 """Schema for configuration merged into one file.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/merged.py
-   :lines: 32-
+   :lines: 33-
 """
 from typing import Any, Dict
 
@@ -21,6 +21,7 @@ import spack.schema.container
 import spack.schema.definitions
 import spack.schema.develop
 import spack.schema.env_vars
+import spack.schema.include
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
@@ -40,6 +41,7 @@ properties: Dict[str, Any] = union_dicts(
     spack.schema.definitions.properties,
     spack.schema.develop.properties,
     spack.schema.env_vars.properties,
+    spack.schema.include.properties,
     spack.schema.mirrors.properties,
     spack.schema.modules.properties,
     spack.schema.packages.properties,
@@ -47,7 +49,6 @@ properties: Dict[str, Any] = union_dicts(
     spack.schema.upstreams.properties,
     spack.schema.view.properties,
 )
-
 
 #: Full schema with metadata
 schema = {
