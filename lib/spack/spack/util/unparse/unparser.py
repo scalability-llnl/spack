@@ -5,6 +5,7 @@
 import ast
 import sys
 from contextlib import contextmanager
+from enum import IntEnum, auto
 from io import StringIO
 
 
@@ -19,31 +20,35 @@ def nullcontext():
 _INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
 
 
-class _Precedence:
+class _Precedence(IntEnum):
     """Precedence table that originated from python grammar."""
 
-    TUPLE = 0
-    YIELD = 1  # 'yield', 'yield from'
-    TEST = 2  # 'if'-'else', 'lambda'
-    OR = 3  # 'or'
-    AND = 4  # 'and'
-    NOT = 5  # 'not'
-    CMP = 6  # '<', '>', '==', '>=', '<=', '!=', 'in', 'not in', 'is', 'is not'
-    EXPR = 7
+    # NAMED_EXPR = auto()  # <target> := <expr1>
+    TUPLE = auto()  # <expr1>, <expr2>
+    YIELD = auto()  # 'yield', 'yield from'
+    TEST = auto()  # 'if'-'else', 'lambda'
+    OR = auto()  # 'or'
+    AND = auto()  # 'and'
+    NOT = auto()  # 'not'
+    CMP = auto()  # '<', '>', '==', '>=', '<=', '!=',
+    # 'in', 'not in', 'is', 'is not'
+    EXPR = auto()
     BOR = EXPR  # '|'
-    BXOR = 8  # '^'
-    BAND = 9  # '&'
-    SHIFT = 10  # '<<', '>>'
-    ARITH = 11  # '+', '-'
-    TERM = 12  # '*', '@', '/', '%', '//'
-    FACTOR = 13  # unary '+', '-', '~'
-    POWER = 14  # '**'
-    AWAIT = 15  # 'await'
-    ATOM = 16
+    BXOR = auto()  # '^'
+    BAND = auto()  # '&'
+    SHIFT = auto()  # '<<', '>>'
+    ARITH = auto()  # '+', '-'
+    TERM = auto()  # '*', '@', '/', '%', '//'
+    FACTOR = auto()  # unary '+', '-', '~'
+    POWER = auto()  # '**'
+    AWAIT = auto()  # 'await'
+    ATOM = auto()
 
-
-def pnext(precedence):
-    return min(precedence + 1, _Precedence.ATOM)
+    def next(self):
+        try:
+            return self.__class__(self + 1)
+        except ValueError:
+            return self
 
 
 _SINGLE_QUOTES = ("'", '"')
@@ -570,7 +575,7 @@ class Unparser:
 
         expr = StringIO()
         unparser = type(self)(py_ver_consistent=self._py_ver_consistent, _avoid_backslashes=True)
-        unparser.set_precedence(pnext(_Precedence.TEST), node.value)
+        unparser.set_precedence(_Precedence.TEST.next(), node.value)
         unparser.visit(node.value, expr)
         expr = expr.getvalue().rstrip("\n")
 
@@ -665,7 +670,7 @@ class Unparser:
         self.set_precedence(_Precedence.TUPLE, node.target)
         self.dispatch(node.target)
         self.write(" in ")
-        self.set_precedence(pnext(_Precedence.TEST), node.iter, *node.ifs)
+        self.set_precedence(_Precedence.TEST.next(), node.iter, *node.ifs)
         self.dispatch(node.iter)
         for if_clause in node.ifs:
             self.write(" if ")
@@ -673,7 +678,7 @@ class Unparser:
 
     def visit_IfExp(self, node):
         with self.require_parens(_Precedence.TEST, node):
-            self.set_precedence(pnext(_Precedence.TEST), node.body, node.test)
+            self.set_precedence(_Precedence.TEST.next(), node.body, node.test)
             self.dispatch(node.body)
             self.write(" if ")
             self.dispatch(node.test)
@@ -770,11 +775,11 @@ class Unparser:
         operator_precedence = self.binop_precedence[operator]
         with self.require_parens(operator_precedence, node):
             if operator in self.binop_rassoc:
-                left_precedence = pnext(operator_precedence)
+                left_precedence = operator_precedence.next()
                 right_precedence = operator_precedence
             else:
                 left_precedence = operator_precedence
-                right_precedence = pnext(operator_precedence)
+                right_precedence = operator_precedence.next()
 
             self.set_precedence(left_precedence, node.left)
             self.dispatch(node.left)
@@ -797,7 +802,7 @@ class Unparser:
 
     def visit_Compare(self, node):
         with self.require_parens(_Precedence.CMP, node):
-            self.set_precedence(pnext(_Precedence.CMP), node.left, *node.comparators)
+            self.set_precedence(_Precedence.CMP.next(), node.left, *node.comparators)
             self.dispatch(node.left)
             for o, e in zip(node.ops, node.comparators):
                 self.write(" " + self.cmpops[o.__class__.__name__] + " ")
@@ -814,7 +819,7 @@ class Unparser:
         op = {"precedence": self.boolop_precedence[operator]}
 
         def increasing_level_dispatch(node):
-            op["precedence"] = pnext(op["precedence"])
+            op["precedence"] = op["precedence"].next()
             self.set_precedence(op["precedence"], node)
             self.dispatch(node)
 
@@ -1076,7 +1081,7 @@ class Unparser:
 
     def visit_MatchOr(self, node):
         with self.require_parens(_Precedence.BOR, node):
-            self.set_precedence(pnext(_Precedence.BOR), *node.patterns)
+            self.set_precedence(_Precedence.BOR.next(), *node.patterns)
             self.interleave(lambda: self.write(" | "), self.dispatch, node.patterns)
 
     def visit_TypeAlias(self, node):
