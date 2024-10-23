@@ -487,12 +487,12 @@ class nixlog:
         # forcing debug output.
         self._saved_debug = tty._debug
 
-        # OS-level pipe for redirecting output to logger
+        # Pipe for redirecting output to logger
         read_fd, write_fd = multiprocessing.Pipe(duplex=False)
 
-        # Multiprocessing pipe for communication back from the daemon
+        # Pipe for communication back from the daemon
         # Currently only used to save echo value between uses
-        self.parent_pipe, child_pipe = multiprocessing.Pipe()
+        self.parent_pipe, child_pipe = multiprocessing.Pipe(duplex=False)
 
         # Sets a daemon that writes to file what it reads from a pipe
         try:
