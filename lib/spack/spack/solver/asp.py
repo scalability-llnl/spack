@@ -3961,6 +3961,29 @@ class Solver:
         reusable = []
         for root in specs:
             for s in root.traverse():
+                candidates = s.edges_to_dependencies(depflag=dt.BUILD)
+                if candidates:
+                    virtuals = set()
+                    non_virtuals = spack.package_base.possible_dependencies(
+                        s, transitive=False, virtuals=virtuals
+                    )
+                    possible_direct_deps = set(non_virtuals) | virtuals
+                    not_possible = set(
+                        [
+                            x.spec.name
+                            for x in candidates
+                            if x.direct and x.spec.name not in possible_direct_deps
+                        ]
+                    )
+                    if not_possible:
+                        start_str = f"'{s}' in '{root}'"
+                        if s == root:
+                            start_str = f"'{root}'"
+                        raise UnsatisfiableSpecError(
+                            f"{start_str} cannot have a dependency on {', '.join(not_possible)}, "
+                            f"according to its recipe"
+                        )
+
                 if s.concrete:
                     reusable.append(s)
                 elif spack.repo.PATH.is_virtual(s.name):

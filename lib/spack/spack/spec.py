@@ -758,7 +758,13 @@ class DependencySpec:
 
     def copy(self) -> "DependencySpec":
         """Return a copy of this edge"""
-        return DependencySpec(self.parent, self.spec, depflag=self.depflag, virtuals=self.virtuals)
+        return DependencySpec(
+            self.parent,
+            self.spec,
+            depflag=self.depflag,
+            virtuals=self.virtuals,
+            direct=self.direct,
+        )
 
     def _cmp_iter(self):
         yield self.parent.name if self.parent else None
@@ -1789,7 +1795,7 @@ class Spec:
                     f"\t'{str(self)}' cannot depend on '{required_dep_str}'"
                 )
 
-            self.add_dependency_edge(spec, depflag=depflag, virtuals=virtuals)
+            self.add_dependency_edge(spec, depflag=depflag, virtuals=virtuals, direct=direct)
             return
 
         try:
@@ -3255,6 +3261,7 @@ class Spec:
                 dep_spec_copy.spec.copy(),
                 depflag=dep_spec_copy.depflag,
                 virtuals=dep_spec_copy.virtuals,
+                direct=dep_spec_copy.direct,
             )
             changed = True
 
@@ -3694,7 +3701,10 @@ class Spec:
                 new_specs[spid(edge.spec)] = edge.spec.copy(deps=False)
 
             new_specs[spid(edge.parent)].add_dependency_edge(
-                new_specs[spid(edge.spec)], depflag=edge.depflag, virtuals=edge.virtuals
+                new_specs[spid(edge.spec)],
+                depflag=edge.depflag,
+                virtuals=edge.virtuals,
+                direct=edge.direct,
             )
 
     def copy(self, deps: Union[bool, dt.DepTypes, dt.DepFlag] = True, **kwargs):
