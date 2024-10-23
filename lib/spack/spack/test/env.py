@@ -843,3 +843,17 @@ def test_root_version_weights_for_old_versions(mutable_mock_env_path, mock_packa
 
     assert bowtie.satisfies("@=1.3.0")
     assert gcc.satisfies("@=1.0")
+
+
+def test_only_roots_are_explicitly_installed(tmp_path, mock_packages, config, temporary_store):
+    """When installing specific non-root specs from an environment, we continue to mark them
+    as implicitly installed. What makes installs explicit is that they are root of the env."""
+    env = ev.create_in_dir(tmp_path)
+    env.add("mpileaks")
+    env.concretize()
+    mpileaks = env.concrete_roots()[0]
+    callpath = mpileaks["callpath"]
+    env.install_specs([callpath], fake=True)
+    assert callpath in temporary_store.db.query(explicit=False)
+    env.install_specs([mpileaks], fake=True)
+    assert temporary_store.db.query(explicit=True) == [mpileaks]
