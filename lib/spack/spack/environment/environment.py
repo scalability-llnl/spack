@@ -1936,17 +1936,16 @@ class Environment:
         specs = specs if specs is not None else roots
 
         # Extend the set of specs to overwrite with modified dev specs and their parents
-        overwrite: Set[str] = set()
-        overwrite.update(install_args.get("overwrite", []), self._dev_specs_that_need_overwrite())
-        install_args["overwrite"] = overwrite
+        install_args["overwrite"] = {
+            *install_args.get("overwrite", ()),
+            *self._dev_specs_that_need_overwrite(),
+        }
 
-        explicit: Set[str] = set()
-        explicit.update(
-            install_args.get("explicit", []),
-            (s.dag_hash() for s in specs),
-            (s.dag_hash() for s in roots),
-        )
-        install_args["explicit"] = explicit
+        # Only environment roots are marked explicit
+        install_args["explicit"] = {
+            *install_args.get("explicit", ()),
+            *(s.dag_hash() for s in roots),
+        }
 
         PackageInstaller([spec.package for spec in specs], install_args).install()
 
