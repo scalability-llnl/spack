@@ -163,19 +163,18 @@ class Unparser:
         for node in nodes:
             self._precedences[node] = precedence
 
-    def traverse(self, tree):
-        "Dispatcher function, dispatching tree type T to method _T."
-        if isinstance(tree, list):
-            for node in tree:
-                self.traverse(node)
-            return
-        meth = getattr(self, "visit_" + tree.__class__.__name__)
-        meth(tree)
+    def traverse(self, node):
+        if isinstance(node, list):
+            for item in node:
+                self.traverse(item)
+        else:
+            meth = getattr(self, "visit_" + node.__class__.__name__)
+            meth(node)
 
-    def visit(self, tree, output_file):
-        """Traverse tree and write source code to output_file."""
+    def visit(self, node, output_file):
+        """Traverse node and write source code to output_file."""
         self.f = output_file
-        self.traverse(tree)
+        self.traverse(node)
         self.f.flush()
 
     #
@@ -185,29 +184,29 @@ class Unparser:
     # should be # grouped by sum type. Ideally, this would follow the order
     # in the grammar, but currently doesn't.
 
-    def visit_Module(self, tree):
-        for stmt in tree.body:
+    def visit_Module(self, node):
+        for stmt in node.body:
             self.traverse(stmt)
 
-    def visit_Interactive(self, tree):
-        for stmt in tree.body:
+    def visit_Interactive(self, node):
+        for stmt in node.body:
             self.traverse(stmt)
 
-    def visit_Expression(self, tree):
-        self.traverse(tree.body)
+    def visit_Expression(self, node):
+        self.traverse(node.body)
 
     # stmt
-    def visit_Expr(self, tree):
+    def visit_Expr(self, node):
         self.fill()
-        self.set_precedence(_Precedence.YIELD, tree.value)
-        self.traverse(tree.value)
+        self.set_precedence(_Precedence.YIELD, node.value)
+        self.traverse(node.value)
 
-    def visit_NamedExpr(self, tree):
-        with self.require_parens(_Precedence.TUPLE, tree):
-            self.set_precedence(_Precedence.ATOM, tree.target, tree.value)
-            self.traverse(tree.target)
+    def visit_NamedExpr(self, node):
+        with self.require_parens(_Precedence.TUPLE, node):
+            self.set_precedence(_Precedence.ATOM, node.target, node.value)
+            self.traverse(node.target)
             self.write(" := ")
-            self.traverse(tree.value)
+            self.traverse(node.value)
 
     def visit_Import(self, node):
         self.fill("import ")
@@ -508,12 +507,12 @@ class Unparser:
     def visit_Bytes(self, node):
         self.write(repr(node.s))
 
-    def visit_Str(self, tree):
+    def visit_Str(self, node):
         # Python 3.5, 3.6, and 3.7 can't tell if something was written as a
         # unicode constant. Try to make that consistent with 'u' for '\u- literals
-        if self._py_ver_consistent and repr(tree.s).startswith("'\\u"):
+        if self._py_ver_consistent and repr(node.s).startswith("'\\u"):
             self.write("u")
-        self._write_constant(tree.s)
+        self._write_constant(node.s)
 
     def visit_JoinedStr(self, node):
         # JoinedStr(expr* values)
