@@ -328,11 +328,10 @@ def create_bootstrapper(conf: ConfigDictionary):
     return _bootstrap_methods[btype](conf)
 
 
-def source_is_enabled_or_raise(conf: ConfigDictionary):
+def source_is_enabled(conf: ConfigDictionary):
     """Raise ValueError if the source is not enabled for bootstrapping"""
     trusted, name = spack.config.get("bootstrap:trusted"), conf["name"]
-    if not trusted.get(name, False):
-        raise ValueError("source is not trusted")
+    return trusted.get(name, False)
 
 
 def ensure_module_importable_or_raise(module: str, abstract_spec: Optional[str] = None):
@@ -362,8 +361,10 @@ def ensure_module_importable_or_raise(module: str, abstract_spec: Optional[str] 
     exception_handler = GroupedExceptionHandler()
 
     for current_config in bootstrapping_sources():
+        if not source_is_enabled(current_config):
+            continue
+
         with exception_handler.forward(current_config["name"], Exception):
-            source_is_enabled_or_raise(current_config)
             current_bootstrapper = create_bootstrapper(current_config)
             if current_bootstrapper.try_import(module, abstract_spec):
                 return
@@ -375,11 +376,7 @@ def ensure_module_importable_or_raise(module: str, abstract_spec: Optional[str] 
     msg = f'cannot bootstrap the "{module}" Python module '
     if abstract_spec:
         msg += f'from spec "{abstract_spec}" '
-    if tty.is_debug():
-        msg += exception_handler.grouped_message(with_tracebacks=True)
-    else:
-        msg += exception_handler.grouped_message(with_tracebacks=False)
-        msg += "\nRun `spack --debug ...` for more detailed errors"
+    msg += exception_handler.grouped_message(with_tracebacks=tty.is_debug())
     raise ImportError(msg)
 
 
@@ -417,8 +414,9 @@ def ensure_executables_in_path_or_raise(
     exception_handler = GroupedExceptionHandler()
 
     for current_config in bootstrapping_sources():
+        if not source_is_enabled(current_config):
+            continue
         with exception_handler.forward(current_config["name"], Exception):
-            source_is_enabled_or_raise(current_config)
             current_bootstrapper = create_bootstrapper(current_config)
             if current_bootstrapper.try_search_path(executables, abstract_spec):
                 # Additional environment variables needed
