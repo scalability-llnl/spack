@@ -46,19 +46,6 @@ def pnext(precedence):
     return min(precedence + 1, _Precedence.ATOM)
 
 
-def interleave(inter, f, seq):
-    """Call f on each item in seq, calling inter() in between."""
-    seq = iter(seq)
-    try:
-        f(next(seq))
-    except StopIteration:
-        pass
-    else:
-        for x in seq:
-            inter()
-            f(x)
-
-
 _SINGLE_QUOTES = ("'", '"')
 _MULTI_QUOTES = ('"""', "'''")
 _ALL_QUOTES = (*_SINGLE_QUOTES, *_MULTI_QUOTES)
@@ -97,6 +84,18 @@ class Unparser:
         self._precedences = {}
         self._avoid_backslashes = _avoid_backslashes
 
+    def interleave(self, inter, f, seq):
+        """Call f on each item in seq, calling inter() in between."""
+        seq = iter(seq)
+        try:
+            f(next(seq))
+        except StopIteration:
+            pass
+        else:
+            for x in seq:
+                inter()
+                f(x)
+
     def items_view(self, traverser, items):
         """Traverse and separate the given *items* with a comma and append it to
         the buffer. If *items* is a single item sequence, a trailing comma
@@ -105,7 +104,7 @@ class Unparser:
             traverser(items[0])
             self.write(",")
         else:
-            interleave(lambda: self.write(", "), traverser, items)
+            self.interleave(lambda: self.write(", "), traverser, items)
 
     def visit(self, tree, output_file):
         """Traverse tree and write source code to output_file."""
@@ -207,7 +206,7 @@ class Unparser:
 
     def visit_Import(self, node):
         self.fill("import ")
-        interleave(lambda: self.write(", "), self.dispatch, node.names)
+        self.interleave(lambda: self.write(", "), self.dispatch, node.names)
 
     def visit_ImportFrom(self, node):
         # A from __future__ import may affect unparsing, so record it.
@@ -219,7 +218,7 @@ class Unparser:
         if node.module:
             self.write(node.module)
         self.write(" import ")
-        interleave(lambda: self.write(", "), self.dispatch, node.names)
+        self.interleave(lambda: self.write(", "), self.dispatch, node.names)
 
     def visit_Assign(self, node):
         self.fill()
@@ -261,7 +260,7 @@ class Unparser:
 
     def visit_Delete(self, node):
         self.fill("del ")
-        interleave(lambda: self.write(", "), self.dispatch, node.targets)
+        self.interleave(lambda: self.write(", "), self.dispatch, node.targets)
 
     def visit_Assert(self, node):
         self.fill("assert ")
@@ -272,11 +271,11 @@ class Unparser:
 
     def visit_Global(self, node):
         self.fill("global ")
-        interleave(lambda: self.write(", "), self.write, node.names)
+        self.interleave(lambda: self.write(", "), self.write, node.names)
 
     def visit_Nonlocal(self, node):
         self.fill("nonlocal ")
-        interleave(lambda: self.write(", "), self.write, node.names)
+        self.interleave(lambda: self.write(", "), self.write, node.names)
 
     def visit_Await(self, node):
         with self.require_parens(_Precedence.AWAIT, node):
@@ -347,7 +346,7 @@ class Unparser:
         self.fill("class " + node.name)
         if getattr(node, "type_params", False):
             self.write("[")
-            interleave(lambda: self.write(", "), self.dispatch, node.type_params)
+            self.interleave(lambda: self.write(", "), self.dispatch, node.type_params)
             self.write("]")
         with self.delimit_if("(", ")", condition=node.bases or node.keywords):
             comma = False
@@ -381,7 +380,7 @@ class Unparser:
         self.fill(def_str)
         if getattr(node, "type_params", False):
             self.write("[")
-            interleave(lambda: self.write(", "), self.dispatch, node.type_params)
+            self.interleave(lambda: self.write(", "), self.dispatch, node.type_params)
             self.write("]")
         with self.delimit("(", ")"):
             self.dispatch(node.args)
@@ -440,7 +439,7 @@ class Unparser:
     def _generic_With(self, node, async_=False):
         self.fill("async with " if async_ else "with ")
         if hasattr(node, "items"):
-            interleave(lambda: self.write(", "), self.dispatch, node.items)
+            self.interleave(lambda: self.write(", "), self.dispatch, node.items)
         else:
             self.dispatch(node.context_expr)
             if node.optional_vars:
@@ -630,7 +629,7 @@ class Unparser:
 
     def visit_List(self, node):
         with self.delimit("[", "]"):
-            interleave(lambda: self.write(", "), self.dispatch, node.elts)
+            self.interleave(lambda: self.write(", "), self.dispatch, node.elts)
 
     def visit_ListComp(self, node):
         with self.delimit("[", "]"):
@@ -685,7 +684,7 @@ class Unparser:
     def visit_Set(self, node):
         assert node.elts  # should be at least one element
         with self.delimit("{", "}"):
-            interleave(lambda: self.write(", "), self.dispatch, node.elts)
+            self.interleave(lambda: self.write(", "), self.dispatch, node.elts)
 
     def visit_Dict(self, node):
         def write_key_value_pair(k, v):
@@ -705,7 +704,7 @@ class Unparser:
                 write_key_value_pair(k, v)
 
         with self.delimit("{", "}"):
-            interleave(lambda: self.write(", "), write_item, zip(node.keys, node.values))
+            self.interleave(lambda: self.write(", "), write_item, zip(node.keys, node.values))
 
     def visit_Tuple(self, node):
         with self.delimit("(", ")"):
@@ -821,7 +820,7 @@ class Unparser:
 
         with self.require_parens(op["precedence"], node):
             s = " %s " % operator
-            interleave(lambda: self.write(s), increasing_level_dispatch, node.values)
+            self.interleave(lambda: self.write(s), increasing_level_dispatch, node.values)
 
     def visit_Attribute(self, node):
         self.set_precedence(_Precedence.ATOM, node.value)
@@ -900,7 +899,7 @@ class Unparser:
             self.dispatch(node.step)
 
     def visit_ExtSlice(self, node):
-        interleave(lambda: self.write(", "), self.dispatch, node.dims)
+        self.interleave(lambda: self.write(", "), self.dispatch, node.dims)
 
     # argument
     def visit_arg(self, node):
@@ -1016,7 +1015,7 @@ class Unparser:
 
     def visit_MatchSequence(self, node):
         with self.delimit("[", "]"):
-            interleave(lambda: self.write(", "), self.dispatch, node.patterns)
+            self.interleave(lambda: self.write(", "), self.dispatch, node.patterns)
 
     def visit_MatchStar(self, node):
         name = node.name
@@ -1033,7 +1032,9 @@ class Unparser:
 
         with self.delimit("{", "}"):
             keys = node.keys
-            interleave(lambda: self.write(", "), write_key_pattern_pair, zip(keys, node.patterns))
+            self.interleave(
+                lambda: self.write(", "), write_key_pattern_pair, zip(keys, node.patterns)
+            )
             rest = node.rest
             if rest is not None:
                 if keys:
@@ -1045,7 +1046,7 @@ class Unparser:
         self.dispatch(node.cls)
         with self.delimit("(", ")"):
             patterns = node.patterns
-            interleave(lambda: self.write(", "), self.dispatch, patterns)
+            self.interleave(lambda: self.write(", "), self.dispatch, patterns)
             attrs = node.kwd_attrs
             if attrs:
 
@@ -1056,7 +1057,7 @@ class Unparser:
 
                 if patterns:
                     self.write(", ")
-                interleave(
+                self.interleave(
                     lambda: self.write(", "), write_attr_pattern, zip(attrs, node.kwd_patterns)
                 )
 
@@ -1076,14 +1077,14 @@ class Unparser:
     def visit_MatchOr(self, node):
         with self.require_parens(_Precedence.BOR, node):
             self.set_precedence(pnext(_Precedence.BOR), *node.patterns)
-            interleave(lambda: self.write(" | "), self.dispatch, node.patterns)
+            self.interleave(lambda: self.write(" | "), self.dispatch, node.patterns)
 
     def visit_TypeAlias(self, node):
         self.fill("type ")
         self.dispatch(node.name)
         if node.type_params:
             self.write("[")
-            interleave(lambda: self.write(", "), self.dispatch, node.type_params)
+            self.interleave(lambda: self.write(", "), self.dispatch, node.type_params)
             self.write("]")
         self.write(" = ")
         self.dispatch(node.value)
