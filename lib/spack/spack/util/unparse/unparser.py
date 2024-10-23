@@ -84,6 +84,7 @@ class Unparser:
         python2/3 transition
         """
         self.future_imports = []
+        self._source = []
         self._indent = 0
         self._py_ver_consistent = py_ver_consistent
         self._precedences = {}
@@ -111,13 +112,20 @@ class Unparser:
         else:
             self.interleave(lambda: self.write(", "), traverser, items)
 
-    def fill(self, text=""):
-        "Indent a piece of text, according to the current indentation level"
-        self.f.write("\n" + "    " * self._indent + text)
+    def maybe_newline(self):
+        """Adds a newline if it isn't the start of generated source"""
+        if self._source:
+            self.write("\n")
 
-    def write(self, text):
-        "Append a piece of text to the current line."
-        self.f.write(str(text))
+    def fill(self, text=""):
+        """Indent a piece of text and append it, according to the current
+        indentation level"""
+        self.maybe_newline()
+        self.write("    " * self._indent + text)
+
+    def write(self, *text):
+        """Add new source parts"""
+        self._source.extend(text)
 
     class _Block:
         """A context manager for preparing the source for blocks. It adds
@@ -171,11 +179,15 @@ class Unparser:
             meth = getattr(self, "visit_" + node.__class__.__name__)
             meth(node)
 
-    def visit(self, node, output_file):
-        """Traverse node and write source code to output_file."""
-        self.f = output_file
+    # Note: as visit() resets the output text, do NOT rely on
+    # NodeVisitor.generic_visit to handle any nodes (as it calls back in to
+    # the subclass visit() method, which resets self._source to an empty list)
+    def visit(self, node):
+        """Outputs a source code string that, if converted back to an ast
+        (using ast.parse) will generate an AST equivalent to *node*"""
+        self._source = []
         self.traverse(node)
-        self.f.flush()
+        return "".join(self._source)
 
     #
     # Unparsing methods
@@ -343,7 +355,7 @@ class Unparser:
             self.traverse(node.body)
 
     def visit_ClassDef(self, node):
-        self.write("\n")
+        self.maybe_newline()
         for deco in node.decorator_list:
             self.fill("@")
             self.traverse(deco)
@@ -376,7 +388,7 @@ class Unparser:
         self.__FunctionDef_helper(node, "async def")
 
     def __FunctionDef_helper(self, node, fill_suffix):
-        self.write("\n")
+        self.maybe_newline()
         for deco in node.decorator_list:
             self.fill("@")
             self.traverse(deco)
@@ -572,11 +584,9 @@ class Unparser:
     def _fstring_FormattedValue(self, node, write):
         write("{")
 
-        expr = StringIO()
         unparser = type(self)(py_ver_consistent=self._py_ver_consistent, _avoid_backslashes=True)
         unparser.set_precedence(_Precedence.TEST.next(), node.value)
-        unparser.visit(node.value, expr)
-        expr = expr.getvalue().rstrip("\n")
+        expr = unparser.visit(node.value)
 
         if expr.startswith("{"):
             write(" ")  # Separate pair of opening brackets as "{ {"
