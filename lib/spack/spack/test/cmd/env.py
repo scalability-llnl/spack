@@ -1921,8 +1921,30 @@ def test_env_include_concrete_remove_env():
     assert test2.path not in lockfile_as_dict["include_concrete"].keys()
 
 
-def test_env_include_concrete_reuse():
-    # test1 contains mpich, make sure it is reused in the combined environment
+def configure_reuse_true(env):
+    with env:
+        config("add", "concretizer:reuse:true")
+
+
+def configure_reuse_from_environment(env):
+    env.manifest.configuration.update(
+        {"concretizer": {"reuse": {"from": [{"type": "environment"}]}}}
+    )
+    env.manifest.changed = True
+    env.write()
+
+
+def configure_reuse_from_environment_test1(env):
+    env.manifest.configuration.update(
+        {"concretizer": {"reuse": {"from": [{"type": {"environment": "test1"}}]}}}
+    )
+    env.manifest.changed = True
+    env.write()
+
+
+@pytest.mark.parametrize("configure_reuse", ["true", "from_environment", "from_environment_test1"])
+def test_env_include_concrete_reuse(configure_reuse):
+    # test1 contains mpich@1, make sure it is reused in the combined environment
     # Do not reuse specs from external environments
     # (included concrete environments have different behavior)
     test1, _, combined = setup_combined_multiple_env()
@@ -1933,6 +1955,9 @@ def test_env_include_concrete_reuse():
     # concrete spec overrides the default with mpi@1.0.
 
     test1_specs_by_hash = test1._concrete_specs_dict()
+
+    # Set the reuse mode for the environment
+    globals()[f"configure_reuse_{configure_reuse}"](combined)
 
     # Add mpileaks to the combined environment
     with combined:
@@ -1952,6 +1977,21 @@ def test_env_include_concrete_reuse():
 
     assert any([s in test1_specs_by_hash for s in comb_specs_by_hash])
     assert not any([s in test1_specs_by_hash for s in ref_specs_by_hash])
+
+    # Changing the version of MPICH to 3 in the test env should not change
+    # the combined env.
+    with test1:
+        config("change", "packages:mpich:require:@3")
+        concretize("-f")
+    test1_specs_by_hash_updated = test1._concrete_specs_dict()
+
+    # The new test1 environment should not have any concrete specs in it, the old should
+    assert any([s in test1_specs_by_hash for s in comb_specs_by_hash])
+    assert not any([s in test1_specs_by_hash_updated for s in comb_specs_by_hash])
+
+
+def test_env_include_concrete_reuse_environment():
+    test1, _, combined = setup_combined_multiple_env()
 
 
 @pytest.mark.parametrize("unify", [True, False, "when_possible"])

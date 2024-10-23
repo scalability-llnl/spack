@@ -3984,8 +3984,8 @@ class SpecFilter:
         )
 
     @staticmethod
-    def from_environment(configuration, *, include, exclude, path=None) -> "SpecFilter":
-        factory = functools.partial(_specs_from_environment, path=path)
+    def from_environment(configuration, *, include, exclude, env) -> "SpecFilter":
+        factory = functools.partial(_specs_from_environment, env=env)
         return SpecFilter(
             factory=factory, is_usable=lambda _: True, include=include, exclude=exclude
         )
@@ -4007,27 +4007,9 @@ def _specs_from_mirror():
         return []
 
 
-def _specs_from_environment(path):
-    active_env = ev.active_environment()
-
-    if path:
-        if not ev.is_env_dir(path) and ev.exists(path):
-            path = ev.root(path)
-
-    if active_env and path in active_env.included_specs_by_hash:
-
-        def _specs_for_env():
-            for s in active_env.included_specs_by_hash[path].values():
-                yield s
-
-        return _specs_for_env()
-    elif path:
-        env = ev.read(path)
-    else:
-        env = active_env
-
+def _specs_from_environment(env):
     if env:
-        return map(lambda x: x[1], env.concretized_specs())
+        return [concrete for _, concrete in env.concretized_specs()]
     else:
         return []
 
@@ -4062,7 +4044,10 @@ class ReusableSpecsSelector:
                         configuration=self.configuration, include=[], exclude=[]
                     ),
                     SpecFilter.from_environment(
-                        configuration=self.configuration, include=[], exclude=[]
+                        configuration=self.configuration,
+                        include=[],
+                        exclude=[],
+                        env=ev.active_environment(),
                     ),
                 ]
             )
@@ -4082,13 +4067,19 @@ class ReusableSpecsSelector:
                     env_path = source["type"].get("environment")
                     self.reuse_sources.append(
                         SpecFilter.from_environment(
-                            self.configuration, path=env_path, include=include, exclude=exclude
+                            self.configuration,
+                            include=include,
+                            exclude=exclude,
+                            env=ev.environment_from_name_or_dir(env_path),
                         )
                     )
                 elif source["type"] == "environment":
                     self.reuse_sources.append(
                         SpecFilter.from_environment(
-                            self.configuration, include=include, exclude=exclude
+                            self.configuration,
+                            include=include,
+                            exclude=exclude,
+                            env=ev.active_environment(),
                         )
                     )
                 elif source["type"] == "local":
