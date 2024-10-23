@@ -823,8 +823,9 @@ def load():
     )
     # fmt: on
     _boost_variant(
-        "spirit_classic",
-        when="@1.69.0:",
+        "spirit",
+        when="@1.30.0:",
+        conflicts=[{"when": "cxxstd=98", "msg": "Boost.Spirit requires cxxstd >= 03"}],
         description=(
             "LL parser framework represents parsers directly as EBNF grammars in inlined C++."
         ),
