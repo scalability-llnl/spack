@@ -367,6 +367,7 @@ def ensure_module_importable_or_raise(module: str, abstract_spec: Optional[str] 
     for current_config in bootstrapping_sources():
         if not source_is_enabled(current_config):
             continue
+
         with exception_handler.forward(current_config["name"], Exception):
             if create_bootstrapper(current_config).try_import(module, abstract_spec):
                 return
