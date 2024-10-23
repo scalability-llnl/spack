@@ -127,23 +127,19 @@ class Unparser:
         """Add new source parts"""
         self._source.extend(text)
 
-    class _Block:
+    @contextmanager
+    def block(self, *, extra=None):
         """A context manager for preparing the source for blocks. It adds
-        the character ':', increases the indentation on enter and decreases
-        the indentation on exit."""
-
-        def __init__(self, unparser):
-            self.unparser = unparser
-
-        def __enter__(self):
-            self.unparser.write(":")
-            self.unparser._indent += 1
-
-        def __exit__(self, exc_type, exc_value, traceback):
-            self.unparser._indent -= 1
-
-    def block(self):
-        return self._Block(self)
+        the character':', increases the indentation on enter and decreases
+        the indentation on exit. If *extra* is given, it will be directly
+        appended after the colon character.
+        """
+        self.write(":")
+        if extra:
+            self.write(extra)
+        self._indent += 1
+        yield
+        self._indent -= 1
 
     @contextmanager
     def delimit(self, start, end):
