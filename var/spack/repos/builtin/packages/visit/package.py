@@ -58,6 +58,8 @@ class Visit(CMakePackage):
     executables = ["^visit$"]
 
     version("develop", branch="develop")
+    version("3.4.1", sha256="942108cb294f4c9584a1628225b0be39c114c7e9e01805fb335d9c0b507689f5")
+    version("3.4.0", sha256="6cfb8b190045439e39fa6014dfa797de189bd40bbb9aa6facf711ebd908229e3")
     version("3.3.3", sha256="cc67abb7585e23b51ad576e797df4108641ae6c8c5e80e5359a279c729769187")
     version("3.3.2", sha256="0ae7c38287598e8d7d238cf284ea8be1096dcf13f58a7e9e444a28a32c085b56")
     version("3.3.1", sha256="2e969d3146b559fb833e4cdfaefa72f303d8ad368ef325f68506003f7bc317b9")
@@ -94,7 +96,7 @@ class Visit(CMakePackage):
     patch("spack-changes-3.0.1.patch", when="@3.0.1")
     patch("nonframework-qwt.patch", when="^qt~framework platform=darwin")
     patch("parallel-hdf5.patch", when="@3.0.1:3.2.2+hdf5+mpi")
-    patch("parallel-hdf5-3.3.patch", when="@3.3.0:+hdf5+mpi")
+    patch("parallel-hdf5-3.3.patch", when="@3.3.0:3.3+hdf5+mpi")
     patch("cmake-findvtkh-3.3.patch", when="@3.3.0:3.3.2+vtkm")
     patch("cmake-findjpeg.patch", when="@3.1.0:3.2.2")
     patch("cmake-findjpeg-3.3.patch", when="@3.3.0")
@@ -114,9 +116,11 @@ class Visit(CMakePackage):
 
     depends_on("cmake@3.14.7:", type="build")
     depends_on("mpi", when="+mpi")
+    conflicts("mpi", when="~mpi")
 
     # VTK flavors
-    depends_on("vtk@8.1:8 +opengl2")
+    depends_on("vtk@8.1:8 +opengl2", when="@:3.3")
+    depends_on("vtk@9.2.6 +opengl2", when="@3.4:")
     depends_on("vtk +qt", when="+gui")
     depends_on("vtk +python", when="+python")
     depends_on("vtk +mpi", when="+mpi")
@@ -135,7 +139,8 @@ class Visit(CMakePackage):
     depends_on("gl")
 
     # VisIt doesn't work with later versions of qt.
-    depends_on("qt+gui+opengl@5:5.14", when="+gui")
+    depends_on("qt+gui+opengl", when="+gui")
+    depends_on("qt@5:5.14", when="+gui")
     depends_on("qwt+opengl", when="+gui")
 
     # python@3.8 doesn't work with VisIt.

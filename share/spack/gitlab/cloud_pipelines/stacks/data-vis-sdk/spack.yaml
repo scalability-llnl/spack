@@ -21,6 +21,9 @@ spack:
       # Minimize LLVM
       variants: ~lldb~lld~libomptarget~polly~gold libunwind=none compiler-rt=none
 
+  concretizer:
+    unify: when_possible
+
   definitions:
   - paraview_specs:
     - matrix:
@@ -30,11 +33,10 @@ spack:
         - ^[virtuals=gl] osmesa # OSMesa Rendering
   - visit_specs:
     - matrix:
-      - - visit~gui
-      - - ^[virtuals=gl] glx # GLX Rendering
-        - ^[virtuals=gl] osmesa # OSMesa Rendering
-        # VisIt GUI does not work with Qt 5.14.2
-        # - +gui ^[virtuals=gl] glx # GUI Support w/ GLX Rendering
+      - - visit
+      - - ~gui ^[virtuals=gl] glx # GLX Rendering
+        - ~gui ^[virtuals=gl] osmesa # OSMesa Rendering
+        - +gui ^[virtuals=gl] glx # GUI Support w/ GLX Rendering
   - sdk_base_spec:
     - matrix:
       - - ecp-data-vis-sdk +ascent +adios2 +cinema +darshan +faodel +hdf5 +pnetcdf
