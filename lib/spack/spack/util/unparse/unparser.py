@@ -16,7 +16,7 @@ def nullcontext():
 
 # Large float and imaginary literals get turned into infinities in the AST.
 # We unparse those infinities to INFSTR.
-INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
+_INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
 
 
 class _Precedence:
@@ -61,7 +61,7 @@ def interleave(inter, f, seq):
 
 _SINGLE_QUOTES = ("'", '"')
 _MULTI_QUOTES = ('"""', "'''")
-_ALL_QUOTES = _SINGLE_QUOTES + _MULTI_QUOTES
+_ALL_QUOTES = (*_SINGLE_QUOTES, *_MULTI_QUOTES)
 
 
 def is_simple_tuple(slice_value):
@@ -599,7 +599,7 @@ class Unparser:
     def _write_constant(self, value):
         if isinstance(value, (float, complex)):
             # Substitute overflowing decimal literal for AST infinities.
-            self.write(repr(value).replace("inf", INFSTR))
+            self.write(repr(value).replace("inf", _INFSTR))
         elif isinstance(value, str) and self._py_ver_consistent:
             # emulate a python 2 repr with raw unicode escapes
             # see _Str for python 2 counterpart
@@ -626,7 +626,7 @@ class Unparser:
 
     def visit_Num(self, node):
         repr_n = repr(node.n)
-        self.write(repr_n.replace("inf", INFSTR))
+        self.write(repr_n.replace("inf", _INFSTR))
 
     def visit_List(self, node):
         with self.delimit("[", "]"):
