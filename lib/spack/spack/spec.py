@@ -1478,7 +1478,7 @@ class Spec:
         for h in ht.hashes:
             setattr(self, h.attr, None)
 
-        # dictionary of source artifact hashes, set at concretization time
+        # hash of package.py at the time of concretization
         self._package_hash = None
 
         # dictionary of source artifact hashes, set at concretization time
@@ -2009,14 +2009,17 @@ class Spec:
 
     def package_hash(self):
         """Compute the hash of the contents of the package for this node"""
+        if not self.concrete:
+            raise ValueError("Spec is not concrete: " + str(self))
+
         # Concrete specs with the old DAG hash did not have the package hash, so we do
         # not know what the package looked like at concretization time
-        if self.concrete and not self._package_hash:
+        if not self._package_hash:
             raise ValueError(
                 "Cannot call package_hash() on concrete specs with the old dag_hash()"
             )
 
-        return self._cached_hash(ht.package_hash)
+        return self._package_hash
 
     def dag_hash(self, length=None):
         """This is Spack's default hash, used to identify installations.
@@ -4235,7 +4238,11 @@ class Spec:
         for ancestor in ancestors_in_context:
             # Only set it if it hasn't been spliced before
             ancestor._build_spec = ancestor._build_spec or ancestor.copy()
-            ancestor.clear_cached_hashes(ignore=(ht.package_hash.attr,))
+
+            # reset all hashes *except* package and artifact hashes (since we are not
+            # rebuilding the spec)
+            ancestor.clear_cached_hashes(content_hashes=False)
+
             for edge in ancestor.edges_to_dependencies(depflag=dt.BUILD):
                 if edge.depflag & ~dt.BUILD:
                     edge.depflag &= ~dt.BUILD
@@ -4429,16 +4436,18 @@ class Spec:
 
         return spec
 
-    def clear_cached_hashes(self, ignore=()):
+    def clear_cached_hashes(self, content_hashes=True):
         """
         Clears all cached hashes in a Spec, while preserving other properties.
         """
         for h in ht.hashes:
-            if h.attr not in ignore:
-                if hasattr(self, h.attr):
-                    setattr(self, h.attr, None)
-        self._package_hash = None
-        self._artifact_hashes = None
+            if hasattr(self, h.attr):
+                setattr(self, h.attr, None)
+
+        if content_hashes:
+            self._package_hash = None
+            self._artifact_hashes = None
+
         self._dunder_hash = None
 
     def __hash__(self):

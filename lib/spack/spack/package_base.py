@@ -47,6 +47,7 @@ import spack.spec
 import spack.store
 import spack.url
 import spack.util.environment
+import spack.util.package_hash as ph
 import spack.util.path
 import spack.util.spack_yaml as syaml
 import spack.util.web
@@ -55,7 +56,6 @@ from spack.filesystem_view import YamlFilesystemView
 from spack.install_test import PackageTest, TestSuite
 from spack.solver.version_order import concretization_version_order
 from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite, compute_stage_name
-from spack.util.package_hash import package_hash
 from spack.version import GitVersion, StandardVersion
 
 FLAG_HANDLER_RETURN_TYPE = Tuple[
@@ -1818,7 +1818,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
             hashes["patches"] = [p.sha256 for p in self.spec.patches]
 
         # package.py contents
-        hashes["package_hash"] = package_hash(self.spec, source=content)
+        hashes["package_hash"] = ph.package_hash(self.spec, source=content)
 
         return hashes
 
