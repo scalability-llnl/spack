@@ -62,9 +62,15 @@ class ClingoBootstrapConcretizer:
             )
         candidates.sort(key=lambda x: x.version, reverse=True)
         best = candidates[0]
-        # FIXME (compiler as nodes): we need to find a better place for setting namespaces
+        # Get compilers for bootstrapping from the 'builtin' repository
         best.namespace = "builtin"
-        # TODO: check it has C and C++, and supports C++14
+        # If the compiler does not support C++ 14, fail with a legible error message
+        try:
+            _ = best.package.standard_flag(language="cxx", standard="14")
+        except RuntimeError as e:
+            raise RuntimeError(
+                "cannot find a compiler supporting C++ 14 [needed to bootstrap clingo]"
+            ) from e
         return candidates[0]
 
     def _externals_from_yaml(

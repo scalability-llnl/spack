@@ -5291,9 +5291,6 @@ class DuplicateCompilerSpecError(spack.error.SpecError):
 class UnsupportedCompilerError(spack.error.SpecError):
     """Raised when the user asks for a compiler spack doesn't know about."""
 
-    def __init__(self, compiler_name):
-        super().__init__("The '%s' compiler is not yet supported." % compiler_name)
-
 
 class DuplicateArchitectureError(spack.error.SpecError):
     """Raised when the same architecture occurs in a spec twice."""
