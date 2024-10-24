@@ -478,6 +478,9 @@ attr("node_version_satisfies", node(X, BuildDependency), Constraint) :-
   attr("build_requirement", ParentNode, build_requirement("node_version_satisfies", BuildDependency, Constraint)),
   attr("depends_on", ParentNode, node(X, BuildDependency), "build").
 
+1 { attr("depends_on", ParentNode, node(0..Y-1, BuildDependency), "build") : max_dupes(BuildDependency, Y) } 1 :-
+  attr("build_requirement", ParentNode, build_requirement("node", BuildDependency)).
+
 % Reconstruct virtual dependencies for reused specs
 attr("virtual_on_edge", node(X, A1), node(Y, A2), Virtual)
   :- impose(ID, node(X, A1)),
@@ -554,11 +557,21 @@ edge_needed(ParentNode, node(X, Child)) :-
    build(ParentNode),
    attr("dependency_holds", ParentNode, Child, _).
 
-edge_needed(ParentNode, ChildNode) :-
+virtual_edge_needed(ParentNode, ChildNode, node(X, Virtual)) :-
    depends_on(ParentNode, ChildNode),
    build(ParentNode),
    node_depends_on_virtual(ParentNode, Virtual),
-   provider(ChildNode, node(_, Virtual)).
+   provider(ChildNode, node(X, Virtual)).
+
+virtual_edge_needed(ParentNode, ChildNode, node(X, Virtual)) :-
+   concrete(ParentNode),
+   concrete(ChildNode),
+   provider(ChildNode, node(X, Virtual)),
+   attr("virtual_on_edge", ParentNode, ChildNode, Virtual).
+
+edge_needed(ParentNode, ChildNode)      :- virtual_edge_needed(ParentNode, ChildNode, _).
+provider_needed(ChildNode, VirtualNode) :- virtual_edge_needed(_, ChildNode, VirtualNode).
+provider_needed(ChildNode, VirtualNode) :- attr("virtual_root", VirtualNode), provider(ChildNode, VirtualNode).
 
 error(10, "'{0}' is not a valid dependency for any package in the DAG", Package)
   :- attr("node", node(ID, Package)),
@@ -567,6 +580,11 @@ error(10, "'{0}' is not a valid dependency for any package in the DAG", Package)
 :- depends_on(ParentNode, ChildNode),
    not edge_needed(ParentNode, ChildNode),
    build(ParentNode).
+
+:- provider(PackageNode, VirtualNode),
+   not provider_needed(PackageNode, VirtualNode),
+   not attr("virtual_root", VirtualNode).
+
 
 #defined dependency_type/2.
 
