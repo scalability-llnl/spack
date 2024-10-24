@@ -1475,7 +1475,6 @@ set -g __fish_spack_optspecs_spack_env h/help
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a activate -d 'set the active environment'
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a deactivate -d 'deactivate the active environment'
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a create -d 'create a new environment'
-complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a add -d 'add an existing environment from a directory'
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a remove -d 'remove managed environment(s)'
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a rm -d 'remove managed environment(s)'
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a rename -d 'rename an existing environment'
@@ -1489,6 +1488,7 @@ complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a view -d 'manag
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a update -d 'update the environment manifest to the latest schema format'
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a revert -d 'restore the environment manifest to its previous format'
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a depfile -d 'generate a depfile to exploit parallel builds across specs'
+complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a track -d 'track an environment from a directory in Spack'
 complete -c spack -n '__fish_spack_using_command env' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command env' -s h -l help -d 'show this help message and exit'
 
@@ -1554,16 +1554,6 @@ complete -c spack -n '__fish_spack_using_command env create' -l with-view -r -f 
 complete -c spack -n '__fish_spack_using_command env create' -l with-view -r -d 'maintain view at WITH_VIEW (vs. environment'"'"'s directory)'
 complete -c spack -n '__fish_spack_using_command env create' -l include-concrete -r -f -a include_concrete
 complete -c spack -n '__fish_spack_using_command env create' -l include-concrete -r -d 'copy concrete specs from INCLUDE_CONCRETE'"'"'s environment'
-
-# spack env add
-set -g __fish_spack_optspecs_spack_env_add h/help n/name= y/yes-to-all
-complete -c spack -n '__fish_spack_using_command_pos 0 env add' -f -a '(__fish_spack_environments)'
-complete -c spack -n '__fish_spack_using_command env add' -s h -l help -f -a help
-complete -c spack -n '__fish_spack_using_command env add' -s h -l help -d 'show this help message and exit'
-complete -c spack -n '__fish_spack_using_command env add' -s n -l name -r -f -a name
-complete -c spack -n '__fish_spack_using_command env add' -s n -l name -r -d 'custom environment name'
-complete -c spack -n '__fish_spack_using_command env add' -s y -l yes-to-all -f -a yes_to_all
-complete -c spack -n '__fish_spack_using_command env add' -s y -l yes-to-all -d 'assume "yes" is the answer to every confirmation request'
 
 # spack env remove
 set -g __fish_spack_optspecs_spack_env_remove h/help y/yes-to-all f/force
@@ -1679,6 +1669,16 @@ complete -c spack -n '__fish_spack_using_command env depfile' -s o -l output -r 
 complete -c spack -n '__fish_spack_using_command env depfile' -s o -l output -r -d 'write the depfile to FILE rather than to stdout'
 complete -c spack -n '__fish_spack_using_command env depfile' -s G -l generator -r -f -a make
 complete -c spack -n '__fish_spack_using_command env depfile' -s G -l generator -r -d 'specify the depfile type (only supports `make`)'
+
+# spack env track
+set -g __fish_spack_optspecs_spack_env_track h/help n/name= y/yes-to-all
+complete -c spack -n '__fish_spack_using_command_pos 0 env track' -f -a '(__fish_spack_environments)'
+complete -c spack -n '__fish_spack_using_command env track' -s h -l help -f -a help
+complete -c spack -n '__fish_spack_using_command env track' -s h -l help -d 'show this help message and exit'
+complete -c spack -n '__fish_spack_using_command env track' -s n -l name -r -f -a name
+complete -c spack -n '__fish_spack_using_command env track' -s n -l name -r -d 'custom environment name'
+complete -c spack -n '__fish_spack_using_command env track' -s y -l yes-to-all -f -a yes_to_all
+complete -c spack -n '__fish_spack_using_command env track' -s y -l yes-to-all -d 'assume "yes" is the answer to every confirmation request'
 
 # spack extensions
 set -g __fish_spack_optspecs_spack_extensions h/help l/long L/very-long d/deps p/paths s/show=

@@ -1023,7 +1023,7 @@ _spack_env() {
     then
         SPACK_COMPREPLY="-h --help"
     else
-        SPACK_COMPREPLY="activate deactivate create add remove rm rename mv list ls status st loads view update revert depfile"
+        SPACK_COMPREPLY="activate deactivate create remove rm rename mv list ls status st loads view update revert depfile track"
     fi
 }
 
@@ -1046,15 +1046,6 @@ _spack_env_create() {
         SPACK_COMPREPLY="-h --help -d --dir --keep-relative --without-view --with-view --include-concrete"
     else
         _environments
-    fi
-}
-
-_spack_env_add() {
-    if $list_options
-    then
-        SPACK_COMPREPLY="-h --help -n --name -y --yes-to-all"
-    else
-        SPACK_COMPREPLY=""
     fi
 }
 
@@ -1147,6 +1138,15 @@ _spack_env_depfile() {
         SPACK_COMPREPLY="-h --help --make-prefix --make-target-prefix --make-disable-jobserver --use-buildcache -o --output -G --generator"
     else
         _all_packages
+    fi
+}
+
+_spack_env_track() {
+    if $list_options
+    then
+        SPACK_COMPREPLY="-h --help -n --name -y --yes-to-all"
+    else
+        SPACK_COMPREPLY=""
     fi
 }
 

@@ -42,7 +42,6 @@ subcommands = [
     "activate",
     "deactivate",
     "create",
-    "add",
     ["remove", "rm"],
     ["rename", "mv"],
     ["list", "ls"],
@@ -52,6 +51,7 @@ subcommands = [
     "update",
     "revert",
     "depfile",
+    "track",
 ]
 
 
@@ -449,19 +449,19 @@ def env_deactivate(args):
 
 
 #
-# env add
+# env track
 #
-def env_add_setup_parser(subparser):
-    """add an existing environment from a directory"""
+def env_track_setup_parser(subparser):
+    """track an environment from a directory in Spack"""
     subparser.add_argument("-n", "--name", help="custom environment name")
     subparser.add_argument("dir", help="path to environment")
     arguments.add_common_arguments(subparser, ["yes_to_all"])
 
 
-def env_add(args):
+def env_track(args):
     src_path = os.path.abspath(args.dir)
     if not ev.is_env_dir(src_path):
-        msg = f"cannot add environment {src_path} doesn't contain an environment"
+        msg = f"cannot track environment {src_path} doesn't contain an environment"
         raise ev.SpackEnvironmentError(msg)
 
     if args.name:
@@ -474,10 +474,10 @@ def env_add(args):
     try:
         symlink(src_path, dst_path)
     except SymlinkError as exc:
-        msg = f"cannot add the environment {src_path} unable to create symlink"
+        msg = f"cannot track the environment {src_path} unable to create symlink"
         raise ev.SpackEnvironmentError(msg) from exc
 
-    tty.msg(f"Linked environment in {src_path}")
+    tty.msg(f"Tracking environment in {src_path}")
     tty.msg("You can activate this environment with:")
     tty.msg(f"    spack env activate {name}")
 

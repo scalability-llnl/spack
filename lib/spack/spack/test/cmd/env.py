@@ -116,6 +116,32 @@ def check_viewdir_removal(viewdir):
     ) == ["projections.yaml"]
 
 
+def test_env_track_nonexistant_path_fails():
+    with pytest.raises(ev.SpackEnvironmentError, match=r"doesn't contain an environment"):
+        env("track", "path/does/not/exist")
+
+
+def test_env_track_existing_env_fails():
+    env("create", "track_test")
+
+    with pytest.raises(ev.SpackEnvironmentError, match=r"environment already exists"):
+        env("track", "--name", "track_test", ev.environment_dir_from_name("track_test"))
+
+
+def test_env_track_valid(tmp_path):
+    with fs.working_dir(str(tmp_path)):
+        # create an independent environment
+        env("create", "-d", ".")
+
+        # test tracking an environment in known store
+        env("track", "--name", "test1", ".")
+
+        # test removing environment to ensure independent isn't deleted
+        env("rm", "-y", "test1")
+
+        assert os.path.isfile("spack.yaml")
+
+
 def test_add():
     e = ev.create("test")
     e.add("mpileaks")
@@ -149,32 +175,6 @@ def test_change_multiple_matches():
 
     assert all(x.intersects("%gcc") for x in e.user_specs if x.name == "mpileaks")
     assert any(x.intersects("%clang") for x in e.user_specs if x.name == "libelf")
-
-
-def test_env_add_nonexistant_path_fails():
-    with pytest.raises(ev.SpackEnvironmentError, match=r"doesn't contain an environment"):
-        env("add", "path/does/not/exist")
-
-
-def test_env_add_existing_env_fails():
-    env("create", "add_test")
-
-    with pytest.raises(ev.SpackEnvironmentError, match=r"environment already exists"):
-        env("add", "--name", "add_test", ev.environment_dir_from_name("add_test"))
-
-
-def test_env_add_valid(tmp_path):
-    with fs.working_dir(str(tmp_path)):
-        # create an independent environment
-        env("create", "-d", ".")
-
-        # test adding environment into known store
-        env("add", "--name", "test1", ".")
-
-        # test removing environment to ensure independent isn't deleted
-        env("rm", "-y", "test1")
-
-        assert os.path.isfile("spack.yaml")
 
 
 def test_env_add_virtual():
