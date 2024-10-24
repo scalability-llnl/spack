@@ -9,8 +9,8 @@ parsing environment modules.
 """
 import os
 import re
-import sys
 import subprocess
+import sys
 from typing import MutableMapping, Optional
 
 import llnl.util.tty as tty
