@@ -277,15 +277,20 @@ def is_env_dir(path):
     return os.path.isdir(path) and os.path.exists(os.path.join(path, manifest_name))
 
 
-def environment_from_name_or_dir(name):
-    """Get an environment with the supplied name."""
-    if is_env_dir(name):
-        return Environment(name)
+def as_env_dir(name_or_dir):
+    """Translate an environment name or directory to the environment directory"""
+    if is_env_dir(name_or_dir):
+        return name_or_dir
     else:
-        validate_env_name(name)
-        if not exists(name):
-            raise SpackEnvironmentError("no such environment '%s'" % name)
-        return Environment(root(name))
+        validate_env_name(name_or_dir)
+        if not exists(name_or_dir):
+            raise SpackEnvironmentError("no such environment '%s'" % name_or_dir)
+        return root(name_or_dir)
+
+
+def environment_from_name_or_dir(name_or_dir):
+    """Get an environment with the supplied name."""
+    return Environment(as_env_dir(name_or_dir))
 
 
 def read(name):
