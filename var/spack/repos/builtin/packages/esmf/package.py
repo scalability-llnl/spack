@@ -276,8 +276,6 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
                 )
         elif self.pkg.compiler.name == "nag":
             env.set("ESMF_COMPILER", "nag")
-        elif self.pkg.compiler.name == "pgi":
-            env.set("ESMF_COMPILER", "pgi")
         elif self.pkg.compiler.name == "nvhpc":
             env.set("ESMF_COMPILER", "nvhpc")
         elif self.pkg.compiler.name == "cce":

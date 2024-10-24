@@ -84,9 +84,6 @@ class Nekcem(Package):
             elif self.compiler.name == "xl" or self.compiler.name == "xl_r":
                 fflags += ["-qrealsize=8"]
                 cflags += ["-DPREFIX=jl_", "-DIBM"]
-            elif self.compiler.name == "pgi":
-                fflags += ["-r8"]
-                cflags += ["-DUNDERSCORE"]
 
             error = Executable(fc)("empty.f", output=str, error=str, fail_on_error=False)
 

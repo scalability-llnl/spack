@@ -129,12 +129,8 @@ class FftwBase(AutotoolsPackage):
         # float only
         float_simd_features = ["altivec", "sse", "neon"]
 
-        # Workaround PGI compiler bug when avx2 is enabled
-        if spec.satisfies("%pgi") and "avx2" in simd_features:
-            simd_features.remove("avx2")
-
         # Workaround NVIDIA/PGI compiler bug when avx512 is enabled
-        if spec.satisfies("%nvhpc") or spec.satisfies("%pgi"):
+        if spec.satisfies("%nvhpc"):
             if "avx512" in simd_features:
                 simd_features.remove("avx512")
 

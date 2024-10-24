@@ -125,8 +125,6 @@ class Elk(MakefilePackage):
             flags = "-O3 -ffast-math -funroll-loops"
             if spec.satisfies("%gcc@10:"):
                 flags += " -fallow-argument-mismatch "
-        elif self.compiler.name == "pgi":
-            flags = "-O3 -lpthread"
         elif self.compiler.name == "g95":
             flags = "-O3 -fno-second-underscore"
         elif self.compiler.name == "nag":

@@ -1162,13 +1162,6 @@ with '-Wl,-commons,use_dylibs' and without
             if spec.satisfies("@1.7.2"):
                 # There was a bug in 1.7.2 when --enable-static is used
                 config_args.append("--enable-mca-no-build=pml-bfo")
-            if spec.satisfies("%pgi^cuda@7.0:7"):
-                # OpenMPI has problems with CUDA 7 and PGI
-                config_args.append("--with-wrapper-cflags=-D__LP64__ -ta:tesla")
-                if spec.satisfies("%pgi@:15.8"):
-                    # With PGI 15.9 and later compilers, the
-                    # CFLAGS=-D__LP64__ is no longer needed.
-                    config_args.append("CFLAGS=-D__LP64__")
         elif spec.satisfies("@1.7:"):
             config_args.append("--without-cuda")
 

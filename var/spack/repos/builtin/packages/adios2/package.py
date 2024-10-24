@@ -113,7 +113,6 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     # Requires mature C++11 implementations
     conflicts("%gcc@:4.7")
     conflicts("%intel@:15")
-    conflicts("%pgi@:14")
 
     # ifx does not support submodules in separate files
     conflicts("%oneapi@:2022.1.0", when="+fortran")
