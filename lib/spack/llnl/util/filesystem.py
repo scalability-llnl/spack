@@ -2467,6 +2467,11 @@ class WindowsSimulatedRPath:
         self._addl_rpaths = set()
         self.link_install_prefix = link_install_prefix
         self._additional_library_dependents = set()
+        if not self.link_install_prefix:
+            tty.debug(
+                "Generating rpath for non install context, \
+install prefixes will be omitted as rpath targets"
+            )
 
     @property
     def library_dependents(self):
@@ -2476,7 +2481,7 @@ class WindowsSimulatedRPath:
         base_pths = set()
         if self.link_install_prefix:
             base_pths.add(pathlib.Path(self.pkg.prefix.bin))
-            base_pths |= self._additional_library_dependents
+        base_pths |= self._additional_library_dependents
         return base_pths
 
     def add_library_dependent(self, *dest):
@@ -2493,7 +2498,23 @@ class WindowsSimulatedRPath:
                 new_pth = pathlib.Path(pth).parent
             else:
                 new_pth = pathlib.Path(pth)
-            self._additional_library_dependents.add(new_pth)
+            path_is_in_prefix = new_pth.is_relative_to(self.pkg.prefix)
+            add_lib = False
+            if self.link_install_prefix:
+                # We're creating RPath's post install, accept rpath targets anywhere but warn if
+                # out of install prefix
+                if not path_is_in_prefix:
+                    tty.warn(
+                        f"Generating rpath in {new_pth} which is \
+not rooted in target package ({self.pkg}) prefix"
+                    )
+                add_lib = True
+            elif not path_is_in_prefix:
+                # We're creating an RPath for anywhere not in the install prefix, only add rpath
+                # target if it's not in the install prefix
+                add_lib = True
+            if add_lib:
+                self._additional_library_dependents.add(new_pth)
 
     @property
     def rpaths(self):
