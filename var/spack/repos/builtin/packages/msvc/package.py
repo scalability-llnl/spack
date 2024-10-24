@@ -6,8 +6,8 @@ import re
 import spack.compiler
 from spack.package import *
 
-
 FC_PATH: Dict[str, str] = dict()
+
 
 def get_valid_fortran_pth():
     """Assign maximum available fortran compiler version"""
