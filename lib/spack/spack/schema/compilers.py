@@ -52,7 +52,10 @@ properties: Dict[str, Any] = {
                         "target": {"type": "string"},
                         "alias": {"anyOf": [{"type": "string"}, {"type": "null"}]},
                         "modules": {
-                            "anyOf": [{"type": "string"}, {"type": "null"}, {"type": "array"}]
+                            "anyOf": [
+                                {"type": "null"},
+                                {"type": "array", "items": {"type": "string"}},
+                            ]
                         },
                         "implicit_rpaths": {
                             "anyOf": [
