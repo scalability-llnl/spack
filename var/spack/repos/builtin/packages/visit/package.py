@@ -239,6 +239,7 @@ class Visit(CMakePackage):
         args = [
             self.define("CMAKE_SKIP_COMPATIBILITY_TESTS", True),
             self.define("CMAKE_POSITION_INDEPENDENT_CODE", True),
+            self.define("VTK_VERSION", str(spec["vtk"].version)),
             self.define("VTK_MAJOR_VERSION", spec["vtk"].version[0]),
             self.define("VTK_MINOR_VERSION", spec["vtk"].version[1]),
             self.define("VISIT_VTK_DIR", spec["vtk"].prefix),
