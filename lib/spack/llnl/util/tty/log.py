@@ -488,7 +488,7 @@ class nixlog:
         self._saved_debug = tty._debug
 
         # Pipe for redirecting output to logger
-        read_fd, write_fd = multiprocessing.Pipe(duplex=False)
+        read_fd, self.write_fd = multiprocessing.Pipe(duplex=False)
 
         # Pipe for communication back from the daemon
         # Currently only used to save echo value between uses
@@ -511,7 +511,7 @@ class nixlog:
                     args=(
                         input_fd,
                         read_fd,
-                        write_fd,
+                        self.write_fd,
                         self.echo,
                         self.log_file,
                         child_pipe,
@@ -542,9 +542,9 @@ class nixlog:
             self._saved_stderr = os.dup(sys.stderr.fileno())
 
             # redirect to the pipe we created above
-            os.dup2(write_fd.fileno(), sys.stdout.fileno())
-            os.dup2(write_fd.fileno(), sys.stderr.fileno())
-            write_fd.close()
+            os.dup2(self.write_fd.fileno(), sys.stdout.fileno())
+            os.dup2(self.write_fd.fileno(), sys.stderr.fileno())
+            self.write_fd.close()
 
         else:
             # Handle I/O the Python way. This won't redirect lower-level
@@ -557,7 +557,7 @@ class nixlog:
             self._saved_stderr = sys.stderr
 
             # create a file object for the pipe; redirect to it.
-            pipe_fd_out = os.fdopen(write_fd.fileno(), "w", closefd=False)
+            pipe_fd_out = os.fdopen(self.write_fd.fileno(), "w", closefd=False)
             sys.stdout = pipe_fd_out
             sys.stderr = pipe_fd_out
 
@@ -593,6 +593,7 @@ class nixlog:
         else:
             sys.stdout = self._saved_stdout
             sys.stderr = self._saved_stderr
+            self.write_fd.close()
 
         # print log contents in parent if needed.
         if self.log_file.write_in_parent:
