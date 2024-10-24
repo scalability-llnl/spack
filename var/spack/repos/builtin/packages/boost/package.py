@@ -122,7 +122,7 @@ class Boost(Package):
         """
         return [
             name
-            for name, version in _buildable_libraries.items()
+            for name, version in Boost._buildable_libraries.items()
             if self.spec.satisfies("+{0:s} {1:s}".format(name, version))
         ]
 
@@ -271,7 +271,9 @@ class Boost(Package):
         else:
             options.append("--with-toolset=%s" % boost_toolset_id)
 
-        with_libs = {f"{lib}" for lib, _ in self._buildable_libraries.items() if f"+{lib}" in spec}
+        with_libs = {
+            f"{lib}" for lib, _ in Boost._buildable_libraries.items() if f"+{lib}" in spec
+        }
         if with_libs:
             options.append("--with-libraries=%s" % ",".join(sorted(with_libs)))
         else:
@@ -384,7 +386,7 @@ class Boost(Package):
 
             # Any lib that is in self.all_libs AND in the variants dictionary
             # AND is set to False should be added to options in a --without flag
-            for lib in self._buildable_libraries:
+            for lib in Boost._buildable_libraries:
                 if lib not in self.spec.variants.dict or self.spec.satisfies(f"+{lib}"):
                     continue
                 options.append(f"--without-{lib}")
