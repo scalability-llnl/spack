@@ -482,7 +482,7 @@ class Unparser(NodeVisitor):
             self._type_params_helper(node.type_params)
         with self.delimit("(", ")"):
             self.traverse(node.args)
-        if getattr(node, "returns", False):
+        if node.returns:
             self.write(" -> ")
             self.traverse(node.returns)
         with self.block(extra=self.get_type_comment(node)):
