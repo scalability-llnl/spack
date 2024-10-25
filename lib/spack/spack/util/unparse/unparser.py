@@ -24,7 +24,7 @@ _INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
 class _Precedence(IntEnum):
     """Precedence table that originated from python grammar."""
 
-    # NAMED_EXPR = auto()  # <target> := <expr1>
+    NAMED_EXPR = auto()  # <target> := <expr1>
     TUPLE = auto()  # <expr1>, <expr2>
     YIELD = auto()  # 'yield', 'yield from'
     TEST = auto()  # 'if'-'else', 'lambda'
@@ -211,7 +211,7 @@ class Unparser:
         self.traverse(node.value)
 
     def visit_NamedExpr(self, node):
-        with self.require_parens(_Precedence.TUPLE, node):
+        with self.require_parens(_Precedence.NAMED_EXPR, node):
             self.set_precedence(_Precedence.ATOM, node.target, node.value)
             self.traverse(node.target)
             self.write(" := ")
@@ -236,6 +236,7 @@ class Unparser:
     def visit_Assign(self, node):
         self.fill()
         for target in node.targets:
+            self.set_precedence(_Precedence.TUPLE, target)
             self.traverse(target)
             self.write(" = ")
         self.traverse(node.value)
@@ -437,6 +438,7 @@ class Unparser:
 
     def _for_helper(self, fill, node):
         self.fill(fill)
+        self.set_precedence(_Precedence.TUPLE, node.target)
         self.traverse(node.target)
         self.write(" in ")
         self.traverse(node.iter)
@@ -744,7 +746,9 @@ class Unparser:
             self.interleave(lambda: self.write(", "), write_item, zip(node.keys, node.values))
 
     def visit_Tuple(self, node):
-        with self.delimit("(", ")"):
+        with self.delimit_if(
+            "(", ")", len(node.elts) == 0 or self.get_precedence(node) > _Precedence.TUPLE
+        ):
             self.items_view(self.traverse, node.elts)
 
     unop = {"Invert": "~", "Not": "not", "UAdd": "+", "USub": "-"}
