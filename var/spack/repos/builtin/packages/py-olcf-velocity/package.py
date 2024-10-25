@@ -7,7 +7,8 @@ from spack.package import *
 
 
 class PyOlcfVelocity(PythonPackage):
-    """A tool to help with the maintenance of container build scripts on multiple systems, backends (e.g podman or apptainer) and distros."""
+    """A tool to help with the maintenance of container build scripts on multiple systems,
+    backends (e.g podman or apptainer) and distros."""
 
     homepage = "https://olcf.github.io/velocity/index.html"
     pypi = "olcf_velocity/olcf_velocity-0.1.3.tar.gz"
