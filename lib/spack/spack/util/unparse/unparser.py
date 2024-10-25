@@ -490,23 +490,17 @@ class Unparser:
             with self.block():
                 self.traverse(node.orelse)
 
-    def _generic_With(self, node, async_=False):
-        self.fill("async with " if async_ else "with ")
-        if hasattr(node, "items"):
-            self.interleave(lambda: self.write(", "), self.traverse, node.items)
-        else:
-            self.traverse(node.context_expr)
-            if node.optional_vars:
-                self.write(" as ")
-                self.traverse(node.optional_vars)
+    def visit_With(self, node):
+        self.fill("with ")
+        self.interleave(lambda: self.write(", "), self.traverse, node.items)
         with self.block():
             self.traverse(node.body)
 
-    def visit_With(self, node):
-        self._generic_With(node)
-
     def visit_AsyncWith(self, node):
-        self._generic_With(node, async_=True)
+        self.fill("async with ")
+        self.interleave(lambda: self.write(", "), self.traverse, node.items)
+        with self.block():
+            self.traverse(node.body)
 
     def _str_literal_helper(
         self, string, *, quote_types=_ALL_QUOTES, escape_special_whitespace=False
