@@ -4,20 +4,23 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import contextlib
+import hashlib
 import itertools
+import json
 import os
 import platform
 import re
 import shutil
 import sys
 import tempfile
-from typing import List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 
 import llnl.path
 import llnl.util.lang
 import llnl.util.tty as tty
 from llnl.util.filesystem import path_contains_subdirectory, paths_containing_libs
 
+import spack.caches
 import spack.error
 import spack.schema.environment
 import spack.spec
@@ -280,6 +283,7 @@ class Compiler:
         environment=None,
         extra_rpaths=None,
         enable_implicit_rpaths=None,
+        cache: Optional["CompilerCache"] = None,
         **kwargs,
     ):
         self.spec = cspec
@@ -290,6 +294,7 @@ class Compiler:
         self.environment = environment or {}
         self.extra_rpaths = extra_rpaths or []
         self.enable_implicit_rpaths = enable_implicit_rpaths
+        self.cache: CompilerCache = cache or CompilerCache(spack.caches.MISC_CACHE)
 
         self.cc = paths[0]
         self.cxx = paths[1]
@@ -390,15 +395,11 @@ class Compiler:
 
         E.g. C++11 flag checks.
         """
-        if not self._real_version:
-            try:
-                real_version = spack.version.Version(self.get_real_version())
-                if real_version == spack.version.Version("unknown"):
-                    return self.version
-                self._real_version = real_version
-            except spack.util.executable.ProcessError:
-                self._real_version = self.version
-        return self._real_version
+        real_version_str = self.cache.get(self).get("real_version")
+        if not real_version_str or real_version_str == "unknown":
+            return self.version
+
+        return spack.version.StandardVersion.from_string(real_version_str)
 
     def implicit_rpaths(self) -> List[str]:
         if self.enable_implicit_rpaths is False:
@@ -445,9 +446,7 @@ class Compiler:
     @property
     def compiler_verbose_output(self) -> Optional[str]:
         """Verbose output from compiling a dummy C source file. Output is cached."""
-        if not hasattr(self, "_compile_c_source_output"):
-            self._compile_c_source_output = self._compile_dummy_c_source()
-        return self._compile_c_source_output
+        return self.cache.get(self).get("c_compiler_output")
 
     def _compile_dummy_c_source(self) -> Optional[str]:
         cc = self.cc if self.cc else self.cxx
@@ -559,7 +558,7 @@ class Compiler:
     # Note: This is not a class method. The class methods are used to detect
     # compilers on PATH based systems, and do not set up the run environment of
     # the compiler. This method can be called on `module` based systems as well
-    def get_real_version(self):
+    def get_real_version(self) -> str:
         """Query the compiler for its version.
 
         This is the "real" compiler version, regardless of what is in the
@@ -732,3 +731,51 @@ class UnsupportedCompilerFlag(spack.error.SpackError):
             )
             + " implement the {0} property and submit a pull request or issue.".format(flag_name),
         )
+
+
+class CompilerCache:
+    """Cache for compiler output, which is used to determine implicit link paths, the default libc
+    version, and the compiler version."""
+
+    name = os.path.join("compilers", "compilers.json")
+
+    def __init__(self, cache: "spack.caches.FileCacheType") -> None:
+        self.cache = cache
+        self.cache.init_entry(self.name)
+        self._data: Dict[str, Dict[str, str]] = {}
+
+    def get(self, compiler: Compiler) -> Dict[str, str]:
+        # Cache hit
+        try:
+            with self.cache.read_transaction(self.name) as f:
+                assert f is not None
+                self._data = json.loads(f.read())
+        except Exception:
+            self._data = {}
+
+        key = self._key(compiler)
+        if key in self._data:
+            return self._data[key]
+
+        # Cache miss
+        with self.cache.write_transaction(self.name) as (old, new):
+            try:
+                self._data = json.loads(old.read())
+            except Exception:
+                pass
+            # Another process may have already run the compiler in the meantime.
+            if key not in self._data:
+                self._data[key] = self._value(compiler)
+            new.write(json.dumps(self._data, separators=(",", ":")))
+
+        return self._data[key]
+
+    def _value(self, compiler: Compiler):
+        return {
+            "c_compiler_output": compiler._compile_dummy_c_source(),
+            "real_version": compiler.get_real_version(),
+        }
+
+    def _key(self, compiler: Compiler) -> str:
+        as_bytes = json.dumps(compiler.to_dict(), separators=(",", ":")).encode("utf-8")
+        return hashlib.sha256(as_bytes).hexdigest()
