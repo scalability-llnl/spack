@@ -4,7 +4,7 @@
 "Usage: unparse.py <path to source file>"
 import ast
 import sys
-from ast import If, Name
+from ast import AST, If, Name
 from contextlib import contextmanager
 from enum import IntEnum, auto
 from io import StringIO
@@ -14,6 +14,57 @@ from io import StringIO
 @contextmanager
 def nullcontext():
     yield
+
+
+def iter_fields(node):
+    """
+    Yield a tuple of ``(fieldname, value)`` for each field in ``node._fields``
+    that is present on *node*.
+    """
+    for field in node._fields:
+        try:
+            yield field, getattr(node, field)
+        except AttributeError:
+            pass
+
+
+class NodeVisitor(object):
+    """
+    A node visitor base class that walks the abstract syntax tree and calls a
+    visitor function for every node found.  This function may return a value
+    which is forwarded by the `visit` method.
+
+    This class is meant to be subclassed, with the subclass adding visitor
+    methods.
+
+    Per default the visitor functions for the nodes are ``'visit_'`` +
+    class name of the node.  So a `TryFinally` node visit function would
+    be `visit_TryFinally`.  This behavior can be changed by overriding
+    the `visit` method.  If no visitor function exists for a node
+    (return value `None`) the `generic_visit` visitor is used instead.
+
+    Don't use the `NodeVisitor` if you want to apply changes to nodes during
+    traversing.  For this a special visitor exists (`NodeTransformer`) that
+    allows modifications.
+    """
+
+    def visit(self, node):
+        """Visit a node."""
+        method = "visit_" + node.__class__.__name__
+        visitor = getattr(self, method, self.generic_visit)
+        return visitor(node)
+
+    def generic_visit(self, node):
+        """Called if no explicit visitor function exists for a node."""
+        for field, value in iter_fields(node):
+            if isinstance(value, list):
+                for item in value:
+                    if isinstance(item, AST):
+                        self.visit(item)
+            elif isinstance(value, AST):
+                self.visit(value)
+
+    # def visit_Constant removed compared to cpython because overridden below anyway
 
 
 # Large float and imaginary literals get turned into infinities in the AST.
@@ -70,7 +121,7 @@ def is_simple_tuple(slice_value):
     )
 
 
-class Unparser:
+class Unparser(NodeVisitor):
     """Methods in this class recursively traverse an AST and
     output source code for the abstract syntax; original formatting
     is disregarded."""
@@ -176,8 +227,7 @@ class Unparser:
             for item in node:
                 self.traverse(item)
         else:
-            meth = getattr(self, "visit_" + node.__class__.__name__)
-            meth(node)
+            super().visit(node)
 
     # Note: as visit() resets the output text, do NOT rely on
     # NodeVisitor.generic_visit to handle any nodes (as it calls back in to
@@ -189,25 +239,10 @@ class Unparser:
         self.traverse(node)
         return "".join(self._source)
 
-    #
-    # Unparsing methods
-    #
-    # There should be one method per concrete grammar type Constructors
-    # should be # grouped by sum type. Ideally, this would follow the order
-    # in the grammar, but currently doesn't.
-
     def visit_Module(self, node):
         for stmt in node.body:
             self.traverse(stmt)
 
-    def visit_Interactive(self, node):
-        for stmt in node.body:
-            self.traverse(stmt)
-
-    def visit_Expression(self, node):
-        self.traverse(node.body)
-
-    # stmt
     def visit_Expr(self, node):
         self.fill()
         self.set_precedence(_Precedence.YIELD, node.value)
