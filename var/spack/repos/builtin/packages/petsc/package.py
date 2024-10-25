@@ -167,7 +167,21 @@ class Petsc(Package, CudaPackage, ROCmPackage):
         "memalign",
         default="none",
         description="Specify alignment of allocated arrays",
-        values=("4", "8", "16", "32", "64", "128", "none"),
+        values=(
+            "4",
+            "8",
+            "16",
+            "32",
+            "64",
+            "128",
+            "256",
+            "512",
+            "1024",
+            "2048",
+            "4096",
+            "8192",
+            "none",
+        ),
         multi=False,
     )
     variant("p4est", default=False, description="Activates support for P4Est (only parallel)")
