@@ -5,6 +5,7 @@
 
 from spack.package import *
 
+
 class Neofoam(CMakePackage):
     """NeoFOAM is a WIP prototype of a modern CFD core."""
 
