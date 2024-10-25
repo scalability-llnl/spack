@@ -1789,7 +1789,19 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
             for dir_entry in dir_iter:
                 orig_path = os.path.join(next_dir, dir_entry.name)
 
-                if dir_entry.is_dir(follow_symlinks=True):
+                try:
+                    it_is_a_dir = dir_entry.is_dir(follow_symlinks=True)
+                except OSError as e:
+                    if e.errno == errno.ETOOMANYREFS:
+                        tty.debug(
+                            f"{dir_entry.path}: this path is a symlink that "
+                            "cannot be resolved - skipping"
+                        )
+                        continue
+                    else:
+                        raise
+
+                if it_is_a_dir:
                     resolved_path = None
                     if sys.platform == "win32":
                         # Note: DirEntry.is_junction is available starting with python 3.12
