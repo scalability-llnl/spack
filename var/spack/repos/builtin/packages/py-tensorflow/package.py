@@ -129,8 +129,12 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     variant("mkl", default=False, description="Build with MKL support")
     variant("jemalloc", default=False, description="Build with jemalloc as malloc support")
     variant("gcp", default=False, description="Build with Google Cloud Platform support")
-    variant("hdfs", default=False, description="Build with Hadoop File System support")
-    variant("aws", default=False, description="Build with Amazon AWS Platform support")
+    variant(
+        "hdfs", default=False, when="@:2.17", description="Build with Hadoop File System support"
+    )
+    variant(
+        "aws", default=False, when="@:2.17", description="Build with Amazon AWS Platform support"
+    )
     variant("xla", default=sys.platform != "darwin", description="Build with XLA JIT support")
     variant("gdr", default=False, description="Build with GDR support")
     variant("verbs", default=False, description="Build with libverbs support")
