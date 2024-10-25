@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Test basic behavior of compilers in Spack"""
+import json
 import os
 from copy import copy
 from typing import Optional
@@ -918,25 +919,36 @@ def test_compiler_output_caching(tmp_path):
     """Test that compiler output is cached on the filesystem."""
     # The first call should trigger the cache to updated.
     a = MockCompilerWithoutExecutables()
-    cache_a = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
-    assert cache_a.get(a).c_compiler_output == "gcc helloworld.c -o helloworld"
-    assert cache_a.get(a).real_version == "1.0.0"
+    cache = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    assert cache.get(a).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache.get(a).real_version == "1.0.0"
     assert a._compile_dummy_c_source_count == 1
     assert a._get_real_version_count == 1
 
     # The second call on an equivalent but distinct object should not trigger compiler calls.
     b = MockCompilerWithoutExecutables()
-    cache_b = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
-    assert cache_b.get(b).c_compiler_output == "gcc helloworld.c -o helloworld"
-    assert cache_b.get(b).real_version == "1.0.0"
+    cache = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    assert cache.get(b).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache.get(b).real_version == "1.0.0"
     assert b._compile_dummy_c_source_count == 0
     assert b._get_real_version_count == 0
 
-    # Cache corruption should be handled gracefully.
-    with open(cache_a.cache.cache_path(cache_a.name), "w") as f:
-        f.write("invalid json")
+    # Cache schema change should be handled gracefully.
+    with open(cache.cache.cache_path(cache.name), "w") as f:
+        for k in cache._data:
+            cache._data[k] = "corrupted entry"
+        f.write(json.dumps(cache._data))
 
     c = MockCompilerWithoutExecutables()
     cache = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
     assert cache.get(c).c_compiler_output == "gcc helloworld.c -o helloworld"
     assert cache.get(c).real_version == "1.0.0"
+
+    # Cache corruption should be handled gracefully.
+    with open(cache.cache.cache_path(cache.name), "w") as f:
+        f.write("corrupted cache")
+
+    d = MockCompilerWithoutExecutables()
+    cache = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    assert cache.get(d).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache.get(d).real_version == "1.0.0"

@@ -789,10 +789,9 @@ class CompilerCache:
             self._data = {}
 
         key = self._key(compiler)
-        if key in self._data:
-            value = self._get_entry(key)
-            if value is not None:
-                return value
+        value = self._get_entry(key)
+        if value is not None:
+            return value
 
         # Cache miss
         with self.cache.write_transaction(self.name) as (old, new):
