@@ -127,16 +127,6 @@ class Unparser(NodeVisitor):
     is disregarded."""
 
     def __init__(self, py_ver_consistent=False, _avoid_backslashes=False):
-        """Traverse an AST and generate its source.
-
-        Arguments:
-            py_ver_consistent (bool): if True, generate unparsed code that is
-                consistent between Python versions 3.5-3.11.
-
-        For legacy reasons, consistency is achieved by unparsing Python3 unicode literals
-        the way Python 2 would. This preserved Spack package hash consistency during the
-        python2/3 transition
-        """
         self._source = []
         self._precedences = {}
         self._indent = 0
@@ -953,11 +943,6 @@ class Unparser(NodeVisitor):
         self.traverse(node.func)
         with self.delimit("(", ")"):
             comma = False
-
-            # NOTE: this code is no longer compatible with python versions 2.7:3.4
-            # If you run on python@:3.4, you will see instability in package hashes
-            # across python versions
-
             for e in node.args:
                 if comma:
                     self.write(", ")
@@ -1020,14 +1005,12 @@ class Unparser(NodeVisitor):
     def visit_ExtSlice(self, node):
         self.interleave(lambda: self.write(", "), self.traverse, node.dims)
 
-    # argument
     def visit_arg(self, node):
         self.write(node.arg)
         if node.annotation:
             self.write(": ")
             self.traverse(node.annotation)
 
-    # others
     def visit_arguments(self, node):
         first = True
         # normal arguments
