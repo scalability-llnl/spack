@@ -477,7 +477,7 @@ def env_track(args):
         msg = f"cannot track the environment {src_path} unable to create symlink"
         raise ev.SpackEnvironmentError(msg) from exc
 
-    tty.msg(f"Tracking environment in {src_path}")
+    tty.msg(f"Tracking environment in {src_path} as {name}")
     tty.msg("You can activate this environment with:")
     tty.msg(f"    spack env activate {name}")
 
