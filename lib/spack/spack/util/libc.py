@@ -52,8 +52,15 @@ def default_search_paths_from_dynamic_linker(dynamic_linker: str) -> List[str]:
     ]
 
 
-@memoized
 def libc_from_dynamic_linker(dynamic_linker: str) -> Optional["spack.spec.Spec"]:
+    maybe_spec = _libc_from_dynamic_linker(dynamic_linker)
+    if maybe_spec:
+        return maybe_spec.copy()
+    return None
+
+
+@memoized
+def _libc_from_dynamic_linker(dynamic_linker: str) -> Optional["spack.spec.Spec"]:
     if not os.path.exists(dynamic_linker):
         return None
 
