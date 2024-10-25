@@ -5,10 +5,9 @@
 
 import pytest
 
+import spack.config
 import spack.solver.asp
 import spack.spec
-
-pytestmark = [pytest.mark.not_on_windows("Windows uses old concretizer")]
 
 version_error_messages = [
     "Cannot satisfy 'fftw@:1.0' and 'fftw@1.1:",

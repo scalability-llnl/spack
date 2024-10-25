@@ -39,6 +39,7 @@ from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
 from llnl.util import filesystem, lang, tty
 
+import spack.error
 import spack.paths
 import spack.platforms
 import spack.schema
@@ -48,17 +49,19 @@ import spack.schema.ci
 import spack.schema.compilers
 import spack.schema.concretizer
 import spack.schema.config
+import spack.schema.definitions
+import spack.schema.develop
 import spack.schema.env
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
 import spack.schema.repos
 import spack.schema.upstreams
+import spack.schema.view
 
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
 import spack.util.web as web_util
-from spack.error import SpackError
 from spack.util.cpus import cpus_available
 
 #: Dict from section names -> schema for that section
@@ -165,7 +168,7 @@ class DirectoryConfigScope(ConfigScope):
 
     def _write_section(self, section: str) -> None:
         if not self.writable:
-            raise ConfigError(f"Cannot write to immutable scope {self}")
+            raise spack.error.ConfigError(f"Cannot write to immutable scope {self}")
 
         filename = self.get_section_filename(section)
         data = self.get_section(section)
@@ -277,7 +280,7 @@ class SingleFileScope(ConfigScope):
 
     def _write_section(self, section: str) -> None:
         if not self.writable:
-            raise ConfigError(f"Cannot write to immutable scope {self}")
+            raise spack.error.ConfigError(f"Cannot write to immutable scope {self}")
         data_to_write: Optional[YamlConfigDict] = self._raw_data
 
         # If there is no existing data, this section SingleFileScope has never
@@ -705,7 +708,7 @@ class Configuration:
             data[section] = self.get_config(section, scope=scope)
             syaml.dump_config(data, stream=sys.stdout, default_flow_style=False, blame=blame)
         except (syaml.SpackYAMLError, OSError) as e:
-            raise ConfigError(f"cannot read '{section}' configuration") from e
+            raise spack.error.ConfigError(f"cannot read '{section}' configuration") from e
 
 
 @contextlib.contextmanager
@@ -807,7 +810,7 @@ def _add_command_line_scopes(
             _add_platform_scope(cfg, name, path, writable=False)
             continue
         else:
-            raise ConfigError(f"Invalid configuration scope: {path}")
+            raise spack.error.ConfigError(f"Invalid configuration scope: {path}")
 
         for scope in manifest.env_config_scopes:
             scope.name = f"{name}:{scope.name}"
@@ -1019,7 +1022,7 @@ def change_or_add(
 
     if found:
         update_fn(section)
-        spack.config.set(section_name, section, scope=scope)
+        CONFIG.set(section_name, section, scope=scope)
         return
 
     # If no scope meets the criteria specified by ``find_fn``,
@@ -1032,14 +1035,14 @@ def change_or_add(
             break
 
     if found:
-        spack.config.set(section_name, section, scope=scope)
+        CONFIG.set(section_name, section, scope=scope)
         return
 
     # If no scopes define any config for the named section, then
     # modify the highest-priority scope.
     scope, section = configs_by_section[0]
     update_fn(section)
-    spack.config.set(section_name, section, scope=scope)
+    CONFIG.set(section_name, section, scope=scope)
 
 
 def update_all(section_name: str, change_fn: Callable[[str], bool]) -> None:
@@ -1051,7 +1054,7 @@ def update_all(section_name: str, change_fn: Callable[[str], bool]) -> None:
     for scope, section in configs_by_section:
         modified = change_fn(section)
         if modified:
-            spack.config.set(section_name, section, scope=scope)
+            CONFIG.set(section_name, section, scope=scope)
 
 
 def _validate_section_name(section: str) -> None:
@@ -1090,7 +1093,7 @@ def validate(
 
 
 def read_config_file(
-    filename: str, schema: Optional[YamlConfigDict] = None
+    path: str, schema: Optional[YamlConfigDict] = None
 ) -> Optional[YamlConfigDict]:
     """Read a YAML configuration file.
 
@@ -1100,21 +1103,9 @@ def read_config_file(
     # to preserve flexibility in calling convention (don't need to provide
     # schema when it's not necessary) while allowing us to validate against a
     # known schema when the top-level key could be incorrect.
-
-    if not os.path.exists(filename):
-        # Ignore nonexistent files.
-        tty.debug(f"Skipping nonexistent config path {filename}", level=3)
-        return None
-
-    elif not os.path.isfile(filename):
-        raise ConfigFileError(f"Invalid configuration. {filename} exists but is not a file.")
-
-    elif not os.access(filename, os.R_OK):
-        raise ConfigFileError(f"Config file is not readable: {filename}")
-
     try:
-        tty.debug(f"Reading config from file {filename}")
-        with open(filename) as f:
+        with open(path) as f:
+            tty.debug(f"Reading config from file {path}")
             data = syaml.load_config(f)
 
         if data:
@@ -1125,14 +1116,19 @@ def read_config_file(
 
         return data
 
-    except StopIteration:
-        raise ConfigFileError(f"Config file is empty or is not a valid YAML dict: {filename}")
+    except FileNotFoundError:
+        # Ignore nonexistent files.
+        tty.debug(f"Skipping nonexistent config path {path}", level=3)
+        return None
+
+    except OSError as e:
+        raise ConfigFileError(f"Path is not a file or is not readable: {path}: {str(e)}") from e
+
+    except StopIteration as e:
+        raise ConfigFileError(f"Config file is empty or is not a valid YAML dict: {path}") from e
 
     except syaml.SpackYAMLError as e:
         raise ConfigFileError(str(e)) from e
-
-    except OSError as e:
-        raise ConfigFileError(f"Error reading configuration file {filename}: {str(e)}") from e
 
 
 def _override(string: str) -> bool:
@@ -1232,7 +1228,7 @@ def get_valid_type(path):
                     return types[schema_type]()
     else:
         return type(None)
-    raise ConfigError(f"Cannot determine valid type for path '{path}'.")
+    raise spack.error.ConfigError(f"Cannot determine valid type for path '{path}'.")
 
 
 def remove_yaml(dest, source):
@@ -1275,7 +1271,7 @@ def remove_yaml(dest, source):
             unmerge = sk in dest
             old_dest_value = dest.pop(sk, None)
 
-            if unmerge and not spack.config._override(sk):
+            if unmerge and not _override(sk):
                 dest[sk] = remove_yaml(old_dest_value, sv)
 
         return dest
@@ -1712,40 +1708,48 @@ def get_mark_from_yaml_data(obj):
     return mark
 
 
-def parse_spec_from_yaml_string(string: str) -> "spack.spec.Spec":
-    """Parse a spec from YAML and add file/line info to errors, if it's available.
-
-    Parse a ``Spec`` from the supplied string, but also intercept any syntax errors and
-    add file/line information for debugging using file/line annotations from the string.
-
-    Arguments:
-        string: a string representing a ``Spec`` from config YAML.
-
+def determine_number_of_jobs(
+    *,
+    parallel: bool = False,
+    max_cpus: int = cpus_available(),
+    config: Optional[Configuration] = None,
+) -> int:
     """
+    Packages that require sequential builds need 1 job. Otherwise we use the
+    number of jobs set on the command line. If not set, then we use the config
+    defaults (which is usually set through the builtin config scope), but we
+    cap to the number of CPUs available to avoid oversubscription.
+
+    Parameters:
+        parallel: true when package supports parallel builds
+        max_cpus: maximum number of CPUs to use (defaults to cpus_available())
+        config: configuration object (defaults to global config)
+    """
+    if not parallel:
+        return 1
+
+    cfg = config or CONFIG
+
+    # Command line overrides all
     try:
-        spec = spack.spec.Spec(string)
-        return spec
-    except spack.parser.SpecSyntaxError as e:
-        mark = spack.config.get_mark_from_yaml_data(string)
-        if mark:
-            msg = f"{mark.name}:{mark.line + 1}: {str(e)}"
-            raise spack.parser.SpecSyntaxError(msg) from e
-        raise e
+        command_line = cfg.get("config:build_jobs", default=None, scope="command_line")
+        if command_line is not None:
+            return command_line
+    except ValueError:
+        pass
+
+    return min(max_cpus, cfg.get("config:build_jobs", 16))
 
 
-class ConfigError(SpackError):
-    """Superclass for all Spack config related errors."""
-
-
-class ConfigSectionError(ConfigError):
+class ConfigSectionError(spack.error.ConfigError):
     """Error for referring to a bad config section name in a configuration."""
 
 
-class ConfigFileError(ConfigError):
+class ConfigFileError(spack.error.ConfigError):
     """Issue reading or accessing a configuration file."""
 
 
-class ConfigFormatError(ConfigError):
+class ConfigFormatError(spack.error.ConfigError):
     """Raised when a configuration format does not match its schema."""
 
     def __init__(

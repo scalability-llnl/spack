@@ -22,6 +22,9 @@ class PyIpython(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("8.28.0", sha256="0d0d15ca1e01faeb868ef56bc7ee5a0de5bd66885735682e8a322ae289a13d1a")
+    version("8.27.0", sha256="0b99a2dc9f15fd68692e898e5568725c6d49c527d36a9fb5960ffbdeaa82ff7e")
+    version("8.26.0", sha256="1cec0fbba8404af13facebe83d04436a7434c7400e59f47acf467c64abd0956c")
     version("8.25.0", sha256="c6ed726a140b6e725b911528f80439c534fac915246af3efc39440a6b0f9d716")
     version("8.24.0", sha256="010db3f8a728a578bb641fdd06c063b9fb8e96a9464c63aec6310fbcb5e80501")
     version("8.23.0", sha256="7468edaf4f6de3e1b912e57f66c241e6fd3c7099f2ec2136e239e142e800274d")

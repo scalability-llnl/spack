@@ -182,12 +182,12 @@ class Dftbplus(CMakePackage, MakefilePackage):
 
         mconfig.filter("INSTALLDIR := .*", "INSTALLDIR := {0}".format(prefix))
 
-        if "+gpu" in self.spec:
+        if self.spec.satisfies("+gpu"):
             march.filter("MAGMADIR = .*", "MAGMADIR = {0}".format(spec["magma"].prefix))
 
             mconfig.filter("WITH_GPU := .*", "WITH_GPU := 1")
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             march.filter(
                 "SCALAPACKDIR = .*", "SCALAPACKDIR = {0}".format(spec["scalapack"].prefix)
             )
@@ -200,7 +200,7 @@ class Dftbplus(CMakePackage, MakefilePackage):
 
             mconfig.filter("WITH_MPI := .*", "WITH_MPI := 1")
 
-            if "+elsi" in self.spec:
+            if self.spec.satisfies("+elsi"):
                 mconfig.filter("WITH_ELSI := .*", "WITH_ELSI := 1")
 
                 has_pexsi = "+enable_pexsi" in spec["elsi"]
@@ -221,20 +221,20 @@ class Dftbplus(CMakePackage, MakefilePackage):
                 "LIB_LAPACK += -l.*", "LIB_LAPACK += {0}".format(spec["blas"].libs.ld_flags)
             )
 
-        if "+sockets" in self.spec:
+        if self.spec.satisfies("+sockets"):
             mconfig.filter("WITH_SOCKETS := .*", "WITH_SOCKETS := 1")
 
-        if "+transport" in self.spec:
+        if self.spec.satisfies("+transport"):
             mconfig.filter("WITH_TRANSPORT := .*", "WITH_TRANSPORT := 1")
 
-        if "+arpack" in self.spec:
+        if self.spec.satisfies("+arpack"):
             march.filter(
                 "ARPACK_LIBS = .*", "ARPACK_LIBS = {0}".format(spec["arpack-ng"].libs.ld_flags)
             )
 
             mconfig.filter("WITH_ARPACK := .*", "WITH_ARPACK := 1")
 
-        if "+dftd3" in self.spec:
+        if self.spec.satisfies("+dftd3"):
             march.filter("COMPILE_DFTD3 = .*", "COMPILE_DFTD3 = 0")
             march.filter(
                 "DFTD3_INCS = .*", "DFTD3_INCS = -I{0}".format(spec["dftd3-lib"].prefix.include)
@@ -272,7 +272,7 @@ class Dftbplus(CMakePackage, MakefilePackage):
         #       (e.g. -DSCALAPACK_LIBRARY)
         # and plural form is ignored.
         # We set both inorder to be compatible with all versions.
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             # we use scalapack for linear algebra
             args.extend(
                 [
@@ -298,7 +298,7 @@ class Dftbplus(CMakePackage, MakefilePackage):
                     self.define("BLAS_LIBRARY", blas_libs),
                 ]
             )
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args.append(self.define("BUILD_SHARED_LIBS", True))
         if self.run_tests:
             args.append("-DWITH_UNIT_TESTS=ON")

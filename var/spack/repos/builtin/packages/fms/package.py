@@ -58,6 +58,22 @@ class Fms(CMakePackage):
     depends_on("c", type="build")  # generated
     depends_on("fortran", type="build")  # generated
 
+    # https://github.com/NOAA-GFDL/FMS/issues/1417
+    patch(
+        "https://github.com/NOAA-GFDL/FMS/commit/c9bba516ba1115d4a7660fba92f9d67cf3fd32ad.patch?full_index=1",
+        sha256="07d5b68838bba61ee547bd4cd7c12d81228c91a80a966b8693694fa236d0ac30",
+        when="@2023.03",
+    )
+
+    variant("shared", description="Build shared libraries", when="@2024.02:", default=False)
+    # What the following patch is providing is available in version 2024.03
+    # and newer so it is only needed to 2024.02
+    patch(
+        "https://github.com/NOAA-GFDL/fms/pull/1559.patch?full_index=1",
+        sha256="2b12a6c35f357c3dddcfa5282576e56ab0e8e6c1ad1dab92a2c85ce3dfb815d4",
+        when="@2024.02",
+    )
+
     variant(
         "precision",
         values=("32", "64"),
@@ -115,6 +131,7 @@ class Fms(CMakePackage):
             self.define_from_variant("GFS_PHYS"),
             self.define_from_variant("OPENMP"),
             self.define_from_variant("ENABLE_QUAD_PRECISION", "quad_precision"),
+            self.define_from_variant("SHARED_LIBS", "shared"),
             self.define_from_variant("WITH_YAML", "yaml"),
             self.define_from_variant("CONSTANTS"),
             self.define_from_variant("LARGEFILE", "large_file"),

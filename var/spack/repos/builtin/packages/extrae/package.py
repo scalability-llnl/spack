@@ -68,7 +68,6 @@ class Extrae(AutotoolsPackage):
     # See https://github.com/spack/spack/pull/22303 for reference
     depends_on(Boost.with_default_variants)
     depends_on("libdwarf")
-    depends_on("papi")
     depends_on("elf", type="link")
     depends_on("libxml2")
     depends_on("numactl")
@@ -92,9 +91,15 @@ class Extrae(AutotoolsPackage):
     depends_on("cuda", when="+cupti")
     conflicts("+cupti", when="~cuda", msg="CUPTI requires CUDA")
 
+    variant(
+        "single-mpi-lib",
+        default=False,
+        description="Enable single MPI instrumentation library that supports both Fortran and C",
+    )
+
     def configure_args(self):
         spec = self.spec
-        if "^intel-oneapi-mpi" in spec:
+        if spec.satisfies("^[virtuals=mpi] intel-oneapi-mpi"):
             mpiroot = spec["mpi"].component_prefix
         else:
             mpiroot = spec["mpi"].prefix
@@ -127,7 +132,7 @@ class Extrae(AutotoolsPackage):
             else ["--without-cuda"]
         )
 
-        if "+cupti" in self.spec:
+        if self.spec.satisfies("+cupti"):
             cupti_h = find_headers("cupti", spec["cuda"].prefix, recursive=True)
             cupti_dir = os.path.dirname(os.path.dirname(cupti_h[0]))
 
@@ -136,6 +141,8 @@ class Extrae(AutotoolsPackage):
         if spec.satisfies("^dyninst@9.3.0:"):
             make.add_default_arg("CXXFLAGS=%s" % self.compiler.cxx11_flag)
             args.append("CXXFLAGS=%s" % self.compiler.cxx11_flag)
+
+        args.extend(self.enable_or_disable("single-mpi-lib"))
 
         return args
 

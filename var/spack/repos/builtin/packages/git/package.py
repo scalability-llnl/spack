@@ -185,7 +185,7 @@ class Git(AutotoolsPackage):
         # In that case the node in the DAG gets truncated and git DOES NOT
         # have a gettext dependency.
         spec = self.spec
-        if "+nls" in spec:
+        if spec.satisfies("+nls"):
             if "intl" in spec["gettext"].libs.names:
                 extlib_bits = []
                 if not is_system_path(spec["gettext"].prefix):
@@ -200,7 +200,7 @@ class Git(AutotoolsPackage):
             # For build step:
             env.append_flags("EXTLIBS", curlconfig("--static-libs", output=str).strip())
 
-        if "~perl" in self.spec:
+        if self.spec.satisfies("~perl"):
             env.append_flags("NO_PERL", "1")
 
     def configure_args(self):
@@ -216,14 +216,14 @@ class Git(AutotoolsPackage):
         if self.spec["iconv"].name == "libiconv":
             configure_args.append(f"--with-iconv={self.spec['iconv'].prefix}")
 
-        if "+perl" in self.spec:
+        if self.spec.satisfies("+perl"):
             configure_args.append("--with-perl={0}".format(spec["perl"].command.path))
 
-        if "^pcre" in self.spec:
+        if self.spec.satisfies("^pcre"):
             configure_args.append("--with-libpcre={0}".format(spec["pcre"].prefix))
-        if "^pcre2" in self.spec:
+        if self.spec.satisfies("^pcre2"):
             configure_args.append("--with-libpcre2={0}".format(spec["pcre2"].prefix))
-        if "+tcltk" in self.spec:
+        if self.spec.satisfies("+tcltk"):
             configure_args.append("--with-tcltk={0}".format(self.spec["tk"].prefix.bin.wish))
         else:
             configure_args.append("--without-tcltk")
@@ -241,7 +241,7 @@ class Git(AutotoolsPackage):
 
     def build(self, spec, prefix):
         args = []
-        if "~nls" in self.spec:
+        if self.spec.satisfies("~nls"):
             args.append("NO_GETTEXT=1")
         make(*args)
 
@@ -251,7 +251,7 @@ class Git(AutotoolsPackage):
 
     def install(self, spec, prefix):
         args = ["install"]
-        if "~nls" in self.spec:
+        if self.spec.satisfies("~nls"):
             args.append("NO_GETTEXT=1")
         make(*args)
 
@@ -263,11 +263,26 @@ class Git(AutotoolsPackage):
 
     @run_after("install")
     def install_completions(self):
-        install_tree("contrib/completion", self.prefix.share)
+        mkdirp(bash_completion_path(self.prefix))
+        install(
+            "contrib/completion/git-completion.bash",
+            join_path(bash_completion_path(self.prefix), "git"),
+        )
+
+        mkdirp(zsh_completion_path(self.prefix))
+        filter_file(
+            r"\$bash_completion\/git",
+            join_path(bash_completion_path(self.prefix), "git"),
+            "contrib/completion/git-completion.zsh",
+        )
+        install(
+            "contrib/completion/git-completion.zsh",
+            join_path(zsh_completion_path(self.prefix), "_git"),
+        )
 
     @run_after("install")
     def install_manpages(self):
-        if "~man" in self.spec:
+        if self.spec.satisfies("~man"):
             return
 
         prefix = self.prefix
@@ -279,7 +294,7 @@ class Git(AutotoolsPackage):
 
     @run_after("install")
     def install_subtree(self):
-        if "+subtree" in self.spec:
+        if self.spec.satisfies("+subtree"):
             with working_dir("contrib/subtree"):
                 make_args = ["V=1", "prefix={}".format(self.prefix.bin)]
                 make(" ".join(make_args))
@@ -292,7 +307,7 @@ class Git(AutotoolsPackage):
         # Libs from perl-alien-svn and apr-util are required in
         # LD_LIBRARY_PATH
         # TODO: extend to other platforms
-        if "+svn platform=linux" in self.spec:
+        if self.spec.satisfies("+svn platform=linux"):
             perl_svn = self.spec["perl-alien-svn"]
             env.prepend_path(
                 "LD_LIBRARY_PATH",

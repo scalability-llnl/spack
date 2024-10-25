@@ -42,7 +42,6 @@ class Graphicsmagick(AutotoolsPackage):
     depends_on("libpng")
     depends_on("libsm")
     depends_on("libtiff")
-    depends_on("libtool")
     depends_on("libxml2")
     depends_on("xz")
     depends_on("zlib-api")

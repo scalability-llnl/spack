@@ -39,14 +39,14 @@ class GosamContrib(AutotoolsPackage):
 
     def flag_handler(self, name, flags):
         if name in ["cflags", "cxxflags", "cppflags"]:
-            if "+pic" in self.spec:
+            if self.spec.satisfies("+pic"):
                 flags.append(self.compiler.cc_pic_flag)
 
         if name == "fflags":
             if "gfortran" in self.compiler.fc:
                 flags.append("-std=legacy")
 
-            if "+pic" in self.spec:
+            if self.spec.satisfies("+pic"):
                 flags.append(self.compiler.fc_pic_flag)
 
         return (None, flags, None)

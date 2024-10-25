@@ -2,8 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
-
 import spack.builder
 import spack.package_base
 from spack.directives import build_system, extends
@@ -47,7 +45,7 @@ class OctaveBuilder(BaseBuilder):
 
     def install(self, pkg, spec, prefix):
         """Install the package from the archive file"""
-        inspect.getmodule(self.pkg).octave(
+        pkg.module.octave(
             "--quiet",
             "--norc",
             "--built-in-docstrings-file=/dev/null",

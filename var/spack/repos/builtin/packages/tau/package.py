@@ -79,23 +79,39 @@ class Tau(Package):
     variant("pdt", default=True, description="Use PDT for source code instrumentation")
     variant("comm", default=False, description=" Generate profiles with MPI communicator info")
     variant("python", default=False, description="Activates Python support")
-    variant("likwid", default=False, description="Activates LIKWID support")
+    variant("likwid", default=False, description="Activates LIKWID support", when="@2.27")
     variant("ompt", default=False, description="Activates OMPT instrumentation")
     variant("opari", default=False, description="Activates Opari2 instrumentation")
     variant("shmem", default=False, description="Activates SHMEM support")
     variant("gasnet", default=False, description="Activates GASNET support")
     variant("cuda", default=False, description="Activates CUDA support")
-    variant("rocm", default=False, description="Activates ROCm support")
-    variant("level_zero", default=False, description="Activates Intel OneAPI Level Zero support")
-    variant("rocprofiler", default=False, description="Activates ROCm rocprofiler support")
-    variant("roctracer", default=False, description="Activates ROCm roctracer support")
-    variant("rocprofv2", default=False, description="Activates ROCm rocprofiler support")
+    variant("rocm", default=False, description="Activates ROCm support", when="@2.28:")
+    variant(
+        "level_zero",
+        default=False,
+        description="Activates Intel OneAPI Level Zero support",
+        when="@2.30:",
+    )
+    variant(
+        "rocprofiler",
+        default=False,
+        description="Activates ROCm rocprofiler support",
+        when="@2.29.1:",
+    )
+    variant(
+        "roctracer", default=False, description="Activates ROCm roctracer support", when="@2.28.1:"
+    )
+    variant(
+        "rocprofv2", default=False, description="Activates ROCm rocprofiler support", when="@2.34:"
+    )
     variant("opencl", default=False, description="Activates OpenCL support")
     variant("fortran", default=darwin_default, description="Activates Fortran support")
     variant("io", default=True, description="Activates POSIX I/O support")
-    variant("adios2", default=False, description="Activates ADIOS2 output support")
+    variant(
+        "adios2", default=False, description="Activates ADIOS2 output support", when="@2.26.3:"
+    )
     variant("sqlite", default=False, description="Activates SQLite3 output support")
-    variant("syscall", default=False, description="Activates syscall wrapper")
+    variant("syscall", default=False, description="Activates syscall wrapper", when="@2.33:")
     variant(
         "profileparam",
         default=False,
@@ -204,25 +220,21 @@ class Tau(Package):
         #     ('CC', 'CXX' and 'FC')
         # 4 - if no -cc=<compiler> -cxx=<compiler> is passed tau is built with
         #     system compiler silently
-        # (regardless of what %<compiler> is used in the spec)
-        # 5 - On cray gnu compilers are not provied by self.compilers
-        #     Checking GCC_PATH will work if spack loads the gcc module
-        #
-        # In the following we give TAU what he expects and put compilers into
-        # PATH
-        compiler_path = os.path.dirname(self.compiler.cc)
-        if not compiler_path and self.compiler.cc_names[0] == "gcc":
-            compiler_path = os.environ.get("GCC_PATH", "")
-            if compiler_path:
-                compiler_path = compiler_path + "/bin/"
-        os.environ["PATH"] = ":".join([compiler_path, os.environ["PATH"]])
-        compiler_options = [
-            "-c++=%s" % os.path.basename(self.compiler.cxx),
-            "-cc=%s" % os.path.basename(self.compiler.cc),
-        ]
+        compiler_flags: Dict[str, str] = {
+            flag: os.path.basename(getattr(self.compiler, compiler))
+            for flag, compiler in (("-cc", "cc"), ("-c++", "cxx"), ("-fortran", "fc"))
+            if getattr(self.compiler, compiler)
+        }
 
-        if "+fortran" in spec and self.compiler.fc:
-            compiler_options.append("-fortran=%s" % os.path.basename(self.compiler.fc))
+        if "~fortran" in spec:
+            compiler_flags.pop("-fortran", None)
+
+        # tau does not understand `craycc`, `crayCC`, `crayftn`, strip off the `cray` prefix
+        for flag, value in compiler_flags.items():
+            if value.startswith("cray"):
+                compiler_flags[flag] = value[4:]
+
+        compiler_options = [f"{flag}={value}" for flag, value in compiler_flags.items()]
 
         ##########
 

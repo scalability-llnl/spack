@@ -10,11 +10,9 @@ import shutil
 import llnl.util.filesystem
 import llnl.util.tty as tty
 
-import spack.bootstrap
 import spack.caches
-import spack.cmd.test
+import spack.cmd
 import spack.config
-import spack.repo
 import spack.stage
 import spack.store
 import spack.util.path

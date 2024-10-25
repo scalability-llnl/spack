@@ -12,6 +12,9 @@ import pytest
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
 import spack.config
+import spack.error
+import spack.fetch_strategy
+import spack.platforms
 import spack.repo
 from spack.fetch_strategy import GitFetchStrategy
 from spack.spec import Spec

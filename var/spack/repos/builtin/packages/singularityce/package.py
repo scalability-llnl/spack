@@ -113,6 +113,11 @@ class SingularityBase(MakefilePackage):
             "mksquashfs path = {0}".format(squash_path),
             join_path(prefix.etc, self.singularity_name, self.singularity_name + ".conf"),
         )
+        filter_file(
+            r"^shared loop devices = no",
+            "shared loop devices = yes",
+            join_path(prefix.etc, self.singularity_name, self.singularity_name + ".conf"),
+        )
 
     #
     # Assemble a script that fixes the ownership and permissions of several
@@ -219,4 +224,4 @@ class Singularityce(SingularityBase):
     version("3.9.1", sha256="1ba3bb1719a420f48e9b0a6afdb5011f6c786d0f107ef272528c632fff9fd153")
     version("3.8.0", sha256="5fa2c0e7ef2b814d8aa170826b833f91e5031a85d85cd1292a234e6c55da1be1")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")

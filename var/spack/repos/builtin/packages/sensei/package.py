@@ -91,7 +91,7 @@ class Sensei(CMakePackage):
     depends_on("python@3:", when="+python", type=("build", "run"))
     extends("python", when="+python")
     depends_on("py-numpy", when="+python", type=("build", "run"))
-    depends_on("py-mpi4py", when="+python", type=("build", "run"))
+    depends_on("py-mpi4py@:3", when="+python", type=("build", "run"))
     depends_on("swig", when="+python", type="build")
     depends_on("cmake@3.6:", when="@3:", type="build")
     depends_on("pugixml")

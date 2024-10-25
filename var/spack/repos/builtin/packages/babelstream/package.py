@@ -343,7 +343,6 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage):
                     args.append("-DCMAKE_CUDA_COMPILER=" + cuda_comp)
                     args.append("-DTARGET=NVIDIA")
                     cuda_arch_list = self.spec.variants["cuda_arch"].value
-                    int_cuda_arch = int(cuda_arch_list[0])
                     cuda_arch = "sm_" + cuda_arch_list[0]
                     args.append("-DCUDA_ARCH=" + cuda_arch)
 
@@ -393,20 +392,20 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage):
                 if "cuda" in self.spec.variants["backend"].value:
                     args.append("-DKokkos_ENABLE_CUDA=ON")
                     cuda_arch_list = self.spec.variants["cuda_arch"].value
-                    int_cuda_arch = int(cuda_arch_list[0])
+                    cuda_arch = cuda_arch_list[0]
                     # arhitecture kepler optimisations
-                    if int_cuda_arch in (30, 32, 35, 37):
-                        args.append("-D" + "Kokkos_ARCH_KEPLER" + str(int_cuda_arch) + "=ON")
+                    if cuda_arch in ("30", "32", "35", "37"):
+                        args.append("-D" + "Kokkos_ARCH_KEPLER" + cuda_arch + "=ON")
                     # arhitecture maxwell optimisations
-                    if int_cuda_arch in (50, 52, 53):
-                        args.append("-D" + "Kokkos_ARCH_MAXWELL" + str(int_cuda_arch) + "=ON")
+                    if cuda_arch in ("50", "52", "53"):
+                        args.append("-D" + "Kokkos_ARCH_MAXWELL" + cuda_arch + "=ON")
                     # arhitecture pascal optimisations
-                    if int_cuda_arch in (60, 61):
-                        args.append("-D" + "Kokkos_ARCH_PASCAL" + str(int_cuda_arch) + "=ON")
+                    if cuda_arch in ("60", "61"):
+                        args.append("-D" + "Kokkos_ARCH_PASCAL" + cuda_arch + "=ON")
                     # architecture volta optimisations
-                    if int_cuda_arch in (70, 72):
-                        args.append("-D" + "Kokkos_ARCH_VOLTA" + str(int_cuda_arch) + "=ON")
-                    if int_cuda_arch == 75:
+                    if cuda_arch in ("70", "72"):
+                        args.append("-D" + "Kokkos_ARCH_VOLTA" + cuda_arch + "=ON")
+                    if cuda_arch == "75":
                         args.append("-DKokkos_ARCH_TURING75=ON")
                 if "omp" in self.spec.variants["backend"].value:
                     args.append("-DKokkos_ENABLE_OPENMP=ON")

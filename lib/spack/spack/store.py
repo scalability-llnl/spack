@@ -33,6 +33,7 @@ import spack.directory_layout
 import spack.error
 import spack.paths
 import spack.spec
+import spack.store
 import spack.util.path
 
 #: default installation root, relative to the Spack install path
@@ -173,7 +174,12 @@ class Store:
         self.hash_length = hash_length
         self.upstreams = upstreams
         self.lock_cfg = lock_cfg
-        self.db = spack.database.Database(root, upstream_dbs=upstreams, lock_cfg=lock_cfg)
+        self.layout = spack.directory_layout.DirectoryLayout(
+            root, projections=projections, hash_length=hash_length
+        )
+        self.db = spack.database.Database(
+            root, upstream_dbs=upstreams, lock_cfg=lock_cfg, layout=self.layout
+        )
 
         timeout_format_str = (
             f"{str(lock_cfg.package_timeout)}s" if lock_cfg.package_timeout else "No timeout"
@@ -187,13 +193,9 @@ class Store:
             self.root, default_timeout=lock_cfg.package_timeout
         )
 
-        self.layout = spack.directory_layout.DirectoryLayout(
-            root, projections=projections, hash_length=hash_length
-        )
-
     def reindex(self) -> None:
         """Convenience function to reindex the store DB with its own layout."""
-        return self.db.reindex(self.layout)
+        return self.db.reindex()
 
     def __reduce__(self):
         return Store, (
@@ -261,7 +263,7 @@ def restore(token):
 
 
 def _construct_upstream_dbs_from_install_roots(
-    install_roots: List[str], _test: bool = False
+    install_roots: List[str],
 ) -> List[spack.database.Database]:
     accumulated_upstream_dbs: List[spack.database.Database] = []
     for install_root in reversed(install_roots):
@@ -271,7 +273,6 @@ def _construct_upstream_dbs_from_install_roots(
             is_upstream=True,
             upstream_dbs=upstream_dbs,
         )
-        next_db._fail_when_missing_deps = _test
         next_db._read()
         accumulated_upstream_dbs.insert(0, next_db)
 

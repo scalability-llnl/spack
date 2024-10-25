@@ -20,6 +20,8 @@ class R(AutotoolsPackage):
 
     extendable = True
 
+    executables = ["^R$"]
+
     license("GPL-2.0-or-later")
 
     version("4.4.1", sha256="b4cb675deaaeb7299d3b265d218cde43f192951ce5b89b7bb1a5148a36b2d94d")
@@ -126,6 +128,24 @@ class R(AutotoolsPackage):
     )
 
     build_directory = "spack-build"
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)("--version", output=str, error=str)
+        # R version 4.3.3 (2024-02-29) -- "Angel Food Cake"
+        match = re.search(r"^R version ([^\s]+)", output)
+        return match.group(1) if match else None
+
+    @classmethod
+    def determine_variants(cls, exes, version):
+        variants = []
+        for exe in exes:
+            output = Executable(exe)("CMD", "config", "--all", output=str, error=str)
+
+            if "-lX11" in output:
+                variants.append("+X")
+
+        return variants
 
     # R custom URL version
     def url_for_version(self, version):
@@ -277,8 +297,3 @@ class R(AutotoolsPackage):
 
         # Add variable for library directry
         module.r_lib_dir = join_path(dependent_spec.prefix, self.r_lib_dir)
-
-        # Make the site packages directory for extensions, if it does not exist
-        # already.
-        if dependent_spec.package.is_extension:
-            mkdirp(module.r_lib_dir)

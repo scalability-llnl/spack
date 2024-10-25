@@ -39,9 +39,9 @@ import spack.config
 import spack.error
 import spack.patch
 import spack.provider_index
+import spack.repo
 import spack.spec
 import spack.tag
-import spack.util.file_cache
 import spack.util.git
 import spack.util.naming as nm
 import spack.util.path
@@ -365,9 +365,9 @@ class SpackNamespace(types.ModuleType):
 
     def __getattr__(self, name):
         """Getattr lazily loads modules if they're not already loaded."""
-        submodule = self.__package__ + "." + name
+        submodule = f"{self.__package__}.{name}"
         try:
-            setattr(self, name, __import__(submodule))
+            setattr(self, name, importlib.import_module(submodule))
         except ImportError:
             msg = "'{0}' object has no attribute {1}"
             raise AttributeError(msg.format(type(self), name))
@@ -1281,7 +1281,7 @@ class Repo:
             raise RepoError(msg) from e
 
         cls = getattr(module, class_name)
-        if not inspect.isclass(cls):
+        if not isinstance(cls, type):
             tty.die(f"{pkg_name}.{class_name} is not a class")
 
         # Clear any prior changes to class attributes in case the class was loaded from the
@@ -1523,8 +1523,10 @@ class MockRepositoryBuilder:
                 Both "dep_type" and "condition" can default to ``None`` in which case
                 ``spack.dependency.default_deptype`` and ``spack.spec.Spec()`` are used.
         """
+        import spack.tengine  # avoid circular import
+
         dependencies = dependencies or []
-        context = {"cls_name": spack.util.naming.mod_to_class(name), "dependencies": dependencies}
+        context = {"cls_name": nm.mod_to_class(name), "dependencies": dependencies}
         template = spack.tengine.make_environment().get_template("mock-repository/package.pyt")
         text = template.render(context)
         package_py = self.recipe_filename(name)

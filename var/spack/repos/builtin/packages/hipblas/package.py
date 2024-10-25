@@ -24,6 +24,8 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.2.1", sha256="b770b6ebd27d5c12ad01827195e996469bfc826e8a2531831df475fc8d7f6b2e")
+    version("6.2.0", sha256="33688a4d929b13e1fd800aff7e0833a9f7abf3913754b6b15995595e0d434e94")
     version("6.1.2", sha256="73699892855775a67f48c38beae78169a516078c17f1ed5d67c80abe5d308502")
     version("6.1.1", sha256="087ea82dff13c8162bf93343b174b18f1d58681711bce4fb7c8dc7212020c099")
     version("6.1.0", sha256="5f8193c4ef0508967e608a8adf86d63066a984c5803a4d05dd617021d6298091")
@@ -75,7 +77,7 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("rocm-cmake@5.2.0:", type="build", when="@5.2.0:5.7")
     depends_on("rocm-cmake@4.5.0:", type="build")
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0"]:
         depends_on(f"rocm-cmake@{ver}", when=f"+rocm @{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"+rocm @{ver}")
 
@@ -97,6 +99,8 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
         "master",
         "develop",
     ]:

@@ -30,7 +30,7 @@ class GpuBurn(MakefilePackage, CudaPackage):
 
     def edit(self, spec, prefix):
         # update cuda architecture if necessary
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             archflag = " ".join(CudaPackage.cuda_flags(cuda_arch))
             with open("Makefile", "w") as fh:

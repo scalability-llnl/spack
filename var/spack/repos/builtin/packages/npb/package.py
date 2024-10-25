@@ -122,6 +122,10 @@ class Npb(MakefilePackage):
         nprocs = spec.variants["nprocs"].value
 
         if "implementation=mpi" in spec:
+            fflags = fflags = ["-O3"]
+            if spec.satisfies("%gcc@10:"):
+                fflags.append("-fallow-argument-mismatch")
+
             definitions = {
                 # Parallel Fortran
                 "MPIFC": spec["mpi"].mpifc,
@@ -129,7 +133,7 @@ class Npb(MakefilePackage):
                 "FLINK": spec["mpi"].mpif77,
                 "FMPI_LIB": spec["mpi"].libs.ld_flags,
                 "FMPI_INC": "-I" + spec["mpi"].prefix.include,
-                "FFLAGS": "-O3",
+                "FFLAGS": " ".join(fflags),
                 "FLINKFLAGS": "-O3",
                 # Parallel C
                 "MPICC": spec["mpi"].mpicc,

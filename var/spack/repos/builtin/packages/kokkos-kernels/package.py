@@ -25,6 +25,8 @@ class KokkosKernels(CMakePackage, CudaPackage):
     # openssl sha256 kokkos-kernels-x.y.z.tar.gz
     version("develop", branch="develop")
     version("master", branch="master")
+    version("4.4.01", sha256="9f741449f5ace5a7d8a5a81194ff2108e5525d16f08fcd9bb6c9bb4853d7720d")
+    version("4.4.00", sha256="6559871c091eb5bcff53bae5a0f04f2298971d1aa1b2c135bd5a2dae3f9376a2")
     version("4.3.01", sha256="749553a6ea715ba1e56fa0b13b42866bb9880dba7a94e343eadf40d08c68fab8")
     version("4.3.00", sha256="03c3226ee97dbca4fa56fe69bc4eefa0673e23c37f2741943d9362424a63950e")
     version("4.2.01", sha256="058052b3a40f5d4e447b7ded5c480f1b0d4aa78373b0bc7e43804d0447c34ca8")
@@ -51,6 +53,8 @@ class KokkosKernels(CMakePackage, CudaPackage):
     depends_on("kokkos")
     depends_on("kokkos@master", when="@master")
     depends_on("kokkos@develop", when="@develop")
+    depends_on("kokkos@4.4.01", when="@4.4.01")
+    depends_on("kokkos@4.4.00", when="@4.4.00")
     depends_on("kokkos@4.3.01", when="@4.3.01")
     depends_on("kokkos@4.3.00", when="@4.3.00")
     depends_on("kokkos@4.2.01", when="@4.2.01")
@@ -163,11 +167,15 @@ class KokkosKernels(CMakePackage, CudaPackage):
 
     variant("shared", default=True, description="Build shared libraries")
 
+    # sanity check
+    sanity_check_is_file = [join_path("include", "KokkosKernels_config.h")]
+    sanity_check_is_dir = ["include"]
+
     def cmake_args(self):
         spec = self.spec
         options = []
 
-        isdiy = "+diy" in spec
+        isdiy = spec.satisfies("+diy")
         if isdiy:
             options.append("-DSpack_WORKAROUND=On")
 

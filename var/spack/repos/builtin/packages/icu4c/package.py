@@ -76,17 +76,14 @@ class Icu4c(AutotoolsPackage, MSBuildPackage):
         return (None, flags, None)
 
 
-class BuildEnvironment:
-    # Need to make sure that locale is UTF-8 in order to process source
-    # files in UTF-8.
+class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
+
+    configure_directory = "source"
+
+    # Need to make sure that locale is UTF-8 in order to process source files in UTF-8.
     @when("@59:")
     def setup_build_environment(self, env):
         env.set("LC_ALL", "en_US.UTF-8")
-
-
-class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder, BuildEnvironment):
-
-    configure_directory = "source"
 
     def configure_args(self):
         args = []
@@ -104,7 +101,12 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder, BuildEnvi
         return args
 
 
-class MSBuildBuilder(spack.build_systems.msbuild.MSBuildBuilder, BuildEnvironment):
+class MSBuildBuilder(spack.build_systems.msbuild.MSBuildBuilder):
+    # Need to make sure that locale is UTF-8 in order to process source files in UTF-8.
+    @when("@59:")
+    def setup_build_environment(self, env):
+        env.set("LC_ALL", "en_US.UTF-8")
+
     def msbuild_args(self):
         return [
             "allinone.sln",

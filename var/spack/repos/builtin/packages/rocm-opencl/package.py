@@ -36,6 +36,8 @@ class RocmOpencl(CMakePackage):
     license("MIT")
 
     version("master", branch="main")
+    version("6.2.1", sha256="e9cff3a8663defdbda833d49c9e7160171eca14dc285ffe4061378607d6c890d")
+    version("6.2.0", sha256="620e4c6a7f05651cc7a170bc4700fef8cae002420307a667c638b981d00b25e8")
     version("6.1.2", sha256="1a1e21640035d957991559723cd093f0c7e202874423667d2ba0c7662b01fea4")
     version("6.1.1", sha256="2db02f335c9d6fa69befcf7c56278e5cecfe3db0b457eaaa41206c2585ef8256")
     version("6.1.0", sha256="49b23eef621f4e8e528bb4de8478a17436f42053a2f7fde21ff221aa683205c7")
@@ -67,6 +69,7 @@ class RocmOpencl(CMakePackage):
     depends_on("numactl", type="link")
     depends_on("libx11", when="+asan")
     depends_on("xproto", when="+asan")
+    depends_on("opencl-icd-loader@2024.05.08", when="@6.2")
 
     for d_version, d_shasum in [
         ("5.6.1", "cc9a99c7e4de3d9360c0a471b27d626e84a39c9e60e0aff1e8e1500d82391819"),
@@ -119,12 +122,14 @@ class RocmOpencl(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
         "master",
     ]:
         depends_on(f"comgr@{ver}", type="build", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", type="link", when=f"@{ver}")
 
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
         depends_on(f"aqlprofile@{ver}", type="link", when=f"@{ver}")
 
     for ver in [
@@ -139,8 +144,9 @@ class RocmOpencl(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
-
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
     @classmethod
@@ -169,6 +175,9 @@ class RocmOpencl(CMakePackage):
                     f"-I{self.spec['xproto'].prefix.include}",
                 )
             )
+        if self.spec.satisfies("@6.2:"):
+            args.append(self.define("BUILD_ICD", False))
+            args.append(self.define("AMD_ICD_LIBRARY_DIR", self.spec["opencl-icd-loader"].prefix))
 
         return args
 

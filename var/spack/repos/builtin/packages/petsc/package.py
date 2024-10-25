@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
+import llnl.util.tty as tty
+
 from spack.package import *
 
 
@@ -21,6 +23,9 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     tags = ["e4s"]
 
     version("main", branch="main")
+    version("3.22.0", sha256="2c03f7c0f7ad2649240d4989355cf7fb7f211b75156cd7d424e1d9dd7dfb290b")
+    version("3.21.6", sha256="cb2dc00742a89cf8acf9ff8aae189e6864e8b90f4997f087be6e54ff39c30d74")
+    version("3.21.5", sha256="4eb1ec04c1a8988bd524f71f8d7d980dc1853d5be8791c0f19f3c09eef71fdd2")
     version("3.21.4", sha256="a9ae076d4617c7d84ce2bed37194022319c19f19b3930edf148b2bc8ecf2248d")
     version("3.21.3", sha256="6d9ceb99d84d275250c614192dad45955d4a7610e12d8292a07dc49403556d26")
     version("3.21.2", sha256="a1ac62b6204bdf2f7f9b637abf45e6cff24d372d4d3d3702c50e157bdb56eb21")
@@ -182,6 +187,16 @@ class Petsc(Package, CudaPackage, ROCmPackage):
             when="@3.20.0",
             sha256="ba327f8b2a0fa45209dfb7a4278f3e9a323965b5a668be204c1c77c17a963a7f",
         )
+        patch(
+            "https://gitlab.com/petsc/petsc/-/commit/20d5ecbf88175ced320006c488dcefa2efb1e67f.diff",
+            when="@3.21 ^hip@6:",
+            sha256="2904ea20c71e2f21b8475513c3e5de7465e328e2485ae706b003aa79314e3e7c",
+        )
+        patch(
+            "https://gitlab.com/petsc/petsc/-/commit/bdb83d9f3e3c55b3bd4c8732bfe2066c23f10f61.diff",
+            when="@3.21 ^hip@6:",
+            sha256="89cf2c9a01d4a3233c889dd98496a29bf43db1bc69195892f9e5405c537b87e3",
+        )
         patch("hip-5.6.0-for-3.18.diff", when="@3.18:3.19 ^hipsparse@5.6.0")
         patch("hip-5.7-plus-for-3.18.diff", when="@3.18:3.19 ^hipsparse@5.7:")
         patch(
@@ -252,6 +267,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     depends_on("hip", when="+rocm")
 
     with when("+rocm"):
+        depends_on("rocm-core")
         depends_on("hipblas")
         depends_on("hipsparse")
         depends_on("hipsolver")
@@ -262,10 +278,11 @@ class Petsc(Package, CudaPackage, ROCmPackage):
         depends_on("rocthrust")
         depends_on("rocprim")
 
-    # Build dependencies
-    depends_on("python@2.6:2.8,3.4:3.8", when="@:3.13", type="build")
-    depends_on("python@2.6:2.8,3.4:", when="@3.14:3.17", type="build")
-    depends_on("python@3.4:", when="@3.18:", type="build")
+    with default_args(type="build"):
+        depends_on("python@2.6:2.8,3.4:")
+        depends_on("python@3.4:", when="@3.18:")
+        depends_on("python@:3.8", when="@:3.13")
+        depends_on("python@:3.12", when="@:3.21")  # import xdrlib
 
     # Other dependencies
     depends_on("metis@5:~int64+real64", when="@:3.7+metis~int64+double")
@@ -601,7 +618,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
                 hip_arch = spec.variants["amdgpu_target"].value
                 options.append("--with-hip-arch={0}".format(hip_arch[0]))
             hip_pkgs = ["hipsparse", "hipblas", "hipsolver", "rocsparse", "rocsolver", "rocblas"]
-            hip_ipkgs = hip_pkgs + ["rocthrust", "rocprim"]
+            hip_ipkgs = hip_pkgs + ["rocthrust", "rocprim", "rocm-core"]
             hip_lpkgs = hip_pkgs
             if spec.satisfies("^rocrand@5.1:"):
                 hip_ipkgs.extend(["rocrand"])

@@ -27,8 +27,6 @@ from llnl.util import tty
 from llnl.util.lang import dedupe, memoized
 from llnl.util.symlink import islink, readlink, resolve_link_target_relative_to_the_link, symlink
 
-from spack.util.executable import Executable, which
-
 from ..path import path_to_os_path, system_path_filter
 
 if sys.platform != "win32":
@@ -49,11 +47,11 @@ __all__ = [
     "copy_mode",
     "filter_file",
     "find",
+    "find_first",
     "find_headers",
     "find_all_headers",
     "find_libraries",
     "find_system_libraries",
-    "fix_darwin_install_name",
     "force_remove",
     "force_symlink",
     "getuid",
@@ -246,42 +244,6 @@ def path_contains_subdirectory(path, root):
     norm_root = os.path.abspath(root).rstrip(os.path.sep) + os.path.sep
     norm_path = os.path.abspath(path).rstrip(os.path.sep) + os.path.sep
     return norm_path.startswith(norm_root)
-
-
-@memoized
-def file_command(*args):
-    """Creates entry point to `file` system command with provided arguments"""
-    file_cmd = which("file", required=True)
-    for arg in args:
-        file_cmd.add_default_arg(arg)
-    return file_cmd
-
-
-@memoized
-def _get_mime_type():
-    """Generate method to call `file` system command to aquire mime type
-    for a specified path
-    """
-    if sys.platform == "win32":
-        # -h option (no-dereference) does not exist in Windows
-        return file_command("-b", "--mime-type")
-    else:
-        return file_command("-b", "-h", "--mime-type")
-
-
-def mime_type(filename):
-    """Returns the mime type and subtype of a file.
-
-    Args:
-        filename: file to be analyzed
-
-    Returns:
-        Tuple containing the MIME type and subtype
-    """
-    output = _get_mime_type()(filename, output=str, error=str).strip()
-    tty.debug("==> " + output)
-    type, _, subtype = output.partition("/")
-    return type, subtype
 
 
 #: This generates the library filenames that may appear on any OS.
@@ -1677,41 +1639,6 @@ def safe_remove(*files_or_dirs):
         for original_path, temporary_path in removed.items():
             shutil.move(temporary_path, original_path)
         raise
-
-
-@system_path_filter
-def fix_darwin_install_name(path):
-    """Fix install name of dynamic libraries on Darwin to have full path.
-
-    There are two parts of this task:
-
-    1. Use ``install_name('-id', ...)`` to change install name of a single lib
-    2. Use ``install_name('-change', ...)`` to change the cross linking between
-       libs. The function assumes that all libraries are in one folder and
-       currently won't follow subfolders.
-
-    Parameters:
-        path (str): directory in which .dylib files are located
-    """
-    libs = glob.glob(join_path(path, "*.dylib"))
-    for lib in libs:
-        # fix install name first:
-        install_name_tool = Executable("install_name_tool")
-        install_name_tool("-id", lib, lib)
-        otool = Executable("otool")
-        long_deps = otool("-L", lib, output=str).split("\n")
-        deps = [dep.partition(" ")[0][1::] for dep in long_deps[2:-1]]
-        # fix all dependencies:
-        for dep in deps:
-            for loc in libs:
-                # We really want to check for either
-                #     dep == os.path.basename(loc)   or
-                #     dep == join_path(builddir, os.path.basename(loc)),
-                # but we don't know builddir (nor how symbolic links look
-                # in builddir). We thus only compare the basenames.
-                if os.path.basename(dep) == os.path.basename(loc):
-                    install_name_tool("-change", dep, loc, lib)
-                    break
 
 
 def find_first(root: str, files: Union[Iterable[str], str], bfs_depth: int = 2) -> Optional[str]:

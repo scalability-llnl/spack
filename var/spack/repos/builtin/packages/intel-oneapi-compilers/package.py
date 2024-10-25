@@ -446,7 +446,11 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
             llvm_flags.append("-Wno-unused-command-line-argument")
 
         self.write_config_file(common_flags + llvm_flags, self._llvm_bin, ["icx", "icpx"])
-        self.write_config_file(common_flags + classic_flags, self._llvm_bin, ["ifx"])
+        self.write_config_file(
+            common_flags + (llvm_flags if self.spec.satisfies("@2022.1.0:") else classic_flags),
+            self._llvm_bin,
+            ["ifx"],
+        )
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["ifort"])
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["icc", "icpc"])
 

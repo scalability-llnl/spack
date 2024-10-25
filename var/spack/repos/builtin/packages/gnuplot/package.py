@@ -91,12 +91,12 @@ class Gnuplot(AutotoolsPackage):
 
         options += self.with_or_without("readline", "prefix")
 
-        if "+pbm" in spec:
+        if spec.satisfies("+pbm"):
             options.append("--with-bitmap-terminals")
         else:
             options.append("--without-bitmap-terminals")
 
-        if "+X" in spec:
+        if spec.satisfies("+X"):
             # It seems there's an open bug for wxWidgets support
             # See : http://sourceforge.net/p/gnuplot/bugs/1694/
             os.environ["TERMLIBS"] = "-lX11"
@@ -104,7 +104,7 @@ class Gnuplot(AutotoolsPackage):
         else:
             options.append("--without-x")
 
-        if "+qt" in spec:
+        if spec.satisfies("+qt"):
             options.append("--with-qt=qt5")
             # QT needs C++11 compiler:
             os.environ["CXXFLAGS"] = "{0}".format(self.compiler.cxx11_flag)
@@ -134,22 +134,22 @@ class Gnuplot(AutotoolsPackage):
         else:
             options.append("--with-qt=no")
 
-        if "+wx" in spec:
+        if spec.satisfies("+wx"):
             options.append("--with-wx=%s" % spec["wxwidgets"].prefix)
         else:
             options.append("--disable-wxwidgets")
 
-        if "+gd" in spec:
+        if spec.satisfies("+gd"):
             options.append("--with-gd=%s" % spec["libgd"].prefix)
         else:
             options.append("--without-gd")
 
-        if "+cairo" in spec:
+        if spec.satisfies("+cairo"):
             options.append("--with-cairo")
         else:
             options.append("--without-cairo")
 
-        if "+libcerf" in spec:
+        if spec.satisfies("+libcerf"):
             options.append("--with-libcerf")
         else:
             options.append("--without-libcerf")

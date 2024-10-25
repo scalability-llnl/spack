@@ -292,20 +292,20 @@ class MesonBuilder(BaseBuilder, spack.build_systems.meson.MesonBuilder):
     def meson_args(self):
         args = []
         if self.spec.satisfies("@2.63.5:"):
-            if "+libmount" in self.spec:
+            if self.spec.satisfies("+libmount"):
                 args.append("-Dlibmount=enabled")
             else:
                 args.append("-Dlibmount=disabled")
         else:
-            if "+libmount" in self.spec:
+            if self.spec.satisfies("+libmount"):
                 args.append("-Dlibmount=true")
             else:
                 args.append("-Dlibmount=false")
-        if "tracing=dtrace" in self.spec:
+        if self.spec.satisfies("tracing=dtrace"):
             args.append("-Ddtrace=true")
         else:
             args.append("-Ddtrace=false")
-        if "tracing=systemtap" in self.spec:
+        if self.spec.satisfies("tracing=systemtap"):
             args.append("-Dsystemtap=true")
         else:
             args.append("-Dsystemtap=false")
@@ -333,7 +333,7 @@ class MesonBuilder(BaseBuilder, spack.build_systems.meson.MesonBuilder):
 class AutotoolsBuilder(BaseBuilder, spack.build_systems.autotools.AutotoolsBuilder):
     def configure_args(self):
         args = []
-        if "+libmount" in self.spec:
+        if self.spec.satisfies("+libmount"):
             args.append("--enable-libmount")
         else:
             args.append("--disable-libmount")
@@ -352,7 +352,7 @@ class AutotoolsBuilder(BaseBuilder, spack.build_systems.autotools.AutotoolsBuild
                 else:
                     args.append("--disable-" + value)
         else:
-            if "tracing=dtrace" in self.spec or "tracing=systemtap" in self.spec:
+            if self.spec.satisfies("tracing=dtrace") or self.spec.satisfies("tracing=systemtap"):
                 args.append("--enable-tracing")
             else:
                 args.append("--disable-tracing")

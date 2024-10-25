@@ -12,11 +12,12 @@ import llnl.util.tty.color as color
 
 import spack
 import spack.cmd
+import spack.cmd.common.arguments
 import spack.config
 import spack.environment
 import spack.hash_types as ht
-import spack.package_base
 import spack.solver.asp as asp
+import spack.spec
 from spack.cmd.common import arguments
 
 description = "concretize a specs using an ASP solver"

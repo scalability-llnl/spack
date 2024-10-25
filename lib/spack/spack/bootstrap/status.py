@@ -88,7 +88,7 @@ def _core_requirements() -> List[RequiredResponseType]:
 
 def _buildcache_requirements() -> List[RequiredResponseType]:
     _buildcache_exes = {
-        "file": _missing("file", "required to analyze files for buildcaches"),
+        "file": _missing("file", "required to analyze files for buildcaches", system_only=False),
         ("gpg2", "gpg"): _missing("gpg2", "required to sign/verify buildcaches", False),
     }
     if platform.system().lower() == "darwin":

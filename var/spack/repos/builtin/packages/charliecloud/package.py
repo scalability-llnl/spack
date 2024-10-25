@@ -150,9 +150,9 @@ class Charliecloud(AutotoolsPackage):
     with when("+squashfuse"):
         depends_on("libfuse@3:", type=("build", "run", "link"), when="@0.32:")
         depends_on("pkgconfig", type="build", when="@0.37:")
-        depends_on("squashfuse@0.1.105:0.2.0,0.4.0:", type="build", when="@0.36:")
-        depends_on("squashfuse@0.1.105:0.2.0,0.4.0", type="build", when="@0.35")
-        depends_on("squashfuse@0.1.105", type="build", when="@0.32:0.34")
+        depends_on("squashfuse@0.1.105:0.2.0,0.4.0:", type="link", when="@0.36:")
+        depends_on("squashfuse@0.1.105:0.2.0,0.4.0", type="link", when="@0.35")
+        depends_on("squashfuse@0.1.105", type="link", when="@0.32:0.34")
 
     def autoreconf(self, spec, prefix):
         which("bash")("autogen.sh")

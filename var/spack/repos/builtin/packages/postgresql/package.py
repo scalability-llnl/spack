@@ -21,10 +21,15 @@ class Postgresql(AutotoolsPackage):
 
     license("PostgreSQL")
 
+    version("16.4", sha256="971766d645aa73e93b9ef4e3be44201b4f45b5477095b049125403f9f3386d6f")
     version("16.3", sha256="331963d5d3dc4caf4216a049fa40b66d6bcb8c730615859411b9518764e60585")
+    version("15.8", sha256="4403515f9a69eeb3efebc98f30b8c696122bfdf895e92b3b23f5b8e769edcb6a")
     version("15.2", sha256="99a2171fc3d6b5b5f56b757a7a3cb85d509a38e4273805def23941ed2b8468c7")
+    version("14.13", sha256="59aa3c4b495ab26a9ec69f3ad0a0228c51f0fe6facf3634dfad4d1197d613a56")
     version("14.0", sha256="ee2ad79126a7375e9102c4db77c4acae6ae6ffe3e082403b88826d96d927a122")
+    version("13.16", sha256="c9cbbb6129f02328204828066bb3785c00a85c8ca8fd329c2a8a53c1f5cd8865")
     version("13.1", sha256="12345c83b89aa29808568977f5200d6da00f88a035517f925293355432ffe61f")
+    version("12.20", sha256="2d543af3009fec7fd5af35f7a70c95085d3eef6b508e517aa9493e99b15e9ea9")
     version("12.2", sha256="ad1dcc4c4fc500786b745635a9e1eba950195ce20b8913f50345bb7d5369b5de")
     version("11.2", sha256="2676b9ce09c21978032070b6794696e0aa5a476e3d21d60afc036dc0a9c09405")
     version("11.1", sha256="90815e812874831e9a4bf6e1136bf73bc2c5a0464ef142e2dfea40cda206db08")
@@ -59,7 +64,9 @@ class Postgresql(AutotoolsPackage):
     variant("tcl", default=False, description="Enable Tcl bindings.")
     variant("gssapi", default=False, description="Build with GSSAPI functionality.")
     variant("xml", default=False, description="Build with XML support.")
+    variant("icu", default=True, description="Build with ICU support.", when="@16:")
 
+    depends_on("icu4c", when="@16: +icu")
     depends_on("readline", when="lineedit=readline")
     depends_on("libedit", when="lineedit=libedit")
     depends_on("openssl")
@@ -97,6 +104,9 @@ class Postgresql(AutotoolsPackage):
 
         if spec.satisfies("+xml"):
             args.append("--with-libxml")
+
+        if spec.satisfies("~icu"):
+            args.append("--without-icu")
 
         return args
 

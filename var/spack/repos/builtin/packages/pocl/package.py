@@ -21,7 +21,7 @@ class Pocl(CMakePackage):
 
     license("MIT")
 
-    version("master", branch="master")
+    version("main", branch="main")
     version("3.0", sha256="a3fd3889ef7854b90b8e4c7899c5de48b7494bf770e39fba5ad268a5cbcc719d")
     version("1.8", sha256="0f63377ae1826e16e90038fc8e7f65029be4ff6f9b059f6907174b5c0d1f8ab2")
     version("1.7", sha256="5f6bbc391ba144bc7becc3b90888b25468460d5aa6830f63a3b066137e7bfac3")
@@ -47,7 +47,7 @@ class Pocl(CMakePackage):
     depends_on("cmake @2.8.12:", type="build")
     depends_on("hwloc")
     depends_on("hwloc@:1", when="@:1.1")
-    depends_on("libtool", type=("build", "link", "run"))
+    depends_on("libtool", type="link", when="@:1.3")  # links against libltdl
     depends_on("pkgconfig", type="build")
 
     depends_on("llvm +clang")

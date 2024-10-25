@@ -67,7 +67,7 @@ class Formetis(CMakePackage):
             self.define("CMAKE_Fortran_COMPILER", self.compiler.fc),
             self.define("METIS_ROOT", self.spec["metis"].prefix),
         ]
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             cmake_args.append(self.define("ParMETIS_ROOT", self.spec["parmetis"].prefix))
         cmake_args.append(self.cached_tests_work_dir)
         cmake = which(self.spec["cmake"].prefix.bin.cmake)

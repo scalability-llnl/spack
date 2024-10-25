@@ -36,7 +36,6 @@ class Highway(CMakePackage):
     depends_on("googletest", type="test")
 
     def cmake_args(self):
-        spec = self.spec
         define = self.define
         from_variant = self.define_from_variant
 
@@ -46,9 +45,6 @@ class Highway(CMakePackage):
             define("HWY_ENABLE_TESTS", self.run_tests),
             define("BUILD_TESTING", self.run_tests),
             define("HWY_SYSTEM_GTEST", self.run_tests),
-            define(
-                "HWY_CMAKE_ARM7", spec.satisfies("%gcc@:6.1.0") or spec.satisfies("%clang@:16")
-            ),
         ]
 
         return args

@@ -115,12 +115,6 @@ config:
   suppress_gpg_warnings: false
 
 
-  # If set to true, Spack will attempt to build any compiler on the spec
-  # that is not already available. If set to False, Spack will only use
-  # compilers already configured in compilers.yaml
-  install_missing_compilers: false
-
-
   # If set to true, Spack will always check checksums after downloading
   # archives. If false, Spack skips the checksum step.
   checksum: true

@@ -27,7 +27,9 @@ class RSf(RPackage):
     version("0.9-7", sha256="4acac2f78badf9d252da5bf377975f984927c14a56a72d9f83d285c0adadae9c")
     version("0.7-7", sha256="d1780cb46a285b30c7cc41cae30af523fbc883733344e53f7291e2d045e150a4")
     version("0.7-5", sha256="53ed0567f502216a116c4848f5a9262ca232810f82642df7b98e0541a2524868")
-    version("0.5-5", sha256="82ad31f98243b6982302fe245ee6e0d8d0546e5ff213ccc00ec3025dfec62229")
+    with default_args(deprecated=True):
+        # deprecated @:0.7-3 as gdal@:2 is deprecated, and gdal@3: requires proj@6:
+        version("0.5-5", sha256="82ad31f98243b6982302fe245ee6e0d8d0546e5ff213ccc00ec3025dfec62229")
 
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r-classint@0.2-1:", type=("build", "run"))

@@ -56,7 +56,7 @@ class Flatbuffers(CMakePackage):
 
     @run_after("install")
     def python_install(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             pydir = join_path(self.stage.source_path, "python")
             with working_dir(pydir):
                 args = std_pip_args + ["--prefix=" + self.prefix, "."]

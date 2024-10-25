@@ -377,6 +377,14 @@ class TestTcl:
         writer, spec = factory("mpileaks~debug+opt target=x86_64")
         assert "baz-foo-bar" in writer.layout.use_name
 
+    def test_suffixes_format(self, module_configuration, factory):
+        """Tests adding suffixes as spec format string to module file name."""
+        module_configuration("suffix-format")
+
+        writer, spec = factory("mpileaks +debug target=x86_64 ^mpich@3.0.4")
+        assert "debug=True" in writer.layout.use_name
+        assert "mpi=mpich-v3.0.4" in writer.layout.use_name
+
     def test_setup_environment(self, modulefile_content, module_configuration):
         """Tests the internal set-up of run-time environment."""
 
@@ -388,7 +396,7 @@ class TestTcl:
 
         spec = spack.spec.Spec("mpileaks")
         spec.concretize()
-        content = modulefile_content(str(spec["callpath"]))
+        content = modulefile_content(spec["callpath"])
 
         assert len([x for x in content if "setenv FOOBAR" in x]) == 1
         assert len([x for x in content if "setenv FOOBAR {callpath}" in x]) == 1

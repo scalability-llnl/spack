@@ -19,6 +19,7 @@ class PyScikitLearn(PythonPackage):
 
     version("main", branch="main")
     version("master", branch="main", deprecated=True)
+    version("1.5.2", sha256="b4237ed7b3fdd0a4882792e68ef2545d5baa50aca3bb45aa7df468138ad8f94d")
     version("1.5.1", sha256="0ea5d40c0e3951df445721927448755d3fe1d80833b0b7308ebff5d2a45e6414")
     version("1.5.0", sha256="789e3db01c750ed6d496fa2db7d50637857b451e57bcae863bff707c1247bef7")
     version("1.4.2", sha256="daa1c471d95bad080c6e44b4946c9390a4842adc3082572c20e4f8884e39e959")
@@ -48,8 +49,8 @@ class PyScikitLearn(PythonPackage):
     version("0.22.1", sha256="51ee25330fc244107588545c70e2f3570cfc4017cff09eed69d6e1d82a212b7d")
     version("0.22", sha256="314abf60c073c48a1e95feaae9f3ca47a2139bd77cebb5b877c23a45c9e03012")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # Based on PyPI wheel availability
     with default_args(type=("build", "link", "run")):

@@ -82,7 +82,7 @@ class HypreCmake(CMakePackage, CudaPackage):
         return args
 
     def setup_build_environment(self, env):
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             env.set("CUDA_HOME", self.spec["cuda"].prefix)
             env.set("CUDA_PATH", self.spec["cuda"].prefix)
             cuda_arch = self.spec.variants["cuda_arch"].value
@@ -90,7 +90,7 @@ class HypreCmake(CMakePackage, CudaPackage):
                 arch_sorted = list(sorted(cuda_arch, reverse=True))
                 env.set("HYPRE_CUDA_SM", arch_sorted[0])
             # In CUDA builds hypre currently doesn't handle flags correctly
-            env.append_flags("CXXFLAGS", "-O2" if "~debug" in self.spec else "-g")
+            env.append_flags("CXXFLAGS", "-O2" if self.spec.satisfies("~debug") else "-g")
 
     extra_install_tests = join_path("src", "examples")
 
@@ -152,6 +152,6 @@ class HypreCmake(CMakePackage, CudaPackage):
         """Export the hypre library.
         Sample usage: spec['hypre'].libs.ld_flags
         """
-        is_shared = "+shared" in self.spec
+        is_shared = self.spec.satisfies("+shared")
         libs = find_libraries("libHYPRE", root=self.prefix, shared=is_shared, recursive=True)
         return libs or None

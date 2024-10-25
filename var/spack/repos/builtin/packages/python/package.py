@@ -47,7 +47,7 @@ class Python(Package):
     url = "https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz"
     list_url = "https://www.python.org/ftp/python/"
     list_depth = 1
-    tags = ["windows", "build-tools"]
+    tags = ["windows"]
 
     maintainers("skosukhin", "scheibelp")
 
@@ -59,16 +59,14 @@ class Python(Package):
 
     license("0BSD")
 
+    version("3.13.0", sha256="12445c7b3db3126c41190bfdc1c8239c39c719404e844babbd015a1bc3fafcd4")
+    version("3.12.5", sha256="38dc4e2c261d49c661196066edbfb70fdb16be4a79cc8220c224dfeb5636d405")
     version("3.12.4", sha256="01b3c1c082196f3b33168d344a9c85fb07bfe0e7ecfe77fee4443420d1ce2ad9")
     version("3.12.3", sha256="a6b9459f45a6ebbbc1af44f5762623fa355a0c87208ed417628b379d762dddb0")
     version("3.12.2", sha256="a7c4f6a9dc423d8c328003254ab0c9338b83037bd787d680826a5bf84308116e")
     version("3.12.1", sha256="d01ec6a33bc10009b09c17da95cc2759af5a580a7316b3a446eb4190e13f97b2")
     version("3.12.0", sha256="51412956d24a1ef7c97f1cb5f70e185c13e3de1f50d131c0aac6338080687afb")
-    version(
-        "3.11.9",
-        sha256="e7de3240a8bc2b1e1ba5c81bf943f06861ff494b69fda990ce2722a504c6153d",
-        preferred=True,
-    )
+    version("3.11.9", sha256="e7de3240a8bc2b1e1ba5c81bf943f06861ff494b69fda990ce2722a504c6153d")
     version("3.11.8", sha256="d3019a613b9e8761d260d9ebe3bd4df63976de30464e5c0189566e1ae3f61889")
     version("3.11.7", sha256="068c05f82262e57641bd93458dfa883128858f5f4997aad7a36fd25b13b29209")
     version("3.11.6", sha256="c049bf317e877cbf9fce8c3af902436774ecef5249a29d10984ca3a37f7f4736")
@@ -860,14 +858,14 @@ class Python(Package):
         # * python
         #
         # in that order if using python@3.11.0, for example.
-        version = self.spec.version
-        for ver in [version.up_to(2), version.up_to(1), ""]:
-            if sys.platform != "win32":
-                path = os.path.join(self.prefix.bin, "python{0}".format(ver))
-            else:
-                path = os.path.join(self.prefix, "python{0}.exe".format(ver))
-            if os.path.exists(path):
-                return Executable(path)
+        suffixes = [self.spec.version.up_to(2), self.spec.version.up_to(1), ""]
+        file_extension = "" if sys.platform != "win32" else ".exe"
+        patterns = [f"python{ver}{file_extension}" for ver in suffixes]
+        root = self.prefix.bin if sys.platform != "win32" else self.prefix
+        path = find_first(root, files=patterns)
+
+        if path is not None:
+            return Executable(path)
 
         else:
             # Give a last try at rhel8 platform python
@@ -876,8 +874,9 @@ class Python(Package):
                 if os.path.exists(path):
                     return Executable(path)
 
-            msg = "Unable to locate {0} command in {1}"
-            raise RuntimeError(msg.format(self.name, self.prefix.bin))
+        raise RuntimeError(
+            f"cannot to locate the '{self.name}' command in {root} or its subdirectories"
+        )
 
     @property
     def config_vars(self):
@@ -1026,8 +1025,13 @@ print(json.dumps(config))
             win_root_dir,
         ]
 
-        # The Python shipped with Xcode command line tools isn't in any of these locations
-        for subdir in ["lib", "lib64"]:
+        if self.spec.satisfies("platform=windows"):
+            lib_dirs = ["libs"]
+        else:
+            # The Python shipped with Xcode command line tools isn't in any of these locations
+            lib_dirs = ["lib", "lib64"]
+
+        for subdir in lib_dirs:
             directories.append(os.path.join(self.config_vars["base"], subdir))
 
         directories = dedupe(directories)
@@ -1070,14 +1074,16 @@ print(json.dumps(config))
         # The +shared variant isn't reliable, as `spack external find` currently can't
         # detect it. If +shared, prefer the shared libraries, but check for static if
         # those aren't found. Vice versa for ~shared.
-        if "+shared" in self.spec:
+        if self.spec.satisfies("platform=windows"):
+            # Since we are searching for link libraries, on Windows search only for
+            # ".Lib" extensions by default as those represent import libraries for implict links.
+            candidates = static_libs
+        elif self.spec.satisfies("+shared"):
             candidates = shared_libs + static_libs
         else:
             candidates = static_libs + shared_libs
 
-        candidates = dedupe(candidates)
-
-        for candidate in candidates:
+        for candidate in dedupe(candidates):
             lib = self.find_library(candidate)
             if lib:
                 return lib

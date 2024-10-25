@@ -298,7 +298,7 @@ class FoamExtend(Package):
         # Adjust configuration via prefs - sort second
         self.etc_prefs["001"].update(self.foam_arch.foam_dict())
 
-        if "+scotch" in spec or "+ptscotch" in spec:
+        if spec.satisfies("+scotch") or spec.satisfies("+ptscotch"):
             pkg = spec["scotch"].prefix
             self.etc_prefs["scotch"] = {
                 "SCOTCH_SYSTEM": 1,
@@ -308,7 +308,7 @@ class FoamExtend(Package):
                 "SCOTCH_INCLUDE_DIR": pkg.include,
             }
 
-        if "+metis" in spec:
+        if spec.satisfies("+metis"):
             pkg = spec["metis"].prefix
             self.etc_prefs["metis"] = {
                 "METIS_SYSTEM": 1,
@@ -318,7 +318,7 @@ class FoamExtend(Package):
                 "METIS_INCLUDE_DIR": pkg.include,
             }
 
-        if "+parmetis" in spec:
+        if spec.satisfies("+parmetis"):
             pkg = spec["parmetis"].prefix
             self.etc_prefs["parametis"] = {
                 "PARMETIS_SYSTEM": 1,
@@ -328,7 +328,7 @@ class FoamExtend(Package):
                 "PARMETIS_INCLUDE_DIR": pkg.include,
             }
 
-        if "+parmgridgen" in spec:
+        if spec.satisfies("+parmgridgen"):
             pkg = spec["parmgridgen"].prefix
             self.etc_prefs["parmgridgen"] = {
                 "PARMGRIDGEN_SYSTEM": 1,
@@ -338,7 +338,7 @@ class FoamExtend(Package):
                 "PARMGRIDGEN_INCLUDE_DIR": pkg.include,
             }
 
-        if "+paraview" in self.spec:
+        if self.spec.satisfies("+paraview"):
             self.etc_prefs["paraview"] = {
                 "PARAVIEW_SYSTEM": 1,
                 "PARAVIEW_DIR": spec["paraview"].prefix,
@@ -386,7 +386,7 @@ class FoamExtend(Package):
         }
 
         # All top-level files, except spack build info and possibly Allwmake
-        if "+source" in spec:
+        if spec.satisfies("+source"):
             ignored = re.compile(r"^spack-.*")
         else:
             ignored = re.compile(r"^(Allclean|Allwmake|spack-).*")
@@ -400,7 +400,7 @@ class FoamExtend(Package):
         for d in ["etc", "bin", "wmake", "lib", join_path(appdir, "bin")]:
             install_tree(d, join_path(self.projectdir, d), symlinks=True)
 
-        if "+source" in spec:
+        if spec.satisfies("+source"):
             subitem = join_path(appdir, "Allwmake")
             install(subitem, join_path(self.projectdir, subitem))
 

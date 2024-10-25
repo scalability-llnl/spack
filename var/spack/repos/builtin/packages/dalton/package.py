@@ -79,7 +79,7 @@ class Dalton(CMakePackage):
 
     def cmake_args(self):
         math_libs = self.spec["lapack"].libs + self.spec["blas"].libs
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             env["CC"] = self.spec["mpi"].mpicc
             env["CXX"] = self.spec["mpi"].mpicxx
             env["F77"] = self.spec["mpi"].mpif77

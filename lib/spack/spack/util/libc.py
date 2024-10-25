@@ -9,7 +9,7 @@ import re
 import shlex
 import sys
 from subprocess import PIPE, run
-from typing import Optional
+from typing import List, Optional
 
 import spack.spec
 import spack.util.elf
@@ -32,6 +32,22 @@ def _libc_from_ldd(ldd: str) -> Optional["spack.spec.Spec"]:
         return spack.spec.Spec(f"glibc@={version_str.group(1)}")
     except Exception:
         return None
+
+
+def default_search_paths_from_dynamic_linker(dynamic_linker: str) -> List[str]:
+    """If the dynamic linker is glibc at a certain version, we can query the hard-coded library
+    search paths"""
+    try:
+        result = run([dynamic_linker, "--help"], stdout=PIPE, stderr=PIPE, check=False)
+        assert result.returncode == 0
+        out = result.stdout.decode("utf-8")
+    except Exception:
+        return []
+
+    return [
+        match.group(1).strip()
+        for match in re.finditer(r"^  (/.+) \(system search path\)$", out, re.MULTILINE)
+    ]
 
 
 def libc_from_dynamic_linker(dynamic_linker: str) -> Optional["spack.spec.Spec"]:

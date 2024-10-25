@@ -7,19 +7,17 @@ import pathlib
 
 import pytest
 
-import spack.build_systems.generic
 import spack.config
 import spack.error
 import spack.package_base
 import spack.repo
+import spack.solver.asp
 import spack.util.spack_yaml as syaml
 import spack.version
+from spack.installer import PackageInstaller
 from spack.solver.asp import InternalConcretizerError, UnsatisfiableSpecError
 from spack.spec import Spec
-from spack.test.conftest import create_test_repo
 from spack.util.url import path_to_file_url
-
-pytestmark = [pytest.mark.not_on_windows("Windows uses old concretizer")]
 
 
 def update_packages_config(conf_str):
@@ -27,76 +25,10 @@ def update_packages_config(conf_str):
     spack.config.set("packages", conf["packages"], scope="concretize")
 
 
-_pkgx = (
-    "x",
-    """\
-class X(Package):
-    version("1.1")
-    version("1.0")
-    version("0.9")
-
-    variant("shared", default=True,
-            description="Build shared libraries")
-
-    depends_on("y")
-""",
-)
-
-
-_pkgy = (
-    "y",
-    """\
-class Y(Package):
-    version("2.5")
-    version("2.4")
-    version("2.3", deprecated=True)
-
-    variant("shared", default=True,
-            description="Build shared libraries")
-""",
-)
-
-
-_pkgv = (
-    "v",
-    """\
-class V(Package):
-    version("2.1")
-    version("2.0")
-""",
-)
-
-
-_pkgt = (
-    "t",
-    """\
-class T(Package):
-    version('2.1')
-    version('2.0')
-
-    depends_on('u', when='@2.1:')
-""",
-)
-
-
-_pkgu = (
-    "u",
-    """\
-class U(Package):
-    version('1.1')
-    version('1.0')
-""",
-)
-
-
 @pytest.fixture
-def _create_test_repo(tmpdir, mutable_config):
-    yield create_test_repo(tmpdir, [_pkgx, _pkgy, _pkgv, _pkgt, _pkgu])
-
-
-@pytest.fixture
-def test_repo(_create_test_repo, monkeypatch, mock_stage):
-    with spack.repo.use_repositories(_create_test_repo) as mock_repo_path:
+def test_repo(mutable_config, monkeypatch, mock_stage):
+    repo_dir = pathlib.Path(spack.paths.repos_path) / "requirements.test"
+    with spack.repo.use_repositories(str(repo_dir)) as mock_repo_path:
         yield mock_repo_path
 
 
@@ -140,7 +72,7 @@ packages:
     require: "@1.2"
 """
     update_packages_config(conf_str)
-    with pytest.raises(spack.config.ConfigError):
+    with pytest.raises(spack.error.ConfigError):
         Spec("x").concretize()
 
 
@@ -494,23 +426,24 @@ packages:
     assert s2.satisfies("@2.5")
 
 
-def test_reuse_oneof(concretize_scope, _create_test_repo, mutable_database, mock_fetch):
+def test_reuse_oneof(concretize_scope, test_repo, tmp_path, mock_fetch):
     conf_str = """\
 packages:
   y:
     require:
-    - one_of: ["@2.5", "%gcc"]
+    - one_of: ["@2.5", "~shared"]
 """
 
-    with spack.repo.use_repositories(_create_test_repo):
-        s1 = Spec("y@2.5%gcc").concretized()
-        s1.package.do_install(fake=True, explicit=True)
+    store_dir = tmp_path / "store"
+    with spack.store.use_store(str(store_dir)):
+        s1 = Spec("y@2.5 ~shared").concretized()
+        PackageInstaller([s1.package], fake=True, explicit=True).install()
 
         update_packages_config(conf_str)
 
         with spack.config.override("concretizer:reuse", True):
             s2 = Spec("y").concretized()
-            assert not s2.satisfies("@2.5 %gcc")
+            assert not s2.satisfies("@2.5 ~shared")
 
 
 @pytest.mark.parametrize(
@@ -549,13 +482,11 @@ packages:
 @pytest.mark.parametrize("spec_str,requirement_str", [("x", "%gcc"), ("x", "%clang")])
 def test_default_requirements_with_all(spec_str, requirement_str, concretize_scope, test_repo):
     """Test that default requirements are applied to all packages."""
-    conf_str = """\
+    conf_str = f"""\
 packages:
   all:
-    require: "{}"
-""".format(
-        requirement_str
-    )
+    require: "{requirement_str}"
+"""
     update_packages_config(conf_str)
 
     spec = Spec(spec_str).concretized()
@@ -576,15 +507,13 @@ def test_default_and_package_specific_requirements(
     """Test that specific package requirements override default package requirements."""
     generic_req, specific_req = requirements
     generic_exp, specific_exp = expectations
-    conf_str = """\
+    conf_str = f"""\
 packages:
   all:
-    require: "{}"
+    require: "{generic_req}"
   x:
-    require: "{}"
-""".format(
-        generic_req, specific_req
-    )
+    require: "{specific_req}"
+"""
     update_packages_config(conf_str)
 
     spec = Spec("x").concretized()
@@ -595,13 +524,11 @@ packages:
 
 @pytest.mark.parametrize("mpi_requirement", ["mpich", "mpich2", "zmpi"])
 def test_requirements_on_virtual(mpi_requirement, concretize_scope, mock_packages):
-    conf_str = """\
+    conf_str = f"""\
 packages:
   mpi:
-    require: "{}"
-""".format(
-        mpi_requirement
-    )
+    require: "{mpi_requirement}"
+"""
     update_packages_config(conf_str)
 
     spec = Spec("callpath").concretized()
@@ -616,15 +543,13 @@ packages:
 def test_requirements_on_virtual_and_on_package(
     mpi_requirement, specific_requirement, concretize_scope, mock_packages
 ):
-    conf_str = """\
+    conf_str = f"""\
 packages:
   mpi:
-    require: "{0}"
-  {0}:
-    require: "{1}"
-""".format(
-        mpi_requirement, specific_requirement
-    )
+    require: "{mpi_requirement}"
+  {mpi_requirement}:
+    require: "{specific_requirement}"
+"""
     update_packages_config(conf_str)
 
     spec = Spec("callpath").concretized()

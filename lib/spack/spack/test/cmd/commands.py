@@ -10,6 +10,7 @@ import shutil
 import pytest
 
 import spack.cmd
+import spack.cmd.commands
 import spack.main
 import spack.paths
 from spack.cmd.commands import _dest_to_fish_complete, _positional_to_subroutine

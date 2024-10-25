@@ -57,7 +57,7 @@ class Elmerfem(CMakePackage):
 
         args = ["-DWITH_ElmerIce=ON", "-DWITH_CONTRIB=ON"]
 
-        if "+gui" in spec:
+        if spec.satisfies("+gui"):
             args.append("-DWITH_ELMERGUI:BOOL=TRUE")
             args.append("-DWITH_QT5:BOOL=TRUE")
             args.append("-DWITH_QWT:BOOL=TRUE")
@@ -65,7 +65,7 @@ class Elmerfem(CMakePackage):
         else:
             args.append("-DWITH_ELMERGUI:BOOL=FALSE")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append("-DWITH_MPI=ON")
         else:
             args.append("-DWITH_MPI=OFF")
@@ -73,40 +73,40 @@ class Elmerfem(CMakePackage):
         if self.spec.satisfies("^intel-mkl"):
             args.append("-DWITH_MKL:BOOL=TRUE")
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             args.append("-DWITH_OpenMP=ON")
         else:
             args.append("-DWITH_OpenMP=OFF")
 
-        if "+mumps" in spec:
+        if spec.satisfies("+mumps"):
             args.append("-DWITH_Mumps=ON")
         else:
             args.append("-DWITH_Mumps=OFF")
 
-        if "+hypre" in spec:
+        if spec.satisfies("+hypre"):
             args.append("-DWITH_Hypre=ON")
         else:
             args.append("-DWITH_Hypre=OFF")
 
-        if "+trilinos" in spec:
+        if spec.satisfies("+trilinos"):
             args.extend(["-DWITH_Trilinos=ON", "-DCMAKE_CXX_STANDARD=11"])
         else:
             args.append("-DWITH_Trilinos=OFF")
 
-        if "+lua" in spec:
+        if spec.satisfies("+lua"):
             args.extend(["-DWITH_LUA=ON", "-DUSE_SYSTEM_LUA=ON"])
-            if "%gcc" in spec:
+            if spec.satisfies("%gcc"):
                 args.append("-DCMAKE_Fortran_FLAGS=-ffree-line-length-none")
 
         else:
             args.append("-DWITH_LUA=OFF")
 
-        if "+zoltan" in spec:
+        if spec.satisfies("+zoltan"):
             args.extend(["-DWITH_Zoltan=ON", "-DUSE_SYSTEM_ZOLTAN=ON"])
         else:
             args.append("-DWITH_Zoltan=OFF")
 
-        if "+scatt2d" in spec:
+        if spec.satisfies("+scatt2d"):
             args.extend(
                 [
                     "-DWITH_ScatteredDataInterpolator=ON",
@@ -132,5 +132,5 @@ class Elmerfem(CMakePackage):
     def setup_run_environment(self, env):
         env.set("ELMER_HOME", self.prefix)
         env.set("ELMER_Fortran_COMPILER", self.compiler.fc)
-        if "+gui" in self.spec:
+        if self.spec.satisfies("+gui"):
             env.set("ELMERGUI_HOME", self.prefix.share.ElmerGUI)

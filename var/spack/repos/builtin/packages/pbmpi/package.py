@@ -9,7 +9,7 @@ from spack.package import *
 class Pbmpi(MakefilePackage):
     """A Bayesian software for phylogenetic reconstruction using mixture models"""
 
-    homepage = "https://megasun.bch.umontreal.ca/People/lartillot/www/index.htm"
+    homepage = "https://github.com/bayesiancook/pbmpi"
     url = "https://github.com/bayesiancook/pbmpi/archive/refs/tags/v1.8c.tar.gz"
     git = "https://github.com/bayesiancook/pbmpi.git"
 

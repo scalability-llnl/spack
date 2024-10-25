@@ -57,13 +57,13 @@ class IqTree(CMakePackage):
         args = []
         iqflags = []
 
-        if "+lsd2" in spec:
+        if spec.satisfies("+lsd2"):
             args.append("-DUSE_LSD2=ON")
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             iqflags.append("omp")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             iqflags.append("mpi")
 
         if not iqflags:

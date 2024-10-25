@@ -21,6 +21,7 @@ import urllib.parse
 from typing import List, Optional, Union
 
 import llnl.url
+import llnl.util.symlink
 import llnl.util.tty as tty
 from llnl.util.filesystem import mkdirp
 
@@ -30,6 +31,7 @@ import spack.error
 import spack.fetch_strategy
 import spack.mirror
 import spack.oci.image
+import spack.repo
 import spack.spec
 import spack.util.path
 import spack.util.spack_json as sjson
@@ -87,9 +89,8 @@ class Mirror:
         """Create an anonymous mirror by URL. This method validates the URL."""
         if not urllib.parse.urlparse(url).scheme in supported_url_schemes:
             raise ValueError(
-                '"{}" is not a valid mirror URL. Scheme must be once of {}.'.format(
-                    url, ", ".join(supported_url_schemes)
-                )
+                f'"{url}" is not a valid mirror URL. '
+                f"Scheme must be one of {supported_url_schemes}."
             )
         return Mirror(url)
 
@@ -427,27 +428,58 @@ Spack not to expand it with the following syntax:
 
 
 class MirrorLayout:
-    """A ``MirrorLayout`` stores the relative locations of files in a mirror directory. The main
-    storage location is ``storage_path``. An additional, human-readable path may be obtained as the
-    second entry when iterating this object."""
+    """A ``MirrorLayout`` object describes the relative path of a mirror entry."""
 
-    def __init__(self, storage_path: str) -> None:
-        self.storage_path = storage_path
+    def __init__(self, path: str) -> None:
+        self.path = path
 
     def __iter__(self):
-        yield self.storage_path
+        """Yield all paths including aliases where the resource can be found."""
+        yield self.path
+
+    def make_alias(self, root: str) -> None:
+        """Make the entry ``root / self.path`` available under a human readable alias"""
+        pass
 
 
 class DefaultLayout(MirrorLayout):
-    def __init__(self, cosmetic_path: str, global_path: Optional[str] = None) -> None:
-        super().__init__(global_path or cosmetic_path)
-        self.global_path = global_path
-        self.cosmetic_path = cosmetic_path
+    def __init__(self, alias_path: str, digest_path: Optional[str] = None) -> None:
+        # When we have a digest, it is used as the primary storage location. If not, then we use
+        # the human-readable alias. In case of mirrors of a VCS checkout, we currently do not have
+        # a digest, that's why an alias is required and a digest optional.
+        super().__init__(path=digest_path or alias_path)
+        self.alias = alias_path
+        self.digest_path = digest_path
+
+    def make_alias(self, root: str) -> None:
+        """Symlink a human readible path in our mirror to the actual storage location."""
+        # We already use the human-readable path as the main storage location.
+        if not self.digest_path:
+            return
+
+        alias, digest = os.path.join(root, self.alias), os.path.join(root, self.digest_path)
+
+        alias_dir = os.path.dirname(alias)
+        relative_dst = os.path.relpath(digest, start=alias_dir)
+
+        mkdirp(alias_dir)
+        tmp = f"{alias}.tmp"
+        llnl.util.symlink.symlink(relative_dst, tmp)
+
+        try:
+            os.rename(tmp, alias)
+        except OSError:
+            # Clean up the temporary if possible
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            raise
 
     def __iter__(self):
-        if self.global_path:
-            yield self.global_path
-        yield self.cosmetic_path
+        if self.digest_path:
+            yield self.digest_path
+        yield self.alias
 
 
 class OCILayout(MirrorLayout):
@@ -458,7 +490,11 @@ class OCILayout(MirrorLayout):
         super().__init__(os.path.join("blobs", digest.algorithm, digest.digest))
 
 
-def mirror_archive_paths(fetcher, per_package_ref, spec=None):
+def default_mirror_layout(
+    fetcher: "spack.fetch_strategy.FetchStrategy",
+    per_package_ref: str,
+    spec: Optional["spack.spec.Spec"] = None,
+) -> MirrorLayout:
     """Returns a ``MirrorReference`` object which keeps track of the relative
     storage path of the resource associated with the specified ``fetcher``."""
     ext = None
@@ -722,7 +758,7 @@ def require_mirror_name(mirror_name):
     """Find a mirror by name and raise if it does not exist"""
     mirror = spack.mirror.MirrorCollection().get(mirror_name)
     if not mirror:
-        raise ValueError('no mirror named "{0}"'.format(mirror_name))
+        raise ValueError(f'no mirror named "{mirror_name}"')
     return mirror
 
 

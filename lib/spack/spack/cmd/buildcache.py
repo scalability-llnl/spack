@@ -23,14 +23,9 @@ import spack.environment as ev
 import spack.error
 import spack.mirror
 import spack.oci.oci
-import spack.oci.opener
-import spack.relocate
-import spack.repo
 import spack.spec
 import spack.stage
 import spack.store
-import spack.user_environment
-import spack.util.crypto
 import spack.util.parallel
 import spack.util.url as url_util
 import spack.util.web as web_util
@@ -460,7 +455,7 @@ def push_fn(args):
                 "The following {} specs were skipped as they already exist in the buildcache:\n"
                 "    {}\n"
                 "    Use --force to overwrite them.".format(
-                    len(skipped), ", ".join(elide_list(skipped, 5))
+                    len(skipped), ", ".join(elide_list([_format_spec(s) for s in skipped], 5))
                 )
             )
 

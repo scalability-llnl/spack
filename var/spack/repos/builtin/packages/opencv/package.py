@@ -22,6 +22,9 @@ class Opencv(CMakePackage, CudaPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("4.10.0", sha256="b2171af5be6b26f7a06b1229948bbb2bdaa74fcf5cd097e0af6378fce50a6eb9")
+    version("4.9.0", sha256="ddf76f9dffd322c7c3cb1f721d0887f62d747b82059342213138dc190f28bc6c")
+    version("4.8.1", sha256="62f650467a60a38794d681ae7e66e3e8cfba38f445e0bf87867e2f2cdc8be9d5")
     version("4.8.0", sha256="cbf47ecc336d2bff36b0dcd7d6c179a9bb59e805136af6b9670ca944aef889bd")
     version("4.7.0", sha256="8df0079cdbe179748a18d44731af62a245a45ebf5085223dc03133954c662973")
     version("4.6.0", sha256="1ec1cba65f9f20fe5a41fda1586e01c70ea0c9a6d7b67c9e13edf0cfe2239277")
@@ -46,8 +49,8 @@ class Opencv(CMakePackage, CudaPackage):
     version("3.3.1", sha256="5dca3bb0d661af311e25a72b04a7e4c22c47c1aa86eb73e70063cd378a2aa6ee")
     version("3.3.0", sha256="8bb312b9d9fd17336dc1f8b3ac82f021ca50e2034afc866098866176d985adc6")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     contrib_vers = [
         "3.3.0",
@@ -73,6 +76,9 @@ class Opencv(CMakePackage, CudaPackage):
         "4.6.0",
         "4.7.0",
         "4.8.0",
+        "4.8.1",
+        "4.9.0",
+        "4.10.0",
     ]
     for cv in contrib_vers:
         resource(
@@ -254,8 +260,8 @@ class Opencv(CMakePackage, CudaPackage):
         depends_on("python@3.2:", type=("build", "link", "run"))
         depends_on("py-setuptools", type="build")
         depends_on("py-numpy", type=("build", "run"))
-        # https://github.com/opencv/opencv-python/issues/943
-        depends_on("py-numpy@:1", when="@:4.10.0.83", type=("build", "run"))
+        # https://github.com/opencv/opencv/issues/25455
+        depends_on("py-numpy@:1", when="@:4.9", type=("build", "run"))
         extends("python", when="+python3")
 
     with when("+stitching"):
@@ -486,6 +492,7 @@ class Opencv(CMakePackage, CudaPackage):
 
     with when("+hdf"):
         depends_on("hdf5")
+        depends_on("mpi", when="^hdf5+mpi")
 
     with when("+hfs"):
         with when("+cuda"):

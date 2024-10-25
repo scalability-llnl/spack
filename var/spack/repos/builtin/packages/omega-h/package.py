@@ -20,6 +20,11 @@ class OmegaH(CMakePackage, CudaPackage):
     tags = ["e4s"]
     version("main", branch="main")
     version(
+        "scorec.10.8.5",
+        commit="62026fc305356abb5e02a9fce3fead9cf5077fbe",
+        git="https://github.com/SCOREC/omega_h.git",
+    )
+    version(
         "scorec.10.7.0",
         commit="0e5de8618c3370f702e08c1b1af476dbbc118892",
         git="https://github.com/SCOREC/omega_h.git",
@@ -75,6 +80,12 @@ class OmegaH(CMakePackage, CudaPackage):
         when="@scorec.10.1.0:",
         msg="Thrust is broken in CUDA = 11.2.* see https://github.com/sandialabs/omega_h/issues/366",
     )
+    conflicts(
+        "^cuda@:11.3",
+        when="@scorec.10.8.5:",
+        msg="see https://github.com/SCOREC/omega_h/issues/66",
+    )
+
     # the sandia repo has a fix for cuda > 11.2 support
     #  see github.com/sandialabs/omega_h/pull/373
     conflicts(
@@ -163,7 +174,7 @@ class OmegaH(CMakePackage, CudaPackage):
 
     def test_mesh(self):
         """test construction, adaptation, and conversion of a mesh"""
-        if self.spec.satisfies("@:9.34.0"):
+        if self.spec.satisfies("@:9.34.0") and not self.spec.satisfies("@:scorec"):
             raise SkipTest("Package must be installed as version 9.34.1 or later")
 
         with test_part(self, "test_mesh_create", purpose="mesh construction"):

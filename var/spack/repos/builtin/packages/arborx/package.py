@@ -23,6 +23,7 @@ class Arborx(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("1.7", sha256="e3d9a57a1d7c1ad62f6bbb43fd29a366506f3a16cbbe801c04d10f5fb0dec201")
     version("1.6", sha256="c2230de185d62f1999d36c6b8b92825f19ab9fbf30bdae90595cab04e76561a4")
     version("1.5", sha256="c26f23c17e749ccf3e2d353a68969aa54d31b8e720dbfdbc2cef16c5d8477e9e")
     version("1.4.1", sha256="2ca828ef6615859654b233a7df17017e7cfd904982b80026ec7409eb46b77a95")
@@ -74,9 +75,10 @@ class Arborx(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("kokkos@3.1.00:", when="~trilinos")
     depends_on("kokkos@3.4.00:", when="@1.2~trilinos")
     depends_on("kokkos@3.6.00:", when="@1.3~trilinos")
-    depends_on("kokkos@3.7.01:", when="@1.4:~trilinos")
-    depends_on("kokkos@4.0.00:", when="@1.5:~trilinos")
-    depends_on("kokkos@4.1.00:", when="@1.6:~trilinos")
+    depends_on("kokkos@3.7.01:", when="@1.4:1.4.1~trilinos")
+    depends_on("kokkos@4.0.00:", when="@1.5~trilinos")
+    depends_on("kokkos@4.1.00:", when="@1.6~trilinos")
+    depends_on("kokkos@4.2.00:", when="@1.7:~trilinos")
     for backend in kokkos_backends:
         depends_on("kokkos+%s" % backend.lower(), when="~trilinos+%s" % backend.lower())
 
@@ -102,9 +104,10 @@ class Arborx(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("trilinos+openmp", when="+trilinos+openmp")
     depends_on("trilinos@13.2.0:", when="@1.2+trilinos")
     depends_on("trilinos@13.4.0:", when="@1.3+trilinos")
-    depends_on("trilinos@14.0.0:", when="@1.4:+trilinos")
-    depends_on("trilinos@14.2.0:", when="@1.5:+trilinos")
-    depends_on("trilinos@14.4.0:", when="@1.6:+trilinos")
+    depends_on("trilinos@14.0.0:", when="@1.4:1.4.1+trilinos")
+    depends_on("trilinos@14.2.0:", when="@1.5+trilinos")
+    depends_on("trilinos@14.4.0:", when="@1.6+trilinos")
+    depends_on("trilinos@15.1.0:", when="@1.7:+trilinos")
     patch("trilinos14.0-kokkos-major-version.patch", when="@1.4+trilinos ^trilinos@14.0.0")
     conflicts("~serial", when="+trilinos")
 

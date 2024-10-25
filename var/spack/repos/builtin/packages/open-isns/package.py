@@ -21,13 +21,15 @@ class OpenIsns(AutotoolsPackage):
     version("0.97", sha256="c1c9ae740172e55a1ff33bc22151ec3d916562bf5d60c8420cd64496343683a9")
     version("0.96", sha256="487fd0d87826423ea99dc159826d0b654a5da016ed670d4395a77bfa4f62e2ec")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     def configure_args(self):
         args = ["--enable-shared"]
         return args
 
     def install(self, spec, prefix):
-        make("install")
-        make("install_hdrs")
-        make("install_lib")
+        etc_dir = join_path(prefix, "etc")
+        var_dir = join_path(prefix, "var")
+        make("install", f"etcdir={etc_dir}", f"vardir={var_dir}")
+        make("install_hdrs", f"etcdir={etc_dir}", f"vardir={var_dir}")
+        make("install_lib", f"etcdir={etc_dir}", f"vardir={var_dir}")

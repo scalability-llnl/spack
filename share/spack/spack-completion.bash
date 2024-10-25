@@ -415,7 +415,7 @@ _spack_add() {
 }
 
 _spack_arch() {
-    SPACK_COMPREPLY="-h --help -g --generic-target --known-targets -p --platform -o --operating-system -t --target -f --frontend -b --backend"
+    SPACK_COMPREPLY="-h --help -g --generic-target --known-targets --family --generic -p --platform -o --operating-system -t --target -f --frontend -b --backend"
 }
 
 _spack_audit() {
@@ -693,7 +693,7 @@ _spack_ci() {
 }
 
 _spack_ci_generate() {
-    SPACK_COMPREPLY="-h --help --output-file --copy-to --optimize --dependencies --buildcache-destination --prune-dag --no-prune-dag --check-index-only --artifacts-root"
+    SPACK_COMPREPLY="-h --help --output-file --optimize --dependencies --prune-dag --no-prune-dag --check-index-only --artifacts-root"
 }
 
 _spack_ci_rebuild_index() {
@@ -752,7 +752,7 @@ _spack_compiler() {
 _spack_compiler_find() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help --mixed-toolchain --no-mixed-toolchain --scope"
+        SPACK_COMPREPLY="-h --help --mixed-toolchain --no-mixed-toolchain --scope -j --jobs"
     else
         SPACK_COMPREPLY=""
     fi
@@ -761,7 +761,7 @@ _spack_compiler_find() {
 _spack_compiler_add() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help --mixed-toolchain --no-mixed-toolchain --scope"
+        SPACK_COMPREPLY="-h --help --mixed-toolchain --no-mixed-toolchain --scope -j --jobs"
     else
         SPACK_COMPREPLY=""
     fi
@@ -1030,7 +1030,7 @@ _spack_env() {
 _spack_env_activate() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help --sh --csh --fish --bat --pwsh --with-view -v --without-view -V -p --prompt --temp --create --envfile --keep-relative -d --dir"
+        SPACK_COMPREPLY="-h --help --sh --csh --fish --bat --pwsh -v --with-view -V --without-view -p --prompt --temp --create --envfile --keep-relative -d --dir"
     else
         _environments
     fi
@@ -1195,7 +1195,12 @@ _spack_find() {
 }
 
 _spack_gc() {
-    SPACK_COMPREPLY="-h --help -E --except-any-environment -e --except-environment -b --keep-build-dependencies -y --yes-to-all"
+    if $list_options
+    then
+        SPACK_COMPREPLY="-h --help -E --except-any-environment -e --except-environment -b --keep-build-dependencies -y --yes-to-all"
+    else
+        _installed_packages
+    fi
 }
 
 _spack_gpg() {
@@ -1299,7 +1304,7 @@ _spack_help() {
 _spack_info() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -a --all --detectable --maintainers --no-dependencies --no-variants --no-versions --phases --tags --tests --virtuals --variants-by-name"
+        SPACK_COMPREPLY="-h --help -a --all --detectable --maintainers --namespace --no-dependencies --no-variants --no-versions --phases --tags --tests --virtuals --variants-by-name"
     else
         _all_packages
     fi

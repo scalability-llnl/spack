@@ -72,3 +72,13 @@ packages:
     permissions:
       read: world
       write: user
+  cray-mpich:
+    buildable: false
+  cray-mvapich2:
+    buildable: false
+  fujitsu-mpi:
+    buildable: false
+  hpcx-mpi:
+    buildable: false
+  spectrum-mpi:
+    buildable: false

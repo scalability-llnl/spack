@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import inspect
 import os.path
 
 from spack.package import *
@@ -80,7 +79,7 @@ class Wannier90(MakefilePackage):
             "@LIBS": (lapack + blas + mpi).joined(),
         }
 
-        template = join_path(os.path.dirname(inspect.getmodule(self).__file__), "make.sys")
+        template = join_path(os.path.dirname(__file__), "make.sys")
 
         copy(template, self.makefile_name)
         for key, value in substitutions.items():

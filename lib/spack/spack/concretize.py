@@ -8,47 +8,26 @@
 from contextlib import contextmanager
 from itertools import chain
 
-import spack.abi
-import spack.compilers
 import spack.config
-import spack.environment
 import spack.error
-import spack.platforms
-import spack.repo
-import spack.spec
-import spack.target
-import spack.tengine
-import spack.util.path
 
-
-class Concretizer:
-    """(DEPRECATED) Only contains logic to enable/disable compiler existence checks."""
-
-    #: Controls whether we check that compiler versions actually exist
-    #: during concretization. Used for testing and for mirror creation
-    check_for_compiler_existence = None
-
-    def __init__(self):
-        if Concretizer.check_for_compiler_existence is None:
-            Concretizer.check_for_compiler_existence = not spack.config.get(
-                "config:install_missing_compilers", False
-            )
+CHECK_COMPILER_EXISTENCE = True
 
 
 @contextmanager
 def disable_compiler_existence_check():
-    saved = Concretizer.check_for_compiler_existence
-    Concretizer.check_for_compiler_existence = False
+    global CHECK_COMPILER_EXISTENCE
+    CHECK_COMPILER_EXISTENCE, saved = False, CHECK_COMPILER_EXISTENCE
     yield
-    Concretizer.check_for_compiler_existence = saved
+    CHECK_COMPILER_EXISTENCE = saved
 
 
 @contextmanager
 def enable_compiler_existence_check():
-    saved = Concretizer.check_for_compiler_existence
-    Concretizer.check_for_compiler_existence = True
+    global CHECK_COMPILER_EXISTENCE
+    CHECK_COMPILER_EXISTENCE, saved = True, CHECK_COMPILER_EXISTENCE
     yield
-    Concretizer.check_for_compiler_existence = saved
+    CHECK_COMPILER_EXISTENCE = saved
 
 
 def find_spec(spec, condition, default=None):

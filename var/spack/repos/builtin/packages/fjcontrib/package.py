@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import inspect
-
 from spack.package import *
 
 
@@ -87,9 +85,9 @@ class Fjcontrib(AutotoolsPackage):
     def build(self, spec, prefix):
         with working_dir(self.build_directory):
             for target in self.build_targets:
-                inspect.getmodule(self).make(target)
+                make(target)
 
     def install(self, spec, prefix):
         with working_dir(self.build_directory):
             for target in self.install_targets:
-                inspect.getmodule(self).make(target)
+                make(target)

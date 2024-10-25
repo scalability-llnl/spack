@@ -129,7 +129,7 @@ class Ginkgo(CMakePackage, CudaPackage, ROCmPackage):
 
     def setup_build_environment(self, env):
         spec = self.spec
-        if "+sycl" in spec:
+        if spec.satisfies("+sycl"):
             env.set("MKLROOT", join_path(spec["intel-oneapi-mkl"].prefix, "mkl", "latest"))
             env.set("DPL_ROOT", join_path(spec["intel-oneapi-dpl"].prefix, "dpl", "latest"))
             # The `IntelSYCLConfig.cmake` is broken with spack. By default, it
@@ -189,13 +189,13 @@ class Ginkgo(CMakePackage, CudaPackage, ROCmPackage):
         if self.run_tests:
             args.append("-DGINKGO_USE_EXTERNAL_GTEST=ON")
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             archs = spec.variants["cuda_arch"].value
             if archs != "none":
                 arch_str = ";".join(archs)
                 args.append("-DGINKGO_CUDA_ARCHITECTURES={0}".format(arch_str))
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             args.append("-DHIP_PATH={0}".format(spec["hip"].prefix))
             args.append("-DHIP_CLANG_PATH={0}/bin".format(spec["llvm-amdgpu"].prefix))
             args.append("-DHIP_CLANG_INCLUDE_PATH={0}/include".format(spec["llvm-amdgpu"].prefix))
@@ -213,7 +213,7 @@ class Ginkgo(CMakePackage, CudaPackage, ROCmPackage):
                     self.define("CMAKE_MODULE_PATH", self.spec["hip"].prefix.lib.cmake.hip)
                 )
 
-        if "+sycl" in self.spec:
+        if self.spec.satisfies("+sycl"):
             sycl_compatible_compilers = ["icpx"]
             if not (os.path.basename(self.compiler.cxx) in sycl_compatible_compilers):
                 raise InstallError("ginkgo +sycl requires icpx compiler.")
@@ -243,7 +243,7 @@ class Ginkgo(CMakePackage, CudaPackage, ROCmPackage):
         ]
 
         # Fix: For HIP tests, add the ARCH compilation flags when not present
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             src_path = join_path(src_dir, "CMakeLists.txt")
             cmakelists = open(src_path, "rt")
             data = cmakelists.read()

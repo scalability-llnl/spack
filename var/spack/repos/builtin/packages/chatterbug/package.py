@@ -15,8 +15,8 @@ class Chatterbug(MakefilePackage):
 
     tags = ["proxy-app"]
 
-    homepage = "https://chatterbug.readthedocs.io"
-    git = "https://github.com/LLNL/chatterbug.git"
+    homepage = "https://github.com/hpcgroup/chatterbug"
+    git = "https://github.com/hpcgroup/chatterbug.git"
 
     license("MIT")
 

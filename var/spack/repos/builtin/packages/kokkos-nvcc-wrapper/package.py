@@ -21,6 +21,8 @@ class KokkosNvccWrapper(Package):
 
     license("BSD-3-Clause")
 
+    version("4.4.01", sha256="3f7096d17eaaa4004c7497ac082bf1ae3ff47b5104149e54af021a89414c3682")
+    version("4.4.00", sha256="c638980cb62c34969b8c85b73e68327a2cb64f763dd33e5241f5fd437170205a")
     version("4.3.01", sha256="5998b7c732664d6b5e219ccc445cd3077f0e3968b4be480c29cd194b4f45ec70")
     version("4.3.00", sha256="53cf30d3b44dade51d48efefdaee7a6cf109a091b702a443a2eda63992e5fe0d")
     version("4.2.01", sha256="cbabbabba021d00923fb357d2e1b905dda3838bd03c885a6752062fe03c67964")

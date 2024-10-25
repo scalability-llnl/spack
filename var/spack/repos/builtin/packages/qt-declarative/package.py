@@ -16,6 +16,7 @@ class QtDeclarative(QtPackage):
 
     license("BSD-3-Clause")
 
+    version("6.7.3", sha256="f39fa4e7e3b4011e52fc55fbde5f41e61815bffea432869abc9b90aa4de07613")
     version("6.7.2", sha256="3b91d1b75f22221f39b93647d73c9fe7fc4b9c8d45ff0cec402626eab15d8dd8")
     version("6.7.1", sha256="fdf4099cbced3ce56e5151122ae1eb924886492f9fc2eb6a353d60a23e8fde14")
     version("6.7.0", sha256="dc3fec16cbe0f706b2b6114e5dbb884269543f2d679a0a3a63b4f686156adf73")

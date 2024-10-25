@@ -151,7 +151,7 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
         ]
 
         # Switch necessary as a result of a bug.
-        if "@2.1:2.2" in spec:
+        if spec.satisfies("@2.1:2.2"):
             args += ["-DBUILD_TESTING=ON"]
 
         if self.spec.satisfies("+cuda"):

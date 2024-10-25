@@ -43,9 +43,7 @@
    internal_error("Only nodes can have node_compiler_version").
 :- attr("variant_value", PackageNode, _, _), not attr("node", PackageNode),
    internal_error("variant_value true for a non-node").
-:- attr("node_flag_compiler_default", PackageNode), not attr("node", PackageNode),
-   internal_error("node_flag_compiler_default true for non-node").
-:- attr("node_flag", PackageNode, _, _), not attr("node", PackageNode),
+:- attr("node_flag", PackageNode, _), not attr("node", PackageNode),
    internal_error("node_flag assigned for non-node").
 :- attr("external_spec_selected", PackageNode, _), not attr("node", PackageNode),
    internal_error("external_spec_selected for non-node").
@@ -53,10 +51,6 @@
    internal_error("non-node depends on something").
 :- attr("depends_on", _, ChildNode, _), not attr("node", ChildNode),
    internal_error("something depends_on a non-node").
-:- attr("node_flag_source", Node, _, _), not attr("node", Node),
-   internal_error("node_flag_source assigned for a non-node").
-:- attr("node_flag_source", _, _, SourceNode), not attr("node", SourceNode),
-   internal_error("node_flag_source assigned with a non-node source").
 :- attr("virtual_node", VirtualNode), not provider(_, VirtualNode),
    internal_error("virtual node with no provider").
 :- provider(_, VirtualNode), not attr("virtual_node", VirtualNode),
@@ -154,7 +148,6 @@ unification_set(SetID, VirtualNode)
 % TODO: literals, at the moment, can only influence the "root" unification set. This needs to be extended later.
 
 % Node attributes that have multiple node arguments (usually, only the first argument is a node)
-multiple_nodes_attribute("node_flag_source").
 multiple_nodes_attribute("depends_on").
 multiple_nodes_attribute("virtual_on_edge").
 multiple_nodes_attribute("provider_set").
@@ -392,7 +385,6 @@ trigger_condition_holds(ID, RequestorNode) :-
   attr(Name, node(X, A1), A2, A3)     : condition_requirement(ID, Name, A1, A2, A3),     condition_nodes(ID, PackageNode, node(X, A1)), not multiple_nodes_attribute(Name);
   attr(Name, node(X, A1), A2, A3, A4) : condition_requirement(ID, Name, A1, A2, A3, A4), condition_nodes(ID, PackageNode, node(X, A1));
   % Special cases
-  attr("node_flag_source", node(X, A1), A2, node(Y, A3)) : condition_requirement(ID, "node_flag_source", A1, A2, A3), condition_nodes(ID, PackageNode, node(X, A1)), condition_nodes(ID, PackageNode, node(Y, A3));
   not cannot_hold(ID, PackageNode).
 
 condition_holds(ConditionID, node(X, Package))
@@ -440,13 +432,6 @@ attr(Name, node(X, A1), A2)         :- impose(ID, PackageNode), imposed_constrai
 attr(Name, node(X, A1), A2, A3)     :- impose(ID, PackageNode), imposed_constraint(ID, Name, A1, A2, A3),     imposed_nodes(ID, PackageNode, node(X, A1)), not multiple_nodes_attribute(Name).
 attr(Name, node(X, A1), A2, A3, A4) :- impose(ID, PackageNode), imposed_constraint(ID, Name, A1, A2, A3, A4), imposed_nodes(ID, PackageNode, node(X, A1)).
 
-% For node flag sources we need to look at the condition_set of the source, since it is the dependent
-% of the package on which I want to impose the constraint
-attr("node_flag_source", node(X, A1), A2, node(Y, A3))
-  :- impose(ID, node(X, A1)),
-     imposed_constraint(ID, "node_flag_source", A1, A2, A3),
-     condition_set(node(Y, A3), node(X, A1)).
-
 % Provider set is relevant only for literals, since it's the only place where `^[virtuals=foo] bar`
 % might appear in the HEAD of a rule
 attr("provider_set", node(min_dupe_id, Provider), node(min_dupe_id, Virtual))
@@ -487,8 +472,8 @@ virtual_condition_holds(node(Y, A2), Virtual)
 % we cannot have additional flag values when we are working with concrete specs
 :- attr("node", node(ID, Package)),
    attr("hash", node(ID, Package), Hash),
-   attr("node_flag", node(ID, Package), FlagType, Flag),
-   not imposed_constraint(Hash, "node_flag", Package, FlagType, Flag),
+   attr("node_flag", node(ID, Package), node_flag(FlagType, Flag, _, _)),
+   not imposed_constraint(Hash, "node_flag", Package, node_flag(FlagType, Flag, _, _)),
    internal_error("imposed hash without imposing all flag values").
 
 #defined condition/2.
@@ -789,22 +774,15 @@ required_provider(Provider, Virtual)
 
 :- provider(node(Y, Package), node(X, Virtual)), required_provider(Provider, Virtual), Package != Provider.
 
-% TODO: the following two choice rules allow the solver to add compiler
+% TODO: the following choice rule allows the solver to add compiler
 % flags if their only source is from a requirement. This is overly-specific
 % and should use a more-generic approach like in https://github.com/spack/spack/pull/37180
 
-{ attr("node_flag", node(ID, Package), FlagType, FlagValue) } :-
+{ attr("node_flag", node(ID, Package), NodeFlag) } :-
   requirement_group_member(ConditionID, Package, RequirementID),
   activate_requirement(node(ID, Package), RequirementID),
   pkg_fact(Package, condition_effect(ConditionID, EffectID)),
-  imposed_constraint(EffectID, "node_flag_set", Package, FlagType, FlagValue).
-
-{ attr("node_flag_source", node(NodeID1, Package1), FlagType, node(NodeID2, Package2)) } :-
-  requirement_group_member(ConditionID, Package1, RequirementID),
-  activate_requirement(node(NodeID1, Package1), RequirementID),
-  pkg_fact(Package1, condition_effect(ConditionID, EffectID)),
-  imposed_constraint(EffectID, "node_flag_source", Package1, FlagType, Package2),
-  imposed_nodes(EffectID, node(NodeID2, Package2), node(NodeID1, Package1)).
+  imposed_constraint(EffectID, "node_flag_set", Package, NodeFlag).
 
 requirement_weight(node(ID, Package), Group, W) :-
   W = #min {
@@ -841,58 +819,132 @@ error(10, Message) :-
 %-----------------------------------------------------------------------------
 % Variant semantics
 %-----------------------------------------------------------------------------
-% a variant is a variant of a package if it is a variant under some condition
-% and that condition holds
-node_has_variant(node(NodeID, Package), Variant) :-
-  pkg_fact(Package, conditional_variant(ID, Variant)),
-  condition_holds(ID, node(NodeID, Package)).
+% Packages define potentially several definitions for each variant, and depending
+% on their attibutes, duplicate nodes for the same package may use different
+% definitions. So the variant logic has several jobs:
+% A. Associate a variant definition with a node, by VariantID
+% B. Associate defaults and attributes (sticky, etc.) for the selected variant ID with the node.
+% C. Once these rules are established for a node, select variant value(s) based on them.
 
-node_has_variant(node(ID, Package), Variant) :-
-  pkg_fact(Package, variant(Variant)),
-  attr("node", node(ID, Package)).
+% A: Selecting a variant definition
+
+% Variant definitions come from package facts in two ways:
+% 1. unconditional variants are always defined on all nodes for a given package
+variant_definition(node(NodeID, Package), Name, VariantID) :-
+  pkg_fact(Package, variant_definition(Name, VariantID)),
+  attr("node", node(NodeID, Package)).
+
+% 2. conditional variants are only defined if the conditions hold for the node
+variant_definition(node(NodeID, Package), Name, VariantID) :-
+  pkg_fact(Package, variant_condition(Name, VariantID, ConditionID)),
+  condition_holds(ConditionID, node(NodeID, Package)).
+
+% If there are any definitions for a variant on a node, the variant is "defined".
+variant_defined(PackageNode, Name) :- variant_definition(PackageNode, Name, _).
+
+% We must select one definition for each defined variant on a node.
+1 {
+  node_has_variant(PackageNode, Name, VariantID) : variant_definition(PackageNode, Name, VariantID)
+} 1 :-
+  variant_defined(PackageNode, Name).
+
+% Solver must pick the variant definition with the highest id. When conditions hold
+% for two or more variant definitions, this prefers the last one defined.
+:- node_has_variant(node(NodeID, Package), Name, SelectedVariantID),
+   variant_definition(node(NodeID, Package), Name, VariantID),
+   VariantID > SelectedVariantID.
+
+% B: Associating applicable package rules with nodes
+
+% The default value for a variant in a package is what is prescribed:
+% 1. On the command line
+% 2. In packages.yaml (if there's no command line settings)
+% 3. In the package.py file (if there are no settings in packages.yaml and the command line)
+
+% -- Associate the definition's default values with the node
+% note that the package.py variant defaults are associated with a particular definition, but
+% packages.yaml and CLI are associated with just the variant name.
+% Also, settings specified on the CLI apply to all duplicates, but always have
+% `min_dupe_id` as their node id.
+variant_default_value(node(NodeID, Package), VariantName, Value) :-
+  node_has_variant(node(NodeID, Package), VariantName, VariantID),
+  pkg_fact(Package, variant_default_value_from_package_py(VariantID, Value)),
+  not variant_default_value_from_packages_yaml(Package, VariantName, _),
+  not attr("variant_default_value_from_cli", node(min_dupe_id, Package), VariantName, _).
+
+variant_default_value(node(NodeID, Package), VariantName, Value) :-
+  node_has_variant(node(NodeID, Package), VariantName, _),
+  variant_default_value_from_packages_yaml(Package, VariantName, Value),
+  not attr("variant_default_value_from_cli", node(min_dupe_id, Package), VariantName, _).
+
+variant_default_value(node(NodeID, Package), VariantName, Value) :-
+    node_has_variant(node(NodeID, Package), VariantName, _),
+    attr("variant_default_value_from_cli", node(min_dupe_id, Package), VariantName, Value).
+
+% -- Associate the definition's possible values with the node
+variant_possible_value(node(NodeID, Package), VariantName, Value) :-
+  node_has_variant(node(NodeID, Package), VariantName, VariantID),
+  pkg_fact(Package, variant_possible_value(VariantID, Value)).
+
+variant_value_from_disjoint_sets(node(NodeID, Package), VariantName, Value1, Set1) :-
+  node_has_variant(node(NodeID, Package), VariantName, VariantID),
+  pkg_fact(Package, variant_value_from_disjoint_sets(VariantID, Value1, Set1)).
+
+% -- Associate definition's arity with the node
+variant_single_value(node(NodeID, Package), VariantName) :-
+  node_has_variant(node(NodeID, Package), VariantName, VariantID),
+  not variant_type(VariantID, "multi").
+
+% C: Determining variant values on each node
+
+% if a variant is sticky, but not set, its value is the default value
+attr("variant_selected", node(ID, Package), Variant, Value, VariantType, VariantID) :-
+  node_has_variant(node(ID, Package), Variant, VariantID),
+  variant_default_value(node(ID, Package), Variant, Value),
+  pkg_fact(Package, variant_sticky(VariantID)),
+  variant_type(VariantID, VariantType),
+  not attr("variant_set", node(ID, Package), Variant),
+  build(node(ID, Package)).
+
+% we can choose variant values from all the possible values for the node
+{
+  attr("variant_selected", node(ID, Package), Variant, Value, VariantType, VariantID)
+  : variant_possible_value(node(ID, Package), Variant, Value)
+} :-
+  attr("node", node(ID, Package)),
+  node_has_variant(node(ID, Package), Variant, VariantID),
+  variant_type(VariantID, VariantType),
+  build(node(ID, Package)).
+
+% variant_selected is only needed for reconstruction on the python side, so we can ignore it here
+attr("variant_value", PackageNode, Variant, Value) :-
+  attr("variant_selected", PackageNode, Variant, Value, VariantType, VariantID).
 
 % a variant cannot be set if it is not a variant on the package
 error(100, "Cannot set variant '{0}' for package '{1}' because the variant condition cannot be satisfied for the given spec", Variant, Package)
-  :- attr("variant_set", node(X, Package), Variant),
-     not node_has_variant(node(X, Package), Variant),
-     build(node(X, Package)).
+  :- attr("variant_set", node(ID, Package), Variant),
+     not node_has_variant(node(ID, Package), Variant, _),
+     build(node(ID, Package)).
 
 % a variant cannot take on a value if it is not a variant of the package
 error(100, "Cannot set variant '{0}' for package '{1}' because the variant condition cannot be satisfied for the given spec", Variant, Package)
-  :- attr("variant_value", node(X, Package), Variant, _),
-     not node_has_variant(node(X, Package), Variant),
-     build(node(X, Package)).
-
-% if a variant is sticky and not set its value is the default value
-attr("variant_value", node(ID, Package), Variant, Value) :-
-  node_has_variant(node(ID, Package), Variant),
-  not attr("variant_set", node(ID, Package), Variant),
-  pkg_fact(Package, variant_sticky(Variant)),
-  variant_default_value(Package, Variant, Value),
-  build(node(ID, Package)).
+  :- attr("variant_value", node(ID, Package), Variant, _),
+     not node_has_variant(node(ID, Package), Variant, _),
+     build(node(ID, Package)).
 
 % at most one variant value for single-valued variants.
-{
-  attr("variant_value", node(ID, Package), Variant, Value)
-  : pkg_fact(Package, variant_possible_value(Variant, Value))
-}
- :- attr("node", node(ID, Package)),
-    node_has_variant(node(ID, Package), Variant),
-    build(node(ID, Package)).
-
-
 error(100, "'{0}' required multiple values for single-valued variant '{1}'", Package, Variant)
   :- attr("node", node(ID, Package)),
-     node_has_variant(node(ID, Package), Variant),
-     pkg_fact(Package, variant_single_value(Variant)),
+     node_has_variant(node(ID, Package), Variant, _),
+     variant_single_value(node(ID, Package), Variant),
      build(node(ID, Package)),
      2 { attr("variant_value", node(ID, Package), Variant, Value) }.
 
 error(100, "No valid value for variant '{1}' of package '{0}'", Package, Variant)
-  :- attr("node", node(X, Package)),
-     node_has_variant(node(X, Package), Variant),
-     build(node(X, Package)),
-     not attr("variant_value", node(X, Package), Variant, _).
+  :- attr("node", node(ID, Package)),
+     node_has_variant(node(ID, Package), Variant, _),
+     build(node(ID, Package)),
+     not attr("variant_value", node(ID, Package), Variant, _).
 
 % if a variant is set to anything, it is considered 'set'.
 attr("variant_set", PackageNode, Variant) :- attr("variant_set", PackageNode, Variant, _).
@@ -902,17 +954,16 @@ attr("variant_set", PackageNode, Variant) :- attr("variant_set", PackageNode, Va
 % have been built w/different variants from older/different package versions.
 error(10, "'Spec({1}={2})' is not a valid value for '{0}' variant '{1}'", Package, Variant, Value)
  :- attr("variant_value", node(ID, Package), Variant, Value),
-    not pkg_fact(Package, variant_possible_value(Variant, Value)),
+    not variant_possible_value(node(ID, Package), Variant, Value),
     build(node(ID, Package)).
 
-% Some multi valued variants accept multiple values from disjoint sets.
-% Ensure that we respect that constraint and we don't pick values from more
-% than one set at once
+% Some multi valued variants accept multiple values from disjoint sets. Ensure that we
+% respect that constraint and we don't pick values from more than one set at once
 error(100, "{0} variant '{1}' cannot have values '{2}' and '{3}' as they come from disjoint value sets", Package, Variant, Value1, Value2)
   :- attr("variant_value", node(ID, Package), Variant, Value1),
      attr("variant_value", node(ID, Package), Variant, Value2),
-     pkg_fact(Package, variant_value_from_disjoint_sets(Variant, Value1, Set1)),
-     pkg_fact(Package, variant_value_from_disjoint_sets(Variant, Value2, Set2)),
+     variant_value_from_disjoint_sets(node(ID, Package), Variant, Value1, Set1),
+     variant_value_from_disjoint_sets(node(ID, Package), Variant, Value2, Set2),
      Set1 < Set2, % see[1]
      build(node(ID, Package)).
 
@@ -924,7 +975,7 @@ error(100, "{0} variant '{1}' cannot have values '{2}' and '{3}' as they come fr
 % specified in an external, we score it as if it was a default value.
 variant_not_default(node(ID, Package), Variant, Value)
  :- attr("variant_value", node(ID, Package), Variant, Value),
-    not variant_default_value(Package, Variant, Value),
+    not variant_default_value(node(ID, Package), Variant, Value),
     % variants set explicitly on the CLI don't count as non-default
     not attr("variant_set", node(ID, Package), Variant, Value),
     % variant values forced by propagation don't count as non-default
@@ -935,11 +986,10 @@ variant_not_default(node(ID, Package), Variant, Value)
     not external_with_variant_set(node(ID, Package), Variant, Value),
     attr("node", node(ID, Package)).
 
-
 % A default variant value that is not used
 variant_default_not_used(node(ID, Package), Variant, Value)
-  :- variant_default_value(Package, Variant, Value),
-     node_has_variant(node(ID, Package), Variant),
+  :- variant_default_value(node(ID, Package), Variant, Value),
+     node_has_variant(node(ID, Package), Variant, _),
      not attr("variant_value", node(ID, Package), Variant, Value),
      not propagate(node(ID, Package), variant_value(Variant, _)),
      attr("node", node(ID, Package)).
@@ -953,25 +1003,6 @@ external_with_variant_set(node(NodeID, Package), Variant, Value)
     external(node(NodeID, Package)),
     attr("node", node(NodeID, Package)).
 
-% The default value for a variant in a package is what is prescribed:
-%
-% 1. On the command line
-% 2. In packages.yaml (if there's no command line settings)
-% 3. In the package.py file (if there are no settings in
-%    packages.yaml and the command line)
-%
-variant_default_value(Package, Variant, Value)
- :- pkg_fact(Package, variant_default_value_from_package_py(Variant, Value)),
-    not variant_default_value_from_packages_yaml(Package, Variant, _),
-    not attr("variant_default_value_from_cli", node(min_dupe_id, Package), Variant, _).
-
-variant_default_value(Package, Variant, Value)
- :- variant_default_value_from_packages_yaml(Package, Variant, Value),
-    not attr("variant_default_value_from_cli", node(min_dupe_id, Package), Variant, _).
-
-variant_default_value(Package, Variant, Value) :-
-    attr("variant_default_value_from_cli", node(min_dupe_id, Package), Variant, Value).
-
 % Treat 'none' in a special way - it cannot be combined with other
 % values even if the variant is multi-valued
 error(100, "{0} variant '{1}' cannot have values '{2}' and 'none'", Package, Variant, Value)
@@ -980,23 +1011,26 @@ error(100, "{0} variant '{1}' cannot have values '{2}' and 'none'", Package, Var
     Value != "none",
     build(node(X, Package)).
 
-% patches and dev_path are special variants -- they don't have to be
-% declared in the package, so we just allow them to spring into existence
-% when assigned a value.
-auto_variant("dev_path").
-auto_variant("patches").
+% -- Auto variants
+% These don't have to be declared in the package. We allow them to spring into
+% existence when assigned a value.
+variant_possible_value(PackageNode, Variant, Value)
+  :- attr("variant_set", PackageNode, Variant, Value), auto_variant(Variant, _).
 
-node_has_variant(PackageNode, Variant)
-  :- attr("variant_set", PackageNode, Variant, _), auto_variant(Variant).
+node_has_variant(PackageNode, Variant, VariantID)
+  :- attr("variant_set", PackageNode, Variant, _), auto_variant(Variant, VariantID).
 
-pkg_fact(Package, variant_single_value("dev_path"))
-  :- attr("variant_set", node(ID, Package), "dev_path", _).
+variant_single_value(PackageNode, Variant)
+  :- node_has_variant(PackageNode, Variant, VariantID),
+     auto_variant(Variant, VariantID),
+     not variant_type(VariantID, "multi").
 
 % suppress warnings about this atom being unset.  It's only set if some
 % spec or some package sets it, and without this, clingo will give
 % warnings like 'info: atom does not occur in any rule head'.
 #defined variant_default_value/3.
 #defined variant_default_value_from_packages_yaml/3.
+#defined variant_default_value_from_package_py/3.
 
 %-----------------------------------------------------------------------------
 % Propagation semantics
@@ -1026,11 +1060,12 @@ propagate(ChildNode, PropagatedAttribute, edge_types(DepType1, DepType2)) :-
 %----
 
 % If a variant is propagated, and can be accepted, set its value
-attr("variant_value", node(ID, Package), Variant, Value) :-
-  propagate(node(ID, Package), variant_value(Variant, Value)),
-  node_has_variant(node(ID, Package), Variant),
-  pkg_fact(Package, variant_possible_value(Variant, Value)),
-  not attr("variant_set", node(ID, Package), Variant).
+attr("variant_selected", PackageNode, Variant, Value, VariantType, VariantID) :-
+  propagate(PackageNode, variant_value(Variant, Value)),
+  node_has_variant(PackageNode, Variant, VariantID),
+  variant_type(VariantID, VariantType),
+  variant_possible_value(PackageNode, Variant, Value),
+  not attr("variant_set", PackageNode, Variant).
 
 % If a variant is propagated, we cannot have extraneous values
 variant_is_propagated(PackageNode, Variant) :-
@@ -1039,7 +1074,7 @@ variant_is_propagated(PackageNode, Variant) :-
   not attr("variant_set", PackageNode, Variant).
 
 :- variant_is_propagated(PackageNode, Variant),
-   attr("variant_value", PackageNode, Variant, Value),
+   attr("variant_selected", PackageNode, Variant, Value, _, _),
    not propagate(PackageNode, variant_value(Variant, Value)).
 
 %----
@@ -1050,23 +1085,22 @@ variant_is_propagated(PackageNode, Variant) :-
 % 1. The same flag type is not set on this node
 % 2. This node has the same compiler as the propagation source
 
-propagated_flag(node(PackageID, Package), node_flag(FlagType, Flag), SourceNode) :-
-  propagate(node(PackageID, Package), node_flag(FlagType, Flag), _),
-  not attr("node_flag_set", node(PackageID, Package), FlagType, _),
+propagated_flag(node(PackageID, Package), node_flag(FlagType, Flag, FlagGroup, Source), SourceNode) :-
+  propagate(node(PackageID, Package), node_flag(FlagType, Flag, FlagGroup, Source), _),
+  not attr("node_flag_set", node(PackageID, Package), node_flag(FlagType, _, _, "literal")),
   % Same compiler as propagation source
   node_compiler(node(PackageID, Package), CompilerID),
   node_compiler(SourceNode, CompilerID),
-  attr("propagate", SourceNode, node_flag(FlagType, Flag), _),
+  attr("propagate", SourceNode, node_flag(FlagType, Flag, FlagGroup, Source), _),
   node(PackageID, Package) != SourceNode,
   not runtime(Package).
 
-attr("node_flag", PackageNode, FlagType, Flag) :- propagated_flag(PackageNode, node_flag(FlagType, Flag), _).
-attr("node_flag_source", PackageNode, FlagType, SourceNode) :- propagated_flag(PackageNode, node_flag(FlagType, _), SourceNode).
+attr("node_flag", PackageNode, NodeFlag) :- propagated_flag(PackageNode, NodeFlag, _).
 
 % Cannot propagate the same flag from two distinct sources
 error(100, "{0} and {1} cannot both propagate compiler flags '{2}' to {3}", Source1, Source2, Package, FlagType) :-
-  propagated_flag(node(ID, Package), node_flag(FlagType, _), node(_, Source1)),
-  propagated_flag(node(ID, Package), node_flag(FlagType, _), node(_, Source2)),
+  propagated_flag(node(ID, Package), node_flag(FlagType, _, _, _), node(_, Source1)),
+  propagated_flag(node(ID, Package), node_flag(FlagType, _, _, _), node(_, Source2)),
   Source1 < Source2.
 
 %----
@@ -1342,7 +1376,7 @@ node_compiler_weight(node(ID, Package), 100)
     not compiler_weight(CompilerID, _).
 
 % For the time being, be strict and reuse only if the compiler match one we have on the system
-error(100, "Compiler {1}@{2} requested for {0} cannot be found. Set install_missing_compilers:true if intended.", Package, Compiler, Version)
+error(100, "Compiler {1}@{2} requested for {0} cannot be found.", Package, Compiler, Version)
  :- attr("node_compiler_version", node(ID, Package), Compiler, Version),
     not node_compiler(node(ID, Package), _).
 
@@ -1353,32 +1387,18 @@ error(100, "Compiler {1}@{2} requested for {0} cannot be found. Set install_miss
 % Compiler flags
 %-----------------------------------------------------------------------------
 
-% remember where flags came from
-attr("node_flag_source", PackageNode, FlagType, PackageNode) :- attr("node_flag_set", PackageNode, FlagType, _).
-attr("node_flag_source", PackageNode, FlagType, PackageNode) :- attr("node_flag", PackageNode, FlagType, _), attr("hash", PackageNode, _).
-
 % compiler flags from compilers.yaml are put on nodes if compiler matches
-attr("node_flag", PackageNode, FlagType, Flag)
-  :- compiler_flag(CompilerID, FlagType, Flag),
+attr("node_flag", PackageNode, node_flag(FlagType, Flag, FlagGroup, CompilerID))
+  :- compiler_flag(CompilerID, FlagType, Flag, FlagGroup),
      node_compiler(PackageNode, CompilerID),
      flag_type(FlagType),
      compiler_id(CompilerID),
      compiler_name(CompilerID, CompilerName),
      compiler_version(CompilerID, Version).
 
-attr("node_flag_compiler_default", PackageNode)
-  :- not attr("node_flag_set", PackageNode, FlagType, _),
-     compiler_flag(CompilerID, FlagType, Flag),
-     node_compiler(PackageNode, CompilerID),
-     flag_type(FlagType),
-     compiler_id(CompilerID),
-     compiler_name(CompilerID, CompilerName),
-     compiler_version(CompilerID, Version).
+attr("node_flag", PackageNode, NodeFlag) :- attr("node_flag_set", PackageNode, NodeFlag).
 
-% Flag set to something
-attr("node_flag", PackageNode, FlagType, Flag) :- attr("node_flag_set", PackageNode, FlagType, Flag).
-
-#defined compiler_flag/3.
+#defined compiler_flag/4.
 
 
 %-----------------------------------------------------------------------------

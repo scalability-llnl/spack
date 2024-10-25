@@ -92,13 +92,13 @@ class CMakeBuilder(cmake.CMakeBuilder):
 
         if spec.satisfies("@2.1: %llvm-openmp-ompt"):
             args.append(self.define("EZTRACE_ENABLE_OMPT", True))
-        if "+starpu" in spec:
+        if spec.satisfies("+starpu"):
             args.append(self.define("EZTRACE_ENABLE_STARPU", True))
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append(self.define("EZTRACE_ENABLE_CUDA", True))
-        if "+netcdf" in spec:
+        if spec.satisfies("+netcdf"):
             args.append(self.define("EZTRACE_ENABLE_NETCDF", True))
-        if "+pnetcdf" in spec:
+        if spec.satisfies("+pnetcdf"):
             args.append(self.define("EZTRACE_ENABLE_PNETCDF", True))
 
         return args

@@ -69,6 +69,11 @@ class MpasModel(MakefilePackage):
     depends_on("mpi")
     depends_on("parallelio")
 
+    conflicts(
+        "%oneapi@:2024.1",
+        msg="ifx internal compiler error triggered by maps-model fixed in oneapi@2024.2",
+    )
+
     patch("makefile.patch", when="@7.0")
 
     parallel = False
@@ -114,7 +119,7 @@ class MpasModel(MakefilePackage):
             cppflags.append("-DUNDERSCORE")
         elif satisfies("%fj"):
             fflags.extend(["-Free", "-Fwide", "-CcdRR8"])
-        elif satisfies("%intel"):
+        elif satisfies("%intel") or satisfies("%oneapi"):
             fflags.extend(["-convert big_endian", "-FR"])
             if satisfies("precision=double"):
                 fflags.extend(["-r8"])

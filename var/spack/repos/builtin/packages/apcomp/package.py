@@ -9,6 +9,7 @@ import socket
 
 import llnl.util.tty as tty
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -65,7 +66,7 @@ class Apcomp(Package):
         with working_dir("spack-build", create=True):
             host_cfg_fname = self.create_host_config(spec, prefix)
             print("Configuring APComp...")
-            cmake(*std_cmake_args, "-C", host_cfg_fname, "../src")
+            cmake(*CMakeBuilder.std_args(self), "-C", host_cfg_fname, "../src")
             print("Building APComp...")
             make()
             print("Installing APComp...")

@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 import os
 from typing import List
 
@@ -195,19 +194,19 @@ class MesonBuilder(BaseBuilder):
         options += self.std_meson_args
         options += self.meson_args()
         with fs.working_dir(self.build_directory, create=True):
-            inspect.getmodule(self.pkg).meson(*options)
+            pkg.module.meson(*options)
 
     def build(self, pkg, spec, prefix):
         """Make the build targets"""
         options = ["-v"]
         options += self.build_targets
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).ninja(*options)
+            pkg.module.ninja(*options)
 
     def install(self, pkg, spec, prefix):
         """Make the install targets"""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).ninja(*self.install_targets)
+            pkg.module.ninja(*self.install_targets)
 
     spack.builder.run_after("build")(execute_build_time_tests)
 

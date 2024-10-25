@@ -12,32 +12,11 @@ import llnl.util.filesystem as fs
 
 import spack.compiler
 import spack.compilers
+import spack.config
 import spack.spec
-import spack.util.environment
 import spack.util.module_cmd
 from spack.compiler import Compiler
 from spack.util.executable import Executable, ProcessError
-
-
-@pytest.fixture()
-def make_args_for_version(monkeypatch):
-    def _factory(version, path="/usr/bin/gcc"):
-        class MockOs:
-            pass
-
-        compiler_name = "gcc"
-        compiler_cls = spack.compilers.class_for_compiler_name(compiler_name)
-        monkeypatch.setattr(compiler_cls, "cc_version", lambda x: version)
-
-        compiler_id = spack.compilers.CompilerID(
-            os=MockOs, compiler_name=compiler_name, version=None
-        )
-        variation = spack.compilers.NameVariation(prefix="", suffix="")
-        return spack.compilers.DetectVersionArgs(
-            id=compiler_id, variation=variation, language="cc", path=path
-        )
-
-    return _factory
 
 
 def test_multiple_conflicting_compiler_definitions(mutable_config):
@@ -61,40 +40,6 @@ def test_multiple_conflicting_compiler_definitions(mutable_config):
     arch_spec = spack.spec.ArchSpec(("test", "test", "test"))
     cmp = spack.compilers.compiler_for_spec("clang@=0.0.0", arch_spec)
     assert cmp.f77 == "f77"
-
-
-def test_get_compiler_duplicates(mutable_config, compiler_factory):
-    # In this case there is only one instance of the specified compiler in
-    # the test configuration (so it is not actually a duplicate), but the
-    # method behaves the same.
-    cnl_compiler = compiler_factory(spec="gcc@4.5.0", operating_system="CNL")
-    # CNL compiler has no target attribute, and this is essential to make detection pass
-    del cnl_compiler["compiler"]["target"]
-    mutable_config.set(
-        "compilers", [compiler_factory(spec="gcc@4.5.0", operating_system="SuSE11"), cnl_compiler]
-    )
-    cfg_file_to_duplicates = spack.compilers.get_compiler_duplicates(
-        "gcc@4.5.0", spack.spec.ArchSpec("cray-CNL-xeon")
-    )
-
-    assert len(cfg_file_to_duplicates) == 1
-    cfg_file, duplicates = next(iter(cfg_file_to_duplicates.items()))
-    assert len(duplicates) == 1
-
-
-@pytest.mark.parametrize(
-    "input_version,expected_version,expected_error",
-    [(None, None, "Couldn't get version for compiler /usr/bin/gcc"), ("4.9", "4.9", None)],
-)
-def test_version_detection_is_empty(
-    make_args_for_version, input_version, expected_version, expected_error
-):
-    args = make_args_for_version(version=input_version)
-    result, error = spack.compilers.detect_version(args)
-    if not error:
-        assert result.id.version == expected_version
-
-    assert error == expected_error
 
 
 def test_compiler_flags_from_config_are_grouped():
@@ -516,9 +461,13 @@ def test_intel_flags():
     unsupported_flag_test("cxx14_flag", "intel@=14.0")
     supported_flag_test("cxx14_flag", "-std=c++1y", "intel@=15.0")
     supported_flag_test("cxx14_flag", "-std=c++14", "intel@=15.0.2")
+    unsupported_flag_test("cxx17_flag", "intel@=18")
+    supported_flag_test("cxx17_flag", "-std=c++17", "intel@=19.0")
     unsupported_flag_test("c99_flag", "intel@=11.0")
     supported_flag_test("c99_flag", "-std=c99", "intel@=12.0")
     unsupported_flag_test("c11_flag", "intel@=15.0")
+    supported_flag_test("c18_flag", "-std=c18", "intel@=21.5.0")
+    unsupported_flag_test("c18_flag", "intel@=21.4.0")
     supported_flag_test("c11_flag", "-std=c1x", "intel@=16.0")
     supported_flag_test("cc_pic_flag", "-fPIC", "intel@=1.0")
     supported_flag_test("cxx_pic_flag", "-fPIC", "intel@=1.0")
@@ -644,6 +593,7 @@ def test_xl_r_flags():
     "compiler_spec,expected_result",
     [("gcc@4.7.2", False), ("clang@3.3", False), ("clang@8.0.0", True)],
 )
+@pytest.mark.not_on_windows("GCC and LLVM currently not supported on the platform")
 def test_detecting_mixed_toolchains(
     compiler_spec, expected_result, mutable_config, compiler_factory
 ):
@@ -906,51 +856,30 @@ def test_compiler_executable_verification_success(tmpdir):
 
 
 @pytest.mark.parametrize(
-    "detected_versions,expected_length",
+    "compilers_extra_attributes,expected_length",
     [
         # If we detect a C compiler we expect the result to be valid
-        (
-            [
-                spack.compilers.DetectVersionArgs(
-                    id=spack.compilers.CompilerID(
-                        os="ubuntu20.04", compiler_name="clang", version="12.0.0"
-                    ),
-                    variation=spack.compilers.NameVariation(prefix="", suffix="-12"),
-                    language="cc",
-                    path="/usr/bin/clang-12",
-                ),
-                spack.compilers.DetectVersionArgs(
-                    id=spack.compilers.CompilerID(
-                        os="ubuntu20.04", compiler_name="clang", version="12.0.0"
-                    ),
-                    variation=spack.compilers.NameVariation(prefix="", suffix="-12"),
-                    language="cxx",
-                    path="/usr/bin/clang++-12",
-                ),
-            ],
-            1,
-        ),
+        ({"c": "/usr/bin/clang-12", "cxx": "/usr/bin/clang-12"}, 1),
         # If we detect only a C++ compiler we expect the result to be discarded
-        (
-            [
-                spack.compilers.DetectVersionArgs(
-                    id=spack.compilers.CompilerID(
-                        os="ubuntu20.04", compiler_name="clang", version="12.0.0"
-                    ),
-                    variation=spack.compilers.NameVariation(prefix="", suffix="-12"),
-                    language="cxx",
-                    path="/usr/bin/clang++-12",
-                )
-            ],
-            0,
-        ),
+        ({"cxx": "/usr/bin/clang-12"}, 0),
     ],
 )
-def test_detection_requires_c_compiler(detected_versions, expected_length):
+def test_detection_requires_c_compiler(compilers_extra_attributes, expected_length):
     """Tests that compilers automatically added to the configuration have
     at least a C compiler.
     """
-    result = spack.compilers.make_compiler_list(detected_versions)
+    packages_yaml = {
+        "llvm": {
+            "externals": [
+                {
+                    "spec": "clang@12.0.0",
+                    "prefix": "/usr",
+                    "extra_attributes": {"compilers": compilers_extra_attributes},
+                }
+            ]
+        }
+    }
+    result = spack.compilers.CompilerConfigFactory.from_packages_yaml(packages_yaml)
     assert len(result) == expected_length
 
 

@@ -51,3 +51,9 @@ class DlaFutureFortran(CMakePackage):
             args.append(self.define("MPIEXEC_MAX_NUMPROCS", 6))
 
         return args
+
+    @property
+    def libs(self):
+        return find_libraries(
+            "libDLAF_Fortran", root=self.home, shared=self.spec.satisfies("+shared")
+        )

@@ -481,7 +481,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     )
 
     # Additional support options
-    variant("atomics", default=False, description="Enable built-in atomics")
+    variant("atomics", default=True, description="Enable built-in atomics")
     variant("java", default=False, when="@1.7.4:", description="Build Java support")
     variant("static", default=False, description="Build static libraries")
     variant("sqlite3", default=False, when="@1.7.3:1", description="Build SQLite3 support")
@@ -569,10 +569,12 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     variant("internal-pmix", default=False, description="Use internal pmix")
     variant("internal-libevent", default=False, description="Use internal libevent")
     variant("openshmem", default=False, description="Enable building OpenSHMEM")
+    variant("debug", default=False, description="Make debug build", when="build_system=autotools")
 
-    provides("mpi")
-    provides("mpi@:2.2", when="@1.6.5")
-    provides("mpi@:3.0", when="@1.7.5:")
+    provides("mpi@:2.0", when="@:1.2")
+    provides("mpi@:2.1", when="@1.3:1.7.2")
+    provides("mpi@:2.2", when="@1.7.3:1.7.4")
+    provides("mpi@:3.0", when="@1.7.5:1.10.7")
     provides("mpi@:3.1", when="@2.0.0:")
 
     if sys.platform != "darwin":
@@ -666,11 +668,6 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     # knem support was added in 1.5
     conflicts("fabrics=knem", when="@:1.4")
 
-    conflicts(
-        "schedulers=slurm ~pmi",
-        when="@1.5.4",
-        msg="+pmi is required for openmpi to work with Slurm.",
-    )
     conflicts(
         "schedulers=loadleveler",
         when="@3:",
@@ -1006,7 +1003,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
 
         # Work around incompatibility with new apple-clang linker
         # https://github.com/open-mpi/ompi/issues/12427
-        if spec.satisfies("@5: %apple-clang@15:"):
+        if spec.satisfies("@:4.1.6,5.0.0:5.0.3 %apple-clang@15:"):
             config_args.append("--with-wrapper-fcflags=-Wl,-ld_classic")
 
         # All rpath flags should be appended with self.compiler.cc_rpath_arg.
@@ -1217,6 +1214,8 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         if spec.satisfies("%intel@2021.7.0:"):
             config_args.append("CPPFLAGS=-diag-disable=10441")
 
+        config_args += self.enable_or_disable("debug")
+
         return config_args
 
     @run_after("install", when="+wrapper-rpath")
@@ -1316,7 +1315,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         self.run_installed_binary("mpirun", options, [f"openmpi-{self.spec.version}"])
 
     def test_opmpi_info(self):
-        """test installed mpirun"""
+        """test installed ompi_info"""
         self.run_installed_binary("ompi_info", [], [f"Ident string: {self.spec.version}", "MCA"])
 
     def test_version(self):

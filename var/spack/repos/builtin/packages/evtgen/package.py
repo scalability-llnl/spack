@@ -97,18 +97,18 @@ class Evtgen(CMakePackage):
         options += self.configure_args()
 
         with working_dir(self.build_directory, create=True):
-            inspect.getmodule(self).configure(*options)
+            configure(*options)
 
     @when("@:01")
     def configure_args(self):
         args = []
 
         args.append("--hepmcdir=%s" % self.spec["hepmc"].prefix)
-        if "+pythia8" in self.spec:
+        if self.spec.satisfies("+pythia8"):
             args.append("--pythiadir=%s" % self.spec["pythia8"].prefix)
-        if "+photos" in self.spec:
+        if self.spec.satisfies("+photos"):
             args.append("--photosdir=%s" % self.spec["photos"].prefix)
-        if "+tauola" in self.spec:
+        if self.spec.satisfies("+tauola"):
             args.append("--tauoladir=%s" % self.spec["tauola"].prefix)
 
         return args

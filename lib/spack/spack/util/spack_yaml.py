@@ -14,7 +14,6 @@
 """
 import collections
 import collections.abc
-import copy
 import ctypes
 import enum
 import functools
@@ -398,20 +397,6 @@ class ConfigYAML:
         result = io.StringIO()
         self.dump(data, stream=result)
         return result.getvalue()
-
-
-def deepcopy(data):
-    """Returns a deepcopy of the input YAML data."""
-    result = copy.deepcopy(data)
-
-    if isinstance(result, comments.CommentedMap):
-        # HACK to fully copy ruamel CommentedMap that doesn't provide copy
-        # method. Especially necessary for environments
-        extracted_comments = extract_comments(data)
-        if extracted_comments:
-            set_comments(result, data_comments=extracted_comments)
-
-    return result
 
 
 def load_config(str_or_file):

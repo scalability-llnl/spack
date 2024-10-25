@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 import itertools
 import os
 import re
@@ -10,10 +9,12 @@ import sys
 
 import pytest
 
+import spack.binary_distribution
 import spack.cmd
+import spack.parser
 import spack.platforms.test
+import spack.repo
 import spack.spec
-import spack.variant
 from spack.parser import (
     UNIX_FILENAME,
     WINDOWS_FILENAME,
@@ -551,6 +552,20 @@ def specfile_for(default_mock_concretization):
             "^[deptypes=build,link] zlib",
         ),
         (
+            "^[deptypes=link] zlib ^[deptypes=build] zlib",
+            [
+                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
+                Token(TokenType.KEY_VALUE_PAIR, value="deptypes=link"),
+                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
+                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
+                Token(TokenType.KEY_VALUE_PAIR, value="deptypes=build"),
+                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
+                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+            ],
+            "^[deptypes=link] zlib ^[deptypes=build] zlib",
+        ),
+        (
             "git-test@git.foo/bar",
             [
                 Token(TokenType.UNQUALIFIED_PACKAGE_NAME, "git-test"),
@@ -700,7 +715,7 @@ def test_parse_multiple_specs(text, tokens, expected_specs):
     ],
 )
 def test_cli_spec_roundtrip(args, expected):
-    if inspect.isclass(expected) and issubclass(expected, BaseException):
+    if isinstance(expected, type) and issubclass(expected, BaseException):
         with pytest.raises(expected):
             spack.cmd.parse_specs(args)
         return
@@ -865,8 +880,8 @@ def test_ambiguous_hash(mutable_database):
 
     assert x1 != x2  # doesn't hold when only the dag hash is modified.
 
-    mutable_database.add(x1, directory_layout=None)
-    mutable_database.add(x2, directory_layout=None)
+    mutable_database.add(x1)
+    mutable_database.add(x2)
 
     # ambiguity in first hash character
     s1 = SpecParser("/x").next_spec()
@@ -991,6 +1006,8 @@ def test_disambiguate_hash_by_spec(spec1, spec2, constraint, mock_packages, monk
         ("x target=be platform=test os=be os=fe", "'platform'"),
         # Dependencies
         ("^[@foo] zlib", "edge attributes"),
+        ("x ^[deptypes=link]foo ^[deptypes=run]foo", "conflicting dependency types"),
+        ("x ^[deptypes=build,link]foo ^[deptypes=link]foo", "conflicting dependency types"),
         # TODO: Remove this as soon as use variants are added and we can parse custom attributes
         ("^[foo=bar] zlib", "edge attributes"),
         # Propagating reserved names generates a parse error

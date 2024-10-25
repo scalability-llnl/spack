@@ -41,7 +41,7 @@ class Guile(AutotoolsPackage, GNUMirrorPackage):
     depends_on("bdw-gc@7.0: threads=dgux386", when="threads=dgux386")
     depends_on("gmp@4.2:")
     depends_on("gettext")
-    depends_on("libtool@1.5.6:")
+    depends_on("libtool@1.5.6:", type="link")  # links to libltdl.so
     depends_on("libunistring@0.9.3:")
     depends_on("libffi")
     depends_on("readline", when="+readline")
@@ -70,12 +70,12 @@ class Guile(AutotoolsPackage, GNUMirrorPackage):
             "--with-libintl-prefix={0}".format(spec["gettext"].prefix),
         ]
 
-        if "threads=none" in spec:
+        if spec.satisfies("threads=none"):
             config_args.append("--without-threads")
         else:
             config_args.append("--with-threads")
 
-        if "+readline" in spec:
+        if spec.satisfies("+readline"):
             config_args.append("--with-libreadline-prefix={0}".format(spec["readline"].prefix))
         else:
             config_args.append("--without-libreadline-prefix")

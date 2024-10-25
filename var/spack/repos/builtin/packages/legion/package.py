@@ -29,6 +29,7 @@ class Legion(CMakePackage, ROCmPackage):
 
     maintainers("pmccormick", "streichler", "elliottslaughter")
     tags = ["e4s"]
+    version("24.09.0", tag="legion-24.09.0", commit="4a03402467547b99530042cfe234ceec2cd31b2e")
     version("24.06.0", tag="legion-24.06.0", commit="3f27977943626ef23038ef0049b7ad1b389caad1")
     version("24.03.0", tag="legion-24.03.0", commit="c61071541218747e35767317f6f89b83f374f264")
     version("23.12.0", tag="legion-23.12.0", commit="8fea67ee694a5d9fb27232a7976af189d6c98456")
@@ -92,7 +93,9 @@ class Legion(CMakePackage, ROCmPackage):
     patch("hip-offload-arch.patch", when="@23.03.0 +rocm")
 
     def patch(self):
-        if "network=gasnet conduit=ofi-slingshot11 ^cray-mpich+wrappers" in self.spec:
+        if self.spec.satisfies(
+            "network=gasnet conduit=ofi-slingshot11 ^[virtuals=mpi] cray-mpich+wrappers"
+        ):
             filter_file(
                 r"--with-mpi-cc=cc",
                 f"--with-mpi-cc={self.spec['mpi'].mpicc}",

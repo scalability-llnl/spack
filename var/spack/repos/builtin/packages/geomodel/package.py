@@ -18,6 +18,8 @@ class Geomodel(CMakePackage):
 
     license("Apache-2.0", checked_by="wdconinc")
 
+    version("6.6.0", sha256="3cefeaa409177d45d3fa63e069b6496ca062991b0d7d71275b1748487659e91b")
+    version("6.5.0", sha256="8a2f71493e54ea4d393f4c0075f3ca13df132f172c891825f3ab949cda052c5f")
     version("6.4.0", sha256="369f91f021be83d294ba6a9bdbe00077625e9fe798a396aceece8970e7dd5838")
     version("6.3.0", sha256="d2b101e06d20a8a3b638e6021f517a939f49ea6d8347ce40c927c27efe66b28c")
     version("6.2.0", sha256="99bb3908bf710ce5ba0bcdd192942705a183a9f2886079df091dc69423b7bdf1")
@@ -71,16 +73,12 @@ class Geomodel(CMakePackage):
         depends_on("opengl")
 
     def cmake_args(self):
-        def cmake_variant(cmake_label, spack_variant):
-            enabled = spec.satisfies("+" + spack_variant)
-            return f"-DGEOMODEL_BUILD_{cmake_label}={enabled}"
-
         args = [
-            cmake_variant("VISUALIZATION", "visualization"),
-            cmake_variant("GEOMODELG4", "geomodelg4"),
-            cmake_variant("FULLSIMLIGHT", "fullsimlight"),
-            cmake_variant("FSL", "fsl"),
-            cmake_variant("EXAMPLES", "examples"),
-            cmake_variant("TOOLS", "tools"),
+            self.define_from_variant("GEOMODEL_BUILD_VISUALIZATION", "visualization"),
+            self.define_from_variant("GEOMODEL_BUILD_GEOMODELG4", "geomodelg4"),
+            self.define_from_variant("GEOMODEL_BUILD_FULLSIMLIGHT", "fullsimlight"),
+            self.define_from_variant("GEOMODEL_BUILD_FSL", "fsl"),
+            self.define_from_variant("GEOMODEL_BUILD_EXAMPLES", "examples"),
+            self.define_from_variant("GEOMODEL_BUILD_TOOLS", "tools"),
         ]
         return args

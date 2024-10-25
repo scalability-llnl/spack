@@ -100,7 +100,7 @@ class Heffte(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant("Heffte_ENABLE_PYTHON", "python"),
         ]
 
-        if "+cuda" in self.spec and self.spec.satisfies("@:2.3.0"):
+        if self.spec.satisfies("+cuda") and self.spec.satisfies("@:2.3.0"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             if len(cuda_arch) > 0 or cuda_arch[0] != "none":
                 nvcc_flags = ""
@@ -111,7 +111,7 @@ class Heffte(CMakePackage, CudaPackage, ROCmPackage):
                 archs = ";".join(cuda_arch)
                 args.append("-DCMAKE_CUDA_ARCHITECTURES=%s" % archs)
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             args.append("-DCMAKE_CXX_COMPILER={0}".format(self.spec["hip"].hipcc))
 
             rocm_arch = self.spec.variants["amdgpu_target"].value
@@ -142,8 +142,13 @@ class Heffte(CMakePackage, CudaPackage, ROCmPackage):
         cmake_dir = self.test_suite.current_test_cache_dir.testing
 
         options = [cmake_dir]
-        options.append(self.define("Heffte_DIR", self.spec.prefix.lib.cmake.Heffte))
-        if "+rocm" in self.spec:
+        # changing the default install path search to newer cmake convention
+        if self.spec.satisfies("@develop"):
+            options.append(self.define("Heffte_ROOT", self.spec.prefix))
+        else:
+            options.append(self.define("Heffte_DIR", self.spec.prefix.lib.cmake.Heffte))
+
+        if self.spec.satisfies("+rocm"):
             # path name is 'hsa-runtime64' but python cannot have '-' in variable name
             hsa_runtime = join_path(self.spec["hsa-rocr-dev"].prefix.lib.cmake, "hsa-runtime64")
             options.extend(

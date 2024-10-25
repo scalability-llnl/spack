@@ -66,7 +66,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
         # no upstream PR (or set of PRs) covering all changes in this path.
         # When #2595 lands, this patch should be updated to include only
         # the changes not incorporated into that PR
-        patch("netcdfc_correct_and_export_link_interface.patch", when="platform=windows")
+        patch("netcdfc_correct_and_export_link_interface.patch")
 
     # Some of the patches touch configure.ac and, therefore, require forcing the autoreconf stage:
     _force_autoreconf_when = []
@@ -359,7 +359,7 @@ class CMakeBuilder(BaseBuilder, cmake.CMakeBuilder):
     @run_after("install")
     def patch_hdf5_pkgconfigcmake(self):
         """
-        Incorrect hdf5 library names are put in the package config and config.cmake files
+        Incorrect hdf5 library names are put in the package config files
         due to incorrectly using hdf5 target names
         https://github.com/spack/spack/pull/42878
         """
@@ -367,11 +367,10 @@ class CMakeBuilder(BaseBuilder, cmake.CMakeBuilder):
             return
 
         pkgconfig_file = find(self.prefix, "netcdf.pc", recursive=True)
-        cmakeconfig_file = find(self.prefix, "netCDFTargets.cmake", recursive=True)
         ncconfig_file = find(self.prefix, "nc-config", recursive=True)
         settingsconfig_file = find(self.prefix, "libnetcdf.settings", recursive=True)
 
-        files = pkgconfig_file + cmakeconfig_file + ncconfig_file + settingsconfig_file
+        files = pkgconfig_file + ncconfig_file + settingsconfig_file
         config = "shared" if self.spec.satisfies("+shared") else "static"
         filter_file(f"hdf5-{config}", "hdf5", *files, ignore_absent=True)
         filter_file(f"hdf5_hl-{config}", "hdf5_hl", *files, ignore_absent=True)

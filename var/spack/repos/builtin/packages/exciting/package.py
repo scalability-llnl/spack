@@ -75,18 +75,18 @@ class Exciting(MakefilePackage):
         opts["LIB_ARP"] = "libarpack.a"
         opts["F90"] = spack_fc
         opts["F77"] = spack_f77
-        if "+omp" in spec:
+        if spec.satisfies("+omp"):
             opts["SMPF90_OPTS"] = self.compiler.openmp_flag + " -DUSEOMP"
             opts["SMPF77_OPTS"] = self.compiler.openmp_flag + " -DUSEOMP"
         else:
             opts["BUILDSMP"] = "false"
 
-        if "%intel" in spec:
+        if spec.satisfies("%intel"):
             opts["F90_OPTS"] += " -cpp -ip -unroll -scalar_rep "
             opts["CPP_ON_OPTS"] += " -DIFORT -DFFTW"
-        if "%gcc" in spec:
+        if spec.satisfies("%gcc"):
             opts["F90_OPTS"] += " -march=native -ffree-line-length-0"
-            if "%gcc@10:" in spec:
+            if spec.satisfies("%gcc@10:"):
                 # The INSTALL file says this will fix the GCC@10 issues
                 opts["F90_OPTS"] += " -fallow-argument-mismatch"
                 opts["F77_OPTS"] += " -fallow-argument-mismatch"
@@ -95,7 +95,7 @@ class Exciting(MakefilePackage):
             " ".join(["FCFLAGS = @FCFLAGS@", "-cpp", self.compiler.openmp_flag]),
             "src/libXC/src/Makefile.in",
         )
-        if "+mkl" in spec:
+        if spec.satisfies("+mkl"):
             opts["LIB_LPK"] = "-mkl=parallel"
             opts["INC_MKL"] = spec["mkl"].headers.include_flags
             opts["LIB_MKL"] = spec["mkl"].libs.ld_flags
@@ -109,17 +109,17 @@ class Exciting(MakefilePackage):
                 ]
             )
 
-        if "+omp" in spec:
+        if spec.satisfies("+omp"):
             opts["BUILDSMP"] = "true"
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             opts["BUILDMPI"] = "true"
             opts["MPIF90"] = spec["mpi"].mpifc
             opts["MPIF90_CPP_OPTS"] = "-DMPI -DMPIRHO -DMPISEC"
             opts["MPIF90_OPTS"] = " ".join(["$(F90_OPTS)", "$(CPP_ON_OPTS) " "$(MPIF90_CPP_OPTS)"])
             opts["MPIF90MT"] = "$(MPIF90)"
 
-            if "+omp" in spec:
+            if spec.satisfies("+omp"):
                 opts["BUILDMPISMP"] = "true"
                 opts["SMPF90_OPTS"] = self.compiler.openmp_flag + " -DUSEOMP"
                 opts["SMPF77_OPTS"] = opts["SMPF90_OPTS"]
@@ -127,7 +127,7 @@ class Exciting(MakefilePackage):
 
         else:
             opts["BUILDMPI"] = "false"
-        if "+scalapack" in spec:
+        if spec.satisfies("+scalapack"):
             opts["LIB_SCLPK"] = spec["scalapack"].libs.ld_flags
             opts["CPP_SCLPK"] = " -DSCAL "
             opts["MPI_LIBS"] = "$(LIB_SCLPK)"
