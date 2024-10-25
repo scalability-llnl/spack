@@ -1792,7 +1792,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                 try:
                     it_is_a_dir = dir_entry.is_dir(follow_symlinks=True)
                 except OSError as e:
-                    if e.errno == errno.ETOOMANYREFS:
+                    if e.errno == errno.ELOOP:
                         tty.debug(
                             f"{dir_entry.path}: this path is a symlink that "
                             "cannot be resolved - skipping"
