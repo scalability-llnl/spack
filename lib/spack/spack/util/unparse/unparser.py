@@ -1049,7 +1049,7 @@ class Unparser(NodeVisitor):
                 self.write(", /")
 
         # varargs, or bare '*' if no varargs but keyword-only arguments present
-        if node.vararg or getattr(node, "kwonlyargs", False):
+        if node.vararg or node.kwonlyargs:
             if first:
                 first = False
             else:
@@ -1062,12 +1062,9 @@ class Unparser(NodeVisitor):
                     self.traverse(node.vararg.annotation)
 
         # keyword-only arguments
-        if getattr(node, "kwonlyargs", False):
+        if node.kwonlyargs:
             for a, d in zip(node.kwonlyargs, node.kw_defaults):
-                if first:
-                    first = False
-                else:
-                    self.write(", ")
+                self.write(", ")
                 self.traverse(a)
                 if d:
                     self.write("=")
@@ -1086,7 +1083,6 @@ class Unparser(NodeVisitor):
 
     def visit_keyword(self, node):
         if node.arg is None:
-            # starting from Python 3.5 this denotes a kwargs part of the invocation
             self.write("**")
         else:
             self.write(node.arg)
