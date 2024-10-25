@@ -104,7 +104,7 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
         petsc_align = max(32, align)
         for forbidden in ("4", "8", "16", "32", "64", "128", "none"):
             if forbidden != f"{petsc_align}":
-                conflicts(f"petsc memalign={forbidden}", when=f"target={arch}")
+                conflicts(f"^petsc memalign={forbidden}", when=f"target={arch}")
     depends_on("petsc +knl", when="target=skylake:")
 
     with when("+cuda"):
