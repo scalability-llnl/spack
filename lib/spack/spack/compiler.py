@@ -283,7 +283,6 @@ class Compiler:
         environment=None,
         extra_rpaths=None,
         enable_implicit_rpaths=None,
-        cache: Optional["CompilerCache"] = None,
         **kwargs,
     ):
         self.spec = cspec
@@ -294,7 +293,7 @@ class Compiler:
         self.environment = environment or {}
         self.extra_rpaths = extra_rpaths or []
         self.enable_implicit_rpaths = enable_implicit_rpaths
-        self.cache: CompilerCache = cache or CompilerCache(spack.caches.MISC_CACHE)
+        self.cache = COMPILER_CACHE
 
         self.cc = paths[0]
         self.cxx = paths[1]
@@ -759,6 +758,19 @@ class CompilerCacheEntry:
 
 
 class CompilerCache:
+    """Base class for compiler output cache. Default implementation does not cache anything."""
+
+    def value(self, compiler: Compiler) -> Dict[str, Optional[str]]:
+        return {
+            "c_compiler_output": compiler._compile_dummy_c_source(),
+            "real_version": compiler.get_real_version(),
+        }
+
+    def get(self, compiler: Compiler) -> CompilerCacheEntry:
+        return CompilerCacheEntry.from_dict(self.value(compiler))
+
+
+class FileCompilerCache(CompilerCache):
     """Cache for compiler output, which is used to determine implicit link paths, the default libc
     version, and the compiler version."""
 
@@ -807,19 +819,20 @@ class CompilerCache:
 
             # Finally compute the cache entry
             if entry is None:
-                self._data[key] = self._value(compiler)
+                self._data[key] = self.value(compiler)
                 entry = CompilerCacheEntry.from_dict(self._data[key])
 
             new.write(json.dumps(self._data, separators=(",", ":")))
 
             return entry
 
-    def _value(self, compiler: Compiler) -> Dict[str, Optional[str]]:
-        return {
-            "c_compiler_output": compiler._compile_dummy_c_source(),
-            "real_version": compiler.get_real_version(),
-        }
-
     def _key(self, compiler: Compiler) -> str:
         as_bytes = json.dumps(compiler.to_dict(), separators=(",", ":")).encode("utf-8")
         return hashlib.sha256(as_bytes).hexdigest()
+
+
+def _make_compiler_cache():
+    return FileCompilerCache(spack.caches.MISC_CACHE)
+
+
+COMPILER_CACHE: CompilerCache = llnl.util.lang.Singleton(_make_compiler_cache)  # type: ignore

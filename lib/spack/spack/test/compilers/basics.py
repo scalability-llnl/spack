@@ -103,11 +103,22 @@ class MockCompiler(Compiler):
     required_libs = ["libgfortran"]
 
 
+class MockCompilerCache:
+    def __init__(self, entry: spack.compiler.CompilerCacheEntry):
+        self.entry = entry
+
+    def get(self, compiler):
+        return self.entry
+
+
 @pytest.mark.not_on_windows("Not supported on Windows (yet)")
 def test_implicit_rpaths(dirs_with_libfiles):
     lib_to_dirs, all_dirs = dirs_with_libfiles
+    compiler_output = spack.compiler.CompilerCacheEntry(
+        c_compiler_output="ld " + " ".join(f"-L{d}" for d in all_dirs), real_version="1.0.0"
+    )
     compiler = MockCompiler()
-    compiler._compile_c_source_output = "ld " + " ".join(f"-L{d}" for d in all_dirs)
+    compiler.cache = MockCompilerCache(compiler_output)
     retrieved_rpaths = compiler.implicit_rpaths()
     assert set(retrieved_rpaths) == set(lib_to_dirs["libstdc++"] + lib_to_dirs["libgfortran"])
 
@@ -787,12 +798,9 @@ fi
     compilers = spack.compilers.get_compilers([compiler_dict])
     assert len(compilers) == 1
     compiler = compilers[0]
-    try:
-        _ = compiler.get_real_version()
-        assert False
-    except ProcessError:
-        # Confirm environment does not change after failed call
-        assert "SPACK_TEST_CMP_ON" not in os.environ
+    assert compiler.get_real_version() == "unknown"
+    # Confirm environment does not change after failed call
+    assert "SPACK_TEST_CMP_ON" not in os.environ
 
 
 @pytest.mark.not_on_windows("Bash scripting unsupported on Windows (for now)")
@@ -919,7 +927,7 @@ def test_compiler_output_caching(tmp_path):
     """Test that compiler output is cached on the filesystem."""
     # The first call should trigger the cache to updated.
     a = MockCompilerWithoutExecutables()
-    cache = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    cache = spack.compiler.FileCompilerCache(FileCache(str(tmp_path)))
     assert cache.get(a).c_compiler_output == "gcc helloworld.c -o helloworld"
     assert cache.get(a).real_version == "1.0.0"
     assert a._compile_dummy_c_source_count == 1
@@ -927,7 +935,7 @@ def test_compiler_output_caching(tmp_path):
 
     # The second call on an equivalent but distinct object should not trigger compiler calls.
     b = MockCompilerWithoutExecutables()
-    cache = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    cache = spack.compiler.FileCompilerCache(FileCache(str(tmp_path)))
     assert cache.get(b).c_compiler_output == "gcc helloworld.c -o helloworld"
     assert cache.get(b).real_version == "1.0.0"
     assert b._compile_dummy_c_source_count == 0
@@ -940,7 +948,7 @@ def test_compiler_output_caching(tmp_path):
         f.write(json.dumps(cache._data))
 
     c = MockCompilerWithoutExecutables()
-    cache = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    cache = spack.compiler.FileCompilerCache(FileCache(str(tmp_path)))
     assert cache.get(c).c_compiler_output == "gcc helloworld.c -o helloworld"
     assert cache.get(c).real_version == "1.0.0"
 
@@ -949,6 +957,6 @@ def test_compiler_output_caching(tmp_path):
         f.write("corrupted cache")
 
     d = MockCompilerWithoutExecutables()
-    cache = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    cache = spack.compiler.FileCompilerCache(FileCache(str(tmp_path)))
     assert cache.get(d).c_compiler_output == "gcc helloworld.c -o helloworld"
     assert cache.get(d).real_version == "1.0.0"

@@ -981,6 +981,11 @@ def disable_compiler_execution(monkeypatch, request):
         monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _return_none)
 
 
+@pytest.fixture(autouse=True)
+def disable_compiler_output_cache(monkeypatch):
+    monkeypatch.setattr(spack.compiler, "COMPILER_CACHE", spack.compiler.CompilerCache())
+
+
 @pytest.fixture(scope="function")
 def install_mockery(temporary_store: spack.store.Store, mutable_config, mock_packages):
     """Hooks a fake install directory, DB, and stage directory into Spack."""
