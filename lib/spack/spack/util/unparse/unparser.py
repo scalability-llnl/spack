@@ -376,10 +376,8 @@ class Unparser:
             self.fill("@")
             self.traverse(deco)
         self.fill("class " + node.name)
-        if getattr(node, "type_params", False):
-            self.write("[")
-            self.interleave(lambda: self.write(", "), self.traverse, node.type_params)
-            self.write("]")
+        if hasattr(node, "type_params"):
+            self._type_params_helper(node.type_params)
         with self.delimit_if("(", ")", condition=node.bases or node.keywords):
             comma = False
             for e in node.bases:
@@ -411,10 +409,8 @@ class Unparser:
             self.traverse(deco)
         def_str = fill_suffix + " " + node.name
         self.fill(def_str)
-        if getattr(node, "type_params", False):
-            self.write("[")
-            self.interleave(lambda: self.write(", "), self.traverse, node.type_params)
-            self.write("]")
+        if hasattr(node, "type_params"):
+            self._type_params_helper(node.type_params)
         with self.delimit("(", ")"):
             self.traverse(node.args)
         if getattr(node, "returns", False):
@@ -423,6 +419,11 @@ class Unparser:
         with self.block():
             self.traverse(node.body)
 
+    def _type_params_helper(self, type_params):
+        if type_params is not None and len(type_params) > 0:
+            with self.delimit("[", "]"):
+                self.interleave(lambda: self.write(", "), self.traverse, type_params)
+
     def visit_TypeVar(self, node):
         self.write(node.name)
         if node.bound:
@@ -430,20 +431,15 @@ class Unparser:
             self.traverse(node.bound)
 
     def visit_TypeVarTuple(self, node):
-        self.write("*")
-        self.write(node.name)
+        self.write("*" + node.name)
 
     def visit_ParamSpec(self, node):
-        self.write("**")
-        self.write(node.name)
+        self.write("**" + node.name)
 
     def visit_TypeAlias(self, node):
         self.fill("type ")
         self.traverse(node.name)
-        if node.type_params:
-            self.write("[")
-            self.interleave(lambda: self.write(", "), self.traverse, node.type_params)
-            self.write("]")
+        self._type_params_helper(node.type_params)
         self.write(" = ")
         self.traverse(node.value)
 
