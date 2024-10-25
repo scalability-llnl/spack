@@ -64,6 +64,8 @@ def is_simple_tuple(slice_value):
     return (
         isinstance(slice_value, ast.Tuple)
         and slice_value.elts
+        # Python < 3.11. Grammar change.
+        # https://github.com/python/cpython/commit/e8e737bcf6d22927caebc30c5d57ac4634063219
         and not any(isinstance(elt, ast.Starred) for elt in slice_value.elts)
     )
 
@@ -547,10 +549,13 @@ class Unparser:
         quote_type = quote_types[0]
         self.write(f"{quote_type}{string}{quote_type}")
 
-    # expr
+    # Python < 3.8. Num, Str, Bytes, NameConstant, Ellipsis replaced with Constant
+    # https://github.com/python/cpython/commit/3f22811fef73aec848d961593d95fa877f77ecbf
     def visit_Bytes(self, node):
         self.write(repr(node.s))
 
+    # Python < 3.8. Num, Str, Bytes, NameConstant, Ellipsis replaced with Constant
+    # https://github.com/python/cpython/commit/3f22811fef73aec848d961593d95fa877f77ecbf
     def visit_Str(self, node):
         # Python 3.5, 3.6, and 3.7 can't tell if something was written as a
         # unicode constant. Try to make that consistent with 'u' for '\u- literals
@@ -638,6 +643,8 @@ class Unparser:
     def visit_Name(self, node):
         self.write(node.id)
 
+    # Python < 3.8. Num, Str, Bytes, NameConstant, Ellipsis replaced with Constant
+    # https://github.com/python/cpython/commit/3f22811fef73aec848d961593d95fa877f77ecbf
     def visit_NameConstant(self, node):
         self.write(repr(node.value))
 
@@ -669,6 +676,8 @@ class Unparser:
                 self.write("u")
             self._write_constant(node.value)
 
+    # Python < 3.8. Num, Str, Bytes, NameConstant, Ellipsis replaced with Constant
+    # https://github.com/python/cpython/commit/3f22811fef73aec848d961593d95fa877f77ecbf
     def visit_Num(self, node):
         repr_n = repr(node.n)
         self.write(repr_n.replace("inf", _INFSTR))
@@ -917,7 +926,8 @@ class Unparser:
         self.set_precedence(_Precedence.EXPR, node.value)
         self.traverse(node.value)
 
-    # slice
+    # Python < 3.8. Num, Str, Bytes, NameConstant, Ellipsis replaced with Constant
+    # https://github.com/python/cpython/commit/3f22811fef73aec848d961593d95fa877f77ecbf
     def visit_Ellipsis(self, node):
         self.write("...")
 
@@ -947,6 +957,7 @@ class Unparser:
             for case in node.cases:
                 self.traverse(case)
 
+    # Python < 3.9. ExtSlice(slices) replaced with Tuple(slices, Load()).
     def visit_ExtSlice(self, node):
         self.interleave(lambda: self.write(", "), self.traverse, node.dims)
 
@@ -961,6 +972,7 @@ class Unparser:
     def visit_arguments(self, node):
         first = True
         # normal arguments
+        # Python < 3.8. Position-only arguments
         all_args = getattr(node, "posonlyargs", []) + node.args
         defaults = [None] * (len(all_args) - len(node.defaults)) + node.defaults
         for index, elements in enumerate(zip(all_args, defaults), 1):
@@ -973,6 +985,7 @@ class Unparser:
             if d:
                 self.write("=")
                 self.traverse(d)
+                # Python < 3.8. Position-only arguments
             if index == len(getattr(node, "posonlyargs", ())):
                 self.write(", /")
 
@@ -1075,7 +1088,10 @@ class Unparser:
         with self.delimit("{", "}"):
             keys = node.keys
             self.interleave(
-                lambda: self.write(", "), write_key_pattern_pair, zip(keys, node.patterns)
+                lambda: self.write(", "),
+                write_key_pattern_pair,
+                # (zip strict is >= Python 3.10)
+                zip(keys, node.patterns),
             )
             rest = node.rest
             if rest is not None:
@@ -1100,7 +1116,10 @@ class Unparser:
                 if patterns:
                     self.write(", ")
                 self.interleave(
-                    lambda: self.write(", "), write_attr_pattern, zip(attrs, node.kwd_patterns)
+                    lambda: self.write(", "),
+                    write_attr_pattern,
+                    # (zip strict is >= Python 3.10)
+                    zip(attrs, node.kwd_patterns),
                 )
 
     def visit_MatchAs(self, node):
