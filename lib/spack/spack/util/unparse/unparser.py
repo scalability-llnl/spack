@@ -129,6 +129,7 @@ class Unparser(NodeVisitor):
     def __init__(self, py_ver_consistent=False, _avoid_backslashes=False):
         self._source = []
         self._precedences = {}
+        self._type_ignores = {}
         self._indent = 0
         self._in_try_star = False
         self.future_imports = []
@@ -222,6 +223,10 @@ class Unparser(NodeVisitor):
         for node in nodes:
             self._precedences[node] = precedence
 
+    def get_type_comment(self, node):
+        # We don't care about type comments for spack package hash.
+        return None
+
     def traverse(self, node):
         if isinstance(node, list):
             for item in node:
@@ -240,8 +245,13 @@ class Unparser(NodeVisitor):
         return "".join(self._source)
 
     def visit_Module(self, node):
+        # Python < 3.8. Types
+        self._type_ignores = {
+            ignore.lineno: f"ignore{ignore.tag}" for ignore in getattr(node, "type_ignores", ())
+        }
         for stmt in node.body:
             self.traverse(stmt)
+        self._type_ignores.clear()
 
     def visit_FunctionType(self, node):
         with self.delimit("(", ")"):
@@ -285,6 +295,9 @@ class Unparser(NodeVisitor):
             self.traverse(target)
             self.write(" = ")
         self.traverse(node.value)
+        type_comment = self.get_type_comment(node)
+        if type_comment:
+            self.write(type_comment)
 
     def visit_AugAssign(self, node):
         self.fill()
@@ -460,7 +473,7 @@ class Unparser(NodeVisitor):
         if getattr(node, "returns", False):
             self.write(" -> ")
             self.traverse(node.returns)
-        with self.block():
+        with self.block(extra=self.get_type_comment(node)):
             self.traverse(node.body)
 
     def _type_params_helper(self, type_params):
@@ -499,7 +512,7 @@ class Unparser(NodeVisitor):
         self.traverse(node.target)
         self.write(" in ")
         self.traverse(node.iter)
-        with self.block():
+        with self.block(extra=self.get_type_comment(node)):
             self.traverse(node.body)
         if node.orelse:
             self.fill("else")
@@ -537,13 +550,13 @@ class Unparser(NodeVisitor):
     def visit_With(self, node):
         self.fill("with ")
         self.interleave(lambda: self.write(", "), self.traverse, node.items)
-        with self.block():
+        with self.block(extra=self.get_type_comment(node)):
             self.traverse(node.body)
 
     def visit_AsyncWith(self, node):
         self.fill("async with ")
         self.interleave(lambda: self.write(", "), self.traverse, node.items)
-        with self.block():
+        with self.block(extra=self.get_type_comment(node)):
             self.traverse(node.body)
 
     def _str_literal_helper(
