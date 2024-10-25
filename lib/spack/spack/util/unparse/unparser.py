@@ -4,6 +4,7 @@
 "Usage: unparse.py <path to source file>"
 import ast
 import sys
+from ast import If, Name
 from contextlib import contextmanager
 from enum import IntEnum, auto
 from io import StringIO
@@ -83,11 +84,11 @@ class Unparser:
         the way Python 2 would. This preserved Spack package hash consistency during the
         python2/3 transition
         """
-        self.future_imports = []
         self._source = []
-        self._indent = 0
-        self._py_ver_consistent = py_ver_consistent
         self._precedences = {}
+        self._indent = 0
+        self.future_imports = []
+        self._py_ver_consistent = py_ver_consistent
         self._avoid_backslashes = _avoid_backslashes
 
     def interleave(self, inter, f, seq):
@@ -226,7 +227,7 @@ class Unparser:
             self.future_imports.extend(n.name for n in node.names)
 
         self.fill("from ")
-        self.write("." * node.level)
+        self.write("." * (node.level or 0))
         if node.module:
             self.write(node.module)
         self.write(" import ")
@@ -247,7 +248,7 @@ class Unparser:
 
     def visit_AnnAssign(self, node):
         self.fill()
-        with self.delimit_if("(", ")", not node.simple and isinstance(node.target, ast.Name)):
+        with self.delimit_if("(", ")", not node.simple and isinstance(node.target, Name)):
             self.traverse(node.target)
         self.write(": ")
         self.traverse(node.annotation)
@@ -307,16 +308,17 @@ class Unparser:
 
     def visit_YieldFrom(self, node):
         with self.require_parens(_Precedence.YIELD, node):
-            self.write("yield from")
-            if node.value:
-                self.write(" ")
-                self.set_precedence(_Precedence.ATOM, node.value)
-                self.traverse(node.value)
+            self.write("yield from ")
+            if not node.value:
+                raise ValueError("Node can't be used without a value attribute.")
+            self.set_precedence(_Precedence.ATOM, node.value)
+            self.traverse(node.value)
 
     def visit_Raise(self, node):
         self.fill("raise")
         if not node.exc:
-            assert not node.cause
+            if node.cause:
+                raise ValueError(f"Node can't use cause without an exception.")
             return
         self.write(" ")
         self.traverse(node.exc)
@@ -374,16 +376,17 @@ class Unparser:
                 else:
                     comma = True
                 self.traverse(e)
+
         with self.block():
             self.traverse(node.body)
 
     def visit_FunctionDef(self, node):
-        self.__FunctionDef_helper(node, "def")
+        self._function_helper(node, "def")
 
     def visit_AsyncFunctionDef(self, node):
-        self.__FunctionDef_helper(node, "async def")
+        self._function_helper(node, "async def")
 
-    def __FunctionDef_helper(self, node, fill_suffix):
+    def _function_helper(self, node, fill_suffix):
         self.maybe_newline()
         for deco in node.decorator_list:
             self.fill("@")
@@ -402,13 +405,37 @@ class Unparser:
         with self.block():
             self.traverse(node.body)
 
+    def visit_TypeVar(self, node):
+        self.write(node.name)
+        if node.bound:
+            self.write(": ")
+            self.traverse(node.bound)
+
+    def visit_TypeVarTuple(self, node):
+        self.write("*")
+        self.write(node.name)
+
+    def visit_ParamSpec(self, node):
+        self.write("**")
+        self.write(node.name)
+
+    def visit_TypeAlias(self, node):
+        self.fill("type ")
+        self.traverse(node.name)
+        if node.type_params:
+            self.write("[")
+            self.interleave(lambda: self.write(", "), self.traverse, node.type_params)
+            self.write("]")
+        self.write(" = ")
+        self.traverse(node.value)
+
     def visit_For(self, node):
-        self.__For_helper("for ", node)
+        self._for_helper("for ", node)
 
     def visit_AsyncFor(self, node):
-        self.__For_helper("async for ", node)
+        self._for_helper("async for ", node)
 
-    def __For_helper(self, fill, node):
+    def _for_helper(self, fill, node):
         self.fill(fill)
         self.traverse(node.target)
         self.write(" in ")
@@ -426,7 +453,7 @@ class Unparser:
         with self.block():
             self.traverse(node.body)
         # collapse nested ifs into equivalent elifs.
-        while node.orelse and len(node.orelse) == 1 and isinstance(node.orelse[0], ast.If):
+        while node.orelse and len(node.orelse) == 1 and isinstance(node.orelse[0], If):
             node = node.orelse[0]
             self.fill("elif ")
             self.traverse(node.test)
@@ -467,7 +494,7 @@ class Unparser:
         self._generic_With(node, async_=True)
 
     def _str_literal_helper(
-        self, string, quote_types=_ALL_QUOTES, escape_special_whitespace=False
+        self, string, *, quote_types=_ALL_QUOTES, escape_special_whitespace=False
     ):
         """Helper for writing string literals, minimizing escapes.
         Returns the tuple (string literal to write, possible quote types).
@@ -505,11 +532,11 @@ class Unparser:
                 escaped_string = escaped_string[:-1] + "\\" + escaped_string[-1]
         return escaped_string, possible_quotes
 
-    def _write_str_avoiding_backslashes(self, string, quote_types=_ALL_QUOTES):
-        """Write string literal value w/a best effort attempt to avoid backslashes."""
+    def _write_str_avoiding_backslashes(self, string, *, quote_types=_ALL_QUOTES):
+        """Write string literal value with a best effort attempt to avoid backslashes."""
         string, quote_types = self._str_literal_helper(string, quote_types=quote_types)
         quote_type = quote_types[0]
-        self.write("{quote_type}{string}{quote_type}".format(quote_type=quote_type, string=string))
+        self.write(f"{quote_type}{string}{quote_type}")
 
     # expr
     def visit_Bytes(self, node):
@@ -554,7 +581,7 @@ class Unparser:
             new_buffer.append(value)
         value = "".join(new_buffer)
         quote_type = quote_types[0]
-        self.write("{quote_type}{value}{quote_type}".format(quote_type=quote_type, value=value))
+        self.write(f"{quote_type}{value}{quote_type}")
 
     def visit_FormattedValue(self, node):
         # FormattedValue(expr value, int? conversion, expr? format_spec)
@@ -626,7 +653,7 @@ class Unparser:
         if isinstance(value, tuple):
             with self.delimit("(", ")"):
                 self.items_view(self._write_constant, value)
-        elif value is Ellipsis:  # instead of `...` for Py2 compatibility
+        elif value is ...:
             self.write("...")
         else:
             if node.kind == "u":
@@ -721,10 +748,9 @@ class Unparser:
             self.items_view(self.traverse, node.elts)
 
     unop = {"Invert": "~", "Not": "not", "UAdd": "+", "USub": "-"}
-
     unop_precedence = {
-        "~": _Precedence.FACTOR,
         "not": _Precedence.NOT,
+        "~": _Precedence.FACTOR,
         "+": _Precedence.FACTOR,
         "-": _Precedence.FACTOR,
     }
@@ -736,7 +762,7 @@ class Unparser:
             self.write(operator)
             # factor prefixes (+, -, ~) shouldn't be separated
             # from the value they belong, (e.g: +1 instead of + 1)
-            if operator_precedence != _Precedence.FACTOR:
+            if operator_precedence is not _Precedence.FACTOR:
                 self.write(" ")
             self.set_precedence(operator_precedence, node.operand)
             self.traverse(node.operand)
@@ -788,7 +814,7 @@ class Unparser:
 
             self.set_precedence(left_precedence, node.left)
             self.traverse(node.left)
-            self.write(" %s " % operator)
+            self.write(f" {operator} ")
             self.set_precedence(right_precedence, node.right)
             self.traverse(node.right)
 
@@ -814,23 +840,21 @@ class Unparser:
                 self.traverse(e)
 
     boolops = {"And": "and", "Or": "or"}
-
     boolop_precedence = {"and": _Precedence.AND, "or": _Precedence.OR}
 
     def visit_BoolOp(self, node):
         operator = self.boolops[node.op.__class__.__name__]
+        operator_precedence = self.boolop_precedence[operator]
 
-        # use a dict instead of nonlocal for Python 2 compatibility
-        op = {"precedence": self.boolop_precedence[operator]}
-
-        def increasing_level_dispatch(node):
-            op["precedence"] = op["precedence"].next()
-            self.set_precedence(op["precedence"], node)
+        def increasing_level_traverse(node):
+            nonlocal operator_precedence
+            operator_precedence = operator_precedence.next()
+            self.set_precedence(operator_precedence, node)
             self.traverse(node)
 
-        with self.require_parens(op["precedence"], node):
-            s = " %s " % operator
-            self.interleave(lambda: self.write(s), increasing_level_dispatch, node.values)
+        with self.require_parens(operator_precedence, node):
+            s = f" {operator} "
+            self.interleave(lambda: self.write(s), increasing_level_traverse, node.values)
 
     def visit_Attribute(self, node):
         self.set_precedence(_Precedence.ATOM, node.value)
@@ -846,10 +870,7 @@ class Unparser:
 
     def visit_Call(self, node):
         self.set_precedence(_Precedence.ATOM, node.func)
-
-        args = node.args
         self.traverse(node.func)
-
         with self.delimit("(", ")"):
             comma = False
 
@@ -857,13 +878,12 @@ class Unparser:
             # If you run on python@:3.4, you will see instability in package hashes
             # across python versions
 
-            for e in args:
+            for e in node.args:
                 if comma:
                     self.write(", ")
                 else:
                     comma = True
                 self.traverse(e)
-
             for e in node.keywords:
                 if comma:
                     self.write(", ")
@@ -907,6 +927,13 @@ class Unparser:
         if node.step:
             self.write(":")
             self.traverse(node.step)
+
+    def visit_Match(self, node):
+        self.fill("match ")
+        self.traverse(node.subject)
+        with self.block():
+            for case in node.cases:
+                self.traverse(case)
 
     def visit_ExtSlice(self, node):
         self.interleave(lambda: self.write(", "), self.traverse, node.dims)
@@ -957,7 +984,7 @@ class Unparser:
                     first = False
                 else:
                     self.write(", ")
-                self.traverse(a),
+                self.traverse(a)
                 if d:
                     self.write("=")
                     self.traverse(d)
@@ -1001,13 +1028,6 @@ class Unparser:
             self.write(" as ")
             self.traverse(node.optional_vars)
 
-    def visit_Match(self, node):
-        self.fill("match ")
-        self.traverse(node.subject)
-        with self.block():
-            for case in node.cases:
-                self.traverse(case)
-
     def visit_match_case(self, node):
         self.fill("case ")
         self.traverse(node.pattern)
@@ -1031,7 +1051,7 @@ class Unparser:
         name = node.name
         if name is None:
             name = "_"
-        self.write("*{}".format(name))
+        self.write(f"*{name}")
 
     def visit_MatchMapping(self, node):
         def write_key_pattern_pair(pair):
@@ -1049,7 +1069,7 @@ class Unparser:
             if rest is not None:
                 if keys:
                     self.write(", ")
-                self.write("**{}".format(rest))
+                self.write(f"**{rest}")
 
     def visit_MatchClass(self, node):
         self.set_precedence(_Precedence.ATOM, node.cls)
@@ -1062,7 +1082,7 @@ class Unparser:
 
                 def write_attr_pattern(pair):
                     attr, pattern = pair
-                    self.write("{}=".format(attr))
+                    self.write(f"{attr}=")
                     self.traverse(pattern)
 
                 if patterns:
@@ -1082,33 +1102,9 @@ class Unparser:
             with self.require_parens(_Precedence.TEST, node):
                 self.set_precedence(_Precedence.BOR, node.pattern)
                 self.traverse(node.pattern)
-                self.write(" as {}".format(node.name))
+                self.write(f" as {node.name}")
 
     def visit_MatchOr(self, node):
         with self.require_parens(_Precedence.BOR, node):
             self.set_precedence(_Precedence.BOR.next(), *node.patterns)
             self.interleave(lambda: self.write(" | "), self.traverse, node.patterns)
-
-    def visit_TypeAlias(self, node):
-        self.fill("type ")
-        self.traverse(node.name)
-        if node.type_params:
-            self.write("[")
-            self.interleave(lambda: self.write(", "), self.traverse, node.type_params)
-            self.write("]")
-        self.write(" = ")
-        self.traverse(node.value)
-
-    def visit_TypeVar(self, node):
-        self.write(node.name)
-        if node.bound:
-            self.write(": ")
-            self.traverse(node.bound)
-
-    def visit_TypeVarTuple(self, node):
-        self.write("*")
-        self.write(node.name)
-
-    def visit_ParamSpec(self, node):
-        self.write("**")
-        self.write(node.name)
