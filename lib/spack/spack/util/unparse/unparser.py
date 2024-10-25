@@ -223,6 +223,11 @@ class Unparser(NodeVisitor):
         for node in nodes:
             self._precedences[node] = precedence
 
+    def get_raw_docstring(self, node):
+        # We don't care about about docstrings for spack package hash.
+        # Spack's package_ast removed them anyway.
+        return None
+
     def get_type_comment(self, node):
         # We don't care about type comments for spack package hash.
         return None
@@ -244,13 +249,20 @@ class Unparser(NodeVisitor):
         self.traverse(node)
         return "".join(self._source)
 
+    def _write_docstring_and_traverse_body(self, node):
+        docstring = self.get_raw_docstring(node)
+        if docstring:
+            self._write_docstring(docstring)
+            self.traverse(node.body[1:])
+        else:
+            self.traverse(node.body)
+
     def visit_Module(self, node):
         # Python < 3.8. Types
         self._type_ignores = {
             ignore.lineno: f"ignore{ignore.tag}" for ignore in getattr(node, "type_ignores", ())
         }
-        for stmt in node.body:
-            self.traverse(stmt)
+        self._write_docstring_and_traverse_body(node)
         self._type_ignores.clear()
 
     def visit_FunctionType(self, node):
@@ -451,7 +463,7 @@ class Unparser(NodeVisitor):
                 self.traverse(e)
 
         with self.block():
-            self.traverse(node.body)
+            self._write_docstring_and_traverse_body(node)
 
     def visit_FunctionDef(self, node):
         self._function_helper(node, "def")
@@ -474,7 +486,7 @@ class Unparser(NodeVisitor):
             self.write(" -> ")
             self.traverse(node.returns)
         with self.block(extra=self.get_type_comment(node)):
-            self.traverse(node.body)
+            self._write_docstring_and_traverse_body(node)
 
     def _type_params_helper(self, type_params):
         if type_params is not None and len(type_params) > 0:
@@ -697,6 +709,12 @@ class Unparser(NodeVisitor):
 
     def visit_Name(self, node):
         self.write(node.id)
+
+    def _write_docstring(self, node):
+        self.fill()
+        if node.kind == "u":
+            self.write("u")
+        self._write_str_avoiding_backslashes(node.value, quote_types=_MULTI_QUOTES)
 
     # Python < 3.8. Num, Str, Bytes, NameConstant, Ellipsis replaced with Constant
     # https://github.com/python/cpython/commit/3f22811fef73aec848d961593d95fa877f77ecbf
