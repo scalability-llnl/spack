@@ -153,10 +153,8 @@ class FileCache:
                cache_file.read()
 
         """
-
-        return ReadTransaction(
-            self._get_lock(key), acquire=lambda: ReadContextManager(self.cache_path(key))
-        )
+        path = self.cache_path(key)
+        return ReadTransaction(self._get_lock(key), acquire=lambda: ReadContextManager(path))
 
     def write_transaction(self, key):
         """Get a write transaction on a file cache item.
@@ -166,13 +164,11 @@ class FileCache:
         moves the file into place on top of the old file atomically.
 
         """
-        filename = self.cache_path(key)
-        if os.path.exists(filename) and not os.access(filename, os.W_OK):
-            raise CacheError(
-                "Insufficient permissions to write to file cache at {0}".format(filename)
-            )
+        path = self.cache_path(key)
+        if os.path.exists(path) and not os.access(path, os.W_OK):
+            raise CacheError(f"Insufficient permissions to write to file cache at {path}")
 
-        return WriteTransaction(self._get_lock(key), acquire=lambda: WriteContextManager(filename))
+        return WriteTransaction(self._get_lock(key), acquire=lambda: WriteContextManager(path))
 
     def mtime(self, key) -> float:
         """Return modification time of cache file, or -inf if it does not exist.
