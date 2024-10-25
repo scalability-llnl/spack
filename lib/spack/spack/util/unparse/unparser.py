@@ -692,8 +692,11 @@ class Unparser(NodeVisitor):
 
     def _write_constant(self, value):
         if isinstance(value, (float, complex)):
-            # Substitute overflowing decimal literal for AST infinities.
-            self.write(repr(value).replace("inf", _INFSTR))
+            # Substitute overflowing decimal literal for AST infinities,
+            # and inf - inf for NaNs.
+            self.write(
+                repr(value).replace("inf", _INFSTR).replace("nan", f"({_INFSTR}-{_INFSTR})")
+            )
         elif isinstance(value, str) and self._py_ver_consistent:
             # emulate a python 2 repr with raw unicode escapes
             # see _Str for python 2 counterpart
@@ -779,9 +782,13 @@ class Unparser(NodeVisitor):
             self.traverse(node.orelse)
 
     def visit_Set(self, node):
-        assert node.elts  # should be at least one element
-        with self.delimit("{", "}"):
-            self.interleave(lambda: self.write(", "), self.traverse, node.elts)
+        if node.elts:
+            with self.delimit("{", "}"):
+                self.interleave(lambda: self.write(", "), self.traverse, node.elts)
+        else:
+            # `{}` would be interpreted as a dictionary literal, and
+            # `set` might be shadowed. Thus:
+            self.write("{*()}")
 
     def visit_Dict(self, node):
         def write_key_value_pair(k, v):
