@@ -11,7 +11,7 @@ class Neofoam(CMakePackage):
     homepage = "https://github.com/exasim-project/NeoFOAM"
     git = homepage
 
-    # maintainers("greole", "github_user2")
+    # maintainers("greole", "HenningScheufler")
 
     license("MIT", checked_by="greole")
 
