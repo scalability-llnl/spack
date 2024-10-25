@@ -737,6 +737,8 @@ class UnsupportedCompilerFlag(spack.error.SpackError):
 
 
 class CompilerCacheEntry:
+    """Deserialized cache entry for a compiler"""
+
     __slots__ = ["c_compiler_output", "real_version"]
 
     def __init__(self, c_compiler_output: Optional[str], real_version: str):
@@ -745,7 +747,15 @@ class CompilerCacheEntry:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Optional[str]]):
-        return cls(data["c_compiler_output"], data["real_version"])
+        if not isinstance(data, dict):
+            raise ValueError(f"Invalid {cls.__name__} data")
+        c_compiler_output = data.get("c_compiler_output")
+        real_version = data.get("real_version")
+        if not isinstance(real_version, str) or not isinstance(
+            c_compiler_output, (str, type(None))
+        ):
+            raise ValueError(f"Invalid {cls.__name__} data")
+        return cls(c_compiler_output, real_version)
 
 
 class CompilerCache:
@@ -757,7 +767,16 @@ class CompilerCache:
     def __init__(self, cache: "spack.caches.FileCacheType") -> None:
         self.cache = cache
         self.cache.init_entry(self.name)
-        self._data: Dict[str, Dict[str, str]] = {}
+        self._data: Dict[str, Dict[str, Optional[str]]] = {}
+
+    def _get_entry(self, key: str) -> Optional[CompilerCacheEntry]:
+        try:
+            return CompilerCacheEntry.from_dict(self._data[key])
+        except ValueError:
+            del self._data[key]
+        except KeyError:
+            pass
+        return None
 
     def get(self, compiler: Compiler) -> CompilerCacheEntry:
         # Cache hit
@@ -765,27 +784,38 @@ class CompilerCache:
             with self.cache.read_transaction(self.name) as f:
                 assert f is not None
                 self._data = json.loads(f.read())
-        except Exception:
+                assert isinstance(self._data, dict)
+        except (json.JSONDecodeError, AssertionError):
             self._data = {}
 
         key = self._key(compiler)
         if key in self._data:
-            return CompilerCacheEntry.from_dict(self._data[key])
+            value = self._get_entry(key)
+            if value is not None:
+                return value
 
         # Cache miss
         with self.cache.write_transaction(self.name) as (old, new):
             try:
+                assert old is not None
                 self._data = json.loads(old.read())
-            except Exception:
-                pass
-            # Another process may have already run the compiler in the meantime.
-            if key not in self._data:
+                assert isinstance(self._data, dict)
+            except (json.JSONDecodeError, AssertionError):
+                self._data = {}
+
+            # Use cache entry that may have been created by another process in the meantime.
+            entry = self._get_entry(key)
+
+            # Finally compute the cache entry
+            if entry is None:
                 self._data[key] = self._value(compiler)
+                entry = CompilerCacheEntry.from_dict(self._data[key])
+
             new.write(json.dumps(self._data, separators=(",", ":")))
 
-        return CompilerCacheEntry.from_dict(self._data[key])
+            return entry
 
-    def _value(self, compiler: Compiler):
+    def _value(self, compiler: Compiler) -> Dict[str, Optional[str]]:
         return {
             "c_compiler_output": compiler._compile_dummy_c_source(),
             "real_version": compiler.get_real_version(),

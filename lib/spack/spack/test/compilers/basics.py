@@ -5,6 +5,7 @@
 """Test basic behavior of compilers in Spack"""
 import os
 from copy import copy
+from typing import Optional
 
 import pytest
 
@@ -17,6 +18,7 @@ import spack.spec
 import spack.util.module_cmd
 from spack.compiler import Compiler
 from spack.util.executable import Executable, ProcessError
+from spack.util.file_cache import FileCache
 
 
 def test_multiple_conflicting_compiler_definitions(mutable_config):
@@ -895,3 +897,46 @@ def test_compiler_environment(working_env):
     )
     with compiler.compiler_environment():
         assert os.environ["TEST"] == "yes"
+
+
+class MockCompilerWithoutExecutables(MockCompiler):
+    def __init__(self):
+        super().__init__()
+        self._compile_dummy_c_source_count = 0
+        self._get_real_version_count = 0
+
+    def _compile_dummy_c_source(self) -> Optional[str]:
+        self._compile_dummy_c_source_count += 1
+        return "gcc helloworld.c -o helloworld"
+
+    def get_real_version(self) -> str:
+        self._get_real_version_count += 1
+        return "1.0.0"
+
+
+def test_compiler_output_caching(tmp_path):
+    """Test that compiler output is cached on the filesystem."""
+    # The first call should trigger the cache to updated.
+    a = MockCompilerWithoutExecutables()
+    cache_a = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    assert cache_a.get(a).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache_a.get(a).real_version == "1.0.0"
+    assert a._compile_dummy_c_source_count == 1
+    assert a._get_real_version_count == 1
+
+    # The second call on an equivalent but distinct object should not trigger compiler calls.
+    b = MockCompilerWithoutExecutables()
+    cache_b = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    assert cache_b.get(b).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache_b.get(b).real_version == "1.0.0"
+    assert b._compile_dummy_c_source_count == 0
+    assert b._get_real_version_count == 0
+
+    # Cache corruption should be handled gracefully.
+    with open(cache_a.cache.cache_path(cache_a.name), "w") as f:
+        f.write("invalid json")
+
+    c = MockCompilerWithoutExecutables()
+    cache = spack.compiler.CompilerCache(FileCache(str(tmp_path)))
+    assert cache.get(c).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache.get(c).real_version == "1.0.0"
