@@ -64,9 +64,6 @@ if not defined EDITOR (
    set EDITOR=notepad
 )
 
-DOSKEY spacktivate=spack env activate $*
-
-
 @echo **********************************************************************
 @echo ** Spack Package Manager
 @echo **********************************************************************
