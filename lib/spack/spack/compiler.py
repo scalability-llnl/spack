@@ -568,14 +568,17 @@ class Compiler:
         modifications) to enable the compiler to run properly on any platform.
         """
         cc = spack.util.executable.Executable(self.cc)
-        with self.compiler_environment():
-            output = cc(
-                self.version_argument,
-                output=str,
-                error=str,
-                ignore_errors=tuple(self.ignore_version_errors),
-            )
-            return self.extract_version_from_output(output)
+        try:
+            with self.compiler_environment():
+                output = cc(
+                    self.version_argument,
+                    output=str,
+                    error=str,
+                    ignore_errors=tuple(self.ignore_version_errors),
+                )
+                return self.extract_version_from_output(output)
+        except spack.util.executable.ProcessError:
+            return "unknown"
 
     @property
     def prefix(self):
