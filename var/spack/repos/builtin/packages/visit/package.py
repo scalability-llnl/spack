@@ -182,7 +182,8 @@ class Visit(CMakePackage):
     with when("+adios2"):
         depends_on("adios2")
         # adios 2.8 removed adios2_taustubs (https://github.com/visit-dav/visit/issues/19209)
-        depends_on("adios2@:2.7.1")
+        # Fixed in 3.4.1
+        depends_on("adios2@:2.7.1", when="@:3.4.0")
         depends_on("adios2+hdf5", when="+hdf5")
         depends_on("adios2~hdf5", when="~hdf5")
         depends_on("adios2+mpi", when="+mpi")
