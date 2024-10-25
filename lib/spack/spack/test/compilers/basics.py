@@ -103,23 +103,15 @@ class MockCompiler(Compiler):
     required_libs = ["libgfortran"]
 
 
-class MockCompilerCache:
-    def __init__(self, entry: spack.compiler.CompilerCacheEntry):
-        self.entry = entry
-
-    def get(self, compiler):
-        return self.entry
-
-
 @pytest.mark.not_on_windows("Not supported on Windows (yet)")
-def test_implicit_rpaths(dirs_with_libfiles):
+def test_implicit_rpaths(dirs_with_libfiles, monkeypatch):
     lib_to_dirs, all_dirs = dirs_with_libfiles
-    compiler_output = spack.compiler.CompilerCacheEntry(
-        c_compiler_output="ld " + " ".join(f"-L{d}" for d in all_dirs), real_version="1.0.0"
+    monkeypatch.setattr(
+        MockCompiler,
+        "_compile_dummy_c_source",
+        lambda self: "ld " + " ".join(f"-L{d}" for d in all_dirs),
     )
-    compiler = MockCompiler()
-    compiler.cache = MockCompilerCache(compiler_output)
-    retrieved_rpaths = compiler.implicit_rpaths()
+    retrieved_rpaths = MockCompiler().implicit_rpaths()
     assert set(retrieved_rpaths) == set(lib_to_dirs["libstdc++"] + lib_to_dirs["libgfortran"])
 
 
