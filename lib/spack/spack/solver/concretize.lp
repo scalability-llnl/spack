@@ -1088,19 +1088,29 @@ variant_is_propagated(PackageNode, Variant) :-
    attr("variant_selected", PackageNode, Variant, Value, _, _),
    not propagate(PackageNode, variant_value(Variant, Value)).
 
-% Cannot propagate the same flag from two distinct sources
+% Cannot propagate the same variant from two distinct sources
 error(100, "{0} and {1} cannot both propagate variant '{2}'", Source1, Source2, Variant) :-
   variant_is_propagated(node(X, Source1), variant_value(Variant, _)),
   variant_is_propagated(node(Y, Source2), variant_value(Variant, _)),
   Source1 < Source2.
 
 % Cannot propagate a variant if a different value was set for it in a dependency
-error(100, "Cannot propagate the variant '{0}' from the package: {1} because package: {2} is set to exclude it", Variant, Source, Dependency) :-
-  variant_is_propagated(node(X, Source), Variant),
-  attr("variant_set", node(Y, Dependency), Variant, _),
-  depends_on(node(Y, Dependency), node(X, Source)),
-  node_has_variant(node(X, Source), Variant, VariantID),
-  not variant_type(VariantID, "multi").
+error(100, "Cannot propagate the variant '{0}' from the package: {1} because package: {2} is set to exclude it", Variant, Source, Package) :-
+  % Package has a variant set to Value1
+  attr("variant_set", node(X, Package), Variant, Value1),
+
+  % A different value is being propagated from somewhere else
+  propagate(node(X, Package), variant_value(Variant, Value2)),
+  Value1 != Value2,
+  node(X, Package) != node(Y, Source),
+
+  % The variant is a singlevalued variant
+  node_has_variant(node(X, Package), Variant, VariantID),
+  not variant_type(VariantID, "multi"),
+
+  % Find the source based on the fact that nothing is propagating to it
+  propagate(node(Y, Source), variant_value(Variant, Value2)),
+  not 1 {propagate(SourceParent, variant_value(Variant, Value2)): depends_on(SourceParent, node(Y, Source))}.
 
 %----
 % Flags
