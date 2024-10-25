@@ -18,7 +18,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
     - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
         python-version: '3.11'
@@ -35,7 +35,7 @@ jobs:
   style:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
     - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
@@ -70,7 +70,7 @@ jobs:
           dnf install -y \
               bzip2 curl file gcc-c++ gcc gcc-gfortran git gnupg2 gzip \
               make patch tcl unzip which xz
-      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Setup repo and non-root user
         run: |
           git --version
@@ -98,14 +98,14 @@ jobs:
     # PR: use the base of the PR as the old commit
     - name: Checkout PR base commit
       if: github.event_name == 'pull_request'
-      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         ref: ${{ github.event.pull_request.base.sha }}
         path: old
     # not a PR: use the previous commit as the old commit
     - name: Checkout previous commit
       if: github.event_name != 'pull_request'
-      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 2
         path: old
@@ -114,11 +114,11 @@ jobs:
       run: git -C old reset --hard HEAD^
 
     - name: Checkout new commit
-      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         path: new
     - name: Install circular import checker
-      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         repository: haampie/circular-import-fighter
         ref: 555519c6fd5564fd2eb844e7b87e84f4d12602e2
