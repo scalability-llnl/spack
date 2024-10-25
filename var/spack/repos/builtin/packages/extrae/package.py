@@ -68,7 +68,6 @@ class Extrae(AutotoolsPackage):
     # See https://github.com/spack/spack/pull/22303 for reference
     depends_on(Boost.with_default_variants)
     depends_on("libdwarf")
-    depends_on("papi")
     depends_on("elf", type="link")
     depends_on("libxml2")
     depends_on("numactl")

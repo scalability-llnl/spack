@@ -75,8 +75,6 @@ default:
 .base-job:
   variables:
     PIPELINE_MIRROR_TEMPLATE: "single-src-protected-mirrors.yaml.in"
-    # TODO: We can remove this when we drop the "deprecated" stack
-    PUSH_BUILDCACHE_DEPRECATED: "${PROTECTED_MIRROR_PUSH_DOMAIN}/${CI_COMMIT_REF_NAME}/${SPACK_CI_STACK_NAME}"
     SPACK_CI_CONFIG_ROOT: "${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/configs"
     SPACK_CI_SCRIPTS_ROOT: "${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts"
 
@@ -106,8 +104,6 @@ default:
       when: always
       variables:
         SPACK_PIPELINE_TYPE: "spack_pull_request"
-        # TODO: We can remove this when we drop the "deprecated" stack
-        PUSH_BUILDCACHE_DEPRECATED: "${PR_MIRROR_PUSH_DOMAIN}/${CI_COMMIT_REF_NAME}/${SPACK_CI_STACK_NAME}"
         SPACK_PRUNE_UNTOUCHED: "True"
         SPACK_PRUNE_UNTOUCHED_DEPENDENT_DEPTH: "1"
         # TODO: Change sync script to include target in branch name.  Then we could
@@ -220,41 +216,6 @@ default:
 
   tags: ["spack", "public", "medium", "x86_64-win"]
   image: "ghcr.io/johnwparent/windows-server21h2:sha-1c12b61"
-
-.generate-deprecated:
-  extends: [ ".base-job" ]
-  stage: generate
-  script:
-    - uname -a || true
-    - grep -E 'vendor|model name' /proc/cpuinfo 2>/dev/null | sort -u || head -n10 /proc/cpuinfo 2>/dev/null || true
-    - nproc || true
-    - cat /proc/loadavg || true
-    - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
-    - . "./share/spack/setup-env.sh"
-    - spack --version
-    - cd share/spack/gitlab/cloud_pipelines/stacks/${SPACK_CI_STACK_NAME}
-    - spack env activate --without-view .
-    - spack -v --color=always
-      ci generate --check-index-only
-      --buildcache-destination "${PUSH_BUILDCACHE_DEPRECATED}"
-      --artifacts-root "${CI_PROJECT_DIR}/jobs_scratch_dir"
-      --output-file "${CI_PROJECT_DIR}/jobs_scratch_dir/cloud-ci-pipeline.yml"
-  after_script:
-    - cat /proc/loadavg || true
-    - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
-  artifacts:
-    paths:
-      - "${CI_PROJECT_DIR}/jobs_scratch_dir"
-  variables:
-    KUBERNETES_CPU_REQUEST: 4000m
-    KUBERNETES_MEMORY_REQUEST: 16G
-  interruptible: true
-  timeout: 60 minutes
-  retry:
-    max: 2
-    when:
-      - always
-  tags: ["spack", "public", "medium", "x86_64"]
 
 .build:
   extends: [ ".base-job" ]
@@ -796,27 +757,6 @@ ml-darwin-aarch64-mps-build:
   needs:
     - artifacts: True
       job: ml-darwin-aarch64-mps-generate
-
-########################################
-# Deprecated CI testing
-########################################
-.deprecated-ci:
-  variables:
-    SPACK_CI_STACK_NAME: deprecated
-
-deprecated-ci-generate:
-  extends: [ ".generate-deprecated", ".deprecated-ci" ]
-
-deprecated-ci-build:
-  extends: [ ".build", ".deprecated-ci" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: deprecated-ci-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: deprecated-ci-generate
 
 ########################################
 # AWS ParallelCluster

@@ -19,6 +19,7 @@ class Exawind(CMakePackage, CudaPackage, ROCmPackage):
     license("Apache-2.0")
 
     version("master", branch="main", submodules=True, preferred=True)
+    version("1.1.0", tag="v1.1.0", submodules=True)
     version("1.0.0", tag="v1.0.0", submodules=True)
 
     depends_on("cxx", type="build")  # generated

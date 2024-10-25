@@ -31,9 +31,14 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     # * patch releases older than a stable release should be marked deprecated=True
     version("develop", branch="develop")
     version(
+        "20240829.1",
+        sha256="3aea41869aa2fb8120fc4814cab645686f969e2eb7c66aa5587e500597d482dc",
+        preferred=True,
+    )
+    version(
         "20240829",
         sha256="6112e0cc352c3140a4874c7f74db3c0c8e30134024164509ecf3772b305fde2e",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "20240627",
@@ -403,6 +408,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         depends_on("fortran", type="build", when=f"+{fc_pkg}")
 
     stable_versions = {
+        "20240829.1",
         "20240829",
         "20230802.4",
         "20230802.3",
@@ -653,7 +659,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     )
     variant("tools", default=False, description="Build LAMMPS tools (msi2lmp, binary2txt, chain)")
 
-    depends_on("cmake@3.16:", when="@20231121:")
+    depends_on("cmake@3.16:", when="@20231121:", type="build")
     depends_on("mpi", when="+mpi")
     depends_on("mpi", when="+mpiio")
     depends_on("fftw-api@3", when="+kspace fft=fftw3")

@@ -116,6 +116,13 @@ class PyTorchaudio(PythonPackage):
     )
     conflicts("^cuda@12.5:", when="@:2.1")
 
+    def flag_handler(self, name, flags):
+        # https://github.com/pytorch/vision/issues/8653
+        if name == "ldflags":
+            if self.spec.satisfies("%apple-clang@15:"):
+                flags.append("-Wl,-ld_classic")
+        return (flags, None, None)
+
     def setup_build_environment(self, env):
         # tools/setup_helpers/extension.py
         env.set("BUILD_SOX", 0)

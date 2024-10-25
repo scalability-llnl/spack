@@ -378,6 +378,14 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     # https://github.com/cp2k/cp2k/issues/3688
     patch("d4-dispersion-bugfix-2024.3.patch", when="@2024.3")
 
+    # Fix segmentation faults caused by accessing unallocated arrays
+    # https://github.com/cp2k/cp2k/pull/3733
+    patch(
+        "https://github.com/cp2k/cp2k/commit/7a99649828ecf7d5dc53d952a1bf7be6970deabe.patch?full_index=1",
+        sha256="37f4f1a76634ff4a5617fe0c670e6acfe2afa2b2cfc5b2875e438a54baa4525e",
+        when="@2024.2:2024.3",
+    )
+
     def patch(self):
         # Patch for an undefined constant due to incompatible changes in ELPA
         if self.spec.satisfies("@9.1:2022.2 +elpa"):

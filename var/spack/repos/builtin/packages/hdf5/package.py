@@ -581,6 +581,10 @@ class Hdf5(CMakePackage):
         if spec.satisfies("@1.10.8,1.13.0"):
             args.append(self.define("HDF5_INSTALL_CMAKE_DIR", "share/cmake/hdf5"))
 
+        # AOCC does not support _Float16
+        if spec.satisfies("@1.14.4: %aocc"):
+            args.append(self.define("HDF5_ENABLE_NONSTANDARD_FEATURE_FLOAT16", False))
+
         return args
 
     @run_after("install")

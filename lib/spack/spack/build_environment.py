@@ -1061,8 +1061,8 @@ class SetupContext:
                 pkg.setup_dependent_package(dependent_module, spec)
                 dependent_module.propagate_changes_to_mro()
 
-        pkg = self.specs[0].package
         if self.context == Context.BUILD:
+            pkg = self.specs[0].package
             module = ModuleChangePropagator(pkg)
             # std_cmake_args is not sufficiently static to be defined
             # in set_package_py_globals and is deprecated so its handled

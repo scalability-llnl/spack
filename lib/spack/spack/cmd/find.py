@@ -178,7 +178,7 @@ def query_arguments(args):
     if args.unknown:
         predicate_fn = lambda x: not spack.repo.PATH.exists(x.spec.name)
 
-    explicit = any
+    explicit = None
     if args.explicit:
         explicit = True
     if args.implicit:

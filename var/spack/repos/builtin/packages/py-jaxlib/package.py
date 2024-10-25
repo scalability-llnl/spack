@@ -128,6 +128,10 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         when="@:0.4.25",
     )
 
+    # Might be able to be applied to earlier versions
+    # backports https://github.com/abseil/abseil-cpp/pull/1732
+    patch("jaxxlatsl.patch", when="@0.4.28:0.4.32 target=aarch64:")
+
     conflicts(
         "cuda_arch=none",
         when="+cuda",

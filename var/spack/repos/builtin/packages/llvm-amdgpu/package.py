@@ -222,11 +222,15 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
             self.define("LIBCXXABI_ENABLE_STATIC", "ON"),
             self.define("LIBCXXABI_INSTALL_STATIC_LIBRARY", "OFF"),
             self.define("LLVM_ENABLE_RTTI", "ON"),
-            self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;X86"),
             self.define("LLVM_AMDGPU_ALLOW_NPI_TARGETS", "ON"),
             self.define("PACKAGE_VENDOR", "AMD"),
             self.define("CLANG_ENABLE_AMDCLANG", "ON"),
         ]
+
+        if self.spec.target.family == "aarch64":
+            args.append(self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;AArch64"))
+        else:
+            args.append(self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;X86"))
 
         # Enable rocm-device-libs as a external project
         if self.spec.satisfies("+rocm-device-libs"):
