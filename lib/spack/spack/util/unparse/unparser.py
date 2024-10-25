@@ -183,6 +183,16 @@ class Unparser(NodeVisitor):
         self._source.extend(text)
 
     @contextmanager
+    def buffered(self, buffer=None):
+        if buffer is None:
+            buffer = []
+
+        original_source = self._source
+        self._source = buffer
+        yield buffer
+        self._source = original_source
+
+    @contextmanager
     def block(self, *, extra=None):
         """A context manager for preparing the source for blocks. It adds
         the character':', increases the indentation on enter and decreases
@@ -1085,8 +1095,11 @@ class Unparser(NodeVisitor):
 
     def visit_Lambda(self, node):
         with self.require_parens(_Precedence.TEST, node):
-            self.write("lambda ")
-            self.traverse(node.args)
+            self.write("lambda")
+            with self.buffered() as buffer:
+                self.traverse(node.args)
+            if buffer:
+                self.write(" ", *buffer)
             self.write(": ")
             self.set_precedence(_Precedence.TEST, node.body)
             self.traverse(node.body)
