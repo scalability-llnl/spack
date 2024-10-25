@@ -746,9 +746,10 @@ class Unparser:
             self.interleave(lambda: self.write(", "), write_item, zip(node.keys, node.values))
 
     def visit_Tuple(self, node):
-        with self.delimit_if(
-            "(", ")", len(node.elts) == 0 or self.get_precedence(node) > _Precedence.TUPLE
-        ):
+        # with self.delimit_if(
+        #     "(", ")", len(node.elts) == 0 or self.get_precedence(node) > _Precedence.TUPLE
+        # ):
+        with self.delimit("(", ")"):  # don't change spack package hash
             self.items_view(self.traverse, node.elts)
 
     unop = {"Invert": "~", "Not": "not", "UAdd": "+", "USub": "-"}
