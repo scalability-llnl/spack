@@ -27,4 +27,3 @@ class PyOlcfVelocity(PythonPackage):
     depends_on("py-typing-extensions", type="run")
 
     depends_on("py-setuptools", type="build")
-
