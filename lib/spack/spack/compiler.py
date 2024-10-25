@@ -37,7 +37,7 @@ FLAG_INSTANCE_VARS = ["cflags", "cppflags", "cxxflags", "fflags"]
 
 
 @llnl.util.lang.memoized
-def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()):
+def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()) -> str:
     """Invokes the compiler at a given path passing a single
     version argument and returns the output.
 
@@ -60,7 +60,7 @@ def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()):
     return output
 
 
-def get_compiler_version_output(compiler_path, *args, **kwargs):
+def get_compiler_version_output(compiler_path, *args, **kwargs) -> str:
     """Wrapper for _get_compiler_version_output()."""
     # This ensures that we memoize compiler output by *absolute path*,
     # not just executable name. If we don't do this, and the path changes
@@ -395,7 +395,7 @@ class Compiler:
 
         E.g. C++11 flag checks.
         """
-        real_version_str = self.cache.get(self).get("real_version")
+        real_version_str = self.cache.get(self).real_version
         if not real_version_str or real_version_str == "unknown":
             return self.version
 
@@ -446,7 +446,7 @@ class Compiler:
     @property
     def compiler_verbose_output(self) -> Optional[str]:
         """Verbose output from compiling a dummy C source file. Output is cached."""
-        return self.cache.get(self).get("c_compiler_output")
+        return self.cache.get(self).c_compiler_output
 
     def _compile_dummy_c_source(self) -> Optional[str]:
         cc = self.cc if self.cc else self.cxx
@@ -602,7 +602,7 @@ class Compiler:
 
     @classmethod
     @llnl.util.lang.memoized
-    def extract_version_from_output(cls, output):
+    def extract_version_from_output(cls, output: str) -> str:
         """Extracts the version from compiler's output."""
         match = re.search(cls.version_regex, output)
         return match.group(1) if match else "unknown"
@@ -733,6 +733,18 @@ class UnsupportedCompilerFlag(spack.error.SpackError):
         )
 
 
+class CompilerCacheEntry:
+    __slots__ = ["c_compiler_output", "real_version"]
+
+    def __init__(self, c_compiler_output: Optional[str], real_version: str):
+        self.c_compiler_output = c_compiler_output
+        self.real_version = real_version
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Optional[str]]):
+        return cls(data["c_compiler_output"], data["real_version"])
+
+
 class CompilerCache:
     """Cache for compiler output, which is used to determine implicit link paths, the default libc
     version, and the compiler version."""
@@ -744,7 +756,7 @@ class CompilerCache:
         self.cache.init_entry(self.name)
         self._data: Dict[str, Dict[str, str]] = {}
 
-    def get(self, compiler: Compiler) -> Dict[str, str]:
+    def get(self, compiler: Compiler) -> CompilerCacheEntry:
         # Cache hit
         try:
             with self.cache.read_transaction(self.name) as f:
@@ -755,7 +767,7 @@ class CompilerCache:
 
         key = self._key(compiler)
         if key in self._data:
-            return self._data[key]
+            return CompilerCacheEntry.from_dict(self._data[key])
 
         # Cache miss
         with self.cache.write_transaction(self.name) as (old, new):
@@ -768,7 +780,7 @@ class CompilerCache:
                 self._data[key] = self._value(compiler)
             new.write(json.dumps(self._data, separators=(",", ":")))
 
-        return self._data[key]
+        return CompilerCacheEntry.from_dict(self._data[key])
 
     def _value(self, compiler: Compiler):
         return {
