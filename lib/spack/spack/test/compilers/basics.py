@@ -653,6 +653,7 @@ def test_raising_if_compiler_target_is_over_specific(config):
 
 
 @pytest.mark.not_on_windows("Not supported on Windows (yet)")
+@pytest.mark.enable_compiler_execution
 def test_compiler_get_real_version(working_env, monkeypatch, tmpdir):
     # Test variables
     test_version = "2.2.2"
@@ -742,6 +743,7 @@ def test_get_compilers(config):
     ) == [spack.compilers._compiler_from_config_entry(without_suffix)]
 
 
+@pytest.mark.enable_compiler_execution
 def test_compiler_get_real_version_fails(working_env, monkeypatch, tmpdir):
     # Test variables
     test_version = "2.2.2"
@@ -796,6 +798,7 @@ fi
 
 
 @pytest.mark.not_on_windows("Bash scripting unsupported on Windows (for now)")
+@pytest.mark.enable_compiler_execution
 def test_compiler_flags_use_real_version(working_env, monkeypatch, tmpdir):
     # Create compiler
     gcc = str(tmpdir.join("gcc"))
