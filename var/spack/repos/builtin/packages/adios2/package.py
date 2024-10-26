@@ -44,8 +44,6 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
         version("2.7.0", sha256="4b5df1a1f92d7ff380416dec7511cfcfe3dc44da27e486ed63c3e6cffb173924")
         version("2.6.0", sha256="45b41889065f8b840725928db092848b8a8b8d1bfae1b92e72f8868d1c76216c")
         version("2.5.0", sha256="7c8ff3bf5441dd662806df9650c56a669359cb0185ea232ecb3578de7b065329")
-        version("2.4.0", sha256="50ecea04b1e41c88835b4b3fd4e7bf0a0a2a3129855c9cc4ba6cf6a1575106e2")
-        version("2.3.1", sha256="3bf81ccc20a7f2715935349336a76ba4c8402355e1dc3848fcd6f4c3c5931893")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
