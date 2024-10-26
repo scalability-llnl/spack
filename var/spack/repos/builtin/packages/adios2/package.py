@@ -215,7 +215,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
 
     # Fix an unnecessary python dependency when testing is disabled
     # See https://github.com/ornladios/ADIOS2/pull/2596
-    patch("2.7-fix-python-test-deps.patch", when="@2.5.0:2.7.0")
+    patch("2.7-fix-python-test-deps.patch", when="@2.7.0")
 
     # Fix unresolved symbols when built with gcc10.
     # See https://github.com/ornladios/ADIOS2/pull/2714
