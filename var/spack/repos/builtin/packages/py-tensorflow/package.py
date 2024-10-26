@@ -849,6 +849,8 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
         if "+cuda" in spec:
             args.append("--config=cuda")
+            if spec.satisfies("@2.18:"):
+                args.append("--config=cuda_wheel")
 
         if "+rocm" in spec:
             args.append("--config=rocm")
