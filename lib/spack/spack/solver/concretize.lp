@@ -376,6 +376,7 @@ trigger_node(ID, node(PackageID, Package), node(VirtualID, Virtual)) :- pkg_fact
 condition_nodes(TriggerID, PackageNode, node(X, A1))
   :- condition_packages(TriggerID, A1),
      condition_set(PackageNode, node(X, A1)),
+     not self_build_requirement(PackageNode, node(X, A1)),
      trigger_node(TriggerID, PackageNode, _).
 
 cannot_hold(TriggerID, PackageNode)
@@ -420,7 +421,12 @@ imposed_nodes(EffectID, node(NodeID, Package), node(X, A1))
      pkg_fact(Package, condition_effect(ID, EffectID)),
      imposed_packages(EffectID, A1),
      condition_set(node(NodeID, Package), node(X, A1)),
-     trigger_node(TriggerID, _, node(NodeID, Package)).
+     trigger_node(TriggerID, _, node(NodeID, Package)),
+     % We don't want to add build requirements to imposed nodes, to avoid
+     % unsat problems when we deal with self-dependencies: gcc@14 %gcc@10
+     not self_build_requirement(node(NodeID, Package), node(X, A1)).
+
+self_build_requirement(node(X, Package), node(Y, Package)) :- build_requirement(node(X, Package), node(Y, Package)).
 
 imposed_nodes(ConditionID, PackageNode, node(X, A1))
   :- imposed_packages(ConditionID, A1),
@@ -468,6 +474,20 @@ provider(ProviderNode, VirtualNode) :- attr("provider_set", ProviderNode, Virtua
      imposed_constraint(ID, "depends_on", A1, A2, A3),
      internal_error("Build deps must land in exactly one duplicate").
 
+1 { build_requirement(node(X, Parent), node(0..Y-1, BuildDependency)) : max_dupes(BuildDependency, Y) } 1
+  :- attr("build_requirement", node(X, Parent), build_requirement("node", BuildDependency)),
+     impose(ID, node(X, Parent)),
+     imposed_constraint(ID,"build_requirement",Parent,_).
+
+1 { virtual_build_requirement(ParentNode, node(0..Y-1, Virtual)) : max_dupes(Virtual, Y) } 1
+  :- attr("dependency_holds", ParentNode, Virtual, "build"),
+     not attr("dependency_holds", ParentNode, Virtual,"link"),
+     not attr("dependency_holds", ParentNode, Virtual,"run"),
+     virtual(Virtual).
+
+attr("virtual_node", VirtualNode)  :- virtual_build_requirement(ParentNode, VirtualNode).
+build_requirement(ParentNode, ProviderNode) :- virtual_build_requirement(ParentNode, VirtualNode), provider(ProviderNode, VirtualNode).
+
 % From cli we can have literal expressions like:
 %
 % root %gcc@12.0 ^dep %gcc@11.2
@@ -476,10 +496,10 @@ provider(ProviderNode, VirtualNode) :- attr("provider_set", ProviderNode, Virtua
 % version constraints on "gcc" in the "imposed_constraint".
 attr("node_version_satisfies", node(X, BuildDependency), Constraint) :-
   attr("build_requirement", ParentNode, build_requirement("node_version_satisfies", BuildDependency, Constraint)),
-  attr("depends_on", ParentNode, node(X, BuildDependency), "build").
+  build_requirement(ParentNode, node(X, BuildDependency)).
 
-1 { attr("depends_on", ParentNode, node(0..Y-1, BuildDependency), "build") : max_dupes(BuildDependency, Y) } 1 :-
-  attr("build_requirement", ParentNode, build_requirement("node", BuildDependency)).
+attr("depends_on",  node(X, Parent), node(Y, BuildDependency), "build") :- build_requirement(node(X, Parent), node(Y, BuildDependency)).
+
 
 % Reconstruct virtual dependencies for reused specs
 attr("virtual_on_edge", node(X, A1), node(Y, A2), Virtual)
@@ -702,6 +722,7 @@ do_not_impose(EffectID, node(X, Package))
    virtual_condition_holds(_, PossibleProvider, Virtual),
    PossibleProvider != ProviderNode,
    explicitly_requested_root(PossibleProvider),
+   not self_build_requirement(PossibleProvider, ProviderNode),
    not explicitly_requested_root(ProviderNode),
    internal_error("If a root can provide a virtual, it must be the provider").
 
@@ -1528,7 +1549,7 @@ opt_criterion(310, "requirement weight").
 % Try hard to reuse installed packages (i.e., minimize the number built)
 opt_criterion(110, "number of packages to build (vs. reuse)").
 #minimize { 0@110: #true }.
-#minimize { 1@110,PackageNode : build(PackageNode), optimize_for_reuse() }.
+#minimize { 1@110,PackageNode : build(PackageNode) }.
 
 opt_criterion(100, "number of nodes from the same package").
 #minimize { 0@100: #true }.
