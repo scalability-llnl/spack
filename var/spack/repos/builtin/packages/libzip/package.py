@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.autotools
+import spack.build_systems.cmake
 from spack.package import *
 
 
@@ -11,10 +13,11 @@ class Libzip(CMakePackage, AutotoolsPackage):
     and modifying zip archives."""
 
     homepage = "https://libzip.org/"
-
+    maintainers("prudhomm")
     license("BSD-3-Clause")
 
     # current versions are released on GitHub
+    version("1.11.1", sha256="c0e6fa52a62ba11efd30262290dc6970947aef32e0cc294ee50e9005ceac092a")
     version("1.10.1", sha256="9669ae5dfe3ac5b3897536dc8466a874c8cf2c0e3b1fdd08d75b273884299363")
     version("1.9.2", sha256="fd6a7f745de3d69cf5603edc9cb33d2890f0198e415255d0987a0cf10d824c6f")
     version("1.8.0", sha256="30ee55868c0a698d3c600492f2bea4eb62c53849bcf696d21af5eb65f3f3839e")
@@ -51,9 +54,36 @@ class Libzip(CMakePackage, AutotoolsPackage):
         conditional("cmake", when="@1.4:"), conditional("autotools", when="@:1.3"), default="cmake"
     )
 
+    # Required dependencies
+    with when("build_system=cmake"):
+        variant("gnutls", default=True, description="Enable gnutls support")
+        variant("bz2", default=True, description="Enable bzip2 support")
+        variant("lzma", default=True, description="Enable lzma support")
+        variant("openssl", default=True, description="Enable openssl support")
+        variant("zstd", default=True, description="Enable zstd support")
+        variant("mbedtls", default=True, description="Enable mbedtls support")
+        depends_on("gnutls", when="+gnutls")
+        depends_on("bzip2", when="+bz2")
+        depends_on("lzma", when="+lzma")
+        depends_on("openssl", when="+openssl")
+        depends_on("zstd", when="+zstd")
+        depends_on("mbedtls", when="+mbedtls")
+
     @property
     def headers(self):
         # Up to version 1.3.0 zipconf.h was installed outside of self.prefix.include
         return find_all_headers(
             self.prefix if self.spec.satisfies("@:1.3.0") else self.prefix.include
         )
+
+
+class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+    def cmake_args(self):
+        return [
+            self.define_from_variant("ENABLE_GNUTLS ", "gnutls"),
+            self.define_from_variant("ENABLE_MBEDTLS", "mbedtls"),
+            self.define_from_variant("ENABLE_OPENSSL", "openssl"),
+            self.define_from_variant("ENABLE_BZIP2", "bz2"),
+            self.define_from_variant("ENABLE_LZMA", "lzma"),
+            self.define_from_variant("ENABLE_ZSTD", "zstd"),
+        ]
