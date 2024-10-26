@@ -18,7 +18,6 @@ class ByteLite(CMakePackage):
     version("0.3.0", sha256="1a19e237b12bb098297232b0a74ec08c18ac07ac5ac6e659c1d5d8a4ed0e4813")
 
     depends_on("cxx", type="build")
-
     depends_on("cmake@3.5:", type="build")
 
     conflicts("%gcc@:4.7")
