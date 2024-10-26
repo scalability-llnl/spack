@@ -11,8 +11,6 @@ from typing import Any, Dict
 
 from llnl.util.lang import union_dicts
 
-import spack.schema.gitlab_ci
-
 # Schema for script fields
 # List of lists and/or strings
 # This is similar to what is allowed in
@@ -137,39 +135,8 @@ core_shared_properties = union_dicts(
     }
 )
 
-# TODO: Remove in Spack 0.23
-ci_properties = {
-    "anyOf": [
-        {
-            "type": "object",
-            "additionalProperties": False,
-            # "required": ["mappings"],
-            "properties": union_dicts(
-                core_shared_properties, {"enable-artifacts-buildcache": {"type": "boolean"}}
-            ),
-        },
-        {
-            "type": "object",
-            "additionalProperties": False,
-            # "required": ["mappings"],
-            "properties": union_dicts(
-                core_shared_properties, {"temporary-storage-url-prefix": {"type": "string"}}
-            ),
-        },
-    ]
-}
-
 #: Properties for inclusion in other schemas
-properties: Dict[str, Any] = {
-    "ci": {
-        "oneOf": [
-            # TODO: Replace with core-shared-properties in Spack 0.23
-            ci_properties,
-            # Allow legacy format under `ci` for `config update ci`
-            spack.schema.gitlab_ci.gitlab_ci_properties,
-        ]
-    }
-}
+properties: Dict[str, Any] = {"ci": core_shared_properties}
 
 #: Full schema with metadata
 schema = {
@@ -179,21 +146,3 @@ schema = {
     "additionalProperties": False,
     "properties": properties,
 }
-
-
-def update(data):
-    import llnl.util.tty as tty
-
-    import spack.ci
-    import spack.environment as ev
-
-    # Warn if deprecated section is still in the environment
-    ci_env = ev.active_environment()
-    if ci_env:
-        env_config = ci_env.manifest[ev.TOP_LEVEL_KEY]
-        if "gitlab-ci" in env_config:
-            tty.die("Error: `gitlab-ci` section detected with `ci`, these are not compatible")
-
-    # Detect if the ci section is using the new pipeline-gen
-    # If it is, assume it has already been converted
-    return spack.ci.translate_deprecated_config(data)

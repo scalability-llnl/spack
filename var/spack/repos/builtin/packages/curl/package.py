@@ -197,7 +197,8 @@ class Curl(NMakePackage, AutotoolsPackage):
 
     def flag_handler(self, name, flags):
         build_system_flags = []
-        if name == "cflags" and self.spec.compiler.name in ["intel", "oneapi"]:
+        spec = self.spec
+        if name == "cflags" and (spec.satisfies("%intel") or spec.satisfies("%oneapi")):
             build_system_flags = ["-we147"]
         return flags, None, build_system_flags
 

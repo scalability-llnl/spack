@@ -79,9 +79,9 @@ class ClingoBootstrap(Clingo):
 
     @run_before("cmake", when="+optimized")
     def pgo_train(self):
-        if self.spec.compiler.name == "clang":
+        if self.spec.satisfies("%clang"):
             llvm_profdata = which("llvm-profdata", required=True)
-        elif self.spec.compiler.name == "apple-clang":
+        elif self.spec.satisfies("%apple-clang"):
             llvm_profdata = Executable(
                 Executable("xcrun")("-find", "llvm-profdata", output=str).strip()
             )
@@ -117,7 +117,7 @@ class ClingoBootstrap(Clingo):
         # Clean the build dir.
         rmtree(self.build_directory, ignore_errors=True)
 
-        if self.spec.compiler.name in ("clang", "apple-clang"):
+        if self.spec.satisfies("%clang") or self.spec.satisfies("apple-clang"):
             # merge reports
             use_report = join_path(reports, "merged.prof")
             raw_files = glob.glob(join_path(reports, "*.profraw"))
@@ -134,5 +134,7 @@ class ClingoBootstrap(Clingo):
         cmake.add_default_envmod(use_mods)
 
     def setup_build_environment(self, env):
-        if self.spec.compiler.name in ("gcc", "clang") and "+static_libstdcpp" in self.spec:
+        if (
+            self.spec.satisfies("%gcc") or self.spec.satisfies("%clang")
+        ) and "+static_libstdcpp" in self.spec:
             env.append_flags("LDFLAGS", "-static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL")

@@ -11,6 +11,7 @@ import os
 import os.path
 import re
 import sys
+import traceback
 import warnings
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Type
 
@@ -18,6 +19,7 @@ import llnl.util.filesystem
 import llnl.util.lang
 import llnl.util.tty
 
+import spack.error
 import spack.spec
 import spack.util.elf as elf_utils
 import spack.util.environment
@@ -274,8 +276,12 @@ class Finder:
                 )
             except Exception as e:
                 specs = []
+                if spack.error.SHOW_BACKTRACE:
+                    details = traceback.format_exc()
+                else:
+                    details = f"[{e.__class__.__name__}: {e}]"
                 warnings.warn(
-                    f'error detecting "{pkg.name}" from prefix {candidate_path} [{str(e)}]'
+                    f'error detecting "{pkg.name}" from prefix {candidate_path}: {details}'
                 )
 
             if not specs:
@@ -449,9 +455,9 @@ def by_path(
                     llnl.util.tty.debug(
                         f"[EXTERNAL DETECTION] Skipping {pkg_name}: timeout reached"
                     )
-                except Exception as e:
+                except Exception:
                     llnl.util.tty.debug(
-                        f"[EXTERNAL DETECTION] Skipping {pkg_name}: exception occured {e}"
+                        f"[EXTERNAL DETECTION] Skipping {pkg_name}: {traceback.format_exc()}"
                     )
 
     return result
