@@ -204,7 +204,14 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
             entries.append(cmake_cache_path("adiak_DIR", spec["adiak"].prefix))
         if spec.satisfies("+papi"):
             entries.append(cmake_cache_path("PAPI_PREFIX", spec["papi"].prefix))
-            entries.append(cmake_cache_option("WITH_PAPI_RDPMC", spec["papi"].satisfies("+rdpmc")))
+            if spec["papi"].satisfies("@6.0.0:"):
+                entries.append(
+                    cmake_cache_option("WITH_PAPI_RDPMC", spec["papi"].satisfies("+rdpmc"))
+                )
+            else:
+                # The rdpmc toggle for PAPI was added in version 6.0.0
+                # We can safely assume that the feature is enabled in older versions
+                entries.append(cmake_cache_option("WITH_PAPI_RDPMC", True))
         if spec.satisfies("+libdw"):
             entries.append(cmake_cache_path("LIBDW_PREFIX", spec["elfutils"].prefix))
         if spec.satisfies("+libpfm"):
