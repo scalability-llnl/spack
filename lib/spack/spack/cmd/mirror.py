@@ -231,12 +231,38 @@ def setup_parser(subparser):
     )
 
 
-def _configure_access_pair(args, id_tok, id_variable_tok, secret_tok, secret_variable_tok):
+def _configure_access_pair(
+    args, id_tok, id_variable_tok, secret_tok, secret_variable_tok, default=None
+):
     """Configure the access_pair options"""
+
+    # Check if any of the arguments are set to update this access_pair.
+    # If none are set, then skip computing the new access pair
     id_ = getattr(args, id_tok)
     id_variable = getattr(args, id_variable_tok)
     secret = getattr(args, secret_tok)
     secret_variable = getattr(args, secret_variable_tok)
+    if not any([id_, id_variable, secret, secret_variable]):
+        return None
+
+    def _default_value(id_):
+        if isinstance(default, list):
+            return default[0] if id_ == "id" else default[1]
+        elif isinstance(default, dict):
+            return default.get(id_)
+        else:
+            return None
+
+    def _default_variable(id_):
+        if isinstance(default, dict):
+            return default.get(id_ + "_variable")
+        else:
+            return None
+
+    id_ = getattr(args, id_tok) or _default_value("id")
+    id_variable = getattr(args, id_variable_tok) or _default_variable("id")
+    secret = getattr(args, secret_tok) or _default_value("secret")
+    secret_variable = getattr(args, secret_variable_tok) or _default_variable("secret")
 
     if (id_ or id_variable) and (secret or secret_variable):
         if secret:
@@ -342,12 +368,15 @@ def _configure_mirror(args):
     if args.url:
         changes["url"] = args.url
 
+    default_access_pair = entry._get_value("access_pair", direction or "fetch")
+    # TODO: Init access_pair args with the fetch/push/base values in the current mirror state
     access_pair = _configure_access_pair(
         args,
         "s3_access_key_id",
         "s3_access_key_id_variable",
         "s3_access_key_secret",
         "s3_access_key_secret_variable",
+        default=default_access_pair,
     )
     if access_pair:
         changes["access_pair"] = access_pair
@@ -358,7 +387,12 @@ def _configure_mirror(args):
     if args.s3_endpoint_url:
         changes["endpoint_url"] = args.s3_endpoint_url
     access_pair = _configure_access_pair(
-        args, "oci_username", "oci_username_variable", "oci_password", "oci_password_variable"
+        args,
+        "oci_username",
+        "oci_username_variable",
+        "oci_password",
+        "oci_password_variable",
+        default=default_access_pair,
     )
     if access_pair:
         changes["access_pair"] = access_pair
