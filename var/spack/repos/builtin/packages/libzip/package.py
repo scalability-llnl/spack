@@ -75,7 +75,7 @@ class Libzip(CMakePackage, AutotoolsPackage):
             self.define_from_variant("ENABLE_ZSTD", "zstd"),
         ]
         return args
-    
+
     @property
     def headers(self):
         # Up to version 1.3.0 zipconf.h was installed outside of self.prefix.include
