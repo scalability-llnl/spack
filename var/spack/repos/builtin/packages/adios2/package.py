@@ -188,7 +188,8 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("libpng@1.6:", when="+png")
     depends_on("zfp@0.5.1:0.5", when="+zfp")
     depends_on("sz@2.0.2.0:", when="+sz")
-    depends_on("mgard", when="+mgard")
+    depends_on("mgard@2022-11-18:", when="+mgard")
+    depends_on("mgard@2023-01-10:", when="@2.9: +mgard")
 
     extends("python", when="+python")
     depends_on("python@2.7:2.8,3.5:", when="@:2.4.0 +python", type=("build", "run"))
