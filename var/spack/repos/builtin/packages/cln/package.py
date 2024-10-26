@@ -65,6 +65,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
         return [self.define_from_variant("CLN_USE_GMP", "gmp")]
 
+
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def autoreconf(self, spec, prefix):
         autoreconf_args = ["-i"]
