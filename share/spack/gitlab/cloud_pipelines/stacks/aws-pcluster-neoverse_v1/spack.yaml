@@ -7,8 +7,7 @@ spack:
     - mpas-model
     - mpich
     - openfoam
-    # - quantum-espresso : %gcc@12.3.0 on neoverse_v1 fails.
-    # Root cause: internal compiler error: in compute_live_loop_exits, at tree-ssa-loop-manip.cc:247
+    - quantum-espresso
     - wrf
 
   - targets:
@@ -22,7 +21,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-01-29", "entrypoint": [""] }
+        image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07", "entrypoint": [""] }
         tags: ["aarch64"]
         before_script:
         - - . "./share/spack/setup-env.sh"

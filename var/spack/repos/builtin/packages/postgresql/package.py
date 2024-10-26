@@ -64,7 +64,9 @@ class Postgresql(AutotoolsPackage):
     variant("tcl", default=False, description="Enable Tcl bindings.")
     variant("gssapi", default=False, description="Build with GSSAPI functionality.")
     variant("xml", default=False, description="Build with XML support.")
+    variant("icu", default=True, description="Build with ICU support.", when="@16:")
 
+    depends_on("icu4c", when="@16: +icu")
     depends_on("readline", when="lineedit=readline")
     depends_on("libedit", when="lineedit=libedit")
     depends_on("openssl")
@@ -102,6 +104,9 @@ class Postgresql(AutotoolsPackage):
 
         if spec.satisfies("+xml"):
             args.append("--with-libxml")
+
+        if spec.satisfies("~icu"):
+            args.append("--without-icu")
 
         return args
 

@@ -87,6 +87,9 @@ class Sz(CMakePackage, AutotoolsPackage):
 
     patch("ctags-only-if-requested.patch", when="@2.1.8.1:2.1.8.3")
 
+    # Windows requires numerous commits that only exist on master at the moment
+    conflicts("platform=windows", when="@:2.1.12.5")
+
     def flag_handler(self, name, flags):
         if name == "cflags":
             if self.spec.satisfies("%oneapi"):

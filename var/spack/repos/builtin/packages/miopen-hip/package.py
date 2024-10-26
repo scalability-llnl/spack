@@ -134,7 +134,7 @@ class MiopenHip(CMakePackage):
     for ver in ["5.4.0", "5.4.3", "5.5.0"]:
         depends_on("nlohmann-json", type="link")
         depends_on(f"rocmlir@{ver}", when=f"@{ver}")
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
         depends_on("roctracer-dev@" + ver, when="@" + ver)
     for ver in ["6.1.0", "6.1.1", "6.1.2"]:
         depends_on("googletest")

@@ -37,6 +37,7 @@ from llnl.util.lang import GroupedExceptionHandler
 import spack.binary_distribution
 import spack.config
 import spack.detection
+import spack.mirror
 import spack.platforms
 import spack.spec
 import spack.store
@@ -91,12 +92,7 @@ class Bootstrapper:
         self.metadata_dir = spack.util.path.canonicalize_path(conf["metadata"])
 
         # Promote (relative) paths to file urls
-        url = conf["info"]["url"]
-        if spack.util.url.is_path_instead_of_url(url):
-            if not os.path.isabs(url):
-                url = os.path.join(self.metadata_dir, url)
-            url = spack.util.url.path_to_file_url(url)
-        self.url = url
+        self.url = spack.mirror.Mirror(conf["info"]["url"]).fetch_url
 
     @property
     def mirror_scope(self) -> spack.config.InternalConfigScope:
@@ -175,7 +171,15 @@ class BuildcacheBootstrapper(Bootstrapper):
             query = spack.binary_distribution.BinaryCacheQuery(all_architectures=True)
             for match in spack.store.find([f"/{pkg_hash}"], multiple=False, query_fn=query):
                 spack.binary_distribution.install_root_node(
-                    match, unsigned=True, force=True, sha256=pkg_sha256
+                    # allow_missing is true since when bootstrapping clingo we truncate runtime
+                    # deps such as gcc-runtime, since we link libstdc++ statically, and the other
+                    # further runtime deps are loaded by the Python interpreter. This just silences
+                    # warnings about missing dependencies.
+                    match,
+                    unsigned=True,
+                    force=True,
+                    sha256=pkg_sha256,
+                    allow_missing=True,
                 )
 
     def _install_and_test(

@@ -52,7 +52,7 @@ class Edm4hep(CMakePackage):
 
     depends_on("cxx", type="build")  # generated
 
-    _cxxstd_values = (conditional("17", when="@:0.99.0"), conditional("20"))
+    _cxxstd_values = (conditional("17", when="@:0.99.0"), conditional("20", when="@0.10:"))
     variant(
         "cxxstd",
         default="20",

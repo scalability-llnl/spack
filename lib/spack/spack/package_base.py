@@ -55,17 +55,9 @@ import spack.util.path
 import spack.util.web
 from spack.error import InstallError, NoURLError, PackageError
 from spack.filesystem_view import YamlFilesystemView
-from spack.install_test import (
-    PackageTest,
-    TestFailure,
-    TestStatus,
-    TestSuite,
-    cache_extra_test_sources,
-    install_test_root,
-)
+from spack.install_test import PackageTest, TestSuite
 from spack.solver.version_order import concretization_version_order
 from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite, compute_stage_name
-from spack.util.executable import ProcessError, which
 from spack.util.package_hash import package_hash
 from spack.version import GitVersion, StandardVersion
 
@@ -1355,18 +1347,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         """Return the configure args file path on successful installation."""
         return os.path.join(self.metadata_dir, _spack_configure_argsfile)
 
-    # TODO (post-34236): Update tests and all packages that use this as a
-    # TODO (post-34236): package method to the function already available
-    # TODO (post-34236): to packages. Once done, remove this property.
-    @property
-    def install_test_root(self):
-        """Return the install test root directory."""
-        tty.warn(
-            "The 'pkg.install_test_root' property is deprecated with removal "
-            "expected v0.23. Use 'install_test_root(pkg)' instead."
-        )
-        return install_test_root(self)
-
     def archive_install_test_log(self):
         """Archive the install-phase test log, if present."""
         if getattr(self, "tester", None):
@@ -1875,13 +1855,22 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         #
         # BSD Make:
         #     make: don't know how to make test. Stop
+        #
+        # Note: "Stop." is not printed when running a Make jobserver (spack env depfile) that runs
+        # with `make -k/--keep-going`
         missing_target_msgs = [
-            "No rule to make target `{0}'.  Stop.",
-            "No rule to make target '{0}'.  Stop.",
-            "don't know how to make {0}. Stop",
+            "No rule to make target `{0}'.",
+            "No rule to make target '{0}'.",
+            "don't know how to make {0}.",
         ]
 
-        kwargs = {"fail_on_error": False, "output": os.devnull, "error": str}
+        kwargs = {
+            "fail_on_error": False,
+            "output": os.devnull,
+            "error": str,
+            # Remove MAKEFLAGS to avoid inherited flags from Make jobserver (spack env depfile)
+            "extra_env": {"MAKEFLAGS": ""},
+        }
 
         stderr = make("-n", target, **kwargs)
 
@@ -1959,31 +1948,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         resource_stage_folder = "-".join(pieces)
         return resource_stage_folder
 
-    # TODO (post-34236): Update tests and all packages that use this as a
-    # TODO (post-34236): package method to the routine made available to
-    # TODO (post-34236): packages. Once done, remove this method.
-    def cache_extra_test_sources(self, srcs):
-        """Copy relative source paths to the corresponding install test subdir
-
-        This method is intended as an optional install test setup helper for
-        grabbing source files/directories during the installation process and
-        copying them to the installation test subdirectory for subsequent use
-        during install testing.
-
-        Args:
-            srcs (str or list): relative path for files and or
-                subdirectories located in the staged source path that are to
-                be copied to the corresponding location(s) under the install
-                testing directory.
-        """
-        msg = (
-            "'pkg.cache_extra_test_sources(srcs) is deprecated with removal "
-            "expected in v0.23. Use 'cache_extra_test_sources(pkg, srcs)' "
-            "instead."
-        )
-        warnings.warn(msg)
-        cache_extra_test_sources(self, srcs)
-
     def do_test(self, dirty=False, externals=False):
         if self.test_requires_compiler:
             compilers = spack.compilers.compilers_for_spec(
@@ -2006,178 +1970,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         }
 
         self.tester.stand_alone_tests(kwargs)
-
-    # TODO (post-34236): Remove this deprecated method when eliminate test,
-    # TODO (post-34236): run_test, etc.
-    @property
-    def _test_deprecated_warning(self):
-        alt = f"Use any name starting with 'test_' instead in {self.spec.name}."
-        return f"The 'test' method is deprecated. {alt}"
-
-    # TODO (post-34236): Remove this deprecated method when eliminate test,
-    # TODO (post-34236): run_test, etc.
-    def test(self):
-        # Defer tests to virtual and concrete packages
-        warnings.warn(self._test_deprecated_warning)
-
-    # TODO (post-34236): Remove this deprecated method when eliminate test,
-    # TODO (post-34236): run_test, etc.
-    def run_test(
-        self,
-        exe,
-        options=[],
-        expected=[],
-        status=0,
-        installed=False,
-        purpose=None,
-        skip_missing=False,
-        work_dir=None,
-    ):
-        """Run the test and confirm the expected results are obtained
-
-        Log any failures and continue, they will be re-raised later
-
-        Args:
-            exe (str): the name of the executable
-            options (str or list): list of options to pass to the runner
-            expected (str or list): list of expected output strings.
-                Each string is a regex expected to match part of the output.
-            status (int or list): possible passing status values
-                with 0 meaning the test is expected to succeed
-            installed (bool): if ``True``, the executable must be in the
-                install prefix
-            purpose (str): message to display before running test
-            skip_missing (bool): skip the test if the executable is not
-                in the install prefix bin directory or the provided work_dir
-            work_dir (str or None): path to the smoke test directory
-        """
-
-        def test_title(purpose, test_name):
-            if not purpose:
-                return f"test: {test_name}: execute {test_name}"
-
-            match = re.search(r"test: ([^:]*): (.*)", purpose)
-            if match:
-                # The test title has all the expected parts
-                return purpose
-
-            match = re.search(r"test: (.*)", purpose)
-            if match:
-                reason = match.group(1)
-                return f"test: {test_name}: {reason}"
-
-            return f"test: {test_name}: {purpose}"
-
-        base_exe = os.path.basename(exe)
-        alternate = f"Use 'test_part' instead for {self.spec.name} to process {base_exe}."
-        warnings.warn(f"The 'run_test' method is deprecated. {alternate}")
-
-        extra = re.compile(r"[\s,\- ]")
-        details = (
-            [extra.sub("", options)]
-            if isinstance(options, str)
-            else [extra.sub("", os.path.basename(opt)) for opt in options]
-        )
-        details = "_".join([""] + details) if details else ""
-        test_name = f"test_{base_exe}{details}"
-        tty.info(test_title(purpose, test_name), format="g")
-
-        wdir = "." if work_dir is None else work_dir
-        with fsys.working_dir(wdir, create=True):
-            try:
-                runner = which(exe)
-                if runner is None and skip_missing:
-                    self.tester.status(test_name, TestStatus.SKIPPED, f"{exe} is missing")
-                    return
-                assert runner is not None, f"Failed to find executable '{exe}'"
-
-                self._run_test_helper(runner, options, expected, status, installed, purpose)
-                self.tester.status(test_name, TestStatus.PASSED, None)
-                return True
-            except (AssertionError, BaseException) as e:
-                # print a summary of the error to the log file
-                # so that cdash and junit reporters know about it
-                exc_type, _, tb = sys.exc_info()
-
-                self.tester.status(test_name, TestStatus.FAILED, str(e))
-
-                import traceback
-
-                # remove the current call frame to exclude the extract_stack
-                # call from the error
-                stack = traceback.extract_stack()[:-1]
-
-                # Package files have a line added at import time, so we re-read
-                # the file to make line numbers match. We have to subtract two
-                # from the line number because the original line number is
-                # inflated once by the import statement and the lines are
-                # displaced one by the import statement.
-                for i, entry in enumerate(stack):
-                    filename, lineno, function, text = entry
-                    if spack.repo.is_package_file(filename):
-                        with open(filename, "r") as f:
-                            lines = f.readlines()
-                        new_lineno = lineno - 2
-                        text = lines[new_lineno]
-                        stack[i] = (filename, new_lineno, function, text)
-
-                # Format the stack to print and print it
-                out = traceback.format_list(stack)
-                for line in out:
-                    print(line.rstrip("\n"))
-
-                if exc_type is spack.util.executable.ProcessError:
-                    out = io.StringIO()
-                    spack.build_environment.write_log_summary(
-                        out, "test", self.tester.test_log_file, last=1
-                    )
-                    m = out.getvalue()
-                else:
-                    # We're below the package context, so get context from
-                    # stack instead of from traceback.
-                    # The traceback is truncated here, so we can't use it to
-                    # traverse the stack.
-                    context = spack.build_environment.get_package_context(tb)
-                    m = "\n".join(context) if context else ""
-
-                exc = e  # e is deleted after this block
-
-                # If we fail fast, raise another error
-                if spack.config.get("config:fail_fast", False):
-                    raise TestFailure([(exc, m)])
-                else:
-                    self.tester.add_failure(exc, m)
-                return False
-
-    # TODO (post-34236): Remove this deprecated method when eliminate test,
-    # TODO (post-34236): run_test, etc.
-    def _run_test_helper(self, runner, options, expected, status, installed, purpose):
-        status = [status] if isinstance(status, int) else status
-        expected = [expected] if isinstance(expected, str) else expected
-        options = [options] if isinstance(options, str) else options
-
-        if installed:
-            msg = f"Executable '{runner.name}' expected in prefix, "
-            msg += f"found in {runner.path} instead"
-            assert runner.path.startswith(self.spec.prefix), msg
-
-        tty.msg(f"Expecting return code in {status}")
-
-        try:
-            output = runner(*options, output=str.split, error=str.split)
-
-            assert 0 in status, f"Expected {runner.name} execution to fail"
-        except ProcessError as err:
-            output = str(err)
-            match = re.search(r"exited with status ([0-9]+)", output)
-            if not (match and int(match.group(1)) in status):
-                raise
-
-        for check in expected:
-            cmd = " ".join([runner.name] + options)
-            msg = f"Expected '{check}' to match output of `{cmd}`"
-            msg += f"\n\nOutput: {output}"
-            assert re.search(check, output), msg
 
     def unit_test_check(self):
         """Hook for unit tests to assert things about package internals.

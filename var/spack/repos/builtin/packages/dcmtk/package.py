@@ -13,8 +13,9 @@ class Dcmtk(CMakePackage):
     homepage = "https://dicom.offis.de"
     url = "https://github.com/DCMTK/dcmtk/archive/DCMTK-3.6.3.tar.gz"
 
-    license("BSD-3-Clause")
+    license("BSD-3-Clause", checked_by="wdconinc")
 
+    version("3.6.8", sha256="fca429a215739702fe8d96178964036246a35e2ea8adb12da33851e2be8e9a07")
     version("3.6.7", sha256="17705dcdb2047d1266bb4e92dbf4aa6d4967819e8e3e94f39b7df697661b4860")
     version("3.6.6", sha256="117097da6d50ddbad0e48bb1e6cdc61468e82ba1d32001dd8e2366b445133a8c")
     version("3.6.5", sha256="37dad355d5513b4de4a86b5b7b0c3e9ec059860d88781b80916bba2a04e6d5b8")
@@ -22,8 +23,8 @@ class Dcmtk(CMakePackage):
     version("3.6.3", sha256="57f4f71ee4af9114be6408ff6fcafc441c349e4c2954e17c9c22c8ce0fb065bf")
     version("3.6.2", sha256="e9bf6e8805bbcf8a25274566541798785fd4e73bd046045ef27a0109ab520924")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("ssl", default=True, description="Suuport DICOM Security Enhancements one")
     depends_on("openssl", type=("build", "link"), when="+ssl")
@@ -53,7 +54,7 @@ class Dcmtk(CMakePackage):
 
     conflicts("platform=darwin target=aarch64:", when="@:3.6.6")
 
-    patch("tiff-3.6.7.patch", when="@3.6.7")
+    patch("tiff-3.6.7.patch", when="@3.6.7:3.6.8")
 
     def patch(self):
         # Backport 3.6.4

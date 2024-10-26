@@ -1003,7 +1003,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
 
         # Work around incompatibility with new apple-clang linker
         # https://github.com/open-mpi/ompi/issues/12427
-        if spec.satisfies("@5: %apple-clang@15:"):
+        if spec.satisfies("@:4.1.6,5.0.0:5.0.3 %apple-clang@15:"):
             config_args.append("--with-wrapper-fcflags=-Wl,-ld_classic")
 
         # All rpath flags should be appended with self.compiler.cc_rpath_arg.
@@ -1315,7 +1315,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         self.run_installed_binary("mpirun", options, [f"openmpi-{self.spec.version}"])
 
     def test_opmpi_info(self):
-        """test installed mpirun"""
+        """test installed ompi_info"""
         self.run_installed_binary("ompi_info", [], [f"Ident string: {self.spec.version}", "MCA"])
 
     def test_version(self):

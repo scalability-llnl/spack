@@ -1056,12 +1056,11 @@ class TestSpecSemantics:
         spliced = a_red.splice(c_blue, transitive=False)
         assert spliced.satisfies(
             "pkg-a color=red ^pkg-b color=red ^pkg-c color=blue "
-            "^pkg-d color=red ^pkg-e color=red ^pkg-f color=blue ^pkg-g@3 color=blue"
+            "^pkg-d color=red ^pkg-e color=red ^pkg-f color=blue ^pkg-g@2 color=red"
         )
-        assert set(spliced.dependencies(deptype=dt.BUILD)) == set(
-            a_red.dependencies(deptype=dt.BUILD)
-        )
+        assert set(spliced.dependencies(deptype=dt.BUILD)) == set()
         assert spliced.build_spec == a_red
+
         # We cannot check spliced["b"].build_spec is spliced["b"] because Spec.__getitem__ creates
         # a new wrapper object on each invocation. So we select once and check on that object
         # For the rest of the unchanged specs we will just check the s._build_spec is None.
@@ -1072,11 +1071,9 @@ class TestSpecSemantics:
 
         assert spliced["pkg-c"].satisfies(
             "pkg-c color=blue ^pkg-d color=red ^pkg-e color=red "
-            "^pkg-f color=blue ^pkg-g@3 color=blue"
+            "^pkg-f color=blue ^pkg-g@2 color=red"
         )
-        assert set(spliced["pkg-c"].dependencies(deptype=dt.BUILD)) == set(
-            c_blue.dependencies(deptype=dt.BUILD)
-        )
+        assert set(spliced["pkg-c"].dependencies(deptype=dt.BUILD)) == set()
         assert spliced["pkg-c"].build_spec == c_blue
         assert set(spliced["pkg-c"].dependents()) == {spliced}
 
@@ -1101,14 +1098,12 @@ class TestSpecSemantics:
         # Build dependent edge to f because f originally dependended on the e this was copied from
         assert set(spliced["pkg-e"].dependents(deptype=dt.BUILD)) == {spliced["pkg-b"]}
 
-        assert spliced["pkg-f"].satisfies("pkg-f color=blue ^pkg-e color=red ^pkg-g@3 color=blue")
-        assert set(spliced["pkg-f"].dependencies(deptype=dt.BUILD)) == set(
-            c_blue["pkg-f"].dependencies(deptype=dt.BUILD)
-        )
+        assert spliced["pkg-f"].satisfies("pkg-f color=blue ^pkg-e color=red ^pkg-g@2 color=red")
+        assert set(spliced["pkg-f"].dependencies(deptype=dt.BUILD)) == set()
         assert spliced["pkg-f"].build_spec == c_blue["pkg-f"]
         assert set(spliced["pkg-f"].dependents()) == {spliced["pkg-c"]}
 
-        # spliced["g"] is g3, but spliced["b"]["g"] is g1
+        # spliced["pkg-g"] is g2, but spliced["pkg-b"]["pkg-g"] is g1
         assert spliced["pkg-g"] == a_red["pkg-g"]
         assert spliced["pkg-g"]._build_spec is None
         assert set(spliced["pkg-g"].dependents(deptype=dt.LINK)) == {
@@ -1117,7 +1112,6 @@ class TestSpecSemantics:
             spliced["pkg-f"],
             a_red["pkg-c"],
         }
-        assert set(spliced["pkg-g"].dependents(deptype=dt.BUILD)) == {spliced, a_red["pkg-c"]}
 
         assert spliced["pkg-b"]["pkg-g"] == a_red["pkg-b"]["pkg-g"]
         assert spliced["pkg-b"]["pkg-g"]._build_spec is None
@@ -1131,14 +1125,7 @@ class TestSpecSemantics:
             # traverse_edges creates a synthetic edge with no deptypes to the root
             if edge.depflag:
                 depflag = dt.LINK
-                if (edge.parent.name, edge.spec.name) not in [
-                    ("pkg-a", "pkg-c"),  # These are the spliced edges
-                    ("pkg-c", "pkg-d"),
-                    ("pkg-f", "pkg-e"),
-                    ("pkg-c", "pkg-g"),
-                    ("pkg-f", "pkg-g"),
-                    ("pkg-c", "pkg-f"),  # ancestor to spliced edge
-                ]:
+                if not edge.parent.spliced:
                     depflag |= dt.BUILD
                 assert edge.depflag == depflag
 
@@ -1150,21 +1137,17 @@ class TestSpecSemantics:
             "pkg-a color=red ^pkg-b color=red ^pkg-c color=blue ^pkg-d color=blue "
             "^pkg-e color=blue ^pkg-f color=blue ^pkg-g@3 color=blue"
         )
-        assert set(spliced.dependencies(deptype=dt.BUILD)) == set(
-            a_red.dependencies(deptype=dt.BUILD)
-        )
+        assert set(spliced.dependencies(deptype=dt.BUILD)) == set()
         assert spliced.build_spec == a_red
 
         assert spliced["pkg-b"].satisfies(
             "pkg-b color=red ^pkg-d color=blue ^pkg-e color=blue ^pkg-g@2 color=blue"
         )
-        assert set(spliced["pkg-b"].dependencies(deptype=dt.BUILD)) == set(
-            a_red["pkg-b"].dependencies(deptype=dt.BUILD)
-        )
+        assert set(spliced["pkg-b"].dependencies(deptype=dt.BUILD)) == set()
         assert spliced["pkg-b"].build_spec == a_red["pkg-b"]
         assert set(spliced["pkg-b"].dependents()) == {spliced}
 
-        # We cannot check spliced["b"].build_spec is spliced["b"] because Spec.__getitem__ creates
+        # We cannot check spliced["c"].build_spec is spliced["c"] because Spec.__getitem__ creates
         # a new wrapper object on each invocation. So we select once and check on that object
         # For the rest of the unchanged specs we will just check the s._build_spec is None.
         c = spliced["pkg-c"]
@@ -1211,17 +1194,7 @@ class TestSpecSemantics:
             # traverse_edges creates a synthetic edge with no deptypes to the root
             if edge.depflag:
                 depflag = dt.LINK
-                if (edge.parent.name, edge.spec.name) not in [
-                    ("pkg-a", "pkg-c"),  # These are the spliced edges
-                    ("pkg-a", "pkg-g"),
-                    ("pkg-b", "pkg-d"),
-                    ("pkg-b", "pkg-e"),
-                    ("pkg-b", "pkg-g"),
-                    (
-                        "pkg-a",
-                        "pkg-b",
-                    ),  # This edge not spliced, but b was spliced invalidating edge
-                ]:
+                if not edge.parent.spliced:
                     depflag |= dt.BUILD
                 assert edge.depflag == depflag
 
@@ -1365,10 +1338,10 @@ class TestSpecSemantics:
 
     @pytest.mark.parametrize("transitive", [True, False])
     def test_splice_swap_names_mismatch_virtuals(self, default_mock_concretization, transitive):
-        spec = default_mock_concretization("splice-t")
-        dep = default_mock_concretization("splice-vh+foo")
+        vt = default_mock_concretization("splice-vt")
+        vh = default_mock_concretization("splice-vh+foo")
         with pytest.raises(spack.spec.SpliceError, match="virtual"):
-            spec.splice(dep, transitive)
+            vt.splice(vh, transitive)
 
     def test_spec_override(self):
         init_spec = Spec("pkg-a foo=baz foobar=baz cflags=-O3 cxxflags=-O1")

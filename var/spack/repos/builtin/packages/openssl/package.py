@@ -18,8 +18,7 @@ class Openssl(Package):  # Uses Fake Autotools, should subclass Package
 
     homepage = "https://www.openssl.org"
 
-    # URL must remain http:// so Spack can bootstrap curl
-    url = "http://www.openssl.org/source/openssl-1.1.1d.tar.gz"
+    url = "https://www.openssl.org/source/openssl-1.1.1d.tar.gz"
     list_url = "https://www.openssl.org/source/old/"
     list_depth = 1
 
@@ -111,6 +110,7 @@ class Openssl(Package):  # Uses Fake Autotools, should subclass Package
             root=self.prefix,
             recursive=True,
             shared=self.spec.variants["shared"].value,
+            runtime=False,
         )
 
     def handle_fetch_error(self, error):
@@ -159,9 +159,11 @@ class Openssl(Package):  # Uses Fake Autotools, should subclass Package
             "--openssldir=%s" % join_path(prefix, "etc", "openssl"),
         ]
         if spec.satisfies("platform=windows"):
-            base_args.extend(
-                ['CC="%s"' % os.environ.get("CC"), 'CXX="%s"' % os.environ.get("CXX"), "VC-WIN64A"]
-            )
+            if spec.satisfies("@:1"):
+                base_args.extend([f'CC="{self.compiler.cc}"', f'CXX="{self.compiler.cxx}"'])
+            else:
+                base_args.extend([f"CC={self.compiler.cc}", f"CXX={self.compiler.cxx}"])
+            base_args.append("VC-WIN64A")
         else:
             base_args.extend(
                 [

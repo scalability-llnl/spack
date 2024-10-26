@@ -472,6 +472,13 @@ def test_substitute_date(mock_low_high_config):
     assert date.today().strftime("%Y-%m-%d") in new_path
 
 
+def test_substitute_spack_version():
+    version = spack.spack_version_info
+    assert spack_path.canonicalize_path(
+        "spack$spack_short_version/test"
+    ) == spack_path.canonicalize_path(f"spack{version[0]}.{version[1]}/test")
+
+
 PAD_STRING = spack_path.SPACK_PATH_PADDING_CHARS
 MAX_PATH_LEN = spack_path.get_system_path_max()
 MAX_PADDED_LEN = MAX_PATH_LEN - spack_path.SPACK_MAX_INSTALL_PATH_LENGTH

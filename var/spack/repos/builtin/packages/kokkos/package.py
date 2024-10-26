@@ -320,7 +320,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         ]
 
         spack_microarches = []
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             if isinstance(spec.variants["cuda_arch"].value, str):
                 cuda_arch = spec.variants["cuda_arch"].value
             else:
@@ -336,7 +336,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         if kokkos_microarch_name:
             spack_microarches.append(kokkos_microarch_name)
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             for amdgpu_target in spec.variants["amdgpu_target"].value:
                 if amdgpu_target != "none":
                     if amdgpu_target in self.amdgpu_arch_map:
@@ -360,10 +360,10 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             if spec.variants[tpl].value:
                 options.append(self.define(tpl + "_DIR", spec[tpl].prefix))
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
             options.append(self.define("Kokkos_ENABLE_ROCTHRUST", True))
-        elif "+wrapper" in self.spec:
+        elif self.spec.satisfies("+wrapper"):
             options.append(
                 self.define("CMAKE_CXX_COMPILER", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
             )
@@ -375,11 +375,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         # which breaks GPU-aware with Cray-MPICH
         # See https://github.com/kokkos/kokkos/pull/6402
         # TODO: disable this once Cray-MPICH is fixed
-        if (
-            self.spec.satisfies("@4.2.00:")
-            and "mpi" in self.spec
-            and self.spec["mpi"].name == "cray-mpich"
-        ):
+        if self.spec.satisfies("@4.2.00:") and self.spec.satisfies("^[virtuals=mpi] cray-mpich"):
             options.append(self.define("Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC", False))
 
         # Remove duplicate options
@@ -416,8 +412,12 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             raise SkipTest(f"{cmake_path} is missing")
 
         cmake = self.spec["cmake"].command
-        cmake(cmake_path, "-DEXECUTABLE_OUTPUT_PATH=" + cmake_path)
+        cmake_args = ["-DEXECUTABLE_OUTPUT_PATH=" + cmake_path]
+        if self.spec.satisfies("+rocm"):
+            prefix_paths = ";".join(spack.build_systems.cmake.get_cmake_prefix_path(self))
+            cmake_args.append("-DCMAKE_PREFIX_PATH={0}".format(prefix_paths))
 
+        cmake(cmake_path, *cmake_args)
         make = which("make")
         make()
         make(cmake_path, "test")

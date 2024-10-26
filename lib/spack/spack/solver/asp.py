@@ -523,7 +523,12 @@ class Result:
                 node = SpecBuilder.make_node(pkg=providers[0])
             candidate = answer.get(node)
 
-            if candidate and candidate.satisfies(input_spec):
+            if candidate and candidate.build_spec.satisfies(input_spec):
+                if not candidate.satisfies(input_spec):
+                    tty.warn(
+                        "explicit splice configuration has caused the concretized spec"
+                        f" {candidate} not to satisfy the input spec {input_spec}"
+                    )
                 self._concrete_specs.append(answer[node])
                 self._concrete_specs_by_input[input_spec] = answer[node]
             else:
@@ -3814,7 +3819,33 @@ class SpecBuilder:
                         spack.version.git_ref_lookup.GitRefLookup(spec.fullname)
                     )
 
-        return self._specs
+        specs = self.execute_explicit_splices()
+
+        return specs
+
+    def execute_explicit_splices(self):
+        splice_config = spack.config.CONFIG.get("concretizer:splice:explicit", [])
+        splice_triples = []
+        for splice_set in splice_config:
+            target = splice_set["target"]
+            replacement = spack.spec.Spec(splice_set["replacement"])
+            assert replacement.abstract_hash
+            replacement.replace_hash()
+            transitive = splice_set.get("transitive", False)
+            splice_triples.append((target, replacement, transitive))
+
+        specs = {}
+        for key, spec in self._specs.items():
+            current_spec = spec
+            for target, replacement, transitive in splice_triples:
+                if target in current_spec:
+                    # matches root or non-root
+                    # e.g. mvapich2%gcc
+                    current_spec = current_spec.splice(replacement, transitive)
+            new_key = NodeArgument(id=key.id, pkg=current_spec.name)
+            specs[new_key] = current_spec
+
+        return specs
 
 
 def _develop_specs_from_env(spec, env):

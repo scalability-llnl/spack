@@ -19,6 +19,7 @@ class PyTorchvision(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("0.20.0", sha256="b59d9896c5c957c6db0018754bbd17d079c5102b82b9be0b438553b40a7b6029")
     version("0.19.1", sha256="083e75c467285595ec3eb3c7aa8493c19e53d7eb42f13046fb56a07c8897e5a8")
     version("0.19.0", sha256="4c499d0a412b5a21d55ac3c0a37e80ecd7e1f002f2a7b6b3b38a2de2544acbb6")
     version("0.18.1", sha256="347d472a9ceecc44e0bee1eda140d63cfaffc74a54ec07d4b98da7698ce75516")
@@ -58,16 +59,21 @@ class PyTorchvision(PythonPackage):
     desc = "Enable support for native encoding/decoding of {} formats in torchvision.io"
     variant("png", default=True, description=desc.format("PNG"))
     variant("jpeg", default=True, description=desc.format("JPEG"))
+    variant("webp", default=False, description=desc.format("WEBP"), when="@0.20:")
+    variant("heic", default=False, description=desc.format("HEIC"), when="@0.20:")
+    variant("avif", default=False, description=desc.format("AVIF"), when="@0.20:")
     variant("nvjpeg", default=False, description=desc.format("NVJPEG"))
-    variant("ffmpeg", default=False, description=desc.format("FFMPEG"))
     variant("video_codec", default=False, description=desc.format("video_codec"))
+    variant("ffmpeg", default=False, description=desc.format("FFMPEG"))
+
     # torchvision does not yet support disabling giflib:
     # https://github.com/pytorch/vision/pull/8406#discussion_r1590926939
     # variant("gif", default=False, description=desc.format("GIF"), when="@0.19:")
 
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
-        depends_on("python@3.8:3.12", when="@0.17:")
+        depends_on("python@3.9:3.12", when="@0.20:")
+        depends_on("python@3.8:3.12", when="@0.17:0.19")
         depends_on("python@3.8:3.11", when="@0.15:0.16")
         depends_on("python@:3.10", when="@0.12:0.14")
         depends_on("python@:3.9", when="@0.8.2:0.11")
@@ -75,6 +81,7 @@ class PyTorchvision(PythonPackage):
 
         # https://github.com/pytorch/vision#installation
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.5.0", when="@0.20.0")
         depends_on("py-torch@2.4.1", when="@0.19.1")
         depends_on("py-torch@2.4.0", when="@0.19.0")
         depends_on("py-torch@2.3.1", when="@0.18.1")
@@ -122,9 +129,13 @@ class PyTorchvision(PythonPackage):
     # Extensions
     depends_on("libpng@1.6:", when="+png")
     depends_on("jpeg", when="+jpeg")
+    depends_on("libwebp", when="+webp")
+    depends_on("libheif", when="+heic")
+    depends_on("libavif", when="+avif")
     depends_on("cuda", when="+nvjpeg")
-    depends_on("ffmpeg@3.1:", when="+ffmpeg")
     depends_on("cuda", when="+video_codec")
+    depends_on("ffmpeg@3.1:", when="+ffmpeg")
+
     # torchvision does not yet support externally-installed giflib:
     # https://github.com/pytorch/vision/pull/8406#discussion_r1590926939
     # depends_on("giflib", when="+gif")
@@ -152,6 +163,13 @@ class PyTorchvision(PythonPackage):
     # Many of the datasets require additional dependencies to use.
     # These can be installed after the fact.
 
+    def flag_handler(self, name, flags):
+        # https://github.com/pytorch/vision/issues/8653
+        if name == "ldflags":
+            if self.spec.satisfies("%apple-clang@15:"):
+                flags.append("-Wl,-ld_classic")
+        return (flags, None, None)
+
     def setup_build_environment(self, env):
         # The only documentation on building is what is found in setup.py and:
         # https://github.com/pytorch/vision/blob/main/CONTRIBUTING.md#development-installation
@@ -170,7 +188,8 @@ class PyTorchvision(PythonPackage):
         for gpu in ["cuda", "mps"]:
             env.set(f"FORCE_{gpu.upper()}", int(f"+{gpu}" in self.spec["py-torch"]))
 
-        for extension in ["png", "jpeg", "nvjpeg", "ffmpeg", "video_codec"]:
+        extensions = ["png", "jpeg", "webp", "heic", "avif", "nvjpeg", "video_codec", "ffmpeg"]
+        for extension in extensions:
             env.set(f"TORCHVISION_USE_{extension.upper()}", int(f"+{extension}" in self.spec))
 
         include = []

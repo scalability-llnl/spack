@@ -90,7 +90,7 @@ class Libstdcompat(CMakePackage):
         args = []
         cpp_compat = self.spec.variants["cpp_compat"].value
 
-        if "cpp_unstable" in self.spec:
+        if self.spec.satisfies("+cpp_unstable"):
             args.append("-DSTDCOMPAT_CXX_UNSTABLE=ON")
 
         if cpp_compat == "auto":

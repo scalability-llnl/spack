@@ -2,8 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""
-This module encapsulates package installation functionality.
+"""This module encapsulates package installation functionality.
 
 The PackageInstaller coordinates concurrent builds of packages for the same
 Spack instance by leveraging the dependency DAG and file system locks.  It
@@ -17,16 +16,18 @@ of separate packages associated with a spec.
 File system locks enable coordination such that no two processes attempt to
 build the same or a failed dependency package.
 
-Failures to install dependency packages result in removal of their dependents'
-build tasks from the current process.  A failure file is also written (and
-locked) so that other processes can detect the failure and adjust their build
-tasks accordingly.
+If a dependency package fails to install, its dependents' tasks will be
+removed from the installing process's queue.  A failure file is also written
+and locked. Other processes use this file to detect the failure and dequeue
+its dependents.
 
 This module supports the coordination of local and distributed concurrent
 installations of packages in a Spack instance.
+
 """
 
 import copy
+import enum
 import glob
 import heapq
 import io
@@ -42,6 +43,7 @@ from typing import Dict, Iterator, List, Optional, Set, Tuple, Union
 import llnl.util.filesystem as fs
 import llnl.util.lock as lk
 import llnl.util.tty as tty
+from llnl.string import ordinal
 from llnl.util.lang import pretty_seconds
 from llnl.util.tty.color import colorize
 from llnl.util.tty.log import log_output
@@ -57,6 +59,7 @@ import spack.mirror
 import spack.package_base
 import spack.package_prefs as prefs
 import spack.repo
+import spack.rewiring
 import spack.spec
 import spack.store
 import spack.util.executable
@@ -70,25 +73,32 @@ from spack.util.executable import which
 #: were added (see https://docs.python.org/2/library/heapq.html).
 _counter = itertools.count(0)
 
-#: Build status indicating task has been added.
-STATUS_ADDED = "queued"
 
-#: Build status indicating the spec failed to install
-STATUS_FAILED = "failed"
+class BuildStatus(enum.Enum):
+    """Different build (task) states."""
 
-#: Build status indicating the spec is being installed (possibly by another
-#: process)
-STATUS_INSTALLING = "installing"
+    #: Build status indicating task has been added/queued.
+    QUEUED = enum.auto()
 
-#: Build status indicating the spec was sucessfully installed
-STATUS_INSTALLED = "installed"
+    #: Build status indicating the spec failed to install
+    FAILED = enum.auto()
 
-#: Build status indicating the task has been popped from the queue
-STATUS_DEQUEUED = "dequeued"
+    #: Build status indicating the spec is being installed (possibly by another
+    #: process)
+    INSTALLING = enum.auto()
 
-#: Build status indicating task has been removed (to maintain priority
-#: queue invariants).
-STATUS_REMOVED = "removed"
+    #: Build status indicating the spec was sucessfully installed
+    INSTALLED = enum.auto()
+
+    #: Build status indicating the task has been popped from the queue
+    DEQUEUED = enum.auto()
+
+    #: Build status indicating task has been removed (to maintain priority
+    #: queue invariants).
+    REMOVED = enum.auto()
+
+    def __str__(self):
+        return f"{self.name.lower()}"
 
 
 def _write_timer_json(pkg, timer, cache):
@@ -101,13 +111,22 @@ def _write_timer_json(pkg, timer, cache):
         return
 
 
-class InstallAction:
+class ExecuteResult(enum.Enum):
+    # Task succeeded
+    SUCCESS = enum.auto()
+    # Task failed
+    FAILED = enum.auto()
+    # Task is missing build spec and will be requeued
+    MISSING_BUILD_SPEC = enum.auto()
+
+
+class InstallAction(enum.Enum):
     #: Don't perform an install
-    NONE = 0
+    NONE = enum.auto()
     #: Do a standard install
-    INSTALL = 1
+    INSTALL = enum.auto()
     #: Do an overwrite install
-    OVERWRITE = 2
+    OVERWRITE = enum.auto()
 
 
 class InstallStatus:
@@ -431,7 +450,7 @@ def _process_binary_cache_tarball(
     """
     with timer.measure("fetch"):
         download_result = binary_distribution.download_tarball(
-            pkg.spec, unsigned, mirrors_for_spec
+            pkg.spec.build_spec, unsigned, mirrors_for_spec
         )
 
         if download_result is None:
@@ -441,6 +460,11 @@ def _process_binary_cache_tarball(
 
     with timer.measure("install"), spack.util.path.filter_padding():
         binary_distribution.extract_tarball(pkg.spec, download_result, force=False, timer=timer)
+
+        if pkg.spec.spliced:  # overwrite old metadata with new
+            spack.store.STORE.layout.write_spec(
+                pkg.spec, spack.store.STORE.layout.spec_file_path(pkg.spec)
+            )
 
         if hasattr(pkg, "_post_buildcache_install_hook"):
             pkg._post_buildcache_install_hook()
@@ -677,7 +701,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
 def package_id(spec: "spack.spec.Spec") -> str:
     """A "unique" package identifier for installation purposes
 
-    The identifier is used to track build tasks, locks, install, and
+    The identifier is used to track tasks, locks, install, and
     failure statuses.
 
     The identifier needs to distinguish between combinations of compilers
@@ -736,14 +760,14 @@ class BuildRequest:
         )
 
     def __repr__(self) -> str:
-        """Returns a formal representation of the build request."""
+        """Return a formal representation of the build request."""
         rep = f"{self.__class__.__name__}("
         for attr, value in self.__dict__.items():
             rep += f"{attr}={value.__repr__()}, "
         return f"{rep.strip(', ')})"
 
     def __str__(self) -> str:
-        """Returns a printable version of the build request."""
+        """Return a printable version of the build request."""
         return f"package={self.pkg.name}, install_args={self.install_args}"
 
     def _add_default_args(self) -> None:
@@ -840,37 +864,42 @@ class BuildRequest:
             yield dep
 
 
-class BuildTask:
-    """Class for representing the build task for a package."""
+class Task:
+    """Base class for representing a task for a package."""
 
     def __init__(
         self,
         pkg: "spack.package_base.PackageBase",
-        request: Optional[BuildRequest],
-        compiler: bool,
-        start: float,
-        attempts: int,
-        status: str,
-        installed: Set[str],
+        request: BuildRequest,
+        *,
+        compiler: bool = False,
+        start: float = 0.0,
+        attempts: int = 0,
+        status: BuildStatus = BuildStatus.QUEUED,
+        installed: Set[str] = set(),
     ):
         """
-        Instantiate a build task for a package.
+        Instantiate a task for a package.
 
         Args:
             pkg: the package to be built and installed
-            request: the associated install request where ``None`` can be
-                used to indicate the package was explicitly requested by the user
-            compiler: whether task is for a bootstrap compiler
+            request: the associated install request
             start: the initial start time for the package, in seconds
-            attempts: the number of attempts to install the package
+            attempts: the number of attempts to install the package, which
+                should be 0 when the task is initially instantiated
             status: the installation status
-            installed: the identifiers of packages that have
+            installed: the (string) identifiers of packages that have
                 been installed so far
+
+        Raises:
+            ``InstallError`` if the build status is incompatible with the task
+            ``TypeError`` if provided an argument of the wrong type
+            ``ValueError`` if provided an argument with the wrong value or state
         """
 
         # Ensure dealing with a package that has a concrete spec
         if not isinstance(pkg, spack.package_base.PackageBase):
-            raise ValueError(f"{str(pkg)} must be a package")
+            raise TypeError(f"{str(pkg)} must be a package")
 
         self.pkg = pkg
         if not self.pkg.spec.concrete:
@@ -881,25 +910,33 @@ class BuildTask:
 
         # The explicit build request associated with the package
         if not isinstance(request, BuildRequest):
-            raise ValueError(f"{str(pkg)} must have a build request")
-
+            raise TypeError(f"{request} is not a valid build request")
         self.request = request
 
         # Initialize the status to an active state.  The status is used to
         # ensure priority queue invariants when tasks are "removed" from the
         # queue.
-        if status == STATUS_REMOVED:
-            raise spack.error.InstallError(
-                f"Cannot create a build task for {self.pkg_id} with status '{status}'", pkg=pkg
-            )
+        if not isinstance(status, BuildStatus):
+            raise TypeError(f"{status} is not a valid build status")
 
+        # The initial build task cannot have status "removed".
+        if attempts == 0 and status == BuildStatus.REMOVED:
+            raise spack.error.InstallError(
+                f"Cannot create a task for {self.pkg_id} with status '{status}'", pkg=pkg
+            )
         self.status = status
 
-        # Package is associated with a bootstrap compiler
-        self.compiler = compiler
+        # cache the PID, which is used for distributed build messages in self.execute
+        self.pid = os.getpid()
 
         # The initial start time for processing the spec
         self.start = start
+
+        if not isinstance(installed, set):
+            raise TypeError(
+                f"BuildTask constructor requires 'installed' be a 'set', "
+                f"not '{installed.__class__.__name__}'."
+            )
 
         # Set of dependents, which needs to include the requesting package
         # to support tracking of parallel, multi-spec, environment installs.
@@ -921,15 +958,21 @@ class BuildTask:
         )
 
         # List of uninstalled dependencies, which is used to establish
-        # the priority of the build task.
-        #
+        # the priority of the task.
         self.uninstalled_deps = set(
             pkg_id for pkg_id in self.dependencies if pkg_id not in installed
         )
 
         # Ensure key sequence-related properties are updated accordingly.
-        self.attempts = 0
+        self.attempts = attempts
         self._update()
+
+    def execute(self, install_status: InstallStatus) -> ExecuteResult:
+        """Execute the work of this task.
+
+        The ``install_status`` is an ``InstallStatus`` object used to format progress reporting for
+        this task in the context of the full ``BuildRequest``."""
+        raise NotImplementedError
 
     def __eq__(self, other):
         return self.key == other.key
@@ -950,14 +993,14 @@ class BuildTask:
         return self.key != other.key
 
     def __repr__(self) -> str:
-        """Returns a formal representation of the build task."""
+        """Returns a formal representation of the task."""
         rep = f"{self.__class__.__name__}("
         for attr, value in self.__dict__.items():
             rep += f"{attr}={value.__repr__()}, "
         return f"{rep.strip(', ')})"
 
     def __str__(self) -> str:
-        """Returns a printable version of the build task."""
+        """Returns a printable version of the task."""
         dependencies = f"#dependencies={len(self.dependencies)}"
         return "priority={0}, status={1}, start={2}, {3}".format(
             self.priority, self.status, self.start, dependencies
@@ -974,8 +1017,7 @@ class BuildTask:
 
     def add_dependent(self, pkg_id: str) -> None:
         """
-        Ensure the dependent package id is in the task's list so it will be
-        properly updated when this package is installed.
+        Ensure the package is in this task's ``dependents`` list.
 
         Args:
             pkg_id:  package identifier of the dependent package
@@ -983,6 +1025,20 @@ class BuildTask:
         if pkg_id != self.pkg_id and pkg_id not in self.dependents:
             tty.debug(f"Adding {pkg_id} as a dependent of {self.pkg_id}")
             self.dependents.add(pkg_id)
+
+    def add_dependency(self, pkg_id, installed=False):
+        """
+        Ensure the package is in this task's ``dependencies`` list.
+
+        Args:
+            pkg_id (str):  package identifier of the dependency package
+            installed (bool):  install status of the dependency package
+        """
+        if pkg_id != self.pkg_id and pkg_id not in self.dependencies:
+            tty.debug(f"Adding {pkg_id} as a depencency of {self.pkg_id}")
+            self.dependencies.add(pkg_id)
+            if not installed:
+                self.uninstalled_deps.add(pkg_id)
 
     def flag_installed(self, installed: List[str]) -> None:
         """
@@ -999,6 +1055,39 @@ class BuildTask:
                 f"{self.uninstalled_deps}",
                 level=2,
             )
+
+    def _setup_install_dir(self, pkg: "spack.package_base.PackageBase") -> None:
+        """
+        Create and ensure proper access controls for the install directory.
+        Write a small metadata file with the current spack environment.
+
+        Args:
+            pkg: the package to be built and installed
+        """
+        # Move to a module level method.
+        if not os.path.exists(pkg.spec.prefix):
+            path = spack.util.path.debug_padded_filter(pkg.spec.prefix)
+            tty.debug(f"Creating the installation directory {path}")
+            spack.store.STORE.layout.create_install_directory(pkg.spec)
+        else:
+            # Set the proper group for the prefix
+            group = prefs.get_package_group(pkg.spec)
+            if group:
+                fs.chgrp(pkg.spec.prefix, group)
+
+            # Set the proper permissions.
+            # This has to be done after group because changing groups blows
+            # away the sticky group bit on the directory
+            mode = os.stat(pkg.spec.prefix).st_mode
+            perms = prefs.get_package_dir_permissions(pkg.spec)
+            if mode != perms:
+                os.chmod(pkg.spec.prefix, perms)
+
+            # Ensure the metadata path exists as well
+            fs.mkdirp(spack.store.STORE.layout.metadata_path(pkg.spec), mode=perms)
+
+        # Always write host environment - we assume this can change
+        spack.store.STORE.layout.write_host_environment(pkg.spec)
 
     @property
     def explicit(self) -> bool:
@@ -1030,7 +1119,7 @@ class BuildTask:
         """The key is the tuple (# uninstalled dependencies, sequence)."""
         return (self.priority, self.sequence)
 
-    def next_attempt(self, installed) -> "BuildTask":
+    def next_attempt(self, installed) -> "Task":
         """Create a new, updated task for the next installation attempt."""
         task = copy.copy(self)
         task._update()
@@ -1042,6 +1131,100 @@ class BuildTask:
     def priority(self):
         """The priority is based on the remaining uninstalled dependencies."""
         return len(self.uninstalled_deps)
+
+
+class BuildTask(Task):
+    """Class for representing a build task for a package."""
+
+    def execute(self, install_status):
+        """
+        Perform the installation of the requested spec and/or dependency
+        represented by the build task.
+        """
+        install_args = self.request.install_args
+        tests = install_args.get("tests")
+        unsigned = install_args.get("unsigned")
+
+        pkg, pkg_id = self.pkg, self.pkg_id
+
+        tty.msg(install_msg(pkg_id, self.pid, install_status))
+        self.start = self.start or time.time()
+        self.status = BuildStatus.INSTALLING
+
+        # Use the binary cache if requested
+        if self.use_cache:
+            if _install_from_cache(pkg, self.explicit, unsigned):
+                return ExecuteResult.SUCCESS
+            elif self.cache_only:
+                raise spack.error.InstallError(
+                    "No binary found when cache-only was specified", pkg=pkg
+                )
+            else:
+                tty.msg(f"No binary for {pkg_id} found: installing from source")
+
+        pkg.run_tests = tests is True or tests and pkg.name in tests
+
+        # hook that allows tests to inspect the Package before installation
+        # see unit_test_check() docs.
+        if not pkg.unit_test_check():
+            return ExecuteResult.FAILED
+
+        try:
+            # Create stage object now and let it be serialized for the child process. That
+            # way monkeypatch in tests works correctly.
+            pkg.stage
+
+            self._setup_install_dir(pkg)
+
+            # Create a child process to do the actual installation.
+            # Preserve verbosity settings across installs.
+            spack.package_base.PackageBase._verbose = spack.build_environment.start_build_process(
+                pkg, build_process, install_args
+            )
+
+            # Note: PARENT of the build process adds the new package to
+            # the database, so that we don't need to re-read from file.
+            spack.store.STORE.db.add(pkg.spec, explicit=self.explicit)
+        except spack.error.StopPhase as e:
+            # A StopPhase exception means that do_install was asked to
+            # stop early from clients, and is not an error at this point
+            pid = f"{self.pid}: " if tty.show_pid() else ""
+            tty.debug(f"{pid}{str(e)}")
+            tty.debug(f"Package stage directory: {pkg.stage.source_path}")
+        return ExecuteResult.SUCCESS
+
+
+class RewireTask(Task):
+    """Class for representing a rewire task for a package."""
+
+    def execute(self, install_status):
+        """Execute rewire task
+
+        Rewire tasks are executed by either rewiring self.package.spec.build_spec that is already
+        installed or downloading and rewiring a binary for the it.
+
+        If not available installed or as binary, return ExecuteResult.MISSING_BUILD_SPEC.
+        This will prompt the Installer to requeue the task with a dependency on the BuildTask
+        to install self.pkg.spec.build_spec
+        """
+        oldstatus = self.status
+        self.status = BuildStatus.INSTALLING
+        tty.msg(install_msg(self.pkg_id, self.pid, install_status))
+        self.start = self.start or time.time()
+        if not self.pkg.spec.build_spec.installed:
+            try:
+                install_args = self.request.install_args
+                unsigned = install_args.get("unsigned")
+                _process_binary_cache_tarball(self.pkg, explicit=self.explicit, unsigned=unsigned)
+                _print_installed_pkg(self.pkg.prefix)
+                return ExecuteResult.SUCCESS
+            except BaseException as e:
+                tty.error(f"Failed to rewire {self.pkg.spec} from binary. {e}")
+                self.status = oldstatus
+                return ExecuteResult.MISSING_BUILD_SPEC
+        spack.rewiring.rewire_node(self.pkg.spec, self.explicit)
+        _print_installed_pkg(self.pkg.prefix)
+        return ExecuteResult.SUCCESS
 
 
 class PackageInstaller:
@@ -1137,11 +1320,11 @@ class PackageInstaller:
         # List of build requests
         self.build_requests = [BuildRequest(pkg, install_args) for pkg in packages]
 
-        # Priority queue of build tasks
-        self.build_pq: List[Tuple[Tuple[int, int], BuildTask]] = []
+        # Priority queue of tasks
+        self.build_pq: List[Tuple[Tuple[int, int], Task]] = []
 
-        # Mapping of unique package ids to build task
-        self.build_tasks: Dict[str, BuildTask] = {}
+        # Mapping of unique package ids to task
+        self.build_tasks: Dict[str, Task] = {}
 
         # Cache of package locks for failed packages, keyed on package's ids
         self.failed: Dict[str, Optional[lk.Lock]] = {}
@@ -1162,6 +1345,9 @@ class PackageInstaller:
         # fast then that option applies to all build requests.
         self.fail_fast = False
 
+        # Initializing all_dependencies to empty. This will be set later in _init_queue.
+        self.all_dependencies: Dict[str, Set[str]] = {}
+
     def __repr__(self) -> str:
         """Returns a formal representation of the package installer."""
         rep = f"{self.__class__.__name__}("
@@ -1180,23 +1366,19 @@ class PackageInstaller:
     def _add_init_task(
         self,
         pkg: "spack.package_base.PackageBase",
-        request: Optional[BuildRequest],
-        is_compiler: bool,
+        request: BuildRequest,
         all_deps: Dict[str, Set[str]],
     ) -> None:
         """
-        Creates and queus the initial build task for the package.
+        Creates and queues the initial task for the package.
 
         Args:
             pkg: the package to be built and installed
-            request (BuildRequest or None): the associated install request
-                 where ``None`` can be used to indicate the package was
-                 explicitly requested by the user
-            is_compiler (bool): whether task is for a bootstrap compiler
-            all_deps (defaultdict(set)): dictionary of all dependencies and
-                associated dependents
+            request: the associated install request
+            all_deps: dictionary of all dependencies and associated dependents
         """
-        task = BuildTask(pkg, request, is_compiler, 0, 0, STATUS_ADDED, self.installed)
+        cls = RewireTask if pkg.spec.spliced else BuildTask
+        task = cls(pkg, request=request, status=BuildStatus.QUEUED, installed=self.installed)
         for dep_id in task.dependencies:
             all_deps[dep_id].add(package_id(pkg.spec))
 
@@ -1270,7 +1452,7 @@ class PackageInstaller:
             else:
                 lock.release_read()
 
-    def _prepare_for_install(self, task: BuildTask) -> None:
+    def _prepare_for_install(self, task: Task) -> None:
         """
         Check the database and leftover installation directories/files and
         prepare for a new install attempt for an uninstalled package.
@@ -1278,7 +1460,7 @@ class PackageInstaller:
         and ensuring the database is up-to-date.
 
         Args:
-            task (BuildTask): the build task whose associated package is
+            task: the task whose associated package is
                 being checked
         """
         install_args = task.request.install_args
@@ -1329,7 +1511,7 @@ class PackageInstaller:
                 spack.store.STORE.db.update_explicit(task.pkg.spec, True)
 
     def _cleanup_all_tasks(self) -> None:
-        """Cleanup all build tasks to include releasing their locks."""
+        """Cleanup all tasks to include releasing their locks."""
         for pkg_id in self.locks:
             self._release_lock(pkg_id)
 
@@ -1361,7 +1543,7 @@ class PackageInstaller:
 
     def _cleanup_task(self, pkg: "spack.package_base.PackageBase") -> None:
         """
-        Cleanup the build task for the spec
+        Cleanup the task for the spec
 
         Args:
             pkg: the package being installed
@@ -1433,7 +1615,7 @@ class PackageInstaller:
 
         if lock_type == "read":
             # Wait until the other process finishes if there are no more
-            # build tasks with priority 0 (i.e., with no uninstalled
+            # tasks with priority 0 (i.e., with no uninstalled
             # dependencies).
             no_p0 = len(self.build_tasks) == 0 or not self._next_is_pri0()
             timeout = None if no_p0 else 3.0
@@ -1485,6 +1667,33 @@ class PackageInstaller:
         self.locks[pkg_id] = (lock_type, lock)
         return self.locks[pkg_id]
 
+    def _requeue_with_build_spec_tasks(self, task):
+        """Requeue the task and its missing build spec dependencies"""
+        # Full install of the build_spec is necessary because it didn't already exist somewhere
+        spec = task.pkg.spec
+        for dep in spec.build_spec.traverse():
+            dep_pkg = dep.package
+
+            dep_id = package_id(dep)
+            if dep_id not in self.build_tasks:
+                self._add_init_task(dep_pkg, task.request, self.all_dependencies)
+
+            # Clear any persistent failure markings _unless_ they are
+            # associated with another process in this parallel build
+            # of the spec.
+            spack.store.STORE.failure_tracker.clear(dep, force=False)
+
+        # Queue the build spec.
+        build_pkg_id = package_id(spec.build_spec)
+        build_spec_task = self.build_tasks[build_pkg_id]
+        spec_pkg_id = package_id(spec)
+        spec_task = task.next_attempt(self.installed)
+        spec_task.status = BuildStatus.QUEUED
+        # Convey a build spec as a dependency of a deployed spec.
+        build_spec_task.add_dependent(spec_pkg_id)
+        spec_task.add_dependency(build_pkg_id)
+        self._push_task(spec_task)
+
     def _add_tasks(self, request: BuildRequest, all_deps):
         """Add tasks to the priority queue for the given build request.
 
@@ -1514,7 +1723,7 @@ class PackageInstaller:
 
                 dep_id = package_id(dep)
                 if dep_id not in self.build_tasks:
-                    self._add_init_task(dep_pkg, request, False, all_deps)
+                    self._add_init_task(dep_pkg, request, all_deps=all_deps)
 
                 # Clear any persistent failure markings _unless_ they are
                 # associated with another process in this parallel build
@@ -1532,80 +1741,29 @@ class PackageInstaller:
                 self._check_deps_status(request)
 
             # Now add the package itself, if appropriate
-            self._add_init_task(request.pkg, request, False, all_deps)
+            self._add_init_task(request.pkg, request, all_deps=all_deps)
 
         # Ensure if one request is to fail fast then all requests will.
         fail_fast = bool(request.install_args.get("fail_fast"))
         self.fail_fast = self.fail_fast or fail_fast
 
-    def _install_task(self, task: BuildTask, install_status: InstallStatus) -> None:
+    def _install_task(self, task: Task, install_status: InstallStatus) -> None:
         """
         Perform the installation of the requested spec and/or dependency
-        represented by the build task.
+        represented by the task.
 
         Args:
-            task: the installation build task for a package
+            task: the installation task for a package
             install_status: the installation status for the package"""
-
-        explicit = task.explicit
-        install_args = task.request.install_args
-        cache_only = task.cache_only
-        use_cache = task.use_cache
-        tests = install_args.get("tests", False)
-        assert isinstance(tests, (bool, list))  # make mypy happy.
-        unsigned: Optional[bool] = install_args.get("unsigned")
-
-        pkg, pkg_id = task.pkg, task.pkg_id
-
-        tty.msg(install_msg(pkg_id, self.pid, install_status))
-        task.start = task.start or time.time()
-        task.status = STATUS_INSTALLING
-
-        # Use the binary cache if requested
-        if use_cache:
-            if _install_from_cache(pkg, explicit, unsigned):
-                self._update_installed(task)
-                return
-            elif cache_only:
-                raise spack.error.InstallError(
-                    "No binary found when cache-only was specified", pkg=pkg
-                )
-            else:
-                tty.msg(f"No binary for {pkg_id} found: installing from source")
-
-        pkg.run_tests = tests if isinstance(tests, bool) else pkg.name in tests
-
-        # hook that allows tests to inspect the Package before installation
-        # see unit_test_check() docs.
-        if not pkg.unit_test_check():
-            return
-
-        try:
-            self._setup_install_dir(pkg)
-
-            # Create stage object now and let it be serialized for the child process. That
-            # way monkeypatch in tests works correctly.
-            pkg.stage
-
-            # Create a child process to do the actual installation.
-            # Preserve verbosity settings across installs.
-            spack.package_base.PackageBase._verbose = spack.build_environment.start_build_process(
-                pkg, build_process, install_args
-            )
-            # Note: PARENT of the build process adds the new package to
-            # the database, so that we don't need to re-read from file.
-            spack.store.STORE.db.add(pkg.spec, explicit=explicit)
-
-        except spack.error.StopPhase as e:
-            # A StopPhase exception means that the installer was asked to stop early from clients,
-            # and is not an error at this point
-            pid = f"{self.pid}: " if tty.show_pid() else ""
-            tty.debug(f"{pid}{str(e)}")
-            tty.debug(f"Package stage directory: {pkg.stage.source_path}")
+        rc = task.execute(install_status)
+        if rc == ExecuteResult.MISSING_BUILD_SPEC:
+            self._requeue_with_build_spec_tasks(task)
+        else:  # if rc == ExecuteResult.SUCCESS or rc == ExecuteResult.FAILED
+            self._update_installed(task)
 
     def _next_is_pri0(self) -> bool:
         """
-        Determine if the next build task has priority 0
+        Determine if the next task has priority 0
 
         Return:
             True if it does, False otherwise
@@ -1615,31 +1773,31 @@ class PackageInstaller:
         task = self.build_pq[0][1]
         return task.priority == 0
 
-    def _pop_task(self) -> Optional[BuildTask]:
+    def _pop_task(self) -> Optional[Task]:
         """
-        Remove and return the lowest priority build task.
+        Remove and return the lowest priority task.
 
         Source: Variant of function at docs.python.org/2/library/heapq.html
         """
         while self.build_pq:
             task = heapq.heappop(self.build_pq)[1]
-            if task.status != STATUS_REMOVED:
+            if task.status != BuildStatus.REMOVED:
                 del self.build_tasks[task.pkg_id]
-                task.status = STATUS_DEQUEUED
+                task.status = BuildStatus.DEQUEUED
                 return task
         return None
 
-    def _push_task(self, task: BuildTask) -> None:
+    def _push_task(self, task: Task) -> None:
         """
-        Push (or queue) the specified build task for the package.
+        Push (or queue) the specified task for the package.
 
         Source: Customization of "add_task" function at
                 docs.python.org/2/library/heapq.html
 
         Args:
-            task: the installation build task for a package
+            task: the installation task for a package
         """
-        msg = "{0} a build task for {1} with status '{2}'"
+        msg = "{0} a task for {1} with status '{2}'"
         skip = "Skipping requeue of task for {0}: {1}"
 
         # Ensure do not (re-)queue installed or failed packages whose status
@@ -1652,9 +1810,11 @@ class PackageInstaller:
             tty.debug(skip.format(task.pkg_id, "failed"))
             return
 
-        # Remove any associated build task since its sequence will change
+        # Remove any associated task since its sequence will change
         self._remove_task(task.pkg_id)
-        desc = "Queueing" if task.attempts == 0 else "Requeueing"
+        desc = (
+            "Queueing" if task.attempts == 1 else f"Requeueing ({ordinal(task.attempts)} attempt)"
+        )
         tty.debug(msg.format(desc, task.pkg_id, task.status))
 
         # Now add the new task to the queue with a new sequence number to
@@ -1685,9 +1845,9 @@ class PackageInstaller:
                 except Exception as exc:
                     tty.warn(err.format(exc.__class__.__name__, ltype, pkg_id, str(exc)))
 
-    def _remove_task(self, pkg_id: str) -> Optional[BuildTask]:
+    def _remove_task(self, pkg_id: str) -> Optional[Task]:
         """
-        Mark the existing package build task as being removed and return it.
+        Mark the existing package task as being removed and return it.
         Raises KeyError if not found.
 
         Source: Variant of function at docs.python.org/2/library/heapq.html
@@ -1696,71 +1856,39 @@ class PackageInstaller:
             pkg_id: identifier for the package to be removed
         """
         if pkg_id in self.build_tasks:
-            tty.debug(f"Removing build task for {pkg_id} from list")
+            tty.debug(f"Removing task for {pkg_id} from list")
             task = self.build_tasks.pop(pkg_id)
-            task.status = STATUS_REMOVED
+            task.status = BuildStatus.REMOVED
             return task
         else:
             return None
 
-    def _requeue_task(self, task: BuildTask, install_status: InstallStatus) -> None:
+    def _requeue_task(self, task: Task, install_status: InstallStatus) -> None:
         """
         Requeues a task that appears to be in progress by another process.
 
         Args:
-            task (BuildTask): the installation build task for a package
+            task (Task): the installation task for a package
         """
-        if task.status not in [STATUS_INSTALLED, STATUS_INSTALLING]:
+        if task.status not in [BuildStatus.INSTALLED, BuildStatus.INSTALLING]:
             tty.debug(
                 f"{install_msg(task.pkg_id, self.pid, install_status)} "
                 "in progress by another process"
             )
 
         new_task = task.next_attempt(self.installed)
-        new_task.status = STATUS_INSTALLING
+        new_task.status = BuildStatus.INSTALLING
         self._push_task(new_task)
 
-    def _setup_install_dir(self, pkg: "spack.package_base.PackageBase") -> None:
-        """
-        Create and ensure proper access controls for the install directory.
-        Write a small metadata file with the current spack environment.
-
-        Args:
-            pkg: the package to be built and installed
-        """
-        if not os.path.exists(pkg.spec.prefix):
-            path = spack.util.path.debug_padded_filter(pkg.spec.prefix)
-            tty.debug(f"Creating the installation directory {path}")
-            spack.store.STORE.layout.create_install_directory(pkg.spec)
-        else:
-            # Set the proper group for the prefix
-            group = prefs.get_package_group(pkg.spec)
-            if group:
-                fs.chgrp(pkg.spec.prefix, group)
-
-            # Set the proper permissions.
-            # This has to be done after group because changing groups blows
-            # away the sticky group bit on the directory
-            mode = os.stat(pkg.spec.prefix).st_mode
-            perms = prefs.get_package_dir_permissions(pkg.spec)
-            if mode != perms:
-                os.chmod(pkg.spec.prefix, perms)
-
-            # Ensure the metadata path exists as well
-            fs.mkdirp(spack.store.STORE.layout.metadata_path(pkg.spec), mode=perms)
-
-        # Always write host environment - we assume this can change
-        spack.store.STORE.layout.write_host_environment(pkg.spec)
-
     def _update_failed(
-        self, task: BuildTask, mark: bool = False, exc: Optional[BaseException] = None
+        self, task: Task, mark: bool = False, exc: Optional[BaseException] = None
     ) -> None:
         """
         Update the task and transitive dependents as failed; optionally mark
-        externally as failed; and remove associated build tasks.
+        externally as failed; and remove associated tasks.
 
         Args:
-            task: the build task for the failed package
+            task: the task for the failed package
             mark: ``True`` if the package and its dependencies are to
                 be marked as "failed", otherwise, ``False``
             exc: optional exception if associated with the failure
@@ -1772,34 +1900,34 @@ class PackageInstaller:
             self.failed[pkg_id] = spack.store.STORE.failure_tracker.mark(task.pkg.spec)
         else:
             self.failed[pkg_id] = None
-        task.status = STATUS_FAILED
+        task.status = BuildStatus.FAILED
 
         for dep_id in task.dependents:
             if dep_id in self.build_tasks:
                 tty.warn(f"Skipping build of {dep_id} since {pkg_id} failed")
                 # Ensure the dependent's uninstalled dependents are
-                # up-to-date and their build tasks removed.
+                # up-to-date and their tasks removed.
                 dep_task = self.build_tasks[dep_id]
                 self._update_failed(dep_task, mark)
                 self._remove_task(dep_id)
             else:
-                tty.debug(f"No build task for {dep_id} to skip since {pkg_id} failed")
+                tty.debug(f"No task for {dep_id} to skip since {pkg_id} failed")
 
-    def _update_installed(self, task: BuildTask) -> None:
+    def _update_installed(self, task: Task) -> None:
         """
-        Mark the task as installed and ensure dependent build tasks are aware.
+        Mark the task as installed and ensure dependent tasks are aware.
 
         Args:
-            task (BuildTask): the build task for the installed package
+            task: the task for the installed package
         """
-        task.status = STATUS_INSTALLED
+        task.status = BuildStatus.INSTALLED
         self._flag_installed(task.pkg, task.dependents)
 
     def _flag_installed(
         self, pkg: "spack.package_base.PackageBase", dependent_ids: Optional[Set[str]] = None
     ) -> None:
         """
-        Flag the package as installed and ensure known by all build tasks of
+        Flag the package as installed and ensure known by all tasks of
         known dependents.
 
         Args:
@@ -1827,7 +1955,7 @@ class PackageInstaller:
                 dep_task = self.build_tasks[dep_id]
                 self._push_task(dep_task.next_attempt(self.installed))
             else:
-                tty.debug(f"{dep_id} has no build task to update for {pkg_id}'s success")
+                tty.debug(f"{dep_id} has no task to update for {pkg_id}'s success")
 
     def _init_queue(self) -> None:
         """Initialize the build queue from the list of build requests."""
@@ -1846,8 +1974,9 @@ class PackageInstaller:
                 task = self.build_tasks[dep_id]
                 for dependent_id in dependents.difference(task.dependents):
                     task.add_dependent(dependent_id)
+        self.all_dependencies = all_dependencies
 
-    def _install_action(self, task: BuildTask) -> int:
+    def _install_action(self, task: Task) -> InstallAction:
         """
         Determine whether the installation should be overwritten (if it already
         exists) or skipped (if has been handled by another process).
@@ -1995,7 +2124,6 @@ class PackageInstaller:
                     self._update_installed(task)
                     path = spack.util.path.debug_padded_filter(pkg.prefix)
                     _print_installed_pkg(path)
-
                 else:
                     # At this point we've failed to get a write or a read
                     # lock, which means another process has taken a write
@@ -2034,8 +2162,6 @@ class PackageInstaller:
                     # spack.store.STORE.db is not really a Database object, but a small
                     # wrapper -- silence mypy
                     OverwriteInstall(self, spack.store.STORE.db, task, install_status).install()  # type: ignore[arg-type] # noqa: E501
-
-                self._update_installed(task)
 
                 # If we installed then we should keep the prefix
                 stop_before_phase = getattr(pkg, "stop_before_phase", None)
@@ -2080,7 +2206,9 @@ class PackageInstaller:
                     )
                 # Terminate if requested to do so on the first failure.
                 if self.fail_fast:
-                    raise spack.error.InstallError(f"{fail_fast_err}: {str(exc)}", pkg=pkg)
+                    raise spack.error.InstallError(
+                        f"{fail_fast_err}: {str(exc)}", pkg=pkg
+                    ) from exc
 
                 # Terminate when a single build request has failed, or summarize errors later.
                 if task.is_build_request:
@@ -2096,7 +2224,8 @@ class PackageInstaller:
 
             # Perform basic task cleanup for the installed spec to
             # include downgrading the write to a read lock
-            self._cleanup_task(pkg)
+            if pkg.spec.installed:
+                self._cleanup_task(pkg)
 
         # Cleanup, which includes releasing all of the read locks
         self._cleanup_all_tasks()
@@ -2365,6 +2494,15 @@ def build_process(pkg: "spack.package_base.PackageBase", install_args: dict) -> 
 
 def deprecate(spec: "spack.spec.Spec", deprecator: "spack.spec.Spec", link_fn) -> None:
     """Deprecate this package in favor of deprecator spec"""
+    # Here we assume we don't deprecate across different stores, and that same hash
+    # means same binary artifacts
+    if spec.dag_hash() == deprecator.dag_hash():
+        return
+
+    # We can't really have control over external specs, and cannot link anything in their place
+    if spec.external:
+        return
+
     # Install deprecator if it isn't installed already
     if not spack.store.STORE.db.query(deprecator):
         PackageInstaller([deprecator.package], explicit=True).install()
@@ -2395,7 +2533,7 @@ class OverwriteInstall:
         self,
         installer: PackageInstaller,
         database: spack.database.Database,
-        task: BuildTask,
+        task: Task,
         install_status: InstallStatus,
     ):
         self.installer = installer

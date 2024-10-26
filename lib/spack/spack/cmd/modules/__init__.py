@@ -378,7 +378,10 @@ callbacks = {"refresh": refresh, "rm": rm, "find": find, "loads": loads}
 def modules_cmd(parser, args, module_type, callbacks=callbacks):
     # Qualifiers to be used when querying the db for specs
     constraint_qualifiers = {
-        "refresh": {"installed": True, "known": lambda x: not spack.repo.PATH.exists(x)}
+        "refresh": {
+            "installed": True,
+            "predicate_fn": lambda x: spack.repo.PATH.exists(x.spec.name),
+        }
     }
     query_args = constraint_qualifiers.get(args.subparser_name, {})
 

@@ -156,7 +156,7 @@ class NetcdfFortran(AutotoolsPackage):
         # To avoid warning messages when compiler user applications in both
         # cases, we create copies of all '*.mod' files in the prefix/include
         # with names in upper- and lowercase.
-        if self.spec.compiler.name != "cce":
+        if not self.spec.satisfies("%cce"):
             return
 
         with working_dir(self.spec.prefix.include):

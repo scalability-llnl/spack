@@ -26,7 +26,9 @@ class ApacheTvm(CMakePackage, CudaPackage):
     depends_on("cxx", type="build")
     depends_on("cmake@3.18:", type="build")
     depends_on("python@3.7:3.8", type=("build", "run"))
-    depends_on("llvm@4:", type="build", when="+llvm")
+    depends_on("zlib-api", type=("link", "run"))
+    depends_on("ncurses", type=("link", "run"))
+    depends_on("llvm@4:18.1.8", type="build", when="+llvm")
     depends_on("cuda@8:", when="+cuda")
 
     def cmake_args(self):

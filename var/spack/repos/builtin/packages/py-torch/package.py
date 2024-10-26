@@ -17,15 +17,15 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     git = "https://github.com/pytorch/pytorch.git"
     submodules = True
 
-    maintainers("adamjstewart")
-
     # Exact set of modules is version- and variant-specific, just attempt to import the
     # core libraries to ensure that the package was successfully installed.
     import_modules = ["torch", "torch.autograd", "torch.nn", "torch.utils"]
 
     license("BSD-3-Clause")
+    maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.5.0", tag="v2.5.0", commit="32f585d9346e316e554c8d9bf7548af9f62141fc")
     version("2.4.1", tag="v2.4.1", commit="ee1b6804381c57161c477caa380a840a84167676")
     version("2.4.0", tag="v2.4.0", commit="d990dada86a8ad94882b5c23e859b88c0c255bda")
     version("2.3.1", tag="v2.3.1", commit="63d5e9221bedd1546b7d364b5ce4171547db12a9")
@@ -137,7 +137,8 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # Required dependencies
     # Based on PyPI wheel availability
     with default_args(type=("build", "link", "run")):
-        depends_on("python@3.8:3.12", when="@2.2:")
+        depends_on("python@3.9:3.13", when="@2.5:")
+        depends_on("python@3.8:3.12", when="@2.2:2.4")
         depends_on("python@3.8:3.11", when="@2.0:2.1")
         depends_on("python@:3.10", when="@1.11:1")
         depends_on("python@:3.9", when="@1.7.1:1.10")
@@ -186,7 +187,8 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # depends_on("xnnpack@2021-02-22", when="@1.8:1.9+xnnpack")
     # depends_on("xnnpack@2020-03-23", when="@1.6:1.7+xnnpack")
     depends_on("benchmark", when="@1.6:+test")
-    depends_on("cpuinfo@2023-11-04", when="@2.3:")
+    depends_on("cpuinfo@2024-08-30", when="@2.5:")
+    depends_on("cpuinfo@2023-11-04", when="@2.3:2.4")
     depends_on("cpuinfo@2023-01-13", when="@2.1:2.2")
     depends_on("cpuinfo@2022-08-19", when="@1.13:2.0")
     depends_on("cpuinfo@2020-12-17", when="@1.8:1.12")
@@ -230,7 +232,8 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("pthreadpool@2020-10-05", when="@1.8")
     depends_on("pthreadpool@2020-06-15", when="@1.6:1.7")
     with default_args(type=("build", "link", "run")):
-        depends_on("py-pybind11@2.12.0:", when="@2.3:")
+        depends_on("py-pybind11@2.13.5:", when="@2.5:")
+        depends_on("py-pybind11@2.12.0:", when="@2.3:2.4")
         depends_on("py-pybind11@2.11.0:", when="@2.1:2.2")
         depends_on("py-pybind11@2.10.1:", when="@2.0")
         depends_on("py-pybind11@2.10.0:", when="@1.13:1")
@@ -678,10 +681,6 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
             env.set("BUILD_CUSTOM_PROTOBUF", "ON")
         else:
             env.set("BUILD_CUSTOM_PROTOBUF", "OFF")
-
-        # https://github.com/pytorch/pytorch/issues/111086
-        if self.spec.satisfies("%apple-clang@15:"):
-            env.append_flags("LDFLAGS", "-Wl,-ld_classic")
 
     def setup_run_environment(self, env):
         self.torch_cuda_arch_list(env)

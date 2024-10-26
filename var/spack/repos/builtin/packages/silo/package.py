@@ -147,7 +147,7 @@ class Silo(AutotoolsPackage):
                     min_apiver = int(min_ver / 2) * 2
                     flags.append("-DH5_USE_{0}{1}_API".format(maj_ver, min_apiver))
 
-            if spec.compiler.name in ["clang", "apple-clang"]:
+            if spec.satisfies("%clang") or spec.satisfies("%apple-clang"):
                 flags.append("-Wno-implicit-function-declaration")
         return (flags, None, None)
 

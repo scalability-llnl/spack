@@ -14,7 +14,7 @@ class QuantumEspresso(CMakePackage, Package):
     pseudopotentials.
     """
 
-    homepage = "http://quantum-espresso.org"
+    homepage = "https://quantum-espresso.org"
     url = "https://gitlab.com/QEF/q-e/-/archive/qe-6.6/q-e-qe-6.6.tar.gz"
     git = "https://gitlab.com/QEF/q-e.git"
 

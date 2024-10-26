@@ -164,3 +164,30 @@ def test_concretize_deprecated(mock_packages, mock_archive, mock_fetch, install_
     spec = spack.spec.Spec("libelf@0.8.10")
     with pytest.raises(spack.spec.SpecDeprecatedError):
         spec.concretize()
+
+
+@pytest.mark.usefixtures("mock_packages", "mock_archive", "mock_fetch", "install_mockery")
+@pytest.mark.regression("46915")
+def test_deprecate_spec_with_external_dependency(mutable_config, temporary_store, tmp_path):
+    """Tests that we can deprecate a spec that has an external dependency"""
+    packages_yaml = {
+        "libelf": {
+            "buildable": False,
+            "externals": [{"spec": "libelf@0.8.13", "prefix": str(tmp_path / "libelf")}],
+        }
+    }
+    mutable_config.set("packages", packages_yaml)
+
+    install("--fake", "dyninst ^libdwarf@=20111030")
+    install("--fake", "libdwarf@=20130729")
+
+    # Ensure we are using the external libelf
+    db = temporary_store.db
+    libelf = db.query_one("libelf")
+    assert libelf.external
+
+    deprecated_spec = db.query_one("libdwarf@=20111030")
+    new_libdwarf = db.query_one("libdwarf@=20130729")
+    deprecate("-y", "libdwarf@=20111030", "libdwarf@=20130729")
+
+    assert db.deprecator(deprecated_spec) == new_libdwarf

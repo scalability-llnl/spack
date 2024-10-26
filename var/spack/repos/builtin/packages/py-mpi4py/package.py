@@ -16,9 +16,11 @@ class PyMpi4py(PythonPackage):
     pypi = "mpi4py/mpi4py-3.0.3.tar.gz"
     git = "https://github.com/mpi4py/mpi4py.git"
 
-    license("BSD-2-Clause")
+    license("BSD-3-Clause", when="@4:")
+    license("BSD-2-Clause", when="@:3")
 
     version("master", branch="master")
+    version("4.0.0", sha256="820d31ae184d69c17d9b5d55b1d524d56be47d2e6cb318ea4f3e7007feff2ccc")
     version("3.1.6", sha256="c8fa625e0f92b082ef955bfb52f19fa6691d29273d7d71135d295aa143dee6cb")
     version("3.1.5", sha256="a706e76db9255135c2fb5d1ef54cb4f7b0e4ad9e33cbada7de27626205f2a153")
     version("3.1.4", sha256="17858f2ebc623220d0120d1fa8d428d033dde749c4bc35b33d81a66ad7f93480")
@@ -33,10 +35,9 @@ class PyMpi4py(PythonPackage):
     version("1.3.1", sha256="e7bd2044aaac5a6ea87a87b2ecc73b310bb6efe5026031e33067ea3c2efc3507")
 
     depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
 
     depends_on("py-setuptools@40.9:", type="build")
+    depends_on("py-cython@3:", when="@4:", type="build")
     depends_on("py-cython@0.27:2", when="@:3.1.6", type="build")
     depends_on("py-cython@0.27:3", when="@master", type="build")
     depends_on("mpi")
