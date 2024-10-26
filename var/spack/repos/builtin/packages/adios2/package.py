@@ -242,7 +242,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
 
     # ROCM: enable support for rocm >= 6
     # https://github.com/ornladios/ADIOS2/pull/4214
-    patch("2.10-enable-rocm6.patch", when="@2.9.1:")
+    patch("2.10-enable-rocm6.patch", when="@2.9.1:2.10.1")
 
     @when("%fj")
     def patch(self):
