@@ -77,7 +77,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     variant("bzip2", default=True, when="@2.4:", description="Enable BZip2 compression")
     variant("zfp", default=True, description="Enable ZFP compression")
     variant("png", default=True, when="@2.4:", description="Enable PNG compression")
-    variant("sz", default=True, description="Enable SZ compression")
+    variant("sz", default=True, when="@2.6:", description="Enable SZ compression")
     variant("mgard", default=True, when="@2.8:", description="Enable MGARD compression")
 
     # Rransport engines
