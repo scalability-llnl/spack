@@ -11,7 +11,7 @@ class Libzip(CMakePackage, AutotoolsPackage):
     and modifying zip archives."""
 
     homepage = "https://libzip.org/"
-
+    maintainers("prudhomm")
     license("BSD-3-Clause")
 
     # current versions are released on GitHub
