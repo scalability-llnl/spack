@@ -797,29 +797,6 @@ ml-linux-aarch64-cuda-build:
       job: ml-linux-aarch64-cuda-generate
 
 #########################################
-# Machine Learning - Linux aarch64 (ROCm)
-#########################################
-.ml-linux-aarch64-rocm:
-  extends: [ ".linux_aarch64" ]
-  variables:
-    SPACK_CI_STACK_NAME: ml-linux-aarch64-rocm
-
-ml-linux-aarch64-rocm-generate:
-  extends: [ ".generate-aarch64", .ml-linux-aarch64-rocm ]
-  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
-
-ml-linux-aarch64-rocm-build:
-  extends: [ ".build", ".ml-linux-aarch64-rocm" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: ml-linux-aarch64-rocm-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: ml-linux-aarch64-rocm-generate
-
-#########################################
 # Machine Learning - Darwin aarch64 (MPS)
 #########################################
 .ml-darwin-aarch64-mps:
