@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack.package import *
 import spack.build_systems.autotools
 import spack.build_systems.cmake
+from spack.package import *
+
 
 class Libzip(CMakePackage, AutotoolsPackage):
     """libzip is a C library for reading, creating,
@@ -74,6 +75,7 @@ class Libzip(CMakePackage, AutotoolsPackage):
         return find_all_headers(
             self.prefix if self.spec.satisfies("@:1.3.0") else self.prefix.include
         )
+
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
