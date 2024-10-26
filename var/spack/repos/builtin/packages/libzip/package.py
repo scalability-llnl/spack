@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-
+import spack.build_systems.autotools
+import spack.build_systems.cmake
 
 class Libzip(CMakePackage, AutotoolsPackage):
     """libzip is a C library for reading, creating,
@@ -36,21 +37,9 @@ class Libzip(CMakePackage, AutotoolsPackage):
         sha256="6cf9840e427db96ebf3936665430bab204c9ebbd0120c326459077ed9c907d9f",
         deprecated=True,
     )
-    variant("gnutls", default=True, description="Enable gnutls support")
-    variant("bz2", default=True, description="Enable bzip2 support")
-    variant("lzma", default=True, description="Enable lzma support")
-    variant("openssl", default=True, description="Enable openssl support")
-    variant("zstd", default=True, description="Enable zstd support")
-    variant("mbedtls", default=True, description="Enable mbedtls support")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
-    depends_on("gnutls", when="+gnutls")
-    depends_on("bzip2", when="+bz2")
-    depends_on("lzma", when="+lzma")
-    depends_on("openssl", when="+openssl")
-    depends_on("zstd", when="+zstd")
-    depends_on("mbedtls", when="+mbedtls")
 
     def url_for_version(self, version):
         if version < Version("1.6"):
@@ -64,17 +53,20 @@ class Libzip(CMakePackage, AutotoolsPackage):
         conditional("cmake", when="@1.4:"), conditional("autotools", when="@:1.3"), default="cmake"
     )
 
-    def cmake_args(self):
-        """CMake options based on variants."""
-        args = [
-            self.define_from_variant("ENABLE_GNUTLS ", "gnutls"),
-            self.define_from_variant("ENABLE_MBEDTLS", "mbedtls"),
-            self.define_from_variant("ENABLE_OPENSSL", "openssl"),
-            self.define_from_variant("ENABLE_BZIP2", "bz2"),
-            self.define_from_variant("ENABLE_LZMA", "lzma"),
-            self.define_from_variant("ENABLE_ZSTD", "zstd"),
-        ]
-        return args
+    # Required dependencies
+    with when("build_system=cmake"):
+        variant("gnutls", default=True, description="Enable gnutls support")
+        variant("bz2", default=True, description="Enable bzip2 support")
+        variant("lzma", default=True, description="Enable lzma support")
+        variant("openssl", default=True, description="Enable openssl support")
+        variant("zstd", default=True, description="Enable zstd support")
+        variant("mbedtls", default=True, description="Enable mbedtls support")
+        depends_on("gnutls", when="+gnutls")
+        depends_on("bzip2", when="+bz2")
+        depends_on("lzma", when="+lzma")
+        depends_on("openssl", when="+openssl")
+        depends_on("zstd", when="+zstd")
+        depends_on("mbedtls", when="+mbedtls")
 
     @property
     def headers(self):
@@ -82,3 +74,14 @@ class Libzip(CMakePackage, AutotoolsPackage):
         return find_all_headers(
             self.prefix if self.spec.satisfies("@:1.3.0") else self.prefix.include
         )
+
+class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+    def cmake_args(self):
+        return [
+            self.define_from_variant("ENABLE_GNUTLS ", "gnutls"),
+            self.define_from_variant("ENABLE_MBEDTLS", "mbedtls"),
+            self.define_from_variant("ENABLE_OPENSSL", "openssl"),
+            self.define_from_variant("ENABLE_BZIP2", "bz2"),
+            self.define_from_variant("ENABLE_LZMA", "lzma"),
+            self.define_from_variant("ENABLE_ZSTD", "zstd"),
+        ]
