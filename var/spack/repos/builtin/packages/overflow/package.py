@@ -21,7 +21,7 @@ class Overflow(CMakePackage):
 
     version("2.4b", sha256="89ba0302477726ca5a49154bb4c50e96ce4c23ec2901f7b03d24e5a197566021")
     version("2.4c", sha256="a2fe09924817a408649c60c613a5eb7a655b454a91e6248a2fd6098b44b7dec3")
-    version("2.4c+", sha256="dd40fd73737617a5854b51f95e80f3e8e4ffbf7a5ca0405b00184ad7c980336c")
+    version("2.4c2", sha256="dd40fd73737617a5854b51f95e80f3e8e4ffbf7a5ca0405b00184ad7c980336c")
 
     variant("dp", default="False", description="Enable double precision.")
     variant("omp", default="False", description="Enable OpenMP parallelism.")
