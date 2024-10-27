@@ -93,5 +93,3 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         # Add zstd option if version is 1.8.0 or newer
         if self.spec.satisfies("@1.8:"):
             args.append(self.define_from_variant("ENABLE_ZSTD", "zstd"))
-
-
