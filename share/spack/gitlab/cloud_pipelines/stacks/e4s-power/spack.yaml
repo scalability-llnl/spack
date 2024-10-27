@@ -77,6 +77,7 @@ spack:
   - dxt-explorer
   - dyninst
   - exaworks
+  - fftx
   - flecsi
   - flit
   - flux-core
@@ -117,6 +118,7 @@ spack:
   - netlib-scalapack
   - nrm
   - nvhpc
+  - nwchem
   - omega-h
   - openfoam
   - openmpi

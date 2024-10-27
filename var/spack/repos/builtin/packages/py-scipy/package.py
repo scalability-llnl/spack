@@ -224,11 +224,18 @@ class PyScipy(PythonPackage):
     @when("@1.9:")
     def config_settings(self, spec, prefix):
         blas, lapack = self.spec["py-numpy"].package.blas_lapack_pkg_config()
+
+        if spec.satisfies("%aocc") or spec.satisfies("%clang@18:"):
+            fortran_std = "none"
+        else:
+            fortran_std = "legacy"
+
         return {
             "builddir": "build",
             "compile-args": f"-j{make_jobs}",
             "setup-args": {
                 # http://scipy.github.io/devdocs/building/blas_lapack.html
+                "-Dfortran_std": fortran_std,
                 "-Dblas": blas,
                 "-Dlapack": lapack,
             },

@@ -10,7 +10,6 @@ from typing import Tuple
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
-import spack.build_environment
 import spack.builder
 
 from .cmake import CMakeBuilder, CMakePackage
@@ -297,18 +296,6 @@ class CachedCMakeBuilder(CMakeBuilder):
     def std_initconfig_entries(self):
         cmake_prefix_path_env = os.environ["CMAKE_PREFIX_PATH"]
         cmake_prefix_path = cmake_prefix_path_env.replace(os.pathsep, ";")
-        cmake_rpaths_env = spack.build_environment.get_rpaths(self.pkg)
-        cmake_rpaths_path = ";".join(cmake_rpaths_env)
-        complete_rpath_list = cmake_rpaths_path
-        if "SPACK_COMPILER_EXTRA_RPATHS" in os.environ:
-            spack_extra_rpaths_env = os.environ["SPACK_COMPILER_EXTRA_RPATHS"]
-            spack_extra_rpaths_path = spack_extra_rpaths_env.replace(os.pathsep, ";")
-            complete_rpath_list = "{0};{1}".format(complete_rpath_list, spack_extra_rpaths_path)
-
-        if "SPACK_COMPILER_IMPLICIT_RPATHS" in os.environ:
-            spack_implicit_rpaths_env = os.environ["SPACK_COMPILER_IMPLICIT_RPATHS"]
-            spack_implicit_rpaths_path = spack_implicit_rpaths_env.replace(os.pathsep, ";")
-            complete_rpath_list = "{0};{1}".format(complete_rpath_list, spack_implicit_rpaths_path)
 
         return [
             "#------------------{0}".format("-" * 60),
@@ -318,8 +305,6 @@ class CachedCMakeBuilder(CMakeBuilder):
             "#------------------{0}\n".format("-" * 60),
             cmake_cache_string("CMAKE_PREFIX_PATH", cmake_prefix_path),
             cmake_cache_string("CMAKE_INSTALL_RPATH_USE_LINK_PATH", "ON"),
-            cmake_cache_string("CMAKE_BUILD_RPATH", complete_rpath_list),
-            cmake_cache_string("CMAKE_INSTALL_RPATH", complete_rpath_list),
             self.define_cmake_cache_from_variant("CMAKE_BUILD_TYPE", "build_type"),
         ]
 

@@ -113,8 +113,14 @@ class NodeJs(Package):
             #
             # /usr/bin/libtool
             # libtool: /usr/bin/libtool
+            #
+            # We specify -M -f (an empty list of man-path entries) to prevent man-page
+            # searching to avoid an Illegal seek error processing manpath results in CI,
+            # which prevents the last form:
             # libtool: /usr/bin/libtool /Applications/Xcode.app/.../share/man/man1/libtool.1
-            process_pipe = subprocess.Popen(["whereis", "libtool"], stdout=subprocess.PIPE)
+            process_pipe = subprocess.Popen(
+                ["whereis", "-M", "-f", "libtool"], stdout=subprocess.PIPE
+            )
             result_whereis_list = process_pipe.communicate()[0].strip().split()
             if len(result_whereis_list) == 1:
                 result_whereis = result_whereis_list[0]

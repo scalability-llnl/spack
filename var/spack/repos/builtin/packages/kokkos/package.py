@@ -414,7 +414,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         cmake = self.spec["cmake"].command
         cmake_args = ["-DEXECUTABLE_OUTPUT_PATH=" + cmake_path]
         if self.spec.satisfies("+rocm"):
-            prefix_paths = ";".join(spack.build_environment.get_cmake_prefix_path(self))
+            prefix_paths = ";".join(spack.build_systems.cmake.get_cmake_prefix_path(self))
             cmake_args.append("-DCMAKE_PREFIX_PATH={0}".format(prefix_paths))
 
         cmake(cmake_path, *cmake_args)

@@ -24,7 +24,9 @@ class Libmypaint(AutotoolsPackage):
     version("1.4.0", sha256="59d13b14c6aca0497095f29ee7228ca2499a923ba8e1dd718a2f2ecb45a9cbff")
     version("1.3.0", sha256="6a07d9d57fea60f68d218a953ce91b168975a003db24de6ac01ad69dcc94a671")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("gettext", type="build")
+    depends_on("pkgconfig", type="build")
 
     variant("gegl", default=False, description="Enable GEGL based code in build")
     variant("introspection", default=True, description="Enable introspection for this build")

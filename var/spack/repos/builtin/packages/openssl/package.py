@@ -18,8 +18,7 @@ class Openssl(Package):  # Uses Fake Autotools, should subclass Package
 
     homepage = "https://www.openssl.org"
 
-    # URL must remain http:// so Spack can bootstrap curl
-    url = "http://www.openssl.org/source/openssl-1.1.1d.tar.gz"
+    url = "https://www.openssl.org/source/openssl-1.1.1d.tar.gz"
     list_url = "https://www.openssl.org/source/old/"
     list_depth = 1
 

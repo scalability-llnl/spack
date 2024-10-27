@@ -30,8 +30,14 @@ class Pango(MesonPackage):
     version("1.47.0", sha256="730db8652fc43188e03218c3374db9d152351f51fc7011b9acae6d0a6c92c367")
     version("1.46.2", sha256="d89fab5f26767261b493279b65cfb9eb0955cd44c07c5628d36094609fc51841")
     version("1.45.5", sha256="f61dd911de2d3318b43bbc56bd271637a46f9118a1ee4378928c06df8a1c1705")
-    version("1.44.6", sha256="3e1e41ba838737e200611ff001e3b304c2ca4cdbba63d200a20db0b0ddc0f86c")
-    version("1.42.4", sha256="1d2b74cd63e8bd41961f2f8d952355aa0f9be6002b52c8aa7699d9f5da597c9d")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2019-1010238
+        version(
+            "1.44.6", sha256="3e1e41ba838737e200611ff001e3b304c2ca4cdbba63d200a20db0b0ddc0f86c"
+        )
+        version(
+            "1.42.4", sha256="1d2b74cd63e8bd41961f2f8d952355aa0f9be6002b52c8aa7699d9f5da597c9d"
+        )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated

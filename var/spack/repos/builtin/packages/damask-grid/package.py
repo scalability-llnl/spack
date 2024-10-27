@@ -10,13 +10,14 @@ from spack.package import *
 class DamaskGrid(CMakePackage):
     """Grid solver for DAMASK"""
 
-    homepage = "https://damask.mpie.de"
-    url = "https://damask.mpie.de/download/damask-3.0.0.tar.xz"
+    homepage = "https://damask-multiphysics.org"
+    url = "https://damask-multiphysics.org/download/damask-3.0.0.tar.xz"
 
     maintainers("MarDiehl")
 
     license("AGPL-3.0-or-later")
 
+    version("3.0.1", sha256="3db1231f6763356e71b3bb91f66f1abb4fdae2721ce85754fc468446f3d74882")
     version("3.0.0", sha256="aaebc65b3b10e6c313132ee97cfed427c115079b7e438cc0727c5207e159019f")
     version(
         "3.0.0-beta2", sha256="513567b4643f39e27ae32b9f75463fc6f388c1548d42f0393cc87ba02d075f6a"
@@ -43,6 +44,7 @@ class DamaskGrid(CMakePackage):
     depends_on("c", type="build")  # generated
     depends_on("fortran", type="build")  # generated
 
+    depends_on("petsc@3.21:3.22", when="@3.0.1:")
     depends_on("petsc@3.21", when="@3.0.0-beta2:")
     depends_on("petsc@3.20.3:3.20", when="@3.0.0-beta")
     depends_on("petsc@3.20.2:3.20", when="@3.0.0-alpha8")
@@ -60,7 +62,7 @@ class DamaskGrid(CMakePackage):
 
     # proper initialization of temperature to avoid segmentation fault. created by @MarDiehl
     patch("T-init.patch", when="@3.0.0-alpha7")
-    # relax Fortran sourc limit to 132 char to enable PETSc macro expansion. created by @MarDiehl
+    # relax Fortran source limit to 132 char to enable PETSc macro expansion. created by @MarDiehl
     patch("long-lines.patch", when="@3.0.0-alpha7")
     patch("CMakeDebugRelease.patch", when="@3.0.0-alpha4")
 

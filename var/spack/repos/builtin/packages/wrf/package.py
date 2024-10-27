@@ -260,6 +260,16 @@ class Wrf(Package):
     depends_on("libtool", type="build")
     depends_on("adios2", when="@4.5: +adios2")
 
+    requires(
+        "%gcc",
+        "%intel",
+        "%arm",
+        "%aocc",
+        "%fj",
+        "%oneapi",
+        policy="one_of",
+        msg="WRF supports only the GCC, Intel, AMD of Fujitsu compilers",
+    )
     conflicts(
         "%oneapi", when="@:4.3", msg="Intel oneapi compiler patch only added for version 4.4"
     )
@@ -417,11 +427,6 @@ class Wrf(Package):
     def configure(self, spec, prefix):
         # Remove broken default options...
         self.do_configure_fixup()
-
-        if self.spec.compiler.name not in ["intel", "gcc", "arm", "aocc", "fj", "oneapi"]:
-            raise InstallError(
-                "Compiler %s not currently supported for WRF build." % self.spec.compiler.name
-            )
 
         p = Popen("./configure", stdin=PIPE, stdout=PIPE, stderr=PIPE)
         if sys.platform != "win32":

@@ -1855,13 +1855,22 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         #
         # BSD Make:
         #     make: don't know how to make test. Stop
+        #
+        # Note: "Stop." is not printed when running a Make jobserver (spack env depfile) that runs
+        # with `make -k/--keep-going`
         missing_target_msgs = [
-            "No rule to make target `{0}'.  Stop.",
-            "No rule to make target '{0}'.  Stop.",
-            "don't know how to make {0}. Stop",
+            "No rule to make target `{0}'.",
+            "No rule to make target '{0}'.",
+            "don't know how to make {0}.",
         ]
 
-        kwargs = {"fail_on_error": False, "output": os.devnull, "error": str}
+        kwargs = {
+            "fail_on_error": False,
+            "output": os.devnull,
+            "error": str,
+            # Remove MAKEFLAGS to avoid inherited flags from Make jobserver (spack env depfile)
+            "extra_env": {"MAKEFLAGS": ""},
+        }
 
         stderr = make("-n", target, **kwargs)
 

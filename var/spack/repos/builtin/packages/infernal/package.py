@@ -28,7 +28,11 @@ class Infernal(AutotoolsPackage):
 
     # v1.1.4 and below do not build on aarch64
     # https://github.com/EddyRivasLab/infernal/issues/30
-    conflicts("target=aarch64:", when="@:1.1.4", msg="infernal is only available for x86_64 and PowerPC")
+    conflicts(
+        "target=aarch64:",
+        when="@:1.1.4",
+        msg="infernal v1.1.4 and below are only available for x86_64 and PowerPC",
+    )
 
     def configure_args(self):
         args = []

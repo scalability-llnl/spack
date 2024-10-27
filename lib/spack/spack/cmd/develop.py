@@ -85,8 +85,14 @@ def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
 
 
 def develop(parser, args):
+    # Note: we could put develop specs in any scope, but I assume
+    # users would only ever want to do this for either (a) an active
+    # env or (b) a specified config file (e.g. that is included by
+    # an environment)
+    # TODO: when https://github.com/spack/spack/pull/35307 is merged,
+    # an active env is not required if a scope is specified
+    env = spack.cmd.require_active_env(cmd_name="develop")
     if not args.spec:
-        env = spack.cmd.require_active_env(cmd_name="develop")
         if args.clone is False:
             raise SpackError("No spec provided to spack develop command")
 
@@ -116,16 +122,18 @@ def develop(parser, args):
         raise SpackError("spack develop requires at most one named spec")
 
     spec = specs[0]
+
     version = spec.versions.concrete_range_as_version
     if not version:
-        raise SpackError("Packages to develop must have a concrete version")
+        # look up the maximum version so infintiy versions are preferred for develop
+        version = max(spec.package_class.versions.keys())
+        tty.msg(f"Defaulting to highest version: {spec.name}@{version}")
     spec.versions = spack.version.VersionList([version])
 
     # If user does not specify --path, we choose to create a directory in the
     # active environment's directory, named after the spec
     path = args.path or spec.name
     if not os.path.isabs(path):
-        env = spack.cmd.require_active_env(cmd_name="develop")
         abspath = spack.util.path.canonicalize_path(path, default_wd=env.path)
     else:
         abspath = path
@@ -149,13 +157,6 @@ def develop(parser, args):
 
         _retrieve_develop_source(spec, abspath)
 
-    # Note: we could put develop specs in any scope, but I assume
-    # users would only ever want to do this for either (a) an active
-    # env or (b) a specified config file (e.g. that is included by
-    # an environment)
-    # TODO: when https://github.com/spack/spack/pull/35307 is merged,
-    # an active env is not required if a scope is specified
-    env = spack.cmd.require_active_env(cmd_name="develop")
     tty.debug("Updating develop config for {0} transactionally".format(env.name))
     with env.write_transaction():
         if args.build_directory is not None:

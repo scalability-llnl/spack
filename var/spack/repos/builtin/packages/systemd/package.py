@@ -17,6 +17,7 @@ class Systemd(MesonPackage):
     url = "https://github.com/systemd/systemd/archive/refs/tags/v255.tar.gz"
     license("GPL-2.0-only")
 
+    version("256.7", sha256="896d76ff65c88f5fd9e42f90d152b0579049158a163431dd77cdc57748b1d7b0")
     version("255", sha256="28854ffb2cb5f9e07fcbdbaf1e03a80b3462a12edeef84893ca2f37b22e4491e")
 
     depends_on("c", type="build")  # generated

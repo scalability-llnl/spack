@@ -638,14 +638,7 @@ class Hip(CMakePackage):
             test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir_old)
         elif self.spec.satisfies("@5.6:"):
             test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)
-        prefixes = ";".join(
-            [
-                self.spec["hip"].prefix,
-                self.spec["llvm-amdgpu"].prefix,
-                self.spec["comgr"].prefix,
-                self.spec["hsa-rocr-dev"].prefix,
-            ]
-        )
+        prefixes = ";".join(spack.build_environment.get_cmake_prefix_path(self))
         cc_options = ["-DCMAKE_PREFIX_PATH=" + prefixes, ".."]
 
         amdclang_path = join_path(self.spec["llvm-amdgpu"].prefix, "bin", "amdclang++")

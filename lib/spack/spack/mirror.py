@@ -89,9 +89,8 @@ class Mirror:
         """Create an anonymous mirror by URL. This method validates the URL."""
         if not urllib.parse.urlparse(url).scheme in supported_url_schemes:
             raise ValueError(
-                '"{}" is not a valid mirror URL. Scheme must be once of {}.'.format(
-                    url, ", ".join(supported_url_schemes)
-                )
+                f'"{url}" is not a valid mirror URL. '
+                f"Scheme must be one of {supported_url_schemes}."
             )
         return Mirror(url)
 
@@ -759,7 +758,7 @@ def require_mirror_name(mirror_name):
     """Find a mirror by name and raise if it does not exist"""
     mirror = spack.mirror.MirrorCollection().get(mirror_name)
     if not mirror:
-        raise ValueError('no mirror named "{0}"'.format(mirror_name))
+        raise ValueError(f'no mirror named "{mirror_name}"')
     return mirror
 
 
