@@ -214,7 +214,7 @@ class Ffmpeg(AutotoolsPackage):
 
         if spec.satisfies("@7:"):
             drawtext_opts.append("libharfbuzz")
-            
+
         config_args += self.enable_or_disable_meta("drawtext", drawtext_opts)
 
         # other variants #
