@@ -126,7 +126,7 @@ def solve(parser, args):
     # If we have an active environment, pick the specs from there
     env = spack.environment.active_environment()
     if args.specs:
-        specs = spack.cmd_parse_specs(args.specs)
+        specs = spack.cmd.parse_specs(args.specs)
     elif env:
         specs = list(env.user_specs)
     else:
