@@ -32,7 +32,6 @@ import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 from llnl.util.link_tree import LinkTree
 
-import spack.build_environment
 import spack.builder
 import spack.compilers
 import spack.config
@@ -50,7 +49,6 @@ import spack.spec
 import spack.store
 import spack.url
 import spack.util.environment
-import spack.util.executable
 import spack.util.path
 import spack.util.web
 from spack.error import InstallError, NoURLError, PackageError

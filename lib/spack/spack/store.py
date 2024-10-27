@@ -33,7 +33,6 @@ import spack.directory_layout
 import spack.error
 import spack.paths
 import spack.spec
-import spack.store
 import spack.util.path
 
 #: default installation root, relative to the Spack install path
@@ -308,7 +307,7 @@ def find(
 
     matching_specs: List[spack.spec.Spec] = []
     errors = []
-    query_fn = query_fn or spack.store.STORE.db.query
+    query_fn = query_fn or STORE.db.query
     for spec in constraints:
         current_matches = query_fn(spec, **kwargs)
 
@@ -341,7 +340,7 @@ def specfile_matches(filename: str, **kwargs) -> List["spack.spec.Spec"]:
         **kwargs: keyword arguments forwarded to "find"
     """
     query = [spack.spec.Spec.from_specfile(filename)]
-    return spack.store.find(query, **kwargs)
+    return find(query, **kwargs)
 
 
 def ensure_singleton_created() -> None:

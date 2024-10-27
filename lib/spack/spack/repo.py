@@ -39,7 +39,6 @@ import spack.config
 import spack.error
 import spack.patch
 import spack.provider_index
-import spack.repo
 import spack.spec
 import spack.tag
 import spack.util.git
@@ -216,9 +215,9 @@ NOT_PROVIDED = object()
 def packages_path():
     """Get the test repo if it is active, otherwise the builtin repo."""
     try:
-        return spack.repo.PATH.get_repo("builtin.mock").packages_path
-    except spack.repo.UnknownNamespaceError:
-        return spack.repo.PATH.get_repo("builtin").packages_path
+        return PATH.get_repo("builtin.mock").packages_path
+    except UnknownNamespaceError:
+        return PATH.get_repo("builtin").packages_path
 
 
 class GitExe:
@@ -314,7 +313,7 @@ def add_package_to_git_stage(packages):
     git = GitExe()
 
     for pkg_name in packages:
-        filename = spack.repo.PATH.filename_for_package_name(pkg_name)
+        filename = PATH.filename_for_package_name(pkg_name)
         if not os.path.isfile(filename):
             tty.die("No such package: %s.  Path does not exist:" % pkg_name, filename)
 
@@ -1585,7 +1584,7 @@ class UnknownPackageError(UnknownEntityError):
                 long_msg = "Use 'spack create' to create a new package."
 
                 if not repo:
-                    repo = spack.repo.PATH
+                    repo = PATH
 
                 # We need to compare the base package name
                 pkg_name = name.rsplit(".", 1)[-1]
