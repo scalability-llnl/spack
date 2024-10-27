@@ -12,8 +12,9 @@ class Opencolorio(CMakePackage):
 
     homepage = "https://opencolorio.readthedocs.io"
     git = "https://github.com/AcademySoftwareFoundation/OpenColorIO"
-    url = "https://github.com/AcademySoftwareFoundation/OpenColorIO/archive/refs/tags/v2.4.0.tar.gz"
-
+    url = (
+        "https://github.com/AcademySoftwareFoundation/OpenColorIO/archive/refs/tags/v2.4.0.tar.gz"
+    )
     license("Apache-2.0")
 
     version("2.4.0", sha256="0ff3966b9214da0941b2b1cbdab3975a00a51fc6f3417fa860f98f5358f2c282")
@@ -24,7 +25,6 @@ class Opencolorio(CMakePackage):
     depends_on("yaml-cpp@0.6.3:")
     depends_on("imath@3.0.5:")
     depends_on("pystring@1.1.3:")
-
 
     # Optional dependencies
     variant("lcms", default=False, description="Little CMS for ociobakelut")
