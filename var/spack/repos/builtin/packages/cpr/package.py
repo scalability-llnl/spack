@@ -12,6 +12,7 @@ class Cpr(CMakePackage):
     homepage = "https://docs.libcpr.org/"
     url = "https://github.com/libcpr/cpr/archive/refs/tags/1.10.4.tar.gz"
 
+    maintainers("prudhomm")
     license("MIT")
 
     version("1.11.0", sha256="fdafa3e3a87448b5ddbd9c7a16e7276a78f28bbe84a3fc6edcfef85eca977784")
