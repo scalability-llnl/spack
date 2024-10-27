@@ -83,7 +83,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             self.define_from_variant("ENABLE_GNUTLS", "gnutls"),
             self.define_from_variant("ENABLE_MBEDTLS", "mbedtls"),
             self.define_from_variant("ENABLE_OPENSSL", "openssl"),
-            self.define_from_variant("ENABLE_BZIP2", "bz2"),
+            self.define_from_variant("ENABLE_BZIP2", "bzip2"),
             self.define_from_variant("ENABLE_LZMA", "lzma"),
             self.define_from_variant("ENABLE_ZSTD", "zstd"),
         ]
