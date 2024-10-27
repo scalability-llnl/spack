@@ -57,13 +57,13 @@ class Libzip(CMakePackage, AutotoolsPackage):
     # Required dependencies
     with when("build_system=cmake"):
         variant("gnutls", default=True, description="Enable gnutls support")
-        variant("bz2", default=True, description="Enable bzip2 support")
+        variant("bzip2", default=True, description="Enable bzip2 support")
         variant("lzma", default=True, description="Enable lzma support")
         variant("openssl", default=True, description="Enable openssl support")
         variant("zstd", default=True, description="Enable zstd support")
         variant("mbedtls", default=True, description="Enable mbedtls support")
         depends_on("gnutls", when="+gnutls")
-        depends_on("bzip2", when="+bz2")
+        depends_on("bzip2", when="+bzip2")
         depends_on("lzma", when="+lzma")
         depends_on("openssl", when="+openssl")
         depends_on("zstd", when="+zstd")
@@ -80,7 +80,7 @@ class Libzip(CMakePackage, AutotoolsPackage):
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
         return [
-            self.define_from_variant("ENABLE_GNUTLS ", "gnutls"),
+            self.define_from_variant("ENABLE_GNUTLS", "gnutls"),
             self.define_from_variant("ENABLE_MBEDTLS", "mbedtls"),
             self.define_from_variant("ENABLE_OPENSSL", "openssl"),
             self.define_from_variant("ENABLE_BZIP2", "bz2"),
