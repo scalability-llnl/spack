@@ -200,6 +200,9 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("aws-sdk-cpp", when="+aws")
     depends_on("libcatalyst@2", when="+libcatalyst")
 
+    # error: invalid use of incomplete type 'PyFrameObject' {aka 'struct _frame'}
+    conflicts("^python@3.11:", when="@:2.7")
+
     # Fix findmpi when called by dependees
     # See https://github.com/ornladios/ADIOS2/pull/1632
     patch("cmake-update-findmpi.patch", when="@2.4.0")
