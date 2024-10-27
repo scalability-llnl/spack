@@ -2747,7 +2747,7 @@ complete -c spack -n '__fish_spack_using_command restage' -s h -l help -f -a hel
 complete -c spack -n '__fish_spack_using_command restage' -s h -l help -d 'show this help message and exit'
 
 # spack solve
-set -g __fish_spack_optspecs_spack_solve h/help show= l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json c/cover= t/types timers stats U/fresh reuse fresh-roots deprecated
+set -g __fish_spack_optspecs_spack_solve h/help show= l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json c/cover= t/types timers stats profile U/fresh reuse fresh-roots deprecated
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 solve' -f -k -a '(__fish_spack_specs_or_id)'
 complete -c spack -n '__fish_spack_using_command solve' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command solve' -s h -l help -d 'show this help message and exit'
@@ -2775,6 +2775,8 @@ complete -c spack -n '__fish_spack_using_command solve' -l timers -f -a timers
 complete -c spack -n '__fish_spack_using_command solve' -l timers -d 'print out timers for different solve phases'
 complete -c spack -n '__fish_spack_using_command solve' -l stats -f -a stats
 complete -c spack -n '__fish_spack_using_command solve' -l stats -d 'print out statistics from clingo'
+complete -c spack -n '__fish_spack_using_command solve' -l profile -f -a profile
+complete -c spack -n '__fish_spack_using_command solve' -l profile -d 'profile the solve phase and print out statistics on atoms'
 complete -c spack -n '__fish_spack_using_command solve' -s U -l fresh -f -a concretizer_reuse
 complete -c spack -n '__fish_spack_using_command solve' -s U -l fresh -d 'do not reuse installed deps; build newest configuration'
 complete -c spack -n '__fish_spack_using_command solve' -l reuse -f -a concretizer_reuse
