@@ -66,8 +66,12 @@ class Libzip(CMakePackage, AutotoolsPackage):
         depends_on("bzip2", when="+bzip2")
         depends_on("lzma", when="+lzma")
         depends_on("openssl", when="+openssl")
-        depends_on("zstd", when="+zstd")
         depends_on("mbedtls", when="+mbedtls")
+
+        # zstd support starts with version 1.8.0
+        with when("@1.8:"):
+            variant("zstd", default=True, description="Enable zstd support")
+            depends_on("zstd", when="+zstd")
 
     @property
     def headers(self):
@@ -85,5 +89,9 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             self.define_from_variant("ENABLE_OPENSSL", "openssl"),
             self.define_from_variant("ENABLE_BZIP2", "bzip2"),
             self.define_from_variant("ENABLE_LZMA", "lzma"),
-            self.define_from_variant("ENABLE_ZSTD", "zstd"),
         ]
+        # Add zstd option if version is 1.8.0 or newer
+        if self.spec.satisfies("@1.8:"):
+            args.append(self.define_from_variant("ENABLE_ZSTD", "zstd"))
+
+
