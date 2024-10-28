@@ -39,11 +39,13 @@ class Occa(Package):
     depends_on("fortran", type="build")  # generated
 
     variant("cuda", default=True, description="Activates support for CUDA")
+    variant("hip", default=True, description="Activates support for HIP")
     variant("openmp", default=True, description="Activates support for OpenMP")
     variant("opencl", default=True, description="Activates support for OpenCL")
 
     depends_on("cuda", when="+cuda")
     depends_on("gmake", type="build")
+    depends_on("hip", when="+hip")
 
     conflicts("%gcc@6:", when="^cuda@:8")
     conflicts("%gcc@7:", when="^cuda@:9")
@@ -71,6 +73,11 @@ class Occa(Package):
             cuda_dir = spec["cuda"].prefix
             # Run-time CUDA compiler:
             s_env.set("OCCA_CUDA_COMPILER", join_path(cuda_dir, "bin", "nvcc"))
+
+        if "+hip" in spec:
+            hip_dir = spec["hip"].prefix
+            # Run-time HIP compiler:
+            s_env.set("OCCA_HIP_COMPILER", join_path(hip_dir, "bin", "hipcc"))
 
     def setup_build_environment(self, env):
         spec = self.spec
@@ -101,8 +108,14 @@ class Occa(Package):
         else:
             env.set("OCCA_CUDA_ENABLED", "0")
 
-        # Disable hip autodetection for now since it fails on some machines.
-        env.set("OCCA_HIP_ENABLED", "0")
+        if "+hip" in spec:
+            hip_dir = spec["hip"].prefix
+            hip_libs_list = ["amdhip64"]
+            hip_libs = find_libraries(hip_libs_list, hip_dir, shared=True, recursive=True)
+            env.set("OCCA_INCLUDE_PATH", hip_dir.include)
+            env.set("OCCA_LIBRARY_PATH", ":".join(hip_libs.directories))
+        else:
+            env.set("OCCA_HIP_ENABLED", "0")
 
         if "~opencl" in spec:
             env.set("OCCA_OPENCL_ENABLED", "0")
