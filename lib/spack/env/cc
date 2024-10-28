@@ -101,10 +101,9 @@ setsep() {
     esac
 }
 
-# prepend LISTNAME ELEMENT [SEP]
+# prepend LISTNAME ELEMENT
 #
-# Prepend ELEMENT to the list stored in the variable LISTNAME,
-# assuming the list is separated by SEP.
+# Prepend ELEMENT to the list stored in the variable LISTNAME.
 # Handles empty lists and single-element lists.
 prepend() {
     varname="$1"
@@ -682,7 +681,36 @@ categorize_arguments() {
             "$dtags_to_strip")
                 ;;
             *)
-                append return_other_args_list "$1"
+                # if mode is not ld, we can just add to other args
+                if [ "$mode" != "ld" ]; then
+                    append return_other_args_list "$1"
+                    shift
+                    continue
+                fi
+
+                # if we're in linker mode, we need to parse raw RPATH args
+                case "$1" in
+                    -rpath=*)
+                        arg="${1#-rpath=}"
+                        append_path_lists return_rpath_dirs_list "$arg"
+                        ;;
+                    --rpath=*)
+                        arg="${1#--rpath=}"
+                        append_path_lists return_rpath_dirs_list "$arg"
+                        ;;
+                    -rpath|--rpath)
+                        if [ $# -eq 1 ]; then
+                            # -rpath without value: let the linker raise an error.
+                            append return_other_args_list "$1"
+                            break
+                        fi
+                        shift
+                        append_path_lists return_rpath_dirs_list "$1"
+                        ;;
+                    *)
+                        append return_other_args_list "$1"
+                        ;;
+                esac
                 ;;
         esac
         shift
@@ -890,34 +918,33 @@ extend args_list system_spack_flags_lib_dirs_list "-L"
 extend args_list system_lib_dirs_list "-L"
 
 # RPATHs arguments
+rpath_prefix=""
 case "$mode" in
     ccld)
         if [ -n "$dtags_to_add" ] ; then
             append args_list "$linker_arg$dtags_to_add"
         fi
-        extend args_list spack_store_spack_flags_rpath_dirs_list "$rpath"
-        extend args_list spack_store_rpath_dirs_list "$rpath"
-
-        extend args_list spack_flags_rpath_dirs_list "$rpath"
-        extend args_list rpath_dirs_list "$rpath"
-
-        extend args_list system_spack_flags_rpath_dirs_list "$rpath"
-        extend args_list system_rpath_dirs_list "$rpath"
+        rpath_prefix="$rpath"
         ;;
     ld)
         if [ -n "$dtags_to_add" ] ; then
             append args_list "$dtags_to_add"
         fi
-        extend args_list spack_store_spack_flags_rpath_dirs_list "-rpath${lsep}"
-        extend args_list spack_store_rpath_dirs_list "-rpath${lsep}"
-
-        extend args_list spack_flags_rpath_dirs_list "-rpath${lsep}"
-        extend args_list rpath_dirs_list "-rpath${lsep}"
-
-        extend args_list system_spack_flags_rpath_dirs_list "-rpath${lsep}"
-        extend args_list system_rpath_dirs_list "-rpath${lsep}"
+        rpath_prefix="-rpath${lsep}"
         ;;
 esac
+
+# if mode is ccld or ld, extend RPATH lists with the prefix determined above
+if [ -n "$rpath_prefix" ]; then
+    extend args_list spack_store_spack_flags_rpath_dirs_list "$rpath_prefix"
+    extend args_list spack_store_rpath_dirs_list "$rpath_prefix"
+
+    extend args_list spack_flags_rpath_dirs_list "$rpath_prefix"
+    extend args_list rpath_dirs_list "$rpath_prefix"
+
+    extend args_list system_spack_flags_rpath_dirs_list "$rpath_prefix"
+    extend args_list system_rpath_dirs_list "$rpath_prefix"
+fi
 
 # Other arguments from the input command
 extend args_list other_args_list
