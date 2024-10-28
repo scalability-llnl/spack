@@ -3123,3 +3123,14 @@ packages:
     mutable_config.set("packages", packages_yaml["packages"])
     s = spack.concretize.concretize_one("libelf %gcc@9.4")
     assert s["c"].satisfies("gcc@9.4.0")
+
+
+def test_compiler_can_depend_on_themselves_to_build(config, mock_packages):
+    """Tests that a compiler can depend on itself to bootstrap."""
+    s = Spec("gcc@14 %gcc@9.4.0").concretized()
+    print(s.tree())
+    assert s.satisfies("gcc@14")
+    assert s.satisfies("^gcc-runtime@9.4.0")
+
+    gcc_used_to_build = s.dependencies(name="gcc", virtuals=("c",))
+    assert len(gcc_used_to_build) == 1 and gcc_used_to_build[0].satisfies("gcc@9.4.0")
