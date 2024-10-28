@@ -1807,7 +1807,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
                     tty.debug(message.format(s=self))
 
             for resource in self._get_needed_resources():
-                sources.append(resource.fetcher.spec_attrs())
+                sources.append(resource.fetcher.source_provenance())
 
             if sources:
                 hashes["sources"] = sources
@@ -1817,7 +1817,9 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         # We check spec._patches_assigned instead of spec.concrete because
         # we have to call package_hash *before* marking specs concrete
         if self.spec._patches_assigned():
-            hashes["patches"] = [p.sha256 for p in self.spec.patches]
+            hashes["patches"] = [
+                {"sha256": patch.sha256, "level": patch.level} for patch in self.spec.patches
+            ]
 
         # package.py contents
         hashes["package_hash"] = ph.package_hash(self.spec, source=content)
