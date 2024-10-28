@@ -255,7 +255,7 @@ spack:
                 e.install_all()
 
 
-@pytest.mark.usefixtures("config", "mock_packages")
+@pytest.mark.usefixtures("config", "mock_packages", "working_env")
 class TestCMakePackage:
     def test_cmake_std_args(self, default_mock_concretization):
         # Call the function on a CMakePackage instance
