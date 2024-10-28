@@ -12,6 +12,7 @@ from llnl.util import lang
 
 import spack.error
 import spack.multimethod
+import spack.repo
 
 #: Builder classes, as registered by the "builder" decorator
 BUILDER_CLS = {}
@@ -100,7 +101,7 @@ def _create(pkg):
     default_builder_cls = BUILDER_CLS[package_buildsystem]
     builder_cls_name = default_builder_cls.__name__
     builder_cls = getattr(pkg.module, builder_cls_name, None)
-    if builder_cls:
+    if builder_cls and builder_cls.__module__.startswith(spack.repo.ROOT_PYTHON_NAMESPACE):
         return builder_cls(pkg)
 
     # Specialized version of a given buildsystem can subclass some
