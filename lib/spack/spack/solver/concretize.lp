@@ -1095,6 +1095,10 @@ error(100, "{0} and {1} cannot both propagate variant '{2}'", Package1, Package2
   propagate(node(X, Package1), variant_value(Variant, Value1)),
   propagate(node(Y, Package2), variant_value(Variant, Value2)),
 
+  % The variant is a singlevalued variant
+  node_has_variant(node(X, Package), Variant, VariantID),
+  not variant_type(VariantID, "multi"),
+
   % Package1 and Package2 and their values are different
   Package1 != Package2,
   Value1 != Value2,
