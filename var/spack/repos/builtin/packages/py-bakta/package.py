@@ -23,7 +23,7 @@ class PyBakta(PythonPackage):
 
     variant("deepsig", default=True, description="builds with deepsig to predict signal peptides")
 
-    depends_on("python@3.8:", type=("build", "run"))
+    depends_on("python@3.8:3.10", type=("build", "run"))
     depends_on("py-setuptools", type=("build", "run"))
     depends_on("py-biopython@1.78:", type=("build", "run"))
     depends_on("py-xopen@1.5.0:", when="@1.8.2:", type=("build", "run"))
