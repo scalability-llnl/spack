@@ -37,6 +37,7 @@ from llnl.util.lang import GroupedExceptionHandler
 import spack.binary_distribution
 import spack.config
 import spack.detection
+import spack.mirror
 import spack.platforms
 import spack.spec
 import spack.store
@@ -44,7 +45,6 @@ import spack.user_environment
 import spack.util.executable
 import spack.util.path
 import spack.util.spack_yaml
-import spack.util.url
 import spack.version
 from spack.installer import PackageInstaller
 
@@ -91,12 +91,7 @@ class Bootstrapper:
         self.metadata_dir = spack.util.path.canonicalize_path(conf["metadata"])
 
         # Promote (relative) paths to file urls
-        url = conf["info"]["url"]
-        if spack.util.url.is_path_instead_of_url(url):
-            if not os.path.isabs(url):
-                url = os.path.join(self.metadata_dir, url)
-            url = spack.util.url.path_to_file_url(url)
-        self.url = url
+        self.url = spack.mirror.Mirror(conf["info"]["url"]).fetch_url
 
     @property
     def mirror_scope(self) -> spack.config.InternalConfigScope:
