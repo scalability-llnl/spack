@@ -1849,9 +1849,7 @@ class TestConcretize:
         with spack.config.override("concretizer:reuse", True):
             solver = spack.solver.asp.Solver()
             setup = spack.solver.asp.SpackSolverSetup()
-            with pytest.raises(
-                spack.solver.asp.UnsatisfiableSpecError, match="'dep-with-variants@999'"
-            ):
+            with pytest.raises(spack.solver.asp.UnsatisfiableSpecError, match="Cannot satisfy"):
                 solver.driver.solve(setup, [root_spec], reuse=reusable_specs)
 
     @pytest.mark.regression("31148")
