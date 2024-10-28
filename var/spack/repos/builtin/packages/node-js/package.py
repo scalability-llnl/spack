@@ -94,6 +94,10 @@ class NodeJs(Package):
     # See https://github.com/nodejs/node/issues/52223
     patch("fix-old-glibc-random-headers.patch", when="^glibc@:2.24")
 
+    def patch(self):
+        if self.spec.satisfies("@22.2:%gcc@:10"):
+            filter_file("-std=c++20", "-std=c++2a", "common_node.gypi", string=True)
+
     def setup_build_environment(self, env):
         # Force use of experimental Python 3 support
         env.set("PYTHON", self.spec["python"].command.path)
