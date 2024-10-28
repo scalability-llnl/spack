@@ -156,7 +156,6 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
 
         args = [
             self.define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx),
-            self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc),
             self.define("Trilinos_DIR", spec["trilinos"].prefix),
             self.define("YAML_DIR", spec["yaml-cpp"].prefix),
             self.define("CMAKE_CXX_STANDARD", "17"),
