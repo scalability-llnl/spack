@@ -641,7 +641,12 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         values=("kiss", "fftw3", "mkl"),
         multi=False,
     )
-    variant("heffte", default=False, when="+kspace @20240207:", description="Use heffte as distubuted FFT engine")
+    variant(
+        "heffte",
+        default=False,
+        when="+kspace @20240207:",
+        description="Use heffte as distubuted FFT engine",
+    )
 
     variant(
         "fft_kokkos",
