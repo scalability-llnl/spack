@@ -13,9 +13,15 @@ _versions = {
     "1.24": {
         "Linux-x86_64": (
             "44b5df419195d310546050481e6c929d42135e61e6254f453a8feda1ef44008e",
-            "https://acdl.mit.edu/ESP/PreBuilts/ESP124-linux-x86_64.tgz",
+            "https://acdl.mit.edu/ESP/archive/ESP124-linux-x86_64.tgz",
         )
     },
+    #"1.26": {
+    #    "Linux-x86_64": (
+    #        "14fa4c5579571976de4c88ca3327299fd6c163bb0cc37cfcedb7ad25f57b774d",
+    #        "https://acdl.mit.edu/ESP/PreBuilts/ESP126-linux-x86_64.tgz",
+    #    )
+    #},
 }
 
 class Esp(Package):
