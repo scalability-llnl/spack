@@ -45,7 +45,7 @@ class PyBakta(PythonPackage):
     depends_on("hmmer@3.3.2:", when="@:1.8.1", type=("build", "run"))
     depends_on("py-pyhmmer@0.10.4:", when="@1.9.4:", type=("build", "run"))
     depends_on("py-pyhmmer@0.10.0:", when="@1.8.2:1.9.3", type=("build", "run"))
-    depends_on("diamond@2.1.8", when="@1.9.0:", type=("build", "run"))
+    depends_on("diamond@2.1.8:", when="@1.9.0:", type=("build", "run"))
     depends_on("diamond@2.0.14:", when="@:1.8.2", type=("build", "run"))
     depends_on("blast-plus@2.14.0:", when="@1.9.0:", type=("build", "run"))
     depends_on("blast-plus@2.12.0:", when="@:1.8.2", type=("build", "run"))
