@@ -108,7 +108,7 @@ class Ffmpeg(AutotoolsPackage):
     depends_on("fontconfig", when="+drawtext")
     depends_on("freetype", when="+drawtext")
     depends_on("fribidi", when="+drawtext")
-    depends_on("harfbuzz", when="+drawtext")
+    depends_on("harfbuzz", when="+drawtext @7:")
     depends_on("lame", when="+libmp3lame")
     depends_on("libssh", when="+libssh")
     depends_on("libvorbis", when="+libvorbis")
