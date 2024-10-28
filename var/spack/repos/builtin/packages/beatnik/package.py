@@ -47,13 +47,13 @@ class Beatnik(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("kokkos +wrapper", when="%gcc+cuda")
 
     # Cabana dependencies
-    depends_on("cabana @0.6.0 +grid +heffte +silo +hdf5 +mpi")
+    depends_on("cabana @master +grid +heffte +silo +hdf5 +mpi")
     depends_on("cabana +cuda", when="+cuda")
     depends_on("cabana +rocm", when="+rocm")
 
     # Silo dependencies
     depends_on("silo @4.11:")
-    depends_on("silo @4.11.1:", when="%cce")  # Eariler silo versions have trouble cce
+    depends_on("silo @4.11.1 +fpzip+hzip~python", when="%cce")  # Eariler silo versions have trouble cce
 
     # Heffte dependencies - We always require FFTW so that there's a host
     # backend even when we're compiling for GPUs
