@@ -1088,11 +1088,25 @@ variant_is_propagated(PackageNode, Variant) :-
    attr("variant_selected", PackageNode, Variant, Value, _, _),
    not propagate(PackageNode, variant_value(Variant, Value)).
 
-% Cannot propagate the same variant from two distinct sources
-error(100, "{0} and {1} cannot both propagate variant '{2}'", Source1, Source2, Variant) :-
-  variant_is_propagated(node(X, Source1), variant_value(Variant, _)),
-  variant_is_propagated(node(Y, Source2), variant_value(Variant, _)),
-  Source1 < Source2.
+% TODO: This will show the error message twice switching the values for Pkg1 & Pkg2
+% Cannot propagate the same variant from two distinct sources that have the same dependency
+error(100, "{0} and {1} cannot both propagate variant '{2}'", Package1, Package2, Variant) :-
+  % Package1 and Packag2 is set to propagate Variant
+  propagate(node(X, Package1), variant_value(Variant, Value1)),
+  propagate(node(Y, Package2), variant_value(Variant, Value2)),
+
+  % Package1 and Package2 and their values are different
+  Package1 != Package2,
+  Value1 != Value2,
+
+  propagate(node(X, Package1), variant_value(Variant, Value1)),
+  not 1 {propagate(SourceParent, variant_value(Variant, Value1)): depends_on(SourceParent, node(X, Package1))}
+
+  propagate(node(Y, Package2), variant_value(Variant, Value2)),
+  not 1 {propagate(SourceParent, variant_value(Variant, Value2)): depends_on(SourceParent, node(Y, Package2))}
+
+  % Package1 depends on Package2 or they share a dependency
+  depends_on(node(X, Package1), node(Y, Package2)).
 
 % Cannot propagate a variant if a different value was set for it in a dependency
 error(100, "Cannot propagate the variant '{0}' from the package: {1} because package: {2} is set to exclude it", Variant, Source, Package) :-
