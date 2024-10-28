@@ -104,6 +104,7 @@ class Texlive(AutotoolsPackage):
     depends_on("teckit")
     depends_on("zlib-api")
     depends_on("zziplib")
+    depends_on("lua-lpeg", when="@20240312:")
 
     build_directory = "spack-build"
 
@@ -152,9 +153,17 @@ class Texlive(AutotoolsPackage):
         # Create and run setup utilities
         fmtutil_sys = Executable(join_path(self.prefix.bin, self.tex_arch(), "fmtutil-sys"))
         mktexlsr = Executable(join_path(self.prefix.bin, self.tex_arch(), "mktexlsr"))
-        mtxrun = Executable(join_path(self.prefix.bin, self.tex_arch(), "mtxrun"))
         mktexlsr()
         fmtutil_sys("--all")
+        if self.spec.satisfies("@:2023"):
+            mtxrun = Executable(join_path(self.prefix.bin, self.tex_arch(), "mtxrun"))
+        else:
+            mtxrun_lua = join_path(
+                self.prefix, "texmf-dist", "scripts", "context", "lua", "mtxrun.lua"
+            )
+            chmod = which("chmod")
+            chmod("+x", mtxrun_lua)
+            mtxrun = Executable(mtxrun_lua)
         mtxrun("--generate")
 
     def setup_build_environment(self, env):

@@ -521,10 +521,6 @@ class Builder(collections.abc.Sequence, metaclass=BuilderMeta):
     def prefix(self):
         return self.pkg.prefix
 
-    def test(self):
-        # Defer tests to virtual and concrete packages
-        pass
-
     def setup_build_environment(self, env):
         """Sets up the build environment for a package.
 

@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import codecs
-import concurrent.futures
 import email.message
 import errno
 import json
@@ -30,6 +29,7 @@ from llnl.util.filesystem import mkdirp, rename, working_dir
 import spack.config
 import spack.error
 import spack.util.executable
+import spack.util.parallel
 import spack.util.path
 import spack.util.url as url_util
 
@@ -641,7 +641,7 @@ def spider(
         root = urllib.parse.urlparse(root_str)
         spider_args.append((root, go_deeper, _visited))
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=concurrency) as tp:
+    with spack.util.parallel.make_concurrent_executor(concurrency, require_fork=False) as tp:
         while current_depth <= depth:
             tty.debug(
                 f"SPIDER: [depth={current_depth}, max_depth={depth}, urls={len(spider_args)}]"

@@ -174,17 +174,17 @@ def query_arguments(args):
     if (args.missing or args.only_missing) and not args.only_deprecated:
         installed.append(InstallStatuses.MISSING)
 
-    known = any
+    predicate_fn = None
     if args.unknown:
-        known = False
+        predicate_fn = lambda x: not spack.repo.PATH.exists(x.spec.name)
 
-    explicit = any
+    explicit = None
     if args.explicit:
         explicit = True
     if args.implicit:
         explicit = False
 
-    q_args = {"installed": installed, "known": known, "explicit": explicit}
+    q_args = {"installed": installed, "predicate_fn": predicate_fn, "explicit": explicit}
 
     install_tree = args.install_tree
     upstreams = spack.config.get("upstreams", {})

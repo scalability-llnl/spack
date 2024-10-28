@@ -474,5 +474,5 @@ def install_without_active_env(args, install_kwargs, reporter_factory):
 
         installs = [s.package for s in concrete_specs]
         install_kwargs["explicit"] = [s.dag_hash() for s in concrete_specs]
-        builder = PackageInstaller(installs, install_kwargs)
+        builder = PackageInstaller(installs, **install_kwargs)
         builder.install()

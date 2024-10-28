@@ -5,8 +5,7 @@
 
 import os
 
-from llnl.util import tty
-
+from spack.build_environment import optimization_flags
 from spack.package import *
 from spack.pkg.builtin.fftw import FftwBase
 
@@ -42,10 +41,11 @@ class Amdfftw(FftwBase):
     license("GPL-2.0-only")
 
     version(
-        "4.2",
-        sha256="391ef7d933e696762e3547a35b58ab18d22a6cf3e199c74889bcf25a1d1fc89b",
+        "5.0",
+        sha256="bead6c08309a206f8a6258971272affcca07f11eb57b5ecd8496e2e7e3ead877",
         preferred=True,
     )
+    version("4.2", sha256="391ef7d933e696762e3547a35b58ab18d22a6cf3e199c74889bcf25a1d1fc89b")
     version("4.1", sha256="f1cfecfcc0729f96a5bd61c6b26f3fa43bb0662d3fff370d4f73490c60cf4e59")
     version("4.0", sha256="5f02cb05f224bd86bd88ec6272b294c26dba3b1d22c7fb298745fd7b9d2271c0")
     version("3.2", sha256="31cab17a93e03b5b606e88dd6116a1055b8f49542d7d0890dbfcca057087b8d0")
@@ -157,6 +157,13 @@ class Amdfftw(FftwBase):
 
     requires("target=x86_64:", msg="AMD FFTW available only on x86_64")
 
+    def flag_handler(self, name, flags):
+        (flags, _, _) = super().flag_handler(name, flags)
+        if name == "cflags":
+            if self.spec.satisfies("%gcc@14:"):
+                flags.append("-Wno-incompatible-pointer-types")
+        return (flags, None, None)
+
     def configure(self, spec, prefix):
         """Configure function"""
         # Base options
@@ -173,18 +180,6 @@ class Amdfftw(FftwBase):
             options.append("CC={0}".format(os.path.basename(spack_cc)))
             options.append("FC={0}".format(os.path.basename(spack_fc)))
             options.append("F77={0}".format(os.path.basename(spack_fc)))
-
-        if not (
-            spec.satisfies(r"%aocc@3.2:4.2")
-            or spec.satisfies(r"%gcc@12.2:13.1")
-            or spec.satisfies(r"%clang@15:17")
-        ):
-            tty.warn(
-                "AOCL has been tested to work with the following compilers "
-                "versions - gcc@12.2:13.1, aocc@3.2:4.2, and clang@15:17 "
-                "see the following aocl userguide for details: "
-                "https://www.amd.com/content/dam/amd/en/documents/developer/version-4-2-documents/aocl/aocl-4-2-user-guide.pdf"
-            )
 
         if spec.satisfies("+debug"):
             options.append("--enable-debug")
@@ -213,10 +208,7 @@ class Amdfftw(FftwBase):
         # variable to set AMD_ARCH configure option.
         # Spack user can not directly use AMD_ARCH for this purpose but should
         # use target variable to set appropriate -march option in AMD_ARCH.
-        arch = spec.architecture
-        options.append(
-            "AMD_ARCH={0}".format(arch.target.optimization_flags(spec.compiler).split("=")[-1])
-        )
+        options.append(f"AMD_ARCH={optimization_flags(self.compiler, spec.target)}")
 
         # Specific SIMD support.
         # float and double precisions are supported

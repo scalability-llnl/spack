@@ -338,15 +338,15 @@ def test_remove_complex_package_logic_filtered():
         ("grads", "rrlmwml3f2frdnqavmro3ias66h5b2ce"),
         ("llvm", "nufffum5dabmaf4l5tpfcblnbfjknvd3"),
         # has @when("@4.1.0") and raw unicode literals
-        ("mfem", "lbhr43gm5zdye2yhqznucxb4sg6vhryl"),
-        ("mfem@4.0.0", "lbhr43gm5zdye2yhqznucxb4sg6vhryl"),
-        ("mfem@4.1.0", "vjdjdgjt6nyo7ited2seki5epggw5gza"),
+        ("mfem", "whwftpqbjvzncmb52oz6izkanbha2uji"),
+        ("mfem@4.0.0", "whwftpqbjvzncmb52oz6izkanbha2uji"),
+        ("mfem@4.1.0", "bpi7of3xelo7fr3ta2lm6bmiruijnxcg"),
         # has @when("@1.5.0:")
         ("py-torch", "qs7djgqn7dy7r3ps4g7hv2pjvjk4qkhd"),
         ("py-torch@1.0", "qs7djgqn7dy7r3ps4g7hv2pjvjk4qkhd"),
         ("py-torch@1.6", "p4ine4hc6f2ik2f2wyuwieslqbozll5w"),
         # has a print with multiple arguments
-        ("legion", "efpfd2c4pzhsbyc3o7plqcmtwm6b57yh"),
+        ("legion", "bq2etsik5l6pbryxmbhfhzynci56ruy4"),
         # has nested `with when()` blocks and loops
         ("trilinos", "vqrgscjrla4hi7bllink7v6v6dwxgc2p"),
     ],

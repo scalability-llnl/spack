@@ -20,6 +20,7 @@ from llnl.util.symlink import symlink
 
 import spack.cmd
 import spack.environment as ev
+import spack.installer
 import spack.store
 from spack.cmd.common import arguments
 from spack.database import InstallStatuses
@@ -142,4 +143,4 @@ def deprecate(parser, args):
             tty.die("Will not deprecate any packages.")
 
     for dcate, dcator in zip(all_deprecate, all_deprecators):
-        dcate.package.do_deprecate(dcator, symlink)
+        spack.installer.deprecate(dcate, dcator, symlink)

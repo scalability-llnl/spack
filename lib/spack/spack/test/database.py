@@ -34,6 +34,7 @@ import spack.repo
 import spack.spec
 import spack.store
 import spack.version as vn
+from spack.installer import PackageInstaller
 from spack.schema.database_index import schema
 from spack.util.executable import Executable
 
@@ -385,7 +386,7 @@ def _check_remove_and_add_package(database: spack.database.Database, spec):
 
 def _mock_install(spec: str):
     s = spack.spec.Spec(spec).concretized()
-    s.package.do_install(fake=True)
+    PackageInstaller([s.package], fake=True, explicit=True).install()
 
 
 def _mock_remove(spec):
@@ -713,7 +714,7 @@ def test_external_entries_in_db(mutable_database):
     assert not rec.spec.external_modules
     assert rec.explicit is False
 
-    rec.spec.package.do_install(fake=True, explicit=True)
+    PackageInstaller([rec.spec.package], fake=True, explicit=True).install()
     rec = mutable_database.get_record("externaltool")
     assert rec.spec.external_path == os.path.sep + os.path.join("path", "to", "external_tool")
     assert not rec.spec.external_modules
@@ -724,14 +725,14 @@ def test_external_entries_in_db(mutable_database):
 def test_regression_issue_8036(mutable_database, usr_folder_exists):
     # The test ensures that the external package prefix is treated as
     # existing. Even when the package prefix exists, the package should
-    # not be considered installed until it is added to the database with
-    # do_install.
+    # not be considered installed until it is added to the database by
+    # the installer with install().
     s = spack.spec.Spec("externaltool@0.9")
     s.concretize()
     assert not s.installed
 
     # Now install the external package and check again the `installed` property
-    s.package.do_install(fake=True)
+    PackageInstaller([s.package], fake=True, explicit=True).install()
     assert s.installed
 
 
@@ -774,7 +775,7 @@ def test_query_unused_specs(mutable_database):
     # This spec installs a fake cmake as a build only dependency
     s = spack.spec.Spec("simple-inheritance")
     s.concretize()
-    s.package.do_install(fake=True, explicit=True)
+    PackageInstaller([s.package], fake=True, explicit=True).install()
 
     si = s.dag_hash()
     ml_mpich = spack.store.STORE.db.query_one("mpileaks ^mpich").dag_hash()
@@ -817,7 +818,7 @@ def test_query_spec_with_conditional_dependency(mutable_database):
     # conditional on a Boolean variant
     s = spack.spec.Spec("hdf5~mpi")
     s.concretize()
-    s.package.do_install(fake=True, explicit=True)
+    PackageInstaller([s.package], fake=True, explicit=True).install()
 
     results = spack.store.STORE.db.query_local("hdf5 ^mpich")
     assert not results
@@ -1144,7 +1145,7 @@ def test_reindex_with_upstreams(tmp_path, monkeypatch, mock_packages, config):
         {"config": {"install_tree": {"root": str(tmp_path / "upstream")}}}
     )
     monkeypatch.setattr(spack.store, "STORE", upstream_store)
-    callpath.package.do_install(fake=True)
+    PackageInstaller([callpath.package], fake=True, explicit=True).install()
 
     local_store = spack.store.create(
         {
@@ -1153,7 +1154,7 @@ def test_reindex_with_upstreams(tmp_path, monkeypatch, mock_packages, config):
         }
     )
     monkeypatch.setattr(spack.store, "STORE", local_store)
-    mpileaks.package.do_install(fake=True)
+    PackageInstaller([mpileaks.package], fake=True, explicit=True).install()
 
     # Sanity check that callpath is from upstream.
     assert not local_store.db.query_local("callpath")
@@ -1163,7 +1164,7 @@ def test_reindex_with_upstreams(tmp_path, monkeypatch, mock_packages, config):
     # checks local installs before upstream databases, even when the local database is being
     # reindexed.
     monkeypatch.setattr(spack.store, "STORE", upstream_store)
-    mpileaks.package.do_install(fake=True)
+    PackageInstaller([mpileaks.package], fake=True, explicit=True).install()
 
     # Delete the local database
     shutil.rmtree(local_store.db.database_directory)
@@ -1180,3 +1181,20 @@ def test_reindex_with_upstreams(tmp_path, monkeypatch, mock_packages, config):
     assert not reindexed_local_store.db.query_local("callpath")
     assert reindexed_local_store.db.query("callpath") == [callpath]
     assert reindexed_local_store.db.query_local("mpileaks") == [mpileaks]
+
+
+@pytest.mark.regression("47101")
+def test_query_with_predicate_fn(database):
+    all_specs = database.query()
+
+    # Name starts with a string
+    specs = database.query(predicate_fn=lambda x: x.spec.name.startswith("mpil"))
+    assert specs and all(x.name.startswith("mpil") for x in specs)
+    assert len(specs) < len(all_specs)
+
+    # Recipe is currently known/unknown
+    specs = database.query(predicate_fn=lambda x: spack.repo.PATH.exists(x.spec.name))
+    assert specs == all_specs
+
+    specs = database.query(predicate_fn=lambda x: not spack.repo.PATH.exists(x.spec.name))
+    assert not specs

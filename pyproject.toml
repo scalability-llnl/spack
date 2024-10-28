@@ -70,17 +70,8 @@ features = [
 [tool.black]
 line-length = 99
 target-version = ['py36', 'py37', 'py38', 'py39', 'py310']
-include = '''
-    \.pyi?$
-'''
-extend-exclude = '''
-/(
-    \.git
-  | \.mypy_cache
-  | ^lib/spack/external/
-  | ^opt/
-)/
-'''
+include = '(lib/spack|var/spack/repos)/.*\.pyi?$|bin/spack$'
+extend-exclude = 'lib/spack/external'
 skip_magic_trailing_comma = true
 
 [tool.isort]

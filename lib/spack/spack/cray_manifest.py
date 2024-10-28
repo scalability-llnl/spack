@@ -132,7 +132,7 @@ def spec_from_entry(entry):
         variant_strs = list()
         for name, value in entry["parameters"].items():
             # TODO: also ensure that the variant value is valid?
-            if not (name in pkg_cls.variants):
+            if not pkg_cls.has_variant(name):
                 tty.debug(
                     "Omitting variant {0} for entry {1}/{2}".format(
                         name, entry["name"], entry["hash"][:7]

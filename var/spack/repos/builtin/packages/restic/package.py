@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Restic(Package):
+class Restic(GoPackage):
     """Fast, secure, efficient backup program."""
 
     homepage = "https://restic.net"
@@ -27,20 +27,24 @@ class Restic(Package):
     version("0.14.0", sha256="78cdd8994908ebe7923188395734bb3cdc9101477e4163c67e7cc3b8fd3b4bd6")
     version("0.12.1", sha256="a9c88d5288ce04a6cc78afcda7590d3124966dab3daa9908de9b3e492e2925fb")
 
-    depends_on("go", type="build")
     depends_on("go@1.15:", type="build", when="@0.14.0:")
     depends_on("go@1.18:", type="build", when="@0.15.0:")
     depends_on("go@1.19:", type="build", when="@1.16.1:")
 
-    phases = ["build", "install"]
+    build_directory = "cmd/restic"
 
-    def setup_build_environment(self, env):
-        # Point GOPATH at the top of the staging dir for the build step.
-        env.prepend_path("GOPATH", self.stage.path)
+    @run_after("install")
+    def install_completions(self):
+        restic = Executable(self.prefix.bin.restic)
 
-    def build(self, spec, prefix):
-        go("run", "build.go")
+        mkdirp(bash_completion_path(self.prefix))
+        mkdirp(fish_completion_path(self.prefix))
+        mkdirp(zsh_completion_path(self.prefix))
 
-    def install(self, spec, prefix):
-        mkdirp(prefix.bin)
-        install("restic", prefix.bin)
+        restic("generate", "--bash-completion", "restic.bash")
+        restic("generate", "--fish-completion", "restic.fish")
+        restic("generate", "--zsh-completion", "_restic")
+
+        install("restic.bash", bash_completion_path(self.prefix))
+        install("restic.fish", fish_completion_path(self.prefix))
+        install("_restic", zsh_completion_path(self.prefix))

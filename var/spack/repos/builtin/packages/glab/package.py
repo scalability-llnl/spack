@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Glab(Package):
+class Glab(GoPackage):
     """GitLab's official command line tool."""
 
     homepage = "https://gitlab.com/gitlab-org/cli"
@@ -41,15 +41,20 @@ class Glab(Package):
     depends_on("go@1.22.5:", type="build", when="@1.44:")
     depends_on("go@1.23:", type="build", when="@1.46:")
 
-    phases = ["build", "install"]
+    build_directory = "cmd/glab"
 
-    def setup_build_environment(self, env):
-        # Point GOPATH at the top of the staging dir for the build step.
-        env.prepend_path("GOPATH", self.stage.path)
+    @run_after("install")
+    def install_completions(self):
+        glab = Executable(self.prefix.bin.glab)
 
-    def build(self, spec, prefix):
-        make()
+        mkdirp(bash_completion_path(self.prefix))
+        with open(bash_completion_path(self.prefix) / "glab", "w") as file:
+            glab("completion", "-s", "bash", output=file)
 
-    def install(self, spec, prefix):
-        mkdirp(prefix.bin)
-        install("bin/glab", prefix.bin)
+        mkdirp(fish_completion_path(self.prefix))
+        with open(fish_completion_path(self.prefix) / "glab.fish", "w") as file:
+            glab("completion", "-s", "fish", output=file)
+
+        mkdirp(zsh_completion_path(self.prefix))
+        with open(zsh_completion_path(self.prefix) / "_glab", "w") as file:
+            glab("completion", "-s", "zsh", output=file)

@@ -13,9 +13,12 @@ class Armadillo(CMakePackage):
 
     homepage = "https://arma.sourceforge.net/"
     url = "http://sourceforge.net/projects/arma/files/armadillo-8.100.1.tar.xz"
+    git = "https://gitlab.com/conradsnicta/armadillo-code.git"
 
     license("Apache-2.0")
 
+    version("14.0.2", sha256="248e2535fc092add6cb7dea94fc86ae1c463bda39e46fd82d2a7165c1c197dff")
+    version("12.8.4", sha256="558fe526b990a1663678eff3af6ec93f79ee128c81a4c8aef27ad328fae61138")
     version("12.8.3", sha256="2922589f6387796504b340da6bb954bef3d87574c298515893289edd2d890151")
     version("12.8.2", sha256="03b62f8c09e4f5d74643b478520741b8e27b55e7e4525978fcae2f5d791ac3bf")
     version("12.8.1", sha256="2781dd3a6cc5f9a49c91a4519dde2b1c24335a5bfe0cc1c9881b6363142452b4")
@@ -32,6 +35,7 @@ class Armadillo(CMakePackage):
     variant("hdf5", default=False, description="Include HDF5 support")
 
     depends_on("cmake@2.8.12:", type="build")
+    depends_on("cmake@3.5:", type="build", when="@14:")
     depends_on("arpack-ng")  # old arpack causes undefined symbols
     depends_on("blas")
     depends_on("lapack")
@@ -43,14 +47,6 @@ class Armadillo(CMakePackage):
     # E.g. `/path/linux-x86_64/dir` -> `/path/1-x86_64/dir` if/when a linux
     # platform's compiler is adding `#define linux 1`.
     patch("undef_linux.patch", when="platform=linux")
-
-    def flag_handler(self, name, flags):
-        spec = self.spec
-        if name == "ldflags":
-            if spec.satisfies("%apple-clang@15:"):
-                flags.append("-Wl,-ld_classic")
-
-        return (flags, None, None)
 
     def patch(self):
         # Do not include Find{BLAS_type} because we are specifying the

@@ -57,35 +57,41 @@ subcommands = [
 # env create
 #
 def env_create_setup_parser(subparser):
-    """create a new environment"""
-    subparser.add_argument("env_name", metavar="env", help="name or directory of environment")
+    """create a new environment
+
+    create a new environment or, optionally, copy an existing environment
+
+    a manifest file results in a new abstract environment while a lock file
+    creates a new concrete environment
+    """
+    subparser.add_argument(
+        "env_name", metavar="env", help="name or directory of the new environment"
+    )
     subparser.add_argument(
         "-d", "--dir", action="store_true", help="create an environment in a specific directory"
     )
     subparser.add_argument(
         "--keep-relative",
         action="store_true",
-        help="copy relative develop paths verbatim into the new environment"
-        " when initializing from envfile",
+        help="copy envfile's relative develop paths verbatim",
     )
     view_opts = subparser.add_mutually_exclusive_group()
     view_opts.add_argument(
         "--without-view", action="store_true", help="do not maintain a view for this environment"
     )
     view_opts.add_argument(
-        "--with-view",
-        help="specify that this environment should maintain a view at the"
-        " specified path (by default the view is maintained in the"
-        " environment directory)",
+        "--with-view", help="maintain view at WITH_VIEW (vs. environment's directory)"
     )
     subparser.add_argument(
         "envfile",
         nargs="?",
         default=None,
-        help="either a lockfile (must end with '.json' or '.lock') or a manifest file",
+        help="manifest or lock file (ends with '.json' or '.lock')",
     )
     subparser.add_argument(
-        "--include-concrete", action="append", help="name of old environment to copy specs from"
+        "--include-concrete",
+        action="append",
+        help="copy concrete specs from INCLUDE_CONCRETE's environment",
     )
 
 
@@ -173,7 +179,7 @@ def _env_create(
 # env activate
 #
 def env_activate_setup_parser(subparser):
-    """set the current environment"""
+    """set the active environment"""
     shells = subparser.add_mutually_exclusive_group()
     shells.add_argument(
         "--sh",
@@ -213,14 +219,14 @@ def env_activate_setup_parser(subparser):
 
     view_options = subparser.add_mutually_exclusive_group()
     view_options.add_argument(
-        "--with-view",
         "-v",
+        "--with-view",
         metavar="name",
-        help="set runtime environment variables for specific view",
+        help="set runtime environment variables for the named view",
     )
     view_options.add_argument(
-        "--without-view",
         "-V",
+        "--without-view",
         action="store_true",
         help="do not set runtime environment variables for any view",
     )
@@ -230,14 +236,14 @@ def env_activate_setup_parser(subparser):
         "--prompt",
         action="store_true",
         default=False,
-        help="decorate the command line prompt when activating",
+        help="add the active environment to the command line prompt",
     )
 
     subparser.add_argument(
         "--temp",
         action="store_true",
         default=False,
-        help="create and activate an environment in a temporary directory",
+        help="create and activate in a temporary directory",
     )
     subparser.add_argument(
         "--create",
@@ -249,13 +255,12 @@ def env_activate_setup_parser(subparser):
         "--envfile",
         nargs="?",
         default=None,
-        help="either a lockfile (must end with '.json' or '.lock') or a manifest file",
+        help="manifest or lock file (ends with '.json' or '.lock')",
     )
     subparser.add_argument(
         "--keep-relative",
         action="store_true",
-        help="copy relative develop paths verbatim into the new environment"
-        " when initializing from envfile",
+        help="copy envfile's relative develop paths verbatim when create",
     )
     subparser.add_argument(
         "-d",
@@ -269,10 +274,7 @@ def env_activate_setup_parser(subparser):
         dest="env_name",
         nargs="?",
         default=None,
-        help=(
-            "name of managed environment or directory of the anonymous env"
-            " (when using --dir/-d) to activate"
-        ),
+        help=("name or directory of the environment being activated"),
     )
 
 
@@ -385,7 +387,7 @@ def env_activate(args):
 # env deactivate
 #
 def env_deactivate_setup_parser(subparser):
-    """deactivate any active environment in the shell"""
+    """deactivate the active environment"""
     shells = subparser.add_mutually_exclusive_group()
     shells.add_argument(
         "--sh",
@@ -448,23 +450,27 @@ def env_deactivate(args):
 # env remove
 #
 def env_remove_setup_parser(subparser):
-    """remove an existing environment"""
-    subparser.add_argument("rm_env", metavar="env", nargs="+", help="environment(s) to remove")
+    """remove managed environment(s)
+
+    remove existing environment(s) managed by Spack
+
+    directory environments and manifests embedded in repositories must be
+    removed manually
+    """
+    subparser.add_argument(
+        "rm_env", metavar="env", nargs="+", help="name(s) of the environment(s) being removed"
+    )
     arguments.add_common_arguments(subparser, ["yes_to_all"])
     subparser.add_argument(
         "-f",
         "--force",
         action="store_true",
-        help="remove the environment even if it is included in another environment",
+        help="force removal even when included in other environment(s)",
     )
 
 
 def env_remove(args):
-    """Remove a *named* environment.
-
-    This removes an environment managed by Spack. Directory environments
-    and manifests embedded in repositories should be removed manually.
-    """
+    """remove existing environment(s)"""
     remove_envs = []
     valid_envs = []
     bad_envs = []
@@ -519,29 +525,32 @@ def env_remove(args):
 # env rename
 #
 def env_rename_setup_parser(subparser):
-    """rename an existing environment"""
+    """rename an existing environment
+
+    rename a managed environment or move an independent/directory environment
+
+    operation cannot be performed to or from an active environment
+    """
     subparser.add_argument(
-        "mv_from", metavar="from", help="name (or path) of existing environment"
+        "mv_from", metavar="from", help="current name or directory of the environment"
     )
-    subparser.add_argument(
-        "mv_to", metavar="to", help="new name (or path) for existing environment"
-    )
+    subparser.add_argument("mv_to", metavar="to", help="new name or directory for the environment")
     subparser.add_argument(
         "-d",
         "--dir",
         action="store_true",
-        help="the specified arguments correspond to directory paths",
+        help="positional arguments are environment directory paths",
     )
     subparser.add_argument(
-        "-f", "--force", action="store_true", help="allow overwriting of an existing environment"
+        "-f",
+        "--force",
+        action="store_true",
+        help="force renaming even if overwriting an existing environment",
     )
 
 
 def env_rename(args):
-    """Rename an environment.
-
-    This renames a managed environment or moves an anonymous environment.
-    """
+    """rename or move an existing environment"""
 
     # Directory option has been specified
     if args.dir:
@@ -590,7 +599,7 @@ def env_rename(args):
 # env list
 #
 def env_list_setup_parser(subparser):
-    """list managed environments"""
+    """list all managed environments"""
 
 
 def env_list(args):
@@ -626,13 +635,14 @@ class ViewAction:
 # env view
 #
 def env_view_setup_parser(subparser):
-    """manage a view associated with the environment"""
+    """manage the environment's view
+
+    provide the path when enabling a view with a non-default path
+    """
     subparser.add_argument(
         "action", choices=ViewAction.actions(), help="action to take for the environment's view"
     )
-    subparser.add_argument(
-        "view_path", nargs="?", help="when enabling a view, optionally set the path manually"
-    )
+    subparser.add_argument("view_path", nargs="?", help="view's non-default path when enabling it")
 
 
 def env_view(args):
@@ -660,7 +670,7 @@ def env_view(args):
 # env status
 #
 def env_status_setup_parser(subparser):
-    """print whether there is an active environment"""
+    """print active environment status"""
 
 
 def env_status(args):
@@ -720,14 +730,22 @@ def env_loads(args):
 
 
 def env_update_setup_parser(subparser):
-    """update environments to the latest format"""
+    """update the environment manifest to the latest schema format
+
+    update the environment to the latest schema format, which may not be
+    readable by older versions of spack
+
+    a backup copy of the manifest is retained in case there is a need to revert
+    this operation
+    """
     subparser.add_argument(
-        metavar="env", dest="update_env", help="name or directory of the environment to activate"
+        metavar="env", dest="update_env", help="name or directory of the environment"
     )
     spack.cmd.common.arguments.add_common_arguments(subparser, ["yes_to_all"])
 
 
 def env_update(args):
+    """update the manifest to the latest format"""
     manifest_file = ev.manifest_file(args.update_env)
     backup_file = manifest_file + ".bkp"
 
@@ -757,14 +775,22 @@ def env_update(args):
 
 
 def env_revert_setup_parser(subparser):
-    """restore environments to their state before update"""
+    """restore the environment manifest to its previous format
+
+    revert the environment's manifest to the schema format from its last
+    'spack env update'
+
+    the current manifest will be overwritten by the backup copy and the backup
+    copy will be removed
+    """
     subparser.add_argument(
-        metavar="env", dest="revert_env", help="name or directory of the environment to activate"
+        metavar="env", dest="revert_env", help="name or directory of the environment"
     )
     spack.cmd.common.arguments.add_common_arguments(subparser, ["yes_to_all"])
 
 
 def env_revert(args):
+    """restore the environment manifest to its previous format"""
     manifest_file = ev.manifest_file(args.revert_env)
     backup_file = manifest_file + ".bkp"
 
@@ -796,15 +822,19 @@ def env_revert(args):
 
 
 def env_depfile_setup_parser(subparser):
-    """generate a depfile from the concrete environment specs"""
+    """generate a depfile to exploit parallel builds across specs
+
+    requires the active environment to be concrete
+    """
     subparser.add_argument(
         "--make-prefix",
         "--make-target-prefix",
         default=None,
         metavar="TARGET",
-        help="prefix Makefile targets (and variables) with <TARGET>/<name>\n\nby default "
-        "the absolute path to the directory makedeps under the environment metadata dir is "
-        "used. can be set to an empty string --make-prefix ''",
+        help="prefix Makefile targets/variables with <TARGET>/<name>,\n"
+        "which can be an empty string (--make-prefix '')\n"
+        "defaults to the absolute path of the environment's makedeps\n"
+        "environment metadata dir\n",
     )
     subparser.add_argument(
         "--make-disable-jobserver",
@@ -819,8 +849,8 @@ def env_depfile_setup_parser(subparser):
         type=arguments.use_buildcache,
         default="package:auto,dependencies:auto",
         metavar="[{auto,only,never},][package:{auto,only,never},][dependencies:{auto,only,never}]",
-        help="when using `only`, redundant build dependencies are pruned from the DAG\n\n"
-        "this flag is passed on to the generated spack install commands",
+        help="use `only` to prune redundant build dependencies\n"
+        "option is also passed to generated spack install commands",
     )
     subparser.add_argument(
         "-o",
@@ -834,14 +864,14 @@ def env_depfile_setup_parser(subparser):
         "--generator",
         default="make",
         choices=("make",),
-        help="specify the depfile type\n\ncurrently only make is supported",
+        help="specify the depfile type (only supports `make`)",
     )
     subparser.add_argument(
         metavar="specs",
         dest="specs",
         nargs=argparse.REMAINDER,
         default=None,
-        help="generate a depfile only for matching specs in the environment",
+        help="limit the generated file to matching specs",
     )
 
 
@@ -910,7 +940,12 @@ def setup_parser(subparser):
         setup_parser_cmd_name = "env_%s_setup_parser" % name
         setup_parser_cmd = globals()[setup_parser_cmd_name]
 
-        subsubparser = sp.add_parser(name, aliases=aliases, help=setup_parser_cmd.__doc__)
+        subsubparser = sp.add_parser(
+            name,
+            aliases=aliases,
+            description=setup_parser_cmd.__doc__,
+            help=spack.cmd.first_line(setup_parser_cmd.__doc__),
+        )
         setup_parser_cmd(subsubparser)
 
 

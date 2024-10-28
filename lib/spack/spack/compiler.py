@@ -202,18 +202,6 @@ class Compiler:
     support for specific compilers, their possible names, arguments,
     and how to identify the particular type of compiler."""
 
-    # Subclasses use possible names of C compiler
-    cc_names: List[str] = []
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names: List[str] = []
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names: List[str] = []
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names: List[str] = []
-
     # Optional prefix regexes for searching for this type of compiler.
     # Prefixes are sometimes used for toolchains
     prefixes: List[str] = []
@@ -287,7 +275,7 @@ class Compiler:
         operating_system,
         target,
         paths,
-        modules=None,
+        modules: Optional[List[str]] = None,
         alias=None,
         environment=None,
         extra_rpaths=None,
@@ -427,14 +415,19 @@ class Compiler:
         return list(paths_containing_libs(link_dirs, all_required_libs))
 
     @property
-    def default_libc(self) -> Optional["spack.spec.Spec"]:
-        """Determine libc targeted by the compiler from link line"""
+    def default_dynamic_linker(self) -> Optional[str]:
+        """Determine default dynamic linker from compiler link line"""
         output = self.compiler_verbose_output
 
         if not output:
             return None
 
-        dynamic_linker = spack.util.libc.parse_dynamic_linker(output)
+        return spack.util.libc.parse_dynamic_linker(output)
+
+    @property
+    def default_libc(self) -> Optional["spack.spec.Spec"]:
+        """Determine libc targeted by the compiler from link line"""
+        dynamic_linker = self.default_dynamic_linker
 
         if not dynamic_linker:
             return None
@@ -618,18 +611,6 @@ class Compiler:
     @classmethod
     def cc_version(cls, cc):
         return cls.default_version(cc)
-
-    @classmethod
-    def cxx_version(cls, cxx):
-        return cls.default_version(cxx)
-
-    @classmethod
-    def f77_version(cls, f77):
-        return cls.default_version(f77)
-
-    @classmethod
-    def fc_version(cls, fc):
-        return cls.default_version(fc)
 
     @classmethod
     def search_regexps(cls, language):

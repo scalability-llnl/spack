@@ -18,3 +18,4 @@ class PyFluidfftBuilder(PythonPackage):
 
     depends_on("python@3.9:", type=("build", "run"))
     depends_on("py-flit-core@3.2:3", type="build")
+    depends_on("py-cython@3.0:", type="run")

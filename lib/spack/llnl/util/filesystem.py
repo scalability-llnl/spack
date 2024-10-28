@@ -47,6 +47,7 @@ __all__ = [
     "copy_mode",
     "filter_file",
     "find",
+    "find_first",
     "find_headers",
     "find_all_headers",
     "find_libraries",

@@ -16,6 +16,7 @@ class Gaudi(CMakePackage):
     tags = ["hep"]
 
     version("master", branch="master")
+    version("39.0", sha256="faa3653e2e6c769292c0592e3fc35cd98a2820bd6fc0c967cac565808b927262")
     version("38.3", sha256="47e8c65ea446656d2dae54a32205525e08257778cf80f9f029cd244d6650486e")
     version("38.2", sha256="08759b1398336987ad991602e37079f0744e8d8e4e3d5df2d253b8dedf925068")
     version("38.1", sha256="79d42833edcebc2099f91badb6f72708640c05f678cc4521a86e857f112486dc")
@@ -40,7 +41,9 @@ class Gaudi(CMakePackage):
     version("36.0", sha256="8a0458cef5b616532f9db7cca9fa0e892e602b64c9e93dc0cc6d972e03034830")
     version("35.0", sha256="c01b822f9592a7bf875b9997cbeb3c94dea97cb13d523c12649dbbf5d69b5fa6")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("cxx", type="build")
+
+    conflicts("%gcc@:10", when="@39:", msg="Gaudi needs a c++20 capable compiler for this version")
 
     maintainers("drbenmorgan", "vvolkl", "jmcarcell")
 
@@ -48,7 +51,7 @@ class Gaudi(CMakePackage):
     variant("cppunit", default=False, description="Build with CppUnit unit testing")
     variant("docs", default=False, description="Build documentation with Doxygen")
     variant("examples", default=False, description="Build examples")
-    variant("gaudialg", default=False, description="Build GaudiAlg support", when="@37.0:")
+    variant("gaudialg", default=False, description="Build GaudiAlg support", when="@37.0:38")
     variant("gperftools", default=False, description="Build with Google PerfTools support")
     variant("heppdt", default=False, description="Build with HEP Particle Data Table support")
     variant("jemalloc", default=False, description="Build with jemalloc allocator support")
@@ -69,6 +72,9 @@ class Gaudi(CMakePackage):
         sha256="41aa1587a3e59d49e0fa9659577073c091871c2eca1b8b237c177ab98fbacf3f",
         when="@:38.1",
     )
+
+    # add a few missing includes (c++20?)
+    patch("includes.patch", when="@37:38")
 
     # These dependencies are needed for a minimal Gaudi build
     depends_on("aida")
@@ -91,6 +97,7 @@ class Gaudi(CMakePackage):
 
     depends_on("clhep")
     depends_on("cmake", type="build")
+    depends_on("cmake@3.19:", type="build", when="@39:")
     depends_on("cppgsl")
     depends_on("fmt@:8", when="@:36.9")
     depends_on("fmt@:10")
@@ -105,6 +112,7 @@ class Gaudi(CMakePackage):
     depends_on("range-v3")
     depends_on("root +python +root7 +ssl +tbb +threads")
     depends_on("zlib-api")
+    depends_on("py-pytest-cov", when="@39:")
 
     # Testing dependencies
     # Note: gaudi only builds examples when testing enabled
@@ -146,6 +154,10 @@ class Gaudi(CMakePackage):
             # todo:
             self.define("GAUDI_USE_INTELAMPLIFIER", False),
         ]
+        # Release notes for v39.0: https://gitlab.cern.ch/gaudi/Gaudi/-/releases/v39r0
+        # Gaudi@39: needs C++ >= 20, and we need to force CMake to use C++ 20 with old gcc:
+        if self.spec.satisfies("@39: %gcc@:13"):
+            args.append(self.define("GAUDI_CXX_STANDARD", "20"))
         return args
 
     def setup_run_environment(self, env):

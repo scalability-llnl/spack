@@ -108,13 +108,13 @@ class Likwid(Package):
         filter_file("^#!/usr/bin/perl", "#!/usr/bin/env perl", *files)
 
     def setup_run_environment(self, env):
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             libs = find_libraries(
                 "libcupti", root=self.spec["cuda"].prefix, shared=True, recursive=True
             )
             for lib in libs.directories:
                 env.append_path("LD_LIBRARY_PATH", lib)
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             libs = find_libraries(
                 "librocprofiler64.so.1",
                 root=self.spec["rocprofiler-dev"].prefix,
@@ -176,14 +176,14 @@ class Likwid(Package):
             "ACCESSMODE = {}".format(spec.variants["accessmode"].value),
             "config.mk",
         )
-        if "accessmode=accessdaemon" in spec:
+        if spec.satisfies("accessmode=accessdaemon"):
             # Disable the chown, see the `spack_perms_fix` template and script
             filter_file("^INSTALL_CHOWN .*", "INSTALL_CHOWN =", "config.mk")
         else:
             filter_file("^BUILDFREQ .*", "BUILDFREQ = false", "config.mk")
             filter_file("^BUILDDAEMON .*", "BUILDDAEMON = false", "config.mk")
 
-        if "+fortran" in self.spec:
+        if self.spec.satisfies("+fortran"):
             filter_file("^FORTRAN_INTERFACE .*", "FORTRAN_INTERFACE = true", "config.mk")
             if self.compiler.name == "gcc":
                 makepath = join_path("make", "include_GCC.mk")
@@ -192,7 +192,7 @@ class Likwid(Package):
         else:
             filter_file("^FORTRAN_INTERFACE .*", "FORTRAN_INTERFACE = false", "config.mk")
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             filter_file("^NVIDIA_INTERFACE.*", "NVIDIA_INTERFACE = true", "config.mk")
             filter_file("^BUILDAPPDAEMON.*", "BUILDAPPDAEMON = true", "config.mk")
             cudainc = spec["cuda"].prefix.include
@@ -206,7 +206,7 @@ class Likwid(Package):
         else:
             filter_file("^NVIDIA_INTERFACE.*", "NVIDIA_INTERFACE = false", "config.mk")
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             env["ROCM_HOME"] = spec["rocm-core"].prefix
             filter_file("^ROCM_INTERFACE.*", "ROCM_INTERFACE = true", "config.mk")
             filter_file("^BUILDAPPDAEMON.*", "BUILDAPPDAEMON = true", "config.mk")
@@ -256,7 +256,7 @@ class Likwid(Package):
     # the build log.  See https://github.com/spack/spack/pull/10412.
     @run_after("install")
     def caveats(self):
-        if "accessmode=accessdaemon" in self.spec:
+        if self.spec.satisfies("accessmode=accessdaemon"):
             perm_script = "spack_perms_fix.sh"
             perm_script_path = join_path(self.spec.prefix, perm_script)
             daemons = glob.glob(join_path(self.spec.prefix, "sbin", "*"))

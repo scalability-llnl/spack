@@ -15,7 +15,7 @@ from llnl.url import allowed_archive
 
 import spack
 import spack.error
-import spack.fetch_strategy as fs
+import spack.fetch_strategy
 import spack.mirror
 import spack.repo
 import spack.stage
@@ -314,11 +314,15 @@ class UrlPatch(Patch):
 
         # Two checksums, one for compressed file, one for its contents
         if self.archive_sha256 and self.sha256:
-            fetcher: fs.FetchStrategy = fs.FetchAndVerifyExpandedFile(
-                self.url, archive_sha256=self.archive_sha256, expanded_sha256=self.sha256
+            fetcher: spack.fetch_strategy.FetchStrategy = (
+                spack.fetch_strategy.FetchAndVerifyExpandedFile(
+                    self.url, archive_sha256=self.archive_sha256, expanded_sha256=self.sha256
+                )
             )
         else:
-            fetcher = fs.URLFetchStrategy(url=self.url, sha256=self.sha256, expand=False)
+            fetcher = spack.fetch_strategy.URLFetchStrategy(
+                url=self.url, sha256=self.sha256, expand=False
+            )
 
         # The same package can have multiple patches with the same name but
         # with different contents, therefore apply a subset of the hash.
@@ -397,7 +401,7 @@ def from_dict(
         sha256 = dictionary["sha256"]
         checker = Checker(sha256)
         if patch.path and not checker.check(patch.path):
-            raise fs.ChecksumError(
+            raise spack.fetch_strategy.ChecksumError(
                 "sha256 checksum failed for %s" % patch.path,
                 "Expected %s but got %s " % (sha256, checker.sum)
                 + "Patch may have changed since concretization.",

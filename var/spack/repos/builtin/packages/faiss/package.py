@@ -30,6 +30,7 @@ class Faiss(AutotoolsPackage, CMakePackage, CudaPackage):
 
     license("MIT")
 
+    version("1.8.0", sha256="56ece0a419d62eaa11e39022fa27c8ed6d5a9b9eb7416cc5a0fdbeab07ec2f0c")
     version("1.7.4", sha256="d9a7b31bf7fd6eb32c10b7ea7ff918160eed5be04fe63bb7b4b4b5f2bbde01ad")
     version("1.7.2", sha256="d49b4afd6a7a5b64f260a236ee9b2efb760edb08c33d5ea5610c2f078a5995ec")
     version("1.6.3", sha256="e1a41c159f0b896975fbb133e0240a233af5c9286c09a28fde6aefff5336e542")
@@ -45,6 +46,7 @@ class Faiss(AutotoolsPackage, CMakePackage, CudaPackage):
     conflicts("+tests", when="~python", msg="+tests must be accompanied by +python")
 
     depends_on("cmake@3.17:", when="build_system=cmake", type="build")
+    depends_on("cmake@3.23.1:", when="build_system=cmake @1.7.4:", type="build")
 
     extends("python", when="+python")
     depends_on("python@3.7:", when="+python", type=("build", "run"))

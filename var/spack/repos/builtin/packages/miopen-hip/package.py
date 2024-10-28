@@ -21,6 +21,7 @@ class MiopenHip(CMakePackage):
     libraries = ["libMIOpen"]
 
     license("MIT")
+    version("6.2.1", sha256="c7abe5ae7a332813a3c3da849e9a50b91221fe05c6bb622413e5b048b1f15982")
     version("6.2.0", sha256="f4473f724362732019d505a0e01c17b060b542350859cb1e4bd4e3898b609276")
     version("6.1.2", sha256="c8ff4af72264b2049bfe2685d581ea0f3e43319db7bd00dc347159bcf2731614")
     version("6.1.1", sha256="cf568ea16dd23b32fe89e250bb33ed4722fea8aa7f407cc66ff37c37aab037ce")
@@ -86,6 +87,7 @@ class MiopenHip(CMakePackage):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -125,18 +127,19 @@ class MiopenHip(CMakePackage):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
     ]:
         depends_on("nlohmann-json", type="link")
         depends_on(f"composable-kernel@{ver}", when=f"@{ver}")
     for ver in ["5.4.0", "5.4.3", "5.5.0"]:
         depends_on("nlohmann-json", type="link")
         depends_on(f"rocmlir@{ver}", when=f"@{ver}")
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
         depends_on("roctracer-dev@" + ver, when="@" + ver)
     for ver in ["6.1.0", "6.1.1", "6.1.2"]:
         depends_on("googletest")
-
-    depends_on("rocrand@6.2.0", when="@6.2.0")
+    for ver in ["6.2.0", "6.2.1"]:
+        depends_on(f"rocrand@{ver}", when=f"@{ver}")
 
     def setup_build_environment(self, env):
         lib_dir = self.spec["zlib-api"].libs.directories[0]

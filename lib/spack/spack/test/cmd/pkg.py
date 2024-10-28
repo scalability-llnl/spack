@@ -311,7 +311,7 @@ def test_pkg_grep(mock_packages, capfd):
     output, _ = capfd.readouterr()
     assert output.strip() == "\n".join(
         spack.repo.PATH.get_pkg_class(name).module.__file__
-        for name in ["splice-a", "splice-h", "splice-t", "splice-vh", "splice-z"]
+        for name in ["splice-a", "splice-h", "splice-t", "splice-vh", "splice-vt", "splice-z"]
     )
 
     # ensure that this string isn't fouhnd

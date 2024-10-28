@@ -5,12 +5,13 @@ spack:
       require: target=x86_64_v3
   concretizer:
     unify: true
+    reuse: false
   definitions:
   - default_specs:
       # editors
     - neovim~no_luajit
     - py-pynvim
-    - emacs@29.1+json+native+treesitter   # note, pulls in gcc
+    - emacs+json+native+treesitter   # note, pulls in gcc
       # - tree-sitter is a dep, should also have cli but no package
     - nano   # just in case
       # tags and scope search helpers
@@ -93,7 +94,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/manylinux2014:2024.03.28
+        image: ghcr.io/spack/spack/manylinux2014:2024.03.28
 
   cdash:
     build-group: Developer Tools Manylinux2014

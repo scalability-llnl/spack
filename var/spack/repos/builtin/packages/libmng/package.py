@@ -3,10 +3,13 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems
+import spack.build_systems.autotools
+import spack.build_systems.cmake
 from spack.package import *
 
 
-class Libmng(CMakePackage):
+class Libmng(CMakePackage, AutotoolsPackage):
     """THE reference library for reading, displaying, writing
     and examining Multiple-Image Network Graphics.  MNG is the animation
     extension to the popular PNG image format."""
@@ -26,9 +29,24 @@ class Libmng(CMakePackage):
     depends_on("zlib-api")
     depends_on("lcms")
 
+    build_system("cmake", "autotools", default="cmake")
+
     def patch(self):
         # jpeg requires stdio to be included before its headers.
         filter_file(r"^(\#include \<jpeglib\.h\>)", "#include<stdio.h>\n\\1", "libmng_types.h")
 
+
+class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
         return ["-DWITH_LCMS2:BOOL=ON", "-DWITH_LCMS1:BOOL=OFF"]
+
+
+class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
+    @run_before("configure")
+    def clean_preconf(self):
+        """Required, otherwise configure will crash as subdirectories have
+        already been configured"""
+        make("distclean")
+
+    def configure_args(self):
+        return ["--with-lcms2", "--without-lcms1"]

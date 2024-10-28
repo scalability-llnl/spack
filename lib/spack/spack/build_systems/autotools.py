@@ -687,9 +687,8 @@ To resolve this problem, please try the following:
 
         variant = variant or name
 
-        # Defensively look that the name passed as argument is among
-        # variants
-        if variant not in self.pkg.variants:
+        # Defensively look that the name passed as argument is among variants
+        if not self.pkg.has_variant(variant):
             msg = '"{0}" is not a variant of "{1}"'
             raise KeyError(msg.format(variant, self.pkg.name))
 
@@ -698,27 +697,19 @@ To resolve this problem, please try the following:
 
         # Create a list of pairs. Each pair includes a configuration
         # option and whether or not that option is activated
-        variant_desc, _ = self.pkg.variants[variant]
-        if set(variant_desc.values) == set((True, False)):
+        vdef = self.pkg.get_variant(variant)
+        if set(vdef.values) == set((True, False)):
             # BoolValuedVariant carry information about a single option.
             # Nonetheless, for uniformity of treatment we'll package them
             # in an iterable of one element.
-            condition = "+{name}".format(name=variant)
-            options = [(name, condition in spec)]
+            options = [(name, f"+{variant}" in spec)]
         else:
-            condition = "{variant}={value}"
             # "feature_values" is used to track values which correspond to
             # features which can be enabled or disabled as understood by the
             # package's build system. It excludes values which have special
             # meanings and do not correspond to features (e.g. "none")
-            feature_values = (
-                getattr(variant_desc.values, "feature_values", None) or variant_desc.values
-            )
-
-            options = [
-                (value, condition.format(variant=variant, value=value) in spec)
-                for value in feature_values
-            ]
+            feature_values = getattr(vdef.values, "feature_values", None) or vdef.values
+            options = [(value, f"{variant}={value}" in spec) for value in feature_values]
 
         # For each allowed value in the list of values
         for option_value, activated in options:

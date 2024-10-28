@@ -552,6 +552,20 @@ def specfile_for(default_mock_concretization):
             "^[deptypes=build,link] zlib",
         ),
         (
+            "^[deptypes=link] zlib ^[deptypes=build] zlib",
+            [
+                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
+                Token(TokenType.KEY_VALUE_PAIR, value="deptypes=link"),
+                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
+                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
+                Token(TokenType.KEY_VALUE_PAIR, value="deptypes=build"),
+                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
+                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+            ],
+            "^[deptypes=link] zlib ^[deptypes=build] zlib",
+        ),
+        (
             "git-test@git.foo/bar",
             [
                 Token(TokenType.UNQUALIFIED_PACKAGE_NAME, "git-test"),
@@ -992,6 +1006,8 @@ def test_disambiguate_hash_by_spec(spec1, spec2, constraint, mock_packages, monk
         ("x target=be platform=test os=be os=fe", "'platform'"),
         # Dependencies
         ("^[@foo] zlib", "edge attributes"),
+        ("x ^[deptypes=link]foo ^[deptypes=run]foo", "conflicting dependency types"),
+        ("x ^[deptypes=build,link]foo ^[deptypes=link]foo", "conflicting dependency types"),
         # TODO: Remove this as soon as use variants are added and we can parse custom attributes
         ("^[foo=bar] zlib", "edge attributes"),
         # Propagating reserved names generates a parse error

@@ -42,7 +42,6 @@ import spack.spec
 import spack.spec_list
 import spack.store
 import spack.user_environment as uenv
-import spack.util.cpus
 import spack.util.environment
 import spack.util.hash
 import spack.util.lock as lk
@@ -547,8 +546,7 @@ def _is_dev_spec_and_has_changed(spec):
     last installation"""
     # First check if this is a dev build and in the process already try to get
     # the dev_path
-    dev_path_var = spec.variants.get("dev_path", None)
-    if not dev_path_var:
+    if not spec.variants.get("dev_path", None):
         return False
 
     # Now we can check whether the code changed since the last installation
@@ -556,9 +554,10 @@ def _is_dev_spec_and_has_changed(spec):
         # Not installed -> nothing to compare against
         return False
 
-    _, record = spack.store.STORE.db.query_by_spec_hash(spec.dag_hash())
-    mtime = fs.last_modification_time_recursive(dev_path_var.value)
-    return mtime > record.installation_time
+    # hook so packages can use to write their own method for checking the dev_path
+    # use package so attributes about concretization such as variant state can be
+    # utilized
+    return spec.package.detect_dev_src_change()
 
 
 def _error_on_nonempty_view_dir(new_root):
@@ -1159,6 +1158,8 @@ class Environment:
         if not re_read:
             # things that cannot be recreated from file
             self.new_specs = []  # write packages for these on write()
+
+        self.manifest.clear()
 
     @property
     def active(self):
@@ -1955,19 +1956,18 @@ class Environment:
         specs = specs if specs is not None else roots
 
         # Extend the set of specs to overwrite with modified dev specs and their parents
-        overwrite: Set[str] = set()
-        overwrite.update(install_args.get("overwrite", []), self._dev_specs_that_need_overwrite())
-        install_args["overwrite"] = overwrite
+        install_args["overwrite"] = {
+            *install_args.get("overwrite", ()),
+            *self._dev_specs_that_need_overwrite(),
+        }
 
-        explicit: Set[str] = set()
-        explicit.update(
-            install_args.get("explicit", []),
-            (s.dag_hash() for s in specs),
-            (s.dag_hash() for s in roots),
-        )
-        install_args["explicit"] = explicit
+        # Only environment roots are marked explicit
+        install_args["explicit"] = {
+            *install_args.get("explicit", ()),
+            *(s.dag_hash() for s in roots),
+        }
 
-        PackageInstaller([spec.package for spec in specs], install_args).install()
+        PackageInstaller([spec.package for spec in specs], **install_args).install()
 
     def all_specs_generator(self) -> Iterable[Spec]:
         """Returns a generator for all concrete specs"""
@@ -2164,6 +2164,13 @@ class Environment:
             # Assumes no legacy formats, since this was just created.
             spec_dict[ht.dag_hash.name] = s.dag_hash()
             concrete_specs[s.dag_hash()] = spec_dict
+
+            if s.build_spec is not s:
+                for d in s.build_spec.traverse():
+                    build_spec_dict = d.node_dict_with_hashes(hash=ht.dag_hash)
+                    build_spec_dict[ht.dag_hash.name] = d.dag_hash()
+                    concrete_specs[d.dag_hash()] = build_spec_dict
+
         return concrete_specs
 
     def _concrete_roots_dict(self):
@@ -2323,13 +2330,17 @@ class Environment:
             specs_by_hash[lockfile_key] = spec
 
         # Second pass: For each spec, get its dependencies from the node dict
-        # and add them to the spec
+        # and add them to the spec, including build specs
         for lockfile_key, node_dict in json_specs_by_hash.items():
             name, data = reader.name_and_data(node_dict)
             for _, dep_hash, deptypes, _, virtuals in reader.dependencies_from_node_dict(data):
                 specs_by_hash[lockfile_key]._add_dependency(
                     specs_by_hash[dep_hash], depflag=dt.canonicalize(deptypes), virtuals=virtuals
                 )
+
+            if "build_spec" in node_dict:
+                _, bhash, _ = reader.extract_build_spec_info_from_node_dict(node_dict)
+                specs_by_hash[lockfile_key]._build_spec = specs_by_hash[bhash]
 
         # Traverse the root specs one at a time in the order they appear.
         # The first time we see each DAG hash, that's the one we want to
@@ -2788,6 +2799,11 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         except ValueError as e:
             msg = f"cannot remove {user_spec} from {self}, no such spec exists"
             raise SpackEnvironmentError(msg) from e
+        self.changed = True
+
+    def clear(self) -> None:
+        """Clear all user specs from the list of root specs"""
+        self.configuration["specs"] = []
         self.changed = True
 
     def override_user_spec(self, user_spec: str, idx: int) -> None:

@@ -32,6 +32,7 @@ aomp = [
     "62a5036a2299ed2e3053ee00b7ea1800469cd545fea486fa17266a8b3acfaf5d",
     "3de1c7a31a88c3f05a6a66ba6854ac8fdad1ce44462e561cb1e6ad59629029ce",
     "5f54d7c7c798bcf1cd47d3a7f17ceaf79991bf166cc5e47e5372a68e7cf7d520",
+    "ac82e8da0c210ee14b911c833ae09a029a41541689930759737c135db52464a3",
 ]
 
 devlib = [
@@ -51,6 +52,7 @@ devlib = [
     "f1a67efb49f76a9b262e9735d3f75ad21e3bd6a05338c9b15c01e6c625c4460d",
     "300e9d6a137dcd91b18d5809a316fddb615e0e7f982dc7ef1bb56876dff6e097",
     "12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200",
+    "4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7",
 ]
 
 llvm = [
@@ -70,6 +72,7 @@ llvm = [
     "f1a67efb49f76a9b262e9735d3f75ad21e3bd6a05338c9b15c01e6c625c4460d",
     "300e9d6a137dcd91b18d5809a316fddb615e0e7f982dc7ef1bb56876dff6e097",
     "12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200",
+    "4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7",
 ]
 
 flang = [
@@ -89,6 +92,7 @@ flang = [
     "1bcaa73e73a688cb092f01987cf3ec9ace4aa1fcaab2b812888c610722c4501d",
     "12418ea61cca58811b7e75fd9df48be568b406f84a489a41ba5a1fd70c47f7ba",
     "6af7785b1776aeb9229ce4e5083dcfd451e8450f6e5ebe34214560b13f679d96",
+    "409ee98bf15e51ac68b7ed351f4582930dfa0288de042006e17eea6b64df5ad6",
 ]
 
 extras = [
@@ -108,6 +112,7 @@ extras = [
     "3dc837fbfcac64e000e1b5518e4f8a6b260eaf1a3e74152d8b8c22f128f575b7",
     "2b9351fdb1cba229669233919464ae906ca8f70910c6fa508a2812b7c3bed123",
     "7cef51c980f29d8b46d8d4b110e4f2f75d93544cf7d63c5e5d158cf531aeec7d",
+    "4b0d250b5ebd997ed6d5d057689c3f67dfb4d82f09f582ebb439ca9134fae48d",
 ]
 
 versions = [
@@ -127,6 +132,7 @@ versions = [
     "6.1.1",
     "6.1.2",
     "6.2.0",
+    "6.2.1",
 ]
 versions_dict = dict()  # type: Dict[str,Dict[str,str]]
 components = ["aomp", "devlib", "llvm", "flang", "extras"]
@@ -150,6 +156,7 @@ class RocmOpenmpExtras(Package):
     license("Apache-2.0")
 
     maintainers("srekolam", "renjithravindrankannath", "estewart08")
+    version("6.2.1", sha256=versions_dict["6.2.1"]["aomp"])
     version("6.2.0", sha256=versions_dict["6.2.0"]["aomp"])
     version("6.1.2", sha256=versions_dict["6.1.2"]["aomp"])
     version("6.1.1", sha256=versions_dict["6.1.1"]["aomp"])
@@ -196,6 +203,7 @@ class RocmOpenmpExtras(Package):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -256,7 +264,7 @@ class RocmOpenmpExtras(Package):
             placement="llvm-project",
             when=f"@{ver}",
         )
-    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0"]:
+    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")

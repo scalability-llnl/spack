@@ -26,7 +26,7 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
     """
 
     homepage = "https://www.open-mpi.org/projects/hwloc/"
-    url = "https://download.open-mpi.org/release/hwloc/v2.0/hwloc-2.0.2.tar.gz"
+    url = "https://download.open-mpi.org/release/hwloc/v2.11/hwloc-2.11.1.tar.bz2"
     git = "https://github.com/open-mpi/hwloc.git"
 
     maintainers("bgoglin")
@@ -178,7 +178,7 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
         if "+rocm" not in self.spec:
             args.append("--disable-rsmi")
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             args.append("--with-rocm={0}".format(self.spec["hip"].prefix))
             args.append("--with-rocm-version={0}".format(self.spec["hip"].version))
 
@@ -192,11 +192,13 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
         args.extend(self.enable_or_disable("pci"))
         args.extend(self.enable_or_disable("libs"))
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append("--with-cuda={0}".format(self.spec["cuda"].prefix))
             args.append("--with-cuda-version={0}".format(self.spec["cuda"].version))
 
-        if "+oneapi-level-zero" in self.spec:
+        if self.spec.satisfies("+oneapi-level-zero"):
             args.append("--enable-levelzero")
+        else:
+            args.append("--disable-levelzero")
 
         return args

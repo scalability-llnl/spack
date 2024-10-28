@@ -461,9 +461,13 @@ def test_intel_flags():
     unsupported_flag_test("cxx14_flag", "intel@=14.0")
     supported_flag_test("cxx14_flag", "-std=c++1y", "intel@=15.0")
     supported_flag_test("cxx14_flag", "-std=c++14", "intel@=15.0.2")
+    unsupported_flag_test("cxx17_flag", "intel@=18")
+    supported_flag_test("cxx17_flag", "-std=c++17", "intel@=19.0")
     unsupported_flag_test("c99_flag", "intel@=11.0")
     supported_flag_test("c99_flag", "-std=c99", "intel@=12.0")
     unsupported_flag_test("c11_flag", "intel@=15.0")
+    supported_flag_test("c18_flag", "-std=c18", "intel@=21.5.0")
+    unsupported_flag_test("c18_flag", "intel@=21.4.0")
     supported_flag_test("c11_flag", "-std=c1x", "intel@=16.0")
     supported_flag_test("cc_pic_flag", "-fPIC", "intel@=1.0")
     supported_flag_test("cxx_pic_flag", "-fPIC", "intel@=1.0")
@@ -589,6 +593,7 @@ def test_xl_r_flags():
     "compiler_spec,expected_result",
     [("gcc@4.7.2", False), ("clang@3.3", False), ("clang@8.0.0", True)],
 )
+@pytest.mark.not_on_windows("GCC and LLVM currently not supported on the platform")
 def test_detecting_mixed_toolchains(
     compiler_spec, expected_result, mutable_config, compiler_factory
 ):

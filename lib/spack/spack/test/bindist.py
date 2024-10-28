@@ -69,22 +69,6 @@ def cache_directory(tmpdir):
 
 
 @pytest.fixture(scope="module")
-def mirror_dir(tmpdir_factory):
-    dir = tmpdir_factory.mktemp("mirror")
-    dir.ensure("build_cache", dir=True)
-    yield str(dir)
-    dir.join("build_cache").remove()
-
-
-@pytest.fixture(scope="function")
-def test_mirror(mirror_dir):
-    mirror_url = url_util.path_to_file_url(mirror_dir)
-    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
-    yield mirror_dir
-    mirror_cmd("rm", "--scope=site", "test-mirror-func")
-
-
-@pytest.fixture(scope="module")
 def config_directory(tmp_path_factory):
     # Copy defaults to a temporary "site" scope
     defaults_dir = tmp_path_factory.mktemp("test_configs")
@@ -222,9 +206,9 @@ else:
 @pytest.mark.requires_executables(*args)
 @pytest.mark.maybeslow
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_default_layout", "temporary_mirror"
 )
-def test_default_rpaths_create_install_default_layout(mirror_dir):
+def test_default_rpaths_create_install_default_layout(temporary_mirror_dir):
     """
     Test the creation and installation of buildcaches with default rpaths
     into the default directory layout scheme.
@@ -237,13 +221,12 @@ def test_default_rpaths_create_install_default_layout(mirror_dir):
     install_cmd("--no-cache", sy_spec.name)
 
     # Create a buildache
-    buildcache_cmd("push", "-u", mirror_dir, cspec.name, sy_spec.name)
-
+    buildcache_cmd("push", "-u", temporary_mirror_dir, cspec.name, sy_spec.name)
     # Test force overwrite create buildcache (-f option)
-    buildcache_cmd("push", "-uf", mirror_dir, cspec.name)
+    buildcache_cmd("push", "-uf", temporary_mirror_dir, cspec.name)
 
     # Create mirror index
-    buildcache_cmd("update-index", mirror_dir)
+    buildcache_cmd("update-index", temporary_mirror_dir)
 
     # List the buildcaches in the mirror
     buildcache_cmd("list", "-alv")
@@ -271,9 +254,9 @@ def test_default_rpaths_create_install_default_layout(mirror_dir):
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_non_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_non_default_layout", "temporary_mirror"
 )
-def test_default_rpaths_install_nondefault_layout(mirror_dir):
+def test_default_rpaths_install_nondefault_layout(temporary_mirror_dir):
     """
     Test the creation and installation of buildcaches with default rpaths
     into the non-default directory layout scheme.
@@ -294,9 +277,9 @@ def test_default_rpaths_install_nondefault_layout(mirror_dir):
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_default_layout", "temporary_mirror"
 )
-def test_relative_rpaths_install_default_layout(mirror_dir):
+def test_relative_rpaths_install_default_layout(temporary_mirror_dir):
     """
     Test the creation and installation of buildcaches with relative
     rpaths into the default directory layout scheme.
@@ -323,9 +306,9 @@ def test_relative_rpaths_install_default_layout(mirror_dir):
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_non_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_non_default_layout", "temporary_mirror"
 )
-def test_relative_rpaths_install_nondefault(mirror_dir):
+def test_relative_rpaths_install_nondefault(temporary_mirror_dir):
     """
     Test the installation of buildcaches with relativized rpaths
     into the non-default directory layout scheme.
@@ -374,9 +357,9 @@ def test_push_and_fetch_keys(mock_gnupghome, tmp_path):
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_non_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_non_default_layout", "temporary_mirror"
 )
-def test_built_spec_cache(mirror_dir):
+def test_built_spec_cache(temporary_mirror_dir):
     """Because the buildcache list command fetches the buildcache index
     and uses it to populate the binary_distribution built spec cache, when
     this test calls get_mirrors_for_spec, it is testing the popluation of
@@ -397,7 +380,7 @@ def fake_dag_hash(spec, length=None):
     return "tal4c7h4z0gqmixb1eqa92mjoybxn5l6"[:length]
 
 
-@pytest.mark.usefixtures("install_mockery", "mock_packages", "mock_fetch", "test_mirror")
+@pytest.mark.usefixtures("install_mockery", "mock_packages", "mock_fetch", "temporary_mirror")
 def test_spec_needs_rebuild(monkeypatch, tmpdir):
     """Make sure needs_rebuild properly compares remote hash
     against locally computed one, avoiding unnecessary rebuilds"""
@@ -518,7 +501,7 @@ def test_generate_indices_exception(monkeypatch, tmp_path, capfd):
 
 
 @pytest.mark.usefixtures("mock_fetch", "install_mockery")
-def test_update_sbang(tmpdir, test_mirror):
+def test_update_sbang(tmpdir, temporary_mirror):
     """Test the creation and installation of buildcaches with default rpaths
     into the non-default directory layout scheme, triggering an update of the
     sbang.
@@ -529,7 +512,7 @@ def test_update_sbang(tmpdir, test_mirror):
     old_spec_hash_str = "/{0}".format(old_spec.dag_hash())
 
     # Need a fake mirror with *function* scope.
-    mirror_dir = test_mirror
+    mirror_dir = temporary_mirror
 
     # Assume all commands will concretize old_spec the same way.
     install_cmd("--no-cache", old_spec.name)
@@ -676,11 +659,13 @@ def test_build_manifest_visitor(tmpdir):
         assert all(os.path.islink(f) for f in visitor.symlinks)
 
 
-def test_text_relocate_if_needed(install_mockery, mock_fetch, monkeypatch, capfd):
-    spec = Spec("needs-text-relocation").concretized()
-    install_cmd(str(spec))
+def test_text_relocate_if_needed(install_mockery, temporary_store, mock_fetch, monkeypatch, capfd):
+    install_cmd("needs-text-relocation")
 
-    manifest = get_buildfile_manifest(spec)
+    specs = temporary_store.db.query("needs-text-relocation")
+    assert len(specs) == 1
+    manifest = get_buildfile_manifest(specs[0])
+
     assert join_path("bin", "exe") in manifest["text_to_relocate"]
     assert join_path("bin", "otherexe") not in manifest["text_to_relocate"]
     assert join_path("bin", "secretexe") not in manifest["text_to_relocate"]

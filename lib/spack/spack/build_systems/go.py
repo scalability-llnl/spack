@@ -44,15 +44,26 @@ class GoBuilder(BaseBuilder):
         +-----------------------------------------------+--------------------+
         | **Method**                                    | **Purpose**        |
         +===============================================+====================+
-        | :py:meth:`~.GoBuilder.build_args`             | Specify arguments  |
+        | :py:attr:`~.GoBuilder.build_args`             | Specify arguments  |
         |                                               | to ``go build``    |
         +-----------------------------------------------+--------------------+
-        | :py:meth:`~.GoBuilder.check_args`             | Specify arguments  |
+        | :py:attr:`~.GoBuilder.check_args`             | Specify arguments  |
         |                                               | to ``go test``     |
         +-----------------------------------------------+--------------------+
     """
 
     phases = ("build", "install")
+
+    #: Names associated with package methods in the old build-system format
+    legacy_methods = ("check", "installcheck")
+
+    #: Names associated with package attributes in the old build-system format
+    legacy_attributes = (
+        "build_args",
+        "check_args",
+        "build_directory",
+        "install_time_test_callbacks",
+    )
 
     #: Callback names for install-time test
     install_time_test_callbacks = ["check"]

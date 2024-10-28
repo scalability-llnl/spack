@@ -9,6 +9,7 @@ import pytest
 
 from spack.directory_layout import DirectoryLayout
 from spack.filesystem_view import SimpleFilesystemView, YamlFilesystemView
+from spack.installer import PackageInstaller
 from spack.spec import Spec
 
 
@@ -17,7 +18,7 @@ def test_remove_extensions_ordered(install_mockery, mock_fetch, tmpdir):
     layout = DirectoryLayout(view_dir)
     view = YamlFilesystemView(view_dir, layout)
     e2 = Spec("extension2").concretized()
-    e2.package.do_install()
+    PackageInstaller([e2.package], explicit=True).install()
     view.add_specs(e2)
 
     e1 = e2["extension1"]

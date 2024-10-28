@@ -492,6 +492,7 @@ class Opencv(CMakePackage, CudaPackage):
 
     with when("+hdf"):
         depends_on("hdf5")
+        depends_on("mpi", when="^hdf5+mpi")
 
     with when("+hfs"):
         with when("+cuda"):

@@ -29,6 +29,7 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.2.1", sha256="614e3c0bc11bfa84acd81d46db63f3852a750adaaec094b7701ab7b996cc8e93")
     version("6.2.0", sha256="637577a9cc38e4865894dbcd7eb35050e3de5d45e6db03472e836b318602a84d")
     version("6.1.2", sha256="406a8e5b82daae2fc03e0a738b5a054ade01bb41785cee4afb9e21c7ec91d492")
     version("6.1.1", sha256="01d4553458f417824807c069cacfc65d23f6cac79536158473b4356986c8fafd")
@@ -101,6 +102,7 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
         "master",
         "develop",
     ]:
@@ -139,6 +141,7 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
     def cmake_args(self):
         args = [
             self.define("BUILD_CLIENTS_SAMPLES", "OFF"),
+            self.define("BUILD_FORTRAN_BINDINGS", "OFF"),
             self.define("BUILD_CLIENTS_TESTS", self.run_tests),
             self.define("SUITE_SPARSE_PATH", self.spec["suite-sparse"].prefix),
             self.define("ROCBLAS_PATH", self.spec["rocblas"].prefix),

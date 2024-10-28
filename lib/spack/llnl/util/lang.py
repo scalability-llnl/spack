@@ -12,7 +12,7 @@ import re
 import sys
 import traceback
 from datetime import datetime, timedelta
-from typing import Any, Callable, Iterable, List, Tuple
+from typing import Callable, Iterable, List, Tuple, TypeVar
 
 # Ignore emacs backups when listing modules
 ignore_modules = r"^\.#|~$"
@@ -879,9 +879,12 @@ def enum(**kwargs):
     return type("Enum", (object,), kwargs)
 
 
+T = TypeVar("T")
+
+
 def stable_partition(
-    input_iterable: Iterable, predicate_fn: Callable[[Any], bool]
-) -> Tuple[List[Any], List[Any]]:
+    input_iterable: Iterable[T], predicate_fn: Callable[[T], bool]
+) -> Tuple[List[T], List[T]]:
     """Partition the input iterable according to a custom predicate.
 
     Args:
@@ -893,12 +896,13 @@ def stable_partition(
         Tuple of the list of elements evaluating to True, and
         list of elements evaluating to False.
     """
-    true_items, false_items = [], []
+    true_items: List[T] = []
+    false_items: List[T] = []
     for item in input_iterable:
         if predicate_fn(item):
             true_items.append(item)
-            continue
-        false_items.append(item)
+        else:
+            false_items.append(item)
     return true_items, false_items
 
 

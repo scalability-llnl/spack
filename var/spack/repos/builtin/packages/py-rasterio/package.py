@@ -17,11 +17,13 @@ class PyRasterio(PythonPackage):
     pypi = "rasterio/rasterio-1.1.8.tar.gz"
     git = "https://github.com/rasterio/rasterio.git"
 
+    license("BSD-3-Clause")
     maintainers("adamjstewart")
 
-    license("BSD-3-Clause")
-
-    version("master", branch="master")
+    version("main", branch="main")
+    version("master", branch="master", deprecated=True)
+    version("1.4.1", sha256="d750362bb792d2311f94803ff309baec48486ecba75c9b905ea9b1f5eb06ef9f")
+    version("1.4.0", sha256="e0d2ff540a4e06016cca2fb46691a10afe71343ea998c50ad8247bb125542133")
     version("1.3.11", sha256="47aa70b4718ebc80d825bb7db3127577d74e31c53048ce215145c0baf530ece9")
     version("1.3.10", sha256="ce182c735b4f9e8735d90600607ecab15ef895eb8aa660bf665751529477e326")
     version("1.3.9", sha256="fc6d0d290492fa1a5068711cfebb21cc936968891b7ed9da0690c8a7388885c5")
@@ -48,10 +50,12 @@ class PyRasterio(PythonPackage):
 
     # From setup.py
     with default_args(type=("build", "link", "run")):
+        depends_on("python@3.9:", when="@1.4:")
         depends_on("python@3.8:", when="@1.3:")
         depends_on("python@3.6:3.9", when="@1.2")
         depends_on("python@2.7:2.8,3.5:3.8", when="@1.1")
 
+        depends_on("py-numpy@1.24:", when="@1.4:")
         depends_on("py-numpy@1.18:", when="@1.3:")
         depends_on("py-numpy@1.15:", when="@1.2:")
         depends_on("py-numpy")
@@ -66,11 +70,15 @@ class PyRasterio(PythonPackage):
         depends_on("py-click@4:7", when="@:1.2.3")
         depends_on("py-cligj@0.5:")
         depends_on("py-importlib-metadata", when="@1.3.10: ^python@:3.9")
-        depends_on("py-snuggs@1.4.1:")
         depends_on("py-click-plugins")
-        depends_on("py-setuptools")
+        depends_on("py-pyparsing")
+
+        # Historical dependencies
+        depends_on("py-setuptools", when="@:1.3.9")
+        depends_on("py-snuggs@1.4.1:", when="@:1.3")
 
     # From README.rst and setup.py
+    depends_on("gdal@3.5:", when="@1.4:")
     depends_on("gdal@3.1:", when="@1.3:")
     depends_on("gdal@2.4:3.3", when="@1.2.7:1.2")
     depends_on("gdal@2.3:3.2", when="@1.2.0:1.2.6")

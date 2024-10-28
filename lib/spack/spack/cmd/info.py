@@ -17,7 +17,6 @@ import spack.install_test
 import spack.repo
 import spack.spec
 import spack.variant
-import spack.version
 from spack.cmd.common import arguments
 from spack.package_base import preferred_version
 
@@ -334,26 +333,6 @@ def _fmt_variant(variant, max_name_default_len, indent, when=None, out=None):
     out.write("\n")
 
 
-def _variants_by_name_when(pkg):
-    """Adaptor to get variants keyed by { name: { when: { [Variant...] } }."""
-    # TODO: replace with pkg.variants_by_name(when=True) when unified directive dicts are merged.
-    variants = {}
-    for name, (variant, whens) in sorted(pkg.variants.items()):
-        for when in whens:
-            variants.setdefault(name, {}).setdefault(when, []).append(variant)
-    return variants
-
-
-def _variants_by_when_name(pkg):
-    """Adaptor to get variants keyed by { when: { name: Variant } }"""
-    # TODO: replace with pkg.variants when unified directive dicts are merged.
-    variants = {}
-    for name, (variant, whens) in pkg.variants.items():
-        for when in whens:
-            variants.setdefault(when, {})[name] = variant
-    return variants
-
-
 def _print_variants_header(pkg):
     """output variants"""
 
@@ -364,32 +343,22 @@ def _print_variants_header(pkg):
     color.cprint("")
     color.cprint(section_title("Variants:"))
 
-    variants_by_name = _variants_by_name_when(pkg)
-
     # Calculate the max length of the "name [default]" part of the variant display
     # This lets us know where to print variant values.
     max_name_default_len = max(
         color.clen(_fmt_name_and_default(variant))
-        for name, when_variants in variants_by_name.items()
-        for variants in when_variants.values()
-        for variant in variants
+        for name in pkg.variant_names()
+        for _, variant in pkg.variant_definitions(name)
     )
 
-    return max_name_default_len, variants_by_name
-
-
-def _unconstrained_ver_first(item):
-    """sort key that puts specs with open version ranges first"""
-    spec, _ = item
-    return (spack.version.any_version not in spec.versions, spec)
+    return max_name_default_len
 
 
 def print_variants_grouped_by_when(pkg):
-    max_name_default_len, _ = _print_variants_header(pkg)
+    max_name_default_len = _print_variants_header(pkg)
 
     indent = 4
-    variants = _variants_by_when_name(pkg)
-    for when, variants_by_name in sorted(variants.items(), key=_unconstrained_ver_first):
+    for when, variants_by_name in pkg.variant_items():
         padded_values = max_name_default_len + 4
         start_indent = indent
 
@@ -407,15 +376,14 @@ def print_variants_grouped_by_when(pkg):
 
 
 def print_variants_by_name(pkg):
-    max_name_default_len, variants_by_name = _print_variants_header(pkg)
+    max_name_default_len = _print_variants_header(pkg)
     max_name_default_len += 4
 
     indent = 4
-    for name, when_variants in variants_by_name.items():
-        for when, variants in sorted(when_variants.items(), key=_unconstrained_ver_first):
-            for variant in variants:
-                _fmt_variant(variant, max_name_default_len, indent, when, out=sys.stdout)
-                sys.stdout.write("\n")
+    for name in pkg.variant_names():
+        for when, variant in pkg.variant_definitions(name):
+            _fmt_variant(variant, max_name_default_len, indent, when, out=sys.stdout)
+            sys.stdout.write("\n")
 
 
 def print_variants(pkg, args):

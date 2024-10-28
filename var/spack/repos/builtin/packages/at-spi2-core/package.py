@@ -18,6 +18,8 @@ class AtSpi2Core(MesonPackage):
 
     license("LGPL-2.1-or-later")
 
+    version("2.54.0", sha256="d7eee7e75beddcc272cedc2b60535600f3aae6e481589ebc667afc437c0a6079")
+    version("2.52.0", sha256="0ac3fc8320c8d01fa147c272ba7fa03806389c6b03d3c406d0823e30e35ff5ab")
     version("2.51.91", sha256="1344bd5c1732b55fcf3df9e3b87569f60984ae83ce75881b5a057c69f8d73e34")
     version("2.48.3", sha256="37316df43ca9989ce539d54cf429a768c28bb38a0b34950beadd0421827edf55")
     version("2.48.0", sha256="905a5b6f1790b68ee803bffa9f5fab4ceb591fb4fae0b2f8c612c54f1d4e8a30")

@@ -32,6 +32,7 @@ from typing import (
     Container,
     Dict,
     Generator,
+    Iterable,
     List,
     NamedTuple,
     Optional,
@@ -50,6 +51,7 @@ except ImportError:
     pass
 
 import llnl.util.filesystem as fs
+import llnl.util.lang
 import llnl.util.tty as tty
 
 import spack.deptypes as dt
@@ -119,6 +121,17 @@ DEFAULT_INSTALL_RECORD_FIELDS = (
     "installation_time",
     "deprecated_for",
 )
+
+
+@llnl.util.lang.memoized
+def _getfqdn():
+    """Memoized version of `getfqdn()`.
+
+    If we call `getfqdn()` too many times, DNS can be very slow. We only need to call it
+    one time per process, so we cache it here.
+
+    """
+    return socket.getfqdn()
 
 
 def reader(version: vn.StandardVersion) -> Type["spack.spec.SpecfileReaderBase"]:
@@ -276,55 +289,6 @@ class ForbiddenLock:
 
     def __reduce__(self):
         return ForbiddenLock, tuple()
-
-
-_QUERY_DOCSTRING = """
-
-        Args:
-            query_spec: queries iterate through specs in the database and
-                return those that satisfy the supplied ``query_spec``. If
-                query_spec is `any`, This will match all specs in the
-                database.  If it is a spec, we'll evaluate
-                ``spec.satisfies(query_spec)``
-
-            known (bool or None): Specs that are "known" are those
-                for which Spack can locate a ``package.py`` file -- i.e.,
-                Spack "knows" how to install them.  Specs that are unknown may
-                represent packages that existed in a previous version of
-                Spack, but have since either changed their name or
-                been removed
-
-            installed (bool or InstallStatus or typing.Iterable or None):
-                if ``True``, includes only installed
-                specs in the search; if ``False`` only missing specs, and if
-                ``any``, all specs in database. If an InstallStatus or iterable
-                of InstallStatus, returns specs whose install status
-                (installed, deprecated, or missing) matches (one of) the
-                InstallStatus. (default: True)
-
-            explicit (bool or None): A spec that was installed
-                following a specific user request is marked as explicit. If
-                instead it was pulled-in as a dependency of a user requested
-                spec it's considered implicit.
-
-            start_date (datetime.datetime or None): filters the query
-                discarding specs that have been installed before ``start_date``.
-
-            end_date (datetime.datetime or None): filters the query discarding
-                specs that have been installed after ``end_date``.
-
-            hashes (Container): list or set of hashes that we can use to
-                restrict the search
-
-            in_buildcache (bool or None): Specs that are marked in
-                this database as part of an associated binary cache are
-                ``in_buildcache``. All other specs are not. This field is used
-                for querying mirror indices. Default is ``any``.
-
-        Returns:
-            list of specs that match the query
-
-        """
 
 
 class LockConfiguration(NamedTuple):
@@ -590,6 +554,9 @@ class FailureTracker:
         """Return the path to the spec's failure file, which may not exist."""
         assert spec.concrete, "concrete spec required for failure path"
         return self.dir / f"{spec.name}-{spec.dag_hash()}"
+
+
+SelectType = Callable[[InstallRecord], bool]
 
 
 class Database:
@@ -1084,7 +1051,7 @@ class Database:
             self._state_is_inconsistent = True
             return
 
-        temp_file = self._index_path + (".%s.%s.temp" % (socket.getfqdn(), os.getpid()))
+        temp_file = self._index_path + (".%s.%s.temp" % (_getfqdn(), os.getpid()))
 
         # Write a temporary database file them move it into place
         try:
@@ -1233,7 +1200,7 @@ class Database:
         self._data[key].explicit = explicit
 
     @_autospec
-    def add(self, spec: "spack.spec.Spec", *, explicit: bool = False) -> None:
+    def add(self, spec: "spack.spec.Spec", *, explicit: bool = False, allow_missing=False) -> None:
         """Add spec at path to database, locking and reading DB to sync.
 
         ``add()`` will lock and read from the DB on disk.
@@ -1242,7 +1209,7 @@ class Database:
         # TODO: ensure that spec is concrete?
         # Entire add is transactional.
         with self.write_transaction():
-            self._add(spec, explicit=explicit)
+            self._add(spec, explicit=explicit, allow_missing=allow_missing)
 
     def _get_matching_spec_key(self, spec: "spack.spec.Spec", **kwargs) -> str:
         """Get the exact spec OR get a single spec that matches."""
@@ -1513,62 +1480,51 @@ class Database:
 
     def _query(
         self,
-        query_spec=any,
-        known=any,
-        installed=True,
-        explicit=any,
-        start_date=None,
-        end_date=None,
-        hashes=None,
-        in_buildcache=any,
-        origin=None,
-    ):
-        """Run a query on the database."""
+        query_spec: Optional[Union[str, "spack.spec.Spec"]] = None,
+        *,
+        predicate_fn: Optional[SelectType] = None,
+        installed: Union[bool, InstallStatus, List[InstallStatus]] = True,
+        explicit: Optional[bool] = None,
+        start_date: Optional[datetime.datetime] = None,
+        end_date: Optional[datetime.datetime] = None,
+        hashes: Optional[Iterable[str]] = None,
+        in_buildcache: Optional[bool] = None,
+        origin: Optional[str] = None,
+    ) -> List["spack.spec.Spec"]:
 
-        # TODO: Specs are a lot like queries.  Should there be a
-        # TODO: wildcard spec object, and should specs have attributes
-        # TODO: like installed and known that can be queried?  Or are
-        # TODO: these really special cases that only belong here?
+        # Restrict the set of records over which we iterate first
+        matching_hashes = self._data
+        if hashes is not None:
+            matching_hashes = {h: self._data[h] for h in hashes if h in self._data}
 
-        if query_spec is not any:
-            if not isinstance(query_spec, spack.spec.Spec):
-                query_spec = spack.spec.Spec(query_spec)
+        if isinstance(query_spec, str):
+            query_spec = spack.spec.Spec(query_spec)
 
-            # Just look up concrete specs with hashes; no fancy search.
-            if query_spec.concrete:
-                # TODO: handling of hashes restriction is not particularly elegant.
-                hash_key = query_spec.dag_hash()
-                if hash_key in self._data and (not hashes or hash_key in hashes):
-                    return [self._data[hash_key].spec]
-                else:
-                    return []
+        if query_spec is not None and query_spec.concrete:
+            hash_key = query_spec.dag_hash()
+            if hash_key not in matching_hashes:
+                return []
+            matching_hashes = {hash_key: matching_hashes[hash_key]}
 
-        # Abstract specs require more work -- currently we test
-        # against everything.
         results = []
         start_date = start_date or datetime.datetime.min
         end_date = end_date or datetime.datetime.max
 
-        # save specs whose name doesn't match for last, to avoid a virtual check
         deferred = []
-
-        for key, rec in self._data.items():
-            if hashes is not None and rec.spec.dag_hash() not in hashes:
-                continue
-
+        for rec in matching_hashes.values():
             if origin and not (origin == rec.origin):
                 continue
 
             if not rec.install_type_matches(installed):
                 continue
 
-            if in_buildcache is not any and rec.in_buildcache != in_buildcache:
+            if in_buildcache is not None and rec.in_buildcache != in_buildcache:
                 continue
 
-            if explicit is not any and rec.explicit != explicit:
+            if explicit is not None and rec.explicit != explicit:
                 continue
 
-            if known is not any and known(rec.spec.name):
+            if predicate_fn is not None and not predicate_fn(rec):
                 continue
 
             if start_date or end_date:
@@ -1576,7 +1532,7 @@ class Database:
                 if not (start_date < inst_date < end_date):
                     continue
 
-            if query_spec is any:
+            if query_spec is None or query_spec.concrete:
                 results.append(rec.spec)
                 continue
 
@@ -1594,36 +1550,118 @@ class Database:
         # If we did fine something, the query spec can't be virtual b/c we matched an actual
         # package installation, so skip the virtual check entirely. If we *didn't* find anything,
         # check all the deferred specs *if* the query is virtual.
-        if not results and query_spec is not any and deferred and query_spec.virtual:
+        if not results and query_spec is not None and deferred and query_spec.virtual:
             results = [spec for spec in deferred if spec.satisfies(query_spec)]
 
         return results
 
-    if _query.__doc__ is None:
-        _query.__doc__ = ""
-    _query.__doc__ += _QUERY_DOCSTRING
+    def query_local(
+        self,
+        query_spec: Optional[Union[str, "spack.spec.Spec"]] = None,
+        *,
+        predicate_fn: Optional[SelectType] = None,
+        installed: Union[bool, InstallStatus, List[InstallStatus]] = True,
+        explicit: Optional[bool] = None,
+        start_date: Optional[datetime.datetime] = None,
+        end_date: Optional[datetime.datetime] = None,
+        hashes: Optional[List[str]] = None,
+        in_buildcache: Optional[bool] = None,
+        origin: Optional[str] = None,
+    ) -> List["spack.spec.Spec"]:
+        """Queries the local Spack database.
 
-    def query_local(self, *args, **kwargs):
-        """Query only the local Spack database.
+        This function doesn't guarantee any sorting of the returned data for performance reason,
+        since comparing specs for __lt__ may be an expensive operation.
 
-        This function doesn't guarantee any sorting of the returned
-        data for performance reason, since comparing specs for __lt__
-        may be an expensive operation.
+        Args:
+            query_spec:  if query_spec is ``None``, match all specs in the database.
+                If it is a spec, return all specs matching ``spec.satisfies(query_spec)``.
+
+            predicate_fn: optional predicate taking an InstallRecord as argument, and returning
+                whether that record is selected for the query. It can be used to craft criteria
+                that need some data for selection not provided by the Database itself.
+
+            installed: if ``True``, includes only installed specs in the search. If ``False`` only
+                missing specs, and if ``any``, all specs in database. If an InstallStatus or
+                iterable of InstallStatus, returns specs whose install status matches at least
+                one of the InstallStatus.
+
+            explicit: a spec that was installed following a specific user request is marked as
+                explicit. If instead it was pulled-in as a dependency of a user requested spec
+                it's considered implicit.
+
+            start_date: if set considers only specs installed from the starting date.
+
+            end_date: if set considers only specs installed until the ending date.
+
+            in_buildcache: specs that are marked in this database as part of an associated binary
+                cache are ``in_buildcache``. All other specs are not. This field is used for
+                querying mirror indices. By default, it does not check this status.
+
+            hashes: list of hashes used to restrict the search
+
+            origin: origin of the spec
         """
         with self.read_transaction():
-            return self._query(*args, **kwargs)
+            return self._query(
+                query_spec,
+                predicate_fn=predicate_fn,
+                installed=installed,
+                explicit=explicit,
+                start_date=start_date,
+                end_date=end_date,
+                hashes=hashes,
+                in_buildcache=in_buildcache,
+                origin=origin,
+            )
 
-    if query_local.__doc__ is None:
-        query_local.__doc__ = ""
-    query_local.__doc__ += _QUERY_DOCSTRING
+    def query(
+        self,
+        query_spec: Optional[Union[str, "spack.spec.Spec"]] = None,
+        *,
+        predicate_fn: Optional[SelectType] = None,
+        installed: Union[bool, InstallStatus, List[InstallStatus]] = True,
+        explicit: Optional[bool] = None,
+        start_date: Optional[datetime.datetime] = None,
+        end_date: Optional[datetime.datetime] = None,
+        in_buildcache: Optional[bool] = None,
+        hashes: Optional[List[str]] = None,
+        origin: Optional[str] = None,
+        install_tree: str = "all",
+    ):
+        """Queries the Spack database including all upstream databases.
 
-    def query(self, *args, **kwargs):
-        """Query the Spack database including all upstream databases.
+        Args:
+            query_spec:  if query_spec is ``None``, match all specs in the database.
+                If it is a spec, return all specs matching ``spec.satisfies(query_spec)``.
 
-        Additional Arguments:
-            install_tree (str): query 'all' (default), 'local', 'upstream', or upstream path
+            predicate_fn: optional predicate taking an InstallRecord as argument, and returning
+                whether that record is selected for the query. It can be used to craft criteria
+                that need some data for selection not provided by the Database itself.
+
+            installed: if ``True``, includes only installed specs in the search. If ``False`` only
+                missing specs, and if ``any``, all specs in database. If an InstallStatus or
+                iterable of InstallStatus, returns specs whose install status matches at least
+                one of the InstallStatus.
+
+            explicit: a spec that was installed following a specific user request is marked as
+                explicit. If instead it was pulled-in as a dependency of a user requested spec
+                it's considered implicit.
+
+            start_date: if set considers only specs installed from the starting date.
+
+            end_date: if set considers only specs installed until the ending date.
+
+            in_buildcache: specs that are marked in this database as part of an associated binary
+                cache are ``in_buildcache``. All other specs are not. This field is used for
+                querying mirror indices. By default, it does not check this status.
+
+            hashes: list of hashes used to restrict the search
+
+            install_tree: query 'all' (default), 'local', 'upstream', or upstream path
+
+            origin: origin of the spec
         """
-        install_tree = kwargs.pop("install_tree", "all")
         valid_trees = ["all", "upstream", "local", self.root] + [u.root for u in self.upstream_dbs]
         if install_tree not in valid_trees:
             msg = "Invalid install_tree argument to Database.query()\n"
@@ -1639,28 +1677,54 @@ class Database:
             # queries for upstream DBs need to *not* lock - we may not
             # have permissions to do this and the upstream DBs won't know about
             # us anyway (so e.g. they should never uninstall specs)
-            upstream_results.extend(upstream_db._query(*args, **kwargs) or [])
+            upstream_results.extend(
+                upstream_db._query(
+                    query_spec,
+                    predicate_fn=predicate_fn,
+                    installed=installed,
+                    explicit=explicit,
+                    start_date=start_date,
+                    end_date=end_date,
+                    hashes=hashes,
+                    in_buildcache=in_buildcache,
+                    origin=origin,
+                )
+                or []
+            )
 
-        local_results = []
+        local_results: Set["spack.spec.Spec"] = set()
         if install_tree in ("all", "local") or self.root == install_tree:
-            local_results = set(self.query_local(*args, **kwargs))
+            local_results = set(
+                self.query_local(
+                    query_spec,
+                    predicate_fn=predicate_fn,
+                    installed=installed,
+                    explicit=explicit,
+                    start_date=start_date,
+                    end_date=end_date,
+                    hashes=hashes,
+                    in_buildcache=in_buildcache,
+                    origin=origin,
+                )
+            )
 
         results = list(local_results) + list(x for x in upstream_results if x not in local_results)
-
         return sorted(results)
 
-    if query.__doc__ is None:
-        query.__doc__ = ""
-    query.__doc__ += _QUERY_DOCSTRING
-
-    def query_one(self, query_spec, known=any, installed=True):
+    def query_one(
+        self,
+        query_spec: Optional[Union[str, "spack.spec.Spec"]],
+        predicate_fn: Optional[SelectType] = None,
+        installed: Union[bool, InstallStatus, List[InstallStatus]] = True,
+    ) -> Optional["spack.spec.Spec"]:
         """Query for exactly one spec that matches the query spec.
 
-        Raises an assertion error if more than one spec matches the
-        query. Returns None if no installed package matches.
+        Returns None if no installed package matches.
 
+        Raises:
+            AssertionError: if more than one spec matches the query.
         """
-        concrete_specs = self.query(query_spec, known=known, installed=installed)
+        concrete_specs = self.query(query_spec, predicate_fn=predicate_fn, installed=installed)
         assert len(concrete_specs) <= 1
         return concrete_specs[0] if concrete_specs else None
 

@@ -31,18 +31,6 @@ fc_mapping = [
 
 
 class Clang(Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["clang"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["clang++"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["flang-new", "flang"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["flang-new", "flang"]
-
     version_argument = "--version"
 
     @property

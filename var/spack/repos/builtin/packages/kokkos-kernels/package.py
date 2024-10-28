@@ -167,11 +167,15 @@ class KokkosKernels(CMakePackage, CudaPackage):
 
     variant("shared", default=True, description="Build shared libraries")
 
+    # sanity check
+    sanity_check_is_file = [join_path("include", "KokkosKernels_config.h")]
+    sanity_check_is_dir = ["include"]
+
     def cmake_args(self):
         spec = self.spec
         options = []
 
-        isdiy = "+diy" in spec
+        isdiy = spec.satisfies("+diy")
         if isdiy:
             options.append("-DSpack_WORKAROUND=On")
 

@@ -99,6 +99,7 @@ from spack.package_base import (
     install_dependency_symlinks,
     on_package_attributes,
 )
+from spack.package_completions import *
 from spack.spec import InvalidSpecDetected, Spec
 from spack.util.executable import *
 from spack.util.filesystem import file_command, fix_darwin_install_name, mime_type

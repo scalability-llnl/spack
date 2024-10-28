@@ -15,18 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prechecks:
-    needs: [ changes ]
-    uses: ./.github/workflows/valid-style.yml
-    secrets: inherit
-    with:
-      with_coverage: ${{ needs.changes.outputs.core }}
-  all-prechecks:
-    needs: [ prechecks ]
-    runs-on: ubuntu-latest
-    steps:
-    - name: Success
-      run: "true"
   # Check which files have been updated by the PR
   changes:
     runs-on: ubuntu-latest
@@ -36,7 +24,7 @@ jobs:
       core: ${{ steps.filter.outputs.core }}
       packages: ${{ steps.filter.outputs.packages }}
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         if: ${{ github.event_name == 'push' }}
         with:
           fetch-depth: 0
@@ -79,35 +67,34 @@ jobs:
     needs: [ prechecks, changes ]
     uses: ./.github/workflows/bootstrap.yml
     secrets: inherit
+
   unit-tests:
     if: ${{ github.repository == 'spack/spack' && needs.changes.outputs.core == 'true' }}
     needs: [ prechecks, changes ]
     uses: ./.github/workflows/unit_tests.yaml
     secrets: inherit
-  upload-coverage:
-    needs: [ unit-tests, prechecks ]
+
+  prechecks:
+    needs: [ changes ]
+    uses: ./.github/workflows/valid-style.yml
+    secrets: inherit
+    with:
+      with_coverage: ${{ needs.changes.outputs.core }}
+
+  all-prechecks:
+    needs: [ prechecks ]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-      with:
-        fetch-depth: 0
-    - name: Download coverage files
-      uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
-      with:
-        pattern: coverage-*
-        path: coverage
-        merge-multiple: true
-    - run: pip install --upgrade coverage
-    - run: ls -la coverage
-    - run: coverage combine -a coverage/.coverage*
-    - run: coverage xml
-    - name: "Upload coverage"
-      uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        verbose: true
+    - name: Success
+      run: "true"
+
+  coverage:
+    needs: [ unit-tests, prechecks ]
+    uses: ./.github/workflows/coverage.yml
+    secrets: inherit
+
   all:
-    needs: [ upload-coverage, bootstrap ]
+    needs: [ coverage, bootstrap ]
     runs-on: ubuntu-latest
     steps:
     - name: Success

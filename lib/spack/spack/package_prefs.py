@@ -149,10 +149,12 @@ class PackagePrefs:
 
         # Only return variants that are actually supported by the package
         pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
-        spec = spack.spec.Spec("%s %s" % (pkg_name, variants))
-        return dict(
-            (name, variant) for name, variant in spec.variants.items() if name in pkg_cls.variants
-        )
+        spec = spack.spec.Spec(f"{pkg_name} {variants}")
+        return {
+            name: variant
+            for name, variant in spec.variants.items()
+            if name in pkg_cls.variant_names()
+        }
 
 
 def is_spec_buildable(spec):

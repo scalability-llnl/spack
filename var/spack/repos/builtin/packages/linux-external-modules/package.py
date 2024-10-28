@@ -24,9 +24,9 @@ class LinuxExternalModules(MakefilePackage):
     # linux-external-modules.
     how_to = "https://docs.kernel.org/kbuild/modules.html"
 
-    maintainers("fleshling", "rountree")
+    maintainers("kyotsukete", "rountree")
 
-    license("GPL-2.0-only", checked_by="fleshling")
+    license("GPL-2.0-only", checked_by="kyotsukete")
 
     version("6.10.3", sha256="fa5f22fd67dd05812d39dca579320c493048e26c4a556048a12385e7ae6fc698")
     version("6.10.2", sha256="73d8520dd9cba5acfc5e7208e76b35d9740b8aae38210a9224e32ec4c0d29b70")

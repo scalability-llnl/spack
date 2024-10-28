@@ -40,10 +40,10 @@ jobs:
           on_develop: false
 
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install System packages
@@ -80,7 +80,7 @@ jobs:
           UNIT_TEST_COVERAGE: ${{ matrix.python-version == '3.11' }}
       run: |
           share/spack/qa/run-unit-tests
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874
+    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
       with:
         name: coverage-${{ matrix.os }}-python${{ matrix.python-version }}
         path: coverage
@@ -89,10 +89,10 @@ jobs:
   shell:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
         python-version: '3.11'
     - name: Install System packages
@@ -113,7 +113,7 @@ jobs:
           COVERAGE: true
       run: |
           share/spack/qa/run-shell-tests
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874
+    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
       with:
         name: coverage-shell
         path: coverage
@@ -130,7 +130,7 @@ jobs:
           dnf install -y \
               bzip2 curl file gcc-c++ gcc gcc-gfortran git gnupg2 gzip \
               make patch tcl unzip which xz
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
     - name: Setup repo and non-root user
       run: |
           git --version
@@ -149,32 +149,33 @@ jobs:
   clingo-cffi:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
-        python-version: '3.11'
+        python-version: '3.13'
     - name: Install System packages
       run: |
           sudo apt-get -y update
-          sudo apt-get -y install coreutils cvs gfortran graphviz gnupg2 mercurial ninja-build kcov
+          sudo apt-get -y install coreutils gfortran graphviz gnupg2
     - name: Install Python packages
       run: |
-          pip install --upgrade pip setuptools pytest coverage[toml] pytest-cov clingo pytest-xdist
+          pip install --upgrade pip setuptools pytest coverage[toml] pytest-cov clingo
           pip install --upgrade flake8 "isort>=4.3.5" "mypy>=0.900" "click" "black"
-    - name: Setup git configuration
-      run: |
-          # Need this for the git tests to succeed.
-          git --version
-          . .github/workflows/bin/setup_git.sh
     - name: Run unit tests (full suite with coverage)
       env:
           COVERAGE: true
           COVERAGE_FILE: coverage/.coverage-clingo-cffi
       run: |
-          share/spack/qa/run-unit-tests
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874
+        . share/spack/setup-env.sh
+        spack bootstrap disable spack-install
+        spack bootstrap disable github-actions-v0.5
+        spack bootstrap disable github-actions-v0.6
+        spack bootstrap status
+        spack solve zlib
+        spack unit-test --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml lib/spack/spack/test/concretize.py
+    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
       with:
         name: coverage-clingo-cffi
         path: coverage
@@ -187,10 +188,10 @@ jobs:
         os: [macos-13, macos-14]
         python-version: ["3.11"]
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install Python packages
@@ -199,7 +200,7 @@ jobs:
           pip install --upgrade pytest coverage[toml] pytest-xdist pytest-cov
     - name: Setup Homebrew packages
       run: |
-        brew install dash fish gcc gnupg2 kcov
+        brew install dash fish gcc gnupg kcov
     - name: Run unit tests
       env:
         SPACK_TEST_PARALLEL: 4
@@ -212,7 +213,7 @@ jobs:
         $(which spack) solve zlib
         common_args=(--dist loadfile --tx '4*popen//python=./bin/spack-tmpconfig python -u ./bin/spack python' -x)
         $(which spack) unit-test --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml "${common_args[@]}"
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874
+    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
       with:
         name: coverage-${{ matrix.os }}-python${{ matrix.python-version }}
         path: coverage
@@ -225,10 +226,10 @@ jobs:
           powershell Invoke-Expression -Command "./share/spack/qa/windows_test_setup.ps1"; {0}
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
         python-version: 3.9
     - name: Install Python packages
@@ -243,7 +244,7 @@ jobs:
       run: |
         spack unit-test -x --verbose --cov --cov-config=pyproject.toml
         ./share/spack/qa/validate_last_exit.ps1
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874
+    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
       with:
         name: coverage-windows
         path: coverage

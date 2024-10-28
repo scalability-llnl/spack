@@ -1000,7 +1000,7 @@ def test_rename_dest_exists(tmpdir):
         shutil.rmtree(tmpdir.join("f"))
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="No-op on non Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_sfn(tmpdir):
     # first check some standard Windows locations
     # we know require sfn names

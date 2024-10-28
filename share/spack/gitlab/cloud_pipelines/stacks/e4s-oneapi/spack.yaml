@@ -128,6 +128,7 @@ spack:
   - nco
   - netlib-scalapack
   - nrm
+  - nwchem
   - omega-h
   - openfoam
   - openmpi
@@ -192,6 +193,7 @@ spack:
   # --
   # - chapel ~cuda ~rocm                                    # llvm: closures.c:(.text+0x305e): undefined reference to `_intel_fast_memset'
   # - cp2k +mpi                                             # dbcsr: dbcsr_api.F(973): #error: incomplete macro call DBCSR_ABORT.
+  # - fftx                                                  # fftx: https://github.com/spack/spack/issues/47048
   # - geopm-runtime                                         # libelf: configure: error: installation or configuration problem: C compiler cannot create executables.
   # - hpctoolkit                                            # dyninst@13.0.0%gcc: libiberty/./d-demangle.c:142: undefined reference to `_intel_fast_memcpy'
   # - lbann                                                 # 2024.2 internal compiler error
@@ -242,7 +244,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/ubuntu22.04-runner-amd64-oneapi-2024.2:2024.09.06
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-oneapi-2024.2:2024.09.06
 
   cdash:
     build-group: E4S OneAPI
