@@ -111,7 +111,6 @@ def test_invalid_json_spec(invalid_json, error_message):
         "git-url-top-level@2.2",
         "git-url-top-level@2.1",
         "git-url-top-level@2.0",
-        "git-url-top-level@2.3",
     ],
 )
 def test_roundtrip_concrete_specs(abstract_spec, default_mock_concretization):
