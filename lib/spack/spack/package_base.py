@@ -1788,7 +1788,9 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
             sources = []
             try:
                 fetcher = fs.for_package_version(self)
-                sources.append(fetcher.spec_attrs())
+                provenance_dict = fetcher.source_provenance()
+                if provenance_dict:
+                    sources.append(provenance_dict)
 
             except (fs.ExtrapolationError, fs.InvalidArgsError):
                 # ExtrapolationError happens if the package has no fetchers defined.
