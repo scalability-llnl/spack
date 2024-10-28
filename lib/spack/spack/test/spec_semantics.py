@@ -2001,3 +2001,44 @@ def test_comparison_after_breaking_hash_change():
     y = Spec.from_dict(after_breakage)
     assert x != y
     assert len({x, y}) == 2
+
+
+def test_satisfies_and_subscript_with_compilers(default_mock_concretization):
+    """Tests the semantic of "satisfies" and __getitem__ for the following spec:
+
+    [    ]  multivalue-variant@2.3
+    [bl  ]      ^callpath@1.0
+    [bl  ]          ^dyninst@8.2
+    [bl  ]              ^libdwarf@20130729
+    [bl  ]              ^libelf@0.8.13
+    [b   ]      ^gcc@10.2.1
+    [ l  ]      ^gcc-runtime@10.2.1
+    [bl  ]      ^mpich@3.0.4
+    [bl  ]      ^pkg-a@2.0
+    [b   ]          ^gmake@4.4
+    [bl  ]          ^pkg-b@1.0
+    """
+    s = default_mock_concretization("multivalue-variant")
+
+    # Check a direct build/link dependency
+    assert s.satisfies("^pkg-a")
+    assert s.dependencies(name="pkg-a")[0] == s["pkg-a"]
+
+    # Transitive build/link dependency
+    assert s.satisfies("^libelf")
+    assert s["libdwarf"].dependencies(name="libelf")[0] == s["libelf"]
+
+    # Direct build dependencies
+    assert s.satisfies("^[virtuals=c] gcc")
+    assert s.dependencies(name="gcc")[0] == s["gcc"]
+    assert s.dependencies(name="gcc")[0] == s["c"]
+
+    # Transitive build dependencies
+    assert s.satisfies("^gmake")
+
+    # "gmake" is not in the link/run subdag + direct build deps
+    with pytest.raises(KeyError):
+        _ = s["gmake"]
+
+    # We need to pass through "pkg-a" to get "gmake" with [] notation
+    assert s["pkg-a"].dependencies(name="gmake")[0] == s["pkg-a"]["gmake"]
