@@ -722,9 +722,8 @@ def _ensure_env_methods_are_ported_to_builders(pkgs, error_cls):
         )
         builder_cls_names = [spack.builder.BUILDER_CLS[x].__name__ for x in build_system_names]
 
-        module = pkg_cls.module
         has_builders_in_package_py = any(
-            getattr(module, name, False) for name in builder_cls_names
+            spack.builder.get_builder_class(pkg_cls, name) for name in builder_cls_names
         )
         if not has_builders_in_package_py:
             continue
