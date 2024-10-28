@@ -23,6 +23,7 @@ class Occa(Package):
     license("MIT")
 
     version("develop")
+    version("2.0.0", tag="v2.0.0", commit="3cba0841b2b87678da53e0b311cb7e162d781181")
     version("1.2.0", tag="v1.2.0", commit="18379073b6497f677a20bfeced95b511f82c3355")
     version("1.1.0", tag="v1.1.0", commit="c8a587666a23e045f25dc871c3257364a5f6a7d5")
     version("1.0.9", tag="v1.0.9", commit="ebdb659c804f91f1e0f32fd700f9fe229458033c")
