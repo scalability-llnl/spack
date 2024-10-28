@@ -641,6 +641,8 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         values=("kiss", "fftw3", "mkl"),
         multi=False,
     )
+    variant("heffte", default=False, description="Use heffte as distubuted FFT engine")
+
     variant(
         "fft_kokkos",
         default="fftw3",
@@ -663,6 +665,9 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("mpi", when="+mpi")
     depends_on("mpi", when="+mpiio")
     depends_on("fftw-api@3", when="+kspace fft=fftw3")
+    depends_on("heffte", when="+heffte")
+    depends_on("heffte+fftw", when="+heffte fft=fftw3")
+    depends_on("heffte+mkl", when="+heffte fft=mkl")
     depends_on("mkl", when="+kspace fft=mkl")
     depends_on("hipfft", when="+kokkos+kspace+rocm fft_kokkos=hipfft")
     depends_on("fftw-api@3", when="+kokkos+kspace fft_kokkos=fftw3")
@@ -782,6 +787,8 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         msg="ROCm builds of the GPU package not maintained prior to version 20220623",
     )
     conflicts("+intel", when="%aocc@:3.2.9999", msg="+intel with AOCC requires version 4 or newer")
+    conflicts("+heffte", when="@:20240207", msg="heffte is only supported in 20240207 or newer")
+    conflicts("+heffte", when="~kspace", msg="heffte can only be used with kspace package")
 
     # Backport of https://github.com/lammps/lammps/pull/3726
     conflicts("+kokkos+rocm+kspace", when="@:20210929.3")
@@ -927,6 +934,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
         if spec.satisfies("+kspace"):
             args.append(self.define_from_variant("FFT", "fft"))
+            args.append(self.define_from_variant("FFT_USE_HEFFTE", "heffte"))
             if spec.satisfies("fft=fftw3 ^armpl-gcc") or spec.satisfies("fft=fftw3 ^acfl"):
                 args.append(self.define("FFTW3_LIBRARY", self.spec["fftw-api"].libs[0]))
                 args.append(
