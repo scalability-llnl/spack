@@ -66,6 +66,10 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
         "tests", default=False, description="Enable regression tests and clone the mesh submodule"
     )
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+openfast")
+
     depends_on("mpi")
     depends_on("yaml-cpp@0.5.3:")
     depends_on("openfast@4.0.0:+cxx+netcdf", when="+fsi")
@@ -176,6 +180,7 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
 
         if spec.satisfies("+openfast"):
             args.append(self.define("OpenFAST_DIR", spec["openfast"].prefix))
+            args.append(self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc))
 
         if spec.satisfies("+tioga"):
             args.append(self.define("TIOGA_DIR", spec["tioga"].prefix))
