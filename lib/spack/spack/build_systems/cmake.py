@@ -320,7 +320,7 @@ class CMakeBuilder(BaseBuilder):
     #: Callback names for build-time test
     build_time_test_callbacks = ["check"]
 
-    dependency_args = []
+    dependency_args: List[str] = []
 
     @property
     def archive_files(self):
