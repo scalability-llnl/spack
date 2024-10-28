@@ -18,7 +18,7 @@ class PyBakta(PythonPackage):
 
     license("GPL-3.0-only")
 
-    version("1.9.4", sha256="ad92853e9d4f022024d393149eb086ad36a7e35f824a5d9efed94c3262f9cf66")
+    version("1.9.4", sha256="10330a10e459144dc78daa26f3a73674799706e2e1653e080366b1bbb9e5a5d9")
     version("1.5.1", sha256="36781612c4eaa99e6e24a00e8ab5b27dadf21c98ae6d16432f3e78c96a4adb5d")
 
     variant("deepsig", default=True, description="builds with deepsig to predict signal peptides")
