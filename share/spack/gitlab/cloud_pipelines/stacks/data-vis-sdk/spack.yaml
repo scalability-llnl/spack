@@ -26,6 +26,8 @@ spack:
       variants: ~lldb~lld~libomptarget~polly~gold libunwind=none compiler-rt=none
     libllvm:
       require: ["^llvm"]
+    visit:
+      require: ["@3.4.1"]
 
   concretizer:
     unify: when_possible
@@ -40,8 +42,8 @@ spack:
   - visit_specs:
     - matrix:
       - - visit
-      - - ~gui ^[virtuals=gl] glx # GLX Rendering
-        - ~gui ^[virtuals=gl] osmesa # OSMesa Rendering
+      - - ~gui ^[virtuals=gl] glx
+        - ~gui ^[virtuals=gl] osmesa
         - +gui ^[virtuals=gl] glx # GUI Support w/ GLX Rendering
   - sdk_base_spec:
     - matrix:

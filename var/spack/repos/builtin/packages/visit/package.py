@@ -59,7 +59,11 @@ class Visit(CMakePackage):
 
     version("develop", branch="develop")
     version("3.4.1", sha256="942108cb294f4c9584a1628225b0be39c114c7e9e01805fb335d9c0b507689f5")
-    version("3.4.0", sha256="6cfb8b190045439e39fa6014dfa797de189bd40bbb9aa6facf711ebd908229e3")
+    version(
+        "3.4.0",
+        sha256="6cfb8b190045439e39fa6014dfa797de189bd40bbb9aa6facf711ebd908229e3",
+        deprecated=True,
+    )
     version("3.3.3", sha256="cc67abb7585e23b51ad576e797df4108641ae6c8c5e80e5359a279c729769187")
     version("3.3.2", sha256="0ae7c38287598e8d7d238cf284ea8be1096dcf13f58a7e9e444a28a32c085b56")
     version("3.3.1", sha256="2e969d3146b559fb833e4cdfaefa72f303d8ad368ef325f68506003f7bc317b9")
@@ -110,6 +114,9 @@ class Visit(CMakePackage):
     # Fix const-correctness in VTK interface
     patch("vtk-8.2-constcorrect.patch", when="@3.3.3 ^vtk@8.2.1a")
 
+    # Add dectection for py-pip and enable python extensions with building with GUI
+    patch("19958-enable-python-and-check-pip.patch", when="@3.4:3.4.1 +python")
+
     conflicts(
         "+gui", when="^[virtuals=gl] osmesa", msg="GUI cannot be activated with OSMesa front-end"
     )
@@ -119,8 +126,9 @@ class Visit(CMakePackage):
     conflicts("mpi", when="~mpi")
 
     # VTK flavors
-    depends_on("vtk@8.1:8 +opengl2", when="@:3.3")
-    depends_on("vtk@9.2.6 +opengl2", when="@3.4:")
+    depends_on("vtk +opengl2")
+    depends_on("vtk@8.1:8", when="@:3.3")
+    depends_on("vtk@9.2.6", when="@3.4:")
     depends_on("vtk +qt", when="+gui")
     depends_on("vtk +python", when="+python")
     depends_on("vtk +mpi", when="+mpi")
@@ -143,9 +151,10 @@ class Visit(CMakePackage):
     depends_on("qt@5:5.14", when="+gui")
     depends_on("qwt+opengl", when="+gui")
 
-    # python@3.8 doesn't work with VisIt.
+    # python@3.8 doesn't work with older VisIt.
     depends_on("python@3.2:3.7,3.9:", when="@:3.2 +python")
     depends_on("python@3.2:", when="@3.3: +python")
+    depends_on("py-pip", when="+python")
     extends("python", when="+python")
 
     # VisIt uses the hdf5 1.8 api
@@ -189,7 +198,6 @@ class Visit(CMakePackage):
         depends_on("adios2+mpi", when="+mpi")
         depends_on("adios2~mpi", when="~mpi")
         depends_on("adios2+python", when="+python")
-        depends_on("adios2~python", when="~python")
 
     # For version 3.3.0 through 3.3.2, we used vtk-h to utilize vtk-m.
     # For version starting with 3.3.3 we use vtk-m directly.
