@@ -45,7 +45,7 @@ def mpileaks_possible_deps(mock_packages, mpi_names, compiler_names):
         "low-priority-provider": set(),
         "dyninst": set(["libdwarf", "libelf"] + compiler_names),
         "fake": set(),
-        "gcc": set(),
+        "gcc": set(compiler_names),
         "intel-parallel-studio": set(),
         "libdwarf": set(["libelf"] + compiler_names),
         "libelf": set(compiler_names),
