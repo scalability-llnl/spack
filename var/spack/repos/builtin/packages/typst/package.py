@@ -3,8 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack.package import *
 import re
+
+from spack.package import *
+
 
 class Typst(CargoPackage):
     """Typst is a new markup-based typesetting system for the sciences."""
