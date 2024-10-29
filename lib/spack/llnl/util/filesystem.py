@@ -1678,11 +1678,14 @@ def find(root, files, recursive=True, max_depth: Optional[int] = None):
 
     Like GNU/BSD find but written entirely in Python.
 
+    When searching recursively, this behaves as `find` with the `-L`
+    option (follows symlinks).
+
     Examples:
 
     .. code-block:: console
 
-       $ find /usr -name python
+       $ find -L /usr -name python
 
     is equivalent to:
 
