@@ -124,7 +124,7 @@ def setup_parser(subparser):
         action="store_false",
         dest="use_cache",
         default=True,
-        help="do not check for pre-built Spack packages in mirrors",
+        help="do not check for pre-built Spack packages in mirrors (default)",
     )
     cache_group.add_argument(
         "--cache-only",

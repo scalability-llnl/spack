@@ -400,7 +400,7 @@ def no_install_status():
         dest="install_status",
         action="store_false",
         default=True,
-        help="do not show install status annotations",
+        help="do not show install status annotations (Default behavior)",
     )
 
 

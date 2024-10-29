@@ -841,7 +841,8 @@ def env_depfile_setup_parser(subparser):
         default=True,
         action="store_false",
         dest="jobserver",
-        help="disable POSIX jobserver support",
+        help="disable POSIX jobserver support"
+        "(Default behavior)\n",
     )
     subparser.add_argument(
         "--use-buildcache",
