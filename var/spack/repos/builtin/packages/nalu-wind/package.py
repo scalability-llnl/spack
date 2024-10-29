@@ -13,15 +13,6 @@ def _parse_float(val):
         return False
 
 
-def submodules(package):
-    submodules = []
-    if package.spec.satisfies("+wind-utils"):
-        submodules.append("wind-utils")
-    if package.spec.satisfies("+tests"):
-        submodules.append("reg_tests/mesh")
-    return submodules
-
-
 class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     """Nalu-Wind: Wind energy focused variant of Nalu."""
 
@@ -33,9 +24,9 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
 
     tags = ["ecp", "ecp-apps"]
 
-    version("master", branch="master", submodules=submodules)
-    version("2.1.0", tag="v2.1.0", submodules=submodules)
-    version("2.0.0", tag="v2.0.0", submodules=submodules)
+    version("master", branch="master", submodules=True)
+    version("2.1.0", tag="v2.1.0", submodules=True)
+    version("2.0.0", tag="v2.0.0", submodules=True)
 
     variant("pic", default=True, description="Position independent code")
     variant(
