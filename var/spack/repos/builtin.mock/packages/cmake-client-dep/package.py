@@ -6,14 +6,8 @@
 from spack.package import *
 
 
-def check(condition, msg):
-    """Raise an install error if condition is False."""
-    if not condition:
-        raise InstallError(msg)
-
-
 class CmakeClientDep(CMakePackage):
-    """A dummy package that uses cmake."""
+    """A stub CMake package that depends on another CMake package: cmake-client"""
 
     homepage = "https://www.example.com"
     url = "https://www.example.com/cmake-client-1.0.tar.gz"

@@ -89,7 +89,7 @@ class CmakeClient(CMakePackage):
             self.spec["cmake"].link_arg == "test link arg",
             "link arg on dependency spec not readable from " "setup_dependent_package.",
         )
-        self.builder.setup_dependent_cmake_package(module, dspec, "-DDEP_TEST_ARG=ON")
+        self.builder.setup_dependent_cmake_package(dspec, "-DDEP_TEST_ARG=ON")
 
     def cmake(self, spec, prefix):
         assert self.callback_counter == 1
