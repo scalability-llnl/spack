@@ -30,5 +30,9 @@ class Rocketmq(Package):
 
     depends_on("java@8:", type="run")
 
+    # UseBiasedLocking deprecated in java@15:, removed in java@21:
+    # https://openjdk.org/jeps/374, https://github.com/apache/rocketmq/pull/8809
+    depends_on("java@:20", type="run")
+
     def install(self, spec, prefix):
         install_tree(".", prefix)
