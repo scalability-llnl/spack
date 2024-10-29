@@ -16,6 +16,7 @@ class Beatnik(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSD-3-Clause")
 
+    version("1.1", commit="dd298662a690e3c1857f3c2408912d1ae8446795", submodules=True) 
     version("1.0", commit="ae31ef9cb44678d5ace77994b45b0778defa3d2f")
     version("develop", branch="develop")
     version("main", branch="main")
