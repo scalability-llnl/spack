@@ -1766,6 +1766,9 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     # (e.g. file search is typically case-insensitive on Windows)
     regexes = [re.compile(fnmatch.translate(os.path.normcase(x))) for x in globs]
 
+    if not os.path.isdir(root):
+        raise ValueError(f"{root} is not a directory")
+
     # Note later calls to os.scandir etc. return abspaths if the
     # input is absolute, see https://docs.python.org/3/library/os.html#os.DirEntry.path
     root = os.path.abspath(root)
@@ -1783,9 +1786,9 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     # resolutions on a parent.
     dir_queue = collections.deque([(0, root)])
     while dir_queue:
-        depth, next_dir_resolved = dir_queue.pop()
+        depth, next_dir = dir_queue.pop()
         try:
-            dir_iter = os.scandir(next_dir_resolved)
+            dir_iter = os.scandir(next_dir)
         except OSError:
             # Most commonly, this would be a permissions issue, for
             # example if we are scanning an external directory like /usr
@@ -1815,7 +1818,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                     fname = os.path.basename(dir_entry.path)
                     for pattern in regexes:
                         if pattern.match(os.path.normcase(fname)):
-                            found_files[pattern].append(os.path.join(next_dir_resolved, fname))
+                            found_files[pattern].append(os.path.join(next_dir, fname))
 
         # TODO: for fully-recursive searches, we can print a warning after
         # after having searched everything up to some fixed depth (which
