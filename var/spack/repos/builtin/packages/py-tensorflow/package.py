@@ -459,7 +459,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
             name == "ldflags"
             and spec.target.family == "aarch64"
             and "ubuntu" in spec.os
-            and spec.compiler.name == "gcc"
+            and spec.satisfies("%gcc")
             and "cortex_a53" not in spec.target.name
         ):
             flags.append("-mno-fix-cortex-a53-843419")

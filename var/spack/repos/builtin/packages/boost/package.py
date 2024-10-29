@@ -154,8 +154,12 @@ class Boost(Package):
         "wave",
     ]
 
+    # Add any extra requirements for specific
+    all_libs_opts = {"charconv": {"when": "@1.85.0:"}, "cobalt": {"when": "@1.84.0:"}}
+
     for lib in all_libs:
-        variant(lib, default=False, description="Compile with {0} library".format(lib))
+        lib_opts = all_libs_opts.get(lib, {})
+        variant(lib, default=False, description="Compile with {0} library".format(lib), **lib_opts)
 
     @property
     def libs(self):
@@ -624,9 +628,13 @@ class Boost(Package):
                 options.append("runtime-link=shared")
             else:
                 options.append("runtime-link=static")
+
+            # Any lib that is in self.all_libs AND in the variants dictionary
+            # AND is set to False should be added to options in a --without flag
             for lib in self.all_libs:
-                if f"+{lib}" not in spec:
-                    options.append(f"--without-{lib}")
+                if lib not in self.spec.variants.dict or self.spec.satisfies(f"+{lib}"):
+                    continue
+                options.append(f"--without-{lib}")
 
         if not spec.satisfies("@:1.75 %intel") and not spec.satisfies("platform=windows"):
             # When building any version >= 1.76, the toolset must be specified.

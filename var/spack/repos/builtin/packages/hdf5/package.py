@@ -146,7 +146,13 @@ class Hdf5(CMakePackage):
 
     depends_on("java", type=("build", "run"), when="+java")
     depends_on("szip", when="+szip")
+
     depends_on("zlib-api")
+    # See https://github.com/HDFGroup/hdf5/pull/4147
+    depends_on(
+        "zlib-ng~new_strategies",
+        when="@:1.14.3,develop-1.8:develop-1.12 ^[virtuals=zlib-api] zlib-ng",
+    )
 
     # The compiler wrappers (h5cc, h5fc, etc.) run 'pkg-config'.
     # Skip this on Windows since pkgconfig is autotools
@@ -325,7 +331,12 @@ class Hdf5(CMakePackage):
         cmake_flags = []
 
         if name == "cflags":
-            if spec.compiler.name in ["gcc", "clang", "apple-clang", "oneapi"]:
+            if (
+                spec.satisfies("%gcc")
+                or spec.satisfies("%clang")
+                or spec.satisfies("%apple-clang")
+                or spec.satisfies("%oneapi")
+            ):
                 # Quiet warnings/errors about implicit declaration of functions
                 # in C99:
                 cmake_flags.append("-Wno-error=implicit-function-declaration")
@@ -569,6 +580,10 @@ class Hdf5(CMakePackage):
         # work-around for https://github.com/HDFGroup/hdf5/issues/1320
         if spec.satisfies("@1.10.8,1.13.0"):
             args.append(self.define("HDF5_INSTALL_CMAKE_DIR", "share/cmake/hdf5"))
+
+        # AOCC does not support _Float16
+        if spec.satisfies("@1.14.4: %aocc"):
+            args.append(self.define("HDF5_ENABLE_NONSTANDARD_FEATURE_FLOAT16", False))
 
         return args
 

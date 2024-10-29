@@ -15,6 +15,9 @@ class PyTorchmetrics(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart")
 
+    version("1.5.1", sha256="9701632cf811bc460abf07bd7b971b79c1ae9c8231e03d495b53a0975e43fe07")
+    version("1.5.0", sha256="c18e68bab4104ad7d2285af601ddc6dc04f9f3b7cafaa8ad13fa1dcc539e33b6")
+    version("1.4.3", sha256="5554a19167e91f543afe82ff58a01059c8eec854359ad22896449c2c8fb0ad89")
     version("1.4.2", sha256="7a40cbec85e5645090812b87601696b4adf158294ec8c407ae58a71710938b87")
     version("1.4.0", sha256="0b1e5acdcc9beb05bfe369d3d56cfa5b143f060ebfd6079d19ccc59ba46465b3")
     version("1.3.2", sha256="0a67694a4c4265eeb54cda741eaf5cb1f3a71da74b7e7e6215ad156c9f2379f6")
@@ -70,8 +73,9 @@ class PyTorchmetrics(PythonPackage):
         depends_on("py-scipy@1.0.1:", when="+image")
         depends_on("py-torchvision@0.8:", when="+image")
         depends_on("py-torch-fidelity", when="+image")
-        depends_on("py-lpips", when="@:1.2.0+image")
 
         # Historical dependencies
         depends_on("py-pretty-errors@1.2.25", when="@1.4.0")
         depends_on("py-pydeprecate@0.3", when="@0.7:0.8")
+
+        depends_on("py-lpips", when="@:1.2.0+image")

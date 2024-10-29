@@ -11,12 +11,12 @@ class PyCartopy(PythonPackage):
 
     homepage = "https://scitools.org.uk/cartopy/docs/latest/"
     pypi = "Cartopy/cartopy-0.20.2.tar.gz"
-
-    maintainers("adamjstewart")
     skip_modules = ["cartopy.tests"]
 
     license("LGPL-3.0-or-later")
+    maintainers("adamjstewart")
 
+    version("0.24.1", sha256="01c910d5634c69a7efdec46e0a17d473d2328767f001d4dc0b5c4b48e585c8bd")
     version("0.24.0", sha256="e044e0e0fa76bb7afde937bec541743dcbf6b6f23b933a21ebddcd20cfffb755")
     version("0.23.0", sha256="231f37b35701f2ba31d94959cca75e6da04c2eea3a7f14ce1c75ee3b0eae7676")
     version("0.22.0", sha256="b300f90120931d43f11ef87c064ea1dacec1b59a4940aa76ebf82cf09548bb49")
@@ -45,7 +45,8 @@ class PyCartopy(PythonPackage):
 
     # Based on wheel availability on PyPI
     with default_args(type=("build", "link", "run")):
-        depends_on("python@3.10:3.12", when="@0.24:")
+        depends_on("python@3.10:3.13", when="@0.24.1:")
+        depends_on("python@3.10:3.12", when="@0.24.0")
         depends_on("python@3.9:3.12", when="@0.23")
         depends_on("python@3.9:3.11", when="@0.22")
         depends_on("python@3.8:3.11", when="@0.21")

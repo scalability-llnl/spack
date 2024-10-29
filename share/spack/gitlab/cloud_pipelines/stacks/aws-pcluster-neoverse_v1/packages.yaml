@@ -47,7 +47,7 @@ packages:
   slurm:
     buildable: false
     externals:
-      - prefix: /opt/slurm/
+      - prefix: ${SLURM_ROOT}
         spec: slurm@${SLURM_VERSION} +pmix
   wrf:
     require:

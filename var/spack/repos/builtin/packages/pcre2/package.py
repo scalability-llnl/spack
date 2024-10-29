@@ -82,7 +82,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         # by default, this is in parity with the autotools build, so on
         # linux and MacOS, the produced binaries are identical, Windows is the
         # only outlier
-        if spec.satisfies("platform=windows"):
+        if self.spec.satisfies("platform=windows"):
             args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
             # PCRE allows building shared and static at the same time
             # this is bad practice and a problem on some platforms

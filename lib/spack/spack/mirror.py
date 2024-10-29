@@ -29,7 +29,6 @@ import spack.caches
 import spack.config
 import spack.error
 import spack.fetch_strategy
-import spack.mirror
 import spack.oci.image
 import spack.repo
 import spack.spec
@@ -89,9 +88,8 @@ class Mirror:
         """Create an anonymous mirror by URL. This method validates the URL."""
         if not urllib.parse.urlparse(url).scheme in supported_url_schemes:
             raise ValueError(
-                '"{}" is not a valid mirror URL. Scheme must be once of {}.'.format(
-                    url, ", ".join(supported_url_schemes)
-                )
+                f'"{url}" is not a valid mirror URL. '
+                f"Scheme must be one of {supported_url_schemes}."
             )
         return Mirror(url)
 
@@ -757,9 +755,9 @@ def create_mirror_from_package_object(pkg_obj, mirror_cache, mirror_stats):
 
 def require_mirror_name(mirror_name):
     """Find a mirror by name and raise if it does not exist"""
-    mirror = spack.mirror.MirrorCollection().get(mirror_name)
+    mirror = MirrorCollection().get(mirror_name)
     if not mirror:
-        raise ValueError('no mirror named "{0}"'.format(mirror_name))
+        raise ValueError(f'no mirror named "{mirror_name}"')
     return mirror
 
 

@@ -19,6 +19,10 @@ packages:
           - "+intel_provided_gcc ^intel-oneapi-mkl target=x86_64_v4"
           - "+intel_provided_gcc ^intel-oneapi-mkl target=x86_64_v3"
         when: "%intel"
+      - one_of:
+          - "+intel_provided_gcc target=x86_64_v4 ^intel-oneapi-mkl"
+          - "+intel_provided_gcc target=x86_64_v3 ^intel-oneapi-mkl"
+        when: "%oneapi"
   intel-oneapi-compilers:
     require: "intel-oneapi-compilers %gcc target=x86_64_v3"
   intel-oneapi-mpi:
@@ -29,6 +33,10 @@ packages:
           - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package +intel fft=mkl ^intel-oneapi-mkl target=x86_64_v4"
           - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package fft=mkl ^intel-oneapi-mkl target=x86_64_v3"
         when: "%intel"
+      - one_of:
+          - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package +intel fft=mkl ^intel-oneapi-mkl target=x86_64_v4"
+          - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package fft=mkl ^intel-oneapi-mkl target=x86_64_v3"
+        when: "%oneapi"
   libidn2:
     require:
       - one_of:
@@ -53,6 +61,10 @@ packages:
           - "precision=single ^parallelio+pnetcdf target=x86_64_v4"
           - "precision=single ^parallelio+pnetcdf target=x86_64_v3"
         when: "%intel"
+      - one_of:
+          - "precision=single ^parallelio+pnetcdf target=x86_64_v4"
+          - "precision=single ^parallelio+pnetcdf target=x86_64_v3"
+        when: "%oneapi"
   mpich:
     require:
       - one_of:
@@ -89,10 +101,14 @@ packages:
           - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v4"
           - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v3"
         when: "%intel"
+      - one_of:
+          - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v4"
+          - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v3"
+        when: "%oneapi"
   slurm:
     buildable: false
     externals:
-      - prefix: /opt/slurm/
+      - prefix: ${SLURM_ROOT}
         spec: slurm@${SLURM_VERSION} +pmix
   wrf:
     require:
@@ -101,9 +117,14 @@ packages:
           - "wrf@4 build_type=dm+sm target=x86_64_v3"
           - "wrf@4.2.2 +netcdf_classic fflags=\"-fp-model fast=2 -no-heap-arrays -no-prec-div -no-prec-sqrt -fno-common\" build_type=dm+sm target=x86_64_v3"
         when: "%intel"
+      - one_of:
+          - "wrf@4 build_type=dm+sm target=x86_64_v4"
+          - "wrf@4 build_type=dm+sm target=x86_64_v3"
+          - "wrf@4.2.2 +netcdf_classic fflags=\"-fp-model fast=2 -no-heap-arrays -no-prec-div -no-prec-sqrt -fno-common\" build_type=dm+sm target=x86_64_v3"
+        when: "%oneapi"
 
   all:
-    compiler: [intel, oneapi, gcc]
+    compiler: [oneapi, gcc]
     permissions:
       read: world
       write: user

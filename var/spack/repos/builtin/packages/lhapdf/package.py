@@ -50,7 +50,7 @@ class Lhapdf(AutotoolsPackage):
         # Add -lintl if provided by gettext, otherwise libintl is provided by the system's glibc:
         if (
             self.spec.satisfies("+python")
-            and "gettext" in self.spec
+            and self.spec.satisfies("^gettext")
             and "intl" in self.spec["gettext"].libs.names
         ):
             env.append_flags("LDFLAGS", "-L" + self.spec["gettext"].prefix.lib)
