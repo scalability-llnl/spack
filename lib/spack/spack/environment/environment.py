@@ -1522,6 +1522,7 @@ class Environment:
         # Exit early if the set of concretized specs is the set of user specs
         new_user_specs = set(self.user_specs) - set(self.concretized_user_specs)
         kept_user_specs = set(self.user_specs) & set(self.concretized_user_specs)
+        kept_user_specs |= set(self.included_user_specs)
         if not new_user_specs:
             return new_user_specs, kept_user_specs, []
 
@@ -1568,7 +1569,10 @@ class Environment:
             abstract = old_concrete_to_abstract.get(abstract, abstract)
             if abstract in new_user_specs:
                 result.append((abstract, concrete))
-            self._add_concrete_spec(abstract, concrete)
+
+            # Only add to the environment if it's from this environment (not just included)
+            if abstract in self.user_specs:
+                self._add_concrete_spec(abstract, concrete)
 
         return result
 
@@ -1611,7 +1615,9 @@ class Environment:
         ordered_user_specs = list(new_user_specs) + list(kept_user_specs)
         concretized_specs = [x for x in zip(ordered_user_specs, concrete_specs)]
         for abstract, concrete in concretized_specs:
-            self._add_concrete_spec(abstract, concrete)
+            # Don't add if it's just included
+            if abstract in self.user_specs:
+                self._add_concrete_spec(abstract, concrete)
 
         # zip truncates the longer list, which is exactly what we want here
         return list(zip(new_user_specs, concrete_specs))

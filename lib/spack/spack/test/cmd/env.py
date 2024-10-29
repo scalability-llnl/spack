@@ -402,13 +402,16 @@ def test_env_install_single_spec(install_mockery, mock_fetch):
 
 
 @pytest.mark.parametrize("unify", [True, False, "when_possible"])
-def test_env_install_include_concrete_env(unify, install_mockery, mock_fetch):
+def test_env_install_include_concrete_env(unify, install_mockery, mock_fetch, mutable_config):
     test1, test2, combined = setup_combined_multiple_env()
 
+    combined.unify = unify
+    if not unify:
+        combined.manifest.set_default_view(False)
+
+    combined.add("mpileaks")
     combined.concretize()
     combined.write()
-
-    combined.unify = unify
 
     with combined:
         install()
@@ -422,6 +425,14 @@ def test_env_install_include_concrete_env(unify, install_mockery, mock_fetch):
 
     assert test1_roots == combined_included_roots[test1.path]
     assert test2_roots == combined_included_roots[test2.path]
+
+    mpileaks = combined.specs_by_hash[combined.concretized_order[0]]
+    if unify:
+        assert mpileaks["mpi"].dag_hash() in test1_roots
+        assert mpileaks["libelf"].dag_hash() in test2_roots
+    else:
+        # check that unification is not by accident
+        assert mpileaks["mpi"].dag_hash() not in test1_roots
 
 
 def test_env_roots_marked_explicit(install_mockery, mock_fetch):
@@ -2012,7 +2023,7 @@ def test_env_include_concrete_reuse(monkeypatch, reuse_mode):
         # Add mpileaks to the combined environment
         with combined:
             add("mpileaks")
-            combined.unify = True
+            combined.unify = False
             combined.concretize(force=True)
         comb_specs_by_hash = combined._concrete_specs_dict()
 
