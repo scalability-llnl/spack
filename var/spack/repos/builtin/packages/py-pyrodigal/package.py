@@ -13,7 +13,7 @@ class PyPyrodigal(PythonPackage):
     homepage = "https://github.com/althonos/pyrodigal"
     pypi = "pyrodigal/pyrodigal-3.5.2.tar.gz"
 
-    license("GPL-3.0", checked_by="lukedt")
+    license("GPL-3.0", checked_by="luke-dt")
 
     version("3.5.2", sha256="2a40eb6113e720ada51c326958b295944cdc33ecee9f25d5bad4e9a8e6e6f7f5")
 
