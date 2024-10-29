@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
+
 from spack.package import *
 from spack.util.environment import is_system_path
 
@@ -71,10 +73,12 @@ class Arkouda(MakefilePackage):
     # Shamelessly copied from the Chapel package.py
     def update_lib_path(self, env, prefix):
         if not is_system_path(prefix):
-            env.prepend_path("LD_LIBRARY_PATH", prefix.lib)
-            env.prepend_path("LIBRARY_PATH", prefix.lib)
-            if prefix.lib.pkgconfig is not None:
-                env.prepend_path("PKG_CONFIG_PATH", prefix.lib.pkgconfig)
+            lib_path = str(prefix.lib) if os.path.exists(prefix.lib) else str(prefix.lib64)
+            env.prepend_path("LD_LIBRARY_PATH", lib_path)
+            env.prepend_path("LIBRARY_PATH", lib_path)
+            pkgconfig_path = join_path(lib_path, "pkgconfig")
+            if os.path.exists(pkgconfig_path):
+                env.prepend_path("PKG_CONFIG_PATH", pkgconfig_path)
 
     # Arkouda does not have an install target in its Makefile
     def install(self, spec, prefix):
@@ -86,17 +90,7 @@ class Arkouda(MakefilePackage):
             install("arkouda_server_real", prefix.bin)
         install_tree(self.stage.source_path, prefix)
 
-    def setup_build_environment(self, env):
-        env.set("CHPL_FLAGS", "--no-compiler-driver")
-        env.set(
-            "CHPL_HOME",
-            join_path(
-                self.spec["chapel"].prefix,
-                "share",
-                "chapel",
-                str(self.spec["chapel"].version.up_to(2)),
-            ),
-        )
+    def setup_library_paths(self, env):
         self.update_lib_path(env, self.spec["hdf5"].prefix)
         self.prepend_cpath_include(env, self.spec["hdf5"].prefix)
         self.update_lib_path(env, self.spec["libzmq"].prefix)
@@ -107,3 +101,39 @@ class Arkouda(MakefilePackage):
         self.prepend_cpath_include(env, self.spec["libiconv"].prefix)
         self.update_lib_path(env, self.spec["libidn2"].prefix)
         self.prepend_cpath_include(env, self.spec["libidn2"].prefix)
+
+    def setup_run_environment(self, env):
+        env.set(
+            "CHPL_MAKE_THIRD_PARTY",
+            join_path(
+                self.spec["chapel"].prefix,
+                "lib",
+                "chapel",
+                str(self.spec["chapel"].version.up_to(2)),
+            ),
+        )
+        self.setup_library_paths(env)
+
+    def setup_build_environment(self, env):
+        env.set("CHPL_FLAGS", "--no-compiler-driver")
+        # TODO: have chapel package provide this?
+        env.set(
+            "CHPL_HOME",
+            join_path(
+                self.spec["chapel"].prefix,
+                "share",
+                "chapel",
+                str(self.spec["chapel"].version.up_to(2)),
+            ),
+        )
+        # TODO: have chapel package provide this?
+        env.set(
+            "CHPL_MAKE_THIRD_PARTY",
+            join_path(
+                self.spec["chapel"].prefix,
+                "lib",
+                "chapel",
+                str(self.spec["chapel"].version.up_to(2)),
+            ),
+        )
+        self.setup_library_paths(env)
