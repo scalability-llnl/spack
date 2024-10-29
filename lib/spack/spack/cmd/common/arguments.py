@@ -388,6 +388,7 @@ def install_status():
             "show install status of packages\n"
             "[+] installed       [^] installed in an upstream\n"
             " -  not installed   [-] missing dep of installed package\n"
+            "(Default behavior)\n"
         ),
     )
 
