@@ -103,12 +103,6 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
     # Kokkos variant
     variant("kokkos", default=False, description="Enable KOKKOS support")
 
-    # ACC conflict
-
-    variant(
-        "cpu_arch", values=str, default="none", description="Enable CPU Target for ACC and OMP"
-    )
-
     # STD conflicts
     conflicts("+std", when="%gcc@:10.1.0", msg="STD requires newer version of GCC")
 
@@ -398,23 +392,10 @@ register_flag_optional(TARGET_PROCESSOR
         if self.spec.satisfies("+acc~kokkos~raja"):
             if (self.spec.compiler.name == "nvhpc") or (self.spec.compiler.name == "pgi"):
                 target_device = (
-                    "multicore"
-                    if self.spec.variants["cpu_arch"].value != "none"
-                    else "gpu"
+                    "gpu"
                     if "cuda_arch" in self.spec.variants
-                    else None
+                    else "multicore"
                 )
-                if self.spec.variants["cpu_arch"].value != "none":
-                    # get the cpu architecture value from user
-                    target_processor = self.spec.variants["cpu_arch"].value[0]
-                    args.append("-DTARGET_PROCESSOR=" + target_processor)
-                    # args.append(
-                    #     "-DCXX_EXTRA_FLAGS="
-                    #     + "-target="
-                    #     + target_device
-                    #     + "-tp="
-                    #     + target_processor
-                    # )
                 if "cuda_arch" in self.spec.variants:
                     cuda_arch_list = self.spec.variants["cuda_arch"].value
                     # the architecture value is only number so append cc_ to the name
@@ -423,6 +404,17 @@ register_flag_optional(TARGET_PROCESSOR
                     #     "-DCXX_EXTRA_FLAGS=" + "-target=" + target_device + "-gpu=" + cuda_arch
                     # )
                     args.append("-DCUDA_ARCH=" + cuda_arch)
+                else:
+                    # get the cpu architecture value from user
+                    target_processor = str(self.spec.target) # self.spec.variants["cpu_arch"].value[0]
+                    args.append("-DTARGET_PROCESSOR=" + target_processor)
+                    # args.append(
+                    #     "-DCXX_EXTRA_FLAGS="
+                    #     + "-target="
+                    #     + target_device
+                    #     + "-tp="
+                    #     + target_processor
+                    # )
                 args.append("-DTARGET_DEVICE=" + target_device)
         # ===================================
         #    STDdata,STDindices,STDranges
