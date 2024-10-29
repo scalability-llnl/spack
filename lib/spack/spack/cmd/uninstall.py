@@ -17,7 +17,7 @@ import spack.spec
 import spack.store
 import spack.traverse as traverse
 from spack.cmd.common import arguments
-from spack.database import InstallStatuses
+from spack.database import StatusQuery
 
 description = "remove installed packages"
 section = "build"
@@ -102,9 +102,11 @@ def find_matching_specs(
     specs_from_cli: List["spack.spec.Spec"] = []
     has_errors = False
     for spec in specs:
-        install_query = [InstallStatuses.INSTALLED, InstallStatuses.DEPRECATED]
         matching = spack.store.STORE.db.query_local(
-            spec, hashes=hashes, installed=install_query, origin=origin
+            spec,
+            hashes=hashes,
+            installed=(StatusQuery.INSTALLED | StatusQuery.DEPRECATED),
+            origin=origin,
         )
         # For each spec provided, make sure it refers to only one package.
         # Fail and ask user to be unambiguous if it doesn't

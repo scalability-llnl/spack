@@ -2066,6 +2066,7 @@ class Spec:
         """Lookup just one spec with an abstract hash, returning a spec from the the environment,
         store, or finally, binary caches."""
         import spack.binary_distribution
+        import spack.database as db
         import spack.environment
 
         active_env = spack.environment.active_environment()
@@ -2073,7 +2074,7 @@ class Spec:
         # First env, then store, then binary cache
         matches = (
             (active_env.all_matching_specs(self) if active_env else [])
-            or spack.store.STORE.db.query(self, installed=any)
+            or spack.store.STORE.db.query(self, installed=db.ANY_STATUS)
             or spack.binary_distribution.BinaryCacheQuery(True)(self)
         )
 

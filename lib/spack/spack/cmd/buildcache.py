@@ -32,6 +32,7 @@ import spack.util.web as web_util
 from spack import traverse
 from spack.cmd import display_specs
 from spack.cmd.common import arguments
+from spack.database import ANY_STATUS
 from spack.spec import Spec, save_dependency_specfiles
 
 description = "create, download and install binary packages"
@@ -308,7 +309,10 @@ def setup_parser(subparser: argparse.ArgumentParser):
 
 def _matching_specs(specs: List[Spec]) -> List[Spec]:
     """Disambiguate specs and return a list of matching specs"""
-    return [spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=any) for s in specs]
+    return [
+        spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=ANY_STATUS)
+        for s in specs
+    ]
 
 
 def _format_spec(spec: Spec) -> str:

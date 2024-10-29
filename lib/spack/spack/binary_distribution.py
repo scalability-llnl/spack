@@ -252,7 +252,7 @@ class BinaryCacheIndex:
 
             spec_list = [
                 s
-                for s in db.query_local(installed=any)
+                for s in db.query_local(installed=spack_db.ANY_STATUS)
                 if s.external or db.query_local_by_spec_hash(s.dag_hash()).in_buildcache
             ]
 
