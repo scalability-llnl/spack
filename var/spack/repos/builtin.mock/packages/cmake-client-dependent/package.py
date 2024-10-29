@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class CmakeClientDep(CMakePackage):
+class CmakeClientDependent(CMakePackage):
     """A stub CMake package that depends on another CMake package: cmake-client"""
 
     homepage = "https://www.example.com"
