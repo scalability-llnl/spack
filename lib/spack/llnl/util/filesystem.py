@@ -1772,8 +1772,11 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
 
     found_files = collections.defaultdict(list)
 
-    resolved_root = os.path.realpath(root)
-    visited_dirs = set([resolved_root])
+    def _dir_id(p):
+        stat_result = os.stat(p, follow_symlinks=True)
+        return (stat_result.st_ino, stat_result.st_dev)
+
+    visited_dirs = set([_dir_id(root)])
 
     # Each queue item stores the depth, the path, and the realpath
     # equivalent; the latter is used to avoid repeated symlink
@@ -1803,8 +1806,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                         raise
 
                 if it_is_a_dir:
-                    stat_result = os.stat(dir_entry.path, follow_symlinks=True)
-                    dir_id = (stat_result.st_ino, stat_result.st_dev)
+                    dir_id = _dir_id(dir_entry.path)
 
                     if (depth < max_depth) and (dir_id not in visited_dirs):
                         dir_queue.appendleft((depth + 1, dir_entry.path))
