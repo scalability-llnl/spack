@@ -323,6 +323,7 @@ class TestCMakePackage:
     def test_cmake_dependent_args(self, concretize_and_setup, monkeypatch):
         def cmake_arg_check(*options):
             assert "-DDEP_TEST_ARG=ON" in options
+
         s = concretize_and_setup("cmake-client-dependent")
         monkeypatch.setattr(s.package.module, "cmake", cmake_arg_check)
 
