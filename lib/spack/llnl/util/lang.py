@@ -1050,9 +1050,6 @@ class DeprecatedProperty:
     #: 2 - Error
     error_lvl = 0
 
-    #: Whether to add tracebacks to warnings and errors
-    traceback = False
-
     def __init__(self, name: str) -> None:
         self.name = name
 
@@ -1063,12 +1060,8 @@ class DeprecatedProperty:
         if self.error_lvl == 1:
             msg = f"accessing the '{self.name}' property of '{instance}', which is deprecated"
             warnings.warn(msg)
-            if self.traceback:
-                traceback.print_stack()
         elif self.error_lvl == 2:
             msg = f"cannot access the '{self.name}' attribute of '{instance}'"
-            if self.traceback:
-                traceback.print_stack()
             raise AttributeError(msg)
 
         return self.factory(instance, owner)
