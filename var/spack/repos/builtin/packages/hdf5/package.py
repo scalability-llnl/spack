@@ -331,7 +331,12 @@ class Hdf5(CMakePackage):
         cmake_flags = []
 
         if name == "cflags":
-            if spec.compiler.name in ["gcc", "clang", "apple-clang", "oneapi"]:
+            if (
+                spec.satisfies("%gcc")
+                or spec.satisfies("%clang")
+                or spec.satisfies("%apple-clang")
+                or spec.satisfies("%oneapi")
+            ):
                 # Quiet warnings/errors about implicit declaration of functions
                 # in C99:
                 cmake_flags.append("-Wno-error=implicit-function-declaration")
@@ -575,6 +580,10 @@ class Hdf5(CMakePackage):
         # work-around for https://github.com/HDFGroup/hdf5/issues/1320
         if spec.satisfies("@1.10.8,1.13.0"):
             args.append(self.define("HDF5_INSTALL_CMAKE_DIR", "share/cmake/hdf5"))
+
+        # AOCC does not support _Float16
+        if spec.satisfies("@1.14.4: %aocc"):
+            args.append(self.define("HDF5_ENABLE_NONSTANDARD_FEATURE_FLOAT16", False))
 
         return args
 

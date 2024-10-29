@@ -56,6 +56,8 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("19.1.2", sha256="622cb6c5e95a3bb7e9876c4696a65671f235bd836cfd0c096b272f6c2ada41e7")
+    version("19.1.1", sha256="115dfd98a353d05bffdab3f80db22f159da48aca0124e8c416f437adcd54b77f")
     version("19.1.0", sha256="0a08341036ca99a106786f50f9c5cb3fbe458b3b74cab6089fd368d0edb2edfe")
     version("18.1.8", sha256="09c08693a9afd6236f27a2ebae62cda656eba19021ef3f94d59e931d662d4856")
     version("18.1.7", sha256="b60df7cbe02cef2523f7357120fb0d46cbb443791cde3a5fb36b82c335c0afc9")

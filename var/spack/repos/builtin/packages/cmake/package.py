@@ -162,6 +162,12 @@ class Cmake(Package):
     depends_on("gmake", when="platform=freebsd")
 
     depends_on("qt", when="+qtgui")
+    # Qt depends on libmng, which is a CMake package;
+    # ensure we build using a non CMake build system
+    # when libmng is build as a transitive dependency of CMake
+    for plat in ["linux", "darwin", "freebsd"]:
+        with when(f"platform={plat}"):
+            depends_on("libmng build_system=autotools", when="+qtgui")
 
     # See https://gitlab.kitware.com/cmake/cmake/-/issues/21135
     conflicts(

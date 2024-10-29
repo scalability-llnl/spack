@@ -80,8 +80,8 @@ def find_matching_specs(specs, allow_multiple_matches=False):
             has_errors = True
 
         # No installed package matches the query
-        if len(matching) == 0 and spec is not any:
-            tty.die("{0} does not match any installed packages.".format(spec))
+        if len(matching) == 0 and spec is not None:
+            tty.die(f"{spec} does not match any installed packages.")
 
         specs_from_cli.extend(matching)
 
@@ -116,6 +116,6 @@ def mark(parser, args):
             "  Use `spack mark --all` to mark ALL packages.",
         )
 
-    # [any] here handles the --all case by forcing all specs to be returned
-    specs = spack.cmd.parse_specs(args.specs) if args.specs else [any]
+    # [None] here handles the --all case by forcing all specs to be returned
+    specs = spack.cmd.parse_specs(args.specs) if args.specs else [None]
     mark_specs(args, specs)

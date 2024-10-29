@@ -538,21 +538,26 @@ class Root(CMakePackage):
         _add_variant(v, f, "gviz", "+graphviz")
         _add_variant(v, f, "http", "+http")
         _add_variant(v, f, ("imt", "tbb"), "+tbb")
-        _add_variant(v, f, "jemalloc", "+jemalloc")
-        _add_variant(v, f, "memstat", "+memstat")
+        if Version(version_str) <= Version("6.28"):
+            _add_variant(v, f, "jemalloc", "+jemalloc")
+        if Version(version_str) <= Version("6.17"):
+            _add_variant(v, f, "memstat", "+memstat")
         _add_variant(v, f, ("minuit", "minuit2"), "+minuit")
         _add_variant(v, f, "mlp", "+mlp")
         _add_variant(v, f, "mysql", "+mysql")
-        _add_variant(v, f, "oracle", "+oracle")
+        if Version(version_str) <= Version("6.30"):
+            _add_variant(v, f, "oracle", "+oracle")
         _add_variant(v, f, "pgsql", "+postgres")
-        _add_variant(v, f, "pythia6", "+pythia6")
+        if Version(version_str) <= Version("6.30"):
+            _add_variant(v, f, "pythia6", "+pythia6")
         _add_variant(v, f, "pythia8", "+pythia8")
         _add_variant(v, f, "pyroot", "+python")
-        _add_variant(v, f, ("qt", "qtgsi"), "+qt4")
+        if Version(version_str) <= Version("6.17"):
+            _add_variant(v, f, ("qt", "qtgsi"), "+qt4")
         _add_variant(v, f, "r", "+r")
         _add_variant(v, f, "roofit", "+roofit")
         # webui feature renamed to webgui in 6.18
-        if Version(version_str).satisfies("@6.18:"):
+        if Version(version_str) >= Version("6.18"):
             _add_variant(v, f, ("root7", "webgui"), "+webgui")
         else:
             _add_variant(v, f, ("root7", "webui"), "+webgui")
@@ -561,7 +566,8 @@ class Root(CMakePackage):
         _add_variant(v, f, "spectrum", "+spectrum")
         _add_variant(v, f, "sqlite", "+sqlite")
         _add_variant(v, f, "ssl", "+ssl")
-        _add_variant(v, f, "table", "+table")
+        if Version(version_str) <= Version("6.17"):
+            _add_variant(v, f, "table", "+table")
         _add_variant(v, f, "thread", "+threads")
         _add_variant(v, f, "tmva", "+tmva")
         _add_variant(v, f, "tmva-cpu", "+tmva-cpu")
@@ -572,7 +578,8 @@ class Root(CMakePackage):
         _add_variant(v, f, "vc", "+vc")
         _add_variant(v, f, "vdt", "+vdt")
         _add_variant(v, f, "veccore", "+veccore")
-        _add_variant(v, f, "vmc", "+vmc")
+        if Version(version_str) <= Version("6.25"):
+            _add_variant(v, f, "vmc", "+vmc")
         _add_variant(v, f, ("x11", "xft"), "+x")
         _add_variant(v, f, "xml", "+xml")
         _add_variant(v, f, "xrootd", "+xrootd")
