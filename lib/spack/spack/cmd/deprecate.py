@@ -54,8 +54,7 @@ def setup_parser(sp):
         action="store_false",
         default=True,
         dest="dependencies",
-        help="do not deprecate dependencies"
-        "(Default behavior)\n",
+        help="do not deprecate dependencies" "(Default behavior)\n",
     )
 
     install = sp.add_mutually_exclusive_group()
