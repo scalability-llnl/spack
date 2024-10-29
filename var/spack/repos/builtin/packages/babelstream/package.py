@@ -28,7 +28,8 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
     version("main", branch="main")
     maintainers("tomdeakin", "kaanolgu", "tom91136")
     # Previous maintainers: "robj0nes"
-    depends_on("cxx", type="build")
+    depends_on("cxx", type="build", when="languages=cxx")
+    depends_on("fortran", type="build", when="languages=fortran")
     # Languages
     # in the future it could be possible to add other languages too
     variant(
