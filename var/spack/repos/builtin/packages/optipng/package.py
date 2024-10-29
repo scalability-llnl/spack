@@ -27,6 +27,6 @@ class Optipng(AutotoolsPackage, SourceforgePackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
-    # See https://github.com/imagemin/optipng-bin/issues/97    
+    # See https://github.com/imagemin/optipng-bin/issues/97
     patch("for_aarch64_0.7.7.patch", when="@0.7.7")
     patch("for_aarch64_0.7.8.patch", when="@0.7.8:")
