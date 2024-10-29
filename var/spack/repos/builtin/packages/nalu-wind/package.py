@@ -13,15 +13,6 @@ def _parse_float(val):
         return False
 
 
-def submodules(package):
-    submodules = []
-    if package.spec.satisfies("+wind-utils"):
-        submodules.append("wind-utils")
-    if package.spec.satisfies("+tests"):
-        submodules.append("reg_tests/mesh")
-    return submodules
-
-
 class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     """Nalu-Wind: Wind energy focused variant of Nalu."""
 
@@ -33,9 +24,9 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
 
     tags = ["ecp", "ecp-apps"]
 
-    version("master", branch="master", submodules=submodules)
-    version("2.1.0", tag="v2.1.0", submodules=submodules)
-    version("2.0.0", tag="v2.0.0", submodules=submodules)
+    version("master", branch="master", submodules=True)
+    version("2.1.0", tag="v2.1.0", submodules=True)
+    version("2.0.0", tag="v2.0.0", submodules=True)
 
     variant("pic", default=True, description="Position independent code")
     variant(
@@ -65,6 +56,10 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     variant(
         "tests", default=False, description="Enable regression tests and clone the mesh submodule"
     )
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+openfast")
 
     depends_on("mpi")
     depends_on("yaml-cpp@0.5.3:")
@@ -156,7 +151,6 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
 
         args = [
             self.define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx),
-            self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc),
             self.define("Trilinos_DIR", spec["trilinos"].prefix),
             self.define("YAML_DIR", spec["yaml-cpp"].prefix),
             self.define("CMAKE_CXX_STANDARD", "17"),
@@ -177,6 +171,7 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
 
         if spec.satisfies("+openfast"):
             args.append(self.define("OpenFAST_DIR", spec["openfast"].prefix))
+            args.append(self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc))
 
         if spec.satisfies("+tioga"):
             args.append(self.define("TIOGA_DIR", spec["tioga"].prefix))

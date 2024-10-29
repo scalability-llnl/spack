@@ -2306,6 +2306,30 @@ class TestConcretize:
         assert "hdf5 ^zmpi" in captured.err
         assert str(spec) in captured.err
 
+    def test_explicit_splice_fails_nonexistent(mutable_config, mock_packages, mock_store):
+        splice_info = {"target": "mpi", "replacement": "mpich/doesnotexist"}
+        spack.config.CONFIG.set("concretizer", {"splice": {"explicit": [splice_info]}})
+
+        with pytest.raises(spack.spec.InvalidHashError):
+            _ = spack.spec.Spec("hdf5^zmpi").concretized()
+
+    def test_explicit_splice_fails_no_hash(mutable_config, mock_packages, mock_store):
+        splice_info = {"target": "mpi", "replacement": "mpich"}
+        spack.config.CONFIG.set("concretizer", {"splice": {"explicit": [splice_info]}})
+
+        with pytest.raises(spack.solver.asp.InvalidSpliceError, match="must be specified by hash"):
+            _ = spack.spec.Spec("hdf5^zmpi").concretized()
+
+    def test_explicit_splice_non_match_nonexistent_succeeds(
+        mutable_config, mock_packages, mock_store
+    ):
+        """When we have a nonexistent splice configured but are not using it, don't fail."""
+        splice_info = {"target": "will_not_match", "replacement": "nonexistent/doesnotexist"}
+        spack.config.CONFIG.set("concretizer", {"splice": {"explicit": [splice_info]}})
+        spec = spack.spec.Spec("zlib").concretized()
+        # the main test is that it does not raise
+        assert not spec.spliced
+
     @pytest.mark.db
     @pytest.mark.parametrize(
         "spec_str,mpi_name",
