@@ -96,7 +96,7 @@ class NodeJs(Package):
 
     def patch(self):
         if self.spec.satisfies("@22.2:%gcc@:10"):
-            filter_file("-std=c++20", "-std=c++2a", "common_node.gypi", string=True)
+            filter_file("c++20", "c++2a", "common_node.gypi", string=True)
 
     def setup_build_environment(self, env):
         # Force use of experimental Python 3 support
