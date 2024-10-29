@@ -42,11 +42,7 @@ class Cln(CMakePackage, AutotoolsPackage):
     variant("gmp", default=True, description="Enable GMP multiprecision library")
 
     # Build system
-    build_system(
-        conditional("cmake", when="@1.3:"),
-        conditional("autotools", when="@:1.2"),
-        default="cmake",
-    )
+    build_system(conditional("cmake", when="@1.3:"),conditional("autotools", when="@:1.2"),default="cmake")
 
     with when("build_system=autotools"):
         depends_on("autoconf", type="build")
