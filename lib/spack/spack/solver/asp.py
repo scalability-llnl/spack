@@ -4105,7 +4105,6 @@ class Solver:
                 spack.spec.Spec.ensure_valid_variants(s)
         return reusable
 
-
     def solve_with_stats(
         self,
         specs,
@@ -4147,7 +4146,7 @@ class Solver:
         # Check upfront that the variants are admissible
         result, _, _ = self.solve_with_stats(specs, **kwargs)
         return result
-    
+
     def solve_in_rounds(
         self, specs, out=None, timers=False, stats=False, tests=False, allow_deprecated=False
     ):
