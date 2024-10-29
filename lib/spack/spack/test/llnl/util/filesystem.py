@@ -1155,6 +1155,7 @@ def dir_structure_with_things_to_find_links(tmpdir, use_junctions=False):
     locations["l4-f2-full"] = str(l3_d4.join("l4-f2").ensure())
     locations["l4-f2-link"] = str(pathlib.Path(tmpdir) / "l1-s3" / "l4-f2")
     locations["l2-f1"] = str(l1_d2.join("l2-f1").ensure())
+    locations["l2-f1-link"] = str(pathlib.Path(tmpdir) / "l1-d1" / "l2-d1" / "l3-s1" / "l2-f1")
     locations["l3-f3-full"] = str(l2_d2.join("l3-f3").ensure())
     locations["l3-f3-link-l1"] = str(pathlib.Path(tmpdir) / "l1-s4" / "l3-f3")
 
@@ -1165,7 +1166,7 @@ def _check_find_links(root, locations):
     root = pathlib.Path(root)
     assert set(fs.find_max_depth(root, "l4-f1")) == {locations["l4-f1"]}
     assert set(fs.find_max_depth(root / "l1-s3", "l4-f2", 0)) == {locations["l4-f2-link"]}
-    assert not set(fs.find_max_depth(root / "l1-d1", "l2-f1"))
+    assert set(fs.find_max_depth(root / "l1-d1", "l2-f1")) == {locations["l2-f1-link"]}
     # File is accessible via symlink and subdir, the link path will be
     # searched first, and the directory will not be searched again when
     # it is encountered the second time (via not-link) in the traversal

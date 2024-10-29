@@ -1826,11 +1826,6 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                         # If resolved_path hasn't been assigned yet, it's not a link
                         resolved_path = os.path.join(next_dir_resolved, dir_entry.name)
 
-                    if len(resolved_path) < len(next_dir_resolved):
-                        # Either the symlink target is entirely outside the root,
-                        # or it will be accounted for "directly"
-                        continue
-
                     if (depth < max_depth) and (resolved_path not in visited_dirs):
                         dir_queue.appendleft((depth + 1, orig_path, resolved_path))
                         visited_dirs.add(resolved_path)
