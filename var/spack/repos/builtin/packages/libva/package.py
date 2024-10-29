@@ -47,12 +47,7 @@ class Libva(AutotoolsPackage):
 
     def configure_args(self):
         spec = self.spec
-        args = [
-            "--disable-x11",
-            "--disable-wayland",
-            "--disable-glx",
-            "--enable-libdrm",
-        ]
+        args = ["--disable-x11", "--disable-wayland", "--disable-glx", "--enable-libdrm"]
         if spec.satisfies("^[virtuals=gl] glx"):
             args.append("--enable-x11")
         else:
