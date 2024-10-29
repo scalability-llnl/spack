@@ -1628,7 +1628,7 @@ class Database:
         hashes: Optional[List[str]] = None,
         origin: Optional[str] = None,
         install_tree: str = "all",
-    ):
+    ) -> List["spack.spec.Spec"]:
         """Queries the Spack database including all upstream databases.
 
         Args:
@@ -1709,7 +1709,8 @@ class Database:
             )
 
         results = list(local_results) + list(x for x in upstream_results if x not in local_results)
-        return sorted(results)
+        results.sort()
+        return results
 
     def query_one(
         self,
