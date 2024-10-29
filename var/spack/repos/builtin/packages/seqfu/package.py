@@ -14,6 +14,7 @@ class Seqfu(Package):
 
     license("GPL-3.0", checked_by="dialvarezs")
 
+    version("1.22.3", sha256="65c1090cafe0e760e68d15d450bccfd57c0a03d553fdabca26e2191f566fef62")
     version("1.20.3", sha256="1b287b99f3f1ac7045f4d551e781d6780ce168ba8e0a7bfaa0f5490f32e15938")
 
     depends_on("c", type="build")  # generated
