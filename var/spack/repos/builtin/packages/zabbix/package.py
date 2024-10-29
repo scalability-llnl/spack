@@ -37,7 +37,7 @@ class Zabbix(AutotoolsPackage):
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("m4", type="build")
-    depends_on("mysql")
+    depends_on("mysql-client")
     depends_on("libevent")
     depends_on("pcre")
     depends_on("go")
@@ -49,8 +49,8 @@ class Zabbix(AutotoolsPackage):
             "--enable-agent",
             "--enable-agent2",
             "--with-mysql",
-            "--with-libevent=%s" % self.spec["libevent"].prefix,
-            "--with-libpcre=%s" % self.spec["pcre"].prefix,
+            f"--with-libevent={self.spec["libevent"].prefix}",
+            f"--with-libpcre={self.spec["pcre"].prefix}",
         ]
 
         return args
