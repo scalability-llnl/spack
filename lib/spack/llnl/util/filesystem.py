@@ -1806,29 +1806,18 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
 
                 if it_is_a_dir:
                     resolved_path = None
-                    if sys.platform == "win32":
-                        # Note: DirEntry.is_junction is available starting with python 3.12
-                        # but this must work for earlier versions
-                        if islink(dir_entry.path):
-                            resolved_path = os.path.realpath(readlink(dir_entry.path))
-                    else:
-                        if dir_entry.is_symlink():
-                            # Note: we want the resolved path to avoid more symlink
-                            # resolutions when running `scandir` on children of this dir.
-                            # We already followed the symlinks once to determine
-                            # if this is a directory, so if we're here, it would have
-                            # been more efficient to call os.realpath and then check
-                            # if the result was a dir. However, if it *had been* a file,
-                            # then calling `isdir` would have been extra work.
-                            resolved_path = os.path.realpath(dir_entry.path)
+                    dir_id = None
+                    stat_result = os.stat(dir_entry.path, follow_symlinks=True)
+                    dir_id = (stat_result.st_ino, stat_result.st_dev)
+                    resolved_path = dir_entry.path
 
                     if not resolved_path:
                         # If resolved_path hasn't been assigned yet, it's not a link
                         resolved_path = os.path.join(next_dir_resolved, dir_entry.name)
 
-                    if (depth < max_depth) and (resolved_path not in visited_dirs):
+                    if (depth < max_depth) and (dir_id not in visited_dirs):
                         dir_queue.appendleft((depth + 1, orig_path, resolved_path))
-                        visited_dirs.add(resolved_path)
+                        visited_dirs.add(dir_id)
                 else:
                     fname = os.path.basename(orig_path)
                     for pattern in regexes:
