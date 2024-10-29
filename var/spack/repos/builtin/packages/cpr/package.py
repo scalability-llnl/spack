@@ -26,7 +26,7 @@ class Cpr(CMakePackage):
     depends_on("cxx", type="build")
 
     depends_on("curl")
-    depends_on("git", type="build")    
+    depends_on("git", type="build")
 
     def cmake_args(self):
         _force = "_FORCE" if self.spec.satisfies("@:1.9") else ""
