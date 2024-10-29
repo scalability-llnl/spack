@@ -9,7 +9,7 @@ import os
 import pathlib
 import shutil
 from argparse import Namespace
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import pytest
 
@@ -1935,15 +1935,13 @@ def test_env_include_concrete_remove_env():
 
 def configure_reuse(reuse_mode, combined_env) -> Optional[ev.Environment]:
     override_env = None
+    _config: Dict[Any, Any] = {}
     if reuse_mode == "true":
-        config = {"concretizer": {"reuse": True}}
-
+        _config = {"concretizer": {"reuse": True}}
     elif reuse_mode == "from_environment":
-        config = {"concretizer": {"reuse": {"from": [{"type": "environment"}]}}}
-
+        _config = {"concretizer": {"reuse": {"from": [{"type": "environment"}]}}}
     elif reuse_mode == "from_environment_test1":
-        config = {"concretizer": {"reuse": {"from": [{"type": {"environment": "test1"}}]}}}
-
+        _config = {"concretizer": {"reuse": {"from": [{"type": {"environment": "test1"}}]}}}
     elif reuse_mode == "from_environment_external_test":
         # Create a new environment called external_test that enables the "debug"
         # The default is "~debug"
@@ -1955,24 +1953,22 @@ def configure_reuse(reuse_mode, combined_env) -> Optional[ev.Environment]:
         override_env.write()
 
         # Reuse from the environment that is not included.
-        # Specify the requirement for the debug variant. By default this would concretize to use mpich@3.0
-        # but with include concrete the mpich@1.0 +debug version from the "external_test" environment will
-        # be used.
-        config = {
+        # Specify the requirement for the debug variant. By default this would concretize to use
+        # mpich@3.0 but with include concrete the mpich@1.0 +debug version from the
+        # "external_test" environment will be used.
+        _config = {
             "concretizer": {"reuse": {"from": [{"type": {"environment": "external_test"}}]}},
             "packages": {"mpich": {"require": ["+debug"]}},
         }
-
     elif reuse_mode == "from_environment_raise":
-        config = {
+        _config = {
             "concretizer": {"reuse": {"from": [{"type": {"environment": "not-a-real-env"}}]}}
         }
-
     # Disable unification in these tests to avoid confusing reuse due to unification using an
     # include concrete spec vs reuse due to the reuse configuration
-    config["concretizer"].update({"unify": False})
+    _config["concretizer"].update({"unify": False})
 
-    combined_env.manifest.configuration.update(config)
+    combined_env.manifest.configuration.update(_config)
     combined_env.manifest.changed = True
     combined_env.write()
 

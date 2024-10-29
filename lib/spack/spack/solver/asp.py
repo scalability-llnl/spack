@@ -4093,10 +4093,10 @@ class ReusableSpecsSelector:
                     env_dir = ev.as_env_dir(source["type"].get("environment"))
                     active_env = ev.active_environment()
                     if active_env and env_dir in active_env.included_concrete_envs:
-                        # If environment is included as a concrete environment, use the local copy of specs
-                        # in the active environment.
-                        # note: included concrete environments are only updated at concretization time,
-                        #       and reuse needs to matchthe included specs.
+                        # If environment is included as a concrete environment, use the local copy
+                        # of specs in the active environment.
+                        # note: included concrete environments are only updated at concretization
+                        #       time, and reuse needs to matchthe included specs.
                         self.reuse_sources.append(
                             SpecFilter.from_environment_included_concrete(
                                 self.configuration,
@@ -4107,8 +4107,8 @@ class ReusableSpecsSelector:
                             )
                         )
                     else:
-                        # If the environment is not included as a concrete environment, use the current
-                        # specs from its lockfile.
+                        # If the environment is not included as a concrete environment, use the
+                        # current specs from its lockfile.
                         self.reuse_sources.append(
                             SpecFilter.from_environment(
                                 self.configuration,
@@ -4118,8 +4118,8 @@ class ReusableSpecsSelector:
                             )
                         )
                 elif source["type"] == "environment":
-                    # reusing from the current environment implicitly reuses from all of the included
-                    # concrete environments
+                    # reusing from the current environment implicitly reuses from all of the
+                    # included concrete environments
                     self.reuse_sources.append(
                         SpecFilter.from_environment(
                             self.configuration,
