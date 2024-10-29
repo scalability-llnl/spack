@@ -29,7 +29,7 @@ class PyBakta(PythonPackage):
     depends_on("py-xopen@1.5.0:", when="@1.8.2:", type=("build", "run"))
     depends_on("py-xopen@1.1.0:", when="@:1.8.1", type=("build", "run"))
     depends_on("py-requests@2.25.1:", type=("build", "run"))
-    depends_on("py-alive-progress@3.0.1:", when="@1.7.0:",  type=("build", "run"))
+    depends_on("py-alive-progress@3.0.1:", when="@1.7.0:", type=("build", "run"))
     depends_on("py-alive-progress@1.6.2", when="@:1.6.1", type=("build", "run"))
     depends_on("py-pyyaml@6.0:", when="@1.6.0:", type=("build", "run"))
     depends_on("trnascan-se@2.0.11:", when="@1.6.0:", type=("build", "run"))
