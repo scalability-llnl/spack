@@ -43,7 +43,7 @@ class Cln(CMakePackage, AutotoolsPackage):
 
     # Build system
     build_system(
-        conditional("cmake", when="@1.3:"),conditional("autotools", when="@:1.2"),default="cmake"
+        conditional("cmake", when="@1.3:"), conditional("autotools", when="@:1.2"), default="cmake"
     )
 
     with when("build_system=autotools"):
