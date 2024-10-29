@@ -1805,21 +1805,14 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                         raise
 
                 if it_is_a_dir:
-                    resolved_path = None
-                    dir_id = None
                     stat_result = os.stat(dir_entry.path, follow_symlinks=True)
                     dir_id = (stat_result.st_ino, stat_result.st_dev)
-                    resolved_path = dir_entry.path
-
-                    if not resolved_path:
-                        # If resolved_path hasn't been assigned yet, it's not a link
-                        resolved_path = os.path.join(next_dir_resolved, dir_entry.name)
 
                     if (depth < max_depth) and (dir_id not in visited_dirs):
-                        dir_queue.appendleft((depth + 1, orig_path, resolved_path))
+                        dir_queue.appendleft((depth + 1, orig_path, dir_entry.path))
                         visited_dirs.add(dir_id)
                 else:
-                    fname = os.path.basename(orig_path)
+                    fname = os.path.basename(dir_entry.path)
                     for pattern in regexes:
                         if pattern.match(os.path.normcase(fname)):
                             found_files[pattern].append(os.path.join(next_dir, fname))
