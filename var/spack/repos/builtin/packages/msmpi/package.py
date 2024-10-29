@@ -55,8 +55,7 @@ class Msmpi(Package):
         self.spec.mpicxx = dependent_module.spack_cxx
         self.spec.mpifc = dependent_module.spack_fc
         self.spec.mpif77 = dependent_module.spack_f77
-        CMakeBuilder.setup_dependent_cmake_project(
-            module,
+        CMakeBuilder.setup_dependent_cmake_package(
             dependent_spec,
             CMakeBuilder.define("MPI_EXECUTABLE", self.prefix.bin.mpiexec),
             CMakeBuilder.define("MPI_SKIP_COMPILER_WRAPPER", True),
