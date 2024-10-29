@@ -22,6 +22,7 @@ class Pango(MesonPackage):
     # Do not upgrade to v1.90.x. It is a development release in preparation for
     # v2.0 that will break API and ABI compatibility. For more information see
     # https://download.gnome.org/sources/pango/1.90/pango-1.90.0.news
+    version("1.54.0", sha256="8a9eed75021ee734d7fc0fdf3a65c3bba51dfefe4ae51a9b414a60c70b2d1ed8")
     version("1.52.2", sha256="d0076afe01082814b853deec99f9349ece5f2ce83908b8e58ff736b41f78a96b")
     version("1.50.13", sha256="5cdcf6d761d26a3eb9412b6cb069b32bd1d9b07abf116321167d94c2189299fd")
     version("1.50.7", sha256="0477f369a3d4c695df7299a6989dc004756a7f4de27eecac405c6790b7e3ad33")
@@ -44,6 +45,12 @@ class Pango(MesonPackage):
 
     variant("X", default=False, description="Enable an X toolkit")
 
+    depends_on("meson@0.48:", type="build", when="@1.43:")
+    depends_on("meson@0.50:", type="build", when="@1.44.4:")
+    depends_on("meson@0.54:", type="build", when="@1.48.0:")
+    depends_on("meson@0.55.3:", type="build", when="@1.48.1:")
+    depends_on("meson@0.60:", type="build", when="@1.50.13:")
+    depends_on("meson@0.63:", type="build", when="@1.54:")
     depends_on("pkgconfig@0.9.0:", type="build")
     depends_on("harfbuzz")
     depends_on("harfbuzz+coretext", when="platform=darwin")
@@ -95,7 +102,9 @@ class Pango(MesonPackage):
             args.append("-Dxft=disabled")
 
         # disable building of gtk-doc files following #9885 and #9771
-        if spec.satisfies("@1.44:"):
+        if spec.satisfies("@1.54:"):
+            args.append("-Ddocumentation=false")
+        elif spec.satisfies("@1.44:"):
             args.append("-Dgtk_doc=false")
         else:
             args.append("-Denable_docs=false")
