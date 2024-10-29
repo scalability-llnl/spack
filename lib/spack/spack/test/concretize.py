@@ -235,7 +235,9 @@ class Changing(Package):
                 self.repo_dir = repo_directory
                 cache_dir = tmp_path_factory.mktemp("cache")
                 self.repo_cache = spack.util.file_cache.FileCache(str(cache_dir))
-                self.repo = spack.repo.Repo(str(repo_directory), cache=self.repo_cache)
+                self.repo = spack.repo.Repo(
+                    str(repo_directory), index_factory=spack.repo.IndexFactory(self.repo_cache)
+                )
 
             def change(self, changes=None):
                 changes = changes or {}
@@ -261,7 +263,9 @@ class Changing(Package):
                 package_py.write_text(changing_pkg_str)
 
                 # Re-add the repository
-                self.repo = spack.repo.Repo(str(self.repo_dir), cache=self.repo_cache)
+                self.repo = spack.repo.Repo(
+                    str(self.repo_dir), index_factory=spack.repo.IndexFactory(self.repo_cache)
+                )
                 repository.put_first(self.repo)
 
         _changing_pkg = _ChangingPackage(repo_dir)
@@ -1726,7 +1730,7 @@ class TestConcretize:
         builder.remove("pkg-c")
         with spack.repo.use_repositories(builder.root, override=False) as repos:
             # TODO (INJECT CONFIGURATION): unclear why the cache needs to be invalidated explicitly
-            repos.repos[0]._pkg_checker.invalidate()
+            repos.repos[0].index.checker.invalidate()
             with spack.config.override("concretizer:reuse", True):
                 s = Spec("pkg-c").concretized()
             assert s.namespace == "builtin.mock"

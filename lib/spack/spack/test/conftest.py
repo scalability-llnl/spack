@@ -2068,7 +2068,7 @@ repo:
             f.write(pkg_str)
 
     repo_cache = spack.util.file_cache.FileCache(str(tmpdir.join("cache")))
-    return spack.repo.Repo(repo_path, cache=repo_cache)
+    return spack.repo.Repo(repo_path, index_factory=spack.repo.IndexFactory(repo_cache))
 
 
 @pytest.fixture()

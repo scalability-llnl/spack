@@ -92,10 +92,6 @@ class ProviderIndex(_IndexBase):
 
             restrict: "restricts" values to the verbatim input specs; do not
                 pre-apply package's constraints.
-
-        TODO: rename this.  It is intended to keep things as broad
-        TODO: as possible without overly restricting results, so it is
-        TODO: not the best name.
         """
         self.repository = repository
         self.restrict = restrict

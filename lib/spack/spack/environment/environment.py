@@ -2525,7 +2525,9 @@ def _concretize_task(packed_arguments) -> Tuple[int, Spec, float]:
 
 def make_repo_path(root):
     """Make a RepoPath from the repo subdirectories in an environment."""
-    path = spack.repo.RepoPath(cache=spack.caches.MISC_CACHE)
+    path = spack.repo.RepoPath(
+        index_factory=spack.repo.IndexFactory(cache=spack.caches.MISC_CACHE)
+    )
 
     if os.path.isdir(root):
         for repo_root in os.listdir(root):

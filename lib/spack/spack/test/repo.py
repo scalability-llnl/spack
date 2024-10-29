@@ -36,7 +36,10 @@ repo:
 """
         )
     repo_cache = spack.util.file_cache.FileCache(str(cache_dir))
-    return spack.repo.Repo(str(repo_dir), cache=repo_cache), request.param
+    return (
+        spack.repo.Repo(str(repo_dir), index_factory=spack.repo.IndexFactory(repo_cache)),
+        request.param,
+    )
 
 
 def test_repo_getpkg(mutable_mock_repo):
@@ -178,7 +181,8 @@ def test_repository_construction_doesnt_use_globals(
     nullify_globals, tmp_path, repo_paths, namespaces
 ):
     repo_cache = spack.util.file_cache.FileCache(str(tmp_path / "cache"))
-    repo_path = spack.repo.RepoPath(*repo_paths, cache=repo_cache)
+    factory = spack.repo.IndexFactory(cache=repo_cache)
+    repo_path = spack.repo.RepoPath(*repo_paths, index_factory=factory)
     assert len(repo_path.repos) == len(namespaces)
     assert [x.namespace for x in repo_path.repos] == namespaces
 
@@ -188,7 +192,7 @@ def test_path_computation_with_names(method_name, mock_repo_path):
     """Tests that repositories can compute the correct paths when using both fully qualified
     names and unqualified names.
     """
-    repo_path = spack.repo.RepoPath(mock_repo_path, cache=None)
+    repo_path = spack.repo.RepoPath(mock_repo_path, index_factory=None)
     method = getattr(repo_path, method_name)
     unqualified = method("mpileaks")
     qualified = method("builtin.mock.mpileaks")
@@ -214,7 +218,9 @@ class TestRepo:
     """
 
     def test_creation(self, mock_test_cache):
-        repo = spack.repo.Repo(spack.paths.mock_packages_path, cache=mock_test_cache)
+        repo = spack.repo.Repo(
+            spack.paths.mock_packages_path, index_factory=spack.repo.IndexFactory(mock_test_cache)
+        )
         assert repo.config_file.endswith("repo.yaml")
         assert repo.namespace == "builtin.mock"
 
@@ -223,7 +229,9 @@ class TestRepo:
     )
     @pytest.mark.parametrize("repo_cls", [spack.repo.Repo, spack.repo.RepoPath])
     def test_is_virtual(self, repo_cls, name, expected, mock_test_cache):
-        repo = repo_cls(spack.paths.mock_packages_path, cache=mock_test_cache)
+        repo = repo_cls(
+            spack.paths.mock_packages_path, index_factory=spack.repo.IndexFactory(mock_test_cache)
+        )
         assert repo.is_virtual(name) is expected
         assert repo.is_virtual_safe(name) is expected
 
@@ -240,12 +248,16 @@ class TestRepo:
         """Test that we can correctly compute the 'real' name of a package, from the one
         used to import the Python module.
         """
-        repo = spack.repo.Repo(spack.paths.mock_packages_path, cache=mock_test_cache)
+        repo = spack.repo.Repo(
+            spack.paths.mock_packages_path, index_factory=spack.repo.IndexFactory(mock_test_cache)
+        )
         assert repo.real_name(module_name) == expected
 
     @pytest.mark.parametrize("name", ["mpileaks", "7zip", "dla-future"])
     def test_get(self, name, mock_test_cache):
-        repo = spack.repo.Repo(spack.paths.mock_packages_path, cache=mock_test_cache)
+        repo = spack.repo.Repo(
+            spack.paths.mock_packages_path, index_factory=spack.repo.IndexFactory(mock_test_cache)
+        )
         mock_spec = spack.spec.Spec(name)
         mock_spec._mark_concrete()
         pkg = repo.get(mock_spec)
@@ -253,7 +265,9 @@ class TestRepo:
 
     @pytest.mark.parametrize("virtual_name,expected", [("mpi", ["mpich", "zmpi"])])
     def test_providers(self, virtual_name, expected, mock_test_cache):
-        repo = spack.repo.Repo(spack.paths.mock_packages_path, cache=mock_test_cache)
+        repo = spack.repo.Repo(
+            spack.paths.mock_packages_path, index_factory=spack.repo.IndexFactory(mock_test_cache)
+        )
         provider_names = {x.name for x in repo.providers_for(virtual_name)}
         assert provider_names.issuperset(expected)
 
@@ -263,13 +277,17 @@ class TestRepo:
     )
     @pytest.mark.parametrize("repo_cls", [spack.repo.Repo, spack.repo.RepoPath])
     def test_extensions(self, repo_cls, extended, expected, mock_test_cache):
-        repo = repo_cls(spack.paths.mock_packages_path, cache=mock_test_cache)
+        repo = repo_cls(
+            spack.paths.mock_packages_path, index_factory=spack.repo.IndexFactory(mock_test_cache)
+        )
         provider_names = {x.name for x in repo.extensions_for(extended)}
         assert provider_names.issuperset(expected)
 
     @pytest.mark.parametrize("repo_cls", [spack.repo.Repo, spack.repo.RepoPath])
     def test_all_package_names(self, repo_cls, mock_test_cache):
-        repo = repo_cls(spack.paths.mock_packages_path, cache=mock_test_cache)
+        repo = repo_cls(
+            spack.paths.mock_packages_path, index_factory=spack.repo.IndexFactory(mock_test_cache)
+        )
         all_names = repo.all_package_names(include_virtuals=True)
         real_names = repo.all_package_names(include_virtuals=False)
         assert set(all_names).issuperset(real_names)
@@ -279,7 +297,9 @@ class TestRepo:
 
     @pytest.mark.parametrize("repo_cls", [spack.repo.Repo, spack.repo.RepoPath])
     def test_packages_with_tags(self, repo_cls, mock_test_cache):
-        repo = repo_cls(spack.paths.mock_packages_path, cache=mock_test_cache)
+        repo = repo_cls(
+            spack.paths.mock_packages_path, index_factory=spack.repo.IndexFactory(mock_test_cache)
+        )
         r1 = repo.packages_with_tags("tag1")
         r2 = repo.packages_with_tags("tag1", "tag2")
         assert "mpich" in r1 and "mpich" in r2
@@ -290,13 +310,15 @@ class TestRepo:
 @pytest.mark.usefixtures("nullify_globals")
 class TestRepoPath:
     def test_creation_from_string(self, mock_test_cache):
-        repo = spack.repo.RepoPath(spack.paths.mock_packages_path, cache=mock_test_cache)
+        factory = spack.repo.IndexFactory(cache=mock_test_cache)
+        repo = spack.repo.RepoPath(spack.paths.mock_packages_path, index_factory=factory)
         assert len(repo.repos) == 1
         assert repo.repos[0]._finder is repo
         assert repo.by_namespace["spack.pkg.builtin.mock"] is repo.repos[0]
 
     def test_get_repo(self, mock_test_cache):
-        repo = spack.repo.RepoPath(spack.paths.mock_packages_path, cache=mock_test_cache)
+        factory = spack.repo.IndexFactory(cache=mock_test_cache)
+        repo = spack.repo.RepoPath(spack.paths.mock_packages_path, index_factory=factory)
         # builtin.mock is there
         assert repo.get_repo("builtin.mock") is repo.repos[0]
         # foo is not there, raise
