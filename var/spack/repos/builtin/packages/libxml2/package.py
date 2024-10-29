@@ -35,14 +35,30 @@ class Libxml2(AutotoolsPackage, NMakePackage):
     version("2.11.9", sha256="780157a1efdb57188ec474dca87acaee67a3a839c2525b2214d318228451809f")
     with default_args(deprecated=True):
         # https://nvd.nist.gov/vuln/detail/CVE-2024-25062
-        version("2.10.3", sha256="5d2cc3d78bec3dbe212a9d7fa629ada25a7da928af432c93060ff5c17ee28a9c")
-        version("2.10.2", sha256="d240abe6da9c65cb1900dd9bf3a3501ccf88b3c2a1cb98317d03f272dda5b265")
-        version("2.10.1", sha256="21a9e13cc7c4717a6c36268d0924f92c3f67a1ece6b7ff9d588958a6db9fb9d8")
-        version("2.9.14", sha256="60d74a257d1ccec0475e749cba2f21559e48139efba6ff28224357c7c798dfee")
-        version("2.9.13", sha256="276130602d12fe484ecc03447ee5e759d0465558fbc9d6bd144e3745306ebf0e")
-        version("2.9.12", sha256="c8d6681e38c56f172892c85ddc0852e1fd4b53b4209e7f4ebf17f7e2eae71d92")
-        version("2.9.11", sha256="886f696d5d5b45d780b2880645edf9e0c62a4fd6841b853e824ada4e02b4d331")
-        version("2.9.10", sha256="aafee193ffb8fe0c82d4afef6ef91972cbaf5feea100edc2f262750611b4be1f")
+        version(
+            "2.10.3", sha256="5d2cc3d78bec3dbe212a9d7fa629ada25a7da928af432c93060ff5c17ee28a9c"
+        )
+        version(
+            "2.10.2", sha256="d240abe6da9c65cb1900dd9bf3a3501ccf88b3c2a1cb98317d03f272dda5b265"
+        )
+        version(
+            "2.10.1", sha256="21a9e13cc7c4717a6c36268d0924f92c3f67a1ece6b7ff9d588958a6db9fb9d8"
+        )
+        version(
+            "2.9.14", sha256="60d74a257d1ccec0475e749cba2f21559e48139efba6ff28224357c7c798dfee"
+        )
+        version(
+            "2.9.13", sha256="276130602d12fe484ecc03447ee5e759d0465558fbc9d6bd144e3745306ebf0e"
+        )
+        version(
+            "2.9.12", sha256="c8d6681e38c56f172892c85ddc0852e1fd4b53b4209e7f4ebf17f7e2eae71d92"
+        )
+        version(
+            "2.9.11", sha256="886f696d5d5b45d780b2880645edf9e0c62a4fd6841b853e824ada4e02b4d331"
+        )
+        version(
+            "2.9.10", sha256="aafee193ffb8fe0c82d4afef6ef91972cbaf5feea100edc2f262750611b4be1f"
+        )
         version("2.9.9", sha256="94fb70890143e3c6549f265cee93ec064c80a84c42ad0f23e85ee1fd6540a871")
         version("2.9.8", sha256="0b74e51595654f958148759cfef0993114ddccccbb6f31aee018f3558e8e2732")
         version("2.9.4", sha256="ffb911191e509b966deb55de705387f14156e1a56b21824357cdf0053233633c")
