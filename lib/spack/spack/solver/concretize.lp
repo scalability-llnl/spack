@@ -1088,29 +1088,49 @@ variant_is_propagated(PackageNode, Variant) :-
    attr("variant_selected", PackageNode, Variant, Value, _, _),
    not propagate(PackageNode, variant_value(Variant, Value)).
 
-% TODO: This will show the error message twice switching the values for Pkg1 & Pkg2
+
 % Cannot propagate the same variant from two distinct sources that have the same dependency
 error(100, "{0} and {1} cannot both propagate variant '{2}'", Package1, Package2, Variant) :-
-  % Package1 and Packag2 is set to propagate Variant
+  % Package1 and Package2 is set to propagate Variant
   propagate(node(X, Package1), variant_value(Variant, Value1)),
   propagate(node(Y, Package2), variant_value(Variant, Value2)),
 
   % The variant is a singlevalued variant
-  node_has_variant(node(X, Package), Variant, VariantID),
+  node_has_variant(node(X, Package1), Variant, VariantID),
   not variant_type(VariantID, "multi"),
 
   % Package1 and Package2 and their values are different
   Package1 != Package2,
   Value1 != Value2,
 
-  propagate(node(X, Package1), variant_value(Variant, Value1)),
-  not 1 {propagate(SourceParent, variant_value(Variant, Value1)): depends_on(SourceParent, node(X, Package1))}
+  not 1 {propagate(SourceParentNode, variant_value(Variant, Value1)): depends_on(SourceParentNode, node(X, Package1))},
+  not 1 {propagate(SourceParentNode, variant_value(Variant, Value2)): depends_on(SourceParentNode, node(Y, Package2))},
 
+  % Package1 depends on Package2
+  depends_on(node(X, Package1), node(Y, Package2)). % TODO: only checks direct dependencies
+
+% Cannot propagate the same variant from two distinct sources that have the same dependency
+error(100, "{0} and {1} cannot both propagate variant '{2}'", Package1, Package2, Variant) :-
+  % Package1 and Package2 is set to propagate Variant
+  propagate(node(X, Package1), variant_value(Variant, Value1)),
   propagate(node(Y, Package2), variant_value(Variant, Value2)),
-  not 1 {propagate(SourceParent, variant_value(Variant, Value2)): depends_on(SourceParent, node(Y, Package2))}
+
+  % The variant is a singlevalued variant
+  node_has_variant(node(X, Package1), Variant, VariantID),
+  not variant_type(VariantID, "multi"),
+
+  % Package1 and Package2 and their values are different
+  Package1 != Package2,
+  Value1 != Value2,
+
+  not 1 {propagate(SourceParentNode, variant_value(Variant, Value1)): depends_on(SourceParentNode, node(X, Package1))},
+  not 1 {propagate(SourceParentNode, variant_value(Variant, Value2)): depends_on(SourceParentNode, node(Y, Package2))},
+
+  virtual_condition_holds(node(Y, Package2), VirtualNode),
+  node_depends_on_virtual(node(X, Package1), VirtualNode).
 
   % Package1 depends on Package2 or they share a dependency
-  depends_on(node(X, Package1), node(Y, Package2)).
+ % depends_on(node(X, Package1), node(Y, Package2)). % TODO: only checks direct dependencies
 
 % Cannot propagate a variant if a different value was set for it in a dependency
 error(100, "Cannot propagate the variant '{0}' from the package: {1} because package: {2} is set to exclude it", Variant, Source, Package) :-

@@ -576,10 +576,25 @@ class TestConcretize:
         with pytest.raises(spack.error.UnsatisfiableSpecError):
             spec.concretize()
 
-    def test_concretize_propagate_same_variant_multiple_sources_fail(self):
-        """Test that when propagating a variant if the source package and the same variant
-        is propagated from another package it raises an error"""
+    def test_concretize_propagate_same_variant_from_direct_dep_fail(self):
+        """Test that when propagating a variant from the source package and a direct
+        dependecy also propagates the same variant with a different value. Raises error"""
         spec = Spec("ascent +adios2 ++shared ^adios2 ~~shared")
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            spec.concretize()
+
+    def test_concretize_propagate_same_variant_in_dependency_fail(self):
+        """Test that when propagating a variant from the source package, none of it's
+        dependencies can propagate that variant with a different value. Raises error."""
+        spec = Spec("ascent +adios2 ++shared ^bzip2 ~~shared")
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            spec.concretize()
+
+    def test_concretize_propagate_same_variant_virtual_dependency_fail(self):
+        """Test that when propagating a variant from the source package and a direct
+        dependecy (that is a virtual pkg) also propagates the same variant with a
+        different value. Raises error"""
+        spec = Spec("hypre ++shared ^openblas ~~shared")
         with pytest.raises(spack.error.UnsatisfiableSpecError):
             spec.concretize()
 
