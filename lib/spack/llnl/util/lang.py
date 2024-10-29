@@ -914,6 +914,21 @@ def ensure_last(lst, *elements):
         lst.append(lst.pop(lst.index(elt)))
 
 
+class Const:
+    """Class level constant, raises when trying to set the attribute"""
+
+    __slots__ = ["value"]
+
+    def __init__(self, value):
+        self.value = value
+
+    def __get__(self, instance, owner):
+        return self.value
+
+    def __set__(self, instance, value):
+        raise TypeError(f"Const value does not support assignment [value={self.value}]")
+
+
 class TypedMutableSequence(collections.abc.MutableSequence):
     """Base class that behaves like a list, just with a different type.
 

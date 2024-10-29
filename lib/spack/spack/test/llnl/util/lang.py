@@ -336,3 +336,14 @@ def test_grouped_exception_base_type():
     message = h.grouped_message(with_tracebacks=False)
     assert "catch-runtime-error" in message
     assert "catch-value-error" not in message
+
+
+def test_class_level_constant_value():
+    """Tests that the Const descriptor does not allow overwriting the value from an instance"""
+    class _SomeClass:
+        CONST_VALUE = llnl.util.lang.Const(10)
+
+    with pytest.raises(TypeError, match="not support assignment"):
+        _SomeClass().CONST_VALUE = 11
+
+
