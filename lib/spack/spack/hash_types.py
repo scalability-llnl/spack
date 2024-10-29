@@ -5,7 +5,6 @@
 """Definitions that control how Spack creates Spec hashes."""
 
 import spack.deptypes as dt
-import spack.repo
 
 hashes = []
 
@@ -13,20 +12,17 @@ hashes = []
 class SpecHashDescriptor:
     """This class defines how hashes are generated on Spec objects.
 
-    Spec hashes in Spack are generated from a serialized (e.g., with
-    YAML) representation of the Spec graph.  The representation may only
-    include certain dependency types, and it may optionally include a
-    canonicalized hash of the package.py for each node in the graph.
+    Spec hashes in Spack are generated from a serialized JSON representation of the DAG.
+    The representation may only include certain dependency types, and it may optionally
+    include a canonicalized hash of the ``package.py`` for each node in the graph.
 
-    We currently use different hashes for different use cases."""
+    """
 
-    def __init__(self, depflag: dt.DepFlag, package_hash, name, override=None):
+    def __init__(self, depflag: dt.DepFlag, package_hash, name):
         self.depflag = depflag
         self.package_hash = package_hash
         self.name = name
         hashes.append(self)
-        # Allow spec hashes to have an alternate computation method
-        self.override = override
 
     @property
     def attr(self):
@@ -51,18 +47,6 @@ dag_hash = SpecHashDescriptor(depflag=dt.BUILD | dt.LINK | dt.RUN, package_hash=
 #: Hash descriptor used only to transfer a DAG, as is, across processes
 process_hash = SpecHashDescriptor(
     depflag=dt.BUILD | dt.LINK | dt.RUN | dt.TEST, package_hash=True, name="process_hash"
-)
-
-
-def _content_hash_override(spec):
-    pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
-    pkg = pkg_cls(spec)
-    return pkg.content_hash()
-
-
-#: Package hash used as part of dag hash
-package_hash = SpecHashDescriptor(
-    depflag=0, package_hash=True, name="package_hash", override=_content_hash_override
 )
 
 

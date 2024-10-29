@@ -33,7 +33,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import PurePath
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import llnl.url
 import llnl.util
@@ -49,6 +49,7 @@ import spack.oci.opener
 import spack.util.archive
 import spack.util.crypto as crypto
 import spack.util.git
+import spack.util.spack_yaml as syaml
 import spack.util.url as url_util
 import spack.util.web as web_util
 import spack.version
@@ -110,6 +111,28 @@ class FetchStrategy:
 
         self.package = None
 
+    def source_provenance(self) -> Dict:
+        """Create a metadata dictionary that describes the artifacts fetched by this FetchStrategy.
+
+        The returned dictionary is added to the content used to determine the full hash
+        for a package. It should be serializable as JSON.
+
+        It should include data like sha256 hashes for archives, commits for source
+        repositories, and any information needed to describe exactly what artifacts went
+        into a build.
+
+        If a package has no soruce artifacts, it should return an empty dictionary.
+
+        """
+        attrs = syaml.syaml_dict()
+        if self.url_attr:
+            attrs["type"] = "archive" if self.url_attr == "url" else self.url_attr
+        for attr in self.optional_attrs:
+            value = getattr(self, attr, None)
+            if value:
+                attrs[attr] = value
+        return attrs
+
     def set_package(self, package):
         self.package = package
 
@@ -151,17 +174,6 @@ class FetchStrategy:
         Returns:
             bool: True if can cache, False otherwise.
         """
-
-    def source_id(self):
-        """A unique ID for the source.
-
-        It is intended that a human could easily generate this themselves using
-        the information available to them in the Spack package.
-
-        The returned value is added to the content which determines the full
-        hash for a package using `str()`.
-        """
-        raise NotImplementedError
 
     def mirror_id(self):
         """This is a unique ID for a source that is intended to help identify
@@ -213,9 +225,9 @@ class BundleFetchStrategy(FetchStrategy):
         """Report False as there is no code to cache."""
         return False
 
-    def source_id(self):
-        """BundlePackages don't have a source id."""
-        return ""
+    def source_provenance(self) -> Dict:
+        """BundlePackages don't have a source of their own."""
+        return {}
 
     def mirror_id(self):
         """BundlePackages don't have a mirror id."""
@@ -260,8 +272,15 @@ class URLFetchStrategy(FetchStrategy):
             self._curl = web_util.require_curl()
         return self._curl
 
-    def source_id(self):
-        return self.digest
+    def source_provenance(self) -> Dict:
+        attrs = super().source_provenance()
+        if self.digest:
+            try:
+                hash_type = spack.util.crypto.hash_algo_for_digest(self.digest)
+            except ValueError:
+                hash_type = "digest"
+            attrs[hash_type] = self.digest
+        return attrs
 
     def mirror_id(self):
         if not self.digest:
@@ -772,9 +791,15 @@ class GitFetchStrategy(VCSFetchStrategy):
     def cachable(self):
         return self.cache_enabled and bool(self.commit)
 
-    def source_id(self):
-        # TODO: tree-hash would secure download cache and mirrors, commit only secures checkouts.
-        return self.commit
+    def source_provenance(self) -> Dict:
+        attrs = super().source_provenance()
+
+        # need to fully resolve submodule callbacks for node dicts
+        submodules = attrs.get("submodules", None)
+        if submodules and callable(submodules):
+            attrs["submodules"] = submodules(self.package)
+
+        return attrs
 
     def mirror_id(self):
         if self.commit:
@@ -1084,17 +1109,6 @@ class CvsFetchStrategy(VCSFetchStrategy):
     def cachable(self):
         return self.cache_enabled and (bool(self.branch) or bool(self.date))
 
-    def source_id(self):
-        if not (self.branch or self.date):
-            # We need a branch or a date to make a checkout reproducible
-            return None
-        id = "id"
-        if self.branch:
-            id += "-branch=" + self.branch
-        if self.date:
-            id += "-date=" + self.date
-        return id
-
     def mirror_id(self):
         if not (self.branch or self.date):
             # We need a branch or a date to make a checkout reproducible
@@ -1196,9 +1210,6 @@ class SvnFetchStrategy(VCSFetchStrategy):
     @property
     def cachable(self):
         return self.cache_enabled and bool(self.revision)
-
-    def source_id(self):
-        return self.revision
 
     def mirror_id(self):
         if self.revision:
@@ -1306,9 +1317,6 @@ class HgFetchStrategy(VCSFetchStrategy):
     @property
     def cachable(self):
         return self.cache_enabled and bool(self.revision)
-
-    def source_id(self):
-        return self.revision
 
     def mirror_id(self):
         if self.revision:

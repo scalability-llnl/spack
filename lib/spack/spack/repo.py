@@ -805,7 +805,7 @@ class RepoPath:
         return self._tag_index
 
     @property
-    def patch_index(self) -> spack.patch.PatchCache:
+    def patch_index(self) -> "spack.patch.PatchCache":
         """Merged PatchIndex from all Repos in the RepoPath."""
         if self._patch_index is None:
             self._patch_index = spack.patch.PatchCache(repository=self)
@@ -1158,7 +1158,7 @@ class Repo:
         return self.index["tags"]
 
     @property
-    def patch_index(self) -> spack.patch.PatchCache:
+    def patch_index(self) -> "spack.patch.PatchCache":
         """Index of patches and packages they're defined on."""
         return self.index["patches"]
 

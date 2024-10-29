@@ -15,6 +15,7 @@ import spack.paths
 import spack.solver.asp
 import spack.spec
 import spack.store
+import spack.util.package_hash as ph
 import spack.variant
 import spack.version as vn
 from spack.error import SpecError, UnsatisfiableSpecError
@@ -1640,11 +1641,20 @@ def test_spec_installed(default_mock_concretization, database):
     assert not spec.installed
 
 
+def test_cannot_call_dag_hash_on_abstract_spec():
+    with pytest.raises(ValueError, match="Spec is not concrete"):
+        Spec("pkg-a").package_hash()
+
+
 @pytest.mark.regression("30678")
 def test_call_dag_hash_on_old_dag_hash_spec(mock_packages, default_mock_concretization):
     # create a concrete spec
     a = default_mock_concretization("pkg-a")
     dag_hashes = {spec.name: spec.dag_hash() for spec in a.traverse()}
+
+    for spec in a.traverse():
+        assert dag_hashes[spec.name] == spec.dag_hash()
+        assert spec.package_hash() == ph.package_hash(spec)
 
     # make it look like an old DAG hash spec with no package hash on the spec.
     for spec in a.traverse():
@@ -1652,8 +1662,6 @@ def test_call_dag_hash_on_old_dag_hash_spec(mock_packages, default_mock_concreti
         spec._package_hash = None
 
     for spec in a.traverse():
-        assert dag_hashes[spec.name] == spec.dag_hash()
-
         with pytest.raises(ValueError, match="Cannot call package_hash()"):
             spec.package_hash()
 

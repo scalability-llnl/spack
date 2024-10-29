@@ -410,7 +410,7 @@ def test_nosource_pkg_install(install_mockery, mock_fetch, mock_packages, capfd,
     assert "Installing dependency-install" in out[0]
 
     # Make sure a warning for missing code is issued
-    assert "Missing a source id for nosource" in out[1]
+    assert "Missing a hash for nosource" in out[1]
 
 
 @pytest.mark.disable_clean_stage_check
@@ -427,7 +427,7 @@ def test_nosource_bundle_pkg_install(
     assert "Installing dependency-install" in out[0]
 
     # Make sure a warning for missing code is *not* issued
-    assert "Missing a source id for nosource" not in out[1]
+    assert "Missing a hash for nosource" not in out[1]
 
 
 def test_nosource_pkg_install_post_install(install_mockery, mock_fetch, mock_packages):

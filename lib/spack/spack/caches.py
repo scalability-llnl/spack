@@ -74,6 +74,6 @@ class MirrorCache:
 
 
 #: Spack's local cache for downloaded source archives
-FETCH_CACHE: Union[spack.fetch_strategy.FsCache, llnl.util.lang.Singleton] = (
+FETCH_CACHE: Union["spack.fetch_strategy.FsCache", llnl.util.lang.Singleton] = (
     llnl.util.lang.Singleton(_fetch_cache)
 )

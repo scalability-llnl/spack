@@ -779,6 +779,7 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
     #         ^pkg-b
     #     pkg-a
     #         ^pkg-b
+
     e = ev.create("test", with_view=False)
     e.add("mpileaks")
     e.add("libelf@0.8.10")  # so env has both root and dep libelf specs
@@ -786,14 +787,14 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
     e.add("pkg-a ~bvv")
     e.concretize()
     e.write()
-    env_specs = e.all_specs()
+    initial_concrete_specs = e.all_specs()
 
     a_spec = None
     b_spec = None
     mpi_spec = None
 
     # First find and remember some target concrete specs in the environment
-    for e_spec in env_specs:
+    for e_spec in initial_concrete_specs:
         if e_spec.satisfies(Spec("pkg-a ~bvv")):
             a_spec = e_spec
         elif e_spec.name == "pkg-b":
@@ -815,8 +816,7 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
     with e:
         # Assert using --no-add with a spec not in the env fails
         inst_out = install("--no-add", "boost", fail_on_error=False, output=str)
-
-        assert "You can add specs to the environment with 'spack add " in inst_out
+        assert "You can add specs to the environment with 'spack add boost'" in inst_out
 
         # Without --add, ensure that two packages "a" get installed
         inst_out = install("pkg-a", output=str)
@@ -828,13 +828,18 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
         install("dyninst")
 
         find_output = find("-l", output=str)
+
         assert "dyninst" in find_output
         assert "libdwarf" in find_output
         assert "libelf" in find_output
         assert "callpath" not in find_output
 
-        post_install_specs = e.all_specs()
-        assert all([s in env_specs for s in post_install_specs])
+        post_install_concrete_specs = e.all_specs()
+
+        for s in post_install_concrete_specs:
+            assert (
+                s in initial_concrete_specs
+            ), f"installed spec {s.format('{name}{@version}{/hash:7}')} not in original env"
 
         # Make sure we can install a concrete dependency spec from a spec.json
         # file on disk, and the spec is installed but not added as a root

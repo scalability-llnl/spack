@@ -9,12 +9,10 @@ The spack package class structure is based strongly on Homebrew
 packages.
 """
 
-import base64
 import collections
 import copy
 import functools
 import glob
-import hashlib
 import importlib
 import io
 import os
@@ -49,14 +47,15 @@ import spack.spec
 import spack.store
 import spack.url
 import spack.util.environment
+import spack.util.package_hash as ph
 import spack.util.path
+import spack.util.spack_yaml as syaml
 import spack.util.web
 from spack.error import InstallError, NoURLError, PackageError
 from spack.filesystem_view import YamlFilesystemView
 from spack.install_test import PackageTest, TestSuite
 from spack.solver.version_order import concretization_version_order
 from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite, compute_stage_name
-from spack.util.package_hash import package_hash
 from spack.version import GitVersion, StandardVersion
 
 FLAG_HANDLER_RETURN_TYPE = Tuple[
@@ -1754,65 +1753,78 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
 
         return patches
 
-    def content_hash(self, content=None):
-        """Create a hash based on the artifacts and patches used to build this package.
+    def artifact_hashes(self, content=None):
+        """Create a dictionary of hashes of artifacts used in the build of this package.
 
         This includes:
             * source artifacts (tarballs, repositories) used to build;
             * content hashes (``sha256``'s) of all patches applied by Spack; and
             * canonicalized contents the ``package.py`` recipe used to build.
 
-        This hash is only included in Spack's DAG hash for concrete specs, but if it
-        happens to be called on a package with an abstract spec, only applicable (i.e.,
-        determinable) portions of the hash will be included.
+        Example::
+
+            {
+              "package_hash": "qovi2hm2n2qsatng2r4n55yzjlhnwflx",
+              "sources": [
+                {
+                  "sha256": "fc5fd69bb8736323f026672b1b7235da613d7177e72558893a0bdcd320466d60",
+                  "type": "archive"
+                },
+                {
+                  "sha256": "56ab9b90f5acbc42eb7a94cf482e6c058a63e8a1effdf572b8b2a6323a06d923",
+                  "type": "archive"
+                }
+             }
+
+        All hashes are added to concrete specs at the end of concretization. If this
+        method is called on an abstract spec, only hashes that can be known from the
+        abstract spec will be included.
 
         """
-        # list of components to make up the hash
-        hash_content = []
+        hashes = syaml.syaml_dict()
 
         # source artifacts/repositories
-        # TODO: resources
         if self.spec.versions.concrete:
+            sources = []
             try:
-                source_id = fs.for_package_version(self).source_id()
+                fetcher = fs.for_package_version(self)
+                provenance_dict = fetcher.source_provenance()
+                if provenance_dict:
+                    sources.append(provenance_dict)
+
             except (fs.ExtrapolationError, fs.InvalidArgsError):
                 # ExtrapolationError happens if the package has no fetchers defined.
                 # InvalidArgsError happens when there are version directives with args,
                 #     but none of them identifies an actual fetcher.
-                source_id = None
 
-            if not source_id:
-                # TODO? in cases where a digest or source_id isn't available,
-                # should this attempt to download the source and set one? This
-                # probably only happens for source repositories which are
-                # referenced by branch name rather than tag or commit ID.
+                # if this is a develop spec, say so
                 from_local_sources = "dev_path" in self.spec.variants
+
+                # don't bother setting a hash if none is available, but warn if
+                # it seems like there should be one.
                 if self.has_code and not self.spec.external and not from_local_sources:
-                    message = "Missing a source id for {s.name}@{s.version}"
+                    message = "Missing a hash for {s.name}@{s.version}"
                     tty.debug(message.format(s=self))
-                hash_content.append("".encode("utf-8"))
-            else:
-                hash_content.append(source_id.encode("utf-8"))
+
+            for resource in self._get_needed_resources():
+                sources.append(resource.fetcher.source_provenance())
+
+            if sources:
+                hashes["sources"] = sources
 
         # patch sha256's
         # Only include these if they've been assigned by the concretizer.
         # We check spec._patches_assigned instead of spec.concrete because
         # we have to call package_hash *before* marking specs concrete
         if self.spec._patches_assigned():
-            hash_content.extend(
-                ":".join((p.sha256, str(p.level))).encode("utf-8") for p in self.spec.patches
-            )
+            hashes["patches"] = [
+                {"sha256": patch.sha256, "level": patch.level} for patch in self.spec.patches
+            ]
 
         # package.py contents
-        hash_content.append(package_hash(self.spec, source=content).encode("utf-8"))
+        hashes["package_hash"] = ph.package_hash(self.spec, source=content)
 
-        # put it all together and encode as base32
-        b32_hash = base64.b32encode(
-            hashlib.sha256(bytes().join(sorted(hash_content))).digest()
-        ).lower()
-        b32_hash = b32_hash.decode("utf-8")
-
-        return b32_hash
+        return hashes
 
     @property
     def cmake_prefix_paths(self):

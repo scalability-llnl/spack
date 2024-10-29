@@ -14,10 +14,13 @@ class HashTest2(Package):
     homepage = "http://www.hashtest2.org"
     url = "http://www.hashtest1.org/downloads/hashtest2-1.1.tar.bz2"
 
-    version("1.1", md5="a" * 32)
-    version("1.2", md5="b" * 32)
-    version("1.3", md5="c" * 31 + "x")  # Source hash differs from hash-test1@1.3
-    version("1.4", md5="d" * 32)
+    version("1.1", sha256="a" * 64)
+    version("1.2", sha256="b" * 64)
+
+    # Source hash differs from hash-test1@1.3
+    version("1.3", sha256=("c" * 63) + "f")
+
+    version("1.4", sha256="d" * 64)
 
     patch("patch1.patch", when="@1.1")
 
