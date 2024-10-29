@@ -642,6 +642,13 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         multi=False,
     )
     variant(
+        "heffte",
+        default=False,
+        when="+kspace @20240207:",
+        description="Use heffte as distubuted FFT engine",
+    )
+
+    variant(
         "fft_kokkos",
         default="fftw3",
         when="@20240417: +kspace+kokkos",
@@ -663,6 +670,9 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("mpi", when="+mpi")
     depends_on("mpi", when="+mpiio")
     depends_on("fftw-api@3", when="+kspace fft=fftw3")
+    depends_on("heffte", when="+heffte")
+    depends_on("heffte+fftw", when="+heffte fft=fftw3")
+    depends_on("heffte+mkl", when="+heffte fft=mkl")
     depends_on("mkl", when="+kspace fft=mkl")
     depends_on("hipfft", when="+kokkos+kspace+rocm fft_kokkos=hipfft")
     depends_on("fftw-api@3", when="+kokkos+kspace fft_kokkos=fftw3")
@@ -927,6 +937,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
         if spec.satisfies("+kspace"):
             args.append(self.define_from_variant("FFT", "fft"))
+            args.append(self.define_from_variant("FFT_USE_HEFFTE", "heffte"))
             if spec.satisfies("fft=fftw3 ^armpl-gcc") or spec.satisfies("fft=fftw3 ^acfl"):
                 args.append(self.define("FFTW3_LIBRARY", self.spec["fftw-api"].libs[0]))
                 args.append(
