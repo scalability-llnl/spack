@@ -117,7 +117,7 @@ def check_viewdir_removal(viewdir):
 
 
 def test_env_track_nonexistant_path_fails():
-    with pytest.raises(ev.SpackEnvironmentError, match=r"doesn't contain an environment"):
+    with pytest.raises(BaseException, match=r"doesn't contain an environment"):
         env("track", "path/does/not/exist")
 
 
@@ -4149,7 +4149,7 @@ all: post-install
 include include.mk
 
 example/post-install/%: example/install/%
-	$(info post-install: $(HASH)) # noqa: W191,E101
+        $(info post-install: $(HASH)) # noqa: W191,E101
 
 post-install: $(addprefix example/post-install/,$(example/SPACK_PACKAGE_IDS))
 """

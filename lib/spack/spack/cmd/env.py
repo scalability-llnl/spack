@@ -15,7 +15,7 @@ from typing import List, Optional
 import llnl.string as string
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
-from llnl.util.symlink import SymlinkError, symlink
+from llnl.util.symlink import SymlinkError, symlink, islink
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import cescape, colorize
 
@@ -52,6 +52,7 @@ subcommands = [
     "revert",
     "depfile",
     "track",
+    "untrack",
 ]
 
 
@@ -461,25 +462,68 @@ def env_track_setup_parser(subparser):
 def env_track(args):
     src_path = os.path.abspath(args.dir)
     if not ev.is_env_dir(src_path):
-        msg = f"cannot track environment {src_path} doesn't contain an environment"
-        raise ev.SpackEnvironmentError(msg)
+        tty.die(f"Cannot track environment. Path doesn't contain an environment")
 
     if args.name:
         name = args.name
     else:
         name = os.path.basename(src_path)
 
-    dst_path = ev.environment_dir_from_name(name, exists_ok=False)
-
     try:
-        symlink(src_path, dst_path)
-    except SymlinkError as exc:
-        msg = f"cannot track the environment {src_path} unable to create symlink"
-        raise ev.SpackEnvironmentError(msg) from exc
+        dst_path = ev.environment_dir_from_name(name, exists_ok=False)
+    except ev.SpackEnvironmentError:
+        tty.die(
+            f"An environment named {name} already exists. Set a name with,"
+            "\n\n"
+            f"        spack env track --name NAME {src_path}\n"
+        )
 
-    tty.msg(f"Tracking environment in {src_path} as {name}")
-    tty.msg("You can activate this environment with:")
-    tty.msg(f"    spack env activate {name}")
+    symlink(src_path, dst_path)
+
+    tty.msg(f"Tracking environment in {src_path}")
+    tty.msg(
+        "You can now activate this environment with the following command:\n\n"
+        "        spack env activate {name}\n"
+    )
+
+
+#
+# env untrack
+#
+def env_untrack_setup_parser(subparser):
+    """track an environment from a directory in Spack"""
+    subparser.add_argument("env", nargs="+", help="tracked environment name")
+    arguments.add_common_arguments(subparser, ["yes_to_all"])
+
+
+def env_untrack(args):
+    env_all_names = ev.all_environment_names()
+
+    for env_name in args.env:
+        env_path = ev.environment_dir_from_name(env_name, exists_ok=True)
+
+        # fail on unknown environments that do not exist
+        if env_name not in env_all_names:
+            tty.error(f"Environment {env_name} does not exist")
+            continue
+
+        # fail if the user tries to untrack a managed environment
+        if not islink(env_path):
+            tty.die(
+                f"{env_name} is not a tracked env. "
+                "To remove it completely run,"
+                "\n\n"
+                f"        spack env rm {env_name}\n"
+            )
+
+        real_env_path = os.path.realpath(env_path)
+        os.unlink(env_path)
+
+        tty.msg(
+            f"Sucessfully untracked environment '{env_name}',"
+            "but it can still be found at:\n\n"
+            f"        {real_env_path}\n"
+        )
 
 
 #
@@ -511,16 +555,20 @@ def env_remove(args):
     valid_envs = []
     bad_envs = []
 
-    for env_name in ev.all_environment_names():
+    all_envs = set(ev.all_environment_names())
+    known_envs = set(args.rm_env).intersection(all_envs)
+    unknown_envs = set(args.rm_env) - known_envs
+
+    for env_name in unknown_envs:
+        tty.error(f"Environment {env_name} does not exist")
+
+    for env_name in known_envs:
         try:
             env = ev.read(env_name)
             valid_envs.append(env)
-
-            if env_name in args.rm_env:
-                remove_envs.append(env)
+            remove_envs.append(env)
         except (spack.config.ConfigFormatError, ev.SpackEnvironmentConfigError):
-            if env_name in args.rm_env:
-                bad_envs.append(env_name)
+            bad_envs.append(env_name)
 
     # Check if remove_env is included from another env before trying to remove
     for env in valid_envs:
@@ -536,9 +584,9 @@ def env_remove(args):
                 else:
                     tty.die(msg)
 
-    if not args.yes_to_all:
-        environments = string.plural(len(args.rm_env), "environment", show_n=False)
-        envs = string.comma_and(args.rm_env)
+    if not args.yes_to_all and (remove_envs or bad_envs):
+        environments = string.plural(len(known_envs), "environment", show_n=False)
+        envs = string.comma_and(known_envs)
         answer = tty.get_yes_or_no(f"Really remove {environments} {envs}?", default=False)
         if not answer:
             tty.die("Will not remove any environments")
@@ -547,8 +595,14 @@ def env_remove(args):
         name = env.name
         if env.active:
             tty.die(f"Environment {name} can't be removed while activated.")
-        env.destroy()
-        tty.msg(f"Successfully removed environment '{name}'")
+        # Get path to check if environment is a tracked / symlinked environment
+        env_path = ev.environment_dir_from_name(env)
+        if islink(path):
+            os.unlink(path)
+            tty.msg(f"Successfully untracked environment '{name}'")
+        else:
+            env.destroy()
+            tty.msg(f"Successfully removed environment '{name}'")
 
     for bad_env_name in bad_envs:
         shutil.rmtree(

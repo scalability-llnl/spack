@@ -654,7 +654,7 @@ class ViewDescriptor:
 
     @property
     def _current_root(self):
-        if not os.path.islink(self.root):
+        if not islink(self.root):
             return None
 
         root = readlink(self.root)
@@ -1247,10 +1247,7 @@ class Environment:
 
     def destroy(self):
         """Remove this environment from Spack entirely."""
-        if islink(self.path):
-            os.unlink(self.path)
-        else:
-            shutil.rmtree(self.path)
+        shutil.rmtree(self.path)
 
     def update_stale_references(self, from_list=None):
         """Iterate over spec lists updating references."""
