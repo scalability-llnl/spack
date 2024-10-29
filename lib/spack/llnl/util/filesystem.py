@@ -1778,9 +1778,9 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     # Each queue item stores the depth, the path, and the realpath
     # equivalent; the latter is used to avoid repeated symlink
     # resolutions on a parent.
-    dir_queue = collections.deque([(0, root, resolved_root)])
+    dir_queue = collections.deque([(0, root)])
     while dir_queue:
-        depth, next_dir, next_dir_resolved = dir_queue.pop()
+        depth, next_dir_resolved = dir_queue.pop()
         try:
             dir_iter = os.scandir(next_dir_resolved)
         except OSError:
@@ -1790,8 +1790,6 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
 
         with dir_iter:
             for dir_entry in dir_iter:
-                orig_path = os.path.join(next_dir, dir_entry.name)
-
                 try:
                     it_is_a_dir = dir_entry.is_dir(follow_symlinks=True)
                 except OSError as e:
@@ -1809,13 +1807,13 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                     dir_id = (stat_result.st_ino, stat_result.st_dev)
 
                     if (depth < max_depth) and (dir_id not in visited_dirs):
-                        dir_queue.appendleft((depth + 1, orig_path, dir_entry.path))
+                        dir_queue.appendleft((depth + 1, dir_entry.path))
                         visited_dirs.add(dir_id)
                 else:
                     fname = os.path.basename(dir_entry.path)
                     for pattern in regexes:
                         if pattern.match(os.path.normcase(fname)):
-                            found_files[pattern].append(os.path.join(next_dir, fname))
+                            found_files[pattern].append(os.path.join(next_dir_resolved, fname))
 
         # TODO: for fully-recursive searches, we can print a warning after
         # after having searched everything up to some fixed depth (which
