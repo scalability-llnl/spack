@@ -31,7 +31,8 @@ class TplBuilder(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("git", type="build")
 
-    depends_on("stacktrace", when="+stacktrace")
+    depends_on("stacktrace~shared", when="~shared+stacktrace")
+    depends_on("stacktrace+shared", when="+shared+stacktrace")
     depends_on("stacktrace+mpi", when="+stacktrace+mpi")
 
     depends_on("hypre+mixedint", when="+hypre")
