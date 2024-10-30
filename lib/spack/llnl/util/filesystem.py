@@ -1789,6 +1789,10 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
         # https://github.com/python/cpython/blob/3.9/Python/fileutils.c
         return (stat_info.st_ino, stat_info.st_dev)
 
+    def _log_file_access_issue(e):
+        errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
+        tty.debug(f"find must skip {dir_entry.path}: {errno_name} {str(e)}")
+
     visited_dirs = set([_dir_id(stat_root)])
 
     # Each queue item stores the depth and path
@@ -1812,17 +1816,24 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                 except OSError as e:
                     # Possible permission issue, or a symlink that cannot
                     # be resolved (ELOOP).
-                    errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
-                    tty.debug(f"find must skip {dir_entry.path}: {errno_name} {str(e)}")
+                    _log_file_access_issue(e)
                     continue
 
                 if it_is_a_dir and (depth < max_depth):
-                    if sys.platform == "win32":
-                        # Note: st_ino/st_dev on DirEntry are not set on Windows,
-                        # so we have to call os.stat
-                        stat_info = os.stat(dir_entry.path, follow_symlinks=True)
-                    else:
-                        stat_info = dir_entry.stat(follow_symlinks=True)
+                    try:
+                        # The stat should be performed in a try/except block.
+                        # We repeat that here vs. moving to the above block
+                        # because we only want to call `stat` if we are below
+                        # our max_depth
+                        if sys.platform == "win32":
+                            # Note: st_ino/st_dev on DirEntry are not set on Windows,
+                            # so we have to call os.stat
+                            stat_info = os.stat(dir_entry.path, follow_symlinks=True)
+                        else:
+                            stat_info = dir_entry.stat(follow_symlinks=True)
+                    except OSError as e:
+                        _log_file_access_issue(e)
+                        continue
 
                     dir_id = _dir_id(stat_info)
                     if dir_id not in visited_dirs:
