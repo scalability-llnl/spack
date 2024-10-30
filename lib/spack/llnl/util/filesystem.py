@@ -1764,7 +1764,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
             return []
         else:
             raise
-    if not stat.S_ISDIR(stat_root):
+    if not stat.S_ISDIR(stat_root.st_mode):
         raise ValueError(f"{root} is not a directory")
 
     if max_depth is None:
