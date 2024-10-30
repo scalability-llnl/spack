@@ -1760,7 +1760,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     try:
         stat_root = os.stat(root)
     except OSError as e:
-        if e.errno == errno.EEXIST:
+        if e.errno == errno.ENOENT:
             return []
         else:
             raise
