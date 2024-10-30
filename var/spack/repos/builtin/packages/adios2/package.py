@@ -4,9 +4,12 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import sys
 import tempfile
 
 from spack.package import *
+
+IS_WINDOWS = sys.platform == "win32"
 
 
 class Adios2(CMakePackage, CudaPackage, ROCmPackage):
@@ -77,7 +80,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     variant("zfp", default=True, description="Enable ZFP compression")
     variant("png", default=True, when="@2.4:", description="Enable PNG compression")
     variant("sz", default=True, description="Enable SZ compression")
-    variant("mgard", default=True, when="@2.8:", description="Enable MGARD compression")
+    variant("mgard", default=not IS_WINDOWS, when="@2.8:", description="Enable MGARD compression")
 
     # Rransport engines
     variant("sst", default=True, description="Enable the SST staging engine")
@@ -99,7 +102,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     )
     variant(
         "libcatalyst",
-        default=True,
+        default=not IS_WINDOWS,
         when="@2.9:",
         description="Enable support for in situ visualization plugin using ParaView Catalyst",
     )
