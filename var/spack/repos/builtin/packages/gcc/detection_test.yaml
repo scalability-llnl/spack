@@ -26,7 +26,7 @@ paths:
     extra_attributes:
       compilers:
         c: ".*/bin/gcc"
-        cxx: ".*/bin/g++"
+        cxx: ".*/bin/g\\+\\+"
 
 # Mock a version < 7 of GCC that requires -dumpversion and
 # errors with -dumpfullversion
