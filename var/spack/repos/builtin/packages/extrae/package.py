@@ -116,19 +116,19 @@ class Extrae(AutotoolsPackage):
 
         args += (
             ["--with-papi=%s" % spec["papi"].prefix]
-            if "+papi" in spec
+            if spec.satisfies("+papi")
             else ["--without-papi"]
         )
 
         args += (
             ["--with-dyninst=%s" % spec["dyninst"].prefix]
-            if "+dyninst" in spec
+            if spec.satisfies("+dyninst")
             else ["--without-dyninst"]
         )
 
         args += (
             ["--with-cuda=%s" % spec["cuda"].prefix]
-            if "+cuda" in spec
+            if spec.satisifes("+cuda")
             else ["--without-cuda"]
         )
 
