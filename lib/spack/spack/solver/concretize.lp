@@ -1109,7 +1109,9 @@ error(100, "{0} and {1} cannot both propagate variant '{2}' to the shared depend
 
   % Dependency is trying to get the propagated variant with different values
   propagate(node(Z, Dependency), variant_value(Variant, Value1)),
-  propagate(node(Z, Dependency), variant_value(Variant, Value2)).
+  propagate(node(Z, Dependency), variant_value(Variant, Value2)),
+  not propagation_source(node(Z, Dependency), Variant, Value1),
+  not propagation_source(node(Z, Dependency), Variant, Value2).
 
 
 % Cannot propagate the same variant from two packages if one is a direct (virtual) dependecy

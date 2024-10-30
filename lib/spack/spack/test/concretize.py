@@ -598,13 +598,21 @@ class TestConcretize:
         with pytest.raises(spack.error.UnsatisfiableSpecError):
             spec.concretize()
 
+    def test_concretize_propagate_same_variant_multiple_sources_diamond_dep_fail(self):
+        """Test that fails when propagating the same variant with different values from multiple
+        sources that share a dependency"""
+        spec = Spec("parent-foo-bar ^dependency-foo-bar++bar ^direct-dep-foo-bar~~bar")
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            spec.concretize()
+
     def test_concretize_propagate_specified_variant(self):
         """Test that only the specified variant is propagated to the dependencies"""
         spec = Spec("parent-foo-bar ~~foo")
         spec.concretize()
 
-        assert spec.satisfies("~foo") and spec.satisfies("^dependency-foo-bar~foo")
-        assert spec.satisfies("+bar") and not spec.satisfies("^dependency-foo-bar+bar")
+        for dep in spec.traverse(root=False):
+            assert dep.satisfies("~foo")
+            assert not dep.satisfies("+bar")
 
     def test_concretize_propagate_one_variant(self):
         """Test that you can specify to propagate one variant and not all"""
@@ -632,6 +640,17 @@ class TestConcretize:
         assert spec.satisfies("~foo") and spec.satisfies("+bar")
         assert spec.satisfies("^dependency-foo-bar ~foo +bar")
         assert spec.satisfies("^second-dependency-foo-bar-fee ~foo +bar")
+
+    def test_concretize_propagate_multiple_variants_mulitple_sources(self):
+        """Test the propagates multiple different variants for multiple sources
+        in a diamond dependency"""
+        spec = Spec("parent-foo-bar ^dependency-foo-bar++bar ^direct-dep-foo-bar~~foo")
+        spec.concretize()
+
+        assert spec.satisfies("^second-dependency-foo-bar-fee+bar")
+        assert spec.satisfies("^second-dependency-foo-bar-fee~foo")
+        assert not spec.satisfies("^dependency-foo-bar~foo")
+        assert not spec.satisfies("^direct-dep-foo-bar+bar")
 
     def test_concretize_propagate_single_valued_variant(self):
         """Test propagation for single valued variants"""
