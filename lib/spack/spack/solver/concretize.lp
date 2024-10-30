@@ -1075,8 +1075,7 @@ attr("variant_selected", PackageNode, Variant, Value, VariantType, VariantID) :-
   propagate(PackageNode, variant_value(Variant, Value)),
   node_has_variant(PackageNode, Variant, VariantID),
   variant_type(VariantID, VariantType),
-  variant_possible_value(PackageNode, Variant, Value),
-  not attr("variant_set", PackageNode, Variant).
+  variant_possible_value(PackageNode, Variant, Value).
 
 % If a variant is propagated, we cannot have extraneous values
 variant_is_propagated(PackageNode, Variant) :-
