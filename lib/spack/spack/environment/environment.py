@@ -1520,19 +1520,17 @@ class Environment:
 
         """
         # Exit early if the set of concretized specs is the set of user specs
-        new_user_specs = set(self.user_specs) - set(self.concretized_user_specs)
-        kept_user_specs = set(self.user_specs) & set(self.concretized_user_specs)
-        kept_user_specs |= set(self.included_user_specs)
+        new_user_specs = list(set(self.user_specs) - set(self.concretized_user_specs))
+        kept_user_specs = list(set(self.user_specs) & set(self.concretized_user_specs))
+        kept_user_specs += self.included_user_specs
         if not new_user_specs:
             return new_user_specs, kept_user_specs, []
 
-        concrete_specs_to_keep = [
-            concrete
+        specs_to_concretize = [(s, None) for s in new_user_specs] + [
+            (abstract, concrete)
             for abstract, concrete in self.concretized_specs()
             if abstract in kept_user_specs
         ]
-
-        specs_to_concretize = list(new_user_specs) + concrete_specs_to_keep
         return new_user_specs, kept_user_specs, specs_to_concretize
 
     def _concretize_together_where_possible(
@@ -1554,6 +1552,7 @@ class Environment:
         self.concretized_order = []
         self.specs_by_hash = {}
 
+<<<<<<< HEAD
         result_by_user_spec = {}
         solver = spack.solver.asp.Solver()
         allow_deprecated = spack.config.get("config:deprecated", False)
@@ -1573,8 +1572,18 @@ class Environment:
             # Only add to the environment if it's from this environment (not just included)
             if abstract in self.user_specs:
                 self._add_concrete_spec(abstract, concrete)
+=======
+        ret = []
+        result = spack.concretize.concretize_together_when_possible(
+            *specs_to_concretize, tests=tests
+        )
+        for abstract, concrete in result:
+            self._add_concrete_spec(abstract, concrete)
+            if abstract in new_user_specs:
+                ret.append((abstract, concrete))
+>>>>>>> 45af64662f (commands: get matching specs from env while respecting unification)
 
-        return result
+        return ret
 
     def _concretize_together(
         self, tests: bool = False
@@ -1592,7 +1601,7 @@ class Environment:
         self.specs_by_hash = {}
 
         try:
-            concrete_specs: List[spack.spec.Spec] = spack.concretize.concretize_specs_together(
+            concretized_specs: List[spack.spec.Spec] = spack.concretize.concretize_together(
                 *specs_to_concretize, tests=tests
             )
         except spack.error.UnsatisfiableSpecError as e:
@@ -1611,16 +1620,13 @@ class Environment:
                 )
             raise
 
-        # set() | set() does not preserve ordering, even though sets are ordered
-        ordered_user_specs = list(new_user_specs) + list(kept_user_specs)
-        concretized_specs = [x for x in zip(ordered_user_specs, concrete_specs)]
         for abstract, concrete in concretized_specs:
             # Don't add if it's just included
             if abstract in self.user_specs:
                 self._add_concrete_spec(abstract, concrete)
 
-        # zip truncates the longer list, which is exactly what we want here
-        return list(zip(new_user_specs, concrete_specs))
+        # Return the portion of the return value that is new
+        return concretized_specs[: len(new_user_specs)]
 
     def _concretize_separately(self, tests=False):
         """Concretization strategy that concretizes separately one
@@ -1642,70 +1648,15 @@ class Environment:
                 concrete = old_specs_by_hash[h]
                 self._add_concrete_spec(s, concrete, new=False)
 
-        # Concretize any new user specs that we haven't concretized yet
-        args, root_specs, i = [], [], 0
-        for uspec in self.user_specs:
-            if uspec not in old_concretized_user_specs:
-                root_specs.append(uspec)
-                args.append((i, str(uspec), tests))
-                i += 1
+        to_concretize = [
+            (root, None) for root in self.user_specs if root not in old_concretized_user_specs
+        ]
+        concretized_specs = spack.concretize.concretize_separately(*to_concretize, tests=tests)
 
-        # Ensure we don't try to bootstrap clingo in parallel
-        with spack.bootstrap.ensure_bootstrap_configuration():
-            spack.bootstrap.ensure_clingo_importable_or_raise()
-
-        # Ensure all the indexes have been built or updated, since
-        # otherwise the processes in the pool may timeout on waiting
-        # for a write lock. We do this indirectly by retrieving the
-        # provider index, which should in turn trigger the update of
-        # all the indexes if there's any need for that.
-        _ = spack.repo.PATH.provider_index
-
-        # Ensure we have compilers in compilers.yaml to avoid that
-        # processes try to write the config file in parallel
-        _ = spack.compilers.all_compilers_config(spack.config.CONFIG)
-
-        # Early return if there is nothing to do
-        if len(args) == 0:
-            return []
-
-        # Solve the environment in parallel on Linux
-        start = time.time()
-        num_procs = min(len(args), spack.config.determine_number_of_jobs(parallel=True))
-
-        # TODO: support parallel concretization on macOS and Windows
-        msg = "Starting concretization"
-        if sys.platform not in ("darwin", "win32") and num_procs > 1:
-            msg += f" pool with {num_procs} processes"
-        tty.msg(msg)
-
-        batch = []
-        for j, (i, concrete, duration) in enumerate(
-            spack.util.parallel.imap_unordered(
-                _concretize_task,
-                args,
-                processes=num_procs,
-                debug=tty.is_debug(),
-                maxtaskperchild=1,
-            )
-        ):
-            batch.append((i, concrete))
-            percentage = (j + 1) / len(args) * 100
-            tty.verbose(
-                f"{duration:6.1f}s [{percentage:3.0f}%] {concrete.cformat('{hash:7}')} "
-                f"{root_specs[i].colored_str}"
-            )
-            sys.stdout.flush()
-
-        # Add specs in original order
-        batch.sort(key=lambda x: x[0])
-        by_hash = {}  # for attaching information on test dependencies
-        for root, (_, concrete) in zip(root_specs, batch):
-            self._add_concrete_spec(root, concrete)
+        by_hash = {}
+        for abstract, concrete in concretized_specs:
+            self._add_concrete_spec(abstract, concrete)
             by_hash[concrete.dag_hash()] = concrete
-
-        finish = time.time()
-        tty.msg(f"Environment concretized in {finish - start:.2f} seconds")
 
         # Unify the specs objects, so we get correct references to all parents
         self._read_lockfile_dict(self._to_lockfile_dict())
@@ -1726,11 +1677,7 @@ class Environment:
                             test_dependency.copy(), depflag=dt.TEST, virtuals=current_edge.virtuals
                         )
 
-        results = [
-            (abstract, self.specs_by_hash[h])
-            for abstract, h in zip(self.concretized_user_specs, self.concretized_order)
-        ]
-        return results
+        return concretized_specs
 
     @property
     def default_view(self):
@@ -2535,14 +2482,6 @@ def display_specs(specs):
         key=traverse.by_dag_hash,
     )
     print(tree_string)
-
-
-def _concretize_task(packed_arguments) -> Tuple[int, Spec, float]:
-    index, spec_str, tests = packed_arguments
-    with tty.SuppressOutput(msg_enabled=False):
-        start = time.time()
-        spec = Spec(spec_str).concretized(tests=tests)
-        return index, spec, time.time() - start
 
 
 def make_repo_path(root):

@@ -173,24 +173,29 @@ def parse_specs(
     arg_string = " ".join([quote_kvp(arg) for arg in args])
 
     specs = spack.parser.parse(arg_string)
-    unify = spack.config.get("concretizer:unify", False)
     if not concretize:
         return specs
 
-    if unify == "when_possible":
-        concrete_specs = []
-        allow_deprecated = spack.config.get("config:deprecated", False)
-        for result in spack.solver.asp.Solver().solve_in_rounds(
-            specs, tests=tests, allow_deprecated=allow_deprecated
-        ):
-            concrete_specs.extend(result.specs)
-        return concrete_specs
-    elif unify:
-        return spack.concretize.concretize_specs_together(*specs, tests=tests)
-    else:
-        for spec in specs:
-            spec.concretize(tests=tests)
-        return specs
+    to_concretize = [(s, None) for s in specs]
+    return _concretize_spec_pairs(to_concretize, tests=tests)
+
+
+def _concretize_spec_pairs(to_concretize, tests=False):
+    """Helper method that concretizes abstract specs from a list of abstract,concrete pairs.
+
+    Any spec with a concrete spec associated with it will concretize to that spec. Any spec
+    with ``None`` for its concrete spec will be newly concretized. This method respects unification
+    rules from config."""
+    unify = spack.config.get("concretizer:unify", False)
+
+    concretize_method = spack.concretize.concretize_separately  # unify: false
+    if unify is True:
+        concretize_method = spack.concretize.concretize_together
+    elif unify == "when_possible":
+        concretize_method = spack.concretize.concretize_together_when_possible
+
+    concretized = concretize_method(*to_concretize, tests=tests)
+    return [concrete for _, concrete in concretized]
 
 
 def matching_spec_from_env(spec):
@@ -204,6 +209,22 @@ def matching_spec_from_env(spec):
         return env.matching_spec(spec) or spec.concretized()
     else:
         return spec.concretized()
+
+
+def matching_specs_from_env(specs):
+    """
+    Same as ``matching_spec_from_env`` but respects spec unification rules.
+
+    For each spec, if there is a matching spec in the environment it is used. If no
+    matching spec is found, this will return the given spec but concretized in the
+    context of the active environment and other given specs, with unification rules applied.
+    """
+    spec_pairs = [(spec, None) for spec in specs]
+    env = ev.active_environment()
+    if env:
+        spec_pairs = [(abstract, env.matching_spec(abstract)) for abstract, _ in spec_pairs]
+
+    return _concretize_spec_pairs(spec_pairs)
 
 
 def disambiguate_spec(spec, env, local=False, installed=True, first=False):
