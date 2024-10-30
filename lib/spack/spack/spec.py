@@ -1155,10 +1155,10 @@ def _libs_default_handler(spec: "Spec"):
 
     for shared in search_shared:
         # Set runtime=False: we want find libraries used for linking by default
-        # Set max_depth=1: we default to searching the root directory and all the
-        #     directories underneath it, but we don't recurse beyond that by default
+        # Set max_depth=2: we default to searching the root directory and two levels
+        #     of directories underneath it, but we don't recurse beyond that by default
         libs = fs.find_libraries(
-            name, home, shared=shared, recursive=True, runtime=False, max_depth=1
+            name, home, shared=shared, recursive=True, runtime=False, max_depth=2
         )
         if libs:
             return libs
