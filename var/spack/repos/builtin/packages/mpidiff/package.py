@@ -19,6 +19,10 @@ class Mpidiff(CMakePackage):
 
     version("0.2.0", sha256="726b59fe4af0bb0812fc34c456cb0d801e03313a8fdfb9dc63d23a9b316b6118")
 
+    variant("docs", default=False, description="Build and include documentation")
+    variant("examples", default=False, description="Build and include examples")
+    variant("tests", default=False, description="Build tests")
+
     depends_on("cxx", type="build")
 
     depends_on("blt", type="build")
@@ -29,6 +33,7 @@ class Mpidiff(CMakePackage):
         return [
             self.define("MPI_DIR", spec["mpi"].prefix),
             self.define("BLT_SOURCE_DIR", spec["blt"].prefix),
-            self.define("ENABLE_MPI", "ON"),
-            self.define("ENABLE_HIP", "OFF"),
+            self.define_from_variant("MPIDIFF_ENABLE_DOCS", "docs"),
+            self.define_from_variant("MPIDIFF_ENABLE_EXAMPLES", "examples"),
+            self.define_from_variant("MPIDIFF_ENABLE_TESTS", "tests"),
         ]
