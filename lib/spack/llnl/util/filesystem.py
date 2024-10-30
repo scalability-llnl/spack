@@ -1783,14 +1783,13 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
 
     found_files = collections.defaultdict(list)
 
-    def _dir_id(p):
-        stat_result = os.stat(p, follow_symlinks=True)
+    def _dir_id(stat_info):
         # Note: on windows, st_ino is the file index and st_dev
         # is the volume serial number. See
         # https://github.com/python/cpython/blob/3.9/Python/fileutils.c
-        return (stat_result.st_ino, stat_result.st_dev)
+        return (stat_info.st_ino, stat_info.st_dev)
 
-    visited_dirs = set([_dir_id(root)])
+    visited_dirs = set([_dir_id(stat_root)])
 
     # Each queue item stores the depth and path
     # BFS traversal is important to ensure repeatable results given
@@ -1810,9 +1809,6 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
             for dir_entry in dir_iter:
                 try:
                     it_is_a_dir = dir_entry.is_dir(follow_symlinks=True)
-
-                    if it_is_a_dir:
-                        dir_id = _dir_id(dir_entry.path)
                 except OSError as e:
                     # Possible permission issue, or a symlink that cannot
                     # be resolved (ELOOP).
@@ -1820,8 +1816,16 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                     tty.debug(f"find must skip {dir_entry.path}: {errno_name} {str(e)}")
                     continue
 
-                if it_is_a_dir:
-                    if (depth < max_depth) and (dir_id not in visited_dirs):
+                if it_is_a_dir and (depth < max_depth):
+                    if sys.platform == "win32":
+                        # Note: st_ino/st_dev on DirEntry are not set on Windows,
+                        # so we have to call os.stat
+                        stat_info = os.stat(dir_entry.path, follow_symlinks=True)
+                    else:
+                        stat_info = dir_entry.stat(follow_symlinks=True)
+
+                    dir_id = _dir_id(stat_info)
+                    if dir_id not in visited_dirs:
                         dir_queue.appendleft((depth + 1, dir_entry.path))
                         visited_dirs.add(dir_id)
                 else:
