@@ -32,8 +32,9 @@ import spack.util.web as web_util
 from spack import traverse
 from spack.cmd import display_specs
 from spack.cmd.common import arguments
-from spack.database import ANY_STATUS
 from spack.spec import Spec, save_dependency_specfiles
+
+from ..enums import ANY_STATUS
 
 description = "create, download and install binary packages"
 section = "packaging"

@@ -11,7 +11,7 @@ import llnl.util.tty as tty
 import spack.cmd.uninstall
 import spack.environment
 import spack.store
-from spack.database import ANY_STATUS
+from spack.enums import ANY_STATUS
 from spack.main import SpackCommand, SpackCommandError
 
 uninstall = SpackCommand("uninstall")
