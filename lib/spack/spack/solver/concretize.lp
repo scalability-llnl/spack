@@ -1127,25 +1127,10 @@ error(100, "{0} and {1} cannot both propagate variant '{2}'", Package1, Package2
   Package1 != Package2,
   Value1 != Value2,
 
-  % Package1 depends on Package2
-  depends_on(node(X, Package1), node(Y, Package2)). % TODO: only checks direct dependencies
+  % Package2 is set to propagate the value from Package1
+  propagate(node(Y, Package2), variant_value(Variant, Value1)),
+  variant_is_propagated(node(Y, Package2), Variant).
 
-% Cannot propagate the same variant from two packages if one is a direct (virtual) dependecy
-error(100, "{0} and {1} cannot both propagate variant '{2}'", Package1, Package2, Variant) :-
-  % Package1 and Package2 are source packages set to propagate Variant
-  propagation_source(node(X, Package1), Variant, Value1),
-  propagation_source(node(Y, Package2), Variant, Value2),
-
-  % The variant is a singlevalued variant
-  variant_single_value(node(X, Package1), Variant),
-
-  % Package1 and Package2 and their values are different
-  Package1 != Package2,
-  Value1 != Value2,
-
-  % Package1 depends on Package2
-  virtual_condition_holds(node(Y, Package2), VirtualPackage2Node),
-  node_depends_on_virtual(node(X, Package1), VirtualPackage2Node).
 
 % Cannot propagate a variant if a different value was set for it in a dependency
 error(100, "Cannot propagate the variant '{0}' from the package: {1} because package: {2} is set to exclude it", Variant, Source, Package) :-
