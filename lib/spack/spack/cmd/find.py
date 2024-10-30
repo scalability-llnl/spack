@@ -166,11 +166,11 @@ def setup_parser(subparser):
 
 
 def query_arguments(args):
-    if args.only_missing and args.deprecated:
-        raise RuntimeError("cannot use --only-missing with --deprecated")
+    if args.only_missing and (args.deprecated or args.missing):
+        raise RuntimeError("cannot use --only-missing with --deprecated, or --missing")
 
-    if args.only_deprecated and args.missing:
-        raise RuntimeError("cannot use --only-deprecated with --missing")
+    if args.only_deprecated and (args.deprecated or args.missing):
+        raise RuntimeError("cannot use --only-deprecated with --deprecated, or --missing")
 
     installed = StatusQuery.INSTALLED
     if args.only_missing:
