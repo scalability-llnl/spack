@@ -34,21 +34,32 @@ class Zabbix(AutotoolsPackage):
     depends_on("cxx", type="build")
 
     depends_on("autoconf", type="build")
+    depends_on("autoconf-archive", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("m4", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("mysql-client")
     depends_on("libevent")
     depends_on("pcre")
     depends_on("go")
 
+    def autoreconf(self, spec, prefix):
+        Executable("./bootstrap.sh")()
+
     def configure_args(self):
+        mysql_prefix = self.spec["mysql-client"].prefix
+        if self.spec.satisfies("^[virtuals=mysql-client] mysql"):
+            mysql_config = mysql_prefix.bin.mysql_config
+        else:
+            mysql_config = mysql_prefix.bin.mariadb_config
+
         args = [
             "--enable-server",
             "--enable-proxy",
             "--enable-agent",
             "--enable-agent2",
-            "--with-mysql",
+            f"--with-mysql={mysql_config}",
             f"--with-libevent={self.spec['libevent'].prefix}",
             f"--with-libpcre={self.spec['pcre'].prefix}",
         ]
