@@ -1745,7 +1745,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     """Given a set of non-recursive glob file patterns, finds all
     files matching those patterns up to a maximum specified depth.
 
-    If a directory has a name which matters an input pattern, it will
+    If a directory has a name which matches an input pattern, it will
     not be included in the results.
 
     Does not search in directories below the specified depth.
@@ -1753,8 +1753,19 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     If ``globs`` is a list, files matching earlier entries are placed
     in the return value before files matching later entries.
     """
-    if not os.path.exists(root):
-        return []
+    # If root doesn't exist, then we say we found nothing. If it
+    # exists but is not a dir, we assume the user would want to
+    # know; likewise if it exists but we do not have permission to
+    # access it.
+    try:
+        stat_root = os.stat(root)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            return []
+        else:
+            raise
+    if not stat.S_ISDIR(stat_root):
+        raise ValueError(f"{root} is not a directory")
 
     if max_depth is None:
         max_depth = sys.maxsize
@@ -1765,9 +1776,6 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     # this respects case-sensitivity semantics of different OSes
     # (e.g. file search is typically case-insensitive on Windows)
     regexes = [re.compile(fnmatch.translate(os.path.normcase(x))) for x in globs]
-
-    if not os.path.isdir(root):
-        raise ValueError(f"{root} is not a directory")
 
     # Note later calls to os.scandir etc. return abspaths if the
     # input is absolute, see https://docs.python.org/3/library/os.html#os.DirEntry.path
