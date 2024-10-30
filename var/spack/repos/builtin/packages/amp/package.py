@@ -28,11 +28,13 @@ class Amp(CMakePackage, CudaPackage, ROCmPackage):
     variant("kokkos", default=False, description="Build with support for Kokkos")
     variant("openmp", default=False, description="Build with OpenMP support")
     variant("shared", default=False, description="Build shared libraries")
+    variant("libmesh", default=False, description="Build with support for libmesh")
+    variant("petsc", default=False, description="Build with support for petsc")
 
     depends_on("cmake@3.26.0:")
     depends_on("tpl-builder+stacktrace")
 
-    tpl_depends = ["hypre", "kokkos", "mpi", "openmp", "cuda", "rocm", "shared"]
+    tpl_depends = ["hypre", "kokkos", "mpi", "openmp", "cuda", "rocm", "shared","libmesh", "petsc"]
 
     for v in tpl_depends:
         depends_on(f"tpl-builder+{v}", when=f"+{v}")
@@ -53,9 +55,15 @@ class Amp(CMakePackage, CudaPackage, ROCmPackage):
             self.define("EXCLUDE_TESTS_FROM_ALL", not self.run_tests),
             self.define("AMP_ENABLE_EXAMPLES", False),
             self.define("CXX_STD", "17"),
+            # prevent TPL-builder to set something else
+            self.define("CMAKE_C_COMPILER", spack_cc),
+            self.define("CMAKE_CXX_COMPILER", spack_cxx),
+            self.define("CMAKE_Fortran_COMPILER", spack_fc),
         ]
 
         if "+rocm" in spec:
             options.append(self.define("COMPILE_CXX_AS_HIP", True))
+            # since there is no Spack compiler wrapper for HIP compiler, pass extra rpaths directly
+            options.append(self.define("CMAKE_EXE_LINKER_FLAGS", " ".join([f"-Wl,-rpath={p}" for p in self.compiler.extra_rpaths])))
 
         return options
