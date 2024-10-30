@@ -69,6 +69,10 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+rocm", when="@:3.0")
     conflicts("+sycl", when="@:3.3")
     conflicts("+openmptarget", when="@:3.5")
+    conflicts(
+        "".join([f"~{d}" for d in devices_variants]),
+        msg="Kokkos requires at least one active backend",
+    )
 
     # https://github.com/spack/spack/issues/29052
     conflicts("@:3.5 +sycl", when="%oneapi@2022:")
