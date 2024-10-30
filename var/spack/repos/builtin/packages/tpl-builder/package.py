@@ -26,19 +26,21 @@ class TplBuilder(CMakePackage, CudaPackage, ROCmPackage):
     variant("mpi", default=False, description="Build with MPI support")
     variant("openmp", default=False, description="Build with OpenMP support")
     variant("shared", default=False, description="Build shared libraries")
+    variant("libmesh", default=False, description="Build with support for libmesh")
+    variant("petsc", default=False, description="Build with support for petsc")
 
     depends_on("git", type="build")
 
     depends_on("stacktrace", when="+stacktrace")
     depends_on("stacktrace+mpi", when="+stacktrace+mpi")
 
-    depends_on("hypre", when="+hypre")
+    depends_on("hypre+mixedint", when="+hypre")
     depends_on("kokkos", when="+kokkos")
 
     depends_on("kokkos+cuda+cuda_constexpr", when="+kokkos+cuda")
     depends_on("kokkos+rocm", when="+kokkos+rocm")
     depends_on("hypre+cuda+unified-memory", when="+hypre+cuda")
-    depends_on("hypre+rocm", when="+hypre+rocm")
+    depends_on("hypre+rocm+unified-memory", when="+hypre+rocm")
 
     depends_on("hypre~shared", when="~shared+hypre")
     depends_on("hypre+shared", when="+shared+hypre")
@@ -46,6 +48,10 @@ class TplBuilder(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("lapack", when="+lapack")
 
     requires("+lapack", when="+hypre")
+
+    depends_on("libmesh+exodusii+netcdf+metis", when="+libmesh")
+
+    depends_on("petsc", when="+petsc")
 
     for _flag in list(CudaPackage.cuda_arch_values):
         depends_on(f"hypre cuda_arch={_flag}", when=f"+hypre+cuda cuda_arch={_flag}")
@@ -74,6 +80,9 @@ class TplBuilder(CMakePackage, CudaPackage, ROCmPackage):
             self.define("MPI_SKIP_SEARCH", False),
             self.define_from_variant("USE_OPENMP", "openmp"),
             self.define("DISABLE_GOLD", True),
+            self.define("CFLAGS", self.compiler.cc_pic_flag),
+            self.define("CXXFLAGS", self.compiler.cxx_pic_flag),
+            self.define("FFLAGS", self.compiler.fc_pic_flag),
         ]
 
         if spec.satisfies("+cuda"):
@@ -131,7 +140,7 @@ class TplBuilder(CMakePackage, CudaPackage, ROCmPackage):
                 ]
             )
 
-        for vname in ("stacktrace", "hypre", "kokkos"):
+        for vname in ("stacktrace", "hypre", "kokkos", "libmesh", "petsc"):
             if spec.satisfies(f"+{vname}"):
                 tpl_list.append(vname.upper())
                 options.append(self.define(f"{vname.upper()}_INSTALL_DIR", spec[vname].prefix))
