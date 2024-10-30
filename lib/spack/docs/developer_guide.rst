@@ -334,7 +334,7 @@ type triggers by way of a function call, we find all the hooks of that type,
 and run them.
 
 Spack defines hooks by way of a module in the ``lib/spack/spack/hooks`` directory.
-This module has to be registered in ``__init.py`` so that Spack is aware of it.
+This module has to be registered in ``__init__.py`` so that Spack is aware of it.
 This section will cover the basic kind of hooks, and how to write them.
 
 ^^^^^^^^^^^^^^
