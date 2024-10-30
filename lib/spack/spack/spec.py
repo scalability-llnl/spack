@@ -3370,6 +3370,7 @@ class Spec:
             if all(not other.variants[k].propagate for k in other.variants):
                 return False
 
+            # Check if any not satisified variant is propagating and in spec's dependency
             if any(
                 other.variants[variant].propagate
                 and not self.variant_exists_in_dependency(variant)

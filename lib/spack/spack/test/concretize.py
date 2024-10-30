@@ -610,9 +610,13 @@ class TestConcretize:
         spec = Spec("parent-foo-bar ~~foo")
         spec.concretize()
 
-        for dep in spec.traverse(root=False):
-            assert dep.satisfies("~foo")
-            assert not dep.satisfies("+bar")
+        assert spec.satisfies("^dependency-foo-bar~foo")
+        assert spec.satisfies("^second-dependency-foo-bar-fee@~foo")
+        assert spec.satisfies("^direct-dep-foo-bar~foo")
+
+        assert not spec.satisfies("^dependency-foo-bar+bar")
+        assert not spec.satisfies("^second-dependency-foo-bar-fee@+bar")
+        assert not spec.satisfies("^direct-dep-foo-bar+bar")
 
     def test_concretize_propagate_one_variant(self):
         """Test that you can specify to propagate one variant and not all"""
