@@ -805,7 +805,7 @@ def _uses_deprecated_globals(pkgs, error_cls):
 
         file = spack.repo.PATH.filename_for_package_name(pkg_name)
         tree = ast.parse(open(file).read())
-        visitor = DeprecatedMagicGlobals(("std_cmake_args", "std_meson_args"))
+        visitor = DeprecatedMagicGlobals(("std_cmake_args", "std_meson_args", "std_pip_args"))
         visitor.visit(tree)
         if visitor.references_to_globals:
             errors.append(

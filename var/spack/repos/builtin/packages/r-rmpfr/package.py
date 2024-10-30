@@ -17,6 +17,7 @@ class RRmpfr(RPackage):
 
     cran = "Rmpfr"
 
+    version("0.9-5", sha256="bce9a2729efcd329a13910e2ecb4675b4626dd3322cd01b01cb835d516a5f31b")
     version("0.9-2", sha256="ed63da32f3b970900c87cdb728eb16ed9fb0c79114cdecdc09e573f50ff7175e")
     version("0.8-9", sha256="cfee5ab47d49c6433c372a267f7d849c8f7c61a84e00d08afb047eaafcdbbc8a")
     version("0.8-7", sha256="93c2db785ff705dcfc6fa7f0373c2426cdc2ef72ceb5b294edeb2952775f57d2")

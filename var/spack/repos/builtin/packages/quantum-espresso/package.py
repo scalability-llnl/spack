@@ -25,6 +25,7 @@ class QuantumEspresso(CMakePackage, Package):
     license("GPL-2.0-only")
 
     version("develop", branch="develop")
+    version("7.4", sha256="b15dcfe25f4fbf15ccd34c1194021e90996393478226e601d876f7dea481d104")
     version("7.3.1", sha256="2c58b8fadfe4177de5a8b69eba447db5e623420b070dea6fd26c1533b081d844")
     version("7.3", sha256="edc2a0f3315c69966df4f82ec86ab9f682187bc9430ef6d2bacad5f27f08972c")
     version("7.2", sha256="b348a4a7348b66a73545d9ca317a2645755c98d343c1cfe8def475ad030808c0")

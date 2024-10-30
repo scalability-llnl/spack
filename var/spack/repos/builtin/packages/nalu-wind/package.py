@@ -64,6 +64,7 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("mpi")
     depends_on("yaml-cpp@0.5.3:")
     depends_on("openfast@4.0.0:+cxx+netcdf", when="+fsi")
+    depends_on("trilinos@15.1.1", when="@=2.1.0")
     depends_on("trilinos@13.4.1", when="@=2.0.0")
     depends_on("hypre@2.29.0:", when="@2.0.0:+hypre")
     depends_on(
