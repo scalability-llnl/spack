@@ -16,7 +16,7 @@ class Icon(AutotoolsPackage):
     homepage = "https://www.icon-model.org"
     url = "https://gitlab.dkrz.de/icon/icon-model/-/archive/icon-2024.01-public/icon-model-icon-2024.01-public.tar.gz"
 
-    maintainers("skosukhin")
+    maintainers("skosukhin", "Try2Code")
 
     license("BSD-3-Clause", checked_by="skosukhin")
 
