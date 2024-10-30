@@ -41,8 +41,9 @@ class _HookRunner:
 
         relative_names = list(list_modules(spack.paths.hooks_path))
 
-        # Ensure that write_install_manifest comes last
-        ensure_last(relative_names, "absolutify_elf_sonames", "write_install_manifest")
+        # write_install_manifest should come after any mutation of the install prefix, and
+        # autopush should include the install manifest.
+        ensure_last(relative_names, "absolutify_elf_sonames", "write_install_manifest", "autopush")
 
         for name in relative_names:
             module_name = __name__ + "." + name
