@@ -1808,19 +1808,19 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
             for dir_entry in dir_iter:
                 try:
                     it_is_a_dir = dir_entry.is_dir(follow_symlinks=True)
+
+                    if it_is_a_dir:
+                        dir_id = _dir_id(dir_entry.path)
                 except OSError as e:
-                    if e.errno == errno.ELOOP:
-                        tty.debug(
-                            f"{dir_entry.path}: this path is a symlink that "
-                            "cannot be resolved - skipping"
-                        )
-                        continue
-                    else:
-                        raise
+                    # Possible permission issue, or a symlink that cannot
+                    # be resolved (ELOOP).
+                    errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
+                    tty.debug(
+                        f"find must skip {dir_entry.path}: {errno_name} {str(e)}"
+                    )
+                    continue
 
                 if it_is_a_dir:
-                    dir_id = _dir_id(dir_entry.path)
-
                     if (depth < max_depth) and (dir_id not in visited_dirs):
                         dir_queue.appendleft((depth + 1, dir_entry.path))
                         visited_dirs.add(dir_id)
