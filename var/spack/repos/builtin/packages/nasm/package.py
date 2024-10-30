@@ -86,3 +86,8 @@ class GenericBuilder(spack.build_systems.generic.GenericBuilder):
 
             for file in rdoff:
                 install(file, self.prefix.rdoff)
+
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        # This is required as NASM installs its binaries into an
+        # atypical location (i.e. flat in the prefix)
+        env.prepend_path("PATH", self.pkg.prefix)

@@ -19,6 +19,7 @@ class RMetap(RPackage):
 
     license("GPL-2.0-only")
 
+    version("1.11", sha256="34e8c9fc3ccaae23f57389001987de02339416f843084869f92ff635052093b7")
     version("1.8", sha256="ee9501a8de8a4c47af1632e6053e42ef53fc4b8bdf0f2759edc4d3eefaf5552b")
     version("1.7", sha256="d9b511607d0e37de4428549061c5577a4e812b0f55bb7ed887d1b24711f58c42")
     version("1.4", sha256="5fac23d823d0ad4eebc3f97620364e25f7b41f8d0c3579f6c09ec059940b85a5")

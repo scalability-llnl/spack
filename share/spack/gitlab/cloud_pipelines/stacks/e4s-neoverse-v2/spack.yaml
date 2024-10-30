@@ -74,6 +74,7 @@ spack:
   - dyninst
   - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 ~paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp  # +visit: ?
   - exaworks
+  - fftx
   - flecsi
   # - flit
   # - flux-core
@@ -113,6 +114,7 @@ spack:
   - netlib-scalapack
   - nrm
   # - nvhpc
+  - nwchem 
   - omega-h
   - openfoam
   # - openmpi
@@ -197,6 +199,7 @@ spack:
   - cabana +cuda cuda_arch=90  ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=90
   - caliper +cuda cuda_arch=90
   - chai +cuda cuda_arch=90 ^umpire ~shared
+  - fftx +cuda cuda_arch=90
   - flecsi +cuda cuda_arch=90
   - ginkgo +cuda cuda_arch=90
   - gromacs +cuda cuda_arch=90
@@ -241,7 +244,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
 
   cdash:
     build-group: E4S ARM Neoverse V2

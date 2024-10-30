@@ -19,6 +19,7 @@ class RSets(RPackage):
 
     license("GPL-2.0-only")
 
+    version("1.0-25", sha256="5ca469218f9679f2372e33e56f781b52947ccbedf730b91a2d3a572993c024f4")
     version("1.0-24", sha256="e75733f5c9418eb09fb950a4a94ccf84ddd88231c61ee80d02b7f0917debcac9")
     version("1.0-23", sha256="e5b6bc52060421c572d7f2d99b25909a38eacabd5344a47e1cdb2662c62d690b")
     version("1.0-22", sha256="6fbf9aa6b0113a58e04f803ab35593feabb0fb55d486d54afb59e027008f9ec6")
@@ -53,4 +54,4 @@ class RSets(RPackage):
     version("0.1", sha256="18dda6c9d526a2f41f2b49a472fb27a7f1bb9ce6ea137b8963e8ad6c378825d0")
 
     depends_on("r@2.6:", type=("build", "run"), when="@0.1:")
-    depends_on("r@2.7:", type=("build", "run"), when="@0.1-2:")
+    depends_on("r@2.7.0:", type=("build", "run"), when="@0.1-2:")

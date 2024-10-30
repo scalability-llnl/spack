@@ -110,8 +110,8 @@ class CudaPackage(PackageBase):
 
     depends_on("cuda@5.0:10.2", when="cuda_arch=30")
     depends_on("cuda@5.0:10.2", when="cuda_arch=32")
-    depends_on("cuda@5.0:", when="cuda_arch=35")
-    depends_on("cuda@6.5:", when="cuda_arch=37")
+    depends_on("cuda@5.0:11.8", when="cuda_arch=35")
+    depends_on("cuda@6.5:11.8", when="cuda_arch=37")
 
     depends_on("cuda@6.0:", when="cuda_arch=50")
     depends_on("cuda@6.5:", when="cuda_arch=52")
@@ -131,6 +131,7 @@ class CudaPackage(PackageBase):
     depends_on("cuda@11.8:", when="cuda_arch=89")
 
     depends_on("cuda@12.0:", when="cuda_arch=90")
+    depends_on("cuda@12.0:", when="cuda_arch=90a")
 
     # From the NVIDIA install guide we know of conflicts for particular
     # platforms (linux, darwin), architectures (x86, powerpc) and compilers
@@ -149,7 +150,6 @@ class CudaPackage(PackageBase):
         # minimum supported versions
         conflicts("%gcc@:4", when="+cuda ^cuda@11.0:")
         conflicts("%gcc@:5", when="+cuda ^cuda@11.4:")
-        conflicts("%gcc@:7.2", when="+cuda ^cuda@12.4:")
         conflicts("%clang@:6", when="+cuda ^cuda@12.2:")
 
         # maximum supported version

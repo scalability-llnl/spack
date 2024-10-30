@@ -184,7 +184,7 @@ Style Tests
 
 Spack uses `Flake8 <http://flake8.pycqa.org/en/latest/>`_ to test for
 `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_ conformance and
-`mypy <https://mypy.readthedocs.io/en/stable/>` for type checking. PEP 8 is
+`mypy <https://mypy.readthedocs.io/en/stable/>`_ for type checking. PEP 8 is
 a series of style guides for Python that provide suggestions for everything
 from variable naming to indentation. In order to limit the number of PRs that
 were mostly style changes, we decided to enforce PEP 8 conformance. Your PR

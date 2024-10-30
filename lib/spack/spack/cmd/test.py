@@ -165,7 +165,7 @@ def test_run(args):
     if args.fail_fast:
         spack.config.set("config:fail_fast", True, scope="command_line")
 
-    explicit = args.explicit or any
+    explicit = args.explicit or None
     explicit_str = "explicitly " if args.explicit else ""
 
     # Get specs to test

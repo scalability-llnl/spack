@@ -175,7 +175,7 @@ class KokkosKernels(CMakePackage, CudaPackage):
         spec = self.spec
         options = []
 
-        isdiy = "+diy" in spec
+        isdiy = spec.satisfies("+diy")
         if isdiy:
             options.append("-DSpack_WORKAROUND=On")
 

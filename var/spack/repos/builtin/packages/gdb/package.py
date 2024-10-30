@@ -83,10 +83,14 @@ class Gdb(AutotoolsPackage, GNUMirrorPackage):
     depends_on("texinfo", type="build")
 
     # Optional dependencies
-    depends_on("python", when="+python", type=("build", "link", "run"))
-    # gdb@9.2 will segmentation fault if it builds with python@3.9.
-    # https://bugzilla.redhat.com/show_bug.cgi?id=1829702
-    depends_on("python@:3.8", when="@:9.2+python", type=("build", "link", "run"))
+    with when("+python"), default_args(type=("build", "link", "run")):
+        depends_on("python")
+        # gdb@9.2 will segmentation fault if it builds with python@3.9.
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1829702
+        depends_on("python@:3.8", when="@:9.2")
+        # pyOS_ReadlineTState became private API in cpython commit
+        # d228825e08883fc13f35eb91435f95d32524931c
+        depends_on("python@:3.12", when="@:14.2")
     depends_on("xz", when="+xz")
     depends_on("zlib-api")
     depends_on("zstd", when="@13.1:")

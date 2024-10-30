@@ -15,11 +15,18 @@ class PyTorchmetrics(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart")
 
+    version("1.5.1", sha256="9701632cf811bc460abf07bd7b971b79c1ae9c8231e03d495b53a0975e43fe07")
+    version("1.5.0", sha256="c18e68bab4104ad7d2285af601ddc6dc04f9f3b7cafaa8ad13fa1dcc539e33b6")
+    version("1.4.3", sha256="5554a19167e91f543afe82ff58a01059c8eec854359ad22896449c2c8fb0ad89")
     version("1.4.2", sha256="7a40cbec85e5645090812b87601696b4adf158294ec8c407ae58a71710938b87")
     version("1.4.0", sha256="0b1e5acdcc9beb05bfe369d3d56cfa5b143f060ebfd6079d19ccc59ba46465b3")
     version("1.3.2", sha256="0a67694a4c4265eeb54cda741eaf5cb1f3a71da74b7e7e6215ad156c9f2379f6")
     version("1.3.1", sha256="8d371f7597a1a5eb02d5f2ed59642d6fef09093926997ce91e18b1147cc8defa")
-    version("1.3.0", sha256="e8ac3adcc61e7a847d0504b0a0e0a3b7f57796178b239c6fafb5d20c0c9460ac")
+    version(
+        "1.3.0",
+        sha256="e8ac3adcc61e7a847d0504b0a0e0a3b7f57796178b239c6fafb5d20c0c9460ac",
+        deprecated=True,
+    )  # Yanked
     version("1.2.1", sha256="217387738f84939c39b534b20d4983e737cc448d27aaa5340e0327948d97ca3e")
     version("1.2.0", sha256="7eb28340bde45e13187a9ad54a4a7010a50417815d8181a5df6131f116ffe1b7")
     version("1.1.1", sha256="65ea34205c0506eecfd06b98f63f4d2a2c5c0e17367cf324e1747adc854c80a5")
@@ -44,6 +51,8 @@ class PyTorchmetrics(PythonPackage):
     version("0.3.1", sha256="78f4057db53f7c219fdf9ec9eed151adad18dd43488a44e5c780806d218e3f1d")
     version("0.2.0", sha256="481a28759acd2d77cc088acba6bc7dc4a356c7cb767da2e1495e91e612e2d548")
 
+    variant("image", default=False, description="image support", when="@0.11.2:")
+
     # setup.py
     depends_on("py-setuptools", type="build")
 
@@ -61,6 +70,12 @@ class PyTorchmetrics(PythonPackage):
         depends_on("py-lightning-utilities@0.8:", when="@1.1:")
         depends_on("py-lightning-utilities@0.7:", when="@1:")
 
+        depends_on("py-scipy@1.0.1:", when="+image")
+        depends_on("py-torchvision@0.8:", when="+image")
+        depends_on("py-torch-fidelity", when="+image")
+
         # Historical dependencies
         depends_on("py-pretty-errors@1.2.25", when="@1.4.0")
         depends_on("py-pydeprecate@0.3", when="@0.7:0.8")
+
+        depends_on("py-lpips", when="@:1.2.0+image")

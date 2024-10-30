@@ -63,7 +63,7 @@ class Kassiopeia(CMakePackage):
         )
 
     def cmake_args(self):
-        if "+root" in self.spec:
+        if self.spec.satisfies("+root"):
             cxxstd = self.spec["root"].variants["cxxstd"].value
         else:
             if self.spec.satisfies("@:3.8.1"):

@@ -17,6 +17,7 @@ class Dtcmp(AutotoolsPackage):
     maintainers("gonsie", "camstan", "adammoody")
 
     version("main", branch="main")
+    version("1.1.5", sha256="959c28999b8d1dd2e8703172db55392e38114fde0cd54dfad04555622c5e5974")
     version("1.1.4", sha256="dd83d8cecd68e13b78b68e88675cc5847cde06742b7740e140b98f4a08127dd3")
     version("1.1.3", sha256="90b32cadd0ff2f4fa7fc916f8dcfdbe6918e3e285e0292a2470772478ca0aab5")
     version("1.1.2", sha256="76e1d1fed89bf6abf003179a7aed93350d5ce6282cb000b02a241ec802ec399d")
@@ -30,7 +31,8 @@ class Dtcmp(AutotoolsPackage):
     depends_on("lwgrp")
 
     depends_on("lwgrp@main", when="@main")
-    depends_on("lwgrp@1.0.5", when="@1.1.4")
+    depends_on("lwgrp@1.0.3:", when="@1.1.2:")
+    depends_on("lwgrp@1.0.5:", when="@1.1.4:")
 
     variant("shared", default=True, description="Build with shared libraries")
     depends_on("lwgrp+shared", when="+shared")

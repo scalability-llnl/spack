@@ -47,7 +47,7 @@ class Libquo(AutotoolsPackage):
             "CC={0}".format(self.spec["mpi"].mpicc),
             "FC={0}".format(self.spec["mpi"].mpifc),
         ]
-        if "%pgi" in self.spec:
+        if self.spec.satisfies("%pgi"):
             config_args.append("CFLAGS={0}".format(self.compiler.cc_pic_flag))
             config_args.append("FCFLAGS={0}".format(self.compiler.fc_pic_flag))
         return config_args

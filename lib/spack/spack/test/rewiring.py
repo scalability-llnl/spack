@@ -9,6 +9,7 @@ import sys
 
 import pytest
 
+import spack.deptypes as dt
 import spack.rewiring
 import spack.store
 from spack.installer import PackageInstaller
@@ -20,6 +21,18 @@ if sys.platform == "darwin":
     args.extend(["/usr/bin/clang++", "install_name_tool"])
 else:
     args.extend(["g++", "patchelf"])
+
+
+def check_spliced_spec_prefixes(spliced_spec):
+    """check the file in the prefix has the correct paths"""
+    for node in spliced_spec.traverse(root=True):
+        text_file_path = os.path.join(node.prefix, node.name)
+        with open(text_file_path, "r") as f:
+            text = f.read()
+            print(text)
+            for modded_spec in node.traverse(root=True, deptype=dt.ALL & ~dt.BUILD):
+                print(modded_spec)
+                assert modded_spec.prefix in text
 
 
 @pytest.mark.requires_executables(*args)
@@ -42,13 +55,8 @@ def test_rewire_db(mock_fetch, install_mockery, transitive):
     installed_in_db = rec.installed if rec else False
     assert installed_in_db
 
-    # check the file in the prefix has the correct paths
-    for node in spliced_spec.traverse(root=True):
-        text_file_path = os.path.join(node.prefix, node.name)
-        with open(text_file_path, "r") as f:
-            text = f.read()
-            for modded_spec in node.traverse(root=True, deptype=("link", "run")):
-                assert modded_spec.prefix in text
+    # check for correct prefix paths
+    check_spliced_spec_prefixes(spliced_spec)
 
 
 @pytest.mark.requires_executables(*args)
@@ -150,3 +158,26 @@ def test_rewire_not_installed_fails(mock_fetch, install_mockery):
         match="failed due to missing install of build spec",
     ):
         spack.rewiring.rewire(spliced_spec)
+
+
+def test_rewire_virtual(mock_fetch, install_mockery):
+    """Check installed package can successfully splice an alternate virtual implementation"""
+    dep = "splice-a"
+    alt_dep = "splice-h"
+
+    spec = Spec(f"splice-vt^{dep}").concretized()
+    alt_spec = Spec(alt_dep).concretized()
+
+    PackageInstaller([spec.package, alt_spec.package]).install()
+
+    spliced_spec = spec.splice(alt_spec, True)
+    spack.rewiring.rewire(spliced_spec)
+
+    # Confirm the original spec still has the original virtual implementation.
+    assert spec.satisfies(f"^{dep}")
+
+    # Confirm the spliced spec uses the new virtual implementation.
+    assert spliced_spec.satisfies(f"^{alt_dep}")
+
+    # check for correct prefix paths
+    check_spliced_spec_prefixes(spliced_spec)

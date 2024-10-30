@@ -27,6 +27,7 @@ class Libcatalyst(CMakePackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    depends_on("pkgconfig", type="build")
 
     variant("mpi", default=False, description="Enable MPI support")
     variant("conduit", default=False, description="Use external Conduit for Catalyst")

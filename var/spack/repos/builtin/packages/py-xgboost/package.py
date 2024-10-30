@@ -33,6 +33,7 @@ class PyXgboost(PythonPackage):
     )
     variant("dask", default=False, description="Enables Dask extensions for distributed training.")
     variant("plotting", default=False, description="Enables tree and importance plotting.")
+    patch("add-lib64.patch", when="@2:")
 
     for ver in ["1.3.3", "1.5.2", "1.6.1", "1.6.2", "1.7.6", "2.1.0", "2.1.1"]:
         depends_on("xgboost@" + ver, when="@" + ver)

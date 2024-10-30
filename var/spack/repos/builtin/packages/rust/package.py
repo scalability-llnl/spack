@@ -98,6 +98,8 @@ class Rust(Package):
     conflicts("%gcc@:7.3", when="@1.73:", msg="Host GCC version must be at least 7.4")
     # https://github.com/rust-lang/llvm-project/commit/4d039a7a71899038b3bc6ed6fe5a8a48d915caa0
     conflicts("%gcc@13:", when="@:1.63", msg="Rust<1.64 not compatible with GCC>=13")
+    conflicts("%intel", msg="Rust not compatible with Intel Classic compilers")
+    conflicts("%oneapi", msg="Rust not compatible with Intel oneAPI compilers")
 
     extendable = True
     executables = ["^rustc$", "^cargo$"]

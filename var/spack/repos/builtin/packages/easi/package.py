@@ -32,6 +32,7 @@ class Easi(CMakePackage):
 
     variant("python", default=True, description="Install python bindings")
     extends("python", when="+python")
+    depends_on("mpi", when="+python")
 
     variant("asagi", default=True, description="build with ASAGI support")
     variant(

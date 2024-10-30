@@ -142,12 +142,18 @@ class Silo(AutotoolsPackage):
                     # presented with an HDF5 API consistent with the HDF5 version.
                     # Use the latest even-numbered API version, i.e. v1.13.1 uses
                     # API v1.12
-                    maj_ver = int(spec["hdf5"].version[0])
-                    min_ver = int(spec["hdf5"].version[1])
+
+                    # hdf5 support branches have a `develop` prefix
+                    if "develop" in str(spec["hdf5"].version):
+                        maj_ver = int(spec["hdf5"].version[1])
+                        min_ver = int(spec["hdf5"].version[2])
+                    else:
+                        maj_ver = int(spec["hdf5"].version[0])
+                        min_ver = int(spec["hdf5"].version[1])
                     min_apiver = int(min_ver / 2) * 2
                     flags.append("-DH5_USE_{0}{1}_API".format(maj_ver, min_apiver))
 
-            if spec.compiler.name in ["clang", "apple-clang"]:
+            if spec.satisfies("%clang") or spec.satisfies("%apple-clang"):
                 flags.append("-Wno-implicit-function-declaration")
         return (flags, None, None)
 
