@@ -1781,14 +1781,14 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
             last = resolve_link_target_relative_to_the_link(last)
         return last
 
-    def _dir_id(p, is_symlink):
+    def _dir_id(p):
         stat_result = os.stat(p, follow_symlinks=True)
         # Note: on windows, st_ino is the file index and st_dev
         # is the volume serial number. See
         # https://github.com/python/cpython/blob/3.9/Python/fileutils.c
         return (stat_result.st_ino, stat_result.st_dev)
 
-    visited_dirs = set([_dir_id(root, os.path.islink(root))])
+    visited_dirs = set([_dir_id(root)])
 
     # Each queue item stores the depth and path
     # BFS traversal is important to ensure repeatable results given
@@ -1820,7 +1820,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                         raise
 
                 if it_is_a_dir:
-                    dir_id = _dir_id(dir_entry.path, dir_entry.is_symlink())
+                    dir_id = _dir_id(dir_entry.path)
 
                     if (depth < max_depth) and (dir_id not in visited_dirs):
                         dir_queue.appendleft((depth + 1, dir_entry.path))
