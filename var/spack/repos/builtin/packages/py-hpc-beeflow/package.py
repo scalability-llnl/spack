@@ -46,11 +46,12 @@ class PyHpcBeeflow(PythonPackage):
     depends_on("py-requests-unixsocket@0.3.0:", type="run")
     depends_on("py-python-daemon@2.3.1:", type="run")
     depends_on("py-gunicorn@20.1.0:23.0.0", type="run")
-    depends_on("py-typer@0.5.0:", type="run")
+    depends_on("py-typer@0.5.0", type="run")
     depends_on("py-cffi@1.15.1:", type="run")
     depends_on("py-celery+redis+sqlalchemy@5.3.4:", type="run")
     depends_on("py-docutils@0.18.1:", type=("build", "run"))
     depends_on("py-networkx@3.1", type="run")
     depends_on("py-graphviz@0.20.3:", type="run")
+    depends_on("py-charset-normalizer", type="run")
 
     depends_on("python@3.8.3:3.12.2", type=("build", "run"))
