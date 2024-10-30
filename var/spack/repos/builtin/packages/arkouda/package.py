@@ -15,6 +15,7 @@ class Arkouda(MakefilePackage):
 
     homepage = "https://github.com/Bears-R-Us/arkouda"
 
+    # Arkouda does not have a PyPI package, so we use the GitHub tarball
     url = "https://github.com/Bears-R-Us/arkouda/archive/refs/tags/v2024.06.21.tar.gz"
     git = "https://github.com/Bears-R-Us/arkouda.git"
 
@@ -30,18 +31,21 @@ class Arkouda(MakefilePackage):
     version("master", branch="master")
 
     version(
+        "2024.10.02", sha256="00671a89a08be57ff90a94052f69bfc6fe793f7b50cf9195dd7ee794d6d13f23"
+    )
+    version(
         "2024.06.21", sha256="ab7f753befb3a0b8e27a3d28f3c83332d2c6ae49678877a7456f0fcfe42df51c"
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
     variant(
         "distributed",
         default=False,
         description="Build Arkouda for distributed execution on a cluster or supercomputer",
     )
 
-    depends_on("chapel@2.1 +hdf5 +zmq", type=("build", "link", "run", "test"))
+    depends_on("chapel@2.1: +hdf5 +zmq", type=("build", "link", "run", "test"))
     depends_on("cmake@3.13.4:", type="build")
     depends_on("python@3.9:", type=("build", "link", "run", "test"))
     depends_on("libzmq@4.2.5:", type=("build", "link", "run", "test"))
@@ -63,7 +67,7 @@ class Arkouda(MakefilePackage):
     )
 
     # Some systems need explicit -fPIC flag when building the Arrow functions
-    patch("makefile-fpic.patch")
+    patch("makefile-fpic.patch", when="@2024.06.21")
 
     # Shamelessly copied from the Chapel package.py
     def prepend_cpath_include(self, env, prefix):

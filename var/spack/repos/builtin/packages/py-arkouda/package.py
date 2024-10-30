@@ -26,6 +26,9 @@ class PyArkouda(PythonPackage):
     version("master", branch="master")
 
     version(
+        "2024.10.02", sha256="00671a89a08be57ff90a94052f69bfc6fe793f7b50cf9195dd7ee794d6d13f23"
+    )
+    version(
         "2024.06.21", sha256="ab7f753befb3a0b8e27a3d28f3c83332d2c6ae49678877a7456f0fcfe42df51c"
     )
 
