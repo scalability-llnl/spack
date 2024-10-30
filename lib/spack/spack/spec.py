@@ -4028,7 +4028,7 @@ class Spec:
 
     def __str__(self):
         if self._concrete:
-            return self.format("{name}{@version}{/hash:7}")
+            return self.format("{name}{@version}{/hash}")
 
         if not self._dependencies:
             return self.format()
