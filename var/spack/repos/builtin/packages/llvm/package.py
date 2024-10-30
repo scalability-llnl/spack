@@ -20,15 +20,19 @@ class LlvmDetection(PackageBase):
     """Base class to detect LLVM based compilers"""
 
     compiler_version_argument = "--version"
-    c_names = ["clang"]
-    cxx_names = ["clang++"]
+    if sys.platform == "win32":
+        c_names = ["clang-cl"]
+        cxx_names = ["clang-cl"]
+    else:
+        c_names = ["clang"]
+        cxx_names = ["clang++"]
 
     @classmethod
     def filter_detected_exes(cls, prefix, exes_in_prefix):
         # Executables like lldb-vscode-X are daemon listening on some port and would hang Spack
         # during detection. clang-cl, clang-cpp, etc. are dev tools that we don't need to test
         reject = re.compile(
-            r"-(vscode|cpp|cl|gpu|tidy|rename|scan-deps|format|refactor|offload|"
+            r"-(vscode|cpp|gpu|tidy|rename|scan-deps|format|refactor|offload|"
             r"check|query|doc|move|extdef|apply|reorder|change-namespace|"
             r"include-fixer|import-test|dap|server)"
         )
@@ -699,7 +703,9 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         lld_found, lldb_found = False, False
         for exe in sorted(exes, key=len):
             name = os.path.basename(exe)
-            if "clang++" in name:
+            if sys.platform == "win32" and "clang-cl" in name:
+                compilers.update(cxx=exe, c=exe)
+            elif "clang++" in name:
                 compilers.setdefault("cxx", exe)
             elif "clang" in name:
                 compilers.setdefault("c", exe)

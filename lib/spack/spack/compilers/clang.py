@@ -5,6 +5,7 @@
 
 import os
 import re
+import sys
 
 import llnl.util.lang
 
@@ -192,3 +193,12 @@ class Clang(Compiler):
         if match:
             ver = match.group(match.lastindex)
         return ver
+
+    def setup_custom_environment(self, pkg, env):
+        if sys.platform == "win32":
+            env.set("CC", self.cc)
+            env.set("CXX", self.cxx)
+            env.set("FC", self.fc)
+            env.set("F77", self.f77)
+        else:
+            super().setup_custom_environment(pkg, env)
