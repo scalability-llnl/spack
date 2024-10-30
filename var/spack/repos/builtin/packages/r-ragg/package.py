@@ -28,3 +28,9 @@ class RRagg(RPackage):
     depends_on("libpng")
     depends_on("libtiff")
     depends_on("jpeg")
+
+    def flag_handler(self, name, flags):
+        # Freetype 2.13.3 broke the public interface by switching char/unsigned char:
+        if name == "cxxflags" and self.spec["freetype"].version >= Version("2.13.3"):
+            flags.append("-fpermissive")
+        return (flags, None, None)
