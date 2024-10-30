@@ -2030,7 +2030,7 @@ class SpackSolverSetup:
 
                 if variant.propagate:
                     clauses.append(f.propagate(spec.name, fn.variant_value(vname, value)))
-                    if vname in self.pkg_class(spec.name).variants:
+                    if self.pkg_class(spec.name).has_variant(vname):
                         clauses.append(f.variant_value(spec.name, vname, value))
                 else:
                     clauses.append(f.variant_value(spec.name, vname, value))
