@@ -1792,9 +1792,8 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
 
     # Each queue item stores the depth and path
     # BFS traversal is important to ensure repeatable results given
-    # that we allow following symlinks to sibling dirs at lower depth
-    # (i.e. at same depth as a parent): we return the shortest path
-    # to a given file
+    # that we allow following symlinks to sibling dirs that are not
+    # as deep: we return the shortest path to a given file
     dir_queue = collections.deque([(0, root)])
     while dir_queue:
         depth, next_dir = dir_queue.pop()
