@@ -20,9 +20,6 @@ class Verdict(CMakePackage):
     version("1.4.2", sha256="225c8c5318f4b02e7215cefa61b5dc3f99e05147ad3fefe6ee5a3ee5b828964b")
     version("1.4.1", sha256="26fa583265cb2ced2e9b30ed26260f6c9f89c3296221d96ccd5e7bfeec219de7")
 
-    depends_on("cxx", type="build")
-    depends_on("gtest", type="test", when="+test")
-
     variant("doc", default=False, description="install documentation with library")
     variant(
         "mangle",
@@ -30,6 +27,10 @@ class Verdict(CMakePackage):
         description="Mangle verdict names for inclusion in a larger library",
     )
     variant("test", default=False, description="enable testing from cmake")
+
+    depends_on("cxx", type="build")
+
+    depends_on("googletest", type="test", when="+test")
 
     def cmake_args(self):
         args = [
