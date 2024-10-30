@@ -483,7 +483,7 @@ def env_track(args):
     tty.msg(f"Tracking environment in {src_path}")
     tty.msg(
         "You can now activate this environment with the following command:\n\n"
-        "        spack env activate {name}\n"
+        f"        spack env activate {name}\n"
     )
 
 
@@ -509,7 +509,7 @@ def env_untrack(args):
 
         # fail if the user tries to untrack a managed environment
         if not islink(env_path):
-            tty.die(
+            raise ev.SpackEnvironmentError(
                 f"{env_name} is not a tracked env. "
                 "To remove it completely run,"
                 "\n\n"
@@ -596,9 +596,8 @@ def env_remove(args):
         if env.active:
             tty.die(f"Environment {name} can't be removed while activated.")
         # Get path to check if environment is a tracked / symlinked environment
-        env_path = ev.environment_dir_from_name(env)
-        if islink(path):
-            os.unlink(path)
+        if islink(env.path):
+            os.unlink(env.path)
             tty.msg(f"Successfully untracked environment '{name}'")
         else:
             env.destroy()

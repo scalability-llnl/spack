@@ -116,16 +116,22 @@ def check_viewdir_removal(viewdir):
     ) == ["projections.yaml"]
 
 
-def test_env_track_nonexistant_path_fails():
-    with pytest.raises(BaseException, match=r"doesn't contain an environment"):
+def test_env_track_nonexistant_path_fails(capfd):
+    with pytest.raises(spack.main.SpackCommandError):
         env("track", "path/does/not/exist")
 
+    out, _ = capfd.readouterr()
+    assert "doesn't contain an environment" in out
 
-def test_env_track_existing_env_fails():
+
+def test_env_track_existing_env_fails(capfd):
     env("create", "track_test")
 
-    with pytest.raises(ev.SpackEnvironmentError, match=r"environment already exists"):
+    with pytest.raises(spack.main.SpackCommandError):
         env("track", "--name", "track_test", ev.environment_dir_from_name("track_test"))
+
+    out, _ = capfd.readouterr()
+    assert "environment named track_test already exists" in out
 
 
 def test_env_track_valid(tmp_path):
