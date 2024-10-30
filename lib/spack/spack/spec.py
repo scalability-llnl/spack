@@ -963,11 +963,6 @@ def _sort_by_dep_types(dspec: DependencySpec):
     return dspec.depflag
 
 
-class EdgeDirection(enum.Enum):
-    parent = 0
-    child = 1
-
-
 @lang.lazy_lexicographic_ordering
 class _EdgeMap(collections.abc.Mapping):
     """Represent a collection of edges (DependencySpec objects) in the DAG.
@@ -981,15 +976,9 @@ class _EdgeMap(collections.abc.Mapping):
 
     __slots__ = "edges", "store_by_child"
 
-    def __init__(self, store_by: EdgeDirection = EdgeDirection.child) -> None:
-        # Sanitize input arguments
-        msg = 'unexpected value for "store_by" argument'
-        assert store_by in (EdgeDirection.child, EdgeDirection.parent), msg
-
-        #: This dictionary maps a package name to a list of edges
-        #: i.e. to a list of DependencySpec objects
+    def __init__(self, store_by_child: bool = True) -> None:
         self.edges: Dict[str, List[DependencySpec]] = {}
-        self.store_by_child = store_by == EdgeDirection.child
+        self.store_by_child = store_by_child
 
     def __getitem__(self, key: str) -> List[DependencySpec]:
         return self.edges[key]
@@ -1010,7 +999,7 @@ class _EdgeMap(collections.abc.Mapping):
             self.edges[key] = [edge]
 
     def __str__(self) -> str:
-        return "{deps: %s}" % ", ".join(str(d) for d in sorted(self.values()))
+        return f"{{deps: {', '.join(str(d) for d in sorted(self.values()))}}}"
 
     def _cmp_iter(self):
         for item in sorted(itertools.chain.from_iterable(self.edges.values())):
@@ -1483,8 +1472,8 @@ class Spec:
         self.architecture = None
         self.compiler = None
         self.compiler_flags = FlagMap(self)
-        self._dependents = _EdgeMap(store_by=EdgeDirection.parent)
-        self._dependencies = _EdgeMap(store_by=EdgeDirection.child)
+        self._dependents = _EdgeMap(store_by_child=False)
+        self._dependencies = _EdgeMap(store_by_child=True)
         self.namespace = None
 
         # initial values for all spec hash types
@@ -3544,8 +3533,8 @@ class Spec:
         self.architecture = other.architecture.copy() if other.architecture else None
         self.compiler = other.compiler.copy() if other.compiler else None
         if cleardeps:
-            self._dependents = _EdgeMap(store_by=EdgeDirection.parent)
-            self._dependencies = _EdgeMap(store_by=EdgeDirection.child)
+            self._dependents = _EdgeMap(store_by_child=False)
+            self._dependencies = _EdgeMap(store_by_child=True)
         self.compiler_flags = other.compiler_flags.copy()
         self.compiler_flags.spec = self
         self.variants = other.variants.copy()
