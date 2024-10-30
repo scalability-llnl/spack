@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
+
 from spack.package import *
 
 
@@ -135,3 +137,10 @@ class Occa(Package):
         # Export OCCA_* variables for everyone using this package from within
         # Spack.
         self._setup_runtime_flags(env)
+
+    @run_after("install")
+    def check_install(self):
+        version_cmd = join_path(self.prefix.bin, "occa") + " version"
+        val = os.system(version_cmd)
+        if val != 0:
+            raise RuntimeError("Calling `occa version` failed !")
