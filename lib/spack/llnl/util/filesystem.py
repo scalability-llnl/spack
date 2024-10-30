@@ -1783,22 +1783,18 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
 
     def _dir_id(p, is_symlink):
         stat_result = os.stat(p, follow_symlinks=True)
-        if sys.platform != "win32":
-            return (stat_result.st_ino, stat_result.st_dev)
-        else:
-            if is_symlink:
-                dev_id = pathlib.Path(_follow_link(p)).drive
-            else:
-                # This might be a junction or a regular dir.
-                # Junctions always point to the same drive
-                dev_id = pathlib.Path(p).drive
-            return (stat_result.st_ino, dev_id)
+        # Note: on windows, st_ino is the file index and st_dev
+        # is the volume serial number. See
+        # https://github.com/python/cpython/blob/3.9/Python/fileutils.c
+        return (stat_result.st_ino, stat_result.st_dev)
 
     visited_dirs = set([_dir_id(root, os.path.islink(root))])
 
-    # Each queue item stores the depth, the path, and the realpath
-    # equivalent; the latter is used to avoid repeated symlink
-    # resolutions on a parent.
+    # Each queue item stores the depth and path
+    # BFS traversal is important to ensure repeatable results given
+    # that we allow following symlinks to sibling dirs at lower depth
+    # (i.e. at same depth as a parent): we return the shortest path
+    # to a given file
     dir_queue = collections.deque([(0, root)])
     while dir_queue:
         depth, next_dir = dir_queue.pop()
@@ -1836,9 +1832,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                             found_files[pattern].append(os.path.join(next_dir, fname))
 
         # TODO: for fully-recursive searches, we can print a warning after
-        # after having searched everything up to some fixed depth (which
-        # requires BFS) or after searching some number of directories
-        # (which doesn't require BFS, but is not repeatable)
+        # after having searched everything up to some fixed depth
 
     return list(itertools.chain(*[found_files[x] for x in regexes]))
 
