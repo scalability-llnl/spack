@@ -1775,11 +1775,26 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
 
     found_files = collections.defaultdict(list)
 
-    def _dir_id(p):
-        stat_result = os.stat(p, follow_symlinks=True)
-        return (stat_result.st_ino, stat_result.st_dev)
+    def _follow_link(p):
+        last = p
+        while os.path.islink(last):
+            last = resolve_link_target_relative_to_the_link(last)
+        return last
 
-    visited_dirs = set([_dir_id(root)])
+    def _dir_id(p, is_symlink):
+        stat_result = os.stat(p, follow_symlinks=True)
+        if sys.platform != "win32":
+            return (stat_result.st_ino, stat_result.st_dev)
+        else:
+            if is_symlink:
+                dev_id = pathlib.Path(_follow_link(p)).drive
+            else:
+                # This might be a junction or a regular dir.
+                # Junctions always point to the same drive
+                dev_id = pathlib.Path(p).drive
+            return (stat_result.st_ino, dev_id)
+
+    visited_dirs = set([_dir_id(root, os.path.islink(root))])
 
     # Each queue item stores the depth, the path, and the realpath
     # equivalent; the latter is used to avoid repeated symlink
@@ -1809,7 +1824,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                         raise
 
                 if it_is_a_dir:
-                    dir_id = _dir_id(dir_entry.path)
+                    dir_id = _dir_id(dir_entry.path, dir_entry.is_symlink())
 
                     if (depth < max_depth) and (dir_id not in visited_dirs):
                         dir_queue.appendleft((depth + 1, dir_entry.path))
