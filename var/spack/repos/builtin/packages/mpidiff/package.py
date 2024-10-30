@@ -27,7 +27,7 @@ class Mpidiff(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         return [
-            self.define("MPI_DIR", spec['mpi'].prefix),
+            self.define("MPI_DIR", spec["mpi"].prefix),
             self.define("BLT_SOURCE_DIR", spec["blt"].prefix),
             self.define("ENABLE_MPI", "ON"),
             self.define("ENABLE_HIP", "OFF"),
