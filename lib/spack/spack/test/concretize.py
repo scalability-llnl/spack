@@ -578,7 +578,7 @@ class TestConcretize:
 
     def test_concretize_propagate_same_variant_from_direct_dep_fail(self):
         """Test that when propagating a variant from the source package and a direct
-        dependecy also propagates the same variant with a different value. Raises error"""
+        dependency also propagates the same variant with a different value. Raises error"""
         spec = Spec("ascent +adios2 ++shared ^adios2 ~~shared")
         with pytest.raises(spack.error.UnsatisfiableSpecError):
             spec.concretize()
@@ -592,7 +592,7 @@ class TestConcretize:
 
     def test_concretize_propagate_same_variant_virtual_dependency_fail(self):
         """Test that when propagating a variant from the source package and a direct
-        dependecy (that is a virtual pkg) also propagates the same variant with a
+        dependency (that is a virtual pkg) also propagates the same variant with a
         different value. Raises error"""
         spec = Spec("hypre ++shared ^openblas ~~shared")
         with pytest.raises(spack.error.UnsatisfiableSpecError):
@@ -611,11 +611,11 @@ class TestConcretize:
         spec.concretize()
 
         assert spec.satisfies("^dependency-foo-bar~foo")
-        assert spec.satisfies("^second-dependency-foo-bar-fee@~foo")
+        assert spec.satisfies("^second-dependency-foo-bar-fee~foo")
         assert spec.satisfies("^direct-dep-foo-bar~foo")
 
         assert not spec.satisfies("^dependency-foo-bar+bar")
-        assert not spec.satisfies("^second-dependency-foo-bar-fee@+bar")
+        assert not spec.satisfies("^second-dependency-foo-bar-fee+bar")
         assert not spec.satisfies("^direct-dep-foo-bar+bar")
 
     def test_concretize_propagate_one_variant(self):

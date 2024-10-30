@@ -1093,38 +1093,32 @@ propagation_source(Source, Variant, Value) :-
   propagate(Source, variant_value(Variant, Value)),
   not 1 { propagate(Parent, variant_value(Variant, Value)): depends_on(Parent, Source) }.
 
-error(100, "{0} and {1} cannot both propagate variant '{2}' to the shared dependecy: {3}",
+error(100, "{0} and {1} cannot both propagate variant '{2}' to the shared dependency: {3}",
   Package1, Package2, Variant, Dependency) :-
   % Package1 and Package2 are source packages set to propagate Variant
   propagation_source(node(X, Package1), Variant, Value1),
   propagation_source(node(Y, Package2), Variant, Value2),
-
   % Package1 and Package2 and their values are different
   Package1 > Package2,
   Value1 != Value2,
-
   % The variant is a singlevalued variant
   variant_single_value(node(X, Package1), Variant),
-
-  % Dependency is trying to get the propagated variant with different values and is not the source
+  % Dependency is trying to propagate Variant with different values and is not the source package
   propagate(node(Z, Dependency), variant_value(Variant, Value1)),
   propagate(node(Z, Dependency), variant_value(Variant, Value2)),
   not propagation_source(node(Z, Dependency), Variant, Value1),
   not propagation_source(node(Z, Dependency), Variant, Value2).
 
-% Cannot propagate the same variant from two packages if one is a direct (virtual) dependecy
+% Cannot propagate the same variant from two different packages if one is a dependency of the other
 error(100, "{0} and {1} cannot both propagate variant '{2}'", Package1, Package2, Variant) :-
   % Package1 and Package2 are source packages set to propagate Variant
   propagation_source(node(X, Package1), Variant, Value1),
   propagation_source(node(Y, Package2), Variant, Value2),
-
   % The variant is a singlevalued variant
   variant_single_value(node(X, Package1), Variant),
-
   % Package1 and Package2 and their values are different
   Package1 != Package2,
   Value1 != Value2,
-
   % Package2 is set to propagate the value from Package1
   propagate(node(Y, Package2), variant_value(Variant, Value1)),
   variant_is_propagated(node(Y, Package2), Variant).
@@ -1134,14 +1128,11 @@ error(100, "Cannot propagate the variant '{0}' from the package: {1} because pac
   % Package has a Variant and Source is propagating Variant
   attr("variant_set", node(X, Package), Variant, Value1),
   propagation_source(node(Y, Source), Variant, Value2),
-
   % The packages and values are different
   Source != Package,
   Value1 != Value2,
-
   % The variant is a singlevalued variant
   variant_single_value(node(X, Package1), Variant),
-
   % A different value is being propagated from somewhere else
   propagate(node(X, Package), variant_value(Variant, Value2)).
 

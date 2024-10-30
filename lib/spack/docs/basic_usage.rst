@@ -1344,7 +1344,7 @@ line are provided for convenience and legibility.
 
 Spack allows variants to propagate their value to the package's
 dependency by using ``++``, ``--``, and ``~~`` for boolean variants.
-Spack also allows veariants to be propagate from a package that does
+Spack also allows variants to be propagate from a package that does
 not have that variant as long as at least one of the dependencies
 has that variant.
 For example, for a ``debug`` variant:
