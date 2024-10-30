@@ -24,7 +24,11 @@ class Verdict(CMakePackage):
     depends_on("gtest", type="test", when="+test")
 
     variant("doc", default=False, description="install documentation with library")
-    variant("mangle", default=False, description="Mangle verdict names for inclusion in a larger library")
+    variant(
+        "mangle",
+        default=False,
+        description="Mangle verdict names for inclusion in a larger library",
+    )
     variant("test", default=False, description="enable testing from cmake")
 
     def cmake_args(self):
