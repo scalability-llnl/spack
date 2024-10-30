@@ -1815,9 +1815,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                     # Possible permission issue, or a symlink that cannot
                     # be resolved (ELOOP).
                     errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
-                    tty.debug(
-                        f"find must skip {dir_entry.path}: {errno_name} {str(e)}"
-                    )
+                    tty.debug(f"find must skip {dir_entry.path}: {errno_name} {str(e)}")
                     continue
 
                 if it_is_a_dir:
