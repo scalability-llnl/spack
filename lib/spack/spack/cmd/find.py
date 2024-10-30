@@ -17,7 +17,8 @@ import spack.repo
 import spack.spec
 import spack.store
 from spack.cmd.common import arguments
-from spack.database import StatusQuery
+
+from ..enums import DBStatusQuery
 
 description = "list and search installed packages"
 section = "basic"
@@ -172,17 +173,17 @@ def query_arguments(args):
     if args.only_deprecated and (args.deprecated or args.missing):
         raise RuntimeError("cannot use --only-deprecated with --deprecated, or --missing")
 
-    installed = StatusQuery.INSTALLED
+    installed = DBStatusQuery.INSTALLED
     if args.only_missing:
-        installed = StatusQuery.MISSING
+        installed = DBStatusQuery.MISSING
     elif args.only_deprecated:
-        installed = StatusQuery.DEPRECATED
+        installed = DBStatusQuery.DEPRECATED
 
     if args.missing:
-        installed |= StatusQuery.MISSING
+        installed |= DBStatusQuery.MISSING
 
     if args.deprecated:
-        installed |= StatusQuery.DEPRECATED
+        installed |= DBStatusQuery.DEPRECATED
 
     predicate_fn = None
     if args.unknown:
