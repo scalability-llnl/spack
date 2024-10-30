@@ -241,10 +241,10 @@ def get_os(ver):
     if ver.startswith("22"):
         return _os_map_before_23.get(spack_os, "")
     if ver.startswith("23") or ver == "24.04":
-        return {**_os_map, "centos7": "RHEL-7", "rhel7": "RHEL-7"}.get(spack_os, "")
+        return {**_os_map, "centos7": "RHEL-7", "rhel7": "RHEL-7"}.get(spack_os, "RHEL-7")
     if ver == "24.10":
-        return _os_map.get(spack_os, "")
-    return "Unknown-OS"
+        return _os_map.get(spack_os, "RHEL-8")
+    return "RHEL-8"
 
 
 def get_armpl_version_to_3(spec):
@@ -297,7 +297,6 @@ class Acfl(Package, CompilerPackage):
     """
 
     homepage = "https://developer.arm.com/Tools%20and%20Software/Arm%20Compiler%20for%20Linux"
-    url = "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10/arm-compiler-for-linux_24.10_Ubuntu-20.04_aarch64.tar"
 
     maintainers("paolotricerri")
 
