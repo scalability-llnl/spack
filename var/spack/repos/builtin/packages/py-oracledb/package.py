@@ -27,6 +27,9 @@ class PyOracledb(PythonPackage):
     depends_on("python@3.8:3.11", when="@1.4")
     depends_on("python@3.6:3.11", when="@:1.3")
 
+    depends_on("py-cython@3:", when="@2:")
+    depends_on("py-cython@:0.29", when="@:1")
+
     depends_on("c", type="build")
 
     depends_on("py-setuptools@40.6.0:", type="build")
