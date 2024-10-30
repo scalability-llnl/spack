@@ -1775,12 +1775,6 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
 
     found_files = collections.defaultdict(list)
 
-    def _follow_link(p):
-        last = p
-        while os.path.islink(last):
-            last = resolve_link_target_relative_to_the_link(last)
-        return last
-
     def _dir_id(p):
         stat_result = os.stat(p, follow_symlinks=True)
         # Note: on windows, st_ino is the file index and st_dev
