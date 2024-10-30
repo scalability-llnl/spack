@@ -20,7 +20,6 @@ filesystem.
 """
 import contextlib
 import datetime
-import enum
 import os
 import pathlib
 import socket
@@ -69,6 +68,8 @@ from spack.directory_layout import (
 )
 from spack.error import SpackError
 from spack.util.crypto import bit_length
+
+from .enums import ANY_STATUS, StatusQuery
 
 # TODO: Provide an API automatically retyring a build after detecting and
 # TODO: clearing a failure.
@@ -159,17 +160,6 @@ def _autospec(function):
         return function(self, spec_like, *args, **kwargs)
 
     return converter
-
-
-class StatusQuery(enum.Flag):
-    """Enum flag to facilitate querying status from the DB"""
-
-    INSTALLED = enum.auto()
-    DEPRECATED = enum.auto()
-    MISSING = enum.auto()
-
-
-ANY_STATUS = StatusQuery.INSTALLED | StatusQuery.DEPRECATED | StatusQuery.MISSING
 
 
 def normalize_query(installed: Union[bool, StatusQuery]) -> StatusQuery:
