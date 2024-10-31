@@ -118,8 +118,6 @@ def update(data):
                 f"{name}: Using access_pair with a list is "
                 "deprecated, prefer id/secret_variable keys"
             )
-            if not isinstance(access_pair[1], dict):
-                warnings.warn(f"{name}: Secret part of access pair should be a variable")
 
         if set(["access_token", "access_token_variable"]).issubset(set(section.keys())):
             errors.append(

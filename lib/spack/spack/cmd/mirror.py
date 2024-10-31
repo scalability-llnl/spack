@@ -238,11 +238,11 @@ def _configure_access_pair(
 
     # Check if any of the arguments are set to update this access_pair.
     # If none are set, then skip computing the new access pair
-    id_ = getattr(args, id_tok)
-    id_variable = getattr(args, id_variable_tok)
-    secret = getattr(args, secret_tok)
-    secret_variable = getattr(args, secret_variable_tok)
-    if not any([id_, id_variable, secret, secret_variable]):
+    args_id = getattr(args, id_tok)
+    args_id_variable = getattr(args, id_variable_tok)
+    args_secret = getattr(args, secret_tok)
+    args_secret_variable = getattr(args, secret_variable_tok)
+    if not any([args_id, args_id_variable, args_secret, args_secret_variable]):
         return None
 
     def _default_value(id_):
@@ -259,10 +259,20 @@ def _configure_access_pair(
         else:
             return None
 
-    id_ = getattr(args, id_tok) or _default_value("id")
-    id_variable = getattr(args, id_variable_tok) or _default_variable("id")
-    secret = getattr(args, secret_tok) or _default_value("secret")
-    secret_variable = getattr(args, secret_variable_tok) or _default_variable("secret")
+    id_ = None
+    id_variable = None
+    secret = None
+    secret_variable = None
+
+    # Get the value/default value if the argument of the inverse
+    if not args_id_variable:
+        id_ = getattr(args, id_tok) or _default_value("id")
+    if not args_id:
+        id_variable = getattr(args, id_variable_tok) or _default_variable("id")
+    if not args_secret_variable:
+        secret = getattr(args, secret_tok) or _default_value("secret")
+    if not args_secret:
+        secret_variable = getattr(args, secret_variable_tok) or _default_variable("secret")
 
     if (id_ or id_variable) and (secret or secret_variable):
         if secret:
