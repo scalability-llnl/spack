@@ -25,6 +25,8 @@ class Pandorasdk(CMakePackage):
     version("3.4.1", sha256="9607bf52a9d79d88d28c45d4f3336e066338b36ab81b4d2d125226f4ad3a7aaf")
     version("3.4.0", sha256="1e30db056d4a43f8659fccdda00270af14593425d933f91e91d5c97f1e124c6b")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pandorapfa")
 
     def cmake_args(self):

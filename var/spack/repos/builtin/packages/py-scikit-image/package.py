@@ -24,6 +24,7 @@ class PyScikitImage(PythonPackage):
         "skimage.future.graph",
     ]
 
+    version("0.24.0", sha256="5d16efe95da8edbeb363e0c4157b99becbd650a60b77f6e3af5768b66cf007ab")
     version("0.23.2", sha256="c9da4b2c3117e3e30364a3d14496ee5c72b09eb1a4ab1292b302416faa360590")
     version("0.23.1", sha256="4ff756161821568ed56523f1c4ab9094962ba79e817a9a8e818d9f51d223d669")
     version("0.23.0", sha256="f412b79c6cdf4371a7332cfc769bd62440a7e1375e8e7da171d67965d0156d48")
@@ -37,6 +38,9 @@ class PyScikitImage(PythonPackage):
     version("0.14.2", sha256="1afd0b84eefd77afd1071c5c1c402553d67be2d7db8950b32d6f773f25850c1f")
     version("0.12.3", sha256="82da192f0e524701e89c5379c79200bc6dc21373f48bf7778a864c583897d7c7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # Get dependencies for:
     #
     # @0.20:      from pyproject.toml
@@ -45,7 +49,7 @@ class PyScikitImage(PythonPackage):
     # @:0.13      from requirements.txt, DEPENDS.txt
 
     with default_args(type=("build", "run")):
-        depends_on("python@3.10:", when="@0.23:")
+        depends_on("python@3.10:", when="@0.23")
         depends_on("python@3.9:", when="@0.22:")
 
     with default_args(type=("build", "link", "run")):
@@ -58,6 +62,8 @@ class PyScikitImage(PythonPackage):
         depends_on("py-numpy@1.14.1:", when="@0.16")
         depends_on("py-numpy@1.11:", when="@0.13:0.15")
         depends_on("py-numpy@1.7.2:", when="@:0.12")
+        # https://github.com/scikit-image/scikit-image/issues/7282
+        depends_on("py-numpy@:1", when="@:0.23.0")
 
     with default_args(type=("build", "run")):
         depends_on("py-scipy@1.9:", when="@0.23:")
@@ -99,6 +105,7 @@ class PyScikitImage(PythonPackage):
         depends_on("py-setuptools@:59.4", when="@0.19.1:0.19")
         depends_on("py-setuptools@51:", when="@0.18:")
         depends_on("py-setuptools")
+        depends_on("ninja", when="@0.20:")
         depends_on("py-cython@3.0.4:", when="@0.23:")
         depends_on("py-cython@0.29.32:", when="@0.21:")
         depends_on("py-cython@0.29.24:", when="@0.20:")

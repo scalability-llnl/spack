@@ -18,6 +18,8 @@ class RRestfulr(RPackage):
     version("0.0.15", sha256="40ff8f1fb2987af2223e1a855bb1680c5ce2143fbce7ebc42f1edb291f80e692")
     version("0.0.13", sha256="7b59f5887aaf02f46a80617f4d1e0ffd4e11e4840e9e2fbd486a9a9c7f2d64b6")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.4.0:", type=("build", "run"))
     depends_on("r-xml", type=("build", "run"))
     depends_on("r-rcurl", type=("build", "run"))

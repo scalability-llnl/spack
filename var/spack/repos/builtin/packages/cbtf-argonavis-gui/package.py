@@ -22,6 +22,8 @@ class CbtfArgonavisGui(QMakePackage):
     version("develop", branch="master")
     version("1.3.0.0", branch="1.3.0.0")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.0.2:", type="build")
 
     depends_on("qt@5.10.0:")

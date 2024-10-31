@@ -19,5 +19,7 @@ class PyAstropyHelpers(PythonPackage):
 
     version("4.0.1", sha256="88602971c3b63d6aaa6074d013f995d1e234acb3d517d70d7fcebd30cdaf5c89")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools@30.3:", type="build")

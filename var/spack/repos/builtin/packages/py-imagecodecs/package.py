@@ -20,8 +20,13 @@ class PyImagecodecs(PythonPackage):
 
     version("2022.2.22", sha256="062bef6b003290a8163abed2744b406854238208dfdd41cf7165253c6e01c0bd")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.8:", type=("build", "run"))
     depends_on("py-numpy@1.19.2:", type=("build", "run"))
+    # https://github.com/cgohlke/imagecodecs/issues/100
+    depends_on("py-numpy@:1", when="@:2024.6.0", type=("build", "run"))
     depends_on("py-setuptools@18.0:", type="build")
     depends_on("py-cython@0.29.27:", type="build")
     depends_on("py-bitshuffle@0.3.5:", type=("build", "run"))

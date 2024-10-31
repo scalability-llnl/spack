@@ -37,6 +37,9 @@ class Libiberty(AutotoolsPackage, GNUMirrorPackage):
     version("2.29.1", sha256="e7010a46969f9d3e53b650a518663f98a5dde3c3ae21b7d71e5e6803bc36b577")
     version("2.28.1", sha256="16328a906e55a3c633854beec8e9e255a639b366436470b4f6245eb0d2fde942")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("pic", default=False, description="Compile with position independent code.")
 
     # Configure and build just libiberty.
@@ -57,7 +60,7 @@ class Libiberty(AutotoolsPackage, GNUMirrorPackage):
         else:
             flags.append("-O2")
 
-        if "+pic" in self.spec:
+        if self.spec.satisfies("+pic"):
             flags.append(self.compiler.cc_pic_flag)
 
         return (None, None, flags)

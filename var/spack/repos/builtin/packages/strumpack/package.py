@@ -3,10 +3,13 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from platform import machine
+import os
+
+import llnl.util.tty as tty
 
 from spack.package import *
 from spack.util.environment import set_env
+from spack.util.executable import ProcessError
 
 
 class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
@@ -52,6 +55,10 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
     version("3.3.0", sha256="499fd3b58656b4b6495496920e5372895861ebf15328be8a7a9354e06c734bc7")
     version("3.2.0", sha256="34d93e1b2a3b8908ef89804b7e08c5a884cbbc0b2c9f139061627c0d2de282c1")
     version("3.1.1", sha256="c1c3446ee023f7b24baa97b24907735e89ce4ae9f5ef516645dfe390165d1778")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libraries")
     variant("mpi", default=True, description="Use MPI")
@@ -177,7 +184,13 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
 
         if "%cce" in spec:
             # Assume the proper Cray CCE module (cce) is loaded:
-            craylibs_path = env["CRAYLIBS_" + machine().upper()]
+            craylibs_var = "CRAYLIBS_" + str(spec.target.family).upper()
+            craylibs_path = env.get(craylibs_var, None)
+            if not craylibs_path:
+                raise InstallError(
+                    f"The environment variable {craylibs_var} is not defined.\n"
+                    "\tMake sure the 'cce' module is in the compiler spec."
+                )
             env.setdefault("LDFLAGS", "")
             env["LDFLAGS"] += " -Wl,-rpath," + craylibs_path
 
@@ -191,30 +204,14 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
         add_sparse = not self.spec.satisfies("@:5.1.1")
         return join_path("examples", "sparse" if add_sparse else "", "data")
 
-    # TODO: Replace this method and its 'get' use for cmake path with
-    #   join_path(self.spec['cmake'].prefix.bin, 'cmake') once stand-alone
-    #   tests can access build dependencies through self.spec['cmake'].
-    def cmake_bin(self, set=True):
-        """(Hack) Set/get cmake dependency path."""
-        filepath = join_path(self.install_test_root, "cmake_bin_path.txt")
-        if set:
-            with open(filepath, "w") as out_file:
-                cmake_bin = join_path(self.spec["cmake"].prefix.bin, "cmake")
-                out_file.write("{0}\n".format(cmake_bin))
-        else:
-            with open(filepath, "r") as in_file:
-                return in_file.read().strip()
-
     @run_after("install")
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.test_data_dir, self.test_src_dir])
+        cache_extra_test_sources(self, [self.test_data_dir, self.test_src_dir])
 
-        # TODO: Remove once self.spec['cmake'] is available here
-        self.cmake_bin(set=True)
-
-    def _test_example(self, test_prog, test_dir, test_cmd, test_args):
+    def _test_example(self, test_prog, test_cmd, pre_args=[]):
+        test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)
         cmake_filename = join_path(test_dir, "CMakeLists.txt")
         with open(cmake_filename, "w") as mkfile:
             mkfile.write("cmake_minimum_required(VERSION 3.15)\n")
@@ -225,50 +222,43 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
                 "target_link_libraries({0} ".format(test_prog) + "PRIVATE STRUMPACK::strumpack)\n"
             )
 
-        # TODO: Remove/replace once self.spec['cmake'] is available here
-        cmake_bin = self.cmake_bin(set=False)
+        with working_dir(test_dir):
+            opts = self.builder.std_cmake_args + self.cmake_args() + ["."]
+            cmake = self.spec["cmake"].command
+            cmake(*opts)
 
-        opts = self.std_cmake_args
-        opts += self.cmake_args()
-        opts += ["."]
+            make = which("make")
+            make(test_prog)
 
-        self.run_test(
-            cmake_bin,
-            opts,
-            [],
-            installed=False,
-            purpose="test: generating makefile",
-            work_dir=test_dir,
-        )
-        self.run_test(
-            "make", test_prog, purpose="test: building {0}".format(test_prog), work_dir=test_dir
-        )
-        with set_env(OMP_NUM_THREADS="1"):
-            self.run_test(
-                test_cmd,
-                test_args,
-                installed=False,
-                purpose="test: running {0}".format(test_prog),
-                skip_missing=False,
-                work_dir=test_dir,
-            )
+            with set_env(OMP_NUM_THREADS="1"):
+                exe = which(test_cmd)
+                test_args = pre_args + [join_path("..", self.test_data_dir, "pde900.mtx")]
+                exe(*test_args)
 
-    def test(self):
-        """Run the stand-alone tests for the installed software."""
-        test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)
+    def test_sparse_seq(self):
+        """Run sequential test_sparse"""
         test_exe = "test_sparse_seq"
+        self._test_example(test_exe, test_exe)
+
+    def test_sparse_mpi(self):
+        """Run parallel test_sparse"""
+        if "+mpi" not in self.spec:
+            raise SkipTest("Package must be installed with '+mpi'")
         test_exe_mpi = "test_sparse_mpi"
-        exe_arg = [join_path("..", self.test_data_dir, "pde900.mtx")]
-        if "+mpi" in self.spec:
-            test_args = ["-n", "1", test_exe_mpi]
-            test_args.extend(exe_arg)
-            mpiexe_list = ["srun", "mpirun", "mpiexec"]
-            for mpiexe in mpiexe_list:
-                if which(mpiexe) is not None:
-                    self._test_example(test_exe_mpi, test_dir, mpiexe, test_args)
-                    break
-        else:
-            self._test_example(test_exe, test_dir, test_exe, exe_arg)
+        mpi_args = ["-n", "1", test_exe_mpi]
+
+        mpi_bin = self.spec["mpi"].prefix.bin
+        mpiexe_list = ["srun", mpi_bin.mpirun, mpi_bin.mpiexec]
+        for exe in mpiexe_list:
+            tty.info(f"Attempting to build and launch with {os.path.basename(exe)}")
+            try:
+                args = ["--immediate=30"] + mpi_args if exe == "srun" else mpi_args
+                self._test_example(test_exe_mpi, exe, args)
+                return
+            except (Exception, ProcessError) as err:
+                tty.info(f"Skipping {exe}: {str(err)}")
+
+        assert False, "No MPI executable was found"
 
     def check(self):
         """Skip the builtin testsuite, use the stand-alone tests instead."""

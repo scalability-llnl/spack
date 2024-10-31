@@ -21,4 +21,6 @@ class PyWebsockets(PythonPackage):
     version("10.1", sha256="181d2b25de5a437b36aefedaf006ecb6fa3aa1328ec0236cdde15f32f9d3ff6d")
     version("8.1", sha256="5c65d2da8c6bce0fca2528f69f44b2f977e06954c8512a952222cea50dad430f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

@@ -20,6 +20,8 @@ class Cprnc(CMakePackage):
     version("1.0.1", sha256="b8a8fd4ad7e2716968dfa60f677217c55636580807b1309276f4c062ee432ccd")
     version("1.0.0", sha256="70ff75bbf01a0cef885db3074c78f39a8890949ca505530c0407398b8803552c")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("netcdf-fortran")
     depends_on("cmake@3:", type="build")
 

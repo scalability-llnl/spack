@@ -21,6 +21,8 @@ class PyCodepy(PythonPackage):
 
     version("2019.1", sha256="384f22c37fe987c0ca71951690c3c2fd14dacdeddbeb0fde4fd01cd84859c94e")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-pytools@2015.1.2:", type=("build", "run"))
     depends_on("py-numpy@1.6:", type=("build", "run"))

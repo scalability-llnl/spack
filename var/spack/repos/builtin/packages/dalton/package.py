@@ -27,6 +27,10 @@ class Dalton(CMakePackage):
         "2018.2", tag="2018.2", commit="4aa945ecd235fbf67ed0c1609617c553ef40be89", submodules=True
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "build_type",
         default="Release",
@@ -75,7 +79,7 @@ class Dalton(CMakePackage):
 
     def cmake_args(self):
         math_libs = self.spec["lapack"].libs + self.spec["blas"].libs
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             env["CC"] = self.spec["mpi"].mpicc
             env["CXX"] = self.spec["mpi"].mpicxx
             env["F77"] = self.spec["mpi"].mpif77

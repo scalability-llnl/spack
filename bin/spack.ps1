@@ -144,3 +144,5 @@ switch($SpackSubCommand)
     "unload" {Invoke-SpackLoad}
     default  {python "$Env:SPACK_ROOT/bin/spack" $SpackCMD_params $SpackSubCommand $SpackSubCommandArgs}
 }
+
+exit $LASTEXITCODE

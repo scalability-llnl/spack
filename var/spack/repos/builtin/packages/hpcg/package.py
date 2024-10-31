@@ -21,6 +21,8 @@ class Hpcg(AutotoolsPackage):
     version("develop", branch="master")
     version("3.1", sha256="33a434e716b79e59e745f77ff72639c32623e7f928eeb7977655ffcaade0f4a4")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("openmp", default=True, description="Enable OpenMP support")
 
     patch(
@@ -74,7 +76,7 @@ class Hpcg(AutotoolsPackage):
             CXXFLAGS += " -Rpass=loop-vectorize"
             CXXFLAGS += " -Rpass-missed=loop-vectorize"
             CXXFLAGS += " -Rpass-analysis=loop-vectorize "
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             CXXFLAGS += self.compiler.openmp_flag
         config = [
             # Shell

@@ -15,5 +15,7 @@ class Cityhash(AutotoolsPackage):
     version("master", branch="master")
     version("2013-07-31", commit="8af9b8c2b889d80c22d6bc26ba0df1afb79a30db")
 
+    depends_on("cxx", type="build")  # generated
+
     def configure_args(self):
         return ["--enable-sse4.2"]

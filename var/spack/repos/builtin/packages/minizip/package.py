@@ -16,6 +16,9 @@ class Minizip(AutotoolsPackage):
 
     version("1.2.11", sha256="c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     configure_directory = "contrib/minizip"
 
     depends_on("automake", type="build")

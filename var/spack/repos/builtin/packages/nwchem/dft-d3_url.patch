@@ -1,0 +1,13 @@
+--- a/src/nwpw/nwpwlib/nwpwxc/build_dftd3a.sh
++++ b/src/nwpw/nwpwlib/nwpwxc/build_dftd3a.sh
+@@ -42,8 +42,8 @@
+ check_patch
+ rm -f dftd3.f nwpwxc_vdw3a.F
+ export PATH=`pwd`:$PATH
+-#URL1="https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/dft-d3/"
+-URL1="https://www.chemiebn.uni-bonn.de/pctc/mulliken-center/software/dft-d3/"
++URL1="https://www.chemie.uni-bonn.de/grimme/de/software/dft-d3/"
++#URL1="https://www.chemiebn.uni-bonn.de/pctc/mulliken-center/software/dft-d3/"
+ URL2="https://web.archive.org/web/20210527062154if_/https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/dft-d3/"
+ declare -a urls=("$URL1" "$URL1" "$URL1" "$URL2" "$URL2")
+ TGZ=dftd3.tgz

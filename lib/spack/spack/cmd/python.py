@@ -78,8 +78,8 @@ def python(parser, args, unknown_args):
 
     # Run user choice of interpreter
     if args.python_interpreter == "ipython":
-        return spack.cmd.python.ipython_interpreter(args)
-    return spack.cmd.python.python_interpreter(args)
+        return ipython_interpreter(args)
+    return python_interpreter(args)
 
 
 def ipython_interpreter(args):

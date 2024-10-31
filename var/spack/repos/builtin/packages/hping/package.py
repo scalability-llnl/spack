@@ -16,6 +16,8 @@ class Hping(AutotoolsPackage):
 
     version("master", commit="3547c7691742c6eaa31f8402e0ccbb81387c1b99")
 
+    depends_on("c", type="build")  # generated
+
     patch("bpf.patch", sha256="99b9f91a308ffca306f69ccdb285e289ee3d280ec47ec7229e3a7669cca512f2")
 
     depends_on("libpcap")

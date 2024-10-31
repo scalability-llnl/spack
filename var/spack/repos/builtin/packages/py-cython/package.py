@@ -17,6 +17,12 @@ class PyCython(PythonPackage):
 
     license("Apache-2.0")
 
+    version(
+        "3.0.11",
+        sha256="7146dd2af8682b4ca61331851e6aebce9fe5158e75300343f80c07ca80b1faff",
+        url="https://files.pythonhosted.org/packages/source/cython/cython-3.0.11.tar.gz",
+    )
+    version("3.0.10", sha256="dcc96739331fb854dcf503f94607576cfe8488066c61ca50dfd55836f132de99")
     version("3.0.8", sha256="8333423d8fd5765e7cceea3a9985dd1e0a5dfeb2734629e1a2ed2d6233d39de6")
     version("3.0.7", sha256="fb299acf3a578573c190c858d49e0cf9d75f4bc49c3f24c5a63804997ef09213")
     version("3.0.6", sha256="399d185672c667b26eabbdca420c98564583798af3bc47670a8a09e9f19dd660")
@@ -48,6 +54,9 @@ class PyCython(PythonPackage):
     version("0.25.2", sha256="f141d1f9c27a07b5a93f7dc5339472067e2d7140d1c5a9e20112a5665ca60306")
     version("0.23.5", sha256="0ae5a5451a190e03ee36922c4189ca2c88d1df40a89b4f224bc842d388a0d1b6")
     version("0.23.4", sha256="fec42fecee35d6cc02887f1eef4e4952c97402ed2800bfe41bbd9ed1a0730d8e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # https://github.com/cython/cython/issues/5751 (distutils not yet dropped)
     depends_on("python@:3.11", type=("build", "link", "run"))

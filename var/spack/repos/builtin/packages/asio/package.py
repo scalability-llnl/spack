@@ -19,6 +19,9 @@ class Asio(AutotoolsPackage):
     license("BSL-1.0")
 
     # As uneven minor versions of asio are not considered stable, they wont be added anymore
+    version("1.30.2", sha256="755bd7f85a4b269c67ae0ea254907c078d408cce8e1a352ad2ed664d233780e8")
+    version("1.30.1", sha256="94b121cc2016680f2314ef58eadf169c2d34fff97fba01df325a192d502d3a58")
+    version("1.30.0", sha256="df6674bd790842b3a7422e9cc4c5d3212ac268cebdb5d38f3e783e4918313c7b")
     version("1.28.2", sha256="5705a0e403017eba276625107160498518838064a6dd7fd8b00b2e30c0ffbdee")
     version("1.28.1", sha256="5ff6111ec8cbe73a168d997c547f562713aa7bd004c5c02326f0e9d579a5f2ce")
     version("1.28.0", sha256="226438b0798099ad2a202563a83571ce06dd13b570d8fded4840dbc1f97fa328")
@@ -58,6 +61,8 @@ class Asio(AutotoolsPackage):
     )
     version("1.16.1", sha256="e40bbd531530f08318b7c7d7e84e457176d8eae6f5ad2e3714dc27b9131ecd35")
     version("1.16.0", sha256="c87410ea62de6245aa239b9ed2057edf01d7f66acc3f5e50add9a29343c87512")
+
+    depends_on("cxx", type="build")
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

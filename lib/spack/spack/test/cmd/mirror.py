@@ -10,8 +10,11 @@ import pytest
 import spack.cmd.mirror
 import spack.config
 import spack.environment as ev
+import spack.error
+import spack.mirror
 import spack.spec
 import spack.util.url as url_util
+import spack.version
 from spack.main import SpackCommand, SpackCommandError
 
 mirror = SpackCommand("mirror")
@@ -35,7 +38,7 @@ def test_regression_8083(tmpdir, capfd, mock_packages, mock_fetch, config):
 
 
 @pytest.mark.regression("12345")
-def test_mirror_from_env(tmp_path, mock_packages, mock_fetch, config, mutable_mock_env_path):
+def test_mirror_from_env(tmp_path, mock_packages, mock_fetch, mutable_mock_env_path):
     mirror_dir = str(tmp_path / "mirror")
     env_name = "test"
 
@@ -232,13 +235,7 @@ def test_mirror_name_collision(mutable_config):
 
 
 def test_mirror_destroy(
-    install_mockery_mutable_config,
-    mock_packages,
-    mock_fetch,
-    mock_archive,
-    mutable_config,
-    monkeypatch,
-    tmpdir,
+    install_mockery, mock_packages, mock_fetch, mock_archive, mutable_config, monkeypatch, tmpdir
 ):
     # Create a temp mirror directory for buildcache usage
     mirror_dir = tmpdir.join("mirror_dir")

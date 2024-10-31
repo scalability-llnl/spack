@@ -25,6 +25,8 @@ class Xtl(CMakePackage):
     version("0.3.4", sha256="618536c3998091b0bdd7f8202e8bec9c34e82409c8ee0ea179a2759bdea426e2")
     version("0.3.3", sha256="1110364c2ea0a2536ec6673e46afcb8fa7e92a66593211270bbeb26b85342600")
 
+    depends_on("cxx", type="build")  # generated
+
     # C++14 support
     conflicts("%gcc@:4.8")
     conflicts("%clang@:3.6")

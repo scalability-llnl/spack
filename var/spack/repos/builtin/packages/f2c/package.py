@@ -14,6 +14,8 @@ class F2c(MakefilePackage):
 
     version("master", sha256="d4847456aa91c74e5e61e2097780ca6ac3b20869fae8864bfa8dcc66f6721d35")
 
+    depends_on("c", type="build")  # generated
+
     def url_for_version(self, version):
         url = "https://www.netlib.org/f2c/src.tgz"
         return url

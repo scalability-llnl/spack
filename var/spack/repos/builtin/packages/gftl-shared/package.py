@@ -42,6 +42,8 @@ class GftlShared(CMakePackage):
     version("1.3.1", sha256="a71e164108847f32f37da505f604fc2a50f392a4fcdf9a7cfe8eaf775bed64d4")
     version("1.3.0", sha256="979b00c4d531e701bf4346f662e3e4cc865124a97ca958637a53201d66d4ee43")
 
+    depends_on("fortran", type="build")
+
     depends_on("m4", type=("build", "run"))
     depends_on("cmake@3.12:", type="build")
     depends_on("gftl")

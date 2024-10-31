@@ -20,6 +20,10 @@ class P3dfft3(AutotoolsPackage):
     version("develop", branch="master")
     version("3.0.0", sha256="1c549e78097d1545d18552b039be0d11cdb96be46efe99a16b65fd5d546dbfa7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fftw", default=True, description="Builds with FFTW library")
     variant("essl", default=False, description="Builds with ESSL library")
     variant("mpi", default=True, description="Enable MPI support.")

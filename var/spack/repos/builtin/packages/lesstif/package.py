@@ -9,12 +9,14 @@ from spack.package import *
 class Lesstif(AutotoolsPackage):
     """LessTif is the Hungry Programmers' version of OSF/Motif."""
 
-    homepage = "https://sourceforge.net/projects/lesstif"
+    homepage = "https://sourceforge.net/projects/lesstif/"
     url = "https://sourceforge.net/projects/lesstif/files/lesstif/0.95.2/lesstif-0.95.2.tar.bz2/download"
 
     license("LGPL-2.0-only")
 
     version("0.95.2", sha256="eb4aa38858c29a4a3bcf605cfe7d91ca41f4522d78d770f69721e6e3a4ecf7e3")
+
+    depends_on("c", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libraries")
     variant("static", default=False, description="Build static libraries")
@@ -40,8 +42,8 @@ class Lesstif(AutotoolsPackage):
             "--disable-debug",
             "--enable-production",
             "--disable-dependency-tracking",
-            "--enable-shared" if "+shared" in spec else "--disable-shared",
-            "--enable-static" if "+static" in spec else "--disable-static",
+            "--enable-shared" if spec.satisfies("+shared") else "--disable-shared",
+            "--enable-static" if spec.satisfies("+static") else "--disable-static",
         ]
 
         return args

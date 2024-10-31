@@ -26,10 +26,11 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master")
     version(
-        "2.10.0",
-        sha256="e5984de488bda546553dd2f46f047e539333891e63b9fe73944782ba6c2d95e4",
+        "2.10.1",
+        sha256="ce776f3a451994f4979c6bd6d946917a749290a37b7433c0254759b02695ad85",
         preferred=True,
     )
+    version("2.10.0", sha256="e5984de488bda546553dd2f46f047e539333891e63b9fe73944782ba6c2d95e4")
     version("2.9.2", sha256="78309297c82a95ee38ed3224c98b93d330128c753a43893f63bbe969320e4979")
     version("2.9.1", sha256="ddfa32c14494250ee8a48ef1c97a1bf6442c15484bbbd4669228a0f90242f4f9")
     version("2.9.0", sha256="69f98ef58c818bb5410133e1891ac192653b0ec96eb9468590140f2552b6e5d1")
@@ -43,6 +44,10 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     version("2.5.0", sha256="7c8ff3bf5441dd662806df9650c56a669359cb0185ea232ecb3578de7b065329")
     version("2.4.0", sha256="50ecea04b1e41c88835b4b3fd4e7bf0a0a2a3129855c9cc4ba6cf6a1575106e2")
     version("2.3.1", sha256="3bf81ccc20a7f2715935349336a76ba4c8402355e1dc3848fcd6f4c3c5931893")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     # There's not really any consistency about how static and shared libs are
     # implemented across spack.  What we're trying to support is specifically three
@@ -148,7 +153,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+rocm", when="~kokkos", msg="ADIOS2 does not support HIP without Kokkos")
     conflicts("+sycl", when="~kokkos", msg="ADIOS2 does not support SYCL without Kokkos")
 
-    for _platform in ["linux", "darwin", "cray"]:
+    for _platform in ["linux", "darwin"]:
         depends_on("pkgconfig", type="build", when=f"platform={_platform}")
         variant(
             "pic",
@@ -195,6 +200,9 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("aws-sdk-cpp", when="+aws")
     depends_on("libcatalyst@2", when="+libcatalyst")
 
+    # error: invalid use of incomplete type 'PyFrameObject' {aka 'struct _frame'}
+    conflicts("^python@3.11:", when="@:2.7")
+
     # Fix findmpi when called by dependees
     # See https://github.com/ornladios/ADIOS2/pull/1632
     patch("cmake-update-findmpi.patch", when="@2.4.0")
@@ -230,6 +238,10 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     # cmake: find threads package first
     # https://github.com/ornladios/ADIOS2/pull/3893
     patch("2.9.2-cmake-find-threads-package-first.patch", when="@2.9")
+
+    # ROCM: enable support for rocm >= 6
+    # https://github.com/ornladios/ADIOS2/pull/4214
+    patch("2.10-enable-rocm6.patch", when="@2.9.1:")
 
     @when("%fj")
     def patch(self):
@@ -283,7 +295,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
             self.define("ADIOS2_USE_MGARD", False),
         ]
 
-        if "+sst" in spec:
+        if spec.satisfies("+sst"):
             args.extend(
                 [
                     # Broken dependency package
@@ -296,15 +308,15 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
                 ]
             )
 
-        if "%fj" in spec:
+        if spec.satisfies("%fj"):
             args.extend(["-DCMAKE_Fortran_SUBMODULE_EXT=.smod", "-DCMAKE_Fortran_SUBMODULE_SEP=."])
 
         # hip support
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append(self.builder.define_cuda_architectures(self))
 
         # hip support
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             args.append(self.builder.define_hip_architectures(self))
 
         return args
@@ -314,18 +326,18 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         libs_to_seek = set()
 
-        if "@2.6:" in spec:
+        if spec.satisfies("@2.6:"):
             libs_to_seek.add("libadios2_core")
             libs_to_seek.add("libadios2_c")
             libs_to_seek.add("libadios2_cxx11")
-            if "+fortran" in spec:
+            if spec.satisfies("+fortran"):
                 libs_to_seek.add("libadios2_fortran")
 
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 libs_to_seek.add("libadios2_core_mpi")
                 libs_to_seek.add("libadios2_c_mpi")
                 libs_to_seek.add("libadios2_cxx11_mpi")
-                if "+fortran" in spec:
+                if spec.satisfies("+fortran"):
                     libs_to_seek.add("libadios2_fortran_mpi")
 
             if "@2.7: +shared+hdf5" in spec and "@1.12:" in spec["hdf5"]:
@@ -333,7 +345,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
 
         else:
             libs_to_seek.add("libadios2")
-            if "+fortran" in spec:
+            if spec.satisfies("+fortran"):
                 libs_to_seek.add("libadios2_fortran")
 
         return find_libraries(
@@ -355,7 +367,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
         install test subdirectory for use during `spack test run`.
         """
         extra_install_tests = [join_path("testing", "install", "C")]
-        self.cache_extra_test_sources(extra_install_tests)
+        cache_extra_test_sources(self, extra_install_tests)
 
     def test_run_executables(self):
         """Run installed adios2 executables"""
@@ -382,7 +394,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
 
         std_cmake_args = []
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             mpi_exec = join_path(self.spec["mpi"].prefix, "bin", "mpiexec")
             std_cmake_args.append(f"-DMPIEXEC_EXECUTABLE={mpi_exec}")
 

@@ -20,6 +20,8 @@ class PyGevent(PythonPackage):
     version("21.8.0", sha256="43e93e1a4738c922a2416baf33f0afb0a20b22d3dba886720bc037cd02a98575")
     version("1.5.0", sha256="b2814258e3b3fb32786bb73af271ad31f51e1ac01f33b37426b66cb8491b4c29")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.8:", when="@23.7.0:", type=("build", "run"))
     depends_on("python@:3.10", when="@:21.12", type=("build", "run"))
 
@@ -43,6 +45,9 @@ class PyGevent(PythonPackage):
     # Deprecated compiler options. upstream PR: https://github.com/gevent/gevent/pull/1896
     patch("icc.patch", when="@:21.12.0 %intel")
 
+    # https://github.com/gevent/gevent/issues/2031
+    patch("cython.patch", when="@:24.2.1^py-cython@3.0.10:3.0.11")
+
     @run_before("install")
     def recythonize(self):
         # Clean pre-generated cython files -- we've seen issues with Python 3.8 due to
@@ -56,6 +61,6 @@ class PyGevent(PythonPackage):
         if name == "cflags":
             if self.spec.satisfies("%oneapi@2023:"):
                 flags.append("-Wno-error=incompatible-function-pointer-types")
-            if self.spec.compiler.name in ["intel", "oneapi"]:
+            if self.spec.satisfies("%oneapi") or self.spec.satisfies("%intel"):
                 flags.append("-we147")
         return (flags, None, None)

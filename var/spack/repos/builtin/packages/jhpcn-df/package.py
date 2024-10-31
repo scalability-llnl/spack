@@ -25,6 +25,10 @@ class JhpcnDf(CMakePackage):
 
     version("1.1.0", sha256="106d99cc4faac5c76e51e8bfe3193c1d3dc91648072cf418d868ed830592b04b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("lz4", default=False, description="Enable lz4")
     variant("fortran", default=False, description="Enable Fortran Interface")
 

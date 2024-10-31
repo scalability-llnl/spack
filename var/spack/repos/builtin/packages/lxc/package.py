@@ -29,6 +29,8 @@ class Lxc(AutotoolsPackage):
     version("2.0.11", sha256="31334ffe0e2d8e38779d80ce670a523f4f5559c2a02c9e085c2f0cf43995d0b0")
     version("2.0.10", sha256="b748de0914467aafea18a568602735907fc95f4272609dba7b0f8c91d7dde776")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

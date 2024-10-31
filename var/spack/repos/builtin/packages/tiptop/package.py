@@ -16,6 +16,8 @@ class Tiptop(AutotoolsPackage):
 
     version("master", commit="529886d445ec32febad14246245372a8f244b3eb")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("papi")
     depends_on("byacc", type="build")
     depends_on("flex", type="build")

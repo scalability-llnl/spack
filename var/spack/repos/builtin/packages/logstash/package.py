@@ -19,5 +19,8 @@ class Logstash(Package):
 
     version("6.6.0", sha256="5a9a8b9942631e9d4c3dfb8d47075276e8c2cff343841145550cc0c1cfe7bba7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree(".", prefix)

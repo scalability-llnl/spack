@@ -27,6 +27,9 @@ class PyTables(PythonPackage):
     version("3.3.0", sha256="8383ccf02e041a5d55494a09fc5514140b4653055a2732c981b5fd0f7408822c")
     version("3.2.2", sha256="3564b351a71ec1737b503b001eb7ceae1f65d5d6e3ffe1ea75aafba10f37fa84")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("zlib", default=True, description="Support for zlib compression")
     variant("bzip2", default=False, description="Support for bzip2 compression")
     variant("lzo", default=False, description="Support for lzo compression")
@@ -45,6 +48,8 @@ class PyTables(PythonPackage):
     # requirements.txt
     depends_on("py-numpy@1.19:", when="@3.8:", type=("build", "run"))
     depends_on("py-numpy@1.9.3:", type=("build", "run"))
+    # https://github.com/PyTables/PyTables/issues/1083
+    depends_on("py-numpy@:1", type=("build", "run"))
     depends_on("py-numexpr@2.6.2:", type=("build", "run"))
     depends_on("py-packaging", when="@3.7:", type=("build", "run"))
     depends_on("py-py-cpuinfo", when="@3.8:", type=("build", "run"))

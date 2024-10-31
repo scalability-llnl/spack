@@ -51,6 +51,8 @@ class Yafyaml(CMakePackage):
     version("0.5.1", sha256="7019460314e388b2d556db75d5eb734237a18494f79b921613addb96b7b7ce2f")
     version("0.5.0", sha256="8ac5d41b1020e9311ac87f50dbd61b9f3e3188f3599ce463ad59650208fdb8ad")
 
+    depends_on("fortran", type="build")
+
     depends_on("gftl-shared")
     depends_on("gftl")
     depends_on("cmake@3.12:", type="build")

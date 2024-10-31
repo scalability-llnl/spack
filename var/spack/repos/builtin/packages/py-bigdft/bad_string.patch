@@ -1,0 +1,22 @@
+From e12f8694bb40ef4f0d984df67bf2c6e7c6d0a81b Mon Sep 17 00:00:00 2001
+From: Luigi Genovese <luigi.genovese@cea.fr>
+Date: Wed, 19 Jun 2024 13:51:33 +0200
+Subject: [PATCH] type corrected
+
+---
+ PyBigDFT/BigDFT/BioQM.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/PyBigDFT/BigDFT/BioQM.py b/PyBigDFT/BigDFT/BioQM.py
+index 6bb2985fc..20323c535 100644
+--- a/PyBigDFT/BigDFT/BioQM.py
++++ b/PyBigDFT/BigDFT/BioQM.py
+@@ -1,4 +1,4 @@
+-long_ra"""A module to define typical operations that can be done on biological systems
++"""A module to define typical operations that can be done on biological systems
+ 
+ """
+ from BigDFT.Systems import System
+-- 
+2.45.1
+

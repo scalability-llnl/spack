@@ -25,6 +25,9 @@ class NeicFinitefault(PythonPackage):
     version("20240410", commit="ef6a1a92d60549100885112e24a18e38d8d4ce0b")
     version("0.1.0", sha256="36b400dfc418bf78a3099f6fc308681c87ae320e6d71c7d0e98a2738e72fb570")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     resource(
         name="fd_bank",
         url="https://zenodo.org/records/7236739/files/fd_bank",

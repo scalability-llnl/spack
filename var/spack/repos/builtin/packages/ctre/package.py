@@ -26,3 +26,5 @@ class Ctre(CMakePackage):
     version("2.6.3", sha256="bdf668b02f0b986dfc0fbc6066f446e2d0a9faa3347f00f53b19131297c84c4a")
     version("2.6.2", sha256="e82c87aeb0fc3f21ae8a2d3ffce2b1ef970fbea9c3e846ef1a6e5f81790f2946")
     version("2.6.1", sha256="58c623d9ea1cb7890aaa63c1a87f1a60a8acf31dbd4061ab672bea287ed689ac")
+
+    depends_on("cxx", type="build")  # generated

@@ -15,5 +15,7 @@ class PyStsciDistutils(PythonPackage):
 
     version("0.3.8", sha256="a52f3ec3b392a9cecd98d143b678c27346cbfa8f34c34698821d7e167907edce")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-d2to1", type="build")

@@ -40,7 +40,6 @@ class Ldak(Package):
         policy="one_of",
         msg="Only mkl or openblas are supported for blas/lapack with ldak",
     )
-    conflicts("platform=cray", when="~glpk", msg="bundled qsopt only for linux or mac")
 
     phases = ["build", "install"]
 

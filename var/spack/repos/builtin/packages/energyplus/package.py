@@ -34,6 +34,9 @@ class Energyplus(Package):
         url="https://github.com/NREL/EnergyPlus/releases/download/v8.9.0-WithIDDFixes/EnergyPlus-8.9.0-eba93e8e1b-Linux-x86_64.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         # binary distribution, we just unpack to lib/energyplus
         # and then symlink the appropriate targets

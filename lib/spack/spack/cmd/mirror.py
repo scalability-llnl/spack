@@ -17,7 +17,6 @@ import spack.environment as ev
 import spack.mirror
 import spack.repo
 import spack.spec
-import spack.util.path
 import spack.util.web as web_util
 from spack.cmd.common import arguments
 from spack.error import SpackError

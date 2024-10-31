@@ -19,6 +19,9 @@ class Prophecy4f(MakefilePackage):
 
     version("3.0.2", sha256="01e6ad4d7e913082c1dcabd589173f5d962086dd7860c710f14a0528d8d80eb7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("collier")
 
     @property

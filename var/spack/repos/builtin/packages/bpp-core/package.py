@@ -23,6 +23,8 @@ class BppCore(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.6:", type="build")
 
     # Clarify isnan's namespace, because Fujitsu compiler can't

@@ -16,6 +16,8 @@ class Dnstop(AutotoolsPackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libpcap")
     depends_on("ncurses")
 

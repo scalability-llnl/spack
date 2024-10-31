@@ -21,6 +21,9 @@ class PpopenApplFem(MakefilePackage):
 
     version("master", branch="APPL/FEM")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("metis")
 

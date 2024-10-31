@@ -20,6 +20,8 @@ class Percept(CMakePackage):
     # here and the patch allows us to build the mesh_transfer exe and
     # creates a make install target so Spack can install Percept
     version("master", commit="363cdd0050443760d54162f140b2fb54ed9decf0")
+
+    depends_on("cxx", type="build")  # generated
     patch("cmakelists.patch")
 
     depends_on("googletest~shared")

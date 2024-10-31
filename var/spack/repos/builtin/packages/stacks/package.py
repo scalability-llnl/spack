@@ -19,6 +19,9 @@ class Stacks(AutotoolsPackage):
     version("2.3b", sha256="a46786d8811a730ebcdc17891e89f50d4f4ae196734439dac86091f45c92ac72")
     version("1.46", sha256="45a0725483dc0c0856ad6b1f918e65d91c1f0fe7d8bf209f76b93f85c29ea28a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("sparsehash", default=True, description="Improve Stacks memory usage with SparseHash")
 
     depends_on("perl", type=("build", "run"))

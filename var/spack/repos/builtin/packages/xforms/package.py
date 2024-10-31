@@ -19,6 +19,8 @@ class Xforms(AutotoolsPackage):
     version("1.2.3", sha256="7989b39598c769820ad451ad91e5cb0de29946940c8240aac94ca8238c2def61")
     version("1.0.91", sha256="88684237c77489bcb1fbc9a794621a2919aa800e1c0a6d83d679b97980e3441d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11", type="link")
     depends_on("libxpm", type="link")
     depends_on("jpeg", type="link")

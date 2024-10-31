@@ -16,6 +16,8 @@ class LksctpTools(AutotoolsPackage):
 
     version("1.0.18", sha256="3e9ab5b3844a8b65fc8152633aafe85f406e6da463e53921583dfc4a443ff03a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

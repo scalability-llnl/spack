@@ -23,6 +23,7 @@ class Ccache(CMakePackage):
 
     license("GPL-3.0-or-later")
 
+    version("4.10.2", sha256="108100960bb7e64573ea925af2ee7611701241abb36ce0aae3354528403a7d87")
     version("4.9.1", sha256="12834ecaaaf2db069dda1d1d991f91c19e3274cc04a471af5b64195def17e90f")
     version("4.8.3", sha256="d59dd569ad2bbc826c0bc335c8ebd73e78ed0f2f40ba6b30069347e63585d9ef")
     version("4.8.2", sha256="75eef15b8b9da48db9c91e1d0ff58b3645fc70c0e4ca2ef1b6825a12f21f217d")
@@ -56,6 +57,9 @@ class Ccache(CMakePackage):
     version("3.3", sha256="b220fce435fe3d86b8b90097e986a17f6c1f971e0841283dd816adb238c5fd6a")
     version("3.2.9", sha256="1e13961b83a3d215c4013469c149414a79312a22d3c7bf9f946abac9ee33e63f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("redis", default=True, description="Enable Redis secondary storage")
 
     depends_on("cmake@3.15:", when="@4.7:", type="build")
@@ -80,6 +84,8 @@ class Ccache(CMakePackage):
 
     def cmake_args(self):
         return [
+            # The test suite does not support the compiler being a wrapper script
+            # https://github.com/ccache/ccache/issues/914#issuecomment-922521690
             self.define("ENABLE_TESTING", False),
             self.define("ENABLE_DOCUMENTATION", False),
             self.define_from_variant("REDIS_STORAGE_BACKEND", "redis"),

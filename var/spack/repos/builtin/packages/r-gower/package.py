@@ -21,3 +21,5 @@ class RGower(RPackage):
     version("1.0.0", sha256="671cb7baafe05140d822e8f26f9cd3576fc3bf4c6572b7223fb54da754ea385d")
     version("0.2.2", sha256="3f022010199fafe34f6e7431730642a76893e6b4249b84e5a61012cb83483631")
     version("0.2.1", sha256="af3fbe91cf818c0841b2c0ec4ddf282c182a588031228c8d88f7291b2cdff100")
+
+    depends_on("c", type="build")  # generated

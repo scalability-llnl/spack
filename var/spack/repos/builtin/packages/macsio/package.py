@@ -20,6 +20,8 @@ class Macsio(CMakePackage):
     version("1.1", sha256="a86249b0f10647c0b631773db69568388094605ec1a0af149d9e61e95e6961ec")
     version("1.0", sha256="1dd0df28f9f31510329d5874c1519c745b5c6bec12e102cea3e9f4b05e5d3072")
 
+    depends_on("c", type="build")  # generated
+
     variant("mpi", default=True, description="Build MPI plugin")
     variant("silo", default=False, description="Build with SILO plugin")
     # TODO: multi-level variants for hdf5

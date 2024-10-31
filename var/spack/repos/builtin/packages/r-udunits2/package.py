@@ -19,5 +19,7 @@ class RUdunits2(RPackage):
     version("0.13.2", sha256="ee00898801b3282717cba40a9ef930515506386aa82a050356d1a9c80a9f5969")
     version("0.13", sha256="d155d3c07f6202b65dec4075ffd1e1c3f4f35f5fdece8cfb319d39256a3e5b79")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10.0:", type=("build", "run"))
     depends_on("udunits")

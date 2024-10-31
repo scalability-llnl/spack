@@ -16,6 +16,8 @@ class PyLxml(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("5.3.0", sha256="4e109ca30d1edec1ac60cdbe341905dc3b8f55b16855e03a54aaf59e51ec8c6f")
+    version("5.2.2", sha256="bb2dc4898180bea79863d5487e5f9c7c34297414bad54bcd0f0852aee9cfdb87")
     version("4.9.2", sha256="2455cfaeb7ac70338b3257f41e21f0724f4b5b0c0e7702da67ee6c3640835b67")
     version("4.9.1", sha256="fe749b052bb7233fe5d072fcb549221a8cb1a16725c47c37e42b0b9cb3ff2c3f")
     version("4.9.0", sha256="520461c36727268a989790aef08884347cd41f2d8ae855489ccf40b50321d8d7")
@@ -31,6 +33,8 @@ class PyLxml(PythonPackage):
     version("3.7.3", sha256="aa502d78a51ee7d127b4824ff96500f0181d3c7826e6ee7b800d068be79361c7")
     version("2.3", sha256="eea1b8d29532739c1383cb4794c5eacd6176f0972b59e8d29348335b87ff2e66")
 
+    depends_on("c", type="build")  # generated
+
     variant("html5", default=False, description="Enable html5lib backend")
     variant("htmlsoup", default=False, description="Enable BeautifulSoup4 backend")
     variant("cssselect", default=False, description="Enable cssselect module")
@@ -42,3 +46,8 @@ class PyLxml(PythonPackage):
     depends_on("py-html5lib", when="+html5", type=("build", "run"))
     depends_on("py-beautifulsoup4", when="+htmlsoup", type=("build", "run"))
     depends_on("py-cssselect@0.7:", when="+cssselect", type=("build", "run"))
+    depends_on("py-cython@3.0.11:", type="build", when="@5.3:")
+    depends_on("py-cython@3.0.10:", type="build", when="@5.2:")
+    depends_on("py-cython@3.0.9:", type="build", when="@5.1.1:")
+    depends_on("py-cython@3.0.8:", type="build", when="@5:")
+    depends_on("py-cython@0.29.7:", type="build")

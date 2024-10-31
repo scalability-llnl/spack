@@ -10,7 +10,7 @@ class Xbitmaps(AutotoolsPackage, XorgPackage):
     """The xbitmaps package contains bitmap images used by multiple
     applications built in Xorg."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/data/bitmaps/"
+    homepage = "https://gitlab.freedesktop.org/xorg/data/bitmaps/"
     xorg_mirror_path = "data/xbitmaps-1.1.1.tar.gz"
 
     license("MIT")

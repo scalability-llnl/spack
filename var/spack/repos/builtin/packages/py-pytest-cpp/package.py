@@ -18,6 +18,8 @@ class PyPytestCpp(PythonPackage):
     version("1.5.0", sha256="efb7eaac30f9f61515be181d04b70d80d60ce8871426f726ef1844e2db4f3353")
     version("1.4.0", sha256="aa3a04fe7906e50094d1a9b8d38bc10eb59d0a8330a11a0f7a660405228b48ca")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools-scm", type="build")
     depends_on("py-pytest@:5.3,5.4.2:", type=("build", "run"))

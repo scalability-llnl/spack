@@ -16,6 +16,8 @@ class PyCyvcf2(PythonPackage):
 
     version("0.11.7", sha256="a4b6229b89a0a1043684c65cbdd702c366a8800dc3591fb44c4b5a08640cbeec")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@2.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
 

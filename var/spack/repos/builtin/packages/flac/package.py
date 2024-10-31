@@ -24,4 +24,7 @@ class Flac(AutotoolsPackage):
     version("1.3.1", sha256="4773c0099dba767d963fd92143263be338c48702172e8754b9bc5103efe1c56c")
     version("1.3.0", sha256="fa2d64aac1f77e31dfbb270aeb08f5b32e27036a52ad15e69a77e309528010dc")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libogg@1.1.2:")

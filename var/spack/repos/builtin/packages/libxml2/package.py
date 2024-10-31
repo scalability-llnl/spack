@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
+import llnl.util.filesystem as fs
+
 import spack.builder
 from spack.build_systems import autotools, nmake
 from spack.package import *
@@ -14,7 +16,7 @@ class Libxml2(AutotoolsPackage, NMakePackage):
     project (but usable outside of the Gnome platform), it is free
     software available under the MIT License."""
 
-    homepage = "http://xmlsoft.org"
+    homepage = "https://gitlab.gnome.org/GNOME/libxml2/-/wikis"
     url = "https://download.gnome.org/sources/libxml2/2.9/libxml2-2.9.13.tar.xz"
     list_url = "https://gitlab.gnome.org/GNOME/libxml2/-/releases"
 
@@ -41,6 +43,8 @@ class Libxml2(AutotoolsPackage, NMakePackage):
     version("2.9.4", sha256="ffb911191e509b966deb55de705387f14156e1a56b21824357cdf0053233633c")
     version("2.9.2", sha256="5178c30b151d044aefb1b08bf54c3003a0ac55c59c866763997529d60770d5bc")
     version("2.7.8", sha256="cda23bc9ebd26474ca8f3d67e7d1c4a1f1e7106364b690d822e009fdc3c417ec")
+
+    depends_on("c", type="build")  # generated
 
     variant("python", default=False, description="Enable Python support")
     variant("shared", default=True, description="Build shared library")
@@ -227,7 +231,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
     @run_after("install")
     @on_package_attributes(run_tests=True)
     def import_module_test(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             with working_dir("spack-test", create=True):
                 python("-c", "import libxml2")
 
@@ -241,7 +245,7 @@ class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
             "--with-iconv={0}".format(spec["iconv"].prefix),
         ]
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args.extend(
                 [
                     "--with-python={0}".format(spec["python"].home),
@@ -267,20 +271,31 @@ class NMakeBuilder(BaseBuilder, nmake.NMakeBuilder):
 
     @property
     def build_directory(self):
-        return os.path.join(self.stage.source_path, "win32")
+        return fs.windows_sfn(os.path.join(self.stage.source_path, "win32"))
 
     def configure(self, pkg, spec, prefix):
         with working_dir(self.build_directory):
             opts = [
-                "prefix=%s" % prefix,
+                "prefix=%s" % fs.windows_sfn(prefix),
                 "compiler=msvc",
                 "iconv=no",
                 "zlib=yes",
                 "lzma=yes",
-                "lib=%s" % ";".join((spec["zlib-api"].prefix.lib, spec["xz"].prefix.lib)),
+                "lib=%s"
+                % ";".join(
+                    (
+                        fs.windows_sfn(spec["zlib-api"].prefix.lib),
+                        fs.windows_sfn(spec["xz"].prefix.lib),
+                    )
+                ),
                 "include=%s"
-                % ";".join((spec["zlib-api"].prefix.include, spec["xz"].prefix.include)),
+                % ";".join(
+                    (
+                        fs.windows_sfn(spec["zlib-api"].prefix.include),
+                        fs.windows_sfn(spec["xz"].prefix.include),
+                    )
+                ),
             ]
-            if "+python" in spec:
+            if spec.satisfies("+python"):
                 opts.append("python=yes")
             cscript("configure.js", *opts)

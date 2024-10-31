@@ -17,6 +17,8 @@ class Psmc(MakefilePackage):
 
     version("2016-1-21", commit="e5f7df5d00bb75ec603ae0beff62c0d7e37640b9")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api", type="link")
 
     def setup_run_environment(self, env):

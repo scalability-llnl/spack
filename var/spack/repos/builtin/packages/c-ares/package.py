@@ -21,6 +21,9 @@ class CAres(CMakePackage):
     version("1.15.0", sha256="7deb7872cbd876c29036d5f37e30c4cbc3cc068d59d8b749ef85bb0736649f04")
     version("1.13.0", sha256="7c48c57706a38691041920e705d2a04426ad9c68d40edd600685323f214b2d57")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def url_for_version(self, version):
         url = "https://github.com/c-ares/c-ares/archive/cares-{0}.tar.gz"
         return url.format(version.underscored)

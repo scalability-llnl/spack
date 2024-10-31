@@ -24,6 +24,9 @@ class Systemtap(AutotoolsPackage):
     version("4.2", sha256="0984ebe3162274988252ec35074021dc1e8420d87a8b35f437578562fce08781")
     version("4.1", sha256="8efa1ee2b34f1c6b2f33a25313287d59c8ed1b00265e900aea874da8baca1e1d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gettext")
     depends_on("elfutils@0.151:")
     depends_on("sqlite")

@@ -20,6 +20,8 @@ class RBluster(RPackage):
     version("1.8.0", commit="156115c8960c0b66b2c588d9fd8bbdfe56e5f0be")
     version("1.6.0", commit="ff86c7d8d36233e838d4f00e6a4e173e7bf16816")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-cluster", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))

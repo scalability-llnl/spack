@@ -10,7 +10,7 @@ class PyOutdated(PythonPackage):
     """This is a mini-library which, given a package name and a version, checks if
     it's the latest version available on PyPI."""
 
-    homepage = "http://github.com/alexmojaki/outdated"
+    homepage = "https://github.com/alexmojaki/outdated"
     pypi = "outdated/outdated-0.2.2.tar.gz"
 
     maintainers("meyersbs")

@@ -49,6 +49,9 @@ class Mesa(MesonPackage):
     version("20.3.4", sha256="dc21a987ec1ff45b278fe4b1419b1719f1968debbb80221480e44180849b4084")
     version("20.2.1", sha256="d1a46d9a3f291bc0e0374600bdcb59844fa3eafaa50398e472a36fc65fd0244a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("meson@0.52:", type="build")
 
     depends_on("pkgconfig", type="build")
@@ -62,6 +65,7 @@ class Mesa(MesonPackage):
     depends_on("unwind")
     depends_on("expat")
     depends_on("zlib-api")
+    depends_on("libxml2")
 
     # Internal options
     variant("llvm", default=True, description="Enable LLVM.")
@@ -102,9 +106,7 @@ class Mesa(MesonPackage):
 
     # Provides
     provides("libglx", when="+glx")
-
     # provides('egl@1.5', when='+egl')
-    provides("libosmesa", when="+osmesa")
 
     # Variant dependencies
     with when("+llvm"):
@@ -113,12 +115,13 @@ class Mesa(MesonPackage):
         depends_on("libllvm@:12", when="@:21")
         depends_on("libllvm@:17", when="@:23")
 
-    depends_on("libx11", when="+glx")
-    depends_on("libxcb", when="+glx")
-    depends_on("libxext", when="+glx")
-    depends_on("libxt", when="+glx")
-    depends_on("xrandr", when="+glx")
-    depends_on("glproto@1.4.14:", when="+glx")
+    with when("+glx"):
+        depends_on("libx11")
+        depends_on("libxcb")
+        depends_on("libxext")
+        depends_on("libxt")
+        depends_on("xrandr")
+        depends_on("glproto@1.4.14:")
 
     # version specific issue
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96130

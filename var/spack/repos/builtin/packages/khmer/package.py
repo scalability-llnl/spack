@@ -17,6 +17,9 @@ class Khmer(PythonPackage):
 
     version("2.1.1", sha256="a709606910bb8679bd8525e9d2bf6d1421996272e343b54cc18090feb2fdbe24")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # https://github.com/dib-lab/khmer/pull/1922 ...
     conflicts("^python@3.12:")
 

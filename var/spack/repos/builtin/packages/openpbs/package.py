@@ -21,6 +21,9 @@ class Openpbs(AutotoolsPackage):
 
     version("20.0.1", sha256="685a4abcea92bf518df02b544d25e237ae8cef76f86525f7bf3554812e9f50fa")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

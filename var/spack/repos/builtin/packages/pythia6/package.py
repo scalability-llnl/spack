@@ -41,6 +41,8 @@ class Pythia6(CMakePackage):
         sha256="01cbff47e99365b5e46f6d62c1735d3cae1932c4710604850d59f538cb758020",
     )
 
+    depends_on("fortran", type="build")  # generated
+
     # Root's TPythia6 interface requires extra sources to be built into
     # the Pythia6 library.
     variant("root", default=False, description="Build extra (non OEM) code to allow use by Root.")

@@ -14,7 +14,10 @@ class Wtdbg2(MakefilePackage):
 
     license("GPL-3.0-only")
 
+    version("2.5", sha256="a2ffc8503d29f491a9a38ef63230d5b3c96db78377b5d25c91df511d0df06413")
     version("2.3", sha256="fb61d38a4c60a39b3b194e63b855141c05ddcbe71cf244ae613766a9b0a56621")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("sse2neon", when="target=aarch64:")
@@ -27,4 +30,4 @@ class Wtdbg2(MakefilePackage):
             makefile.filter("-mpopcnt -msse4.2", "")
 
     def install(self, spec, prefix):
-        make("install", "BIN=%s" % prefix.bin)
+        make("install", f"BIN={prefix.bin}")

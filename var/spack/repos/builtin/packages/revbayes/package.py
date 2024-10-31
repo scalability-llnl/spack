@@ -30,6 +30,9 @@ class Revbayes(CMakePackage):
     version("1.0.11", sha256="03052194baa220dde7e622a739f09f34393f67ea00a0b163b409d313d7fc7c02")
     version("1.0.10", sha256="6a3cf303e7224b0b32637bd8e2c3c2cf2621f5dbe599cd74ce4b0c215d0fcd2d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI parallel support")
 
     # TODO: replace this with an explicit list of components of Boost,

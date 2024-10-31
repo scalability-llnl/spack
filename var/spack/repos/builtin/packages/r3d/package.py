@@ -21,6 +21,9 @@ class R3d(CMakePackage):
     version("2018-12-19", commit="47308f68c782ed3227d3dab1eff24d41f6421f21", deprecated=True)
     version("2018-01-07", commit="d6799a582256a120ef3bd7e18959e96cba0e5495", deprecated=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "r3d_max_verts",
         default="0",

@@ -17,7 +17,6 @@ import spack.config
 import spack.mirror
 import spack.paths
 import spack.url
-import spack.util.path
 import spack.util.s3
 import spack.util.url as url_util
 import spack.util.web
@@ -37,6 +36,7 @@ page_3 = _create_url("3.html")
 page_4 = _create_url("4.html")
 
 root_with_fragment = _create_url("index_with_fragment.html")
+root_with_javascript = _create_url("index_with_javascript.html")
 
 
 @pytest.mark.parametrize(
@@ -145,6 +145,11 @@ def test_find_exotic_versions_of_archive_3():
 
 def test_find_versions_of_archive_with_fragment():
     versions = spack.url.find_versions_of_archive(root_tarball, root_with_fragment, list_depth=0)
+    assert Version("5.0.0") in versions
+
+
+def test_find_versions_of_archive_with_javascript():
+    versions = spack.url.find_versions_of_archive(root_tarball, root_with_javascript, list_depth=0)
     assert Version("5.0.0") in versions
 
 
@@ -432,7 +437,7 @@ def test_ssl_curl_cert_file(cert_exists, tmpdir, ssl_scrubbed_env, mutable_confi
         if cert_exists:
             open(mock_cert, "w").close()
             assert os.path.isfile(mock_cert)
-        curl = spack.util.web._curl()
+        curl = spack.util.web.require_curl()
 
         # arbitrary call to query the run env
         dump_env = {}

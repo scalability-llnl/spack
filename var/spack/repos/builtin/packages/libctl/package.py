@@ -25,6 +25,8 @@ class Libctl(AutotoolsPackage):
         url="http://ab-initio.mit.edu/libctl/libctl-3.2.2.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("guile")
 
     def configure_args(self):

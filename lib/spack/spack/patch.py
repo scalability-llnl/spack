@@ -4,19 +4,18 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import hashlib
-import inspect
 import os
 import os.path
 import pathlib
 import sys
-from typing import Any, Dict, Optional, Tuple, Type
+from typing import Any, Dict, Optional, Tuple, Type, Union
 
 import llnl.util.filesystem
 from llnl.url import allowed_archive
 
 import spack
 import spack.error
-import spack.fetch_strategy as fs
+import spack.fetch_strategy
 import spack.mirror
 import spack.repo
 import spack.stage
@@ -65,6 +64,9 @@ def apply_patch(
         patch(*args)
 
 
+PatchPackageType = Union["spack.package_base.PackageBase", Type["spack.package_base.PackageBase"]]
+
+
 class Patch:
     """Base class for patches.
 
@@ -77,7 +79,7 @@ class Patch:
 
     def __init__(
         self,
-        pkg: "spack.package_base.PackageBase",
+        pkg: PatchPackageType,
         path_or_url: str,
         level: int,
         working_dir: str,
@@ -111,7 +113,7 @@ class Patch:
             stage: stage where source code lives
         """
         if not self.path or not os.path.isfile(self.path):
-            raise NoSuchPatchError(f"No such patch: {self.path}")
+            raise spack.error.NoSuchPatchError(f"No such patch: {self.path}")
 
         apply_patch(stage, self.path, self.level, self.working_dir, self.reverse)
 
@@ -159,7 +161,7 @@ class FilePatch(Patch):
 
     def __init__(
         self,
-        pkg: "spack.package_base.PackageBase",
+        pkg: PatchPackageType,
         relative_path: str,
         level: int,
         working_dir: str,
@@ -182,8 +184,8 @@ class FilePatch(Patch):
         # search mro to look for the file
         abs_path: Optional[str] = None
         # At different times we call FilePatch on instances and classes
-        pkg_cls = pkg if inspect.isclass(pkg) else pkg.__class__
-        for cls in inspect.getmro(pkg_cls):
+        pkg_cls = pkg if isinstance(pkg, type) else pkg.__class__
+        for cls in pkg_cls.__mro__:  # type: ignore
             if not hasattr(cls, "module"):
                 # We've gone too far up the MRO
                 break
@@ -242,7 +244,7 @@ class UrlPatch(Patch):
 
     def __init__(
         self,
-        pkg: "spack.package_base.PackageBase",
+        pkg: PatchPackageType,
         url: str,
         level: int = 1,
         *,
@@ -273,14 +275,14 @@ class UrlPatch(Patch):
         self.ordering_key = ordering_key
 
         if allowed_archive(self.url) and not archive_sha256:
-            raise PatchDirectiveError(
+            raise spack.error.PatchDirectiveError(
                 "Compressed patches require 'archive_sha256' "
                 "and patch 'sha256' attributes: %s" % self.url
             )
         self.archive_sha256 = archive_sha256
 
         if not sha256:
-            raise PatchDirectiveError("URL patches require a sha256 checksum")
+            raise spack.error.PatchDirectiveError("URL patches require a sha256 checksum")
         self.sha256 = sha256
 
     def apply(self, stage: "spack.stage.Stage") -> None:
@@ -312,22 +314,27 @@ class UrlPatch(Patch):
 
         # Two checksums, one for compressed file, one for its contents
         if self.archive_sha256 and self.sha256:
-            fetcher: fs.FetchStrategy = fs.FetchAndVerifyExpandedFile(
-                self.url, archive_sha256=self.archive_sha256, expanded_sha256=self.sha256
+            fetcher: spack.fetch_strategy.FetchStrategy = (
+                spack.fetch_strategy.FetchAndVerifyExpandedFile(
+                    self.url, archive_sha256=self.archive_sha256, expanded_sha256=self.sha256
+                )
             )
         else:
-            fetcher = fs.URLFetchStrategy(self.url, sha256=self.sha256, expand=False)
+            fetcher = spack.fetch_strategy.URLFetchStrategy(
+                url=self.url, sha256=self.sha256, expand=False
+            )
 
         # The same package can have multiple patches with the same name but
         # with different contents, therefore apply a subset of the hash.
         name = "{0}-{1}".format(os.path.basename(self.url), fetch_digest[:7])
 
         per_package_ref = os.path.join(self.owner.split(".")[-1], name)
-        mirror_ref = spack.mirror.mirror_archive_paths(fetcher, per_package_ref)
+        mirror_ref = spack.mirror.default_mirror_layout(fetcher, per_package_ref)
         self._stage = spack.stage.Stage(
             fetcher,
             name=f"{spack.stage.stage_prefix}patch-{fetch_digest}",
             mirror_paths=mirror_ref,
+            mirrors=spack.mirror.MirrorCollection(source=True).values(),
         )
         return self._stage
 
@@ -361,8 +368,9 @@ def from_dict(
     """
     repository = repository or spack.repo.PATH
     owner = dictionary.get("owner")
-    if "owner" not in dictionary:
-        raise ValueError("Invalid patch dictionary: %s" % dictionary)
+    if owner is None:
+        raise ValueError(f"Invalid patch dictionary: {dictionary}")
+    assert isinstance(owner, str)
     pkg_cls = repository.get_pkg_class(owner)
 
     if "url" in dictionary:
@@ -393,7 +401,7 @@ def from_dict(
         sha256 = dictionary["sha256"]
         checker = Checker(sha256)
         if patch.path and not checker.check(patch.path):
-            raise fs.ChecksumError(
+            raise spack.fetch_strategy.ChecksumError(
                 "sha256 checksum failed for %s" % patch.path,
                 "Expected %s but got %s " % (sha256, checker.sum)
                 + "Patch may have changed since concretization.",
@@ -476,7 +484,7 @@ class PatchCache:
         """
         sha_index = self.index.get(sha256)
         if not sha_index:
-            raise PatchLookupError(
+            raise spack.error.PatchLookupError(
                 f"Couldn't find patch for package {pkg.fullname} with sha256: {sha256}"
             )
 
@@ -486,7 +494,7 @@ class PatchCache:
             if patch_dict:
                 break
         else:
-            raise PatchLookupError(
+            raise spack.error.PatchLookupError(
                 f"Couldn't find patch for package {pkg.fullname} with sha256: {sha256}"
             )
 
@@ -569,15 +577,3 @@ class PatchCache:
                         index[patch.sha256] = {dspec_cls.fullname: patch_dict}
 
         return index
-
-
-class NoSuchPatchError(spack.error.SpackError):
-    """Raised when a patch file doesn't exist."""
-
-
-class PatchLookupError(NoSuchPatchError):
-    """Raised when a patch file cannot be located from sha256."""
-
-
-class PatchDirectiveError(spack.error.SpackError):
-    """Raised when the wrong arguments are suppled to the patch directive."""

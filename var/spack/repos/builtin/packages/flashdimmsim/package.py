@@ -14,6 +14,8 @@ class Flashdimmsim(Package):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     build_directory = "src"
 
     def install(self, spec, prefix):

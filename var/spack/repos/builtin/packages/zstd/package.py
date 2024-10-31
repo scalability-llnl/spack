@@ -41,6 +41,9 @@ class Zstd(CMakePackage, MakefilePackage):
     version("1.3.0", sha256="0fdba643b438b7cbce700dcc0e7b3e3da6d829088c63757a5984930e2f70b348")
     version("1.1.2", sha256="980b8febb0118e22f6ed70d23b5b3e600995dbf7489c1f6d6122c1411cdda8d8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("programs", default=False, description="Build executables")
     variant(
         "libs",

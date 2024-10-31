@@ -21,6 +21,8 @@ class Libqrencode(AutotoolsPackage):
     version("master", branch="master")
     version("4.1.1", sha256="5385bc1b8c2f20f3b91d258bf8ccc8cf62023935df2d2676b5b67049f31a049c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     # We assume a reasonably recent libtool is necessary

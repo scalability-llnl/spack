@@ -23,6 +23,8 @@ class Timedatex(MakefilePackage):
     version("0.5", sha256="bc54960bb9554bb2b34985ba2b8a78480db568c3c6a9d26f2ab34de1bc0aab11")
     version("0.4", sha256="204285eb03c6cec9ae1c7fdb99e7c996259ec5a918d72bf6bc28564a6f738d4a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("glib")
 
     def install(self, spec, prefix):

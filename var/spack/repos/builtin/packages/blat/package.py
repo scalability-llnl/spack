@@ -18,7 +18,7 @@ class Blat(Package):
     version("35", sha256="06d9bcf114ec4a4b21fef0540a0532556b6602322a5a2b33f159dc939ae53620")
 
     depends_on("libpng")
-    depends_on("libuuid", when="@37:")
+    depends_on("uuid", when="@37:")
     depends_on("mysql-client", when="@37:")
 
     @when("@37")

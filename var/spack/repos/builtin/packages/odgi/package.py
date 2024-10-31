@@ -21,6 +21,9 @@ class Odgi(CMakePackage):
 
     # <<< Versions list starts here
     version("0.8.3", commit="34f006f31c3f6b35a1eb8d58a4edb1c458583de3", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
     # >>> Versions list ends here
 
     # compilation problem with ninja

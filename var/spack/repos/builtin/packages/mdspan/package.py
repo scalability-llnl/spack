@@ -30,7 +30,7 @@ class Mdspan(CMakePackage):
         if self.spec.satisfies("+tests"):
             args.append("-DMDSPAN_ENABLE_TESTS=ON")
             args.append("-DMDSPAN_USE_SYSTEM_GTEST=ON")
-        if self.spec.satisfies("+bencmarks"):
+        if self.spec.satisfies("+benchmarks"):
             args.append("-DMDSPAN_ENABLE_BENCHMARKS=ON")
         if self.spec.satisfies("+examples"):
             args.append("-DMDSPAN_ENABLE_EXAMPLES=ON")

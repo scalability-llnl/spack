@@ -21,5 +21,7 @@ class PyPycparser(PythonPackage):
     version("2.17", sha256="0aac31e917c24cb3357f5a4d5566f2cc91a19ca41862f6c3c22dc60a629673b6")
     version("2.13", sha256="b399599a8a0e386bfcbc5e01a38d79dd6e926781f9e358cd5512f41ab7d20eb7")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@2.7:2.8,3.4:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

@@ -22,7 +22,6 @@ import llnl.util.lang
 import spack.config
 import spack.mirror
 import spack.parser
-import spack.repo
 import spack.util.web
 
 from .image import ImageReference
@@ -418,18 +417,27 @@ def ensure_status(request: urllib.request.Request, response: HTTPResponse, statu
     )
 
 
-def default_retry(f, retries: int = 3, sleep=None):
+def default_retry(f, retries: int = 5, sleep=None):
     sleep = sleep or time.sleep
 
     def wrapper(*args, **kwargs):
         for i in range(retries):
             try:
                 return f(*args, **kwargs)
-            except urllib.error.HTTPError as e:
+            except (urllib.error.URLError, TimeoutError) as e:
                 # Retry on internal server errors, and rate limit errors
                 # Potentially this could take into account the Retry-After header
                 # if registries support it
-                if i + 1 != retries and (500 <= e.code < 600 or e.code == 429):
+                if i + 1 != retries and (
+                    (
+                        isinstance(e, urllib.error.HTTPError)
+                        and (500 <= e.code < 600 or e.code == 429)
+                    )
+                    or (
+                        isinstance(e, urllib.error.URLError) and isinstance(e.reason, TimeoutError)
+                    )
+                    or isinstance(e, TimeoutError)
+                ):
                     # Exponential backoff
                     sleep(2**i)
                     continue

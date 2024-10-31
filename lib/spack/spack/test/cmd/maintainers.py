@@ -121,7 +121,7 @@ def test_maintainers_list_packages(mock_packages, capfd):
 
 
 def test_maintainers_list_fails(mock_packages, capfd):
-    out = maintainers("a", fail_on_error=False)
+    out = maintainers("pkg-a", fail_on_error=False)
     assert not out
     assert maintainers.returncode == 1
 

@@ -10,11 +10,12 @@ class Snakemake(PythonPackage):
     """Workflow management system to create reproducible and scalable data analyses."""
 
     homepage = "https://snakemake.readthedocs.io/en"
-    pypi = "snakemake/snakemake-8.4.12.tar.gz"
-    maintainers("marcusboden")
+    pypi = "snakemake/snakemake-8.18.2.tar.gz"
+    maintainers("marcusboden", "w8jcik")
 
     license("MIT")
 
+    version("8.18.2", sha256="7dc8cdc3c836444c2bc3d67a4a7f4d703557c1bf96a90da18f312f4df9daefc4")
     version("8.5.2", sha256="cc94876263182277e4a429e5d371c867400eeddc791c114dfd090d1bb3158975")
     version("7.32.4", sha256="fdc3f15dd7b06fabb7da30d460e0a3b1fba08e4ea91f9c32c47a83705cdc7b6e")
     version("7.31.1", sha256="6fadcc9a051737aa187dccf437879b3b83ddc917fff9bd7d400e056cf17a1788")
@@ -59,20 +60,42 @@ class Snakemake(PythonPackage):
     depends_on("py-pulp@2.3.1:2.8", type=("build", "run"), when="@8.1.2:")
     depends_on("py-pulp@2:", type=("build", "run"), when="@:8.1.1")
     depends_on("py-pyyaml", type=("build", "run"))
+
     depends_on("py-requests@2.8.1:2", type=("build", "run"), when="@8.4.12")
     depends_on("py-requests", type=("build", "run"))
+
     depends_on("py-reretry", type=("build", "run"), when="@7:")
-    depends_on("py-smart-open@3:6", type=("build", "run"), when="@8.4.12:")
+
+    depends_on("py-smart-open@4:7", type=("build", "run"), when="@8.11:")
+    depends_on("py-smart-open@3:7", type=("build", "run"), when="@8.8:8.10")
+    depends_on("py-smart-open@3:6", type=("build", "run"), when="@8.4.12:8.7")
     depends_on("py-smart-open@3:", type=("build", "run"))
+
     depends_on(
-        "py-snakemake-interface-executor-plugins@8.1.3:8", type=("build", "run"), when="@8:"
+        "py-snakemake-interface-executor-plugins@9.2:9", type=("build", "run"), when="@8.15.0:"
     )
+    depends_on(
+        "py-snakemake-interface-executor-plugins@9.1:9", type=("build", "run"), when="@8.10.1:"
+    )
+    depends_on(
+        "py-snakemake-interface-executor-plugins@9.0.2:9", type=("build", "run"), when="@8.10:"
+    )
+    depends_on("py-snakemake-interface-executor-plugins@9", type=("build", "run"), when="@8.6:")
+    depends_on(
+        "py-snakemake-interface-executor-plugins@8.1.3:8", type=("build", "run"), when="@8:8.5"
+    )
+
     depends_on("py-snakemake-interface-common@1.17:1", type=("build", "run"), when="@8.4.10:")
     depends_on("py-snakemake-interface-common@1.15:1", type=("build", "run"), when="@8:")
+
+    depends_on(
+        "py-snakemake-interface-storage-plugins@3.2.3:3", type=("build", "run"), when="@8.15.1:"
+    )
     depends_on(
         "py-snakemake-interface-storage-plugins@3.1:3", type=("build", "run"), when="@8.4.10:"
     )
     depends_on("py-snakemake-interface-storage-plugins@3", type=("build", "run"), when="@8:")
+
     depends_on("py-snakemake-interface-report-plugins@1", type=("build", "run"), when="@8.5:")
     depends_on("py-stopit", type=("build", "run"))
     depends_on("py-tabulate", type=("build", "run"))
@@ -130,5 +153,6 @@ class Snakemake(PythonPackage):
     )
     depends_on("py-requests", when="+http", type=("build", "run"))
 
-    def test(self):
-        Executable("snakemake")("--version")
+    def test_run(self):
+        """Test if snakemake runs with the version option"""
+        Executable(self.prefix.bin.snakemake)("--version")

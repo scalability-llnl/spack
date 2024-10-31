@@ -26,6 +26,8 @@ class PyNumpyQuaternion(PythonPackage):
         sha256="b0dc670b2adc8ff2fb8d6105a48769873f68d6ccbe20af6a19e899b1e8d48aaf",
     )
 
+    depends_on("c", type="build")  # generated
+
     variant("scipy", default=True, description="Build with scipy support")
     variant("numba", default=True, description="Build with numba support")
 

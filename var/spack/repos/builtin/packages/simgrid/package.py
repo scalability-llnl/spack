@@ -119,6 +119,10 @@ class Simgrid(CMakePackage):
 
     version("develop", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("doc", default=False, description="Build documentation")
     variant("smpi", default=True, description="SMPI provides MPI")
     variant("examples", default=False, description="Install examples")

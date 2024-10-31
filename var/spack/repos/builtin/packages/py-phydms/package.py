@@ -20,6 +20,8 @@ class PyPhydms(PythonPackage):
 
     version("2.4.1", sha256="04eb50bdb07907214050d19214d9bc8cf2002e24ca30fbe6e0f23f013d584d5c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
 

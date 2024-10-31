@@ -19,4 +19,6 @@ class Librmm(CMakePackage):
     version("24.02.00", sha256="63ddde8788727f0989f6397aed8a007ef414a577417b7d3cf39ca670c1bc4a91")
     version("0.15.0", sha256="599f97b95d169a90d11296814763f7e151a8a1e060ba10bc6c8f4684a5cd7972")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cuda@9.0:")

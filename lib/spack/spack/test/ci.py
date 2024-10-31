@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import itertools
 import os
 import subprocess
 
@@ -11,15 +10,11 @@ import pytest
 import llnl.util.filesystem as fs
 
 import spack.ci as ci
-import spack.ci_needs_workaround as cinw
-import spack.ci_optimization as ci_opt
-import spack.config
 import spack.environment as ev
 import spack.error
 import spack.paths as spack_paths
+import spack.spec
 import spack.util.git
-import spack.util.gpg
-import spack.util.spack_yaml as syaml
 
 
 @pytest.fixture
@@ -51,7 +46,7 @@ class FakeWebResponder:
         self._content = content_to_read
         self._read = [False for c in content_to_read]
 
-    def open(self, request):
+    def open(self, request, data=None, timeout=object()):
         return self
 
     def getcode(self):
@@ -203,165 +198,7 @@ def test_setup_spack_repro_version(tmpdir, capfd, last_two_git_commits, monkeypa
     assert "Unable to merge {0}".format(c1) in err
 
 
-@pytest.mark.parametrize("obj, proto", [({}, [])])
-def test_ci_opt_argument_checking(obj, proto):
-    """Check that matches() and subkeys() return False when `proto` is not a dict."""
-    assert not ci_opt.matches(obj, proto)
-    assert not ci_opt.subkeys(obj, proto)
-
-
-@pytest.mark.parametrize("yaml", [{"extends": 1}])
-def test_ci_opt_add_extends_non_sequence(yaml):
-    """Check that add_extends() exits if 'extends' is not a sequence."""
-    yaml_copy = yaml.copy()
-    ci_opt.add_extends(yaml, None)
-    assert yaml == yaml_copy
-
-
-def test_ci_workarounds():
-    fake_root_spec = "x" * 544
-    fake_spack_ref = "x" * 40
-
-    common_variables = {"SPACK_IS_PR_PIPELINE": "False"}
-
-    common_before_script = [
-        'git clone "https://github.com/spack/spack"',
-        " && ".join(("pushd ./spack", 'git checkout "{ref}"'.format(ref=fake_spack_ref), "popd")),
-        '. "./spack/share/spack/setup-env.sh"',
-    ]
-
-    def make_build_job(name, deps, stage, use_artifact_buildcache, optimize, use_dependencies):
-        variables = common_variables.copy()
-        variables["SPACK_JOB_SPEC_PKG_NAME"] = name
-
-        result = {
-            "stage": stage,
-            "tags": ["tag-0", "tag-1"],
-            "artifacts": {
-                "paths": ["jobs_scratch_dir", "cdash_report", name + ".spec.json", name],
-                "when": "always",
-            },
-            "retry": {"max": 2, "when": ["always"]},
-            "after_script": ['rm -rf "./spack"'],
-            "script": ["spack ci rebuild"],
-            "image": {"name": "spack/centos7", "entrypoint": [""]},
-        }
-
-        if optimize:
-            result["extends"] = [".c0", ".c1"]
-        else:
-            variables["SPACK_ROOT_SPEC"] = fake_root_spec
-            result["before_script"] = common_before_script
-
-        result["variables"] = variables
-
-        if use_dependencies:
-            result["dependencies"] = list(deps) if use_artifact_buildcache else []
-        else:
-            result["needs"] = [{"job": dep, "artifacts": use_artifact_buildcache} for dep in deps]
-
-        return {name: result}
-
-    def make_rebuild_index_job(use_artifact_buildcache, optimize, use_dependencies):
-        result = {
-            "stage": "stage-rebuild-index",
-            "script": "spack buildcache update-index s3://mirror",
-            "tags": ["tag-0", "tag-1"],
-            "image": {"name": "spack/centos7", "entrypoint": [""]},
-            "after_script": ['rm -rf "./spack"'],
-        }
-
-        if optimize:
-            result["extends"] = ".c0"
-        else:
-            result["before_script"] = common_before_script
-
-        return {"rebuild-index": result}
-
-    def make_factored_jobs(optimize):
-        return (
-            {
-                ".c0": {"before_script": common_before_script},
-                ".c1": {"variables": {"SPACK_ROOT_SPEC": fake_root_spec}},
-            }
-            if optimize
-            else {}
-        )
-
-    def make_stage_list(num_build_stages):
-        return {
-            "stages": (
-                ["-".join(("stage", str(i))) for i in range(num_build_stages)]
-                + ["stage-rebuild-index"]
-            )
-        }
-
-    def make_yaml_obj(use_artifact_buildcache, optimize, use_dependencies):
-        result = {}
-
-        result.update(
-            make_build_job(
-                "pkg-a", [], "stage-0", use_artifact_buildcache, optimize, use_dependencies
-            )
-        )
-
-        result.update(
-            make_build_job(
-                "pkg-b", ["pkg-a"], "stage-1", use_artifact_buildcache, optimize, use_dependencies
-            )
-        )
-
-        result.update(
-            make_build_job(
-                "pkg-c",
-                ["pkg-a", "pkg-b"],
-                "stage-2",
-                use_artifact_buildcache,
-                optimize,
-                use_dependencies,
-            )
-        )
-
-        result.update(make_rebuild_index_job(use_artifact_buildcache, optimize, use_dependencies))
-
-        result.update(make_factored_jobs(optimize))
-
-        result.update(make_stage_list(3))
-
-        return result
-
-    # test every combination of:
-    #     use artifact buildcache: true or false
-    #     run optimization pass: true or false
-    #     convert needs to dependencies: true or false
-    for use_ab in (False, True):
-        original = make_yaml_obj(
-            use_artifact_buildcache=use_ab, optimize=False, use_dependencies=False
-        )
-
-        for opt, deps in itertools.product(*(((False, True),) * 2)):
-            # neither optimizing nor converting needs->dependencies
-            if not (opt or deps):
-                # therefore, nothing to test
-                continue
-
-            predicted = make_yaml_obj(
-                use_artifact_buildcache=use_ab, optimize=opt, use_dependencies=deps
-            )
-
-            actual = original.copy()
-            if opt:
-                actual = ci_opt.optimizer(actual)
-            if deps:
-                actual = cinw.needs_to_dependencies(actual)
-
-            predicted = syaml.dump_config(ci_opt.sort_yaml_obj(predicted), default_flow_style=True)
-            actual = syaml.dump_config(ci_opt.sort_yaml_obj(actual), default_flow_style=True)
-
-            assert predicted == actual
-
-
-def test_get_spec_filter_list(mutable_mock_env_path, config, mutable_mock_repo):
+def test_get_spec_filter_list(mutable_mock_env_path, mutable_mock_repo):
     """Test that given an active environment and list of touched pkgs,
     we get the right list of possibly-changed env specs"""
     e1 = ev.create("test")
@@ -415,7 +252,7 @@ def test_get_spec_filter_list(mutable_mock_env_path, config, mutable_mock_repo):
 
 
 @pytest.mark.regression("29947")
-def test_affected_specs_on_first_concretization(mutable_mock_env_path, mock_packages, config):
+def test_affected_specs_on_first_concretization(mutable_mock_env_path, mock_packages):
     e = ev.create("first_concretization")
     e.add("mpileaks~shared")
     e.add("mpileaks+shared")
@@ -448,7 +285,7 @@ def test_ci_process_command_fail(repro_dir, monkeypatch):
 def test_ci_create_buildcache(tmpdir, working_env, config, mock_packages, monkeypatch):
     """Test that create_buildcache returns a list of objects with the correct
     keys and types."""
-    monkeypatch.setattr(spack.ci, "_push_to_build_cache", lambda a, b, c: True)
+    monkeypatch.setattr(ci, "push_to_build_cache", lambda a, b, c: True)
 
     results = ci.create_buildcache(
         None, destination_mirror_urls=["file:///fake-url-one", "file:///fake-url-two"]
@@ -484,12 +321,12 @@ def test_ci_run_standalone_tests_missing_requirements(
 
 @pytest.mark.not_on_windows("Reliance on bash script not supported on Windows")
 def test_ci_run_standalone_tests_not_installed_junit(
-    tmp_path, repro_dir, working_env, default_mock_concretization, mock_test_stage, capfd
+    tmp_path, repro_dir, working_env, mock_test_stage, capfd, mock_packages
 ):
     log_file = tmp_path / "junit.xml"
     args = {
         "log_file": str(log_file),
-        "job_spec": default_mock_concretization("printing-package"),
+        "job_spec": spack.spec.Spec("printing-package").concretized(),
         "repro_dir": str(repro_dir),
         "fail_fast": True,
     }
@@ -502,13 +339,13 @@ def test_ci_run_standalone_tests_not_installed_junit(
 
 @pytest.mark.not_on_windows("Reliance on bash script not supported on Windows")
 def test_ci_run_standalone_tests_not_installed_cdash(
-    tmp_path, repro_dir, working_env, default_mock_concretization, mock_test_stage, capfd
+    tmp_path, repro_dir, working_env, mock_test_stage, capfd, mock_packages
 ):
     """Test run_standalone_tests with cdash and related options."""
     log_file = tmp_path / "junit.xml"
     args = {
         "log_file": str(log_file),
-        "job_spec": default_mock_concretization("printing-package"),
+        "job_spec": spack.spec.Spec("printing-package").concretized(),
         "repro_dir": str(repro_dir),
     }
 

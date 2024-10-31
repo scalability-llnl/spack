@@ -20,6 +20,8 @@ class Viewres(AutotoolsPackage, XorgPackage):
     version("1.0.5", sha256="9dee5e6b0a18961bb5c33f3f654605d45912087b6ba781cb2277d1941fa35a4b")
     version("1.0.4", sha256="fd2aaec85c952fd6984fe14d0fcbda4d2ab9849a9183e4787b0ef552a10a87a1")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxaw")
     depends_on("libxmu")
     depends_on("libxt")

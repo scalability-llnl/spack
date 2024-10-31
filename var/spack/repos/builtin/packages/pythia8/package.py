@@ -58,6 +58,8 @@ class Pythia8(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "cxxstd",
         default="11",
@@ -132,6 +134,13 @@ class Pythia8(AutotoolsPackage):
     def setup_cxxstd(self):
         filter_file(
             r"-std=c\+\+[0-9][0-9]", f"-std=c++{self.spec.variants['cxxstd'].value}", "configure"
+        )
+
+    # Fix for https://gitlab.com/Pythia8/releases/-/issues/428
+    @when("@:8.311")
+    def patch(self):
+        filter_file(
+            r"[/]examples[/]Makefile[.]inc\|;n' \\", "/examples/Makefile.inc|' \\", "configure"
         )
 
     def configure_args(self):

@@ -20,6 +20,8 @@ class Draco(CMakePackage):
     license("BSD-3-Clause-Open-MPI")
 
     version("develop", branch="develop")
+    version("7.19.0", sha256="04b33cfea244052efcdd40d2b9dd79348749d34647aaf4dfcb15cdfdbe989783")
+    version("7.18.0", sha256="b210e202a06ffdaf149193b5cba164411fd508e20e573e1dfc46d1f56e3fffaa")
     version("7.14.1", sha256="b05c75f1b8ea1d4fac4900d897fb1c948b470826b174ed8b97b32c6da9f030bf")
     version("7.14.0", sha256="c8abf293d81c1b8020907557c20d8d2f2edf9ac7ae60a534eab052a8c3b7f99d")
     version("7.13.0", sha256="07a443df71d8d3720ced98f86821f714d2bfaa9f17a177c7f0465a59a1e9e719")
@@ -82,6 +84,8 @@ class Draco(CMakePackage):
 
     conflicts("+cuda", when="@:7.6")
     conflicts("+caliper", when="@:7.7")
+    with when("@7.19.0:"):
+        conflicts("gcc@:9.0")
 
     # Fix python discovery.
     patch("d710.patch", when="@7.1.0")
@@ -108,7 +112,7 @@ class Draco(CMakePackage):
                 "-DUSE_QT={0}".format("ON" if "+qt" in self.spec else "OFF"),
             ]
         )
-        if "+fast_fma" in self.spec:
+        if self.spec.satisfies("+fast_fma"):
             options.extend(
                 [
                     "-DDRACO_ROUNDOFF_MODE={0}".format(

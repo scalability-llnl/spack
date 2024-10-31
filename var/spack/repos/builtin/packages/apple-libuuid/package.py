@@ -17,7 +17,6 @@ class AppleLibuuid(BundlePackage):
 
     # Only supported on 'platform=darwin'
     conflicts("platform=linux")
-    conflicts("platform=cray")
     conflicts("platform=windows")
 
     @property

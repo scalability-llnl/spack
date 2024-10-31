@@ -19,6 +19,9 @@ class Molden(MakefilePackage):
     version("6.6", sha256="2a2a7a116a336b607b50e8135bc2cca764c50e4a6896013ee3c6f582b741ee72")
     version("6.5", sha256="192631a0996b2bfa9f6b0769f83da38a9e4f83b1db9358982b23d6a594b4e8d4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxmu")
     depends_on("gl@3:")

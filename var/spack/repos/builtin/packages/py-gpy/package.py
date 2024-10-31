@@ -19,6 +19,8 @@ class PyGpy(PythonPackage):
     version("1.9.9", sha256="04faf0c24eacc4dea60727c50a48a07ddf9b5751a3b73c382105e2a31657c7ed")
     version("0.8.8", sha256="e135d928cf170e2ec7fb058a035b5a7e334dc6b84d0bfb981556782528341988")
 
+    depends_on("c", type="build")  # generated
+
     variant("plotting", default=False, description="Enable plotting")
 
     depends_on("py-setuptools", type="build")

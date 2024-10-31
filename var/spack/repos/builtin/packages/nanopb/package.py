@@ -17,5 +17,7 @@ class Nanopb(CMakePackage):
 
     version("0.3.9.1", sha256="b22d1f86d4adb2aa0436a277c4a59a5adfc467cafeb9bf405c27ef136599bbb3")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("protobuf", type=("build"))
     depends_on("py-protobuf", type=("build"))

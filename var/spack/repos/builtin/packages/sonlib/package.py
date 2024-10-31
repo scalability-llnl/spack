@@ -26,6 +26,9 @@ class Sonlib(MakefilePackage):
     version("master", branch="master")
     version("2020-04-01", commit="7ebe2ede05a6ee366d93a7a993db69a99943a68f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def setup_build_environment(self, env):
         binpath = os.path.join(self.stage.source_path, "bin")
         libpath = os.path.join(self.stage.source_path, "lib")

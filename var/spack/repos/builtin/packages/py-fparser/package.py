@@ -35,6 +35,8 @@ class PyFparser(PythonPackage):
     version("0.0.6", sha256="bf8a419cb528df1bfc24ddd26d63f2ebea6f1e103f1a259d8d3a6c9b1cd53012")
     version("0.0.5", sha256="f3b5b0ac56fd22abed558c0fb0ba4f28edb8de7ef24cfda8ca8996562215822f")
 
+    depends_on("fortran", type="build")  # generated
+
     # Dependencies for latest version
     depends_on("py-setuptools@61:", type="build", when="@0.1.4:")
     depends_on("py-setuptools", type="build")

@@ -1,0 +1,12 @@
+# Windows Visualization Stack
+# maintainers:
+# - John Parent (@johnwparent)
+# - Ryan Krattiger (@kwryankrattiger)
+
+spack:
+  view: false
+  specs:
+  - vtk~mpi
+
+  cdash:
+    build-group: Windows Visualization (Kitware)

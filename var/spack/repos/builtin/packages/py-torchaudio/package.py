@@ -18,6 +18,11 @@ class PyTorchaudio(PythonPackage):
     maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.5.1", tag="v2.5.1", commit="1661daf10599ca8889f092ec37814fabbe202bb0")
+    version("2.5.0", tag="v2.5.0", commit="56bc006d56a0d4960de6a1e0b6340cba4eda05cd")
+    version("2.4.1", tag="v2.4.1", commit="e8cbe17769796ce963fbc71b8990f1474774e6d2")
+    version("2.4.0", tag="v2.4.0", commit="69d40773dc4ed86643820c21a8a880e4d074a46e")
+    version("2.3.1", tag="v2.3.1", commit="3edcf69e78a3c9a3077a11159861422440ec7d4a")
     version("2.3.0", tag="v2.3.0", commit="952ea7457bcc3ed0669e7741ff23015c426d6322")
     version("2.2.2", tag="v2.2.2", commit="cefdb369247668e1dba74de503d4d996124b6b11")
     version("2.2.1", tag="v2.2.1", commit="06ea59c97d56868e487490702d01b3cf59103b9c")
@@ -47,15 +52,24 @@ class PyTorchaudio(PythonPackage):
     version("0.5.0", tag="v0.5.0", commit="09494ea545738538f9db2dceeffe10d421060ee5")
     version("0.4.0", tag="v0.4.0", commit="8afed303af3de41f3586007079c0534543c8f663")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
-        depends_on("python@3.8:3.12", when="@2.2:")
+        depends_on("python@3.9:3.12", when="@2.5:")
+        depends_on("python@3.8:3.12", when="@2.2:2.4")
         depends_on("python@3.8:3.11", when="@2.0:2.1")
         depends_on("python@:3.10", when="@0.12:0")
         depends_on("python@:3.9", when="@0.7.2:0.11")
         depends_on("python@:3.8", when="@:0.7.0")
 
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.5.1", when="@2.5.1")
+        depends_on("py-torch@2.5.0", when="@2.5.0")
+        depends_on("py-torch@2.4.1", when="@2.4.1")
+        depends_on("py-torch@2.4.0", when="@2.4.0")
+        depends_on("py-torch@2.3.1", when="@2.3.1")
         depends_on("py-torch@2.3.0", when="@2.3.0")
         depends_on("py-torch@2.2.2", when="@2.2.2")
         depends_on("py-torch@2.2.1", when="@2.2.1")
@@ -95,6 +109,21 @@ class PyTorchaudio(PythonPackage):
     depends_on("py-pybind11", when="@0.12:", type=("build", "link"))
     depends_on("pkgconfig", type="build")
     depends_on("sox")
+
+    # https://github.com/pytorch/audio/pull/3811
+    patch(
+        "https://github.com/pytorch/audio/pull/3811.patch?full_index=1",
+        sha256="34dce3403abb03f62827e8a1efcdb2bf7742477a01f155ebb9c7fefe9588b132",
+        when="@2.2:",
+    )
+    conflicts("^cuda@12.5:", when="@:2.1")
+
+    def flag_handler(self, name, flags):
+        # https://github.com/pytorch/vision/issues/8653
+        if name == "ldflags":
+            if self.spec.satisfies("%apple-clang@15:"):
+                flags.append("-Wl,-ld_classic")
+        return (flags, None, None)
 
     def setup_build_environment(self, env):
         # tools/setup_helpers/extension.py

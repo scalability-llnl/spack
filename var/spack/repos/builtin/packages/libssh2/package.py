@@ -23,6 +23,9 @@ class Libssh2(AutotoolsPackage, CMakePackage):
         "1.4.3", sha256="eac6f85f9df9db2e6386906a6227eb2cd7b3245739561cad7d6dc1d5d021b96d"
     )  # CentOS7
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     build_system("autotools", "cmake", default="autotools")
 
     variant(

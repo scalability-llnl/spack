@@ -30,6 +30,8 @@ class Genfit(CMakePackage):
     # Untagged version from 2017-06-23 known to work with root@6.16.00
     version("b496504a", sha256="e1582b35782118ade08498adc03f3fda01979ff8bed61e0520edae46d7bfe477")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("root")
     depends_on("root@:6.16.00", when="@b496504a")
     depends_on("eigen")

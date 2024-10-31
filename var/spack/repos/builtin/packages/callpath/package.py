@@ -17,6 +17,8 @@ class Callpath(CMakePackage):
     version("1.0.2", sha256="cbe42bba8b9dda259dcbe7e16ebd7ecd005eabf7e9ccf169535b03110df75c84")
     version("1.0.1", sha256="9bd9723126f80d0b518c28e5298ad0fa8d8dbc6a3f03fee5ae5449cf4c9a550f")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("elf", type="link")
     depends_on("libdwarf")
     depends_on("dyninst")

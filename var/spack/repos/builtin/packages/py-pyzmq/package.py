@@ -33,6 +33,9 @@ class PyPyzmq(PythonPackage):
     version("16.0.2", sha256="0322543fff5ab6f87d11a8a099c4c07dd8a1719040084b6ce9162bcdf5c45c9d")
     version("14.7.0", sha256="77994f80360488e7153e64e5959dc5471531d1648e3a4bff14a714d074a38cc2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@2.6:2.7,3.2:3.8", type=("build", "run"), when="@:14")
 
     # pyproject.toml

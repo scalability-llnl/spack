@@ -31,6 +31,8 @@ class PyNetworkit(PythonPackage):
     version("7.0", sha256="eea4b5e565d6990b674e1c7f4d598be9377d57b61d0d82883ecc39edabaf3631")
     version("6.1", sha256="f7fcb50dec66a8253f85c10ff9314100de013c7578d531c81d3f71bc6cf8f093")
 
+    depends_on("cxx", type="build")  # generated
+
     # Required dependencies
     depends_on("cmake", type="build")
     depends_on("libnetworkit@9.0", type=("build", "link"), when="@9.0")

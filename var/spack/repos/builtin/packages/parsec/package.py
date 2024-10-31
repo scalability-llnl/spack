@@ -104,17 +104,29 @@ class Parsec(CMakePackage, CudaPackage):
                 warn += "https://bitbucket.org/icldistcomp/parsec/issues"
                 tty.msg(warn)
 
-    def test(self):
-        """Compile and run a user program with the installed library"""
-        with working_dir(join_path(self.install_test_root, "contrib/build_with_parsec")):
-            self.run_test(
-                "cmake", options=["."], purpose="Check if CMake can find PaRSEC and its targets"
-            )
-            self.run_test("make", purpose="Check if tests can compile")
-            self.run_test("./dtd_test_allreduce")
-            self.run_test("./write_check")
+    contrib_dir = join_path("contrib", "build_with_parsec")
+
+    def test_contrib(self):
+        """build and run contrib examples"""
+        with working_dir(join_path(self.test_suite.current_test_cache_dir, self.contrib_dir)):
+            cmake = self.spec["cmake"].command
+            args = [
+                "-Wno-dev",
+                f"-DCMAKE_C_COMPILER={self.spec['mpi'].mpicc}",
+                f"-DCMAKE_PREFIX_PATH={self.prefix}",
+                ".",
+            ]
+            if "+cuda" in self.spec:
+                args.append("-DCUDA_TOOLKIT_ROOT_DIR:STRING=" + self.spec["cuda"].prefix)
+
+            cmake(*args)
+            make()
+
+            for name in ["dtd_test_allreduce", "write_check"]:
+                with test_part(self, f"test_contrib_{name}", f"run {name}"):
+                    exe = which(name)
+                    exe()
 
     @run_after("install")
     def cache_test_sources(self):
-        srcs = ["contrib/build_with_parsec"]
-        self.cache_extra_test_sources(srcs)
+        cache_extra_test_sources(self, self.contrib_dir)

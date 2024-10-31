@@ -1,0 +1,13 @@
+diff --git a/configure.ac b/configure.ac
+index 34b2613..8fa980d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -4861,7 +4861,7 @@ case "$ROCM_HSA" in
+       found=yes
+     elif test -f "$ROCM_HSA/include/hsa/hsa.h" ; then
+       AC_MSG_NOTICE([found $ROCM_HSA/include/hsa/hsa.h])
+-      ROCM_HSA_IFLAGS="-I$ROCM_HSA/include/hsa"
++      ROCM_HSA_IFLAGS="-I$ROCM_HSA/include/hsa -I$ROCM_HSA/include"
+       ROCM_HSA_INC_MESG="$ROCM_HSA"
+       found=yes
+     fi

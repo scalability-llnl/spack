@@ -20,5 +20,7 @@ class Libpipeline(AutotoolsPackage):
     version("1.5.5", sha256="0c8367f8b82bb721b50647a647115b6e62a37e3b2e954a9685e4d933f30c00cc")
     version("1.4.2", sha256="fef1fc9aa40ce8796f18cd1aecd888a9484a9556c8b0f8d07c863578277679be")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("check", type="test")

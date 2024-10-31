@@ -18,6 +18,9 @@ class PyThinc(PythonPackage):
     version("7.4.1", sha256="0139fa84dc9b8d88af15e648fc4ae13d899b8b5e49cb26a8f4a0604ee9ad8a9e")
     version("7.4.0", sha256="523e9be1bfaa3ed1d03d406ce451b6b4793a9719d5b83d2ea6b3398b96bc58b8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-murmurhash@0.28:1.0", type=("build", "run"))
     depends_on("py-cymem@2.0.2:2.0", type=("build", "run"))

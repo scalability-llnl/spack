@@ -19,6 +19,8 @@ class Qcat(CMakePackage):
     version("master", branch="master")
     version("1.4", commit="f16032cf237837b1d32dde0c3daa6ad1ca4a912f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zstd")
 
     def cmake_args(self):

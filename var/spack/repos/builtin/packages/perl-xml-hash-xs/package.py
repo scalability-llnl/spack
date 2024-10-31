@@ -17,3 +17,5 @@ class PerlXmlHashXs(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("0.56", sha256="be4c60ded94c5ebe53a81ef74928dfbec9613986d2a6056dd253665c6ae9802f")
+
+    depends_on("c", type="build")  # generated

@@ -19,6 +19,9 @@ class Zabbix(AutotoolsPackage):
     version("4.0.24", sha256="c7e4962d745277d67797d90e124555ce27d198822a7e65c55d86aee45d3e93fc")
     version("4.0.23", sha256="652143614f52411cad47db64e93bf3ba1cd547d6ca9591296223b5f0528b3b61")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

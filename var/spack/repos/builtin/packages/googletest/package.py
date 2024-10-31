@@ -27,6 +27,8 @@ class Googletest(CMakePackage):
     version("1.7.0", sha256="f73a6546fdf9fce9ff93a5015e0333a8af3062a152a9ad6bcb772c96687016cc")
     version("1.6.0", sha256="5fbc058e5b662b9c86d93ac76fefb58eec89cbf26144b49669a38ecb62758447")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("gmock", default=True, when="@1.8:", description="Build with gmock")
     variant("pthreads", default=True, description="Build multithreaded version with pthreads")
     variant("shared", default=True, description="Build shared libraries (DLLs)")
@@ -47,7 +49,7 @@ class Googletest(CMakePackage):
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
         ]
-        args.append(self.define("gtest_disable_pthreads", not spec.satisfies("pthreads")))
+        args.append(self.define("gtest_disable_pthreads", not spec.satisfies("+pthreads")))
         if spec.satisfies("@1.8:"):
             # New style (contains both Google Mock and Google Test)
             args.append(self.define("BUILD_GTEST", True))
@@ -64,7 +66,7 @@ class Googletest(CMakePackage):
             install_tree(join_path(self.stage.source_path, "include"), prefix.include)
 
             mkdirp(prefix.lib)
-            if "+shared" in spec:
+            if spec.satisfies("+shared"):
                 install("libgtest.{0}".format(dso_suffix), prefix.lib)
                 install("libgtest_main.{0}".format(dso_suffix), prefix.lib)
             else:

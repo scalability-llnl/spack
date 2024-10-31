@@ -20,6 +20,8 @@ class Lwtnn(CMakePackage):
     version("2.12.1", sha256="b820e698d4ed60737e646ca87a42354e8ac548403348b7f2940e8fda1c0f8203")
     version("2.10", sha256="bf84b290c44da582226344b0d5febf7fdbd1cbdee94fcc8bcac972c7355564ed")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@1.54:")
     depends_on("eigen")
     # https://github.com/lwtnn/lwtnn/issues/161

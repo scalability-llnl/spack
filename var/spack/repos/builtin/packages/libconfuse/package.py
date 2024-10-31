@@ -18,6 +18,8 @@ class Libconfuse(AutotoolsPackage):
     version("3.2.2", sha256="2cf7e032980aff8f488efba61510dc3fb95e9a4b9183f985dea457a5651b0e2c")
     version("3.2.1", sha256="2eff8e3c300c4ed1d67fdb13f9d31a72a68e31874b4640db15334305bc40cebd")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

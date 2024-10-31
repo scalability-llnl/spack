@@ -31,6 +31,9 @@ class Lhapdf(AutotoolsPackage):
     version("6.3.0", sha256="864468439c7662bbceed6c61c7132682ec83381a23c9c9920502fdd7329dd816")
     version("6.2.3", sha256="37200a1ab70247250a141dfed7419d178f9a83bd23a4f8a38e203d4e27b41308")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("python", default=True, description="Build python bindings")
 
     depends_on("autoconf", type="build")
@@ -47,7 +50,7 @@ class Lhapdf(AutotoolsPackage):
         # Add -lintl if provided by gettext, otherwise libintl is provided by the system's glibc:
         if (
             self.spec.satisfies("+python")
-            and "gettext" in self.spec
+            and self.spec.satisfies("^gettext")
             and "intl" in self.spec["gettext"].libs.names
         ):
             env.append_flags("LDFLAGS", "-L" + self.spec["gettext"].prefix.lib)

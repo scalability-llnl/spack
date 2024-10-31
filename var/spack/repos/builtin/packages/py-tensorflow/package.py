@@ -3,10 +3,37 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import glob
+import os
 import sys
 import tempfile
 
+from spack.build_environment import optimization_flags
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
+
+rocm_dependencies = [
+    "hip",
+    "rocrand",
+    "rocblas",
+    "rocfft",
+    "hipfft",
+    "rccl",
+    "hipsparse",
+    "rocprim",
+    "llvm-amdgpu",
+    "hsa-rocr-dev",
+    "rocminfo",
+    "hipsolver",
+    "hiprand",
+    "rocsolver",
+    "hipsolver",
+    "hipblas",
+    "hipcub",
+    "rocm-core",
+    "roctracer-dev",
+    "miopen-hip",
+]
 
 
 class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
@@ -14,16 +41,29 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
     homepage = "https://www.tensorflow.org"
     url = "https://github.com/tensorflow/tensorflow/archive/v2.3.1.tar.gz"
+    git = "https://github.com/tensorflow/tensorflow.git"
 
     maintainers("adamjstewart", "aweits")
     import_modules = ["tensorflow"]
 
     license("Apache-2.0")
 
+    version("2.17.0", sha256="9cc4d5773b8ee910079baaecb4086d0c28939f024dd74b33fc5e64779b6533dc")
+    version("2.16.2", sha256="023849bf253080cb1e4f09386f5eb900492da2288274086ed6cfecd6d99da9eb")
     version("2.16.1", sha256="c729e56efc945c6df08efe5c9f5b8b89329c7c91b8f40ad2bb3e13900bd4876d")
+    version(
+        "2.16.1-rocm-enhanced",
+        sha256="e1b63b1b5d5b014194ed33113c7fa7f26ecb8d36333282b8c550e795e0eb31c6",
+        url="https://github.com/ROCm/tensorflow-upstream/archive/refs/tags/v2.16.1-rocm-enhanced.tar.gz",
+    )
     version("2.15.1", sha256="f36416d831f06fe866e149c7cd752da410a11178b01ff5620e9f265511ed57cf")
     version("2.15.0", sha256="9cec5acb0ecf2d47b16891f8bc5bc6fbfdffe1700bdadc0d9ebe27ea34f0c220")
     version("2.14.1", sha256="6b31ed347ed7a03c45b906aa41628ac91c3db7c84cb816971400d470e58ba494")
+    version(
+        "2.14-rocm-enhanced",
+        git="https://github.com/ROCm/tensorflow-upstream.git",
+        branch="r2.14-rocm-enhanced-nohipblaslt-build",
+    )
     version("2.14.0", sha256="ce357fd0728f0d1b0831d1653f475591662ec5bca736a94ff789e6b1944df19f")
     version("2.13.1", sha256="89c07aebd4f41fbe0d08cc88aef00305542134f2f16d3b62918dc3c1182f33e2")
     version("2.13.0", sha256="e58c939079588623e6fa1d054aec2f90f95018266e0a970fd353a5244f5173dc")
@@ -83,6 +123,9 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     version("2.2.1", sha256="e6a28e64236d729e598dbeaa02152219e67d0ac94d6ed22438606026a02e0f88")
     version("2.2.0", sha256="69cd836f87b8c53506c4f706f655d423270f5a563b76dc1cfa60fbc3184185a3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mkl", default=False, description="Build with MKL support")
     variant("jemalloc", default=False, description="Build with jemalloc as malloc support")
     variant("gcp", default=False, description="Build with Google Cloud Platform support")
@@ -114,144 +157,144 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
     extends("python")
 
-    # Python support based on wheel availability
-    depends_on("python@3.9:3.12", when="@2.16:", type=("build", "run"))
-    depends_on("python@3.9:3.11", when="@2.14:2.15", type=("build", "run"))
-    depends_on("python@3.8:3.11", when="@2.12:2.13", type=("build", "run"))
-    depends_on("python@:3.10", when="@2.8:2.11", type=("build", "run"))
-    depends_on("python@:3.9", when="@2.5:2.7", type=("build", "run"))
-    depends_on("python@:3.8", when="@2.2:2.4", type=("build", "run"))
+    with default_args(type="build"):
+        # See .bazelversion
+        depends_on("bazel@6.5.0", when="@2.16:")
+        depends_on("bazel@6.1.0", when="@2.14:2.15")
+        depends_on("bazel@5.3.0", when="@2.11:2.13")
+        depends_on("bazel@5.1.1", when="@2.10")
+        # See _TF_MIN_BAZEL_VERSION and _TF_MAX_BAZEL_VERSION in configure.py
+        depends_on("bazel@4.2.2:5.99.0", when="@2.9")
+        depends_on("bazel@4.2.1:4.99.0", when="@2.8")
+        depends_on("bazel@3.7.2:4.99.0", when="@2.7")
+        depends_on("bazel@3.7.2:3.99.0", when="@2.5:2.6")
+        depends_on("bazel@3.1.0:3.99.0", when="@2.3:2.4")
+        depends_on("bazel@2.0.0", when="@2.2")
 
-    # See .bazelversion
-    depends_on("bazel@6.5.0", type="build", when="@2.16:")
-    depends_on("bazel@6.1.0", type="build", when="@2.14:2.15")
-    depends_on("bazel@5.3.0", type="build", when="@2.11:2.13")
-    depends_on("bazel@5.1.1", type="build", when="@2.10")
-    # See _TF_MIN_BAZEL_VERSION and _TF_MAX_BAZEL_VERSION in configure.py
-    depends_on("bazel@4.2.2:5.99.0", type="build", when="@2.9")
-    depends_on("bazel@4.2.1:4.99.0", type="build", when="@2.8")
-    depends_on("bazel@3.7.2:4.99.0", type="build", when="@2.7")
-    depends_on("bazel@3.7.2:3.99.0", type="build", when="@2.5:2.6")
-    depends_on("bazel@3.1.0:3.99.0", type="build", when="@2.3:2.4")
-    depends_on("bazel@2.0.0", type="build", when="@2.2")
+        # tensorflow/tools/pip_package/build_pip_package.sh
+        depends_on("patchelf", when="@2.13: platform=linux")
+        # https://github.com/tensorflow/tensorflow/issues/60179#issuecomment-1491238631
+        depends_on("coreutils", when="@2.13: platform=darwin")
 
-    depends_on("swig", type="build")
-    depends_on("py-pip", type="build")
-    depends_on("py-wheel", type="build")
+        depends_on("swig")
+        depends_on("py-pip")
+        depends_on("py-wheel")
 
-    # Listed under REQUIRED_PACKAGES in tensorflow/tools/pip_package/setup.py
-    depends_on("py-absl-py@1:", type=("build", "run"), when="@2.9:")
-    depends_on("py-absl-py@0.4:", type=("build", "run"), when="@2.7:2.8")
-    depends_on("py-absl-py@0.10:0", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-absl-py@0.7:", type=("build", "run"), when="@:2.3")
-    depends_on("py-astunparse@1.6:", type=("build", "run"), when="@2.7:")
-    depends_on("py-astunparse@1.6.3:1.6", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-astunparse@1.6.3", type=("build", "run"), when="@2.2:2.3")
-    depends_on("py-flatbuffers@23.5.26:", type=("build", "run"), when="@2.14:")
-    depends_on("py-flatbuffers@23.1.21:", type=("build", "run"), when="@2.13")
-    depends_on("py-flatbuffers@2:", type=("build", "run"), when="@2.10:2.12")
-    depends_on("py-flatbuffers@1.12:1", type=("build", "run"), when="@2.9")
-    depends_on("py-flatbuffers@1.12:", type=("build", "run"), when="@2.8")
-    depends_on("py-flatbuffers@1.12:2", type=("build", "run"), when="@2.7")
-    depends_on("py-flatbuffers@1.12", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-gast@0.2.1:0.4,0.5.3:", type=("build", "run"), when="@2.14:")
-    depends_on("py-gast@0.2.1:0.4.0", type=("build", "run"), when="@2.9:2.13")
-    depends_on("py-gast@0.2.1:", type=("build", "run"), when="@2.8")
-    depends_on("py-gast@0.2.1:0.4", type=("build", "run"), when="@2.7")
-    depends_on("py-gast@0.4.0", type=("build", "run"), when="@2.5:2.6")
-    depends_on("py-gast@0.3.3", type=("build", "run"), when="@2.2:2.4")
-    depends_on("py-gast@0.2.2", type=("build", "run"), when="@:2.1")
-    depends_on("py-google-pasta@0.1.1:", type=("build", "run"), when="@2.7:")
-    depends_on("py-google-pasta@0.2:0", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-google-pasta@0.1.8:", type=("build", "run"), when="@2.2:2.3")
-    depends_on("py-google-pasta@0.1.6:", type=("build", "run"), when="@:2.1")
-    depends_on("py-h5py@3.10:", type=("build", "run"), when="@2.16:")
-    depends_on("py-h5py@2.9:", type=("build", "run"), when="@2.7:2.15")
-    depends_on("py-h5py@3.1", type=("build", "run"), when="@2.5:2.6")
-    depends_on("py-h5py@2.10", type=("build", "run"), when="@2.2:2.4")
-    depends_on("py-h5py@:2.10.0", type=("build", "run"), when="@2.1.3:2.1")
-    # propagate the mpi variant setting for h5py/hdf5 to avoid unexpected crashes
-    depends_on("py-h5py+mpi", type=("build", "run"), when="@2.1.3:+mpi")
-    depends_on("py-h5py~mpi", type=("build", "run"), when="@2.1.3:~mpi")
-    depends_on("hdf5+mpi", type="build", when="@2.1.3:+mpi")
-    depends_on("hdf5~mpi", type="build", when="@2.1.3:~mpi")
-    depends_on("py-libclang@13:", type=("build", "run"), when="@2.9:")
-    depends_on("py-libclang@9.0.1:", type=("build", "run"), when="@2.7:2.8")
-    depends_on("py-ml-dtypes@0.3.1:0.3", type=("build", "run"), when="@2.15.1:")
-    depends_on("py-ml-dtypes@0.2", type=("build", "run"), when="@2.15.0")
-    depends_on("py-ml-dtypes@0.2.0", type=("build", "run"), when="@2.14")
-    depends_on("py-numpy@1.23.5:", type=("build", "run"), when="@2.14:")
-    depends_on("py-numpy@1.22:1.24.3", type=("build", "run"), when="@2.13:")
-    depends_on("py-numpy@1.22:1.23", type=("build", "run"), when="@2.12")
-    depends_on("py-numpy@1.20:", type=("build", "run"), when="@2.8:2.11")
-    depends_on("py-numpy@1.14.5:", type=("build", "run"), when="@2.7")
-    depends_on("py-numpy@1.19.2:1.19", type=("build", "run"), when="@2.4:2.6")
-    # https://github.com/tensorflow/tensorflow/issues/40688
-    depends_on("py-numpy@1.16.0:1.18", type=("build", "run"), when="@:2.3")
-    depends_on("py-opt-einsum@2.3.2:", type=("build", "run"), when="@:2.3,2.7:")
-    depends_on("py-opt-einsum@3.3", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-packaging", type=("build", "run"), when="@2.9:")
-    depends_on("py-protobuf@3.20.3:4.20,4.21.6:4", type=("build", "run"), when="@2.12:")
-    depends_on("py-protobuf@3.9.2:", type=("build", "run"), when="@2.3:2.11")
-    depends_on("py-protobuf@3.8.0:", type=("build", "run"), when="@:2.2")
-    # https://github.com/protocolbuffers/protobuf/issues/10051
-    # https://github.com/tensorflow/tensorflow/issues/56266
-    depends_on("py-protobuf@:3.19", type=("build", "run"), when="@:2.11")
-    # Must be matching versions of py-protobuf and protobuf
-    conflicts("^py-protobuf~cpp")
-    depends_on("py-requests@2.21:2", type=("build", "run"), when="@2.16:")
-    depends_on("py-requests", type=("build", "run"))
-    depends_on("py-setuptools", type=("build", "run"))
-    depends_on("py-six@1.12:", type=("build", "run"), when="@:2.3,2.7:")
-    depends_on("py-six@1.15", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-termcolor@1.1:", type=("build", "run"), when="@:2.3,2.7:")
-    depends_on("py-termcolor@1.1", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-typing-extensions@3.6.6:", type=("build", "run"), when="@2.7:2.12,2.14:")
-    depends_on("py-typing-extensions@3.6.6:4.5", type=("build", "run"), when="@2.13")
-    depends_on("py-typing-extensions@3.7.4:3.7", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-wrapt@1.11:", type=("build", "run"), when="@2.7:2.11,2.13,2.16:")
-    depends_on("py-wrapt@1.11:1.14", type=("build", "run"), when="@2.12,2.14:2.15")
-    depends_on("py-wrapt@1.12.1:1.12", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-wrapt@1.11.1:", type=("build", "run"), when="@:2.3")
+    with default_args(type=("build", "run")):
+        # Python support based on wheel availability
+        depends_on("python@3.9:3.12", when="@2.16:")
+        depends_on("python@3.9:3.11", when="@2.14:2.15")
+        depends_on("python@3.8:3.11", when="@2.12:2.13")
+        depends_on("python@:3.10", when="@2.8:2.11")
+        depends_on("python@:3.9", when="@2.5:2.7")
+        depends_on("python@:3.8", when="@2.2:2.4")
 
-    # TODO: add packages for these dependencies
-    # depends_on('py-tensorflow-io-gcs-filesystem@0.23.1:', type=('build', 'run'), when='@2.8:')
-    # depends_on('py-tensorflow-io-gcs-filesystem@0.21:', type=('build', 'run'), when='@2.7')
+        # Listed under REQUIRED_PACKAGES in tensorflow/tools/pip_package/setup.py
+        depends_on("py-absl-py@1:", when="@2.9:")
+        depends_on("py-absl-py@0.4:", when="@2.7:2.8")
+        depends_on("py-absl-py@0.10:0", when="@2.4:2.6")
+        depends_on("py-absl-py@0.7:", when="@:2.3")
+        depends_on("py-astunparse@1.6:", when="@2.7:")
+        depends_on("py-astunparse@1.6.3:1.6", when="@2.4:2.6")
+        depends_on("py-astunparse@1.6.3", when="@2.2:2.3")
+        depends_on("py-flatbuffers@24.3.25:", when="@2.17:")
+        depends_on("py-flatbuffers@23.5.26:", when="@2.14:")
+        depends_on("py-flatbuffers@23.1.21:", when="@2.13")
+        depends_on("py-flatbuffers@2:", when="@2.10:2.12")
+        depends_on("py-flatbuffers@1.12:1", when="@2.9")
+        depends_on("py-flatbuffers@1.12:", when="@2.8")
+        depends_on("py-flatbuffers@1.12:2", when="@2.7")
+        depends_on("py-flatbuffers@1.12", when="@2.4:2.6")
+        depends_on("py-gast@0.2.1:0.4,0.5.3:", when="@2.14:")
+        depends_on("py-gast@0.2.1:0.4.0", when="@2.9:2.13")
+        depends_on("py-gast@0.2.1:", when="@2.8")
+        depends_on("py-gast@0.2.1:0.4", when="@2.7")
+        depends_on("py-gast@0.4.0", when="@2.5:2.6")
+        depends_on("py-gast@0.3.3", when="@2.2:2.4")
+        depends_on("py-gast@0.2.2", when="@:2.1")
+        depends_on("py-google-pasta@0.1.1:", when="@2.7:")
+        depends_on("py-google-pasta@0.2:0", when="@2.4:2.6")
+        depends_on("py-google-pasta@0.1.8:", when="@2.2:2.3")
+        depends_on("py-google-pasta@0.1.6:", when="@:2.1")
+        depends_on("py-h5py@3.10:", when="@2.16:")
+        depends_on("py-h5py@2.9:", when="@2.7:2.15")
+        depends_on("py-h5py@3.1", when="@2.5:2.6")
+        depends_on("py-h5py@2.10", when="@2.2:2.4")
+        depends_on("py-h5py@:2.10.0", when="@2.1.3:2.1")
+        # propagate the mpi variant setting for h5py/hdf5 to avoid unexpected crashes
+        depends_on("py-h5py+mpi", when="@2.1.3:+mpi")
+        depends_on("py-h5py~mpi", when="@2.1.3:~mpi")
+        depends_on("hdf5+mpi", when="@2.1.3:+mpi")
+        depends_on("hdf5~mpi", when="@2.1.3:~mpi")
+        depends_on("py-libclang@13:", when="@2.9:")
+        depends_on("py-libclang@9.0.1:", when="@2.7:2.8")
+        depends_on("py-ml-dtypes@0.3.1:0.4", when="@2.17:")
+        depends_on("py-ml-dtypes@0.3.1:0.3", when="@2.15.1:2.16")
+        depends_on("py-ml-dtypes@0.2", when="@2.15.0")
+        depends_on("py-ml-dtypes@0.2.0", when="@2.14")
+        depends_on("py-numpy@1.23.5:", when="@2.14:")
+        depends_on("py-numpy@1.22:1.24.3", when="@2.13:")
+        depends_on("py-numpy@1.22:1.23", when="@2.12")
+        depends_on("py-numpy@1.20:", when="@2.8:2.11")
+        depends_on("py-numpy@1.14.5:", when="@2.7")
+        depends_on("py-numpy@1.19.2:1.19", when="@2.4:2.6")
+        # https://github.com/tensorflow/tensorflow/issues/40688
+        depends_on("py-numpy@1.16.0:1.18", when="@:2.3")
+        # https://github.com/tensorflow/tensorflow/issues/67291
+        depends_on("py-numpy@:1")
+        depends_on("py-opt-einsum@2.3.2:", when="@:2.3,2.7:")
+        depends_on("py-opt-einsum@3.3", when="@2.4:2.6")
+        depends_on("py-packaging", when="@2.9:")
+        depends_on("py-protobuf@3.20.3:4.20,4.21.6:4", when="@2.12:")
+        depends_on("py-protobuf@3.9.2:", when="@2.3:2.11")
+        depends_on("py-protobuf@3.8.0:", when="@:2.2")
+        # https://github.com/protocolbuffers/protobuf/issues/10051
+        # https://github.com/tensorflow/tensorflow/issues/56266
+        depends_on("py-protobuf@:3.19", when="@:2.11")
+        depends_on("py-requests@2.21:2", when="@2.16:")
+        depends_on("py-requests")
+        depends_on("py-setuptools")
+        depends_on("py-six@1.12:", when="@:2.3,2.7:")
+        depends_on("py-six@1.15", when="@2.4:2.6")
+        depends_on("py-termcolor@1.1:", when="@:2.3,2.7:")
+        depends_on("py-termcolor@1.1", when="@2.4:2.6")
+        depends_on("py-typing-extensions@3.6.6:", when="@2.7:2.12,2.14:")
+        depends_on("py-typing-extensions@3.6.6:4.5", when="@2.13")
+        depends_on("py-typing-extensions@3.7.4:3.7", when="@2.4:2.6")
+        depends_on("py-wrapt@1.11:", when="@2.7:2.11,2.13,2.16:")
+        depends_on("py-wrapt@1.11:1.14", when="@2.12,2.14:2.15")
+        depends_on("py-wrapt@1.12.1:1.12", when="@2.4:2.6")
+        depends_on("py-wrapt@1.11.1:", when="@:2.3")
 
-    if sys.byteorder == "little":
-        # Only builds correctly on little-endian machines
-        depends_on("py-grpcio@1.24.3:1", type=("build", "run"), when="@2.7:")
-        depends_on("py-grpcio@1.37.0:1", type=("build", "run"), when="@2.6")
-        depends_on("py-grpcio@1.34", type=("build", "run"), when="@2.5")
-        depends_on("py-grpcio@1.32", type=("build", "run"), when="@2.4")
-        depends_on("py-grpcio@1.8.6:", type=("build", "run"), when="@:2.3")
+        # TODO: add packages for these dependencies
+        # depends_on('py-tensorflow-io-gcs-filesystem@0.23.1:', when='@2.8:')
+        # depends_on('py-tensorflow-io-gcs-filesystem@0.21:', when='@2.7')
 
-    for minor_ver in range(5, 17):
-        depends_on(
-            "py-tensorboard@2.{}".format(minor_ver),
-            type=("build", "run"),
-            when="@2.{}".format(minor_ver),
-        )
-    # TODO: is this still true? We now install tensorboard from wheel for all versions
-    # depends_on('py-tensorboard', when='@:2.4')  # circular dep
-    # depends_on('py-tensorflow-estimator')  # circular dep
-    # depends_on('py-keras')  # circular dep
+        if sys.byteorder == "little":
+            # Only builds correctly on little-endian machines
+            depends_on("py-grpcio@1.24.3:1", when="@2.7:")
+            depends_on("py-grpcio@1.37.0:1", when="@2.6")
+            depends_on("py-grpcio@1.34", when="@2.5")
+            depends_on("py-grpcio@1.32", when="@2.4")
+            depends_on("py-grpcio@1.8.6:", when="@:2.3")
 
-    # tensorflow/tools/pip_package/build_pip_package.sh
-    depends_on("patchelf", when="@2.13: platform=linux", type="build")
-    # https://github.com/tensorflow/tensorflow/issues/60179#issuecomment-1491238631
-    depends_on("coreutils", when="@2.13: platform=darwin", type="build")
+        for minor_ver in range(2, 18):
+            depends_on("py-tensorboard@2.{}".format(minor_ver), when="@2.{}".format(minor_ver))
 
-    # No longer a dependency in latest versions
-    depends_on("py-jax@0.3.15:", type=("build", "run"), when="@2.12")
-    depends_on("py-keras-preprocessing@1.1.1:", type=("build", "run"), when="@2.7:2.10")
-    depends_on("py-keras-preprocessing@1.1.2:1.1", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-keras-preprocessing@1.1.1:1.1", type=("build", "run"), when="@2.3")
-    depends_on("py-keras-preprocessing@1.1:", type=("build", "run"), when="@2.2")
-    depends_on("py-scipy@1.4.1", type=("build", "run"), when="@2.2.0,2.3.0")
-    depends_on("py-wheel@0.32:0", type=("build", "run"), when="@2.7")
-    depends_on("py-wheel@0.35:0", type=("build", "run"), when="@2.4:2.6")
-    depends_on("py-wheel@0.26:", type=("build", "run"), when="@:2.3")
+        # TODO: support circular run-time dependencies
+        # depends_on('py-tensorflow-estimator')
+        # depends_on('py-keras')
+
+        # Historical dependencies
+        depends_on("py-jax@0.3.15:", when="@2.12")
+        depends_on("py-keras-preprocessing@1.1.1:", when="@2.7:2.10")
+        depends_on("py-keras-preprocessing@1.1.2:1.1", when="@2.4:2.6")
+        depends_on("py-keras-preprocessing@1.1.1:1.1", when="@2.3")
+        depends_on("py-keras-preprocessing@1.1:", when="@2.2")
+        depends_on("py-scipy@1.4.1", when="@2.2.0,2.3.0")
+        depends_on("py-wheel@0.32:0", when="@2.7")
+        depends_on("py-wheel@0.35:0", when="@2.4:2.6")
+        depends_on("py-wheel@0.26:", when="@:2.3")
 
     # TODO: add packages for some of these dependencies
     depends_on("mkl", when="+mkl")
@@ -271,12 +314,12 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         depends_on("cuda@:11.4", when="@2.4:2.7")
         depends_on("cuda@:10.2", when="@:2.3")
 
-        depends_on("cudnn@8.9:", when="@2.15:")
-        depends_on("cudnn@8.7:", when="@2.14:")
-        depends_on("cudnn@8.6:", when="@2.12:")
-        depends_on("cudnn@8.1:", when="@2.5:")
-        depends_on("cudnn@8.0:", when="@2.4:")
-        depends_on("cudnn@7.6:", when="@2.1:")
+        depends_on("cudnn@8.9:8", when="@2.15:")
+        depends_on("cudnn@8.7:8", when="@2.14:")
+        depends_on("cudnn@8.6:8", when="@2.12:")
+        depends_on("cudnn@8.1:8", when="@2.5:")
+        depends_on("cudnn@8.0:8", when="@2.4:")
+        depends_on("cudnn@7.6:8", when="@2.1:")
 
         depends_on("cudnn@:7", when="@:2.2")
     # depends_on('tensorrt', when='+tensorrt')
@@ -286,31 +329,15 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     # depends_on('android-sdk', when='+android')
 
     with when("+rocm"):
-        depends_on("hip")
-        depends_on("rocrand")
-        depends_on("rocblas")
-        depends_on("rocfft")
-        depends_on("hipfft")
-        depends_on("rccl", when="+nccl")
-        depends_on("hipsparse")
-        depends_on("hipcub")
-        depends_on("rocsolver")
-        depends_on("rocprim")
-        depends_on("miopen-hip")
-        depends_on("llvm-amdgpu")
-        depends_on("hsa-rocr-dev")
-        depends_on("rocminfo")
+        for pkg_dep in rocm_dependencies:
+            depends_on(f"{pkg_dep}@6.0:", when="@2.14:")
+            depends_on(pkg_dep)
 
     # Check configure and configure.py to see when these variants are supported
     conflicts("+mkl", when="platform=darwin", msg="Darwin is not yet supported")
     conflicts(
         "+jemalloc",
         when="platform=darwin",
-        msg="Currently jemalloc is only support on Linux platform",
-    )
-    conflicts(
-        "+jemalloc",
-        when="platform=cray",
         msg="Currently jemalloc is only support on Linux platform",
     )
     conflicts("+opencl", when="platform=windows")
@@ -335,32 +362,29 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         when="platform=darwin",
         msg="Currently TensorRT is only supported on Linux platform",
     )
-    conflicts(
-        "+tensorrt",
-        when="platform=cray",
-        msg="Currently TensorRT is only supported on Linux platform",
-    )
     conflicts("+nccl", when="~cuda~rocm")
     conflicts(
         "+nccl", when="platform=darwin", msg="Currently NCCL is only supported on Linux platform"
     )
-    conflicts(
-        "+nccl", when="platform=cray", msg="Currently NCCL is only supported on Linux platform"
-    )
     conflicts("+mpi", when="platform=windows")
     conflicts("+ios", when="platform=linux", msg="iOS support only available on macOS")
-    conflicts("+ios", when="platform=cray", msg="iOS support only available on macOS")
     # https://github.com/tensorflow/tensorflow/pull/45404
     conflicts("platform=darwin target=aarch64:", when="@:2.4")
     # https://github.com/tensorflow/tensorflow/pull/39225
     conflicts("target=aarch64:", when="@:2.2")
-    conflicts("~rocm", when="@2.7.4-rocm-enhanced,2.11.0-rocm-enhanced")
-    conflicts("+rocm", when="@:2.7.4-a,2.7.4.0:2.11.0-a,2.11.0.0:")
-
+    conflicts(
+        "~rocm",
+        when="@2.7.4-rocm-enhanced,2.11.0-rocm-enhanced,2.14-rocm-enhanced,2.16.1-rocm-enhanced",
+    )
+    conflicts("+rocm", when="@:2.7.4-a,2.7.4.0:2.11.0-a,2.11.0.0:2.14-a,2.14-z:2.16.1-a,2.16.1-z:")
     # wheel 0.40 upgrades vendored packaging, trips over tensorflow-io-gcs-filesystem identifier
     conflicts("^py-wheel@0.40:", when="@2.11:2.13")
 
     # https://www.tensorflow.org/install/source#tested_build_configurations
+    # https://github.com/tensorflow/tensorflow/issues/70199
+    # (-mavx512fp16 exists in gcc@12:)
+    conflicts("%gcc@13:", when="@:2.14")
+    conflicts("%gcc@:11", when="@2.17:")
     conflicts("%gcc@:9.3.0", when="@2.9:")
     conflicts("%gcc@:7.3.0")
 
@@ -403,7 +427,45 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     # and https://github.com/abseil/abseil-cpp/issues/1665
     patch("absl_neon.patch", when="@2.16.1: target=aarch64:")
 
+    # reverting change otherwise the c467913 commit patch won't apply
+    patch(
+        "https://github.com/ROCm/tensorflow-upstream/commit/fd6b0a4356c66f5f30cedbc62b24f18d9e32806f.patch?full_index=1",
+        sha256="43f1519dfc618b4fb568f760d559c063234248fa12c47a35c1cf3b7114756424",
+        when="@2.16.1-rocm-enhanced +rocm",
+        reverse=True,
+    )
+    patch(
+        "https://github.com/ROCm/tensorflow-upstream/commit/c467913bf4411ce2681391f37a9adf6031d23c2c.patch?full_index=1",
+        sha256="82554a84d19d99180a6bec274c6106dd217361e809b446e2e4bc4b6b979bdf7a",
+        when="@2.16.1-rocm-enhanced +rocm",
+    )
+    patch(
+        "https://github.com/ROCm/tensorflow-upstream/commit/f4f4e8698b90755b0b5ea2d9da1933b0b988b111.patch?full_index=1",
+        sha256="a4c0fd62a0af3ba113c8933fa531dd17fa6667e507202a144715cd87fbdaf476",
+        when="@2.16.1-rocm-enhanced: +rocm",
+    )
+    patch(
+        "https://github.com/ROCm/tensorflow-upstream/commit/8b7fcccb2914078737689347540cb79ace579bbb.patch?full_index=1",
+        sha256="75a61a79ce3aae51fda920f677f4dc045374b20e25628626eb37ca19c3a3b4c4",
+        when="@2.16.1-rocm-enhanced +rocm",
+    )
     phases = ["configure", "build", "install"]
+
+    def flag_handler(self, name, flags):
+        spec = self.spec
+        # ubuntu gcc has this workaround turned on by default in aarch64
+        # and it causes issues with symbol relocation during link
+        # note, archspec doesn't currently ever report cortex_a53!
+        if (
+            name == "ldflags"
+            and spec.target.family == "aarch64"
+            and "ubuntu" in spec.os
+            and spec.satisfies("%gcc")
+            and "cortex_a53" not in spec.target.name
+        ):
+            flags.append("-mno-fix-cortex-a53-843419")
+
+        return (flags, None, None)
 
     # https://www.tensorflow.org/install/source
     def setup_build_environment(self, env):
@@ -512,6 +574,14 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         # Do you wish to build TensorFlow with ROCm support?
         if "+rocm" in spec:
             env.set("TF_NEED_ROCM", "1")
+            env.set("TF_HIPBLASLT", "0")
+            env.set("MIOPEN_PATH", spec["miopen-hip"].prefix)
+            env.set("ROCTRACER_PATH", spec["roctracer-dev"].prefix)
+            env.set("LLVM_PATH", spec["llvm-amdgpu"].prefix)
+            for pkg_dep in rocm_dependencies:
+                pkg_dep_cap = pkg_dep.upper().replace("-", "_")
+                env.set(f"{pkg_dep_cap}_PATH", spec[pkg_dep].prefix)
+            env.set("TF_ROCM_AMDGPU_TARGETS", ",".join(self.spec.variants["amdgpu_target"].value))
         else:
             env.set("TF_NEED_ROCM", "0")
 
@@ -577,10 +647,8 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
             # Please note that each additional compute capability significantly
             # increases your build time and binary size, and that TensorFlow
             # only supports compute capabilities >= 3.5
-            capabilities = ",".join(
-                "{0:.1f}".format(float(i) / 10.0) for i in spec.variants["cuda_arch"].value
-            )
-            env.set("TF_CUDA_COMPUTE_CAPABILITIES", capabilities)
+            capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
+            env.set("TF_CUDA_COMPUTE_CAPABILITIES", ",".join(capabilities))
         else:
             env.set("TF_NEED_CUDA", "0")
 
@@ -605,7 +673,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
         # Please specify optimization flags to use during compilation when
         # bazel option '--config=opt' is specified
-        env.set("CC_OPT_FLAGS", spec.architecture.target.optimization_flags(spec.compiler))
+        env.set("CC_OPT_FLAGS", optimization_flags(self.compiler, spec.target))
 
         # Would you like to interactively configure ./WORKSPACE for
         # Android builds?
@@ -658,6 +726,14 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     def post_configure_fixes(self):
         spec = self.spec
 
+        if spec.satisfies("@2.17:"):
+            filter_file(
+                "patchelf",
+                spec["patchelf"].prefix.bin.patchelf,
+                "tensorflow/tools/pip_package/build_pip_package.py",
+                string=True,
+            )
+
         # make sure xla is actually turned off
         if spec.satisfies("~xla"):
             filter_file(
@@ -703,6 +779,18 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
             with open(".tf_configure.bazelrc", mode="a") as f:
                 f.write('build --action_env LD_LIBRARY_PATH="' + slibs + '"')
+
+        if spec.satisfies("@2.16.1-rocm-enhanced +rocm"):
+            if os.path.exists(spec["llvm-amdgpu"].prefix.bin.clang):
+                filter_file(
+                    "/usr/lib/llvm-17/bin/clang", spec["llvm-amdgpu"].prefix.bin.clang, ".bazelrc"
+                )
+            else:
+                filter_file(
+                    "/usr/lib/llvm-17/bin/clang",
+                    spec["llvm-amdgpu"].prefix.llvm.bin.clang,
+                    ".bazelrc",
+                )
 
         filter_file("build:opt --copt=-march=native", "", ".tf_configure.bazelrc")
         filter_file("build:opt --host_copt=-march=native", "", ".tf_configure.bazelrc")
@@ -769,23 +857,42 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         if "~nccl" in spec:
             args.append("--config=nonccl")
 
-        if "+numa" in spec:
-            args.append("--config=numa")
+        # https://github.com/tensorflow/tensorflow/issues/63080
+        if self.spec.satisfies("@2.14:"):
+            args.append(f"--define=with_numa_support={'+numa' in spec}")
+        else:
+            if "+numa" in spec:
+                args.append("--config=numa")
 
         args.append("--config=v2")
 
-        args.append("//tensorflow/tools/pip_package:build_pip_package")
+        # https://github.com/tensorflow/tensorflow/issues/63298
+        if self.spec.satisfies("@2.17:"):
+            args.append("//tensorflow/tools/pip_package:wheel")
+        else:
+            args.append("//tensorflow/tools/pip_package:build_pip_package")
 
         bazel(*args)
 
-        build_pip_package = Executable("bazel-bin/tensorflow/tools/pip_package/build_pip_package")
-        buildpath = join_path(self.stage.source_path, "spack-build")
-        build_pip_package("--src", buildpath)
+        if self.spec.satisfies("@:2.16"):
+            build_pip_package = Executable(
+                "bazel-bin/tensorflow/tools/pip_package/build_pip_package"
+            )
+            buildpath = join_path(self.stage.source_path, "spack-build")
+            build_pip_package("--src", buildpath)
 
     def install(self, spec, prefix):
         tmp_path = env["TEST_TMPDIR"]
-        buildpath = join_path(self.stage.source_path, "spack-build")
-        with working_dir(buildpath):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+        if self.spec.satisfies("@2.17:"):
+            buildpath = join_path(
+                self.stage.source_path, "bazel-bin/tensorflow/tools/pip_package/wheel_house/"
+            )
+            with working_dir(buildpath):
+                wheel = glob.glob("*.whl")[0]
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", wheel)
+        else:
+            buildpath = join_path(self.stage.source_path, "spack-build")
+            with working_dir(buildpath):
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
+
         remove_linked_tree(tmp_path)

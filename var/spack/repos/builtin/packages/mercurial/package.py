@@ -16,6 +16,7 @@ class Mercurial(PythonPackage):
 
     license("GPL-2.0-or-later")
 
+    version("6.7.3", sha256="00196944ea92738809317dc7a8ed7cb21287ca0a00a85246e66170955dcd9031")
     version("6.6.3", sha256="f75d6a4a75823a1b7d713a4967eca2f596f466e58fc6bc06d72642932fd7e307")
     version("6.4.5", sha256="b0b4b00b8b2639c8be387394796f0425beb339314df7e72937f8ddd2a41b1b8a")
     version("6.3.3", sha256="13c97ff589c7605e80a488f336852ce1d538c5d4143cfb33be69bdaddd9157bd")
@@ -27,6 +28,9 @@ class Mercurial(PythonPackage):
     version("5.7", sha256="609c3e7c9276dd75b03b713eccc10f5e0553001f35ae21600bcea1509699c601")
     version("5.6.1", sha256="e55c254f4904c45226a106780e57f4279aee03368f6ff6a981d5d2a38243ffad")
     version("5.3", sha256="e57ff61d6b67695149dd451922b40aa455ab02e01711806a131a1e95c544f9b9")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python+bz2+ssl+zlib", type=("build", "run"))
     depends_on("python@3.5:", when="@5.2:", type=("build", "run"))

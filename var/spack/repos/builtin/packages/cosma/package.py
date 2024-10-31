@@ -36,6 +36,8 @@ class Cosma(CMakePackage):
     version("2.0.7", sha256="8d70bfcbda6239b6a8fbeaca138790bbe58c0c3aa576879480d2632d4936cf7e")
     version("2.0.2", sha256="4f3354828bc718f3eef2f0098c3bdca3499297497a220da32db1acd57920c68d")
 
+    depends_on("cxx", type="build")  # generated
+
     # We just need the libraries of cuda and rocm, so no need to extend
     # CudaPackage or ROCmPackage.
     variant("cuda", default=False, description="Build with cuBLAS support")
@@ -81,7 +83,7 @@ class Cosma(CMakePackage):
     patch("fj-ssl2.patch", when="^fujitsu-ssl2")
 
     def setup_build_environment(self, env):
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             env.set("CUDA_PATH", self.spec["cuda"].prefix)
 
     def cosma_blas_cmake_arg(self):
@@ -110,11 +112,11 @@ class Cosma(CMakePackage):
     def cosma_scalapack_cmake_arg(self):
         spec = self.spec
 
-        if "~scalapack" in spec:
+        if spec.satisfies("~scalapack"):
             return "OFF"
-        elif "^intel-mkl" in spec or "^intel-oneapi-mkl" in spec:
+        elif spec.satisfies("^intel-mkl") or spec.satisfies("^intel-oneapi-mkl"):
             return "MKL"
-        elif "^cray-libsci" in spec:
+        elif spec.satisfies("^cray-libsci"):
             return "CRAY_LIBSCI"
 
         return "CUSTOM"

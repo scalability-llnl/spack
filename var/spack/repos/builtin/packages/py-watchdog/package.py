@@ -26,6 +26,8 @@ class PyWatchdog(PythonPackage):
     version("0.8.0", sha256="a86bb2d8b94bb4bf76fcc2ff36f741c0e511ec24c4d3a1059b47d49e377d64f5")
     version("0.7.1", sha256="54ca64fdf0a2fb23cecba6349f9587e62fd31840ae22a71898a65adb8c6b52f9")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "watchmedo",
         default=False,

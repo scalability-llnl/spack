@@ -33,6 +33,8 @@ class Cgal(CMakePackage):
     version("4.7", sha256="50bd0a1cad7a8957b09012f831eebaf7d670e2a3467e8f365ec0c71fa5436369")
     version("4.6.3", sha256="e338027b8767c0a7a6e4fd8679182d1b83b5b1a0da0a1fe4546e7c0ca094fc21")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Enables the build of shared libraries")
     variant(
         "build_type",
@@ -102,7 +104,7 @@ class Cgal(CMakePackage):
         env.set("BOOST_INCLUDEDIR", spec["boost"].headers.directories[0])
         env.set("BOOST_LIBRARYDIR", spec["boost"].libs.directories[0])
 
-        if "+eigen" in spec:
+        if spec.satisfies("+eigen"):
             env.set("EIGEN3_INC_DIR", spec["eigen"].headers.directories[0])
 
     def cmake_args(self):

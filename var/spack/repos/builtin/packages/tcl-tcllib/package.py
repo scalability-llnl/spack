@@ -27,4 +27,7 @@ class TclTcllib(AutotoolsPackage):
     version("1.15", sha256="6d308980d9dace24c6252b96223c1646e83795ba03dbf996525ad27e1b56bffd")
     version("1.14", sha256="dd149fcb37ceb04da83531276a9d7563827807dcee49f9b9f63bedea9e130584")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     extends("tcl")

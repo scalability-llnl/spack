@@ -14,8 +14,11 @@ import pytest
 
 from llnl.path import path_to_os_path
 
+import spack.hash_types
 import spack.paths
 import spack.repo
+import spack.spec
+import spack.util.file_cache
 from spack.directory_layout import DirectoryLayout, InvalidDirectoryLayoutParametersError
 from spack.spec import Spec
 
@@ -146,7 +149,7 @@ def test_read_and_write_spec(temporary_store, config, mock_packages):
         assert not os.path.exists(install_dir)
 
 
-def test_handle_unknown_package(temporary_store, config, mock_packages):
+def test_handle_unknown_package(temporary_store, config, mock_packages, tmp_path):
     """This test ensures that spack can at least do *some*
     operations with packages that are installed but that it
     does not know about.  This is actually not such an uncommon
@@ -158,7 +161,9 @@ def test_handle_unknown_package(temporary_store, config, mock_packages):
     or query them again if the package goes away.
     """
     layout = temporary_store.layout
-    mock_db = spack.repo.RepoPath(spack.paths.mock_packages_path)
+
+    repo_cache = spack.util.file_cache.FileCache(str(tmp_path / "cache"))
+    mock_db = spack.repo.RepoPath(spack.paths.mock_packages_path, cache=repo_cache)
 
     not_in_mock = set.difference(
         set(spack.repo.all_package_names()), set(mock_db.all_package_names())

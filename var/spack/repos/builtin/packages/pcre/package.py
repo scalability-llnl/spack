@@ -27,6 +27,9 @@ class Pcre(AutotoolsPackage, CMakePackage):
     version("8.39", sha256="b858099f82483031ee02092711689e7245586ada49e534a06e678b8ea9549e8b")
     version("8.38", sha256="b9e02d36e23024d6c02a2e5b25204b3a4fa6ade43e0a5f869f254f49535079df")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     maintainers("drkennetz")
     patch("intel.patch", when="@8.38")
 
@@ -53,6 +56,10 @@ class Pcre(AutotoolsPackage, CMakePackage):
 
     variant("pic", default=True, description="Enable position-independent code (PIC)")
     requires("+pic", when="+shared build_system=autotools")
+
+    with when("build_system=cmake"):
+        depends_on("zlib")
+        depends_on("bzip2")
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):

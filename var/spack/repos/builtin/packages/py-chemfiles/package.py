@@ -18,11 +18,14 @@ class PyChemfiles(PythonPackage):
 
     version("0.10.3", sha256="4bbb8b116492a57dbf6ddb4c84aad0133cd782e0cc0e53e4b957f2d93e6806ea")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("chemfiles@0.10.3+shared", when="@0.10.3")
 
     depends_on("py-numpy", type=("build", "run"))
 
     depends_on("py-setuptools@44:", type="build")
     depends_on("py-wheel@0.36:", type="build")
-    depends_on("py-cmake", type="build")
-    depends_on("py-ninja", type="build")
+    depends_on("cmake", type="build")
+    depends_on("ninja", type="build")

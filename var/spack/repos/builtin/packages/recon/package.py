@@ -19,6 +19,8 @@ class Recon(MakefilePackage):
 
     version("1.05", sha256="4d4f76f439bcffd50380cffc41a80dc15fa4a80f38a04234e24da893ed7c025a")
 
+    depends_on("c", type="build")  # generated
+
     variant("repeatmasker", default=False, description="Use RepeatMasker developer patches (1.08)")
 
     patch("repeatmasker_recon.patch", when="+repeatmasker")

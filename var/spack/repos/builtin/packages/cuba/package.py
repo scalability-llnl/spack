@@ -20,4 +20,8 @@ class Cuba(AutotoolsPackage):
 
     version("4.2.2", sha256="8d9f532fd2b9561da2272c156ef7be5f3960953e4519c638759f1b52fe03ed52")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     parallel = False

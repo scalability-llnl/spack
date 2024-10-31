@@ -21,6 +21,8 @@ class Nemsiogfs(CMakePackage):
     version("develop", branch="develop")
     version("2.5.3", sha256="bf84206b08c8779787bef33e4aba18404df05f8b2fdd20fc40b3af608ae4b9af")
 
+    depends_on("fortran", type="build")
+
     depends_on("nemsio")
 
     def check(self):

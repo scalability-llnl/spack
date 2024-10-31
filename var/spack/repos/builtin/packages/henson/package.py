@@ -16,6 +16,9 @@ class Henson(CMakePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     maintainers("mrzv")
 
     depends_on("mpi")

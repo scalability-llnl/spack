@@ -115,15 +115,11 @@ def audit(parser, args):
 def _process_reports(reports):
     for check, errors in reports:
         if errors:
-            msg = "{0}: {1} issue{2} found".format(
-                check, len(errors), "" if len(errors) == 1 else "s"
-            )
-            header = "@*b{" + msg + "}"
-            print(cl.colorize(header))
+            status = f"{len(errors)} issue{'' if len(errors) == 1 else 's'} found"
+            print(cl.colorize(f"{check}: @*r{{{status}}}"))
+            numdigits = len(str(len(errors)))
             for idx, error in enumerate(errors):
-                print(str(idx + 1) + ". " + str(error))
+                print(f"{idx + 1:>{numdigits}}. {error}")
             raise SystemExit(1)
         else:
-            msg = "{0}: 0 issues found.".format(check)
-            header = "@*b{" + msg + "}"
-            print(cl.colorize(header))
+            print(cl.colorize(f"{check}: @*g{{passed}}"))

@@ -21,6 +21,8 @@ class EsysParticle(CMakePackage):
 
     version("3.0-alpha", sha256="4fba856a95c93991cacb904e6a54a7ded93558f7adc8c3e6da99bc347843a434")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")
     depends_on("boost@1.71.0+python")
     depends_on("python@3.6:")

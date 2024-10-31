@@ -24,6 +24,8 @@ class Qscintilla(QMakePackage):
     version("2.13.3", sha256="711d28e37c8fccaa8229e8e39a5b3b2d97f3fffc63da10b71c71b84fa3649398")
     version("2.12.0", sha256="2116181cce3076aa4897e36182532d0e6768081fb0cf6dcdd5be720519ab1434")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("designer", default=False, description="Enable pluging for Qt-Designer")
     variant("python", default=False, description="Build python bindings")
 
@@ -135,11 +137,12 @@ class Qscintilla(QMakePackage):
             make("install", "-C", "build/")
 
     def test_python_import(self):
-        if "+python" in self.spec:
-            python = self.spec["python"].command
-            if "^py-pyqt5" in self.spec:
-                python("-c", "import PyQt5.Qsci")
-            if "^py-pyqt6" in self.spec:
-                python("-c", "import PyQt6.Qsci")
-        else:
-            print("qscintilla ins't built with python, skipping import test")
+        """check Qsci import"""
+        if self.spec.satisfies("~python"):
+            raise SkipTest("Package must be installed with +python")
+
+        python = self.spec["python"].command
+        if "^py-pyqt5" in self.spec:
+            python("-c", "import PyQt5.Qsci")
+        if "^py-pyqt6" in self.spec:
+            python("-c", "import PyQt6.Qsci")

@@ -17,6 +17,9 @@ class NcbiVdb(CMakePackage):
     version("3.0.2", tag="3.0.2", commit="c4aa19632714c2f04af07505721fb16c71bba3d5")
     version("3.0.0", tag="3.0.0", commit="2222d7727122d0cbad93344dd6a9044abff34280")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("openjdk")
     depends_on("flex@2.6:")
     depends_on("libxml2")

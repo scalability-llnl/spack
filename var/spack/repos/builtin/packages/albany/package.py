@@ -14,12 +14,14 @@ class Albany(CMakePackage):
     including fluid mechanics, solid mechanics (elasticity and plasticity),
     ice-sheet flow, quantum device modeling, and many other applications."""
 
-    homepage = "http://gahansen.github.io/Albany"
+    homepage = "https://gahansen.github.io/Albany"
     git = "https://github.com/gahansen/Albany.git"
 
     maintainers("gahansen")
 
     version("develop", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("lcm", default=True, description="Enable LCM")
     variant("aeras", default=False, description="Enable AERAS")

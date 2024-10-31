@@ -18,5 +18,6 @@ class PerlPathTiny(PerlPackage):
 
     license("Apache-2.0")
 
+    version("0.146", sha256="861ef09bca68254e9ab24337bb6ec9d58593a792e9d68a27ee6bec2150f06741")
     version("0.144", sha256="f6ea094ece845c952a02c2789332579354de8d410a707f9b7045bd241206487d")
     version("0.108", sha256="3c49482be2b3eb7ddd7e73a5b90cff648393f5d5de334ff126ce7a3632723ff5")

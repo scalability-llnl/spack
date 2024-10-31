@@ -47,6 +47,8 @@ class MochiThallium(CMakePackage):
     version("0.3.1", sha256="61403b1ba5f4d205408e6a7e04c785df6dea02f59fe9fa1742db05aa752cc8a0")
     version("0.3", sha256="4f9f78e52c1725f6ea5f933d7548bde36729dd9eff08f58fe7fe40682bc5f748")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "cereal",
         default=True,

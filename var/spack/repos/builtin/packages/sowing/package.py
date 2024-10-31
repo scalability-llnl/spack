@@ -23,5 +23,9 @@ class Sowing(AutotoolsPackage):
     version("1.1.25-p1", sha256="c3a5bb170fffeeb1405ec4c3a048744a528d2bef24de29b6ac5e970cfeaddab5")
     version("1.1.23-p1", sha256="3e36f59e06fccbbf7b78d185c5654edaf70cf76f1c584bcbf08c39d7f29125e8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     def build(self, spec, prefix):
         make("ALL", parallel=False)

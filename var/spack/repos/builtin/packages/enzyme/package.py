@@ -24,6 +24,7 @@ class Enzyme(CMakePackage):
     root_cmakelists_dir = "enzyme"
 
     version("main", branch="main")
+    version("0.0.135", sha256="49c798534faec7ba524a3ed053dd4352d690a44d3cad5a14915c9398dc9b175b")
     version("0.0.100", sha256="fbc53ec02adc0303ff200d7699afface2d9fbc7350664e6c6d4c527ef11c2e82")
     version("0.0.81", sha256="4c17d0c28f0572a3ab97a60f1e56bbc045ed5dd64c2daac53ae34371ca5e8b34")
     version("0.0.69", sha256="144d964187551700fdf0a4807961ceab1480d4e4cd0bb0fc7bbfab48fe053aa2")
@@ -32,6 +33,10 @@ class Enzyme(CMakePackage):
     version("0.0.15", sha256="1ec27db0d790c4507b2256d851b256bf7e074eec933040e9e375d6e352a3c159")
     version("0.0.14", sha256="740641eeeeadaf47942ac88cc52e62ddc0e8c25767a501bed36ec241cf258b8d")
     version("0.0.13", sha256="d4a53964ec1f763772db2c56e6734269b7656c8b2ecd41fa7a41315bcd896b5a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("llvm@7:12", when="@0.0.13:0.0.15")
     depends_on("llvm@7:14", when="@0.0.32:0.0.47")

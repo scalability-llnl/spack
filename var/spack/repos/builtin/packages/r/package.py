@@ -20,8 +20,11 @@ class R(AutotoolsPackage):
 
     extendable = True
 
+    executables = ["^R$"]
+
     license("GPL-2.0-or-later")
 
+    version("4.4.1", sha256="b4cb675deaaeb7299d3b265d218cde43f192951ce5b89b7bb1a5148a36b2d94d")
     version("4.4.0", sha256="ace4125f9b976d2c53bcc5fca30c75e30d4edc401584859cbadb080e72b5f030")
     version("4.3.3", sha256="80851231393b85bf3877ee9e39b282e750ed864c5ec60cbd68e6e139f0520330")
     version("4.3.2", sha256="b3f5760ac2eee8026a3f0eefcb25b47723d978038eee8e844762094c860c452a")
@@ -65,6 +68,9 @@ class R(AutotoolsPackage):
     version("3.2.0", sha256="f5ae953f18ba6f3d55b46556bbbf73441350f9fd22625402b723a2b81ff64f35")
     version("3.1.3", sha256="07e98323935baa38079204bfb9414a029704bb9c0ca5ab317020ae521a377312")
     version("3.1.2", sha256="bcd150afcae0e02f6efb5f35a6ab72432be82e849ec52ce0bb89d8c342a8fa7a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("X", default=False, description="Enable X11 support (TCLTK, PNG, JPEG, TIFF, CAIRO)")
     variant("memory_profiling", default=False, description="Enable memory profiling")
@@ -122,6 +128,24 @@ class R(AutotoolsPackage):
     )
 
     build_directory = "spack-build"
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)("--version", output=str, error=str)
+        # R version 4.3.3 (2024-02-29) -- "Angel Food Cake"
+        match = re.search(r"^R version ([^\s]+)", output)
+        return match.group(1) if match else None
+
+    @classmethod
+    def determine_variants(cls, exes, version):
+        variants = []
+        for exe in exes:
+            output = Executable(exe)("CMD", "config", "--all", output=str, error=str)
+
+            if "-lX11" in output:
+                variants.append("+X")
+
+        return variants
 
     # R custom URL version
     def url_for_version(self, version):
@@ -273,8 +297,3 @@ class R(AutotoolsPackage):
 
         # Add variable for library directry
         module.r_lib_dir = join_path(dependent_spec.prefix, self.r_lib_dir)
-
-        # Make the site packages directory for extensions, if it does not exist
-        # already.
-        if dependent_spec.package.is_extension:
-            mkdirp(module.r_lib_dir)

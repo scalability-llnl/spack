@@ -23,6 +23,9 @@ class Pmemkv(CMakePackage):
     version("1.0.3", sha256="cae393a01ba69364271c5894046bf2c611f677ac88012f2473fadf6fcd20ff29")
     version("1.0.2", sha256="a0cbbb60c0342d6fd0b73d2cee1a1423c6a894b8d21daf669016809961fe23b8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libpmemobj-cpp@develop", when="@master")
     depends_on("libpmemobj-cpp@1.12:", when="@1.4:")
     depends_on("libpmemobj-cpp@1.11:", when="@1.3:")

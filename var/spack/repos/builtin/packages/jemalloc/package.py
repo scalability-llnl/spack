@@ -26,6 +26,9 @@ class Jemalloc(AutotoolsPackage):
     version("4.1.0", sha256="fad06d714f72adb4265783bc169c6d98eeb032d57ba02d87d1dcb4a2d933ec8e")
     version("4.0.4", sha256="3fda8d8d7fcd041aa0bebbecd45c46b28873cf37bd36c56bf44961b36d0f42d0")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("stats", default=False, description="Enable heap statistics")
     variant("prof", default=False, description="Enable heap profiling")
     variant(

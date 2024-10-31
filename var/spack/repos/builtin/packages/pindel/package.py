@@ -22,6 +22,8 @@ class Pindel(MakefilePackage):
     version("0.2.5a7", sha256="0a270483dee9ef617d422eb61d3478334ee8f55e952d0a439529c2b21fcf8fb4")
     version("0.2.5", sha256="9908940d090eff23d940c3b6f2f6b3fc2bb1fd3b7a2d553cc81eed240a23fd9f")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("htslib@1.7:")
 
     # GCC > 4.8 seems to dislike calling abs on an unsigned integer

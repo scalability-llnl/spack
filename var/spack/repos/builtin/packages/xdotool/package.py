@@ -30,6 +30,8 @@ class Xdotool(MakefilePackage):
         "3.20150503.1", sha256="e8326883bd5e91bede7336cbee186e6e9143f40b3fb61c84afc9bb31b87e96d1"
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxext")
     depends_on("libxtst")
     depends_on("libxi")

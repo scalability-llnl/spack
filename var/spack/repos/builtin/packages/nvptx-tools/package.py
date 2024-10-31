@@ -19,6 +19,9 @@ class NvptxTools(AutotoolsPackage):
     version("2021-05-21", commit="d0524fbdc86dfca068db5a21cc78ac255b335be5")
     version("2018-03-01", commit="5f6f343a302d620b0868edab376c00b15741e39e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("binutils")
     depends_on("cuda")
 

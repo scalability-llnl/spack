@@ -9,10 +9,13 @@ import pytest
 
 import archspec.cpu
 
+import spack.config
 import spack.environment as ev
 import spack.main
+import spack.modules.common
 import spack.modules.lmod
 import spack.spec
+import spack.util.environment
 
 mpich_spec_string = "mpich@3.0.4"
 mpileaks_spec_string = "mpileaks"
@@ -48,7 +51,7 @@ def provider(request):
     return request.param
 
 
-@pytest.mark.usefixtures("config", "mock_packages")
+@pytest.mark.usefixtures("mutable_config", "mock_packages")
 class TestLmod:
     @pytest.mark.regression("37788")
     @pytest.mark.parametrize("modules_config", ["core_compilers", "core_compilers_at_equal"])
@@ -355,7 +358,6 @@ class TestLmod:
         content = modulefile_content(f"mpileaks target={host_architecture_str}")
         assert "Override even better!" in content
 
-    @pytest.mark.usefixtures("config")
     def test_external_configure_args(self, factory):
         # If this package is detected as an external, its configure option line
         # in the module file starts with 'unknown'

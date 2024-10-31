@@ -22,7 +22,23 @@ class LinaroForge(Package):
     homepage = "https://www.linaroforge.com"
     maintainers("kenche-linaro")
 
-    if platform.machine() in ["aarch64", "arm64"]:
+    if platform.machine() == "aarch64":
+        version(
+            "24.0.5", sha256="fc0c80ce9f66c6966faaca77de0f13e26da564c853e5bfc1e8acd17b65bc2ba0"
+        )
+        version(
+            "24.0.4", sha256="d126e4690f7c9bf21e541721dac51dcee1f336a882211426bf98a15d80671e3d"
+        )
+        version(
+            "24.0.3", sha256="5030c5c23824963f82e94ed606e47cce802393fa4cb7757966818baa7012aa21"
+        )
+        version(
+            "24.0.2", sha256="8346eb0375910498a83baff6833256c8221c2c06737670687bcf9f1497d9ede9"
+        )
+        version(
+            "24.0.1", sha256="d9d8e8fd56894032ea98a5ff7885c16c0522a192d9cbf4e131581c65e34efb82"
+        )
+        version("24.0", sha256="ee631177f5289127f0d3d99b600d437b4bd40c34c1c15388288b72543dc420ad")
         version(
             "23.1.2", sha256="8c01f4768a8f784f0bfa78c82dbd39e5077bbc6880b6f3c3704019eecfca5b3a"
         )
@@ -50,6 +66,7 @@ class LinaroForge(Package):
             "21.1.3", sha256="4a4ff7372aad5a31fc9e18b7b6c493691ab37d8d44a3158584e62d1ab82b0eeb"
         )
     elif platform.machine() == "ppc64le":
+        # N.B. support for ppc64le was dropped in 24.0
         version(
             "23.1.2", sha256="5c588a6b7391d75cced4016936d0c5a00023431269339432738ff33b860487b3"
         )
@@ -80,6 +97,22 @@ class LinaroForge(Package):
             "21.1.3", sha256="eecbc5686d60994c5468b2d7cd37bebe5d9ac0ba37bd1f98fbfc69b071db541e"
         )
     elif platform.machine() == "x86_64":
+        version(
+            "24.0.5", sha256="da0d4d6fa9120b5e7c4a248795b7f5da32c4987588ecb7406213c8c9846af2bc"
+        )
+        version(
+            "24.0.4", sha256="001e7b7cd796d8e807971b99a9ca233c24f8fcd6eee4e9b4bbb0ec8560d44f08"
+        )
+        version(
+            "24.0.3", sha256="1796559fb86220d5e17777215d3820f4b04aba271782276b81601d5065284526"
+        )
+        version(
+            "24.0.2", sha256="e2ad12273d568560e948a9bcdd49b830a2309f247b146bf36579053f99ec59a3"
+        )
+        version(
+            "24.0.1", sha256="70aa6b610d181c12be10e57d2fd3439261e2c6cb23d9f1f33303b85f04cb7bf2"
+        )
+        version("24.0", sha256="5976067e3de14d0838e1069021a4a4a96d048824454668779473ff0776d66a01")
         version(
             "23.1.2", sha256="675d2d8e4510afefa0405eecb46ac8bf440ff35a5a40d5507dc12d29678a22bf"
         )

@@ -23,6 +23,8 @@ class RC50(RPackage):
     version("0.1.1", sha256="03bc1fc2f64bcd5c680568a24902deafab1965074a66f8802bc4cd0335bd01df")
     version("0.1.0-24", sha256="617ee8ae617a075213414c07739ce92d9e6927783d01588fd0e2315157065e9d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10.0:", type=("build", "run"))
     depends_on("r-partykit", type=("build", "run"))
     depends_on("r-cubist@0.2.1:", type=("build", "run"))

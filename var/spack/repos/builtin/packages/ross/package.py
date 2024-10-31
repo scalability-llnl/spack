@@ -25,6 +25,8 @@ class Ross(CMakePackage):
     version("7.0.0", sha256="fd16be2c86d9d71ae64eef67c02933471ab758c8a5b01b04fe358d9228fc581e")
     version("6.0.0", sha256="07ff70518a58503e116bb7386f490e901212798afdd471da1bcd34f78a7e6030")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
     depends_on("cmake@3.5:", when="@7.0.1:", type="build")
 

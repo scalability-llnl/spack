@@ -24,9 +24,12 @@ class GobjectIntrospection(MesonPackage, AutotoolsPackage):
     version("1.76.1", sha256="196178bf64345501dcdc4d8469b36aa6fe80489354efe71cb7cb8ab82a3738bf")
     version("1.72.1", sha256="012e313186e3186cf0fde6decb57d970adf90e6b1fac5612fe69cbb5ba99543a")
     version("1.72.0", sha256="02fe8e590861d88f83060dd39cda5ccaa60b2da1d21d0f95499301b186beaabc")
+    version("1.60.2", sha256="ffdfe2368fb2e34a547898b01aac0520d52d8627fdeb1c306559bcb503ab5e9c")
     version("1.56.1", sha256="5b2875ccff99ff7baab63a34b67f8c920def240e178ff50add809e267d9ea24b")
     version("1.49.2", sha256="73d59470ba1a546b293f54d023fd09cca03a951005745d86d586b9e3a8dde9ac")
     version("1.48.0", sha256="fa275aaccdbfc91ec0bc9a6fd0562051acdba731e7d584b64a277fec60e75877")
+
+    depends_on("c", type="build")  # generated
 
     build_system(
         conditional("autotools", when="@:1.60"),
@@ -44,7 +47,7 @@ class GobjectIntrospection(MesonPackage, AutotoolsPackage):
     depends_on("cairo+gobject")
     depends_on("glib@2.78:", when="@1.78")
     depends_on("glib@2.76:", when="@1.76")
-    depends_on("glib@2.58:", when="@1.72")
+    depends_on("glib@2.58:", when="@1.60:1.72")
     depends_on("glib@2.56:", when="@1.56")
     depends_on("glib@2.49.2:", when="@1.49.2")
     depends_on("glib@2.48.1", when="@1.48.0")
@@ -74,7 +77,10 @@ class GobjectIntrospection(MesonPackage, AutotoolsPackage):
     #   extra sed expression in its TOOL_SUBSTITUTION that results in
     #   an `#!/bin/bash /path/to/spack/bin/sbang` unconditionally being
     #   inserted into the scripts as they're generated.
-    patch("sbang.patch", when="@:1.60")
+    patch("sbang.patch", when="@:1.56")
+    # The TOOL_SUBSITUTION line changed after 1.58 to include /usr/bin/env in
+    # the Python substituion more explicitly. The Makefile.am was removed in 1.61.
+    patch("sbang-1.60.2.patch", when="@1.58:1.60")
 
     # Drop deprecated xml.etree.ElementTree.Element.getchildren() which leads
     # to compilation issues with Python 3.9.
@@ -84,6 +90,12 @@ class GobjectIntrospection(MesonPackage, AutotoolsPackage):
         "1f9284228092b2a7200e8a78bc0ea6702231c6db.diff",
         sha256="dcb9e7c956dff49c3a73535829382e8662fa6bd13bdfb416e8eac47b2604fa0a",
         when="@:1.63.1",
+    )
+
+    conflicts(
+        "^python@3.11:",
+        when="@:1.60",
+        msg="giscannermodule.c in <=v1.60 uses syntax incompatible with Python >=3.11",
     )
 
     def url_for_version(self, version):

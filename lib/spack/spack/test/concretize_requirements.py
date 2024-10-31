@@ -7,22 +7,17 @@ import pathlib
 
 import pytest
 
-import spack.build_systems.generic
 import spack.config
 import spack.error
 import spack.package_base
 import spack.repo
+import spack.solver.asp
 import spack.util.spack_yaml as syaml
 import spack.version
+from spack.installer import PackageInstaller
 from spack.solver.asp import InternalConcretizerError, UnsatisfiableSpecError
 from spack.spec import Spec
-from spack.test.conftest import create_test_repo
 from spack.util.url import path_to_file_url
-
-pytestmark = [
-    pytest.mark.not_on_windows("Windows uses old concretizer"),
-    pytest.mark.only_clingo("Original concretizer does not support configuration requirements"),
-]
 
 
 def update_packages_config(conf_str):
@@ -30,94 +25,11 @@ def update_packages_config(conf_str):
     spack.config.set("packages", conf["packages"], scope="concretize")
 
 
-_pkgx = (
-    "x",
-    """\
-class X(Package):
-    version("1.1")
-    version("1.0")
-    version("0.9")
-
-    variant("shared", default=True,
-            description="Build shared libraries")
-
-    depends_on("y")
-""",
-)
-
-
-_pkgy = (
-    "y",
-    """\
-class Y(Package):
-    version("2.5")
-    version("2.4")
-    version("2.3", deprecated=True)
-
-    variant("shared", default=True,
-            description="Build shared libraries")
-""",
-)
-
-
-_pkgv = (
-    "v",
-    """\
-class V(Package):
-    version("2.1")
-    version("2.0")
-""",
-)
-
-
-_pkgt = (
-    "t",
-    """\
-class T(Package):
-    version('2.1')
-    version('2.0')
-
-    depends_on('u', when='@2.1:')
-""",
-)
-
-
-_pkgu = (
-    "u",
-    """\
-class U(Package):
-    version('1.1')
-    version('1.0')
-""",
-)
-
-
 @pytest.fixture
-def _create_test_repo(tmpdir, mutable_config):
-    yield create_test_repo(tmpdir, [_pkgx, _pkgy, _pkgv, _pkgt, _pkgu])
-
-
-@pytest.fixture
-def test_repo(_create_test_repo, monkeypatch, mock_stage):
-    with spack.repo.use_repositories(_create_test_repo) as mock_repo_path:
+def test_repo(mutable_config, monkeypatch, mock_stage):
+    repo_dir = pathlib.Path(spack.paths.repos_path) / "requirements.test"
+    with spack.repo.use_repositories(str(repo_dir)) as mock_repo_path:
         yield mock_repo_path
-
-
-class MakeStage:
-    def __init__(self, stage):
-        self.stage = stage
-
-    def __call__(self, *args, **kwargs):
-        return self.stage
-
-
-@pytest.fixture
-def fake_installs(monkeypatch, tmpdir):
-    stage_path = str(tmpdir.ensure("fake-stage", dir=True))
-    universal_unused_stage = spack.stage.DIYStage(stage_path)
-    monkeypatch.setattr(
-        spack.build_systems.generic.Package, "_make_stage", MakeStage(universal_unused_stage)
-    )
 
 
 def test_one_package_multiple_reqs(concretize_scope, test_repo):
@@ -160,7 +72,7 @@ packages:
     require: "@1.2"
 """
     update_packages_config(conf_str)
-    with pytest.raises(spack.config.ConfigError):
+    with pytest.raises(spack.error.ConfigError):
         Spec("x").concretize()
 
 
@@ -514,23 +426,24 @@ packages:
     assert s2.satisfies("@2.5")
 
 
-def test_reuse_oneof(concretize_scope, _create_test_repo, mutable_database, fake_installs):
+def test_reuse_oneof(concretize_scope, test_repo, tmp_path, mock_fetch):
     conf_str = """\
 packages:
   y:
     require:
-    - one_of: ["@2.5", "%gcc"]
+    - one_of: ["@2.5", "~shared"]
 """
 
-    with spack.repo.use_repositories(_create_test_repo):
-        s1 = Spec("y@2.5%gcc").concretized()
-        s1.package.do_install(fake=True, explicit=True)
+    store_dir = tmp_path / "store"
+    with spack.store.use_store(str(store_dir)):
+        s1 = Spec("y@2.5 ~shared").concretized()
+        PackageInstaller([s1.package], fake=True, explicit=True).install()
 
         update_packages_config(conf_str)
 
         with spack.config.override("concretizer:reuse", True):
             s2 = Spec("y").concretized()
-            assert not s2.satisfies("@2.5 %gcc")
+            assert not s2.satisfies("@2.5 ~shared")
 
 
 @pytest.mark.parametrize(
@@ -569,13 +482,11 @@ packages:
 @pytest.mark.parametrize("spec_str,requirement_str", [("x", "%gcc"), ("x", "%clang")])
 def test_default_requirements_with_all(spec_str, requirement_str, concretize_scope, test_repo):
     """Test that default requirements are applied to all packages."""
-    conf_str = """\
+    conf_str = f"""\
 packages:
   all:
-    require: "{}"
-""".format(
-        requirement_str
-    )
+    require: "{requirement_str}"
+"""
     update_packages_config(conf_str)
 
     spec = Spec(spec_str).concretized()
@@ -596,15 +507,13 @@ def test_default_and_package_specific_requirements(
     """Test that specific package requirements override default package requirements."""
     generic_req, specific_req = requirements
     generic_exp, specific_exp = expectations
-    conf_str = """\
+    conf_str = f"""\
 packages:
   all:
-    require: "{}"
+    require: "{generic_req}"
   x:
-    require: "{}"
-""".format(
-        generic_req, specific_req
-    )
+    require: "{specific_req}"
+"""
     update_packages_config(conf_str)
 
     spec = Spec("x").concretized()
@@ -615,13 +524,11 @@ packages:
 
 @pytest.mark.parametrize("mpi_requirement", ["mpich", "mpich2", "zmpi"])
 def test_requirements_on_virtual(mpi_requirement, concretize_scope, mock_packages):
-    conf_str = """\
+    conf_str = f"""\
 packages:
   mpi:
-    require: "{}"
-""".format(
-        mpi_requirement
-    )
+    require: "{mpi_requirement}"
+"""
     update_packages_config(conf_str)
 
     spec = Spec("callpath").concretized()
@@ -636,15 +543,13 @@ packages:
 def test_requirements_on_virtual_and_on_package(
     mpi_requirement, specific_requirement, concretize_scope, mock_packages
 ):
-    conf_str = """\
+    conf_str = f"""\
 packages:
   mpi:
-    require: "{0}"
-  {0}:
-    require: "{1}"
-""".format(
-        mpi_requirement, specific_requirement
-    )
+    require: "{mpi_requirement}"
+  {mpi_requirement}:
+    require: "{specific_requirement}"
+"""
     update_packages_config(conf_str)
 
     spec = Spec("callpath").concretized()
@@ -944,9 +849,9 @@ def test_default_requirements_semantic(packages_yaml, concretize_scope, mock_pac
         Spec("zlib ~shared").concretized()
 
     # A spec without the shared variant still concretize
-    s = Spec("a").concretized()
-    assert not s.satisfies("a +shared")
-    assert not s.satisfies("a ~shared")
+    s = Spec("pkg-a").concretized()
+    assert not s.satisfies("pkg-a +shared")
+    assert not s.satisfies("pkg-a ~shared")
 
 
 @pytest.mark.parametrize(
@@ -1176,3 +1081,46 @@ def test_forward_multi_valued_variant_using_requires(
 
     for constraint in not_expected:
         assert not s.satisfies(constraint)
+
+
+def test_strong_preferences_higher_priority_than_reuse(concretize_scope, mock_packages):
+    """Tests that strong preferences have a higher priority than reusing specs."""
+    reused_spec = Spec("adios2~bzip2").concretized()
+    reuse_nodes = list(reused_spec.traverse())
+    root_specs = [Spec("ascent+adios2")]
+
+    # Check that without further configuration adios2 is reused
+    with spack.config.override("concretizer:reuse", True):
+        solver = spack.solver.asp.Solver()
+        setup = spack.solver.asp.SpackSolverSetup()
+        result, _, _ = solver.driver.solve(setup, root_specs, reuse=reuse_nodes)
+        ascent = result.specs[0]
+    assert ascent["adios2"].dag_hash() == reused_spec.dag_hash(), ascent
+
+    # If we stick a preference, adios2 is not reused
+    update_packages_config(
+        """
+    packages:
+      adios2:
+        prefer:
+        - "+bzip2"
+"""
+    )
+    with spack.config.override("concretizer:reuse", True):
+        solver = spack.solver.asp.Solver()
+        setup = spack.solver.asp.SpackSolverSetup()
+        result, _, _ = solver.driver.solve(setup, root_specs, reuse=reuse_nodes)
+        ascent = result.specs[0]
+
+    assert ascent["adios2"].dag_hash() != reused_spec.dag_hash()
+    assert ascent["adios2"].satisfies("+bzip2")
+
+    # A preference is still preference, so we can override from input
+    with spack.config.override("concretizer:reuse", True):
+        solver = spack.solver.asp.Solver()
+        setup = spack.solver.asp.SpackSolverSetup()
+        result, _, _ = solver.driver.solve(
+            setup, [Spec("ascent+adios2 ^adios2~bzip2")], reuse=reuse_nodes
+        )
+        ascent = result.specs[0]
+    assert ascent["adios2"].dag_hash() == reused_spec.dag_hash(), ascent

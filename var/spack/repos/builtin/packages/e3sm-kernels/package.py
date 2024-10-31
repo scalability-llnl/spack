@@ -23,6 +23,8 @@ class E3smKernels(MakefilePackage):
     version("master", branch="master")
     version("1.0", sha256="358249785ba9f95616feecbb6f37f7694646568499c11b2094c9233999c6cc95")
 
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "kernel",
         default="atmosphere",

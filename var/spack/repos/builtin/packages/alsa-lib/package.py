@@ -20,6 +20,8 @@ class AlsaLib(AutotoolsPackage):
     version("1.2.2", sha256="d8e853d8805574777bbe40937812ad1419c9ea7210e176f0def3e6ed255ab3ec")
     version("1.1.4.1", sha256="91bb870c14d1c7c269213285eeed874fa3d28112077db061a3af8010d0885b76")
 
+    depends_on("c", type="build")  # generated
+
     variant("python", default=False, description="enable python")
 
     patch("python.patch", when="@1.1.4:1.1.5 +python")

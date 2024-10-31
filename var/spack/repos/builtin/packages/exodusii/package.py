@@ -180,10 +180,11 @@ class Exodusii(CMakePackage):
                 [
                     define("CMAKE_C_COMPILER", spec["mpi"].mpicc),
                     define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx),
-                    define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc),
                     define("MPI_BASE_DIR", spec["mpi"].prefix),
                 ]
             )
+            if self.spec.satisfies("+fortran"):
+                options.append(define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc))
 
         # ##################### Dependencies ##########################
         # Always need NetCDF-C

@@ -27,6 +27,9 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master")
     version(
+        "2024.05.31", sha256="9c5d4d6779d8935b6fe41031b46e11ab92102f13c5f684022287c8616661b775"
+    )
+    version(
         "2023.11.05", sha256="d3d925adec137ef4b7d876b2d7d0f8f2ff9d8485fa4125454a42f5da4ac026f3"
     )
     version(
@@ -51,6 +54,10 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
         "2020.10.00", sha256="ff58840cdbae2991d100dfbaf3ef2f133fc2f43fc05f207dc5e38a41137882ab"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     patch("omp.patch", when="@2023.11.05")
 
     variant(
@@ -63,7 +70,7 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     # The runtime dependency on cmake is needed by the stand-alone tests (spack test).
     depends_on("cmake", type="run")
 
-    depends_on("mpi", when="+mpi")
+    depends_on("mpi")
     depends_on("intel-oneapi-mkl threads=openmp", when="+sycl")
     depends_on("blas")
     depends_on("blaspp ~cuda", when="~cuda")
@@ -82,6 +89,7 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     for val in ROCmPackage.amdgpu_targets:
         depends_on("blaspp +rocm amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
         depends_on("lapackpp +rocm amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
+    depends_on("lapackpp@2024.05.31:", when="@2024.05.31:")
     depends_on("lapackpp@2023.11.05:", when="@2023.11.05:")
     depends_on("lapackpp@2023.08.25:", when="@2023.08.25:")
     depends_on("lapackpp@2022.07.00:", when="@2022.07.00:")
@@ -97,6 +105,8 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("rocsolver", when="+rocm")
 
     requires("%oneapi", when="+sycl", msg="slate+sycl must be compiled with %oneapi")
+    requires("+mpi", msg="MPI is required (use of the 'mpi' variant is deprecated)")
+    requires("+openmp", msg="OpenMP is required (use of the 'openmp' variant is deprecated)")
 
     cpp_17_msg = "Requires C++17 compiler support"
     conflicts("%gcc@:5", msg=cpp_17_msg)
@@ -128,10 +138,8 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
 
         config = [
             "-Dbuild_tests=%s" % self.run_tests,
-            "-Duse_openmp=%s" % ("+openmp" in spec),
             "-DBUILD_SHARED_LIBS=%s" % ("+shared" in spec),
             backend_config,
-            "-Duse_mpi=%s" % ("+mpi" in spec),
         ]
         if "+cuda" in spec:
             archs = ";".join(spec.variants["cuda_arch"].value)
@@ -150,7 +158,7 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
             return
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(["examples"])
+        cache_extra_test_sources(self, ["examples"])
 
     def mpi_launcher(self):
         searchpath = [self.spec["mpi"].prefix.bin]
@@ -161,25 +169,26 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
         commands = ["srun", "mpirun", "mpiexec"]
         return which(*commands, path=searchpath) or which(*commands)
 
-    def test(self):
+    def test_example(self):
+        """build and run slate example"""
+
         if self.spec.satisfies("@2020.10.00") or "+mpi" not in self.spec:
-            print("Skipping: stand-alone tests")
-            return
+            raise SkipTest("Package must be installed with +mpi and version @2021.05.01 or later")
 
         test_dir = join_path(self.test_suite.current_test_cache_dir, "examples", "build")
         with working_dir(test_dir, create=True):
-            cmake_bin = join_path(self.spec["cmake"].prefix.bin, "cmake")
+            cmake = self.spec["cmake"].command
+
             # This package must directly depend on all packages listed here.
             # Otherwise, it will not work when some packages are external to spack.
             deps = "slate blaspp lapackpp mpi"
             if self.spec.satisfies("+rocm"):
                 deps += " rocblas hip llvm-amdgpu comgr hsa-rocr-dev rocsolver "
             prefixes = ";".join([self.spec[x].prefix for x in deps.split()])
-            self.run_test(cmake_bin, ["-DCMAKE_PREFIX_PATH=" + prefixes, ".."])
+
+            cmake("-DCMAKE_PREFIX_PATH=" + prefixes, "..")
+            make = which("make")
             make()
-            test_args = ["-n", "4", "./ex05_blas"]
             launcher = self.mpi_launcher()
-            if not launcher:
-                raise RuntimeError("Cannot run tests due to absence of MPI launcher")
-            self.run_test(launcher.command, test_args, purpose="SLATE smoke test")
-            make("clean")
+            assert launcher is not None, "Cannot run tests due to absence of MPI launcher"
+            launcher("-n", "4", "./ex05_blas")

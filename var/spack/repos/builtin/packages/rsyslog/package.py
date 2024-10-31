@@ -18,6 +18,8 @@ class Rsyslog(AutotoolsPackage):
     version("8.2004.0", sha256="b56b985fec076a22160471d389b7ff271909dfd86513dad31e401a775a6dfdc2")
     version("8.2002.0", sha256="b31d56311532335212ef2ea7be4501508224cb21f1bef9d262c6d78e21959ea1")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

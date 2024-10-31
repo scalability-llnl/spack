@@ -21,8 +21,12 @@ class Groff(AutotoolsPackage, GNUMirrorPackage):
 
     license("GPL-3.0-or-later")
 
+    version("1.23.0", sha256="6b9757f592b7518b4902eb6af7e54570bdccba37a871fddb2d30ae3863511c13")
     version("1.22.4", sha256="e78e7b4cb7dec310849004fa88847c44701e8d133b5d4c13057d876c1bad0293")
     version("1.22.3", sha256="3a48a9d6c97750bfbd535feeb5be0111db6406ddb7bb79fc680809cda6d828a5")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # TODO: add html variant, spack doesn't have netpbm and its too
     # complicated for me to find out at this point in time.
@@ -40,6 +44,7 @@ class Groff(AutotoolsPackage, GNUMirrorPackage):
 
     conflicts("+uchardet", when="@:1.22.3")
 
+    depends_on("m4", type="build")
     depends_on("gawk", type="build")
     depends_on("gmake", type="build")
     depends_on("sed", type="build")
@@ -77,7 +82,7 @@ class Groff(AutotoolsPackage, GNUMirrorPackage):
     def configure_args(self):
         args = ["--disable-silent-rules"]
         args.extend(self.with_or_without("x"))
-        if "@1.22.4:" in self.spec:
+        if self.spec.satisfies("@1.22.4:"):
             args.extend(self.with_or_without("uchardet"))
         if self.spec["iconv"].name == "libiconv":
             args.append(f"--with-libiconv-prefix={self.spec['iconv'].prefix}")

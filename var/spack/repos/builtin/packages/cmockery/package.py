@@ -19,6 +19,8 @@ class Cmockery(AutotoolsPackage):
     version("0.1.1", sha256="a801d17976f781fff6dc49042ff109e55ca4ebe8efb13757fa1a511ca52316be")
     version("0.1.0", sha256="9e017d48e56ab9d2ebcf5286fa54e37d42fe308d3c01fbc367793da2b9ad95e7")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

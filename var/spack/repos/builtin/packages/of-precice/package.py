@@ -30,6 +30,8 @@ class OfPrecice(Package):
     version("1.1.0", sha256="c35340b50d1b01978635130da94a876e1fa846c80b62e45204aa727db2ef4983")
     version("1.0.0", sha256="b70e5bdce47328f789f76dc6187604f8568b4a996158b5a6f6c11f111ff10308")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("openfoam+source")
     depends_on("precice")
     depends_on("yaml-cpp")

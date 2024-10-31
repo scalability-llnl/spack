@@ -19,6 +19,9 @@ class Zopfli(CMakePackage):
 
     version("1.0.3", sha256="e955a7739f71af37ef3349c4fa141c648e8775bceb2195be07e86f8e638814bd")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def cmake_args(self):
         args = [self.define_from_variant("ZOPFLI_BUILD_SHARED", "shared")]
 

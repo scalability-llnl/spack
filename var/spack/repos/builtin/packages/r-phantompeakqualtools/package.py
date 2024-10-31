@@ -18,6 +18,9 @@ class RPhantompeakqualtools(RPackage):
 
     version("1.14", sha256="d03be6163e82aed72298e54a92c181570f9975a395f57a69b21ac02b1001520b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@1.41.0:")
 
     # TODO: replace this with an explicit list of components of Boost,

@@ -18,5 +18,7 @@ class PyPickle5(PythonPackage):
 
     version("0.0.11", sha256="7e013be68ba7dde1de5a8dbcc241f201dab1126e326715916ce4a26c27919ffc")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

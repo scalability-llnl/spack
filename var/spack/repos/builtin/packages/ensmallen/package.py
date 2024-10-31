@@ -24,6 +24,8 @@ class Ensmallen(CMakePackage):
     version("2.21.1", sha256="820eee4d8aa32662ff6a7d883a1bcaf4e9bf9ca0a3171d94c5398fe745008750")
     version("2.19.1", sha256="f36ad7f08b0688d2a8152e1c73dd437c56ed7a5af5facf65db6ffd977b275b2e")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("openmp", default=True, description="Use OpenMP for parallelization")
 
     depends_on("cmake@3.3.2:")

@@ -20,3 +20,5 @@ class RRviennacl(RPackage):
     cran = "RViennaCL"
 
     version("1.7.1.8", sha256="adcc74537337582153d5b11d281e391e91a7f3afae116aa1b9a034ffd11b0252")
+
+    depends_on("cxx", type="build")  # generated

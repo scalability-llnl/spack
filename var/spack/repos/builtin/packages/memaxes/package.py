@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Memaxes(Package):
+class Memaxes(CMakePackage):
     """MemAxes is a visualizer for sampled memory trace data."""
 
     homepage = "https://github.com/llnl/MemAxes"
@@ -19,11 +19,7 @@ class Memaxes(Package):
         url="https://github.com/llnl/MemAxes/archive/v0.5.tar.gz",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8.9:", type="build")
     depends_on("qt@5:")
-
-    def install(self, spec, prefix):
-        with working_dir("spack-build", create=True):
-            cmake("..", *std_cmake_args)
-            make()
-            make("install")

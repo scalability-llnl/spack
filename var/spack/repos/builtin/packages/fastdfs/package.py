@@ -27,6 +27,8 @@ class Fastdfs(Package):
     version("6.02", sha256="b1801f80da9ebce1d84e7e05356c4614190651cb6a5cb4f5662d9196fe243e21")
     version("6.01", sha256="b72f4ff6beb21a83af59aeba9f1904e727fa2c1e960e0a9c2b969138d2804148")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl", type="build")
     depends_on("libfastcommon", type="build")
 

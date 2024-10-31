@@ -13,7 +13,7 @@ class Libxft(AutotoolsPackage, XorgPackage):
     connects X applications with the FreeType font rasterization library. Xft
     uses fontconfig to locate fonts so it has no configuration files."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/lib/libXft"
+    homepage = "https://gitlab.freedesktop.org/xorg/lib/libXft"
     xorg_mirror_path = "lib/libXft-2.3.2.tar.gz"
 
     license("MIT")
@@ -27,6 +27,8 @@ class Libxft(AutotoolsPackage, XorgPackage):
     version("2.3.4", sha256="1eca71bec9cb483165ce1ab94f5cd3036269f5268651df6a2d99c4a7ab644d79")
     version("2.3.3", sha256="3c3cf88b1a96e49a3d87d67d9452d34b6e25e96ae83959b8d0a980935014d701")
     version("2.3.2", sha256="26cdddcc70b187833cbe9dc54df1864ba4c03a7175b2ca9276de9f05dce74507")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("freetype@2.1.6:")
     depends_on("fontconfig@2.5.92:")

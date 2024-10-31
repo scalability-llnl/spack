@@ -54,10 +54,9 @@ class GccRuntime(Package):
     provides("libgfortran@5", when="%gcc@8:")
 
     depends_on("libc", type="link", when="platform=linux")
-    depends_on("libc", type="link", when="platform=cray")
 
     def install(self, spec, prefix):
-        if spec.platform in ["linux", "cray", "freebsd"]:
+        if spec.platform in ["linux", "freebsd"]:
             libraries = get_elf_libraries(compiler=self.compiler, libraries=self.LIBRARIES)
         elif spec.platform == "darwin":
             libraries = self._get_libraries_macho()

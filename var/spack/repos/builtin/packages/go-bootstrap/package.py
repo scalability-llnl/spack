@@ -25,8 +25,6 @@ class GoBootstrap(Package):
 
     maintainers("alecbcs")
 
-    depends_on("git", type=("build", "link", "run"))
-
     executables = ["^go$"]
 
     # List binary go releases for multiple operating systems and architectures.

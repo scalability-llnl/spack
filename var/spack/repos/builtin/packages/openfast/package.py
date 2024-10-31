@@ -35,6 +35,10 @@ class Openfast(CMakePackage):
     version("2.0.0", tag="v2.0.0", commit="0769598a17e19b3ccd00a85cde389995f55024a8")
     version("1.0.0", tag="v1.0.0", commit="e788b9b18bd5ed96ea59d4bc0812d461bc430cfe")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     patch("hub_seg_fault.patch", when="@2.7:3.2")
 
     variant("shared", default=True, description="Build shared libraries")
@@ -71,6 +75,7 @@ class Openfast(CMakePackage):
                 self.define_from_variant("DOUBLE_PRECISION", "double-precision"),
                 self.define_from_variant("USE_DLL_INTERFACE", "dll-interface"),
                 self.define_from_variant("BUILD_OPENFAST_CPP_API", "cxx"),
+                self.define_from_variant("BUILD_OPENFAST_CPP_DRIVER", "cxx"),
                 self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
             ]
         )

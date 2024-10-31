@@ -22,6 +22,8 @@ class Ecoslim(CMakePackage):
     version("1.3", sha256="b532e570b4767e4fa84123d8773732150679e8e3d7fecd5c6e99fb1d4dc57b84")
     version("master", branch="master")
 
+    depends_on("fortran", type="build")  # generated
+
     def cmake_args(self):
         """Populate cmake arguments for EcoSLIM."""
         return []

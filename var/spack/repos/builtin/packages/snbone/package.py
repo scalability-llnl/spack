@@ -16,6 +16,9 @@ class Snbone(MakefilePackage):
 
     version("develop")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     tags = ["proxy-app"]
 
     depends_on("metis")

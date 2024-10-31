@@ -28,6 +28,9 @@ class Ppl(Package):
     version("1.2", sha256="6bc36dd4a87abc429d8f9c00c53e334e5041a9b0857cfc00dbad6ef14294aac8")
     version("1.1", sha256="46f073c0626234f0b1a479356c0022fe5dc3c9cf10df1a246c9cde81f7cf284d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gmp")
 
     def install(self, spec, prefix):

@@ -45,6 +45,10 @@ class Claw(CMakePackage):
         "1.1.0", tag="v1.1.0", commit="16b165a443b11b025a77cad830b1280b8c9bcf01", submodules=True
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("cmake@3.0:", type="build")
     depends_on("ant@1.9:", type="build")
     depends_on("bison", type="build")

@@ -18,5 +18,9 @@ class Byfl(CMakePackage):
 
     version("1.8.0", sha256="45a9640ba2d77153a425c72349c18b124754123b30c411707b71abd217bbfce0")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # llvm-13 builds, but doesn’t work
     depends_on("llvm@:12.9999")

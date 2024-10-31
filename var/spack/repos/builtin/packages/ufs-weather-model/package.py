@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import re
-
 from spack.package import *
 
 
@@ -19,9 +17,9 @@ class UfsWeatherModel(CMakePackage):
     url = "https://github.com/ufs-community/ufs-weather-model/archive/refs/tags/ufs-v1.1.0.tar.gz"
     git = "https://github.com/ufs-community/ufs-weather-model.git"
 
-    maintainers("t-brown", "AlexanderRichert-NOAA")
+    maintainers("AlexanderRichert-NOAA")
 
-    version("develop", branch="develop", submodules=True, commit="ea0b6e4")
+    version("develop", branch="develop", submodules=True)
     version(
         "2.0.0",
         tag="ufs-v2.0.0",
@@ -35,6 +33,9 @@ class UfsWeatherModel(CMakePackage):
         submodules=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI")
     variant(
         "32bit", default=True, description="Enable 32-bit single precision arithmetic in dycore"
@@ -43,10 +44,6 @@ class UfsWeatherModel(CMakePackage):
         "ccpp_32bit",
         default=False,
         description="Enable CCPP_32BIT (single precision arithmetic in slow physics)",
-    )
-    variant("avx2", default=True, description="Enable AVX2 instruction set")
-    variant(
-        "simdmultiarch", default=False, description="Enable multi-target SIMD instruction sets"
     )
     variant("debug", default=False, description="Enable DEBUG mode", when="@develop")
     variant(
@@ -59,6 +56,7 @@ class UfsWeatherModel(CMakePackage):
     variant("multi_gases", default=False, description="Enable multi gases in physics routines")
     variant("moving_nest", default=False, description="Enable moving nest code", when="@develop")
     variant("openmp", default=True, description="Enable OpenMP")
+    variant("pdlib", default=False, description="Enable PDLIB (WW3)", when="@develop")
     variant("parallel_netcdf", default=True, description="Enable parallel NetCDF")
     variant(
         "jedi_driver",
@@ -88,10 +86,13 @@ class UfsWeatherModel(CMakePackage):
     )
     dev_ccpp_default = [
         "FV3_GFS_v16",
-        "FV3_GFS_v15_thompson_mynn",
+        "FV3_GFS_v16_flake",
         "FV3_GFS_v17_p8",
         "FV3_GFS_v17_p8_rrtmgp",
         "FV3_GFS_v15_thompson_mynn_lam3km",
+        "FV3_WoFS_v0",
+        "FV3_GFS_v17_p8_mynn",
+        "FV3_GFS_v17_p8_ugwpv1",
     ]
     variant(
         "ccpp_suites",
@@ -108,12 +109,6 @@ class UfsWeatherModel(CMakePackage):
     )
     variant("mom6solo", default=False, description="Build MOM6 solo executable", when="@develop")
 
-    variant(
-        "cmake_platform",
-        default="auto",
-        description="Override CMAKE_Platform env variable ('linux.intel', 'hera.gnu', etc.)",
-    )
-
     variant("app", default="ATM", description="UFS application", when="@develop")
 
     depends_on("bacio")
@@ -125,28 +120,47 @@ class UfsWeatherModel(CMakePackage):
     depends_on("esmf@:8.0.0", when="@:2.0.0")
     depends_on("nemsio", when="@:2.0.0")
     depends_on("w3nco", when="@:2.0.0")
+    depends_on("bacio@2.4.0:", when="@develop")
     depends_on("crtm", when="@develop")
-    depends_on("esmf", when="@develop")
-    depends_on("esmf+debug", when="+debug")
-    depends_on("fms@2022.02: constants=GFS", when="@develop")
+    depends_on("esmf@8.3.0:", when="@develop")
+    depends_on("fms@2022.04: +deprecated_io precision=32,64 constants=GFS", when="@develop")
     depends_on("g2", when="@develop")
     depends_on("g2tmpl", when="@develop")
     depends_on("hdf5+hl+mpi", when="@develop")
-    depends_on("ip", when="@develop")
+    depends_on("ip@:4", when="@develop")
     depends_on("netcdf-c~parallel-netcdf+mpi", when="@develop")
-    depends_on("parallelio+fortran~pnetcdf~shared", when="@develop")
+    for app in [
+        "ATMW",
+        "ATML",
+        "NG-GODAS",
+        "S2S",
+        "S2SA",
+        "S2SW",
+        "S2SWA",
+        "S2SWAL",
+        "HAFS",
+        "HAFSW",
+        "HAFS-ALL",
+        "LND",
+    ]:
+        depends_on("parallelio@2.5.3: +fortran~pnetcdf~shared", when="@develop app=%s" % app)
+    depends_on("python@3.6:", type="build", when="@develop")
+    depends_on("sp@2.3.3:", when="@develop")
+    depends_on("w3emc@2.9.2:", when="@develop")
+
     with when("@develop app=S2SA"):
         depends_on("mapl")
-        depends_on("mapl+debug", when="+debug")
         depends_on("gftl-shared")
     with when("@develop app=S2SWA"):
         depends_on("mapl")
-        depends_on("mapl+debug", when="+debug")
         depends_on("gftl-shared")
     with when("@develop app=ATMAERO"):
         depends_on("mapl")
-        depends_on("mapl+debug", when="+debug")
         depends_on("gftl-shared")
+    depends_on("scotch", when="+pdlib")
+
+    depends_on("w3nco", when="@:2.0.0")
+    depends_on("python", type="build", when="@:2.0.0")
 
     conflicts("%gcc@:8", when="@develop")
 
@@ -155,12 +169,13 @@ class UfsWeatherModel(CMakePackage):
         env.set("CC", spec["mpi"].mpicc)
         env.set("CXX", spec["mpi"].mpicxx)
         env.set("FC", spec["mpi"].mpifc)
+        env.set("CMAKE_C_COMPILER", spec["mpi"].mpicc)
+        env.set("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx)
+        env.set("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc)
 
         env.set("CCPP_SUITES", ",".join([x for x in spec.variants["ccpp_suites"].value if x]))
 
-        if spec.variants["cmake_platform"].value != "auto":
-            env.set("CMAKE_Platform", spec.variants["cmake_platform"].value)
-        elif spec.platform == "linux" and spec.satisfies("%intel"):
+        if spec.platform == "linux" and spec.satisfies("%intel"):
             env.set("CMAKE_Platform", "linux.intel")
         elif spec.platform == "linux" and spec.satisfies("%gcc"):
             env.set("CMAKE_Platform", "linux.gnu")
@@ -172,57 +187,42 @@ class UfsWeatherModel(CMakePackage):
             raise InstallError(msg.format(spec.platform, self.compiler.name))
 
     def cmake_args(self):
-        from_variant = self.define_from_variant
         args = [
-            from_variant("32BIT", "32bit"),
-            from_variant("CCPP_32BIT", "ccpp_32bit"),
-            from_variant("AVX2", "avx2"),
-            from_variant("SIMDMULTIARCH", "simdmultiarch"),
-            from_variant("DEBUG", "debug"),
-            from_variant("DEBUG_LINKMPI", "debug_linkmpi"),
-            from_variant("INLINE_POST", "inline_post"),
-            from_variant("MULTI_GASES", "multi_gases"),
-            from_variant("MOVING_NEST", "moving_nest"),
-            from_variant("OPENMP", "openmp"),
-            from_variant("PARALLEL_NETCDF", "parallel_netcdf"),
-            from_variant("JEDI_DRIVER", "jedi_driver"),
-            from_variant("CMEPS_AOFLUX", "cmeps_aoflux"),
-            from_variant("APP", "app"),
-            from_variant("CCPP_SUITES", "ccpp_suites").replace(";", ","),
-            from_variant("MPI", "mpi"),
+            self.define("AVX2", False),  # use target settings from Spack
+            self.define("SIMDMULTIARCH", False),  # use target settings from Spack
+            self.define_from_variant("CCPP_SUITES", "ccpp_suites").replace(";", ","),
         ]
+        variants = [
+            "32bit",
+            "app",
+            "ccpp_32bit",
+            "cmeps_aoflux",
+            "debug",
+            "debug_linkmpi",
+            "inline_post",
+            "jedi_driver",
+            "moving_nest",
+            "mpi",
+            "multi_gases",
+            "openmp",
+            "parallel_netcdf",
+            "pdlib",
+        ]
+        for variant in variants:
+            args.append(self.define_from_variant(variant.upper(), variant))
+
         if self.spec.satisfies("@:2.0.0"):
-            args.append(from_variant("CCPP", "ccpp"))
-            args.append(from_variant("QUAD_PRECISION", "quad_precision"))
+            args.append(self.define_from_variant("CCPP", "ccpp"))
+            args.append(self.define_from_variant("QUAD_PRECISION", "quad_precision"))
 
         return args
 
+    # This patch can be removed once https://github.com/NOAA-EMC/WW3/issues/1021
+    # is resolved.
+    @when("+pdlib ^scotch+shared")
     def patch(self):
-        # Modify hardcoded version numbers in CMakeLists.txt:
-        pkgs = {
-            "bacio": "bacio",
-            "esmf": "ESMF",
-            "fms": "FMS",
-            "netcdf-c": "NetCDF",
-            "parallelio": "PIO",
-            "sp": "sp",
-            "w3emc": "w3emc",
-        }
-
-        for pkg in pkgs.keys():
-            filter_file(
-                r"(find_package\(\s*%s)\s+[\d\.]+" % pkgs[pkg],
-                r"\1 " + re.sub(r"(\d+\.\d+\.\d+).+", r"\1", str(self.spec[pkg].version)),
-                "CMakeLists.txt",
-            )
-
-        # Fix ESMF capitalization/-lEMSF issue when using GOCART:
-        if self.spec.satisfies("@develop") and any(
-            ["app=" + app in self.spec for app in ["S2SA", "S2SWA", "ATMAERO"]]
-        ):
-            filter_file(r"NOT TARGET esmf", r"NOT TARGET ESMF", "WW3/model/src/CMakeLists.txt")
-            filter_file(r"PUBLIC esmf\)", "PUBLIC ESMF)", "WW3/model/src/CMakeLists.txt")
-            filter_file(r"\(esmf ", r"(ESMF ", "CMakeModules/Modules/FindESMF.cmake")
+        filter_file(r"(lib[^ ]+)\.a", r"\1.so", "WW3/cmake/FindSCOTCH.cmake")
+        filter_file("STATIC", "SHARED", "WW3/cmake/FindSCOTCH.cmake")
 
     @run_after("install")
     def install_additional_files(self):

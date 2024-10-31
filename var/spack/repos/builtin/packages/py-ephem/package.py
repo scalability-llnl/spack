@@ -17,5 +17,7 @@ class PyEphem(PythonPackage):
 
     version("3.7.7.1", sha256="d9d05d85c0d38a79169acaef25964ac9df2d808f0d833354545b9ef681ff584d")
 
+    depends_on("c", type="build")  # generated
+
     # pip silently replaces distutils with setuptools
     depends_on("py-setuptools", type="build")

@@ -31,6 +31,8 @@ class Shapemapper(CMakePackage):
         url="https://github.com/Weeks-UNC/shapemapper2/releases/download/2.1.5/shapemapper-2.1.5-source-only.tar.gz",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("bowtie2@2.3.0:", type="run", when="@2.1.5")
     depends_on("bowtie2@2.3.4:", type="run", when="@2.2.0:")
     depends_on("perl+threads", type="run")

@@ -12,11 +12,16 @@ class Ffmpeg(AutotoolsPackage):
 
     homepage = "https://ffmpeg.org"
     url = "https://ffmpeg.org/releases/ffmpeg-4.1.1.tar.bz2"
+    git = "https://git.ffmpeg.org/ffmpeg.git"
 
     maintainers("xjrc")
 
-    license("GPL-2.0-or-later AND LGPL-2.1-or-later")
+    license("LGPL-2.1-or-later", when="~gpl", checked_by="wdconinc")
+    license("LGPL-2.1-or-later AND GPL-2.0-or-later", when="+gpl", checked_by="wdconinc")
 
+    version("master", branch="master")
+    version("7.0.2", sha256="1ed250407ea8f955cca2f1139da3229fbc13032a0802e4b744be195865ff1541")
+    version("7.0", sha256="a24d9074bf5523a65aaa9e7bd02afe4109ce79d69bd77d104fed3dab4b934d7a")
     version("6.1.1", sha256="5e3133939a61ef64ac9b47ffd29a5ea6e337a4023ef0ad972094b4da844e3a20")
     version("6.0", sha256="47d062731c9f66a78380e35a19aac77cebceccd1c7cc309b9c82343ffc430c3d")
     version("5.1.4", sha256="c3c1e316bf91468738dd0aff6eb1faab409f1edcd34fd1a4213626439bc5d743")
@@ -37,11 +42,14 @@ class Ffmpeg(AutotoolsPackage):
     version("2.8.15", sha256="35647f6c1f6d4a1719bc20b76bf4c26e4ccd665f46b5676c0e91c5a04622ee21")
     version("1.0.10", sha256="1dbde434c3b5c573d3b2ffc1babe3814f781c10c4bc66193a4132a44c9715176")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # Licensing
     variant(
         "gpl",
         default=True,
-        description="allow use of GPL code, the resulting libs " "and binaries will be under GPL",
+        description="allow use of GPL code, the resulting libs and binaries will be under GPL",
     )
     variant("version3", default=True, description="upgrade (L)GPL to version 3")
     variant(
@@ -93,6 +101,8 @@ class Ffmpeg(AutotoolsPackage):
     depends_on("yasm@1.2.0:")
     depends_on("zlib-api")
 
+    depends_on("pkgconfig", type="build")
+
     depends_on("aom", when="+libaom")
     depends_on("bzip2", when="+bzlib")
     depends_on("fontconfig", when="+drawtext")
@@ -123,7 +133,7 @@ class Ffmpeg(AutotoolsPackage):
     # Solve build failure against vulkan headers 1.3.279
     patch(
         "https://git.ffmpeg.org/gitweb/ffmpeg.git/commitdiff_plain/fef22c87ada4",
-        sha256="856bdc2b6e2a7066cf683a235193b9025d4d73dd7686eda2fbcf83e7e65f8bf9",
+        sha256="5726e8e999e3fc7a5ae4c4c846c9151246e5846c54dc3b8ff8326ee31c59631a",
         when="@6.1.1",
     )
 
@@ -150,12 +160,12 @@ class Ffmpeg(AutotoolsPackage):
     # fix incompatibility with texinfo@7, especially @7.1:
     patch(
         "https://git.ffmpeg.org/gitweb/ffmpeg.git/commitdiff_plain/f01fdedb69e4accb1d1555106d8f682ff1f1ddc7",
-        sha256="416751f41cfbf086c28b4bbf01ace4c08e5651e59911dca6240292bb1b5c6b53",
+        sha256="673813d13f5c37b75ff5bcb56790ccd6b16962fdb9bddcbbeeead979d47d31b3",
         when="@6.0",
     )
     patch(
         "https://git.ffmpeg.org/gitweb/ffmpeg.git/commitdiff_plain/f01fdedb69e4accb1d1555106d8f682ff1f1ddc7",
-        sha256="416751f41cfbf086c28b4bbf01ace4c08e5651e59911dca6240292bb1b5c6b53",
+        sha256="673813d13f5c37b75ff5bcb56790ccd6b16962fdb9bddcbbeeead979d47d31b3",
         when="@5:5.1.3",
     )
 
@@ -171,7 +181,6 @@ class Ffmpeg(AutotoolsPackage):
 
     @when("@:6.0 %apple-clang@15:")
     def setup_build_environment(self, env):
-        env.append_flags("LDFLAGS", "-Wl,-ld_classic")
         if self.spec.satisfies("@:3"):
             env.append_flags("CFLAGS", "-Wno-error=incompatible-function-pointer-types")
 

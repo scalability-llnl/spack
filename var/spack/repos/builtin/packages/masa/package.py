@@ -20,6 +20,10 @@ class Masa(AutotoolsPackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fortran", default=True, description="Compile with Fortran interfaces")
     variant("python", default=True, description="Compile with Python interfaces")
 

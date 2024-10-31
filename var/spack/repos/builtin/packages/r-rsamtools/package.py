@@ -31,6 +31,9 @@ class RRsamtools(RPackage):
     version("1.30.0", commit="61b365fe3762e796b3808cec7238944b7f68d7a6")
     version("1.28.0", commit="dfa5b6abef68175586f21add7927174786412472")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.5.0:", type=("build", "run"), when="@2.10.0:")
     depends_on("r-genomeinfodb@1.1.3:", type=("build", "run"))
     depends_on("r-genomicranges@1.21.6:", type=("build", "run"))

@@ -16,6 +16,8 @@ class Pinfo(AutotoolsPackage):
     version("0.6.12", sha256="82af48ba23b8c26b1f4e67b45f718142eb0f760326b782f80c765801d3532077")
     version("0.6.11", sha256="fd26017ac9db179d709b49e450c3097e7d6f99cd94de7b5da824ec757c6992b2")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

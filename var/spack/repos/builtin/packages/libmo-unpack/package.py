@@ -17,4 +17,6 @@ class LibmoUnpack(CMakePackage):
 
     version("3.1.2", sha256="e09ef3e6f1075144acc5d6466b4ef70b2fe32ed4ab1840dd4fb7e15a40f3d370")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("check")

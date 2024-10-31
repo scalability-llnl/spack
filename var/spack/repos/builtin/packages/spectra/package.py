@@ -28,5 +28,8 @@ class Spectra(CMakePackage):
     version("1.0.0", sha256="45228b7d77b916b5384245eb13aa24bc994f3b0375013a8ba6b85adfd2dafd67")
     version("0.9.0", sha256="2966757d432e8fba5958c2a05ad5674ce34eaae3718dd546c1ba8760b80b7a3d")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("cmake@3.5:")
     depends_on("eigen")

@@ -23,6 +23,10 @@ class Qctool(WafPackage):
         url="https://enkre.net/cgi-bin/code/qctool/tarball/86639c1ad4/qctool-86639c1ad4.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Required external libraries as detailed in Prerequisites:
     # https://enkre.net/cgi-bin/code/qctool/wiki?name=Compiling+QCTOOL
     depends_on("zlib")

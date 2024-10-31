@@ -22,6 +22,9 @@ class Catch2(CMakePackage):
     version("develop", branch="devel")
 
     # Releases
+    version("3.7.1", sha256="c991b247a1a0d7bb9c39aa35faf0fe9e19764213f28ffba3109388e62ee0269c")
+    version("3.6.0", sha256="485932259a75c7c6b72d4b874242c489ea5155d17efa345eb8cc72159f49f356")
+    version("3.5.4", sha256="b7754b711242c167d8f60b890695347f90a1ebc95949a045385114165d606dbb")
     version("3.4.0", sha256="122928b814b75717316c71af69bd2b43387643ba076a6ec16e7882bfb2dfacbb")
     version("3.3.2", sha256="8361907f4d9bff3ae7c1edb027f813659f793053c99b67837a0c0375f065bae2")
     version("3.3.1", sha256="d90351cdc55421f640c553cfc0875a8c834428679444e8062e9187d05b18aace")
@@ -32,10 +35,14 @@ class Catch2(CMakePackage):
     version("3.1.0", sha256="c252b2d9537e18046d8b82535069d2567f77043f8e644acf9a9fffc22ea6e6f7")
     version("3.0.1", sha256="8c4173c68ae7da1b5b505194a0c2d6f1b2aef4ec1e3e7463bde451f26bbaf4e7")
     version(
-        "3.0.0-preview4", sha256="2458d47d923b65ab611656cb7669d1810bcc4faa62e4c054a7405b1914cd4aee"
+        "3.0.0-preview4",
+        sha256="2458d47d923b65ab611656cb7669d1810bcc4faa62e4c054a7405b1914cd4aee",
+        deprecated=True,
     )
     version(
-        "3.0.0-preview3", sha256="06a4f903858f21c553e988f8b76c9c6915d1f95f95512d6a58c421e02a2c4975"
+        "3.0.0-preview3",
+        sha256="06a4f903858f21c553e988f8b76c9c6915d1f95f95512d6a58c421e02a2c4975",
+        deprecated=True,
     )
     version("2.13.10", sha256="d54a712b7b1d7708bc7a819a8e6e47b2fde9536f487b89ccbca295072a7d9943")
     version("2.13.9", sha256="06dbc7620e3b96c2b69d57bf337028bf245a211b3cddb843835bfe258f427a52")
@@ -107,6 +114,8 @@ class Catch2(CMakePackage):
     version("1.4.0", sha256="57512b298ca3e2ff44e87c17c926d5f9edf29e13549480e912fddfab5ba63b74")
     version("1.3.5", sha256="f15730d81b4173fb860ce3561768de7d41bbefb67dc031d7d1f5ae2c07f0a472")
     version("1.3.0", sha256="245f6ee73e2fea66311afa1da59e5087ddab8b37ce64994ad88506e8af28c6ac")
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "cxxstd",

@@ -1175,6 +1175,17 @@ unspecified version, but packages can depend on other packages with
 could depend on ``mpich@1.2:`` if it can only build with version
 ``1.2`` or higher of ``mpich``.
 
+.. note:: Windows Spec Syntax Caveats
+   Windows has a few idiosyncrasies when it comes to the Spack spec syntax and the use of certain shells
+   Spack's spec dependency syntax uses the carat (``^``) character, however this is an escape string in CMD
+   so it must be escaped with an additional carat (i.e. ``^^``).
+   CMD also will attempt to interpret strings with ``=`` characters in them. Any spec including this symbol
+   must double quote the string.
+
+   Note: All of these issues are unique to CMD, they can be avoided by using Powershell.
+
+   For more context on these caveats see the related issues: `carat <https://github.com/spack/spack/issues/42833>`_ and `equals <https://github.com/spack/spack/issues/43348>`_
+
 Below are more details about the specifiers that you can add to specs.
 
 .. _version-specifier:
@@ -1433,22 +1444,12 @@ the reserved keywords ``platform``, ``os`` and ``target``:
    $ spack install libelf os=ubuntu18.04
    $ spack install libelf target=broadwell
 
-or together by using the reserved keyword ``arch``:
-
-.. code-block:: console
-
-   $ spack install libelf arch=cray-CNL10-haswell
-
 Normally users don't have to bother specifying the architecture if they
 are installing software for their current host, as in that case the
 values will be detected automatically.  If you need fine-grained control
 over which packages use which targets (or over *all* packages' default
 target), see :ref:`package-preferences`.
 
-.. admonition:: Cray machines
-
-  The situation is a little bit different for Cray machines and a detailed
-  explanation on how the architecture can be set on them can be found at :ref:`cray-support`
 
 .. _support-for-microarchitectures:
 

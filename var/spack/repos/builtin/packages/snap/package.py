@@ -23,6 +23,10 @@ class Snap(MakefilePackage):
 
     version("master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=False, description="Build with OpenMP support")
     variant("opt", default=True, description="Build with debugging")
     variant("mpi", default=True, description="Build with MPI support")

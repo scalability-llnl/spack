@@ -32,6 +32,8 @@ class Gsibec(CMakePackage):
 
     variant("mkl", default=False, description="Use MKL for LAPACK implementation")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi", type=("build", "run"))
     depends_on("netcdf-c +mpi", type=("build", "run"))
     depends_on("netcdf-fortran", type=("build", "run"))

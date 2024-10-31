@@ -22,6 +22,8 @@ class Dos2unix(MakefilePackage):
     version("7.4.2", sha256="6035c58df6ea2832e868b599dfa0d60ad41ca3ecc8aa27822c4b7a9789d3ae01")
     version("7.3.4", sha256="8ccda7bbc5a2f903dafd95900abb5bf5e77a769b572ef25150fde4056c5f30c5")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("gettext")
 
     executables = [r"^dos2unix$"]

@@ -17,6 +17,9 @@ class MincToolkit(CMakePackage):
     version("1.9.18.2", commit="b98e4972bdac2b78e3c1e412d75c97e2e7c5f6b9", submodules=True)
     version("1.9.18.1", commit="38597c464b6e93eda680ab4a9e903366d53d7737", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries")
     variant(
         "visualisation", default=False, description="Build visual tools (Display, register, etc.)"

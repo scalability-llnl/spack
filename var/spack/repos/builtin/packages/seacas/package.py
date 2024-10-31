@@ -36,6 +36,15 @@ class Seacas(CMakePackage):
     # ###################### Versions ##########################
     version("master", branch="master")
     version(
+        "2024-08-15", sha256="c85130b0dac5ab9a08dcb53c8ccff478122d72b08bd41d99c0adfddc5eb18a52"
+    )
+    version(
+        "2024-07-10", sha256="b2ba6ca80359fed8ed2a8a210052582c7a3b7b837253bd1e9be941047dcab3ff"
+    )
+    version(
+        "2024-06-27", sha256="a28db6aa3d03ff0a54a091210cf867661427f0b22ac08f89a4cc3bd8e0c704b2"
+    )
+    version(
         "2024-04-03", sha256="edf1aacbde87212b10737d3037107dba5cf7e2cce167863e2ebb200dc1a3fbb5"
     )
     version(
@@ -138,6 +147,10 @@ class Seacas(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # ###################### Variants ##########################
     # Package options
     # The I/O libraries (exodus, IOSS) are always built
@@ -184,6 +197,11 @@ class Seacas(CMakePackage):
         description="Enable Faodel. See https://github.com/sandialabs/faodel",
     )
     variant(
+        "libcatalyst",
+        default=False,
+        description="Enable libcatalyst tpl (catalyst api 2); Kitware insitu library",
+    )
+    variant(
         "matio",
         default=True,
         description="Compile with matio (MatLab) support."
@@ -218,6 +236,9 @@ class Seacas(CMakePackage):
     depends_on("cmake@3.17:", when="@:2023-05-30", type="build")
     depends_on("mpi", when="+mpi")
     depends_on("zlib-api", when="+zlib")
+    depends_on("parallel", when="platform=linux", type="run")
+    depends_on("parallel", when="platform=darwin", type="run")
+    depends_on("parallel", when="platform=freebsd", type="run")
     depends_on("trilinos~exodus+mpi+pamgen", when="+mpi+pamgen")
     depends_on("trilinos~exodus~mpi+pamgen", when="~mpi+pamgen")
     # Always depends on netcdf-c
@@ -226,14 +247,30 @@ class Seacas(CMakePackage):
     depends_on("hdf5+hl~mpi", when="~mpi")
     depends_on("hdf5+hl+mpi", when="+mpi")
 
-    depends_on("fmt@10.2.1:", when="@2024-03-11:")
-    depends_on("fmt@10.1.0:", when="@2023-10-24:2023-11-27")
+    depends_on("fmt@10:", when="@2024-08-15:")
+    depends_on("fmt@10.2.1:10", when="@2024-03-11:2024-07-10")
+    depends_on("fmt@10.1.0:10", when="@2023-10-24:2023-11-27")
     depends_on("fmt@9.1.0", when="@2022-10-14:2023-05-30")
     depends_on("fmt@8.1.0:9", when="@2022-03-04:2022-05-16")
+
+    # if fmt@9.1.0%gcc is mixed with an %apple-clang seacas build
+    # it triggers a bug in apple-clang w.r.t how symbols are mangled
+    # https://github.com/spack/spack/issues/44330
+    conflicts(
+        "^fmt@9%gcc",
+        msg="""Cannot mix gcc/apple-clang toolchains
+              for this library combination.
+              See https://github.com/spack/spack/issues/44330""",
+        when="%apple-clang",
+    )
 
     depends_on("catch2@3:", when="@2024-03-11:+tests")
 
     depends_on("matio", when="+matio")
+
+    depends_on("libcatalyst+mpi~python", when="+libcatalyst+mpi")
+    depends_on("libcatalyst~mpi~python", when="+libcatalyst~mpi")
+
     depends_on("libx11", when="+x11")
 
     with when("+cgns"):
@@ -241,7 +278,7 @@ class Seacas(CMakePackage):
         depends_on("cgns@4.2.0:~mpi+scoping", when="~mpi")
 
     with when("+adios2"):
-        depends_on("adios2@master")
+        depends_on("adios2@2.10.1")
         depends_on("adios2~mpi", when="~mpi")
         depends_on("adios2+mpi", when="+mpi")
 
@@ -399,7 +436,7 @@ class Seacas(CMakePackage):
             [define("TPL_ENABLE_Netcdf", True), define("NetCDF_ROOT", spec["netcdf-c"].prefix)]
         )
 
-        if "+parmetis" in spec:
+        if spec.satisfies("+metis+mpi"):
             options.extend(
                 [
                     define("TPL_ENABLE_METIS", True),
@@ -453,6 +490,9 @@ class Seacas(CMakePackage):
         if "+adios2" in spec:
             options.append(define("ADIOS2_ROOT", spec["adios2"].prefix))
 
+        if "+libcatalyst" in spec:
+            options.append(define("TPL_ENABLE_Catalyst2", "ON"))
+
         # ################# RPath Handling ######################
         if sys.platform == "darwin" and macos_version() >= Version("10.12"):
             # use @rpath on Sierra due to limit of dynamic loader
@@ -461,3 +501,9 @@ class Seacas(CMakePackage):
             options.append(define("CMAKE_INSTALL_NAME_DIR", self.prefix.lib))
 
         return options
+
+    @run_after("install")
+    def symlink_parallel(self):
+        if not self.spec.dependencies("parallel"):
+            return
+        symlink(self.spec["parallel"].prefix.bin.parallel, self.prefix.bin.parallel)

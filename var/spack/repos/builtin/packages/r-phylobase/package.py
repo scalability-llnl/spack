@@ -16,6 +16,7 @@ class RPhylobase(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("0.8.12", sha256="9b81ca60dc6215e74b720880cc2db3abc1f7e6d8785ea7d7df95a950f0778f20")
     version("0.8.10", sha256="5a44380ff49bab333a56f6f96157324ade8afb4af0730e013194c4badb0bf94b")
 
     depends_on("r-ade4", type=("build", "run"))

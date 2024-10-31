@@ -14,6 +14,8 @@ class OphidiaServer(AutotoolsPackage):
     maintainers("eldoo", "SoniaScard")
     version("1.7.4", sha256="30128c99ae089ab766141397ea5098ac930cfe10d09b289ed120f6581d8bb07d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

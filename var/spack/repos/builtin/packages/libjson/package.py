@@ -20,6 +20,8 @@ class Libjson(MakefilePackage):
     version("0.5", sha256="d19e149118c01c4a1f4cd16be3ce54bfc97a7210b6f0d76a3f8ef75bf70e8acd")
     version("0.4", sha256="9b3ebbeb1940dbd8664524d27e66d991fedc00cca9f403f9aa9c2f28104ca81b")
 
+    depends_on("c", type="build")  # generated
+
     def edit(self, spec, prefix):
         filter_file("-o root -g root", "", "Makefile")
 

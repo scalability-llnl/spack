@@ -22,6 +22,9 @@ class Libbeagle(AutotoolsPackage, CudaPackage):
         url="https://github.com/beagle-dev/beagle-lib/archive/beagle_release_2_1_2.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
@@ -45,7 +48,7 @@ class Libbeagle(AutotoolsPackage, CudaPackage):
 
     def patch(self):
         # update cuda architecture if necessary
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             archflag = "-arch=compute_{0}".format(cuda_arch)
 
@@ -70,12 +73,12 @@ class Libbeagle(AutotoolsPackage, CudaPackage):
             "--disable-march-native"
         ]
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append("--with-cuda={0}".format(self.spec["cuda"].prefix))
         else:
             args.append("--without-cuda")
 
-        if "+opencl" in self.spec:
+        if self.spec.satisfies("+opencl"):
             args.append("--with-opencl={0}".format(self.spec["opencl"].prefix))
         else:
             args.append("--without-opencl")

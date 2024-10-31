@@ -40,6 +40,8 @@ class Kubernetes(Package):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("bash", type="build")
     depends_on("go", type="build")
 

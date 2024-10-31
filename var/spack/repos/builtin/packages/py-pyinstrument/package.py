@@ -19,6 +19,8 @@ class PyPyinstrument(PythonPackage):
     version("3.1.3", sha256="353c7000a6563b16c0be0c6a04104d42b3154c5cd7c1979ab66efa5fdc5f5571")
     version("3.1.0", sha256="10c1fed4996a72c3e1e2bac1940334756894dbd116df3cc3b2d9743f2ae43016")
 
+    depends_on("c", type="build")  # generated
+
     variant("jupyter", default=False, description="Support Jupyter/IPython magic", when="@4.1:")
 
     depends_on("py-setuptools", type="build")

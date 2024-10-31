@@ -14,6 +14,8 @@ class Daligner(MakefilePackage):
 
     version("1.0", sha256="2fb03616f0d60df767fbba7c8f0021ec940c8d822ab2011cf58bd56a8b9fb414")
 
+    depends_on("c", type="build")  # generated
+
     def edit(self, spec, prefix):
         makefile = FileFilter("Makefile")
         kwargs = {"ignore_absent": False, "backup": False, "string": True}

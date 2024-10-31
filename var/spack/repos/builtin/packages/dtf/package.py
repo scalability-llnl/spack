@@ -21,6 +21,10 @@ class Dtf(AutotoolsPackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("cxx", default=True, description="Build pnetcdf the C++ Interface")
     variant("fortran", default=True, description="Build pnetcdf the Fortran Interface")
 

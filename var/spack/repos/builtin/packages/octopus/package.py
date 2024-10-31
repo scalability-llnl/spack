@@ -44,6 +44,10 @@ class Octopus(AutotoolsPackage, CudaPackage):
 
     version("develop", branch="main")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI support")
     variant("scalapack", default=False, when="+mpi", description="Compile with Scalapack")
     variant("berkeleygw", default=False, description="Compile with BerkeleyGW")
@@ -316,53 +320,37 @@ class Octopus(AutotoolsPackage, CudaPackage):
 
     @run_after("install")
     @on_package_attributes(run_tests=True)
-    def smoke_tests_after_install(self):
+    def benchmark_tests_after_install(self):
         """Function stub to run tests after install if desired
         (for example through `spack install --test=root octopus`)
         """
-        self.smoke_tests()
+        self.test_version()
+        self.test_example()
+        self.test_he()
 
-    def test(self):
-        """Entry point for smoke tests run through `spack test run octopus`."""
-        self.smoke_tests()
-
-    def smoke_tests(self):
-        """Actual smoke tests for Octopus."""
-        #
-        # run "octopus --version"
-        #
-        exe = join_path(self.spec.prefix.bin, "octopus")
-        options = ["--version"]
-        purpose = "Check octopus can execute (--version)"
+    def test_version(self):
+        """Check octopus can execute (--version)"""
         # Example output:
         #
         # spack-v0.17.2$ octopus --version
         # octopus 11.3 (git commit )
-        expected = ["octopus "]
 
-        self.run_test(
-            exe,
-            options=options,
-            expected=expected,
-            status=[0],
-            installed=False,
-            purpose=purpose,
-            skip_missing=False,
-        )
+        exe = which(self.spec.prefix.bin.octopus)
+        out = exe("--version", output=str.split, error=str.split)
+        assert "octopus " in out
+
+    def test_recipe(self):
+        """run recipe example"""
 
         # Octopus expects a file with name `inp` in the current working
         # directory to read configuration information for a simulation run from
         # that file. We copy the relevant configuration file in a dedicated
-        # subfolder for each test.
+        # subfolder for the test.
         #
         # As we like to be able to run these tests also with the
         # `spack install --test=root` command, we cannot rely on
         # self.test_suite.current_test_data_dir, and need to copy the test
         # input files manually (see below).
-
-        #
-        # run recipe example
-        #
 
         expected = [
             "Running octopus",
@@ -371,24 +359,27 @@ class Octopus(AutotoolsPackage, CudaPackage):
             "recipe leads to an edible dish, " 'for it is clearly "system-dependent".',
             "Calculation ended on",
         ]
-        options = []
-        purpose = "Run Octopus recipe example"
+
         with working_dir("example-recipe", create=True):
             print("Current working directory (in example-recipe)")
             fs.copy(join_path(os.path.dirname(__file__), "test", "recipe.inp"), "inp")
-            self.run_test(
-                exe,
-                options=options,
-                expected=expected,
-                status=[0],
-                installed=False,
-                purpose=purpose,
-                skip_missing=False,
-            )
+            exe = which(self.spec.prefix.bin.octopus)
+            out = exe(output=str.split, error=str.split)
+            check_outputs(expected, out)
 
+    def test_he(self):
+        """run He example"""
+
+        # Octopus expects a file with name `inp` in the current working
+        # directory to read configuration information for a simulation run from
+        # that file. We copy the relevant configuration file in a dedicated
+        # subfolder for the test.
         #
-        # run He example
-        #
+        # As we like to be able to run these tests also with the
+        # `spack install --test=root` command, we cannot rely on
+        # self.test_suite.current_test_data_dir, and need to copy the test
+        # input files manually (see below).
+
         expected = [
             "Running octopus",
             "Info: Starting calculation mode.",
@@ -397,17 +388,10 @@ class Octopus(AutotoolsPackage, CudaPackage):
             "Info: Writing states.",
             "Calculation ended on",
         ]
-        options = []
-        purpose = "Run tiny calculation for He"
+
         with working_dir("example-he", create=True):
             print("Current working directory (in example-he)")
             fs.copy(join_path(os.path.dirname(__file__), "test", "he.inp"), "inp")
-            self.run_test(
-                exe,
-                options=options,
-                expected=expected,
-                status=[0],
-                installed=False,
-                purpose=purpose,
-                skip_missing=False,
-            )
+            exe = which(self.spec.prefix.bin.octopus)
+            out = exe(output=str.split, error=str.split)
+            check_outputs(expected, out)

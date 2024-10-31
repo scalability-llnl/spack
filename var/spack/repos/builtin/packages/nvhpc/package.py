@@ -21,6 +21,36 @@ from spack.util.prefix import Prefix
 #  - package key must be in the form '{os}-{arch}' where 'os' is in the
 #    format returned by platform.system() and 'arch' by platform.machine()
 _versions = {
+    "24.9": {
+        "Linux-aarch64": (
+            "8d900f798ef806c64993fd4fedf2c2c812dd1ccdbac2a0d33fabcd0cd36f19cf",
+            "https://developer.download.nvidia.com/hpc-sdk/24.9/nvhpc_2024_249_Linux_aarch64_cuda_multi.tar.gz",
+        ),
+        "Linux-x86_64": (
+            "30c493350cf67481e84cea60a3a869e01fa0bcb71df8e898266273fbdf0a7f26",
+            "https://developer.download.nvidia.com/hpc-sdk/24.9/nvhpc_2024_249_Linux_x86_64_cuda_multi.tar.gz",
+        ),
+    },
+    "24.7": {
+        "Linux-aarch64": (
+            "256ae392ed961162f3f6dc633498db2b68441103a6192f5d4a1c18fa96e992e7",
+            "https://developer.download.nvidia.com/hpc-sdk/24.7/nvhpc_2024_247_Linux_aarch64_cuda_multi.tar.gz",
+        ),
+        "Linux-x86_64": (
+            "bf2094aa2fc5bdbcbf9bfa0fddc1cbed1bfa6e9342980649db2350d9f675f853",
+            "https://developer.download.nvidia.com/hpc-sdk/24.7/nvhpc_2024_247_Linux_x86_64_cuda_multi.tar.gz",
+        ),
+    },
+    "24.5": {
+        "Linux-aarch64": (
+            "c52b5ba370e053472cbffb825ba1da5b6abaee93d4e15479ec12c32d6ebc47d5",
+            "https://developer.download.nvidia.com/hpc-sdk/24.5/nvhpc_2024_245_Linux_aarch64_cuda_multi.tar.gz",
+        ),
+        "Linux-x86_64": (
+            "e26c5027ffd83fd9e854946670a97253e950cdbacd4894a6715aea91070042ae",
+            "https://developer.download.nvidia.com/hpc-sdk/24.5/nvhpc_2024_245_Linux_x86_64_cuda_multi.tar.gz",
+        ),
+    },
     "24.3": {
         "Linux-aarch64": (
             "6385847de5f8725e5c56d2abf70c90fed5490f2e71a7bd13d3f4ada8720ef036",
@@ -386,7 +416,7 @@ class Nvhpc(Package, CompilerPackage):
     homepage = "https://developer.nvidia.com/hpc-sdk"
 
     maintainers("samcmill")
-    tags = ["e4s"]
+    tags = ["e4s", "compiler"]
 
     skip_version_audit = ["platform=darwin", "platform=windows"]
 
@@ -397,6 +427,10 @@ class Nvhpc(Package, CompilerPackage):
         pkg = packages.get(key)
         if pkg:
             version(ver, sha256=pkg[0], url=pkg[1])
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("blas", default=True, description="Enable BLAS")
     variant(

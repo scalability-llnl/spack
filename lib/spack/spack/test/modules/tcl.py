@@ -26,7 +26,7 @@ pytestmark = [
 ]
 
 
-@pytest.mark.usefixtures("config", "mock_packages", "mock_module_filename")
+@pytest.mark.usefixtures("mutable_config", "mock_packages", "mock_module_filename")
 class TestTcl:
     def test_simple_case(self, modulefile_content, module_configuration):
         """Tests the generation of a simple Tcl module file."""
@@ -377,6 +377,14 @@ class TestTcl:
         writer, spec = factory("mpileaks~debug+opt target=x86_64")
         assert "baz-foo-bar" in writer.layout.use_name
 
+    def test_suffixes_format(self, module_configuration, factory):
+        """Tests adding suffixes as spec format string to module file name."""
+        module_configuration("suffix-format")
+
+        writer, spec = factory("mpileaks +debug target=x86_64 ^mpich@3.0.4")
+        assert "debug=True" in writer.layout.use_name
+        assert "mpi=mpich-v3.0.4" in writer.layout.use_name
+
     def test_setup_environment(self, modulefile_content, module_configuration):
         """Tests the internal set-up of run-time environment."""
 
@@ -388,7 +396,7 @@ class TestTcl:
 
         spec = spack.spec.Spec("mpileaks")
         spec.concretize()
-        content = modulefile_content(str(spec["callpath"]))
+        content = modulefile_content(spec["callpath"])
 
         assert len([x for x in content if "setenv FOOBAR" in x]) == 1
         assert len([x for x in content if "setenv FOOBAR {callpath}" in x]) == 1
@@ -439,19 +447,19 @@ class TestTcl:
 
     @pytest.mark.regression("4400")
     @pytest.mark.db
-    def test_hide_implicits_no_arg(self, module_configuration, database):
+    def test_hide_implicits_no_arg(self, module_configuration, mutable_database):
         module_configuration("exclude_implicits")
 
         # mpileaks has been installed explicitly when setting up
         # the tests database
-        mpileaks_specs = database.query("mpileaks")
+        mpileaks_specs = mutable_database.query("mpileaks")
         for item in mpileaks_specs:
             writer = writer_cls(item, "default")
             assert not writer.conf.excluded
 
         # callpath is a dependency of mpileaks, and has been pulled
         # in implicitly
-        callpath_specs = database.query("callpath")
+        callpath_specs = mutable_database.query("callpath")
         for item in callpath_specs:
             writer = writer_cls(item, "default")
             assert writer.conf.excluded
@@ -473,8 +481,7 @@ class TestTcl:
         assert writer.conf.excluded
 
     @pytest.mark.regression("9624")
-    @pytest.mark.db
-    def test_autoload_with_constraints(self, modulefile_content, module_configuration, database):
+    def test_autoload_with_constraints(self, modulefile_content, module_configuration):
         """Tests the automatic loading of direct dependencies."""
 
         module_configuration("autoload_with_constraints")

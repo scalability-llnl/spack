@@ -70,7 +70,7 @@ class Amp(CMakePackage):
             self.define("USE_MPI", "0"),
         ]
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             options.extend(
                 [
                     self.define("CMAKE_C_COMPILER", spec["mpi"].mpicc),
@@ -101,7 +101,7 @@ class Amp(CMakePackage):
             ]
         )
 
-        if "+zlib" in spec:
+        if spec.satisfies("+zlib"):
             tpl_list.append("ZLIB")
             options.append(self.define("TPL_ZLIB_INSTALL_DIR", spec["zlib-api"].prefix))
 
@@ -119,7 +119,7 @@ class Amp(CMakePackage):
                 tpl_list.append(vname.upper())
                 options.append(self.define(f"TPL_{vname.upper()}_INSTALL_DIR", spec[vname].prefix))
 
-        if "+netcdf" in spec:
+        if spec.satisfies("+netcdf"):
             tpl_list.append("NETCDF")
             options.append(self.define("TPL_NETCDF_INSTALL_DIR", spec["netcdf-c"].prefix))
 

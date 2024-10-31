@@ -24,6 +24,9 @@ class Jansson(CMakePackage):
     version("2.10", sha256="b0a899f90ade82e42da0ecabc8af1fa296d69691e7c0786c4994fb79d4833ebb")
     version("2.9", sha256="952fa714b399e71c1c3aa020e32e899f290c82126ca4d0d14cff5d10af457656")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Enables the build of shared libraries")
 
     def cmake_args(self):

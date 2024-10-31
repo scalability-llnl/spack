@@ -16,6 +16,8 @@ class Gemmlowp(Package):
 
     version("a6f29d9ac", commit="a6f29d8ac48d63293f845f2253eccbf86bc28321")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         header_directories = (
             "eight_bit_int_gemm",

@@ -9,7 +9,7 @@ import re
 import shlex
 import sys
 from subprocess import PIPE, run
-from typing import Optional
+from typing import List, Optional
 
 import spack.spec
 import spack.util.elf
@@ -22,7 +22,7 @@ def _libc_from_ldd(ldd: str) -> Optional["spack.spec.Spec"]:
     except Exception:
         return None
 
-    if not re.search(r"\b(?:gnu|glibc|arm)\b", stdout, re.IGNORECASE):
+    if not re.search(r"\bFree Software Foundation\b", stdout):
         return None
 
     version_str = re.match(r".+\(.+\) (.+)", stdout)
@@ -32,6 +32,22 @@ def _libc_from_ldd(ldd: str) -> Optional["spack.spec.Spec"]:
         return spack.spec.Spec(f"glibc@={version_str.group(1)}")
     except Exception:
         return None
+
+
+def default_search_paths_from_dynamic_linker(dynamic_linker: str) -> List[str]:
+    """If the dynamic linker is glibc at a certain version, we can query the hard-coded library
+    search paths"""
+    try:
+        result = run([dynamic_linker, "--help"], stdout=PIPE, stderr=PIPE, check=False)
+        assert result.returncode == 0
+        out = result.stdout.decode("utf-8")
+    except Exception:
+        return []
+
+    return [
+        match.group(1).strip()
+        for match in re.finditer(r"^  (/.+) \(system search path\)$", out, re.MULTILINE)
+    ]
 
 
 def libc_from_dynamic_linker(dynamic_linker: str) -> Optional["spack.spec.Spec"]:
@@ -75,7 +91,7 @@ def libc_from_dynamic_linker(dynamic_linker: str) -> Optional["spack.spec.Spec"]
             return spec
         except Exception:
             return None
-    elif re.search(r"\b(?:gnu|glibc|arm)\b", stdout, re.IGNORECASE):
+    elif re.search(r"\bFree Software Foundation\b", stdout):
         # output is like "ld.so (...) stable release version 2.33."
         match = re.search(r"version (\d+\.\d+(?:\.\d+)?)", stdout)
         if not match:
@@ -128,9 +144,9 @@ def startfile_prefix(prefix: str, compatible_with: str = sys.executable) -> Opti
     except Exception:
         accept = lambda path: True
 
-    queue = [(0, prefix)]
-    while queue:
-        depth, path = queue.pop()
+    stack = [(0, prefix)]
+    while stack:
+        depth, path = stack.pop()
         try:
             iterator = os.scandir(path)
         except OSError:
@@ -140,7 +156,7 @@ def startfile_prefix(prefix: str, compatible_with: str = sys.executable) -> Opti
                 try:
                     if entry.is_dir(follow_symlinks=True):
                         if depth < 2:
-                            queue.append((depth + 1, entry.path))
+                            stack.append((depth + 1, entry.path))
                     elif entry.name == "crt1.o" and accept(entry.path):
                         return path
                 except Exception:

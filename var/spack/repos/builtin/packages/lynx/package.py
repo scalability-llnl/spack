@@ -16,6 +16,8 @@ class Lynx(AutotoolsPackage):
 
     version("2.8.9.1", sha256="a46e4167b8f02c066d2fe2eafcc5603367be0e3fe2e59e9fc4eb016f306afc8e")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ncurses")
 
     def url_for_version(self, version):

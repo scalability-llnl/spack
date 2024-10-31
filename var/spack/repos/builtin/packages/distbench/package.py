@@ -17,6 +17,8 @@ class Distbench(MakefilePackage):
 
     version("1.0rc4", sha256="adc8da85890219800207d0d4cd7ffd63193d2c4007dba7c44cf545cc13675ff7")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("bazel", type="build")
 
     def patch(self):

@@ -21,6 +21,8 @@ class PyMultidict(PythonPackage):
     version("5.1.0", sha256="25b4e5f22d3a37ddf3effc0710ba692cfc792c2b9edfb9c05aefe823256e84d5")
     version("4.7.6", sha256="fbb77a75e529021e7c4a8d4e823d88ef4d23674a202be4f5addffc72cbb91430")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools@40:", type="build")
 
     # Historical dependencies

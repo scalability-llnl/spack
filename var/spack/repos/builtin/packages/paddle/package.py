@@ -17,6 +17,9 @@ class Paddle(CMakePackage):
     version("master", branch="master", submodules=True)
     version("0.3.7", tag="0.3.7", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("parmetis", default=False, description="Enable ParMETIS ordering")
     variant("tests", default=False, description="Enable tests")
 

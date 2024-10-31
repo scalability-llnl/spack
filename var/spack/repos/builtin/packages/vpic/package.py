@@ -24,6 +24,9 @@ class Vpic(CMakePackage):
 
     version("develop", branch="master", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.1:", type="build")
     depends_on("mpi")
 

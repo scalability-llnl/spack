@@ -18,6 +18,9 @@ class Kyotocabinet(AutotoolsPackage):
 
     version("1.2.80", sha256="4c85d736668d82920bfdbdb92ac3d66b7db1108f09581a769dd9160a02def349")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api@1.2.3:", type=("build", "link"))
     depends_on("lzo", type=("build", "link"))
     depends_on("xz", type=("build", "link"))

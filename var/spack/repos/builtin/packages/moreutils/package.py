@@ -21,6 +21,8 @@ class Moreutils(MakefilePackage):
     version("0.65", sha256="ba0cfaa1ff6ead2b15c62a67292de66a366f9b815a09697b54677f7e15f5a2b2")
     version("0.63", sha256="01f0b331e07e62c70d58c2dabbb68f5c4ddae4ee6f2d8f070fd1e316108af72c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl", type="build")
     depends_on("docbook-xsl", type="build")
     depends_on("libxml2", type="build")

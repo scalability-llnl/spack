@@ -17,6 +17,8 @@ class Seqprep(MakefilePackage):
 
     version("1.3.2", sha256="2b8a462a0e0a3e51f70be7730dc77b1f2bb69e74845dd0fbd2110a921c32265a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api", type="link")
 
     def install(self, spec, prefix):

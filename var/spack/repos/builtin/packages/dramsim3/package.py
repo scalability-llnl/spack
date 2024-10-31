@@ -23,6 +23,9 @@ class Dramsim3(Package):
 
     version("1.0.0", sha256="064b732256f3bec9b553e00bcbc9a1d82172ec194f2b69c8797f585200b12566")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake", type="build")
 
     def install(self, spec, prefix):

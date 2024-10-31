@@ -40,6 +40,10 @@ class Mmg(CMakePackage):
     version("5.4.0", sha256="2b5cc505018859856766be901797ff5d4789f89377038a0211176a5571039750")
     version("5.3.13", sha256="d9a5925b69b0433f942ab2c8e55659d9ccea758743354b43d54fdf88a6c3c191")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Enables the build of shared libraries")
     variant("scotch", default=True, description="Enable SCOTCH library support")
     variant("doc", default=False, description="Build documentation")

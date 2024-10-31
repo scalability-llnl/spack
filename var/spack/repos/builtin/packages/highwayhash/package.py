@@ -21,6 +21,8 @@ class Highwayhash(MakefilePackage):
 
     version("dfcb97", commit="dfcb97ca4fe9277bf9dc1802dd979b071896453b")
 
+    depends_on("cxx", type="build")  # generated
+
     build_targets = ["all", "libhighwayhash.a"]
 
     def install(self, spec, prefix):

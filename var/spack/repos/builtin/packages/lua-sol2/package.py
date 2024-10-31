@@ -26,6 +26,8 @@ class LuaSol2(CMakePackage):
     version("3.0.3", sha256="bf089e50387edfc70063e24fd7fbb693cceba4a50147d864fabedd1b33483582")
     version("3.0.2", sha256="3f5f369eae6732ae9a315fe4370bbdc9900d2f2f4f291206aeb5b2d5533f0c99")
 
+    depends_on("cxx", type="build")  # generated
+
     # Lua is not needed when building, since sol2 is headers-only
     depends_on("lua", type=("link", "run"))
 

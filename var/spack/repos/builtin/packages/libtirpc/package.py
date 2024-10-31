@@ -20,6 +20,8 @@ class Libtirpc(AutotoolsPackage):
 
     variant("gssapi", default=True, description="Enable GSS-API")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("krb5")
 
     provides("rpc")

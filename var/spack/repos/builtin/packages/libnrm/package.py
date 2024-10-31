@@ -17,6 +17,8 @@ class Libnrm(AutotoolsPackage):
 
     version("0.1.0", sha256="f849ada384025fa41251acc2a43aa335e0cb1b9cd1c8ab8b9d1808a036ae551e")
 
+    depends_on("c", type="build")  # generated
+
     tags = ["e4s"]
 
     depends_on("m4", type="build")

@@ -24,6 +24,8 @@ class RDecipher(RPackage):
     version("2.6.0", commit="ed9acaa35c8774cb0ea01cd7cc2e46d063d8c70e")
     version("2.4.0", commit="1a57b8e4c7d7dec1c233f79c9a88d3705e0ad432")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@2.18.1:")
     depends_on("r-biostrings@2.35.12:", type=("build", "run"))
