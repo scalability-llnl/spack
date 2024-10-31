@@ -4463,8 +4463,19 @@ class Spec:
         # so we hope it only runs on abstract specs, which are small.
         return hash(lang.tuplify(self._cmp_iter))
 
+    def marshal(self):
+        if self.concrete:
+            return (self.to_dict(hash=ht.process_hash),)
+        return (str(self),)
+
+    @staticmethod
+    def unmarshal(data):
+        if isinstance(data, str):
+            return Spec(data)
+        return Spec.from_dict(data)
+
     def __reduce__(self):
-        return Spec.from_dict, (self.to_dict(hash=ht.process_hash),)
+        return Spec.unmarshal, self.marshal()
 
     def attach_git_version_lookup(self):
         # Add a git lookup method for GitVersions
