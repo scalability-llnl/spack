@@ -221,7 +221,10 @@ def matching_specs_from_env(specs):
     """
     env = ev.active_environment()
     spec_pairs = [(spec, env.matching_spec(abstract) if env else None) for spec in specs]
-    return _concretize_spec_pairs(spec_pairs)
+    additional_concrete_specs = (
+        [(concrete, concrete) for _, concrete in env.concretized_specs()] if env else []
+    )
+    return _concretize_spec_pairs(spec_pairs + additional_concrete_specs)[: len(spec_pairs)]
 
 
 def disambiguate_spec(spec, env, local=False, installed=True, first=False):
