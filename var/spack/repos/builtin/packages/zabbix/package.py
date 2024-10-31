@@ -40,6 +40,8 @@ class Zabbix(AutotoolsPackage):
     depends_on("m4", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("mysql-client")
+    # Older versions of mysql use openssl-1.x, causing build issues:
+    depends_on("mysql@8.0.35:", when="^[virtuals=mysql-client] mysql")
     depends_on("libevent")
     depends_on("pcre")
     depends_on("go")
