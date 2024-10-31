@@ -18,3 +18,4 @@ class PyVine(PythonPackage):
     version("1.2.0", sha256="ee4813e915d0e1a54e5c1963fde0855337f82655678540a6bc5996bca4165f76")
 
     depends_on("py-setuptools", type="build")
+    depends_on("python@3.8:3.10", type=("build", "run"))
