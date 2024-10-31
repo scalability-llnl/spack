@@ -20,6 +20,7 @@ from spack.main import SpackCommand, SpackCommandArgs
 from spack.spec import Spec
 from spack.util.pattern import Bunch
 
+add = SpackCommand("add")
 find = SpackCommand("find")
 env = SpackCommand("env")
 install = SpackCommand("install")
@@ -349,22 +350,53 @@ def test_find_prefix_in_env(
         # Would throw error on regression
 
 
+
+_pkgx1 = (
+    "x1",
+    """\
+class X1(Package):
+    version("1.2")
+    version("1.1")
+""",
+)
+
+from spack.test.conftest import create_test_repo
+
+@pytest.fixture
+def _create_test_repo(tmpdir, mutable_config):
+    yield create_test_repo(
+        tmpdir,
+        [
+            _pkgx1,
+        ]
+    )
+
+
+@pytest.fixture
+def test_repo(_create_test_repo, monkeypatch, mock_stage):
+    with spack.repo.use_repositories(_create_test_repo) as mock_repo_path:
+        yield mock_repo_path
+
+
 def test_find_concretized_not_installed(
-    mutable_mock_env_path, install_mockery, mock_fetch, mock_packages, mock_archive
+    mutable_mock_env_path, install_mockery, mock_fetch, test_repo, mock_archive
 ):
     find_args1 = SpackCommandArgs("find")()
     r1, cbni1 = spack.cmd.find._find_query(find_args1, None)
 
     env("create", "test")
     with ev.read("test") as e:
-        install("--add", "mpileaks")
+        install("--add", "x1")
         r2, cbni2 = spack.cmd.find._find_query(
             SpackCommandArgs("find")(),
             e
         )
-        output2 = find()
-        import pdb; pdb.set_trace()
-        print("hi")
+
+    #    add("")
+    #env("concretize")
+
+    import pdb; pdb.set_trace()
+    print("hi")
 
 
 def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_repo, tmpdir):
