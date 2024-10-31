@@ -62,7 +62,8 @@ class NvidiaNsightSystems(Package):
 
     executables = ["^nsys$"]
 
-    depends_on("libarchive programs='bsdtar'")
+    # Used to unpack the source RPM archives.
+    depends_on("libarchive programs='bsdtar'", type="build")
 
     for ver, packages in _versions.items():
         key = "{0}-{1}".format(platform.system(), platform.machine())
