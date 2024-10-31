@@ -1678,8 +1678,9 @@ def find(root, files, recursive=True, max_depth: Optional[int] = None):
 
     Like GNU/BSD find but written entirely in Python.
 
-    When searching recursively, this behaves as `find` with the `-L`
-    option (follows symlinks).
+    Specifically this behaves like `find -type f`: it only returns
+    results that are files. When searching recursively, this behaves
+    as `find` with the `-L` option (follows symlinks).
 
     Examples:
 
