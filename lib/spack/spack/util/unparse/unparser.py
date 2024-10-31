@@ -627,20 +627,30 @@ class Unparser(NodeVisitor):
 
     def visit_JoinedStr(self, node):
         self.write("f")
+        # Python <= 3.11 does not support backslashes inside format parts
+        if self._avoid_backslashes:
+            with self.buffered() as buffer:
+                self._write_fstring_inner(node)
+            return self._write_str_avoiding_backslashes("".join(buffer))
 
         fstring_parts = []
         for value in node.values:
             with self.buffered() as buffer:
                 self._write_fstring_inner(value)
-            fstring_parts.append(("".join(buffer), isinstance(value, Constant)))
+            # Python 3.8 changed Str to Constant
+            fstring_parts.append(
+                ("".join(buffer), isinstance(value, Constant) or type(value).__name__ == "Str")
+            )
 
         new_fstring_parts = []
         quote_types = list(_ALL_QUOTES)
         fallback_to_repr = False
         for value, is_constant in fstring_parts:
-            if is_constant:
+            # Python 3.12 allows `f'{''}'`.
+            # But we unparse to `f'{""}'` for < 3.12 compat.
+            if True:
                 value, new_quote_types = self._str_literal_helper(
-                    value, quote_types=quote_types, escape_special_whitespace=True
+                    value, quote_types=quote_types, escape_special_whitespace=is_constant
                 )
                 if set(new_quote_types).isdisjoint(quote_types):
                     fallback_to_repr = True
@@ -657,7 +667,9 @@ class Unparser(NodeVisitor):
             quote_types = ["'''"]
             new_fstring_parts.clear()
             for value, is_constant in fstring_parts:
-                if is_constant:
+                # Python 3.12 allows `f'{''}'`.
+                # We need to unparse to `f'{""}'` for < 3.12 compat.
+                if True:
                     value = repr('"' + value)  # force repr to use single quotes
                     expected_prefix = "'\""
                     assert value.startswith(expected_prefix), repr(value)
@@ -673,6 +685,16 @@ class Unparser(NodeVisitor):
             # for both the f-string itself, and format_spec
             for value in node.values:
                 self._write_fstring_inner(value, is_format_spec=is_format_spec)
+        # Python 3.8 changed Str to Constant
+        elif type(node).__name__ == "Str":
+            value = node.s.replace("{", "{{").replace("}", "}}")
+
+            if is_format_spec:
+                value = value.replace("\\", "\\\\")
+                value = value.replace("'", "\\'")
+                value = value.replace('"', '\\"')
+                value = value.replace("\n", "\\n")
+            self.write(value)
         elif isinstance(node, Constant) and isinstance(node.value, str):
             value = node.value.replace("{", "{{").replace("}", "}}")
 
@@ -689,7 +711,8 @@ class Unparser(NodeVisitor):
 
     def visit_FormattedValue(self, node):
         def unparse_inner(inner):
-            unparser = type(self)()
+            # Python <= 3.11 does not support backslashes inside format parts
+            unparser = type(self)(_avoid_backslashes=True)
             unparser.set_precedence(_Precedence.TEST.next(), inner)
             return unparser.visit(inner)
 
@@ -726,6 +749,7 @@ class Unparser(NodeVisitor):
             self.write(
                 repr(value).replace("inf", _INFSTR).replace("nan", f"({_INFSTR}-{_INFSTR})")
             )
+        # Python <= 3.11 does not support backslashes inside format parts
         elif self._avoid_backslashes and isinstance(value, str):
             self._write_str_avoiding_backslashes(value)
         else:
