@@ -1134,14 +1134,14 @@ spack:
 
 
 def test_with_config_bad_include_create(environment_from_manifest):
-    """Confirm missing include paths raise expected exception and error."""
-    with pytest.raises(spack.config.ConfigFileError, match="2 missing include path"):
+    """Confirm missing required include raise expected exception."""
+    err = "Required include path does not exist"
+    with pytest.raises(ValueError, match=err):
         environment_from_manifest(
             """
 spack:
   include:
   - /no/such/directory
-  - no/such/file.yaml
 """
         )
 
@@ -1151,34 +1151,25 @@ def test_with_config_bad_include_activate(environment_from_manifest, tmpdir):
     include1 = env_root / "include1.yaml"
     include1.touch()
 
-    abs_include_path = os.path.abspath(tmpdir.join("subdir").ensure("include2.yaml"))
-
     spack_yaml = env_root / ev.manifest_name
     spack_yaml.write_text(
-        f"""
+        """
 spack:
   include:
   - ./include1.yaml
-  - {abs_include_path}
 """
     )
 
     with ev.Environment(env_root) as e:
         e.concretize()
 
-    # we've created an environment with some included config files (which do
-    # in fact exist): now we remove them and check that we get a sensible
-    # error message
+    # We've created an environment with included config file (which does
+    # exist). Now we remove it and check that we get a sensible error.
 
-    os.remove(abs_include_path)
     os.remove(include1)
-    with pytest.raises(spack.config.ConfigFileError) as exc:
+    with pytest.raises(ValueError, match="does not exist"):
         ev.activate(ev.Environment(env_root))
 
-    err = exc.value.message
-    assert "missing include" in err
-    assert abs_include_path in err
-    assert "include1.yaml" in err
     assert ev.active_environment() is None
 
 
@@ -1405,19 +1396,6 @@ def test_env_with_included_config_file_url(tmpdir, mutable_empty_config, package
 
     cfg = spack.config.get("packages")
     assert cfg["mpileaks"]["version"] == ["2.2"]
-
-
-def test_env_with_included_config_missing_file(tmpdir, mutable_empty_config):
-    """Test inclusion of a missing configuration file raises FetchError
-    noting missing file."""
-
-    spack_yaml = tmpdir.join("spack.yaml")
-    missing_file = tmpdir.join("packages.yaml")
-    with spack_yaml.open("w") as f:
-        f.write("spack:\n  include:\n    - {0}\n".format(missing_file.strpath))
-
-    with pytest.raises(spack.error.ConfigError, match="missing include path"):
-        ev.Environment(tmpdir.strpath)
 
 
 def test_env_with_included_config_scope(mutable_mock_env_path, packages_file):
