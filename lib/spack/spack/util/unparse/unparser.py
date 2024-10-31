@@ -724,13 +724,6 @@ class Unparser(NodeVisitor):
             self.write(
                 repr(value).replace("inf", _INFSTR).replace("nan", f"({_INFSTR}-{_INFSTR})")
             )
-        elif isinstance(value, str) and self._py_ver_consistent:
-            # emulate a python 2 repr with raw unicode escapes
-            # see _Str for python 2 counterpart
-            raw = repr(value.encode("raw_unicode_escape")).lstrip("b")
-            if raw.startswith(r"'\\u"):
-                raw = "'\\" + raw[3:]
-            self.write(raw)
         elif self._avoid_backslashes and isinstance(value, str):
             self._write_str_avoiding_backslashes(value)
         else:
