@@ -1824,8 +1824,8 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                     try:
                         # The stat should be performed in a try/except block.
                         # We repeat that here vs. moving to the above block
-                        # because we only want to call `stat` if we are below
-                        # our max_depth
+                        # because we only want to call `stat` if we haven't
+                        # exceeded our max_depth
                         if sys.platform == "win32":
                             # Note: st_ino/st_dev on DirEntry.stat are not set on
                             # Windows, so we have to call os.stat
