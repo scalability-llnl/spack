@@ -22,6 +22,8 @@ class Typst(CargoPackage):
     version("0.12.0", commit="737895d769188f6fc154523e67a9102bc24c872e", tag="v0.12.0")
 
     depends_on("rust@1.81.0:")
+    depends_on("openssl")
+    depends_on("pkgconf", type="build")
 
     @classmethod
     def determine_version(cls, exe):
