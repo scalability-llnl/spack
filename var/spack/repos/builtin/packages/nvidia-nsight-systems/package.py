@@ -81,11 +81,12 @@ class NvidiaNsightSystems(Package):
             folders = ["documentation", "host-linux-ppc64le", "target-linux-ppc64le"]
         elif arch == "x86_64":
             folders = ["documentation", "host-linux-x64", "target-linux-x64"]
-        base_path = ""
         if os.path.exists(join_path("opt", "nvidia", "nsight-systems-cli")):
             base_path = join_path("opt", "nvidia", "nsight-systems-cli")
         elif os.path.exists(join_path("opt", "nvidia", "nsight-systems")):
             base_path = join_path("opt", "nvidia", "nsight-systems")
+        else:
+            raise InstallError("Couldn't determine subdirectories to install.")
 
         for sd in folders:
             shutil.copytree(join_path(base_path, ver, sd), join_path(prefix, sd))
