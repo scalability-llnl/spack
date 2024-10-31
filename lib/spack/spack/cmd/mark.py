@@ -98,8 +98,9 @@ def do_mark(specs, explicit):
         specs (list): list of specs to be marked
         explicit (bool): whether to mark specs as explicitly installed
     """
-    for spec in specs:
-        spack.store.STORE.db.update_explicit(spec, explicit)
+    with spack.store.STORE.db.write_transaction():
+        for spec in specs:
+            spack.store.STORE.db.mark(spec, "explicit", explicit)
 
 
 def mark_specs(args, specs):
