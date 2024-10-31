@@ -554,7 +554,9 @@ e: *id002
     )
 
 
-@pytest.mark.parametrize("spec_str", ["hdf5 ++mpi", "hdf5 cflags==-g", "hdf5 foo==bar", "hdf5~~mpi++shared"])
+@pytest.mark.parametrize(
+    "spec_str", ["hdf5 ++mpi", "hdf5 cflags==-g", "hdf5 foo==bar", "hdf5~~mpi++shared"]
+)
 def test_pickle_roundtrip_for_abstract_specs(spec_str):
     """Tests that abstract specs correctly round trip when pickled.
 
