@@ -15,7 +15,7 @@ from typing import List, Optional
 import llnl.string as string
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
-from llnl.util.symlink import SymlinkError, symlink, islink
+from llnl.util.symlink import islink, symlink
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import cescape, colorize
 
@@ -462,7 +462,7 @@ def env_track_setup_parser(subparser):
 def env_track(args):
     src_path = os.path.abspath(args.dir)
     if not ev.is_env_dir(src_path):
-        tty.die(f"Cannot track environment. Path doesn't contain an environment")
+        tty.die("Cannot track environment. Path doesn't contain an environment")
 
     if args.name:
         name = args.name
