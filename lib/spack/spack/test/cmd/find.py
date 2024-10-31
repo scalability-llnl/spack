@@ -353,9 +353,11 @@ def test_find_concretized_not_installed(
     mutable_mock_env_path, install_mockery, mock_fetch, mock_packages, mock_archive
 ):
     env("create", "test")
+    output0 = find()
     with ev.read("test"):
+        output1 = find()
         install("--add", "mpileaks")
-        output = find()
+        output2 = find()
         import pdb; pdb.set_trace()
         print("hi")
 
