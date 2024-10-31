@@ -850,10 +850,9 @@ class Unparser(NodeVisitor):
             self.interleave(lambda: self.write(", "), write_item, zip(node.keys, node.values))
 
     def visit_Tuple(self, node):
-        # with self.delimit_if(
-        #     "(", ")", len(node.elts) == 0 or self.get_precedence(node) > _Precedence.TUPLE
-        # ):
-        with self.delimit("(", ")"):  # don't change spack package hash
+        with self.delimit_if(
+            "(", ")", len(node.elts) == 0 or self.get_precedence(node) > _Precedence.TUPLE
+        ):
             self.items_view(self.traverse, node.elts)
 
     unop = {"Invert": "~", "Not": "not", "UAdd": "+", "USub": "-"}
@@ -1025,10 +1024,8 @@ class Unparser(NodeVisitor):
     # used in Python <= 3.8 -- see _Subscript for 3.9+
     def visit_Index(self, node):
         if is_non_empty_non_star_tuple(node.value):
-            self.set_precedence(_Precedence.ATOM, node.value)
             self.items_view(self.traverse, node.value.elts)
         else:
-            self.set_precedence(_Precedence.TUPLE, node.value)
             self.traverse(node.value)
 
     def visit_Slice(self, node):
@@ -1124,8 +1121,8 @@ class Unparser(NodeVisitor):
             self.write("lambda")
             with self.buffered() as buffer:
                 self.traverse(node.args)
-            # if buffer: # don't change spack package hash change
-            self.write(" ", *buffer)
+            if buffer:
+                self.write(" ", *buffer)
             self.write(": ")
             self.set_precedence(_Precedence.TEST, node.body)
             self.traverse(node.body)
