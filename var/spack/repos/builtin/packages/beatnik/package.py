@@ -16,7 +16,7 @@ class Beatnik(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSD-3-Clause")
 
-    version("1.1", commit="7d5a6fa588bcb7065fc53c3e8ae52d4d7f13b6f1", submodules=True) 
+    version("1.1", commit="7d5a6fa588bcb7065fc53c3e8ae52d4d7f13b6f1", submodules=True)
     version("1.0", commit="ae31ef9cb44678d5ace77994b45b0778defa3d2f")
     version("develop", branch="develop", submodules=True)
     version("main", branch="main", submodules=True)
@@ -54,7 +54,8 @@ class Beatnik(CMakePackage, CudaPackage, ROCmPackage):
 
     # Silo dependencies
     depends_on("silo @4.11:")
-    depends_on("silo @4.11.1 +fpzip+hzip~python", when="%cce")  # Eariler silo versions have trouble cce
+    depends_on("silo @4.11.1 +fpzip+hzip~python", when="%cce")
+    # Eariler silo versions have trouble cce
 
     # Heffte dependencies - We always require FFTW so that there's a host
     # backend even when we're compiling for GPUs
