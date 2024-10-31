@@ -127,7 +127,6 @@ class Unparser(NodeVisitor):
         self._type_ignores = {}
         self._indent = 0
         self._in_try_star = False
-        self.future_imports = []
         self._py_ver_consistent = py_ver_consistent
         self._avoid_backslashes = _avoid_backslashes
 
@@ -284,10 +283,6 @@ class Unparser(NodeVisitor):
         self.interleave(lambda: self.write(", "), self.traverse, node.names)
 
     def visit_ImportFrom(self, node):
-        # A from __future__ import may affect unparsing, so record it.
-        if node.module and node.module == "__future__":
-            self.future_imports.extend(n.name for n in node.names)
-
         self.fill("from ")
         self.write("." * (node.level or 0))
         if node.module:
