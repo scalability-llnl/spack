@@ -704,16 +704,15 @@ class SpackCommandArgs:
 
         install_args = SpackCommandArgs("install")("-v", "mpich")
     """
+
     def __init__(self, command_name):
         self.parser = make_argument_parser()
         self.command_name = command_name
 
     def __call__(self, *argv, **kwargs):
-        command = self.parser.add_command(self.command_name)
+        self.parser.add_command(self.command_name)
         prepend = kwargs["global_args"] if "global_args" in kwargs else []
-        args, unknown = self.parser.parse_known_args(
-            prepend + [self.command_name] + list(argv)
-        )
+        args, unknown = self.parser.parse_known_args(prepend + [self.command_name] + list(argv))
         return args
 
 

@@ -520,12 +520,7 @@ def _create_test_repo(tmpdir, mutable_config):
      / \ / \
     b0  c0  e0
     """
-    yield create_test_repo(
-        tmpdir,
-        [
-            _pkga, _pkgb, _pkgc, _pkgd, _pkge
-        ]
-    )
+    yield create_test_repo(tmpdir, [_pkga, _pkgb, _pkgc, _pkgd, _pkge])
 
 
 @pytest.fixture
@@ -541,10 +536,7 @@ def test_find_concretized_not_installed(
     uninstall = SpackCommand("uninstall")
 
     def _query(_e, *args):
-        return spack.cmd.find._find_query(
-            SpackCommandArgs("find")(*args),
-            _e
-        )
+        return spack.cmd.find._find_query(SpackCommandArgs("find")(*args), _e)
 
     def _nresults(_qresult):
         return len(_qresult[0]), len(_qresult[1])

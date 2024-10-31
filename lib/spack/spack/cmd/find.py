@@ -309,9 +309,7 @@ def _find_query(args, env):
             env_specs = all_env_specs
 
         spec_hashes = set(x.dag_hash() for x in env_specs)
-        specs_meeting_q_args = set(
-            spack.store.STORE.db.query(hashes=spec_hashes, **q_args)
-        )
+        specs_meeting_q_args = set(spack.store.STORE.db.query(hashes=spec_hashes, **q_args))
 
         results = list()
         for spec in env_specs:
