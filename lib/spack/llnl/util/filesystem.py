@@ -1797,9 +1797,12 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     visited_dirs = set([_dir_id(stat_root)])
 
     # Each queue item stores the depth and path
-    # BFS traversal is important to ensure repeatable results given
-    # that we allow following symlinks to sibling dirs that are not
-    # as deep: we return the shortest path to a given file
+    # This achieves a consistent traversal order by iterating through
+    # each directory in alphabetical order.
+    # This also traverses in BFS order to ensure finding the shortest
+    # path to any file (or one of the shortest paths, if there are
+    # several - the one returned will be consistent given the prior
+    # point).
     dir_queue = collections.deque([(0, root)])
     while dir_queue:
         depth, next_dir = dir_queue.pop()
@@ -1811,7 +1814,8 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
             continue
 
         with dir_iter:
-            for dir_entry in dir_iter:
+            ordered_entries = sorted(dir_iter, key=lambda x: x.name)
+            for dir_entry in ordered_entries:
                 try:
                     it_is_a_dir = dir_entry.is_dir(follow_symlinks=True)
                 except OSError as e:
