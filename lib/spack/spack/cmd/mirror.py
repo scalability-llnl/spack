@@ -320,6 +320,16 @@ def mirror_add(args):
     ):
         connection = {"url": args.url}
         # S3 Connection
+        if args.s3_access_key_secret:
+            tty.warn(
+                "Configuring mirror secrets as plain text with --s3-access-key-secret is "
+                "deprecated. Use --s3-access-key-secret-variable instead"
+            )
+        if args.oci_password:
+            tty.warn(
+                "Configuring mirror secrets as plain text with --oci-password is deprecated. "
+                "Use --oci-password-variable instead"
+            )
         access_pair = _configure_access_pair(
             args,
             "s3_access_key_id",

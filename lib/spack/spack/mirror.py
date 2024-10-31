@@ -162,6 +162,7 @@ class Mirror:
             current_data.pop("access_token_variable")
 
         # If updating to a new access_pair that is the deprecated list, warn
+        warn_deprecated_access_pair = False
         if "access_pair" in new_data:
             warn_deprecated_access_pair = isinstance(new_data["access_pair"], list)
         # If the not updating the current access_pair, and it is the deprecated list, warn
