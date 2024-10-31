@@ -16,6 +16,7 @@ class RBlockmodeling(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("1.1.5", sha256="3b6f910078c29b801651e3a686112e41e456c517e1b99fcda11bb12681bb1503")
     version("1.1.4", sha256="69ce17ed96ca754a6308edb62188e0040e357568b975ce8986f68ecb2fead2b8")
     version("1.1.3", sha256="5f705f92c9b96dcbdd6f109c6a99f88d70c576485369700b82391b6a75afbda6")
     version("1.0.5", sha256="18c227bb52f28aff4dae8929563474e3e006e238438c823b67dc6baa897f88ed")

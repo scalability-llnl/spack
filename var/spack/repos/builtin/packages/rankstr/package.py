@@ -19,6 +19,7 @@ class Rankstr(CMakePackage):
     license("MIT")
 
     version("main", branch="main")
+    version("0.4.0", sha256="f33c920aa67b867d0fa2001d98f6762e90f59a41b2f66c27a63cff6bd6afeb1b")
     version("0.3.0", sha256="5e6378a8fe155b4c6c5cf45db8aaf0562d88e93471d0e12c1e922252ffcce5e6")
     version("0.2.0", sha256="a3f7fd8015156c1b600946af759a03e099e05c83e7b2da6bac394fe7c0d4efae")
     version("0.1.0", sha256="b68239d67b2359ecc067cc354f86ccfbc8f02071e60d28ae0a2449f2e7f88001")

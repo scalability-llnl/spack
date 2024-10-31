@@ -32,8 +32,23 @@ properties: Dict[str, Any] = {
                                     "type": "object",
                                     "properties": {
                                         "type": {
-                                            "type": "string",
-                                            "enum": ["local", "buildcache", "external"],
+                                            "oneOf": [
+                                                {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "local",
+                                                        "buildcache",
+                                                        "environment",
+                                                        "external",
+                                                    ],
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "environment": {"type": "string"}
+                                                    },
+                                                },
+                                            ]
                                         },
                                         "include": LIST_OF_SPECS,
                                         "exclude": LIST_OF_SPECS,
