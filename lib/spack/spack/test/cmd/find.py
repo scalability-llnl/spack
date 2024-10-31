@@ -18,6 +18,7 @@ import spack.store
 import spack.user_environment as uenv
 from spack.main import SpackCommand, SpackCommandArgs
 from spack.spec import Spec
+from spack.test.conftest import create_test_repo
 from spack.util.pattern import Bunch
 
 add = SpackCommand("add")
@@ -350,124 +351,6 @@ def test_find_prefix_in_env(
         # Would throw error on regression
 
 
-_pkga = (
-    "a0",
-    """\
-class A0(Package):
-    version("1.2")
-    version("1.1")
-
-    depends_on("b0")
-    depends_on("c0")
-""",
-)
-
-
-_pkgb = (
-    "b0",
-    """\
-class B0(Package):
-    version("1.2")
-    version("1.1")
-""",
-)
-
-
-_pkgc = (
-    "c0",
-    """\
-class C0(Package):
-    version("1.2")
-    version("1.1")
-""",
-)
-
-
-_pkgd = (
-    "d0",
-    """\
-class D0(Package):
-    version("1.2")
-    version("1.1")
-
-    depends_on("c0")
-    depends_on("e0")
-""",
-)
-
-
-_pkge = (
-    "e0",
-    """\
-class E0(Package):
-    version("1.2")
-    version("1.1")
-""",
-)
-
-
-from spack.test.conftest import create_test_repo
-
-@pytest.fixture
-def _create_test_repo(tmpdir, mutable_config):
-    r"""
-      a0  d0
-     / \ / \
-    b0  c0  e0
-    """
-    yield create_test_repo(
-        tmpdir,
-        [
-            _pkga, _pkgb, _pkgc, _pkgd, _pkge
-        ]
-    )
-
-
-@pytest.fixture
-def test_repo(_create_test_repo, monkeypatch, mock_stage):
-    with spack.repo.use_repositories(_create_test_repo) as mock_repo_path:
-        yield mock_repo_path
-
-
-def test_find_concretized_not_installed(
-    mutable_mock_env_path, install_mockery, mock_fetch, test_repo, mock_archive
-):
-    concretize = SpackCommand("concretize")
-    uninstall = SpackCommand("uninstall")
-
-    def _query(_e, *args):
-        return spack.cmd.find._find_query(
-            SpackCommandArgs("find")(*args),
-            _e
-        )
-
-    def _nresults(_qresult):
-        return len(_qresult[0]), len(_qresult[1])
-
-    env("create", "test")
-    with ev.read("test") as e:
-        install("--add", "a0")
-
-        _nresults(_query(e)) == 3, 0
-        _nresults(_query(e, "--explicit")) == 1, 0
-
-        add("d0")
-        concretize("--reuse")
-        # At this point d0 should use existing c0, but d/e
-        # are not installed in the env
-
-        _nresults(_query(e, "--explicit")) == 1, 2
-        _nresults(_query(e)) == 3, 2
-        _nresults(_query(e, "-c", "d0")) == 0, 1
-
-        uninstall("-f", "-y", "b0")
-        # b0 is now missing (it is not installed, but has an
-        # installed parent)
-
-        _nresults(_query(e)) == 2, 3
-        _nresults(_query(e, "--missing")) == 1, 3
-
-
 def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_repo, tmpdir):
     path = tmpdir.join("spack.yaml")
 
@@ -572,3 +455,119 @@ def test_environment_with_version_range_in_compiler_doesnt_fail(tmp_path):
     with test_environment:
         output = find()
     assert "zlib%gcc@12.1.0" in output
+
+
+_pkga = (
+    "a0",
+    """\
+class A0(Package):
+    version("1.2")
+    version("1.1")
+
+    depends_on("b0")
+    depends_on("c0")
+""",
+)
+
+
+_pkgb = (
+    "b0",
+    """\
+class B0(Package):
+    version("1.2")
+    version("1.1")
+""",
+)
+
+
+_pkgc = (
+    "c0",
+    """\
+class C0(Package):
+    version("1.2")
+    version("1.1")
+""",
+)
+
+
+_pkgd = (
+    "d0",
+    """\
+class D0(Package):
+    version("1.2")
+    version("1.1")
+
+    depends_on("c0")
+    depends_on("e0")
+""",
+)
+
+
+_pkge = (
+    "e0",
+    """\
+class E0(Package):
+    version("1.2")
+    version("1.1")
+""",
+)
+
+
+@pytest.fixture
+def _create_test_repo(tmpdir, mutable_config):
+    r"""
+      a0  d0
+     / \ / \
+    b0  c0  e0
+    """
+    yield create_test_repo(
+        tmpdir,
+        [
+            _pkga, _pkgb, _pkgc, _pkgd, _pkge
+        ]
+    )
+
+
+@pytest.fixture
+def test_repo(_create_test_repo, monkeypatch, mock_stage):
+    with spack.repo.use_repositories(_create_test_repo) as mock_repo_path:
+        yield mock_repo_path
+
+
+def test_find_concretized_not_installed(
+    mutable_mock_env_path, install_mockery, mock_fetch, test_repo, mock_archive
+):
+    concretize = SpackCommand("concretize")
+    uninstall = SpackCommand("uninstall")
+
+    def _query(_e, *args):
+        return spack.cmd.find._find_query(
+            SpackCommandArgs("find")(*args),
+            _e
+        )
+
+    def _nresults(_qresult):
+        return len(_qresult[0]), len(_qresult[1])
+
+    env("create", "test")
+    with ev.read("test") as e:
+        install("--add", "a0")
+
+        _nresults(_query(e)) == 3, 0
+        _nresults(_query(e, "--explicit")) == 1, 0
+
+        add("d0")
+        concretize("--reuse")
+        # At this point d0 should use existing c0, but d/e
+        # are not installed in the env
+
+        _nresults(_query(e, "--explicit")) == 1, 2
+        _nresults(_query(e)) == 3, 2
+        _nresults(_query(e, "-c", "d0")) == 0, 1
+
+        uninstall("-f", "-y", "b0")
+        # b0 is now missing (it is not installed, but has an
+        # installed parent)
+
+        _nresults(_query(e)) == 2, 3
+        _nresults(_query(e, "--missing")) == 1, 3
