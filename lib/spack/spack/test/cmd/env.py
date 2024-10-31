@@ -148,6 +148,67 @@ def test_env_track_valid(tmp_path):
         assert os.path.isfile("spack.yaml")
 
 
+def test_env_untrack_valid(tmp_path):
+    with fs.working_dir(str(tmp_path)):
+        # create an independent environment
+        env("create", "-d", ".")
+
+        # test tracking an environment in known store
+        env("track", "--name", "test_untrack", ".")
+        env("untrack", "test_untrack")
+
+        # check that environment was sucessfully untracked
+        out = env("ls")
+        assert "test_untrack" not in out
+
+
+def test_env_untrack_invalid_name():
+    # test untracking an environment that doesn't exist
+    env_name = "invalid_enviornment_untrack"
+
+    out = env("untrack", env_name)
+
+    assert f"Environment {env_name} does not exist" in out
+
+
+def test_env_untrack_when_active(tmp_path, capfd):
+    env_name = "test_untrack_active"
+
+    with fs.working_dir(str(tmp_path)):
+        # create an independent environment
+        env("create", "-d", ".")
+
+        # test tracking an environment in known store
+        env("track", "--name", env_name, ".")
+
+        active_env = ev.read(env_name)
+        with active_env:
+            with pytest.raises(spack.main.SpackCommandError):
+                env("untrack", env_name)
+
+        # check that environment could not be untracked while active
+        out, _ = capfd.readouterr()
+        assert f"{env_name} can't be untracked while activated" in out
+
+        env("untrack", "-f", env_name)
+        out = env("ls")
+        assert env_name not in out
+
+
+def test_env_untrack_managed(tmp_path, capfd):
+    env_name = "test_untrack_managed"
+
+    # create an managed environment
+    env("create", env_name)
+
+    with pytest.raises(spack.main.SpackCommandError):
+        env("untrack", env_name)
+
+    # check that environment could not be untracked while active
+    out, _ = capfd.readouterr()
+    assert f"{env_name} is not a tracked env" in out
+
+
 def test_add():
     e = ev.create("test")
     e.add("mpileaks")
@@ -159,6 +220,7 @@ def test_change_match_spec():
 
     e = ev.read("test")
     with e:
+
         add("mpileaks@2.1")
         add("mpileaks@2.2")
 
@@ -4149,13 +4211,13 @@ def test_spack_package_ids_variable(tmpdir, mock_packages):
     # Include in Makefile and create target that depend on SPACK_PACKAGE_IDS
     with open(makefile_path, "w") as f:
         f.write(
-            r"""
+            """
 all: post-install
 
 include include.mk
 
 example/post-install/%: example/install/%
-	$(info post-install: $(HASH)) # noqa: W191,E101
+\t$(info post-install: $(HASH)) # noqa: W191,E101
 
 post-install: $(addprefix example/post-install/,$(example/SPACK_PACKAGE_IDS))
 """

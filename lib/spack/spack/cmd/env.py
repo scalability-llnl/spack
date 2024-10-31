@@ -493,6 +493,12 @@ def env_track(args):
 def env_untrack_setup_parser(subparser):
     """track an environment from a directory in Spack"""
     subparser.add_argument("env", nargs="+", help="tracked environment name")
+    subparser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="force unlink even when environment is active",
+    )
     arguments.add_common_arguments(subparser, ["yes_to_all"])
 
 
@@ -502,20 +508,30 @@ def env_untrack(args):
     for env_name in args.env:
         env_path = ev.environment_dir_from_name(env_name, exists_ok=True)
 
-        # fail on unknown environments that do not exist
+        # error for unknown environments that do not exist
         if env_name not in env_all_names:
             tty.error(f"Environment {env_name} does not exist")
             continue
 
         # fail if the user tries to untrack a managed environment
         if not islink(env_path):
-            raise ev.SpackEnvironmentError(
+            tty.die(
                 f"{env_name} is not a tracked env. "
                 "To remove it completely run,"
                 "\n\n"
                 f"        spack env rm {env_name}\n"
             )
 
+        # fail to unlink env if active and not forced
+        try:
+            env = ev.read(env_name)
+            if env.active and not args.force:
+                tty.die(f"Environment {env_name} can't be untracked while activated.")
+
+        except (spack.config.ConfigFormatError, ev.SpackEnvironmentConfigError):
+            pass
+
+        # get the real location to the environment to show in output
         real_env_path = os.path.realpath(env_path)
         os.unlink(env_path)
 
