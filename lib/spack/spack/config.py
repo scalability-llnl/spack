@@ -72,7 +72,6 @@ SECTION_SCHEMAS: Dict[str, Any] = {
     "concretizer": spack.schema.concretizer.schema,
     "definitions": spack.schema.definitions.schema,
     "env_vars": spack.schema.env_vars.schema,
-    "include": spack.schema.include.schema,
     "view": spack.schema.view.schema,
     "develop": spack.schema.develop.schema,
     "mirrors": spack.schema.mirrors.schema,
@@ -780,51 +779,6 @@ def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool
         f"{name}/{platform}", os.path.join(path, platform), writable=writable
     )
     cfg.push_scope(scope)
-
-
-def update_config_with_includes():
-    """The "config:" section of a Configuration can specify other
-    configurations to include. This does not handle recursive includes
-    (i.e. if an included config defines an "include:" section).
-    """
-    includes = CONFIG.get("config:include")
-    if not includes:
-        return
-
-    to_add = list()
-    for entry in includes:
-        always_activate = False
-        optional = False
-        if isinstance(entry, str):
-            include_path = entry
-            always_activate = True
-        else:
-            include_path = entry["path"]
-            if "when" in entry:
-                when_str = entry["when"]
-            else:
-                always_activate = True
-            optional |= entry.get("optional", False)
-
-        include_path = spack.util.path.canonicalize_path(include_path)
-        if not os.path.exists(include_path) and not optional:
-            raise ValueError(
-                f"Specified include path does not exist and is not optional: {include_path}"
-            )
-
-        activate = always_activate or spack.environment.environment._eval_conditional(when_str)
-        if activate and os.path.exists(include_path):
-            to_add.append(include_path)
-
-    def resolve_relative(cfg_path):
-        raise ValueError(f"config:include got relative path {cfg_path}")
-
-    scopes = spack.environment.environment.scopes_from_paths(
-        to_add, "include", config_stage_dir=None, resolve_relative=resolve_relative
-    )
-
-    for scope in scopes:
-        CONFIG.push_scope(scope)
 
 
 def config_paths_from_entry_points() -> List[Tuple[str, str]]:
