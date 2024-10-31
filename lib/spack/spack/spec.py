@@ -2199,6 +2199,18 @@ class Spec:
         if params:
             d["parameters"] = params
 
+        if params and not self.concrete:
+            flag_names = [
+                name
+                for name, flags in self.compiler_flags.items()
+                if any(x.propagate for x in flags)
+            ]
+            d["propagate"] = sorted(
+                itertools.chain(
+                    [v.name for v in self.variants.values() if v.propagate], flag_names
+                )
+            )
+
         if self.external:
             d["external"] = syaml.syaml_dict(
                 [
@@ -2371,16 +2383,10 @@ class Spec:
         spec is concrete, the full hash is added as well.  If 'build' is in
         the hash_type, the build hash is also added."""
         node = self.to_node_dict(hash)
+        # All specs have at least a DAG hash
         node[ht.dag_hash.name] = self.dag_hash()
 
-        # dag_hash is lazily computed -- but if we write a spec out, we want it
-        # to be included. This is effectively the last chance we get to compute
-        # it accurately.
-        if self.concrete:
-            # all specs have at least a DAG hash
-            node[ht.dag_hash.name] = self.dag_hash()
-
-        else:
+        if not self.concrete:
             node["concrete"] = False
 
         # we can also give them other hash types if we want
@@ -4463,19 +4469,8 @@ class Spec:
         # so we hope it only runs on abstract specs, which are small.
         return hash(lang.tuplify(self._cmp_iter))
 
-    def marshal(self):
-        if self.concrete or self.external:
-            return (self.to_dict(hash=ht.process_hash),)
-        return (str(self),)
-
-    @staticmethod
-    def unmarshal(data):
-        if isinstance(data, str):
-            return Spec(data)
-        return Spec.from_dict(data)
-
     def __reduce__(self):
-        return Spec.unmarshal, self.marshal()
+        return Spec.from_dict, (self.to_dict(hash=ht.process_hash),)
 
     def attach_git_version_lookup(self):
         # Add a git lookup method for GitVersions
@@ -4742,13 +4737,17 @@ class SpecfileReaderBase:
         else:
             spec.compiler = None
 
+        propagated_names = node.get("propagate", [])
         for name, values in node.get("parameters", {}).items():
+            propagate = name in propagated_names
             if name in _valid_compiler_flags:
                 spec.compiler_flags[name] = []
                 for val in values:
-                    spec.compiler_flags.add_flag(name, val, False)
+                    spec.compiler_flags.add_flag(name, val, propagate)
             else:
-                spec.variants[name] = vt.MultiValuedVariant.from_node_dict(name, values)
+                spec.variants[name] = vt.MultiValuedVariant.from_node_dict(
+                    name, values, propagate=propagate
+                )
 
         spec.external_path = None
         spec.external_modules = None
