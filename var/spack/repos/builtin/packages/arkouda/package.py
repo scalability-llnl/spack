@@ -69,20 +69,20 @@ class Arkouda(MakefilePackage):
     # Some systems need explicit -fPIC flag when building the Arrow functions
     patch("makefile-fpic.patch", when="@2024.06.21")
 
-    # Shamelessly copied from the Chapel package.py
-    def prepend_cpath_include(self, env, prefix):
-        if not is_system_path(prefix):
-            env.prepend_path("CPATH", prefix.include)
+    # override the default edit method to apply the patch
+    def edit(self, spec, prefix):
+        self.update_makefile_paths(spec, prefix)
 
-    # Shamelessly copied from the Chapel package.py
-    def update_lib_path(self, env, prefix):
-        if not is_system_path(prefix):
-            lib_path = str(prefix.lib) if os.path.exists(prefix.lib) else str(prefix.lib64)
-            env.prepend_path("LD_LIBRARY_PATH", lib_path)
-            env.prepend_path("LIBRARY_PATH", lib_path)
-            pkgconfig_path = join_path(lib_path, "pkgconfig")
-            if os.path.exists(pkgconfig_path):
-                env.prepend_path("PKG_CONFIG_PATH", pkgconfig_path)
+
+    def update_makefile_paths(self, spec, prefix):
+        # add to the Makefile.paths file for all of the dependencies installed by spack
+        # in the form $(eval $(call add-path,<path-to-dep-aka-prefix>))
+        with open("Makefile.paths", "w") as f:
+            f.write("$(eval $(call add-path,{0}))\n".format(spec["hdf5"].prefix))
+            f.write("$(eval $(call add-path,{0}))\n".format(spec["libzmq"].prefix))
+            f.write("$(eval $(call add-path,{0}))\n".format(spec["arrow"].prefix))
+            f.write("$(eval $(call add-path,{0}))\n".format(spec["libiconv"].prefix))
+            f.write("$(eval $(call add-path,{0}))\n".format(spec["libidn2"].prefix))
 
     # Arkouda does not have an install target in its Makefile
     def install(self, spec, prefix):
@@ -94,18 +94,6 @@ class Arkouda(MakefilePackage):
             install("arkouda_server_real", prefix.bin)
         install_tree(self.stage.source_path, prefix)
 
-    def setup_library_paths(self, env):
-        self.update_lib_path(env, self.spec["hdf5"].prefix)
-        self.prepend_cpath_include(env, self.spec["hdf5"].prefix)
-        self.update_lib_path(env, self.spec["libzmq"].prefix)
-        self.prepend_cpath_include(env, self.spec["libzmq"].prefix)
-        self.update_lib_path(env, self.spec["arrow"].prefix)
-        self.prepend_cpath_include(env, self.spec["arrow"].prefix)
-        self.update_lib_path(env, self.spec["libiconv"].prefix)
-        self.prepend_cpath_include(env, self.spec["libiconv"].prefix)
-        self.update_lib_path(env, self.spec["libidn2"].prefix)
-        self.prepend_cpath_include(env, self.spec["libidn2"].prefix)
-
     def setup_run_environment(self, env):
         env.set(
             "CHPL_MAKE_THIRD_PARTY",
@@ -116,7 +104,6 @@ class Arkouda(MakefilePackage):
                 str(self.spec["chapel"].version.up_to(2)),
             ),
         )
-        self.setup_library_paths(env)
 
     def setup_build_environment(self, env):
         env.set("CHPL_FLAGS", "--no-compiler-driver")
@@ -140,4 +127,3 @@ class Arkouda(MakefilePackage):
                 str(self.spec["chapel"].version.up_to(2)),
             ),
         )
-        self.setup_library_paths(env)
