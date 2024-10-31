@@ -410,7 +410,7 @@ from spack.test.conftest import create_test_repo
 
 @pytest.fixture
 def _create_test_repo(tmpdir, mutable_config):
-    """
+    r"""
       a0  d0
      / \ / \
     b0  c0  e0
@@ -432,25 +432,55 @@ def test_repo(_create_test_repo, monkeypatch, mock_stage):
 def test_find_concretized_not_installed(
     mutable_mock_env_path, install_mockery, mock_fetch, test_repo, mock_archive
 ):
+    concretize = SpackCommand("concretize")
+    uninstall = SpackCommand("uninstall")
+
     find_args1 = SpackCommandArgs("find")()
     r1, cbni1 = spack.cmd.find._find_query(find_args1, None)
 
     env("create", "test")
     with ev.read("test") as e:
         install("--add", "a0")
+
         r2, cbni2 = spack.cmd.find._find_query(
             SpackCommandArgs("find")(),
             e
         )
-
         assert len(r2) == 3
         assert len(cbni2) == 0
 
-    #    add("")
-    #env("concretize")
+        r3, cbni3 = spack.cmd.find._find_query(
+            SpackCommandArgs("find")("--explicit"),
+            e
+        )
+        assert len(r3) == 1
+        assert len(cbni3) == 0
 
-    import pdb; pdb.set_trace()
-    print("hi")
+        add("d0")
+        concretize("--reuse")
+        # At this point d0 should use existing c0, but d/e
+        # are not installed in the env
+
+        r4, cbni4 = spack.cmd.find._find_query(
+            SpackCommandArgs("find")("--explicit"),
+            e
+        )
+        assert len(r4) == 1
+        assert len(cbni4) == 2
+
+        r5, cbni5 = spack.cmd.find._find_query(
+            SpackCommandArgs("find")(),
+            e
+        )
+        assert len(r5) == 3
+        assert len(cbni5) == 2
+
+        r6, cbni6 = spack.cmd.find._find_query(
+            SpackCommandArgs("find")("-c", "d0"),
+            e
+        )
+        assert len(r6) == 0
+        assert len(cbni6) == 1
 
 
 def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_repo, tmpdir):
