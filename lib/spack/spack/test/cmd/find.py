@@ -349,6 +349,17 @@ def test_find_prefix_in_env(
         # Would throw error on regression
 
 
+def test_find_concretized_not_installed(
+    mutable_mock_env_path, install_mockery, mock_fetch, mock_packages, mock_archive
+):
+    env("create", "test")
+    with ev.read("test"):
+        install("--add", "mpileaks")
+        output = find()
+        import pdb; pdb.set_trace()
+        print("hi")
+
+
 def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_repo, tmpdir):
     path = tmpdir.join("spack.yaml")
 
