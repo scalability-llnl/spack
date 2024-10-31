@@ -297,14 +297,7 @@ def display_env(env, args, decorator, results):
         print()
 
 
-def find(parser, args):
-    env = ev.active_environment()
-
-    if not env and args.only_roots:
-        tty.die("-r / --only-roots requires an active environment")
-    if not env and args.show_concretized:
-        tty.die("-c / --show-concretized requires an active environment")
-
+def _find_query(args, env):
     q_args = query_arguments(args)
     concretized_but_not_installed = list()
     if env:
@@ -315,6 +308,7 @@ def find(parser, args):
         else:
             env_specs = all_env_specs
 
+        spec_hashes = set(x.dag_hash() for x in env_specs)
         specs_meeting_q_args = set(
             spack.store.STORE.db.query(hashes=spec_hashes, **q_args)
         )
@@ -327,8 +321,6 @@ def find(parser, args):
                 results.append(spec)
     else:
         results = args.specs(**q_args)
-
-    decorator = make_env_decorator(env) if env else lambda s, f: f
 
     # use groups by default except with format.
     if args.groups is None:
@@ -354,6 +346,19 @@ def find(parser, args):
     if args.loaded:
         results = spack.cmd.filter_loaded_specs(results)
 
+    return results, concretized_but_not_installed
+
+
+def find(parser, args):
+    env = ev.active_environment()
+
+    if not env and args.only_roots:
+        tty.die("-r / --only-roots requires an active environment")
+    if not env and args.show_concretized:
+        tty.die("-c / --show-concretized requires an active environment")
+
+    results, concretized_but_not_installed = _find_query(args, env)
+
     if args.install_status or args.show_concretized:
         status_fn = spack.spec.Spec.install_status
     else:
@@ -363,6 +368,8 @@ def find(parser, args):
     if args.json:
         cmd.display_specs_as_json(results, deps=args.deps)
     else:
+        decorator = make_env_decorator(env) if env else lambda s, f: f
+
         if not args.format:
             if env:
                 display_env(env, args, decorator, results)
