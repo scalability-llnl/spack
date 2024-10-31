@@ -641,6 +641,7 @@ def test_prepare_for_install_on_installed(install_mockery, monkeypatch):
     installer._prepare_for_install(task)
 
 
+# TODO: Deprecated, ignored config option in v0.23 to be removed in v0.25
 def test_installer_init_requests(install_mockery):
     """Test of installer initial requests."""
     spec_name = "dependent-install"
@@ -743,6 +744,7 @@ def test_install_task_requeue_build_specs(install_mockery, monkeypatch, capfd):
 
     # Set the configuration to ensure _requeue_with_build_spec_tasks actually
     # does something.
+    # TODO: Deprecated, ignored config option in v0.23 to be removed in v0.25
     with spack.config.override("config:install_missing_compilers", True):
         installer = create_installer(["depb"], {})
         installer._init_queue()
