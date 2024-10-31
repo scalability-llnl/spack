@@ -36,8 +36,8 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         "languages",
         default="cxx",
         values=("cxx", "fortran"),
-        description="Languages Babelstream Spack Package Support"
-        )
+        description="Languages Babelstream Spack Package Support",
+    )
     # Build System
     build_system(
         conditional("cmake", when="languages=cxx"),
@@ -260,7 +260,12 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
     depends_on("intel-oneapi-compilers", when="+ocl ocl_backend=intel")
     depends_on("pocl@1.5", when="+ocl ocl_backend=pocl")
 
-    variant("cuda_extra_flags", values=str, default="none", description="Additional CUDA Compiler flags to be provided")
+    variant(
+        "cuda_extra_flags",
+        values=str,
+        default="none",
+        description="Additional CUDA Compiler flags to be provided",
+    )
 
     # CMake specific dependency
     with when("build_system=cmake"):
@@ -298,9 +303,8 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
             "fortran_flags",
             values=str,
             default="none",
-            description="Additional Fortran flags to be provided"
+            description="Additional Fortran flags to be provided",
         )
-
 
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
@@ -323,11 +327,9 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         # to filter cuda from list e.g. we choose 'thrust'
         # from the list of ['cuda', 'thrust']
         model_names = [name for name in model_list if f"+{name}" in self.spec]
-        print("model names : ",model_names)
+        print("model names : ", model_names)
         if len(model_names) > 1:
-            model_names = [
-                elem for elem in model_names if (elem != "cuda" and elem != "rocm")
-            ]
+            model_names = [elem for elem in model_names if (elem != "cuda" and elem != "rocm")]
             if "std" in model_names[0]:
                 args = ["-DMODEL=" + "std-" + self.spec.variants["std_submodel"].value]
             elif "sycl2020" in model_names[0]:  # this is for nvidia offload
@@ -392,11 +394,7 @@ register_flag_optional(TARGET_PROCESSOR
         """
         if self.spec.satisfies("+acc~kokkos~raja"):
             if (self.spec.compiler.name == "nvhpc") or (self.spec.compiler.name == "pgi"):
-                target_device = (
-                    "gpu"
-                    if "cuda_arch" in self.spec.variants
-                    else "multicore"
-                )
+                target_device = "gpu" if "cuda_arch" in self.spec.variants else "multicore"
                 if "cuda_arch" in self.spec.variants:
                     cuda_arch_list = self.spec.variants["cuda_arch"].value
                     # the architecture value is only number so append cc_ to the name
@@ -407,7 +405,9 @@ register_flag_optional(TARGET_PROCESSOR
                     args.append("-DCUDA_ARCH=" + cuda_arch)
                 else:
                     # get the cpu architecture value from user
-                    target_processor = str(self.spec.target) # self.spec.variants["cpu_arch"].value[0]
+                    target_processor = str(
+                        self.spec.target
+                    )  # self.spec.variants["cpu_arch"].value[0]
                     args.append("-DTARGET_PROCESSOR=" + target_processor)
                     # args.append(
                     #     "-DCXX_EXTRA_FLAGS="
@@ -543,7 +543,9 @@ register_flag_optional(TARGET_PROCESSOR
                 args.append(
                     "-DCXX_EXTRA_FLAGS="
                     + "-fsycl;-fsycl-targets=nvptx64-nvidia-cuda;"
-                    +  self.spec.target.optimization_flags(self.spec.compiler.name, str(self.spec.compiler.version))
+                    + self.spec.target.optimization_flags(
+                        self.spec.compiler.name, str(self.spec.compiler.version)
+                    )
                     + " --cuda-path="
                     + cuda_dir
                 )
@@ -611,7 +613,9 @@ register_flag_optional(TARGET_PROCESSOR
                 args.append("-DENABLE_CUDA=ON")
                 args.append("-DCUDA_TOOLKIT_ROOT_DIR=" + self.spec["cuda"].prefix)
                 if self.spec.variants["cuda_extra_flags"].value != "none":
-                    args.append("-DCMAKE_CUDA_FLAGS=" + self.spec.variants["cuda_extra_flags"].value)
+                    args.append(
+                        "-DCMAKE_CUDA_FLAGS=" + self.spec.variants["cuda_extra_flags"].value
+                    )
 
         # ===================================
         #             THRUST
@@ -632,7 +636,9 @@ register_flag_optional(TARGET_PROCESSOR
                 # args.append("-DCMAKE_CUDA_FLAGS=-ccbin " + spack_cc)
                 args.append("-DBACKEND=" + self.spec.variants["thrust_backend"].value.upper())
                 if self.spec.variants["cuda_extra_flags"].value != "none":
-                    args.append("-DCUDA_EXTRA_FLAGS=" + self.spec.variants["cuda_extra_flags"].value)
+                    args.append(
+                        "-DCUDA_EXTRA_FLAGS=" + self.spec.variants["cuda_extra_flags"].value
+                    )
             if "rocm" in self.spec.variants["thrust_submodel"].value:
                 args.append("-DCMAKE_CXX_COMPILER=" + self.spec["hip"].hipcc)
                 args.append("-DTHRUST_IMPL=" + self.spec.variants["thrust_submodel"].value.upper())
@@ -642,7 +648,6 @@ register_flag_optional(TARGET_PROCESSOR
         #             kokkos
         # ===================================
         # kokkos implementation is versatile and it could use cuda or omp architectures as backend
-
 
         # The usage should be spack install babelstream +kokkos backend=[cuda or omp or none]
         if "+kokkos" in self.spec:
@@ -671,7 +676,6 @@ register_flag_optional(TARGET_PROCESSOR
                     args.append("-DKokkos_ARCH_AMPERE80=ON")
             if "omp" in self.spec.variants["kokkos_backend"].value:
                 args.append("-DKokkos_ENABLE_OPENMP=ON")
-
 
         # not in ["kokkos", "raja", "acc", "hip"] then compiler forced true
         if set(model_list).intersection(["kokkos", "raja", "acc", "hip"]) is True:
@@ -723,9 +727,13 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
         #               ARM
         # ===================================
         if spec.compiler.name == "arm":
-            fortran_flags = "-std=f2018 " + pkg.compiler.opt_flags[4] + " -Wall -Wno-unused-variable"
-            fortran_flags +=  self.spec.target.optimization_flags(self.spec.compiler.name, str(self.spec.compiler.version))
-            
+            fortran_flags = (
+                "-std=f2018 " + pkg.compiler.opt_flags[4] + " -Wall -Wno-unused-variable"
+            )
+            fortran_flags += self.spec.target.optimization_flags(
+                self.spec.compiler.name, str(self.spec.compiler.version)
+            )
+
             config["FCFLAGS"] = fortran_flags
             config["DOCONCURRENT_FLAG"] = pkg.compiler.openmp_flag  # libomp.so required
             config["ARRAY_FLAG"] = pkg.compiler.openmp_flag  # libomp.so required
@@ -736,7 +744,9 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
         #               AMD
         # ===================================
         if spec.compiler.name == "aocc":
-            fortran_flags = "-std=f2018 " + pkg.compiler.opt_flags[3] + " -Wall -Wno-unused-variable"
+            fortran_flags = (
+                "-std=f2018 " + pkg.compiler.opt_flags[3] + " -Wall -Wno-unused-variable"
+            )
             config["FCFLAGS"] = fortran_flags
             config["DOCONCURRENT_FLAG"] = pkg.compiler.openmp_flag  # libomp.so required
             config["ARRAY_FLAG"] = pkg.compiler.openmp_flag  # libomp.so required
@@ -762,7 +772,9 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
         if spec.compiler.name == "gcc":
             fortran_flags = "-std=f2018 -O3 "
             fortran_flags += "-Wall -Wno-unused-dummy-argument -Wno-unused-variable "
-            fortran_flags +=  self.spec.target.optimization_flags(self.spec.compiler.name, str(self.spec.compiler.version))
+            fortran_flags += self.spec.target.optimization_flags(
+                self.spec.compiler.name, str(self.spec.compiler.version)
+            )
 
             config["FCFLAGS"] = fortran_flags
             config["DOCONCURRENT_FLAG"] = "-ftree-parallelize-loops=4"
@@ -824,13 +836,12 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
             fortran_flags += "-Kprefetch_line=8 -Kprefetch_line_L2=16 -Koptmsg=2 "
             # FJ Fortran system_clock is low resolution
             fortran_flags += "-Keval -DUSE_OMP_GET_WTIME=1 "
-            
+
             config["FCFLAGS"] = fortran_flags
             config["DOCONCURRENT_FLAG"] = "-Kparallel,reduction -DNOTSHARED"
             config["ARRAY_FLAG"] = "-Kparallel,reduction"
             config["OPENMP_FLAG"] = pkg.compiler.openmp_flag
 
-        
         with open(self.build_directory + "/make.inc." + spec.compiler.name, "w+") as inc:
             for key in config:
                 inc.write("{0} = {1}\n".format(key, config[key]))
