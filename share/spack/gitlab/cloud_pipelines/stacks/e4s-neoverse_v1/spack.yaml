@@ -74,6 +74,7 @@ spack:
   - dyninst
   - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp # +visit: ?
   - exaworks
+  - fftx
   - flecsi
   - flit
   - flux-core
@@ -114,6 +115,7 @@ spack:
   - netlib-scalapack
   - nrm
   - nvhpc
+  - nwchem
   - omega-h
   - openfoam
   - openmpi
@@ -226,6 +228,7 @@ spack:
   - cusz +cuda cuda_arch=75
   - dealii +cuda cuda_arch=75
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=75  # # +paraview: job killed oom?
+  - fftx +cuda cuda_arch=75
   - flecsi +cuda cuda_arch=75
   - ginkgo +cuda cuda_arch=75
   - gromacs +cuda cuda_arch=75
@@ -274,6 +277,7 @@ spack:
   - cusz +cuda cuda_arch=80
   - dealii +cuda cuda_arch=80
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=80 # +paraview: job killed oom?
+  - fftx +cuda cuda_arch=80
   - flecsi +cuda cuda_arch=80
   - ginkgo +cuda cuda_arch=80
   - gromacs +cuda cuda_arch=80
@@ -320,6 +324,7 @@ spack:
   - chai +cuda cuda_arch=90 ^umpire ~shared
   - chapel +cuda cuda_arch=90
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=90 # +paraview: vtkm/exec/cuda/internal/ThrustPatches.h(213): error: this declaration has no storage class or type specifier
+  - fftx +cuda cuda_arch=90
   - flecsi +cuda cuda_arch=90
   - ginkgo +cuda cuda_arch=90
   - gromacs +cuda cuda_arch=90
@@ -362,7 +367,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
 
   cdash:
     build-group: E4S ARM Neoverse V1

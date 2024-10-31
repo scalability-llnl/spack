@@ -5,6 +5,7 @@
 import os
 import sys
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -76,15 +77,14 @@ class PyPip(Package, PythonExtension):
         # itself, see:
         # https://discuss.python.org/t/bootstrapping-a-specific-version-of-pip/12306
         whl = self.stage.archive_file
-        args = std_pip_args + ["--prefix=" + prefix, whl]
         if sys.platform == "win32":
             # On Windows for newer versions of pip, you must bootstrap pip first.
             # In order to achieve this, use the pip.pyz zipapp version of pip to
             # bootstrap the pip wheel install.
-            args.insert(0, os.path.join(self.stage.source_path, "pip.pyz"))
+            script = os.path.join(self.stage.source_path, "pip.pyz")
         else:
-            args.insert(0, os.path.join(whl, "pip"))
-        python(*args)
+            script = os.path.join(whl, "pip")
+        python(script, *PythonPipBuilder.std_args(self), f"--prefix={prefix}", whl)
 
     def setup_dependent_package(self, module, dependent_spec: Spec):
         setattr(module, "pip", python.with_default_args("-m", "pip"))

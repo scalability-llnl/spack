@@ -18,7 +18,6 @@ import pytest
 import llnl.util.filesystem as fs
 
 import spack.compilers
-import spack.config
 import spack.deptypes as dt
 import spack.error
 import spack.install_test

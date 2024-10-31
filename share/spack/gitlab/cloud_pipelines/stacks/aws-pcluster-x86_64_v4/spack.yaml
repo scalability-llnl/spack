@@ -9,12 +9,10 @@ spack:
     # - mpas-model %oneapi
     - openfoam %gcc
     - palace %oneapi ^superlu-dist%oneapi # hack: force fortran-rt provider through superlu-dist
-    # Latest version qunatum-espresso@7.3.1 does not build with oneapi, see https://github.com/spack/spack/pull/46456#issuecomment-2363159511
+    # TODO: Find out how to make +ipo cmake flag work.
     # - quantum-espresso %oneapi
     - openmpi %oneapi
-    # TODO: oneapi patch in WRF is broken. It uses link time optimization but the gnu linker. Need to check whether the WRF recipe (in later releases) is better.
-    # WRf can only run if https://github.com/spack/spack/pull/46589 is merged.
-    # - wrf %oneapi
+    - wrf %oneapi
 
   - targets:
       - 'target=x86_64_v4'

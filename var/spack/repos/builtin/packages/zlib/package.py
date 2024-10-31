@@ -115,7 +115,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder, SetupEnviron
             # script but patch the makefile for all the aforementioned compilers, given the
             # importance of the package, we try to be conservative for now and do the patching only
             # for compilers that will not produce a correct shared library otherwise.
-            if self.spec.compiler.name in ["nvhpc"]:
+            if self.spec.satisfies("%nvhpc"):
                 if "~pic" in self.spec:
                     # In this case, we should build the static library without PIC, therefore we
                     # don't append the respective compiler flag to CFLAGS in the build environment.

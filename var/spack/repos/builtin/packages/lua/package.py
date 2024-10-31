@@ -64,8 +64,8 @@ class LuaImplPackage(MakefilePackage):
 
     resource(
         name="luarocks",
-        url="https://luarocks.github.io/luarocks/releases/" "luarocks-3.8.0.tar.gz",
-        sha256="56ab9b90f5acbc42eb7a94cf482e6c058a63e8a1effdf572b8b2a6323a06d923",
+        url="https://luarocks.github.io/luarocks/releases/luarocks-3.11.1.tar.gz",
+        sha256="c3fb3d960dffb2b2fe9de7e3cb004dc4d0b34bb3d342578af84f84325c669102",
         destination="luarocks",
         placement="luarocks",
     )

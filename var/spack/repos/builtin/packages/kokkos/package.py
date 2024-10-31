@@ -69,6 +69,10 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+rocm", when="@:3.0")
     conflicts("+sycl", when="@:3.3")
     conflicts("+openmptarget", when="@:3.5")
+    conflicts(
+        "".join([f"~{d}" for d in devices_variants]),
+        msg="Kokkos requires at least one active backend",
+    )
 
     # https://github.com/spack/spack/issues/29052
     conflicts("@:3.5 +sycl", when="%oneapi@2022:")
@@ -212,10 +216,17 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         depends_on(tpl, when="+%s" % tpl)
 
     variant("wrapper", default=False, description="Use nvcc-wrapper for CUDA build")
+    variant(
+        "cmake_lang",
+        default=False,
+        description="Use CMake language support for CUDA/HIP",
+        when="@3.6:",
+    )
     depends_on("kokkos-nvcc-wrapper", when="+wrapper")
     depends_on("kokkos-nvcc-wrapper@develop", when="@develop+wrapper")
     depends_on("kokkos-nvcc-wrapper@master", when="@master+wrapper")
     conflicts("+wrapper", when="~cuda")
+    conflicts("+wrapper", when="+cmake_lang")
 
     cxxstds = ["11", "14", "17", "20"]
     variant("cxxstd", default="17", values=cxxstds, multi=False, description="C++ standard")
@@ -226,6 +237,10 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("+cuda", when="cxxstd=17 ^cuda@:10")
     conflicts("+cuda", when="cxxstd=20 ^cuda@:11")
+
+    # Expose a way to disable CudaMallocAsync that can cause problems
+    # with some MPI such as cray-mpich
+    variant("alloc_async", default=False, description="Use CudaMallocAsync", when="@4.2: +cuda")
 
     # SYCL and OpenMPTarget require C++17 or higher
     for cxxstdver in cxxstds[: cxxstds.index("17")]:
@@ -292,7 +307,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         variant_to_cmake_option = {"rocm": "hip"}
         for variant_name in cmake_options:
             opt = variant_to_cmake_option.get(variant_name, variant_name)
-            optname = "Kokkos_%s_%s" % (cmake_prefix, opt.upper())
+            optname = f"Kokkos_{cmake_prefix}_{opt.upper()}"
             # Explicitly enable or disable
             option = self.define_from_variant(optname, variant_name)
             if option:
@@ -309,14 +324,17 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         from_variant = self.define_from_variant
 
         if spec.satisfies("~wrapper+cuda") and not (
-            spec.satisfies("%clang") or spec.satisfies("%cce")
+            spec.satisfies("%clang") or spec.satisfies("%cce") or spec.satisfies("+cmake_lang")
         ):
-            raise InstallError("Kokkos requires +wrapper when using +cuda" "without clang")
+            raise InstallError(
+                "Kokkos requires +wrapper when using +cuda without %clang, %cce or +cmake_lang"
+            )
 
         options = [
             from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
             from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
             from_variant("BUILD_SHARED_LIBS", "shared"),
+            from_variant("Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE", "cmake_lang"),
         ]
 
         spack_microarches = []
@@ -360,23 +378,34 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             if spec.variants[tpl].value:
                 options.append(self.define(tpl + "_DIR", spec[tpl].prefix))
 
-        if self.spec.satisfies("+rocm"):
-            options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
-            options.append(self.define("Kokkos_ENABLE_ROCTHRUST", True))
-        elif self.spec.satisfies("+wrapper"):
+        if self.spec.satisfies("+wrapper"):
             options.append(
                 self.define("CMAKE_CXX_COMPILER", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
             )
+        elif "+rocm" in self.spec:
+            if "+cmake_lang" in self.spec:
+                options.append(
+                    self.define(
+                        "CMAKE_HIP_COMPILER",
+                        join_path(self.spec["llvm-amdgpu"].prefix.bin, "amdclang++"),
+                    )
+                )
+                options.append(from_variant("CMAKE_HIP_STANDARD", "cxxstd"))
+            else:
+                options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
+            options.append(self.define("Kokkos_ENABLE_ROCTHRUST", True))
+        elif "+cuda" in self.spec and "+cmake_lang" in self.spec:
+            options.append(
+                self.define("CMAKE_CUDA_COMPILER", join_path(self.spec["cuda"].prefix.bin, "nvcc"))
+            )
+            options.append(from_variant("CMAKE_CUDA_STANDARD", "cxxstd"))
 
         if self.spec.satisfies("%oneapi") or self.spec.satisfies("%intel"):
             options.append(self.define("CMAKE_CXX_FLAGS", "-fp-model=precise"))
 
-        # Kokkos 4.2.00+ changed the default to Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC=on
-        # which breaks GPU-aware with Cray-MPICH
-        # See https://github.com/kokkos/kokkos/pull/6402
-        # TODO: disable this once Cray-MPICH is fixed
-        if self.spec.satisfies("@4.2.00:") and self.spec.satisfies("^[virtuals=mpi] cray-mpich"):
-            options.append(self.define("Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC", False))
+        options.append(
+            self.define_from_variant("Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC", "alloc_async")
+        )
 
         # Remove duplicate options
         return lang.dedupe(options)
@@ -414,7 +443,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         cmake = self.spec["cmake"].command
         cmake_args = ["-DEXECUTABLE_OUTPUT_PATH=" + cmake_path]
         if self.spec.satisfies("+rocm"):
-            prefix_paths = ";".join(spack.build_environment.get_cmake_prefix_path(self))
+            prefix_paths = ";".join(spack.build_systems.cmake.get_cmake_prefix_path(self))
             cmake_args.append("-DCMAKE_PREFIX_PATH={0}".format(prefix_paths))
 
         cmake(cmake_path, *cmake_args)
