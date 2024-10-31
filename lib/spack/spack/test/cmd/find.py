@@ -21,7 +21,6 @@ from spack.spec import Spec
 from spack.test.conftest import create_test_repo
 from spack.util.pattern import Bunch
 
-add = SpackCommand("add")
 find = SpackCommand("find")
 env = SpackCommand("env")
 install = SpackCommand("install")
@@ -532,6 +531,7 @@ def test_repo(_create_test_repo, monkeypatch, mock_stage):
 def test_find_concretized_not_installed(
     mutable_mock_env_path, install_mockery, mock_fetch, test_repo, mock_archive
 ):
+    add = SpackCommand("add")
     concretize = SpackCommand("concretize")
     uninstall = SpackCommand("uninstall")
 
@@ -543,7 +543,7 @@ def test_find_concretized_not_installed(
 
     env("create", "test")
     with ev.read("test") as e:
-        install("--add", "a0")
+        install("--fake", "--add", "a0")
 
         _nresults(_query(e)) == 3, 0
         _nresults(_query(e, "--explicit")) == 1, 0
