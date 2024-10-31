@@ -976,8 +976,10 @@ class Unparser(NodeVisitor):
         # Special case: 3.__abs__() is a syntax error, so if node.value
         # is an integer literal then we need to either parenthesize
         # it or add an extra space to get 3 .__abs__().
-        num_type = getattr(ast, "Constant", getattr(ast, "Num", None))
-        if isinstance(node.value, num_type) and isinstance(node.value.n, int):
+        if isinstance(node.value, Constant) and isinstance(node.value.value, int):
+            self.write(" ")
+        # Python 3.8 changed Num to Constant
+        elif type(node.value).__name__ == "Num" and isinstance(node.value.n, int):
             self.write(" ")
         self.write(".")
         self.write(node.attr)

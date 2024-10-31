@@ -570,3 +570,7 @@ def test_subscript_without_tuple():
     """Test change in visit_Subscript/visit_Index is_non_empty_tuple."""
     check_ast_roundtrip("a[*b]")
     check_ast_roundtrip("a[1, *b]")
+
+
+def test_attribute_on_int():
+    check_ast_roundtrip("1 .__abs__()")
