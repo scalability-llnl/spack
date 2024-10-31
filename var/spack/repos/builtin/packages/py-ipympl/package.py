@@ -16,7 +16,12 @@ class PyIpympl(PythonPackage):
     license("BSD-3-Clause")
 
     version("0.9.4", sha256="cfb53c5b4fcbcee6d18f095eecfc6c6c474303d5b744e72cc66e7a2804708907")
-    version("0.8.8", sha256="5bf5d780b07fafe7924922ac6b2f3abd22721f341e5e196b3b82737dfbd0e1c9")
+    # Build failures
+    version(
+        "0.8.8",
+        sha256="5bf5d780b07fafe7924922ac6b2f3abd22721f341e5e196b3b82737dfbd0e1c9",
+        deprecated=True,
+    )
 
     with default_args(type="build"):
         with when("@0.9:"):
