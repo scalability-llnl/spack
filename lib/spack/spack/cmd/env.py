@@ -562,11 +562,13 @@ def env_remove(args):
     for env_name in unknown_envs:
         tty.error(f"Environment {env_name} does not exist")
 
-    for env_name in known_envs:
+    for env_name in all_envs:
         try:
             env = ev.read(env_name)
             valid_envs.append(env)
-            remove_envs.append(env)
+
+            if env_name in known_envs:
+                remove_envs.append(env)
         except (spack.config.ConfigFormatError, ev.SpackEnvironmentConfigError):
             bad_envs.append(env_name)
 
