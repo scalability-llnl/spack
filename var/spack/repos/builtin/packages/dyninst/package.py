@@ -112,7 +112,7 @@ class Dyninst(CMakePackage):
     patch("tribool.patch", when="@9.3.0:10.0.0 ^boost@1.69:")
     patch(
         "missing_include_deque.patch",
-        when="@10.0.0:12.3.0",
+        when="@10.0.0:12.2.0",
         sha256="0064d8d51bd01bd0035e1ebc49276f627ce6366d4524c92cf47d3c09b0031f96",
     )
 
