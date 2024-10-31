@@ -2295,8 +2295,9 @@ class TestConcretize:
 
         spec = spack.spec.Spec("hdf5 ^zmpi").concretized()
 
-        assert spec.satisfies(f"^mpich/{mpich_spec.dag_hash()}")
+        assert spec.satisfies(f"^mpich@{mpich_spec.version}")
         assert spec.build_spec.dependencies(name="zmpi", deptype="link")
+        assert spec["mpi"].build_spec.satisfies(mpich_spec)
         assert not spec.build_spec.satisfies(f"^mpich/{mpich_spec.dag_hash()}")
         assert not spec.dependencies(name="zmpi", deptype="link")
 
@@ -2304,6 +2305,30 @@ class TestConcretize:
         assert "Warning: explicit splice configuration has caused" in captured.err
         assert "hdf5 ^zmpi" in captured.err
         assert str(spec) in captured.err
+
+    def test_explicit_splice_fails_nonexistent(mutable_config, mock_packages, mock_store):
+        splice_info = {"target": "mpi", "replacement": "mpich/doesnotexist"}
+        spack.config.CONFIG.set("concretizer", {"splice": {"explicit": [splice_info]}})
+
+        with pytest.raises(spack.spec.InvalidHashError):
+            _ = spack.spec.Spec("hdf5^zmpi").concretized()
+
+    def test_explicit_splice_fails_no_hash(mutable_config, mock_packages, mock_store):
+        splice_info = {"target": "mpi", "replacement": "mpich"}
+        spack.config.CONFIG.set("concretizer", {"splice": {"explicit": [splice_info]}})
+
+        with pytest.raises(spack.solver.asp.InvalidSpliceError, match="must be specified by hash"):
+            _ = spack.spec.Spec("hdf5^zmpi").concretized()
+
+    def test_explicit_splice_non_match_nonexistent_succeeds(
+        mutable_config, mock_packages, mock_store
+    ):
+        """When we have a nonexistent splice configured but are not using it, don't fail."""
+        splice_info = {"target": "will_not_match", "replacement": "nonexistent/doesnotexist"}
+        spack.config.CONFIG.set("concretizer", {"splice": {"explicit": [splice_info]}})
+        spec = spack.spec.Spec("zlib").concretized()
+        # the main test is that it does not raise
+        assert not spec.spliced
 
     @pytest.mark.db
     @pytest.mark.parametrize(

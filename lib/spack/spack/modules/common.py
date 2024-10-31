@@ -527,7 +527,8 @@ class BaseFileLayout:
         parts = name.split("/")
         name = os.path.join(*parts)
         # Add optional suffixes based on constraints
-        path_elements = [name] + self.conf.suffixes
+        path_elements = [name]
+        path_elements.extend(map(self.spec.format, self.conf.suffixes))
         return "-".join(path_elements)
 
     @property

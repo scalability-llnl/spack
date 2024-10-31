@@ -99,6 +99,6 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
 class MesonBuilder(spack.build_systems.meson.MesonBuilder):
     def meson_args(self):
         if self.spec.satisfies("@:2.4.112"):
-            return ["-Dman-pages=" + ("true" if "+docs" in self.spec else "false")]
+            return ["-Dman-pages=" + ("true" if self.spec.satisfies("+docs") else "false")]
         else:
-            return ["-Dman-pages=" + ("enabled" if "+docs" in self.spec else "disabled")]
+            return ["-Dman-pages=" + ("enabled" if self.spec.satisfies("+docs") else "disabled")]

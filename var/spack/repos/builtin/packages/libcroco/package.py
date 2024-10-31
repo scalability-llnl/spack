@@ -32,7 +32,7 @@ class Libcroco(AutotoolsPackage):
 
     def configure_args(self):
         config_args = []
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             config_args.extend(
                 [
                     "--enable-gtk-doc",

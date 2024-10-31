@@ -967,7 +967,7 @@ def test_install_fail_on_interrupt(install_mockery, mock_fetch, monkeypatch):
     """Test ctrl-c interrupted install."""
     spec_name = "pkg-a"
     err_msg = "mock keyboard interrupt for {0}".format(spec_name)
-    installer = create_installer([spec_name], {})
+    installer = create_installer([spec_name], {"fake": True})
     setattr(inst.PackageInstaller, "_real_install_task", inst.PackageInstaller._install_task)
     # Raise a KeyboardInterrupt error to trigger early termination
     monkeypatch.setattr(inst.PackageInstaller, "_install_task", _interrupt)
@@ -997,7 +997,7 @@ def _install_fail_my_build_exception(installer, task, install_status, **kwargs):
 
 def test_install_fail_single(install_mockery, mock_fetch, monkeypatch):
     """Test expected results for failure of single package."""
-    installer = create_installer(["pkg-a"], {})
+    installer = create_installer(["pkg-a"], {"fake": True})
 
     # Raise a KeyboardInterrupt error to trigger early termination
     monkeypatch.setattr(inst.PackageInstaller, "_install_task", _install_fail_my_build_exception)
@@ -1012,7 +1012,7 @@ def test_install_fail_single(install_mockery, mock_fetch, monkeypatch):
 
 def test_install_fail_multi(install_mockery, mock_fetch, monkeypatch):
     """Test expected results for failure of multiple packages."""
-    installer = create_installer(["pkg-a", "pkg-c"], {})
+    installer = create_installer(["pkg-a", "pkg-c"], {"fake": True})
 
     # Raise a KeyboardInterrupt error to trigger early termination
     monkeypatch.setattr(inst.PackageInstaller, "_install_task", _install_fail_my_build_exception)

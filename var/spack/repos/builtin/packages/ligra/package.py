@@ -30,7 +30,7 @@ class Ligra(MakefilePackage):
     depends_on("mkl", when="+mkl")
 
     def setup_build_environment(self, env):
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             env.set("OPENMP", "1")
         # when +mkl, MKLROOT will be defined by intel-mkl package,
         # triggering a build with mkl support

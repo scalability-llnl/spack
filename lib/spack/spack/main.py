@@ -102,9 +102,6 @@ required_command_properties = ["level", "section", "description"]
 
 spack_ld_library_path = os.environ.get("LD_LIBRARY_PATH", "")
 
-#: Whether to print backtraces on error
-SHOW_BACKTRACE = False
-
 
 def add_all_commands(parser):
     """Add all spack subcommands to the parser."""
@@ -492,6 +489,7 @@ def make_argument_parser(**kwargs):
         help="add stacktraces to all printed statements",
     )
     parser.add_argument(
+        "-t",
         "--backtrace",
         action="store_true",
         default="SPACK_BACKTRACE" in os.environ,
@@ -527,8 +525,7 @@ def setup_main_options(args):
 
     if args.debug or args.backtrace:
         spack.error.debug = True
-        global SHOW_BACKTRACE
-        SHOW_BACKTRACE = True
+        spack.error.SHOW_BACKTRACE = True
 
     if args.debug:
         spack.util.debug.register_interrupt_handler()
@@ -1021,19 +1018,19 @@ def main(argv=None):
         e.die()  # gracefully die on any SpackErrors
 
     except KeyboardInterrupt:
-        if spack.config.get("config:debug") or SHOW_BACKTRACE:
+        if spack.config.get("config:debug") or spack.error.SHOW_BACKTRACE:
             raise
         sys.stderr.write("\n")
         tty.error("Keyboard interrupt.")
         return signal.SIGINT.value
 
     except SystemExit as e:
-        if spack.config.get("config:debug") or SHOW_BACKTRACE:
+        if spack.config.get("config:debug") or spack.error.SHOW_BACKTRACE:
             traceback.print_exc()
         return e.code
 
     except Exception as e:
-        if spack.config.get("config:debug") or SHOW_BACKTRACE:
+        if spack.config.get("config:debug") or spack.error.SHOW_BACKTRACE:
             raise
         tty.error(e)
         return 3

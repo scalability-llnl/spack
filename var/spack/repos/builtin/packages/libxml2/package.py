@@ -208,7 +208,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
     @run_after("install")
     @on_package_attributes(run_tests=True)
     def import_module_test(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             with working_dir("spack-test", create=True):
                 python("-c", "import libxml2")
 
@@ -222,7 +222,7 @@ class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
             "--with-iconv={0}".format(spec["iconv"].prefix),
         ]
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args.extend(
                 [
                     "--with-python={0}".format(spec["python"].home),
@@ -273,6 +273,6 @@ class NMakeBuilder(BaseBuilder, nmake.NMakeBuilder):
                     )
                 ),
             ]
-            if "+python" in spec:
+            if spec.satisfies("+python"):
                 opts.append("python=yes")
             cscript("configure.js", *opts)

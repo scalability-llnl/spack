@@ -103,9 +103,6 @@ class CloverleafRef(MakefilePackage):
         elif self.spec.satisfies("%xl"):
             targets.append("COMPILER=XLF")
 
-        else:
-            raise ValueError("Compiler {} not supported".format(self.spec.compiler.name))
-
         return targets
 
     def install(self, spec, prefix):

@@ -25,6 +25,7 @@ class RPartykit(RPackage):
 
     license("GPL-2.0-only OR GPL-3.0-only")
 
+    version("1.2-22", sha256="0f0015aa970b10a85d1fabfd2fcf35a6552e292fe151766e348c105f7f5c0adb")
     version("1.2-20", sha256="63509aa3ed2d7417ad284c037cef66bc837fdb7a97967957e79b9fee8ed2e0da")
     version("1.2-16", sha256="e643d4e29c1894497e3dd5fe274783319d0044dec50282ed807cebc21736ddb2")
     version("1.2-15", sha256="b2e9454b2f4b9a39c9581c5871462f00acef4eeee5696ce3e32cfa1468d1e3ac")

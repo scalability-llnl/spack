@@ -9,7 +9,7 @@ from spack.package import *
 class PyFrozendict(PythonPackage):
     """An immutable dictionary"""
 
-    homepage = "An immutable dictionary"
+    homepage = "https://github.com/Marco-Sulla/python-frozendict"
     pypi = "frozendict/frozendict-1.2.tar.gz"
 
     license("LGPL-3.0-only")

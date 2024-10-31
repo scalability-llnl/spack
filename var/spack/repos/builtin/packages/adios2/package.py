@@ -45,9 +45,9 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     version("2.4.0", sha256="50ecea04b1e41c88835b4b3fd4e7bf0a0a2a3129855c9cc4ba6cf6a1575106e2")
     version("2.3.1", sha256="3bf81ccc20a7f2715935349336a76ba4c8402355e1dc3848fcd6f4c3c5931893")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     # There's not really any consistency about how static and shared libs are
     # implemented across spack.  What we're trying to support is specifically three
@@ -199,6 +199,9 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("py-mpi4py@2.0.0:", when="+mpi +python", type=("build", "run"))
     depends_on("aws-sdk-cpp", when="+aws")
     depends_on("libcatalyst@2", when="+libcatalyst")
+
+    # error: invalid use of incomplete type 'PyFrameObject' {aka 'struct _frame'}
+    conflicts("^python@3.11:", when="@:2.7")
 
     # Fix findmpi when called by dependees
     # See https://github.com/ornladios/ADIOS2/pull/1632

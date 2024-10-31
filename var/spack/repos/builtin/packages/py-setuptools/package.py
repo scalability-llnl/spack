@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -95,5 +96,4 @@ class PySetuptools(Package, PythonExtension):
         #
         # We work around this issue by installing setuptools from wheels
         whl = self.stage.archive_file
-        args = ["-m", "pip"] + std_pip_args + ["--prefix=" + prefix, whl]
-        python(*args)
+        python("-m", "pip", *PythonPipBuilder.std_args(self), f"--prefix={prefix}", whl)

@@ -2015,6 +2015,11 @@ def pytest_runtest_setup(item):
     if not_on_windows_marker and sys.platform == "win32":
         pytest.skip(*not_on_windows_marker.args)
 
+    # Skip items marked "only windows" if they're run anywhere but Windows
+    only_windows_marker = item.get_closest_marker(name="only_windows")
+    if only_windows_marker and sys.platform != "win32":
+        pytest.skip(*only_windows_marker.args)
+
 
 def _sequential_executor(*args, **kwargs):
     return spack.util.parallel.SequentialExecutor()

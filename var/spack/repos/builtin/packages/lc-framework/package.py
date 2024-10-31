@@ -43,7 +43,7 @@ class LcFramework(CMakePackage, CudaPackage):
 
     def cmake_args(self):
         args = [self.define_from_variant("LC_BUILD_LIBPRESSIO_PLUGIN", "libpressio")]
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append(self.define_from_variant("LC_BUILD_CUDA", "cuda"))
             args.append(self.builder.define_cuda_architectures(self))
 

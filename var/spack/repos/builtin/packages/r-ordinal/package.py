@@ -26,6 +26,9 @@ class ROrdinal(RPackage):
     license("GPL-2.0-or-later")
 
     version(
+        "2023.12-4.1", sha256="2c9dcfa438c964ff1825033d0759d25f404a2a4c5252b81e40f19cffc18e38b1"
+    )
+    version(
         "2022.11-16", sha256="5488ad1dfa531a09d017d68d7393d376c8bc49cceeaa6a3e5f7d57b99168d493"
     )
     version(

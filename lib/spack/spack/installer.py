@@ -2494,6 +2494,15 @@ def build_process(pkg: "spack.package_base.PackageBase", install_args: dict) -> 
 
 def deprecate(spec: "spack.spec.Spec", deprecator: "spack.spec.Spec", link_fn) -> None:
     """Deprecate this package in favor of deprecator spec"""
+    # Here we assume we don't deprecate across different stores, and that same hash
+    # means same binary artifacts
+    if spec.dag_hash() == deprecator.dag_hash():
+        return
+
+    # We can't really have control over external specs, and cannot link anything in their place
+    if spec.external:
+        return
+
     # Install deprecator if it isn't installed already
     if not spack.store.STORE.db.query(deprecator):
         PackageInstaller([deprecator.package], explicit=True).install()

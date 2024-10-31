@@ -20,6 +20,8 @@ class Icon(AutotoolsPackage):
 
     license("BSD-3-Clause", checked_by="skosukhin")
 
+    version("2024.10", sha256="5c461c783eb577c97accd632b18140c3da91c1853d836ca2385f376532e9bad1")
+    version("2024.07", sha256="f53043ba1b36b8c19d0d2617ab601c3b9138b90f8ff8ca6db0fd079665eb5efa")
     version("2024.01-1", sha256="3e57608b7e1e3cf2f4cb318cfe2fdb39678bd53ca093955d99570bd6d7544184")
     version("2024.01", sha256="d9408fdd6a9ebf5990298e9a09c826e8c15b1e79b45be228f7a5670a3091a613")
 

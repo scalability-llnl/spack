@@ -1,0 +1,9 @@
+enable:
+  - tcl
+tcl:
+  all:
+    autoload: none
+  mpileaks:
+    suffixes:
+      mpileaks: 'debug={variants.debug.value}'
+      '^mpi': 'mpi={^mpi.name}-v{^mpi.version}'
