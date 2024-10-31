@@ -5,6 +5,7 @@
 
 import os
 import platform
+import re
 import shutil
 from glob import glob
 
@@ -59,6 +60,8 @@ class NvidiaNsightSystems(Package):
     maintainers("scothalverson")
     license("NVIDIA Software License Agreement")
 
+    executables = ["^nsys$"]
+
     depends_on("libarchive programs='bsdtar'")
 
     for ver, packages in _versions.items():
@@ -66,6 +69,15 @@ class NvidiaNsightSystems(Package):
         pkg = packages.get(key)
         if pkg:
             version(ver, sha256=pkg[0], url=pkg[1], expand=False)
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)("--version", output=str, error=str)
+        # Example output:
+        #     NVIDIA Nsight Systems version 2024.1.1.59-241133802077v0
+        # but we only want to match 2024.1.1
+        match = re.search(r"NVIDIA Nsight Systems version ((?:[0-9]+.){2}[0-9])", output)
+        return match.group(1) if match else None
 
     def install(self, spec, prefix):
         bsdtar = which("bsdtar")
