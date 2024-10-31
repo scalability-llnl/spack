@@ -556,8 +556,8 @@ def test_find_concretized_not_installed(
     with ev.read("test") as e:
         install("--fake", "--add", "a0")
 
-        _nresults(_query(e)) == 3, 0
-        _nresults(_query(e, "--explicit")) == 1, 0
+        assert _nresults(_query(e)) == (3, 0)
+        assert _nresults(_query(e, "--explicit")) == (1, 0)
 
         add("d0")
         concretize("--reuse")
@@ -568,24 +568,25 @@ def test_find_concretized_not_installed(
         # --explicit, --deprecated, --start-date, etc. are all
         # filters on records, and therefore don't apply to
         # concretized-but-not-installed results
-        _nresults(_query(e, "--explicit")) == 1, 2
+        assert _nresults(_query(e, "--explicit")) == (1, 2)
 
-        _nresults(_query(e)) == 3, 2
-        _nresults(_query(e, "-c", "d0")) == 0, 1
+        assert _nresults(_query(e)) == (3, 2)
+        assert _nresults(_query(e, "-c", "d0")) == (0, 1)
 
         uninstall("-f", "-y", "b0")
 
         # b0 is now missing (it is not installed, but has an
         # installed parent)
 
-        _nresults(_query(e)) == 2, 3
+        assert _nresults(_query(e)) == (2, 3)
         # b0 is "double-counted" here: it meets the --missing
         # criteria, and also now qualifies as a
         # concretized-but-not-installed spec
-        _nresults(_query(e, "--missing")) == 1, 3
+        assert _nresults(_query(e, "--missing")) == (3, 3)
+        assert _nresults(_query(e, "--only-missing")) == (1, 3)
 
         # Tags are not attached to install records, so they
         # can modify the concretized-but-not-installed results
-        _nresults(_query(e, "--tags=tag0")) == 1, 0
-        _nresults(_query(e, "--tags=tag1")) == 1, 1
-        _nresults(_query(e, "--tags=tag2")) == 0, 1
+        assert _nresults(_query(e, "--tags=tag0")) == (1, 0)
+        assert _nresults(_query(e, "--tags=tag1")) == (1, 1)
+        assert _nresults(_query(e, "--tags=tag2")) == (0, 1)
