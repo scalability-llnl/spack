@@ -23,6 +23,7 @@ class RInsight(RPackage):
 
     license("GPL-3.0-only")
 
+    version("0.20.3", sha256="b60e189849cd3c368e9c2b2174e89c2dfbba3b34e84feb8a20af1bb758116bb2")
     version("0.19.1", sha256="1042629644c66b1a372fd4471d38adccc0c3a329879ef685b14b65575c1c98eb")
     version("0.18.6", sha256="ab0dc3c8ec765f2e93f7bcc3a7abb05140f71db24d50bf8cdd595a5a4e771cae")
     version("0.18.4", sha256="6e3f378bc2eb30c0300103bdd8a3e74371199b36867b45978ec9690a6fda0c5f")
@@ -33,3 +34,4 @@ class RInsight(RPackage):
 
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r@3.5:", type=("build", "run"), when="@0.18.4:")
+    depends_on("r@3.6:", type=("build", "run"), when="@0.19.2:")

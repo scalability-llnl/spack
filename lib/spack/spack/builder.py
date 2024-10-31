@@ -12,6 +12,7 @@ from llnl.util import lang
 
 import spack.error
 import spack.multimethod
+import spack.repo
 
 #: Builder classes, as registered by the "builder" decorator
 BUILDER_CLS = {}
@@ -74,6 +75,14 @@ class _PhaseAdapter:
         return self.phase_fn(self.builder.pkg, spec, prefix)
 
 
+def get_builder_class(pkg, name: str) -> Optional[type]:
+    """Return the builder class if a package module defines it."""
+    cls = getattr(pkg.module, name, None)
+    if cls and cls.__module__.startswith(spack.repo.ROOT_PYTHON_NAMESPACE):
+        return cls
+    return None
+
+
 def _create(pkg):
     """Return a new builder object for the package object being passed as argument.
 
@@ -99,9 +108,10 @@ def _create(pkg):
     package_buildsystem = buildsystem_name(pkg)
     default_builder_cls = BUILDER_CLS[package_buildsystem]
     builder_cls_name = default_builder_cls.__name__
-    builder_cls = getattr(pkg.module, builder_cls_name, None)
-    if builder_cls:
-        return builder_cls(pkg)
+    builder_class = get_builder_class(pkg, builder_cls_name)
+
+    if builder_class:
+        return builder_class(pkg)
 
     # Specialized version of a given buildsystem can subclass some
     # base classes and specialize certain phases or methods or attributes.

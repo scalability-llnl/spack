@@ -258,7 +258,7 @@ class Boost(Package):
     depends_on("xz", when="+iostreams")
     depends_on("py-numpy", when="+numpy", type=("build", "run"))
     # https://github.com/boostorg/python/issues/431
-    depends_on("py-numpy@:1", when="@:1.85+numpy", type=("build", "run"))
+    depends_on("py-numpy@:1", when="@:1.86+numpy", type=("build", "run"))
 
     # Improve the error message when the context-impl variant is conflicting
     conflicts("context-impl=fcontext", when="@:1.65.0")

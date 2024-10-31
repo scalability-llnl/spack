@@ -27,6 +27,12 @@ class IntelOneapiDal(IntelOneApiLibraryPackage):
     )
 
     version(
+        "2025.0.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/d9f2cdb2-93ec-4c78-a3fb-a59d27050c16/intel-onedal-2025.0.0.958_offline.sh",
+        sha256="be6c4130c29a77323515d1febcd55163f1db3e1cecdc8d477617cb8e560e4a3f",
+        expand=False,
+    )
+    version(
         "2024.7.0",
         url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/ed2c397a-9a78-4466-9179-b39b7da07e83/l_daal_oneapi_p_2024.7.0.14_offline.sh",
         sha256="aa7b072fe019ce253a111b38055f3949222d7be5231b4df2780a7ded16cd9097",

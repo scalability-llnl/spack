@@ -21,106 +21,41 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main", submodules=True)
-    version(
-        "3.1.6", tag="v3.1.6", commit="ca437affc6fd00490d8b14e244e53bf641207224", submodules=True
-    )
-    version(
-        "3.1.5", tag="v3.1.5", commit="554f8aa1ac36c2bae17565c64d5bc33333cee396", submodules=True
-    )
-    version(
-        "3.1.4", tag="v3.1.4", commit="e10f5ebd3141b9990a65ebe9f1bdca8554b59472", submodules=True
-    )
-    version(
-        "3.1.3", tag="v3.1.3", commit="af8231ace69119133c4c8a906e98946ec5aa79c8", submodules=True
-    )
-    version(
-        "3.1.2", tag="v3.1.2", commit="5edcac4496e30e450c0f21e7fa74f8b590dc3860", submodules=True
-    )
-    version(
-        "3.1.1", tag="v3.1.1", commit="8ae06194fa47bf473615988f97a7b423d467b023", submodules=True
-    )
-    version(
-        "3.1.0", tag="v3.1.0", commit="3e23581b132532bf70b09c38217ff9c46204f047", submodules=True
-    )
-    version(
-        "3.0.2", tag="v3.0.2", commit="f867288dffecc6404189afa965189c2558cf9922", submodules=True
-    )
-    version(
-        "3.0.1", tag="v3.0.1", commit="65aa85db5cb3bbabc767d5dde4b106b7022a0f90", submodules=True
-    )
-    version(
-        "3.0.0", tag="v3.0.0", commit="2fbd345cfa7cb7277c1cb6a1323247579e1bbc32", submodules=True
-    )
-    version(
-        "2.6.0", tag="v2.6.0", commit="31ef1137b00b304b62b84edaa5b819c0bf0b7436", submodules=True
-    )
-    version(
-        "2.5.0", tag="v2.5.0", commit="f9f499b6926339f96b3ff260495b8782c045555c", submodules=True
-    )
-    version(
-        "2.4.3", tag="v2.4.3", commit="4be85f376d4939f8e5534b7985917e4cfccedfaf", submodules=True
-    )
-    version(
-        "2.4.2", tag="v2.4.2", commit="5ebb2abf2df9c87e6086d8f55a4d929ff0cdb37b", submodules=True
-    )
-    version(
-        "2.4.1", tag="v2.4.1", commit="40accd372f850e10fcbeee6ddecc4d15fd6364c6", submodules=True
-    )
-    version(
-        "2.4.0", tag="v2.4.0", commit="b8ab898b7e9e8e78455b61e303940b80d00d18ca", submodules=True
-    )
-    version(
-        "2.3.2", tag="v2.3.2", commit="61cbb21e8dfdeea47a0add772cd52abac33c4901", submodules=True
-    )
-    version(
-        "2.3.1", tag="v2.3.1", commit="cc51dadb34de9f333605a5bfb83b72c9310f676a", submodules=True
-    )
-    version(
-        "2.3.0", tag="v2.3.0", commit="6ba000b628aa3178545cdbbea508cc2cb2e5c76c", submodules=True
-    )
-    version(
-        "2.2.1", tag="v2.2.1", commit="e131a79f8e68be181390a2656f54268f90a9e78a", submodules=True
-    )
-    version(
-        "2.2.0", tag="v2.2.0", commit="bc787f21deca9239928182e27400133934c62658", submodules=True
-    )
-    version(
-        "2.1.0", tag="v2.1.0", commit="13e15b52f4a1651a3d72324a71ba1e18255663e7", submodules=True
-    )
-    version(
-        "2.0.0", tag="v2.0.0", commit="ea448365033fc6bc9ee0febeb369b377f4fd8240", submodules=True
-    )
-    version(
-        "1.4.0", tag="v1.4.0", commit="bdddf133e41a9b7b4c8ce28f1ea1bebec47678f5", submodules=True
-    )
-    version(
-        "1.3.1", tag="v1.3.1", commit="63692889143599de57232e64a9c7e4af8f0a2e1e", submodules=True
-    )
-    version(
-        "1.3.0", tag="v1.3.0", commit="f74d7b3801f0492e586d440fac729d9dec595a8b", submodules=True
-    )
-    version(
-        "1.2.1", tag="v1.2.1", commit="7291737434ca339ecc765355eab88ddd529ff68f", submodules=True
-    )
-    version(
-        "1.2.0", tag="v1.2.0", commit="db9add5c1c68583a9019cb7ba6776bd580b0ab3e", submodules=True
-    )
-    version(
-        "1.1.0", tag="v1.1.0", commit="30396bf70f0bd5ac65dd0f7b29757b0e02b22459", submodules=True
-    )
-    version(
-        "1.0.1", tag="v1.0.1", commit="aa9b7e8e63833e6ac1cc3f60fcba5140416cc139", submodules=True
-    )
-    version(
-        "1.0.0", tag="v1.0.0", commit="885f4137ce7b9e6c60f48aa5e4c1a54f1418ea9e", submodules=True
-    )
-    version(
-        "0.9.0", tag="v0.9.0", commit="cf66ebe31fd5f27b76a83451cd22f346e7a67160", submodules=True
-    )
+    version("3.1.6", tag="v3.1.6", submodules=True)
+    version("3.1.5", tag="v3.1.5", submodules=True)
+    version("3.1.4", tag="v3.1.4", submodules=True)
+    version("3.1.3", tag="v3.1.3", submodules=True)
+    version("3.1.2", tag="v3.1.2", submodules=True)
+    version("3.1.1", tag="v3.1.1", submodules=True)
+    version("3.1.0", tag="v3.1.0", submodules=True)
+    version("3.0.2", tag="v3.0.2", submodules=True)
+    version("3.0.1", tag="v3.0.1", submodules=True)
+    version("3.0.0", tag="v3.0.0", submodules=True)
+    version("2.6.0", tag="v2.6.0", submodules=True)
+    version("2.5.0", tag="v2.5.0", submodules=True)
+    version("2.4.3", tag="v2.4.3", submodules=True)
+    version("2.4.2", tag="v2.4.2", submodules=True)
+    version("2.4.1", tag="v2.4.1", submodules=True)
+    version("2.4.0", tag="v2.4.0", submodules=True)
+    version("2.3.2", tag="v2.3.2", submodules=True)
+    version("2.3.1", tag="v2.3.1", submodules=True)
+    version("2.3.0", tag="v2.3.0", submodules=True)
+    version("2.2.1", tag="v2.2.1", submodules=True)
+    version("2.2.0", tag="v2.2.0", submodules=True)
+    version("2.1.0", tag="v2.1.0", submodules=True)
+    version("2.0.0", tag="v2.0.0", submodules=True)
+    version("1.4.0", tag="v1.4.0", submodules=True)
+    version("1.3.1", tag="v1.3.1", submodules=True)
+    version("1.3.0", tag="v1.3.0", submodules=True)
+    version("1.2.1", tag="v1.2.1", submodules=True)
+    version("1.2.0", tag="v1.2.0", submodules=True)
+    version("1.1.0", tag="v1.1.0", submodules=True)
+    version("1.0.1", tag="v1.0.1", submodules=True)
+    version("1.0.0", tag="v1.0.0", submodules=True)
+    version("0.9.0", tag="v0.9.0", submodules=True)
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("hypre", default=False, description="Enable Hypre integration")
     variant("ascent", default=False, description="Enable Ascent integration")

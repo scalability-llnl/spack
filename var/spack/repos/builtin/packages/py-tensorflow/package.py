@@ -9,6 +9,7 @@ import sys
 import tempfile
 
 from spack.build_environment import optimization_flags
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 rocm_dependencies = [
@@ -888,12 +889,10 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
             )
             with working_dir(buildpath):
                 wheel = glob.glob("*.whl")[0]
-                args = std_pip_args + ["--prefix=" + prefix, wheel]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", wheel)
         else:
             buildpath = join_path(self.stage.source_path, "spack-build")
             with working_dir(buildpath):
-                args = std_pip_args + ["--prefix=" + prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
         remove_linked_tree(tmp_path)
