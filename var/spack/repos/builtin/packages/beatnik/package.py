@@ -16,10 +16,10 @@ class Beatnik(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSD-3-Clause")
 
-    version("1.1", commit="dd298662a690e3c1857f3c2408912d1ae8446795", submodules=True) 
+    version("1.1", commit="7d5a6fa588bcb7065fc53c3e8ae52d4d7f13b6f1", submodules=True) 
     version("1.0", commit="ae31ef9cb44678d5ace77994b45b0778defa3d2f")
-    version("develop", branch="develop")
-    version("main", branch="main")
+    version("develop", branch="develop", submodules=True)
+    version("main", branch="main", submodules=True)
 
     depends_on("cxx", type="build")  # generated
 
@@ -48,7 +48,7 @@ class Beatnik(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("kokkos +wrapper", when="%gcc+cuda")
 
     # Cabana dependencies
-    depends_on("cabana @master +grid +heffte +silo +hdf5 +mpi")
+    depends_on("cabana @master +grid +heffte +silo +hdf5 +mpi +arborx")
     depends_on("cabana +cuda", when="+cuda")
     depends_on("cabana +rocm", when="+rocm")
 
