@@ -15,6 +15,7 @@ class PyPycifrw(PythonPackage):
 
     license("Python-2.0")
 
+    version("4.4.6", sha256="02bf5975e70ab71540bff62fbef3e8354ac707a0f0ab914a152047962891ef15")
     version("4.4.1", sha256="cef7662f475e0eb78a55c2d55774d474e888c96b0539e5f08550afa902cdc4e1")
 
     depends_on("c", type="build")  # generated
