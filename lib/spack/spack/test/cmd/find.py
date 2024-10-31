@@ -350,24 +350,75 @@ def test_find_prefix_in_env(
         # Would throw error on regression
 
 
-
-_pkgx1 = (
-    "x1",
+_pkga = (
+    "a0",
     """\
-class X1(Package):
+class A0(Package):
+    version("1.2")
+    version("1.1")
+
+    depends_on("b0")
+    depends_on("c0")
+""",
+)
+
+
+_pkgb = (
+    "b0",
+    """\
+class B0(Package):
     version("1.2")
     version("1.1")
 """,
 )
 
+
+_pkgc = (
+    "c0",
+    """\
+class C0(Package):
+    version("1.2")
+    version("1.1")
+""",
+)
+
+
+_pkgd = (
+    "d0",
+    """\
+class D0(Package):
+    version("1.2")
+    version("1.1")
+
+    depends_on("c0")
+    depends_on("e0")
+""",
+)
+
+
+_pkge = (
+    "e0",
+    """\
+class E0(Package):
+    version("1.2")
+    version("1.1")
+""",
+)
+
+
 from spack.test.conftest import create_test_repo
 
 @pytest.fixture
 def _create_test_repo(tmpdir, mutable_config):
+    """
+      a0  d0
+     / \ / \
+    b0  c0  e0
+    """
     yield create_test_repo(
         tmpdir,
         [
-            _pkgx1,
+            _pkga, _pkgb, _pkgc, _pkgd, _pkge
         ]
     )
 
@@ -386,11 +437,14 @@ def test_find_concretized_not_installed(
 
     env("create", "test")
     with ev.read("test") as e:
-        install("--add", "x1")
+        install("--add", "a0")
         r2, cbni2 = spack.cmd.find._find_query(
             SpackCommandArgs("find")(),
             e
         )
+
+        assert len(r2) == 3
+        assert len(cbni2) == 0
 
     #    add("")
     #env("concretize")
