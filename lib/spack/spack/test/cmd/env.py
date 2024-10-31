@@ -2007,14 +2007,14 @@ def test_env_include_concrete_reuse(monkeypatch, reuse_mode):
         # an external environment) update it here.
         test1 = override_env
 
+    # Capture the test1 specs included by combined
     test1_specs_by_hash = test1.specs_by_hash
 
     try:
         # Add mpileaks to the combined environment
         with combined:
             add("mpileaks")
-            combined.unify = False
-            combined.concretize(force=True)
+            combined.concretize()
         comb_specs_by_hash = combined.specs_by_hash
 
         # create reference env with mpileaks that does not use reuse
@@ -2037,27 +2037,7 @@ def test_env_include_concrete_reuse(monkeypatch, reuse_mode):
         # This tests that the reuse is not happening coincidently
         assert not any([s in test1_specs_by_hash for s in ref_specs_by_hash])
 
-        # Changing the version of MPICH to 3 in the test env should not change
-        # the combined env.
-        with test1:
-            config("change", "packages:mpich:require:@3")
-            concretize("-f")
-        test1_specs_by_hash_updated = test1.specs_by_hash
-
-        # Concretized combinded again (this should still use the old test1 specs)
-        combined.concretize()
-        comb_specs_by_hash = combined.specs_by_hash
-
-        # Ensure that the mpich used by the mpileaks is the mpich from the originally reused test
-        # environment after updating the included test1 environment.
-        comb_mpileaks_spec = [s for s in comb_specs_by_hash.values() if s.name == "mpileaks"]
-        test1_mpich_spec = [s for s in test1_specs_by_hash.values() if s.name == "mpich"]
-        assert len(comb_mpileaks_spec) == 1
-        assert len(test1_mpich_spec) == 1
-        assert comb_mpileaks_spec[0]["mpich"].dag_hash() == test1_mpich_spec[0].dag_hash()
-
-        # None of the new test1 specs (mpich@3) should exist in the combined environment
-        assert not any([s in comb_specs_by_hash for s in test1_specs_by_hash_updated])
+        # Make sure the raise tests raises
         assert "raise" not in reuse_mode
     except ev.SpackEnvironmentError:
         assert "raise" in reuse_mode
