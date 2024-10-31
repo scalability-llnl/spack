@@ -4,10 +4,9 @@
 "Usage: unparse.py <path to source file>"
 import ast
 import sys
-from ast import AST, If, Name, Tuple
+from ast import AST, Constant, FormattedValue, If, JoinedStr, Name, Tuple
 from contextlib import contextmanager
 from enum import IntEnum, auto
-from io import StringIO
 
 
 # TODO: if we require Python 3.7, use its `nullcontext()`
@@ -627,81 +626,84 @@ class Unparser(NodeVisitor):
         self._write_constant(node.s)
 
     def visit_JoinedStr(self, node):
-        # JoinedStr(expr* values)
         self.write("f")
 
-        if self._avoid_backslashes:
-            string = StringIO()
-            self._fstring_JoinedStr(node, string.write)
-            self._write_str_avoiding_backslashes(string.getvalue())
-            return
-
-        # If we don't need to avoid backslashes globally (i.e., we only need
-        # to avoid them inside FormattedValues), it's cosmetically preferred
-        # to use escaped whitespace. That is, it's preferred to use backslashes
-        # for cases like: f"{x}\n". To accomplish this, we keep track of what
-        # in our buffer corresponds to FormattedValues and what corresponds to
-        # Constant parts of the f-string, and allow escapes accordingly.
-        buffer = []
+        fstring_parts = []
         for value in node.values:
-            meth = getattr(self, "_fstring_" + type(value).__name__)
-            string = StringIO()
-            meth(value, string.write)
-            buffer.append((string.getvalue(), isinstance(value, ast.Constant)))
-        new_buffer = []
-        quote_types = _ALL_QUOTES
-        for value, is_constant in buffer:
-            # Repeatedly narrow down the list of possible quote_types
-            value, quote_types = self._str_literal_helper(
-                value, quote_types=quote_types, escape_special_whitespace=is_constant
-            )
-            new_buffer.append(value)
-        value = "".join(new_buffer)
+            with self.buffered() as buffer:
+                self._write_fstring_inner(value)
+            fstring_parts.append(("".join(buffer), isinstance(value, Constant)))
+
+        new_fstring_parts = []
+        quote_types = list(_ALL_QUOTES)
+        fallback_to_repr = False
+        for value, is_constant in fstring_parts:
+            if is_constant:
+                value, new_quote_types = self._str_literal_helper(
+                    value, quote_types=quote_types, escape_special_whitespace=True
+                )
+                if set(new_quote_types).isdisjoint(quote_types):
+                    fallback_to_repr = True
+                    break
+                quote_types = new_quote_types
+            elif "\n" in value:
+                quote_types = [q for q in quote_types if q in _MULTI_QUOTES]
+                assert quote_types
+            new_fstring_parts.append(value)
+
+        if fallback_to_repr:
+            # If we weren't able to find a quote type that works for all parts
+            # of the JoinedStr, fallback to using repr and triple single quotes.
+            quote_types = ["'''"]
+            new_fstring_parts.clear()
+            for value, is_constant in fstring_parts:
+                if is_constant:
+                    value = repr('"' + value)  # force repr to use single quotes
+                    expected_prefix = "'\""
+                    assert value.startswith(expected_prefix), repr(value)
+                    value = value[len(expected_prefix) : -1]
+                new_fstring_parts.append(value)
+
+        value = "".join(new_fstring_parts)
         quote_type = quote_types[0]
         self.write(f"{quote_type}{value}{quote_type}")
 
+    def _write_fstring_inner(self, node, is_format_spec=False):
+        if isinstance(node, JoinedStr):
+            # for both the f-string itself, and format_spec
+            for value in node.values:
+                self._write_fstring_inner(value, is_format_spec=is_format_spec)
+        elif isinstance(node, Constant) and isinstance(node.value, str):
+            value = node.value.replace("{", "{{").replace("}", "}}")
+
+            if is_format_spec:
+                value = value.replace("\\", "\\\\")
+                value = value.replace("'", "\\'")
+                value = value.replace('"', '\\"')
+                value = value.replace("\n", "\\n")
+            self.write(value)
+        elif isinstance(node, FormattedValue):
+            self.visit_FormattedValue(node)
+        else:
+            raise ValueError(f"Unexpected node inside JoinedStr, {node!r}")
+
     def visit_FormattedValue(self, node):
-        # FormattedValue(expr value, int? conversion, expr? format_spec)
-        self.write("f")
-        string = StringIO()
-        self._fstring_JoinedStr(node, string.write)
-        self._write_str_avoiding_backslashes(string.getvalue())
+        def unparse_inner(inner):
+            unparser = type(self)()
+            unparser.set_precedence(_Precedence.TEST.next(), inner)
+            return unparser.visit(inner)
 
-    def _fstring_JoinedStr(self, node, write):
-        for value in node.values:
-            meth = getattr(self, "_fstring_" + type(value).__name__)
-            meth(value, write)
-
-    def _fstring_Str(self, node, write):
-        value = node.s.replace("{", "{{").replace("}", "}}")
-        write(value)
-
-    def _fstring_Constant(self, node, write):
-        assert isinstance(node.value, str)
-        value = node.value.replace("{", "{{").replace("}", "}}")
-        write(value)
-
-    def _fstring_FormattedValue(self, node, write):
-        write("{")
-
-        unparser = type(self)(py_ver_consistent=self._py_ver_consistent, _avoid_backslashes=True)
-        unparser.set_precedence(_Precedence.TEST.next(), node.value)
-        expr = unparser.visit(node.value)
-
-        if expr.startswith("{"):
-            write(" ")  # Separate pair of opening brackets as "{ {"
-        if "\\" in expr:
-            raise ValueError("Unable to avoid backslash in f-string expression part")
-        write(expr)
-        if node.conversion != -1:
-            conversion = chr(node.conversion)
-            assert conversion in "sra"
-            write("!{conversion}".format(conversion=conversion))
-        if node.format_spec:
-            write(":")
-            meth = getattr(self, "_fstring_" + type(node.format_spec).__name__)
-            meth(node.format_spec, write)
-        write("}")
+        with self.delimit("{", "}"):
+            expr = unparse_inner(node.value)
+            if expr.startswith("{"):
+                # Separate pair of opening brackets as "{ {"
+                self.write(" ")
+            self.write(expr)
+            if node.conversion != -1:
+                self.write(f"!{chr(node.conversion)}")
+            if node.format_spec:
+                self.write(":")
+                self._write_fstring_inner(node.format_spec, is_format_spec=True)
 
     def visit_Name(self, node):
         self.write(node.id)
