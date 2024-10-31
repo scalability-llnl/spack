@@ -306,6 +306,7 @@ def find(parser, args):
         tty.die("-c / --show-concretized requires an active environment")
 
     q_args = query_arguments(args)
+    concretized_but_not_installed = list()
     if env:
         all_env_specs = env.all_specs()
         if args.constraint:
@@ -319,7 +320,6 @@ def find(parser, args):
         )
 
         results = list()
-        concretized_but_not_installed = list()
         for spec in env_specs:
             if not spec.installed:
                 concretized_but_not_installed.append(spec)
@@ -347,9 +347,13 @@ def find(parser, args):
     if args.tags:
         packages_with_tags = spack.repo.PATH.packages_with_tags(*args.tags)
         results = [x for x in results if x.name in packages_with_tags]
+        concretized_but_not_installed = [
+            x for x in concretized_but_not_installed if x.name in packages_with_tags
+        ]
 
     if args.loaded:
         results = spack.cmd.filter_loaded_specs(results)
+        concretized_but_not_installed = spack.cmd.filter_loaded_specs(concretized_but_not_installed)
 
     if args.install_status or args.show_concretized:
         status_fn = spack.spec.Spec.install_status
