@@ -619,10 +619,6 @@ class Unparser(NodeVisitor):
     # Python < 3.8. Num, Str, Bytes, NameConstant, Ellipsis replaced with Constant
     # https://github.com/python/cpython/commit/3f22811fef73aec848d961593d95fa877f77ecbf
     def visit_Str(self, node):
-        # Python 3.5, 3.6, and 3.7 can't tell if something was written as a
-        # unicode constant. Try to make that consistent with 'u' for '\u- literals
-        if self._py_ver_consistent and repr(node.s).startswith("'\\u"):
-            self.write("u")
         self._write_constant(node.s)
 
     def visit_JoinedStr(self, node):
@@ -733,7 +729,8 @@ class Unparser(NodeVisitor):
 
     def _write_docstring(self, node):
         self.fill()
-        if node.kind == "u":
+        # Don't emit `u""` because it's not avail in python AST <= 3.7
+        if not self._py_ver_consistent and node.kind == "u":
             self.write("u")
         self._write_str_avoiding_backslashes(node.value, quote_types=_MULTI_QUOTES)
 
@@ -763,7 +760,8 @@ class Unparser(NodeVisitor):
         elif value is ...:
             self.write("...")
         else:
-            if node.kind == "u":
+            # Don't emit `u""` because it's not avail in python AST <= 3.7
+            if not self._py_ver_consistent and node.kind == "u":
                 self.write("u")
             self._write_constant(node.value)
 
