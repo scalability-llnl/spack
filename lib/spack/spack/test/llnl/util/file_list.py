@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-from llnl.util.filesystem import HeaderList, LibraryList, find, find_headers, find_libraries
+from llnl.util.filesystem import HeaderList, LibraryList, find_headers, find_libraries
 
 import spack.paths
 
