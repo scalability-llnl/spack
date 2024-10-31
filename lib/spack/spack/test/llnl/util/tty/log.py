@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import contextlib
-import multiprocessing
 import os
 import signal
 import sys
@@ -14,9 +13,7 @@ from typing import Optional
 
 import pytest
 
-import llnl.util.lang as lang
 import llnl.util.tty.log as log
-import llnl.util.tty.pty as pty
 
 from spack.util.executable import which
 
@@ -310,53 +307,6 @@ def no_termios():
         log.termios = saved
 
 
-@pytest.mark.skipif(not which("ps"), reason="requires ps utility")
-@pytest.mark.skipif(not termios, reason="requires termios support")
-@pytest.mark.parametrize(
-    "test_fn,termios_on_or_off",
-    [
-        # tests with termios
-        (mock_shell_fg, lang.nullcontext),
-        (mock_shell_bg, lang.nullcontext),
-        (mock_shell_bg_fg, lang.nullcontext),
-        (mock_shell_fg_bg, lang.nullcontext),
-        (mock_shell_tstp_cont, lang.nullcontext),
-        (mock_shell_tstp_tstp_cont, lang.nullcontext),
-        (mock_shell_tstp_tstp_cont_cont, lang.nullcontext),
-        # tests without termios
-        (mock_shell_fg_no_termios, no_termios),
-        (mock_shell_bg, no_termios),
-        (mock_shell_bg_fg_no_termios, no_termios),
-        (mock_shell_fg_bg_no_termios, no_termios),
-        (mock_shell_tstp_cont, no_termios),
-        (mock_shell_tstp_tstp_cont, no_termios),
-        (mock_shell_tstp_tstp_cont_cont, no_termios),
-    ],
-)
-@pytest.mark.xfail(reason="Fails almost consistently when run with coverage and xdist")
-def test_foreground_background(test_fn, termios_on_or_off, tmpdir):
-    """Functional tests for foregrounding and backgrounding a logged process.
-
-    This ensures that things like SIGTTOU are not raised and that
-    terminal settings are corrected on foreground/background and on
-    process stop and start.
-
-    """
-    shell = pty.PseudoShell(test_fn, simple_logger)
-    log_path = str(tmpdir.join("log.txt"))
-
-    # run the shell test
-    with termios_on_or_off():
-        shell.start(log_path=log_path, debug=True)
-    exitcode = shell.join()
-
-    # processes completed successfully
-    assert exitcode == 0
-
-    # assert log was created
-    assert os.path.exists(log_path)
-
-
 def synchronized_logger(**kwargs):
     """Mock logger (minion) process for testing log.keyboard_input.
 
@@ -442,58 +392,3 @@ def mock_shell_v_v_no_termios(proc, ctl, **kwargs):
     time.sleep(0.1)
 
     os.kill(proc.pid, signal.SIGUSR1)
-
-
-@pytest.mark.skipif(not which("ps"), reason="requires ps utility")
-@pytest.mark.skipif(not termios, reason="requires termios support")
-@pytest.mark.parametrize(
-    "test_fn,termios_on_or_off",
-    [(mock_shell_v_v, lang.nullcontext), (mock_shell_v_v_no_termios, no_termios)],
-)
-@pytest.mark.xfail(reason="Fails almost consistently when run with coverage and xdist")
-def test_foreground_background_output(test_fn, capfd, termios_on_or_off, tmpdir):
-    """Tests hitting 'v' toggles output, and that force_echo works."""
-    if sys.version_info >= (3, 8) and sys.platform == "darwin" and termios_on_or_off == no_termios:
-        return
-
-    shell = pty.PseudoShell(test_fn, synchronized_logger)
-    log_path = str(tmpdir.join("log.txt"))
-
-    # Locks for synchronizing with minion
-    write_lock = multiprocessing.Lock()  # must be held by minion to write
-    v_lock = multiprocessing.Lock()  # held while controller is in v mode
-
-    with termios_on_or_off():
-        shell.start(write_lock=write_lock, v_lock=v_lock, debug=True, log_path=log_path)
-
-    exitcode = shell.join()
-    out, err = capfd.readouterr()
-    print(err)  # will be shown if something goes wrong
-    print(out)
-
-    # processes completed successfully
-    assert exitcode == 0
-
-    # split output into lines
-    output = out.strip().split("\n")
-
-    # also get lines of log file
-    assert os.path.exists(log_path)
-    with open(log_path) as logfile:
-        log_data = logfile.read().strip().split("\n")
-
-    # Controller and minion process coordinate with locks such that the
-    # minion writes "off" when echo is off, and "on" when echo is on. The
-    # output should contain mostly "on" lines, but may contain "off"
-    # lines if the controller is slow. The important thing to observe
-    # here is that we started seeing 'on' in the end.
-    assert ["forced output", "on"] == lang.uniq(output) or [
-        "forced output",
-        "off",
-        "on",
-    ] == lang.uniq(output)
-
-    # log should be off for a while, then on, then off
-    assert ["forced output", "off", "on", "off"] == lang.uniq(log_data) and log_data.count(
-        "off"
-    ) > 2  # ensure some "off" lines were omitted
