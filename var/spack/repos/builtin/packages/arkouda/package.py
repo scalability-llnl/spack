@@ -3,10 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
 
 from spack.package import *
-from spack.util.environment import is_system_path
 
 
 class Arkouda(MakefilePackage):
@@ -72,7 +70,6 @@ class Arkouda(MakefilePackage):
     # override the default edit method to apply the patch
     def edit(self, spec, prefix):
         self.update_makefile_paths(spec, prefix)
-
 
     def update_makefile_paths(self, spec, prefix):
         # add to the Makefile.paths file for all of the dependencies installed by spack
