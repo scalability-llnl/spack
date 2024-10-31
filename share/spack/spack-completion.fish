@@ -1489,6 +1489,7 @@ complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a update -d 'upd
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a revert -d 'restore the environment manifest to its previous format'
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a depfile -d 'generate a depfile to exploit parallel builds across specs'
 complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a track -d 'track an environment from a directory in Spack'
+complete -c spack -n '__fish_spack_using_command_pos 0 env' -f -a untrack -d 'track an environment from a directory in Spack'
 complete -c spack -n '__fish_spack_using_command env' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command env' -s h -l help -d 'show this help message and exit'
 
@@ -1679,6 +1680,14 @@ complete -c spack -n '__fish_spack_using_command env track' -s n -l name -r -f -
 complete -c spack -n '__fish_spack_using_command env track' -s n -l name -r -d 'custom environment name'
 complete -c spack -n '__fish_spack_using_command env track' -s y -l yes-to-all -f -a yes_to_all
 complete -c spack -n '__fish_spack_using_command env track' -s y -l yes-to-all -d 'assume "yes" is the answer to every confirmation request'
+
+# spack env untrack
+set -g __fish_spack_optspecs_spack_env_untrack h/help y/yes-to-all
+complete -c spack -n '__fish_spack_using_command_pos_remainder 0 env untrack' -f -a '(__fish_spack_environments)'
+complete -c spack -n '__fish_spack_using_command env untrack' -s h -l help -f -a help
+complete -c spack -n '__fish_spack_using_command env untrack' -s h -l help -d 'show this help message and exit'
+complete -c spack -n '__fish_spack_using_command env untrack' -s y -l yes-to-all -f -a yes_to_all
+complete -c spack -n '__fish_spack_using_command env untrack' -s y -l yes-to-all -d 'assume "yes" is the answer to every confirmation request'
 
 # spack extensions
 set -g __fish_spack_optspecs_spack_extensions h/help l/long L/very-long d/deps p/paths s/show=
