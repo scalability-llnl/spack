@@ -441,13 +441,14 @@ def test_find_concretized_not_installed(
             _e
         )
 
+    def _nresults(_qresult):
+        return len(_qresult[0]), len(_qresult[1])
+
     env("create", "test")
     with ev.read("test") as e:
         install("--add", "a0")
 
-        r2, cbni2 = _query(e)
-        assert len(r2) == 3
-        assert len(cbni2) == 0
+        _nresults(_query(e)) == 3, 0
 
         r3, cbni3 = _query(e, "--explicit")
         assert len(r3) == 1
@@ -471,6 +472,12 @@ def test_find_concretized_not_installed(
         assert len(cbni6) == 1
 
         uninstall("-f", "-y", "b0")
+
+        r7, cbni7 = _query(e)
+        assert len(r7) == 2
+        assert len(cbni7) == 3
+
+
 
 
 def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_repo, tmpdir):
