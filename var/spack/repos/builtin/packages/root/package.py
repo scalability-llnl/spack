@@ -429,6 +429,8 @@ class Root(CMakePackage):
     # Incompatible variants
     if sys.platform == "darwin":
         conflicts("+opengl", when="~x ~aqua", msg="root+opengl requires X or Aqua")
+        # https://github.com/root-project/root/issues/7160
+        conflicts("+aqua", when="~opengl", msg="+aqua requires OpenGL to be enabled")
     else:
         conflicts("+opengl", when="~x", msg="root+opengl requires X")
     conflicts("+math", when="~gsl", msg="root+math requires GSL")
