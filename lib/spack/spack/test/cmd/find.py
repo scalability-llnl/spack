@@ -561,6 +561,7 @@ def test_find_concretized_not_installed(
 
         add("d0")
         concretize("--reuse")
+
         # At this point d0 should use existing c0, but d/e
         # are not installed in the env
 
@@ -573,10 +574,14 @@ def test_find_concretized_not_installed(
         _nresults(_query(e, "-c", "d0")) == 0, 1
 
         uninstall("-f", "-y", "b0")
+
         # b0 is now missing (it is not installed, but has an
         # installed parent)
 
         _nresults(_query(e)) == 2, 3
+        # b0 is "double-counted" here: it meets the --missing
+        # criteria, and also now qualifies as a
+        # concretized-but-not-installed spec
         _nresults(_query(e, "--missing")) == 1, 3
 
         # Tags are not attached to install records, so they
