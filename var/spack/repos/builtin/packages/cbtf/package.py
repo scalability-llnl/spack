@@ -47,9 +47,7 @@ class Cbtf(CMakePackage):
     # for rpc
     depends_on("libtirpc", type="link")
 
-    depends_on(
-        "boost@1.70.0:+date_time+filesystem+preprocessor+signals2+spirit_classic+test+thread"
-    )
+    depends_on("boost@1.70.0:+date_time+filesystem+test+thread")
 
     # For MRNet
     depends_on("mrnet@5.0.1-3:+lwthreads", when="@develop")
