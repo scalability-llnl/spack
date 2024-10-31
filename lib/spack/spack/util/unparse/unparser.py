@@ -4,7 +4,7 @@
 "Usage: unparse.py <path to source file>"
 import ast
 import sys
-from ast import AST, If, Name
+from ast import AST, If, Name, Tuple
 from contextlib import contextmanager
 from enum import IntEnum, auto
 from io import StringIO
@@ -14,6 +14,15 @@ from io import StringIO
 @contextmanager
 def nullcontext():
     yield
+
+
+def is_non_empty_non_star_tuple(slice_value):
+    """True for `(1, 2)`, False for `()` and `(1, *b)`"""
+    return (
+        isinstance(slice_value, Tuple)
+        and slice_value.elts
+        and not any(isinstance(elt, ast.Starred) for elt in slice_value.elts)
+    )
 
 
 def iter_fields(node):
@@ -106,19 +115,6 @@ class _Precedence(IntEnum):
 _SINGLE_QUOTES = ("'", '"')
 _MULTI_QUOTES = ('"""', "'''")
 _ALL_QUOTES = (*_SINGLE_QUOTES, *_MULTI_QUOTES)
-
-
-def is_simple_tuple(slice_value):
-    # when unparsing a non-empty tuple, the parantheses can be safely
-    # omitted if there aren't any elements that explicitly requires
-    # parantheses (such as starred expressions).
-    return (
-        isinstance(slice_value, ast.Tuple)
-        and slice_value.elts
-        # Python < 3.11. Grammar change.
-        # https://github.com/python/cpython/commit/e8e737bcf6d22927caebc30c5d57ac4634063219
-        and not any(isinstance(elt, ast.Starred) for elt in slice_value.elts)
-    )
 
 
 class Unparser(NodeVisitor):
@@ -988,10 +984,16 @@ class Unparser(NodeVisitor):
                 self.traverse(e)
 
     def visit_Subscript(self, node):
+        def is_non_empty_tuple(slice_value):
+            return isinstance(slice_value, Tuple) and slice_value.elts
+
         self.set_precedence(_Precedence.ATOM, node.value)
         self.traverse(node.value)
         with self.delimit("[", "]"):
-            if is_simple_tuple(node.slice):
+            # Python >= 3.11 supports `a[42, *b]` (same AST as a[(42, *b)]),
+            # but this is syntax error in 3.10.
+            # So, always emit parenthesis `a[(42, *b)]`
+            if is_non_empty_non_star_tuple(node.slice):
                 self.items_view(self.traverse, node.slice.elts)
             else:
                 self.traverse(node.slice)
@@ -1008,7 +1010,7 @@ class Unparser(NodeVisitor):
 
     # used in Python <= 3.8 -- see _Subscript for 3.9+
     def visit_Index(self, node):
-        if is_simple_tuple(node.value):
+        if is_non_empty_non_star_tuple(node.value):
             self.set_precedence(_Precedence.ATOM, node.value)
             self.items_view(self.traverse, node.value.elts)
         else:
