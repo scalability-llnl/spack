@@ -326,7 +326,9 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         if spec.satisfies("~wrapper+cuda") and not (
             spec.satisfies("%clang") or spec.satisfies("%cce") or spec.satisfies("+cmake_lang")
         ):
-            raise InstallError("Kokkos requires +wrapper when using +cuda" "without clang")
+            raise InstallError(
+                "Kokkos requires +wrapper when using +cuda without %clang, %cce or +cmake_lang"
+            )
 
         options = [
             from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
