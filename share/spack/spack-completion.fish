@@ -1682,10 +1682,12 @@ complete -c spack -n '__fish_spack_using_command env track' -s y -l yes-to-all -
 complete -c spack -n '__fish_spack_using_command env track' -s y -l yes-to-all -d 'assume "yes" is the answer to every confirmation request'
 
 # spack env untrack
-set -g __fish_spack_optspecs_spack_env_untrack h/help y/yes-to-all
+set -g __fish_spack_optspecs_spack_env_untrack h/help f/force y/yes-to-all
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 env untrack' -f -a '(__fish_spack_environments)'
 complete -c spack -n '__fish_spack_using_command env untrack' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command env untrack' -s h -l help -d 'show this help message and exit'
+complete -c spack -n '__fish_spack_using_command env untrack' -s f -l force -f -a force
+complete -c spack -n '__fish_spack_using_command env untrack' -s f -l force -d 'force unlink even when environment is active'
 complete -c spack -n '__fish_spack_using_command env untrack' -s y -l yes-to-all -f -a yes_to_all
 complete -c spack -n '__fish_spack_using_command env untrack' -s y -l yes-to-all -d 'assume "yes" is the answer to every confirmation request'
 

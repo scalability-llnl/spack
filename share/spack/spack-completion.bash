@@ -1153,7 +1153,7 @@ _spack_env_track() {
 _spack_env_untrack() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -y --yes-to-all"
+        SPACK_COMPREPLY="-h --help -f --force -y --yes-to-all"
     else
         _environments
     fi
