@@ -535,6 +535,13 @@ def test_repo(_create_test_repo, monkeypatch, mock_stage):
 def test_find_concretized_not_installed(
     mutable_mock_env_path, install_mockery, mock_fetch, test_repo, mock_archive
 ):
+    """Test queries against installs of specs against fake repo.
+
+    Given A, B, C, D, E, create an environment and install A.
+    Add and concretize (but do not install) D.
+    Test a few queries after force uninstalling a dependency of A (but not
+    A itself).
+    """
     add = SpackCommand("add")
     concretize = SpackCommand("concretize")
     uninstall = SpackCommand("uninstall")
