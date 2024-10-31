@@ -16,7 +16,7 @@ import spack.cmd.find
 import spack.environment as ev
 import spack.store
 import spack.user_environment as uenv
-from spack.main import SpackCommand
+from spack.main import SpackCommand, SpackCommandArgs
 from spack.spec import Spec
 from spack.util.pattern import Bunch
 
@@ -352,11 +352,16 @@ def test_find_prefix_in_env(
 def test_find_concretized_not_installed(
     mutable_mock_env_path, install_mockery, mock_fetch, mock_packages, mock_archive
 ):
+    find_args1 = SpackCommandArgs("find")()
+    r1, cbni1 = spack.cmd.find._find_query(find_args1, None)
+
     env("create", "test")
-    output0 = find()
-    with ev.read("test"):
-        output1 = find()
+    with ev.read("test") as e:
         install("--add", "mpileaks")
+        r2, cbni2 = spack.cmd.find._find_query(
+            SpackCommandArgs("find")(),
+            e
+        )
         output2 = find()
         import pdb; pdb.set_trace()
         print("hi")
