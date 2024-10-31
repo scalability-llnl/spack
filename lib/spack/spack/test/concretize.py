@@ -3123,4 +3123,4 @@ def test_spec_unification(unify, mutable_config, mock_packages):
 
     maybe_fails = pytest.raises if unify is True else llnl.util.lang.nullcontext
     with maybe_fails(spack.solver.asp.UnsatisfiableSpecError):
-        restricted = spack.cmd.parse_specs([a_restricted, b], concretize=True)
+        _ = spack.cmd.parse_specs([a_restricted, b], concretize=True)

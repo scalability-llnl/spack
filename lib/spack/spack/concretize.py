@@ -5,17 +5,16 @@
 """
 (DEPRECATED) Used to contain the code for the original concretizer
 """
-from contextlib import contextmanager
-from itertools import chain
 import sys
 import time
+from contextlib import contextmanager
+from itertools import chain
 from typing import Tuple
 
 import llnl.util.tty as tty
 
 import spack.config
 import spack.error
-
 from spack.spec import Spec
 
 CHECK_COMPILER_EXISTENCE = True

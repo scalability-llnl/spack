@@ -11,8 +11,6 @@ import pathlib
 import re
 import shutil
 import stat
-import sys
-import time
 import urllib.parse
 import urllib.request
 import warnings
@@ -56,6 +54,8 @@ from spack.schema.env import TOP_LEVEL_KEY
 from spack.spec import Spec
 from spack.spec_list import SpecList
 from spack.util.path import substitute_path_variables
+
+SpecPair = Tuple[spack.spec.Spec, spack.spec.Spec]
 
 #: environment variable used to indicate the active environment
 spack_env_var = "SPACK_ENV"
@@ -1510,7 +1510,7 @@ class Environment:
 
     def _get_specs_to_concretize(
         self,
-    ) -> Tuple[Set[spack.spec.Spec], Set[spack.spec.Spec], List[spack.spec.Spec]]:
+    ) -> Tuple[List[spack.spec.Spec], List[spack.spec.Spec], List[SpecPair]]:
         """Compute specs to concretize for unify:true and unify:when_possible.
 
         This includes new user specs and any already concretized specs.
@@ -1543,10 +1543,6 @@ class Environment:
         new_user_specs, _, specs_to_concretize = self._get_specs_to_concretize()
         if not new_user_specs:
             return []
-
-        old_concrete_to_abstract = {
-            concrete: abstract for (abstract, concrete) in self.concretized_specs()
-        }
 
         self.concretized_user_specs = []
         self.concretized_order = []
@@ -1585,9 +1581,7 @@ class Environment:
 
         return ret
 
-    def _concretize_together(
-        self, tests: bool = False
-    ) -> List[Tuple[spack.spec.Spec, spack.spec.Spec]]:
+    def _concretize_together(self, tests: bool = False) -> List[SpecPair]:
         """Concretization strategy that concretizes all the specs
         in the same DAG.
         """
@@ -1601,7 +1595,7 @@ class Environment:
         self.specs_by_hash = {}
 
         try:
-            concretized_specs: List[spack.spec.Spec] = spack.concretize.concretize_together(
+            concretized_specs: List[SpecPair] = spack.concretize.concretize_together(
                 *specs_to_concretize, tests=tests
             )
         except spack.error.UnsatisfiableSpecError as e:
