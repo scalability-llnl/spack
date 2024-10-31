@@ -435,24 +435,21 @@ def test_find_concretized_not_installed(
     concretize = SpackCommand("concretize")
     uninstall = SpackCommand("uninstall")
 
-    find_args1 = SpackCommandArgs("find")()
-    r1, cbni1 = spack.cmd.find._find_query(find_args1, None)
+    def _query(_e, *args):
+        return spack.cmd.find._find_query(
+            SpackCommandArgs("find")(*args),
+            _e
+        )
 
     env("create", "test")
     with ev.read("test") as e:
         install("--add", "a0")
 
-        r2, cbni2 = spack.cmd.find._find_query(
-            SpackCommandArgs("find")(),
-            e
-        )
+        r2, cbni2 = _query(e)
         assert len(r2) == 3
         assert len(cbni2) == 0
 
-        r3, cbni3 = spack.cmd.find._find_query(
-            SpackCommandArgs("find")("--explicit"),
-            e
-        )
+        r3, cbni3 = _query(e, "--explicit")
         assert len(r3) == 1
         assert len(cbni3) == 0
 
@@ -461,26 +458,19 @@ def test_find_concretized_not_installed(
         # At this point d0 should use existing c0, but d/e
         # are not installed in the env
 
-        r4, cbni4 = spack.cmd.find._find_query(
-            SpackCommandArgs("find")("--explicit"),
-            e
-        )
+        r4, cbni4 = _query(e, "--explicit")
         assert len(r4) == 1
         assert len(cbni4) == 2
 
-        r5, cbni5 = spack.cmd.find._find_query(
-            SpackCommandArgs("find")(),
-            e
-        )
+        r5, cbni5 = _query(e)
         assert len(r5) == 3
         assert len(cbni5) == 2
 
-        r6, cbni6 = spack.cmd.find._find_query(
-            SpackCommandArgs("find")("-c", "d0"),
-            e
-        )
+        r6, cbni6 = _query(e, "-c", "d0")
         assert len(r6) == 0
         assert len(cbni6) == 1
+
+        uninstall("-f", "-y", "b0")
 
 
 def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_repo, tmpdir):
