@@ -920,3 +920,78 @@ def test_environment_from_name_or_dir(mock_packages, mutable_mock_env_path, tmp_
 
     with pytest.raises(ev.SpackEnvironmentError, match="no such environment"):
         _ = ev.environment_from_name_or_dir("fake-env")
+
+
+def test_env_include_configs(mutable_mock_env_path, mock_packages):
+    """check config and package values using new include schema options"""
+    env_path = mutable_mock_env_path
+    env_path.mkdir()
+
+    cfg1_path = str(env_path / "include1.yaml")
+    with open(cfg1_path, "w") as f:
+        f.write(
+            """\
+config:
+  verify_ssl: False
+  dirty: True
+packages:
+  python:
+    require:
+    - spec: "@3.11:"
+"""
+        )
+
+    def python_cfg(_spec):
+        return f"""\
+packages:
+  python:
+    require:
+    - spec: {_spec}
+"""
+
+    def write_python_cfg(_spec, _cfg_name):
+        cfg_path = str(env_path / _cfg_name)
+        with open(cfg_path, "w") as f:
+            f.write(python_cfg(_spec))
+        return cfg_path
+
+    # This config will not be included
+    cfg2_path = write_python_cfg("+shared", "include2.yaml")
+
+    # The config will point to this using substitutable variables,
+    # namely $os; we expect that Spack resolves these variables
+    # into the actual path of the config
+    this_os = spack.platforms.host().default_os
+    cfg3_expanded_path = str(env_path / f"{this_os}" / "include3.yaml")
+    fs.mkdirp(os.path.dirname(cfg3_expanded_path))
+    with open(cfg3_expanded_path, "w") as f:
+        f.write(python_cfg("+ssl"))
+    cfg3_abstract_path = str(env_path / "$os" / "include3.yaml")
+
+    # This will be included unconditionally
+    cfg4_path = write_python_cfg("+tk", "include4.yaml")
+
+    # This config will not exist, and the config will explicitly allow this
+    cfg5_path = str(env_path / "non-existent.yaml")
+
+    spack_yaml = env_path / ev.manifest_name
+    spack_yaml.write_text(
+        f"""spack:
+  include:
+  - path: {cfg1_path}
+    when: os == '{this_os}'
+  - path: {cfg2_path}
+    when: 'False'
+  - path: {cfg3_abstract_path}
+  - {cfg4_path}
+  - path: {cfg5_path}
+    optional: true
+"""
+    )
+
+    e = ev.Environment(env_path)
+    with e.manifest.use_config():
+        assert spack.config.get("config:dirty")
+        python_reqs = spack.config.get("packages")["python"]["require"]
+        req_specs = set(x["spec"] for x in python_reqs)
+        assert req_specs == set(["@3.11:", "+ssl", "+tk"])

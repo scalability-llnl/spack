@@ -2930,13 +2930,41 @@ class EnvironmentManifestFile(collections.abc.Mapping):
                 no configuration stage directory has been identified
         """
         includes = self[TOP_LEVEL_KEY].get("include", [])
+        if not includes:
+            return []
+
+        include_paths = list()
+        required_paths = list()
+        for entry in includes:
+            always_activate = False
+            optional = False
+            if isinstance(entry, str):
+                path = entry
+                always_activate = True
+            else:
+                path = entry["path"]
+                if "when" in entry:
+                    when_str = entry["when"]
+                else:
+                    always_activate = True
+                optional |= entry.get("optional", False)
+
+            if not optional:
+                required_paths.append(path)
+
+            if always_activate or _eval_conditional(when_str):
+                include_paths.append(path)
 
         def resolve_relative(cfg_path):
             cfg_path = os.path.join(self.manifest_dir, cfg_path)
             return os.path.normpath(os.path.realpath(cfg_path))
 
         return scopes_from_paths(
-            includes, f"env:{self.name}", self.config_stage_dir, resolve_relative
+            include_paths,
+            f"env:{self.name}",
+            self.config_stage_dir,
+            resolve_relative,
+            required_paths,
         )
 
     @property
@@ -3002,12 +3030,17 @@ def environment_path_scopes(name: str, path: str) -> Optional[List[spack.config.
     return manifest.env_config_scopes
 
 
+# Track staged paths so can avoid repeating the warning during processing
+skip_restage_warning = list()
+
+
 def scopes_from_paths(
     includes: List[str],
     name_prefix: str,
     config_stage_dir: str,
     resolve_relative: Callable[[str], str],
-):
+    required: List[str] = [],
+) -> List[spack.config.ConfigScope]:
     """Load included config scopes
 
     Scopes are added in reverse order so that highest-precedence scopes are last.
@@ -3017,16 +3050,18 @@ def scopes_from_paths(
         name_prefix: environment's name prefix
         config_stage_dir: path to directory to be used to stage remote includes
         resolve_relative: method to use to resolve relative paths
+        required: list of paths that are required
 
     Raises:
-        ValueError: included path has an unsupported URL scheme
+        ValueError: included path has an unsupported URL scheme or is required
+            but does not exist
     """
     scopes: List[spack.config.ConfigScope] = []
 
     missing = []
-    for i, config_path in enumerate(reversed(includes)):
+    for i, orig_path in enumerate(reversed(includes)):
         # allow paths to contain spack config/environment variables, etc.
-        config_path = substitute_path_variables(config_path)
+        config_path = substitute_path_variables(orig_path)
         include_url = urllib.parse.urlparse(config_path)
 
         # If scheme is not valid, config_path is not a url
@@ -3048,11 +3083,13 @@ def scopes_from_paths(
                     # Do NOT re-stage configuration files over existing
                     # ones with the same name since there is a risk of
                     # losing changes (e.g., from 'spack config update').
-                    tty.warn(
-                        f"Will not re-stage configuration from {remote_path} "
-                        "to avoid losing changes to the already staged file of "
-                        "the same name."
-                    )
+                    if remote_path not in skip_restage_warning:
+                        tty.warn(
+                            f"Will not re-stage configuration from {remote_path} "
+                            "to avoid losing changes to the already staged file of "
+                            "the same name."
+                        )
+                        skip_restage_warning.append(remote_path)
 
                     # Recognize the configuration stage directory
                     # is flattened to ensure a single copy of each
@@ -3092,14 +3129,16 @@ def scopes_from_paths(
             scopes.append(
                 spack.config.SingleFileScope(config_name, config_path, spack.schema.merged.schema)
             )
+        elif orig_path in required:
+            raise ValueError(f"Required include path does not exist: {orig_path}")
         else:
             missing.append(config_path)
             continue
 
     if missing:
-        msg = f"Detected {len(missing)} missing include path(s):"
+        msg = f"Detected {len(missing)} optional missing include path(s):"
         msg += "\n   {0}".format("\n   ".join(missing))
-        raise spack.config.ConfigFileError(msg)
+        tty.warn(msg)
 
     return scopes
 
