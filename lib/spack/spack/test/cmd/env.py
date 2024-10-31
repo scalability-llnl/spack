@@ -4155,7 +4155,7 @@ all: post-install
 include include.mk
 
 example/post-install/%: example/install/%
-        $(info post-install: $(HASH)) # noqa: W191,E101
+	$(info post-install: $(HASH)) # noqa: W191,E101
 
 post-install: $(addprefix example/post-install/,$(example/SPACK_PACKAGE_IDS))
 """
