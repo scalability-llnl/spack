@@ -135,6 +135,13 @@ def update_env_file(
     """
     tty.debug(f"Updating develop config for {env.name} transactionally")
 
+    # this check has to happen outside the write transaction otherwise updates don't seem to happen
+    # correctly
+    if not specified_path:
+        dev_entry = env.dev_specs.get(spec.name)
+        if dev_entry:
+            specified_path = dev_entry.get("path", None)
+
     with env.write_transaction():
         if build_dir is not None:
             spack.config.add(
@@ -146,12 +153,7 @@ def update_env_file(
             # always overwrite path if it was supplied
             _update_config(spec, specified_path)
         else:
-            dev_entry = env.dev_specs.get(spec.name)
-            if dev_entry:
-                path = dev_entry.get("path", spec.name)
-                _update_config(spec, path)
-            else:
-                _update_config(spec, spec.name)
+            _update_config(spec, spec.name)
 
 
 def _clone(spec: spack.spec.Spec, abspath: str, force: bool = False):
