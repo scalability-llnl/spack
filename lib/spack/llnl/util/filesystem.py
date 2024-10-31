@@ -1749,7 +1749,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     If a directory has a name which matches an input pattern, it will
     not be included in the results.
 
-    Does not search in directories below the specified depth.
+    If ``max_depth`` is specified, does not search below that depth.
 
     If ``globs`` is a list, files matching earlier entries are placed
     in the return value before files matching later entries.
