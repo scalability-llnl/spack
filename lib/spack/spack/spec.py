@@ -4464,7 +4464,7 @@ class Spec:
         return hash(lang.tuplify(self._cmp_iter))
 
     def marshal(self):
-        if self.concrete:
+        if self.concrete or self.external:
             return (self.to_dict(hash=ht.process_hash),)
         return (str(self),)
 
