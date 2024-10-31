@@ -307,13 +307,13 @@ def find(parser, args):
 
     q_args = query_arguments(args)
     if env:
+        all_env_specs = env.all_specs()
         if args.constraint:
             init_specs = spack.cmd.parse_specs(args.constraint)
             env_specs = env.all_matching_specs(*init_specs)
         else:
-            env_specs = env.all_specs()
+            env_specs = all_env_specs
 
-        spec_hashes = set(x.dag_hash() for x in env_specs)
         installed_specs_meeting_q_args = set(
             spack.store.STORE.db.query(hashes=spec_hashes, **q_args)
         )
@@ -335,7 +335,11 @@ def find(parser, args):
         args.groups = not args.format
 
     # Exit early with an error code if no package matches the constraint
-    if not results and args.constraint:
+    if concretized_but_not_installed and args.show_concretized:
+        pass
+    elif results:
+        pass
+    elif args.constraint:
         constraint_str = " ".join(str(s) for s in args.constraint_specs)
         tty.die(f"No package matches the query: {constraint_str}")
 
