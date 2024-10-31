@@ -558,7 +558,7 @@ def test_find_concretized_not_installed(
         # are not installed in the env
 
         # --explicit, --deprecated, --start-date, etc. are all
-        # filters on records, and therefore don't apply to 
+        # filters on records, and therefore don't apply to
         # concretized-but-not-installed results
         _nresults(_query(e, "--explicit")) == 1, 2
 
