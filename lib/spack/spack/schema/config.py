@@ -11,10 +11,7 @@ from typing import Any, Dict
 from llnl.util.lang import union_dicts
 
 import spack.config
-import spack.schema.include
 import spack.schema.projections
-
-include_scheme = spack.schema.include.properties["include"]
 
 #: Properties for inclusion in other schemas
 properties: Dict[str, Any] = {
@@ -100,7 +97,6 @@ properties: Dict[str, Any] = {
             "additional_external_search_paths": {"type": "array", "items": {"type": "string"}},
             "binary_index_ttl": {"type": "integer", "minimum": 0},
             "aliases": {"type": "object", "patternProperties": {r"\w[\w-]*": {"type": "string"}}},
-            "include": include_scheme,
         },
         "deprecatedProperties": [
             {
