@@ -353,7 +353,6 @@ def find(parser, args):
 
     if args.loaded:
         results = spack.cmd.filter_loaded_specs(results)
-        concretized_but_not_installed = spack.cmd.filter_loaded_specs(concretized_but_not_installed)
 
     if args.install_status or args.show_concretized:
         status_fn = spack.spec.Spec.install_status
