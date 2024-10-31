@@ -43,11 +43,11 @@ class Extrae(AutotoolsPackage):
     license("LGPL-2.1-or-later")
 
     version("4.1.2", sha256="adbc1d3aefde7649262426d471237dc96f070b93be850a6f15280ed86fd0b952")
-    version("4.0.6", sha256="b5060336cac57f1345faa09009b1940edf1e6991aae05cc10d0b714d31360a92")
+    version("4.0.6", sha256="233be38035dd76f6877b1fd93d308e024e5d4ef5519d289f8e319cd6c58d0bc6")
     version("4.0.5", sha256="8f5eefa95f2e94a3b5f9b7f7cbaaed523862f190575ee797113b1e97deff1586")
-    version("4.0.4", sha256="003bede870de6d88b705c1a13eabe63b6beb928d8f389f5dd70ca5db8450a1f9")
-    version("4.0.3", sha256="b5139a07dbb1f4aa9758c1d62d54e42c01125bcfa9aa0cb9ee4f863afae93db1")
-    version("3.8.3", sha256="c3bf27fb6f18e66200e40a0b4c35bc257766e5c1a525dc5725f561879e88bf32")
+    version("4.0.4", sha256="b867d395c344020c04e6630e9bfc10bf126e093df989d5563a2f3a6bc7568224")
+    version("4.0.3", sha256="0d87509ec03584a629a879dccea10cf334f8243004077f6af3745aabb31e7250")
+    version("3.8.3", sha256="a05e40891104e73e1019b193002dea39e5c3177204ea04495716511ddfd639cf")
     version("3.7.1", sha256="c83ddd18a380c9414d64ee5de263efc6f7bac5fe362d5b8374170c7f18360378")
     version("3.4.1", sha256="77bfec16d6b5eee061fbaa879949dcef4cad28395d6a546b1ae1b9246f142725")
 
