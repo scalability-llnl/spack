@@ -14,7 +14,7 @@ import stat
 import urllib.parse
 import urllib.request
 import warnings
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
