@@ -161,6 +161,19 @@ class Mirror:
         elif "access_token_variable" in current_data and "access_token" in new_data:
             current_data.pop("access_token_variable")
 
+        # If updating to a new access_pair that is the deprecated list, warn
+        if "access_pair" in new_data:
+            warn_deprecated_access_pair = isinstance(new_data["access_pair"], list)
+        # If the not updating the current access_pair, and it is the deprecated list, warn
+        elif "access_pair" in current_data:
+            warn_deprecated_access_pair = isinstance(current_data["access_pair"], list)
+
+        if warn_deprecated_access_pair:
+            tty.warn(
+                f"In mirror {self.name}: Using access_pair with a list is "
+                "deprecated, prefer id/secret_variable keys"
+            )
+
         keys = [
             "url",
             "access_pair",

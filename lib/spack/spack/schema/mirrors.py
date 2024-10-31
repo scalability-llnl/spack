@@ -102,8 +102,6 @@ schema = {
 
 
 def update(data):
-    import warnings
-
     import jsonschema
 
     errors = []
@@ -111,13 +109,6 @@ def update(data):
     def check_access_pair(name, section):
         if not section or not isinstance(section, dict):
             return
-
-        access_pair = section.get("access_pair")
-        if access_pair and isinstance(access_pair, list):
-            warnings.warn(
-                f"{name}: Using access_pair with a list is "
-                "deprecated, prefer id/secret_variable keys"
-            )
 
         if set(["access_token", "access_token_variable"]).issubset(set(section.keys())):
             errors.append(
