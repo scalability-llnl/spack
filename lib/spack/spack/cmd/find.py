@@ -315,7 +315,7 @@ def find(parser, args):
         else:
             env_specs = all_env_specs
 
-        installed_specs_meeting_q_args = set(
+        specs_meeting_q_args = set(
             spack.store.STORE.db.query(hashes=spec_hashes, **q_args)
         )
 
@@ -323,7 +323,7 @@ def find(parser, args):
         for spec in env_specs:
             if not spec.installed:
                 concretized_but_not_installed.append(spec)
-            elif spec in installed_specs_meeting_q_args:
+            if spec in specs_meeting_q_args:
                 results.append(spec)
     else:
         results = args.specs(**q_args)
