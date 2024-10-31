@@ -449,35 +449,23 @@ def test_find_concretized_not_installed(
         install("--add", "a0")
 
         _nresults(_query(e)) == 3, 0
-
-        r3, cbni3 = _query(e, "--explicit")
-        assert len(r3) == 1
-        assert len(cbni3) == 0
+        _nresults(_query(e, "--explicit")) == 1, 0
 
         add("d0")
         concretize("--reuse")
         # At this point d0 should use existing c0, but d/e
         # are not installed in the env
 
-        r4, cbni4 = _query(e, "--explicit")
-        assert len(r4) == 1
-        assert len(cbni4) == 2
-
-        r5, cbni5 = _query(e)
-        assert len(r5) == 3
-        assert len(cbni5) == 2
-
-        r6, cbni6 = _query(e, "-c", "d0")
-        assert len(r6) == 0
-        assert len(cbni6) == 1
+        _nresults(_query(e, "--explicit")) == 1, 2
+        _nresults(_query(e)) == 3, 2
+        _nresults(_query(e, "-c", "d0")) == 0, 1
 
         uninstall("-f", "-y", "b0")
+        # b0 is now missing (it is not installed, but has an
+        # installed parent)
 
-        r7, cbni7 = _query(e)
-        assert len(r7) == 2
-        assert len(cbni7) == 3
-
-
+        _nresults(_query(e)) == 2, 3
+        _nresults(_query(e, "--missing")) == 1, 3
 
 
 def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_repo, tmpdir):
