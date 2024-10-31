@@ -8,7 +8,6 @@ from spack.package import *
 
 
 class PyNeo4j(PythonPackage):
-
     """This is the neo4j bolt driver for python from the official repository"""
 
     pypi = "neo4j/neo4j-5.25.0.tar.gz"
