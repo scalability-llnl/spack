@@ -1431,7 +1431,7 @@ complete -c spack -n '__fish_spack_using_command develop' -l clone -d 'clone the
 complete -c spack -n '__fish_spack_using_command develop' -s f -l force -r -f -a force
 complete -c spack -n '__fish_spack_using_command develop' -s f -l force -r -d 'remove any files or directories that block cloning source code'
 complete -c spack -n '__fish_spack_using_command develop' -s r -l recursive -f -a recursive
-complete -c spack -n '__fish_spack_using_command develop' -s r -l recursive -d 'traverse edges of the graph to mark everything up to the root as a develop spec'
+complete -c spack -n '__fish_spack_using_command develop' -s r -l recursive -d 'traverse nodes of the graph to mark everything up to the root as a develop spec'
 
 # spack diff
 set -g __fish_spack_optspecs_spack_diff h/help json first a/attribute= ignore=
