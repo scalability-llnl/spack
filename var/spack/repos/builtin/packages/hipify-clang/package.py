@@ -15,11 +15,11 @@ class HipifyClang(CMakePackage):
     url = "https://github.com/ROCm/HIPIFY/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
     license("MIT")
 
-    version("master", branch="master")
+    version("master", branch="amd-staging")
     version("6.2.1", sha256="db5680d677222596cf9edfb84ae96b37db829a40a2e0243d26ff24a16e03ff74")
     version("6.2.0", sha256="11bfbde7c40e5cd5de02a47ec30dc6df4b233a12126bf7ee449432a30a3e6e1e")
     version("6.1.2", sha256="7cc1e3fd7690a3e1d99cd07f2bd62ee73682cceeb4a46918226fc70f8092eb68")
