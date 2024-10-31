@@ -485,6 +485,8 @@ _pkgc = (
 class C0(Package):
     version("1.2")
     version("1.1")
+
+    tags = ["tag0", "tag1"]
 """,
 )
 
@@ -506,6 +508,8 @@ _pkge = (
     "e0",
     """\
 class E0(Package):
+    tags = ["tag1", "tag2"]
+
     version("1.2")
     version("1.1")
 """,
@@ -553,7 +557,11 @@ def test_find_concretized_not_installed(
         # At this point d0 should use existing c0, but d/e
         # are not installed in the env
 
+        # --explicit, --deprecated, --start-date, etc. are all
+        # filters on records, and therefore don't apply to 
+        # concretized-but-not-installed results
         _nresults(_query(e, "--explicit")) == 1, 2
+
         _nresults(_query(e)) == 3, 2
         _nresults(_query(e, "-c", "d0")) == 0, 1
 
@@ -563,3 +571,9 @@ def test_find_concretized_not_installed(
 
         _nresults(_query(e)) == 2, 3
         _nresults(_query(e, "--missing")) == 1, 3
+
+        # Tags are not attached to install records, so they
+        # can modify the concretized-but-not-installed results
+        _nresults(_query(e, "--tags=tag0")) == 1, 0
+        _nresults(_query(e, "--tags=tag1")) == 1, 1
+        _nresults(_query(e, "--tags=tag2")) == 0, 1
