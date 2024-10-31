@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import re  # To get the variant name after (+)
-
 import spack.build_systems.cmake
 import spack.build_systems.makefile
 from spack.package import *
@@ -217,7 +215,7 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
             AFFINITY - Proportional splitting that optimizes for cache affinity.\
             STATIC   - Distribute work uniformly with no additional load balancing.\
             SIMPLE   - Recursively split its range until it cannot be further subdivided.\
-            See https://spec.oneapi.com/versions/latest/elements/oneTBB/source/algorithms.html#partitioners for more details.",
+            See https://spec.oneapi.com/versions/latest/elements/oneTBB/source/algorithms.html#partitioners",
     )
 
     # Kokkos & RAJA Dependency
@@ -536,7 +534,6 @@ register_flag_optional(TARGET_PROCESSOR
                 args.append("-DSYCL_COMPILER_DIR=" + self.spec.variants["dir"].value)
                 args.append("-DCXX_EXTRA_FLAGS= -fsycl")
                 # if self.spec.variants["flags"].value != "none":
-                #     args.append("-DCXX_EXTRA_FLAGS= -fsycl -O3" + self.spec.variants["flags"].value)
             if self.spec.variants["sycl2020_offload"].value == "nvidia":
                 cuda_dir = self.spec["cuda"].prefix
                 cuda_arch = "sm_" + self.spec.variants["cuda_arch"].value[0]
