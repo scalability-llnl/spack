@@ -63,6 +63,8 @@ ALLOW_UNRESOLVED = [
     "libubsan.so.*",
     # systemd
     "libudev.so.*",
+    # cuda driver
+    "libcuda.so.*",
 ]
 
 
