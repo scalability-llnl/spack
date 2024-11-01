@@ -38,20 +38,6 @@ skip_list = frozenset(
         b"libSegFault",
         b"libthread_db",
         b"libutil",
-        # gcc
-        b"libasan",
-        b"libatomic",
-        b"libcc1",
-        b"libgcc_s",
-        b"libgfortran",
-        b"libgomp",
-        b"libitm",
-        b"liblsan",
-        b"libquadmath",
-        b"libssp",
-        b"libstdc++",
-        b"libtsan",
-        b"libubsan",
         # systemd
         b"libudev",
     ]
@@ -189,7 +175,7 @@ def post_install(spec):
     Check whether all ELF files participating in dynamic linking can locate libraries
     in dt_needed referred to by name (not by path).
     """
-    if spec.external or spec.platform not in ("linux", "freebsd", "netbsd", "openbsd", "solaris"):
+    if spec.external or spec.platform not in ("linux", "freebsd"):
         return
 
     visitor = ResolveSharedElfLibDepsVisitor()
