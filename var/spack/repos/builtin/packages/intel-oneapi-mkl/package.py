@@ -310,3 +310,6 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
             return
         self.symlink_dir(self.component_prefix.include, self.prefix.include)
         self.symlink_dir(self.component_prefix.lib, self.prefix.lib)
+
+    # intel-oneapi-mkl ships many binaries with missing rpaths, so ignore all
+    unresolved_libraries = ["*"]
