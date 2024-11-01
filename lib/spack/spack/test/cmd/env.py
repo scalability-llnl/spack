@@ -9,6 +9,7 @@ import os
 import pathlib
 import shutil
 from argparse import Namespace
+from typing import Any, Dict, Optional
 
 import pytest
 
@@ -74,7 +75,7 @@ def setup_combined_multiple_env():
     env("create", "test1")
     test1 = ev.read("test1")
     with test1:
-        add("zlib")
+        add("mpich@1.0")
     test1.concretize()
     test1.write()
 
@@ -401,13 +402,16 @@ def test_env_install_single_spec(install_mockery, mock_fetch):
 
 
 @pytest.mark.parametrize("unify", [True, False, "when_possible"])
-def test_env_install_include_concrete_env(unify, install_mockery, mock_fetch):
+def test_env_install_include_concrete_env(unify, install_mockery, mock_fetch, mutable_config):
     test1, test2, combined = setup_combined_multiple_env()
 
+    combined.unify = unify
+    if not unify:
+        combined.manifest.set_default_view(False)
+
+    combined.add("mpileaks")
     combined.concretize()
     combined.write()
-
-    combined.unify = unify
 
     with combined:
         install()
@@ -421,6 +425,14 @@ def test_env_install_include_concrete_env(unify, install_mockery, mock_fetch):
 
     assert test1_roots == combined_included_roots[test1.path]
     assert test2_roots == combined_included_roots[test2.path]
+
+    mpileaks = combined.specs_by_hash[combined.concretized_order[0]]
+    if unify:
+        assert mpileaks["mpi"].dag_hash() in test1_roots
+        assert mpileaks["libelf"].dag_hash() in test2_roots
+    else:
+        # check that unification is not by accident
+        assert mpileaks["mpi"].dag_hash() not in test1_roots
 
 
 def test_env_roots_marked_explicit(install_mockery, mock_fetch):
@@ -1869,7 +1881,7 @@ def test_env_include_concrete_envs_lockfile():
 def test_env_include_concrete_add_env():
     test1, test2, combined = setup_combined_multiple_env()
 
-    # crete new env & crecretize
+    # create new env & concretize
     env("create", "new")
     new_env = ev.read("new")
     with new_env:
@@ -1919,6 +1931,116 @@ def test_env_include_concrete_remove_env():
         lockfile_as_dict = combined._read_lockfile(f)
 
     assert test2.path not in lockfile_as_dict["include_concrete"].keys()
+
+
+def configure_reuse(reuse_mode, combined_env) -> Optional[ev.Environment]:
+    override_env = None
+    _config: Dict[Any, Any] = {}
+    if reuse_mode == "true":
+        _config = {"concretizer": {"reuse": True}}
+    elif reuse_mode == "from_environment":
+        _config = {"concretizer": {"reuse": {"from": [{"type": "environment"}]}}}
+    elif reuse_mode == "from_environment_test1":
+        _config = {"concretizer": {"reuse": {"from": [{"type": {"environment": "test1"}}]}}}
+    elif reuse_mode == "from_environment_external_test":
+        # Create a new environment called external_test that enables the "debug"
+        # The default is "~debug"
+        env("create", "external_test")
+        override_env = ev.read("external_test")
+        with override_env:
+            add("mpich@1.0 +debug")
+        override_env.concretize()
+        override_env.write()
+
+        # Reuse from the environment that is not included.
+        # Specify the requirement for the debug variant. By default this would concretize to use
+        # mpich@3.0 but with include concrete the mpich@1.0 +debug version from the
+        # "external_test" environment will be used.
+        _config = {
+            "concretizer": {"reuse": {"from": [{"type": {"environment": "external_test"}}]}},
+            "packages": {"mpich": {"require": ["+debug"]}},
+        }
+    elif reuse_mode == "from_environment_raise":
+        _config = {
+            "concretizer": {"reuse": {"from": [{"type": {"environment": "not-a-real-env"}}]}}
+        }
+    # Disable unification in these tests to avoid confusing reuse due to unification using an
+    # include concrete spec vs reuse due to the reuse configuration
+    _config["concretizer"].update({"unify": False})
+
+    combined_env.manifest.configuration.update(_config)
+    combined_env.manifest.changed = True
+    combined_env.write()
+
+    return override_env
+
+
+@pytest.mark.parametrize(
+    "reuse_mode",
+    [
+        "true",
+        "from_environment",
+        "from_environment_test1",
+        "from_environment_external_test",
+        "from_environment_raise",
+    ],
+)
+def test_env_include_concrete_reuse(monkeypatch, reuse_mode):
+
+    # The mock packages do not use the gcc-runtime
+    def mock_has_runtime_dependencies(*args, **kwargs):
+        return True
+
+    monkeypatch.setattr(
+        spack.solver.asp, "_has_runtime_dependencies", mock_has_runtime_dependencies
+    )
+    # The default mpi version is 3.x provided by mpich in the mock repo.
+    # This test verifies that concretizing with an included concrete
+    # environment with "concretizer:reuse:true" the included
+    # concrete spec overrides the default with mpi@1.0.
+    test1, _, combined = setup_combined_multiple_env()
+
+    # Set the reuse mode for the environment
+    override_env = configure_reuse(reuse_mode, combined)
+    if override_env:
+        # If there is an override environment (ie. testing reuse with
+        # an external environment) update it here.
+        test1 = override_env
+
+    # Capture the test1 specs included by combined
+    test1_specs_by_hash = test1.specs_by_hash
+
+    try:
+        # Add mpileaks to the combined environment
+        with combined:
+            add("mpileaks")
+            combined.concretize()
+        comb_specs_by_hash = combined.specs_by_hash
+
+        # create reference env with mpileaks that does not use reuse
+        # This should concretize to the default version of mpich (3.0)
+        env("create", "new")
+        ref_env = ev.read("new")
+        with ref_env:
+            add("mpileaks")
+        ref_env.concretize()
+        ref_specs_by_hash = ref_env.specs_by_hash
+
+        # Ensure that the mpich used by the mpileaks is the mpich from the reused test environment
+        comb_mpileaks_spec = [s for s in comb_specs_by_hash.values() if s.name == "mpileaks"]
+        test1_mpich_spec = [s for s in test1_specs_by_hash.values() if s.name == "mpich"]
+        assert len(comb_mpileaks_spec) == 1
+        assert len(test1_mpich_spec) == 1
+        assert comb_mpileaks_spec[0]["mpich"].dag_hash() == test1_mpich_spec[0].dag_hash()
+
+        # None of the references specs (using mpich@3) reuse specs from test1.
+        # This tests that the reuse is not happening coincidently
+        assert not any([s in test1_specs_by_hash for s in ref_specs_by_hash])
+
+        # Make sure the raise tests raises
+        assert "raise" not in reuse_mode
+    except ev.SpackEnvironmentError:
+        assert "raise" in reuse_mode
 
 
 @pytest.mark.parametrize("unify", [True, False, "when_possible"])

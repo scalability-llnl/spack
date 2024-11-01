@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -57,5 +58,4 @@ class PyOrTools(CMakePackage):
         with working_dir(self.build_directory):
             make("install")
         with working_dir(join_path(self.build_directory, "python")):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

@@ -21,6 +21,7 @@ class RViridis(RPackage):
 
     license("MIT")
 
+    version("0.6.5", sha256="862b5cb6be115deea0207cdd3c8bb33de28552cfdc29900777512fd488d0005c")
     version("0.6.2", sha256="69b58cd1d992710a08b0b227fd0a9590430eea3ed4858099412f910617e41311")
     version("0.5.1", sha256="ddf267515838c6eb092938133035cee62ab6a78760413bfc28b8256165701918")
     version("0.5.0", sha256="fea477172c1e11be40554545260b36d6ddff3fe6bc3bbed87813ffb77c5546cd")
