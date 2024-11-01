@@ -84,7 +84,7 @@ def candidate_matches(current_elf: elf.ElfFile, candidate_path: bytes) -> bool:
 
 class Problem:
     def __init__(
-        self, resolved: Dict[bytes, bytes], unresolved: bytes, relative_rpaths: List[bytes]
+        self, resolved: Dict[bytes, bytes], unresolved: List[bytes], relative_rpaths: List[bytes]
     ) -> None:
         self.resolved = resolved
         self.unresolved = unresolved
