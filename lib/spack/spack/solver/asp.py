@@ -4101,8 +4101,8 @@ class ReusableSpecsSelector:
             for source in reuse_yaml.get("from", default_sources):
                 include = source.get("include", default_include)
                 exclude = source.get("exclude", default_exclude)
-                if isinstance(source["type"], dict):
-                    env_dir = ev.as_env_dir(source["type"].get("environment"))
+                if source["type"] == "environment" and "ref" in source:
+                    env_dir = ev.as_env_dir(source["ref"])
                     active_env = ev.active_environment()
                     if active_env and env_dir in active_env.included_concrete_envs:
                         # If environment is included as a concrete environment, use the local copy
