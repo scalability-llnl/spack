@@ -6,8 +6,8 @@
 
 import filecmp
 import os
-import sys
 import shutil
+import sys
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import llnl.util.tty as tty
