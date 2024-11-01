@@ -587,6 +587,7 @@ def test_find_concretized_not_installed(
 
         # Tags are not attached to install records, so they
         # can modify the concretized-but-not-installed results
-        assert _nresults(_query(e, "--tags=tag0")) == (1, 0)
-        assert _nresults(_query(e, "--tags=tag1")) == (1, 1)
-        assert _nresults(_query(e, "--tags=tag2")) == (0, 1)
+
+        assert _nresults(_query(e, "--tag=tag0")) == (1, 0)
+        assert _nresults(_query(e, "--tag=tag1")) == (1, 1)
+        assert _nresults(_query(e, "--tag=tag2")) == (0, 1)
