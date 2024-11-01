@@ -178,7 +178,7 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
         return False
 
 
-class CannotLocateSharedLibraries(Exception):
+class CannotLocateSharedLibraries(spack.error.SpackError):
     pass
 
 
@@ -206,7 +206,7 @@ def post_install(spec, explicit):
 
     # For now just list the issues (print it in ldd style, except we don't recurse)
     output = io.StringIO()
-    output.write("Not all executables/libraries can resolve their dependencies:\n")
+    output.write("not all executables and libraries can resolve their dependencies:\n")
     for path, problem in visitor.problems.items():
         output.write(path)
         output.write("\n")
