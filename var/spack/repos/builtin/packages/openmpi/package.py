@@ -443,16 +443,16 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     patch("btlsmcuda-fix-problem-with-makefile.patch", when="@5.0.0")
     patch("accelerator-build-components-as-dso-s-by-default.patch", when="@5.0.0:5.0.1")
 
-    # Patch to allow two-level namespace on a MacOS platform when building
-    # openmpi. Unfortuntately, the openmpi configure command has flat namespace
-    # hardwired in. In spack, this only works for openmpi up to versions 4,
-    # because for versions 5+ autoreconf is triggered (see below) and this
-    # patch needs to be applied (again) AFTER autoreconf ran.
-    def patch(self):
-        spec = self.spec
-        if "+two_level_namespace" in spec and spec.satisfies("platform=darwin"):
-            print("Applying configure patch for two_level_namespace on MacOS")
-            filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
+    ## Patch to allow two-level namespace on a MacOS platform when building
+    ## openmpi. Unfortuntately, the openmpi configure command has flat namespace
+    ## hardwired in. In spack, this only works for openmpi up to versions 4,
+    ## because for versions 5+ autoreconf is triggered (see below) and this
+    ## patch needs to be applied (again) AFTER autoreconf ran.
+    #def patch(self):
+    #    spec = self.spec
+    #    if "+two_level_namespace" in spec and spec.satisfies("platform=darwin"):
+    #        print("Applying configure patch for two_level_namespace on MacOS")
+    #        filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     # OpenMPI 5.0.0-5.0.3 needs to change PMIX version check to compile w/ PMIX > 4.2.5
     # https://github.com/open-mpi/ompi/issues/12537#issuecomment-2103350910
@@ -590,6 +590,15 @@ built with the mpicc/mpifort/etc. compiler wrappers
 with '-Wl,-commons,use_dylibs' and without
 '-Wl,-flat_namespace'.""",
     )
+
+    # Patch to allow two-level namespace on a MacOS platform when building
+    # openmpi. Unfortuntately, the openmpi configure command has flat namespace
+    # hardwired in. In spack, this only works for openmpi up to versions 4,
+    # because for versions 5+ autoreconf is triggered (see below) and this
+    # patch needs to be applied (again) AFTER autoreconf ran.
+    @when("+two_level_namespace platform=darwin")
+    def patch(self):
+        filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     provides("mpi@:2.0", when="@:1.2")
     provides("mpi@:2.1", when="@1.3:1.7.2")
@@ -1011,12 +1020,15 @@ with '-Wl,-commons,use_dylibs' and without
     def autoreconf(self, spec, prefix):
         perl = which("perl")
         perl("autogen.pl")
+        if spec.satisfies("+two_level_namespace platform=darwin"):
+            print("Re-applying configure patch for two_level_namespace on MacOS after autoreconf")
+            filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     @when("@5.0.0:5.0.1")
     def autoreconf(self, spec, prefix):
         perl = which("perl")
         perl("autogen.pl", "--force")
-        if "+two_level_namespace" in spec and spec.satisfies("platform=darwin"):
+        if spec.satisfies("+two_level_namespace platform=darwin"):
             print("Re-applying configure patch for two_level_namespace on MacOS after autoreconf")
             filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
@@ -1185,26 +1197,14 @@ with '-Wl,-commons,use_dylibs' and without
                 config_args.append("--disable-wrapper-runpath")
 
             # Add extra_rpaths and implicit_rpaths into the wrappers.
-            if wrapper_ldflags and any(self.compiler.linker_arg in x for x in wrapper_ldflags):
-                for i in range(len(wrapper_ldflags)):
-                    if wrapper_ldflags[i].startswith(self.compiler.linker_arg):
-                        rpaths = ",".join(
-                            self.compiler.extra_rpaths + self.compiler.implicit_rpaths()
-                        )
-                        # Remove leading '-Wl'
-                        rpaths = (self.compiler.cc_rpath_arg + rpaths).lstrip(
-                            self.compiler.linker_arg
-                        )
-                        wrapper_ldflags[i] += "{}".format(rpaths)
-            else:
-                wrapper_ldflags.extend(
-                    [
-                        self.compiler.cc_rpath_arg + path
-                        for path in itertools.chain(
-                            self.compiler.extra_rpaths, self.compiler.implicit_rpaths()
-                        )
-                    ]
-                )
+            wrapper_ldflags.extend(
+                [
+                    self.compiler.cc_rpath_arg + path
+                    for path in itertools.chain(
+                        self.compiler.extra_rpaths, self.compiler.implicit_rpaths()
+                    )
+                ]
+            )
         else:
             config_args.append("--disable-wrapper-rpath")
             config_args.append("--disable-wrapper-runpath")
