@@ -82,6 +82,7 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
             libs = [self.spec[lib].libs.link_flags for lib in deps]
             env.set("LDFLAGS", " ".join(ldflags + libs))
 
+
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def configure_args(self):
         """Configure arguments are passed using meson_args functions"""

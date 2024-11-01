@@ -443,17 +443,6 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     patch("btlsmcuda-fix-problem-with-makefile.patch", when="@5.0.0")
     patch("accelerator-build-components-as-dso-s-by-default.patch", when="@5.0.0:5.0.1")
 
-    ## Patch to allow two-level namespace on a MacOS platform when building
-    ## openmpi. Unfortuntately, the openmpi configure command has flat namespace
-    ## hardwired in. In spack, this only works for openmpi up to versions 4,
-    ## because for versions 5+ autoreconf is triggered (see below) and this
-    ## patch needs to be applied (again) AFTER autoreconf ran.
-    #def patch(self):
-    #    spec = self.spec
-    #    if "+two_level_namespace" in spec and spec.satisfies("platform=darwin"):
-    #        print("Applying configure patch for two_level_namespace on MacOS")
-    #        filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
-
     # OpenMPI 5.0.0-5.0.3 needs to change PMIX version check to compile w/ PMIX > 4.2.5
     # https://github.com/open-mpi/ompi/issues/12537#issuecomment-2103350910
     # https://github.com/openpmix/prrte/pull/1957
