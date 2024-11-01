@@ -45,6 +45,21 @@ ALLOW_UNRESOLVED = [
     "libSegFault.so.*",
     "libthread_db.so.*",
     "libutil.so.*",
+    # gcc -- this is required even with gcc-runtime, because e.g. libstdc++ depends on libgcc_s,
+    # but the binaries we copy from the compiler don't have an $ORIGIN rpath.
+    "libasan.so.*",
+    "libatomic.so.*",
+    "libcc1.so.*",
+    "libgcc_s.so.*",
+    "libgfortran.so.*",
+    "libgomp.so.*",
+    "libitm.so.*",
+    "liblsan.so.*",
+    "libquadmath.so.*",
+    "libssp.so.*",
+    "libstdc++.so.*",
+    "libtsan.so.*",
+    "libubsan.so.*",
     # systemd
     "libudev.so.*",
 ]
