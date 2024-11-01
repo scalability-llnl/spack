@@ -667,6 +667,9 @@ class Cuda(Package):
 
     skip_version_audit = ["platform=darwin", "platform=windows"]
 
+    # cuda ships many binaries with missing rpaths, so ignore all
+    unresolved_libraries = ["*"]
+
     for ver, packages in _versions.items():
         pkg = packages.get(f"{platform.system()}-{platform.machine()}")
         if pkg:
