@@ -20,8 +20,11 @@ GPU_MAP = {
     "gfx906": "Mi50",
     "gfx908": "Mi100",
     "gfx90a": "Mi250",
+    "gfx942": "Mi300",
     "gfx90a:xnack-": "Mi250",
     "gfx90a:xnack+": "Mi250",
+    "gfx942:xnack-": "Mi300",
+    "gfx942:xnack+": "Mi300",
 }
 
 
@@ -284,6 +287,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         depends_on("sirius@7.4:7.5", when="@2023.2")
         depends_on("sirius@7.5:", when="@2024.1:")
         depends_on("sirius@7.6: +pugixml", when="@2024.2:")
+
     with when("+libvori"):
         depends_on("libvori@201219:", when="@8.1")
         depends_on("libvori@210412:", when="@8.2:")
@@ -335,7 +339,16 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     # versions. Instead just mark all unsupported cuda archs as conflicting.
 
     supported_cuda_arch_list = ("35", "37", "60", "70", "80", "90")
-    supported_rocm_arch_list = ("gfx906", "gfx908", "gfx90a", "gfx90a:xnack-", "gfx90a:xnack+")
+    supported_rocm_arch_list = (
+        "gfx906",
+        "gfx908",
+        "gfx90a",
+        "gfx942",
+        "gfx90a:xnack-",
+        "gfx90a:xnack+",
+        "gfx942:xnack-",
+        "gfx942:xnack+",
+    )
     cuda_msg = "cp2k only supports cuda_arch {0}".format(supported_cuda_arch_list)
     rocm_msg = "cp2k only supports amdgpu_target {0}".format(supported_rocm_arch_list)
 
@@ -1013,7 +1026,6 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_PLUMED", "plumed"),
             self.define_from_variant("CP2K_USE_SPGLIB", "spglib"),
             self.define_from_variant("CP2K_USE_VORI", "libvori"),
-            self.define_from_variant("CP2K_USE_SPLA", "spla"),
             self.define_from_variant("CP2K_USE_QUIP", "quip"),
             self.define_from_variant("CP2K_USE_DFTD4", "dftd4"),
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
@@ -1029,7 +1041,10 @@ class CMakeBuilder(cmake.CMakeBuilder):
         ]
 
         if "spla" in spec and (spec.satisfies("+cuda") or spec.satisfies("+rocm")):
-            args += ["-DCP2K_USE_SPLA_GEMM_OFFLOADING=ON"]
+            args += [
+                "-DCP2K_USE_SPLA_GEMM_OFFLOADING=ON",
+                self.define_from_variant("CP2K_USE_SPLA", "spla"),
+            ]
 
         args += ["-DCP2K_USE_FFTW3=ON"]
 
