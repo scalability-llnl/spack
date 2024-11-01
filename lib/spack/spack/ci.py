@@ -716,7 +716,7 @@ def generate_gitlab_ci_yaml(
             requires this to be within the project directory.
     """
     rev1, rev2 = get_change_revisions()
-    tty.warn(f"Got following revisions: rev1={rev1}, rev2={rev2}")
+    tty.debug(f"Got following revisions: rev1={rev1}, rev2={rev2}")
 
     # Get the joined "ci" config with all of the current scopes resolved
     ci_config = cfg.get("ci")
@@ -746,7 +746,7 @@ def generate_gitlab_ci_yaml(
             noop_job["retry"] = 0
             noop_job["allow_failure"] = True
 
-            tty.debug("No specs to rebuild, generating no-op job")
+            tty.msg("Skipping concretization, generating no-op job")
             output_object = {"no-specs-to-rebuild": noop_job}
 
             # Ensure the child pipeline always runs
