@@ -190,10 +190,9 @@ def maybe_decode(byte_str: bytes) -> Union[str, bytes]:
 
 
 def post_install(spec, explicit):
-    """
-    Check whether all ELF files participating in dynamic linking can locate libraries
-    in dt_needed referred to by name (not by path).
-    """
+    """Check whether shared libraries can be resolved in RPATHs."""
+
+    # Currently only supported for ELF files.
     if spec.external or spec.platform not in ("linux", "freebsd"):
         return
 
