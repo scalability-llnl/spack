@@ -223,8 +223,10 @@ def post_install(spec, explicit):
         for relative_rpath in problem.relative_rpaths:
             output.write(f"        {maybe_decode(relative_rpath)} => relative rpath\n")
 
+    message = output.getvalue().strip()
+
     # Strict mode = install failure
     if spack.config.get("config:shared_linking:strict"):
-        raise CannotLocateSharedLibraries(output.getvalue())
+        raise CannotLocateSharedLibraries(message)
 
-    tty.error(output.getvalue())
+    tty.warn(message)
