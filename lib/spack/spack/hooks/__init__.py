@@ -35,6 +35,7 @@ class _HookRunner:
         "spack.hooks.drop_redundant_rpaths",
         "spack.hooks.absolutify_elf_sonames",
         "spack.hooks.permissions_setters",
+        "spack.hooks.check_dynamic_linking_elf",
         # after all mutations to the install prefix, write metadata
         "spack.hooks.write_install_manifest",
         # after all metadata is written
