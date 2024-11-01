@@ -23,6 +23,7 @@ import spack.util.elf as elf
 ALLOW_UNRESOLVED = [
     # kernel
     "linux-vdso.so.*",
+    "libselinux.so.*",
     # musl libc
     "ld-musl-*.so.*",
     # glibc
