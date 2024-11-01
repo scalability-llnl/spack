@@ -1,20 +1,11 @@
 name: style
 
 on:
-  push:
-    branches:
-      - develop
-      - releases/**
-      - spack-stack-dev
-      - release/**
-  pull_request:
-    branches:
-      - develop
-      - releases/**
-      - spack-stack-dev
-      - release/**
-  workflow_dispatch:
   workflow_call:
+    inputs:
+      with_coverage:
+        required: true
+        type: string
 
 concurrency:
   group: style-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}

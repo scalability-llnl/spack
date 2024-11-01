@@ -160,7 +160,7 @@ jobs:
           useradd spack-test
           chown -R spack-test .
     - name: remove-extension
-      shell: runuser -u spack-test -- bash {0}
+      # shell: runuser -u spack-test -- bash {0}
       run: |
           source share/spack/setup-env.sh
           spack config --scope=defaults rm "config:extensions"
@@ -271,6 +271,10 @@ jobs:
     - name: Create local develop
       run: |
         ./.github/workflows/bin/setup_git.ps1
+    - name: remove-extension
+      run: |
+          source share/spack/setup-env.sh
+          spack config --scope=defaults rm "config:extensions"
     - name: Unit Test
       env:
         COVERAGE_FILE: coverage/.coverage-windows
