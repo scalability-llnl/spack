@@ -220,7 +220,7 @@ def matching_specs_from_env(specs):
     context of the active environment and other given specs, with unification rules applied.
     """
     env = ev.active_environment()
-    spec_pairs = [(spec, env.matching_spec(abstract) if env else None) for spec in specs]
+    spec_pairs = [(spec, env.matching_spec(spec) if env else None) for spec in specs]
     additional_concrete_specs = (
         [(concrete, concrete) for _, concrete in env.concretized_specs()] if env else []
     )
