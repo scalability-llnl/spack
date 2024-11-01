@@ -5,6 +5,7 @@
 
 import io
 import os
+from typing import Dict
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import BaseDirectoryVisitor, visit_directory_tree
@@ -44,7 +45,7 @@ skip_list = frozenset(
 )
 
 
-def is_compatible(parent, child):
+def is_compatible(parent: elf.ElfFile, child: elf.ElfFile) -> bool:
     return (
         child.elf_hdr.e_type == elf.ELF_CONSTANTS.ET_DYN
         and parent.is_little_endian == child.is_little_endian
@@ -53,15 +54,15 @@ def is_compatible(parent, child):
     )
 
 
-def candidate_matches(current_elf, candidate_path):
+def candidate_matches(current_elf: elf.ElfFile, candidate_path: bytes) -> bool:
     try:
         with open(candidate_path, "rb") as g:
             return is_compatible(current_elf, elf.parse_elf(g))
-    except (IOError, elf.ElfParsingError):
+    except (OSError, elf.ElfParsingError):
         return False
 
 
-def should_be_searched(needed_lib):
+def should_be_searched(needed_lib: bytes) -> bool:
     offset = needed_lib.find(b".so")
     return offset == -1 or needed_lib[:offset] not in skip_list
 
@@ -74,9 +75,9 @@ class Problem:
 
 class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
     def __init__(self):
-        self.problems = {}
+        self.problems: Dict[str, Problem] = {}
 
-    def visit_file(self, root, rel_path, depth):
+    def visit_file(self, root: str, rel_path: str, depth: int) -> None:
         # We work with byte strings for paths.
         path = os.path.join(root, rel_path).encode("utf-8")
 
@@ -87,7 +88,7 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
         try:
             with open(path, "rb") as f:
                 parsed_elf = elf.parse_elf(f, interpreter=False, dynamic_section=True)
-        except (IOError, elf.ElfParsingError):
+        except (OSError, elf.ElfParsingError):
             # Not dealing with a valid ELF file.
             return
 
@@ -123,7 +124,7 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
             raise Exception("Needed libraries by relative path {!r}".format(direct_libs_rel))
 
         # Now we remove the libraries that we consider system libraries.
-        search_libs = list(filter(should_be_searched, search_libs))
+        search_libs = [lib for lib in search_libs if should_be_searched(lib)]
 
         # Look for issues.
         resolved = {}
@@ -145,17 +146,16 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
             else:
                 unresolved.append(lib)
 
-        # A problem :(
         if unresolved:
             self.problems[rel_path] = Problem(resolved, unresolved)
 
-    def visit_symlinked_file(self, root, rel_path, depth):
+    def visit_symlinked_file(self, root: str, rel_path: str, depth: int) -> None:
         pass
 
-    def before_visit_dir(self, root, rel_path, depth):
+    def before_visit_dir(self, root: str, rel_path: str, depth: int) -> bool:
         return True
 
-    def before_visit_symlinked_dir(self, root, rel_path, depth):
+    def before_visit_symlinked_dir(self, root: str, rel_path: str, depth: int) -> bool:
         return False
 
 
@@ -196,10 +196,10 @@ def post_install(spec):
             if needed == full_path:
                 output.write(maybe_decode(needed))
             else:
-                output.write("{} => {}".format(maybe_decode(needed), maybe_decode(full_path)))
+                output.write(f"{maybe_decode(needed)} => {maybe_decode(full_path)}")
             output.write("\n")
         for not_found in problem.unresolved:
-            output.write("        {} => not found\n".format(maybe_decode(not_found)))
+            output.write(f"        {maybe_decode(not_found)} => not found\n")
         output.write("\n")
 
     # Strict mode = install failure
