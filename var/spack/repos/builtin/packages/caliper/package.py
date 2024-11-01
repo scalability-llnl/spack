@@ -109,6 +109,10 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("papi@5.3:5", when="@:2.2 +papi")
     depends_on("papi@5.3:", when="@2.3: +papi")
+    # TODO change the 'when' argument for the next release of Caliper
+    # TODO remove when issues with PAPI using RDPMC for topdown counters on
+    #      Sapphire Rapids is fixed
+    depends_on("papi@7.1.0: ~rdpmc", when="@master +papi target=sapphirerapids")
 
     depends_on("libpfm4@4.8:4", when="+libpfm")
 
