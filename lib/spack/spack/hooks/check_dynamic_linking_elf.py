@@ -3,9 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import fnmatch
 import io
 import os
-from typing import Dict
+import re
+from typing import Dict, List, Union
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import BaseDirectoryVisitor, visit_directory_tree
@@ -15,34 +17,39 @@ import spack.config
 import spack.error
 import spack.util.elf as elf
 
-skip_list = frozenset(
-    [
-        # kernel
-        b"linux-vdso",
-        # glibc
-        b"ld-linux-x86-64",
-        b"libc",
-        b"libdl",
-        b"libm",
-        b"libmemusage",
-        b"libmvec",
-        b"libnsl",
-        b"libnss_compat",
-        b"libnss_db",
-        b"libnss_dns",
-        b"libnss_files",
-        b"libnss_hesiod",
-        b"libpcprofile",
-        b"libpthread",
-        b"libresolv",
-        b"librt",
-        b"libSegFault",
-        b"libthread_db",
-        b"libutil",
-        # systemd
-        b"libudev",
-    ]
-)
+#: Patterns for names of libraries that are allowed to be unresolved when *just* looking at RPATHs
+#: added by Spack. These are libraries outside of Spack's control, and assumed to be located in
+#: default search paths of the dynamic linker.
+ALLOW_UNRESOLVED = [
+    # kernel
+    "linux-vdso.so.*",
+    # musl libc
+    "ld-musl-*.so.*",
+    # glibc
+    "ld-linux-*.so.*",
+    "libc.so.*",
+    "libdl.so.*",
+    "libm.so.*",
+    "libmemusage.so.*",
+    "libmvec.so.*",
+    "libnsl.so.*",
+    "libnss_compat.so.*",
+    "libnss_db.so.*",
+    "libnss_dns.so.*",
+    "libnss_files.so.*",
+    "libnss_hesiod.so.*",
+    "libpcprofile.so.*",
+    "libpthread.so.*",
+    "libresolv.so.*",
+    "librt.so.*",
+    "libSegFault.so.*",
+    "libthread_db.so.*",
+    "libutil.so.*",
+    # systemd
+    "libudev.so.*",
+]
+
+ALLOW_UNRESOLVED_REGEX = re.compile("|".join(fnmatch.translate(x) for x in ALLOW_UNRESOLVED))
 
 
 def is_compatible(parent: elf.ElfFile, child: elf.ElfFile) -> bool:
@@ -62,15 +69,21 @@ def candidate_matches(current_elf: elf.ElfFile, candidate_path: bytes) -> bool:
         return False
 
 
-def should_be_searched(needed_lib: bytes) -> bool:
-    offset = needed_lib.find(b".so")
-    return offset == -1 or needed_lib[:offset] not in skip_list
+def should_be_resolved(filename: bytes) -> bool:
+    """Return true if a library should be resolved in RPATHs."""
+    try:
+        return not ALLOW_UNRESOLVED_REGEX.match(filename.decode("utf-8"))
+    except UnicodeDecodeError:
+        return True
 
 
 class Problem:
-    def __init__(self, resolved, unresolved):
+    def __init__(
+        self, resolved: Dict[bytes, bytes], unresolved: bytes, relative_rpaths: List[bytes]
+    ) -> None:
         self.resolved = resolved
         self.unresolved = unresolved
+        self.relative_rpaths = relative_rpaths
 
 
 class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
@@ -106,31 +119,22 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
         # supported in general. Also remove empty paths.
         rpaths = [x.replace(b"$ORIGIN", origin) for x in rpaths if x]
 
-        # Relative rpaths exist (they're relative to current working dir, really bad).
-        rpaths, rpaths_rel = stable_partition(rpaths, os.path.isabs)
-        if rpaths_rel:
-            raise Exception("Relative rpaths in {!r} detected {!r}".format(path, rpaths_rel))
+        # Do not allow relative rpaths (they are relative to the current working directory)
+        rpaths, relative_rpaths = stable_partition(rpaths, os.path.isabs)
 
         # If there's a / in the needed lib, it's opened directly, otherwise it needs
         # a search.
         direct_libs, search_libs = stable_partition(needed_libs, lambda x: b"/" in x)
 
-        # Also direct libs can come in relative and absolute path flavor, we don't like
-        # finding libraries relative to the current working directory, so error when
-        # those are found.
-        direct_libs, direct_libs_rel = stable_partition(direct_libs, os.path.isabs)
+        # Do not allow relative paths in direct libs (they are relative to the current working
+        # directory)
+        direct_libs, unresolved = stable_partition(direct_libs, os.path.isabs)
 
-        if direct_libs_rel:
-            raise Exception("Needed libraries by relative path {!r}".format(direct_libs_rel))
-
-        # Now we remove the libraries that we consider system libraries.
-        search_libs = [lib for lib in search_libs if should_be_searched(lib)]
-
-        # Look for issues.
-        resolved = {}
-        unresolved = []
+        resolved: Dict[bytes, bytes] = {}
 
         for lib in search_libs:
+            if not should_be_resolved(lib):
+                continue
             for rpath in rpaths:
                 candidate = os.path.join(rpath, lib)
                 if candidate_matches(parsed_elf, candidate):
@@ -146,8 +150,8 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
             else:
                 unresolved.append(lib)
 
-        if unresolved:
-            self.problems[rel_path] = Problem(resolved, unresolved)
+        if unresolved or relative_rpaths:
+            self.problems[rel_path] = Problem(resolved, unresolved, relative_rpaths)
 
     def visit_symlinked_file(self, root: str, rel_path: str, depth: int) -> None:
         pass
@@ -163,14 +167,14 @@ class CannotLocateSharedLibraries(Exception):
     pass
 
 
-def maybe_decode(byte_str):
+def maybe_decode(byte_str: bytes) -> Union[str, bytes]:
     try:
         return byte_str.decode("utf-8")
     except UnicodeDecodeError:
         return byte_str
 
 
-def post_install(spec):
+def post_install(spec, explicit):
     """
     Check whether all ELF files participating in dynamic linking can locate libraries
     in dt_needed referred to by name (not by path).
