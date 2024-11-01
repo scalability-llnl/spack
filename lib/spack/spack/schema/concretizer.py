@@ -40,7 +40,7 @@ properties: Dict[str, Any] = {
                                                 "environment",
                                             ],
                                         },
-                                        "ref": {"type": "string"},
+                                        "path": {"type": "string"},
                                         "include": LIST_OF_SPECS,
                                         "exclude": LIST_OF_SPECS,
                                     },
