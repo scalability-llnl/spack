@@ -204,6 +204,8 @@ def post_install(spec, explicit):
             output.write("\n")
         for not_found in problem.unresolved:
             output.write(f"        {maybe_decode(not_found)} => not found\n")
+        for relative_rpath in problem.relative_rpaths:
+            output.write(f"        {maybe_decode(relative_rpath)} => relative rpath\n")
         output.write("\n")
 
     # Strict mode = install failure
