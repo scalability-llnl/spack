@@ -1010,7 +1010,6 @@ with '-Wl,-commons,use_dylibs' and without
         perl = which("perl")
         perl("autogen.pl")
         if spec.satisfies("+two_level_namespace platform=darwin"):
-            print("Re-applying configure patch for two_level_namespace on MacOS after autoreconf")
             filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     @when("@5.0.0:5.0.1")
@@ -1018,7 +1017,6 @@ with '-Wl,-commons,use_dylibs' and without
         perl = which("perl")
         perl("autogen.pl", "--force")
         if spec.satisfies("+two_level_namespace platform=darwin"):
-            print("Re-applying configure patch for two_level_namespace on MacOS after autoreconf")
             filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     def configure_args(self):
