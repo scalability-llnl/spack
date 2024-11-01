@@ -64,8 +64,6 @@ ALLOW_UNRESOLVED = [
     "libudev.so.*",
 ]
 
-ALLOW_UNRESOLVED_REGEX = re.compile("|".join(fnmatch.translate(x) for x in ALLOW_UNRESOLVED))
-
 
 def is_compatible(parent: elf.ElfFile, child: elf.ElfFile) -> bool:
     return (
@@ -84,14 +82,6 @@ def candidate_matches(current_elf: elf.ElfFile, candidate_path: bytes) -> bool:
         return False
 
 
-def should_be_resolved(filename: bytes) -> bool:
-    """Return true if a library should be resolved in RPATHs."""
-    try:
-        return not ALLOW_UNRESOLVED_REGEX.match(filename.decode("utf-8"))
-    except UnicodeDecodeError:
-        return True
-
-
 class Problem:
     def __init__(
         self, resolved: Dict[bytes, bytes], unresolved: bytes, relative_rpaths: List[bytes]
@@ -102,8 +92,18 @@ class Problem:
 
 
 class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
-    def __init__(self):
+    def __init__(self, allow_unresolved_patterns: List[str]) -> None:
         self.problems: Dict[str, Problem] = {}
+        self._allow_unresolved_regex = re.compile(
+            "|".join(fnmatch.translate(x) for x in allow_unresolved_patterns)
+        )
+
+    def allow_unresolved(self, needed: bytes) -> bool:
+        try:
+            name = needed.decode("utf-8")
+        except UnicodeDecodeError:
+            return False
+        return bool(self._allow_unresolved_regex.match(name))
 
     def visit_file(self, root: str, rel_path: str, depth: int) -> None:
         # We work with byte strings for paths.
@@ -148,7 +148,7 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
         resolved: Dict[bytes, bytes] = {}
 
         for lib in search_libs:
-            if not should_be_resolved(lib):
+            if self.allow_unresolved(lib):
                 continue
             for rpath in rpaths:
                 candidate = os.path.join(rpath, lib)
@@ -197,7 +197,9 @@ def post_install(spec, explicit):
     if spec.external or spec.platform not in ("linux", "freebsd"):
         return
 
-    visitor = ResolveSharedElfLibDepsVisitor()
+    visitor = ResolveSharedElfLibDepsVisitor(
+        [*ALLOW_UNRESOLVED, *spec.package.unresolved_libraries]
+    )
     visit_directory_tree(spec.prefix, visitor)
 
     # All good?
@@ -221,7 +223,6 @@ def post_install(spec, explicit):
             output.write(f"        {maybe_decode(not_found)} => not found\n")
         for relative_rpath in problem.relative_rpaths:
             output.write(f"        {maybe_decode(relative_rpath)} => relative rpath\n")
-        output.write("\n")
 
     # Strict mode = install failure
     if spack.config.get("config:shared_linking:strict"):
