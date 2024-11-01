@@ -219,11 +219,8 @@ def matching_specs_from_env(specs):
     matching spec is found, this will return the given spec but concretized in the
     context of the active environment and other given specs, with unification rules applied.
     """
-    spec_pairs = [(spec, None) for spec in specs]
     env = ev.active_environment()
-    if env:
-        spec_pairs = [(abstract, env.matching_spec(abstract)) for abstract, _ in spec_pairs]
-
+    spec_pairs = [(spec, env.matching_spec(abstract) if env else None) for spec in specs]
     return _concretize_spec_pairs(spec_pairs)
 
 
