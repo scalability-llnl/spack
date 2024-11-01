@@ -191,9 +191,10 @@ def maybe_decode(byte_str: bytes) -> Union[str, bytes]:
 
 def post_install(spec, explicit):
     """Check whether shared libraries can be resolved in RPATHs."""
+    policy = spack.config.get("config:shared_linking:missing_library_policy", "ignore")
 
     # Currently only supported for ELF files.
-    if spec.external or spec.platform not in ("linux", "freebsd"):
+    if policy == "ignore" or spec.external or spec.platform not in ("linux", "freebsd"):
         return
 
     visitor = ResolveSharedElfLibDepsVisitor(
@@ -225,8 +226,7 @@ def post_install(spec, explicit):
 
     message = output.getvalue().strip()
 
-    # Strict mode = install failure
-    if spack.config.get("config:shared_linking:strict"):
+    if policy == "error":
         raise CannotLocateSharedLibraries(message)
 
     tty.warn(message)

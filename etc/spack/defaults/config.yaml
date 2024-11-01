@@ -194,9 +194,10 @@ config:
     # executables with many dependencies, in particular on slow filesystems.
     bind: false
 
-    # When set to true, installation will fail when needed libraries cannot be located
-    # directly or in rpaths.
-    strict: false
+    # Controls a post-install check that verifies that all shared libraries needed by the package
+    # can be found in the rpath/runpath of the package's binaries. Valid options are 'error',
+    # 'warn' and 'ignore'. When set to 'error', missing libraries will cause install failure.
+    missing_library_policy: warn
 
 
   # Set to 'false' to allow installation on filesystems that doesn't allow setgid bit
