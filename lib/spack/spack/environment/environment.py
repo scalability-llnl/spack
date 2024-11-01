@@ -1548,36 +1548,18 @@ class Environment:
         self.concretized_order = []
         self.specs_by_hash = {}
 
-<<<<<<< HEAD
-        result_by_user_spec = {}
-        solver = spack.solver.asp.Solver()
-        allow_deprecated = spack.config.get("config:deprecated", False)
-        for result in solver.solve_in_rounds(
-            specs_to_concretize, tests=tests, allow_deprecated=allow_deprecated
-        ):
-            result_by_user_spec.update(result.specs_by_input)
-
-        result = []
-        for abstract, concrete in sorted(result_by_user_spec.items()):
-            # If the "abstract" spec is a concrete spec from the previous concretization
-            # translate it back to an abstract spec. Otherwise, keep the abstract spec
-            abstract = old_concrete_to_abstract.get(abstract, abstract)
-            if abstract in new_user_specs:
-                result.append((abstract, concrete))
-
-            # Only add to the environment if it's from this environment (not just included)
-            if abstract in self.user_specs:
-                self._add_concrete_spec(abstract, concrete)
-=======
         ret = []
         result = spack.concretize.concretize_together_when_possible(
             *specs_to_concretize, tests=tests
         )
         for abstract, concrete in result:
-            self._add_concrete_spec(abstract, concrete)
+            # Only add to the environment if it's from this environment (not included in)
+            if abstract in self.user_specs:
+                self._add_concrete_spec(abstract, concrete)
+
+            # Return only the new specs
             if abstract in new_user_specs:
                 ret.append((abstract, concrete))
->>>>>>> 45af64662f (commands: get matching specs from env while respecting unification)
 
         return ret
 
