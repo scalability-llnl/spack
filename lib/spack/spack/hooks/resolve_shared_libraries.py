@@ -172,6 +172,9 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
         pass
 
     def before_visit_dir(self, root: str, rel_path: str, depth: int) -> bool:
+        # There can be binaries in .spack/test which shouldn't be checked.
+        if rel_path == ".spack":
+            return False
         return True
 
     def before_visit_symlinked_dir(self, root: str, rel_path: str, depth: int) -> bool:
