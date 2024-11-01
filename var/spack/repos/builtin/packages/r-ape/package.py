@@ -29,6 +29,7 @@ class RApe(RPackage):
 
     license("GPL-2.0-only OR GPL-3.0-only")
 
+    version("5.8", sha256="24ce729979e1bcc60317e71e5100ce54156ceb7484917b0d64260f733ae84d24")
     version("5.7-1", sha256="8b09c71218d8aa629e43bc807b433a4e30a61847d91b2810e31c366f0fe5057a")
     version("5.6-2", sha256="9b62450a0390a1f07df007d348ad4cedcd814d42cb11c5a300ed33550fd41257")
     version("5.6-1", sha256="25401e036576eed1200e15bf68879ccd85611303a3508b989e15164cd4c0f7f7")

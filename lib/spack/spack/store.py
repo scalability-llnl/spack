@@ -39,9 +39,6 @@ import spack.util.path
 DEFAULT_INSTALL_TREE_ROOT = os.path.join(spack.paths.opt_path, "spack")
 
 
-ConfigurationType = Union["spack.config.Configuration", "llnl.util.lang.Singleton"]
-
-
 def parse_install_tree(config_dict):
     """Parse config settings and return values relevant to the store object.
 
@@ -207,7 +204,7 @@ class Store:
         )
 
 
-def create(configuration: ConfigurationType) -> Store:
+def create(configuration: spack.config.Configuration) -> Store:
     """Create a store from the configuration passed as input.
 
     Args:
@@ -240,7 +237,7 @@ def _create_global() -> Store:
 
 
 #: Singleton store instance
-STORE: Union[Store, llnl.util.lang.Singleton] = llnl.util.lang.Singleton(_create_global)
+STORE: Store = llnl.util.lang.Singleton(_create_global)  # type: ignore
 
 
 def reinitialize():

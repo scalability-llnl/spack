@@ -16,6 +16,7 @@ class RVioplot(RPackage):
 
     license("BSD-3-Clause")
 
+    version("0.5.0", sha256="b04e91ccb810573d13a2ac1136bc6e4747c4c663fa53ff1ce7327c1a13530965")
     version("0.4.0", sha256="5729b483e3a4f7c81d2cc22c8bc5211b64e289734e9da5b5696c4974067867b5")
     version("0.3.7", sha256="06475d9a47644245ec91598e9aaef7db1c393802d9fc314420ac5139ae56adb6")
     version("0.3.5", sha256="1b64833c1bd6851036cf1c400c7d0036a047e71def94a399c897263b4b303e2a")

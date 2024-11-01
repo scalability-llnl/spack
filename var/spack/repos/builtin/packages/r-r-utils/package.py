@@ -13,6 +13,7 @@ class RRUtils(RPackage):
 
     cran = "R.utils"
 
+    version("2.12.3", sha256="74d6e77a95a23381a490fea54be01b653d4b938a2dc75e749a694ab48302c40c")
     version("2.12.2", sha256="fe3cf1aa8641540634e96990294d0202d4d94ec79ce73aaf78e4eda30fcb8836")
     version("2.12.1", sha256="3eb82903bee99f9684cd9dbd4f92d682fdb82feb7ff32a70aa54550e9e09ad62")
     version("2.12.0", sha256="74de455220ea1e658ac503f5763a6be687d982eb61187779f4019a16db856503")
