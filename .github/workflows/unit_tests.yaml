@@ -160,7 +160,7 @@ jobs:
           useradd spack-test
           chown -R spack-test .
     - name: remove-extension
-      # shell: runuser -u spack-test -- bash {0}
+      shell: runuser -u spack-test -- bash {0}
       run: |
           source share/spack/setup-env.sh
           spack config --scope=defaults rm "config:extensions"
