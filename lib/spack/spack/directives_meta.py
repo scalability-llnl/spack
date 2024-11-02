@@ -10,6 +10,7 @@ from typing import List, Set
 import llnl.util.lang
 
 import spack.error
+import spack.repo
 import spack.spec
 
 #: Names of possible directives. This list is mostly populated using the @directive decorator.
@@ -63,7 +64,7 @@ class DirectiveMeta(type):
         # The instance is being initialized: if it is a package we must ensure
         # that the directives are called to set it up.
 
-        if "spack.pkg" in cls.__module__:
+        if cls.__module__.startswith(spack.repo.ROOT_PYTHON_NAMESPACE):
             # Ensure the presence of the dictionaries associated with the directives.
             # All dictionaries are defaultdicts that create lists for missing keys.
             for d in DirectiveMeta._directive_dict_names:

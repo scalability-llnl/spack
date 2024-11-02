@@ -660,34 +660,32 @@ def mirror_name_or_url(m):
     # accidentally to a dir in the current working directory.
 
     # If there's a \ or / in the name, it's interpreted as a path or url.
-    if "/" in m or "\\" in m:
+    if "/" in m or "\\" in m or m in (".", ".."):
         return spack.mirror.Mirror(m)
 
     # Otherwise, the named mirror is required to exist.
     try:
         return spack.mirror.require_mirror_name(m)
     except ValueError as e:
-        raise argparse.ArgumentTypeError(
-            str(e) + ". Did you mean {}?".format(os.path.join(".", m))
-        )
+        raise argparse.ArgumentTypeError(f"{e}. Did you mean {os.path.join('.', m)}?") from e
 
 
 def mirror_url(url):
     try:
         return spack.mirror.Mirror.from_url(url)
     except ValueError as e:
-        raise argparse.ArgumentTypeError(str(e))
+        raise argparse.ArgumentTypeError(str(e)) from e
 
 
 def mirror_directory(path):
     try:
         return spack.mirror.Mirror.from_local_path(path)
     except ValueError as e:
-        raise argparse.ArgumentTypeError(str(e))
+        raise argparse.ArgumentTypeError(str(e)) from e
 
 
 def mirror_name(name):
     try:
         return spack.mirror.require_mirror_name(name)
     except ValueError as e:
-        raise argparse.ArgumentTypeError(str(e))
+        raise argparse.ArgumentTypeError(str(e)) from e

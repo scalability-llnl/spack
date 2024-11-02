@@ -14,6 +14,7 @@ import archspec.cpu
 import llnl.util.lang
 
 import spack.binary_distribution
+import spack.cmd
 import spack.compiler
 import spack.compilers
 import spack.concretize
@@ -2306,6 +2307,30 @@ class TestConcretize:
         assert "hdf5 ^zmpi" in captured.err
         assert str(spec) in captured.err
 
+    def test_explicit_splice_fails_nonexistent(mutable_config, mock_packages, mock_store):
+        splice_info = {"target": "mpi", "replacement": "mpich/doesnotexist"}
+        spack.config.CONFIG.set("concretizer", {"splice": {"explicit": [splice_info]}})
+
+        with pytest.raises(spack.spec.InvalidHashError):
+            _ = spack.spec.Spec("hdf5^zmpi").concretized()
+
+    def test_explicit_splice_fails_no_hash(mutable_config, mock_packages, mock_store):
+        splice_info = {"target": "mpi", "replacement": "mpich"}
+        spack.config.CONFIG.set("concretizer", {"splice": {"explicit": [splice_info]}})
+
+        with pytest.raises(spack.solver.asp.InvalidSpliceError, match="must be specified by hash"):
+            _ = spack.spec.Spec("hdf5^zmpi").concretized()
+
+    def test_explicit_splice_non_match_nonexistent_succeeds(
+        mutable_config, mock_packages, mock_store
+    ):
+        """When we have a nonexistent splice configured but are not using it, don't fail."""
+        splice_info = {"target": "will_not_match", "replacement": "nonexistent/doesnotexist"}
+        spack.config.CONFIG.set("concretizer", {"splice": {"explicit": [splice_info]}})
+        spec = spack.spec.Spec("zlib").concretized()
+        # the main test is that it does not raise
+        assert not spec.spliced
+
     @pytest.mark.db
     @pytest.mark.parametrize(
         "spec_str,mpi_name",
@@ -3082,3 +3107,20 @@ def test_reuse_prefers_standard_over_git_versions(
         test_spec = spack.spec.Spec("git-ref-package@2").concretized()
         assert git_spec.dag_hash() != test_spec.dag_hash()
         assert standard_spec.dag_hash() == test_spec.dag_hash()
+
+
+@pytest.mark.parametrize("unify", [True, "when_possible", False])
+def test_spec_unification(unify, mutable_config, mock_packages):
+    spack.config.set("concretizer:unify", unify)
+    a = "pkg-a"
+    a_restricted = "pkg-a^pkg-b foo=baz"
+    b = "pkg-b foo=none"
+
+    unrestricted = spack.cmd.parse_specs([a, b], concretize=True)
+    a_concrete_unrestricted = [s for s in unrestricted if s.name == "pkg-a"][0]
+    b_concrete_unrestricted = [s for s in unrestricted if s.name == "pkg-b"][0]
+    assert (a_concrete_unrestricted["pkg-b"] == b_concrete_unrestricted) == (unify is not False)
+
+    maybe_fails = pytest.raises if unify is True else llnl.util.lang.nullcontext
+    with maybe_fails(spack.solver.asp.UnsatisfiableSpecError):
+        _ = spack.cmd.parse_specs([a_restricted, b], concretize=True)

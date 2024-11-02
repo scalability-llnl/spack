@@ -94,7 +94,7 @@ class MakefileBuilder(MakefileBuilder):
 
     def build(self, pkg, spec, prefix):
         par = True
-        if spec.compiler.name == "nvhpc":
+        if spec.satisfies("%nvhpc"):
             # relocation error when building shared and dynamic libs in
             # parallel
             par = False

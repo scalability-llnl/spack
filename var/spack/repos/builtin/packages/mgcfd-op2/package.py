@@ -43,21 +43,21 @@ class MgcfdOp2(MakefilePackage):
             env.set("COMPILER", self.spec.compiler.name)
 
         # Set Fortran compiler to GCC if using Arm.
-        if self.spec.compiler.name == "arm":
+        if self.spec.satisfies("%arm"):
             env.set("OP2_F_COMPILER", "gnu")
 
         # This overrides a flag issue in downstream OP2.
-        if self.spec.compiler.name == "nvhpc":
+        if self.spec.satisfies("%nvhpc"):
             env.set("CFLAGS", "-O3 -DOMPI_SKIP_MPICXX -DMPICH_IGNORE_CXX_SEEK -DMPIPP_H")
 
     def edit(self, spec, prefix):
         # Makefile tweaks to ensure the correct compiler commands are called.
         makefile = FileFilter("Makefile")
-        if self.spec.compiler.name == "arm":
+        if self.spec.satisfies("%arm"):
             makefile.filter(r"CPP := clang", r"CPP := armclang")
             makefile.filter(r"-cxx=clang.*", "")
 
-        if self.spec.compiler.name == "nvhpc":
+        if self.spec.satisfies("%nvhpc"):
             makefile.filter("pgc", "nvc")
 
     @property

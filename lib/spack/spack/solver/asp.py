@@ -515,6 +515,8 @@ class Result:
         best = min(self.answers)
         opt, _, answer = best
         for input_spec in self.abstract_specs:
+            # The specs must be unified to get here, so it is safe to associate any satisfying spec
+            # with the input. Multiple inputs may be matched to the same concrete spec
             node = SpecBuilder.make_node(pkg=input_spec.name)
             if input_spec.virtual:
                 providers = [
@@ -2616,6 +2618,7 @@ class SpackSolverSetup:
                 )
                 for name, info in env.dev_specs.items()
             )
+
         specs = tuple(specs)  # ensure compatible types to add
 
         self.gen.h1("Reusable concrete specs")
@@ -3829,8 +3832,16 @@ class SpecBuilder:
         for splice_set in splice_config:
             target = splice_set["target"]
             replacement = spack.spec.Spec(splice_set["replacement"])
-            assert replacement.abstract_hash
-            replacement.replace_hash()
+
+            if not replacement.abstract_hash:
+                location = getattr(
+                    splice_set["replacement"], "_start_mark", " at unknown line number"
+                )
+                msg = f"Explicit splice replacement '{replacement}' does not include a hash.\n"
+                msg += f"{location}\n\n"
+                msg += "    Splice replacements must be specified by hash"
+                raise InvalidSpliceError(msg)
+
             transitive = splice_set.get("transitive", False)
             splice_triples.append((target, replacement, transitive))
 
@@ -3841,6 +3852,10 @@ class SpecBuilder:
                 if target in current_spec:
                     # matches root or non-root
                     # e.g. mvapich2%gcc
+
+                    # The first iteration, we need to replace the abstract hash
+                    if not replacement.concrete:
+                        replacement.replace_hash()
                     current_spec = current_spec.splice(replacement, transitive)
             new_key = NodeArgument(id=key.id, pkg=current_spec.name)
             specs[new_key] = current_spec
@@ -3966,7 +3981,7 @@ class SpecFilter:
         return [s for s in self.factory() if self.is_selected(s)]
 
     @staticmethod
-    def from_store(configuration, include, exclude) -> "SpecFilter":
+    def from_store(configuration, *, include, exclude) -> "SpecFilter":
         """Constructs a filter that takes the specs from the current store."""
         packages = _external_config_with_implicit_externals(configuration)
         is_reusable = functools.partial(_is_reusable, packages=packages, local=True)
@@ -3974,13 +3989,36 @@ class SpecFilter:
         return SpecFilter(factory=factory, is_usable=is_reusable, include=include, exclude=exclude)
 
     @staticmethod
-    def from_buildcache(configuration, include, exclude) -> "SpecFilter":
+    def from_buildcache(configuration, *, include, exclude) -> "SpecFilter":
         """Constructs a filter that takes the specs from the configured buildcaches."""
         packages = _external_config_with_implicit_externals(configuration)
         is_reusable = functools.partial(_is_reusable, packages=packages, local=False)
         return SpecFilter(
             factory=_specs_from_mirror, is_usable=is_reusable, include=include, exclude=exclude
         )
+
+    @staticmethod
+    def from_environment(configuration, *, include, exclude, env) -> "SpecFilter":
+        packages = _external_config_with_implicit_externals(configuration)
+        is_reusable = functools.partial(_is_reusable, packages=packages, local=True)
+        factory = functools.partial(_specs_from_environment, env=env)
+        return SpecFilter(factory=factory, is_usable=is_reusable, include=include, exclude=exclude)
+
+    @staticmethod
+    def from_environment_included_concrete(
+        configuration,
+        *,
+        include: List[str],
+        exclude: List[str],
+        env: ev.Environment,
+        included_concrete: str,
+    ) -> "SpecFilter":
+        packages = _external_config_with_implicit_externals(configuration)
+        is_reusable = functools.partial(_is_reusable, packages=packages, local=True)
+        factory = functools.partial(
+            _specs_from_environment_included_concrete, env=env, included_concrete=included_concrete
+        )
+        return SpecFilter(factory=factory, is_usable=is_reusable, include=include, exclude=exclude)
 
 
 def _specs_from_store(configuration):
@@ -3996,6 +4034,23 @@ def _specs_from_mirror():
         # this is raised when no mirrors had indices.
         # TODO: update mirror configuration so it can indicate that the
         # TODO: source cache (or any mirror really) doesn't have binaries.
+        return []
+
+
+def _specs_from_environment(env):
+    """Return all concrete specs from the environment. This includes all included concrete"""
+    if env:
+        return [concrete for _, concrete in env.concretized_specs()]
+    else:
+        return []
+
+
+def _specs_from_environment_included_concrete(env, included_concrete):
+    """Return only concrete specs from the environment included from the included_concrete"""
+    if env:
+        assert included_concrete in env.included_concrete_envs
+        return [concrete for concrete in env.included_specs_by_hash[included_concrete].values()]
+    else:
         return []
 
 
@@ -4028,6 +4083,12 @@ class ReusableSpecsSelector:
                     SpecFilter.from_buildcache(
                         configuration=self.configuration, include=[], exclude=[]
                     ),
+                    SpecFilter.from_environment(
+                        configuration=self.configuration,
+                        include=[],
+                        exclude=[],
+                        env=ev.active_environment(),  # includes all concrete includes
+                    ),
                 ]
             )
         else:
@@ -4042,7 +4103,46 @@ class ReusableSpecsSelector:
             for source in reuse_yaml.get("from", default_sources):
                 include = source.get("include", default_include)
                 exclude = source.get("exclude", default_exclude)
-                if source["type"] == "local":
+                if source["type"] == "environment" and "path" in source:
+                    env_dir = ev.as_env_dir(source["path"])
+                    active_env = ev.active_environment()
+                    if active_env and env_dir in active_env.included_concrete_envs:
+                        # If environment is included as a concrete environment, use the local copy
+                        # of specs in the active environment.
+                        # note: included concrete environments are only updated at concretization
+                        #       time, and reuse needs to matchthe included specs.
+                        self.reuse_sources.append(
+                            SpecFilter.from_environment_included_concrete(
+                                self.configuration,
+                                include=include,
+                                exclude=exclude,
+                                env=active_env,
+                                included_concrete=env_dir,
+                            )
+                        )
+                    else:
+                        # If the environment is not included as a concrete environment, use the
+                        # current specs from its lockfile.
+                        self.reuse_sources.append(
+                            SpecFilter.from_environment(
+                                self.configuration,
+                                include=include,
+                                exclude=exclude,
+                                env=ev.environment_from_name_or_dir(env_dir),
+                            )
+                        )
+                elif source["type"] == "environment":
+                    # reusing from the current environment implicitly reuses from all of the
+                    # included concrete environments
+                    self.reuse_sources.append(
+                        SpecFilter.from_environment(
+                            self.configuration,
+                            include=include,
+                            exclude=exclude,
+                            env=ev.active_environment(),
+                        )
+                    )
+                elif source["type"] == "local":
                     self.reuse_sources.append(
                         SpecFilter.from_store(self.configuration, include=include, exclude=exclude)
                     )
@@ -4226,3 +4326,7 @@ class SolverError(InternalConcretizerError):
         # Add attribute expected of the superclass interface
         self.required = None
         self.constraint_type = None
+
+
+class InvalidSpliceError(spack.error.SpackError):
+    """For cases in which the splice configuration is invalid."""
