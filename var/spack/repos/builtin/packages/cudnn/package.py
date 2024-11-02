@@ -400,5 +400,5 @@ class Cudnn(Package):
             if os.path.isdir(target_include) and not os.path.isdir(prefix.include):
                 symlink(target_include, prefix.include)
 
-    # cudnn ships many binaries with missing rpaths, so ignore all
+    # contains precompiled binaries without rpaths
     unresolved_libraries = ["*"]

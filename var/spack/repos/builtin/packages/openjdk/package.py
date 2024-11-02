@@ -556,5 +556,5 @@ class Openjdk(Package):
     # to source builds this should be possible.
     non_bindable_shared_objects = ["libjvm.so"]
 
-    # openjdk ships many binaries with missing rpaths, so ignore all
+    # contains precompiled binaries without rpaths
     unresolved_libraries = ["*"]

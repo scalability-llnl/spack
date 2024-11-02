@@ -819,5 +819,5 @@ class Cuda(Package):
     # Avoid binding stub libraries by absolute path
     non_bindable_shared_objects = ["stubs"]
 
-    # cuda ships many binaries with missing rpaths, so ignore all
+    # contains precompiled binaries without rpaths
     unresolved_libraries = ["*"]
