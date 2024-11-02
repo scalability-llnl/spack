@@ -128,7 +128,7 @@ class VepCache(Package):
             cache_version = vep_version
 
         indexed = satisfies("+indexed")
-        cache_type = variants["source"].value
+        cache_type = variants["assembly_source"].value
         species_name = variants["species"].value
         assembly_name = variants["assembly"].value
 
@@ -216,7 +216,7 @@ class VepCache(Package):
             self.install_with_installer()
         else:
             tarball = _vep_cache_filename(
-                version=cache["version"], species=cache["species"], assembly=cache["assembly"]
+                version=cache["version"], species=cache["species"], assembly=cache["assembly"], source=cache["type"]
             )
             tar = which("tar")
             tar("xzvf", tarball, "-C", cache["root"])
