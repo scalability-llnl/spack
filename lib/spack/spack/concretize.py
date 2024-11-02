@@ -2,9 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""
-(DEPRECATED) Used to contain the code for the original concretizer
-"""
+"""High-level functions to concretize list of specs"""
 import sys
 import time
 from contextlib import contextmanager
