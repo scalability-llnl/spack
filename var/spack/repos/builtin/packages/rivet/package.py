@@ -58,6 +58,7 @@ class Rivet(AutotoolsPackage):
     depends_on("yoda@1.9.8:", when="@3.1.8:")
     depends_on("yoda@1.9.9:", when="@3.1.9:")
     depends_on("yoda@1.9.10:", when="@3.1.10:")
+    depends_on("yoda@:1", when="@:3")
     depends_on("yoda@2.0.1:", when="@4.0.0:")
 
     # The following versions were not a part of LCG stack
@@ -66,6 +67,7 @@ class Rivet(AutotoolsPackage):
 
     depends_on("hepmc", when="hepmc=2")
     depends_on("hepmc3", when="hepmc=3")
+    conflicts("hepmc@3.3.0", when="@:4.0.0 hepmc=3", msg="patch-level zero requires at least 4.0.1")
     depends_on("fastjet plugins=cxx")
     depends_on("fastjet@3.4.0:", when="@3.1.7:")
     depends_on("fjcontrib")
