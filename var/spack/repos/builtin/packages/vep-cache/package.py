@@ -13,7 +13,7 @@ def _vep_cache_filename(version, species, source, assembly):
     return f"{species}_{assembly_source}_{version}_{assembly}.tar.gz"
 
 
-def _vep_cache_resource(version, species, source, assembly, indexed, dest=""):
+def _vep_cache_resource_kwargs(version, species, source, assembly, indexed, dest=None):
     filename = _vep_cache_filename(version, species, source, assembly)
     dir_name = "indexed_vep_cache" if indexed else "vep"
     root = f"https://ftp.ensembl.org/pub/release-{version}/variation/{dir_name}"
@@ -27,6 +27,7 @@ def _vep_cache_resource(version, species, source, assembly, indexed, dest=""):
         # We only need to match the specified assembly for human assemblies
         f"assembly={assembly.lower()}" if species == "homo_sapiens" else "",
     ]
+    dest = filename if dest is None else dest
 
     kwargs = {
         "name": filename,
@@ -36,7 +37,7 @@ def _vep_cache_resource(version, species, source, assembly, indexed, dest=""):
         "expand": False,  # We'll expand this where it needs to go later
     }
 
-    return resource(**kwargs)
+    return kwargs
 
 
 class VepCache(Package):
@@ -68,7 +69,7 @@ class VepCache(Package):
         if species == "homo_sapiens"
     ]
 
-    variant("use_vep_installer", default=True, description="Use VEP installer script to download")
+    variant("use_vep_installer", default=False, description="Use VEP installer script to download")
     variant("env", default=True, description="Setup VEP environment variables for this cache")
 
     # Cache configuration options
@@ -105,9 +106,9 @@ class VepCache(Package):
         # A possibility of more than one assembly, even though most only have one
         for assembly in assemblies:
             version(major)
-            _vep_cache_resource(
+            resource(**_vep_cache_resource_kwargs(
                 version=major, species=species, source=source, assembly=assembly, indexed=indexed
-            )
+            ))
 
     depends_on("vep", type="build")
 
@@ -212,11 +213,14 @@ class VepCache(Package):
     def install(self, spec, prefix):
         cache = self.vep_cache_config(self.prefix)
         mkdirp(cache["full_path"])
-        if spec.satisfies("+installer"):
+        if spec.satisfies("+use_vep_installer"):
             self.install_with_installer()
         else:
             tarball = _vep_cache_filename(
-                version=cache["version"], species=cache["species"], assembly=cache["assembly"], source=cache["type"]
+                version=cache["version"], 
+                species=cache["species"], 
+                assembly=cache["assembly"], 
+                source=cache["type"],
             )
             tar = which("tar")
             tar("xzvf", tarball, "-C", cache["root"])
