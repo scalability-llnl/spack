@@ -194,7 +194,7 @@ def _concretize_spec_pairs(to_concretize, tests=False):
     elif unify == "when_possible":
         concretize_method = spack.concretize.concretize_together_when_possible
 
-    concretized = concretize_method(*to_concretize, tests=tests)
+    concretized = concretize_method(to_concretize, tests=tests)
     return [concrete for _, concrete in concretized]
 
 

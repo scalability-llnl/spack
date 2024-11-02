@@ -14,7 +14,7 @@ import stat
 import urllib.parse
 import urllib.request
 import warnings
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
@@ -1535,7 +1535,7 @@ class Environment:
 
     def _concretize_together_where_possible(
         self, tests: bool = False
-    ) -> List[Tuple[spack.spec.Spec, spack.spec.Spec]]:
+    ) -> Sequence[Tuple[spack.spec.Spec, spack.spec.Spec]]:
         # Avoid cyclic dependency
         import spack.solver.asp
 
@@ -1550,7 +1550,7 @@ class Environment:
 
         ret = []
         result = spack.concretize.concretize_together_when_possible(
-            *specs_to_concretize, tests=tests
+            specs_to_concretize, tests=tests
         )
         for abstract, concrete in result:
             # Only add to the environment if it's from this environment (not included in)
@@ -1563,7 +1563,7 @@ class Environment:
 
         return ret
 
-    def _concretize_together(self, tests: bool = False) -> List[SpecPair]:
+    def _concretize_together(self, tests: bool = False) -> Sequence[SpecPair]:
         """Concretization strategy that concretizes all the specs
         in the same DAG.
         """
@@ -1577,8 +1577,8 @@ class Environment:
         self.specs_by_hash = {}
 
         try:
-            concretized_specs: List[SpecPair] = spack.concretize.concretize_together(
-                *specs_to_concretize, tests=tests
+            concretized_specs = spack.concretize.concretize_together(
+                specs_to_concretize, tests=tests
             )
         except spack.error.UnsatisfiableSpecError as e:
             # "Enhance" the error message for multiple root specs, suggest a less strict
@@ -1627,7 +1627,7 @@ class Environment:
         to_concretize = [
             (root, None) for root in self.user_specs if root not in old_concretized_user_specs
         ]
-        concretized_specs = spack.concretize.concretize_separately(*to_concretize, tests=tests)
+        concretized_specs = spack.concretize.concretize_separately(to_concretize, tests=tests)
 
         by_hash = {}
         for abstract, concrete in concretized_specs:

@@ -6,7 +6,7 @@
 import sys
 import time
 from contextlib import contextmanager
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Iterable, Optional, Sequence, Tuple, Union
 
 import llnl.util.tty as tty
 
@@ -38,7 +38,9 @@ SpecLike = Union[Spec, str]
 TestsType = Union[bool, Iterable[str]]
 
 
-def concretize_specs_together(*abstract_specs: SpecLike, tests: TestsType = False) -> List[Spec]:
+def concretize_specs_together(
+    abstract_specs: Sequence[SpecLike], tests: TestsType = False
+) -> Sequence[Spec]:
     """Given a number of specs as input, tries to concretize them together.
 
     Args:
@@ -54,7 +56,9 @@ def concretize_specs_together(*abstract_specs: SpecLike, tests: TestsType = Fals
     return [s.copy() for s in result.specs]
 
 
-def concretize_together(*spec_list: SpecPair, tests: TestsType = False) -> List[SpecPair]:
+def concretize_together(
+    spec_list: Sequence[SpecPair], tests: TestsType = False
+) -> Sequence[SpecPair]:
     """Given a number of specs as input, tries to concretize them together.
 
     Args:
@@ -65,13 +69,13 @@ def concretize_together(*spec_list: SpecPair, tests: TestsType = False) -> List[
     """
     to_concretize = [concrete if concrete else abstract for abstract, concrete in spec_list]
     abstract_specs = [abstract for abstract, _ in spec_list]
-    concrete_specs = concretize_specs_together(*to_concretize, tests=tests)
+    concrete_specs = concretize_specs_together(to_concretize, tests=tests)
     return list(zip(abstract_specs, concrete_specs))
 
 
 def concretize_together_when_possible(
-    *spec_list: SpecPair, tests: TestsType = False
-) -> List[SpecPair]:
+    spec_list: Sequence[SpecPair], tests: TestsType = False
+) -> Sequence[SpecPair]:
     """Given a number of specs as input, tries to concretize them together to the extent possible.
 
     See documentation for ``unify: when_possible`` concretization for the precise definition of
@@ -104,7 +108,9 @@ def concretize_together_when_possible(
     ]
 
 
-def concretize_separately(*spec_list: SpecPair, tests: TestsType = False) -> List[SpecPair]:
+def concretize_separately(
+    spec_list: Sequence[SpecPair], tests: TestsType = False
+) -> Sequence[SpecPair]:
     """Concretizes the input specs separately from each other.
 
     Args:

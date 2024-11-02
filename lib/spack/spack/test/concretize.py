@@ -781,7 +781,7 @@ class TestConcretize:
     )
     def test_simultaneous_concretization_of_specs(self, abstract_specs):
         abstract_specs = [Spec(x) for x in abstract_specs]
-        concrete_specs = spack.concretize.concretize_specs_together(*abstract_specs)
+        concrete_specs = spack.concretize.concretize_specs_together(abstract_specs)
 
         # Check there's only one configuration of each package in the DAG
         names = set(dep.name for spec in concrete_specs for dep in spec.traverse())
@@ -2103,7 +2103,7 @@ class TestConcretize:
         spack.config.set("packages", external_conf)
 
         abstract_specs = [Spec(s) for s in ["py-extension1", "python"]]
-        specs = spack.concretize.concretize_specs_together(*abstract_specs)
+        specs = spack.concretize.concretize_specs_together(abstract_specs)
         assert specs[0]["python"] == specs[1]["python"]
 
     @pytest.mark.regression("36190")
