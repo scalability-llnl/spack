@@ -44,8 +44,10 @@ class VepCache(Package):
     """Separate installation and management for the Ensembl Variant Effect Predictor (vep)"""
 
     homepage = "https://useast.ensembl.org/info/docs/tools/vep/index.html"
-    has_code = False
     maintainers("teaguesterling")
+    # This is a dummy value to get spack to resolve resources, which are not downloaded
+    # when has_code = False
+    url = "https://raw.githubusercontent.com/Ensembl/ensembl-vep/release/112/INSTALL.pl"
 
     license("Apache-2.0", checked_by="teaguesterling")
 
@@ -105,7 +107,7 @@ class VepCache(Package):
     ):
         # A possibility of more than one assembly, even though most only have one
         for assembly in assemblies:
-            version(major)
+            version(major, expand=False)
             resource(**_vep_cache_resource_kwargs(
                 version=major, species=species, source=source, assembly=assembly, indexed=indexed
             ))
