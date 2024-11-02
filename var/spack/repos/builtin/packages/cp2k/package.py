@@ -42,7 +42,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     git = "https://github.com/cp2k/cp2k.git"
     list_url = "https://github.com/cp2k/cp2k/releases"
 
-    maintainers("dev-zero", "mtaillefumier")
+    maintainers("dev-zero", "mtaillefumier", "msimberg", "RMeli")
 
     license("GPL-2.0-or-later")
 
