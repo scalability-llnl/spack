@@ -877,8 +877,9 @@ class FlagMap(lang.HashableMap):
                 # Next, if any flags in other propagate, we force them to propagate in our case
                 shared = list(sorted(set(other[flag_type]) - extra_other))
                 for x, y in _shared_subset_pair_iterate(shared, sorted(self[flag_type])):
-                    if x.propagate:
-                        y.propagate = True
+                    if y.propagate is True and x.propagate is False:
+                        changed = True
+                        y.propagate = False
 
         # TODO: what happens if flag groups with a partial (but not complete)
         # intersection specify different behaviors for flag propagation?
@@ -933,6 +934,7 @@ class FlagMap(lang.HashableMap):
             def flags():
                 for flag in v:
                     yield flag
+                    yield flag.propagate
 
             yield flags
 

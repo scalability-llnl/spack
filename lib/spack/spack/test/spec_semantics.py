@@ -367,19 +367,24 @@ class TestSpecSemantics:
                 'mpich cflags="-O3 -g"',
                 'mpich cflags=="-O3"',
                 'mpich cflags="-O3 -g"',
+                'mpich cflags="-O3 -g"',
+                [],
+                [],
+            ),
+            (
                 'mpich cflags=="-O3 -g"',
-                [("cflags", "-O3")],
-                [("cflags", "-O3")],
+                'mpich cflags=="-O3"',
+                'mpich cflags=="-O3 -g"',
+                'mpich cflags=="-O3 -g"',
+                [("cflags", "-O3"), ("cflags", "-g")],
+                [("cflags", "-O3"), ("cflags", "-g")],
             ),
         ],
     )
     def test_constrain_compiler_flags(
         self, lhs, rhs, expected_lhs, expected_rhs, propagated_lhs, propagated_rhs
     ):
-        """Constraining is asymmetric for compiler flags. Also note that
-        Spec equality does not account for flag propagation, so the checks
-        here are manual.
-        """
+        """Constraining is asymmetric for compiler flags."""
         lhs, rhs, expected_lhs, expected_rhs = (
             Spec(lhs),
             Spec(rhs),
@@ -1911,7 +1916,7 @@ def test_old_format_strings_trigger_error(default_mock_concretization):
     "lhs,rhs",
     [
         ("hdf5 +mpi", "hdf5++mpi"),
-        ("hdf5 cflags==-g", "hdf5 cflag=-g"),
+        ("hdf5 cflags==-g", "hdf5 cflags=-g"),
         ("hdf5 +mpi ++shared", "hdf5+mpi +shared"),
         ("hdf5 +mpi cflags==-g", "hdf5++mpi cflag=-g"),
     ],
