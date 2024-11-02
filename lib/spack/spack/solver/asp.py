@@ -3181,7 +3181,7 @@ class CompilerParser:
 
             target = c.target if c.target != "any" else None
             candidate = KnownCompiler(
-                spec=c.spec, os=c.operating_system, target=target, available=True, compiler_obj=c
+                spec=c.spec, os=c.operating_system, target=str(target), available=True, compiler_obj=c
             )
             if candidate in self.compilers:
                 warnings.warn(
