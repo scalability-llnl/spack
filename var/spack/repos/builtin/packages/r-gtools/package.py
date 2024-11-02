@@ -45,6 +45,7 @@ class RGtools(RPackage):
 
     license("GPL-2.0-only")
 
+    version("3.9.5", sha256="dee9b6c1152db1a5dc427d074b32bbbb738708683f17a95e0e95e4d79fdf174b")
     version("3.9.4", sha256="59cf8b194fe98b1cc05dbb4d686810a1068f59d8b402b731548a898ece85f111")
     version("3.9.3", sha256="7afb53277b382d5752f4597ae433f3c0addf5e8eb24d01a9562faf2a01e33133")
     version("3.9.2.1", sha256="ec5febad7bb33812684b39679b0bce8a668361b87714f7388546e0f4ac02af5f")

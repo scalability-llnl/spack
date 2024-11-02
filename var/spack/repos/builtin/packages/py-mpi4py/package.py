@@ -20,6 +20,7 @@ class PyMpi4py(PythonPackage):
     license("BSD-2-Clause", when="@:3")
 
     version("master", branch="master")
+    version("4.0.1", sha256="f3174b245775d556f4fddb32519a2066ef0592edc810c5b5a59238f9a0a40c89")
     version("4.0.0", sha256="820d31ae184d69c17d9b5d55b1d524d56be47d2e6cb318ea4f3e7007feff2ccc")
     version("3.1.6", sha256="c8fa625e0f92b082ef955bfb52f19fa6691d29273d7d71135d295aa143dee6cb")
     version("3.1.5", sha256="a706e76db9255135c2fb5d1ef54cb4f7b0e4ad9e33cbada7de27626205f2a153")

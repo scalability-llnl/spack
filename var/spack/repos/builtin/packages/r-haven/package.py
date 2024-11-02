@@ -33,6 +33,7 @@ class RHaven(RPackage):
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.2:", type=("build", "run"), when="@2.1.1:")
     depends_on("r@3.4:", type=("build", "run"), when="@2.5.0:")
+    depends_on("r@3.6:", type=("build", "run"), when="@2.5.4:")
     depends_on("r-cli@3.0.0:", type=("build", "run"), when="@2.5.0:")
     depends_on("r-forcats@0.2.0:", type=("build", "run"))
     depends_on("r-hms", type=("build", "run"))

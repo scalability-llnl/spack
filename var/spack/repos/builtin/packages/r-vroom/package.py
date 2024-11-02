@@ -19,6 +19,7 @@ class RVroom(RPackage):
 
     license("MIT")
 
+    version("1.6.5", sha256="7bdca21e58c9c5049d7445d182f59fd399193cb2f4318d083de0a559ec9b5761")
     version("1.6.1", sha256="eb0e33d53212f9c7e8b38d632c98bd5015365cc13f55dadb15ff0d404b31807c")
     version("1.6.0", sha256="a718ccdf916442693af5392944774d8aec5ce48f417871f9de84dd1089d26ca6")
     version("1.5.7", sha256="d087cb148f71c222fc89199d03df2502689149873414a6d89c2f006d3a109fde")
@@ -26,6 +27,7 @@ class RVroom(RPackage):
 
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@1.6.0:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.6.4:")
     depends_on("r-bit64", type=("build", "run"))
     depends_on("r-crayon", type=("build", "run"))
     depends_on("r-cli", type=("build", "run"))

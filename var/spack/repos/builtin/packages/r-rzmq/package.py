@@ -17,6 +17,7 @@ class RRzmq(RPackage):
 
     license("GPL-3.0-only")
 
+    version("0.9.13", sha256="8d603543b23a0b78352b4995c90c03d00686fef1d7a25004b66690191fb463f1")
     version("0.9.8", sha256="815a7eb502b1da3a84246b2dfb6594ca3f241a8675783e6bcdbbf9c952ec1c53")
     version("0.9.7", sha256="5f47b67b75fd4a230780406f7a55a3708ce8c014cff755a809a6bfa1a6925a45")
     version("0.9.6", sha256="80a3fc6eb6f7851224c4cd5e219ca4db0286551ad429359d4df853ccb9234316")
