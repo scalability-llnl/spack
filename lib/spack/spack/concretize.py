@@ -8,7 +8,6 @@
 import sys
 import time
 from contextlib import contextmanager
-from itertools import chain
 from typing import Tuple
 
 import llnl.util.tty as tty
@@ -34,37 +33,6 @@ def enable_compiler_existence_check():
     CHECK_COMPILER_EXISTENCE, saved = True, CHECK_COMPILER_EXISTENCE
     yield
     CHECK_COMPILER_EXISTENCE = saved
-
-
-def find_spec(spec, condition, default=None):
-    """Searches the dag from spec in an intelligent order and looks
-    for a spec that matches a condition"""
-    # First search parents, then search children
-    deptype = ("build", "link")
-    dagiter = chain(
-        spec.traverse(direction="parents", deptype=deptype, root=False),
-        spec.traverse(direction="children", deptype=deptype, root=False),
-    )
-    visited = set()
-    for relative in dagiter:
-        if condition(relative):
-            return relative
-        visited.add(id(relative))
-
-    # Then search all other relatives in the DAG *except* spec
-    for relative in spec.root.traverse(deptype="all"):
-        if relative is spec:
-            continue
-        if id(relative) in visited:
-            continue
-        if condition(relative):
-            return relative
-
-    # Finally search spec itself.
-    if condition(spec):
-        return spec
-
-    return default  # Nothing matched the condition; return default.
 
 
 def concretize_specs_together(*abstract_specs, **kwargs):

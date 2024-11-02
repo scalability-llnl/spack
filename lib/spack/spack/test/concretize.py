@@ -33,7 +33,6 @@ import spack.spec
 import spack.store
 import spack.util.file_cache
 import spack.variant as vt
-from spack.concretize import find_spec
 from spack.installer import PackageInstaller
 from spack.spec import CompilerSpec, Spec
 from spack.version import Version, VersionList, ver
@@ -673,39 +672,6 @@ class TestConcretize:
         )
         assert spec["externaltool"].compiler.satisfies("gcc")
         assert spec["stuff"].compiler.satisfies("gcc")
-
-    def test_find_spec_parents(self):
-        """Tests the spec finding logic used by concretization."""
-        s = Spec.from_literal({"a +foo": {"b +foo": {"c": None, "d+foo": None}, "e +foo": None}})
-
-        assert "a" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-    def test_find_spec_children(self):
-        s = Spec.from_literal({"a": {"b +foo": {"c": None, "d+foo": None}, "e +foo": None}})
-
-        assert "d" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-        s = Spec.from_literal({"a": {"b +foo": {"c+foo": None, "d": None}, "e +foo": None}})
-
-        assert "c" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-    def test_find_spec_sibling(self):
-        s = Spec.from_literal({"a": {"b +foo": {"c": None, "d": None}, "e +foo": None}})
-
-        assert "e" == find_spec(s["b"], lambda s: "+foo" in s).name
-        assert "b" == find_spec(s["e"], lambda s: "+foo" in s).name
-
-        s = Spec.from_literal({"a": {"b +foo": {"c": None, "d": None}, "e": {"f +foo": None}}})
-
-        assert "f" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-    def test_find_spec_self(self):
-        s = Spec.from_literal({"a": {"b +foo": {"c": None, "d": None}, "e": None}})
-        assert "b" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-    def test_find_spec_none(self):
-        s = Spec.from_literal({"a": {"b": {"c": None, "d": None}, "e": None}})
-        assert find_spec(s["b"], lambda s: "+foo" in s) is None
 
     def test_compiler_child(self):
         s = Spec("mpileaks%clang target=x86_64 ^dyninst%gcc")
