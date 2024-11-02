@@ -109,7 +109,7 @@ class VepCache(Package):
                 version=major, species=species, source=source, assembly=assembly, indexed=indexed
             )
 
-    depends_on("vep", type="build", when="~use_vep_installer")
+    depends_on("vep", type="build")
 
     @property
     def vep(self):
