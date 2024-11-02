@@ -120,6 +120,12 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant("pytorch", default=False, description="Enable libtorch support")
     variant("quip", default=False, description="Enable quip support")
     variant("mpi_f08", default=False, description="Use MPI F08 module")
+    variant(
+        "unified_memory",
+        default=False,
+        description="Enable unified memory support on Mi250 and Mi300 GPUs",
+        when="+rocm",
+    )
 
     variant(
         "enable_regtests",
@@ -1008,6 +1014,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_VORI", "libvori"),
             self.define_from_variant("CP2K_USE_QUIP", "quip"),
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
+            self.define_from_variant("CP2K_USE_UNIFIED_MEMORY", "unified_memory"),
         ]
 
         # we force the use elpa openmp threading support. might need to be revisited though
