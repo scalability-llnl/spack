@@ -122,7 +122,12 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant("dftd4", when="@2024.2:", default=False, description="Enable DFT-D4 support")
     variant("mpi_f08", default=False, description="Use MPI F08 module")
     variant("smeagol", default=False, description="Enable libsmeagol support", when="@2025.2:")
-
+    variant(
+        "unified_memory",
+        default=False,
+        description="Enable unified memory support on Mi250 and Mi300 GPUs",
+        when="+rocm",
+    )
     variant(
         "enable_regtests",
         default=False,
@@ -1030,6 +1035,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_DFTD4", "dftd4"),
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
             self.define_from_variant("CP2K_USE_LIBSMEAGOL", "smeagol"),
+            self.define_from_variant("CP2K_USE_UNIFIED_MEMORY", "unified_memory"),
         ]
 
         # we force the use elpa openmp threading support. might need to be revisited though
