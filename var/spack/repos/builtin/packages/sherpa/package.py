@@ -89,7 +89,6 @@ class Sherpa(CMakePackage, AutotoolsPackage):
 
     depends_on("mpi", when="+mpi")
     depends_on("python", when="+python")
-    depends_on("py-setuptools", when="+python", type="build")
     depends_on("swig", when="+python", type="build")
     depends_on("hepmc", when="+hepmc2")
     depends_on("hepmc3", when="+hepmc3")
