@@ -44,7 +44,7 @@ def concretize_specs_together(
     """Given a number of specs as input, tries to concretize them together.
 
     Args:
-        *abstract_specs: abstract specs to be concretized
+        abstract_specs: abstract specs to be concretized
         tests: list of package names for which to consider tests dependencies. If True, all nodes
             will have test dependencies. If False, test dependencies will be disregarded.
     """
@@ -62,7 +62,7 @@ def concretize_together(
     """Given a number of specs as input, tries to concretize them together.
 
     Args:
-        *spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
+        spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
             already concrete spec or None if not yet concretized
         tests: list of package names for which to consider tests dependencies. If True, all nodes
             will have test dependencies. If False, test dependencies will be disregarded.
@@ -82,7 +82,7 @@ def concretize_together_when_possible(
     "to the extent possible".
 
     Args:
-        *spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
+        spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
             already concrete spec or None if not yet concretized
         tests: list of package names for which to consider tests dependencies. If True, all nodes
             will have test dependencies. If False, test dependencies will be disregarded.
@@ -114,7 +114,7 @@ def concretize_separately(
     """Concretizes the input specs separately from each other.
 
     Args:
-        *spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
+        spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
             already concrete spec or None if not yet concretized
         tests: list of package names for which to consider tests dependencies. If True, all nodes
             will have test dependencies. If False, test dependencies will be disregarded.
