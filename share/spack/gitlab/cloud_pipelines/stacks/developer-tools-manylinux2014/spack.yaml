@@ -6,6 +6,11 @@ spack:
   concretizer:
     unify: true
     reuse: false
+  config:
+    shared_linking:
+      # because libgfortran depends on to libz the binaries are not guaranteed
+      # to be relocatable; we need self-contained gcc runtime libraries
+      missing_library_policy: warn
   definitions:
   - default_specs:
       # editors
