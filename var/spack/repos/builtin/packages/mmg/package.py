@@ -30,8 +30,6 @@ class Mmg(CMakePackage):
     homepage = "https://www.mmgtools.org/"
     url = "https://github.com/MmgTools/mmg/archive/v5.3.13.tar.gz"
 
-    maintainers("jcortial-safran")
-
     license("LGPL-3.0-or-later")
 
     version("5.8.0", sha256="686eaab84de79c072f3aedf26cd11ced44c84b435d51ce34e016ad203172922f")
@@ -51,6 +49,7 @@ class Mmg(CMakePackage):
     variant("scotch", default=True, description="Enable SCOTCH library support")
     variant("doc", default=False, description="Build documentation")
     variant("vtk", default=False, when="@5.5.0:", description="Enable VTK I/O support")
+    variant("private", default=True, description="Enable private headers")
 
     depends_on("scotch", when="+scotch")
     depends_on("doxygen", when="+doc")
@@ -61,6 +60,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
         shared_active = self.spec.satisfies("+shared")
         return [
+            self.define("MMG_INSTALL_PRIVATE_HEADERS", self.spec.satisfies("+private")),
             self.define_from_variant("USE_SCOTCH", "scotch"),
             self.define_from_variant("USE_VTK", "vtk"),
             self.define("BUILD_SHARED_LIBS", shared_active),
