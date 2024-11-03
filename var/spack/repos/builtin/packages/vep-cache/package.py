@@ -77,7 +77,8 @@ class VepCache(Package):
         "rattus_norvegicus": ["Rnor_6.0"],
     }
 
-    variant("use_vep_installer", default=False, description="Use VEP installer script to download")
+    variant("use_vep_installer", default=True, description="Use VEP installer script to download")
+    variant("match_vep_version", default=True, description="Match cache and software version")
     variant("env", default=True, description="Setup VEP environment variables for this cache")
 
     # Cache configuration options
@@ -121,6 +122,7 @@ class VepCache(Package):
     ):
         # A possibility of more than one assembly, even though most only have one
         for assembly in assemblies:
+            depends_on(f"vep@{major}", type="build", when=f"@{major}+match_vep_version")
             resource(
                 **_vep_cache_resource_kwargs(
                     version=major,
@@ -161,7 +163,7 @@ class VepCache(Package):
             assembly = assembly_name.replace("grch", "GRCh")
             cache_dir = join_path(species, f"{cache_version}_{assembly}")
         else:
-            for check_species, assemblies in vep_species.items():
+            for check_species, assemblies in self.vep_species.items():
                 if species == check_species:
                     assembly = assemblies[0]
                     break
@@ -221,7 +223,8 @@ class VepCache(Package):
         return args
 
     def install_with_installer(self):
-        installer = which(self.vep.vep_installer_path)
+        vep = self.spec["vep"].package
+        installer = which(vep.vep_installer_path)
         installer(*self.installer_args())
 
     def install(self, spec, prefix):
