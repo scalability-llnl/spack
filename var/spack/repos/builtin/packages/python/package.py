@@ -254,7 +254,6 @@ class Python(Package):
     variant("ssl", default=True, description="Build ssl module")
     variant("sqlite3", default=True, description="Build sqlite3 module")
     variant("dbm", default=True, description="Build dbm module")
-    variant("nis", default=False, description="Build nis module")
     variant("zlib", default=True, description="Build zlib module")
     variant("bz2", default=True, description="Build bz2 module")
     variant("lzma", default=True, description="Build lzma module")
@@ -285,7 +284,12 @@ class Python(Package):
         # https://docs.python.org/3.10/whatsnew/3.10.html#build-changes
         depends_on("sqlite@3.7.15:", when="@3.10:+sqlite3")
         depends_on("gdbm", when="+dbm")  # alternatively ndbm or berkeley-db
-        depends_on("libnsl", when="+nis")
+        # nis module was removed in Python 3.13 and could not be disabled prior to that
+        with when("@:3.12"):
+            depends_on("libnsl", when="platform=linux")
+            depends_on("libnsl", when="platform=freebsd")
+            depends_on("libtirpc", when="platform=linux")
+            depends_on("libtirpc", when="platform=freebsd")
         depends_on("zlib-api", when="+zlib")
         depends_on("bzip2", when="+bz2")
         depends_on("xz libs=shared", when="+lzma")
@@ -387,7 +391,6 @@ class Python(Package):
             "readline",
             "sqlite3",
             "dbm",
-            "nis",
             "zlib",
             "bz2",
             "lzma",
@@ -786,10 +789,6 @@ class Python(Package):
             # Ensure that dbm module works
             if "+dbm" in spec:
                 self.command("-c", "import dbm")
-
-            # Ensure that nis module works
-            if "+nis" in spec:
-                self.command("-c", "import nis")
 
             # Ensure that zlib module works
             if "+zlib" in spec:
