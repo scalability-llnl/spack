@@ -30,6 +30,8 @@ class Mmg(CMakePackage):
     homepage = "https://www.mmgtools.org/"
     url = "https://github.com/MmgTools/mmg/archive/v5.3.13.tar.gz"
 
+    maintainers("jcortial-safran")
+
     license("LGPL-3.0-or-later")
 
     version("5.8.0", sha256="686eaab84de79c072f3aedf26cd11ced44c84b435d51ce34e016ad203172922f")
