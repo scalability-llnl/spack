@@ -170,3 +170,7 @@ class RustBootstrap(Package):
         install_script = Executable("./install.sh")
         install_args = [f"--prefix={prefix}", "--without=rust-docs"]
         install_script(" ".join(install_args))
+
+    # rust-bootstrap's prebuilt libLLVM.so is missing a dependency on zlib,
+    # meaning its rpaths should be patched
+    unresolved_libraries = ["libz.so.*"]
