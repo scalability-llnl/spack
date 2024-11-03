@@ -12,7 +12,7 @@ class Pythia8(AutotoolsPackage):
     the evolution from a few-body hard process to a complex multiparticle
     final state."""
 
-    homepage = "http://home.thep.lu.se/Pythia/"
+    homepage = "https://pythia.org/"
     url = "https://pythia.org/download/pythia83/pythia8306.tgz"
     list_url = "https://pythia.org/releases/"
 
