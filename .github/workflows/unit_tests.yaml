@@ -253,6 +253,10 @@ jobs:
         include-hidden-files: true
   # Run unit tests on Windows
   windows:
+    # DH*
+    # Can't run this on other repos than spack/spack
+    if: github.repository == 'spack/spack'
+    # *DH
     defaults:
       run:
         shell:
