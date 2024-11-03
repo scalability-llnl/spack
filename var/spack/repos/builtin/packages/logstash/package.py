@@ -26,7 +26,7 @@ class Logstash(Package):
 
     def url_for_version(self, version):
         if self.spec.satisfies("@:6"):
-            return automatically added to the packagef"https://artifacts.elastic.co/downloads/logstash/logstash-{version}.tar.gz"
+            return f"https://artifacts.elastic.co/downloads/logstash/logstash-{version}.tar.gz"
         else:
             return f"https://artifacts.elastic.co/downloads/logstash/logstash-{version}-linux-x86_64.tar.gz"
 
