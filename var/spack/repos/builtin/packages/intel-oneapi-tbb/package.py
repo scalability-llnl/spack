@@ -145,6 +145,3 @@ class IntelOneapiTbb(IntelOneApiLibraryPackage):
             return
         self.symlink_dir(self.component_prefix.include, self.prefix.include)
         self.symlink_dir(self.component_prefix.lib, self.prefix.lib)
-
-    # contains precompiled binaries without rpaths
-    unresolved_libraries = ["*"]
