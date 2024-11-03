@@ -26,6 +26,5 @@ class PrometheusCpp(CMakePackage):
     depends_on("curl")
 
     def cmake_args(self):
-        args = ["-DBUILD_SHARED_LIBS=ON",
-                "-DENABLE_TESTING=OFF"]
+        args = ["-DBUILD_SHARED_LIBS=ON", "-DENABLE_TESTING=OFF"]
         return args
