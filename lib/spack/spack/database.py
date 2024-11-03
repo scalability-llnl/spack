@@ -69,7 +69,7 @@ from spack.directory_layout import (
 from spack.error import SpackError
 from spack.util.crypto import bit_length
 
-from .enums import ANY_STATUS, DBStatusQuery
+from .enums import ANY_STATUS, DBStatus
 
 # TODO: Provide an API automatically retyring a build after detecting and
 # TODO: clearing a failure.
@@ -162,11 +162,11 @@ def _autospec(function):
     return converter
 
 
-def normalize_query(installed: Union[bool, DBStatusQuery]) -> DBStatusQuery:
+def normalize_query(installed: Union[bool, DBStatus]) -> DBStatus:
     if installed is True:
-        installed = DBStatusQuery.INSTALLED
+        installed = DBStatus.INSTALLED
     elif installed is False:
-        installed = DBStatusQuery.MISSING
+        installed = DBStatus.MISSING
     return installed
 
 
@@ -217,12 +217,12 @@ class InstallRecord:
         self.in_buildcache = in_buildcache
         self.origin = origin
 
-    def install_type_matches(self, installed: DBStatusQuery) -> bool:
+    def install_type_matches(self, installed: DBStatus) -> bool:
         if self.installed:
-            return DBStatusQuery.INSTALLED in installed
+            return DBStatus.INSTALLED in installed
         elif self.deprecated_for:
-            return DBStatusQuery.DEPRECATED in installed
-        return DBStatusQuery.MISSING in installed
+            return DBStatus.DEPRECATED in installed
+        return DBStatus.MISSING in installed
 
     def to_dict(self, include_fields=DEFAULT_INSTALL_RECORD_FIELDS):
         rec_dict = {}
@@ -1376,7 +1376,7 @@ class Database:
         self,
         dag_hash: str,
         default: Optional[List["spack.spec.Spec"]] = None,
-        installed: Union[bool, DBStatusQuery] = ANY_STATUS,
+        installed: Union[bool, DBStatus] = ANY_STATUS,
     ) -> Optional[List["spack.spec.Spec"]]:
         installed = normalize_query(installed)
         # hash is a full hash and is in the data somewhere
@@ -1403,7 +1403,7 @@ class Database:
         self,
         dag_hash: str,
         default: Optional[List["spack.spec.Spec"]] = None,
-        installed: Union[bool, DBStatusQuery] = ANY_STATUS,
+        installed: Union[bool, DBStatus] = ANY_STATUS,
     ) -> Optional[List["spack.spec.Spec"]]:
         """Look up a spec in *this DB* by DAG hash, or by a DAG hash prefix.
 
@@ -1411,7 +1411,7 @@ class Database:
             dag_hash: hash (or hash prefix) to look up
             default: default value to return if dag_hash is not in the DB
             installed: if ``True``, includes only installed specs in the search; if ``False``
-                only missing specs. Otherwise, a DBStatusQuery flag.
+                only missing specs. Otherwise, a DBStatus flag.
 
         ``installed`` defaults to ``ANY_STATUS`` so we can refer to any known hash. Note that
         ``query()`` and ``query_one()`` differ in that they only return installed specs by default.
@@ -1424,7 +1424,7 @@ class Database:
         self,
         dag_hash: str,
         default: Optional[List["spack.spec.Spec"]] = None,
-        installed: Union[bool, DBStatusQuery] = ANY_STATUS,
+        installed: Union[bool, DBStatus] = ANY_STATUS,
     ) -> Optional[List["spack.spec.Spec"]]:
         """Look up a spec by DAG hash, or by a DAG hash prefix.
 
@@ -1432,7 +1432,7 @@ class Database:
             dag_hash: hash (or hash prefix) to look up
             default: default value to return if dag_hash is not in the DB
             installed: if ``True``, includes only installed specs in the search; if ``False``
-                only missing specs. Otherwise, a DBStatusQuery flag.
+                only missing specs. Otherwise, a DBStatus flag.
 
         ``installed`` defaults to ``ANY_STATUS`` so we can refer to any known hash. Note that
         ``query()`` and ``query_one()`` differ in that they only return installed specs by default.
@@ -1455,7 +1455,7 @@ class Database:
         query_spec: Optional[Union[str, "spack.spec.Spec"]] = None,
         *,
         predicate_fn: Optional[SelectType] = None,
-        installed: Union[bool, DBStatusQuery] = True,
+        installed: Union[bool, DBStatus] = True,
         explicit: Optional[bool] = None,
         start_date: Optional[datetime.datetime] = None,
         end_date: Optional[datetime.datetime] = None,
@@ -1533,7 +1533,7 @@ class Database:
         query_spec: Optional[Union[str, "spack.spec.Spec"]] = None,
         *,
         predicate_fn: Optional[SelectType] = None,
-        installed: Union[bool, DBStatusQuery] = True,
+        installed: Union[bool, DBStatus] = True,
         explicit: Optional[bool] = None,
         start_date: Optional[datetime.datetime] = None,
         end_date: Optional[datetime.datetime] = None,
@@ -1593,7 +1593,7 @@ class Database:
         query_spec: Optional[Union[str, "spack.spec.Spec"]] = None,
         *,
         predicate_fn: Optional[SelectType] = None,
-        installed: Union[bool, DBStatusQuery] = True,
+        installed: Union[bool, DBStatus] = True,
         explicit: Optional[bool] = None,
         start_date: Optional[datetime.datetime] = None,
         end_date: Optional[datetime.datetime] = None,
@@ -1689,7 +1689,7 @@ class Database:
         self,
         query_spec: Optional[Union[str, "spack.spec.Spec"]],
         predicate_fn: Optional[SelectType] = None,
-        installed: Union[bool, DBStatusQuery] = True,
+        installed: Union[bool, DBStatus] = True,
     ) -> Optional["spack.spec.Spec"]:
         """Query for exactly one spec that matches the query spec.
 

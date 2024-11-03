@@ -33,7 +33,7 @@ import spack.user_environment as uenv
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
 
-from ..enums import DBStatusQuery
+from ..enums import DBStatus
 
 # cmd has a submodule called "list" so preserve the python list module
 python_list = list
@@ -273,7 +273,7 @@ def disambiguate_spec(
     spec: "spack.spec.Spec",
     env: Optional["ev.Environment"],
     local: bool = False,
-    installed: Union[bool, DBStatusQuery] = True,
+    installed: Union[bool, DBStatus] = True,
     first: bool = False,
 ) -> "spack.spec.Spec":
     """Given a spec, figure out which installed package it refers to.
@@ -293,7 +293,7 @@ def disambiguate_spec_from_hashes(
     spec: "spack.spec.Spec",
     hashes: List[str],
     local: bool = False,
-    installed: Union[bool, DBStatusQuery] = True,
+    installed: Union[bool, DBStatus] = True,
     first: bool = False,
 ) -> "spack.spec.Spec":
     """Given a spec and a list of hashes, get concrete spec the spec refers to.
