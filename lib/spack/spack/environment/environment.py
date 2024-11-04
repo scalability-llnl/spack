@@ -55,7 +55,7 @@ from spack.spec import Spec
 from spack.spec_list import SpecList
 from spack.util.path import substitute_path_variables
 
-SpecPair = Tuple[spack.spec.Spec, spack.spec.Spec]
+SpecPair = spack.concretize.SpecPair
 
 #: environment variable used to indicate the active environment
 spack_env_var = "SPACK_ENV"
@@ -1533,9 +1533,7 @@ class Environment:
         ]
         return new_user_specs, kept_user_specs, specs_to_concretize
 
-    def _concretize_together_where_possible(
-        self, tests: bool = False
-    ) -> Sequence[Tuple[spack.spec.Spec, spack.spec.Spec]]:
+    def _concretize_together_where_possible(self, tests: bool = False) -> Sequence[SpecPair]:
         # Avoid cyclic dependency
         import spack.solver.asp
 
