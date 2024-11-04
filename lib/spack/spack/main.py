@@ -925,6 +925,9 @@ def _main(argv=None):
             env = spack.cmd.find_environment(args)
             if env:
                 ev.activate(env, args.use_env_repo)
+                # move command line scope to the highest level again
+                command_line_scope = spack.config.CONFIG.scopes.pop("command_line")
+                spack.config.CONFIG.push_scope(command_line_scope)
         except spack.config.ConfigFormatError as e:
             # print the context but delay this exception so that commands like
             # `spack config edit` can still work with a bad environment.
