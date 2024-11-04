@@ -249,6 +249,7 @@ class SuiteSparse(Package):
             # Mongoose directory finds libsuitesparseconfig.so in system
             # directories like /usr/lib.
             cmake_args = [
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
                 f"-DCMAKE_INSTALL_PREFIX={prefix}",
                 f"-DCMAKE_LIBRARY_PATH={prefix.lib}",
                 f"-DBLAS_ROOT={spec['blas'].prefix}",
