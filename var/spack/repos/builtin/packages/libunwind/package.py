@@ -11,13 +11,15 @@ class Libunwind(AutotoolsPackage):
     the call-chain of a program."""
 
     homepage = "https://www.nongnu.org/libunwind/"
-    url = "http://download.savannah.gnu.org/releases/libunwind/libunwind-1.1.tar.gz"
+    url = "https://github.com/libunwind/libunwind/releases/download/v0.0.0/libunwind-0.0.0.tar.gz"
     git = "https://github.com/libunwind/libunwind"
     maintainers("mwkrentel")
 
     license("MIT")
 
     version("master", branch="master")
+    version("1.8.1", sha256="ddf0e32dd5fafe5283198d37e4bf9decf7ba1770b6e7e006c33e6df79e6a6157")
+    version("1.7.2", sha256="a18a6a24307443a8ace7a8acc2ce79fbbe6826cd0edf98d6326d0225d6a5d6e6")
     version("1.6-stable", branch="v1.6-stable")
     version("1.6.2", sha256="4a6aec666991fb45d0889c44aede8ad6eb108071c3554fcdff671f9c94794976")
     version("1.5-stable", branch="v1.5-stable")
@@ -95,6 +97,11 @@ class Libunwind(AutotoolsPackage):
     conflicts("platform=darwin", msg="Non-GNU libunwind needs ELF libraries Darwin does not have")
 
     provides("unwind")
+
+    def url_for_version(self, version):
+        if version >= Version("1.7.0"):
+            return super().url_for_version(version)
+        return f"http://download.savannah.gnu.org/releases/libunwind/libunwind-v{version}.tar.gz"
 
     def flag_handler(self, name, flags):
         wrapper_flags = []
