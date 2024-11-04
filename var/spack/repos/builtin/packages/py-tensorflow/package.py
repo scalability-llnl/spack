@@ -596,6 +596,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         # Do you wish to build TensorFlow with CUDA support?
         if "+cuda" in spec:
             env.set("TF_NEED_CUDA", "1")
+            env.set("CUDA_NVCC", "1")
 
             # Do you want to use clang as CUDA compiler?
             env.set("TF_CUDA_CLANG", "0")
@@ -657,6 +658,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
             # only supports compute capabilities >= 3.5
             capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
             env.set("TF_CUDA_COMPUTE_CAPABILITIES", ",".join(capabilities))
+            env.set("HERMETIC_CUDA_COMPUTE_CAPABILITIES", ",".join(capabilities))
         else:
             env.set("TF_NEED_CUDA", "0")
 
