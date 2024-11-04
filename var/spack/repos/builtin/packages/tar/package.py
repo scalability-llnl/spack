@@ -42,7 +42,7 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
     )
 
     depends_on("autoconf@2.63:", type="build")
-    depends_on("autoconf@2.64:", type="build", whrn="@1.33:")
+    depends_on("autoconf@2.64:", type="build", when="@1.33:")
     depends_on("autoconf@2.71:", type="build", when="@1.35:")
 
     depends_on("iconv")
