@@ -63,13 +63,6 @@ def setup_parser(subparser):
         "default is .gitlab-ci.yml in the root of the repository",
     )
     generate.add_argument(
-        "--copy-to",
-        default=None,
-        help="path to additional directory for job files\n\n"
-        "this option provides an absolute path to a directory where the generated "
-        "jobs yaml file should be copied. default is not to copy",
-    )
-    generate.add_argument(
         "--optimize",
         action="store_true",
         default=False,
@@ -82,12 +75,6 @@ def setup_parser(subparser):
         action="store_true",
         default=False,
         help="(DEPRECATED) disable DAG scheduling (use 'plain' dependencies)",
-    )
-    generate.add_argument(
-        "--buildcache-destination",
-        default=None,
-        help="override the mirror configured in the environment\n\n"
-        "allows for pushing binaries from the generated pipeline to a different location",
     )
     prune_group = generate.add_mutually_exclusive_group()
     prune_group.add_argument(
@@ -214,20 +201,10 @@ def ci_generate(args):
 
     env = spack.cmd.require_active_env(cmd_name="ci generate")
 
-    if args.copy_to:
-        tty.warn("The flag --copy-to is deprecated and will be removed in Spack 0.23")
-
-    if args.buildcache_destination:
-        tty.warn(
-            "The flag --buildcache-destination is deprecated and will be removed in Spack 0.23"
-        )
-
     output_file = args.output_file
-    copy_yaml_to = args.copy_to
     prune_dag = args.prune_dag
     index_only = args.index_only
     artifacts_root = args.artifacts_root
-    buildcache_destination = args.buildcache_destination
 
     if not output_file:
         output_file = os.path.abspath(".gitlab-ci.yml")
@@ -245,14 +222,7 @@ def ci_generate(args):
         prune_dag=prune_dag,
         check_index_only=index_only,
         artifacts_root=artifacts_root,
-        remote_mirror_override=buildcache_destination,
     )
-
-    if copy_yaml_to:
-        copy_to_dir = os.path.dirname(copy_yaml_to)
-        if not os.path.exists(copy_to_dir):
-            os.makedirs(copy_to_dir)
-        shutil.copyfile(output_file, copy_yaml_to)
 
 
 def ci_reindex(args):
@@ -298,22 +268,13 @@ def ci_rebuild(args):
     job_log_dir = os.environ.get("SPACK_JOB_LOG_DIR")
     job_test_dir = os.environ.get("SPACK_JOB_TEST_DIR")
     repro_dir = os.environ.get("SPACK_JOB_REPRO_DIR")
-    # TODO: Remove this in Spack 0.23
-    local_mirror_dir = os.environ.get("SPACK_LOCAL_MIRROR_DIR")
     concrete_env_dir = os.environ.get("SPACK_CONCRETE_ENV_DIR")
-    ci_pipeline_id = os.environ.get("CI_PIPELINE_ID")
     ci_job_name = os.environ.get("CI_JOB_NAME")
     signing_key = os.environ.get("SPACK_SIGNING_KEY")
     job_spec_pkg_name = os.environ.get("SPACK_JOB_SPEC_PKG_NAME")
     job_spec_dag_hash = os.environ.get("SPACK_JOB_SPEC_DAG_HASH")
     spack_pipeline_type = os.environ.get("SPACK_PIPELINE_TYPE")
-    # TODO: Remove this in Spack 0.23
-    remote_mirror_override = os.environ.get("SPACK_REMOTE_MIRROR_OVERRIDE")
-    # TODO: Remove this in Spack 0.23
-    remote_mirror_url = os.environ.get("SPACK_REMOTE_MIRROR_URL")
     spack_ci_stack_name = os.environ.get("SPACK_CI_STACK_NAME")
-    # TODO: Remove this in Spack 0.23
-    shared_pr_mirror_url = os.environ.get("SPACK_CI_SHARED_PR_MIRROR_URL")
     rebuild_everything = os.environ.get("SPACK_REBUILD_EVERYTHING")
     require_signing = os.environ.get("SPACK_REQUIRE_SIGNING")
 
@@ -333,12 +294,10 @@ def ci_rebuild(args):
     job_log_dir = os.path.join(ci_project_dir, job_log_dir)
     job_test_dir = os.path.join(ci_project_dir, job_test_dir)
     repro_dir = os.path.join(ci_project_dir, repro_dir)
-    local_mirror_dir = os.path.join(ci_project_dir, local_mirror_dir)
     concrete_env_dir = os.path.join(ci_project_dir, concrete_env_dir)
 
     # Debug print some of the key environment variables we should have received
     tty.debug("pipeline_artifacts_dir = {0}".format(pipeline_artifacts_dir))
-    tty.debug("remote_mirror_url = {0}".format(remote_mirror_url))
     tty.debug("job_spec_pkg_name = {0}".format(job_spec_pkg_name))
 
     # Query the environment manifest to find out whether we're reporting to a
@@ -370,51 +329,11 @@ def ci_rebuild(args):
     full_rebuild = True if rebuild_everything and rebuild_everything.lower() == "true" else False
 
     pipeline_mirrors = spack.mirror.MirrorCollection(binary=True)
-    deprecated_mirror_config = False
     buildcache_destination = None
-    if "buildcache-destination" in pipeline_mirrors:
-        buildcache_destination = pipeline_mirrors["buildcache-destination"]
-    else:
-        deprecated_mirror_config = True
-        # TODO: This will be an error in Spack 0.23
+    if "buildcache-destination" not in pipeline_mirrors:
+        tty.die("spack ci rebuild requires a mirror named 'buildcache-destination")
 
-    # If no override url exists, then just push binary package to the
-    # normal remote mirror url.
-    # TODO: Remove in Spack 0.23
-    buildcache_mirror_url = remote_mirror_override or remote_mirror_url
-    if buildcache_destination:
-        buildcache_mirror_url = buildcache_destination.push_url
-
-    # Figure out what is our temporary storage mirror: Is it artifacts
-    # buildcache?  Or temporary-storage-url-prefix?  In some cases we need to
-    # force something or pipelines might not have a way to propagate build
-    # artifacts from upstream to downstream jobs.
-    # TODO: Remove this in Spack 0.23
-    pipeline_mirror_url = None
-
-    # TODO: Remove this in Spack 0.23
-    temp_storage_url_prefix = None
-    if "temporary-storage-url-prefix" in ci_config:
-        temp_storage_url_prefix = ci_config["temporary-storage-url-prefix"]
-        pipeline_mirror_url = url_util.join(temp_storage_url_prefix, ci_pipeline_id)
-
-    # TODO: Remove this in Spack 0.23
-    enable_artifacts_mirror = False
-    if "enable-artifacts-buildcache" in ci_config:
-        enable_artifacts_mirror = ci_config["enable-artifacts-buildcache"]
-        if enable_artifacts_mirror or (
-            spack_is_pr_pipeline and not enable_artifacts_mirror and not temp_storage_url_prefix
-        ):
-            # If you explicitly enabled the artifacts buildcache feature, or
-            # if this is a PR pipeline but you did not enable either of the
-            # per-pipeline temporary storage features, we force the use of
-            # artifacts buildcache.  Otherwise jobs will not have binary
-            # dependencies from previous stages available since we do not
-            # allow pushing binaries to the remote mirror during PR pipelines.
-            enable_artifacts_mirror = True
-            pipeline_mirror_url = url_util.path_to_file_url(local_mirror_dir)
-            mirror_msg = "artifact buildcache enabled, mirror url: {0}".format(pipeline_mirror_url)
-            tty.debug(mirror_msg)
+    buildcache_destination = pipeline_mirrors["buildcache-destination"]
 
     # Get the concrete spec to be built by this job.
     try:
@@ -489,48 +408,7 @@ def ci_rebuild(args):
         fd.write(spack_info.encode("utf8"))
         fd.write(b"\n")
 
-    pipeline_mirrors = []
-
-    # If we decided there should be a temporary storage mechanism, add that
-    # mirror now so it's used when we check for a hash match already
-    # built for this spec.
-    # TODO: Remove this block in Spack 0.23
-    if pipeline_mirror_url:
-        mirror = spack.mirror.Mirror(pipeline_mirror_url, name=spack_ci.TEMP_STORAGE_MIRROR_NAME)
-        spack.mirror.add(mirror, cfg.default_modify_scope())
-        pipeline_mirrors.append(pipeline_mirror_url)
-
-    # Check configured mirrors for a built spec with a matching hash
-    # TODO: Remove this block in Spack 0.23
-    mirrors_to_check = None
-    if remote_mirror_override:
-        if spack_pipeline_type == "spack_protected_branch":
-            # Passing "mirrors_to_check" below means we *only* look in the override
-            # mirror to see if we should skip building, which is what we want.
-            mirrors_to_check = {"override": remote_mirror_override}
-
-            # Adding this mirror to the list of configured mirrors means dependencies
-            # could be installed from either the override mirror or any other configured
-            # mirror (e.g. remote_mirror_url which is defined in the environment or
-            # pipeline_mirror_url), which is also what we want.
-            spack.mirror.add(
-                spack.mirror.Mirror(remote_mirror_override, name="mirror_override"),
-                cfg.default_modify_scope(),
-            )
-        pipeline_mirrors.append(remote_mirror_override)
-
-    # TODO: Remove this in Spack 0.23
-    if deprecated_mirror_config and spack_pipeline_type == "spack_pull_request":
-        if shared_pr_mirror_url != "None":
-            pipeline_mirrors.append(shared_pr_mirror_url)
-
-    matches = (
-        None
-        if full_rebuild
-        else bindist.get_mirrors_for_spec(
-            job_spec, mirrors_to_check=mirrors_to_check, index_only=False
-        )
-    )
+    matches = None if full_rebuild else bindist.get_mirrors_for_spec(job_spec, index_only=False)
 
     if matches:
         # Got a hash match on at least one configured mirror.  All
@@ -542,24 +420,9 @@ def ci_rebuild(args):
         tty.msg("No need to rebuild {0}, found hash match at: ".format(job_spec_pkg_name))
         for match in matches:
             tty.msg("    {0}".format(match["mirror_url"]))
-        # TODO: Remove this block in Spack 0.23
-        if enable_artifacts_mirror:
-            matching_mirror = matches[0]["mirror_url"]
-            build_cache_dir = os.path.join(local_mirror_dir, "build_cache")
-            tty.debug("Getting {0} buildcache from {1}".format(job_spec_pkg_name, matching_mirror))
-            tty.debug("Downloading to {0}".format(build_cache_dir))
-            bindist.download_single_spec(job_spec, build_cache_dir, mirror_url=matching_mirror)
 
         # Now we are done and successful
         return 0
-
-    # Before beginning the install, if this is a "rebuild everything" pipeline, we
-    # only want to keep the mirror being used by the current pipeline as it's binary
-    # package destination.  This ensures that the when we rebuild everything, we only
-    # consume binary dependencies built in this pipeline.
-    # TODO: Remove this in Spack 0.23
-    if deprecated_mirror_config and full_rebuild:
-        spack_ci.remove_other_mirrors(pipeline_mirrors, cfg.default_modify_scope())
 
     # No hash match anywhere means we need to rebuild spec
 
@@ -681,17 +544,11 @@ def ci_rebuild(args):
                 cdash_handler.copy_test_results(reports_dir, job_test_dir)
 
     if install_exit_code == 0:
-        # If the install succeeded, push it to one or more mirrors. Failure to push to any mirror
+        # If the install succeeded, push it to the buildcache destination. Failure to push
         # will result in a non-zero exit code. Pushing is best-effort.
-        mirror_urls = [buildcache_mirror_url]
-
-        # TODO: Remove this block in Spack 0.23
-        if pipeline_mirror_url:
-            mirror_urls.append(pipeline_mirror_url)
-
         for result in spack_ci.create_buildcache(
             input_spec=job_spec,
-            destination_mirror_urls=mirror_urls,
+            destination_mirror_urls=[buildcache_destination.push_url],
             sign_binaries=spack_ci.can_sign_binaries(),
         ):
             if not result.success:

@@ -252,7 +252,7 @@ class BinaryCacheIndex:
 
             spec_list = [
                 s
-                for s in db.query_local(installed=any, in_buildcache=any)
+                for s in db.query_local(installed=any)
                 if s.external or db.query_local_by_spec_hash(s.dag_hash()).in_buildcache
             ]
 
@@ -2562,7 +2562,13 @@ def _ensure_common_prefix(tar: tarfile.TarFile) -> str:
     return pkg_prefix
 
 
-def install_root_node(spec, unsigned=False, force=False, sha256=None):
+def install_root_node(
+    spec: spack.spec.Spec,
+    unsigned=False,
+    force: bool = False,
+    sha256: Optional[str] = None,
+    allow_missing: bool = False,
+) -> None:
     """Install the root node of a concrete spec from a buildcache.
 
     Checking the sha256 sum of a node before installation is usually needed only
@@ -2571,11 +2577,10 @@ def install_root_node(spec, unsigned=False, force=False, sha256=None):
 
     Args:
         spec: spec to be installed (note that only the root node will be installed)
-        unsigned (bool): if True allows installing unsigned binaries
-        force (bool): force installation if the spec is already present in the
-            local store
-        sha256 (str): optional sha256 of the binary package, to be checked
-            before installation
+        unsigned: if True allows installing unsigned binaries
+        force: force installation if the spec is already present in the local store
+        sha256: optional sha256 of the binary package, to be checked before installation
+        allow_missing: when true, allows installing a node with missing dependencies
     """
     # Early termination
     if spec.external or spec.virtual:
@@ -2613,7 +2618,7 @@ def install_root_node(spec, unsigned=False, force=False, sha256=None):
                 spec, spack.store.STORE.layout.spec_file_path(spec)
             )
         spack.hooks.post_install(spec, False)
-        spack.store.STORE.db.add(spec)
+        spack.store.STORE.db.add(spec, allow_missing=allow_missing)
 
 
 def install_single_spec(spec, unsigned=False, force=False):

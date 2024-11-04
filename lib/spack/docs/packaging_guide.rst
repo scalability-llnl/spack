@@ -2503,15 +2503,14 @@ with. For example, suppose that in the ``libdwarf`` package you write:
 
    depends_on("libelf@0.8")
 
-Now ``libdwarf`` will require ``libelf`` at *exactly* version ``0.8``.
-You can also specify a requirement for a particular variant or for
-specific compiler flags:
+Now ``libdwarf`` will require ``libelf`` in the range ``0.8``, which
+includes patch versions ``0.8.1``, ``0.8.2``, etc. Apart from version
+restrictions, you can also specify variants if this package requires
+optional features of the dependency.
 
 .. code-block:: python
 
-   depends_on("libelf@0.8+debug")
-   depends_on("libelf debug=True")
-   depends_on("libelf cppflags='-fPIC'")
+   depends_on("libelf@0.8 +parser +pic")
 
 Both users *and* package authors can use the same spec syntax to refer
 to different package configurations. Users use the spec syntax on the
@@ -2519,46 +2518,82 @@ command line to find installed packages or to install packages with
 particular constraints, and package authors can use specs to describe
 relationships between packages.
 
-^^^^^^^^^^^^^^
-Version ranges
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Specifying backward and forward compatibility
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Although some packages require a specific version for their dependencies,
-most can be built with a range of versions. For example, if you are
-writing a package for a legacy Python module that only works with Python
-2.4 through 2.6, this would look like:
+Packages are often compatible with a range of versions of their
+dependencies. This is typically referred to as backward and forward
+compatibility. Spack allows you to specify this in the ``depends_on``
+directive using version ranges.
 
-.. code-block:: python
-
-   depends_on("python@2.4:2.6")
-
-Version ranges in Spack are *inclusive*, so ``2.4:2.6`` means any version
-greater than or equal to ``2.4`` and up to and including any ``2.6.x``. If
-you want to specify that a package works with any version of Python 3 (or
-higher), this would look like:
+**Backwards compatibility** means that the package requires at least a
+certain version of its dependency:
 
 .. code-block:: python
 
-   depends_on("python@3:")
+   depends_on("python@3.10:")
 
-Here we leave out the upper bound. If you want to say that a package
-requires Python 2, you can similarly leave out the lower bound:
+In this case, the package requires Python 3.10 or newer.
 
-.. code-block:: python
-
-   depends_on("python@:2")
-
-Notice that we didn't use ``@:3``. Version ranges are *inclusive*, so
-``@:3`` means "up to and including any 3.x version".
-
-You can also simply write
+Commonly, packages drop support for older versions of a dependency as
+they release new versions. In Spack you can conveniently add every
+backward compatibility rule as a separate line:
 
 .. code-block:: python
 
-   depends_on("python@2.7")
+   # backward compatibility with Python
+   depends_on("python@3.8:")
+   depends_on("python@3.9:", when="@1.2:")
+   depends_on("python@3.10:", when="@1.4:")
 
-to tell Spack that the package needs Python 2.7.x. This is equivalent to
-``@2.7:2.7``.
+This means that in general we need Python 3.8 or newer; from version
+1.2 onwards we need Python 3.9 or newer; from version 1.4 onwards we
+need Python 3.10 or newer. Notice that it's fine to have overlapping
+ranges in the ``when`` clauses.
+
+**Forward compatibility** means that the package requires at most a
+certain version of its dependency. Forward compatibility rules are
+necessary when there are breaking changes in the dependency that the
+package cannot handle. In Spack we often add forward compatibility
+bounds only at the time a new, breaking version of a dependency is
+released. As with backward compatibility, it is typical to see a list
+of forward compatibility bounds in a package file as seperate lines:
+
+.. code-block:: python
+
+   # forward compatibility with Python
+   depends_on("python@:3.12", when="@:1.10")
+   depends_on("python@:3.13", when="@:1.12")
+
+Notice how the ``:`` now appears before the version number both in the
+dependency and in the ``when`` clause. This tells Spack that in general
+we need Python 3.13 or older up to version ``1.12.x``, and up to version
+``1.10.x`` we need Python 3.12 or older. Said differently, forward compatibility
+with Python 3.13 was added in version 1.11, while version 1.13 added forward
+compatibility with Python 3.14.
+
+Notice that a version range ``@:3.12`` includes *any* patch version
+number ``3.12.x``, which is often useful when specifying forward compatibility
+bounds.
+
+So far we have seen open-ended version ranges, which is by far the most
+common use case. It is also possible to specify both a lower and an upper bound
+on the version of a dependency, like this:
+
+.. code-block:: python
+
+   depends_on("python@3.10:3.12")
+
+There is short syntax to specify that a package is compatible with say any
+``3.x`` version:
+
+.. code-block:: python
+
+   depends_on("python@3")
+
+The above is equivalent to ``depends_on("python@3:3")``, which means at least
+Python version 3 and at most any version ``3.x.y``.
 
 In very rare cases, you may need to specify an exact version, for example
 if you need to distinguish between ``3.2`` and ``3.2.1``:

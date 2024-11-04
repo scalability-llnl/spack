@@ -33,8 +33,9 @@ def patch(parser, args):
         spack.config.set("config:checksum", False, scope="command_line")
 
     specs = spack.cmd.parse_specs(args.specs, concretize=False)
+    specs = spack.cmd.matching_specs_from_env(specs)
     for spec in specs:
-        _patch(spack.cmd.matching_spec_from_env(spec).package)
+        _patch(spec.package)
 
 
 def _patch_env(env: ev.Environment):

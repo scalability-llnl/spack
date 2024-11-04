@@ -8,6 +8,7 @@ import os
 
 import pytest
 
+from llnl.util.filesystem import working_dir
 from llnl.util.symlink import resolve_link_target_relative_to_the_link
 
 import spack.caches
@@ -19,6 +20,7 @@ import spack.stage
 import spack.util.executable
 import spack.util.spack_json as sjson
 import spack.util.url as url_util
+from spack.cmd.common.arguments import mirror_name_or_url
 from spack.spec import Spec
 from spack.util.executable import which
 from spack.util.spack_yaml import SpackYAMLError
@@ -357,3 +359,12 @@ def test_update_connection_params(direction):
     assert m.get_access_token(direction) == "token"
     assert m.get_profile(direction) == "profile"
     assert m.get_endpoint_url(direction) == "https://example.com"
+
+
+def test_mirror_name_or_url_dir_parsing(tmp_path):
+    curdir = tmp_path / "mirror"
+    curdir.mkdir()
+
+    with working_dir(curdir):
+        assert mirror_name_or_url(".").fetch_url == curdir.as_uri()
+        assert mirror_name_or_url("..").fetch_url == tmp_path.as_uri()

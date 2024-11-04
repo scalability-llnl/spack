@@ -714,7 +714,7 @@ class Configuration:
 @contextlib.contextmanager
 def override(
     path_or_scope: Union[ConfigScope, str], value: Optional[Any] = None
-) -> Generator[Union[lang.Singleton, Configuration], None, None]:
+) -> Generator[Configuration, None, None]:
     """Simple way to override config settings within a context.
 
     Arguments:
@@ -756,9 +756,7 @@ def override(
 COMMAND_LINE_SCOPES: List[str] = []
 
 
-def _add_platform_scope(
-    cfg: Union[Configuration, lang.Singleton], name: str, path: str, writable: bool = True
-) -> None:
+def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool = True) -> None:
     """Add a platform-specific subdirectory for the current platform."""
     platform = spack.platforms.host().name
     scope = DirectoryConfigScope(
@@ -792,9 +790,7 @@ def config_paths_from_entry_points() -> List[Tuple[str, str]]:
     return config_paths
 
 
-def _add_command_line_scopes(
-    cfg: Union[Configuration, lang.Singleton], command_line_scopes: List[str]
-) -> None:
+def _add_command_line_scopes(cfg: Configuration, command_line_scopes: List[str]) -> None:
     """Add additional scopes from the --config-scope argument, either envs or dirs."""
     import spack.environment.environment as env  # circular import
 
@@ -875,7 +871,7 @@ def create() -> Configuration:
 
 
 #: This is the singleton configuration instance for Spack.
-CONFIG: Union[Configuration, lang.Singleton] = lang.Singleton(create)
+CONFIG: Configuration = lang.Singleton(create)  # type: ignore
 
 
 def add_from_file(filename: str, scope: Optional[str] = None) -> None:

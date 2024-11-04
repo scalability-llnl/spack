@@ -25,11 +25,11 @@ class G4ensdfstate(Package):
 
     def install(self, spec, prefix):
         mkdirp(join_path(prefix.share, "data"))
-        install_path = join_path(prefix.share, "data", "G4ENSDFSTATE{0}".format(self.version))
+        install_path = join_path(prefix.share, "data", self.g4datasetname)
         install_tree(self.stage.source_path, install_path)
 
     def setup_dependent_run_environment(self, env, dependent_spec):
-        install_path = join_path(self.prefix.share, "data", "G4ENSDFSTATE{0}".format(self.version))
+        install_path = join_path(self.prefix.share, "data", self.g4datasetname)
         env.set("G4ENSDFSTATEDATA", install_path)
 
     def url_for_version(self, version):
@@ -37,3 +37,8 @@ class G4ensdfstate(Package):
         return (
             "http://geant4-data.web.cern.ch/geant4-data/datasets/G4ENSDFSTATE.%s.tar.gz" % version
         )
+
+    @property
+    def g4datasetname(self):
+        spec = self.spec
+        return "G4ENSDFSTATE{0}".format(spec.version)

@@ -18,6 +18,7 @@ class RLattice(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("0.22-6", sha256="4b377211e472ece7872b9d6759f9b9c660b09594500462eb6146312a1d4d00f7")
     version("0.21-8", sha256="8ad3d6974262e6cab6cc8fec38aa279b5b2f2524adf6f3eab56f68302b60c329")
     version("0.20-45", sha256="22388d92bdb7d3959da84d7308d9026dd8226ef07580783729e8ad2f7d7507ad")
     version("0.20-44", sha256="57b908e3c7ada08a38ad857ee44f44fdf9cfa59d5d9500bda2ccc9c7e96cdb9b")

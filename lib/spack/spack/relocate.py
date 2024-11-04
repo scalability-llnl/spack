@@ -283,7 +283,11 @@ def modify_macho_object(cur_path, rpaths, deps, idpath, paths_to_paths):
 
 def macholib_get_paths(cur_path):
     """Get rpaths, dependent libraries, and library id of mach-o objects."""
-    headers = macholib.MachO.MachO(cur_path).headers
+    headers = []
+    try:
+        headers = macholib.MachO.MachO(cur_path).headers
+    except ValueError:
+        pass
     if not headers:
         tty.warn("Failed to read Mach-O headers: {0}".format(cur_path))
         commands = []

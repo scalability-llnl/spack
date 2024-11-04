@@ -231,7 +231,7 @@ class TestSpecSemantics:
             ("mpich+foo", "mpich foo=True", "mpich+foo"),
             ("mpich++foo", "mpich foo=True", "mpich+foo"),
             ("mpich foo=true", "mpich+foo", "mpich+foo"),
-            ("mpich foo==true", "mpich++foo", "mpich+foo"),
+            ("mpich foo==true", "mpich++foo", "mpich++foo"),
             ("mpich~foo", "mpich foo=FALSE", "mpich~foo"),
             ("mpich~~foo", "mpich foo=FALSE", "mpich~foo"),
             ("mpich foo=False", "mpich~foo", "mpich~foo"),
@@ -271,17 +271,17 @@ class TestSpecSemantics:
             ("mpich+foo", "mpich", "mpich+foo"),
             ("mpich~foo", "mpich", "mpich~foo"),
             ("mpich foo=1", "mpich", "mpich foo=1"),
-            ("mpich", "mpich++foo", "mpich+foo"),
+            ("mpich", "mpich++foo", "mpich++foo"),
             ("libelf+debug", "libelf+foo", "libelf+debug+foo"),
             ("libelf+debug", "libelf+debug+foo", "libelf+debug+foo"),
             ("libelf debug=2", "libelf foo=1", "libelf debug=2 foo=1"),
             ("libelf debug=2", "libelf debug=2 foo=1", "libelf debug=2 foo=1"),
             ("libelf+debug", "libelf~foo", "libelf+debug~foo"),
             ("libelf+debug", "libelf+debug~foo", "libelf+debug~foo"),
-            ("libelf++debug", "libelf+debug+foo", "libelf++debug++foo"),
-            ("libelf debug==2", "libelf foo=1", "libelf debug==2 foo==1"),
-            ("libelf debug==2", "libelf debug=2 foo=1", "libelf debug==2 foo==1"),
-            ("libelf++debug", "libelf++debug~foo", "libelf++debug~~foo"),
+            ("libelf++debug", "libelf+debug+foo", "libelf+debug+foo"),
+            ("libelf debug==2", "libelf foo=1", "libelf debug==2 foo=1"),
+            ("libelf debug==2", "libelf debug=2 foo=1", "libelf debug=2 foo=1"),
+            ("libelf++debug", "libelf++debug~foo", "libelf++debug~foo"),
             ("libelf foo=bar,baz", "libelf foo=*", "libelf foo=bar,baz"),
             ("libelf foo=*", "libelf foo=bar,baz", "libelf foo=bar,baz"),
             (
@@ -367,19 +367,24 @@ class TestSpecSemantics:
                 'mpich cflags="-O3 -g"',
                 'mpich cflags=="-O3"',
                 'mpich cflags="-O3 -g"',
+                'mpich cflags="-O3 -g"',
+                [],
+                [],
+            ),
+            (
                 'mpich cflags=="-O3 -g"',
-                [("cflags", "-O3")],
-                [("cflags", "-O3")],
+                'mpich cflags=="-O3"',
+                'mpich cflags=="-O3 -g"',
+                'mpich cflags=="-O3 -g"',
+                [("cflags", "-O3"), ("cflags", "-g")],
+                [("cflags", "-O3"), ("cflags", "-g")],
             ),
         ],
     )
     def test_constrain_compiler_flags(
         self, lhs, rhs, expected_lhs, expected_rhs, propagated_lhs, propagated_rhs
     ):
-        """Constraining is asymmetric for compiler flags. Also note that
-        Spec equality does not account for flag propagation, so the checks
-        here are manual.
-        """
+        """Constraining is asymmetric for compiler flags."""
         lhs, rhs, expected_lhs, expected_rhs = (
             Spec(lhs),
             Spec(rhs),
@@ -1904,3 +1909,20 @@ def test_old_format_strings_trigger_error(default_mock_concretization):
     s = Spec("pkg-a").concretized()
     with pytest.raises(SpecFormatStringError):
         s.format("${PACKAGE}-${VERSION}-${HASH}")
+
+
+@pytest.mark.regression("47362")
+@pytest.mark.parametrize(
+    "lhs,rhs",
+    [
+        ("hdf5 +mpi", "hdf5++mpi"),
+        ("hdf5 cflags==-g", "hdf5 cflags=-g"),
+        ("hdf5 +mpi ++shared", "hdf5+mpi +shared"),
+        ("hdf5 +mpi cflags==-g", "hdf5++mpi cflag=-g"),
+    ],
+)
+def test_equality_discriminate_on_propagation(lhs, rhs):
+    """Tests that == can discriminate abstract specs based on their 'propagation' status"""
+    s, t = Spec(lhs), Spec(rhs)
+    assert s != t
+    assert len({s, t}) == 2

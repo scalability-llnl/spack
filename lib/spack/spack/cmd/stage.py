@@ -47,8 +47,8 @@ def stage(parser, args):
     if len(specs) > 1 and custom_path:
         tty.die("`--path` requires a single spec, but multiple were provided")
 
+    specs = spack.cmd.matching_specs_from_env(specs)
     for spec in specs:
-        spec = spack.cmd.matching_spec_from_env(spec)
         pkg = spec.package
 
         if custom_path:
