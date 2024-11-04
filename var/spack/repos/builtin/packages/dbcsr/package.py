@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import glob
+
 from spack.package import *
 
 
@@ -55,6 +57,7 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
 
     variant("opencl", default=False, description="Enable OpenCL backend")
     variant("mpi_f08", default=False, when="@2.6:", description="Use mpi F08 module")
+    variant("c_api", default=True, description="Enable C API")
 
     variant("g2g", default=False, description="GPU-aware MPI with CUDA/HIP")
     conflicts("+g2g", when="~cuda ~rocm", msg="GPU-aware MPI requires +cuda or +rocm")
@@ -115,6 +118,9 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("smm=blas", when="+opencl")
 
+    conflicts("~mpi", when="+c_api", msg="C API needs MPI")
+    conflicts("+c_api", when="%fj", msg="Fujitsu compiler doesn't support C API")
+
     with when("+mpi"):
         # When using mpich 4.1 or higher, mpi_f08 has to be used, otherwise:
         # Error: Type mismatch in argument 'baseptr' at (1); passed TYPE(c_ptr)
@@ -125,6 +131,9 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
 
     generator("ninja")
     depends_on("ninja@1.10:", type="build")
+
+    # Add '-Kopenmp' option for Fujitsu compiler to avoid errors
+    patch("fjfrt_mod.patch", when="%fj")
 
     def cmake_args(self):
         spec = self.spec
@@ -139,8 +148,7 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
             "-DUSE_SMM=%s" % ("libxsmm" if "smm=libxsmm" in spec else "blas"),
             self.define_from_variant("USE_MPI", "mpi"),
             self.define_from_variant("USE_OPENMP", "openmp"),
-            # C API needs MPI
-            self.define_from_variant("WITH_C_API", "mpi"),
+            self.define_from_variant("WITH_C_API", "c_api"),
             "-DBLAS_FOUND=true",
             "-DBLAS_LIBRARIES=%s" % (spec["blas"].libs.joined(";")),
             "-DLAPACK_FOUND=true",
@@ -197,3 +205,15 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
         since they are already parallelized"""
         with working_dir(self.build_directory):
             self._if_ninja_target_execute("test", parallel=False)
+
+    @run_after("install")
+    def install_modfiles(self):
+        if self.spec.satisfies("%fj"):
+            for mod in glob.iglob(join_path(self.build_directory, "src", "*.mod")):
+                install(mod, self.prefix.include)
+
+    def flag_handler(self, name, flags):
+        if self.spec.satisfies("%fj"):
+            if name == "fflags":
+                flags.append("-Kparallel -Kopenmp -Free")
+        return (None, None, flags)

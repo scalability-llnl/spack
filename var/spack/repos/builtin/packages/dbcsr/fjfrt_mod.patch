@@ -1,0 +1,14 @@
+--- a/examples/CMakeLists.txt	2023-11-02 12:15:04.000000000 +0900
++++ b/examples/CMakeLists.txt	2023-11-02 13:19:11.000000000 +0900
+@@ -17,6 +17,11 @@ foreach (dbcsr_program_src ${DBCSR_PROGR
+   # actually Fortran and needs to be told explicitly:
+   set_target_properties(${dbcsr_program_name} PROPERTIES LINKER_LANGUAGE
+                                                          Fortran)
++  if (CMAKE_Fortran_COMPILER_ID STREQUAL "Fujitsu")
++    if (OpenMP_FOUND)
++       target_link_libraries(${dbcsr_program_name} OpenMP::OpenMP_Fortran)
++    endif ()
++  endif ()
+ endforeach ()
+ 
+ # Compile C++ examples
