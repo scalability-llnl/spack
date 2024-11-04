@@ -144,9 +144,8 @@ class Pythia8(AutotoolsPackage):
             )
 
     # Fix for https://gitlab.com/Pythia8/releases/-/issues/523
-    with when("@:8.312 cxxstd=20"):
-        patch("pythia8-cpp20-fjcore-forward-decl.patch", when="%apple-clang")
-        patch("pythia8-cpp20-fjcore-forward-decl.patch", when="%clang")
+    with when("@8.307:8.312 cxxstd=20"):
+        patch("pythia8-cpp20-fjcore-forward-decl.patch")
 
     def configure_args(self):
         args = []
