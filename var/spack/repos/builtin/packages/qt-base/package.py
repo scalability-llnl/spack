@@ -69,7 +69,7 @@ class QtPackage(CMakePackage):
         args.append(self.define("QT_ADDITIONAL_PACKAGES_PREFIX_PATH", ":".join(qt_prefix_path)))
 
         # Add all dependency prefix/lib directories to RPATH
-        args.append(self.define("QT_EXTRA_RPATHS", ":".join(p.lib for p in qt_prefix_path)))
+        args.append(self.define("QT_EXTRA_RPATHS", ":".join(p + "/lib" for p in qt_prefix_path)))
 
         return args
 
