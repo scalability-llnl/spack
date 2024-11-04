@@ -139,7 +139,6 @@ class Pythia8(AutotoolsPackage):
 
         # Fix for https://gitlab.com/Pythia8/releases/-/issues/428
         with when("@:8.311"):
-            print("Patching")
             filter_file(
                 r"[/]examples[/]Makefile[.]inc\|;n' \\", "/examples/Makefile.inc|' \\", "configure"
             )
