@@ -2565,15 +2565,13 @@ of forward compatibility bounds in a package file as seperate lines:
    # forward compatibility with Python
    depends_on("python@:3.12", when="@:1.10")
    depends_on("python@:3.13", when="@:1.12")
-   depends_on("python@:3.14")
 
 Notice how the ``:`` now appears before the version number both in the
 dependency and in the ``when`` clause. This tells Spack that in general
-we need Python 3.14 or older, but specifically up to version ``1.12.x``
-we need Python 3.13 or older, and up to version ``1.10.x`` we need Python
-3.12 or older. Said differently, forward compatibility with Python 3.13 was
-added in version 1.11, with Python 3.14 in version 1.13, and no release
-is compatible with Python 3.15 or newer yet.
+we need Python 3.13 or older up to version ``1.12.x``, and up to version
+``1.10.x`` we need Python 3.12 or older. Said differently, forward compatibility
+with Python 3.13 was added in version 1.11, while version 1.13 added forward
+compatibility with Python 3.14.
 
 Notice that a version range ``@:3.12`` includes *any* patch version
 number ``3.12.x``, which is often useful when specifying forward compatibility
