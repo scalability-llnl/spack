@@ -154,6 +154,45 @@ class Mirror:
         """Get the valid, canonicalized fetch URL"""
         return self.get_url("push")
 
+    def validate(self, direction="push"):
+        access_pair = self._get_value("access_pair", direction)
+        access_token_variable = self._get_value("access_token_variable", direction)
+        url = self.get_url(direction)
+
+        errors = []
+
+        # OCI requires an access pair
+        if url.startswith("oci://"):
+            if access_pair is None:
+                errors.append("OCI mirror requires an access_pair")
+
+        # Verify that the credentials that are variables expand
+        if access_pair and isinstance(access_pair, dict):
+            if "id_variable" in access_pair:
+                if access_pair["id_variable"] not in os.environ:
+                    errors.append(
+                        f"id_variable {access_pair['id_variable']} not set in environment"
+                    )
+            if "secret_variable" in access_pair:
+                if access_pair["secret_variable"] not in os.environ:
+                    errors.append(
+                        f"secret_variable {access_pair['secret_variable']} not set in environment"
+                    )
+
+        if access_token_variable:
+            if access_token_variable not in os.environ:
+                errors.append(
+                    f"access_token_variable {access_pair['access_token_variable']}"
+                    " not set in environment"
+                )
+
+        # TODO: Verify the URL is accessible
+
+        if errors:
+            msg = f"Could not validate push configuruation for mirror {self.name}:\n\t"
+            msg += "\n\t".join(errors)
+            raise spack.mirror.MirrorError(msg)
+
     def _update_connection_dict(self, current_data: dict, new_data: dict, top_level: bool):
         # Only allow one to exist in the config
         if "access_token" in current_data and "access_token_variable" in new_data:
