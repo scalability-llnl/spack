@@ -27,14 +27,8 @@ class Parsec(CMakePackage, CudaPackage):
     license("BSD-3-Clause-Open-MPI")
 
     version("master", branch="master")
-    version(
-        "3.0.2209",
-        sha256="67d383d076991484cb2a265f56420abdea7cc1f329c63ac65a3e96fbfb6cc295",
-    )
-    version(
-        "3.0.2012",
-        sha256="7a8403ca67305738f3974cbc7a51b64c4ec353ae9170f2468262a9a52035eff6",
-    )
+    version("3.0.2209", sha256="67d383d076991484cb2a265f56420abdea7cc1f329c63ac65a3e96fbfb6cc295")
+    version("3.0.2012", sha256="7a8403ca67305738f3974cbc7a51b64c4ec353ae9170f2468262a9a52035eff6")
     version(
         "1.1.0",
         sha256="d1e038713f2c1cd7db6765c891408d85648c46ee23e780fbd5e941b53c9eef85",
