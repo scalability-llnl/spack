@@ -23,11 +23,13 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
 
     version("1.35", sha256="14d55e32063ea9526e057fbf35fcabd53378e769787eff7919c3755b02d2b57e")
     version("1.34", sha256="03d908cf5768cfe6b7ad588c921c6ed21acabfb2b79b788d1330453507647aed")
-    version("1.32", sha256="b59549594d91d84ee00c99cf2541a3330fed3a42c440503326dab767f2fbb96c")
-    version("1.31", sha256="b471be6cb68fd13c4878297d856aebd50551646f4e3074906b1a74549c40d5a2")
-    version("1.30", sha256="4725cc2c2f5a274b12b39d1f78b3545ec9ebb06a6e48e8845e1995ac8513b088")
-    version("1.29", sha256="cae466e6e58c7292355e7080248f244db3a4cf755f33f4fa25ca7f9a7ed09af0")
-    version("1.28", sha256="6a6b65bac00a127a508533c604d5bf1a3d40f82707d56f20cefd38a05e8237de")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2019-9923
+        version("1.32", sha256="b59549594d91d84ee00c99cf2541a3330fed3a42c440503326dab767f2fbb96c")
+        version("1.31", sha256="b471be6cb68fd13c4878297d856aebd50551646f4e3074906b1a74549c40d5a2")
+        version("1.30", sha256="4725cc2c2f5a274b12b39d1f78b3545ec9ebb06a6e48e8845e1995ac8513b088")
+        version("1.29", sha256="cae466e6e58c7292355e7080248f244db3a4cf755f33f4fa25ca7f9a7ed09af0")
+        version("1.28", sha256="6a6b65bac00a127a508533c604d5bf1a3d40f82707d56f20cefd38a05e8237de")
 
     depends_on("c", type="build")  # generated
 
