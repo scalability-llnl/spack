@@ -226,3 +226,18 @@ class Mysql(CMakePackage):
 
         if "python" in self.spec and self.spec.satisfies("@:7"):
             self._fix_dtrace_shebang(env)
+
+    @run_before('build')
+    def change_makefile(self):
+        # Add 'cpp' path for rpcgen
+        mysqlgcs_path = join_path(self.build_directory,
+                                  'plugin/group_replication/libmysqlgcs/CMakeFiles/')
+        filter_file(r'rpcgen',
+                    'rpcgen -Y {0}/lib/spack/env'.format(spack.paths.spack_root),
+                    join_path(mysqlgcs_path, 'gen_xcom_vp_h.dir/build.make'))
+        filter_file(r'rpcgen',
+                    'rpcgen -Y {0}/lib/spack/env'.format(spack.paths.spack_root),
+                    join_path(mysqlgcs_path, 'gen_xcom_vp_c.dir/build.make'))
+        filter_file(r'rpcgen',
+                    'rpcgen -Y {0}/lib/spack/env'.format(spack.paths.spack_root),
+                    join_path(mysqlgcs_path, 'mysqlgcs.dir/build.make'))
