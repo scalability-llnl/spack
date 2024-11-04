@@ -160,6 +160,18 @@ class Extrae(AutotoolsPackage):
                 flags.append("-lintl")
         elif name == "ldflags":
             flags.append("-pthread")
+
+        # This is to work around
+        # <https://github.com/bsc-performance-tools/extrae/issues/115>.
+        if self.spec.satisfies("%gcc@14:") and name == "cflags":
+            flags.extend(
+                [
+                    "-Wno-error=incompatible-pointer-types",
+                    "-Wno-error=implicit-function-declaration",
+                    "-Wno-error=int-conversion",
+                ]
+            )
+
         return self.build_system_flags(name, flags)
 
     def install(self, spec, prefix):
