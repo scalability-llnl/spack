@@ -1,0 +1,12 @@
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -52,4 +52,5 @@ AM_CFLAGS = $(WARN_CFLAGS) $(WERROR_CFLAGS)
+ tar_LDADD = $(LIBS) ../lib/libtar.a ../gnu/libgnu.a\
+  $(LIB_ACL) $(LIB_CLOCK_GETTIME) $(LIB_EACCESS)\
+  $(LIB_GETRANDOM) $(LIB_HARD_LOCALE) $(FILE_HAS_ACL_LIB) $(LIB_MBRTOWC)\
+- $(LIB_SELINUX) $(LIB_SETLOCALE_NULL)
++ $(LIB_SELINUX) $(LIB_SETLOCALE_NULL) \
++ $(LIBINTL) $(LIBICONV)
+-- 
+cgit v1.2.3-70-g09d2
+

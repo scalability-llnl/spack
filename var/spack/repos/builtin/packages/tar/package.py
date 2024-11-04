@@ -59,6 +59,8 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
     patch("nvhpc-1.34.patch", when="@1.34 %nvhpc")
     # Workaround bug where __LONG_WIDTH__ is not defined
     patch("nvhpc-long-width.patch", when="@1.34 %nvhpc")
+    # Explicitly link against libiconv in 1.35
+    patch("libiconv-1.35.patch", when="@1.35")
 
     @classmethod
     def determine_version(cls, exe):
