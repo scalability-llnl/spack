@@ -171,7 +171,7 @@ class Mirror:
 
         if warn_deprecated_access_pair:
             tty.warn(
-                f"In mirror {self.name}: Using access_pair with a list is "
+                f"In mirror {self.name}: Using access_pair with a pain text secret is "
                 "deprecated, prefer id/secret_variable keys"
             )
 

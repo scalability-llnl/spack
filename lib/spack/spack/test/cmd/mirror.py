@@ -202,18 +202,18 @@ def test_mirror_crud(mutable_config, capsys):
             output = config("blame", "mirrors")
             assert all([x in output for x in ("foo", "bar", mirror_name, mirror_url)])
             # Mirror access_pair deprecation warning should not be in blame output
-            assert "Using access_pair with a list is deprecated" not in output
+            assert "Using access_pair with a pain text secret is deprecated" not in output
 
             output = mirror("set", id_arg, "foo_set", secret_arg, "bar_set", mirror_name)
             if "variable" not in secret_arg:
-                assert "Using access_pair with a list is deprecated" in output
+                assert "Using access_pair with a pain text secret is deprecated" in output
             output = config("blame", "mirrors")
             assert all([x in output for x in ("foo_set", "bar_set", mirror_name, mirror_url)])
             if "variable" not in secret_arg:
                 output = mirror(
                     "set", id_arg, "foo_set", secret_arg + "-variable", "bar_set_var", mirror_name
                 )
-                assert "Using access_pair with a list is deprecated" not in output
+                assert "Using access_pair with a pain text secret is deprecated" not in output
                 output = config("blame", "mirrors")
                 assert all(
                     [x in output for x in ("foo_set", "bar_set_var", mirror_name, mirror_url)]
