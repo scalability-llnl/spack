@@ -15,7 +15,7 @@ class Parsec(CMakePackage, CudaPackage):
     parallel execution of micro-tasks on distributed, heterogeneous systems.
     """
 
-    homepage = "https://icl.utk.edu/dte"
+    homepage = "https://github.com/icldisco/parsec"
     git = "https://github.com/icldisco/parsec.git"
     url = "https://github.com/ICLDisco/parsec/archive/refs/tags/parsec-3.0.2012.tar.gz"
     list_url = "https://github.com/ICLDisco/parsec/tags"
