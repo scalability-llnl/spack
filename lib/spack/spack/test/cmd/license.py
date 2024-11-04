@@ -112,7 +112,7 @@ def test_update_copyright_year(tmpdir):
         outdated = source_dir.join("header_%d.py" % year)
         first_line = outdated.open().read().split("\n")[0]
         assert str(year) not in first_line
-        assert spack.cmd.license.strict_date in first_line
+        assert spack.cmd.license.STRICT_DATE in first_line
 
-    mit_date = spack.cmd.license.strict_date.replace("Copyright", "Copyright (c)")
+    mit_date = spack.cmd.license.STRICT_DATE.replace("Copyright", "Copyright (c)")
     assert mit_date in open(test_mit_file).read()
