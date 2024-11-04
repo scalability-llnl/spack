@@ -1110,7 +1110,7 @@ def _headers_default_handler(spec: "Spec"):
         NoHeadersError: If no headers are found
     """
     home = getattr(spec.package, "home")
-    headers = fs.find_headers("*", root=home.include, recursive=True)
+    headers = fs.find_headers("*", root=home.include, recursive=True, max_depth=1)
 
     if headers:
         return headers
