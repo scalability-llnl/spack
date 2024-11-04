@@ -35,7 +35,7 @@ class Pegtl(CMakePackage):
     # Ref: https://bugs.gentoo.org/733678
     patch_url = "https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/pegtl/files/pegtl-2.8.3-gcc-10.patch"
     patch_checksum = "fc40b0c7390f8c0473f2cb4821bda7a5e107f93ca9d2fafeff2065445bb39981"
-    patch(patch_url, sha256=patch_checksum, level=0, when="@2.1.4:2.8.3")
+    patch(patch_url, sha256=patch_checksum, level=0, when="@2.1.4")
 
     def cmake_args(self):
         args = []

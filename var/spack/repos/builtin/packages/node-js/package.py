@@ -79,6 +79,15 @@ class NodeJs(Package):
     depends_on("openssl@1.1:", when="+openssl")
     depends_on("zlib-api", when="+zlib")
 
+    # https://github.com/nodejs/node/blob/main/BUILDING.md#supported-toolchains
+    conflicts("%gcc@:12.1", when="@23:")
+    conflicts("%gcc@:10.0", when="@20:")
+    conflicts("%gcc@:8.2", when="@16:")
+    conflicts("%gcc@:6.2", when="@12:")
+    conflicts("%apple-clang@:11", when="@21:")
+    conflicts("%apple-clang@:10", when="@16:")
+    conflicts("%apple-clang@:9", when="@13:")
+
     phases = ["configure", "build", "install"]
 
     # https://github.com/spack/spack/issues/19310
@@ -113,8 +122,14 @@ class NodeJs(Package):
             #
             # /usr/bin/libtool
             # libtool: /usr/bin/libtool
+            #
+            # We specify -M -f (an empty list of man-path entries) to prevent man-page
+            # searching to avoid an Illegal seek error processing manpath results in CI,
+            # which prevents the last form:
             # libtool: /usr/bin/libtool /Applications/Xcode.app/.../share/man/man1/libtool.1
-            process_pipe = subprocess.Popen(["whereis", "libtool"], stdout=subprocess.PIPE)
+            process_pipe = subprocess.Popen(
+                ["whereis", "-M", "-f", "libtool"], stdout=subprocess.PIPE
+            )
             result_whereis_list = process_pipe.communicate()[0].strip().split()
             if len(result_whereis_list) == 1:
                 result_whereis = result_whereis_list[0]

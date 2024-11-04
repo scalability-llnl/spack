@@ -20,10 +20,9 @@ class Scrot(AutotoolsPackage):
     version("1.6", sha256="42f64d38f04ec530c8b4ebdae04cce8b6893b2f8d30627391d390edcba917090")
     version("1.5", sha256="42fcf1c97940f4b4e34ca69990a0fc9b98991357bd6a4b67f30ebe0ccc10f093")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("giblib", when="@:1.5")
     depends_on("imlib2")
-    depends_on("libtool")
     depends_on("libxcomposite")
     depends_on("libxfixes")

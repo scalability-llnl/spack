@@ -93,7 +93,7 @@ class Heasoft(AutotoolsPackage):
             join_path("tcltk", "BUILD_DIR", "hd_config_info"),
         )
 
-        if "+X" in self.spec:
+        if self.spec.satisfies("+X"):
             filter_file(
                 r"(\s+XDIR => ).*",
                 r"\1'{0}',".format(self.spec["libx11"].libs.directories[0]),
@@ -109,7 +109,7 @@ class Heasoft(AutotoolsPackage):
 
         config_args += self.enable_or_disable("x", variant="X")
 
-        if "+X" in self.spec:
+        if self.spec.satisfies("+X"):
             config_args.extend(
                 [
                     "--x-includes={0}".format(self.spec["libx11"].headers.directories[0]),

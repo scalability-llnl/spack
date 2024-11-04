@@ -22,7 +22,6 @@ class Racket(MakefilePackage):
 
     depends_on("libffi", type=("build", "link", "run"))
     depends_on("patchutils")
-    depends_on("libtool", type=("build"))
 
     variant("cs", default=True, description="Build Racket CS (new ChezScheme VM)")
     variant("bc", default=False, description="Build Racket BC (old MZScheme VM)")

@@ -11,6 +11,7 @@ import pytest
 
 from llnl.util.filesystem import FileFilter
 
+import spack.cmd.style
 import spack.main
 import spack.paths
 import spack.repo

@@ -19,6 +19,8 @@ class RocprofilerDev(CMakePackage):
     maintainers("srekolam", "renjithravindrankannath")
     libraries = ["librocprofiler64"]
     license("MIT")
+    version("6.2.1", sha256="6eb36dad67e3b294f210e21987c52aec666652cffa87b8af1f8077d5b7812245")
+    version("6.2.0", sha256="79b4f29d051e62639b4bf2ca288035514d32e055fc759ff4a82d377bf7ca97ea")
     version("6.1.2", sha256="e6e8771b8c933c16a99192cc215fe964a95e1718ad286520c8272150e184bc06")
     version("6.1.1", sha256="b4b01a02de5328c7383c2318a998da86a6a9372e1728fc88a21b52bc1cbe9d9d")
     version("6.1.0", sha256="14ac0a451428465133583e83d9177ed34b3d4679515018a12ee74f5e0288c956")
@@ -57,13 +59,15 @@ class RocprofilerDev(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", when=f"@{ver}")
         depends_on(f"roctracer-dev-api@{ver}", when=f"@{ver}")
 
-    for ver in ["5.7.0", "5.7.1", "6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2"]:
+    for ver in ["5.7.0", "5.7.1", "6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
 
@@ -79,6 +83,8 @@ class RocprofilerDev(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"aqlprofile@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")
@@ -122,13 +128,16 @@ class RocprofilerDev(CMakePackage):
         return None
 
     def cmake_args(self):
-        return [
+        args = [
             self.define(
                 "PROF_API_HEADER_PATH", self.spec["roctracer-dev-api"].prefix.roctracer.include.ext
             ),
             self.define("ROCM_ROOT_DIR", self.spec["hsakmt-roct"].prefix.include),
             self.define("CMAKE_INSTALL_LIBDIR", "lib"),
         ]
+        if self.spec.satisfies("@6.2:"):
+            args.append(self.define("ROCPROFILER_BUILD_PLUGIN_PERFETTO", "OFF"))
+        return args
 
     @run_after("install")
     def post_install(self):

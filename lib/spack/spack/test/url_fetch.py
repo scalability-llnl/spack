@@ -17,10 +17,11 @@ from llnl.util.filesystem import is_exe, working_dir
 import spack.config
 import spack.error
 import spack.fetch_strategy as fs
-import spack.repo
+import spack.url
 import spack.util.crypto as crypto
 import spack.util.executable
 import spack.util.web as web_util
+import spack.version
 from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which
@@ -74,12 +75,6 @@ def pkg_factory():
         )
 
     return factory
-
-
-def test_urlfetchstrategy_sans_url():
-    """Ensure constructor with no URL fails."""
-    with pytest.raises(ValueError):
-        fs.URLFetchStrategy(None)
 
 
 @pytest.mark.parametrize("method", ["curl", "urllib"])
@@ -267,7 +262,7 @@ def test_url_with_status_bar(tmpdir, mock_archive, monkeypatch, capfd):
     monkeypatch.setattr(sys.stdout, "isatty", is_true)
     monkeypatch.setattr(tty, "msg_enabled", is_true)
     with spack.config.override("config:url_fetch_method", "curl"):
-        fetcher = fs.URLFetchStrategy(mock_archive.url)
+        fetcher = fs.URLFetchStrategy(url=mock_archive.url)
         with Stage(fetcher, path=testpath) as stage:
             assert fetcher.archive_file is None
             stage.fetch()
@@ -280,7 +275,7 @@ def test_url_with_status_bar(tmpdir, mock_archive, monkeypatch, capfd):
 def test_url_extra_fetch(tmp_path, mutable_config, mock_archive, _fetch_method):
     """Ensure a fetch after downloading is effectively a no-op."""
     mutable_config.set("config:url_fetch_method", _fetch_method)
-    fetcher = fs.URLFetchStrategy(mock_archive.url)
+    fetcher = fs.URLFetchStrategy(url=mock_archive.url)
     with Stage(fetcher, path=str(tmp_path)) as stage:
         assert fetcher.archive_file is None
         stage.fetch()

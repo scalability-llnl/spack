@@ -12,7 +12,7 @@ installations performed in Spack unit tests may include additional
 modifications to global state in memory that must be replicated in the
 child process.
 """
-
+import importlib
 import io
 import multiprocessing
 import pickle
@@ -22,7 +22,7 @@ from types import ModuleType
 
 import spack.config
 import spack.environment
-import spack.main
+import spack.paths
 import spack.platforms
 import spack.repo
 import spack.store
@@ -72,12 +72,12 @@ class PackageInstallContext:
         else:
             self.pkg = pkg
             self.env = spack.environment.active_environment()
-        self.spack_working_dir = spack.main.spack_working_dir
+        self.spack_working_dir = spack.paths.spack_working_dir
         self.test_state = TestState()
 
     def restore(self):
         self.test_state.restore()
-        spack.main.spack_working_dir = self.spack_working_dir
+        spack.paths.spack_working_dir = self.spack_working_dir
         env = pickle.load(self.serialized_env) if _SERIALIZE else self.env
         if env:
             spack.environment.activate(env)
@@ -118,7 +118,7 @@ class TestPatches:
     def restore(self):
         for module_name, attr_name, value in self.module_patches:
             value = pickle.load(value)
-            module = __import__(module_name)
+            module = importlib.import_module(module_name)
             setattr(module, attr_name, value)
         for class_fqn, attr_name, value in self.class_patches:
             value = pickle.load(value)

@@ -23,7 +23,9 @@ class AwscliV2(PythonPackage):
         depends_on("py-flit-core@3.7.1:3.8.0")
         depends_on("py-colorama@0.2.5:0.4.6")
         depends_on("py-docutils@0.10:0.19")
-        depends_on("py-cryptography@3.3.2:40.0.1")
+        # Remove upper bound to enable Python 3.12 support
+        # depends_on("py-cryptography@3.3.2:40.0.1")
+        depends_on("py-cryptography@3.3.2:")
         depends_on("py-ruamel-yaml@0.15:0.17.21")
         depends_on("py-ruamel-yaml-clib@0.2:0.2.7", when="^python@:3.9")
         depends_on("py-prompt-toolkit@3.0.24:3.0.38")

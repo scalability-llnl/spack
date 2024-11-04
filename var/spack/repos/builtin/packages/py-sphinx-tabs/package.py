@@ -17,6 +17,7 @@ class PySphinxTabs(PythonPackage):
 
     license("MIT")
 
+    version("3.4.5", sha256="ba9d0c1e3e37aaadd4b5678449eb08176770e0fc227e769b6ce747df3ceea531")
     version("3.4.4", sha256="f1b72c4f23d1ba9cdcaf880fd883524bc70689f561b9785719b8b3c3c5ed0aca")
     version("3.4.1", sha256="d2a09f9e8316e400d57503f6df1c78005fdde220e5af589cc79d493159e1b832")
     version("3.3.1", sha256="d10dd7fb2700329b8e5948ab9f8e3ef54fff30f79d2e42cfd1b0089ae26e8c5e")

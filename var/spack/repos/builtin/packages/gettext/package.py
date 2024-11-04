@@ -31,8 +31,8 @@ class Gettext(AutotoolsPackage, GNUMirrorPackage):
     version("0.19.8.1", sha256="105556dbc5c3fbbc2aa0edb46d22d055748b6f5c7cd7a8d99f8e7eb84e938be4")
     version("0.19.7", sha256="378fa86a091cec3acdece3c961bb8d8c0689906287809a8daa79dc0c6398d934")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # Recommended variants
     variant("curses", default=True, description="Use libncurses")
@@ -83,7 +83,7 @@ class Gettext(AutotoolsPackage, GNUMirrorPackage):
         # From the configure script: "we don't want to use an external libxml, because its
         # dependencies and their dynamic relocations have an impact on the startup time", well,
         # *we* do.
-        if self.spec.satisfies("@0.20:"):  # libtextstyle/configure not present prior
+        if self.spec.satisfies("@0.20:+libxml2"):  # libtextstyle/configure not present prior
             filter_file(
                 "gl_cv_libxml_force_included=yes",
                 "gl_cv_libxml_force_included=no",
@@ -93,7 +93,7 @@ class Gettext(AutotoolsPackage, GNUMirrorPackage):
 
     def flag_handler(self, name, flags):
         # this goes together with gl_cv_libxml_force_included=no
-        if name == "ldflags":
+        if name == "ldflags" and self.spec.satisfies("+libxml2"):
             flags.append("-lxml2")
         return (flags, None, None)
 
@@ -125,12 +125,12 @@ class Gettext(AutotoolsPackage, GNUMirrorPackage):
         else:
             config_args.append("--without-libiconv-prefix")
 
-        if "+curses" in spec:
+        if spec.satisfies("+curses"):
             config_args.append("--with-ncurses-prefix={0}".format(spec["ncurses"].prefix))
         else:
             config_args.append("--disable-curses")
 
-        if "+libxml2" in spec:
+        if spec.satisfies("+libxml2"):
             config_args.append("--with-libxml2-prefix={0}".format(spec["libxml2"].prefix))
         else:
             config_args.append("--with-included-libxml")
@@ -141,7 +141,7 @@ class Gettext(AutotoolsPackage, GNUMirrorPackage):
         if "+xz" not in spec:
             config_args.append("--without-xz")
 
-        if "+libunistring" in spec:
+        if spec.satisfies("+libunistring"):
             config_args.append(
                 "--with-libunistring-prefix={0}".format(spec["libunistring"].prefix)
             )

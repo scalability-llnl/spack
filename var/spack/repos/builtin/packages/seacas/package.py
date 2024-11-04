@@ -197,6 +197,11 @@ class Seacas(CMakePackage):
         description="Enable Faodel. See https://github.com/sandialabs/faodel",
     )
     variant(
+        "libcatalyst",
+        default=False,
+        description="Enable libcatalyst tpl (catalyst api 2); Kitware insitu library",
+    )
+    variant(
         "matio",
         default=True,
         description="Compile with matio (MatLab) support."
@@ -231,6 +236,9 @@ class Seacas(CMakePackage):
     depends_on("cmake@3.17:", when="@:2023-05-30", type="build")
     depends_on("mpi", when="+mpi")
     depends_on("zlib-api", when="+zlib")
+    depends_on("parallel", when="platform=linux", type="run")
+    depends_on("parallel", when="platform=darwin", type="run")
+    depends_on("parallel", when="platform=freebsd", type="run")
     depends_on("trilinos~exodus+mpi+pamgen", when="+mpi+pamgen")
     depends_on("trilinos~exodus~mpi+pamgen", when="~mpi+pamgen")
     # Always depends on netcdf-c
@@ -259,6 +267,10 @@ class Seacas(CMakePackage):
     depends_on("catch2@3:", when="@2024-03-11:+tests")
 
     depends_on("matio", when="+matio")
+
+    depends_on("libcatalyst+mpi~python", when="+libcatalyst+mpi")
+    depends_on("libcatalyst~mpi~python", when="+libcatalyst~mpi")
+
     depends_on("libx11", when="+x11")
 
     with when("+cgns"):
@@ -424,7 +436,7 @@ class Seacas(CMakePackage):
             [define("TPL_ENABLE_Netcdf", True), define("NetCDF_ROOT", spec["netcdf-c"].prefix)]
         )
 
-        if "+parmetis" in spec:
+        if spec.satisfies("+metis+mpi"):
             options.extend(
                 [
                     define("TPL_ENABLE_METIS", True),
@@ -478,6 +490,9 @@ class Seacas(CMakePackage):
         if "+adios2" in spec:
             options.append(define("ADIOS2_ROOT", spec["adios2"].prefix))
 
+        if "+libcatalyst" in spec:
+            options.append(define("TPL_ENABLE_Catalyst2", "ON"))
+
         # ################# RPath Handling ######################
         if sys.platform == "darwin" and macos_version() >= Version("10.12"):
             # use @rpath on Sierra due to limit of dynamic loader
@@ -486,3 +501,9 @@ class Seacas(CMakePackage):
             options.append(define("CMAKE_INSTALL_NAME_DIR", self.prefix.lib))
 
         return options
+
+    @run_after("install")
+    def symlink_parallel(self):
+        if not self.spec.dependencies("parallel"):
+            return
+        symlink(self.spec["parallel"].prefix.bin.parallel, self.prefix.bin.parallel)

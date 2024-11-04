@@ -43,6 +43,31 @@ NONE: DepFlag = 0
 ALL_FLAGS: Tuple[DepFlag, DepFlag, DepFlag, DepFlag] = (BUILD, LINK, RUN, TEST)
 
 
+def compatible(flag1: DepFlag, flag2: DepFlag) -> bool:
+    """Returns True if two depflags can be dependencies from a Spec to deps of the same name.
+
+    The only allowable separated dependencies are a build-only dependency, combined with a
+    non-build dependency. This separates our two process spaces, build time and run time.
+
+    These dependency combinations are allowed:
+        single dep on name: [b], [l], [r], [bl], [br], [blr]
+        two deps on name: [b, l], [b, r], [b, lr]
+
+    but none of these make any sense:
+        two build deps: [b, b], [b, br], [b, bl], [b, blr]
+        any two deps that both have an l or an r, i.e. [l, l], [r, r], [l, r], [bl, l], [bl, r]"""
+    # Cannot have overlapping build types to two different dependencies
+    if flag1 & flag2:
+        return False
+
+    # Cannot have two different link/run dependencies for the same name
+    link_run = LINK | RUN
+    if flag1 & link_run and flag2 & link_run:
+        return False
+
+    return True
+
+
 def flag_from_string(s: str) -> DepFlag:
     if s == "build":
         return BUILD

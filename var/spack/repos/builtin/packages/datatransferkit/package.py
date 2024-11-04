@@ -67,7 +67,7 @@ class Datatransferkit(CMakePackage):
             "-DMPI_BASE_DIR=" + spec["mpi"].prefix,
         ]
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             options.append("-DDataTransferKit_ENABLE_OpenMP=ON")
 
         return options

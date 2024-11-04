@@ -22,6 +22,10 @@ class PyNumpy(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("2.1.2", sha256="13532a088217fa624c99b843eeb54640de23b3414b14aa66d023805eb731066c")
+    version("2.1.1", sha256="d0cf7d55b1051387807405b3898efafa862997b4cba8aa5dbe657be794afeafd")
+    version("2.1.0", sha256="7dc90da0081f7e1da49ec4e398ede6a8e9cc4f5ebe5f9e06b443ed889ee9aaa2")
+    version("2.0.2", sha256="883c987dee1880e2a864ab0dc9892292582510604156762362d9326444636e78")
     version("2.0.1", sha256="485b87235796410c3519a699cfe1faab097e509e90ebb05dcd098db2ae87e7b3")
     version("2.0.0", sha256="cf5d1c9e6837f8af9f92b6bd3e86d513cdc11f60fd62185cc49ec7d1aba34864")
     version("1.26.4", sha256="2a02aba9ed12e4ac4eb3ea9421c420301a0c6460d9830d74a9df87efa4912010")
@@ -80,7 +84,8 @@ class PyNumpy(PythonPackage):
 
     # Based on PyPI wheel availability
     with default_args(type=("build", "link", "run")):
-        depends_on("python@3.9:3.12", when="@1.26:")
+        depends_on("python@3.10:3.13", when="@2.1:")
+        depends_on("python@3.9:3.12", when="@1.26:2.0")
         depends_on("python@3.9:3.11", when="@1.25")
         depends_on("python@3.8:3.11", when="@1.23.2:1.24")
         depends_on("python@3.8:3.10", when="@1.22:1.23.1")
@@ -106,7 +111,7 @@ class PyNumpy(PythonPackage):
     depends_on("blas")
     depends_on("lapack")
 
-    # test_requirements.txt
+    # requirements/test_requirements.txt
     with default_args(type="test"):
         depends_on("py-pytest")
         depends_on("py-hypothesis", when="@1.19:")
@@ -409,10 +414,7 @@ class PyNumpy(PythonPackage):
 
     @when("@1.26:")
     def setup_build_environment(self, env):
-        if self.spec.satisfies("%apple-clang@15:"):
-            # https://github.com/scipy/scipy/issues/19357
-            env.append_flags("LDFLAGS", "-Wl,-ld_classic")
-        elif self.spec.satisfies("%msvc"):
+        if self.spec.satisfies("%msvc"):
             # For meson build system, compiler paths must be in quotes
             # to prevent paths from being split by spaces.
             env.set("CC", f'"{self.compiler.cc}"')

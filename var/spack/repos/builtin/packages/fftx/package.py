@@ -43,9 +43,9 @@ class Fftx(CMakePackage, CudaPackage, ROCmPackage):
         #  What config should be built -- driven by spec
         spec = self.spec
         backend = "CPU"
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             backend = "CUDA"
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             backend = "HIP"
         self.build_config = "-D_codegen=%s" % backend
 
@@ -58,7 +58,7 @@ class Fftx(CMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         args = ["-DSPIRAL_HOME:STRING={0}".format(spec["spiral-software"].prefix)]
         args.append("-DCMAKE_INSTALL_PREFIX:PATH={0}".format(self.prefix))
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             args.append("-DCMAKE_CXX_COMPILER={0}".format(self.spec["hip"].hipcc))
         args.append(self.build_config)
 

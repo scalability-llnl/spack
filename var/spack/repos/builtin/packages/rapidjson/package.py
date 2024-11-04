@@ -15,6 +15,7 @@ class Rapidjson(CMakePackage):
 
     license("MIT")
 
+    version("1.2.0-2024-08-16", commit="7c73dd7de7c4f14379b781418c6e947ad464c818")
     version("1.2.0-2022-03-09", commit="8261c1ddf43f10de00fd8c9a67811d1486b2c784")
     version("1.2.0-2021-08-13", commit="00dbcf2c6e03c47d6c399338b6de060c71356464")
     version("1.1.0", sha256="bf7ced29704a1e696fbccf2a2b4ea068e7774fa37f6d7dd4039d0787f8bed98e")
@@ -31,9 +32,12 @@ class Rapidjson(CMakePackage):
     # -march=native causes issues on ARM, with older GCC, and with Fujitsu
     # Spack injects the appropriate optimization flags anyway
     # https://github.com/Tencent/rapidjson/issues/1816
-    patch("no_march-1.2.patch", when="@1.2")
+    patch("no_march-1.2-2024.patch", when="@1.2.0-2024-08-16:")
+    patch("no_march-1.2.patch", when="@1.2:1.2.0-2022-03-09")
     patch("no_march-1.1.patch", when="@1.1")
     patch("no_march-1.0.patch", when="@1.0")
+
+    conflicts("%gcc@14", when="@:1.2.0-2022-03-09")
 
     def cmake_args(self):
         args = []

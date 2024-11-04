@@ -92,10 +92,10 @@ class EnvironmentModules(Package):
         if not spec.satisfies("@4.5.2"):
             config_args.extend(["--disable-dependency-tracking", "--disable-silent-rules"])
 
-        if "~X" in spec:
+        if spec.satisfies("~X"):
             config_args = ["--without-x"] + config_args
 
-        if "@4.4.0:4.8" in self.spec:
+        if self.spec.satisfies("@4.4.0:4.8"):
             config_args.extend(
                 [
                     "--with-icase=search",
@@ -104,13 +104,13 @@ class EnvironmentModules(Package):
                 ]
             )
 
-        if "@4.3.0:4.8" in self.spec:
+        if self.spec.satisfies("@4.3.0:4.8"):
             config_args.extend(["--enable-color"])
 
-        if "@4.2.0:4.8" in self.spec:
+        if self.spec.satisfies("@4.2.0:4.8"):
             config_args.extend(["--enable-auto-handling"])
 
-        if "@4.1.0:" in self.spec:
+        if self.spec.satisfies("@4.1.0:"):
             config_args.extend(
                 [
                     # Variables in quarantine are empty during module command
@@ -120,17 +120,17 @@ class EnvironmentModules(Package):
                 ]
             )
 
-        if "@4.0.0:4.8" in self.spec:
+        if self.spec.satisfies("@4.0.0:4.8"):
             config_args.extend(["--disable-compat-version"])
 
-        if "@4.0.0:" in self.spec:
+        if self.spec.satisfies("@4.0.0:"):
             config_args.extend(["--with-tclsh={0}".format(tcl.prefix.bin.tclsh)])
 
-        if "@3.2.10" in self.spec:
+        if self.spec.satisfies("@3.2.10"):
             # See: https://sourceforge.net/p/modules/bugs/62/
             config_args.extend(["--disable-debug", "CPPFLAGS=-DUSE_INTERP_ERRORLINE"])
 
-        if "@:3.2" in self.spec:
+        if self.spec.satisfies("@:3.2"):
             config_args.extend(
                 [
                     "--without-tclx",

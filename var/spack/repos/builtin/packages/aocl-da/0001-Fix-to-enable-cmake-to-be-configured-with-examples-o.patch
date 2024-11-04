@@ -1,0 +1,27 @@
+From 961ce9edbba7e18eca97cf3725515e627bbe39e1 Mon Sep 17 00:00:00 2001
+From: Edvin Hopkins <edvin.hopkins@amd.com>
+Date: Wed, 16 Oct 2024 11:38:28 +0100
+Subject: [PATCH] Fix to enable cmake to be configured with examples off but
+ gtests on
+
+---
+ tests/unit_tests/CMakeLists.txt | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/tests/unit_tests/CMakeLists.txt b/tests/unit_tests/CMakeLists.txt
+index e5e05c6..e479c7d 100644
+--- a/tests/unit_tests/CMakeLists.txt
++++ b/tests/unit_tests/CMakeLists.txt
+@@ -107,9 +107,6 @@ add_executable(kmeans_tests kmeans_tests.cpp)
+ add_executable(nlls_tests nlls_tests.cpp)
+ 
+ add_executable(pca_tests pca_tests.cpp)
+-target_compile_definitions(
+-  pca
+-  PRIVATE DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../data/factorization_data/")
+ target_link_libraries(pca_tests PRIVATE ${BLAS})
+ 
+ add_executable(data data_tests.cpp)
+-- 
+2.34.1
+

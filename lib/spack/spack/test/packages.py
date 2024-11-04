@@ -7,8 +7,11 @@ import os
 
 import pytest
 
+import spack.build_systems.cmake as cmake
 import spack.directives
+import spack.error
 import spack.fetch_strategy
+import spack.package_base
 import spack.repo
 from spack.paths import mock_packages_path
 from spack.spec import Spec
@@ -127,17 +130,17 @@ def test_urls_for_versions(mock_packages, config):
 def test_url_for_version_with_no_urls(mock_packages, config):
     spec = Spec("git-test")
     pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
-    with pytest.raises(spack.package_base.NoURLError):
+    with pytest.raises(spack.error.NoURLError):
         pkg_cls(spec).url_for_version("1.0")
 
-    with pytest.raises(spack.package_base.NoURLError):
+    with pytest.raises(spack.error.NoURLError):
         pkg_cls(spec).url_for_version("1.1")
 
 
 def test_custom_cmake_prefix_path(mock_packages, config):
     spec = Spec("depends-on-define-cmake-prefix-paths").concretized()
 
-    assert spack.build_environment.get_cmake_prefix_path(spec.package) == [
+    assert cmake.get_cmake_prefix_path(spec.package) == [
         spec["define-cmake-prefix-paths"].prefix.test
     ]
 

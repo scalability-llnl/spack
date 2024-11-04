@@ -86,7 +86,7 @@ class EcmwfAtlas(CMakePackage):
         if self.spec.satisfies("@0.35:"):
             args.append(self.define_from_variant("ENABLE_ECTRANS", "trans"))
             args.append(self.define_from_variant("ENABLE_TESSELATION", "tesselation"))
-        if "~shared" in self.spec:
+        if self.spec.satisfies("~shared"):
             args.append("-DBUILD_SHARED_LIBS=OFF")
         return args
 

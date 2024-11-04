@@ -24,6 +24,7 @@ class Rpm(AutotoolsPackage):
     maintainers("haampie")
 
     version("master", branch="master")
+    version("4.18.2", sha256="8be0a812b2e707c72ae486b54db18ae211dd4158ad35e32b308d662c59a75e85")
     version("4.16.1.2", sha256="3d2807807a8ccaa92a8ced74e09b5bf5b2417a5bbf9bee4abc7c6aa497547bf3")
     version("4.16.0", sha256="a62b744e3404b107e8467e1a36ff0f2bf9e5c1b748dbfeb36db54bbb859446ea")
 
@@ -94,13 +95,16 @@ class Rpm(AutotoolsPackage):
     depends_on("gzip")
     depends_on("xz")
     depends_on("lzma")
-    depends_on("zstd", when="+zstd")
+    with when("+zstd"):
+        depends_on("zstd")
+        depends_on("zstd@1.3.8:", when="@4.17:")
 
     # java jar dependency analysis (already requirement for lua)
     depends_on("unzip", type="run")
 
     # Build dependencies
     depends_on("doxygen", type="build")
+    depends_on("pandoc", type="build", when="@4.17:")
     depends_on("pkgconfig", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

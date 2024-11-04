@@ -9,7 +9,7 @@ from spack.package import *
 class PyMne(PythonPackage):
     """MNE python project for MEG and EEG data analysis."""
 
-    homepage = "http://mne.tools/"
+    homepage = "https://mne.tools/"
     pypi = "mne/mne-0.23.4.tar.gz"
     git = "https://github.com/mne-tools/mne-python.git"
 

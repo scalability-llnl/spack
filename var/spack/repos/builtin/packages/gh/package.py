@@ -16,6 +16,7 @@ class Gh(GoPackage):
 
     license("MIT")
 
+    version("2.58.0", sha256="90894536c797147586db775d06ec2040c45cd7eef941f7ccbea46f4e5997c81c")
     version("2.50.0", sha256="683d0dee90e1d24a6673d13680e0d41963ddc6dd88580ab5119acec790d1b4d7")
     version("2.49.2", sha256="e839ea302ad99b70ce3efcb903f938ecbbb919798e49bc2f2034ad506ae0b0f5")
     version("2.43.1", sha256="1ea3f451fb7002c1fb95a7fab21e9ab16591058492628fe264c5878e79ec7c90")
@@ -43,10 +44,24 @@ class Gh(GoPackage):
     depends_on("go@1.21:", type="build", when="@2.33.0:")
     depends_on("go@1.22:", type="build", when="@2.47.0:")
 
-
-class GoBuilder(spack.build_systems.go.GoBuilder):
     @property
     def build_args(self):
         args = super().build_args
         args.extend(["-trimpath", "./cmd/gh"])
         return args
+
+    @run_after("install")
+    def install_completions(self):
+        gh = Executable(self.prefix.bin.gh)
+
+        mkdirp(bash_completion_path(self.prefix))
+        with open(bash_completion_path(self.prefix) / "gh", "w") as file:
+            gh("completion", "-s", "bash", output=file)
+
+        mkdirp(fish_completion_path(self.prefix))
+        with open(fish_completion_path(self.prefix) / "gh.fish", "w") as file:
+            gh("completion", "-s", "fish", output=file)
+
+        mkdirp(zsh_completion_path(self.prefix))
+        with open(zsh_completion_path(self.prefix) / "_gh", "w") as file:
+            gh("completion", "-s", "zsh", output=file)

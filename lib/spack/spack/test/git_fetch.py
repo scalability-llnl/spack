@@ -12,6 +12,9 @@ import pytest
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
 import spack.config
+import spack.error
+import spack.fetch_strategy
+import spack.platforms
 import spack.repo
 from spack.fetch_strategy import GitFetchStrategy
 from spack.spec import Spec
@@ -415,7 +418,7 @@ def test_git_sparse_paths_partial_clone(
         for p in sparse_paths:
             assert os.path.isdir(p)
 
-        if git_version < Version("2.25.0.0"):
+        if git_version < Version("2.26.0.0"):
             # older versions of git should fall back to a full clone
             for p in omitted_paths:
                 assert os.path.isdir(p)

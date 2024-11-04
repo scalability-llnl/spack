@@ -70,6 +70,7 @@ import spack.deptypes
 import spack.error
 import spack.spec
 import spack.version
+from spack.error import SpecSyntaxError
 
 IS_WINDOWS = sys.platform == "win32"
 #: Valid name for specs and variants. Here we are not using
@@ -598,10 +599,6 @@ def parse_one_or_raise(
         raise ValueError(message)
 
     return result
-
-
-class SpecSyntaxError(Exception):
-    """Base class for Spec syntax errors"""
 
 
 class SpecTokenizationError(SpecSyntaxError):

@@ -30,6 +30,7 @@ class RFastmatrix(RPackage):
 
     license("GPL-3.0-only")
 
+    version("0.5-772", sha256="72601bae9a59f467c5da9ccf08788f0233cdbb2420b6b2aa43a42a2632ff9c55")
     version("0.5", sha256="fb5f251a98425161e9dbbbb7edf95226725255b1474aad03ab046c7c6c6c3f12")
     version("0.4-1245", sha256="ee2e12b5dcda4585cca21f2c0ac144706f6fd26024586e91d622c6cd66d1d873")
     version("0.4-1", sha256="494a1aad38dcec28956eba8d095c964b20c5388dfb6dc2a23848ae37ea61cde5")

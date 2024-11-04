@@ -124,11 +124,11 @@ class IntelXed(Package):
             "--no-werror",
             f"--prefix={prefix}",
         )
-        if "+optimize" in spec:
+        if spec.satisfies("+optimize"):
             mfile.add_default_arg("--opt=2")
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             mfile.add_default_arg("--debug")
-        if "+pic" in spec:
+        if spec.satisfies("+pic"):
             mfile.add_default_arg(
                 f"--extra-ccflags={self.compiler.cc_pic_flag}",
                 f"--extra-cxxflags={self.compiler.cxx_pic_flag}",
@@ -144,11 +144,11 @@ class IntelXed(Package):
         mfile(
             f"--install-dir={shared_kit}",
             "--shared",
-            *(["examples"] if "+examples" in spec else []),
+            *(["examples"] if spec.satisfies("+examples") else []),
             "install",
         )
 
-        if "+examples" in self.spec:
+        if self.spec.satisfies("+examples"):
             # Install the example binaries to share/xed/examples
             install_tree(join_path(shared_kit, "bin"), prefix.share.xed.examples)
 

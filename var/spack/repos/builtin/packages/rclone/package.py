@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Rclone(Package):
+class Rclone(GoPackage):
     """Rclone is a command line program to sync files and directories
     to and from various cloud storage providers"""
 
@@ -17,6 +17,7 @@ class Rclone(Package):
 
     license("MIT")
 
+    version("1.68.1", sha256="c5d45b83dd008d08a0903eebf1578a11a40a77152226e22ce5e9287b9db05579")
     version("1.65.2", sha256="1305c913ac3684d02ce2bade0a23a2115c1ec03c9447d1562bb6cd9fa2573412")
     version("1.65.1", sha256="904b906cc465dd679a00487497e3891d33fca6b6e25c184400bccfb248344f39")
     version("1.65.0", sha256="45ec732d50b2517dc2c860317a3bf79867634a8143e4a441a3e399434ad6c141")
@@ -39,21 +40,21 @@ class Rclone(Package):
     version("1.55.1", sha256="25da7fc5c9269b3897f27b0d946919df595c6dda1b127085fda0fe32aa59d29d")
     version("1.55.0", sha256="75accdaedad3b82edc185dc8824a19a59c30dc6392de7074b6cd98d1dc2c9040")
 
-    depends_on("c", type="build")  # generated
-
     depends_on("go@1.14:", type="build")
-    depends_on("go@1.17:", type="build", when="@1.58.0:")
-    depends_on("go@1.18:", type="build", when="@1.62.0:")
+    depends_on("go@1.17:", type="build", when="@1.58:")
+    depends_on("go@1.18:", type="build", when="@1.62:")
+    depends_on("go@1.19:", type="build", when="@1.63:")
+    depends_on("go@1.20:", type="build", when="@1.66:")
+    depends_on("go@1.21:", type="build", when="@1.68:")
 
-    phases = ["build", "install"]
+    @run_after("install")
+    def install_completions(self):
+        rclone = Executable(self.prefix.bin.rclone)
 
-    def setup_build_environment(self, env):
-        # Point GOPATH at the top of the staging dir for the build step.
-        env.prepend_path("GOPATH", self.stage.path)
+        mkdirp(bash_completion_path(self.prefix))
+        mkdirp(fish_completion_path(self.prefix))
+        mkdirp(zsh_completion_path(self.prefix))
 
-    def build(self, spec, prefix):
-        go("build")
-
-    def install(self, spec, prefix):
-        mkdirp(prefix.bin)
-        install("rclone", prefix.bin)
+        rclone("genautocomplete", "bash", str(bash_completion_path(self.prefix) / "rclone"))
+        rclone("genautocomplete", "fish", str(fish_completion_path(self.prefix) / "rclone.fish"))
+        rclone("genautocomplete", "zsh", str(zsh_completion_path(self.prefix) / "_rclone"))

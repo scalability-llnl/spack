@@ -28,6 +28,8 @@ class Rpp(CMakePackage):
 
     maintainers("srekolam", "afzpatel")
     license("MIT")
+    version("6.2.1", sha256="5ae9d0c6733ba0e00be1cda13003e98acebd3f86de59e6f1969e297d673f124e")
+    version("6.2.0", sha256="69fbebf50b734e055258ea3c5b0399a51babab8f66074166d2b0fc4f1904c09c")
     version("6.1.2", sha256="3a529bdd17b448a9e05a6aac1b5e173a077f4a4a1fd2ed759bcea331acd2829f")
     version("6.1.1", sha256="9ca385c6f208a0bbf2be60ad15697d35371992d49ed30077b69e22090cef657c")
     version("6.1.0", sha256="026c5ac7a92e14e35b9e7630a2ebfff3f4b3544b988eb9aa8af9991d4beea242")
@@ -135,7 +137,7 @@ class Rpp(CMakePackage):
     depends_on("cmake@3.5:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on(Boost.with_default_variants)
-    depends_on("boost@1.72.0:1.80.0")
+    depends_on("boost@1.72.0:1.85.0")
     depends_on("bzip2")
     depends_on("half")
     depends_on("hwloc")
@@ -152,7 +154,17 @@ class Rpp(CMakePackage):
 
     with when("+hip"):
         with when("@5.7:"):
-            for ver in ["5.7.0", "5.7.1", "6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2"]:
+            for ver in [
+                "5.7.0",
+                "5.7.1",
+                "6.0.0",
+                "6.0.2",
+                "6.1.0",
+                "6.1.1",
+                "6.1.2",
+                "6.2.0",
+                "6.2.1",
+            ]:
                 depends_on("hip@" + ver, when="@" + ver)
         with when("@:1.2"):
             depends_on("hip@5:")

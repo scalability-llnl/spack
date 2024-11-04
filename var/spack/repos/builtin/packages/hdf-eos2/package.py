@@ -71,7 +71,7 @@ class HdfEos2(AutotoolsPackage):
     # Build dependencies
     depends_on("hdf")
     # Because hdf always depends on zlib and jpeg in spack, the tests below in configure_args
-    # (if "jpeg" in self.spec:) always returns true and hdf-eos2 wants zlib and jpeg, too.
+    # (if self.spec.satisfies("^jpeg"):) always returns true and hdf-eos2 wants zlib and jpeg, too.
     depends_on("zlib-api")
     depends_on("jpeg")
     depends_on("szip", when="^hdf +szip")
@@ -151,15 +151,15 @@ class HdfEos2(AutotoolsPackage):
 
         # Provide config args for dependencies
         extra_args.append("--with-hdf4={0}".format(self.spec["hdf"].prefix))
-        if "jpeg" in self.spec:
+        if self.spec.satisfies("^jpeg"):
             # Allow handling whatever provider of jpeg are using
             tmp = self.spec["jpeg"].libs.directories
             if tmp:
                 tmp = tmp[0]
                 extra_args.append("--with-jpeg={0}".format(tmp))
-        if "szip" in self.spec:
+        if self.spec.satisfies("^szip"):
             extra_args.append("--with-szlib={0}".format(self.spec["szip"].prefix))
-        if "zlib" in self.spec:
+        if self.spec.satisfies("^zlib"):
             extra_args.append("--with-zlib={0}".format(self.spec["zlib-api"].prefix))
 
         return extra_args

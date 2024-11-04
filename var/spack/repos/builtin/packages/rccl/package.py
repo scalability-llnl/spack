@@ -21,6 +21,8 @@ class Rccl(CMakePackage):
 
     maintainers("srekolam", "renjithravindrankannath")
     libraries = ["librccl"]
+    version("6.2.1", sha256="0f5e35c7afbb21c1d49ff201b7d1ddf163d853c27c75c3eaf7b449f4dc1e2188")
+    version("6.2.0", sha256="a29c94ea3b9c1a0121d7b1450cb01a697f9f9132169632312b9b0bf744d3c0e3")
     version("6.1.2", sha256="98af99c12d800f5439c7740d797162c35810a25e08e3b11b397d3300d3c0148e")
     version("6.1.1", sha256="6368275059ba190d554535d5aeaa5c2510d944b56efd85c90a1701d0292a14c5")
     version("6.1.0", sha256="c6308f6883cbd63dceadbe4ee154cc6fa9e6bdccbd2f0fda295b564b0cf01e9a")
@@ -73,6 +75,8 @@ class Rccl(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -91,6 +95,8 @@ class Rccl(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

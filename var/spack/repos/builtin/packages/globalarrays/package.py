@@ -75,7 +75,7 @@ class Globalarrays(AutotoolsPackage):
             "--with-lapack={0}".format(lapack_libs),
         ]
 
-        if "+scalapack" in self.spec:
+        if self.spec.satisfies("+scalapack"):
             scalapack_libs = self.spec["scalapack"].libs.ld_flags
             args.append("--with-scalapack={0}".format(scalapack_libs))
 

@@ -27,3 +27,12 @@ class Aspell(AutotoolsPackage, GNUMirrorPackage):
 
     patch("fix_cpp.patch")
     patch("issue-519.patch", when="@:0.60.6.1")
+
+    # workaround due to https://github.com/GNUAspell/aspell/issues/591
+    @run_after("configure", when="@0.60.8:")
+    def make_missing_files(self):
+        make("gen/dirs.h")
+        make("gen/static_filters.src.cpp")
+
+    def setup_run_environment(self, env):
+        env.set("ASPELL_CONF", f"prefix {self.prefix}")

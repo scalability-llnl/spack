@@ -65,6 +65,6 @@ class Gmp(AutotoolsPackage, GNUMirrorPackage):
     def configure_args(self):
         args = self.enable_or_disable("cxx")
         args += self.enable_or_disable("libs")
-        if "libs=static" in self.spec:
+        if self.spec.satisfies("libs=static"):
             args.append("--with-pic")
         return args

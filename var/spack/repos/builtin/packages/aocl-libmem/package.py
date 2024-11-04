@@ -4,8 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 # ----------------------------------------------------------------------------
-from llnl.util import tty
-
 from spack.package import *
 
 
@@ -31,15 +29,16 @@ class AoclLibmem(CMakePackage):
     _name = "aocl-libmem"
     homepage = "https://www.amd.com/en/developer/aocl/libmem.html"
     git = "https://github.com/amd/aocl-libmem"
-    url = "https://github.com/amd/aocl-libmem/archive/refs/tags/4.2.tar.gz"
+    url = "https://github.com/amd/aocl-libmem/archive/4.2.tar.gz"
 
     maintainers("amd-toolchain-support")
 
     version(
-        "4.2",
-        sha256="4ff5bd8002e94cc2029ef1aeda72e7cf944b797c7f07383656caa93bcb447569",
+        "5.0",
+        sha256="d3148db1a57fec4f3468332c775cade356e8133bf88385991964edd7534b7e22",
         preferred=True,
     )
+    version("4.2", sha256="4ff5bd8002e94cc2029ef1aeda72e7cf944b797c7f07383656caa93bcb447569")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -55,7 +54,14 @@ class AoclLibmem(CMakePackage):
         multi=False,
     )
 
-    depends_on("cmake@3.15:", type="build")
+    # validator needs to be built only for AuthenticAMD targets
+    patch(
+        "cmake.patch",
+        sha256="43453a83f322de7c89264439b2e9cbde855e50f550e13ebc884d13d959002092",
+        when="@5.0",
+    )
+
+    depends_on("cmake@3.22:", type="build")
 
     @property
     def libs(self):
@@ -66,18 +72,6 @@ class AoclLibmem(CMakePackage):
     def cmake_args(self):
         """Runs ``cmake`` in the build directory"""
         spec = self.spec
-
-        if not (
-            spec.satisfies(r"%aocc@4.1:4.2")
-            or spec.satisfies(r"%gcc@12.2:13.1")
-            or spec.satisfies(r"%clang@16:17")
-        ):
-            tty.warn(
-                "AOCL has been tested to work with the following compilers "
-                "versions - gcc@12.2:13.1, aocc@4.1:4.2, and clang@16:17 "
-                "see the following aocl userguide for details: "
-                "https://www.amd.com/content/dam/amd/en/documents/developer/version-4-2-documents/aocl/aocl-4-2-user-guide.pdf"
-            )
 
         args = []
         args.append(self.define_from_variant("ENABLE_LOGGING", "logging"))

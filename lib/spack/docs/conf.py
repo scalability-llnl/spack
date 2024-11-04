@@ -218,6 +218,10 @@ nitpick_ignore = [
     ("py:class", "spack.spec.SpecfileReaderBase"),
     ("py:class", "spack.install_test.Pb"),
     ("py:class", "spack.filesystem_view.SimpleFilesystemView"),
+    ("py:class", "spack.traverse.EdgeAndDepth"),
+    ("py:class", "archspec.cpu.microarchitecture.Microarchitecture"),
+    # TypeVar that is not handled correctly
+    ("py:class", "llnl.util.lang.T"),
 ]
 
 # The reST default role (used for this markup: `text`) to use for all documents.

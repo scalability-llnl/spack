@@ -13,7 +13,7 @@ class Pixman(AutotoolsPackage):
     pixel manipulation features such as image compositing and
     trapezoid rasterization."""
 
-    homepage = "http://www.pixman.org"
+    homepage = "https://www.pixman.org"
     url = "https://cairographics.org/releases/pixman-0.32.6.tar.gz"
 
     license("MIT")

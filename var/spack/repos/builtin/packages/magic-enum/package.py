@@ -21,24 +21,24 @@ class MagicEnum(CMakePackage):
     version("0.9.6", sha256="814791ff32218dc869845af7eb89f898ebbcfa18e8d81aa4d682d18961e13731")
 
     variant("examples", default=False, description="Enable examples")
-    variant("tests", default=True, description="Enable tests")
 
-    # minimum supported versions
-    conflicts("%clang@:5")
-    conflicts("%gcc@:9")
-    conflicts("%msvc@:14.11")
-    conflicts("%apple-clang@:10")
+    with default_args(msg="Compiler version is too old"):
+        conflicts("%clang@:4")
+        conflicts("%gcc@:8")
+        conflicts("%msvc@:14.10")
+        conflicts("%apple-clang@:9")
 
     depends_on("cxx", type="build")
 
     depends_on("cmake@3.14:", type="build")
 
     def cmake_args(self):
+        define = self.define
         from_variant = self.define_from_variant
 
         args = [
+            define("MAGIC_ENUM_OPT_BUILD_TESTS", self.run_tests),
             from_variant("MAGIC_ENUM_OPT_BUILD_EXAMPLES", "examples"),
-            from_variant("MAGIC_ENUM_OPT_BUILD_TESTS", "tests"),
         ]
 
         return args

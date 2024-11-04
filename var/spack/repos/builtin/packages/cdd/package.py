@@ -28,7 +28,7 @@ class Cdd(Package):
     patch("Makefile.spack.patch")
 
     def url_for_version(self, version):
-        url = "http://www.cs.mcgill.ca/~fukuda/download/cdd/cdd-{0}.tar.gz"
+        url = "https://www.cs.mcgill.ca/~fukuda/download/cdd/cdd-{0}.tar.gz"
         return url.format(version.joined)
 
     def install(self, spec, prefix):

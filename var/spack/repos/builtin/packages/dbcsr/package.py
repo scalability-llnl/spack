@@ -97,8 +97,8 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("+cuda", when="cuda_arch=none", msg=cuda_msg)
 
-    dbcsr_amdgpu_targets = {"gfx906", "gfx910", "gfx90a", "gfx90a:xnack-", "gfx90a:xnack+"}
-    amd_msg = "DBCSR only supports amdgpu_target {0}".format(dbcsr_amdgpu_targets)
+    dbcsr_amdgpu_targets = ("gfx906", "gfx910", "gfx90a", "gfx90a:xnack-", "gfx90a:xnack+")
+    amd_msg = f"DBCSR supports these AMD gpu targets:  {', '.join(dbcsr_amdgpu_targets)}"
 
     for arch in ROCmPackage.amdgpu_targets:
         if arch not in dbcsr_amdgpu_targets:
@@ -147,10 +147,11 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
             "-DLAPACK_LIBRARIES=%s" % (spec["lapack"].libs.joined(";")),
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("WITH_EXAMPLES", "examples"),
+            self.define_from_variant("WITH_G2G", "g2g"),
         ]
 
         # Switch necessary as a result of a bug.
-        if "@2.1:2.2" in spec:
+        if spec.satisfies("@2.1:2.2"):
             args += ["-DBUILD_TESTING=ON"]
 
         if self.spec.satisfies("+cuda"):

@@ -37,9 +37,9 @@ class Librsvg(AutotoolsPackage):
     depends_on("gtk-doc", type="build", when="+doc")
 
     # requirements according to `configure` file
-    depends_on("cairo@1.16:+gobject", when="@2.50:")
-    depends_on("cairo@1.15.12:+gobject", when="@2.44.14:")
-    depends_on("cairo@1.2.0:+gobject")
+    depends_on("cairo@1.16:+gobject+png", when="@2.50:")
+    depends_on("cairo@1.15.12:+gobject+png", when="@2.44.14:")
+    depends_on("cairo@1.2.0:+gobject+png")
     depends_on("libcroco@0.6.1:", when="@:2.44.14")
     depends_on("gdk-pixbuf@2.20:")
     depends_on("glib@2.50:", when="@2.50:")
@@ -75,7 +75,7 @@ class Librsvg(AutotoolsPackage):
 
     def configure_args(self):
         args = []
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             args.append("--enable-gtk-doc")
         else:
             args.extend(

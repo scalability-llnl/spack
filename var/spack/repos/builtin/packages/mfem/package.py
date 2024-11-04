@@ -106,9 +106,6 @@ class Mfem(Package, CudaPackage, ROCmPackage):
         extension="tar.gz",
     )
 
-    # Tagged development version used by xSDK
-    version("4.0.1-xsdk", commit="c55c80d17b82d80de04b849dd526e17044f8c99a")
-
     version(
         "4.0.0",
         sha256="df5bdac798ea84a263979f6fbf79de9013e1c55562f95f98644c3edcacfbc727",
@@ -166,11 +163,11 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     variant("static", default=True, description="Build static library")
     variant("shared", default=False, description="Build shared library")
     variant("mpi", default=True, sticky=True, description="Enable MPI parallelism")
-    # Can we make the default value for 'metis' to depend on the 'mpi' value?
+    # Can we make the default value for "metis" to depend on the "mpi" value?
     variant("metis", default=True, sticky=True, description="Enable METIS support")
     variant("openmp", default=False, description="Enable OpenMP parallelism")
-    # Note: '+cuda' and 'cuda_arch' variants are added by the CudaPackage
-    # Note: '+rocm' and 'amdgpu_target' variants are added by the ROCmPackage
+    # Note: "+cuda" and "cuda_arch" variants are added by the CudaPackage
+    # Note: "+rocm" and "amdgpu_target" variants are added by the ROCmPackage
     variant("occa", default=False, description="Enable OCCA backend")
     variant("raja", default=False, description="Enable RAJA backend")
     variant("libceed", default=False, description="Enable libCEED backend")
@@ -309,8 +306,8 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     depends_on("sundials@2.7.0+mpi+hypre", when="@:3.3.0+sundials+mpi")
     depends_on("sundials@2.7.0:", when="@3.3.2:+sundials~mpi")
     depends_on("sundials@2.7.0:+mpi+hypre", when="@3.3.2:+sundials+mpi")
-    depends_on("sundials@5.0.0:5", when="@4.0.1-xsdk:4.4+sundials~mpi")
-    depends_on("sundials@5.0.0:5+mpi+hypre", when="@4.0.1-xsdk:4.4+sundials+mpi")
+    depends_on("sundials@5.0.0:5", when="@4.1.0:4.4+sundials~mpi")
+    depends_on("sundials@5.0.0:5+mpi+hypre", when="@4.1.0:4.4+sundials+mpi")
     depends_on("sundials@5.0.0:6.7.0", when="@4.5.0:+sundials~mpi")
     depends_on("sundials@5.0.0:6.7.0+mpi+hypre", when="@4.5.0:+sundials+mpi")
     conflicts("cxxstd=11", when="^sundials@6.4.0:")
@@ -420,7 +417,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     depends_on("occa@1.0.8:", when="@:4.1+occa")
     depends_on("occa@1.1.0", when="@4.2.0:+occa")
     depends_on("occa+cuda", when="+occa+cuda")
-    # TODO: propagate '+rocm' variant to occa when it is supported
+    # TODO: propagate "+rocm" variant to occa when it is supported
 
     depends_on("raja@0.7.0:0.9.0", when="@4.0.0+raja")
     depends_on("raja@0.10.0:0.12.1", when="@4.0.1:4.2.0+raja")
@@ -582,8 +579,8 @@ class Mfem(Package, CudaPackage, ROCmPackage):
             "PREFIX=%s" % prefix,
             "MFEM_USE_MEMALLOC=YES",
             "MFEM_DEBUG=%s" % yes_no("+debug"),
-            # NOTE: env['CXX'] is the spack c++ compiler wrapper. The real
-            # compiler is defined by env['SPACK_CXX'].
+            # NOTE: env["CXX"] is the spack c++ compiler wrapper. The real
+            # compiler is defined by env["SPACK_CXX"].
             "CXX=%s" % env["CXX"],
             "MFEM_USE_LIBUNWIND=%s" % yes_no("+libunwind"),
             "%s=%s" % (zlib_var, yes_no("+zlib")),
@@ -767,7 +764,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
                     elif "^spectrum-mpi" in strumpack:
                         sp_lib += [ld_flags_from_dirs([mpi.prefix.lib], ["mpi_ibm_mpifh"])]
             if "+openmp" in strumpack:
-                # The '+openmp' in the spec means strumpack will TRY to find
+                # The "+openmp" in the spec means strumpack will TRY to find
                 # OpenMP; if not found, we should not add any flags -- how do
                 # we figure out if strumpack found OpenMP?
                 if not self.spec.satisfies("%apple-clang"):
@@ -802,7 +799,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
                 )
                 sp_lib += [ld_flags_from_library_list(zfp_lib)]
             if "+cuda" in strumpack:
-                # assuming also ('+cuda' in spec)
+                # assuming also ("+cuda" in spec)
                 sp_lib += ["-lcusolver", "-lcublas"]
             options += [
                 "STRUMPACK_OPT=%s" % " ".join(sp_opt),
@@ -917,7 +914,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
             headers = find_headers("libunwind", libunwind.prefix.include)
             headers.add_macro("-g")
             libs = find_optional_library("libunwind", libunwind.prefix)
-            # When mfem uses libunwind, it also needs 'libdl'.
+            # When mfem uses libunwind, it also needs "libdl".
             libs += LibraryList(find_system_libraries("libdl"))
             options += [
                 "LIBUNWIND_OPT=%s" % headers.cpp_flags,
@@ -976,6 +973,9 @@ class Mfem(Package, CudaPackage, ROCmPackage):
             if "^rocthrust" in spec and not spec["hip"].external:
                 # petsc+rocm needs the rocthrust header path
                 hip_headers += spec["rocthrust"].headers
+            if "^rocprim" in spec and not spec["hip"].external:
+                # rocthrust [via petsc+rocm] has a dependency on rocprim
+                hip_headers += spec["rocprim"].headers
             if "^hipblas" in spec and not spec["hip"].external:
                 # superlu-dist+rocm needs the hipblas header path
                 hip_headers += spec["hipblas"].headers
@@ -1300,7 +1300,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     @property
     def config_mk(self):
         """Export the location of the config.mk file.
-        This property can be accessed using spec['mfem'].package.config_mk
+        This property can be accessed using spec["mfem"].package.config_mk
         """
         dirs = [self.prefix, self.prefix.share.mfem]
         for d in dirs:
@@ -1312,7 +1312,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     @property
     def test_mk(self):
         """Export the location of the test.mk file.
-        This property can be accessed using spec['mfem'].package.test_mk.
+        This property can be accessed using spec["mfem"].package.test_mk.
         In version 3.3.2 and newer, the location of test.mk is also defined
         inside config.mk, variable MFEM_TEST_MK.
         """

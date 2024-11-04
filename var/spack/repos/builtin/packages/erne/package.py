@@ -30,7 +30,7 @@ class Erne(AutotoolsPackage):
     depends_on("openmpi", type=("build", "run"), when="+mpi")
 
     def configure_args(self):
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             return ["--enable-openmpi"]
         else:
             return ["--disable-openmpi"]

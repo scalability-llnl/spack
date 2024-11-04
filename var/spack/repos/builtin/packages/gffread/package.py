@@ -10,7 +10,7 @@ class Gffread(MakefilePackage):
     """gffread: GFF/GTF utility providing format conversions, region filtering,
     FASTA sequence extraction and more"""
 
-    homepage = "http://ccb.jhu.edu/software/stringtie/gff.shtml#gffread"
+    homepage = "https://ccb.jhu.edu/software/stringtie/gff.shtml#gffread"
     url = "https://github.com/gpertea/gffread/releases/download/v0.12.7/gffread-0.12.7.tar.gz"
 
     license("MIT")

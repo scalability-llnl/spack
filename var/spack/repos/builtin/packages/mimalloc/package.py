@@ -19,6 +19,7 @@ class Mimalloc(CMakePackage):
     version("dev-slice", branch="dev-slice")
     version("dev", branch="dev")
     version("master", branch="master")
+    version("2.1.7", sha256="0eed39319f139afde8515010ff59baf24de9e47ea316a315398e8027d198202d")
     version("2.1.2", sha256="2b1bff6f717f9725c70bf8d79e4786da13de8a270059e4ba0bdd262ae7be46eb")
     version("2.1.1", sha256="38b9660d0d1b8a732160191609b64057d8ccc3811ab18b7607bc93ca63a6010f")
     version("2.1.0", sha256="86e5e53e38bace59a9eb20d27e7bd7c5f448cb246a887d4f99478fa4809731fc")
@@ -36,6 +37,7 @@ class Mimalloc(CMakePackage):
     depends_on("cxx", type="build")
 
     depends_on("cmake@3.0:", type="build")
+    conflicts("^cmake@:3.17", when="@2.1.7:")
 
     libs_values = ("shared", "static", "object")
     variant(

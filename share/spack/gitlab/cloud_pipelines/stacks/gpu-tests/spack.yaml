@@ -16,7 +16,7 @@ spack:
     boost:
       variants: +python +filesystem +iostreams +system
     elfutils:
-      variants: +bzip2 ~nls +xz
+      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:

@@ -24,6 +24,8 @@ class FluxSched(CMakePackage, AutotoolsPackage):
     license("LGPL-3.0-only")
 
     version("master", branch="master")
+    version("0.38.0", sha256="0cb3efbd490256b28df580bb14f8e89c02084a9126e0b1754d6334a99ecfa969")
+    version("0.37.0", sha256="b354d451183fcb8455e6a61d31e18c7f4af13e16a86b71216738f0991a7bcd50")
     version("0.36.1", sha256="0ee37ed364912f3f5a48ed5b5f5f21cb86cda43ff357486695b9454c217ad8b8")
     version("0.36.0", sha256="c20814eae65b6eb9f2c919dbcc216dd4b87f038a341cf99510cca88d43631c41")
     version("0.35.0", sha256="38fde51464f4e34ecbd1e4fbbf00267f96b639db5987257a7ad07f811e2f09d2")
@@ -72,6 +74,8 @@ class FluxSched(CMakePackage, AutotoolsPackage):
     depends_on("uuid")
     depends_on("pkgconfig")
     conflicts("%gcc@:9.3", when="@0.34:")
+    conflicts("%gcc@:11", when="@0.37:", msg="gcc version must be 12 or higher")
+    conflicts("%clang@:14", when="@0.37:", msg="clang must be version 15 or higher")
     depends_on("py-sphinx@1.6.3:", when="+docs", type="build")
 
     depends_on("flux-core", type=("build", "link", "run"))

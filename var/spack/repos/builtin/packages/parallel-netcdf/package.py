@@ -5,6 +5,8 @@
 
 import os
 
+import llnl.util.tty as tty
+
 from spack.package import *
 
 
@@ -27,11 +29,11 @@ class ParallelNetcdf(AutotoolsPackage):
 
     def url_for_version(self, version):
         if version >= Version("1.11.0"):
-            url = "https://parallel-netcdf.github.io/Release/pnetcdf-{0}.tar.gz"
+            url = f"https://parallel-netcdf.github.io/Release/pnetcdf-{version.dotted}.tar.gz"
         else:
-            url = "https://parallel-netcdf.github.io/Release/parallel-netcdf-{0}.tar.gz"
+            url = f"https://parallel-netcdf.github.io/Release/parallel-netcdf-{version.dotted}.tar.gz"
 
-        return url.format(version.dotted)
+        return url
 
     version("master", branch="master")
     version("1.12.3", sha256="439e359d09bb93d0e58a6e3f928f39c2eae965b6c97f64e67cd42220d6034f77")
@@ -101,10 +103,9 @@ class ParallelNetcdf(AutotoolsPackage):
         if libs:
             return libs
 
-        msg = "Unable to recursively locate {0} {1} libraries in {2}"
-        raise spack.error.NoLibrariesError(
-            msg.format("shared" if shared else "static", self.spec.name, self.spec.prefix)
-        )
+        msg = f"Unable to recursively locate {'shared' if shared else 'static'} \
+{self.spec.name} libraries in {self.spec.prefix}"
+        raise spack.error.NoLibrariesError(msg)
 
     @when("@master")
     def autoreconf(self, spec, prefix):
@@ -134,7 +135,7 @@ class ParallelNetcdf(AutotoolsPackage):
 
         for key, value in sorted(flags.items()):
             if value:
-                args.append("{0}={1}".format(key, " ".join(value)))
+                args.append(f"{key}={' '.join(value)}")
 
         if self.version >= Version("1.8"):
             args.append("--enable-relax-coord-bound")
@@ -157,46 +158,46 @@ class ParallelNetcdf(AutotoolsPackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.examples_src_dir])
+        cache_extra_test_sources(self, [self.examples_src_dir])
 
-    def test(self):
+    def test_column_wise(self):
+        """build and run column_wise"""
         test_dir = join_path(self.test_suite.current_test_cache_dir, self.examples_src_dir)
         # pnetcdf has many examples to serve as a suitable smoke check.
         # column_wise was chosen based on the E4S test suite. Other
         # examples should work as well.
         test_exe = "column_wise"
         options = [
-            "{0}.cpp".format(test_exe),
+            f"{test_exe}.cpp",
             "-o",
             test_exe,
             "-lpnetcdf",
-            "-L{0}".format(self.prefix.lib),
-            "-I{0}".format(self.prefix.include),
+            f"-L{self.prefix.lib}",
+            f"-I{self.prefix.include}",
         ]
-        reason = "test: compiling and linking pnetcdf example"
-        self.run_test(
-            self.spec["mpi"].mpicxx,
-            options,
-            [],
-            installed=False,
-            purpose=reason,
-            work_dir=test_dir,
-        )
-        mpiexe_list = [
-            self.spec["mpi"].prefix.bin.srun,
-            self.spec["mpi"].prefix.bin.mpirun,
-            self.spec["mpi"].prefix.bin.mpiexec,
-        ]
-        for mpiexe in mpiexe_list:
-            if os.path.isfile(mpiexe):
-                self.run_test(
-                    mpiexe,
-                    ["-n", "1", test_exe],
-                    [],
-                    installed=False,
-                    purpose="test: pnetcdf smoke test",
-                    skip_missing=True,
-                    work_dir=test_dir,
-                )
-                break
-        self.run_test("rm", ["-f", test_exe], work_dir=test_dir)
+
+        with working_dir(test_dir):
+            mpicxx = which(self.spec["mpi"].prefix.bin.mpicxx)
+            mpicxx(*options)
+
+            mpiexe_list = [
+                "srun",
+                self.spec["mpi"].prefix.bin.mpirun,
+                self.spec["mpi"].prefix.bin.mpiexec,
+            ]
+
+            for mpiexe in mpiexe_list:
+                tty.info(f"Attempting to build and launch with {os.path.basename(mpiexe)}")
+                try:
+                    args = ["--immediate=30"] if mpiexe == "srun" else []
+                    args += ["-n", "1", test_exe]
+                    exe = which(mpiexe)
+                    exe(*args)
+                    rm = which("rm")
+                    rm("-f", "column_wise")
+                    return
+
+                except (Exception, ProcessError) as err:
+                    tty.info(f"Skipping {mpiexe}: {str(err)}")
+
+        assert False, "No MPI executable was found"

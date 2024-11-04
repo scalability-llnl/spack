@@ -88,6 +88,7 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("pika@0.17:", when="@0.2.1")
     depends_on("pika@0.18:", when="@0.3")
     depends_on("pika@0.19.1:", when="@0.4.0:")
+    conflicts("^pika@0.28:", when="@:0.6")
     depends_on("pika-algorithms@0.1:", when="@:0.2")
     depends_on("pika +mpi")
     depends_on("pika +cuda", when="+cuda")
@@ -198,7 +199,7 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
                     self.define("MKL_LAPACK_TARGET", f"mkl::mkl_intel_32bit_{mkl_threads}_dyn"),
                 ]
 
-            if "+scalapack" in spec:
+            if spec.satisfies("+scalapack"):
                 try:
                     mpi_provider = spec["mpi"].name
                     if mpi_provider in ["mpich", "cray-mpich", "mvapich", "mvapich2"]:
@@ -222,14 +223,19 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
                     )
         else:
             args.append(self.define("DLAF_WITH_MKL", spec["lapack"].name in INTEL_MATH_LIBRARIES))
+            add_dlaf_prefix = lambda x: x if spec.satisfies("@:0.6") else "DLAF_" + x
             args.append(
                 self.define(
-                    "LAPACK_LIBRARY",
+                    add_dlaf_prefix("LAPACK_LIBRARY"),
                     " ".join([spec[dep].libs.ld_flags for dep in ["blas", "lapack"]]),
                 )
             )
-            if "+scalapack" in spec:
-                args.append(self.define("SCALAPACK_LIBRARY", spec["scalapack"].libs.ld_flags))
+            if spec.satisfies("+scalapack"):
+                args.append(
+                    self.define(
+                        add_dlaf_prefix("SCALAPACK_LIBRARY"), spec["scalapack"].libs.ld_flags
+                    )
+                )
 
         args.append(self.define_from_variant("DLAF_WITH_SCALAPACK", "scalapack"))
 
@@ -243,12 +249,12 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
         # CUDA/HIP
         args.append(self.define_from_variant("DLAF_WITH_CUDA", "cuda"))
         args.append(self.define_from_variant("DLAF_WITH_HIP", "rocm"))
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             archs = spec.variants["amdgpu_target"].value
             if "none" not in archs:
                 arch_str = ";".join(archs)
                 args.append(self.define("CMAKE_HIP_ARCHITECTURES", arch_str))
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             archs = spec.variants["cuda_arch"].value
             if "none" not in archs:
                 arch_str = ";".join(archs)

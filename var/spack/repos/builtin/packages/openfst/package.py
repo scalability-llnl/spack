@@ -12,9 +12,9 @@ class Openfst(AutotoolsPackage):
     finite-state transducers are automata where each transition has
     an input label, an output label, and a weight."""
 
-    homepage = "http://www.openfst.org"
-    url = "http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.6.1.tar.gz"
-    list_url = "http://www.openfst.org/twiki/bin/view/FST/FstDownload"
+    homepage = "https://www.openfst.org"
+    url = "https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.6.1.tar.gz"
+    list_url = "https://www.openfst.org/twiki/bin/view/FST/FstDownload"
 
     license("Apache-2.0")
 
@@ -33,7 +33,7 @@ class Openfst(AutotoolsPackage):
     version(
         "1.4.1-patch",
         sha256="e671bf6bd4425a1fed4e7543a024201b74869bfdd029bdf9d10c53a3c2818277",
-        url="http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.4.1.tar.gz",
+        url="https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.4.1.tar.gz",
     )
     version("1.4.1", sha256="e671bf6bd4425a1fed4e7543a024201b74869bfdd029bdf9d10c53a3c2818277")
     version("1.4.0", sha256="eb557f37560438f03912b4e43335c4c9e72aa486d4f2046127131185eb88f17a")

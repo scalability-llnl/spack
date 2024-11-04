@@ -21,6 +21,8 @@ class Easi(CMakePackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("1.5.0", tag="v1.5.0", commit="391698ab0072f66280d08441974c2bdb04a65ce0")
+    version("1.4.0", tag="v1.4.0", commit="0d8fcf936574d93ddbd1d9222d46a93d4b119231")
     version("1.3.0", tag="v1.3.0", commit="99309a0fa78bf11d668c599b3ee469224f04d55b")
     version("1.2.0", tag="v1.2.0", commit="305a119338116a0ceac6b68b36841a50250d05b1")
     version("1.1.2", tag="v1.1.2", commit="4c87ef3b3dca9415d116ef102cb8de750ef7e1a0")
@@ -30,6 +32,7 @@ class Easi(CMakePackage):
 
     variant("python", default=True, description="Install python bindings")
     extends("python", when="+python")
+    depends_on("mpi", when="+python")
 
     variant("asagi", default=True, description="build with ASAGI support")
     variant(
@@ -63,22 +66,22 @@ class Easi(CMakePackage):
         args.append(self.define_from_variant("PYTHON_BINDINGS", "python"))
         self.define("PYBIND11_USE_FETCHCONTENT", False)
         spec = self.spec
-        if "jit=impalajit" in spec or "jit=impalajit-llvm" in spec:
+        if spec.satisfies("jit=impalajit") or spec.satisfies("jit=impalajit-llvm"):
             args.append(self.define("IMPALAJIT", True))
             backend_type = "llvm" if "jit=impalajit-llvm" in spec else "original"
             args.append(self.define("IMPALAJIT_BACKEND", backend_type))
         else:
             args.append(self.define("IMPALAJIT", False))
 
-        if "jit=lua" in spec:
+        if spec.satisfies("jit=lua"):
             args.append(self.define("LUA", True))
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args += [self.define("easi_INSTALL_PYTHONDIR", python_platlib)]
 
         return args
 
     def setup_run_environment(self, env):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             full_path = os.path.join(python_platlib, "easilib/cmake/easi/python_wrapper")
             env.prepend_path("PYTHONPATH", full_path)

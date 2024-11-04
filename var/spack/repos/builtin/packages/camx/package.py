@@ -18,13 +18,13 @@ class Camx(MakefilePackage):
 
     version(
         "6.50",
-        url="http://www.camx.com/getmedia/caaf7983-616b-4207-bd10-c2b404bda78d/CAMx_v6-50-src-180430.tgz",
+        url="https://www.camx.com/getmedia/caaf7983-616b-4207-bd10-c2b404bda78d/CAMx_v6-50-src-180430.tgz",
         sha256="4a53f78e0722d85a9c7d8ed6732aff55163a4ce06f69b6bbc9e00a3bf36a756c",
     )
     resource(
         when="@6.50",
         name="user_manual",
-        url="http://www.camx.com/files/camxusersguide_v6-50.pdf",
+        url="https://www.camx.com/files/camxusersguide_v6-50.pdf",
         sha256="b02d9826d59f22f9daa5955bb7b9fd3e0ca86eb73017c5845896d40391c64588",
         expand=False,
         placement="doc",
@@ -32,7 +32,7 @@ class Camx(MakefilePackage):
     resource(
         when="@6.50",
         name="input_data",
-        url="http://www.camx.com/getmedia/77ad8028-9388-4f5d-bcab-a418e15dde68/v6-50-specific-inputs-180430.tgz",
+        url="https://www.camx.com/getmedia/77ad8028-9388-4f5d-bcab-a418e15dde68/v6-50-specific-inputs-180430.tgz",
         sha256="89b58283e37b8e2bd550a8ec62208f241be72c78dc26da9c42ad63c34f54ebfb",
         placement="data",
     )

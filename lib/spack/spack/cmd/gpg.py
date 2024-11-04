@@ -224,7 +224,7 @@ def gpg_publish(args):
         mirror = spack.mirror.Mirror(args.mirror_url, args.mirror_url)
 
     with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
-        spack.binary_distribution.push_keys(
+        spack.binary_distribution._url_push_keys(
             mirror, keys=args.keys, tmpdir=tmpdir, update_index=args.update_index
         )
 

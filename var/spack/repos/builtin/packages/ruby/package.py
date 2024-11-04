@@ -24,6 +24,7 @@ class Ruby(AutotoolsPackage, NMakePackage):
 
     license("Ruby AND BSD-2-Clause AND MIT", checked_by="tgamblin")
 
+    version("3.3.5", sha256="3781a3504222c2f26cb4b9eb9c1a12dbf4944d366ce24a9ff8cf99ecbce75196")
     version("3.3.4", sha256="fe6a30f97d54e029768f2ddf4923699c416cdbc3a6e96db3e2d5716c7db96a34")
     version("3.3.2", sha256="3be1d100ebf2a0ce60c2cd8d22cd9db4d64b3e04a1943be2c4ff7b520f2bcb5b")
     version("3.3.0", sha256="96518814d9832bece92a85415a819d4893b307db5921ae1f0f751a9a89a56b7d")
@@ -46,6 +47,7 @@ class Ruby(AutotoolsPackage, NMakePackage):
         with when(_platform_condition):
             variant("openssl", default=True, description="Enable OpenSSL support")
             variant("readline", default=False, description="Enable Readline support")
+            variant("yjit", default=False, description="Enable Rust JIT", when="@3.2:")
             depends_on("pkgconfig", type="build")
             depends_on("libffi")
             depends_on("libx11", when="@:2.3")
@@ -57,6 +59,8 @@ class Ruby(AutotoolsPackage, NMakePackage):
             with when("+openssl"):
                 depends_on("openssl@:1")
                 depends_on("openssl@:1.0", when="@:2.3")
+            with when("+yjit"):
+                depends_on("rust@1.58:")
 
     extendable = True
 
@@ -132,6 +136,7 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder, SetupEnvi
             args.append("--with-tk=%s" % self.spec["tk"].prefix)
         if self.spec.satisfies("%fj"):
             args.append("--disable-dtrace")
+        args.extend(self.enable_or_disable("yjit"))
         return args
 
     @run_after("install")

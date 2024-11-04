@@ -67,4 +67,5 @@ class Pthreadpool(CMakePackage):
             self.define("PTHREADPOOL_BUILD_BENCHMARKS", False),
             self.define("PTHREADPOOL_LIBRARY_TYPE", "static"),
             self.define("PTHREADPOOL_ALLOW_DEPRECATED_API", True),
+            self.define("CMAKE_POSITION_INDEPENDENT_CODE", True),
         ]

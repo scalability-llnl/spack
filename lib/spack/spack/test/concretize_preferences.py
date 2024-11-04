@@ -11,8 +11,10 @@ import pytest
 import spack.config
 import spack.package_prefs
 import spack.repo
+import spack.spec
+import spack.util.module_cmd
 import spack.util.spack_yaml as syaml
-from spack.config import ConfigError
+from spack.error import ConfigError
 from spack.spec import CompilerSpec, Spec
 from spack.version import Version
 
@@ -227,7 +229,7 @@ mpileaks:
         """Preference should not specify an undefined version"""
         update_packages("python", "version", ["3.5.0.1"])
         spec = Spec("python")
-        with pytest.raises(spack.config.ConfigError):
+        with pytest.raises(ConfigError):
             spec.concretize()
 
     def test_preferred_truncated(self):

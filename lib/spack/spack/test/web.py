@@ -17,7 +17,6 @@ import spack.config
 import spack.mirror
 import spack.paths
 import spack.url
-import spack.util.path
 import spack.util.s3
 import spack.util.url as url_util
 import spack.util.web

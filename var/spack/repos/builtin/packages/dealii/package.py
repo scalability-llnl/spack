@@ -358,16 +358,6 @@ class Dealii(CMakePackage, CudaPackage):
             "via ~{0}".format(_package),
         )
 
-    # interfaces added after 9.5.0:
-    for _package in ["vtk", "taskflow"]:
-        conflicts(
-            "+{0}".format(_package),
-            when="@:9.5",
-            msg="The interface to {0} is supported from version 9.6.0 "
-            "onwards. Please explicitly disable this variant "
-            "via ~{0}".format(_package),
-        )
-
     # Interfaces removed in 9.3.0:
     conflicts(
         "+nanoflann",
@@ -504,7 +494,7 @@ class Dealii(CMakePackage, CudaPackage):
 
         # CUDA
         options.append(self.define_from_variant("DEAL_II_WITH_CUDA", "cuda"))
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             if not spec.satisfies("^cuda@9:"):
                 options.append("-DDEAL_II_WITH_CXX14=OFF")
             cuda_arch = spec.variants["cuda_arch"].value
@@ -519,7 +509,7 @@ class Dealii(CMakePackage, CudaPackage):
 
         # MPI
         options.append(self.define_from_variant("DEAL_II_WITH_MPI", "mpi"))
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             options.extend(
                 [
                     self.define("MPI_C_COMPILER", spec["mpi"].mpicc),
@@ -529,9 +519,9 @@ class Dealii(CMakePackage, CudaPackage):
             )
             # FIXME: Fix issues with undefined references in MPI. e.g,
             # libmpi.so: undefined reference to `opal_memchecker_base_isaddressable'
-            if "^openmpi" in spec:
+            if spec.satisfies("^openmpi"):
                 options.extend([self.define("MPI_CXX_LINK_FLAGS", "-lopen-pal")])
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 options.extend(
                     [
                         self.define(
@@ -541,7 +531,7 @@ class Dealii(CMakePackage, CudaPackage):
                     ]
                 )
             # Make sure we use the same compiler that Trilinos uses
-            if "+trilinos" in spec:
+            if spec.satisfies("+trilinos"):
                 options.extend([self.define("CMAKE_CXX_COMPILER", spec["trilinos"].kokkos_cxx)])
 
         # Python bindings
@@ -557,7 +547,7 @@ class Dealii(CMakePackage, CudaPackage):
             options.append(self.define_from_variant("DEAL_II_WITH_TBB", "threads"))
         else:
             options.append(self.define_from_variant("DEAL_II_WITH_THREADS", "threads"))
-        if "+threads" in spec:
+        if spec.satisfies("+threads"):
             if spec.satisfies("^intel-parallel-studio+tbb"):
                 # deal.II/cmake will have hard time picking up TBB from Intel.
                 tbb_ver = ".".join(("%s" % spec["tbb"].version).split(".")[1:])
@@ -605,12 +595,12 @@ class Dealii(CMakePackage, CudaPackage):
         # Optional dependencies that do not fit the above pattern:
         # ADOL-C
         options.append(self.define_from_variant("DEAL_II_WITH_ADOLC", "adol-c"))
-        if "+adol-c" in spec:
+        if spec.satisfies("+adol-c"):
             options.append(self.define("ADOLC_DIR", spec["adol-c"].prefix))
 
         # ARPACK
         options.append(self.define_from_variant("DEAL_II_WITH_ARPACK", "arpack"))
-        if "+arpack" in spec and "+mpi" in spec:
+        if spec.satisfies("+arpack") and spec.satisfies("+mpi"):
             options.extend(
                 [
                     self.define("ARPACK_DIR", spec["arpack-ng"].prefix),
@@ -620,7 +610,7 @@ class Dealii(CMakePackage, CudaPackage):
 
         # NetCDF
         # since Netcdf is spread among two, need to do it by hand:
-        if "+netcdf" in spec and "+mpi" in spec:
+        if spec.satisfies("+netcdf") and spec.satisfies("+mpi"):
             netcdf_libs = spec["netcdf-cxx"].libs + spec["netcdf-c"].libs
             options.extend(
                 [
@@ -639,7 +629,7 @@ class Dealii(CMakePackage, CudaPackage):
 
         # ScaLAPACK
         options.append(self.define_from_variant("DEAL_II_WITH_SCALAPACK", "scalapack"))
-        if "+scalapack" in spec:
+        if spec.satisfies("+scalapack"):
             scalapack_libs = spec["scalapack"].libs
             options.extend(
                 [
@@ -654,7 +644,7 @@ class Dealii(CMakePackage, CudaPackage):
 
         # Open Cascade
         options.append(self.define_from_variant("DEAL_II_WITH_OPENCASCADE", "oce"))
-        if "+oce" in spec:
+        if spec.satisfies("+oce"):
             options.append(self.define("OPENCASCADE_DIR", spec["oce"].prefix))
 
         # As a final step, collect CXX flags that may have been
@@ -670,7 +660,7 @@ class Dealii(CMakePackage, CudaPackage):
         options.append(self.define("DEAL_II_CXX_FLAGS", os.environ["SPACK_TARGET_ARGS"]))
 
         # platform introspection - needs to be disabled in some environments
-        if "+platform-introspection" in spec:
+        if spec.satisfies("+platform-introspection"):
             options.append(self.define("DEAL_II_ALLOW_PLATFORM_INTROSPECTION", True))
         else:
             options.append(self.define("DEAL_II_ALLOW_PLATFORM_INTROSPECTION", False))
@@ -682,5 +672,5 @@ class Dealii(CMakePackage, CudaPackage):
 
     def setup_build_environment(self, env):
         spec = self.spec
-        if "+cuda" in spec and "+mpi" in spec:
+        if spec.satisfies("+cuda") and spec.satisfies("+mpi"):
             env.set("CUDAHOSTCXX", spec["mpi"].mpicxx)
