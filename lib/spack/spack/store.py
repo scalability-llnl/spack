@@ -33,14 +33,10 @@ import spack.directory_layout
 import spack.error
 import spack.paths
 import spack.spec
-import spack.store
 import spack.util.path
 
 #: default installation root, relative to the Spack install path
 DEFAULT_INSTALL_TREE_ROOT = os.path.join(spack.paths.opt_path, "spack")
-
-
-ConfigurationType = Union["spack.config.Configuration", "llnl.util.lang.Singleton"]
 
 
 def parse_install_tree(config_dict):
@@ -208,7 +204,7 @@ class Store:
         )
 
 
-def create(configuration: ConfigurationType) -> Store:
+def create(configuration: spack.config.Configuration) -> Store:
     """Create a store from the configuration passed as input.
 
     Args:
@@ -241,7 +237,7 @@ def _create_global() -> Store:
 
 
 #: Singleton store instance
-STORE: Union[Store, llnl.util.lang.Singleton] = llnl.util.lang.Singleton(_create_global)
+STORE: Store = llnl.util.lang.Singleton(_create_global)  # type: ignore
 
 
 def reinitialize():
@@ -308,7 +304,7 @@ def find(
 
     matching_specs: List[spack.spec.Spec] = []
     errors = []
-    query_fn = query_fn or spack.store.STORE.db.query
+    query_fn = query_fn or STORE.db.query
     for spec in constraints:
         current_matches = query_fn(spec, **kwargs)
 
@@ -341,7 +337,7 @@ def specfile_matches(filename: str, **kwargs) -> List["spack.spec.Spec"]:
         **kwargs: keyword arguments forwarded to "find"
     """
     query = [spack.spec.Spec.from_specfile(filename)]
-    return spack.store.find(query, **kwargs)
+    return find(query, **kwargs)
 
 
 def ensure_singleton_created() -> None:

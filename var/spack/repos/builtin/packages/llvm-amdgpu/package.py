@@ -20,7 +20,7 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
     executables = [r"amdclang", r"amdclang\+\+", r"amdflang", r"clang.*", r"flang.*", "llvm-.*"]
     generator("ninja")
 
-    maintainers("srekolam", "renjithravindrankannath", "haampie")
+    maintainers("srekolam", "renjithravindrankannath", "haampie", "afzpatel")
 
     license("Apache-2.0")
 
@@ -222,11 +222,15 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
             self.define("LIBCXXABI_ENABLE_STATIC", "ON"),
             self.define("LIBCXXABI_INSTALL_STATIC_LIBRARY", "OFF"),
             self.define("LLVM_ENABLE_RTTI", "ON"),
-            self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;X86"),
             self.define("LLVM_AMDGPU_ALLOW_NPI_TARGETS", "ON"),
             self.define("PACKAGE_VENDOR", "AMD"),
             self.define("CLANG_ENABLE_AMDCLANG", "ON"),
         ]
+
+        if self.spec.target.family == "aarch64":
+            args.append(self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;AArch64"))
+        else:
+            args.append(self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;X86"))
 
         # Enable rocm-device-libs as a external project
         if self.spec.satisfies("+rocm-device-libs"):
@@ -319,6 +323,5 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
     def setup_dependent_build_environment(self, env, dependent_spec):
         for root, _, files in os.walk(self.spec["llvm-amdgpu"].prefix):
             if "libclang_rt.asan-x86_64.so" in files:
-                asan_lib_path = root
-        env.prepend_path("LD_LIBRARY_PATH", asan_lib_path)
+                env.prepend_path("LD_LIBRARY_PATH", root)
         env.prune_duplicate_paths("LD_LIBRARY_PATH")

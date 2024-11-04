@@ -275,7 +275,7 @@ class Compiler:
         operating_system,
         target,
         paths,
-        modules=None,
+        modules: Optional[List[str]] = None,
         alias=None,
         environment=None,
         extra_rpaths=None,

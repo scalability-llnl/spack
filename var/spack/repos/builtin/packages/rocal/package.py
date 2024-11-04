@@ -20,7 +20,8 @@ class Rocal(CMakePackage):
     version("6.2.1", sha256="77d3e63e02afaee6f1ee1d877d88b48c6ea66a0afca96a1313d0f1c4f8e86b2a")
     version("6.2.0", sha256="c7c265375a40d4478a628258378726c252caac424f974456d488fce43890e157")
 
-    depends_on("libjpeg-turbo@2.0.6+partial_decoder")
+    depends_on("libjpeg-turbo@2.0.6+partial_decoder", when="@6.2.0")
+    depends_on("libjpeg-turbo@3.0.2:", when="@6.2.1:")
     depends_on("rapidjson")
     depends_on("ffmpeg@4.4:")
 

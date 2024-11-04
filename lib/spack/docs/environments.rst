@@ -673,6 +673,9 @@ them to the environment.
 Environments can include files or URLs. File paths can be relative or
 absolute. URLs include the path to the text for individual files or
 can be the path to a directory containing configuration files.
+Spack supports ``file``, ``http``, ``https`` and ``ftp`` protocols (or
+schemes). Spack-specific, environment and user path variables may be
+used in these paths. See :ref:`config-file-variables` for more information.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Configuration precedence

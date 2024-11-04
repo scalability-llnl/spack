@@ -168,7 +168,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
 
         if "@2.5.0" in spec:
             options.append(define("MAGMA_SPARSE", False))
-            if spec.compiler.name in ["xl", "xl_r"]:
+            if spec.satisfies("%xl") or spec.satisfies("%xl_r"):
                 options.append(define("CMAKE_DISABLE_FIND_PACKAGE_OpenMP", True))
 
         if "+rocm" in spec:

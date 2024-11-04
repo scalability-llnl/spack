@@ -221,6 +221,7 @@ spack:
   - caliper +rocm amdgpu_target=gfx908
   - chai +rocm amdgpu_target=gfx908
   - ecp-data-vis-sdk +paraview +vtkm +rocm amdgpu_target=gfx908
+  - fftx +rocm amdgpu_target=gfx908
   - gasnet +rocm amdgpu_target=gfx908
   - ginkgo +rocm amdgpu_target=gfx908
   - heffte +rocm amdgpu_target=gfx908
@@ -264,6 +265,7 @@ spack:
   - caliper +rocm amdgpu_target=gfx90a
   - chai +rocm amdgpu_target=gfx90a
   - ecp-data-vis-sdk +paraview +vtkm +rocm amdgpu_target=gfx90a
+  - fftx +rocm amdgpu_target=gfx90a
   - gasnet +rocm amdgpu_target=gfx90a
   - ginkgo +rocm amdgpu_target=gfx90a
   - heffte +rocm amdgpu_target=gfx90a
