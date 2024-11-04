@@ -1155,7 +1155,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
 
     # known issue: for omp we have to add rpaths to `bin/llvm-omp-*` and
     # `share/gdb/python/ompd/ompdModule.so`.
-    unresolved_libraries = ["libpython*.so.*", "libomp.so"]
+    unresolved_libraries = ["libpython*.so.*", "libomp.so", "libomptarget.so.*", "libunwind.so.*"]
 
 
 def get_gcc_install_dir_flag(spec: Spec, compiler) -> Optional[str]:
