@@ -181,7 +181,7 @@ def _abs_code_path(
 def _dev_spec_generator(args, env):
     """
     Generator function to loop over all the develop specs based on how the command is called
-    If no specs are supplied then loop over the config.
+    If no specs are supplied then loop over the develop specs listed in the environment.
     """
     if not args.spec:
         if args.clone is False:

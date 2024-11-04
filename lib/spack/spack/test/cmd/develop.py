@@ -215,3 +215,19 @@ def test_develop_full_git_repo(
         develop_dir = spec.variants["dev_path"].value
         commits = _git_commit_list(develop_dir)
         assert len(commits) > 1
+
+
+def test_recursive(mutable_mock_env_path, install_mockery, mock_fetch):
+    env("create", "test")
+
+    with ev.read("test") as e:
+        add("indirect-mpich@1.0")
+        e.concretize()
+        specs = e.all_specs()
+
+        assert len(specs) > 1
+        develop("--recursive", "mpich")
+
+        expected_dev_specs = ["mpich", "direct-mpich", "indirect-mpich"]
+        for spec in expected_dev_specs:
+            assert spec in e.dev_specs
