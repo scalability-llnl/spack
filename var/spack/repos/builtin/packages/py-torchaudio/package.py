@@ -124,8 +124,9 @@ class PyTorchaudio(PythonPackage):
     def patch(self):
         # Add missing rpaths, which requires patching due to hardcoded cmake_args
         if self.spec.satisfies("@0.8:"):
+            rpaths = [f"{python_platlib}/torchaudio/lib", f"{python_platlib}/torio/lib"]
             cmake_args = [
-                f"-DCMAKE_INSTALL_RPATH={python_platlib}/torchaudio/lib",
+                f"-DCMAKE_INSTALL_RPATH={';'.join(rpaths)}",
                 "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
             ]
             cmake_str = ", ".join(f"'{arg}'" for arg in cmake_args)
