@@ -137,12 +137,16 @@ class Pythia8(AutotoolsPackage):
             r"-std=c\+\+[0-9][0-9]", f"-std=c++{self.spec.variants['cxxstd'].value}", "configure"
         )
 
-    # Fix for https://gitlab.com/Pythia8/releases/-/issues/428
-    @when("@:8.311")
-    def patch(self):
-        filter_file(
-            r"[/]examples[/]Makefile[.]inc\|;n' \\", "/examples/Makefile.inc|' \\", "configure"
-        )
+        # Fix for https://gitlab.com/Pythia8/releases/-/issues/428
+        with when("@:8.311"):
+            print("Patching")
+            filter_file(
+                r"[/]examples[/]Makefile[.]inc\|;n' \\", "/examples/Makefile.inc|' \\", "configure"
+            )
+
+    with when("@:8.312 cxxstd=20"):
+        patch("pythia8-cpp20-fjcore-forward-decl.patch", when="%apple-clang")
+        patch("pythia8-cpp20-fjcore-forward-decl.patch", when="%clang")
 
     def configure_args(self):
         args = []
