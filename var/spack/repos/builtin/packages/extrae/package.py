@@ -128,7 +128,7 @@ class Extrae(AutotoolsPackage):
 
         args += (
             ["--with-cuda=%s" % spec["cuda"].prefix]
-            if spec.satisifes("+cuda")
+            if spec.satisfies("+cuda")
             else ["--without-cuda"]
         )
 
