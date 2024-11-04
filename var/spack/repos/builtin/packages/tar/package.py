@@ -41,6 +41,10 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
         description="Default compression program for tar -z",
     )
 
+    depends_on("autoconf@2.63:", type="build")
+    depends_on("autoconf@2.64:", type="build", whrn="@1.33:")
+    depends_on("autoconf@2.71:", type="build", when="@1.35:")
+
     depends_on("iconv")
 
     # Compression
