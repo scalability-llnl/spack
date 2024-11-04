@@ -1652,6 +1652,7 @@ def test_ci_dynamic_mapping_full(
                 assert "unallowed_field" not in job
 
 
+@pytest.mark.parametrize("affected_packages", [None, "trivial-pkg-with-valid-hash"])
 def test_ci_generate_noop_no_concretize(
     tmpdir,
     working_env,
@@ -1660,6 +1661,7 @@ def test_ci_generate_noop_no_concretize(
     mock_packages,
     monkeypatch,
     ci_base_environment,
+    affected_packages,
 ):
     # Write the enviroment file
     filename = str(tmpdir.join("spack.yaml"))
@@ -1677,7 +1679,10 @@ spack:
         )
 
     def fake_compute_affected(r1=None, r2=None):
-        return []
+        if affected_packages:
+            return [affected_packages]
+        else:
+            return []
 
     monkeypatch.setattr(ci, "compute_affected_packages", fake_compute_affected)
     monkeypatch.setenv("SPACK_PRUNE_UNTOUCHED", "TRUE")  # enables pruning of untouched specs
