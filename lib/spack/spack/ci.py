@@ -739,6 +739,9 @@ def generate_gitlab_ci_yaml(
             for p in possible_builds.values():
                 if a in p:
                     changed = True
+                    break
+            if changed:
+                break
 
         if not changed:
             spack_ci = SpackCI(ci_config)
