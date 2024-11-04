@@ -45,6 +45,9 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
     depends_on("autoconf@2.64:", type="build", when="@1.33:")
     depends_on("autoconf@2.71:", type="build", when="@1.35:")
 
+    depends_on("automake@1.11:", type="build")
+    depends_on("automake@1.15:", type="build", when="@1.33:")
+
     depends_on("iconv")
 
     # Compression
