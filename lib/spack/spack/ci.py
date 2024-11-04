@@ -733,8 +733,12 @@ def generate_gitlab_ci_yaml(
         else:
             tty.debug("  no affected packages...")
 
+        changed = False
         possible_builds = spack.package_base.possible_dependencies(*env.user_specs)
-        changed = any((spec in p for p in possible_builds.values()) for spec in affected_pkgs)
+        for a in affected_pkgs:
+            for p in possible_builds.values():
+                if a in p:
+                    changed = True
 
         if not changed:
             spack_ci = SpackCI(ci_config)
