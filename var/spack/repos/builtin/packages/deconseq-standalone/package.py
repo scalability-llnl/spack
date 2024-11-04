@@ -10,7 +10,7 @@ class DeconseqStandalone(Package):
     """The DeconSeq tool can be used to automatically detect and efficiently
     remove sequence contaminations from genomic and metagenomic datasets."""
 
-    homepage = "http://deconseq.sourceforge.net"
+    homepage = "https://deconseq.sourceforge.net"
     url = "https://sourceforge.net/projects/deconseq/files/standalone/deconseq-standalone-0.4.3.tar.gz"
 
     license("GPL-3.0-only")

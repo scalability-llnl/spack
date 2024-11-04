@@ -18,8 +18,8 @@ class Thrift(Package):
     """
 
     homepage = "https://thrift.apache.org"
-    url = "http://archive.apache.org/dist/thrift/0.16.0/thrift-0.16.0.tar.gz"
-    list_url = "http://archive.apache.org/dist/thrift/"
+    url = "https://archive.apache.org/dist/thrift/0.16.0/thrift-0.16.0.tar.gz"
+    list_url = "https://archive.apache.org/dist/thrift/"
     list_depth = 1
 
     maintainers("thomas-bouvier")

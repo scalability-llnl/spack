@@ -28,7 +28,7 @@ class Nemsio(CMakePackage):
     version("2.5.3", sha256="3fe8a781fc96197803d369cafe0138f3a5cbbca9816a7f8fd57567a1719a4d49")
     version("2.5.2", sha256="c59e9379969690de8d030cbf4bbbbe3726faf13c304f3b88b0f6aec1496d2c08")
 
-    depends_on("fortran", type="build")  # generated
+    depends_on("fortran", type="build")
 
     depends_on("bacio")
     depends_on("mpi", when="+mpi")
@@ -46,3 +46,7 @@ class Nemsio(CMakePackage):
             args.append(self.define("CMAKE_Fortran_COMPILER", self.spec["mpi"].mpifc))
 
         return args
+
+    def check(self):
+        with working_dir(self.builder.build_directory):
+            make("test")

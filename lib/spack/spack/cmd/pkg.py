@@ -12,7 +12,6 @@ import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 
 import spack.cmd
-import spack.paths
 import spack.repo
 import spack.util.executable as exe
 import spack.util.package_hash as ph

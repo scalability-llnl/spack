@@ -8,7 +8,10 @@ import pytest
 
 from llnl.util.filesystem import touch
 
+import spack.builder
 import spack.paths
+import spack.repo
+import spack.spec
 
 
 @pytest.fixture()

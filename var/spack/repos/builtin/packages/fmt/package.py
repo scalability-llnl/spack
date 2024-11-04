@@ -101,10 +101,10 @@ class Fmt(CMakePackage):
 
     # Fix 'variable "buffer" may not be initialized' compiler error
     patch(
-        "fmt-no-variable-initialize_10.0.0.patch", when="@10.0.0:10.2.1%clang@12.0.1.ibm.gcc.8.3.1"
+        "fmt-no-variable-initialize_10.0.0.patch", when="@10.0.0:11.0.2%clang@12.0.1.ibm.gcc.8.3.1"
     )
     patch(
-        "fmt-no-variable-initialize_10.0.0.patch", when="@10.0.0:10.2.1%clang@14.0.5.ibm.gcc.8.3.1"
+        "fmt-no-variable-initialize_10.0.0.patch", when="@10.0.0:11.0.2%clang@14.0.5.ibm.gcc.8.3.1"
     )
 
     def cmake_args(self):
@@ -114,7 +114,7 @@ class Fmt(CMakePackage):
         if self.spec.satisfies("+shared"):
             args.append("-DBUILD_SHARED_LIBS=ON")
 
-        if "+pic" in spec:
+        if spec.satisfies("+pic"):
             args.extend(
                 [
                     "-DCMAKE_C_FLAGS={0}".format(self.compiler.cc_pic_flag),
@@ -128,7 +128,7 @@ class Fmt(CMakePackage):
         args.append("-DCMAKE_CXX_STANDARD_REQUIRED=ON")
 
         # When cxxstd is 98, must disable FMT_USE_CPP11
-        if "cxxstd=98" in spec:
+        if spec.satisfies("cxxstd=98"):
             args.append("-DFMT_USE_CPP11=OFF")
 
         # Can't build docs without doxygen+python+virtualenv

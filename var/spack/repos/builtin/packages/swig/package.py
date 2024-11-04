@@ -19,7 +19,7 @@ class Swig(AutotoolsPackage, SourceforgePackage):
     features that let you tailor the wrapping process to suit your
     application."""
 
-    homepage = "http://www.swig.org"
+    homepage = "https://www.swig.org"
     sourceforge_mirror_path = "swig/swig-3.0.12.tar.gz"
     maintainers("sethrj")
 

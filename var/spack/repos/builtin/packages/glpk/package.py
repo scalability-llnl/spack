@@ -33,7 +33,7 @@ class Glpk(AutotoolsPackage, GNUMirrorPackage):
     def configure_args(self):
         options = []
 
-        if "+gmp" in self.spec:
+        if self.spec.satisfies("+gmp"):
             options.append("--with-gmp")
 
         return options

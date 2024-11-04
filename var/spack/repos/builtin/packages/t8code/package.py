@@ -68,9 +68,14 @@ class T8code(AutotoolsPackage):
 
             # vtk paths need to be passed to configure command
             args.append(f"CPPFLAGS=-I{include_dir}")
-            args.append(f"LDFLAGS=-L{lib_dir}")
+            if "%gcc@14:" in spec:
+                args.append(f"LDFLAGS=-L{lib_dir} -lm")
+            else:
+                args.append(f"LDFLAGS=-L{lib_dir}")
             # Chosen vtk version number is needed for t8code to find the right version
             args.append(f"--with-vtk_version_number={vtk_ver}")
+        elif "%gcc@14:" in spec:
+            args.append("LDFLAGS=-lm")
 
         if "+petsc" in spec:
             args.append(f"--with-petsc={spec['petsc'].prefix}")

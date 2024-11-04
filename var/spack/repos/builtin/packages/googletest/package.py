@@ -66,7 +66,7 @@ class Googletest(CMakePackage):
             install_tree(join_path(self.stage.source_path, "include"), prefix.include)
 
             mkdirp(prefix.lib)
-            if "+shared" in spec:
+            if spec.satisfies("+shared"):
                 install("libgtest.{0}".format(dso_suffix), prefix.lib)
                 install("libgtest_main.{0}".format(dso_suffix), prefix.lib)
             else:

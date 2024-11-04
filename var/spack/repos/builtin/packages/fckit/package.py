@@ -68,7 +68,7 @@ class Fckit(CMakePackage):
             "-DFYPP_NO_LINE_NUMBERING=ON",
         ]
 
-        if "~shared" in self.spec:
+        if self.spec.satisfies("~shared"):
             args.append("-DBUILD_SHARED_LIBS=OFF")
 
         if "finalize_ddts=auto" not in self.spec:

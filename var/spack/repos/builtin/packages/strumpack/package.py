@@ -208,7 +208,7 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.test_data_dir, self.test_src_dir])
+        cache_extra_test_sources(self, [self.test_data_dir, self.test_src_dir])
 
     def _test_example(self, test_prog, test_cmd, pre_args=[]):
         test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)

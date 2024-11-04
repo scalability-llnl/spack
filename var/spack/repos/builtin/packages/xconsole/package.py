@@ -18,13 +18,13 @@ class Xconsole(AutotoolsPackage, XorgPackage):
     version("1.0.7", sha256="91bc7327643b1ca57800a37575930af16fbea485d426a96d8f465de570aa6eb3")
     version("1.0.6", sha256="28151453a0a687462516de133bac0287b488a2ff56da78331fee34bc1bf3e7d5")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libxaw")
     depends_on("libxmu")
     depends_on("libxt@1.0:")
     depends_on("libx11")
 
-    depends_on("xproto@7.0.17:")
+    depends_on("xproto@7.0.17:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

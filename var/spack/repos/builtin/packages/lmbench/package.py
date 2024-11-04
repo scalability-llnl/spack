@@ -12,7 +12,7 @@ class Lmbench(MakefilePackage):
     bandwidth. lmbench is intended to give system developers insight into
     basic costs of key operations."""
 
-    homepage = "http://lmbench.sourceforge.net/"
+    homepage = "https://lmbench.sourceforge.net/"
     git = "https://github.com/intel/lmbench.git"
 
     license("GPL-2.0-only")

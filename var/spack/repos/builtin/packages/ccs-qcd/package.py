@@ -69,7 +69,7 @@ class CcsQcd(MakefilePackage):
                 chgopt,
                 join_path(self.stage.source_path, "src", "make.gfortran.inc"),
             )
-        if "%fj" in spec:
+        if spec.satisfies("%fj"):
             filter_file(
                 "mpifrtpx",
                 spec["mpi"].mpifc,
@@ -95,7 +95,7 @@ class CcsQcd(MakefilePackage):
     def build(self, spec, prefix):
         ccs_class = "CLASS=" + spec.variants["class"].value
         with working_dir("src"):
-            if "%fj" in spec:
+            if spec.satisfies("%fj"):
                 make("MAKE_INC=make.fx10.inc", ccs_class)
             else:
                 make("MAKE_INC=make.gfortran.inc", ccs_class)

@@ -68,7 +68,7 @@ class Runner:
         with self._mock_layout() as path_hints:
             entries = by_path([self.test.pkg_name], path_hints=path_hints)
             _, unqualified_name = spack.repo.partition_package_name(self.test.pkg_name)
-            specs = set(x.spec for x in entries[unqualified_name])
+            specs = set(entries[unqualified_name])
         return list(specs)
 
     @contextlib.contextmanager
@@ -104,7 +104,9 @@ class Runner:
     @property
     def expected_specs(self) -> List[spack.spec.Spec]:
         return [
-            spack.spec.Spec.from_detection(item.spec, extra_attributes=item.extra_attributes)
+            spack.spec.Spec.from_detection(
+                item.spec, external_path=self.tmpdir.name, extra_attributes=item.extra_attributes
+            )
             for item in self.test.results
         ]
 

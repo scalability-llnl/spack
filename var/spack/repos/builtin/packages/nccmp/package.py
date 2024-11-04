@@ -9,7 +9,7 @@ from spack.package import *
 class Nccmp(CMakePackage):
     """Compare NetCDF Files"""
 
-    homepage = "http://nccmp.sourceforge.net/"
+    homepage = "https://nccmp.sourceforge.net/"
     url = "https://gitlab.com/remikz/nccmp/-/archive/1.9.0.1/nccmp-1.9.0.1.tar.gz"
 
     maintainers("ulmononian", "climbfuji")

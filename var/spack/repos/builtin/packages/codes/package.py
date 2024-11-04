@@ -45,7 +45,7 @@ class Codes(AutotoolsPackage):
             "PKG_CONFIG_PATH=%s/pkgconfig" % spec["ross"].prefix.lib,
         ]
 
-        if "+dumpi" in spec:
+        if spec.satisfies("+dumpi"):
             config_args.extend(["--with-dumpi=%s" % spec["sst-dumpi"].prefix])
 
         return config_args

@@ -115,12 +115,6 @@ config:
   suppress_gpg_warnings: false
 
 
-  # If set to true, Spack will attempt to build any compiler on the spec
-  # that is not already available. If set to False, Spack will only use
-  # compilers already configured in compilers.yaml
-  install_missing_compilers: false
-
-
   # If set to true, Spack will always check checksums after downloading
   # archives. If false, Spack skips the checksum step.
   checksum: true
@@ -169,23 +163,6 @@ config:
 
   # If set to true, Spack will use ccache to cache C compiles.
   ccache: false
-
-
-  # The concretization algorithm to use in Spack. Options are:
-  #
-  #   'clingo': Uses a logic solver under the hood to solve DAGs with full
-  #       backtracking and optimization for user preferences. Spack will
-  #       try to bootstrap the logic solver, if not already available.
-  #
-  #   'original': Spack's original greedy, fixed-point concretizer. This
-  #       algorithm can make decisions too early and will not backtrack
-  #       sufficiently for many specs. This will soon be deprecated in
-  #       favor of clingo.
-  #
-  # See `concretizer.yaml` for more settings you can fine-tune when
-  # using clingo.
-  concretizer: clingo
-
 
   # How long to wait to lock the Spack installation database. This lock is used
   # when Spack needs to manage its own package metadata and all operations are

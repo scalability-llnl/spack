@@ -10,12 +10,14 @@ class Rkcommon(CMakePackage):
     """This project represents a common set of C++ infrastructure and CMake utilities
     used by various components of Intel® oneAPI Rendering Toolkit."""
 
-    homepage = "https://github.com/ospray/rkcommon"
-    url = "https://github.com/ospray/rkcommon/archive/v1.4.1.tar.gz"
-    git = "https://github.com/ospray/rkcommon.git"
+    homepage = "https://github.com/RenderKit/rkcommon"
+    url = "https://github.com/RenderKit/rkcommon/archive/v1.4.1.tar.gz"
+    git = "https://github.com/RenderKit/rkcommon.git"
 
     license("Apache-2.0")
 
+    version("1.14.2", sha256="79334ef3dadddb03ec0483fbf49bf690fb8902d5c2732d977b2c116651484cc6")
+    version("1.14.0", sha256="5aef75afc8d4fccf9e70df4cbdf29a1b28b39ee51b5588b94b83a14c6a166d83")
     version("1.13.0", sha256="8ae9f911420085ceeca36e1f16d1316a77befbf6bf6de2a186d65440ac66ff1f")
     version("1.12.0", sha256="6abb901073811cdbcbe336772e1fcb458d78cab5ad8d5d61de2b57ab83581e80")
     version("1.11.0", sha256="9cfeedaccdefbdcf23c465cb1e6c02057100c4a1a573672dc6cfea5348cedfdd")

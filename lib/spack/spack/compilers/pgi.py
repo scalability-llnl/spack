@@ -10,18 +10,6 @@ from spack.version import Version
 
 
 class Pgi(Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["pgcc"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["pgc++", "pgCC"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["pgfortran", "pgf77"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["pgfortran", "pgf95", "pgf90"]
-
     # Named wrapper links within build_env_path
     link_paths = {
         "cc": os.path.join("pgi", "pgcc"),
@@ -29,9 +17,6 @@ class Pgi(Compiler):
         "f77": os.path.join("pgi", "pgfortran"),
         "fc": os.path.join("pgi", "pgfortran"),
     }
-
-    PrgEnv = "PrgEnv-pgi"
-    PrgEnv_compiler = "pgi"
 
     version_argument = "-V"
     ignore_version_errors = [2]  # `pgcc -V` on PowerPC annoyingly returns 2

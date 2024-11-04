@@ -10,7 +10,7 @@ class Lame(AutotoolsPackage):
     """LAME is a high quality MPEG Audio Layer III (MP3) encoder licensed
     under the LGPL."""
 
-    homepage = "http://lame.sourceforge.net/"
+    homepage = "https://lame.sourceforge.net/"
     url = "https://download.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz"
 
     license("LGPL-2.0-or-later")

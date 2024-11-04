@@ -17,8 +17,8 @@ spack:
       - axom
       - blt
       - caliper
-      #- care  ## ~benchmarks ~examples ~tests
-      #- chai  ## ~examples
+      - care  # ~benchmarks ~examples ~tests
+      - chai  # ~examples
       - conduit  # ^hdf5+shared
       - flux-core
       #- flux-sched
@@ -31,6 +31,7 @@ spack:
       - py-merlin
       - py-shroud
       - raja # ~examples  # ~tests
+      - raja-perf
       - samrai
       - scr
       - sundials

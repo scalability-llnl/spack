@@ -32,7 +32,7 @@ class Grep(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+pcre" in self.spec:
+        if self.spec.satisfies("+pcre"):
             args.append("--enable-perl-regexp")
         else:
             args.append("--disable-perl-regexp")

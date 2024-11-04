@@ -22,6 +22,7 @@ class Nlopt(CMakePackage):
 
     version("master", branch="master")
 
+    version("2.8.0", sha256="e02a4956a69d323775d79fdaec7ba7a23ed912c7d45e439bc933d991ea3193fd")
     version("2.7.1", sha256="db88232fa5cef0ff6e39943fc63ab6074208831dc0031cf1545f6ecd31ae2a1a")
     version("2.7.0", sha256="b881cc2a5face5139f1c5a30caf26b7d3cb43d69d5e423c9d78392f99844499f")
     version("2.6.2", sha256="cfa5981736dd60d0109c534984c4e13c615314d3584cf1c392a155bfe1a3b17e")

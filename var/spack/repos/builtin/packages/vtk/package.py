@@ -20,7 +20,7 @@ class Vtk(CMakePackage):
     url = "https://www.vtk.org/files/release/9.0/VTK-9.0.0.tar.gz"
     list_url = "https://www.vtk.org/download/"
 
-    maintainers("danlipsa", "vicentebolea")
+    maintainers("chuckatkins", "danlipsa", "johnwparent")
 
     license("BSD-3-Clause")
 
@@ -131,10 +131,21 @@ class Vtk(CMakePackage):
     patch("vtk_movie_link_ogg.patch", when="@8.2")
     patch("vtk_use_sqlite_name_vtk_expects.patch", when="@8.2")
     patch("vtk_proj_include_no_strict.patch", when="@9: platform=windows")
+    # allow proj to be detected via a CMake produced export config file
+    # failing that, falls back on standard library detection
+    # required for VTK to build against modern proj/more robustly
+    patch("vtk_findproj_config.patch", when="@9:")
+    # adds a fake target alias'ing the hdf5 target to prevent
+    # checks for that target from falling on VTK's empty stub target
+    # Required to consume netcdf and hdf5 both built
+    # with CMake from VTK
     # a patch with the same name is also applied to paraview
     # the two patches are the same but for the path to the files they patch
-    patch("vtk_alias_hdf5.patch", when="@9: platform=windows")
-    patch("vtk_findproj_config.patch", when="platform=windows")
+    patch("vtk_alias_hdf5.patch", when="@9:")
+    # VTK 9.0 on Windows uses dll instead of lib for hdf5-hl target, which fails linking. Can't
+    # be fixed by bumping CMake lower bound, because VTK vendors FindHDF5.cmake. Various other
+    # patches to FindHDF5.cmake are missing, so add conflict instead of a series of patches.
+    conflicts("@9.0 platform=windows")
     depends_on("libxt", when="^[virtuals=gl] glx platform=linux")
 
     # VTK will need Qt5OpenGL, and qt needs '-opengl' for that

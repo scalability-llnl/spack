@@ -11,7 +11,7 @@ class CBlosc2(CMakePackage):
     other bells and whistles"""
 
     homepage = "https://www.blosc.org/"
-    url = "https://github.com/Blosc/c-blosc2/archive/refs/tags/v2.10.2.tar.gz"
+    url = "https://github.com/Blosc/c-blosc2/archive/refs/tags/v2.15.1.tar.gz"
     git = "https://github.com/Blosc/c-blosc2.git"
 
     maintainers("ax3l", "robert-mijakovic")
@@ -19,6 +19,7 @@ class CBlosc2(CMakePackage):
     license("BSD-3-Clause")
 
     version("develop", branch="master")
+    version("2.15.1", sha256="6cf32fcfc615542b9ba35e021635c8ab9fd3d328fd99d5bf04b7eebc80f1fae2")
     version("2.11.1", sha256="1e9923e0f026eb6e6caee608b4b9a523837806076fc79409055a6386cf5de1ea")
     version("2.10.5", sha256="a88f94bf839c1371aab8207a6a43698ceb92c72f65d0d7fe5b6e59f24c138b4d")
     # 2.10.2+ fixes regressions with external dependencies

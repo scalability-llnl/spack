@@ -2,12 +2,6 @@ paths:
 - layout:
   - executables:
     - "bin/clang-3.9"
-    script: |
-      echo "clang version 3.9.1-19ubuntu1 (tags/RELEASE_391/rc2)"
-      echo "Target: x86_64-pc-linux-gnu"
-      echo "Thread model: posix"
-      echo "InstalledDir: /usr/bin"
-  - executables:
     - "bin/clang++-3.9"
     script: |
       echo "clang version 3.9.1-19ubuntu1 (tags/RELEASE_391/rc2)"
@@ -21,6 +15,42 @@ paths:
       compilers:
         c: ".*/bin/clang-3.9$"
         cxx: ".*/bin/clang[+][+]-3.9$"
+
+# `~` and other weird characters in the version string
+- layout:
+  - executables:
+    - "bin/clang-6.0"
+    - "bin/clang++-6.0"
+    script: |
+        echo "clang version 6.0.1-svn334776-1~exp1~20181018152737.116 (branches/release_60)"
+        echo "Target: x86_64-pc-linux-gnu"
+        echo "Thread model: posix"
+        echo "InstalledDir: /usr/bin",
+
+  platforms: ["darwin", "linux"]
+  results:
+  - spec: 'llvm@6.0.1 +clang~lld~lldb'
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang-6.0$"
+        cxx: ".*/bin/clang[+][+]-6.0$"
+- layout:
+  - executables:
+    - "bin/clang-9.0"
+    - "bin/clang++-9.0"
+    script: |      
+        echo "clang version 9.0.1-+201911131414230800840845a1eea-1~exp1~20191113231141.78"
+        echo "Target: x86_64-pc-linux-gnu"
+        echo "Thread model: posix"
+        echo "InstalledDir: /usr/bin"
+
+  platforms: ["darwin", "linux"]
+  results:
+  - spec: 'llvm@9.0.1 +clang~lld~lldb'
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang-9.0$"
+        cxx: ".*/bin/clang[+][+]-9.0$"
 
 # Multiple LLVM packages in the same prefix
 - layout:

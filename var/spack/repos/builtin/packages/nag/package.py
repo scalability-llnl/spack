@@ -13,7 +13,13 @@ class Nag(Package, CompilerPackage):
     homepage = "https://www.nag.com/nagware/np.asp"
     maintainers("skosukhin")
 
-    version("7.2.7200", sha256="3c2179e073d6cf2aadaeaf9a6a5f3b7f1fdcfb85b99c6fb593445b28ddd44880")
+    version("7.2.7203", sha256="775e2a10329bcf1c0ba35adb73d49db11b76698ede1f4ae070177216c9ee6e1e")
+    version(
+        "7.2.7200",
+        sha256="3c2179e073d6cf2aadaeaf9a6a5f3b7f1fdcfb85b99c6fb593445b28ddd44880",
+        url="file://{0}/npl6a72na_amd64.tgz".format(os.getcwd()),
+        deprecated=True,
+    )
     version("7.1.7125", sha256="738ed9ed943ebeb05d337cfdc603b9c88b8642b3d0cafea8d2872f36201adb37")
     version(
         "7.1.7101",

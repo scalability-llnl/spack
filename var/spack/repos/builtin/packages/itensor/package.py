@@ -92,12 +92,12 @@ class Itensor(MakefilePackage):
         filter_file(r"^BLAS_LAPACK_LIBFLAGS.+", vlib, mf)
 
         # 3.HDF5
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             hdf5p = f"HDF5_PREFIX={spec['hdf5'].prefix.lib}"
             filter_file("^#HDF5.+", hdf5p, mf)
 
         # 4.openmp
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             filter_file("#ITENSOR_USE_OMP", "ITENSOR_USE_OMP", mf)
             filter_file("-fopenmp", self.compiler.openmp_flag, mf)
 
@@ -105,7 +105,7 @@ class Itensor(MakefilePackage):
         filter_file(r"^PREFIX.+", f"PREFIX={os.getcwd()}", mf)
 
         # 5.shared
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             filter_file("ITENSOR_MAKE_DYLIB=0", "ITENSOR_MAKE_DYLIB=1", mf)
 
     def install(self, spec, prefix):

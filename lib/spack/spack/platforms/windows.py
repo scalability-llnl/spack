@@ -7,7 +7,6 @@ import platform
 
 import archspec.cpu
 
-import spack.target
 from spack.operating_systems.windows_os import WindowsOs
 
 from ._platform import Platform
@@ -18,9 +17,7 @@ class Windows(Platform):
 
     def __init__(self):
         super().__init__("windows")
-
-        for name in archspec.cpu.TARGETS:
-            self.add_target(name, spack.target.Target(name))
+        self._add_archspec_targets()
 
         self.default = archspec.cpu.host().name
         self.front_end = self.default

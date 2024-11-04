@@ -90,7 +90,7 @@ class OpenspeedshopUtils(CMakePackage):
 
     # Dependencies for openspeedshop that are common to all
     # the variants of the OpenSpeedShop build
-    depends_on("libtool", type="build")
+    depends_on("libtool", type="link")  # links against libltdl
     depends_on("bison", type="build")
     depends_on("flex@2.6.1", type="build")
 

@@ -22,14 +22,14 @@ class Libxaw3d(AutotoolsPackage, XorgPackage):
     version("1.6.4", sha256="09fecfdab9d7d5953567883e2074eb231bc7a122a06e5055f9c119090f1f76a7")
     version("1.6.2", sha256="847dab01aeac1448916e3b4edb4425594b3ac2896562d9c7141aa4ac6c898ba9")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11")
     depends_on("libxt")
     depends_on("libxmu")
     depends_on("libxext")
     depends_on("libxpm")
-    depends_on("xproto@7.0.22:")
+    depends_on("xproto@7.0.22:", type=("build", "link"))
 
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

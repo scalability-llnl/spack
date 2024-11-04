@@ -2,8 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
-
 from llnl.util.filesystem import working_dir
 
 import spack.builder
@@ -90,11 +88,11 @@ class WafBuilder(BaseBuilder):
 
     def python(self, *args, **kwargs):
         """The python ``Executable``."""
-        inspect.getmodule(self.pkg).python(*args, **kwargs)
+        self.pkg.module.python(*args, **kwargs)
 
     def waf(self, *args, **kwargs):
         """Runs the waf ``Executable``."""
-        jobs = inspect.getmodule(self.pkg).make_jobs
+        jobs = self.pkg.module.make_jobs
 
         with working_dir(self.build_directory):
             self.python("waf", "-j{0}".format(jobs), *args, **kwargs)

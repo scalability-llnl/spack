@@ -8,6 +8,8 @@ import os
 import sys
 import tempfile
 
+from spack.build_environment import optimization_flags
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 rocm_dependencies = [
@@ -51,8 +53,8 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     version("2.16.1", sha256="c729e56efc945c6df08efe5c9f5b8b89329c7c91b8f40ad2bb3e13900bd4876d")
     version(
         "2.16.1-rocm-enhanced",
-        sha256="6765e85675734b8fe17bca3c0669aec2f9ee97699b413780bcf3c6f00661ce72",
-        url="https://github.com/ROCm/tensorflow-upstream/archive/refs/tags/r2.16-rocm-enhanced.tar.gz",
+        sha256="e1b63b1b5d5b014194ed33113c7fa7f26ecb8d36333282b8c550e795e0eb31c6",
+        url="https://github.com/ROCm/tensorflow-upstream/archive/refs/tags/v2.16.1-rocm-enhanced.tar.gz",
     )
     version("2.15.1", sha256="f36416d831f06fe866e149c7cd752da410a11178b01ff5620e9f265511ed57cf")
     version("2.15.0", sha256="9cec5acb0ecf2d47b16891f8bc5bc6fbfdffe1700bdadc0d9ebe27ea34f0c220")
@@ -377,12 +379,11 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     conflicts("+rocm", when="@:2.7.4-a,2.7.4.0:2.11.0-a,2.11.0.0:2.14-a,2.14-z:2.16.1-a,2.16.1-z:")
     # wheel 0.40 upgrades vendored packaging, trips over tensorflow-io-gcs-filesystem identifier
     conflicts("^py-wheel@0.40:", when="@2.11:2.13")
-    # Must be matching versions of py-protobuf and protobuf
-    conflicts("^py-protobuf~cpp")
 
     # https://www.tensorflow.org/install/source#tested_build_configurations
     # https://github.com/tensorflow/tensorflow/issues/70199
     # (-mavx512fp16 exists in gcc@12:)
+    conflicts("%gcc@13:", when="@:2.14")
     conflicts("%gcc@:11", when="@2.17:")
     conflicts("%gcc@:9.3.0", when="@2.9:")
     conflicts("%gcc@:7.3.0")
@@ -449,6 +450,22 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         when="@2.16.1-rocm-enhanced +rocm",
     )
     phases = ["configure", "build", "install"]
+
+    def flag_handler(self, name, flags):
+        spec = self.spec
+        # ubuntu gcc has this workaround turned on by default in aarch64
+        # and it causes issues with symbol relocation during link
+        # note, archspec doesn't currently ever report cortex_a53!
+        if (
+            name == "ldflags"
+            and spec.target.family == "aarch64"
+            and "ubuntu" in spec.os
+            and spec.satisfies("%gcc")
+            and "cortex_a53" not in spec.target.name
+        ):
+            flags.append("-mno-fix-cortex-a53-843419")
+
+        return (flags, None, None)
 
     # https://www.tensorflow.org/install/source
     def setup_build_environment(self, env):
@@ -630,10 +647,8 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
             # Please note that each additional compute capability significantly
             # increases your build time and binary size, and that TensorFlow
             # only supports compute capabilities >= 3.5
-            capabilities = ",".join(
-                "{0:.1f}".format(float(i) / 10.0) for i in spec.variants["cuda_arch"].value
-            )
-            env.set("TF_CUDA_COMPUTE_CAPABILITIES", capabilities)
+            capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
+            env.set("TF_CUDA_COMPUTE_CAPABILITIES", ",".join(capabilities))
         else:
             env.set("TF_NEED_CUDA", "0")
 
@@ -658,7 +673,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
         # Please specify optimization flags to use during compilation when
         # bazel option '--config=opt' is specified
-        env.set("CC_OPT_FLAGS", spec.architecture.target.optimization_flags(spec.compiler))
+        env.set("CC_OPT_FLAGS", optimization_flags(self.compiler, spec.target))
 
         # Would you like to interactively configure ./WORKSPACE for
         # Android builds?
@@ -874,12 +889,10 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
             )
             with working_dir(buildpath):
                 wheel = glob.glob("*.whl")[0]
-                args = std_pip_args + ["--prefix=" + prefix, wheel]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", wheel)
         else:
             buildpath = join_path(self.stage.source_path, "spack-build")
             with working_dir(buildpath):
-                args = std_pip_args + ["--prefix=" + prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
         remove_linked_tree(tmp_path)

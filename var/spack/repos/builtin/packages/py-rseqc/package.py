@@ -11,7 +11,7 @@ class PyRseqc(PythonPackage):
     comprehensively evaluate high throughput sequence data especially RNA-seq
     data."""
 
-    homepage = "http://rseqc.sourceforge.net"
+    homepage = "https://rseqc.sourceforge.net"
     pypi = "RSeQC/RSeQC-2.6.4.tar.gz"
 
     version("5.0.1", sha256="3c7d458784861af352d8da3f4f1cc8941934b37643164e9b74f929a32bd9ca80")

@@ -20,8 +20,8 @@ class W3nco(CMakePackage):
 
     version("2.4.1", sha256="48b06e0ea21d3d0fd5d5c4e7eb50b081402567c1bff6c4abf4fd4f3669070139")
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     def flag_handler(self, name, flags):
         if name == "cflags":

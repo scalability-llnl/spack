@@ -59,14 +59,14 @@ class Compadre(CMakePackage):
             ]
         )
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             options.append("-DCompadre_USE_MPI:BOOL=ON")
 
-        if "~tests" in spec:
+        if spec.satisfies("~tests"):
             options.append("-DCompadre_EXAMPLES:BOOL=OFF")
             options.append("-DCompadre_TESTS:BOOL=OFF")
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             options.append("-DBUILD_SHARED_LIBS:BOOL=ON")
         else:
             options.append("-DBUILD_SHARED_LIBS:BOOL=OFF")

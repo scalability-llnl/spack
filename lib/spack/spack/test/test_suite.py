@@ -4,13 +4,16 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
 import os
+import sys
 
 import pytest
 
 from llnl.util.filesystem import join_path, mkdirp, touch
 
+import spack.config
 import spack.install_test
 import spack.spec
+import spack.util.executable
 from spack.install_test import TestStatus
 from spack.util.executable import which
 
@@ -315,8 +318,11 @@ def test_test_part_pass(install_mockery, mock_fetch, mock_test_stage):
     name = "test_echo"
     msg = "nothing"
     with spack.install_test.test_part(pkg, name, "echo"):
-        echo = which("echo")
-        echo(msg)
+        if sys.platform == "win32":
+            print(msg)
+        else:
+            echo = which("echo")
+            echo(msg)
 
     for part_name, status in pkg.tester.test_parts.items():
         assert part_name.endswith(name)

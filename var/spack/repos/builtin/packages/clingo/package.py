@@ -76,9 +76,18 @@ class Clingo(CMakePackage):
     patch("clingo_msc_1938_native_handle.patch", when="@:5.7.0 %msvc@19.38:")
 
     def patch(self):
+        # In bootstrap/prototypes/*.json we don't want to have specs that work for any python
+        # version, so this conditional patch lives here instead of being its own directive.
+        if self.spec.satisfies("@spack,5.3:5.4 ^python@3.9:"):
+            filter_file(
+                "if (!PyEval_ThreadsInitialized()) { PyEval_InitThreads(); }",
+                "",
+                "libpyclingo/pyclingo.cc",
+                string=True,
+            )
         # Doxygen is optional but can't be disabled with a -D, so patch
         # it out if it's really supposed to be disabled
-        if "+docs" not in self.spec:
+        if self.spec.satisfies("~docs"):
             filter_file(
                 r"find_package\(Doxygen\)",
                 'message("Doxygen disabled for Spack build.")',
@@ -98,7 +107,7 @@ class Clingo(CMakePackage):
 
         args = [self.define("CLINGO_BUILD_WITH_LUA", False)]
 
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             suffix = python(
                 "-c", "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))", output=str
             ).strip()
@@ -116,7 +125,7 @@ class Clingo(CMakePackage):
 
         # Use LTO also for non-Intel compilers please. This can be removed when they
         # bump cmake_minimum_required to VERSION 3.9.
-        if "+ipo" in self.spec:
+        if self.spec.satisfies("+ipo"):
             args.append(self.define("CMAKE_POLICY_DEFAULT_CMP0069", "NEW"))
 
         return args

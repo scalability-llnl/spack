@@ -15,6 +15,9 @@ class PyAutoray(PythonPackage):
 
     license("Apache-2.0")
 
+    version("0.6.12", sha256="721328aa06fc3577155d988052614a7b4bd6e4d01b340695344031ee4abd2a1e")
+    version("0.6.11", sha256="23e6dc013913de318952580cfbf054920ebd5eacd060fc48edebb678307b4b0d")
+    version("0.6.10", sha256="afff46ed3a001daad1bed917aecda75a8f0d36c0c8823eed877db4e8d55a8b20")
     version("0.6.9", sha256="9f41759f6a286bc280c4f6aece436da1c87ce75eb00efe7dc7319860c43654fa")
     version("0.6.8", sha256="8e31832597cb2075e5f9f65894fafff9d726d9287718415d3c8b008e592f0197")
     version("0.6.7", sha256="8945cfdf3aa8a35f9fe1abc03d84925db61f58bbd386623206dd8e9ba1d9e377")

@@ -2,8 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
-
 from llnl.util.filesystem import working_dir
 
 import spack.builder
@@ -66,17 +64,17 @@ class QMakeBuilder(BaseBuilder):
     def qmake(self, pkg, spec, prefix):
         """Run ``qmake`` to configure the project and generate a Makefile."""
         with working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).qmake(*self.qmake_args())
+            pkg.module.qmake(*self.qmake_args())
 
     def build(self, pkg, spec, prefix):
         """Make the build targets"""
         with working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make()
+            pkg.module.make()
 
     def install(self, pkg, spec, prefix):
         """Make the install targets"""
         with working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make("install")
+            pkg.module.make("install")
 
     def check(self):
         """Search the Makefile for a ``check:`` target and runs it if found."""

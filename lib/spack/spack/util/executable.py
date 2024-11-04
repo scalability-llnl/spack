@@ -12,6 +12,7 @@ from pathlib import Path, PurePath
 import llnl.util.tty as tty
 
 import spack.error
+from spack.util.environment import EnvironmentModifications
 
 __all__ = ["Executable", "which", "ProcessError"]
 
@@ -27,7 +28,6 @@ class Executable:
         self.exe = [file_path]
 
         self.default_env = {}
-        from spack.util.environment import EnvironmentModifications  # no cycle
 
         self.default_envmod = EnvironmentModifications()
         self.returncode = None
@@ -275,9 +275,9 @@ class Executable:
             long_msg = cmd_line_string + f"\n{result}"
             if fail_on_error:
                 raise ProcessTimeoutError(
-                    f"\nProcess timed out after {timeout}s"
-                    f"We expected the following command to run quickly but\
-it did not, please report this as an issue: {long_msg}",
+                    f"\nProcess timed out after {timeout}s. "
+                    "We expected the following command to run quickly but it did not, "
+                    f"please report this as an issue: {long_msg}",
                     long_message=long_msg,
                 ) from te
 

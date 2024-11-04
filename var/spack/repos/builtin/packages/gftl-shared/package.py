@@ -25,6 +25,7 @@ class GftlShared(CMakePackage):
 
     version("main", branch="main")
 
+    version("1.9.0", sha256="a3291ce61b512fe88628cc074b02363c2ba3081e7b453371089121988482dd6f")
     version("1.8.0", sha256="3450161508c573ea053b2a23cdbf2a1d6fd6fdb78c162d31fc0019da0f8dd03c")
     version("1.7.0", sha256="8ba567133fcee6b93bc71f61b3bb2053b4b07c6d78f6ad98a04dfc40aa478de7")
     version("1.6.1", sha256="0e3e1e0c7e0c3f1576e296b3b199dcae4bbaad055fc8fe929c34e52d4b07b02c")
@@ -41,7 +42,7 @@ class GftlShared(CMakePackage):
     version("1.3.1", sha256="a71e164108847f32f37da505f604fc2a50f392a4fcdf9a7cfe8eaf775bed64d4")
     version("1.3.0", sha256="979b00c4d531e701bf4346f662e3e4cc865124a97ca958637a53201d66d4ee43")
 
-    depends_on("fortran", type="build")  # generated
+    depends_on("fortran", type="build")
 
     depends_on("m4", type=("build", "run"))
     depends_on("cmake@3.12:", type="build")

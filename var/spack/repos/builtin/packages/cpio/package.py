@@ -42,10 +42,10 @@ class Cpio(AutotoolsPackage, GNUMirrorPackage):
         spec = self.spec
 
         if name == "cflags":
-            if "%intel@:17" in spec:
+            if spec.satisfies("%intel@:17"):
                 flags.append("-no-gcc")
 
-            elif "%clang" in spec or "%fj" in spec:
+            elif spec.satisfies("%clang") or spec.satisfies("%fj"):
                 flags.append("--rtlib=compiler-rt")
 
         return (flags, None, None)

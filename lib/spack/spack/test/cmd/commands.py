@@ -6,11 +6,11 @@
 import filecmp
 import os
 import shutil
-import subprocess
 
 import pytest
 
 import spack.cmd
+import spack.cmd.commands
 import spack.main
 import spack.paths
 from spack.cmd.commands import _dest_to_fish_complete, _positional_to_subroutine
@@ -154,22 +154,6 @@ def test_update_with_header(tmpdir):
         f.write(fake_header)
 
     commands("--update", str(update_file), "--header", str(filename))
-
-
-@pytest.mark.xfail
-def test_no_pipe_error():
-    """Make sure we don't see any pipe errors when piping output."""
-
-    proc = subprocess.Popen(
-        ["spack", "commands", "--format=rst"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-
-    # Call close() on stdout to cause a broken pipe
-    proc.stdout.close()
-    proc.wait()
-    stderr = proc.stderr.read().decode("utf-8")
-
-    assert "Broken pipe" not in stderr
 
 
 def test_bash_completion():

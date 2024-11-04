@@ -30,7 +30,7 @@ class Clapack(MakefilePackage):
 
     def edit(self, spec, prefix):
         copy("make.inc.example", "make.inc")
-        if "+external-blas" in spec:
+        if spec.satisfies("+external-blas"):
             make_inc = FileFilter("make.inc")
             make_inc.filter(r"^BLASLIB.*", "BLASLIB = ../../libcblaswr.a -lcblas -latlas")
             makefile = FileFilter("Makefile")

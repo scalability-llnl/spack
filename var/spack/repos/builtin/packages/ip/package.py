@@ -18,6 +18,7 @@ class Ip(CMakePackage):
     maintainers("AlexanderRichert-NOAA", "edwardhartnett", "Hang-Lei-NOAA")
 
     version("develop", branch="develop")
+    version("5.1.0", sha256="5279f11f4c12db68ece74cec392b7a2a6b5166bc505877289f34cc3149779619")
     version("5.0.0", sha256="54b2987bd4f94adc1f7595d2a384e646019c22d163bcd30840a916a6abd7df71")
     version("4.4.0", sha256="858d9201ce0bc4d16b83581ef94a4a0262f498ed1ea1b0535de2e575da7a8b8c")
     version("4.3.0", sha256="799308a868dea889d2527d96a0405af7b376869581410fe4cff681205e9212b4")
@@ -32,8 +33,8 @@ class Ip(CMakePackage):
         preferred=True,
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     variant("openmp", description="Enable OpenMP threading", default=True)
     variant("pic", default=True, description="Build with position-independent-code")
@@ -68,6 +69,7 @@ class Ip(CMakePackage):
     depends_on("sp precision=4", when="@4.1:4 precision=4")
     depends_on("sp precision=d", when="@4.1:4 precision=d")
     depends_on("sp precision=8", when="@4.1:4 precision=8")
+    depends_on("lapack", when="@5.1:")
 
     def cmake_args(self):
         args = [
@@ -90,6 +92,16 @@ class Ip(CMakePackage):
 
         if self.spec.satisfies("@5:"):
             args.append(self.define_from_variant("BUILD_DEPRECATED", "deprecated"))
+
+        if self.spec.satisfies("@5.1:"):
+            # Use the LAPACK provider set by Spack even if the compiler supports native BLAS
+            bla_vendors = {"openblas": "OpenBLAS"}
+            lapack_provider = self.spec["lapack"].name
+            if lapack_provider in bla_vendors.keys():
+                bla_vendor = bla_vendors[lapack_provider]
+            else:
+                bla_vendor = "All"
+            args.append(self.define("BLA_VENDOR", bla_vendor))
 
         return args
 

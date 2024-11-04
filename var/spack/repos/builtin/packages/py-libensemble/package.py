@@ -12,7 +12,7 @@ class PyLibensemble(PythonPackage):
     """Library for managing ensemble-like collections of computations."""
 
     homepage = "https://libensemble.readthedocs.io"
-    pypi = "libensemble/libensemble-1.3.0.tar.gz"
+    pypi = "libensemble/libensemble-1.4.2.tar.gz"
     git = "https://github.com/Libensemble/libensemble.git"
     maintainers("shuds13", "jlnav")
 
@@ -21,6 +21,9 @@ class PyLibensemble(PythonPackage):
     license("BSD-3-Clause")
 
     version("develop", branch="develop")
+    version("1.4.2", sha256="d283935594333793112f65cec1070137e0a87e31cd2bf1baec4a1261ac06ab63")
+    version("1.4.1", sha256="fd39d5c4010f9cb1728af1666d0f10d0da7dd43c12e411badcbc53aab42ab183")
+    version("1.4.0", sha256="0d9f76175dcd5ca7a5e0076a8e64ea59b504055779100d259114468630e82fa2")
     version("1.3.0", sha256="4a2f47de9ab57c577f3de5dd849ec1b621effde7206a54b2aa29aaf309c87532")
     version("1.2.2", sha256="936e34ed4e8129a9980187b21d586472b6362403889a739595d6b631335a8678")
     version("1.2.1", sha256="b80e77548a1e2a71483352b3b00e22b47191e45ca5741324c2b0f20b05579a3d")
@@ -90,7 +93,9 @@ class PyLibensemble(PythonPackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(join_path("examples", "calling_scripts", "regression_tests"))
+        cache_extra_test_sources(
+            self, join_path("examples", "calling_scripts", "regression_tests")
+        )
 
     def run_tutorial_script(self, script):
         """run the tutorial example regression test"""

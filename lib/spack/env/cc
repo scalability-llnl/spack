@@ -174,6 +174,46 @@ preextend() {
     unset IFS
 }
 
+execute() {
+    # dump the full command if the caller supplies SPACK_TEST_COMMAND=dump-args
+    if [ -n "${SPACK_TEST_COMMAND=}" ]; then
+        case "$SPACK_TEST_COMMAND" in
+            dump-args)
+                IFS="$lsep"
+                for arg in $full_command_list; do
+                    echo "$arg"
+                done
+                unset IFS
+                exit
+                ;;
+            dump-env-*)
+                var=${SPACK_TEST_COMMAND#dump-env-}
+                eval "printf '%s\n' \"\$0: \$var: \$$var\""
+                ;;
+            *)
+                die "Unknown test command: '$SPACK_TEST_COMMAND'"
+                ;;
+        esac
+    fi
+
+    #
+    # Write the input and output commands to debug logs if it's asked for.
+    #
+    if [ "$SPACK_DEBUG" = TRUE ]; then
+        input_log="$SPACK_DEBUG_LOG_DIR/spack-cc-$SPACK_DEBUG_LOG_ID.in.log"
+        output_log="$SPACK_DEBUG_LOG_DIR/spack-cc-$SPACK_DEBUG_LOG_ID.out.log"
+        echo "[$mode] $command $input_command" >> "$input_log"
+        IFS="$lsep"
+        echo "[$mode] "$full_command_list >> "$output_log"
+        unset IFS
+    fi
+
+    # Execute the full command, preserving spaces with IFS set
+    # to the alarm bell separator.
+    IFS="$lsep"; exec $full_command_list
+    exit
+}
+
 # Fail with a clear message if the input contains any bell characters.
 if eval "[ \"\${*#*${lsep}}\" != \"\$*\" ]"; then
     die "Compiler command line contains our separator ('${lsep}'). Cannot parse."
@@ -231,12 +271,17 @@ fi
 #    ld      link
 #    ccld    compile & link
 
+# Note. SPACK_ALWAYS_XFLAGS are applied for all compiler invocations,
+# including version checks (SPACK_XFLAGS variants are not applied
+# for version checks).
 command="${0##*/}"
 comp="CC"
+vcheck_flags=""
 case "$command" in
     cpp)
         mode=cpp
         debug_flags="-g"
+        vcheck_flags="${SPACK_ALWAYS_CPPFLAGS}"
         ;;
     cc|c89|c99|gcc|clang|armclang|icc|icx|pgcc|nvc|xlc|xlc_r|fcc|amdclang|cl.exe|craycc)
         command="$SPACK_CC"
@@ -244,6 +289,7 @@ case "$command" in
         comp="CC"
         lang_flags=C
         debug_flags="-g"
+        vcheck_flags="${SPACK_ALWAYS_CFLAGS}"
         ;;
     c++|CC|g++|clang++|armclang++|icpc|icpx|pgc++|nvc++|xlc++|xlc++_r|FCC|amdclang++|crayCC)
         command="$SPACK_CXX"
@@ -251,6 +297,7 @@ case "$command" in
         comp="CXX"
         lang_flags=CXX
         debug_flags="-g"
+        vcheck_flags="${SPACK_ALWAYS_CXXFLAGS}"
         ;;
     ftn|f90|fc|f95|gfortran|flang|armflang|ifort|ifx|pgfortran|nvfortran|xlf90|xlf90_r|nagfor|frt|amdflang|crayftn)
         command="$SPACK_FC"
@@ -258,6 +305,7 @@ case "$command" in
         comp="FC"
         lang_flags=F
         debug_flags="-g"
+        vcheck_flags="${SPACK_ALWAYS_FFLAGS}"
         ;;
     f77|xlf|xlf_r|pgf77)
         command="$SPACK_F77"
@@ -265,6 +313,7 @@ case "$command" in
         comp="F77"
         lang_flags=F
         debug_flags="-g"
+        vcheck_flags="${SPACK_ALWAYS_FFLAGS}"
         ;;
     ld|ld.gold|ld.lld)
         mode=ld
@@ -365,7 +414,11 @@ unset IFS
 export PATH="$new_dirs"
 
 if [ "$mode" = vcheck ]; then
-    exec "${command}" "$@"
+    full_command_list="$command"
+    args="$@"
+    extend full_command_list vcheck_flags
+    extend full_command_list args
+    execute
 fi
 
 # Darwin's linker has a -r argument that merges object files together.
@@ -722,6 +775,7 @@ case "$mode" in
     cc|ccld)
         case $lang_flags in
             F)
+                extend spack_flags_list SPACK_ALWAYS_FFLAGS
                 extend spack_flags_list SPACK_FFLAGS
                 ;;
         esac
@@ -731,6 +785,7 @@ esac
 # C preprocessor flags come before any C/CXX flags
 case "$mode" in
     cpp|as|cc|ccld)
+        extend spack_flags_list SPACK_ALWAYS_CPPFLAGS
         extend spack_flags_list SPACK_CPPFLAGS
         ;;
 esac
@@ -741,9 +796,11 @@ case "$mode" in
     cc|ccld)
         case $lang_flags in
             C)
+                extend spack_flags_list SPACK_ALWAYS_CFLAGS
                 extend spack_flags_list SPACK_CFLAGS
                 ;;
             CXX)
+                extend spack_flags_list SPACK_ALWAYS_CXXFLAGS
                 extend spack_flags_list SPACK_CXXFLAGS
                 ;;
         esac
@@ -933,39 +990,4 @@ if [ -n "$SPACK_CCACHE_BINARY" ]; then
     esac
 fi
 
-# dump the full command if the caller supplies SPACK_TEST_COMMAND=dump-args
-if [ -n "${SPACK_TEST_COMMAND=}" ]; then
-    case "$SPACK_TEST_COMMAND" in
-        dump-args)
-            IFS="$lsep"
-            for arg in $full_command_list; do
-                echo "$arg"
-            done
-            unset IFS
-            exit
-            ;;
-        dump-env-*)
-            var=${SPACK_TEST_COMMAND#dump-env-}
-            eval "printf '%s\n' \"\$0: \$var: \$$var\""
-            ;;
-        *)
-            die "Unknown test command: '$SPACK_TEST_COMMAND'"
-            ;;
-    esac
-fi
-
-#
-# Write the input and output commands to debug logs if it's asked for.
-#
-if [ "$SPACK_DEBUG" = TRUE ]; then
-    input_log="$SPACK_DEBUG_LOG_DIR/spack-cc-$SPACK_DEBUG_LOG_ID.in.log"
-    output_log="$SPACK_DEBUG_LOG_DIR/spack-cc-$SPACK_DEBUG_LOG_ID.out.log"
-    echo "[$mode] $command $input_command" >> "$input_log"
-    IFS="$lsep"
-    echo "[$mode] "$full_command_list >> "$output_log"
-    unset IFS
-fi
-
-# Execute the full command, preserving spaces with IFS set
-# to the alarm bell separator.
-IFS="$lsep"; exec $full_command_list
+execute

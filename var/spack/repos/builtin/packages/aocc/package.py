@@ -6,9 +6,10 @@
 from llnl.util import tty
 
 from spack.package import *
+from spack.pkg.builtin.llvm import LlvmDetection
 
 
-class Aocc(Package, CompilerPackage):
+class Aocc(Package, LlvmDetection, CompilerPackage):
     """
     The AOCC compiler system is a high performance, production quality code
     generation tool.  The AOCC environment provides various options to developers
@@ -32,6 +33,12 @@ class Aocc(Package, CompilerPackage):
 
     maintainers("amd-toolchain-support")
 
+    version(
+        ver="5.0.0",
+        sha256="966fac2d2c759e9de6e969c10ada7a7b306c113f7f1e07ea376829ec86380daa",
+        url="https://download.amd.com/developer/eula/aocc/aocc-5-0/aocc-compiler-5.0.0.tar",
+        preferred=True,
+    )
     version(
         ver="4.2.0",
         sha256="ed5a560ec745b24dc0685ccdcbde914843fb2f2dfbfce1ba592de4ffbce1ccab",
@@ -80,7 +87,7 @@ class Aocc(Package, CompilerPackage):
 
     @run_before("install")
     def license_reminder(self):
-        if "+license-agreed" in self.spec:
+        if self.spec.satisfies("+license-agreed"):
             tty.msg(
                 "Reminder: by setting +license-agreed you are confirming you agree to the terms "
                 "of the {0} EULA (found at {1})".format(self.spec.name, self.license_url)
@@ -107,8 +114,5 @@ class Aocc(Package, CompilerPackage):
                 with open(join_path(self.prefix.bin, "{}.cfg".format(compiler)), "w") as f:
                     f.write(compiler_options)
 
-    compiler_version_argument = "--version"
     compiler_version_regex = r"AOCC_(\d+[._]\d+[._]\d+)"
-    c_names = ["clang"]
-    cxx_names = ["clang++"]
     fortran_names = ["flang"]

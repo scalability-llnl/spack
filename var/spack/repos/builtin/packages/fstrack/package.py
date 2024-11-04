@@ -43,7 +43,7 @@ class Fstrack(MakefilePackage):
         env.set("F90FLAGS_DEBUG", "-g -x f95-cpp-input")
         env.set("LDFLAGS", "-lm")
 
-        if "+flow" in self.spec:
+        if self.spec.satisfies("+flow"):
             env.set("GMTHOME", self.spec["gmt"].prefix)
             env.set("NETCDFDIR", self.spec["netcdf-c"].prefix)
 
@@ -55,7 +55,7 @@ class Fstrack(MakefilePackage):
             make()
 
         with working_dir("fstrack"):
-            if "+flow" in spec:
+            if spec.satisfies("+flow"):
                 make("really_all")
             else:
                 make()

@@ -65,9 +65,9 @@ class Bzip2(Package, SourcewarePackage):
 
     def flag_handler(self, name, flags):
         if name == "cflags":
-            if "+pic" in self.spec:
+            if self.spec.satisfies("+pic"):
                 flags.append(self.compiler.cc_pic_flag)
-            if "+debug" in self.spec:
+            if self.spec.satisfies("+debug"):
                 flags.append("-g")
         return (flags, None, None)
 
@@ -123,7 +123,7 @@ class Bzip2(Package, SourcewarePackage):
 
     def install(self, spec, prefix):
         # Build the dynamic library first
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             make("-f", "Makefile-libbz2_so")
 
         # Build the static library and everything else
@@ -145,7 +145,7 @@ class Bzip2(Package, SourcewarePackage):
             make()
             make("install", "PREFIX={0}".format(prefix))
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             install("bzip2-shared", join_path(prefix.bin, "bzip2"))
 
             v1, v2, v3 = (self.spec.version.up_to(i) for i in (1, 2, 3))

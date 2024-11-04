@@ -9,7 +9,7 @@ from spack.package import *
 class PyOpentuner(PythonPackage):
     """An extensible framework for program autotuning."""
 
-    homepage = "http://opentuner.org/"
+    homepage = "https://opentuner.org/"
     git = "https://github.com/jansel/opentuner.git"
 
     maintainers("matthiasdiener")

@@ -10,7 +10,7 @@ class Freeglut(CMakePackage, SourceforgePackage):
     """FreeGLUT is a free-software/open-source alternative to the OpenGL
     Utility Toolkit (GLUT) library"""
 
-    homepage = "http://freeglut.sourceforge.net/"
+    homepage = "https://freeglut.sourceforge.net/"
     sourceforge_mirror_path = "freeglut/freeglut-3.2.1.tar.gz"
 
     license("MIT")

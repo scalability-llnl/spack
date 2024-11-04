@@ -13,7 +13,7 @@ class Jags(AutotoolsPackage):
 
     tags = ["mcmc", "Gibbs-sampler"]
 
-    homepage = "http://mcmc-jags.sourceforge.net/"
+    homepage = "https://mcmc-jags.sourceforge.net/"
     url = "https://downloads.sourceforge.net/project/mcmc-jags/JAGS/4.x/Source/JAGS-4.2.0.tar.gz"
 
     license("GPL-2.0-or-later")

@@ -110,10 +110,10 @@ class Cgns(CMakePackage):
                     "-DCMAKE_CXX_COMPILER=%s" % spec["mpi"].mpicxx,
                 ]
             )
-            if "+fortran" in spec:
+            if spec.satisfies("+fortran"):
                 options.append(self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc))
 
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             options.extend(
                 [
                     "-DCGNS_ENABLE_HDF5:BOOL=ON",
@@ -122,7 +122,7 @@ class Cgns(CMakePackage):
                     "-DHDF5_LIBRARY_DIR:PATH=%s" % spec["hdf5"].prefix.lib,
                 ]
             )
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 options.extend(["-DHDF5_NEED_MPI:BOOL=ON", "-DHDF5_ENABLE_PARALLEL:BOOL=ON"])
         else:
             options.extend(["-DCGNS_ENABLE_HDF5=OFF"])

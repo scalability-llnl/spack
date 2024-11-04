@@ -46,7 +46,7 @@ class Abacus(MakefilePackage):
     build_directory = "source"
 
     def edit(self, spec, prefix):
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             inc_var = "_openmp-"
             system_var = "ELPA_LIB = -L${ELPA_LIB_DIR} -lelpa_openmp -Wl, -rpath=${ELPA_LIB_DIR}"
         else:

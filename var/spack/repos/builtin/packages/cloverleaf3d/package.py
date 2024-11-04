@@ -39,9 +39,9 @@ class Cloverleaf3d(MakefilePackage):
     def type_of_build(self):
         build = "ref"
 
-        if "+opencl" in self.spec:
+        if self.spec.satisfies("+opencl"):
             build = "OpenCL"
-        elif "+openacc" in self.spec:
+        elif self.spec.satisfies("+openacc"):
             build = "OpenACC"
 
         return build
@@ -54,33 +54,33 @@ class Cloverleaf3d(MakefilePackage):
             "--directory=CloverLeaf3D_{0}".format(self.type_of_build),
         ]
 
-        if "%gcc" in self.spec:
+        if self.spec.satisfies("%gcc"):
             targets.append("COMPILER=GNU")
             targets.append("FLAGS_GNU=-O3 -funroll-loops")
             targets.append("CFLAGS_GNU=-O3 -funroll-loops")
             targets.append("OMP_GNU=-fopenmp")
-        elif "%cce" in self.spec:
+        elif self.spec.satisfies("%cce"):
             targets.append("COMPILER=CRAY")
             targets.append("FLAGS_CRAY=")
             targets.append("CFLAGS_CRAY=")
-        elif "%intel" in self.spec:
+        elif self.spec.satisfies("%intel"):
             targets.append("COMPILER=INTEL")
             targets.append("FLAGS_INTEL=")
             targets.append("CFLAGS_INTEL=")
-        elif "%pgi" in self.spec:
+        elif self.spec.satisfies("%pgi"):
             targets.append("COMPILER=PGI")
             targets.append("FLAGS_PGI=")
             targets.append("CFLAGS_PGI=")
-        elif "%xl" in self.spec:
+        elif self.spec.satisfies("%xl"):
             targets.append("COMPILER=XLF")
             targets.append("FLAGS_XLF=")
             targets.append("CFLAGS_XLF=")
-        elif "%arm" in self.spec:
+        elif self.spec.satisfies("%arm"):
             targets.append("COMPILER=ARM")
             targets.append("FLAGS_ARM=-O3 -funroll-loops")
             targets.append("CFLAGS_ARM=-O3 -funroll-loops")
             targets.append("OMP_ARM=-fopenmp")
-        elif "%nvhpc" in self.spec:
+        elif self.spec.satisfies("%nvhpc"):
             targets.append("COMPILER=NVHPC")
             targets.append("FLAGS_NVHPC=-O3 -fast")
             targets.append("CFLAGS_NVHPC=-O3 -fast")

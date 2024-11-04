@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import re
 
 from spack.package import *
 
@@ -30,6 +31,7 @@ class Yafyaml(CMakePackage):
 
     version("main", branch="main")
 
+    version("1.4.0", sha256="2a415087eb26d291ff40da4430d668c702d22601ed52a72d001140d97372bc7d")
     version("1.3.0", sha256="a3882210b2620485471e3337d995edc1e653b49d9caaa902a43293826a61a635")
     version("1.2.0", sha256="912a4248bbf2e2e84cf3e36f2ae8483bee6b32d2eaa4406dd2100ad660c9bfc6")
     version("1.1.0", sha256="f0be81afe643adc2452055e5485f09cdb509a8fdd5a4ec5547b0c31dd22b4830")
@@ -49,7 +51,7 @@ class Yafyaml(CMakePackage):
     version("0.5.1", sha256="7019460314e388b2d556db75d5eb734237a18494f79b921613addb96b7b7ce2f")
     version("0.5.0", sha256="8ac5d41b1020e9311ac87f50dbd61b9f3e3188f3599ce463ad59650208fdb8ad")
 
-    depends_on("fortran", type="build")  # generated
+    depends_on("fortran", type="build")
 
     depends_on("gftl-shared")
     depends_on("gftl")
@@ -61,6 +63,35 @@ class Yafyaml(CMakePackage):
         when="@:1.2.0",
         msg="yaFyaml only works with the Fujitsu compiler from 1.3.0 onwards",
     )
+
+    # GCC 13.3 and higher only work with yafyaml 1.4.0 onwards
+    # First we can check if the spec is gcc@13.3...
+    conflicts("%gcc@13.3:", when="@:1.3.0", msg="GCC 13.3+ only works with yafyaml 1.4.0 onwards")
+
+    # ...but if it is not (say apple-clang with gfortran as a fc), there is
+    # no easy way to check this. So we hijack flag_handler to raise an
+    # exception if we detect gfortran 13.3 or 14.
+    # NOTE: This will only error out at install time, so `spack spec` will
+    # not catch this.
+    def flag_handler(self, name, flags):
+        # We need to match any compiler that has a name of gfortran or gfortran-*
+        pattern = re.compile(r"gfortran(-\d+)?$")
+
+        if pattern.search(self.compiler.fc):
+            gfortran_version = spack.compiler.get_compiler_version_output(
+                self.compiler.fc, "-dumpfullversion"
+            ).strip()
+
+            # gfortran_version is now a string like "13.3.0". We now need to just capture
+            # the major and minor version numbers
+            gfortran_version = ".".join(gfortran_version.split(".")[:2])
+
+            if self.spec.satisfies("@:1.3.0") and (float(gfortran_version) >= 13.3):
+                raise InstallError(
+                    f"Your gfortran version {gfortran_version} is not compatible with "
+                    f"yafyaml 1.3.0 and below. Use yafyaml 1.4.0 or higher."
+                )
+        return None, None, None
 
     variant(
         "build_type",

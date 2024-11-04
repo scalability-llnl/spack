@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 from typing import List
 
 import llnl.util.filesystem as fs
@@ -103,12 +102,12 @@ class MakefileBuilder(BaseBuilder):
     def build(self, pkg, spec, prefix):
         """Run "make" on the build targets specified by the builder."""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make(*self.build_targets)
+            pkg.module.make(*self.build_targets)
 
     def install(self, pkg, spec, prefix):
         """Run "make" on the install targets specified by the builder."""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make(*self.install_targets)
+            pkg.module.make(*self.install_targets)
 
     spack.builder.run_after("build")(execute_build_time_tests)
 

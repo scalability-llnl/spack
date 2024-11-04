@@ -9,6 +9,7 @@ import socket
 
 import llnl.util.tty as tty
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -65,7 +66,7 @@ class Apcomp(Package):
         with working_dir("spack-build", create=True):
             host_cfg_fname = self.create_host_config(spec, prefix)
             print("Configuring APComp...")
-            cmake(*std_cmake_args, "-C", host_cfg_fname, "../src")
+            cmake(*CMakeBuilder.std_args(self), "-C", host_cfg_fname, "../src")
             print("Building APComp...")
             make()
             print("Installing APComp...")
@@ -99,7 +100,7 @@ class Apcomp(Package):
         # Find and record what CMake is used
         ##############################################
 
-        if "+cmake" in spec:
+        if spec.satisfies("+cmake"):
             cmake_exe = spec["cmake"].command.path
         else:
             cmake_exe = which("cmake")
@@ -133,17 +134,17 @@ class Apcomp(Package):
         cfg.write(cmake_cache_entry("CMAKE_CXX_COMPILER", cpp_compiler))
 
         # shared vs static libs
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "ON"))
         else:
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "OFF"))
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "OFF"))
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             mpicc_path = spec["mpi"].mpicc
             mpicxx_path = spec["mpi"].mpicxx
             # if we are using compiler wrappers on cray systems
@@ -156,7 +157,7 @@ class Apcomp(Package):
             cfg.write(cmake_cache_entry("ENABLE_MPI", "ON"))
             cfg.write(cmake_cache_entry("MPI_C_COMPILER", mpicc_path))
             cfg.write(cmake_cache_entry("MPI_CXX_COMPILER", mpicxx_path))
-            if "+blt_find_mpi" in spec:
+            if spec.satisfies("+blt_find_mpi"):
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "ON"))
             else:
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "OFF"))

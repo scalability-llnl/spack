@@ -143,6 +143,7 @@ class Amber(Package, CudaPackage):
     depends_on("cuda@7.5.18", when="@:16+cuda")
 
     # conflicts
+    conflicts("+x11", when="platform=cray", msg="x11 amber applications not available for cray")
     conflicts("+openmp", when="%clang", msg="OpenMP not available for the clang compiler")
     conflicts(
         "+openmp", when="%apple-clang", msg="OpenMP not available for the Apple clang compiler"

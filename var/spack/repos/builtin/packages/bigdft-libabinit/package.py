@@ -17,6 +17,9 @@ class BigdftLibabinit(AutotoolsPackage):
     git = "https://gitlab.com/l_sim/bigdft-suite.git"
 
     version("develop", branch="devel")
+    version("1.9.5", sha256="5fe51e92bb746569207295feebbcd154ce4f1b364a3981bace75c45e983b2741")
+    version("1.9.4", sha256="fa22115e6353e553d2277bf054eb73a4710e92dfeb1ed9c5bf245337187f393d")
+    version("1.9.3", sha256="f5f3da95d7552219f94366b4d2a524b2beac988fb2921673a65a128f9a8f0489")
     version("1.9.2", sha256="dc9e49b68f122a9886fa0ef09970f62e7ba21bb9ab1b86be9b7d7e22ed8fbe0f")
     version("1.9.1", sha256="3c334da26d2a201b572579fc1a7f8caad1cbf971e848a3e10d83bc4dc8c82e41")
     version("1.9.0", sha256="4500e505f5a29d213f678a91d00a10fef9dc00860ea4b3edf9280f33ed0d1ac8")
@@ -40,7 +43,7 @@ class BigdftLibabinit(AutotoolsPackage):
     depends_on("libxc@:2.2.2", when="@:1.9.1")
     depends_on("libxc@:4.3.4", when="@1.9.1:")
 
-    for vers in ["1.9.0", "1.9.1", "1.9.2", "develop"]:
+    for vers in ["1.9.0", "1.9.1", "1.9.2", "1.9.3", "1.9.4", "1.9.5", "develop"]:
         depends_on(f"bigdft-futile@{vers}", when=f"@{vers}")
 
     configure_directory = "libABINIT"
@@ -66,7 +69,7 @@ class BigdftLibabinit(AutotoolsPackage):
         if spec.satisfies("+shared"):
             args.append("--enable-dynamic-libraries")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.extend(
                 [
                     f"CC={spec['mpi'].mpicc}",

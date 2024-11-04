@@ -7,6 +7,7 @@ import os
 import platform
 import re
 
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
@@ -85,7 +86,7 @@ class Hpcc(MakefilePackage):
     }
 
     def patch(self):
-        if "fftw" in self.spec:
+        if self.spec.satisfies("^fftw"):
             # spack's fftw2 prefix headers with floating point type
             filter_file(r"^\s*#include <fftw.h>", "#include <sfftw.h>", "FFT/wrapfftw.h")
             filter_file(
@@ -161,7 +162,7 @@ class Hpcc(MakefilePackage):
         if spec.satisfies("%intel"):
             # with intel-parallel-studio+mpi the '-march' arguments
             # are not passed to icc
-            arch_opt = spec.architecture.target.optimization_flags(spec.compiler)
+            arch_opt = optimization_flags(self.compiler, spec.target)
             self.config["@CCFLAGS@"] = f"-O3 -restrict -ansi-alias -ip {arch_opt}"
             self.config["@CCNOOPT@"] = "-restrict"
         self._write_make_arch(spec, prefix)

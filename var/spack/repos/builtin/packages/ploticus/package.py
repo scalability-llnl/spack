@@ -9,7 +9,7 @@ from spack.package import *
 class Ploticus(MakefilePackage):
     """Ploticus can produce various types of plots and graphs."""
 
-    homepage = "http://ploticus.sourceforge.net/doc/welcome.html"
+    homepage = "https://ploticus.sourceforge.net/doc/welcome.html"
 
     maintainers("Christoph-TU")
 

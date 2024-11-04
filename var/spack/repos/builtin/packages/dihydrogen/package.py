@@ -12,7 +12,7 @@ from spack.package import *
 def get_blas_entries(inspec):
     entries = []
     spec = inspec["hydrogen"]
-    if "blas=openblas" in spec:
+    if spec.satisfies("blas=openblas"):
         entries.append(cmake_cache_option("DiHydrogen_USE_OpenBLAS", True))
     elif "blas=mkl" in spec or spec.satisfies("^intel-mkl"):
         entries.append(cmake_cache_option("DiHydrogen_USE_MKL", True))
@@ -33,7 +33,7 @@ def get_blas_entries(inspec):
                 % ";".join("-l{0}".format(lib) for lib in self.spec["essl"].libs.names),
             )
         )
-    elif "blas=accelerate" in spec:
+    elif spec.satisfies("blas=accelerate"):
         entries.append(cmake_cache_option("DiHydrogen_USE_ACCELERATE", True))
     elif spec.satisfies("^netlib-lapack"):
         entries.append(cmake_cache_string("BLA_VENDOR", "Generic"))
@@ -332,18 +332,18 @@ class Dihydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
         # all this, but this shouldn't hurt to have.
         entries.append(cmake_cache_path("spdlog_ROOT", spec["spdlog"].prefix))
 
-        if "+developer" in spec:
+        if spec.satisfies("+developer"):
             entries.append(cmake_cache_path("Catch2_ROOT", spec["catch2"].prefix))
 
-        if "+coverage" in spec:
+        if spec.satisfies("+coverage"):
             entries.append(cmake_cache_path("lcov_ROOT", spec["lcov"].prefix))
             entries.append(cmake_cache_path("genhtml_ROOT", spec["lcov"].prefix))
-            if "+ci" in spec:
+            if spec.satisfies("+ci"):
                 entries.append(cmake_cache_path("gcovr_ROOT", spec["py-gcovr"].prefix))
 
-        if "+distconv" in spec:
+        if spec.satisfies("+distconv"):
             entries.append(cmake_cache_path("Aluminum_ROOT", spec["aluminum"].prefix))
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 entries.append(cmake_cache_path("cuDNN_ROOT", spec["cudnn"].prefix))
 
         # Currently this is a hack for all Hydrogen versions. WIP to

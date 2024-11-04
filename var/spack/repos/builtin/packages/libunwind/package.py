@@ -108,7 +108,7 @@ class Libunwind(AutotoolsPackage):
             ):
                 wrapper_flags.append("-fcommon")
 
-            if "+pic" in self.spec:
+            if self.spec.satisfies("+pic"):
                 wrapper_flags.append(self.compiler.cc_pic_flag)
 
         return (wrapper_flags, None, flags)

@@ -33,6 +33,12 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
     version("develop", branch="develop", submodules=submodules)
     version("main", branch="main", submodules=submodules)
     version(
+        "2024.07.0",
+        tag="v2024.07.0",
+        commit="4d7fcba55ebc7cb972b7cc9f6778b48e43792ea1",
+        submodules=submodules,
+    )
+    version(
         "2024.02.2",
         tag="v2024.02.2",
         commit="593f756b14ac57ded33ee61d8d2292d4beb840e6",
@@ -177,6 +183,8 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant(
         "omptask", default=False, description="Build OpenMP task variants of internal algorithms"
     )
+    variant("omptarget", default=False, description="Build OpenMP on target device support")
+    variant("sycl", default=False, description="Build sycl backend")
 
     variant("plugins", default=False, description="Enable runtime plugins")
     variant("examples", default=True, description="Build examples.")
@@ -185,7 +193,7 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
     # and remove the +tests conflict below.
     variant("tests", default=False, description="Build tests")
 
-    # we don’t use variants to express the failing test, we only add a variant to
+    # we don't use variants to express the failing test, we only add a variant to
     # define whether we want to run all the tests (including those known to fail)
     # or only the passing ones.
     variant(
@@ -196,7 +204,7 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("blt", type="build")
     depends_on("blt@0.6.2:", type="build", when="@2024.02.1:")
-    depends_on("blt@0.6.1:", type="build", when="@2024.02.0:")
+    depends_on("blt@0.6.1", type="build", when="@2024.02.0")
     depends_on("blt@0.5.3", type="build", when="@2023.06.0:2023.06.1")
     depends_on("blt@0.5.2:0.5.3", type="build", when="@2022.10.5")
     depends_on("blt@0.5.0:0.5.3", type="build", when="@0.14.1:2022.10.4")
@@ -205,22 +213,25 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on("blt@0.3.6:0.4.1", type="build", when="@:0.12.0")
     conflicts("^blt@:0.3.6", when="+rocm")
 
+    depends_on("camp")
     depends_on("camp+openmp", when="+openmp")
-    depends_on("camp@main", when="@develop")
-    depends_on("camp@main", when="@main")
-    depends_on("camp@2024.02.1:", type="build", when="@2024.02.1:")
-    depends_on("camp@2024.02.0:", type="build", when="@2024.02.0:")
-    depends_on("camp@2023.06.0", type="build", when="@2023.06.0:2023.06.1")
-    depends_on("camp@2022.10.1:2023.06.0", type="build", when="@2022.10.3:2022.10.5")
-    depends_on("camp@2022.10.0:2023.06.0", type="build", when="@2022.10.0:2022.10.2")
-    depends_on("camp@2022.03.2", type="build", when="@2022.03.0:2022.03.1")
+    depends_on("camp+omptarget", when="+omptarget")
+    depends_on("camp+sycl", when="+sycl")
+    depends_on("camp@2024.07.0:", when="@2024.02.2:")
+    depends_on("camp@2024.02.1", when="@2024.02.1")
+    depends_on("camp@2024.02.0", when="@2024.02.0")
+    depends_on("camp@2023.06.0", when="@2023.06.0:2023.06.1")
+    depends_on("camp@2022.10.1:2023.06.0", when="@2022.10.3:2022.10.5")
+    depends_on("camp@2022.10.0:2023.06.0", when="@2022.10.0:2022.10.2")
+    depends_on("camp@2022.03.2", when="@2022.03.0:2022.03.1")
     depends_on("camp@0.2.2:0.2.3", when="@0.14.0")
     depends_on("camp@0.1.0", when="@0.10.0:0.13.0")
 
-    depends_on("cmake@3.23:", when="@2022.10.0:+rocm", type="build")
-    depends_on("cmake@3.20:", when="@2022.10.0:", type="build")
-    depends_on("cmake@3.14:", when="@2022.03.0:", type="build")
-    depends_on("cmake@:3.20", when="@:2022.03+rocm", type="build")
+    depends_on("cmake@3.23:", when="@2024.07.0:", type="build")
+    depends_on("cmake@3.23:", when="@2022.10.0:2024.02.2+rocm", type="build")
+    depends_on("cmake@3.20:", when="@2022.10.0:2024.02.2", type="build")
+    depends_on("cmake@3.20:", when="@:2022.03+rocm", type="build")
+    depends_on("cmake@3.14:", when="@:2022.03", type="build")
 
     depends_on("llvm-openmp", when="+openmp %apple-clang")
 
@@ -237,6 +248,16 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
         depends_on("camp+cuda")
         for sm_ in CudaPackage.cuda_arch_values:
             depends_on("camp +cuda cuda_arch={0}".format(sm_), when="cuda_arch={0}".format(sm_))
+
+    conflicts("+omptarget +rocm")
+    conflicts("+sycl +omptarget")
+    conflicts("+sycl +rocm")
+    conflicts(
+        "+sycl",
+        when="@:2024.02.99",
+        msg="Support for SYCL was introduced in RAJA after 2024.02 release, "
+        "please use a newer release.",
+    )
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
@@ -268,7 +289,7 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
         # Default entries are already defined in CachedCMakePackage, inherit them:
         entries = super().initconfig_compiler_entries()
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             entries.insert(0, cmake_cache_path("CMAKE_CXX_COMPILER", spec["hip"].hipcc))
 
         llnl_link_helpers(entries, spec, compiler)
@@ -283,14 +304,14 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append("# Package custom hardware settings")
         entries.append("#------------------{0}\n".format("-" * 30))
 
-        entries.append(cmake_cache_option("ENABLE_OPENMP", "+openmp" in spec))
+        entries.append(cmake_cache_option("ENABLE_OPENMP", spec.satisfies("+openmp")))
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             entries.append(cmake_cache_option("ENABLE_CUDA", True))
         else:
             entries.append(cmake_cache_option("ENABLE_CUDA", False))
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             entries.append(cmake_cache_option("ENABLE_HIP", True))
             hipcc_flags = []
             if self.spec.satisfies("@0.14.0:"):
@@ -322,35 +343,62 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append("#------------------{0}\n".format("-" * 60))
 
         entries.append(cmake_cache_string("CMAKE_BUILD_TYPE", spec.variants["build_type"].value))
-        entries.append(cmake_cache_option("BUILD_SHARED_LIBS", "+shared" in spec))
+        entries.append(cmake_cache_option("BUILD_SHARED_LIBS", spec.satisfies("+shared")))
 
-        entries.append(cmake_cache_option("RAJA_ENABLE_DESUL_ATOMICS", "+desul" in spec))
-
-        entries.append(cmake_cache_option("RAJA_ENABLE_VECTORIZATION", "+vectorization" in spec))
-
-        entries.append(cmake_cache_option("RAJA_ENABLE_OPENMP_TASK", "+omptask" in spec))
-
-        # C++14
-        if spec.satisfies("@0.14.0:"):
-            entries.append(cmake_cache_string("BLT_CXX_STD", "c++14"))
-
-            if "+desul" in spec:
-                if "+cuda" in spec:
-                    entries.append(cmake_cache_string("CMAKE_CUDA_STANDARD", "14"))
-
-        entries.append(cmake_cache_option("RAJA_ENABLE_RUNTIME_PLUGINS", "+plugins" in spec))
+        entries.append(cmake_cache_option("RAJA_ENABLE_DESUL_ATOMICS", spec.satisfies("+desul")))
 
         entries.append(
-            cmake_cache_option("{}ENABLE_EXAMPLES".format(option_prefix), "+examples" in spec)
+            cmake_cache_option("RAJA_ENABLE_VECTORIZATION", spec.satisfies("+vectorization"))
+        )
+
+        entries.append(cmake_cache_option("RAJA_ENABLE_OPENMP_TASK", spec.satisfies("+omptask")))
+
+        entries.append(
+            cmake_cache_option("RAJA_ENABLE_TARGET_OPENMP", spec.satisfies("+omptarget"))
+        )
+
+        entries.append(cmake_cache_option("RAJA_ENABLE_SYCL", spec.satisfies("+sycl")))
+
+        # C++17
+        if spec.satisfies("@2024.07.0:") and spec.satisfies("+sycl"):
+            entries.append(cmake_cache_string("BLT_CXX_STD", "c++17"))
+        # C++14
+        elif spec.satisfies("@0.14.0:"):
+            entries.append(cmake_cache_string("BLT_CXX_STD", "c++14"))
+
+            if spec.satisfies("+desul"):
+                if spec.satisfies("+cuda"):
+                    entries.append(cmake_cache_string("CMAKE_CUDA_STANDARD", "14"))
+
+        entries.append(
+            cmake_cache_option("RAJA_ENABLE_RUNTIME_PLUGINS", spec.satisfies("+plugins"))
+        )
+
+        if spec.satisfies("+omptarget"):
+            entries.append(
+                cmake_cache_string(
+                    "BLT_OPENMP_COMPILE_FLAGS", "-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda"
+                )
+            )
+            entries.append(
+                cmake_cache_string(
+                    "BLT_OPENMP_LINK_FLAGS", "-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda"
+                )
+            )
+
+        entries.append(
+            cmake_cache_option(
+                "{}ENABLE_EXAMPLES".format(option_prefix), spec.satisfies("+examples")
+            )
         )
         if spec.satisfies("@0.14.0:"):
             entries.append(
                 cmake_cache_option(
-                    "{}ENABLE_EXERCISES".format(option_prefix), "+exercises" in spec
+                    "{}ENABLE_EXERCISES".format(option_prefix), spec.satisfies("+exercises")
                 )
             )
         else:
-            entries.append(cmake_cache_option("ENABLE_EXERCISES", "+exercises" in spec))
+            entries.append(cmake_cache_option("ENABLE_EXERCISES", spec.satisfies("+exercises")))
 
         # TODO: Treat the workaround when building tests with spack wrapper
         #       For now, removing it to test CI, which builds tests outside of wrapper.
@@ -359,12 +407,12 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
         # removes -Werror from GTest flags
         #
         # if self.spec.satisfies("%clang target=ppc64le:")
-        #   or (not self.run_tests and "+tests" not in spec):
-        if not self.run_tests and "+tests" not in spec:
+        #   or (not self.run_tests and not spec.satisfies("+tests")):
+        if not self.run_tests and not spec.satisfies("+tests"):
             entries.append(cmake_cache_option("ENABLE_TESTS", False))
         else:
             entries.append(cmake_cache_option("ENABLE_TESTS", True))
-            if "+run-all-tests" not in spec:
+            if not spec.satisfies("+run-all-tests"):
                 if spec.satisfies("%clang@12.0.0:13.9.999"):
                     entries.append(
                         cmake_cache_string(
@@ -400,57 +448,69 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
     @property
     def build_relpath(self):
         """Relative path to the cmake build subdirectory."""
-        return join_path("..", self.build_dirname)
+        return join_path("..", self.builder.build_dirname)
 
     @run_after("install")
     def setup_build_tests(self):
         """Copy the build test files after the package is installed to a
         relative install test subdirectory for use during `spack test run`."""
         # Now copy the relative files
-        self.cache_extra_test_sources(self.build_relpath)
+        cache_extra_test_sources(self, self.build_relpath)
 
         # Ensure the path exists since relying on a relative path at the
         # same level as the normal stage source path.
-        mkdirp(self.install_test_root)
+        mkdirp(install_test_root(self))
 
     @property
     def _extra_tests_path(self):
         # TODO: The tests should be converted to re-build and run examples
         # TODO: using the installed libraries.
-        return join_path(self.install_test_root, self.build_relpath, "bin")
+        return join_path(install_test_root(self), self.build_relpath, "bin")
 
-    def _test_examples(self):
-        """Perform very basic checks on a subset of copied examples."""
-        checks = [
-            (
-                "ex5_line-of-sight_solution",
-                [r"RAJA sequential", r"RAJA OpenMP", r"result -- PASS"],
-            ),
-            (
-                "ex6_stencil-offset-layout_solution",
-                [r"RAJA Views \(permuted\)", r"result -- PASS"],
-            ),
-            (
-                "ex8_tiled-matrix-transpose_solution",
-                [r"parallel top inner loop", r"collapsed inner loops", r"result -- PASS"],
-            ),
-            ("kernel-dynamic-tile", [r"Running index", r"(24,24)"]),
-            ("plugin-example", [r"Launching host kernel for the 10 time"]),
-            ("tut_batched-matrix-multiply", [r"result -- PASS"]),
-            ("wave-eqn", [r"Max Error = 2", r"Evolved solution to time"]),
-        ]
-        for exe, expected in checks:
-            reason = "test: checking output of {0} for {1}".format(exe, expected)
-            self.run_test(
-                exe,
-                [],
-                expected,
-                installed=False,
-                purpose=reason,
-                skip_missing=True,
-                work_dir=self._extra_tests_path,
-            )
+    def run_example(self, exe, expected):
+        """run and check outputs of the example"""
+        with working_dir(self._extra_tests_path):
+            example = which(exe)
+            if example is None:
+                raise SkipTest(f"{exe} was not built")
 
-    def test(self):
-        """Perform smoke tests."""
-        self._test_examples()
+            out = example(output=str.split, error=str.split)
+            check_outputs(expected, out)
+
+    def test_line_of_sight(self):
+        """check line of sight example"""
+        self.run_example(
+            "ex5_line-of-sight_solution",
+            [r"C-style sequential", r"RAJA sequential", r"result -- PASS"],
+        )
+
+    def test_stencil_offset_layout(self):
+        """check stencil offset layout"""
+        self.run_example(
+            "ex6_stencil-offset-layout_solution", [r"RAJA Views \(permuted\)", r"result -- PASS"]
+        )
+
+    def test_tiled_matrix(self):
+        """check tiled matrix transpose"""
+        self.run_example(
+            "ex8_tiled-matrix-transpose_solution",
+            [r"C-version", r"RAJA sequential", r"result -- PASS"],
+        )
+
+    def test_dynamic_tile(self):
+        """check kernel dynamic tile"""
+        self.run_example("kernel-dynamic-tile", [r"Running index", r"(24,24)"])
+
+    def test_plugin_example(self):
+        """check plugin example"""
+        self.run_example("plugin-example", [r"Launching host kernel for the 10 time"])
+
+    def test_matrix_multiply(self):
+        """check batched matrix multiple tutorial"""
+        self.run_example(
+            "tut_batched-matrix-multiply", [r"batched matrix multiplication", r"result -- PASS"]
+        )
+
+    def test_wave_equation(self):
+        """check wave equation"""
+        self.run_example("wave-eqn", [r"Max Error = 2", r"Evolved solution to time"])

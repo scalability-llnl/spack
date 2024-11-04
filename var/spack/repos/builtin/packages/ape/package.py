@@ -11,9 +11,9 @@ class Ape(Package):
     Theory framework"""
 
     homepage = "https://www.tddft.org/programs/APE/"
-    url = "http://www.tddft.org/programs/APE/sites/default/files/ape-2.2.1.tar.gz"
+    url = "https://gitlab.com/ape/ape/-/archive/2.2.1/ape-2.2.1.tar.gz"
 
-    version("2.2.1", sha256="1bdb7f987fde81f8a5f335da6b59fa884e6d185d4a0995c90fde7c04376ce9e3")
+    version("2.2.1", sha256="3f5125182e308ab49338cad791e175ce158526a56c6ca88ac6582c1e5d7435d4")
 
     depends_on("gsl")
     depends_on("libxc@:4", when="@2.3.0:")

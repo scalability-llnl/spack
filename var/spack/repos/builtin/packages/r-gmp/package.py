@@ -17,6 +17,7 @@ class RGmp(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("0.7-4", sha256="a7d6b40f77d2619c11db5170b8f47336f7c5fa1db7eed0ac9d8a432e41053919")
     version("0.7-1", sha256="a6873dc65218905cb7615cb8e2522258f3740e29c0632473d58a1cb409835db6")
     version("0.6-7", sha256="6333fe691f267aa29f8078f7f738dda50c496f660357276fd33e28d607363f85")
     version("0.6-6", sha256="87fa95a8084855d2137b3863b6b8f3c277280dbe3a6a230e359cf32c3bed2793")

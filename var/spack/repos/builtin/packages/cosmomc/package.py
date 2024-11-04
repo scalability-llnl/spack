@@ -66,7 +66,7 @@ class Cosmomc(Package):
             os.remove(clikdir)
         except OSError:
             pass
-        if "+planck" in spec:
+        if spec.satisfies("+planck"):
             os.symlink(join_path(os.environ["CLIK_DATA"], "plc_2.0"), clikdir)
         else:
             os.environ.pop("CLIK_DATA", "")
@@ -93,7 +93,7 @@ class Cosmomc(Package):
             raise InstallError("Only GCC and Intel compilers are supported")
 
         # Configure MPI
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             wantmpi = "BUILD=MPI"
             mpif90 = "MPIF90C=%s" % spec["mpi"].mpifc
         else:
@@ -138,7 +138,7 @@ class Cosmomc(Package):
             "test_planck.ini",
             "tests",
         ]
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             entries += ["python"]
         for entry in entries:
             if os.path.isfile(entry):
@@ -171,7 +171,7 @@ class Cosmomc(Package):
 
         exe = spec["cosmomc"].command.path
         args = []
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             # Add mpirun prefix
             args = ["-np", "1", exe]
             exe = join_path(spec["mpi"].prefix.bin, "mpiexec")
@@ -181,6 +181,6 @@ class Cosmomc(Package):
                 os.symlink(join_path(prefix.share, "cosmomc", entry), entry)
             inifile = join_path(prefix.share, "cosmomc", "test.ini")
             cosmomc(*(args + [inifile]))
-            if "+planck" in spec:
+            if spec.satisfies("+planck"):
                 inifile = join_path(prefix.share, "cosmomc", "test_planck.ini")
                 cosmomc(*(args + [inifile]))

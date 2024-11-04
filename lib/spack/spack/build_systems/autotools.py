@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 import os
 import os.path
 import stat
@@ -14,6 +13,7 @@ import llnl.util.tty as tty
 
 import spack.build_environment
 import spack.builder
+import spack.error
 import spack.package_base
 from spack.directives import build_system, conflicts, depends_on
 from spack.multimethod import when
@@ -249,7 +249,7 @@ class AutotoolsBuilder(BaseBuilder):
 
         # An external gnuconfig may not not have a prefix.
         if gnuconfig_dir is None:
-            raise spack.build_environment.InstallError(
+            raise spack.error.InstallError(
                 "Spack could not find substitutes for GNU config files because no "
                 "prefix is available for the `gnuconfig` package. Make sure you set a "
                 "prefix path instead of modules for external `gnuconfig`."
@@ -269,7 +269,7 @@ class AutotoolsBuilder(BaseBuilder):
                 msg += (
                     " or the `gnuconfig` package prefix is misconfigured as" " an external package"
                 )
-            raise spack.build_environment.InstallError(msg)
+            raise spack.error.InstallError(msg)
 
         # Filter working substitutes
         candidates = [f for f in candidates if runs_ok(f)]
@@ -294,9 +294,7 @@ To resolve this problem, please try the following:
    and set the prefix to the directory containing the `config.guess` and
    `config.sub` files.
 """
-            raise spack.build_environment.InstallError(
-                msg.format(", ".join(to_be_found), self.name)
-            )
+            raise spack.error.InstallError(msg.format(", ".join(to_be_found), self.name))
 
         # Copy the good files over the bad ones
         for abs_path in to_be_patched:
@@ -549,13 +547,12 @@ To resolve this problem, please try the following:
         tty.warn("*        a custom AUTORECONF phase in the package       *")
         tty.warn("*********************************************************")
         with fs.working_dir(self.configure_directory):
-            m = inspect.getmodule(self.pkg)
             # This line is what is needed most of the time
             # --install, --verbose, --force
             autoreconf_args = ["-ivf"]
             autoreconf_args += self.autoreconf_search_path_args
             autoreconf_args += self.autoreconf_extra_args
-            m.autoreconf(*autoreconf_args)
+            self.pkg.module.autoreconf(*autoreconf_args)
 
     @property
     def autoreconf_search_path_args(self):
@@ -579,7 +576,9 @@ To resolve this problem, please try the following:
             raise RuntimeError(msg.format(self.configure_directory))
 
         # Monkey-patch the configure script in the corresponding module
-        inspect.getmodule(self.pkg).configure = Executable(self.configure_abs_path)
+        globals_for_pkg = spack.build_environment.ModuleChangePropagator(self.pkg)
+        globals_for_pkg.configure = Executable(self.configure_abs_path)
+        globals_for_pkg.propagate_changes_to_mro()
 
     def configure_args(self):
         """Return the list of all the arguments that must be passed to configure,
@@ -596,7 +595,7 @@ To resolve this problem, please try the following:
         options += self.configure_args()
 
         with fs.working_dir(self.build_directory, create=True):
-            inspect.getmodule(self.pkg).configure(*options)
+            pkg.module.configure(*options)
 
     def build(self, pkg, spec, prefix):
         """Run "make" on the build targets specified by the builder."""
@@ -604,12 +603,12 @@ To resolve this problem, please try the following:
         params = ["V=1"]
         params += self.build_targets
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make(*params)
+            pkg.module.make(*params)
 
     def install(self, pkg, spec, prefix):
         """Run "make" on the install targets specified by the builder."""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make(*self.install_targets)
+            pkg.module.make(*self.install_targets)
 
     spack.builder.run_after("build")(execute_build_time_tests)
 
@@ -688,9 +687,8 @@ To resolve this problem, please try the following:
 
         variant = variant or name
 
-        # Defensively look that the name passed as argument is among
-        # variants
-        if variant not in self.pkg.variants:
+        # Defensively look that the name passed as argument is among variants
+        if not self.pkg.has_variant(variant):
             msg = '"{0}" is not a variant of "{1}"'
             raise KeyError(msg.format(variant, self.pkg.name))
 
@@ -699,27 +697,19 @@ To resolve this problem, please try the following:
 
         # Create a list of pairs. Each pair includes a configuration
         # option and whether or not that option is activated
-        variant_desc, _ = self.pkg.variants[variant]
-        if set(variant_desc.values) == set((True, False)):
+        vdef = self.pkg.get_variant(variant)
+        if set(vdef.values) == set((True, False)):
             # BoolValuedVariant carry information about a single option.
             # Nonetheless, for uniformity of treatment we'll package them
             # in an iterable of one element.
-            condition = "+{name}".format(name=variant)
-            options = [(name, condition in spec)]
+            options = [(name, f"+{variant}" in spec)]
         else:
-            condition = "{variant}={value}"
             # "feature_values" is used to track values which correspond to
             # features which can be enabled or disabled as understood by the
             # package's build system. It excludes values which have special
             # meanings and do not correspond to features (e.g. "none")
-            feature_values = (
-                getattr(variant_desc.values, "feature_values", None) or variant_desc.values
-            )
-
-            options = [
-                (value, condition.format(variant=variant, value=value) in spec)
-                for value in feature_values
-            ]
+            feature_values = getattr(vdef.values, "feature_values", None) or vdef.values
+            options = [(value, f"{variant}={value}" in spec) for value in feature_values]
 
         # For each allowed value in the list of values
         for option_value, activated in options:

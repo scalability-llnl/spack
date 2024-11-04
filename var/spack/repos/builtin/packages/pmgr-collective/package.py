@@ -11,7 +11,7 @@ class PmgrCollective(Package):
     MPI jobs."""
 
     homepage = "https://www.sourceforge.net/projects/pmgrcollective"
-    url = "http://downloads.sourceforge.net/project/pmgrcollective/pmgrcollective/PMGR_COLLECTIVE-1.0/pmgr_collective-1.0.tgz"
+    url = "https://downloads.sourceforge.net/project/pmgrcollective/pmgrcollective/PMGR_COLLECTIVE-1.0/pmgr_collective-1.0.tgz"
 
     version("1.0", sha256="c8022d1128ce5e8f637166af6e55c13700e665550e468b8cdb1531441c6bb7f5")
 

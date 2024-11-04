@@ -73,6 +73,11 @@ class SpiralSoftware(CMakePackage):
         src = join_path(pkg_prefix, "namespaces", "packages", pkg)
         install_tree(src, dest)
 
+    def flag_handler(self, name, flags):
+        if name == "cflags" and self.spec.satisfies("%oneapi"):
+            flags.append("-Wno-error=implicit-function-declaration")
+        return (flags, None, None)
+
     def install(self, spec, prefix):
         with working_dir(self.stage.source_path):
             files = ("LICENSE", "README.md", "ReleaseNotes.md", "Contributing.md")

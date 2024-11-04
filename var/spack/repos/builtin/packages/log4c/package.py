@@ -9,7 +9,7 @@ from spack.package import *
 class Log4c(AutotoolsPackage):
     """Library for writing log messages from C programs"""
 
-    homepage = "http://log4c.sourceforge.net/"
+    homepage = "https://log4c.sourceforge.net/"
     url = "https://downloads.sourceforge.net/project/log4c/log4c/1.2.4/log4c-1.2.4.tar.gz"
 
     license("LGPL-2.1-or-later")

@@ -17,7 +17,7 @@ class Atlas(Package):
     (BLAS), and a subset of the linear algebra routines in the LAPACK library.
     """
 
-    homepage = "http://math-atlas.sourceforge.net/"
+    homepage = "https://math-atlas.sourceforge.net/"
 
     license("Apache-2.0")
 
@@ -100,7 +100,7 @@ class Atlas(Package):
         # https://github.com/macports/macports-ports/blob/master/math/atlas/Portfile
         # https://github.com/Homebrew/homebrew-science/pull/3571
         options = []
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             options.extend(["--shared"])
             # TODO: for non GNU add '-Fa', 'alg', '-fPIC' ?
 
@@ -129,7 +129,7 @@ class Atlas(Package):
             make("check")
             make("ptcheck")
             make("time")
-            if "+shared" in spec:
+            if spec.satisfies("+shared"):
                 with working_dir("lib"):
                     make("shared_all")
 
@@ -143,7 +143,7 @@ class Atlas(Package):
         # serial BLAS), and all ATLAS symbols needed to support them. Whereas
         # libtatlas.[so,dylib,dll ] is parallel (multithreaded) version.
         is_threaded = self.spec.satisfies("threads=pthreads")
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             to_find = ["libtatlas"] if is_threaded else ["libsatlas"]
             shared = True
         else:

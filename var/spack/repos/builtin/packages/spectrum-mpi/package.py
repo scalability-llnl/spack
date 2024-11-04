@@ -20,6 +20,8 @@ class SpectrumMpi(BundlePackage):
 
     provides("mpi")
 
+    requires("platform=linux")
+
     executables = ["^ompi_info$"]
 
     @classmethod

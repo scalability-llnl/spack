@@ -169,7 +169,7 @@ class SuperluDist(CMakePackage, CudaPackage, ROCmPackage):
     def cache_test_sources(self):
         """Copy the example matrices after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.examples_src_dir])
+        cache_extra_test_sources(self, [self.examples_src_dir])
 
     def test_pddrive(self):
         """run cached pddrive"""

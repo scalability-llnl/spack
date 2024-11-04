@@ -48,7 +48,7 @@ class Cfitsio(AutotoolsPackage):
     def configure_args(self):
         spec = self.spec
         extra_args = []
-        if "+bzip2" in spec:
+        if spec.satisfies("+bzip2"):
             extra_args.append(f"--with-bzip2={spec['bzip2'].prefix}"),
         return extra_args
 
@@ -57,7 +57,7 @@ class Cfitsio(AutotoolsPackage):
         targets = ["all"]
 
         # Build shared if variant is set.
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             targets += ["shared"]
 
         return targets

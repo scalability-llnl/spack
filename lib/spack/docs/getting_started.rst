@@ -61,9 +61,14 @@ Getting Spack is easy.  You can clone it from the `github repository
 
 .. code-block:: console
 
-   $ git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+   $ git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
 
 This will create a directory called ``spack``.
+
+.. note::
+   ``-c feature.manyFiles=true`` improves git's performance on repositories with 1,000+ files.
+
+   ``--depth=2`` prunes the git history to reduce the size of the Spack installation.
 
 .. _shell-support:
 
@@ -1475,15 +1480,13 @@ in a Windows CMD prompt.
 Step 3: Run and configure Spack
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To use Spack, run ``bin\spack_cmd.bat`` (you may need to Run as Administrator) from the top-level spack
-directory. This will provide a Windows command prompt with an environment properly set up with Spack
-and its prerequisites. If you receive a warning message that Python is not in your ``PATH``
+On Windows, Spack supports both primary native shells, Powershell and the traditional command prompt.
+To use Spack, pick your favorite shell, and run ``bin\spack_cmd.bat`` or ``share/spack/setup-env.ps1``
+(you may need to Run as Administrator) from the top-level spack
+directory. This will provide a Spack enabled shell. If you receive a warning message that Python is not in your ``PATH``
 (which may happen if you installed Python from the website and not the Windows Store) add the location
 of the Python executable to your ``PATH`` now. You can permanently add Python to your ``PATH`` variable
 by using the ``Edit the system environment variables`` utility in Windows Control Panel.
-
-.. note::
-   Alternatively, Powershell can be used in place of CMD
 
 To configure Spack, first run the following command inside the Spack console:
 
@@ -1549,7 +1552,7 @@ and not tabs, so ensure that this is the case when editing one directly.
 
 .. note:: Cygwin
    The use of Cygwin is not officially supported by Spack and is not tested.
-   However Spack will not throw an error, so use if choosing to use Spack
+   However Spack will not prevent this, so use if choosing to use Spack
    with Cygwin, know that no functionality is garunteed.
 
 ^^^^^^^^^^^^^^^^^
@@ -1563,21 +1566,12 @@ Spack console via:
 
    spack install cpuinfo
 
-If in the previous step, you did not have CMake or Ninja installed, running the command above should bootstrap both packages
+If in the previous step, you did not have CMake or Ninja installed, running the command above should install both packages
 
-"""""""""""""""""""""""""""
-Windows Compatible Packages
-"""""""""""""""""""""""""""
+.. note:: Spec Syntax Caveats
+   Windows has a few idiosyncrasies when it comes to the Spack spec syntax and the use of certain shells
+   See the Spack spec syntax doc for more information
 
-Not all spack packages currently have Windows support. Some are inherently incompatible with the
-platform, and others simply have yet to be ported. To view the current set of packages with Windows
-support, the list command should be used via `spack list -t windows`. If there's a package you'd like
-to install on Windows but is not in that list, feel free to reach out to request the port or contribute
-the port yourself.
-
-.. note::
-   This is by no means a comprehensive list, some packages may have ports that were not tagged
-   while others may just work out of the box on Windows and have not been tagged as such.
 
 ^^^^^^^^^^^^^^
 For developers
@@ -1587,6 +1581,3 @@ The intent is to provide a Windows installer that will automatically set up
 Python, Git, and Spack, instead of requiring the user to do so manually.
 Instructions for creating the installer are at
 https://github.com/spack/spack/blob/develop/lib/spack/spack/cmd/installer/README.md
-
-Alternatively a pre-built copy of the Windows installer is available as an artifact of Spack's Windows CI
-available at each run of the CI on develop or any PR.

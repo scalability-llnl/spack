@@ -337,7 +337,7 @@ class Eccodes(CMakePackage):
             self.define("ENABLE_EXTRA_TESTS", False),
         ]
 
-        if "+netcdf" in self.spec:
+        if self.spec.satisfies("+netcdf"):
             # Prevent possible overriding by environment variables NETCDF_ROOT, NETCDF_DIR, and
             # NETCDF_PATH:
             args.append(self.define("NETCDF_PATH", self.spec["netcdf-c"].prefix))
@@ -350,10 +350,10 @@ class Eccodes(CMakePackage):
         if jp2k == "openjpeg":
             args.append(self.define("OPENJPEG_PATH", self.spec["openjpeg"].prefix))
 
-        if "+png" in self.spec:
+        if self.spec.satisfies("+png"):
             args.append(self.define("ZLIB_ROOT", self.spec["zlib-api"].prefix))
 
-        if "+aec" in self.spec:
+        if self.spec.satisfies("+aec"):
             # Prevent overriding by environment variables AEC_DIR and AEC_PATH:
             args.append(self.define("AEC_DIR", self.spec["libaec"].prefix))
 

@@ -17,10 +17,7 @@ import spack.spec
 from spack.environment.environment import ViewDescriptor
 from spack.version import Version
 
-pytestmark = [
-    pytest.mark.only_clingo("Original concretizer does not support compiler runtimes"),
-    pytest.mark.usefixtures("enable_runtimes"),
-]
+pytestmark = [pytest.mark.usefixtures("enable_runtimes")]
 
 
 def _concretize_with_reuse(*, root_str, reused_str):

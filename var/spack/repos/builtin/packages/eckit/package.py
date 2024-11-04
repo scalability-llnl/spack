@@ -20,6 +20,7 @@ class Eckit(CMakePackage):
 
     license("Apache-2.0")
 
+    version("1.27.0", sha256="499f3f8c9aec8d3f42369e3ceedc98b2b09ac04993cfd38dfdf7d38931703fe7")
     version("1.25.2", sha256="a611d26d50a9f2133b75100567a890eb0e0a48a96669b8c8475baf9d6f359397")
     version("1.24.5", sha256="2fd74e04c20a59f9e13635828d9da880e18f8a2cb7fd3bfd0201e07071d6ec41")
     version("1.24.4", sha256="b6129eb4f7b8532aa6905033e4cf7d09aadc8547c225780fea3db196e34e4671")

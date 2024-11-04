@@ -19,6 +19,7 @@ class Pfunit(CMakePackage):
 
     maintainers("mathomp4", "tclune")
 
+    version("4.10.0", sha256="ee5e899dfb786bac46e3629b272d120920bafdb7f6a677980fc345f6acda0f99")
     version("4.9.0", sha256="caea019f623d4e02dd3e8442cee88e6087b4c431a2628e9ec2de55b527b51ab6")
     version("4.8.0", sha256="b5c66ab949fd23bee5c3b4d93069254f7ea40decb8d21f622fd6aa45ee68ef10")
     version("4.7.4", sha256="ac850e33ea99c283f503f75293bf238b4b601885d7adba333066e6185dad5c04")
@@ -77,8 +78,8 @@ class Pfunit(CMakePackage):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     variant("mpi", default=False, description="Enable MPI")
     variant(
@@ -116,6 +117,7 @@ class Pfunit(CMakePackage):
     depends_on("mpi", when="+mpi")
     depends_on("esmf", when="+esmf")
     depends_on("m4", when="@4.1.5:", type="build")
+    depends_on("fargparse@1.8.0:", when="@4.10.0:")
     depends_on("fargparse", when="@4:")
     depends_on("cmake@3.12:", type="build")
 

@@ -45,9 +45,9 @@ class CloverleafRef(MakefilePackage):
         targets.append("MPI_COMPILER={0}".format(self.spec["mpi"].mpifc))
         targets.append("C_MPI_COMPILER={0}".format(self.spec["mpi"].mpicc))
 
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             targets.append("DEBUG=1")
-        if "+ieee" in self.spec:
+        if self.spec.satisfies("+ieee"):
             targets.append("IEEE=1")
 
         # Work around for bug in Makefiles for versions 1.3 and 1.1 (mis-defined as -openmp)
@@ -102,9 +102,6 @@ class CloverleafRef(MakefilePackage):
 
         elif self.spec.satisfies("%xl"):
             targets.append("COMPILER=XLF")
-
-        else:
-            raise ValueError("Compiler {} not supported".format(self.spec.compiler.name))
 
         return targets
 

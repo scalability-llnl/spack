@@ -9,7 +9,7 @@ from spack.package import *
 class PyFastcluster(PythonPackage):
     """Fast hierarchical clustering routines for R and Python."""
 
-    homepage = "http://danifold.net/"
+    homepage = "https://danifold.net/"
     pypi = "fastcluster/fastcluster-1.1.26.tar.gz"
 
     license("BSD-2-Clause")

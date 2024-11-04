@@ -15,6 +15,7 @@ class Salmon(CMakePackage):
 
     license("GPL-3.0-only")
 
+    version("1.10.3", sha256="a053fba63598efc4ade3684aa2c8e8e2294186927d4fcdf1041c36edc2aa0871")
     version("1.10.2", sha256="976989182160fef3afb4429ee8b85d8dd39ed6ca212bb14d6a65cde0e985fb98")
     version("1.9.0", sha256="450d953a5c43fe63fd745733f478d3fbaf24d926cb52731fd38ee21c4990d613")
     version("1.4.0", sha256="6d3e25387450710f0aa779a1e9aaa9b4dec842324ff8551d66962d7c7606e71d")
@@ -23,8 +24,8 @@ class Salmon(CMakePackage):
     version("0.9.1", sha256="3a32c28d217f8f0af411c77c04144b1fa4e6fd3c2f676661cc875123e4f53520")
     version("0.8.2", sha256="299168e873e71e9b07d63a84ae0b0c41b0876d1ad1d434b326a5be2dce7c4b91")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant(
         "build_type",
@@ -58,6 +59,8 @@ class Salmon(CMakePackage):
     depends_on("bzip2")
     depends_on("libdivsufsort")
     depends_on("staden-io-lib~curl")
+    # docs suggest libdeflate is slightly faster
+    depends_on("staden-io-lib~curl+libdeflate~shared@1.15:", when="@1.10.3:")
     depends_on("libgff")
     depends_on("pkgconfig")
     depends_on("curl", when="@0.14.1:")
@@ -68,6 +71,11 @@ class Salmon(CMakePackage):
     conflicts("%gcc@:5.1", when="@0.14.1:")
 
     resources = [
+        (
+            "1.10.3",
+            "pufferfish",
+            "52b6699de0d33814b73edb3455175568c2330d8014be017dce7b564e54134860",
+        ),
         (
             "1.10.2",
             "pufferfish",
@@ -91,7 +99,7 @@ class Salmon(CMakePackage):
 
     for ver, repo, checksum in resources:
         resource(
-            name="rapmap",
+            name=repo,
             url="https://github.com/COMBINE-lab/{0}/archive/salmon-v{1}.zip".format(repo, ver),
             sha256=checksum,
             placement="external",
@@ -134,6 +142,11 @@ class Salmon(CMakePackage):
                 string=True,
             )
             filter_file("curl -k.*", "", "scripts/fetchPufferfish.sh")
+
+        if self.spec.satisfies("@1.10.3:"):
+            findstadenio_module = join_path("cmake", "Modules", "Findlibstadenio.cmake")
+            filter_file("PACKAGE_VERSION", "IOLIB_VERSION", findstadenio_module, string=True)
+            filter_file("io_lib_config.h", "version.h", findstadenio_module, string=True)
 
     def cmake_args(self):
         args = ["-DBOOST_ROOT=%s" % self.spec["boost"].prefix]

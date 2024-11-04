@@ -11,7 +11,6 @@ from typing import Any, Dict
 import llnl.util.tty as tty
 from llnl.util.symlink import readlink
 
-import spack.filesystem_view
 import spack.store
 import spack.util.file_permissions as fp
 import spack.util.spack_json as sjson

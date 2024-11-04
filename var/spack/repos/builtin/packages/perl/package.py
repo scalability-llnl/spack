@@ -34,32 +34,13 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
     # see https://www.cpan.org/src/README.html for
     # explanation of version numbering scheme
 
-    # Maintenance releases (even numbers, preferred)
-    version(
-        "5.38.2",
-        sha256="a0a31534451eb7b83c7d6594a497543a54d488bc90ca00f5e34762577f40655e",
-        preferred=True,
-    )
-    version(
-        "5.38.0",
-        sha256="213ef58089d2f2c972ea353517dc60ec3656f050dcc027666e118b508423e517",
-        preferred=True,
-    )
-    version(
-        "5.36.3",
-        sha256="f2a1ad88116391a176262dd42dfc52ef22afb40f4c0e9810f15d561e6f1c726a",
-        preferred=True,
-    )
-    version(
-        "5.36.1",
-        sha256="68203665d8ece02988fc77dc92fccbb297a83a4bb4b8d07558442f978da54cc1",
-        preferred=True,
-    )
-    version(
-        "5.36.0",
-        sha256="e26085af8ac396f62add8a533c3a0ea8c8497d836f0689347ac5abd7b7a4e00a",
-        preferred=True,
-    )
+    # Maintenance releases (even numbers)
+    version("5.40.0", sha256="c740348f357396327a9795d3e8323bafd0fe8a5c7835fc1cbaba0cc8dfe7161f")
+    version("5.38.2", sha256="a0a31534451eb7b83c7d6594a497543a54d488bc90ca00f5e34762577f40655e")
+    version("5.38.0", sha256="213ef58089d2f2c972ea353517dc60ec3656f050dcc027666e118b508423e517")
+    version("5.36.3", sha256="f2a1ad88116391a176262dd42dfc52ef22afb40f4c0e9810f15d561e6f1c726a")
+    version("5.36.1", sha256="68203665d8ece02988fc77dc92fccbb297a83a4bb4b8d07558442f978da54cc1")
+    version("5.36.0", sha256="e26085af8ac396f62add8a533c3a0ea8c8497d836f0689347ac5abd7b7a4e00a")
 
     # End of life releases (deprecated)
     version(

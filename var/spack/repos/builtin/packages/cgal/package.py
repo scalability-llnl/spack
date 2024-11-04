@@ -104,7 +104,7 @@ class Cgal(CMakePackage):
         env.set("BOOST_INCLUDEDIR", spec["boost"].headers.directories[0])
         env.set("BOOST_LIBRARYDIR", spec["boost"].libs.directories[0])
 
-        if "+eigen" in spec:
+        if spec.satisfies("+eigen"):
             env.set("EIGEN3_INC_DIR", spec["eigen"].headers.directories[0])
 
     def cmake_args(self):

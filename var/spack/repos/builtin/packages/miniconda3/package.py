@@ -10,6 +10,24 @@ from spack.package import *
 from spack.util.environment import EnvironmentModifications
 
 _versions = {
+    "24.7.1": {
+        "Linux-x86_64": (
+            "33442cd3813df33dcbb4a932b938ee95398be98344dff4c30f7e757cd2110e4f",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_24.7.1-0-Linux-x86_64.sh",
+        )
+    },
+    "24.5.0": {
+        "Linux-x86_64": (
+            "4b3b3b1b99215e85fd73fb2c2d7ebf318ac942a457072de62d885056556eb83e",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_24.5.0-0-Linux-x86_64.sh",
+        )
+    },
+    "24.4.0": {
+        "Linux-x86_64": (
+            "b6597785e6b071f1ca69cf7be6d0161015b96340b9a9e132215d5713408c3a7c",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_24.4.0-0-Linux-x86_64.sh",
+        )
+    },
     "24.3.0": {
         "Linux-x86_64": (
             "96a44849ff17e960eeb8877ecd9055246381c4d4f2d031263b63fa7e2e930af1",
@@ -140,7 +158,7 @@ _versions = {
 class Miniconda3(Package):
     """The minimalist bootstrap toolset for conda and Python3."""
 
-    homepage = "https://conda.io/miniconda.html"
+    homepage = "https://docs.anaconda.com/miniconda/"
 
     for ver, packages in _versions.items():
         key = "{0}-{1}".format(platform.system(), platform.machine())

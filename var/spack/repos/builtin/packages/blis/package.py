@@ -55,17 +55,17 @@ class BlisBase(MakefilePackage):
         spec = self.spec
         config_args = ["--enable-threading={0}".format(spec.variants["threads"].value)]
 
-        if "+ilp64" in spec:
+        if spec.satisfies("+ilp64"):
             config_args.append("--blas-int-size=64")
         else:
             config_args.append("--blas-int-size=32")
 
-        if "+cblas" in spec:
+        if spec.satisfies("+cblas"):
             config_args.append("--enable-cblas")
         else:
             config_args.append("--disable-cblas")
 
-        if "+blas" in spec:
+        if spec.satisfies("+blas"):
             config_args.append("--enable-blas")
         else:
             config_args.append("--disable-blas")

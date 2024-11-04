@@ -31,10 +31,15 @@ class Tix(AutotoolsPackage):
         sha256="1be1a1c7453f6ab8771f90d7e7c0f8959490104752a16a8755bbb7287a841a96",
         level=0,
     )
+    # This patch causes 'install' to fail on RHEL8 with at least gcc@10.3.1 with
+    # "error: expected ')' before '->' token in expansion of macro 'Tcl_Panic'".
+    #
+    # TBD: Is the problem the platform, os, or compiler?
     patch(
         "https://raw.githubusercontent.com/macports/macports-ports/v2.7.0-archive/x11/tix/files/implicit.patch",
         sha256="8a2720368c7757896814684147029d8318b9aa3b0914b3f37dd5e8a8603a61d3",
         level=0,
+        when="platform=darwin",
     )
     patch(
         "https://raw.githubusercontent.com/macports/macports-ports/v2.7.0-archive/x11/tix/files/patch-generic-tixGrSort.c.diff",

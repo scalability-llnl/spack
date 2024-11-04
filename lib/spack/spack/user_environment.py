@@ -8,7 +8,6 @@ import sys
 
 import spack.build_environment
 import spack.config
-import spack.error
 import spack.spec
 import spack.util.environment as environment
 from spack import traverse

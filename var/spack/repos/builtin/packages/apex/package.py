@@ -146,7 +146,7 @@ class Apex(CMakePackage):
         # CMake variables were updated in version 2.3.0, to make
         prefix = "APEX_WITH"
         test_prefix = "APEX_"
-        if "@2.2.0" in spec:
+        if spec.satisfies("@2.2.0"):
             prefix = "USE"
             test_prefix = ""
 
@@ -167,29 +167,29 @@ class Apex(CMakePackage):
         args.append(self.define_from_variant(test_prefix + "BUILD_TESTS", "tests"))
         args.append(self.define_from_variant(test_prefix + "BUILD_EXAMPLES", "examples"))
 
-        if "+activeharmony" in spec:
+        if spec.satisfies("+activeharmony"):
             args.append("-DACTIVEHARMONY_ROOT={0}".format(spec["activeharmony"].prefix))
 
-        if "+binutils" in spec:
+        if spec.satisfies("+binutils"):
             args.append("-DBFD_ROOT={0}".format(spec["binutils"].prefix))
 
-        if "+binutils ^binutils+nls" in spec:
+        if spec.satisfies("+binutils ^binutils+nls"):
             if "intl" in self.spec["gettext"].libs.names:
                 args.append("-DCMAKE_SHARED_LINKER_FLAGS=-lintl")
 
-        if "+otf2" in spec:
+        if spec.satisfies("+otf2"):
             args.append("-DOTF2_ROOT={0}".format(spec["otf2"].prefix))
 
-        if "+papi" in spec:
+        if spec.satisfies("+papi"):
             args.append("-DPAPI_ROOT={0}".format(spec["papi"].prefix))
 
-        if "+gperftools" in spec:
+        if spec.satisfies("+gperftools"):
             args.append("-DGPERFTOOLS_ROOT={0}".format(spec["gperftools"].prefix))
 
-        if "+jemalloc" in spec:
+        if spec.satisfies("+jemalloc"):
             args.append("-DJEMALLOC_ROOT={0}".format(spec["jemalloc"].prefix))
 
-        if "+hip" in spec:
+        if spec.satisfies("+hip"):
             args.append("-DROCM_ROOT={0}".format(spec["hip"].prefix))
             args.append("-DROCTRACER_ROOT={0}".format(spec["roctracer-dev"].prefix))
             args.append("-DROCTX_ROOT={0}".format(spec["roctracer-dev"].prefix))

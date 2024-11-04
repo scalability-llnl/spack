@@ -39,14 +39,14 @@ class Libcanberra(AutotoolsPackage):
     depends_on("gtkplus", when="+gtk")
 
     depends_on("libvorbis")
-    depends_on("libtool", type="build")
+    depends_on("libtool", type="link")  # libltdl
 
     depends_on("pkgconfig", type="build")
 
     def configure_args(self):
         args = ["--enable-static"]
 
-        if "+gtk" in self.spec:
+        if self.spec.satisfies("+gtk"):
             args.append("--enable-gtk")
         else:
             args.append("--disable-gtk")

@@ -25,6 +25,7 @@ class Lz4(CMakePackage, MakefilePackage):
     # liblz4 is BSD-2-clause; programs, manpages, and everything else are GPL2
     license("BSD-2-Clause AND GPL-2.0-only", checked_by="tgamblin")
 
+    version("1.10.0", sha256="537512904744b35e232912055ccf8ec66d768639ff3abe5788d90d792ec5f48b")
     version("1.9.4", sha256="0b0e3aa07c8c063ddf40b082bdf7e37a1562bda40a0ff5272957f3e987e0e54b")
     version("1.9.3", sha256="030644df4611007ff7dc962d981f390361e6c97a34e5cbc393ddfbe019ffe2c1")
     version("1.9.2", sha256="658ba6191fa44c92280d4aa2c271b0f4fbc0e34d249578dd05e50e76d0e5efcc")
@@ -74,13 +75,13 @@ class CMakeBuilder(CMakeBuilder):
     def cmake_args(self):
         args = [self.define("CMAKE_POLICY_DEFAULT_CMP0042", "NEW")]
         # # no pic on windows
-        if "platform=windows" in self.spec:
+        if self.spec.satisfies("platform=windows"):
             args.append(self.define("LZ4_POSITION_INDEPENDENT_LIB", False))
         args.append(
-            self.define("BUILD_SHARED_LIBS", True if "libs=shared" in self.spec else False)
+            self.define("BUILD_SHARED_LIBS", True if self.spec.satisfies("libs=shared") else False)
         )
         args.append(
-            self.define("BUILD_STATIC_LIBS", True if "libs=static" in self.spec else False)
+            self.define("BUILD_STATIC_LIBS", True if self.spec.satisfies("libs=static") else False)
         )
         args.append(self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"))
         return args
@@ -93,7 +94,7 @@ class MakefileBuilder(MakefileBuilder):
 
     def build(self, pkg, spec, prefix):
         par = True
-        if spec.compiler.name == "nvhpc":
+        if spec.satisfies("%nvhpc"):
             # relocation error when building shared and dynamic libs in
             # parallel
             par = False
@@ -107,8 +108,8 @@ class MakefileBuilder(MakefileBuilder):
         make(
             "install",
             "PREFIX={0}".format(prefix),
-            "BUILD_SHARED={0}".format("yes" if "libs=shared" in self.spec else "no"),
-            "BUILD_STATIC={0}".format("yes" if "libs=static" in self.spec else "no"),
+            "BUILD_SHARED={0}".format("yes" if self.spec.satisfies("libs=shared") else "no"),
+            "BUILD_STATIC={0}".format("yes" if self.spec.satisfies("libs=static") else "no"),
         )
 
     @run_after("install", when="platform=darwin")
