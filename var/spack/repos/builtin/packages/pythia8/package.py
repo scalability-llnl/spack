@@ -132,7 +132,7 @@ class Pythia8(AutotoolsPackage):
     filter_compiler_wrappers("Makefile.inc", relative_root="share/Pythia8/examples")
 
     @run_before("configure")
-    def setup_cxxstd(self):
+    def setup_configure(self):
         filter_file(
             r"-std=c\+\+[0-9][0-9]", f"-std=c++{self.spec.variants['cxxstd'].value}", "configure"
         )
