@@ -48,7 +48,7 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
     depends_on("automake@1.11:", type="build")
     depends_on("automake@1.15:", type="build", when="@1.33:")
 
-    # Avoid "'automake-1.16' is missing on your system" when patching 
+    # Avoid "'automake-1.16' is missing on your system" when patching
     force_autoreconf = True
 
     depends_on("iconv")
