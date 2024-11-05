@@ -27,11 +27,6 @@ class Libunwind(AutotoolsPackage):
     version("1.4.0", sha256="df59c931bd4d7ebfd83ee481c943edf015138089b8e50abed8d9c57ba9338435")
     version("1.3.1", sha256="43997a3939b6ccdf2f669b50fdb8a4d3205374728c2923ddc2354c65260214f8")
     version("1.2.1", sha256="3f3ecb90e28cbe53fba7a4a27ccce7aad188d3210bb1964a923a731a27a75acb")
-    version(
-        "1.1",
-        sha256="9dfe0fcae2a866de9d3942c66995e4b460230446887dbdab302d41a8aee8d09a",
-        deprecated=True,
-    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
