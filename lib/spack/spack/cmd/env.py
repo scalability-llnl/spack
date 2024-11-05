@@ -473,7 +473,7 @@ def env_track(args):
         dst_path = ev.environment_dir_from_name(name, exists_ok=False)
     except ev.SpackEnvironmentError:
         tty.die(
-            f"An environment named {name} already exists. Set a name with,"
+            f"An environment named {name} already exists. Set a name with:"
             "\n\n"
             f"        spack env track --name NAME {src_path}\n"
         )
@@ -514,7 +514,7 @@ def env_untrack(args):
         if not islink(env_path):
             tty.die(
                 f"{env_name} is not a tracked env. "
-                "To remove it completely run,"
+                "To remove it completely run:"
                 "\n\n"
                 f"        spack env rm {env_name}\n"
             )
