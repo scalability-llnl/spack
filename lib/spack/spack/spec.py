@@ -95,7 +95,7 @@ import spack.variant as vt
 import spack.version as vn
 import spack.version.git_ref_lookup
 
-from .enums import ANY_STATUS
+from .enums import InstallRecordStatus
 
 __all__ = [
     "CompilerSpec",
@@ -2075,7 +2075,7 @@ class Spec:
         # First env, then store, then binary cache
         matches = (
             (active_env.all_matching_specs(self) if active_env else [])
-            or spack.store.STORE.db.query(self, installed=ANY_STATUS)
+            or spack.store.STORE.db.query(self, installed=InstallRecordStatus.ANY)
             or spack.binary_distribution.BinaryCacheQuery(True)(self)
         )
 

@@ -34,7 +34,7 @@ from spack.cmd import display_specs
 from spack.cmd.common import arguments
 from spack.spec import Spec, save_dependency_specfiles
 
-from ..enums import ANY_STATUS
+from ..enums import InstallRecordStatus
 
 description = "create, download and install binary packages"
 section = "packaging"
@@ -311,7 +311,7 @@ def setup_parser(subparser: argparse.ArgumentParser):
 def _matching_specs(specs: List[Spec]) -> List[Spec]:
     """Disambiguate specs and return a list of matching specs"""
     return [
-        spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=ANY_STATUS)
+        spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=InstallRecordStatus.ANY)
         for s in specs
     ]
 

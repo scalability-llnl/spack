@@ -12,8 +12,4 @@ class InstallRecordStatus(enum.Flag):
     INSTALLED = enum.auto()
     DEPRECATED = enum.auto()
     MISSING = enum.auto()
-
-
-ANY_STATUS = (
-    InstallRecordStatus.INSTALLED | InstallRecordStatus.DEPRECATED | InstallRecordStatus.MISSING
-)
+    ANY = INSTALLED | DEPRECATED | MISSING

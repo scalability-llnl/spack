@@ -69,7 +69,7 @@ from spack.directory_layout import (
 from spack.error import SpackError
 from spack.util.crypto import bit_length
 
-from .enums import ANY_STATUS, InstallRecordStatus
+from .enums import InstallRecordStatus
 
 # TODO: Provide an API automatically retyring a build after detecting and
 # TODO: clearing a failure.
@@ -1376,7 +1376,7 @@ class Database:
         self,
         dag_hash: str,
         default: Optional[List["spack.spec.Spec"]] = None,
-        installed: Union[bool, InstallRecordStatus] = ANY_STATUS,
+        installed: Union[bool, InstallRecordStatus] = InstallRecordStatus.ANY,
     ) -> Optional[List["spack.spec.Spec"]]:
         installed = normalize_query(installed)
         # hash is a full hash and is in the data somewhere
@@ -1403,7 +1403,7 @@ class Database:
         self,
         dag_hash: str,
         default: Optional[List["spack.spec.Spec"]] = None,
-        installed: Union[bool, InstallRecordStatus] = ANY_STATUS,
+        installed: Union[bool, InstallRecordStatus] = InstallRecordStatus.ANY,
     ) -> Optional[List["spack.spec.Spec"]]:
         """Look up a spec in *this DB* by DAG hash, or by a DAG hash prefix.
 
@@ -1413,9 +1413,9 @@ class Database:
             installed: if ``True``, includes only installed specs in the search; if ``False``
                 only missing specs. Otherwise, a InstallRecordStatus flag.
 
-        ``installed`` defaults to ``ANY_STATUS`` so we can refer to any known hash. Note that
-        ``query()`` and ``query_one()`` differ in that they only return installed specs by default.
+        ``installed`` defaults to ``InstallRecordStatus.ANY`` so we can refer to any known hash.
 
+        ``query()`` and ``query_one()`` differ in that they only return installed specs by default.
         """
         with self.read_transaction():
             return self._get_by_hash_local(dag_hash, default=default, installed=installed)
@@ -1424,7 +1424,7 @@ class Database:
         self,
         dag_hash: str,
         default: Optional[List["spack.spec.Spec"]] = None,
-        installed: Union[bool, InstallRecordStatus] = ANY_STATUS,
+        installed: Union[bool, InstallRecordStatus] = InstallRecordStatus.ANY,
     ) -> Optional[List["spack.spec.Spec"]]:
         """Look up a spec by DAG hash, or by a DAG hash prefix.
 
@@ -1434,7 +1434,7 @@ class Database:
             installed: if ``True``, includes only installed specs in the search; if ``False``
                 only missing specs. Otherwise, a InstallRecordStatus flag.
 
-        ``installed`` defaults to ``ANY_STATUS`` so we can refer to any known hash. Note that
+        ``installed`` defaults to ``InstallRecordStatus.ANY`` so we can refer to any known hash.
         ``query()`` and ``query_one()`` differ in that they only return installed specs by default.
 
         """
