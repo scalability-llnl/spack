@@ -41,6 +41,7 @@ class Acts(CMakePackage, CudaPackage):
     # Supported Acts versions
     version("main", branch="main")
     version("master", branch="main", deprecated=True)  # For compatibility
+    version("37.3.0", commit="b3e856d4dadcda7d1a88a9b846ce5a7acd8410c4", submodules=True)
     version("37.2.0", commit="821144dc40d35b44aee0d7857a0bd1c99e4a3932", submodules=True)
     version("37.1.0", commit="fa6ad4d52e0bd09cf8c78507fcbb18e9ac2c87a3", submodules=True)
     version("37.0.1", commit="998b9c9dd42d5160c2540f8fa820505869bfdb79", submodules=True)
@@ -337,7 +338,7 @@ class Acts(CMakePackage, CudaPackage):
         "tbb",
         default=True,
         description="Build the examples with Threading Building Blocks library",
-        when="@19.8:19,20.1: +examples",
+        when="@19.8:19,20.1:37.2 +examples",
     )
     variant("analysis", default=False, description="Build analysis applications in the examples")
 
@@ -382,6 +383,7 @@ class Acts(CMakePackage, CudaPackage):
     depends_on("hepmc3 @3.2.1:", when="+hepmc3")
     depends_on("heppdt", when="+hepmc3 @:4.0")
     depends_on("intel-tbb @2020.1:", when="+examples +tbb")
+    depends_on("intel-tbb @2020.1:", when="+examples @37.3:")
     depends_on("mlpack@3.1.1:", when="+mlpack")
     depends_on("nlohmann-json @3.9.1:", when="@0.14: +json")
     depends_on("nlohmann-json @3.10.5:", when="@37: +json")

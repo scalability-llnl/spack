@@ -251,7 +251,7 @@ def implicit_variant_conversion(method):
     def convert(self, other):
         # We don't care if types are different as long as I can convert other to type(self)
         try:
-            other = type(self)(other.name, other._original_value)
+            other = type(self)(other.name, other._original_value, propagate=other.propagate)
         except (error.SpecError, ValueError):
             return False
         return method(self, other)
@@ -307,19 +307,21 @@ class AbstractVariant:
         self.value = value
 
     @staticmethod
-    def from_node_dict(name: str, value: Union[str, List[str]]) -> "AbstractVariant":
+    def from_node_dict(
+        name: str, value: Union[str, List[str]], *, propagate: bool = False
+    ) -> "AbstractVariant":
         """Reconstruct a variant from a node dict."""
         if isinstance(value, list):
             # read multi-value variants in and be faithful to the YAML
-            mvar = MultiValuedVariant(name, ())
+            mvar = MultiValuedVariant(name, (), propagate=propagate)
             mvar._value = tuple(value)
             mvar._original_value = mvar._value
             return mvar
 
         elif str(value).upper() == "TRUE" or str(value).upper() == "FALSE":
-            return BoolValuedVariant(name, value)
+            return BoolValuedVariant(name, value, propagate=propagate)
 
-        return SingleValuedVariant(name, value)
+        return SingleValuedVariant(name, value, propagate=propagate)
 
     def yaml_entry(self) -> Tuple[str, SerializedValueType]:
         """Returns a key, value tuple suitable to be an entry in a yaml dict.
@@ -377,6 +379,7 @@ class AbstractVariant:
     def _cmp_iter(self) -> Iterable:
         yield self.name
         yield from (str(v) for v in self.value_as_tuple)
+        yield self.propagate
 
     def copy(self) -> "AbstractVariant":
         """Returns an instance of a variant equivalent to self
@@ -451,6 +454,7 @@ class AbstractVariant:
             values.remove("*")
 
         self._value_setter(",".join(str(v) for v in values))
+        self.propagate = self.propagate and other.propagate
         return old_value != self.value
 
     def __contains__(self, item: Union[str, bool]) -> bool:
@@ -555,6 +559,7 @@ class SingleValuedVariant(AbstractVariant):
 
         if self.value != other.value:
             raise UnsatisfiableVariantSpecError(other.value, self.value)
+        self.propagate = self.propagate and other.propagate
         return False
 
     def __contains__(self, item: ValueType) -> bool:

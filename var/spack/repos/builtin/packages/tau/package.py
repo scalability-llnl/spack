@@ -427,8 +427,14 @@ class Tau(Package):
         # Link arch-specific directories into prefix since there is
         # only one arch per prefix the way spack installs.
         self.link_tau_arch_dirs()
-        # TAU may capture Spack's internal compiler wrapper. Replace
-        # it with the correct compiler.
+        # TAU may capture Spack's internal compiler wrapper. Fixed
+        # by filter_compiler_wrappers. Switch back the environment
+        # variables the filter uses.
+        if "+mpi" in spec:
+            env["CC"] = spack_cc
+            env["CXX"] = spack_cxx
+            env["FC"] = spack_fc
+            env["F77"] = spack_f77
 
     def link_tau_arch_dirs(self):
         for subdir in os.listdir(self.prefix):

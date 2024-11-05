@@ -246,6 +246,7 @@ class Boost(Package):
     depends_on("icu4c cxxstd=14", when="+icu cxxstd=14")
     depends_on("icu4c cxxstd=17", when="+icu cxxstd=17")
     conflicts("cxxstd=98", when="+icu")  # Requires c++11 at least
+    conflicts("+locale ~icu")  # Boost.Locale "strongly recommends" icu, so enforce it
 
     depends_on("python", when="+python")
     # https://github.com/boostorg/python/commit/cbd2d9f033c61d29d0a1df14951f4ec91e7d05cd

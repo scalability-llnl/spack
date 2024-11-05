@@ -1941,7 +1941,7 @@ def configure_reuse(reuse_mode, combined_env) -> Optional[ev.Environment]:
     elif reuse_mode == "from_environment":
         _config = {"concretizer": {"reuse": {"from": [{"type": "environment"}]}}}
     elif reuse_mode == "from_environment_test1":
-        _config = {"concretizer": {"reuse": {"from": [{"type": {"environment": "test1"}}]}}}
+        _config = {"concretizer": {"reuse": {"from": [{"type": "environment", "path": "test1"}]}}}
     elif reuse_mode == "from_environment_external_test":
         # Create a new environment called external_test that enables the "debug"
         # The default is "~debug"
@@ -1957,12 +1957,12 @@ def configure_reuse(reuse_mode, combined_env) -> Optional[ev.Environment]:
         # mpich@3.0 but with include concrete the mpich@1.0 +debug version from the
         # "external_test" environment will be used.
         _config = {
-            "concretizer": {"reuse": {"from": [{"type": {"environment": "external_test"}}]}},
+            "concretizer": {"reuse": {"from": [{"type": "environment", "path": "external_test"}]}},
             "packages": {"mpich": {"require": ["+debug"]}},
         }
     elif reuse_mode == "from_environment_raise":
         _config = {
-            "concretizer": {"reuse": {"from": [{"type": {"environment": "not-a-real-env"}}]}}
+            "concretizer": {"reuse": {"from": [{"type": "environment", "path": "not-a-real-env"}]}}
         }
     # Disable unification in these tests to avoid confusing reuse due to unification using an
     # include concrete spec vs reuse due to the reuse configuration

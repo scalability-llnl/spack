@@ -515,6 +515,8 @@ class Result:
         best = min(self.answers)
         opt, _, answer = best
         for input_spec in self.abstract_specs:
+            # The specs must be unified to get here, so it is safe to associate any satisfying spec
+            # with the input. Multiple inputs may be matched to the same concrete spec
             node = SpecBuilder.make_node(pkg=input_spec.name)
             if input_spec.virtual:
                 providers = [
@@ -887,6 +889,7 @@ class PyclingoDriver:
         result.satisfiable = solve_result.satisfiable
 
         if result.satisfiable:
+            timer.start("construct_specs")
             # get the best model
             builder = SpecBuilder(specs, hash_lookup=setup.reusable_and_possible)
             min_cost, best_model = min(models)
@@ -911,7 +914,8 @@ class PyclingoDriver:
 
             # record the possible dependencies in the solve
             result.possible_dependencies = setup.pkgs
-
+            timer.stop("construct_specs")
+            timer.stop()
         elif cores:
             result.control = self.control
             result.cores.extend(cores)
@@ -4101,8 +4105,8 @@ class ReusableSpecsSelector:
             for source in reuse_yaml.get("from", default_sources):
                 include = source.get("include", default_include)
                 exclude = source.get("exclude", default_exclude)
-                if isinstance(source["type"], dict):
-                    env_dir = ev.as_env_dir(source["type"].get("environment"))
+                if source["type"] == "environment" and "path" in source:
+                    env_dir = ev.as_env_dir(source["path"])
                     active_env = ev.active_environment()
                     if active_env and env_dir in active_env.included_concrete_envs:
                         # If environment is included as a concrete environment, use the local copy
@@ -4189,7 +4193,7 @@ class Solver:
                 spack.spec.Spec.ensure_valid_variants(s)
         return reusable
 
-    def solve(
+    def solve_with_stats(
         self,
         specs,
         out=None,
@@ -4200,6 +4204,8 @@ class Solver:
         allow_deprecated=False,
     ):
         """
+        Concretize a set of specs and track the timing and statistics for the solve
+
         Arguments:
           specs (list): List of ``Spec`` objects to solve for.
           out: Optionally write the generate ASP program to a file-like object.
@@ -4211,15 +4217,22 @@ class Solver:
           setup_only (bool): if True, stop after setup and don't solve (default False).
           allow_deprecated (bool): allow deprecated version in the solve
         """
-        # Check upfront that the variants are admissible
         specs = [s.lookup_hash() for s in specs]
         reusable_specs = self._check_input_and_extract_concrete_specs(specs)
         reusable_specs.extend(self.selector.reusable_specs(specs))
         setup = SpackSolverSetup(tests=tests)
         output = OutputConfiguration(timers=timers, stats=stats, out=out, setup_only=setup_only)
-        result, _, _ = self.driver.solve(
+        return self.driver.solve(
             setup, specs, reuse=reusable_specs, output=output, allow_deprecated=allow_deprecated
         )
+
+    def solve(self, specs, **kwargs):
+        """
+        Convenience function for concretizing a set of specs and ignoring timing
+        and statistics. Uses the same kwargs as solve_with_stats.
+        """
+        # Check upfront that the variants are admissible
+        result, _, _ = self.solve_with_stats(specs, **kwargs)
         return result
 
     def solve_in_rounds(
