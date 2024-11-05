@@ -66,7 +66,7 @@ class Arkouda(MakefilePackage):
 
     # Some systems need explicit -fPIC flag when building the Arrow functions
     patch("makefile-fpic-2024.06.21.patch", when="@2024.06.21")
-    patch("makefile-fpic-2024.10.02.patch", when="@2024.10.02")
+    patch("makefile-fpic-2024.10.02.patch", when="@2024.10.02:")
 
     # override the default edit method to apply the patch
     def edit(self, spec, prefix):
