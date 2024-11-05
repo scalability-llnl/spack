@@ -39,7 +39,12 @@ class Rivet(AutotoolsPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
-    variant("hepmc", default="2", values=("2", "3"), description="HepMC version to link against")
+    variant(
+        "hepmc",
+        default="2",
+        values=(conditional("2", when="@:3"), "3"),
+        description="HepMC version to link against",
+    )
 
     # According to A. Buckley (main Rivet developer):
     # "typically a given Rivet version will work with
@@ -118,7 +123,7 @@ class Rivet(AutotoolsPackage):
             args += ["--with-hepmc=" + self.spec["hepmc"].prefix]
         else:
             args += ["--with-hepmc3=" + self.spec["hepmc3"].prefix]
-            args += ["--with-hepmc3-libpath=" + self.spec["hepmc3"].prefix.lib]
+            args += ["--with-hepmc3-libpath=" + self.spec["hepmc3"].libs.directories[0]]
 
         args += ["--with-fastjet=" + self.spec["fastjet"].prefix]
         args += ["--with-yoda=" + self.spec["yoda"].prefix]
