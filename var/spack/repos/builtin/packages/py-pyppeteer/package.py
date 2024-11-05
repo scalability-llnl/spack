@@ -21,7 +21,7 @@ class PyPyppeteer(PythonPackage):
 
     depends_on("python@3.8:", type=("build", "run"))
     depends_on("py-appdirs@1.4.3:1", type=("build", "run"))
-    depends_on("py-import-metadata@1.4:", type=("build", "run"))
+    depends_on("py-importlib-metadata@1.4:", type=("build", "run"))
     depends_on("py-pyee@11", type=("build", "run"))
     depends_on("py-tqdm@4.42.1:4", type=("build", "run"))
     depends_on("py-urllib3@1.25.8:1", type=("build", "run"))
