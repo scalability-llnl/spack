@@ -427,7 +427,7 @@ class Tau(Package):
         # Link arch-specific directories into prefix since there is
         # only one arch per prefix the way spack installs.
         self.link_tau_arch_dirs()
-        # TAU may capture Spack's internal compiler wrapper. Fixed 
+        # TAU may capture Spack's internal compiler wrapper. Fixed
         # by filter_compiler_wrappers. Switch back the environment
         # variables the filter uses.
         if "+mpi" in spec:
