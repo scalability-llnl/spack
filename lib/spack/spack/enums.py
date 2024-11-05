@@ -6,7 +6,7 @@
 import enum
 
 
-class DBStatus(enum.Flag):
+class InstallRecordStatus(enum.Flag):
     """Enum flag to facilitate querying status from the DB"""
 
     INSTALLED = enum.auto()
@@ -14,4 +14,6 @@ class DBStatus(enum.Flag):
     MISSING = enum.auto()
 
 
-ANY_STATUS = DBStatus.INSTALLED | DBStatus.DEPRECATED | DBStatus.MISSING
+ANY_STATUS = (
+    InstallRecordStatus.INSTALLED | InstallRecordStatus.DEPRECATED | InstallRecordStatus.MISSING
+)

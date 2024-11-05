@@ -18,7 +18,7 @@ import spack.store
 import spack.traverse as traverse
 from spack.cmd.common import arguments
 
-from ..enums import DBStatus
+from ..enums import InstallRecordStatus
 
 description = "remove installed packages"
 section = "build"
@@ -106,7 +106,7 @@ def find_matching_specs(
         matching = spack.store.STORE.db.query_local(
             spec,
             hashes=hashes,
-            installed=(DBStatus.INSTALLED | DBStatus.DEPRECATED),
+            installed=(InstallRecordStatus.INSTALLED | InstallRecordStatus.DEPRECATED),
             origin=origin,
         )
         # For each spec provided, make sure it refers to only one package.
