@@ -22,7 +22,9 @@ def _libc_from_ldd(ldd: str) -> Optional["spack.spec.Spec"]:
     except Exception:
         return None
 
-    if not re.search(r"\bFree Software Foundation\b", stdout):
+    # The string "Free Software Foundation" is sometimes translated and not detected, but the names
+    # of the authors are typically present.
+    if not re.search(r"\b(?:Free Software Foundation|Roland McGrath|Ulrich Depper)\b", stdout):
         return None
 
     version_str = re.match(r".+\(.+\) (.+)", stdout)
