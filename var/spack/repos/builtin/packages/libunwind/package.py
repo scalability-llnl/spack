@@ -97,6 +97,8 @@ class Libunwind(AutotoolsPackage):
     conflicts("target=ppc64:", when="@1.8")
     conflicts("target=ppc64le:", when="@1.8")
 
+    conflicts("target=aarch64:", when="@1.8:")
+
     provides("unwind")
 
     def url_for_version(self, version):
