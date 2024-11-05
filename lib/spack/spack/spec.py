@@ -3052,6 +3052,10 @@ class Spec:
                 raise spack.error.UnsatisfiableSpecError(self, other, "constrain a concrete spec")
 
         other = self._autospec(other)
+        if other.concrete and other.satisfies(self):
+            self._dup(other)
+            return True
+
         if other.abstract_hash:
             if not self.abstract_hash or other.abstract_hash.startswith(self.abstract_hash):
                 self.abstract_hash = other.abstract_hash
@@ -3389,16 +3393,7 @@ class Spec:
             return False
 
         if not self.variants.satisfies(other.variants):
-            if all(not other.variants[k].propagate for k in other.variants):
-                return False
-
-            # Check if any not satisified variant is propagating and in spec's dependency
-            if any(
-                other.variants[variant].propagate
-                and not self.variant_exists_in_dependency(variant)
-                for variant in other.variants
-            ):
-                return False
+            return False
 
         if self.architecture and other.architecture:
             if not self.architecture.satisfies(other.architecture):
@@ -3509,21 +3504,6 @@ class Spec:
                     self._patches.append(patch)
 
         return self._patches
-
-    def variant_exists_in_dependency(self, variant):
-        if variant in self.package_class.variant_names():
-            return True
-
-        sorted_dependencies = sorted(
-            self.traverse(root=False), key=lambda x: (x.name, x.abstract_hash)
-        )
-        sorted_dependencies = [d.cformat("{name}") for d in sorted_dependencies]
-
-        for dep in sorted_dependencies:
-            if variant in Spec(dep).package_class.variant_names():
-                return True
-
-        return False
 
     def _dup(self, other, deps: Union[bool, dt.DepTypes, dt.DepFlag] = True, cleardeps=True):
         """Copy the spec other into self.  This is an overwriting
@@ -4554,8 +4534,30 @@ class VariantMap(lang.HashableMap):
         # Set the item
         super().__setitem__(vspec.name, vspec)
 
-    def satisfies(self, other):
+    def partition_variants(self):
+        return lang.stable_partition(self.values(), lambda x: not x.propagate)
+
+    def satisfies(self, other: "VariantMap") -> bool:
+        if self.spec.concrete:
+            return self._satisfies_when_self_concrete(other)
         return all(k in self and self[k].satisfies(other[k]) for k in other)
+
+    def _satisfies_when_self_concrete(self, other: "VariantMap") -> bool:
+        non_propagating, propagating = other.partition_variants()
+        result = all(
+            v.name in self and self[v.name].satisfies(other[v.name]) for v in non_propagating
+        )
+        if not propagating:
+            return result
+
+        for node in self.spec.traverse():
+            if not all(
+                node.variants[v.name].satisfies(other[v.name])
+                for v in propagating
+                if v.name in node.variants
+            ):
+                return False
+        return result
 
     def intersects(self, other):
         return all(self[k].intersects(other[k]) for k in other if k in self)
