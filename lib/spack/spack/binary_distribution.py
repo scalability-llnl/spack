@@ -87,6 +87,8 @@ from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which
 
+from .enums import ANY_STATUS
+
 BUILD_CACHE_RELATIVE_PATH = "build_cache"
 BUILD_CACHE_KEYS_RELATIVE_PATH = "_pgp"
 
@@ -252,7 +254,7 @@ class BinaryCacheIndex:
 
             spec_list = [
                 s
-                for s in db.query_local(installed=spack_db.ANY_STATUS)
+                for s in db.query_local(installed=ANY_STATUS)
                 if s.external or db.query_local_by_spec_hash(s.dag_hash()).in_buildcache
             ]
 

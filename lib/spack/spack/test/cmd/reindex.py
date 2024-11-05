@@ -5,7 +5,8 @@
 import shutil
 
 import spack.store
-from spack.database import ANY_STATUS, Database
+from spack.database import Database
+from spack.enums import ANY_STATUS
 from spack.main import SpackCommand
 
 install = SpackCommand("install")
