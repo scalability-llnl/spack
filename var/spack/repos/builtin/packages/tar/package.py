@@ -41,18 +41,7 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
         description="Default compression program for tar -z",
     )
 
-    depends_on("autoconf@2.63:", type="build")
-    depends_on("autoconf@2.64:", type="build", when="@1.33:")
-    depends_on("autoconf@2.71:", type="build", when="@1.35:")
-
-    depends_on("automake@1.11:", type="build")
-    depends_on("automake@1.15:", type="build", when="@1.33:")
-
-    depends_on("libtool", type="build")
-
-    # Avoid "'automake-1.16' is missing on your system" when patching
-    force_autoreconf = True
-
+    depends_on("gettext")
     depends_on("iconv")
 
     # Compression
@@ -67,20 +56,27 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
     patch("se-selinux.patch", when="@:1.29")
     patch("argp-pgi.patch", when="@:1.29")
     patch("gnutar-configure-xattrs.patch", when="@1.28")
+
     # The NVIDIA compilers do not currently support some GNU builtins.
     # Detect this case and use the fallback path.
     patch("nvhpc-1.30.patch", when="@1.30:1.32 %nvhpc")
     patch("nvhpc-1.34.patch", when="@1.34 %nvhpc")
     # Workaround bug where __LONG_WIDTH__ is not defined
     patch("nvhpc-long-width.patch", when="@1.34: %nvhpc")
-    # Explicitly link against libiconv in 1.35
-    patch("libiconv-1.35.patch", when="@1.35")
+    # Newer versions are marked as conflict for now
+    conflicts("%nvhpc", "@1.35:", msg="NVHPC not yet supported for 1.35")
 
     @classmethod
     def determine_version(cls, exe):
         output = Executable(exe)("--version", output=str, error=str)
         match = re.search(r"tar \(GNU tar\) (\S+)", output)
         return match.group(1) if match else None
+
+    def flag_handler(self, name, flags):
+        if name == "ldflags":
+            if self.spec.satisfies("@1.35:"):
+                flags.extend(["-lintl", "-liconv"])
+        return (flags, None, None)
 
     def configure_args(self):
         spec = self.spec
