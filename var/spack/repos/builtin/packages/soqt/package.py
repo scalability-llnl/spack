@@ -38,8 +38,8 @@ class Soqt(CMakePackage):
     variant("tests", default=False, description="Build small test programs.")
     variant("iv", default=True, description="Enable extra Open Inventor extensions")
 
-    depends_on("qt +gui +opengl", when="qt=5")
-    depends_on("qt-base +gui +opengl +widgets", when="qt=6")
+    depends_on("qt@5 +gui +opengl", when="qt=5")
+    depends_on("qt-base@6 +gui +opengl +widgets", when="qt=6")
 
     def cmake_args(self):
         args = [
