@@ -59,7 +59,7 @@ default:
     SPACK_TARGET_PLATFORM: "linux"
     SPACK_TARGET_ARCH: "aarch64"
 
-.linux_power:
+.linux_ppc64le:
   variables:
     SPACK_TARGET_PLATFORM: "linux"
     SPACK_TARGET_ARCH: "ppc64le"
@@ -189,6 +189,10 @@ default:
 .generate-aarch64:
   extends: [ ".generate-base" ]
   tags: ["spack", "public", "medium", "aarch64"]
+
+.generate-ppc64le:
+  extends: [ ".generate-base" ]
+  tags: ["spack", "public", "medium", "ppc64le"]
 
 .generate-neoverse_v1:
   extends: [ ".generate-base" ]
@@ -405,7 +409,7 @@ e4s-oneapi-build:
   tags: ["spack", "public", "large", "ppc64le"]
 
 .e4s-power:
-  extends: [".linux_power"]
+  extends: [".linux_ppc64le"]
   variables:
     SPACK_CI_STACK_NAME: e4s-power
 
@@ -780,6 +784,52 @@ ml-linux-aarch64-cuda-build:
   needs:
     - artifacts: True
       job: ml-linux-aarch64-cuda-generate
+
+########################################
+# Machine Learning - Linux ppc64le (CPU)
+########################################
+.ml-linux-ppc64le-cpu:
+  extends: [ ".linux_ppc64le" ]
+  variables:
+    SPACK_CI_STACK_NAME: ml-linux-ppc64le-cpu
+
+ml-linux-ppc64le-cpu-generate:
+  extends: [ ".generate-ppc64le", .ml-linux-ppc64le-cpu ]
+  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
+
+ml-linux-ppc64le-cpu-build:
+  extends: [ ".build", ".ml-linux-ppc64le-cpu" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: ml-linux-ppc64le-cpu-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: ml-linux-ppc64le-cpu-generate
+
+#########################################
+# Machine Learning - Linux ppc64le (CUDA)
+#########################################
+.ml-linux-ppc64le-cuda:
+  extends: [ ".linux_ppc64le" ]
+  variables:
+    SPACK_CI_STACK_NAME: ml-linux-ppc64le-cuda
+
+ml-linux-ppc64le-cuda-generate:
+  extends: [ ".generate-ppc64le", .ml-linux-ppc64le-cuda ]
+  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
+
+ml-linux-ppc64le-cuda-build:
+  extends: [ ".build", ".ml-linux-ppc64le-cuda" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: ml-linux-ppc64le-cuda-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: ml-linux-ppc64le-cuda-generate
 
 #########################################
 # Machine Learning - Darwin aarch64 (MPS)
