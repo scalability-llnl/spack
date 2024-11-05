@@ -30,12 +30,35 @@ class LlvmDetection(PackageBase):
     @classmethod
     def filter_detected_exes(cls, prefix, exes_in_prefix):
         # Executables like lldb-vscode-X are daemon listening on some port and would hang Spack
-        # during detection. clang-cl, clang-cpp, etc. are dev tools that we don't need to test
-        reject = re.compile(
-            r"-(vscode|cpp|gpu|tidy|rename|scan-deps|format|refactor|offload|"
-            r"check|query|doc|move|extdef|apply|reorder|change-namespace|"
-            r"include-fixer|import-test|dap|server)"
-        )
+        # during detection. clang-cpp, etc. are dev tools that we don't need to test. clang-cl
+        # should only be found on Windows.
+        reject_list = [
+            r"vscode",
+            r"cpp",
+            r"gpu",
+            r"tidy",
+            r"rename",
+            r"scan-deps",
+            r"format",
+            r"refactor",
+            r"offload",
+            r"check",
+            r"query",
+            r"doc",
+            r"move",
+            r"extdef",
+            r"apply",
+            r"reorder",
+            r"change-namespace",
+            r"include-fixer",
+            r"import-test",
+            r"dap",
+            r"server",
+        ]
+        if sys.platform != "win32":
+            reject_list.append(r"cl")
+
+        reject = re.compile(rf"-({'|'.join(reject_list)})")
         return [x for x in exes_in_prefix if not reject.search(x)]
 
 
@@ -703,13 +726,19 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         lld_found, lldb_found = False, False
         for exe in sorted(exes, key=len):
             name = os.path.basename(exe)
-            if sys.platform == "win32" and "clang-cl" in name:
-                compilers.update(cxx=exe, c=exe)
-            elif "clang++" in name:
-                compilers.setdefault("cxx", exe)
-            elif "clang" in name:
-                compilers.setdefault("c", exe)
-            elif "flang" in name:
+            if sys.platform == "win32":
+                if "clang-cl" in name:
+                    compilers.setdefault("c", exe)
+                    compilers.setdefault("cxx", exe)
+                    continue
+            else:
+                if "clang++" in name:
+                    compilers.setdefault("cxx", exe)
+                    continue
+                elif "clang" in name:
+                    compilers.setdefault("c", exe)
+                    continue
+            if "flang" in name:
                 variants.append("+flang")
                 compilers.setdefault("fortran", exe)
             elif "ld.lld" in name:

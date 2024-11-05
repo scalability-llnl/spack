@@ -195,6 +195,8 @@ class Clang(Compiler):
         return ver
 
     def setup_custom_environment(self, pkg, env):
+        # Overwrite the compiler environment variables on Windows so we use the
+        # direct executables rather than the spack compiler wrappers (shell scripts).
         if sys.platform == "win32":
             env.set("CC", self.cc)
             env.set("CXX", self.cxx)
