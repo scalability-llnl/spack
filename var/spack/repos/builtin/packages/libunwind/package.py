@@ -95,9 +95,10 @@ class Libunwind(AutotoolsPackage):
     provides("unwind")
 
     def url_for_version(self, version):
-        if version >= Version("1.7.0"):
+        if version == Version("1.5.0"):
+            return f"https://github.com/libunwind/libunwind/releases/download/v{version.up_to(2)}/libunwind-{version}.tar.gz"
+        else:
             return super().url_for_version(version)
-        return f"http://download.savannah.gnu.org/releases/libunwind/libunwind-v{version}.tar.gz"
 
     def flag_handler(self, name, flags):
         wrapper_flags = []
