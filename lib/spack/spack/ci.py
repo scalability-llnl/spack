@@ -37,7 +37,6 @@ import spack.config as cfg
 import spack.error
 import spack.main
 import spack.mirror
-import spack.package_base
 import spack.paths
 import spack.repo
 import spack.spec
@@ -265,22 +264,14 @@ def _format_job_needs(dep_jobs, build_group, prune_dag, rebuild_decisions):
 def get_change_revisions():
     """If this is a git repo get the revisions to use when checking
     for changed packages and spack core modules."""
-    rev1 = None
-    rev2 = None
-
-    # Note: git_dir may be a file in a worktree. If it exists, attempt to use git
-    #       to determine if there is a revision
     git_dir = os.path.join(spack.paths.prefix, ".git")
-    if os.path.exists(git_dir):
-        # The default will only find changed packages from the last
-        # commit. When the commit is a merge commit, this is will return all of the
-        # changes on the topic.
-        # TODO: Handle the case where the clone is not shallow clone of a merge commit
-        #       using `git merge-base`
-        rev1 = "HEAD^"
-        rev2 = "HEAD"
-
-    return rev1, rev2
+    if os.path.exists(git_dir) and os.path.isdir(git_dir):
+        # TODO: This will only find changed packages from the last
+        # TODO: commit.  While this may work for single merge commits
+        # TODO: when merging the topic branch into the base, it will
+        # TODO: require more thought outside of that narrow case.
+        return "HEAD^", "HEAD"
+    return None, None
 
 
 def get_stack_changed(env_path, rev1="HEAD^", rev2="HEAD"):
@@ -399,7 +390,7 @@ class SpackCI:
     used by the CI generator(s).
     """
 
-    def __init__(self, ci_config, spec_labels=None, stages=None):
+    def __init__(self, ci_config, spec_labels, stages):
         """Given the information from the ci section of the config
         and the staged jobs, set up meta data needed for generating Spack
         CI IR.
@@ -417,9 +408,8 @@ class SpackCI:
         }
         jobs = self.ir["jobs"]
 
-        if spec_labels and stages:
-            for spec, dag_hash in _build_jobs(spec_labels, stages):
-                jobs[dag_hash] = self.__init_job(spec)
+        for spec, dag_hash in _build_jobs(spec_labels, stages):
+            jobs[dag_hash] = self.__init_job(spec)
 
         for name in self.named_jobs:
             # Skip the special named jobs
@@ -715,52 +705,13 @@ def generate_gitlab_ci_yaml(
             files (spack.yaml, spack.lock), etc should be written.  GitLab
             requires this to be within the project directory.
     """
-    rev1, rev2 = get_change_revisions()
-    tty.debug(f"Got following revisions: rev1={rev1}, rev2={rev2}")
-
-    # Get the joined "ci" config with all of the current scopes resolved
-    ci_config = cfg.get("ci")
-    spack_prune_untouched = os.environ.get("SPACK_PRUNE_UNTOUCHED", None)
-
-    changed = rev1 and rev2
-    affected_pkgs = None
-    if spack_prune_untouched and changed:
-        affected_pkgs = compute_affected_packages(rev1, rev2)
-        tty.debug("affected pkgs:")
-        if affected_pkgs:
-            for p in affected_pkgs:
-                tty.debug(f"  {p}")
-        else:
-            tty.debug("  no affected packages...")
-
-        possible_builds = spack.package_base.possible_dependencies(*env.user_specs)
-        changed = any((spec in p for p in possible_builds.values()) for spec in affected_pkgs)
-
-        if not changed:
-            spack_ci = SpackCI(ci_config)
-            spack_ci_ir = spack_ci.generate_ir()
-
-            # No jobs should be generated.
-            noop_job = spack_ci_ir["jobs"]["noop"]["attributes"]
-            # If this job fails ignore the status and carry on
-            noop_job["retry"] = 0
-            noop_job["allow_failure"] = True
-
-            tty.msg("Skipping concretization, generating no-op job")
-            output_object = {"no-specs-to-rebuild": noop_job}
-
-            # Ensure the child pipeline always runs
-            output_object["workflow"] = {"rules": [{"when": "always"}]}
-
-            with open(output_file, "w") as f:
-                ruamel.yaml.YAML().dump(output_object, f)
-
-            return
-
     with spack.concretize.disable_compiler_existence_check():
         with env.write_transaction():
             env.concretize()
             env.write()
+
+    # Get the joined "ci" config with all of the current scopes resolved
+    ci_config = cfg.get("ci")
 
     if not ci_config:
         raise SpackCIError("Environment does not have a `ci` configuration")
@@ -786,13 +737,20 @@ def generate_gitlab_ci_yaml(
             dependent_depth = None
 
     prune_untouched_packages = False
+    spack_prune_untouched = os.environ.get("SPACK_PRUNE_UNTOUCHED", None)
     if spack_prune_untouched is not None and spack_prune_untouched.lower() == "true":
         # Requested to prune untouched packages, but assume we won't do that
         # unless we're actually in a git repo.
-        if changed:
+        rev1, rev2 = get_change_revisions()
+        tty.debug(f"Got following revisions: rev1={rev1}, rev2={rev2}")
+        if rev1 and rev2:
             # If the stack file itself did not change, proceed with pruning
             if not get_stack_changed(env.manifest_path, rev1, rev2):
                 prune_untouched_packages = True
+                affected_pkgs = compute_affected_packages(rev1, rev2)
+                tty.debug("affected pkgs:")
+                for p in affected_pkgs:
+                    tty.debug(f"  {p}")
                 affected_specs = get_spec_filter_list(
                     env, affected_pkgs, dependent_traverse_depth=dependent_depth
                 )
@@ -1140,6 +1098,11 @@ def generate_gitlab_ci_yaml(
         # warn only if there was actually a CDash configuration.
         tty.warn("Unable to populate buildgroup without CDash credentials")
 
+    service_job_retries = {
+        "max": 2,
+        "when": ["runner_system_failure", "stuck_or_timeout_failure", "script_failure"],
+    }
+
     if copy_only_pipeline:
         stage_names.append("copy")
         sync_job = copy.deepcopy(spack_ci_ir["jobs"]["copy"]["attributes"])
@@ -1199,10 +1162,7 @@ def generate_gitlab_ci_yaml(
             )
 
             final_job["when"] = "always"
-            final_job["retry"] = {
-                "max": 2,
-                "when": ["runner_system_failure", "stuck_or_timeout_failure", "script_failure"],
-            }
+            final_job["retry"] = service_job_retries
             final_job["interruptible"] = True
             final_job["dependencies"] = []
 
