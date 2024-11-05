@@ -110,6 +110,11 @@ class Dyninst(CMakePackage):
     patch("stackanalysis_h.patch", when="@9.2.0")
     patch("v9.3.2-auto.patch", when="@9.3.2 %gcc@:4.7")
     patch("tribool.patch", when="@9.3.0:10.0.0 ^boost@1.69:")
+    patch(
+        "missing_include_deque.patch",
+        when="@10.0.0:12.2.0",
+        sha256="0064d8d51bd01bd0035e1ebc49276f627ce6366d4524c92cf47d3c09b0031f96",
+    )
 
     requires("%gcc", when="@:13.0.0", msg="dyninst builds only with GCC")
 

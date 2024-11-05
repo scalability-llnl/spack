@@ -214,6 +214,7 @@ nitpick_ignore = [
     # Spack classes that intersphinx is unable to resolve
     ("py:class", "spack.version.StandardVersion"),
     ("py:class", "spack.spec.DependencySpec"),
+    ("py:class", "spack.spec.ArchSpec"),
     ("py:class", "spack.spec.InstallStatus"),
     ("py:class", "spack.spec.SpecfileReaderBase"),
     ("py:class", "spack.install_test.Pb"),

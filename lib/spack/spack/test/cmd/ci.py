@@ -1650,3 +1650,45 @@ def test_ci_dynamic_mapping_full(
                 assert job.get("variables", {}).get("MY_VAR") == "hello"
                 assert "ignored_field" not in job
                 assert "unallowed_field" not in job
+
+
+def test_ci_generate_noop_no_concretize(
+    tmpdir,
+    working_env,
+    mutable_mock_env_path,
+    install_mockery,
+    mock_packages,
+    monkeypatch,
+    ci_base_environment,
+):
+    # Write the enviroment file
+    filename = str(tmpdir.join("spack.yaml"))
+    with open(filename, "w") as f:
+        f.write(
+            """\
+spack:
+  specs:
+    - pkg-a
+  mirrors:
+    buildcache-destination: https://my.fake.mirror
+  ci:
+    type: gitlab
+"""
+        )
+
+    def fake_compute_affected(r1=None, r2=None):
+        return []
+
+    monkeypatch.setattr(ci, "compute_affected_packages", fake_compute_affected)
+    monkeypatch.setenv("SPACK_PRUNE_UNTOUCHED", "TRUE")  # enables pruning of untouched specs
+
+    with tmpdir.as_cwd():
+        env_cmd("create", "test", "./spack.yaml")
+        outputfile = str(tmpdir.join(".gitlab-ci.yml"))
+
+        with ev.read("test"):
+            ci_cmd("generate", "--output-file", outputfile)
+
+            with open(outputfile) as of:
+                pipeline_doc = syaml.load(of.read())
+                assert "no-specs-to-rebuild" in pipeline_doc

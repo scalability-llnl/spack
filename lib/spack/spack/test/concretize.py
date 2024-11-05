@@ -14,6 +14,7 @@ import archspec.cpu
 import llnl.util.lang
 
 import spack.binary_distribution
+import spack.cmd
 import spack.compiler
 import spack.compilers
 import spack.concretize
@@ -32,7 +33,6 @@ import spack.spec
 import spack.store
 import spack.util.file_cache
 import spack.variant as vt
-from spack.concretize import find_spec
 from spack.installer import PackageInstaller
 from spack.spec import CompilerSpec, Spec
 from spack.version import Version, VersionList, ver
@@ -804,39 +804,6 @@ class TestConcretize:
         assert spec["externaltool"].compiler.satisfies("gcc")
         assert spec["stuff"].compiler.satisfies("gcc")
 
-    def test_find_spec_parents(self):
-        """Tests the spec finding logic used by concretization."""
-        s = Spec.from_literal({"a +foo": {"b +foo": {"c": None, "d+foo": None}, "e +foo": None}})
-
-        assert "a" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-    def test_find_spec_children(self):
-        s = Spec.from_literal({"a": {"b +foo": {"c": None, "d+foo": None}, "e +foo": None}})
-
-        assert "d" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-        s = Spec.from_literal({"a": {"b +foo": {"c+foo": None, "d": None}, "e +foo": None}})
-
-        assert "c" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-    def test_find_spec_sibling(self):
-        s = Spec.from_literal({"a": {"b +foo": {"c": None, "d": None}, "e +foo": None}})
-
-        assert "e" == find_spec(s["b"], lambda s: "+foo" in s).name
-        assert "b" == find_spec(s["e"], lambda s: "+foo" in s).name
-
-        s = Spec.from_literal({"a": {"b +foo": {"c": None, "d": None}, "e": {"f +foo": None}}})
-
-        assert "f" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-    def test_find_spec_self(self):
-        s = Spec.from_literal({"a": {"b +foo": {"c": None, "d": None}, "e": None}})
-        assert "b" == find_spec(s["b"], lambda s: "+foo" in s).name
-
-    def test_find_spec_none(self):
-        s = Spec.from_literal({"a": {"b": {"c": None, "d": None}, "e": None}})
-        assert find_spec(s["b"], lambda s: "+foo" in s) is None
-
     def test_compiler_child(self):
         s = Spec("mpileaks%clang target=x86_64 ^dyninst%gcc")
         s.concretize()
@@ -945,7 +912,7 @@ class TestConcretize:
     )
     def test_simultaneous_concretization_of_specs(self, abstract_specs):
         abstract_specs = [Spec(x) for x in abstract_specs]
-        concrete_specs = spack.concretize.concretize_specs_together(*abstract_specs)
+        concrete_specs = spack.concretize.concretize_specs_together(abstract_specs)
 
         # Check there's only one configuration of each package in the DAG
         names = set(dep.name for spec in concrete_specs for dep in spec.traverse())
@@ -2267,7 +2234,7 @@ class TestConcretize:
         spack.config.set("packages", external_conf)
 
         abstract_specs = [Spec(s) for s in ["py-extension1", "python"]]
-        specs = spack.concretize.concretize_specs_together(*abstract_specs)
+        specs = spack.concretize.concretize_specs_together(abstract_specs)
         assert specs[0]["python"] == specs[1]["python"]
 
     @pytest.mark.regression("36190")
@@ -3237,3 +3204,20 @@ def test_reuse_prefers_standard_over_git_versions(
         test_spec = spack.spec.Spec("git-ref-package@2").concretized()
         assert git_spec.dag_hash() != test_spec.dag_hash()
         assert standard_spec.dag_hash() == test_spec.dag_hash()
+
+
+@pytest.mark.parametrize("unify", [True, "when_possible", False])
+def test_spec_unification(unify, mutable_config, mock_packages):
+    spack.config.set("concretizer:unify", unify)
+    a = "pkg-a"
+    a_restricted = "pkg-a^pkg-b foo=baz"
+    b = "pkg-b foo=none"
+
+    unrestricted = spack.cmd.parse_specs([a, b], concretize=True)
+    a_concrete_unrestricted = [s for s in unrestricted if s.name == "pkg-a"][0]
+    b_concrete_unrestricted = [s for s in unrestricted if s.name == "pkg-b"][0]
+    assert (a_concrete_unrestricted["pkg-b"] == b_concrete_unrestricted) == (unify is not False)
+
+    maybe_fails = pytest.raises if unify is True else llnl.util.lang.nullcontext
+    with maybe_fails(spack.solver.asp.UnsatisfiableSpecError):
+        _ = spack.cmd.parse_specs([a_restricted, b], concretize=True)

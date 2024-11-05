@@ -5,6 +5,7 @@
 
 import tempfile
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -78,8 +79,7 @@ class PyTensorflowHub(Package):
         )
 
         with working_dir(insttmp_path):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
         remove_linked_tree(tmp_path)
         remove_linked_tree(insttmp_path)
