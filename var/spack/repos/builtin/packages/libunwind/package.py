@@ -92,6 +92,11 @@ class Libunwind(AutotoolsPackage):
 
     conflicts("platform=darwin", msg="Non-GNU libunwind needs ELF libraries Darwin does not have")
 
+    # Introduced in https://github.com/libunwind/libunwind/pull/555, fixed in
+    # https://github.com/libunwind/libunwind/pull/723
+    conflicts("target=ppc64:", when="@1.8")
+    conflicts("target=ppc64le:", when="@1.8")
+
     provides("unwind")
 
     def url_for_version(self, version):
