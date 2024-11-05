@@ -136,6 +136,9 @@ class Migraphx(CMakePackage):
             env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
             env.set("LDFLAGS", "-fuse-ld=lld")
 
+    def setup_run_environment(self,env):
+        env.prepend_path("LD_LIBRARY_PATH", self.spec["roctracer-dev"].prefix.lib)
+
     def cmake_args(self):
         spec = self.spec
         abspath = spec["abseil-cpp"].prefix.include
@@ -159,6 +162,7 @@ class Migraphx(CMakePackage):
                     "CMAKE_CXX_FLAGS", "-fsanitize=address -shared-libasan -I{0}".format(abspath)
                 )
             )
+        args.append(self.define("BUILD_TESTING", self.run_tests))
         return args
 
     def test_unit_tests(self):
