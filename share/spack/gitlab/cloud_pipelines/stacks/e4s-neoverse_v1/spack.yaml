@@ -225,7 +225,7 @@ spack:
   - magma +cuda cuda_arch=75
   - mfem +cuda cuda_arch=75
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=75
-  - omega-h +cuda cuda_arch=75
+  - "omega-h@:9 +cuda cuda_arch=75"  # https://github.com/SCOREC/omega_h/issues/116
   - parsec +cuda cuda_arch=75
   - petsc +cuda cuda_arch=75
   - py-torch +cuda cuda_arch=75
@@ -274,7 +274,7 @@ spack:
   - magma +cuda cuda_arch=80
   - mfem +cuda cuda_arch=80
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=80
-  - omega-h +cuda cuda_arch=80
+  - "omega-h@:9 +cuda cuda_arch=80"  # https://github.com/SCOREC/omega_h/issues/116
   - parsec +cuda cuda_arch=80
   - petsc +cuda cuda_arch=80
   - py-torch +cuda cuda_arch=80

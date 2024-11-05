@@ -239,7 +239,7 @@ spack:
   - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=80 ^cusz +cuda cuda_arch=80
   - magma +cuda cuda_arch=80
   - mfem +cuda cuda_arch=80
-  - omega-h +cuda cuda_arch=80
+  - "omega-h@:9 +cuda cuda_arch=80"  # https://github.com/SCOREC/omega_h/issues/116
   - parsec +cuda cuda_arch=80
   - petsc +cuda cuda_arch=80
   - py-torch +cuda cuda_arch=80
