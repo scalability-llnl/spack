@@ -253,9 +253,6 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
             args.append(self.define("LLVM_LINK_LLVM_DYLIB", True))
             args.append(self.define("CLANG_LINK_CLANG_DYLIB", True))
 
-        # Get the GCC prefix for LLVM.
-        if self.compiler.name == "gcc":
-            args.append(self.define("GCC_INSTALL_PREFIX", self.compiler.prefix))
         if self.spec.satisfies("@5.4.3:"):
             args.append("-DCMAKE_INSTALL_LIBDIR=lib")
         if self.spec.satisfies("@5.5.0:"):
