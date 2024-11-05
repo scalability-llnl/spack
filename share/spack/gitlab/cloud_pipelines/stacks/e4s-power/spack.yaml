@@ -233,7 +233,7 @@ spack:
   - magma +cuda cuda_arch=70
   - mfem +cuda cuda_arch=70
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=70
-  - omega-h +cuda cuda_arch=70
+  - "omega-h@:9 +cuda cuda_arch=70"  # https://github.com/SCOREC/omega_h/issues/116
   - parsec +cuda cuda_arch=70
   - petsc +cuda cuda_arch=70
   - raja +cuda cuda_arch=70
