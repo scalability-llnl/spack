@@ -13,7 +13,7 @@ class Arkouda(MakefilePackage):
 
     homepage = "https://github.com/Bears-R-Us/arkouda"
 
-    # Arkouda does not have a PyPI package, so we use the GitHub tarball
+    # Arkouda does not have a current PyPI package, so we use the GitHub tarball
     url = "https://github.com/Bears-R-Us/arkouda/archive/refs/tags/v2024.06.21.tar.gz"
     git = "https://github.com/Bears-R-Us/arkouda.git"
 
@@ -65,7 +65,8 @@ class Arkouda(MakefilePackage):
     )
 
     # Some systems need explicit -fPIC flag when building the Arrow functions
-    patch("makefile-fpic.patch", when="@2024.06.21")
+    patch("makefile-fpic-2024.06.21.patch", when="@2024.06.21")
+    patch("makefile-fpic-2024.10.02.patch", when="@2024.10.02")
 
     # override the default edit method to apply the patch
     def edit(self, spec, prefix):
