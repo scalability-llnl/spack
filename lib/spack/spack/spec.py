@@ -4535,28 +4535,67 @@ class VariantMap(lang.HashableMap):
         super().__setitem__(vspec.name, vspec)
 
     def partition_variants(self):
-        return lang.stable_partition(self.values(), lambda x: not x.propagate)
+        non_prop, prop = lang.stable_partition(self.values(), lambda x: not x.propagate)
+        # Just return the names
+        non_prop = [x.name for x in non_prop]
+        prop = [x.name for x in prop]
+        return non_prop, prop
 
     def satisfies(self, other: "VariantMap") -> bool:
         if self.spec.concrete:
             return self._satisfies_when_self_concrete(other)
-        return all(k in self and self[k].satisfies(other[k]) for k in other)
+        return self._satisfies_when_self_abstract(other)
 
     def _satisfies_when_self_concrete(self, other: "VariantMap") -> bool:
         non_propagating, propagating = other.partition_variants()
         result = all(
-            v.name in self and self[v.name].satisfies(other[v.name]) for v in non_propagating
+            name in self and self[name].satisfies(other[name]) for name in non_propagating
         )
         if not propagating:
             return result
 
         for node in self.spec.traverse():
             if not all(
-                node.variants[v.name].satisfies(other[v.name])
-                for v in propagating
-                if v.name in node.variants
+                node.variants[name].satisfies(other[name])
+                for name in propagating
+                if name in node.variants
             ):
                 return False
+        return result
+
+    def _satisfies_when_self_abstract(self, other: "VariantMap") -> bool:
+        other_non_propagating, other_propagating = other.partition_variants()
+        self_non_propagating, self_propagating = self.partition_variants()
+
+        # First check variants without propagation set
+        result = all(
+            name in self_non_propagating
+            and (self[name].propagate or self[name].satisfies(other[name]))
+            for name in other_non_propagating
+        )
+        if result is False or (not other_propagating and not self_propagating):
+            return result
+
+        # Check that self doesn't contradict variants propagated by other
+        if other_propagating:
+            for node in self.spec.traverse():
+                if not all(
+                    node.variants[name].satisfies(other[name])
+                    for name in other_propagating
+                    if name in node.variants
+                ):
+                    return False
+
+        # Check that other doesn't contradict variants propagated by self
+        if self_propagating:
+            for node in other.spec.traverse():
+                if not all(
+                    node.variants[name].satisfies(self[name])
+                    for name in self_propagating
+                    if name in node.variants
+                ):
+                    return False
+
         return result
 
     def intersects(self, other):
