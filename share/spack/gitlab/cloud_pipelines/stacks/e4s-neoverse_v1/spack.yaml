@@ -211,7 +211,7 @@ spack:
   - chai +cuda cuda_arch=75 ^umpire ~shared
   - chapel +cuda cuda_arch=75
   - cusz +cuda cuda_arch=75
-  - dealii +cuda cuda_arch=75
+  - dealii +cuda cuda_arch=75 ~vtk # https://github.com/spack/spack/pull/45554#issuecomment-2457255720
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=75  # # +paraview: job killed oom?
   - fftx +cuda cuda_arch=75
   - flecsi +cuda cuda_arch=75
@@ -260,7 +260,7 @@ spack:
   - chai +cuda cuda_arch=80 ^umpire ~shared
   - chapel +cuda cuda_arch=80
   - cusz +cuda cuda_arch=80
-  - dealii +cuda cuda_arch=80
+  - dealii +cuda cuda_arch=80 ~vtk  # https://github.com/spack/spack/pull/45554#issuecomment-2457255720
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=80 # +paraview: job killed oom?
   - fftx +cuda cuda_arch=80
   - flecsi +cuda cuda_arch=80
