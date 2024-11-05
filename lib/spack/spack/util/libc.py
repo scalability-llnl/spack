@@ -9,7 +9,7 @@ import re
 import shlex
 import sys
 from subprocess import PIPE, run
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import spack.spec
 import spack.util.elf
@@ -18,7 +18,7 @@ import spack.util.elf
 GLIBC_PATTERN = r"\b(?:Free Software Foundation|Roland McGrath|Ulrich Depper)\b"
 
 
-def _env():
+def _env() -> Dict[str, str]:
     """Currently only set LC_ALL=C without clearing further environment variables"""
     return {**os.environ, "LC_ALL": "C"}
 
