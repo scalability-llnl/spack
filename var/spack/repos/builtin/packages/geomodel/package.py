@@ -57,7 +57,7 @@ class Geomodel(CMakePackage):
     variant(
         "cxxstd",
         default="17",
-        values=("11", "17", "20", "23"),
+        values=("17", "20", "23"),
         multi=False,
         description="Use the specified C++ standard when building",
     )
