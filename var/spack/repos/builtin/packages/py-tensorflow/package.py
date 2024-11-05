@@ -433,7 +433,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
     # see https://github.com/tensorflow/tensorflow/issues/62490
     # and https://github.com/abseil/abseil-cpp/issues/1665
-    patch("absl_neon.patch", when="@2.16.1: target=aarch64:")
+    patch("absl_neon.patch", when="@2.16.1:2.17 target=aarch64:")
 
     # reverting change otherwise the c467913 commit patch won't apply
     patch(
