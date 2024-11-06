@@ -357,6 +357,8 @@ def find(parser, args):
     try:
         results, concretized_but_not_installed = _find_query(args, env)
     except spack.cmd.NoSpecMatches:
+        # Note: this uses args.constraint vs. args.constraint_specs because
+        # the latter only exists if you call args.specs()
         tty.die(f"No package matches the query: {' '.join(args.constraint)}")
 
     if args.install_status or args.show_concretized:

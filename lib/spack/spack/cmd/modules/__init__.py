@@ -14,12 +14,12 @@ from llnl.util import filesystem, tty
 from llnl.util.tty import color
 
 import spack.cmd
-from spack.cmd import NoSpecMatches, MultipleSpecsMatch
 import spack.config
 import spack.error
 import spack.modules
 import spack.modules.common
 import spack.repo
+from spack.cmd import MultipleSpecsMatch, NoSpecMatches
 from spack.cmd.common import arguments
 
 description = "manipulate module files"
