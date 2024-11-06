@@ -20,6 +20,11 @@ class LlvmDetection(PackageBase):
     """Base class to detect LLVM based compilers"""
 
     compiler_version_argument = "--version"
+
+    # clang-cl is a Windows-specific clang variant compatible with MSVC-style
+    # command-line arguments. It links with MSVC-built binaries via the MSVC
+    # runtime and supports MSVC argument syntax, making it a near drop-in
+    # replacement for cl.exe in MSBuild.
     if sys.platform == "win32":
         c_names = ["clang-cl"]
         cxx_names = ["clang-cl"]
