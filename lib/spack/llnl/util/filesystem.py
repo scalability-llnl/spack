@@ -1762,11 +1762,13 @@ def _dir_id(s: os.stat_result) -> Tuple[int, int]:
 def _find_max_depth(roots: List[str], globs: List[str], max_depth: int = sys.maxsize) -> List[str]:
     """See ``find`` for the public API."""
     # Apply normcase to file patterns and filenames to respect case insensitive filesystems
-    regexes = [re.compile(fnmatch.translate(os.path.normcase(x))) for x in globs]
+    to_regex = lambda x: fnmatch.translate(os.path.normcase(x))
+    # Create a single regex where pattern i is matched by group p{i}
+    regex = re.compile("|".join(rf"(?P<p{i}>{to_regex(x)})" for i, x in enumerate(globs)))
+    # Ordered dictionary that keeps track of the files found for each pattern
+    found_files: Dict[str, List[str]] = {f"p{i}": [] for i, _ in enumerate(globs)}
     # Ensure returned paths are always absolute
     roots = [os.path.abspath(r) for r in roots]
-    # Maps file pattern to list of matching paths, preserving order of the patterns
-    found_files: Dict[re.Pattern, List[str]] = {pattern: [] for pattern in regexes}
     # Breadth-first search queue. Each element is a tuple of (depth, directory)
     dir_queue: Deque[Tuple[int, str]] = collections.deque()
     # Set of visited directories. Each element is a tuple of (inode, device)
@@ -1821,10 +1823,13 @@ def _find_max_depth(roots: List[str], globs: List[str], max_depth: int = sys.max
                         dir_queue.appendleft((depth + 1, dir_entry.path))
                         visited_dirs.add(dir_id)
                 else:
-                    fname = os.path.basename(dir_entry.path)
-                    for pattern in regexes:
-                        if pattern.match(os.path.normcase(fname)):
-                            found_files[pattern].append(os.path.join(next_dir, fname))
+                    m = regex.match(os.path.normcase(os.path.basename(dir_entry.path)))
+                    if not m:
+                        continue
+                    for group in found_files:
+                        if m.group(group):
+                            found_files[group].append(dir_entry.path)
+                            break
 
     return [path for paths in found_files.values() for path in paths]
 

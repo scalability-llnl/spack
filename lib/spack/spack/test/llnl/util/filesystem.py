@@ -1197,3 +1197,17 @@ def test_find_max_depth_multiple_and_repeated_entry_points(complex_dir_structure
         locations["l4-f2-full"],
         locations["l3-f3-full"],
     }
+
+
+def test_multiple_patterns(complex_dir_structure):
+    root, _ = complex_dir_structure
+    paths = fs.find(root, ["l2-f1", "l3-f3", "*"])
+    # There shouldn't be duplicate results with multiple, overlapping patterns
+    assert len(set(paths)) == len(paths)
+    # All files should be found
+    filenames = [os.path.basename(p) for p in paths]
+    assert set(filenames) == {"l2-f1", "l3-f3", "l4-f1", "l4-f2"}
+    # They are ordered by first matching pattern (this is a bit of an implementation detail,
+    # and we could decide to change the exact order in the future)
+    assert filenames[0] == "l2-f1"
+    assert filenames[1] == "l3-f3"
