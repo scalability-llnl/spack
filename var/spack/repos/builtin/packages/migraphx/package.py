@@ -136,7 +136,7 @@ class Migraphx(CMakePackage):
             env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
             env.set("LDFLAGS", "-fuse-ld=lld")
 
-    def setup_run_environment(self,env):
+    def setup_run_environment(self, env):
         env.prepend_path("LD_LIBRARY_PATH", self.spec["roctracer-dev"].prefix.lib)
 
     def cmake_args(self):
