@@ -78,8 +78,8 @@ spack:
 
   specs:
     - matrix:
-        - $packages
-        - $variants
+        - [$packages]
+        - [$variants]
 
   ci:
     pipeline-gen:
