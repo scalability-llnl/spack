@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+"""Non-fixture utilities for test code. Must be imported.
+"""
 from spack.main import make_argument_parser
 
 
