@@ -16,8 +16,8 @@ import spack.spec
 import spack.stage
 import spack.util.git
 import spack.util.path
-from spack.main import SpackCommand
 from spack.error import SpackError
+from spack.main import SpackCommand
 
 add = SpackCommand("add")
 develop = SpackCommand("develop")
