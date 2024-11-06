@@ -666,143 +666,74 @@ tutorial-build:
     - artifacts: True
       job: tutorial-generate
 
-#######################################
-# Machine Learning - Linux x86_64 (CPU)
-#######################################
-.ml-linux-x86_64-cpu:
+#################################
+# Machine Learning - Linux x86_64
+#################################
+.ml-linux-x86_64:
   extends: [ ".linux_x86_64_v3" ]
   variables:
-    SPACK_CI_STACK_NAME: ml-linux-x86_64-cpu
+    SPACK_CI_STACK_NAME: ml-linux-x86_64
 
-ml-linux-x86_64-cpu-generate:
-  extends: [ ".generate-x86_64", .ml-linux-x86_64-cpu, ".tags-x86_64_v4" ]
+ml-linux-x86_64-generate:
+  extends: [ ".generate-x86_64", .ml-linux-x86_64, ".tags-x86_64_v4" ]
   image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
 
-ml-linux-x86_64-cpu-build:
-  extends: [ ".build", ".ml-linux-x86_64-cpu" ]
+ml-linux-x86_64-build:
+  extends: [ ".build", ".ml-linux-x86_64" ]
   trigger:
     include:
       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: ml-linux-x86_64-cpu-generate
+        job: ml-linux-x86_64-generate
     strategy: depend
   needs:
     - artifacts: True
-      job: ml-linux-x86_64-cpu-generate
+      job: ml-linux-x86_64-generate
 
-########################################
-# Machine Learning - Linux x86_64 (CUDA)
-########################################
-.ml-linux-x86_64-cuda:
-  extends: [ ".linux_x86_64_v3" ]
-  variables:
-    SPACK_CI_STACK_NAME: ml-linux-x86_64-cuda
-
-ml-linux-x86_64-cuda-generate:
-  extends: [ ".generate-x86_64", .ml-linux-x86_64-cuda, ".tags-x86_64_v4" ]
-  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
-
-ml-linux-x86_64-cuda-build:
-  extends: [ ".build", ".ml-linux-x86_64-cuda"  ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: ml-linux-x86_64-cuda-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: ml-linux-x86_64-cuda-generate
-
-########################################
-# Machine Learning - Linux x86_64 (ROCm)
-########################################
-.ml-linux-x86_64-rocm:
-  extends: [ ".linux_x86_64_v3" ]
-  variables:
-    SPACK_CI_STACK_NAME: ml-linux-x86_64-rocm
-
-ml-linux-x86_64-rocm-generate:
-  extends: [ ".generate-x86_64", .ml-linux-x86_64-rocm, ".tags-x86_64_v4" ]
-  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
-
-ml-linux-x86_64-rocm-build:
-  extends: [ ".build", ".ml-linux-x86_64-rocm" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: ml-linux-x86_64-rocm-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: ml-linux-x86_64-rocm-generate
-
-########################################
-# Machine Learning - Linux aarch64 (CPU)
-########################################
-.ml-linux-aarch64-cpu:
+##################################
+# Machine Learning - Linux aarch64
+##################################
+.ml-linux-aarch64:
   extends: [ ".linux_aarch64" ]
   variables:
-    SPACK_CI_STACK_NAME: ml-linux-aarch64-cpu
+    SPACK_CI_STACK_NAME: ml-linux-aarch64
 
-ml-linux-aarch64-cpu-generate:
-  extends: [ ".generate-aarch64", .ml-linux-aarch64-cpu ]
+ml-linux-aarch64-generate:
+  extends: [ ".generate-aarch64", .ml-linux-aarch64 ]
   image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
 
-ml-linux-aarch64-cpu-build:
-  extends: [ ".build", ".ml-linux-aarch64-cpu" ]
+ml-linux-aarch64-build:
+  extends: [ ".build", ".ml-linux-aarch64" ]
   trigger:
     include:
       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: ml-linux-aarch64-cpu-generate
+        job: ml-linux-aarch64-generate
     strategy: depend
   needs:
     - artifacts: True
-      job: ml-linux-aarch64-cpu-generate
+      job: ml-linux-aarch64-generate
 
-#########################################
-# Machine Learning - Linux aarch64 (CUDA)
-#########################################
-.ml-linux-aarch64-cuda:
-  extends: [ ".linux_aarch64" ]
-  variables:
-    SPACK_CI_STACK_NAME: ml-linux-aarch64-cuda
-
-ml-linux-aarch64-cuda-generate:
-  extends: [ ".generate-aarch64", .ml-linux-aarch64-cuda ]
-  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
-
-ml-linux-aarch64-cuda-build:
-  extends: [ ".build", ".ml-linux-aarch64-cuda" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: ml-linux-aarch64-cuda-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: ml-linux-aarch64-cuda-generate
-
-#########################################
-# Machine Learning - Darwin aarch64 (MPS)
-#########################################
-.ml-darwin-aarch64-mps:
+###################################
+# Machine Learning - Darwin aarch64
+###################################
+.ml-darwin-aarch64:
   extends: [".darwin_aarch64"]
   variables:
-    SPACK_CI_STACK_NAME: ml-darwin-aarch64-mps
+    SPACK_CI_STACK_NAME: ml-darwin-aarch64
 
-ml-darwin-aarch64-mps-generate:
+ml-darwin-aarch64-generate:
   tags: [ "macos-ventura", "apple-clang-15", "aarch64-macos" ]
-  extends: [ ".ml-darwin-aarch64-mps", ".generate-base"]
+  extends: [ ".ml-darwin-aarch64", ".generate-base"]
 
-ml-darwin-aarch64-mps-build:
-  extends: [ ".ml-darwin-aarch64-mps", ".build" ]
+ml-darwin-aarch64-build:
+  extends: [ ".ml-darwin-aarch64", ".build" ]
   trigger:
     include:
       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: ml-darwin-aarch64-mps-generate
+        job: ml-darwin-aarch64-generate
     strategy: depend
   needs:
     - artifacts: True
-      job: ml-darwin-aarch64-mps-generate
+      job: ml-darwin-aarch64-generate
 
 ########################################
 # AWS ParallelCluster
