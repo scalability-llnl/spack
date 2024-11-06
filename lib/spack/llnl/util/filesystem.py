@@ -24,7 +24,7 @@ from typing import Callable, Deque, Dict, Iterable, List, Match, Optional, Set, 
 
 import llnl.util.symlink
 from llnl.util import tty
-from llnl.util.lang import dedupe, memoized
+from llnl.util.lang import dedupe, fnmatch_translate_multiple, memoized
 from llnl.util.symlink import islink, readlink, resolve_link_target_relative_to_the_link, symlink
 
 from ..path import path_to_os_path, system_path_filter
@@ -1762,11 +1762,9 @@ def _dir_id(s: os.stat_result) -> Tuple[int, int]:
 def _find_max_depth(roots: List[str], globs: List[str], max_depth: int = sys.maxsize) -> List[str]:
     """See ``find`` for the public API."""
     # Apply normcase to file patterns and filenames to respect case insensitive filesystems
-    to_regex = lambda x: fnmatch.translate(os.path.normcase(x))
-    # Create a single regex where pattern i is matched by group p{i}
-    regex = re.compile("|".join(rf"(?P<p{i}>{to_regex(x)})" for i, x in enumerate(globs)))
+    regex, groups = fnmatch_translate_multiple([os.path.normcase(x) for x in globs])
     # Ordered dictionary that keeps track of the files found for each pattern
-    found_files: Dict[str, List[str]] = {f"p{i}": [] for i, _ in enumerate(globs)}
+    capture_group_to_paths: Dict[str, List[str]] = {group: [] for group in groups}
     # Ensure returned paths are always absolute
     roots = [os.path.abspath(r) for r in roots]
     # Breadth-first search queue. Each element is a tuple of (depth, directory)
@@ -1826,12 +1824,12 @@ def _find_max_depth(roots: List[str], globs: List[str], max_depth: int = sys.max
                     m = regex.match(os.path.normcase(os.path.basename(dir_entry.path)))
                     if not m:
                         continue
-                    for group in found_files:
+                    for group in capture_group_to_paths:
                         if m.group(group):
-                            found_files[group].append(dir_entry.path)
+                            capture_group_to_paths[group].append(dir_entry.path)
                             break
 
-    return [path for paths in found_files.values() for path in paths]
+    return [path for paths in capture_group_to_paths.values() for path in paths]
 
 
 # Utilities for libraries and headers
