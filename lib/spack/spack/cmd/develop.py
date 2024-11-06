@@ -209,7 +209,7 @@ def _dev_spec_generator(args, env):
                     if not concrete_specs:
                         tty.warn(
                             f"{spec.name} has no matching concrete specs in the environment and "
-                            "will be skipped. Recursive develop requires a concretized"
+                            "will be skipped. `spack develop --recursive` requires a concretized"
                             " environment"
                         )
                     else:
