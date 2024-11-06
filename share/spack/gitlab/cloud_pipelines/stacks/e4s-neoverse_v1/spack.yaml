@@ -14,14 +14,10 @@ spack:
       variants: +mpi
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
-    elfutils:
-      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
-    libunwind:
-      variants: +pic +xz
     openblas:
       variants: threads=openmp
     trilinos:
@@ -29,27 +25,16 @@ spack:
         +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
         +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
         +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
-    xz:
-      variants: +pic
     mpi:
       require: mpich
     mpich:
       require: '~wrapperrpath ~hwloc %gcc target=neoverse_v1'
     tbb:
       require: intel-tbb
-    boost:
-      variants: +atomic +chrono +container +date_time +exception +filesystem +graph
-        +iostreams +locale +log +math +mpi +multithreaded +program_options +random
-        +regex +serialization +shared +signals +stacktrace +system +test +thread +timer
-        cxxstd=17 visibility=global
-    libffi:
-      require: "@3.4.4 %gcc target=neoverse_v1"
     vtk-m:
       require: "+examples %gcc target=neoverse_v1"
     paraview:
       require: "+examples %gcc target=neoverse_v1"
-    cuda:
-      version: [11.8.0]
 
   specs:
   # CPU
@@ -240,7 +225,7 @@ spack:
   - magma +cuda cuda_arch=75
   - mfem +cuda cuda_arch=75
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=75
-  - omega-h +cuda cuda_arch=75
+  - "omega-h@:9 +cuda cuda_arch=75"  # https://github.com/SCOREC/omega_h/issues/116
   - parsec +cuda cuda_arch=75
   - petsc +cuda cuda_arch=75
   - py-torch +cuda cuda_arch=75
@@ -289,7 +274,7 @@ spack:
   - magma +cuda cuda_arch=80
   - mfem +cuda cuda_arch=80
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=80
-  - omega-h +cuda cuda_arch=80
+  - "omega-h@:9 +cuda cuda_arch=80"  # https://github.com/SCOREC/omega_h/issues/116
   - parsec +cuda cuda_arch=80
   - petsc +cuda cuda_arch=80
   - py-torch +cuda cuda_arch=80

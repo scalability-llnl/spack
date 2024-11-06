@@ -116,7 +116,7 @@ class Gromacs(CMakePackage, CudaPackage):
         description="Enable multi-GPU FFT support with HeFFTe",
     )
     variant("opencl", default=False, description="Enable OpenCL support")
-    variant("sycl", default=False, when="@2021:", description="Enable SYCL support")
+    variant("sycl", default=False, when="@2021: %clang", description="Enable SYCL support")
     variant(
         "intel-data-center-gpu-max",
         default=False,

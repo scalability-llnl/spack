@@ -21,6 +21,7 @@ class Heffte(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("develop", branch="master")
+    version("2.4.1", sha256="de2cf26df5d61baac7841525db3f393cb007f79612ac7534fd4757f154ba3e6c")
     version("2.4.0", sha256="02310fb4f9688df02f7181667e61c3adb7e38baf79611d80919d47452ff7881d")
     version("2.3.0", sha256="63db8c9a8822211d23e29f7adf5aa88bb462c91d7a18c296c3ef3a06be8d6171")
     version("2.2.0", sha256="332346d5c1d1032288d09839134c79e4a9704e213a2d53051e96c3c414c74df0")
@@ -143,7 +144,7 @@ class Heffte(CMakePackage, CudaPackage, ROCmPackage):
 
         options = [cmake_dir]
         # changing the default install path search to newer cmake convention
-        if self.spec.satisfies("@develop"):
+        if self.spec.satisfies("@2.4.1:"):
             options.append(self.define("Heffte_ROOT", self.spec.prefix))
         else:
             options.append(self.define("Heffte_DIR", self.spec.prefix.lib.cmake.Heffte))

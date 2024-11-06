@@ -19,6 +19,7 @@ class Spath(CMakePackage):
     license("MIT")
 
     version("main", branch="main")
+    version("0.4.0", sha256="469c9d36f9244826c6ec264a779eed870a772f467d6964030d336e509d3c9374")
     version("0.3.0", sha256="cb155a31cebde8b7bf397123de3be290fd99d3863509b4ba9b0252caba660082")
     version("0.2.0", sha256="2de8a25547b53ef064664d79b543141bc3020219f40ff0e1076f676e13a9e77a")
     version("0.1.0", sha256="2cfc635b2384d3f92973c7aea173dabe47da112d308f5098e6636e4b2f4a704c")

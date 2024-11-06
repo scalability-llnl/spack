@@ -489,6 +489,7 @@ def make_argument_parser(**kwargs):
         help="add stacktraces to all printed statements",
     )
     parser.add_argument(
+        "-t",
         "--backtrace",
         action="store_true",
         default="SPACK_BACKTRACE" in os.environ,

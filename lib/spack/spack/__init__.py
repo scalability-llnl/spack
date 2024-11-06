@@ -69,4 +69,15 @@ def get_version() -> str:
     return spack_version
 
 
-__all__ = ["spack_version_info", "spack_version", "get_version", "get_spack_commit"]
+def get_short_version() -> str:
+    """Short Spack version."""
+    return f"{spack_version_info[0]}.{spack_version_info[1]}"
+
+
+__all__ = [
+    "spack_version_info",
+    "spack_version",
+    "get_version",
+    "get_spack_commit",
+    "get_short_version",
+]

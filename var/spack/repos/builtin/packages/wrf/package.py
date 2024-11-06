@@ -71,6 +71,16 @@ class Wrf(Package):
     tags = ["windows"]
 
     version(
+        "4.6.1",
+        sha256="b8ec11b240a3cf1274b2bd609700191c6ec84628e4c991d3ab562ce9dc50b5f2",
+        url="https://github.com/wrf-model/WRF/releases/download/v4.6.1/v4.6.1.tar.gz",
+    )
+    version(
+        "4.6.0",
+        sha256="1bb010f9e20b40d33d9df55a602ea9eb54c5444a7316c00a95e1cc44b209021e",
+        url="https://github.com/wrf-model/WRF/releases/download/v4.6.0/v4.6.0.tar.gz",
+    )
+    version(
         "4.5.2",
         sha256="408ba6aa60d9cd51d6bad2fa075a3d37000eb581b5d124162885b049c892bbdc",
         url="https://github.com/wrf-model/WRF/releases/download/v4.5.2/v4.5.2.tar.gz",
