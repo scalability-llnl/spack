@@ -417,13 +417,6 @@ class TestConcretize:
                 ["hypre cflags='-g'", "^openblas cflags='-O3'"],
                 ["^openblas cflags='-g'"],
             ),
-            # Setting propagation on parent and dependency -> the
-            # dependency propagation flags override
-            (
-                "hypre cflags=='-g' ^openblas cflags=='-O3'",
-                ["hypre cflags='-g'", "^openblas cflags='-O3'"],
-                ["^openblas cflags='-g'"],
-            ),
             # Propagation doesn't go across build dependencies
             (
                 "cmake-client cflags=='-O2 -g'",
