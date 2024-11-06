@@ -38,8 +38,11 @@ class Soqt(CMakePackage):
     variant("tests", default=False, description="Build small test programs.")
     variant("iv", default=True, description="Enable extra Open Inventor extensions")
 
-    depends_on("qt@5 +gui +opengl", when="qt=5")
-    depends_on("qt-base@6 +gui +opengl +widgets", when="qt=6")
+    depends_on("qmake")
+    with when("^[virtuals=qmake] qt"):
+        depends_on("qt@5 +gui +opengl")
+    with when("^[virtuals=qmake] qt-base"):
+        depends_on("qt-base@6 +gui +opengl +widgets")
 
     def cmake_args(self):
         args = [
@@ -48,11 +51,10 @@ class Soqt(CMakePackage):
             self.define_from_variant("HAVE_SPACENAV_SUPPORT", "spacenav"),
             self.define_from_variant("SOQT_BUILD_TESTS", "tests"),
         ]
-        qtversion = self.spec.variants["qt"].value
-        if qtversion == "5":
+        if self.spec.satisfies("^[virtuals=qmake] qt"):
             args.append(self.define("SOQT_USE_QT5", True))
             args.append(self.define("SOQT_USE_QT6", False))
-        else:
+        if self.spec.satisfies("^[virtuals=qmake] qt-base"):
             args.append(self.define("SOQT_USE_QT5", False))
             args.append(self.define("SOQT_USE_QT6", True))
         return args
