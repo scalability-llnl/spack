@@ -27,7 +27,6 @@ from llnl.util.lang import elide_list
 
 import spack
 import spack.binary_distribution
-import spack.bootstrap.core
 import spack.compilers
 import spack.concretize
 import spack.config
@@ -816,7 +815,7 @@ class PyclingoDriver:
             solve, and the internal statistics from clingo.
         """
         # avoid circular import
-        import spack.bootstrap
+        import spack.bootstrap.core
 
         output = output or DEFAULT_OUTPUT_CONFIGURATION
         timer = spack.util.timer.Timer()
