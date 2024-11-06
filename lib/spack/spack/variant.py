@@ -17,6 +17,7 @@ from typing import Any, Callable, Collection, Iterable, List, Optional, Tuple, T
 import llnl.util.lang as lang
 import llnl.util.tty.color
 
+import spack.directives
 import spack.error as error
 import spack.parser
 import spack.spec

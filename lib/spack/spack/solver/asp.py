@@ -35,6 +35,7 @@ import spack.environment as ev
 import spack.error
 import spack.package_base
 import spack.package_prefs
+import spack.parser
 import spack.platforms
 import spack.repo
 import spack.spec
