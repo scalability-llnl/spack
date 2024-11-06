@@ -100,8 +100,7 @@ class GlobalStateMarshaler:
     """
 
     def __init__(self):
-        unwrapped_config = spack.config.CONFIG.ensure_unwrapped()
-        self.config = unwrapped_config
+        self.config = spack.config.CONFIG.ensure_unwrapped()
         self.platform = spack.platforms.host
         self.test_patches = store_patches()
         self.store = spack.store.STORE
