@@ -1741,6 +1741,11 @@ def find(root, files, recursive=True, max_depth: Optional[int] = None):
     return result
 
 
+def _log_file_access_issue(e: OSError, path: str) -> None:
+    errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
+    tty.debug(f"find must skip {path}: {errno_name} {e}")
+
+
 @system_path_filter(arg_slice=slice(1))
 def find_max_depth(root, globs, max_depth: Optional[int] = None):
     """Given a set of non-recursive glob file patterns, finds all
@@ -1754,19 +1759,10 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
     If ``globs`` is a list, files matching earlier entries are placed
     in the return value before files matching later entries.
     """
-    # If root doesn't exist, then we say we found nothing. If it
-    # exists but is not a dir, we assume the user would want to
-    # know; likewise if it exists but we do not have permission to
-    # access it.
     try:
         stat_root = os.stat(root)
-    except OSError as e:
-        if e.errno == errno.ENOENT:
-            return []
-        else:
-            raise
-    if not stat.S_ISDIR(stat_root.st_mode):
-        raise ValueError(f"{root} is not a directory")
+    except OSError:
+        return []
 
     if max_depth is None:
         max_depth = sys.maxsize
@@ -1790,10 +1786,6 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
         # https://github.com/python/cpython/blob/3.9/Python/fileutils.c
         return (stat_info.st_ino, stat_info.st_dev)
 
-    def _log_file_access_issue(e):
-        errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
-        tty.debug(f"find must skip {dir_entry.path}: {errno_name} {str(e)}")
-
     visited_dirs = set([_dir_id(stat_root)])
 
     # Each queue item stores the depth and path
@@ -1808,9 +1800,8 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
         depth, next_dir = dir_queue.pop()
         try:
             dir_iter = os.scandir(next_dir)
-        except OSError:
-            # Most commonly, this would be a permissions issue, for
-            # example if we are scanning an external directory like /usr
+        except OSError as e:
+            _log_file_access_issue(e, next_dir)
             continue
 
         with dir_iter:
@@ -1821,7 +1812,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                 except OSError as e:
                     # Possible permission issue, or a symlink that cannot
                     # be resolved (ELOOP).
-                    _log_file_access_issue(e)
+                    _log_file_access_issue(e, dir_entry.path)
                     continue
 
                 if it_is_a_dir and (depth < max_depth):
@@ -1837,7 +1828,7 @@ def find_max_depth(root, globs, max_depth: Optional[int] = None):
                         else:
                             stat_info = dir_entry.stat(follow_symlinks=True)
                     except OSError as e:
-                        _log_file_access_issue(e)
+                        _log_file_access_issue(e, dir_entry.path)
                         continue
 
                     dir_id = _dir_id(stat_info)
