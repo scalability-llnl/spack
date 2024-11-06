@@ -14,6 +14,7 @@ from llnl.util import filesystem, tty
 from llnl.util.tty import color
 
 import spack.cmd
+from spack.cmd import NoSpecMatches, MultipleSpecsMatch
 import spack.config
 import spack.error
 import spack.modules
@@ -89,18 +90,6 @@ def add_loads_arguments(subparser):
         help="exclude package from output; may be specified multiple times",
     )
     arguments.add_common_arguments(subparser, ["recurse_dependencies"])
-
-
-class MultipleSpecsMatch(Exception):
-    """Raised when multiple specs match a constraint, in a context where
-    this is not allowed.
-    """
-
-
-class NoSpecMatches(Exception):
-    """Raised when no spec matches a constraint, in a context where
-    this is not allowed.
-    """
 
 
 def one_spec_or_raise(specs):

@@ -330,8 +330,7 @@ def _find_query(args, env):
     elif results:
         pass
     elif args.constraint:
-        constraint_str = " ".join(str(s) for s in args.constraint_specs)
-        tty.die(f"No package matches the query: {constraint_str}")
+        raise spack.cmd.NoSpecMatches()
 
     # If tags have been specified on the command line, filter by tags
     if args.tags:
@@ -355,7 +354,10 @@ def find(parser, args):
     if not env and args.show_concretized:
         tty.die("-c / --show-concretized requires an active environment")
 
-    results, concretized_but_not_installed = _find_query(args, env)
+    try:
+        results, concretized_but_not_installed = _find_query(args, env)
+    except spack.cmd.NoSpecMatches:
+        tty.die(f"No package matches the query: {' '.join(args.constraint)}")
 
     if args.install_status or args.show_concretized:
         status_fn = spack.spec.Spec.install_status
