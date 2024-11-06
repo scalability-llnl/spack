@@ -89,39 +89,6 @@ class ROCmPackage(PackageBase):
     variant("rocm", default=False, description="Enable ROCm support")
     depends_on("rocm-suite", when="+rocm")
 
-    amdgpu_targets = (
-       # GCN GFX7 Sea Islands
-        "gfx700", "gfx701", "gfx702", "gfx703", "gfx704", "gfx705",
-        # GCN GFX8 Volcanic Islands
-        "gfx801", "gfx802", "gfx803", "gfx805", "gfx810",
-        # GCN GFX9 Vega
-        "gfx900", "gfx902", "gfx904", "gfx906", "gfx908", "gfx909", "gfx90a",
-        "gfx90c",
-        # GCN GFX10 RDNA 1
-        "gfx1010", "gfx1011", "gfx1012", "gfx1013",
-        # GCN GFX10 RDNA 2
-        "gfx1030", "gfx1031", "gfx1032", "gfx1033", "gfx1034", "gfx1035"
-    )
-
-    amdgpu_target_features = {
-        "cumode": (
-            "gfx1010", "gfx1011", "gfx1012", "gfx1013",
-            "gfx1030", "gfx1031", "gfx1032", "gfx1033", "gfx1034", "gfx1035"
-        ),
-        "sramecc": ("gfx906", "gfx908", "gfx90a"),
-        "tgsplit": ("gfx90a"),
-        "wavefrontsize64": (
-            "gfx1010", "gfx1011", "gfx1012", "gfx1013",
-            "gfx1030", "gfx1031", "gfx1032", "gfx1033", "gfx1034", "gfx1035"
-        ),
-        "xnack": (
-            "gfx801", "gfx810",
-            "gfx900", "gfx902", "gfx904", "gfx906", "gfx908", "gfx909",
-            "gfx90a", "gfx90c",
-            "gfx1010", "gfx1011", "gfx1012", "gfx1013"
-        )
-    }
-
     # https://github.com/ROCm-Developer-Tools/HIP/blob/master/bin/hipcc
     # It seems that hip-clang does not (yet?) accept this flag, in which case
     # we will still need to set the HCC_AMDGPU_TARGET environment flag in the

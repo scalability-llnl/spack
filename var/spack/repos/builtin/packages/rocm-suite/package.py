@@ -50,7 +50,6 @@ class RocmSuite(BundlePackage):
         depends_on("hipfort@{0}".format(_version), when="@{0} +fortran".format(_version))
 
         # OpenMP
-        depends_on("rocm-openmp-extras@{0}".format(_version), when="@{0} +fortran".format(_version))
         depends_on("rocm-openmp-extras@{0}".format(_version), when="@{0} +openmp".format(_version))
 
         # Fortran
@@ -130,4 +129,5 @@ class RocmSuite(BundlePackage):
     depends_on("llvm-amdgpu@5.3.0:", when="^rocm-config amdgpu_target=gfx1101")
     depends_on("llvm-amdgpu@5.3.0:", when="^rocm-config amdgpu_target=gfx1102")
     depends_on("llvm-amdgpu@5.3.0:", when="^rocm-config amdgpu_target=gfx1103")
-    conflicts("^blt@:0.3.6", when="+rocm")
+
+    conflicts("blt@:0.3.6", msg="blt@:0.3.6 does not support HIP detection")

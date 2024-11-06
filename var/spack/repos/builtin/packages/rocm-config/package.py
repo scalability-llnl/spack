@@ -128,7 +128,7 @@ class RocmConfig(BundlePackage):
     variant(
         "amdgpu_target",
         description="AMD GPU architecture",
-        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets_with_features(features=("xnact", "sramecc"))).with_default(
+        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets_with_features(features=("xnack", "sramecc"))).with_default(
             _query_kfd_gfx_targets(*amdgpu_targets, True)
         ),
         sticky=True,
@@ -138,7 +138,7 @@ class RocmConfig(BundlePackage):
     variant(
         "amdgpu_target",
         description="AMD GPU architecture",
-        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets_with_features(features=("xnact", "sramecc"))).with_default(
+        values=spack.variant.any_combination_of(*ROCmPackage.amdgpu_targets_with_features(features=("xnack", "sramecc"))).with_default(
             _query_kfd_gfx_targets(*amdgpu_targets)
         ),
         sticky=True,
@@ -156,7 +156,7 @@ class RocmConfig(BundlePackage):
     # Allow targets to include list of features
     for _target in amdgpu_targets:
         for _feature, _targets in ROCmPackage.amdgpu_target_features.items():
-            if not _feature in ["xnact", "sramecc"]:
+            if not _feature in ["xnack", "sramecc"]:
                 continue
 
             for _feature_target in _targets:
