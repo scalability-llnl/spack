@@ -244,10 +244,9 @@ def test_develop_fails_with_multiple_concrete_versions(
         add("indirect-mpich@0.9")
         e.unify = False
         e.concretize()
-        specs = e.all_specs()
 
         with pytest.raises(SpackError) as develop_error:
             develop("indirect-mpich", fail_on_error=True)
 
-        error_str = "has conflicting specs and only one develop spec per package can be defined."
+        error_str = "has multiple concrete instances in the graph"
         assert error_str in str(develop_error.value)

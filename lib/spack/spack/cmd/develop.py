@@ -90,9 +90,13 @@ def assure_concrete_spec(env: spack.environment.Environment, spec: spack.spec.Sp
             for m_spec in matching_specs:
                 if not test_spec.satisfies(m_spec):
                     raise SpackError(
-                        f"{spec.name}: has conflicting specs and only one develop spec per package "
-                        "can be defined. Please unify the versions or reduce the specs to use "
-                        "`spack develop`"
+                        f"{spec.name}: has multiple concrete instances in the graph that can't be"
+                        " satisified by a single develop spec. To use `spack develop` ensure one"
+                        " of the following:"
+                        f"\n a) {spec.name} nodes can satisfy the same develop spec (minimally "
+                        "this means they all share the same version)"
+                        f"\n b) Provide a concrete develop spec ({spec.name}@[version]) to clearly"
+                        " indicate what should be developed"
                     )
         else:
             # look up the maximum version so infintiy versions are preferred for develop
