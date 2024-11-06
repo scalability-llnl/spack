@@ -17,6 +17,7 @@ import spack.stage
 import spack.util.git
 import spack.util.path
 from spack.main import SpackCommand
+from spack.error import SpackError
 
 add = SpackCommand("add")
 develop = SpackCommand("develop")
@@ -231,3 +232,22 @@ def test_recursive(mutable_mock_env_path, install_mockery, mock_fetch):
         expected_dev_specs = ["mpich", "direct-mpich", "indirect-mpich"]
         for spec in expected_dev_specs:
             assert spec in e.dev_specs
+
+
+def test_develop_fails_with_multiple_concrete_versions(
+    mutable_mock_env_path, install_mockery, mock_fetch
+):
+    env("create", "test")
+
+    with ev.read("test") as e:
+        add("indirect-mpich@1.0")
+        add("indirect-mpich@0.9")
+        e.unify = False
+        e.concretize()
+        specs = e.all_specs()
+
+        with pytest.raises(SpackError) as develop_error:
+            develop("indirect-mpich", fail_on_error=True)
+
+        error_str = "has conflicting specs and only one develop spec per package can be defined."
+        assert error_str in str(develop_error.value)

@@ -86,9 +86,14 @@ def assure_concrete_spec(env: spack.environment.Environment, spec: spack.spec.Sp
         matching_specs = env.all_matching_specs(spec)
         if matching_specs:
             version = matching_specs[0].version
+            test_spec = spack.spec.Spec(f"{spec}@{version}")
             for m_spec in matching_specs:
-                version = max(version, m_spec.version)
-            tty.msg(f"{spec.name}: using highest version found in the environment ({version})")
+                if not test_spec.satisfies(m_spec):
+                    raise SpackError(
+                        f"{spec.name}: has conflicting specs and only one develop spec per package "
+                        "can be defined. Please unify the versions or reduce the specs to use "
+                        "`spack develop`"
+                    )
         else:
             # look up the maximum version so infintiy versions are preferred for develop
             version = max(spec.package_class.versions.keys())
@@ -115,7 +120,7 @@ def _update_config(spec, path):
     find_fn = lambda section: spec.name in section
 
     entry = {"spec": str(spec)}
-    if path != spec.name:
+    if path and path != spec.name:
         entry["path"] = path
 
     def change_fn(section):
@@ -124,7 +129,7 @@ def _update_config(spec, path):
     spack.config.change_or_add("develop", find_fn, change_fn)
 
 
-def update_env_file(
+def update_env(
     env: spack.environment.Environment,
     spec: spack.spec.Spec,
     specified_path: Optional[str] = None,
@@ -149,11 +154,7 @@ def update_env_file(
                 env.scope_name,
             )
         # add develop spec and update path
-        if specified_path:
-            # always overwrite path if it was supplied
-            _update_config(spec, specified_path)
-        else:
-            _update_config(spec, spec.name)
+        _update_config(spec, specified_path)
 
 
 def _clone(spec: spack.spec.Spec, abspath: str, force: bool = False):
@@ -206,9 +207,10 @@ def _dev_spec_generator(args, env):
                 if args.recursive:
                     concrete_specs = env.all_matching_specs(spec)
                     if not concrete_specs:
-                        tty.msg(
-                            "No matching specs found in the environment. "
-                            "Recursive develop requires a concretized environment"
+                        tty.warn(
+                            f"{spec.name} has no matching concrete specs in the environment and "
+                            "will be skipped. Recursive develop requires a concretized"
+                            " environment"
                         )
                     else:
                         for s in concrete_specs:
@@ -225,4 +227,4 @@ def develop(parser, args):
     for spec, abspath in _dev_spec_generator(args, env):
         assure_concrete_spec(env, spec)
         setup_src_code(spec, abspath, clone=args.clone, force=args.force)
-        update_env_file(env, spec, args.path, args.build_directory)
+        update_env(env, spec, args.path, args.build_directory)
