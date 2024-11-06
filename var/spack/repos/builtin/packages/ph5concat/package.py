@@ -15,14 +15,13 @@ class Ph5concat(AutotoolsPackage):
     maintainers("vhewes")
 
     version("1.1.0", sha256="cecc22325a56771cda1fc186e6bd1f9bde2957beca3fa9a387d55462efd5254f")
-    version("1.0.0", sha256="07bdf25f25b01ff33b31997f89c0ad75ae978105386867ae3f8abc875ce2a917")
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
 
     depends_on("zlib")
-    depends_on("hdf5+hl")
+    depends_on("hdf5+hl+mpi@1.10.4:1.12")
     depends_on("mpich")
 
     variant("profiling", default=False, description="Enable profiling support")
