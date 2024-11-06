@@ -119,7 +119,6 @@ SPACK_DEBUG = "SPACK_DEBUG"
 SPACK_SHORT_SPEC = "SPACK_SHORT_SPEC"
 SPACK_DEBUG_LOG_ID = "SPACK_DEBUG_LOG_ID"
 SPACK_DEBUG_LOG_DIR = "SPACK_DEBUG_LOG_DIR"
-SPACK_COMPILER_LAUNCHER_F = "SPACK_{0}_COMPILER_LAUNCHER"
 SPACK_SYSTEM_DIRS = "SPACK_SYSTEM_DIRS"
 
 # Platform-specific library suffix.
@@ -514,23 +513,6 @@ def set_wrapper_variables(pkg, env):
     env.set(SPACK_SHORT_SPEC, pkg.spec.short_spec)
     env.set(SPACK_DEBUG_LOG_ID, pkg.spec.format("{name}-{hash:7}"))
     env.set(SPACK_DEBUG_LOG_DIR, spack.paths.spack_working_dir)
-
-    # Find launcher and hand it to build environment
-    if spack.config.get("config:compiler_launcher"):
-        launchers = spack.config.get("config:compiler_launcher", {"dummy": None})
-        for lang in launchers:
-            launcher_name = launchers.get(lang, None)
-            if not launcher_name:
-                continue
-
-            launcher = spack.util.executable.which_string(launchers[lang], required=True)
-            if lang == "rustc":
-                env.set("RUSTC_WRAPPER", launcher)
-            else:
-                env.set(SPACK_COMPILER_LAUNCHER_F.format(lang.upper()), launcher)
-    else:
-        # Avoid cache pollution if a build system forces `ccache <compiler wrapper invocation>`.
-        env.set("CCACHE_DISABLE", "1")
 
     # Gather information about various types of dependencies
     rpath_hashes = set(s.dag_hash() for s in get_rpath_deps(pkg))

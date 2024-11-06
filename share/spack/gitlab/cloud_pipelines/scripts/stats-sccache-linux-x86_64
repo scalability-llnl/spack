@@ -1,5 +1,5 @@
 # Load the startup environment
 . cache_env.txt
 
-./bin/sccache --show-stats
+${CI_PROJECT_DIR}/bin/sccache --show-stats
 

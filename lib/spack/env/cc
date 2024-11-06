@@ -977,30 +977,31 @@ extend args_list libs_list "-l"
 
 full_command_list="$command"
 extend full_command_list args_list
-case "$lang_flags" in
-    CXX)
-        # prepend the ccache binary if we're using ccache
-        if [ -n "$SPACK_CXX_COMPILER_LAUNCHER" ]; then
-            prepend full_command_list "${SPACK_CXX_COMPILER_LAUNCHER}"
-            # workaround for stage being a temp folder
-            # see #3761#issuecomment-294352232
-            export CCACHE_NOHASHDIR=yes
-        fi
-        ;;
-    C)
-        if [ -n "$SPACK_CC_COMPILER_LAUNCHER" ]; then
-            prepend full_command_list "${SPACK_CC_COMPILER_LAUNCHER}"
-            # workaround for stage being a temp folder
-            # see #3761#issuecomment-294352232
-            export CCACHE_NOHASHDIR=yes
-        fi
-        ;;
-    F)
-        if [ -n "$SPACK_FORTRAN_COMPILER_LAUNCHER" ]; then
-            prepend full_command_list "${SPACK_FORTRAN_COMPILER_LAUNCHER}"
-            # ccache only supports C languages, so there is no need to inject this workaround
-        fi
-        ;;
-esac
+if [ "$mode" == "cc" ]; then
+    case "$lang_flags" in
+        CXX)
+            # prepend the ccache binary if we're using ccache
+            if [ -n "$SPACK_CXX_COMPILER_LAUNCHER" ]; then
+                prepend full_command_list "${SPACK_CXX_COMPILER_LAUNCHER}"
+                # workaround for stage being a temp folder
+                # see #3761#issuecomment-294352232
+                export CCACHE_NOHASHDIR=yes
+            fi
+            ;;
+        C)
+            if [ -n "$SPACK_CC_COMPILER_LAUNCHER" ]; then
+                prepend full_command_list "${SPACK_CC_COMPILER_LAUNCHER}"
+                # workaround for stage being a temp folder
+                # see #3761#issuecomment-294352232
+                export CCACHE_NOHASHDIR=yes
+            fi
+            ;;
+        F)
+            if [ -n "$SPACK_FORTRAN_COMPILER_LAUNCHER" ]; then
+                prepend full_command_list "${SPACK_FORTRAN_COMPILER_LAUNCHER}"
+            fi
+            ;;
+    esac
+fi
 
 execute

@@ -1,12 +1,12 @@
 config:
   db_lock_timeout: 120
   install_tree:
-    root: /home/software/spack
+    # root: /home/software/spack
     padded_length: 256
     projections:
       all: '{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'
-  compiler_launcher:
-    cxx: sccache
-    cc: sccache
-    fortran: sccache
-    rustc: sccache
+  compiler_launcher: ccache
+  # cxx: sccache
+  # cc: sccache
+  # fortran: sccache
+  # rustc: sccache

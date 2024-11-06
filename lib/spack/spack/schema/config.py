@@ -13,6 +13,7 @@ from llnl.util.lang import union_dicts
 
 import spack.config
 import spack.schema.projections
+import Executable from spack.util
 
 #: Properties for inclusion in other schemas
 properties: Dict[str, Any] = {
@@ -195,6 +196,17 @@ def update(data):
         # restrictions that need to be resolved
         # by the configuration.
         data["compiler_launcher"] = {"cxx": compiler_launcher, "cc": compiler_launcher}
+
+    # Validate that the launcher(s) exists
+    if "compiler_launcher" in data:
+        launchers = data["compiler_launcher"]
+        for lang, launcher_name in launchers:
+            if not launcher_name:
+                continue
+
+            launcher = Executable(launcher_name)
+            if not launcher:
+                raise RuntimeError(f"No {launchers['lang']} binary found in PATH")
 
     use_curl = data.pop("use_curl", None)
     if use_curl is not None:

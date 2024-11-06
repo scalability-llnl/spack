@@ -215,3 +215,46 @@ class MesonBuilder(BaseBuilder):
         with fs.working_dir(self.build_directory):
             self.pkg._if_ninja_target_execute("test")
             self.pkg._if_ninja_target_execute("check")
+
+    @spack.builder.run_before("meson")
+    def configure_compiler_cache(self):
+
+        def parse_launcher(launcher):
+            supported_compiler_cache = ("ccache", "scache")
+            prefix = os.path.dirname(launcher)
+            command = os.path.basename(launcher)
+
+            # Only SCache and  CCache are supported by meson
+            if command in supported_compiler_cache:
+                return prefix, command
+
+            return None, None
+
+        compiler_launchers = spack.config.get("config:compiler_launcher")
+        env = spack.util.environment.EnvironmentModifications()
+
+        # Meson detects the compiler launcher via the CC environment variable
+        # and assumes that the cache tool exists in the path
+        if "cc" in compiler_launchers:
+            prefix, command = parse_launcher(compiler_launchers["cc"])
+            if command:
+                env.set("CC", " ".join(command, self.compiler.cc))
+            if prefix:
+                env.prepend_path("PATH", prefix)
+
+        if "cxx" in compiler_launchers:
+            prefix, command = parse_launcher(compiler_launchers["cxx"])
+            if command:
+                env.set("CXX", " ".join(command, self.compiler.cxx))
+            if prefix:
+                env.prepend_path("PATH", prefix)
+
+        if "fortran" in compiler_launchers:
+            prefix, command = parse_launcher(compiler_launchers["fortran"])
+            if command:
+                env.set("FC", " ".join(command, self.compiler.fortran))
+                env.set("F77", " ".join(command, self.compiler.fortran))
+            if prefix:
+                env.prepend_path("PATH", prefix)
+
+        env.apply_enviroment(os.environ)

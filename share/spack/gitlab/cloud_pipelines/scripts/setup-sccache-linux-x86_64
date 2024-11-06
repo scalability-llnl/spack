@@ -15,7 +15,7 @@ sha256sum --check sccache.tar.gz.sha256
 # extract to spack bin
 sccache_path=$(tar --list -f sccache.tar.gz | grep "/sccache")
 tar -x ${sccache_path} -zf ./sccache.tar.gz
-mv ${sccache_path} ./bin/
+mv ${sccache_path} ${CI_PROJECT_DIR}/bin/
 
 # Compute sccache port to avoid conflicts
 if [ ! -z ${CI_JOB_ID} ];
@@ -43,5 +43,5 @@ echo "set +a" >> cache_env.txt
 
 echo "Starting sccache, listening on ${SCCACHE_SERVER_PORT}"
 
-./bin/sccache --start-server
-./bin/sccache --show-stats
+${CI_PROJECT_DIR}/bin/sccache --start-server
+${CI_PROJECT_DIR}/bin/sccache --show-stats

@@ -17,6 +17,7 @@ from llnl.util.lang import stable_partition
 import spack.builder
 import spack.deptypes as dt
 import spack.error
+import spack.config
 import spack.package_base
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
@@ -605,3 +606,28 @@ class CMakeBuilder(BaseBuilder):
             elif self.generator == "Ninja":
                 self.pkg._if_ninja_target_execute("test", jobs_env="CTEST_PARALLEL_LEVEL")
                 self.pkg._if_ninja_target_execute("check")
+
+    @spack.builder.run_before("cmake")
+    def configure_compiler_cache(self):
+        compiler_launchers = spack.config.get("config:compiler_launcher")
+        env = spack.util.environment.EnvironmentModifications()
+
+        # Meson detects the compiler launcher via the CC environment variable
+        # and assumes that the cache tool exists in the path
+        if "cc" in compiler_launchers:
+            env.set("CMAKE_C_COMPILER_LAUNCHER", compiler_launchers["cc"])
+            # C extension languages.
+            env.set("CMAKE_ISPC_COMPILER_LAUNCHER", compiler_launchers["cc"])
+            env.set("CMAKE_OBJC_COMPILER_LAUNCHER", compiler_launchers["cc"])
+
+        if "cxx" in compiler_launchers:
+            env.set("CMAKE_CXX_COMPILER_LAUNCHER", compiler_launchers["cxx"])
+            # C++ extension languages.
+            env.set("CMAKE_CUDA_COMPILER_LAUNCHER", compiler_launchers["cxx"])
+            env.set("CMAKE_OBJCXX_COMPILER_LAUNCHER", compiler_launchers["cc"])
+            env.set("CMAKE_HIP_COMPILER_LAUNCHER", compiler_launchers["cxx"])
+
+        if "fortran" in compiler_launchers:
+            env.set("CMAKE_Fortran_COMPILER_LAUNCHER", compiler_launchers["fortran"])
+
+        env.apply_enviroment(os.environ)
