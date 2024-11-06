@@ -16,9 +16,10 @@ import spack.cmd.find
 import spack.environment as ev
 import spack.store
 import spack.user_environment as uenv
-from spack.main import SpackCommand, SpackCommandArgs
+from spack.main import SpackCommand
 from spack.spec import Spec
 from spack.test.conftest import create_test_repo
+from spack.test.utilities import SpackCommandArgs
 from spack.util.pattern import Bunch
 
 find = SpackCommand("find")
