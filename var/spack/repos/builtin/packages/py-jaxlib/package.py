@@ -142,9 +142,6 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         "https://developer.nvidia.com/cuda-gpus",
     )
 
-    # https://github.com/google/jax/issues/19992
-    conflicts("@0.4.4:", when="target=ppc64le:")
-
     def patch(self):
         self.tmp_path = tempfile.mkdtemp(prefix="spack")
         self.buildtmp = tempfile.mkdtemp(prefix="spack")
