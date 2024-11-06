@@ -427,6 +427,10 @@ class Configuration:
             self.push_scope(scope)
         self.format_updates: Dict[str, List[ConfigScope]] = collections.defaultdict(list)
 
+    def ensure_unwrapped(self) -> "Configuration":
+        """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
+        return self
+
     @_config_mutator
     def push_scope(self, scope: ConfigScope) -> None:
         """Add a higher precedence scope to the Configuration."""
