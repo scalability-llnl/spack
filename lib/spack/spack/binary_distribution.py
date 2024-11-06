@@ -1183,7 +1183,7 @@ class Uploader:
         self.executor: concurrent.futures.Executor
 
         # Verify if the mirror meets the requirements to push
-        self.mirror.validate("push")
+        self.mirror.ensure_mirror_usable("push")
 
     def __enter__(self):
         self._tmpdir = tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root())

@@ -360,35 +360,9 @@ def test_update_connection_params(direction, tmpdir, monkeypatch):
     assert m.get_endpoint_url(direction) == "https://example.com"
 
     # Expand environment variables
-    assert m.update(
-        {
-            "access_pair": [
-                {"variable": "_SPACK_TEST_PAIR_USERNAME"},
-                {"variable": "_SPACK_TEST_PAIR_PASSWORD"},
-            ]
-        },
-        direction,
-    )
-
-    assert m.to_dict() == {
-        "url": "https://example.com",
-        direction: {
-            "url": "http://example.org",
-            "access_pair": [
-                {"variable": "_SPACK_TEST_PAIR_USERNAME"},
-                {"variable": "_SPACK_TEST_PAIR_PASSWORD"},
-            ],
-            "access_token": "token",
-            "profile": "profile",
-            "endpoint_url": "https://example.com",
-        },
-    }
-
     os.environ["_SPACK_TEST_PAIR_USERNAME"] = "expanded_username"
     os.environ["_SPACK_TEST_PAIR_PASSWORD"] = "expanded_password"
     os.environ["_SPACK_TEST_TOKEN"] = "expanded_token"
-
-    assert m.get_access_pair(direction) == ("expanded_username", "expanded_password")
 
     assert m.update(
         {

@@ -154,7 +154,7 @@ class Mirror:
         """Get the valid, canonicalized fetch URL"""
         return self.get_url("push")
 
-    def validate(self, direction="push"):
+    def ensure_mirror_usable(self, direction: str = "push"):
         access_pair = self._get_value("access_pair", direction)
         access_token_variable = self._get_value("access_token_variable", direction)
 
@@ -162,11 +162,8 @@ class Mirror:
 
         # Verify that the credentials that are variables expand
         if access_pair and isinstance(access_pair, dict):
-            if "id_variable" in access_pair:
-                if access_pair["id_variable"] not in os.environ:
-                    errors.append(
-                        f"id_variable {access_pair['id_variable']} not set in environment"
-                    )
+            if "id_variable" in access_pair and access_pair["id_variable"] not in os.environ:
+                errors.append(f"id_variable {access_pair['id_variable']} not set in environment")
             if "secret_variable" in access_pair:
                 if access_pair["secret_variable"] not in os.environ:
                     errors.append(
@@ -180,11 +177,9 @@ class Mirror:
                     " not set in environment"
                 )
 
-        # TODO: Verify the URL is accessible
-
         if errors:
-            msg = f"Could not validate push configuruation for mirror {self.name}:\n\t"
-            msg += "\n\t".join(errors)
+            msg = f"Could not validate {direction} configuruation for mirror {self.name}:\n\t"
+            msg += "\n    ".join(errors)
             raise spack.mirror.MirrorError(msg)
 
     def _update_connection_dict(self, current_data: dict, new_data: dict, top_level: bool):
@@ -360,10 +355,6 @@ class Mirror:
 
         return creddict
 
-    @staticmethod
-    def _extract_credential_value(tok):
-        return os.environ.get(tok["variable"]) if isinstance(tok, dict) else tok
-
     def get_access_token(self, direction: str) -> Optional[str]:
         tok = self._get_value("access_token_variable", direction)
         if tok:
@@ -374,8 +365,8 @@ class Mirror:
 
     def get_access_pair(self, direction: str) -> Optional[Tuple[str, str]]:
         pair = self._get_value("access_pair", direction)
-        if type(pair) in (tuple, list):
-            return tuple(map(self._extract_credential_value, pair))
+        if isinstance(pair, (tuple, list)) and len(pair) == 2:
+            return (pair[0], pair[1]) if all(pair) else None
         elif isinstance(pair, dict):
             id_ = os.environ.get(pair["id_variable"]) if "id_variable" in pair else pair["id"]
             secret = os.environ.get(pair["secret_variable"])
