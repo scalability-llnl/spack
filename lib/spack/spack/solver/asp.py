@@ -2973,11 +2973,15 @@ def possible_compilers(*, configuration) -> List["spack.spec.Spec"]:
         # FIXME (compiler as nodes): Discard early specs that are not marked for this target?
 
         if using_libc_compatibility() and not c_compiler_runs(c):
-            compiler = c.extra_attributes["compilers"]["c"]
-            tty.debug(
-                f"the C compiler {compiler} does not exist, or does not run correctly."
-                f" The compiler {c} will not be used during concretization."
-            )
+            try:
+                compiler = c.extra_attributes["compilers"]["c"]
+                tty.debug(
+                    f"the C compiler {compiler} does not exist, or does not run correctly."
+                    f" The compiler {c} will not be used during concretization."
+                )
+            except KeyError:
+                tty.debug(f"the spec {c} does not provide a C compiler.")
+
             continue
 
         if using_libc_compatibility() and not CompilerPropertyDetector(c).default_libc():
