@@ -512,9 +512,6 @@ class TestSpecSemantics:
             ("mpich", "mpich +foo"),
             ("mpich", "mpich~foo"),
             ("mpich", "mpich foo=1"),
-            ("mpich", "mpich++foo"),
-            ("mpich", "mpich~~foo"),
-            ("mpich", "mpich foo==1"),
             ("multivalue-variant foo=bar", "multivalue-variant +foo"),
             ("multivalue-variant foo=bar", "multivalue-variant ~foo"),
             ("multivalue-variant fee=bar", "multivalue-variant fee=baz"),
@@ -535,6 +532,58 @@ class TestSpecSemantics:
 
         with pytest.raises(UnsatisfiableSpecError):
             assert rhs.constrain(lhs)
+
+    @pytest.mark.parametrize(
+        "lhs,rhs", [("mpich", "mpich++foo"), ("mpich", "mpich~~foo"), ("mpich", "mpich foo==1")]
+    )
+    def test_concrete_specs_which_satisfy_abstract(self, lhs, rhs, default_mock_concretization):
+        lhs, rhs = default_mock_concretization(lhs), Spec(rhs)
+
+        assert lhs.intersects(rhs)
+        assert rhs.intersects(lhs)
+        assert lhs.satisfies(rhs)
+
+        s1 = lhs.copy()
+        s1.constrain(rhs)
+        assert s1 == lhs and s1.satisfies(lhs)
+
+        s2 = rhs.copy()
+        s2.constrain(lhs)
+        assert s2 == lhs and s2.satisfies(lhs)
+
+    @pytest.mark.parametrize(
+        "lhs,rhs,expected,constrained",
+        [
+            # hdf5++mpi satisfies hdf5, and vice versa, because of the non-contradiction semantic
+            ("hdf5++mpi", "hdf5", True, "hdf5++mpi"),
+            ("hdf5", "hdf5++mpi", True, "hdf5++mpi"),
+            # Same holds true for arbitrary propagated variants
+            ("hdf5++mpi", "hdf5++shared", True, "hdf5++mpi++shared"),
+            # Here hdf5+mpi satisfies hdf5++mpi but not vice versa
+            ("hdf5++mpi", "hdf5+mpi", False, "hdf5+mpi"),
+            ("hdf5+mpi", "hdf5++mpi", True, "hdf5+mpi"),
+            # Non contradiction is violated
+            ("hdf5 ^foo~mpi", "hdf5++mpi", False, "hdf5++mpi ^foo~mpi"),
+            ("hdf5++mpi", "hdf5 ^foo~mpi", False, "hdf5++mpi ^foo~mpi"),
+        ],
+    )
+    def test_abstract_specs_with_propagation(self, lhs, rhs, expected, constrained):
+        """Tests (and documents) behavior of variant propagation on abstract specs.
+
+        Propagated variants do not comply with subset semantic, making it difficult to give
+        precise definitions. Here we document the behavior that has been decided for the
+        practical cases we face.
+        """
+        lhs, rhs, constrained = Spec(lhs), Spec(rhs), Spec(constrained)
+        assert lhs.satisfies(rhs) is expected
+
+        c = lhs.copy()
+        c.constrain(rhs)
+        assert c == constrained
+
+        c = rhs.copy()
+        c.constrain(lhs)
+        assert c == constrained
 
     def test_satisfies_single_valued_variant(self):
         """Tests that the case reported in

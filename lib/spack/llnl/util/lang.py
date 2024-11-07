@@ -5,12 +5,14 @@
 
 import collections.abc
 import contextlib
+import fnmatch
 import functools
 import itertools
 import os
 import re
 import sys
 import traceback
+import typing
 import warnings
 from datetime import datetime, timedelta
 from typing import Callable, Iterable, List, Tuple, TypeVar
@@ -857,6 +859,32 @@ def elide_list(line_list: List[str], max_num: int = 10) -> List[str]:
     if len(line_list) > max_num:
         return [*line_list[: max_num - 1], "...", line_list[-1]]
     return line_list
+
+
+if sys.version_info >= (3, 9):
+    PatternStr = re.Pattern[str]
+else:
+    PatternStr = typing.Pattern[str]
+
+
+def fnmatch_translate_multiple(patterns: List[str]) -> Tuple[PatternStr, List[str]]:
+    """Same as fnmatch.translate, but creates a single regex of the form
+    ``(?P<pattern0>...)|(?P<pattern1>...)|...`` for each pattern in the iterable, where
+    ``patternN`` is a named capture group that matches the corresponding pattern translated by
+    ``fnmatch.translate``. This can be used to match multiple patterns in a single pass. No case
+    normalization is performed on the patterns.
+
+    Args:
+        patterns: list of fnmatch patterns
+
+    Returns:
+        Tuple of the combined regex and the list of named capture groups corresponding to each
+        pattern in the input list.
+    """
+    groups = [f"pattern{i}" for i in range(len(patterns))]
+    regexes = (fnmatch.translate(p) for p in patterns)
+    combined = re.compile("|".join(f"(?P<{g}>{r})" for g, r in zip(groups, regexes)))
+    return combined, groups
 
 
 @contextlib.contextmanager

@@ -27,7 +27,6 @@ from llnl.util.lang import elide_list
 
 import spack
 import spack.binary_distribution
-import spack.bootstrap.core
 import spack.compilers
 import spack.concretize
 import spack.config
@@ -816,7 +815,7 @@ class PyclingoDriver:
             solve, and the internal statistics from clingo.
         """
         # avoid circular import
-        import spack.bootstrap
+        import spack.bootstrap.core
 
         output = output or DEFAULT_OUTPUT_CONFIGURATION
         timer = spack.util.timer.Timer()
@@ -2032,9 +2031,12 @@ class SpackSolverSetup:
                     for variant_def in variant_defs:
                         self.variant_values_from_specs.add((spec.name, id(variant_def), value))
 
-                clauses.append(f.variant_value(spec.name, vname, value))
                 if variant.propagate:
                     clauses.append(f.propagate(spec.name, fn.variant_value(vname, value)))
+                    if self.pkg_class(spec.name).has_variant(vname):
+                        clauses.append(f.variant_value(spec.name, vname, value))
+                else:
+                    clauses.append(f.variant_value(spec.name, vname, value))
 
         # compiler and compiler version
         if spec.compiler:

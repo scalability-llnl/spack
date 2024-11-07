@@ -540,21 +540,17 @@ class TestConcretize:
     @pytest.mark.parametrize(
         "spec_str,expected_propagation",
         [
-            ("hypre~~shared ^openblas+shared", [("hypre", "~shared"), ("openblas", "+shared")]),
             # Propagates past a node that doesn't have the variant
             ("hypre~~shared ^openblas", [("hypre", "~shared"), ("openblas", "~shared")]),
+            # Propagates from root node to all nodes
             (
                 "ascent~~shared +adios2",
                 [("ascent", "~shared"), ("adios2", "~shared"), ("bzip2", "~shared")],
             ),
-            # Propagates below a node that uses the other value explicitly
+            # Propagate from a node that is not the root node
             (
-                "ascent~~shared +adios2 ^adios2+shared",
-                [("ascent", "~shared"), ("adios2", "+shared"), ("bzip2", "~shared")],
-            ),
-            (
-                "ascent++shared +adios2 ^adios2~shared",
-                [("ascent", "+shared"), ("adios2", "~shared"), ("bzip2", "+shared")],
+                "ascent +adios2 ^adios2~~shared",
+                [("ascent", "+shared"), ("adios2", "~shared"), ("bzip2", "~shared")],
             ),
         ],
     )
@@ -564,21 +560,109 @@ class TestConcretize:
         for key, expected_satisfies in expected_propagation:
             spec[key].satisfies(expected_satisfies)
 
-    def test_concretize_propagated_variant_is_not_passed_to_dependent(self):
-        """Test a package variant value was passed from its parent."""
-        spec = Spec("ascent~~shared +adios2 ^adios2+shared")
+    def test_concretize_propagate_variant_not_dependencies(self):
+        """Test that when propagating a variant it is not propagated to dependencies that
+        do not have that variant"""
+        spec = Spec("quantum-espresso~~invino")
         spec.concretize()
 
-        assert spec.satisfies("^adios2+shared")
-        assert spec.satisfies("^bzip2~shared")
+        for dep in spec.traverse(root=False):
+            assert "invino" not in dep.variants.keys()
+
+    def test_concretize_propagate_variant_exclude_dependency_fail(self):
+        """Tests that a propagating variant cannot be allowed to be excluded by any of
+        the source package's dependencies"""
+        spec = Spec("hypre ~~shared ^openblas +shared")
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            spec.concretize()
+
+    def test_concretize_propagate_same_variant_from_direct_dep_fail(self):
+        """Test that when propagating a variant from the source package and a direct
+        dependency also propagates the same variant with a different value. Raises error"""
+        spec = Spec("ascent +adios2 ++shared ^adios2 ~~shared")
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            spec.concretize()
+
+    def test_concretize_propagate_same_variant_in_dependency_fail(self):
+        """Test that when propagating a variant from the source package, none of it's
+        dependencies can propagate that variant with a different value. Raises error."""
+        spec = Spec("ascent +adios2 ++shared ^bzip2 ~~shared")
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            spec.concretize()
+
+    def test_concretize_propagate_same_variant_virtual_dependency_fail(self):
+        """Test that when propagating a variant from the source package and a direct
+        dependency (that is a virtual pkg) also propagates the same variant with a
+        different value. Raises error"""
+        spec = Spec("hypre ++shared ^openblas ~~shared")
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            spec.concretize()
+
+    def test_concretize_propagate_same_variant_multiple_sources_diamond_dep_fail(self):
+        """Test that fails when propagating the same variant with different values from multiple
+        sources that share a dependency"""
+        spec = Spec("parent-foo-bar ^dependency-foo-bar++bar ^direct-dep-foo-bar~~bar")
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            spec.concretize()
 
     def test_concretize_propagate_specified_variant(self):
         """Test that only the specified variant is propagated to the dependencies"""
         spec = Spec("parent-foo-bar ~~foo")
         spec.concretize()
 
-        assert spec.satisfies("~foo") and spec.satisfies("^dependency-foo-bar~foo")
-        assert spec.satisfies("+bar") and not spec.satisfies("^dependency-foo-bar+bar")
+        assert spec.satisfies("^dependency-foo-bar~foo")
+        assert spec.satisfies("^second-dependency-foo-bar-fee~foo")
+        assert spec.satisfies("^direct-dep-foo-bar~foo")
+
+        assert not spec.satisfies("^dependency-foo-bar+bar")
+        assert not spec.satisfies("^second-dependency-foo-bar-fee+bar")
+        assert not spec.satisfies("^direct-dep-foo-bar+bar")
+
+    def test_concretize_propagate_one_variant(self):
+        """Test that you can specify to propagate one variant and not all"""
+        spec = Spec("parent-foo-bar ++bar ~foo")
+        spec.concretize()
+
+        assert spec.satisfies("~foo") and not spec.satisfies("^dependency-foo-bar~foo")
+        assert spec.satisfies("+bar") and spec.satisfies("^dependency-foo-bar+bar")
+
+    def test_concretize_propagate_through_first_level_deps(self):
+        """Test that boolean valued variants can be propagated past first level
+        dependecies even if the first level dependency does have the variant"""
+        spec = Spec("parent-foo-bar-fee ++fee")
+        spec.concretize()
+
+        assert spec.satisfies("+fee") and not spec.satisfies("dependency-foo-bar+fee")
+        assert spec.satisfies("^second-dependency-foo-bar-fee+fee")
+
+    def test_concretize_propagate_multiple_variants(self):
+        """Test that multiple boolean valued variants can be propagated from
+        the same source package"""
+        spec = Spec("parent-foo-bar-fee ~~foo ++bar")
+        spec.concretize()
+
+        assert spec.satisfies("~foo") and spec.satisfies("+bar")
+        assert spec.satisfies("^dependency-foo-bar ~foo +bar")
+        assert spec.satisfies("^second-dependency-foo-bar-fee ~foo +bar")
+
+    def test_concretize_propagate_multiple_variants_mulitple_sources(self):
+        """Test the propagates multiple different variants for multiple sources
+        in a diamond dependency"""
+        spec = Spec("parent-foo-bar ^dependency-foo-bar++bar ^direct-dep-foo-bar~~foo")
+        spec.concretize()
+
+        assert spec.satisfies("^second-dependency-foo-bar-fee+bar")
+        assert spec.satisfies("^second-dependency-foo-bar-fee~foo")
+        assert not spec.satisfies("^dependency-foo-bar~foo")
+        assert not spec.satisfies("^direct-dep-foo-bar+bar")
+
+    def test_concretize_propagate_single_valued_variant(self):
+        """Test propagation for single valued variants"""
+        spec = Spec("multivalue-variant libs==static")
+        spec.concretize()
+
+        assert spec.satisfies("libs=static")
+        assert spec.satisfies("^pkg-a libs=static")
 
     def test_concretize_propagate_multivalue_variant(self):
         """Test that multivalue variants are propagating the specified value(s)
@@ -590,6 +674,46 @@ class TestConcretize:
         assert spec.satisfies("^pkg-b foo=baz,fee")
         assert not spec.satisfies("^pkg-a foo=bar")
         assert not spec.satisfies("^pkg-b foo=bar")
+
+    def test_concretize_propagate_multiple_multivalue_variant(self):
+        """Tests propagating the same mulitvalued variant from different sources allows
+        the dependents to accept all propagated values"""
+        spec = Spec("multivalue-variant foo==bar ^pkg-a foo==baz")
+        spec.concretize()
+
+        assert spec.satisfies("multivalue-variant foo=bar")
+        assert spec.satisfies("^pkg-a foo=bar,baz")
+        assert spec.satisfies("^pkg-b foo=bar,baz")
+
+    def test_concretize_propagate_variant_not_in_source(self):
+        """Test that variant is still propagated even if the source pkg
+        doesn't have the variant"""
+        spec = Spec("callpath++debug")
+        spec.concretize()
+
+        assert spec.satisfies("^mpich+debug")
+        assert not spec.satisfies("callpath+debug")
+        assert not spec.satisfies("^dyninst+debug")
+
+    def test_concretize_propagate_variant_multiple_deps_not_in_source(self):
+        """Test that a variant can be propagated to multiple dependencies
+        when the variant is not in the source package"""
+        spec = Spec("netlib-lapack++shared")
+        spec.concretize()
+
+        assert spec.satisfies("^openblas+shared")
+        assert spec.satisfies("^perl+shared")
+        assert not spec.satisfies("netlib-lapack+shared")
+
+    def test_concretize_propagate_variant_second_level_dep_not_in_source(self):
+        """Test that a variant can be propagated past first level dependencies
+        when the variant is not in the source package or any of the first level
+        dependencies"""
+        spec = Spec("parent-foo-bar ++fee")
+        spec.concretize()
+
+        assert spec.satisfies("^second-dependency-foo-bar-fee +fee")
+        assert not spec.satisfies("parent-foo-bar +fee")
 
     def test_no_matching_compiler_specs(self, mock_low_high_config):
         # only relevant when not building compilers as needed

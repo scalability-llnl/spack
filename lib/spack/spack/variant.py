@@ -830,7 +830,7 @@ def prevalidate_variant_value(
         only if the variant is a reserved variant.
     """
     # don't validate wildcards or variants with reserved names
-    if variant.value == ("*",) or variant.name in reserved_names:
+    if variant.value == ("*",) or variant.name in reserved_names or variant.propagate:
         return []
 
     # raise if there is no definition at all

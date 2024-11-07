@@ -911,13 +911,6 @@ def _main(argv=None):
     # Make spack load / env activate work on macOS
     restore_macos_dyld_vars()
 
-    # make spack.config aware of any command line configuration scopes
-    if args.config_scopes:
-        spack.config.COMMAND_LINE_SCOPES = args.config_scopes
-
-    # ensure options on spack command come before everything
-    setup_main_options(args)
-
     # activate an environment if one was specified on the command line
     env_format_error = None
     if not args.no_env:
@@ -930,6 +923,12 @@ def _main(argv=None):
             # `spack config edit` can still work with a bad environment.
             e.print_context()
             env_format_error = e
+
+    # Push scopes from the command line last
+    if args.config_scopes:
+        spack.config._add_command_line_scopes(spack.config.CONFIG, args.config_scopes)
+    spack.config.CONFIG.push_scope(spack.config.InternalConfigScope("command_line"))
+    setup_main_options(args)
 
     # ------------------------------------------------------------------------
     # Things that require configuration should go below here
