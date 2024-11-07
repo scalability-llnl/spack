@@ -24,7 +24,6 @@ from llnl.util.symlink import readlink, symlink
 
 import spack
 import spack.caches
-import spack.compilers
 import spack.concretize
 import spack.config
 import spack.deptypes as dt
@@ -43,7 +42,6 @@ import spack.user_environment as uenv
 import spack.util.environment
 import spack.util.hash
 import spack.util.lock as lk
-import spack.util.parallel
 import spack.util.path
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml

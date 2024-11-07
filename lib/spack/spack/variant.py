@@ -378,8 +378,8 @@ class AbstractVariant:
 
     def _cmp_iter(self) -> Iterable:
         yield self.name
-        yield from (str(v) for v in self.value_as_tuple)
         yield self.propagate
+        yield from (str(v) for v in self.value_as_tuple)
 
     def copy(self) -> "AbstractVariant":
         """Returns an instance of a variant equivalent to self
@@ -830,7 +830,7 @@ def prevalidate_variant_value(
         only if the variant is a reserved variant.
     """
     # don't validate wildcards or variants with reserved names
-    if variant.value == ("*",) or variant.name in reserved_names:
+    if variant.value == ("*",) or variant.name in reserved_names or variant.propagate:
         return []
 
     # raise if there is no definition at all

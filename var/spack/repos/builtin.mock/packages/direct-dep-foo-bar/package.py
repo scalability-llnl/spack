@@ -6,15 +6,15 @@
 from spack.package import *
 
 
-class DependencyFooBar(Package):
+class DirectDepFooBar(Package):
     """This package has a variant "bar", which is False by default, and
     variant "foo" which is True by default.
     """
 
     homepage = "http://www.example.com"
-    url = "http://www.example.com/dependency-foo-bar-1.0.tar.gz"
+    url = "http://www.example.com/direct-dep-foo-bar-1.0.tar.gz"
 
-    version("1.0", md5="1234567890abcdefg1234567890098765")
+    version("1.0", md5="567890abcdefg12345678900987654321")
 
     variant("foo", default=True, description="")
     variant("bar", default=False, description="")
