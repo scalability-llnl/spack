@@ -2323,9 +2323,14 @@ def find_system_libraries(libraries, shared=True):
 
 
 def find_libraries(
-    libraries, root, shared=True, recursive=False, runtime=True, max_depth: Optional[int] = None
-):
-    """Returns an iterable of full paths to libraries found in a root dir.
+    libraries: Union[List[str], str],
+    root: str,
+    shared: bool = True,
+    recursive: bool = False,
+    runtime: bool = True,
+    max_depth: Optional[int] = None,
+) -> LibraryList:
+    """Find libraries in the specified root directory.
 
     Accepts any glob characters accepted by fnmatch:
 
@@ -2339,18 +2344,15 @@ def find_libraries(
     =======  ====================================
 
     Parameters:
-        libraries (str or list): Library name(s) to search for
-        root (str): The root directory to start searching from
-        shared (bool): if True searches for shared libraries,
-            otherwise for static. Defaults to True.
-        recursive (bool): if False search only root folder,
-            if True descends top-down from the root. Defaults to False.
-        max_depth (int): if set, don't search below this depth. Cannot be set
-            if recursive is False
-        runtime (bool): Windows only option, no-op elsewhere. If true,
-            search for runtime shared libs (.DLL), otherwise, search
-            for .Lib files. If shared is false, this has no meaning.
-            Defaults to True.
+        libraries: library name(s) to search for
+        root: the root directory to start searching from
+        shared: if True searches for shared libraries, otherwise for static. Defaults to True.
+        recursive: if False (default) search only root folder, if True recurse from the root. Note
+            that recursive search does not imply exhaustive search. The function returns early if
+            libraries are found in typical, low-depth library directories.
+        max_depth: if set, don't search below this depth. Cannot be set if recursive is False
+        runtime: Windows only option, no-op elsewhere. If True (default), search for runtime shared
+            libs (.DLL), otherwise, search for .Lib files. If shared is False, this has no meaning.
 
     Returns:
         LibraryList: The libraries that have been found
@@ -2359,10 +2361,13 @@ def find_libraries(
     if isinstance(libraries, str):
         libraries = [libraries]
     elif not isinstance(libraries, collections.abc.Sequence):
-        message = "{0} expects a string or sequence of strings as the "
-        message += "first argument [got {1} instead]"
-        message = message.format(find_libraries.__name__, type(libraries))
-        raise TypeError(message)
+        raise TypeError(
+            f"{find_libraries.__name__} expects a string or sequence of strings as the "
+            f"first argument [got {type(libraries)} instead]"
+        )
+
+    if not recursive and max_depth is not None:
+        raise ValueError(f"max_depth ({max_depth}) cannot be set if recursive is False")
 
     if sys.platform == "win32":
         static_ext = "lib"
@@ -2385,33 +2390,47 @@ def find_libraries(
         suffixes = [static_ext]
 
     # List of libraries we are searching with suffixes
-    libraries = ["{0}.{1}".format(lib, suffix) for lib in libraries for suffix in suffixes]
+    libraries = [f"{lib}.{suffix}" for lib in libraries for suffix in suffixes]
 
     if not recursive:
-        if max_depth:
-            raise ValueError(f"max_depth ({max_depth}) cannot be set if recursive is False")
-        # If not recursive, look for the libraries directly in root
         return LibraryList(find(root, libraries, recursive=False))
 
-    # To speedup the search for external packages configured e.g. in /usr,
-    # perform first non-recursive search in root/lib then in root/lib64 and
-    # finally search all of root recursively. The search stops when the first
-    # match is found.
-    common_lib_dirs = ["lib", "lib64"]
+    # Even if recursive is True, we will do some form of targeted, iterative deepening, in order
+    # to return early if libraries are found in common, low-depth library directories.
     if sys.platform == "win32":
-        common_lib_dirs.extend(["bin", "Lib"])
-
-    for subdir in common_lib_dirs:
-        dirname = join_path(root, subdir)
-        if not os.path.isdir(dirname):
-            continue
-        found_libs = find(dirname, libraries, False)
-        if found_libs:
-            break
+        common_lib_dirs = ("lib", "lib64", "bin", "Lib")
     else:
-        found_libs = find(root, libraries, recursive=True, max_depth=max_depth)
+        common_lib_dirs = ("lib", "lib64")
 
-    return LibraryList(found_libs)
+    if os.path.basename(root) not in common_lib_dirs:
+        # search root and its direct library subdirectories non-recursively
+        non_recursive = [root, *(os.path.join(root, libdir) for libdir in common_lib_dirs)]
+        # avoid the expensive recursive search of the root directory
+        fallback_recursive = [os.path.join(root, libdir) for libdir in common_lib_dirs]
+        # reduce max_depth by 1 as we already joined the common library directories
+        if max_depth is not None:
+            max_depth -= 1
+    else:
+        # the call site already has a common library dir as root
+        non_recursive = [root]
+        fallback_recursive = [root]
+
+    found_libs = find(non_recursive, libraries, recursive=False)
+
+    if found_libs:
+        return LibraryList(found_libs)
+
+    # Do one more (manual) step of iterative deepening, to early exit on typical
+    # <root>/lib/<triplet>/ sub-directories before exhaustive, max_depth search. Slightly better
+    # would be to add lib/<triplet> itself to common_lib_dirs, but we are lacking information to
+    # determine the triplet.
+    if max_depth is None or max_depth > 1:
+        found_libs = find(fallback_recursive, libraries, max_depth=1)
+        if found_libs:
+            return LibraryList(found_libs)
+
+    # Finally fall back to exhaustive, recursive search
+    return LibraryList(find(fallback_recursive, libraries, recursive=True, max_depth=max_depth))
 
 
 def find_all_shared_libraries(root, recursive=False, runtime=True):
