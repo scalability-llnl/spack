@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Test basic behavior of compilers in Spack"""
 import os
+import sys
 from copy import copy
 
 import pytest
@@ -17,6 +18,9 @@ import spack.spec
 import spack.util.module_cmd
 from spack.compiler import Compiler
 from spack.util.executable import Executable, ProcessError
+
+gcc_exe_name = "gcc.bat" if sys.platform == "win32" else "gcc"
+script_head = "@echo off" if sys.platform == "win32" else "#!/bin/sh"
 
 
 def test_multiple_conflicting_compiler_definitions(mutable_config):
@@ -121,7 +125,6 @@ def call_compiler(exe, *args, **kwargs):
     return without_flag_output
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 @pytest.mark.parametrize(
     "exe,flagname",
     [
@@ -173,19 +176,29 @@ def test_compile_dummy_c_source_no_verbose_flag():
     assert compiler._compile_dummy_c_source() is None
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
-@pytest.mark.enable_compiler_execution
-def test_compile_dummy_c_source_load_env(working_env, monkeypatch, tmpdir):
-    gcc = str(tmpdir.join("gcc"))
+def make_gcc_script(tmpdir, content):
+    # Create compiler
+    gcc = str(tmpdir.join(gcc_exe_name))
     with open(gcc, "w") as f:
         f.write(
-            f"""#!/bin/sh
+            f"""{script_head}
+{content}
+"""
+        )
+    fs.set_executable(gcc)
+    return gcc
+
+
+@pytest.mark.enable_compiler_execution
+def test_compile_dummy_c_source_load_env(working_env, monkeypatch, tmpdir):
+    batch = f"""if "%ENV_SET%"=="1" if "%MODULE_LOADED%"=="1" (echo {without_flag_output})"""
+    bash = f"""
 if [ "$ENV_SET" = "1" ] && [ "$MODULE_LOADED" = "1" ]; then
   printf '{without_flag_output}'
 fi
 """
-        )
-    fs.set_executable(gcc)
+    content = batch if sys.platform == "win32" else bash
+    gcc = make_gcc_script(tmpdir, content)
 
     # Set module load to turn compiler on
     def module(*args):
@@ -201,7 +214,7 @@ fi
     compiler.environment = {"set": {"ENV_SET": "1"}}
     compiler.modules = ["turn_on"]
 
-    assert compiler._compile_dummy_c_source() == without_flag_output
+    assert compiler._compile_dummy_c_source().strip() == without_flag_output
 
 
 # Get the desired flag from the specified compiler spec.
@@ -646,22 +659,20 @@ def test_raising_if_compiler_target_is_over_specific(config):
             spack.compilers.get_compilers(cfg, spack.spec.CompilerSpec("gcc@9.0.1"), arch_spec)
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 def test_compiler_get_real_version(working_env, monkeypatch, tmpdir):
     # Test variables
     test_version = "2.2.2"
 
     # Create compiler
-    gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
-        f.write(
-            """#!/bin/sh
-if [ "$CMP_ON" = "1" ]; then
+    content = (
+        """if "%CMP_ON%"=="1" (echo %CMP_VER%)"""
+        if sys.platform == "win32"
+        else """if [ "$CMP_ON" = "1" ]; then
     echo "$CMP_VER"
 fi
 """
-        )
-    fs.set_executable(gcc)
+    )
+    gcc = make_gcc_script(tmpdir, content)
 
     # Add compiler to config
     compiler_info = {
@@ -690,7 +701,7 @@ fi
     assert len(compilers) == 1
     compiler = compilers[0]
     version = compiler.get_real_version()
-    assert version == test_version
+    assert version.strip() == test_version
 
 
 @pytest.mark.regression("42679")
@@ -741,16 +752,15 @@ def test_compiler_get_real_version_fails(working_env, monkeypatch, tmpdir):
     test_version = "2.2.2"
 
     # Create compiler
-    gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
-        f.write(
-            """#!/bin/sh
-if [ "$CMP_ON" = "1" ]; then
+    content = (
+        """if %CMP_ON%=="1" (echo %CMP_VER%)"""
+        if sys.platform == "win32"
+        else """if [ "$CMP_ON" = "1" ]; then
     echo "$CMP_VER"
 fi
 """
-        )
-    fs.set_executable(gcc)
+    )
+    gcc = make_gcc_script(tmpdir, content)
 
     # Add compiler to config
     compiler_info = {
