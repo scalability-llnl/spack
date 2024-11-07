@@ -33,6 +33,7 @@ from llnl.util.symlink import symlink
 from llnl.util.tty.color import colorize
 
 import spack.config
+import spack.directory_layout
 import spack.paths
 import spack.projections
 import spack.relocate
@@ -50,7 +51,7 @@ __all__ = ["FilesystemView", "YamlFilesystemView"]
 _projections_path = ".spack/projections.yaml"
 
 
-LinkCallbackType = Callable[[str, str, "FilesystemView", Optional["spack.spec.Spec"]], None]
+LinkCallbackType = Callable[[str, str, "FilesystemView", Optional[spack.spec.Spec]], None]
 
 
 def view_symlink(src: str, dst: str, *args, **kwargs) -> None:
@@ -62,7 +63,7 @@ def view_hardlink(src: str, dst: str, *args, **kwargs) -> None:
 
 
 def view_copy(
-    src: str, dst: str, view: "FilesystemView", spec: Optional["spack.spec.Spec"] = None
+    src: str, dst: str, view: "FilesystemView", spec: Optional[spack.spec.Spec] = None
 ) -> None:
     """
     Copy a file from src to dst.
@@ -100,10 +101,12 @@ def view_copy(
 
         spack.relocate.relocate_text(files=[dst], prefixes=prefix_to_projection)
 
-    try:
-        os.chown(dst, src_stat.st_uid, src_stat.st_gid)
-    except OSError:
-        tty.debug(f"Can't change the permissions for {dst}")
+    # The os module on Windows does not have a chown function.
+    if sys.platform != "win32":
+        try:
+            os.chown(dst, src_stat.st_uid, src_stat.st_gid)
+        except OSError:
+            tty.debug(f"Can't change the permissions for {dst}")
 
 
 #: supported string values for `link_type` in an env, mapped to canonical values
@@ -158,7 +161,7 @@ class FilesystemView:
     def __init__(
         self,
         root: str,
-        layout: "spack.directory_layout.DirectoryLayout",
+        layout: spack.directory_layout.DirectoryLayout,
         *,
         projections: Optional[Dict] = None,
         ignore_conflicts: bool = False,
@@ -180,7 +183,10 @@ class FilesystemView:
 
         # Setup link function to include view
         self.link_type = link_type
-        self.link = ft.partial(function_for_link_type(link_type), view=self)
+        self._link = function_for_link_type(link_type)
+
+    def link(self, src: str, dst: str, spec: Optional[spack.spec.Spec] = None) -> None:
+        self._link(src, dst, self, spec)
 
     def add_specs(self, *specs, **kwargs):
         """
@@ -281,7 +287,7 @@ class YamlFilesystemView(FilesystemView):
     def __init__(
         self,
         root: str,
-        layout: "spack.directory_layout.DirectoryLayout",
+        layout: spack.directory_layout.DirectoryLayout,
         *,
         projections: Optional[Dict] = None,
         ignore_conflicts: bool = False,

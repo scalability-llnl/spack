@@ -1,0 +1,29 @@
+--- a/Makefile
++++ b/Makefile
+@@ -87,16 +87,16 @@ else
+ INCLUDES = -I$(INC)
+ endif
+ 
+-COMPILE_COMMAND         =  $(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c
+-LIBRARY_LINK_COMMAND    =  $(LIBTOOL) --mode=link  $(CC) -version-info $(VERSION) -rpath $(INSTALLDIR)/lib
+-BUILD_COMMAND_LOCAL     =  $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(INCLUDES)
+-BUILD_COMMAND_DYNAMIC   =  $(LIBTOOL) --mode=link $(CC) $(CFLAGS) -dynamic -I $(INSTALLDIR)/include -L$(INSTALLDIR)/lib
+-BUILD_COMMAND_STATIC    =  $(LIBTOOL) --mode=link $(CC) $(CFLAGS) -static -I $(INSTALLDIR)/include -L$(INSTALLDIR)/lib
+-CPPCOMPILE_COMMAND      =  $(LIBTOOL) --mode=compile $(CXX) $(CPPFLAGS) $(INCLUDES) $(WARNINGS) -c
+-CPPLIBRARY_LINK_COMMAND =  $(LIBTOOL) --mode=link $(CXX) -version-info $(VERSION) -rpath $(INSTALLDIR)/lib
+-CPPBUILD_COMMAND_LOCAL  =  $(LIBTOOL) --mode=link $(CXX) $(CPPFLAGS) $(INCLUDES)
+-CPPBUILD_COMMAND_DYNAMIC=  $(LIBTOOL) --mode=link $(CXX) $(CPPFLAGS) -dynamic -I $(INSTALLDIR)/include -L$(INSTALLDIR)/lib
+-CPPBUILD_COMMAND_STATIC =  $(LIBTOOL) --mode=link $(CXX) $(CPPFLAGS) -static -I $(INSTALLDIR)/include -L$(INSTALLDIR)/lib
++COMPILE_COMMAND         =  $(LIBTOOL) --mode=compile --tag=CC $(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c
++LIBRARY_LINK_COMMAND    =  $(LIBTOOL) --mode=link --tag=CC $(CC) -version-info $(VERSION) -rpath $(INSTALLDIR)/lib
++BUILD_COMMAND_LOCAL     =  $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) $(INCLUDES)
++BUILD_COMMAND_DYNAMIC   =  $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) -dynamic -I $(INSTALLDIR)/include -L$(INSTALLDIR)/lib
++BUILD_COMMAND_STATIC    =  $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) -static -I $(INSTALLDIR)/include -L$(INSTALLDIR)/lib
++CPPCOMPILE_COMMAND      =  $(LIBTOOL) --mode=compile --tag=CXX $(CXX) $(CPPFLAGS) $(INCLUDES) $(WARNINGS) -c
++CPPLIBRARY_LINK_COMMAND =  $(LIBTOOL) --mode=link --tag=CXX $(CXX) -version-info $(VERSION) -rpath $(INSTALLDIR)/lib
++CPPBUILD_COMMAND_LOCAL  =  $(LIBTOOL) --mode=link --tag=CXX $(CXX) $(CPPFLAGS) $(INCLUDES)
++CPPBUILD_COMMAND_DYNAMIC=  $(LIBTOOL) --mode=link --tag=CXX $(CXX) $(CPPFLAGS) -dynamic -I $(INSTALLDIR)/include -L$(INSTALLDIR)/lib
++CPPBUILD_COMMAND_STATIC =  $(LIBTOOL) --mode=link --tag=CXX $(CXX) $(CPPFLAGS) -static -I $(INSTALLDIR)/include -L$(INSTALLDIR)/lib
+ INSTALL_COMMAND         =  $(LIBTOOL) --mode=install cp
+ INSTALL_FINISH_COMMAND  =  $(LIBTOOL) --mode=finish
+ 

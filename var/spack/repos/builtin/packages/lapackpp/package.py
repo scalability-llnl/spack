@@ -11,6 +11,7 @@ from spack.package import *
 _versions = [
     # LAPACK++,     BLAS++
     ["master", "master"],
+    ["2024.10.26", "2024.10.26"],
     ["2024.05.31", "2024.05.31"],
     ["2023.11.05", "2023.11.05"],
     ["2023.08.25", "2023.08.25"],
@@ -37,6 +38,9 @@ class Lapackpp(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version(
+        "2024.10.26", sha256="67f81f585a7ac89b779c79297cab75cc23d2492cb5055c2348381ebdb751821d"
+    )
     version(
         "2024.05.31", sha256="093646d492a4c2c6b4d7001effb559c80da7fa31fd5ba517a6d686ca8c78cd99"
     )
@@ -104,15 +108,15 @@ class Lapackpp(CMakePackage, CudaPackage, ROCmPackage):
 
         backend = "none"
         if self.version >= Version("2022.07.00"):
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 backend = "cuda"
-            if "+rocm" in spec:
+            if spec.satisfies("+rocm"):
                 backend = "hip"
-            if "+sycl" in spec:
+            if spec.satisfies("+sycl"):
                 backend = "sycl"
 
         args = [
-            "-DBUILD_SHARED_LIBS=%s" % ("+shared" in spec),
+            "-DBUILD_SHARED_LIBS=%s" % spec.satisfies("+shared"),
             "-Dbuild_tests=%s" % self.run_tests,
             "-DLAPACK_LIBRARIES=%s" % spec["lapack"].libs.joined(";"),
             "-Dgpu_backend=%s" % backend,

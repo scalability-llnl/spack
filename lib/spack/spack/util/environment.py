@@ -15,7 +15,7 @@ import shlex
 import subprocess
 import sys
 from functools import wraps
-from typing import Any, Callable, Dict, List, MutableMapping, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, MutableMapping, Optional, Tuple, Union
 
 from llnl.path import path_to_os_path, system_path_filter
 from llnl.util import tty
@@ -90,7 +90,7 @@ def is_system_path(path: Path) -> bool:
     return bool(path) and (os.path.normpath(path) in SYSTEM_DIRS)
 
 
-def filter_system_paths(paths: List[Path]) -> List[Path]:
+def filter_system_paths(paths: Iterable[Path]) -> List[Path]:
     """Returns a copy of the input where system paths are filtered out."""
     return [p for p in paths if not is_system_path(p)]
 

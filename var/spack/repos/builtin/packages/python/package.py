@@ -47,7 +47,7 @@ class Python(Package):
     url = "https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz"
     list_url = "https://www.python.org/ftp/python/"
     list_depth = 1
-    tags = ["windows", "build-tools"]
+    tags = ["windows"]
 
     maintainers("skosukhin", "scheibelp")
 
@@ -59,6 +59,7 @@ class Python(Package):
 
     license("0BSD")
 
+    version("3.13.0", sha256="12445c7b3db3126c41190bfdc1c8239c39c719404e844babbd015a1bc3fafcd4")
     version("3.12.5", sha256="38dc4e2c261d49c661196066edbfb70fdb16be4a79cc8220c224dfeb5636d405")
     version("3.12.4", sha256="01b3c1c082196f3b33168d344a9c85fb07bfe0e7ecfe77fee4443420d1ce2ad9")
     version("3.12.3", sha256="a6b9459f45a6ebbbc1af44f5762623fa355a0c87208ed417628b379d762dddb0")
@@ -857,14 +858,14 @@ class Python(Package):
         # * python
         #
         # in that order if using python@3.11.0, for example.
-        version = self.spec.version
-        for ver in [version.up_to(2), version.up_to(1), ""]:
-            if sys.platform != "win32":
-                path = os.path.join(self.prefix.bin, "python{0}".format(ver))
-            else:
-                path = os.path.join(self.prefix, "python{0}.exe".format(ver))
-            if os.path.exists(path):
-                return Executable(path)
+        suffixes = [self.spec.version.up_to(2), self.spec.version.up_to(1), ""]
+        file_extension = "" if sys.platform != "win32" else ".exe"
+        patterns = [f"python{ver}{file_extension}" for ver in suffixes]
+        root = self.prefix.bin if sys.platform != "win32" else self.prefix
+        path = find_first(root, files=patterns)
+
+        if path is not None:
+            return Executable(path)
 
         else:
             # Give a last try at rhel8 platform python
@@ -873,8 +874,9 @@ class Python(Package):
                 if os.path.exists(path):
                     return Executable(path)
 
-            msg = "Unable to locate {0} command in {1}"
-            raise RuntimeError(msg.format(self.name, self.prefix.bin))
+        raise RuntimeError(
+            f"cannot to locate the '{self.name}' command in {root} or its subdirectories"
+        )
 
     @property
     def config_vars(self):

@@ -105,7 +105,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
     @run_after("build")
     def build_docs(self):
-        if "+docs" in self.spec:
+        if self.spec.satisfies("+docs"):
             with working_dir(self.build_directory):
                 make("docs")
 
@@ -118,7 +118,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
     def _get_host_config_path(self, spec):
         var = ""
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             var = "-".join([var, "cuda"])
 
         hostname = socket.gethostname().rstrip("1234567890")
@@ -182,7 +182,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("# CMake executable path: %s\n" % cmake_exe)
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            if "blt" in spec:
+            if spec.satisfies("^blt"):
                 cfg.write(cmake_cache_entry("BLT_SOURCE_DIR", spec["blt"].prefix))
 
             #######################
@@ -199,7 +199,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cflags = " ".join(spec.compiler_flags["cflags"])
             cxxflags = " ".join(spec.compiler_flags["cxxflags"])
 
-            if "%intel" in spec:
+            if spec.satisfies("%intel"):
                 cflags += " -qoverride-limits"
                 cxxflags += " -qoverride-limits"
 
@@ -216,10 +216,10 @@ class Lvarray(CMakePackage, CudaPackage):
             debug_flags = "-O0 -g"
             cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_DEBUG", debug_flags))
 
-            if "%clang arch=linux-rhel7-ppc64le" in spec:
+            if spec.satisfies("%clang arch=linux-rhel7-ppc64le"):
                 cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS", "-Wl,--no-toc-optimize"))
 
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 cfg.write("#{0}\n".format("-" * 80))
                 cfg.write("# Cuda\n")
                 cfg.write("#{0}\n\n".format("-" * 80))
@@ -279,7 +279,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("# Umpire\n")
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            if "+umpire" in spec:
+            if spec.satisfies("+umpire"):
                 cfg.write(cmake_cache_option("ENABLE_UMPIRE", True))
                 cfg.write(cmake_cache_entry("UMPIRE_DIR", spec["umpire"].prefix))
             else:
@@ -289,7 +289,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("# CHAI\n")
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            if "+chai" in spec:
+            if spec.satisfies("+chai"):
                 cfg.write(cmake_cache_option("ENABLE_CHAI", True))
                 cfg.write(cmake_cache_entry("CHAI_DIR", spec["chai"].prefix))
             else:
@@ -299,7 +299,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("# Caliper\n")
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            if "+caliper" in spec:
+            if spec.satisfies("+caliper"):
                 cfg.write("#{0}\n".format("-" * 80))
                 cfg.write("# Caliper\n")
                 cfg.write("#{0}\n\n".format("-" * 80))
@@ -312,7 +312,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Python\n")
             cfg.write("#{0}\n\n".format("-" * 80))
-            if "+pylvarray" in spec:
+            if spec.satisfies("+pylvarray"):
                 cfg.write(cmake_cache_option("ENABLE_PYLVARRAY", True))
                 python_exe = os.path.join(spec["python"].prefix.bin, "python3")
                 cfg.write(cmake_cache_entry("Python3_EXECUTABLE", python_exe))
@@ -322,7 +322,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Documentation\n")
             cfg.write("#{0}\n\n".format("-" * 80))
-            if "+docs" in spec:
+            if spec.satisfies("+docs"):
                 cfg.write(cmake_cache_option("ENABLE_DOCS", True))
                 sphinx_dir = spec["py-sphinx"].prefix
                 cfg.write(
@@ -343,7 +343,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# addr2line\n")
             cfg.write("#{0}\n\n".format("-" * 80))
-            cfg.write(cmake_cache_option("ENABLE_ADDR2LINE", "+addr2line" in spec))
+            cfg.write(cmake_cache_option("ENABLE_ADDR2LINE", spec.satisfies("+addr2line")))
 
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Other\n")
@@ -359,14 +359,14 @@ class Lvarray(CMakePackage, CudaPackage):
         # Shared libs
         options.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
 
-        if "~tests~examples~benchmarks" in spec:
+        if spec.satisfies("~tests~examples~benchmarks"):
             options.append("-DENABLE_TESTS=OFF")
         else:
             options.append("-DENABLE_TESTS=ON")
 
-        if "~test" in spec:
+        if spec.satisfies("~test"):
             options.append("-DDISABLE_UNIT_TESTS=ON")
-        elif "+tests" in spec and ("%intel" in spec or "%xl" in spec):
+        elif spec.satisfies("+tests") and (spec.satisfies("%intel") or spec.satisfies("%xl")):
             warnings.warn(
                 "The LvArray unit tests take an excessive amount of"
                 " time to build with the Intel or IBM compilers."

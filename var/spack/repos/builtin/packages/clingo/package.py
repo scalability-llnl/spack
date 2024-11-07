@@ -76,9 +76,18 @@ class Clingo(CMakePackage):
     patch("clingo_msc_1938_native_handle.patch", when="@:5.7.0 %msvc@19.38:")
 
     def patch(self):
+        # In bootstrap/prototypes/*.json we don't want to have specs that work for any python
+        # version, so this conditional patch lives here instead of being its own directive.
+        if self.spec.satisfies("@spack,5.3:5.4 ^python@3.9:"):
+            filter_file(
+                "if (!PyEval_ThreadsInitialized()) { PyEval_InitThreads(); }",
+                "",
+                "libpyclingo/pyclingo.cc",
+                string=True,
+            )
         # Doxygen is optional but can't be disabled with a -D, so patch
         # it out if it's really supposed to be disabled
-        if "+docs" not in self.spec:
+        if self.spec.satisfies("~docs"):
             filter_file(
                 r"find_package\(Doxygen\)",
                 'message("Doxygen disabled for Spack build.")',

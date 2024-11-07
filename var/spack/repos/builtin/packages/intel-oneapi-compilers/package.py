@@ -28,6 +28,7 @@ versions = [
             "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=amd&version=2025.0.0&filters[]=6.1.0&filters[]=linux",
             "sha256": "8da98029c431495ad787528eadb4dbb5d22daac6",
         },
+
     },
     {
         "version": "2024.2.1",
@@ -495,7 +496,11 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
             llvm_flags.append("-Wno-unused-command-line-argument")
 
         self.write_config_file(common_flags + llvm_flags, self._llvm_bin, ["icx", "icpx"])
-        self.write_config_file(common_flags + classic_flags, self._llvm_bin, ["ifx"])
+        self.write_config_file(
+            common_flags + (llvm_flags if self.spec.satisfies("@2022.1.0:") else classic_flags),
+            self._llvm_bin,
+            ["ifx"],
+        )
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["ifort"])
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["icc", "icpc"])
 

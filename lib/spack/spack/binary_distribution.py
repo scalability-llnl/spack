@@ -35,6 +35,7 @@ from llnl.util.symlink import readlink
 import spack.caches
 import spack.config as config
 import spack.database as spack_db
+import spack.deptypes as dt
 import spack.error
 import spack.hash_types as ht
 import spack.hooks
@@ -251,7 +252,7 @@ class BinaryCacheIndex:
 
             spec_list = [
                 s
-                for s in db.query_local(installed=any, in_buildcache=any)
+                for s in db.query_local(installed=any)
                 if s.external or db.query_local_by_spec_hash(s.dag_hash()).in_buildcache
             ]
 
@@ -712,15 +713,32 @@ def get_buildfile_manifest(spec):
     return data
 
 
-def hashes_to_prefixes(spec):
-    """Return a dictionary of hashes to prefixes for a spec and its deps, excluding externals"""
-    return {
-        s.dag_hash(): str(s.prefix)
+def deps_to_relocate(spec):
+    """Return the transitive link and direct run dependencies of the spec.
+
+    This is a special traversal for dependencies we need to consider when relocating a package.
+
+    Package binaries, scripts, and other files may refer to the prefixes of  dependencies, so
+    we need to rewrite those locations when dependencies are in a different place at install time
+    than they were at build time.
+
+    This traversal covers transitive link dependencies and direct run dependencies because:
+
+    1. Spack adds RPATHs for transitive link dependencies so that packages can find needed
+       dependency libraries.
+    2. Packages may call any of their *direct* run dependencies (and may bake their paths into
+       binaries or scripts), so we also need to search for run dependency prefixes when relocating.
+
+    This returns a deduplicated list of transitive link dependencies and direct run dependencies.
+    """
+    deps = [
+        s
         for s in itertools.chain(
             spec.traverse(root=True, deptype="link"), spec.dependencies(deptype="run")
         )
         if not s.external
-    }
+    ]
+    return llnl.util.lang.dedupe(deps, key=lambda s: s.dag_hash())
 
 
 def get_buildinfo_dict(spec):
@@ -736,7 +754,7 @@ def get_buildinfo_dict(spec):
         "relocate_binaries": manifest["binary_to_relocate"],
         "relocate_links": manifest["link_to_relocate"],
         "hardlinks_deduped": manifest["hardlinks_deduped"],
-        "hash_to_prefix": hashes_to_prefixes(spec),
+        "hash_to_prefix": {d.dag_hash(): str(d.prefix) for d in deps_to_relocate(spec)},
     }
 
 
@@ -1631,7 +1649,6 @@ def _oci_push(
     Dict[str, spack.oci.oci.Blob],
     List[Tuple[Spec, BaseException]],
 ]:
-
     # Spec dag hash -> blob
     checksums: Dict[str, spack.oci.oci.Blob] = {}
 
@@ -2201,11 +2218,36 @@ def relocate_package(spec):
     # First match specific prefix paths. Possibly the *local* install prefix
     # of some dependency is in an upstream, so we cannot assume the original
     # spack store root can be mapped uniformly to the new spack store root.
-    for dag_hash, new_dep_prefix in hashes_to_prefixes(spec).items():
-        if dag_hash in hash_to_old_prefix:
-            old_dep_prefix = hash_to_old_prefix[dag_hash]
-            prefix_to_prefix_bin[old_dep_prefix] = new_dep_prefix
-            prefix_to_prefix_text[old_dep_prefix] = new_dep_prefix
+    #
+    # If the spec is spliced, we need to handle the simultaneous mapping
+    # from the old install_tree to the new install_tree and from the build_spec
+    # to the spliced spec.
+    # Because foo.build_spec is foo for any non-spliced spec, we can simplify
+    # by checking for spliced-in nodes by checking for nodes not in the build_spec
+    # without any explicit check for whether the spec is spliced.
+    # An analog in this algorithm is any spec that shares a name or provides the same virtuals
+    # in the context of the relevant root spec. This ensures that the analog for a spec s
+    # is the spec that s replaced when we spliced.
+    relocation_specs = deps_to_relocate(spec)
+    build_spec_ids = set(id(s) for s in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD))
+    for s in relocation_specs:
+        analog = s
+        if id(s) not in build_spec_ids:
+            analogs = [
+                d
+                for d in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD)
+                if s._splice_match(d, self_root=spec, other_root=spec.build_spec)
+            ]
+            if analogs:
+                # Prefer same-name analogs and prefer higher versions
+                # This matches the preferences in Spec.splice, so we will find same node
+                analog = max(analogs, key=lambda a: (a.name == s.name, a.version))
+
+        lookup_dag_hash = analog.dag_hash()
+        if lookup_dag_hash in hash_to_old_prefix:
+            old_dep_prefix = hash_to_old_prefix[lookup_dag_hash]
+            prefix_to_prefix_bin[old_dep_prefix] = str(s.prefix)
+            prefix_to_prefix_text[old_dep_prefix] = str(s.prefix)
 
     # Only then add the generic fallback of install prefix -> install prefix.
     prefix_to_prefix_text[old_prefix] = new_prefix
@@ -2520,7 +2562,13 @@ def _ensure_common_prefix(tar: tarfile.TarFile) -> str:
     return pkg_prefix
 
 
-def install_root_node(spec, unsigned=False, force=False, sha256=None):
+def install_root_node(
+    spec: spack.spec.Spec,
+    unsigned=False,
+    force: bool = False,
+    sha256: Optional[str] = None,
+    allow_missing: bool = False,
+) -> None:
     """Install the root node of a concrete spec from a buildcache.
 
     Checking the sha256 sum of a node before installation is usually needed only
@@ -2529,11 +2577,10 @@ def install_root_node(spec, unsigned=False, force=False, sha256=None):
 
     Args:
         spec: spec to be installed (note that only the root node will be installed)
-        unsigned (bool): if True allows installing unsigned binaries
-        force (bool): force installation if the spec is already present in the
-            local store
-        sha256 (str): optional sha256 of the binary package, to be checked
-            before installation
+        unsigned: if True allows installing unsigned binaries
+        force: force installation if the spec is already present in the local store
+        sha256: optional sha256 of the binary package, to be checked before installation
+        allow_missing: when true, allows installing a node with missing dependencies
     """
     # Early termination
     if spec.external or spec.virtual:
@@ -2543,10 +2590,10 @@ def install_root_node(spec, unsigned=False, force=False, sha256=None):
         warnings.warn("Package for spec {0} already installed.".format(spec.format()))
         return
 
-    download_result = download_tarball(spec, unsigned)
+    download_result = download_tarball(spec.build_spec, unsigned)
     if not download_result:
         msg = 'download of binary cache file for spec "{0}" failed'
-        raise RuntimeError(msg.format(spec.format()))
+        raise RuntimeError(msg.format(spec.build_spec.format()))
 
     if sha256:
         checker = spack.util.crypto.Checker(sha256)
@@ -2565,8 +2612,13 @@ def install_root_node(spec, unsigned=False, force=False, sha256=None):
     with spack.util.path.filter_padding():
         tty.msg('Installing "{0}" from a buildcache'.format(spec.format()))
         extract_tarball(spec, download_result, force)
+        spec.package.windows_establish_runtime_linkage()
+        if spec.spliced:  # overwrite old metadata with new
+            spack.store.STORE.layout.write_spec(
+                spec, spack.store.STORE.layout.spec_file_path(spec)
+            )
         spack.hooks.post_install(spec, False)
-        spack.store.STORE.db.add(spec)
+        spack.store.STORE.db.add(spec, allow_missing=allow_missing)
 
 
 def install_single_spec(spec, unsigned=False, force=False):
