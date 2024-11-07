@@ -30,7 +30,10 @@ class Glx(BundlePackage):
 
     @property
     def gl_headers(self):
-        return find_headers("gl", root=self.gl_home, recursive=True)
+        header = find_headers("gl", root=self.gl_home, recursive=True)
+        # Filter the prefix to avoid picking up GL headers _not_ provided by
+        # OpenGL (ie. hwloc)
+        return [h for h in header if "GL" in h]
 
     @property
     def gl_libs(self):

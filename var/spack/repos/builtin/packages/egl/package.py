@@ -77,10 +77,15 @@ class Egl(BundlePackage):
 
     @property
     def egl_headers(self):
-        header_name = "GL/gl"
+        header_name = "gl"
         gl_header = find_headers(header_name, root=self.prefix, recursive=True)
-        header_name = "EGL/egl"
+        header_name = "egl"
         egl_header = find_headers(header_name, root=self.prefix, recursive=True)
+
+        # Filter the prefix to avoid picking up GL/EGL headers _not_ provided by
+        # OpenGL (ie. hwloc)
+        gl_header = [h for h in gl_header if "GL/" in h]
+        egl_header = [h for h in egl_header if "EGL/" in h]
         return gl_header + egl_header
 
     @property

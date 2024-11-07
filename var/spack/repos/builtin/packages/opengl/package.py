@@ -92,12 +92,14 @@ class Opengl(BundlePackage):
 
     @property
     def gl_headers(self):
+        headers = find_headers("gl", root=self.prefix, recursive=True)
+        # Filter the prefix to avoid picking up gl.h headers _not_ provided by
+        # OpenGL (ie. hwloc)
         spec = self.spec
+        header_prefix = "GL/"
         if "platform=darwin" in spec:
-            header_name = "OpenGL/gl"
-        else:
-            header_name = "GL/gl"
-        return find_headers(header_name, root=self.prefix, recursive=True)
+            header_prefix = "OpenGL/"
+        return [h for h in headers if header_prefix in h]
 
     @property
     def gl_libs(self):
