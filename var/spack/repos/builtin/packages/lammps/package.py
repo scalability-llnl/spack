@@ -6,6 +6,7 @@ import datetime as dt
 import os
 
 from spack.build_environment import optimization_flags
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -1003,5 +1004,4 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
                 os.environ["LAMMPS_VERSION_FILE"] = join_path(
                     self.stage.source_path, "src", "version.h"
                 )
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

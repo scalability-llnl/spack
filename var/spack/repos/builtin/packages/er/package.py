@@ -19,6 +19,7 @@ class Er(CMakePackage):
     license("MIT")
 
     version("main", branch="main")
+    version("0.5.0", sha256="dbde4da1fe115b67334085446d413f7365ba94c0a34cb1c38b83944e8fba4d0b")
     version("0.4.0", sha256="6cb5b6724ddac5c1f5ed6b326a5f3bf5d4eb1c6958a48218e6ca9bb7c02e48a8")
     version("0.3.0", sha256="01bc71bfb2ebb015ccb948f2bb9138b70972a3e8be0e53f9a4844e46b106a36c")
     version("0.2.0", sha256="9ddfe2b63682ed0e89685f9b7d5259ef82b802aba55c8ee78cc15a7adbad6bc0")

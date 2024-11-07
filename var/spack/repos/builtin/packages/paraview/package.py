@@ -325,6 +325,9 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/8474
     depends_on("proj@8.1.0", when="@5.11:")
 
+    # Patches to vendored VTK-m are needed for forward compat with CUDA 12 (mr 2972 and 3259)
+    depends_on("cuda@:11", when="+cuda")
+
     patch("stl-reader-pv440.patch", when="@4.4.0")
 
     # Broken gcc-detection - improved in 5.1.0, redundant later
