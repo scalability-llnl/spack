@@ -2195,7 +2195,7 @@ def find_all_headers(root):
     Returns:
         List of all headers found in ``root`` and subdirectories.
     """
-    return find_headers("*", root=root, recursive=True)
+    return find_headers("*", root=root, recursive=True, heuristic=False, max_depth=sys.maxsize)
 
 
 class LibraryList(FileList):
