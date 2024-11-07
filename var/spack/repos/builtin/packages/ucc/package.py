@@ -46,9 +46,6 @@ class Ucc(AutotoolsPackage, CudaPackage, ROCmPackage):
             depends_on(
                 "nccl +cuda cuda_arch={0}".format(arch), when="+cuda cuda_arch={0}".format(arch)
             )
-    # The hip path is not properly set when the ROCM_PARSE_FLAGS function is used.
-    # This patch adds the option of a hip_path flag that will set it
-    patch("0001-set_hip_path.patch")
 
     def autoreconf(self, spec, prefix):
         Executable("./autogen.sh")()
@@ -58,17 +55,23 @@ class Ucc(AutotoolsPackage, CudaPackage, ROCmPackage):
         args.extend(self.with_or_without("cuda", activation_value="prefix"))
         args.extend(self.with_or_without("nccl", activation_value="prefix"))
         if self.spec.satisfies("+rocm"):
-            rocm_flags = " ".join(
-                [
-                    "-I" + self.spec["hip"].prefix.include,
-                    "-I" + self.spec["hip"].prefix.include.hip,
-                    "-I" + self.spec["hsa-rocr-dev"].prefix.include.hsa,
-                    "-L" + self.spec["hip"].prefix.lib,
-                    "-L" + self.spec["hsa-rocr-dev"].prefix.lib,
-                    "hip_path=" + self.spec["hip"].prefix,
-                ]
+            cppflags = " ".join(
+                "-I" + include_dir
+                for include_dir in (
+                    self.spec["hip"].prefix.include,
+                    self.spec["hip"].prefix.include.hip,
+                    self.spec["hsa-rocr-dev"].prefix.include.hsa,
+                )
             )
-            args.append("--with-rocm=" + rocm_flags)
+            ldflags = " ".join(
+                "-L" + library_dir
+                for library_dir in (
+                    self.spec["hip"].prefix.lib,
+                    self.spec["hsa-rocr-dev"].prefix.lib,
+                )
+            )
+            args.extend(["CPPFLAGS=" + cppflags, "LDFLAGS=" + ldflags])
+            args.append("--with-rocm=" + self.spec["hip"].prefix)
             args.append("--with-ucx=" + self.spec["ucx"].prefix)
         else:
             args.append("--without-rocm")
