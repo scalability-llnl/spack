@@ -373,18 +373,3 @@ def test_deprecated_property():
     _SomeClass.deprecated.error_lvl = 2
     with pytest.raises(AttributeError):
         _ = s.deprecated
-
-
-def test_fnmatch_multiple():
-    regex, groups = llnl.util.lang.fnmatch_translate_multiple(["libf*o.so", "libb*r.so"])
-
-    a = regex.match("libfoo.so")
-    assert a and a.group(groups[0]) == "libfoo.so"
-
-    b = regex.match("libbar.so")
-    assert b and b.group(groups[1]) == "libbar.so"
-
-    assert not regex.match("libfoo.so.1")
-    assert not regex.match("libbar.so.1")
-    assert not regex.match("libfoo.solibbar.so")
-    assert not regex.match("libbaz.so")
