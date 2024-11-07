@@ -299,9 +299,9 @@ def test_library_type_search(lib_list, kwargs):
 )
 def test_searching_order(search_fn, search_list, root, kwargs):
     """Tests whether when multiple libraries or headers are searched for, like [a, b], the found
-    file list adheres to the same ordering: [a matches..., b matches...], which could be relevant
-    of the the order in which the libraries are passed to the linker in case there are
-    dependencies across static libraries."""
+    file list adheres to the same ordering: [a matches..., b matches...], which is relevant in case
+    of dependencies across static libraries, and we want to ensure they are passed in the correct
+    order to the linker."""
     # Test search
     result = search_fn(search_list, str(root), **kwargs)
 
