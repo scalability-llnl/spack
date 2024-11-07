@@ -402,10 +402,6 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
             if nvidia_script:
                 if platform.system() == "Linux":
                     bash = Executable("bash")
-                    # Installer writes files in ~/intel set HOME so it goes to prefix
-                    bash.add_default_env("HOME", prefix)
-                    # Installer checks $XDG_RUNTIME_DIR/.bootstrapper_lock_file as well
-                    bash.add_default_env("XDG_RUNTIME_DIR", join_path(self.stage.path, "runtime"))
                     # For NVIDIA plugin installer
                     bash(nvidia_script[0], "-y", "--install-dir", self.prefix)
         if self.spec.satisfies("+amd"):
@@ -413,10 +409,6 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
             if amd_script:
                 if platform.system() == "Linux":
                     bash = Executable("bash")
-                    # Installer writes files in ~/intel set HOME so it goes to prefix
-                    bash.add_default_env("HOME", prefix)
-                    # Installer checks $XDG_RUNTIME_DIR/.bootstrapper_lock_file as well
-                    bash.add_default_env("XDG_RUNTIME_DIR", join_path(self.stage.path, "runtime"))
                     # For AMD plugin installer
                     bash(amd_script[0], "-y", "--install-dir", self.prefix)
 
