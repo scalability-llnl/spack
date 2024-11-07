@@ -99,6 +99,13 @@ or refer to the full manual below.
 
 .. toctree::
    :maxdepth: 2
+   :caption: Testimonials
+
+   in_the_news
+   user_reports
+
+.. toctree::
+   :maxdepth: 2
    :caption: API Docs
 
    Spack API Docs <spack>
