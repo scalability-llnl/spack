@@ -427,6 +427,10 @@ class Configuration:
             self.push_scope(scope)
         self.format_updates: Dict[str, List[ConfigScope]] = collections.defaultdict(list)
 
+    def ensure_unwrapped(self) -> "Configuration":
+        """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
+        return self
+
     @_config_mutator
     def push_scope(self, scope: ConfigScope) -> None:
         """Add a higher precedence scope to the Configuration."""
@@ -752,10 +756,6 @@ def override(
         assert scope is overrides
 
 
-#: configuration scopes added on the command line set by ``spack.main.main()``
-COMMAND_LINE_SCOPES: List[str] = []
-
-
 def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool = True) -> None:
     """Add a platform-specific subdirectory for the current platform."""
     platform = spack.platforms.host().name
@@ -859,13 +859,6 @@ def create() -> Configuration:
 
         # Each scope can have per-platfom overrides in subdirectories
         _add_platform_scope(cfg, name, path)
-
-    # add command-line scopes
-    _add_command_line_scopes(cfg, COMMAND_LINE_SCOPES)
-
-    # we make a special scope for spack commands so that they can
-    # override configuration options.
-    cfg.push_scope(InternalConfigScope("command_line"))
 
     return cfg
 

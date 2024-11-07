@@ -10,8 +10,11 @@ from typing import Iterable, Optional, Sequence, Tuple, Union
 
 import llnl.util.tty as tty
 
+import spack.compilers
 import spack.config
 import spack.error
+import spack.repo
+import spack.util.parallel
 from spack.spec import ArchSpec, CompilerSpec, Spec
 
 CHECK_COMPILER_EXISTENCE = True
@@ -87,6 +90,8 @@ def concretize_together_when_possible(
         tests: list of package names for which to consider tests dependencies. If True, all nodes
             will have test dependencies. If False, test dependencies will be disregarded.
     """
+    import spack.solver.asp
+
     to_concretize = [concrete if concrete else abstract for abstract, concrete in spec_list]
     old_concrete_to_abstract = {
         concrete: abstract for (abstract, concrete) in spec_list if concrete
@@ -119,6 +124,8 @@ def concretize_separately(
         tests: list of package names for which to consider tests dependencies. If True, all nodes
             will have test dependencies. If False, test dependencies will be disregarded.
     """
+    import spack.bootstrap
+
     to_concretize = [abstract for abstract, concrete in spec_list if not concrete]
     args = [
         (i, str(abstract), tests)
@@ -155,11 +162,7 @@ def concretize_separately(
 
     for j, (i, concrete, duration) in enumerate(
         spack.util.parallel.imap_unordered(
-            spack.concretize._concretize_task,
-            args,
-            processes=num_procs,
-            debug=tty.is_debug(),
-            maxtaskperchild=1,
+            _concretize_task, args, processes=num_procs, debug=tty.is_debug(), maxtaskperchild=1
         )
     ):
         ret.append((i, concrete))
