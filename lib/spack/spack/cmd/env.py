@@ -490,8 +490,6 @@ def env_track(args):
 #
 # env remove & untrack helpers
 #
-
-
 def filter_managed_env_names(env_names: Set[str]) -> Set[str]:
     tracked_env_names = {e for e in env_names if islink(ev.environment_dir_from_name(e))}
     managed_env_names = env_names - set(tracked_env_names)
@@ -548,7 +546,10 @@ def _env_untrack_or_remove(
     else:
         env_names_to_remove = known_env_names
 
+    # initalize all environments with valid spack.yaml configs
     all_valid_envs = get_valid_envs(all_env_names)
+
+    # build a task list of environments and bad env names to remove
     envs_to_remove = [e for e in all_valid_envs if e.name in env_names_to_remove]
     bad_env_names_to_remove = env_names_to_remove - {e.name for e in envs_to_remove}
     for remove_env in envs_to_remove:
@@ -566,6 +567,8 @@ def _env_untrack_or_remove(
                     tty.error(msg)
                     envs_to_remove.remove(remove_env)
 
+    # ask the user if they really want to remove the known environments
+    # force should do the same as yes to all here following the symantics of rm
     if not (yes_to_all or force) and (envs_to_remove or bad_env_names_to_remove):
         environments = string.plural(len(env_names_to_remove), "environment", show_n=False)
         envs = string.comma_and(list(env_names_to_remove))
@@ -575,6 +578,7 @@ def _env_untrack_or_remove(
         if not answer:
             tty.die("Will not remove any environments")
 
+    # keep track of the environments we remove for later printing the exit code
     removed_env_names = []
     for env in envs_to_remove:
         name = env.name
@@ -606,6 +610,10 @@ def _env_untrack_or_remove(
         tty.msg(f"Successfully removed environment '{bad_env_name}'")
         removed_env_names.append(env.name)
 
+    # Following the design of linux rm we should exit with a status of 1
+    # anytime we cannot delete every environment the user asks for.
+    # However, we should still process all the environments we know about
+    # and delete them instead of failing on the first unknown enviornment.
     if len(removed_env_names) < len(known_env_names):
         sys.exit(1)
 
