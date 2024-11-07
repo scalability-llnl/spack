@@ -5,12 +5,15 @@
 
 import collections.abc
 import contextlib
+import fnmatch
 import functools
 import itertools
 import os
 import re
 import sys
 import traceback
+import typing
+import warnings
 from datetime import datetime, timedelta
 from typing import Callable, Iterable, List, Tuple, TypeVar
 
@@ -858,6 +861,32 @@ def elide_list(line_list: List[str], max_num: int = 10) -> List[str]:
     return line_list
 
 
+if sys.version_info >= (3, 9):
+    PatternStr = re.Pattern[str]
+else:
+    PatternStr = typing.Pattern[str]
+
+
+def fnmatch_translate_multiple(patterns: List[str]) -> Tuple[PatternStr, List[str]]:
+    """Same as fnmatch.translate, but creates a single regex of the form
+    ``(?P<pattern0>...)|(?P<pattern1>...)|...`` for each pattern in the iterable, where
+    ``patternN`` is a named capture group that matches the corresponding pattern translated by
+    ``fnmatch.translate``. This can be used to match multiple patterns in a single pass. No case
+    normalization is performed on the patterns.
+
+    Args:
+        patterns: list of fnmatch patterns
+
+    Returns:
+        Tuple of the combined regex and the list of named capture groups corresponding to each
+        pattern in the input list.
+    """
+    groups = [f"pattern{i}" for i in range(len(patterns))]
+    regexes = (fnmatch.translate(p) for p in patterns)
+    combined = re.compile("|".join(f"(?P<{g}>{r})" for g, r in zip(groups, regexes)))
+    return combined, groups
+
+
 @contextlib.contextmanager
 def nullcontext(*args, **kwargs):
     """Empty context manager.
@@ -868,15 +897,6 @@ def nullcontext(*args, **kwargs):
 
 class UnhashableArguments(TypeError):
     """Raise when an @memoized function receives unhashable arg or kwarg values."""
-
-
-def enum(**kwargs):
-    """Return an enum-like class.
-
-    Args:
-        **kwargs: explicit dictionary of enums
-    """
-    return type("Enum", (object,), kwargs)
 
 
 T = TypeVar("T")
@@ -912,6 +932,21 @@ def ensure_last(lst, *elements):
     Raises ``ValueError`` if any ``elements`` are not already in ``lst``."""
     for elt in elements:
         lst.append(lst.pop(lst.index(elt)))
+
+
+class Const:
+    """Class level constant, raises when trying to set the attribute"""
+
+    __slots__ = ["value"]
+
+    def __init__(self, value):
+        self.value = value
+
+    def __get__(self, instance, owner):
+        return self.value
+
+    def __set__(self, instance, value):
+        raise TypeError(f"Const value does not support assignment [value={self.value}]")
 
 
 class TypedMutableSequence(collections.abc.MutableSequence):
@@ -1018,3 +1053,42 @@ class classproperty:
 
     def __get__(self, instance, owner):
         return self.callback(owner)
+
+
+class DeprecatedProperty:
+    """Data descriptor to error or warn when a deprecated property is accessed.
+
+    Derived classes must define a factory method to return an adaptor for the deprecated
+    property, if the descriptor is not set to error.
+    """
+
+    __slots__ = ["name"]
+
+    #: 0 - Nothing
+    #: 1 - Warning
+    #: 2 - Error
+    error_lvl = 0
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        if self.error_lvl == 1:
+            warnings.warn(
+                f"accessing the '{self.name}' property of '{instance}', which is deprecated"
+            )
+        elif self.error_lvl == 2:
+            raise AttributeError(f"cannot access the '{self.name}' attribute of '{instance}'")
+
+        return self.factory(instance, owner)
+
+    def __set__(self, instance, value):
+        raise TypeError(
+            f"the deprecated property '{self.name}' of '{instance}' does not support assignment"
+        )
+
+    def factory(self, instance, owner):
+        raise NotImplementedError("must be implemented by derived classes")

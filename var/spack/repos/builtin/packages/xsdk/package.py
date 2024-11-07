@@ -216,7 +216,7 @@ class Xsdk(BundlePackage, CudaPackage, ROCmPackage):
 
     xsdk_depends_on("omega-h +trilinos", when="+trilinos +omega-h")
     xsdk_depends_on("omega-h ~trilinos", when="~trilinos +omega-h")
-    xsdk_depends_on("omega-h@scorec.10.6.0", when="@1.0.0 +omega-h")
+    xsdk_depends_on("omega-h@10.6.0", when="@1.0.0 +omega-h")
     xsdk_depends_on("omega-h@9.34.13", when="@0.8.0 +omega-h")
 
     xsdk_depends_on("strumpack ~cuda", when="~cuda +strumpack")

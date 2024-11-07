@@ -347,7 +347,7 @@ complete -c spack --erase
 # Everything below here is auto-generated.
 
 # spack
-set -g __fish_spack_optspecs_spack h/help H/all-help color= c/config= C/config-scope= d/debug timestamp pdb e/env= D/env-dir= E/no-env use-env-repo k/insecure l/enable-locks L/disable-locks m/mock b/bootstrap p/profile sorted-profile= lines= v/verbose stacktrace backtrace V/version print-shell-vars=
+set -g __fish_spack_optspecs_spack h/help H/all-help color= c/config= C/config-scope= d/debug timestamp pdb e/env= D/env-dir= E/no-env use-env-repo k/insecure l/enable-locks L/disable-locks m/mock b/bootstrap p/profile sorted-profile= lines= v/verbose stacktrace t/backtrace V/version print-shell-vars=
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a add -d 'add a spec to an environment'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a arch -d 'print architecture information about this machine'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a audit -d 'audit configuration files, packages, etc.'
@@ -473,8 +473,8 @@ complete -c spack -n '__fish_spack_using_command ' -s v -l verbose -f -a verbose
 complete -c spack -n '__fish_spack_using_command ' -s v -l verbose -d 'print additional output during builds'
 complete -c spack -n '__fish_spack_using_command ' -l stacktrace -f -a stacktrace
 complete -c spack -n '__fish_spack_using_command ' -l stacktrace -d 'add stacktraces to all printed statements'
-complete -c spack -n '__fish_spack_using_command ' -l backtrace -f -a backtrace
-complete -c spack -n '__fish_spack_using_command ' -l backtrace -d 'always show backtraces for exceptions'
+complete -c spack -n '__fish_spack_using_command ' -s t -l backtrace -f -a backtrace
+complete -c spack -n '__fish_spack_using_command ' -s t -l backtrace -d 'always show backtraces for exceptions'
 complete -c spack -n '__fish_spack_using_command ' -s V -l version -f -a version
 complete -c spack -n '__fish_spack_using_command ' -s V -l version -d 'show version number and exit'
 complete -c spack -n '__fish_spack_using_command ' -l print-shell-vars -r -f -a print_shell_vars
@@ -2747,12 +2747,16 @@ complete -c spack -n '__fish_spack_using_command restage' -s h -l help -f -a hel
 complete -c spack -n '__fish_spack_using_command restage' -s h -l help -d 'show this help message and exit'
 
 # spack solve
-set -g __fish_spack_optspecs_spack_solve h/help show= l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json c/cover= t/types timers stats U/fresh reuse fresh-roots deprecated
+set -g __fish_spack_optspecs_spack_solve h/help show= timers stats l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json format= c/cover= t/types U/fresh reuse fresh-roots deprecated
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 solve' -f -k -a '(__fish_spack_specs_or_id)'
 complete -c spack -n '__fish_spack_using_command solve' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command solve' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command solve' -l show -r -f -a show
 complete -c spack -n '__fish_spack_using_command solve' -l show -r -d 'select outputs'
+complete -c spack -n '__fish_spack_using_command solve' -l timers -f -a timers
+complete -c spack -n '__fish_spack_using_command solve' -l timers -d 'print out timers for different solve phases'
+complete -c spack -n '__fish_spack_using_command solve' -l stats -f -a stats
+complete -c spack -n '__fish_spack_using_command solve' -l stats -d 'print out statistics from clingo'
 complete -c spack -n '__fish_spack_using_command solve' -s l -l long -f -a long
 complete -c spack -n '__fish_spack_using_command solve' -s l -l long -d 'show dependency hashes as well as versions'
 complete -c spack -n '__fish_spack_using_command solve' -s L -l very-long -f -a very_long
@@ -2764,17 +2768,15 @@ complete -c spack -n '__fish_spack_using_command solve' -s I -l install-status -
 complete -c spack -n '__fish_spack_using_command solve' -l no-install-status -f -a install_status
 complete -c spack -n '__fish_spack_using_command solve' -l no-install-status -d 'do not show install status annotations'
 complete -c spack -n '__fish_spack_using_command solve' -s y -l yaml -f -a format
-complete -c spack -n '__fish_spack_using_command solve' -s y -l yaml -d 'print concrete spec as yaml'
+complete -c spack -n '__fish_spack_using_command solve' -s y -l yaml -d 'print concrete spec as YAML'
 complete -c spack -n '__fish_spack_using_command solve' -s j -l json -f -a format
-complete -c spack -n '__fish_spack_using_command solve' -s j -l json -d 'print concrete spec as json'
+complete -c spack -n '__fish_spack_using_command solve' -s j -l json -d 'print concrete spec as JSON'
+complete -c spack -n '__fish_spack_using_command solve' -l format -r -f -a format
+complete -c spack -n '__fish_spack_using_command solve' -l format -r -d 'print concrete spec with the specified format string'
 complete -c spack -n '__fish_spack_using_command solve' -s c -l cover -r -f -a 'nodes edges paths'
 complete -c spack -n '__fish_spack_using_command solve' -s c -l cover -r -d 'how extensively to traverse the DAG (default: nodes)'
 complete -c spack -n '__fish_spack_using_command solve' -s t -l types -f -a types
 complete -c spack -n '__fish_spack_using_command solve' -s t -l types -d 'show dependency types'
-complete -c spack -n '__fish_spack_using_command solve' -l timers -f -a timers
-complete -c spack -n '__fish_spack_using_command solve' -l timers -d 'print out timers for different solve phases'
-complete -c spack -n '__fish_spack_using_command solve' -l stats -f -a stats
-complete -c spack -n '__fish_spack_using_command solve' -l stats -d 'print out statistics from clingo'
 complete -c spack -n '__fish_spack_using_command solve' -s U -l fresh -f -a concretizer_reuse
 complete -c spack -n '__fish_spack_using_command solve' -s U -l fresh -d 'do not reuse installed deps; build newest configuration'
 complete -c spack -n '__fish_spack_using_command solve' -l reuse -f -a concretizer_reuse

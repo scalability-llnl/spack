@@ -2,6 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -143,8 +144,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             python("setup.py", "build_ext", *args)
 
     def install(self, pkg, spec, prefix):
-        pip_args = std_pip_args + [f"--prefix={prefix}", "."]
-        pip(*pip_args)
+        pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         super().install(pkg, spec, prefix)
 
     @run_after("install")
