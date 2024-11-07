@@ -17,6 +17,7 @@ from llnl.util.lang import attr_setdefault, index_by
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
 
+import spack.concretize
 import spack.config  # breaks a cycle.
 import spack.environment as ev
 import spack.error
