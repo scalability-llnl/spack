@@ -74,7 +74,7 @@ def test_query_arguments():
     assert "explicit" in q_args
     assert q_args["installed"] == ["installed"]
     assert q_args["predicate_fn"] is None
-    assert q_args["explicit"] is any
+    assert q_args["explicit"] is None
     assert "start_date" in q_args
     assert "end_date" not in q_args
     assert q_args["install_tree"] == "all"

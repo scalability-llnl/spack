@@ -33,8 +33,14 @@ properties: Dict[str, Any] = {
                                     "properties": {
                                         "type": {
                                             "type": "string",
-                                            "enum": ["local", "buildcache", "external"],
+                                            "enum": [
+                                                "local",
+                                                "buildcache",
+                                                "external",
+                                                "environment",
+                                            ],
                                         },
+                                        "path": {"type": "string"},
                                         "include": LIST_OF_SPECS,
                                         "exclude": LIST_OF_SPECS,
                                     },

@@ -17,6 +17,7 @@ class RServr(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("0.30", sha256="43f920161408871a042462b7c3353149a608941253541a19a9ce3408f9882d40")
     version("0.26", sha256="7588d7e00d5b2f77b0737f164f3d7b0ba7b1e8b60c0372a1d6452096e2d2031c")
     version("0.25", sha256="e6ae0d4c09e9037268b1c291c36c93ba0a74c31fe2fcb1f0652b2ae9fca5e73c")
     version("0.24", sha256="d94e1d31802ce6bbab7a5838ff94cbca8cd998237d834ff25fedf7514f41a087")
@@ -26,4 +27,5 @@ class RServr(RPackage):
     depends_on("r-mime@0.2:", type=("build", "run"))
     depends_on("r-httpuv@1.5.2:", type=("build", "run"))
     depends_on("r-xfun", type=("build", "run"))
+    depends_on("r-xfun@0.42:", type=("build", "run"), when="@0.29:")
     depends_on("r-jsonlite", type=("build", "run"))

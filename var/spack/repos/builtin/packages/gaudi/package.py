@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import sys
+
 from spack.package import *
 
 
@@ -124,7 +126,8 @@ class Gaudi(CMakePackage):
     depends_on("cppunit", when="+cppunit")
     depends_on("doxygen +graphviz", when="+docs")
     depends_on("gperftools", when="+gperftools")
-    depends_on("gdb")
+    # gdb is optional, but useful to have as gaudi adds hooks for it if present during build
+    depends_on("gdb", when=sys.platform != "darwin")
     depends_on("heppdt", when="+heppdt")
     depends_on("jemalloc", when="+jemalloc")
     depends_on("libunwind", when="+unwind")

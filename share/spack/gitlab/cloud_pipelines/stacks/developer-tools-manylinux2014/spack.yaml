@@ -5,6 +5,7 @@ spack:
       require: target=x86_64_v3
   concretizer:
     unify: true
+    reuse: false
   definitions:
   - default_specs:
       # editors

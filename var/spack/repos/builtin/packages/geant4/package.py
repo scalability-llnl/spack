@@ -84,6 +84,40 @@ class Geant4(CMakePackage):
     variant("timemory", default=False, description="Use TiMemory for profiling", when="@9.5:")
     variant("vtk", default=False, description="Enable VTK support", when="@11:")
 
+    # For most users, obtaining the Geant4 data via Spack will be useful; the
+    # sticky, default-enabled `+data` variant ensures that this happens.
+    # Furthermore, if this variant is enabled, Spack will automatically set the
+    # necessary environment variables to ensure that the Geant4 code runs
+    # correctly.
+    #
+    # However, the Geant4 data is also large and it is, on many machines used
+    # in HEP, already available via e.g. CVMFS. In these cases, users can save
+    # network bandwidth by using externally supplied Geant4 data. This can be
+    # done in two different ways.
+    #
+    # The first is to declare the Geant4 data directories as externals. This
+    # can be done by manually adding them to the `packages.yaml` file, e.g.:
+    #
+    # ```
+    # g4radioactivedecay:
+    #   externals:
+    #   - spec: g4radioactivedecay@5.6
+    #     prefix: <PREFIX>
+    #     buildable: False
+    # ```
+    #
+    # Where <PREFIX> is a path such that <PREFIX>/share/data/<DATASET><VERSION>
+    # exists.
+    #
+    # Alternatively, the `~data` variant can be supplied; in this case, Spack
+    # will not attempt to use the `geant4-data` spec at all. It is then
+    # essential to set up the `GEANT4_DATA_DIR` environment variable manually
+    # at runtime; see the Geant4 installation guide for more information:
+    # https://geant4-userdoc.web.cern.ch/UsersGuides/InstallationGuide/html/postinstall.html
+    variant(
+        "data", default=True, sticky=True, description="Enable downloading of the data directory"
+    )
+
     depends_on("cmake@3.16:", type="build", when="@11.0.0:")
     depends_on("cmake@3.8:", type="build", when="@10.6.0:")
     depends_on("cmake@3.5:", type="build")
@@ -109,7 +143,7 @@ class Geant4(CMakePackage):
         "11.2.2:11.2",
         "11.3:",
     ]:
-        depends_on("geant4-data@" + _vers, type="run", when="@" + _vers)
+        depends_on("geant4-data@" + _vers, type="run", when="+data @" + _vers)
 
     depends_on("expat")
     depends_on("zlib-api")
@@ -301,7 +335,8 @@ class Geant4(CMakePackage):
         # geant4-data's install directory to correctly set up the
         # Geant4Config.cmake values for Geant4_DATASETS .
         options.append(self.define("GEANT4_INSTALL_DATA", False))
-        options.append(self.define("GEANT4_INSTALL_DATADIR", self.datadir))
+        if spec.satisfies("+data"):
+            options.append(self.define("GEANT4_INSTALL_DATADIR", self.datadir))
 
         # Vecgeom
         if spec.satisfies("+vecgeom"):
