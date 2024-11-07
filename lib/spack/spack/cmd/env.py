@@ -532,7 +532,7 @@ def get_valid_envs(env_names: Set[str]) -> Set[ev.Environment]:
 
 def _env_untrack_or_remove(
     env_names: List[str], remove: bool = False, force: bool = False, yes_to_all: bool = False
-) -> List[str]:
+):
     all_env_names = set(ev.all_environment_names())
     known_env_names = set(env_names).intersection(all_env_names)
     unknown_env_names = set(env_names) - known_env_names
@@ -568,7 +568,7 @@ def _env_untrack_or_remove(
 
     if not (yes_to_all or force) and (envs_to_remove or bad_env_names_to_remove):
         environments = string.plural(len(env_names_to_remove), "environment", show_n=False)
-        envs = string.comma_and(env_names_to_remove)
+        envs = string.comma_and(list(env_names_to_remove))
         answer = tty.get_yes_or_no(
             f"Really {'remove' if remove else 'untrack'} {environments} {envs}?", default=False
         )
