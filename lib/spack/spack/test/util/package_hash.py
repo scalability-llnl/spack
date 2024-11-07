@@ -175,6 +175,9 @@ class ManyDocstrings:
     def method2():
         """ELEVEN"""
         return "TWELVE"
+
+def empty_func():
+    """THIRTEEN"""
 '''
 
 many_strings_no_docstrings = """\
@@ -190,6 +193,9 @@ class ManyDocstrings:
 
     def method2():
         return 'TWELVE'
+
+def empty_func():
+    pass
 """
 
 
