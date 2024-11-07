@@ -507,13 +507,32 @@ def provides(*specs: SpecType, when: WhenType = None):
 
 @directive("splice_specs")
 def can_splice(
-    spec: SpecType, when: WhenType = None, match_variants: Union[None, str, List[str]] = None
+    target: SpecType, when: WhenType = None, match_variants: Union[None, str, List[str]] = None
 ):
+    """Packages can declare whether they are ABI-compatible with another package
+    and thus can be spliced into concrete versions of that package.
+
+    Args:
+        target: The spec that the current package is ABI-compatible with
+        (i.e., the spec that will be replaced by the splice).
+
+        when: An anonymous spec constraining current package for when it is
+        ABI-compatible with the target
+
+        match_variants (default None): A list of variants that must match
+        between the target spec and the current package, with special value "*"
+        which matches all variants. Example: a variant is defined on both
+        packages called json, and they are ABI-compatible whenever they agree on
+        the json variant (regardless of whether it is turned on or off).  Note
+        that this cannot be applied to multi-valued variants and multi-valued
+        variants will be skipped by *.
+    """
+
     def _execute_can_splice(pkg: "spack.package_base.PackageBase"):
         when_spec = _make_when_spec(when)
         if not when_spec:
             return
-        pkg.splice_specs[when_spec] = (spack.spec.Spec(spec), match_variants)
+        pkg.splice_specs[when_spec] = (spack.spec.Spec(target), match_variants)
 
     return _execute_can_splice
 
