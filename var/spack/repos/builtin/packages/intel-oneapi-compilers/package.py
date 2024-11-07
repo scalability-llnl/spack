@@ -11,6 +11,25 @@ from spack.package import *
 
 versions = [
     {
+        "version": "2025.0.0",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/ac92f2bb-4818-4e53-a432-f8b34d502f23/intel-dpcpp-cpp-compiler-2025.0.0.740_offline.sh",
+            "sha256": "04fadf63789acee731895e631db63f65a98b8279db3d0f48bdf0d81e6103bdd8",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/69f79888-2d6c-4b20-999e-e99d72af68d4/intel-fortran-compiler-2025.0.0.723_offline.sh",
+            "sha256": "2be6d607ce84f35921228595b118fbc516d28587cbc4e6dcf6b7219e5cd1a9a9",
+        },
+        "nvidia-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=nvidia&version=2025.0.0&filters[]=12.0&filters[]=linux",
+            "sha256": "e878a6403da046ad030b5f8df299ac866b1a11aa",
+        },
+        "amd-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=amd&version=2025.0.0&filters[]=6.1.0&filters[]=linux",
+            "sha256": "8da98029c431495ad787528eadb4dbb5d22daac6",
+        },
+    },
+    {
         "version": "2024.2.1",
         "cpp": {
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh",
