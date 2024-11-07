@@ -238,8 +238,11 @@ class Unparser(NodeVisitor):
             return node
 
     def get_type_comment(self, node):
-        # We don't care about type comments for spack package hash.
-        return None
+        # Python 3.8 introduced type_comment
+        # (enabled on compile(... ast.PyCF_TYPE_COMMENTS))
+        comment = self._type_ignores.get(node.lineno) or getattr(node, "type_comment", None)
+        if comment is not None:
+            return f" # type: {comment}"
 
     def traverse(self, node):
         if isinstance(node, list):
