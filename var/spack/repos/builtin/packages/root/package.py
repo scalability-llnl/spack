@@ -634,7 +634,7 @@ class Root(CMakePackage):
             define("builtin_freetype", False),
             define("builtin_ftgl", False),
             define("builtin_gl2ps", False),
-            define("builtin_glew", self.spec.satisfies("platform=darwin")),
+            define("builtin_glew", False),
             define("builtin_gsl", False),
             define("builtin_llvm", True),
             define("builtin_lz4", self.spec.satisfies("@6.12.02:6.12")),
