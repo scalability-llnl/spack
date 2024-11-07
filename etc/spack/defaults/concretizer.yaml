@@ -36,14 +36,12 @@ concretizer:
   # on each root spec, allowing different versions and variants of the same package in
   # an environment.
   unify: true
-  # Option to deal with possible duplicate nodes (i.e. different nodes
-  # from the same package) in the DAG.
+  # Option to deal with possible duplicate nodes (i.e. different nodes from the same package) in the DAG.
   duplicates:
     # "none": allows a single node for any package in the DAG.
     # "minimal": allows the duplication of 'build-tools' nodes only
-    # (e.g. py-setuptools, cmake etc.)  "full" (experimental): allows
-    # separation of the entire build-tool stack (e.g. the entire
-    # "cmake" subDAG)
+    # (e.g. py-setuptools, cmake etc.)
+    # "full" (experimental): allows separation of the entire build-tool stack (e.g. the entire "cmake" subDAG)
     strategy: minimal
   # Option to specify compatibility between operating systems for reuse of compilers and packages
   # Specified as a key: [list] where the key is the os that is being targeted, and the list contains the OS's
