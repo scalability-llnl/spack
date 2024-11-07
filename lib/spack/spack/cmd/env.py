@@ -10,7 +10,7 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Set
 
 import llnl.string as string
 import llnl.util.filesystem as fs
@@ -488,6 +488,129 @@ def env_track(args):
 
 
 #
+# env remove & untrack helpers
+#
+
+
+def filter_managed_env_names(env_names: Set[str]) -> Set[str]:
+    tracked_env_names = {e for e in env_names if islink(ev.environment_dir_from_name(e))}
+    managed_env_names = env_names - set(tracked_env_names)
+
+    num_managed_envs = len(managed_env_names)
+    managed_envs_str = " ".join(managed_env_names)
+    if num_managed_envs >= 2:
+        tty.error(
+            f"The following are not tracked environments. "
+            "To remove them completely run,"
+            "\n\n"
+            f"        spack env rm {managed_envs_str}\n"
+        )
+
+    elif num_managed_envs > 0:
+        tty.error(
+            f"'{managed_envs_str}' is not a tracked env. "
+            "To remove it completely run,"
+            "\n\n"
+            f"        spack env rm {managed_envs_str}\n"
+        )
+
+    return tracked_env_names
+
+
+def get_valid_envs(env_names: Set[str]) -> Set[ev.Environment]:
+    valid_envs = set()
+    for env_name in env_names:
+        try:
+            env = ev.read(env_name)
+            valid_envs.add(env)
+
+        except (spack.config.ConfigFormatError, ev.SpackEnvironmentConfigError):
+            pass
+
+    return valid_envs
+
+
+def _env_untrack_or_remove(
+    env_names: List[str], remove: bool = False, force: bool = False, yes_to_all: bool = False
+) -> List[str]:
+    all_env_names = set(ev.all_environment_names())
+    known_env_names = set(env_names).intersection(all_env_names)
+    unknown_env_names = set(env_names) - known_env_names
+
+    # print error for unknown environments
+    for env_name in unknown_env_names:
+        tty.error(f"Environment '{env_name}' does not exist")
+
+    # if only unlinking is allowed, remove all environments
+    # which do not point internally at symlinks
+    if not remove:
+        env_names_to_remove = filter_managed_env_names(known_env_names)
+    else:
+        env_names_to_remove = known_env_names
+
+    all_valid_envs = get_valid_envs(all_env_names)
+    envs_to_remove = [e for e in all_valid_envs if e.name in env_names_to_remove]
+    bad_env_names_to_remove = env_names_to_remove - {e.name for e in envs_to_remove}
+    for remove_env in envs_to_remove:
+        for env in all_valid_envs:
+            # don't check if an environment is included to itself
+            if env.name == remove_env.name:
+                continue
+
+            # check if an environment is included un another
+            if remove_env.path in env.included_concrete_envs:
+                msg = f"Environment '{remove_env.name}' is used by environment '{env.name}'"
+                if force:
+                    tty.warn(msg)
+                else:
+                    tty.error(msg)
+                    envs_to_remove.remove(remove_env)
+
+    if not (yes_to_all or force) and (envs_to_remove or bad_env_names_to_remove):
+        environments = string.plural(len(env_names_to_remove), "environment", show_n=False)
+        envs = string.comma_and(env_names_to_remove)
+        answer = tty.get_yes_or_no(
+            f"Really {'remove' if remove else 'untrack'} {environments} {envs}?", default=False
+        )
+        if not answer:
+            tty.die("Will not remove any environments")
+
+    removed_env_names = []
+    for env in envs_to_remove:
+        name = env.name
+        if not force and env.active:
+            tty.error(
+                f"Environment '{name}' can't be "
+                f"{'removed' if remove else 'untracked'} while activated."
+            )
+            continue
+        # Get path to check if environment is a tracked / symlinked environment
+        if islink(env.path):
+            real_env_path = os.path.realpath(env.path)
+            os.unlink(env.path)
+            tty.msg(
+                f"Sucessfully untracked environment '{name}', "
+                "but it can still be found at:\n\n"
+                f"        {real_env_path}\n"
+            )
+        else:
+            env.destroy()
+            tty.msg(f"Successfully removed environment '{name}'")
+
+        removed_env_names.append(env.name)
+
+    for bad_env_name in bad_env_names_to_remove:
+        shutil.rmtree(
+            spack.environment.environment.environment_dir_from_name(bad_env_name, exists_ok=True)
+        )
+        tty.msg(f"Successfully removed environment '{bad_env_name}'")
+        removed_env_names.append(env.name)
+
+    if len(removed_env_names) < len(known_env_names):
+        sys.exit(1)
+
+
+#
 # env untrack
 #
 def env_untrack_setup_parser(subparser):
@@ -500,43 +623,9 @@ def env_untrack_setup_parser(subparser):
 
 
 def env_untrack(args):
-    env_all_names = ev.all_environment_names()
-
-    for env_name in args.env:
-        env_path = ev.environment_dir_from_name(env_name, exists_ok=True)
-
-        # error for unknown environments that do not exist
-        if env_name not in env_all_names:
-            tty.error(f"Environment {env_name} does not exist")
-            continue
-
-        # fail if the user tries to untrack a managed environment
-        if not islink(env_path):
-            tty.die(
-                f"{env_name} is not a tracked env. "
-                "To remove it completely run:"
-                "\n\n"
-                f"        spack env rm {env_name}\n"
-            )
-
-        # fail to unlink env if active and not forced
-        try:
-            env = ev.read(env_name)
-            if env.active and not args.force:
-                tty.die(f"Environment {env_name} can't be untracked while activated.")
-
-        except (spack.config.ConfigFormatError, ev.SpackEnvironmentConfigError):
-            pass
-
-        # get the real location to the environment to show in output
-        real_env_path = os.path.realpath(env_path)
-        os.unlink(env_path)
-
-        tty.msg(
-            f"Sucessfully untracked environment '{env_name}',"
-            "but it can still be found at:\n\n"
-            f"        {real_env_path}\n"
-        )
+    _env_untrack_or_remove(
+        env_names=args.env, force=args.force, yes_to_all=args.yes_to_all, remove=False
+    )
 
 
 #
@@ -564,65 +653,9 @@ def env_remove_setup_parser(subparser):
 
 def env_remove(args):
     """remove existing environment(s)"""
-    remove_envs = []
-    valid_envs = []
-    bad_envs = []
-
-    all_envs = set(ev.all_environment_names())
-    known_envs = set(args.rm_env).intersection(all_envs)
-    unknown_envs = set(args.rm_env) - known_envs
-
-    for env_name in unknown_envs:
-        tty.error(f"Environment {env_name} does not exist")
-
-    for env_name in all_envs:
-        try:
-            env = ev.read(env_name)
-            valid_envs.append(env)
-
-            if env_name in known_envs:
-                remove_envs.append(env)
-        except (spack.config.ConfigFormatError, ev.SpackEnvironmentConfigError):
-            bad_envs.append(env_name)
-
-    # Check if remove_env is included from another env before trying to remove
-    for env in valid_envs:
-        for remove_env in remove_envs:
-            # don't check if environment is included to itself
-            if env.name == remove_env.name:
-                continue
-
-            if remove_env.path in env.included_concrete_envs:
-                msg = f'Environment "{remove_env.name}" is being used by environment "{env.name}"'
-                if args.force:
-                    tty.warn(msg)
-                else:
-                    tty.die(msg)
-
-    if not args.yes_to_all and (remove_envs or bad_envs):
-        environments = string.plural(len(known_envs), "environment", show_n=False)
-        envs = string.comma_and(known_envs)
-        answer = tty.get_yes_or_no(f"Really remove {environments} {envs}?", default=False)
-        if not answer:
-            tty.die("Will not remove any environments")
-
-    for env in remove_envs:
-        name = env.name
-        if env.active:
-            tty.die(f"Environment {name} can't be removed while activated.")
-        # Get path to check if environment is a tracked / symlinked environment
-        if islink(env.path):
-            os.unlink(env.path)
-            tty.msg(f"Successfully untracked environment '{name}'")
-        else:
-            env.destroy()
-            tty.msg(f"Successfully removed environment '{name}'")
-
-    for bad_env_name in bad_envs:
-        shutil.rmtree(
-            spack.environment.environment.environment_dir_from_name(bad_env_name, exists_ok=True)
-        )
-        tty.msg(f"Successfully removed environment '{bad_env_name}'")
+    _env_untrack_or_remove(
+        env_names=args.rm_env, remove=True, force=args.force, yes_to_all=args.yes_to_all
+    )
 
 
 #

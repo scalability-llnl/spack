@@ -155,7 +155,7 @@ def test_env_untrack_valid(tmp_path):
 
         # test tracking an environment in known store
         env("track", "--name", "test_untrack", ".")
-        env("untrack", "test_untrack")
+        env("untrack", "--yes-to-all", "test_untrack")
 
         # check that environment was sucessfully untracked
         out = env("ls")
@@ -168,7 +168,7 @@ def test_env_untrack_invalid_name():
 
     out = env("untrack", env_name)
 
-    assert f"Environment {env_name} does not exist" in out
+    assert f"Environment '{env_name}' does not exist" in out
 
 
 def test_env_untrack_when_active(tmp_path, capfd):
@@ -184,11 +184,11 @@ def test_env_untrack_when_active(tmp_path, capfd):
         active_env = ev.read(env_name)
         with active_env:
             with pytest.raises(spack.main.SpackCommandError):
-                env("untrack", env_name)
+                env("untrack", "--yes-to-all", env_name)
 
         # check that environment could not be untracked while active
         out, _ = capfd.readouterr()
-        assert f"{env_name} can't be untracked while activated" in out
+        assert f"'{env_name}' can't be untracked while activated" in out
 
         env("untrack", "-f", env_name)
         out = env("ls")
@@ -206,7 +206,7 @@ def test_env_untrack_managed(tmp_path, capfd):
 
     # check that environment could not be untracked while active
     out, _ = capfd.readouterr()
-    assert f"{env_name} is not a tracked env" in out
+    assert f"'{env_name}' is not a tracked env" in out
 
 
 def test_add():
@@ -770,7 +770,7 @@ def test_force_remove_included_env():
     rm_output = env("remove", "-f", "-y", "test")
     list_output = env("list")
 
-    assert '"test" is being used by environment "combined_env"' in rm_output
+    assert "'test' is used by environment 'combined_env'" in rm_output
     assert "test" not in list_output
 
 
