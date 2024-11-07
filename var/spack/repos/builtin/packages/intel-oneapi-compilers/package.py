@@ -28,7 +28,6 @@ versions = [
             "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=amd&version=2025.0.0&filters[]=6.1.0&filters[]=linux",
             "sha256": "8da98029c431495ad787528eadb4dbb5d22daac6",
         },
-
     },
     {
         "version": "2024.2.1",
