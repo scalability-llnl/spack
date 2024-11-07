@@ -23,7 +23,9 @@ class Orca(Package):
 
     license("LGPL-2.1-or-later")
 
-    version("avx2-6.0.1", sha256="bdb14a0b6b49064531eb6cf3811b5b95b628ce88a576b8b842b201b9c37e6779")
+    version(
+        "avx2-6.0.1", sha256="bdb14a0b6b49064531eb6cf3811b5b95b628ce88a576b8b842b201b9c37e6779"
+    )
     version("6.0.1", sha256="5aadad86f323dd2fa9dc00c94ff3aa7fe6e006d740aad8a410c5090ce26ea98c")
     version(
         "avx2-6.0.0", sha256="02c21294efe7b1b721e26cb90f98ee15ad682d02807201b7d217dfe67905a2fd"
