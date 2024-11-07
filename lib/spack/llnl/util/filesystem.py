@@ -2350,7 +2350,8 @@ def find_libraries(
         recursive: if False (default) search only root folder, if True recurse from the root. Note
             that recursive search does not imply exhaustive search. The function returns early if
             libraries are found in typical, low-depth library directories.
-        max_depth: if set, don't search below this depth. Cannot be set if recursive is False
+        max_depth: if set, don't search below this depth. Cannot be set if recursive is False.
+            Defaults to 4.
         runtime: Windows only option, no-op elsewhere. If True (default), search for runtime shared
             libs (.DLL), otherwise, search for .Lib files. If shared is False, this has no meaning.
 
@@ -2395,6 +2396,10 @@ def find_libraries(
     if not recursive:
         return LibraryList(find(root, libraries, recursive=False))
 
+    if max_depth is None:
+        # this default covers search in <root>/lib/pythonX.Y/site-packages/<package>/*.
+        max_depth = 4
+
     # Even if recursive is True, we will do some form of targeted, iterative deepening, in order
     # to return early if libraries are found in common, low-depth library directories.
     if sys.platform == "win32":
@@ -2408,8 +2413,7 @@ def find_libraries(
         # avoid the expensive recursive search of the root directory
         fallback_recursive = [os.path.join(root, libdir) for libdir in common_lib_dirs]
         # reduce max_depth by 1 as we already joined the common library directories
-        if max_depth is not None:
-            max_depth -= 1
+        max_depth -= 1
     else:
         # the call site already has a common library dir as root
         non_recursive = [root]
