@@ -506,12 +506,24 @@ class Unparser(NodeVisitor):
         if node.bound:
             self.write(": ")
             self.traverse(node.bound)
+        # Python 3.13 introduced default_value
+        if getattr(node, "default_value", False):
+            self.write(" = ")
+            self.traverse(node.default_value)
 
     def visit_TypeVarTuple(self, node):
         self.write("*" + node.name)
+        # Python 3.13 introduced default_value
+        if getattr(node, "default_value", False):
+            self.write(" = ")
+            self.traverse(node.default_value)
 
     def visit_ParamSpec(self, node):
         self.write("**" + node.name)
+        # Python 3.13 introduced default_value
+        if getattr(node, "default_value", False):
+            self.write(" = ")
+            self.traverse(node.default_value)
 
     def visit_TypeAlias(self, node):
         self.fill("type ")
