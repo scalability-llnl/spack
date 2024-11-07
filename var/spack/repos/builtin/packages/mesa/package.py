@@ -169,7 +169,7 @@ class Mesa(MesonPackage):
 
     @property
     def libglx_headers(self):
-        return find_headers("GL/glx", root=self.spec.prefix.include, recursive=False)
+        return find_headers("glx", root=self.spec.prefix.include.GL, recursive=False)
 
     @property
     def libglx_libs(self):
@@ -177,7 +177,7 @@ class Mesa(MesonPackage):
 
     @property
     def libosmesa_headers(self):
-        return find_headers("GL/osmesa", root=self.spec.prefix.include, recursive=False)
+        return find_headers("osmesa", root=self.spec.prefix.include.GL, recursive=False)
 
     @property
     def libosmesa_libs(self):

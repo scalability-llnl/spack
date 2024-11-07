@@ -3298,7 +3298,7 @@ follows:
        # The header provided by the bar virtual package
        @property
        def bar_headers(self):
-           return find_headers("bar/bar.h", root=self.home.include, recursive=False)
+           return find_headers("bar", root=self.home.include, recursive=False)
 
        # The library provided by the bar virtual package
        @property
@@ -3313,7 +3313,7 @@ follows:
        # The header provided by the baz virtual package
        @property
        def baz_headers(self):
-           return find_headers("baz/baz", root=self.baz_home.include, recursive=False)
+           return find_headers("baz", root=self.baz_home.include, recursive=False)
 
        # The library provided by the baz virtual package
        @property

@@ -30,7 +30,7 @@ class Glx(BundlePackage):
 
     @property
     def gl_headers(self):
-        return find_headers("GL/gl", root=self.gl_home, recursive=True)
+        return find_headers("gl", root=self.gl_home, recursive=True)
 
     @property
     def gl_libs(self):
