@@ -709,6 +709,11 @@ class Unparser(NodeVisitor):
 
         with self.delimit("{", "}"):
             expr = unparse_inner(node.value)
+            # Python <= 3.11 does not support backslash in formats part
+            if "\\" in expr:
+                raise ValueError(
+                    "Unable to avoid backslash in f-string expression part (python 3.11)"
+                )
             if expr.startswith("{"):
                 # Separate pair of opening brackets as "{ {"
                 self.write(" ")
