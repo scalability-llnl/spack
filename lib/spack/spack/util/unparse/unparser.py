@@ -218,9 +218,24 @@ class Unparser(NodeVisitor):
             self._precedences[node] = precedence
 
     def get_raw_docstring(self, node):
-        # We don't care about about docstrings for spack package hash.
-        # Spack's package_ast removed them anyway.
-        return None
+        """If a docstring node is found in the body of the *node* parameter,
+        return that docstring node, None otherwise.
+
+        Logic mirrored from ``_PyAST_GetDocString``."""
+        if (
+            not isinstance(node, (ast.AsyncFunctionDef, ast.FunctionDef, ast.ClassDef, ast.Module))
+            or len(node.body) < 1
+        ):
+            return None
+        node = node.body[0]
+        if not isinstance(node, ast.Expr):
+            return None
+        node = node.value
+        if isinstance(node, Constant) and isinstance(node.value, str):
+            return node
+        # Python 3.8 changed Str to Constant
+        elif type(node).__name__ == "Str" and node.s:
+            return node
 
     def get_type_comment(self, node):
         # We don't care about type comments for spack package hash.
@@ -732,7 +747,9 @@ class Unparser(NodeVisitor):
         # Don't emit `u""` because it's not avail in python AST <= 3.7
         if not self._py_ver_consistent and node.kind == "u":
             self.write("u")
-        self._write_str_avoiding_backslashes(node.value, quote_types=_MULTI_QUOTES)
+        # Python 3.8 changed Str to Constant
+        value = node.s if type(node).__name__ == "Str" else node.value
+        self._write_str_avoiding_backslashes(value, quote_types=_MULTI_QUOTES)
 
     # Python < 3.8. Num, Str, Bytes, NameConstant, Ellipsis replaced with Constant
     # https://github.com/python/cpython/commit/3f22811fef73aec848d961593d95fa877f77ecbf
