@@ -888,7 +888,12 @@ class Unparser(NodeVisitor):
 
     def visit_Tuple(self, node):
         with self.delimit_if(
-            "(", ")", len(node.elts) == 0 or self.get_precedence(node) > _Precedence.TUPLE
+            "(",
+            ")",
+            # Don't drop redundant parenthesis to mimic python <= 3.10
+            self._py_ver_consistent
+            or len(node.elts) == 0
+            or self.get_precedence(node) > _Precedence.TUPLE,
         ):
             self.items_view(self.traverse, node.elts)
 
@@ -1158,7 +1163,8 @@ class Unparser(NodeVisitor):
             self.write("lambda")
             with self.buffered() as buffer:
                 self.traverse(node.args)
-            if buffer:
+            # Don't omit extra space to mimic python <= 3.10
+            if buffer or self._py_ver_consistent:
                 self.write(" ", *buffer)
             self.write(": ")
             self.set_precedence(_Precedence.TEST, node.body)
