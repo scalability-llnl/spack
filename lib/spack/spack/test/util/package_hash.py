@@ -346,7 +346,7 @@ def test_remove_complex_package_logic_filtered():
         # has @when("@4.1.0") and raw unicode literals
         ("mfem", "whwftpqbjvzncmb52oz6izkanbha2uji"),
         ("mfem@4.0.0", "whwftpqbjvzncmb52oz6izkanbha2uji"),
-        ("mfem@4.1.0", "bpi7of3xelo7fr3ta2lm6bmiruijnxcg"),
+        ("mfem@4.1.0", "zty7kxc2fbbtxqurufr3hfifan43tfxe"),
         # has @when("@1.5.0:")
         ("py-torch", "qs7djgqn7dy7r3ps4g7hv2pjvjk4qkhd"),
         ("py-torch@1.0", "qs7djgqn7dy7r3ps4g7hv2pjvjk4qkhd"),
