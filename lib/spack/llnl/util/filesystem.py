@@ -2177,7 +2177,7 @@ def find_headers(
     if max_depth is None:
         max_depth = 2
 
-    if os.path.basename(root) != "include":
+    if os.path.basename(root).lower() != "include":
         root = os.path.join(root, "include")
         max_depth -= 1
 
@@ -2437,7 +2437,7 @@ def find_libraries(
     else:
         common_lib_dirs = ("lib", "lib64")
 
-    if os.path.basename(root) not in common_lib_dirs:
+    if os.path.basename(root).lower() not in common_lib_dirs:
         # search root and its direct library subdirectories non-recursively
         non_recursive = [root, *(os.path.join(root, libdir) for libdir in common_lib_dirs)]
         # avoid the expensive recursive search of the root directory
