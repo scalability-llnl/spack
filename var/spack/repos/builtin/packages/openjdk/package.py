@@ -406,6 +406,14 @@ class Openjdk(Package):
 
             version(ver, sha256=pkg[0], url=pkg[1], preferred=is_preferred)
 
+    variant(
+        "certs",
+        default="none",
+        values=("system", "none"),
+        multi=False,
+        description=("symlink system certs if requested, otherwise use default package version"),
+    )
+
     provides("java@21", when="@21.0:21")
     provides("java@17", when="@17.0:17")
     provides("java@16", when="@16.0:16")
@@ -478,6 +486,37 @@ class Openjdk(Package):
     def install(self, spec, prefix):
         top_dir = "Contents/Home/" if platform.system() == "Darwin" else "."
         install_tree(top_dir, prefix)
+
+    @run_after("install")
+    def link_system_certs(self):
+        if self.spec.variants["certs"].value != "system":
+            return
+
+        system_dirs = [
+            # CentOS, Fedora, RHEL
+            "/etc/pki/java",
+            # Ubuntu
+            "/etc/ssl/certs/java",
+            # OpenSUSE
+            "/var/lib/ca-certificates/java-certs",
+        ]
+
+        for directory in system_dirs:
+            # Link configuration file
+            sys_certs = join_path(directory, "cacerts")
+
+            # path for 1.8.0 versions
+            pkg_dir = join_path(self.prefix, "jre", "lib", "security")
+            if not os.path.exists(pkg_dir):
+                # path for version 11 and newer
+                pkg_dir = join_path(self.prefix, "lib", "security")
+            if not os.path.exists(pkg_dir):
+                break
+            pkg_conf = join_path(pkg_dir, "cacerts")
+            if os.path.exists(sys_certs):
+                if os.path.exists(pkg_conf):
+                    os.remove(pkg_conf)
+                os.symlink(sys_certs, pkg_conf)
 
     def setup_run_environment(self, env):
         """Set JAVA_HOME."""

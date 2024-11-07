@@ -549,3 +549,35 @@ def test_fetch_external_package_is_noop(default_mock_concretization, fetching_no
     spec.external_path = "/some/where"
     assert spec.external
     spec.package.do_fetch()
+
+
+@pytest.mark.parametrize(
+    "relocation_dict",
+    [
+        {"/foo/bar/baz": "/a/b/c", "/foo/bar": "/a/b"},
+        # Ensure correctness does not depend on the ordering of the dict
+        {"/foo/bar": "/a/b", "/foo/bar/baz": "/a/b/c"},
+    ],
+)
+def test_macho_relocation_with_changing_projection(relocation_dict):
+    """Tests that prefix relocation is computed correctly when the prefixes to be relocated
+    contain a directory and its subdirectories.
+
+    This happens when relocating to a new place AND changing the store projection. In that case we
+    might have a relocation dict like:
+
+    /foo/bar/baz/ -> /a/b/c
+    /foo/bar -> /a/b
+
+    What we need to check is that we don't end up in situations where we relocate to a mixture of
+    the two schemes, like /a/b/baz.
+    """
+    original_rpath = "/foo/bar/baz/abcdef"
+    result = macho_find_paths(
+        [original_rpath],
+        deps=[],
+        idpath=None,
+        old_layout_root="/foo",
+        prefix_to_prefix=relocation_dict,
+    )
+    assert result[original_rpath] == "/a/b/c/abcdef"

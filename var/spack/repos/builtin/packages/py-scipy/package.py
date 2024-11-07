@@ -136,7 +136,8 @@ class PyScipy(PythonPackage):
 
     # meson.build
     # https://docs.scipy.org/doc/scipy/dev/toolchain.html#compilers
-    conflicts("%gcc@:7", when="@1.10:", msg="SciPy requires GCC >= 8.0")
+    conflicts("%gcc@:7", when="@1.10:", msg="SciPy 1.10-1.13 requires GCC >= 8.0")
+    conflicts("%gcc@:9.0", when="@1.14:", msg="SciPy 1.14: requires GCC >= 9.1")
     conflicts("%gcc@:4.7", when="@:1.9", msg="SciPy requires GCC >= 4.8")
     conflicts("%apple-clang@:9", when="@1.10:", msg="SciPy requires Apple Clang >= 10")
     conflicts(
@@ -145,6 +146,8 @@ class PyScipy(PythonPackage):
         msg="SciPy requires at least vc142 (default with Visual Studio 2019) "
         "when building with MSVC",
     )
+    # https://github.com/spack/spack/issues/45718
+    conflicts("%aocc", msg="SciPy doesn't compile with AOCC yet")
 
     # https://github.com/scipy/scipy/issues/19831
     conflicts("^openblas@0.3.26:", when="@:1.12")
@@ -218,18 +221,21 @@ class PyScipy(PythonPackage):
         if self.spec.satisfies("@:1.8"):
             self.spec["py-numpy"].package.setup_build_environment(env)
 
-        # https://github.com/scipy/scipy/issues/19357
-        if self.spec.satisfies("%apple-clang@15:"):
-            env.append_flags("LDFLAGS", "-Wl,-ld_classic")
-
     @when("@1.9:")
     def config_settings(self, spec, prefix):
         blas, lapack = self.spec["py-numpy"].package.blas_lapack_pkg_config()
+
+        if spec.satisfies("%aocc") or spec.satisfies("%clang@18:"):
+            fortran_std = "none"
+        else:
+            fortran_std = "legacy"
+
         return {
             "builddir": "build",
             "compile-args": f"-j{make_jobs}",
             "setup-args": {
                 # http://scipy.github.io/devdocs/building/blas_lapack.html
+                "-Dfortran_std": fortran_std,
                 "-Dblas": blas,
                 "-Dlapack": lapack,
             },

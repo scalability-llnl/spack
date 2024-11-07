@@ -24,6 +24,24 @@ class Totalview(Package):
     # as resources dependent on the specific architecture used.
 
     version(
+        "2024.3-x86-64",
+        sha256="fb47c5a5abc6ad0e3e7cff1a346037387fa471c3a5cb46b6cdbe7f8a10aff2a7",
+        url="https://dslwuu69twiif.cloudfront.net/totalview/2024.3/totalview_2024.3.10_linux_x86-64.tar",
+    )
+
+    version(
+        "2024.3-powerle",
+        sha256="a064d3c9b12108ec228e2ff203549442172e282682786ff20d02ea9bf40109b2",
+        url="https://dslwuu69twiif.cloudfront.net/totalview/2024.3/totalview_2024.3.10_linux_powerle.tar",
+    )
+
+    version(
+        "2024.3-linux-arm64",
+        sha256="91701e3460cad8bba8810c5ece4720f0156ccba7526d407801a7d0b0e09fb054",
+        url="https://dslwuu69twiif.cloudfront.net/totalview/2024.3/totalview_2024.3.10_linux_arm64.tar",
+    )
+
+    version(
         "2024.2-x86-64",
         sha256="b6d9cfd804ff1f6641fbd92f9730b34f62062ead9b1324eaf44f34ea78c69ef1",
         url="https://dslwuu69twiif.cloudfront.net/totalview/2024.2/totalview_2024.2.11_linux_x86-64.tar",

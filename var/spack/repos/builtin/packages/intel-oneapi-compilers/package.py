@@ -11,6 +11,17 @@ from spack.package import *
 
 versions = [
     {
+        "version": "2025.0.0",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/ac92f2bb-4818-4e53-a432-f8b34d502f23/intel-dpcpp-cpp-compiler-2025.0.0.740_offline.sh",
+            "sha256": "04fadf63789acee731895e631db63f65a98b8279db3d0f48bdf0d81e6103bdd8",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/69f79888-2d6c-4b20-999e-e99d72af68d4/intel-fortran-compiler-2025.0.0.723_offline.sh",
+            "sha256": "2be6d607ce84f35921228595b118fbc516d28587cbc4e6dcf6b7219e5cd1a9a9",
+        },
+    },
+    {
         "version": "2024.2.1",
         "cpp": {
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh",
@@ -446,7 +457,11 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
             llvm_flags.append("-Wno-unused-command-line-argument")
 
         self.write_config_file(common_flags + llvm_flags, self._llvm_bin, ["icx", "icpx"])
-        self.write_config_file(common_flags + classic_flags, self._llvm_bin, ["ifx"])
+        self.write_config_file(
+            common_flags + (llvm_flags if self.spec.satisfies("@2022.1.0:") else classic_flags),
+            self._llvm_bin,
+            ["ifx"],
+        )
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["ifort"])
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["icc", "icpc"])
 

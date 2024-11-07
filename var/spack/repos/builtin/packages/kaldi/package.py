@@ -58,28 +58,30 @@ class Kaldi(Package):  # Does not use Autotools
         configure_args.append("--speex-root=" + spec["speex"].prefix)
         configure_args.append("--cub-root=" + spec["cuda"].prefix.include)
 
-        if "~shared" in spec:
+        if spec.satisfies("~shared"):
             configure_args.append("--static")
         else:
             configure_args.append("--shared")
 
-        if "^openblas" in spec:
+        if spec.satisfies("^[virtuals=blas] openblas"):
             configure_args.append("--mathlib=OPENBLAS")
             configure_args.append("--openblas-root=" + spec["blas"].prefix)
             if "+openmp" in spec["blas"].variants:
                 configure_args.append("--threaded-math=yes")
-        elif "^atlas" in spec:
+        elif spec.satisfies("^[virtuals=blas] atlas"):
             configure_args.append("--mathlib=ATLAS")
             configure_args.append("--atlas-root=" + spec["blas"].prefix)
             if "+pthread" in spec["blas"].variants:
                 configure_args.append("--threaded-atlas")
-        elif "^intel-parallel-studio" in spec or "^intel-mkl" in spec:
+        elif spec.satisfies("^[virtuals=blas] intel-parallel-studio") or spec.satisfies(
+            "^[virtuals=blas] intel-mkl"
+        ):
             configure_args.append("--mathlib=MKL")
             configure_args.append("--mkl-root=" + spec["blas"].prefix.mkl)
             if "+openmp" in spec["blas"].variants:
                 configure_args.append("--mkl-threading=iomp")
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             configure_args.append("--use-cuda=yes")
             configure_args.append("--cudatk-dir=" + spec["cuda"].prefix)
 

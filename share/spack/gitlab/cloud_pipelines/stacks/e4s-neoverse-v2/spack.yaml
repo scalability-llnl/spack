@@ -14,14 +14,10 @@ spack:
       variants: +mpi
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
-    elfutils:
-      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
-    libunwind:
-      variants: +pic +xz
     openblas:
       variants: threads=openmp
     trilinos:
@@ -29,25 +25,14 @@ spack:
         +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
         +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
         +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
-    xz:
-      variants: +pic
     mpi:
       require: mpich
     mpich:
       require: '~wrapperrpath ~hwloc %gcc target=neoverse_v2'
     tbb:
       require: intel-tbb
-    boost:
-      variants: +atomic +chrono +container +date_time +exception +filesystem +graph
-        +iostreams +locale +log +math +mpi +multithreaded +program_options +random
-        +regex +serialization +shared +signals +stacktrace +system +test +thread +timer
-        cxxstd=17 visibility=global
-    libffi:
-      require: "@3.4.4 %gcc target=neoverse_v2"
     vtk-m:
       require: "+examples %gcc target=neoverse_v2"
-    cuda:
-      version: [11.8.0]
     paraview:
       require: "+examples %gcc target=neoverse_v2"
 
@@ -74,6 +59,7 @@ spack:
   - dyninst
   - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 ~paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp  # +visit: ?
   - exaworks
+  - fftx
   - flecsi
   # - flit
   # - flux-core
@@ -113,6 +99,7 @@ spack:
   - netlib-scalapack
   - nrm
   # - nvhpc
+  - nwchem 
   - omega-h
   - openfoam
   # - openmpi
@@ -197,6 +184,7 @@ spack:
   - cabana +cuda cuda_arch=90  ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=90
   - caliper +cuda cuda_arch=90
   - chai +cuda cuda_arch=90 ^umpire ~shared
+  - fftx +cuda cuda_arch=90
   - flecsi +cuda cuda_arch=90
   - ginkgo +cuda cuda_arch=90
   - gromacs +cuda cuda_arch=90
@@ -241,7 +229,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
 
   cdash:
     build-group: E4S ARM Neoverse V2

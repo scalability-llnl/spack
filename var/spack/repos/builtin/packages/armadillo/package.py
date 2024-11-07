@@ -48,14 +48,6 @@ class Armadillo(CMakePackage):
     # platform's compiler is adding `#define linux 1`.
     patch("undef_linux.patch", when="platform=linux")
 
-    def flag_handler(self, name, flags):
-        spec = self.spec
-        if name == "ldflags":
-            if spec.satisfies("%apple-clang@15:"):
-                flags.append("-Wl,-ld_classic")
-
-        return (flags, None, None)
-
     def patch(self):
         # Do not include Find{BLAS_type} because we are specifying the
         # BLAS/LAPACK libraries explicitly.

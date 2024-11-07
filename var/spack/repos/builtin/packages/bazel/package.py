@@ -140,6 +140,9 @@ class Bazel(Package):
     # Newer versions of grpc and abseil dependencies are needed but are not in bazel-4.0.0
     conflicts("@4.0.0", when="%gcc@11:")
 
+    # https://github.com/bazelbuild/bazel/pull/23667
+    conflicts("%apple-clang@16:", when="@:7.3")
+
     executables = ["^bazel$"]
 
     # Download resources to perform offline build with bazel.

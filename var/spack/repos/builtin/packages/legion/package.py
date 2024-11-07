@@ -93,7 +93,9 @@ class Legion(CMakePackage, ROCmPackage):
     patch("hip-offload-arch.patch", when="@23.03.0 +rocm")
 
     def patch(self):
-        if "network=gasnet conduit=ofi-slingshot11 ^cray-mpich+wrappers" in self.spec:
+        if self.spec.satisfies(
+            "network=gasnet conduit=ofi-slingshot11 ^[virtuals=mpi] cray-mpich+wrappers"
+        ):
             filter_file(
                 r"--with-mpi-cc=cc",
                 f"--with-mpi-cc={self.spec['mpi'].mpicc}",

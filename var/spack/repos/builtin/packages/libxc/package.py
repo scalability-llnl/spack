@@ -95,14 +95,14 @@ class Libxc(AutotoolsPackage, CudaPackage):
         # https://gitlab.com/libxc/libxc/-/issues/430 (configure script does not ensure C99)
         # TODO: Switch to cmake since this is better supported
         env.append_flags("CFLAGS", self.compiler.c99_flag)
-        if "%intel" in self.spec:
+        if self.spec.satisfies("%intel"):
             if which("xiar"):
                 env.set("AR", "xiar")
 
-        if "%aocc" in self.spec:
+        if self.spec.satisfies("%aocc"):
             env.append_flags("FCFLAGS", "-fPIC")
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             nvcc = self.spec["cuda"].prefix.bin.nvcc
             env.set("CCLD", "{0} -ccbin {1}".format(nvcc, spack_cc))
             env.set("CC", "{0} -x cu -ccbin {1}".format(nvcc, spack_cc))
@@ -116,16 +116,16 @@ class Libxc(AutotoolsPackage, CudaPackage):
         args = []
         args += self.enable_or_disable("shared")
         args += self.enable_or_disable("cuda")
-        if "+kxc" in self.spec:
+        if self.spec.satisfies("+kxc"):
             args.append("--enable-kxc")
-        if "+lxc" in self.spec:
+        if self.spec.satisfies("+lxc"):
             args.append("--enable-lxc")
         return args
 
     @run_after("configure")
     def patch_libtool(self):
         """AOCC support for LIBXC"""
-        if "%aocc" in self.spec:
+        if self.spec.satisfies("%aocc"):
             filter_file(
                 r"\$wl-soname \$wl\$soname",
                 r"-fuse-ld=ld -Wl,-soname,\$soname",

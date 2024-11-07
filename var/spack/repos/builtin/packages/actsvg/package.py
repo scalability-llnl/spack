@@ -41,6 +41,7 @@ class Actsvg(CMakePackage):
 
     variant("examples", default=False, description="Build the example applications")
     variant("meta", default=True, description="Build the meta level interface")
+    variant("python", default=True, when="@0.4.39:", description="Build the python bindings")
     variant(
         "web", default=True, when="@0.4.36:", description="Build the webpage builder interface"
     )
@@ -48,11 +49,13 @@ class Actsvg(CMakePackage):
     depends_on("boost +program_options", type="test")
     depends_on("boost +program_options", when="+examples")
     depends_on("googletest", when="+examples")
+    depends_on("python@3.8:", when="+python")
 
     def cmake_args(self):
         args = [
             self.define_from_variant("ACTSVG_BUILD_EXAMPLES", "examples"),
             self.define_from_variant("ACTSVG_BUILD_META", "meta"),
+            self.define_from_variant("ACTSVG_BUILD_PYTHON_BINDINGS", "python"),
             self.define_from_variant("ACTSVG_BUILD_WEB", "web"),
             self.define("ACTSVG_BUILD_TESTING", self.run_tests),
         ]

@@ -45,6 +45,8 @@ class Arrow(CMakePackage, CudaPackage):
     depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.60: +filesystem +system")
+    depends_on("brotli", when="+brotli")
+    depends_on("bzip2", when="+bz2")
     depends_on("cmake@3.2.0:", type="build")
     depends_on("flatbuffers")
     conflicts("%gcc@14", when="@:15.0.1")  # https://github.com/apache/arrow/issues/40009
@@ -78,6 +80,7 @@ class Arrow(CMakePackage, CudaPackage):
     depends_on("zstd", when="@:8")
 
     variant("brotli", default=False, description="Build support for Brotli compression")
+    variant("bz2", default=False, description="Build support for bzip2 compression")
     variant(
         "build_type",
         default="Release",
@@ -158,6 +161,7 @@ class Arrow(CMakePackage, CudaPackage):
         args.append(self.define_from_variant("ARROW_PYTHON", "python"))
         args.append(self.define_from_variant("ARROW_TENSORFLOW", "tensorflow"))
         args.append(self.define_from_variant("ARROW_WITH_BROTLI", "brotli"))
+        args.append(self.define_from_variant("ARROW_WITH_BZ2", "bz2"))
         args.append(self.define_from_variant("ARROW_WITH_LZ4", "lz4"))
         args.append(self.define_from_variant("ARROW_WITH_SNAPPY", "snappy"))
         args.append(self.define_from_variant("ARROW_WITH_ZLIB", "zlib"))

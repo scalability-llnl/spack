@@ -155,7 +155,7 @@ class RocmOpenmpExtras(Package):
 
     license("Apache-2.0")
 
-    maintainers("srekolam", "renjithravindrankannath", "estewart08")
+    maintainers("srekolam", "renjithravindrankannath", "estewart08", "afzpatel")
     version("6.2.1", sha256=versions_dict["6.2.1"]["aomp"])
     version("6.2.0", sha256=versions_dict["6.2.0"]["aomp"])
     version("6.1.2", sha256=versions_dict["6.1.2"]["aomp"])
@@ -189,6 +189,7 @@ class RocmOpenmpExtras(Package):
     depends_on("libffi", type=("build", "link"))
     depends_on("libdrm", when="@5.7:6.0")
     depends_on("numactl", when="@5.7:6.0")
+    depends_on("zlib", when="@6.2:")
 
     for ver in [
         "5.5.0",
@@ -489,6 +490,7 @@ class RocmOpenmpExtras(Package):
         ffi_inc = spec["libffi"].prefix.include
         if self.spec.satisfies("@6.2:"):
             ncurses_lib_dir = self.spec["ncurses"].prefix.lib
+            zlib_lib_dir = self.spec["zlib"].prefix.lib
 
         # flang1 and flang2 symlink needed for build of flang-runtime
         # libdevice symlink to rocm-openmp-extras for runtime
@@ -638,11 +640,12 @@ class RocmOpenmpExtras(Package):
             flang_legacy_flags.append("-D_GLIBCXX_USE_CXX11_ABI=0")
         if self.spec.satisfies("@6.2:"):
             flang_legacy_flags.append("-L{0}".format(ncurses_lib_dir))
+            flang_legacy_flags.append("-L{0}".format(zlib_lib_dir))
         components["flang-legacy-llvm"] += [
-            "-DCMAKE_CXX_FLAGS={0}".format(",".join(flang_legacy_flags))
+            "-DCMAKE_CXX_FLAGS={0}".format(" ".join(flang_legacy_flags))
         ]
         components["flang-legacy"] += [
-            "-DCMAKE_CXX_FLAGS={0}".format(",".join(flang_legacy_flags))
+            "-DCMAKE_CXX_FLAGS={0}".format(" ".join(flang_legacy_flags))
         ]
 
         components["flang"] = [

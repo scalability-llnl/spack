@@ -121,6 +121,10 @@ class Mvapich(AutotoolsPackage):
     with when("process_managers=auto"):
         conflicts("pmi_version=pmi2")
 
+    with when("process_managers=hydra"):
+        conflicts("pmi_version=pmi2")
+        conflicts("pmi_version=pmix")
+
     filter_compiler_wrappers("mpicc", "mpicxx", "mpif77", "mpif90", "mpifort", relative_root="bin")
 
     @classmethod

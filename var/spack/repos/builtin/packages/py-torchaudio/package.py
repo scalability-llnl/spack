@@ -18,6 +18,8 @@ class PyTorchaudio(PythonPackage):
     maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.5.1", tag="v2.5.1", commit="1661daf10599ca8889f092ec37814fabbe202bb0")
+    version("2.5.0", tag="v2.5.0", commit="56bc006d56a0d4960de6a1e0b6340cba4eda05cd")
     version("2.4.1", tag="v2.4.1", commit="e8cbe17769796ce963fbc71b8990f1474774e6d2")
     version("2.4.0", tag="v2.4.0", commit="69d40773dc4ed86643820c21a8a880e4d074a46e")
     version("2.3.1", tag="v2.3.1", commit="3edcf69e78a3c9a3077a11159861422440ec7d4a")
@@ -55,13 +57,16 @@ class PyTorchaudio(PythonPackage):
 
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
-        depends_on("python@3.8:3.12", when="@2.2:")
+        depends_on("python@3.9:3.12", when="@2.5:")
+        depends_on("python@3.8:3.12", when="@2.2:2.4")
         depends_on("python@3.8:3.11", when="@2.0:2.1")
         depends_on("python@:3.10", when="@0.12:0")
         depends_on("python@:3.9", when="@0.7.2:0.11")
         depends_on("python@:3.8", when="@:0.7.0")
 
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.5.1", when="@2.5.1")
+        depends_on("py-torch@2.5.0", when="@2.5.0")
         depends_on("py-torch@2.4.1", when="@2.4.1")
         depends_on("py-torch@2.4.0", when="@2.4.0")
         depends_on("py-torch@2.3.1", when="@2.3.1")
@@ -112,6 +117,13 @@ class PyTorchaudio(PythonPackage):
         when="@2.2:",
     )
     conflicts("^cuda@12.5:", when="@:2.1")
+
+    def flag_handler(self, name, flags):
+        # https://github.com/pytorch/vision/issues/8653
+        if name == "ldflags":
+            if self.spec.satisfies("%apple-clang@15:"):
+                flags.append("-Wl,-ld_classic")
+        return (flags, None, None)
 
     def setup_build_environment(self, env):
         # tools/setup_helpers/extension.py
