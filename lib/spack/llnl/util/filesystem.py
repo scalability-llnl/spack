@@ -1691,6 +1691,7 @@ def find(
     root: Union[Path, Sequence[Path]],
     files: Union[str, Sequence[str]],
     recursive: bool = True,
+    *,
     max_depth: Optional[int] = None,
 ) -> List[str]:
     """Finds all files matching the patterns from ``files`` starting from ``root``. This function
@@ -2104,7 +2105,14 @@ class HeaderList(FileList):
         self._macro_definitions.append(macro)
 
 
-def find_headers(headers, root, recursive=False):
+def find_headers(
+    headers: Union[List[str], str],
+    root: str,
+    recursive: bool = False,
+    *,
+    heuristic: bool = True,
+    max_depth: Optional[int] = None,
+) -> HeaderList:
     """Returns an iterable object containing a list of full paths to
     headers if found.
 
@@ -2120,10 +2128,13 @@ def find_headers(headers, root, recursive=False):
     =======  ====================================
 
     Parameters:
-        headers (str or list): Header name(s) to search for
-        root (str): The root directory to start searching from
-        recursive (bool): if False search only root folder,
-            if True descends top-down from the root. Defaults to False.
+        headers: Header name(s) to search for
+        root: The root directory to start searching from
+        recursive: if False (default) search only root folder, if True recurse from the root. Note
+            that recursive search does not imply exhaustive search if heuristic is True.
+        heuristic: if True (default), use a non-exhaustive, faster search. Has no effect
+            if recursive is False.
+        max_depth: if set, don't search below this depth. Cannot be set if recursive is False.
 
     Returns:
         HeaderList: The headers that have been found
@@ -2131,10 +2142,10 @@ def find_headers(headers, root, recursive=False):
     if isinstance(headers, str):
         headers = [headers]
     elif not isinstance(headers, collections.abc.Sequence):
-        message = "{0} expects a string or sequence of strings as the "
-        message += "first argument [got {1} instead]"
-        message = message.format(find_headers.__name__, type(headers))
-        raise TypeError(message)
+        raise TypeError(
+            f"{find_headers.__name__} expects a string or sequence of strings as the "
+            f"first argument [got {type(headers)} instead]"
+        )
 
     # Construct the right suffix for the headers
     suffixes = [
@@ -2154,9 +2165,23 @@ def find_headers(headers, root, recursive=False):
     ]
 
     # List of headers we are searching with suffixes
-    headers = ["{0}.{1}".format(header, suffix) for header in headers for suffix in suffixes]
+    headers = [f"{header}.{suffix}" for header in headers for suffix in suffixes]
 
-    return HeaderList(find(root, headers, recursive))
+    if not recursive or not heuristic:
+        return HeaderList(find(root, headers, recursive=recursive))
+
+    # The heuristic here is simpler than the one for libraries: restrict search to <root>/include
+    # (if root isn't an include directory itself) and limit search depth so that headers are found
+    # not deeper than <root>/include/<subdir>/*.
+
+    if max_depth is None:
+        max_depth = 2
+
+    if os.path.basename(root) != "include":
+        root = os.path.join(root, "include")
+        max_depth -= 1
+
+    return HeaderList(find(root, headers, recursive=True, max_depth=max_depth))
 
 
 @system_path_filter
@@ -2328,6 +2353,7 @@ def find_libraries(
     shared: bool = True,
     recursive: bool = False,
     runtime: bool = True,
+    heuristic: bool = True,
     max_depth: Optional[int] = None,
 ) -> LibraryList:
     """Find libraries in the specified root directory.
@@ -2348,12 +2374,12 @@ def find_libraries(
         root: the root directory to start searching from
         shared: if True searches for shared libraries, otherwise for static. Defaults to True.
         recursive: if False (default) search only root folder, if True recurse from the root. Note
-            that recursive search does not imply exhaustive search. The function returns early if
-            libraries are found in typical, low-depth library directories.
-        max_depth: if set, don't search below this depth. Cannot be set if recursive is False.
-            Defaults to 4.
+            that recursive search does not imply exhaustive search if heuristic is True.
         runtime: Windows only option, no-op elsewhere. If True (default), search for runtime shared
             libs (.DLL), otherwise, search for .Lib files. If shared is False, this has no meaning.
+        heuristic: if True (default), use a non-exhaustive, faster search. Has no effect if
+            recursive is False.
+        max_depth: if set, don't search below this depth. Cannot be set if recursive is False.
 
     Returns:
         LibraryList: The libraries that have been found
@@ -2395,13 +2421,17 @@ def find_libraries(
 
     if not recursive:
         return LibraryList(find(root, libraries, recursive=False))
+    elif not heuristic:
+        return LibraryList(find(root, libraries, recursive=True, max_depth=max_depth))
+
+    # Heuristic search: a form of non-exhaustive iterative deepening, in order to return early if
+    # libraries are found in their usual locations. This is the default behavior for recursive
+    # searches.
 
     if max_depth is None:
         # this default covers search in <root>/lib/pythonX.Y/site-packages/<package>/*.
         max_depth = 4
 
-    # Even if recursive is True, we will do some form of targeted, iterative deepening, in order
-    # to return early if libraries are found in common, low-depth library directories.
     if sys.platform == "win32":
         common_lib_dirs = ("lib", "lib64", "bin", "Lib")
     else:
