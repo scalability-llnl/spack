@@ -17,7 +17,7 @@ import spack.repo
 from spack.cmd.common import arguments
 from spack.installer import PackageInstaller
 
-description = "developer build: build from code in current working directory"
+description = "developer build: build from user managed code"
 section = "build"
 level = "long"
 
@@ -54,6 +54,7 @@ def setup_parser(subparser):
         help="do not display verbose build output while installing",
     )
     subparser.add_argument(
+        "-D",
         "--drop-in",
         type=str,
         dest="shell",
@@ -115,10 +116,9 @@ def dev_build(self, args):
             spec = dev_matches[0]
     else:
         if not spec.versions.concrete_range_as_version:
-            tty.die(
-                "spack dev-build spec must have a single, concrete version. "
-                "Did you forget a package version number?"
-            )
+            version = max(spec.package_class.versions.keys())
+            spec.versions = spack.version.VersionList([version])
+            tty.msg(f"Defaulting to highest version: {spec.name}@{version}")
 
         source_path = args.source_path
         if source_path is None:
@@ -134,9 +134,9 @@ def dev_build(self, args):
             tty.msg("Uninstall or try adding a version suffix for this dev build.")
             sys.exit(1)
 
-        # disable checksumming if requested
-        if args.no_checksum:
-            spack.config.set("config:checksum", False, scope="command_line")
+    # disable checksumming if requested
+    if args.no_checksum:
+        spack.config.set("config:checksum", False, scope="command_line")
 
     tests = False
     if args.test == "all":
