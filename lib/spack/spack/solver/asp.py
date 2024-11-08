@@ -1702,7 +1702,7 @@ class SpackSolverSetup:
         for i, variant_name in enumerate(match_variants):
             vari_defs = pkg.variant_definitions(variant_name)
             # the spliceable config of the package always includes the variant
-            if vari_defs == [] or any(cond_spec.satisfies(s) for (s, _) in vari_defs):
+            if any(cond_spec.satisfies(s) for (s, _) in vari_defs):
                 variant = vari_defs[0][1]
                 if variant.multi:
                     continue  # cannot automatically match multi-valued variants
