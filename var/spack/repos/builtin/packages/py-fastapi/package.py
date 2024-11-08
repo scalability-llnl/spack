@@ -28,6 +28,8 @@ class PyFastapi(PythonPackage):
 
     variant("all", default=False, description="Build all optional dependencies")
 
+    depends_on("python@3.8:", when="@0.104:", type=("build", "run"))
+
     depends_on("py-pdm-backend", when="@0.110.3:", type="build")
     depends_on("py-hatchling@1.13:", when="@0.98:0.110.2", type="build")
     depends_on("py-hatchling", when="@:0.110.2", type="build")
@@ -42,10 +44,12 @@ class PyFastapi(PythonPackage):
     depends_on("py-starlette@0.28", when="@0.107.0:0.107", type=("build", "run"))
     depends_on("py-starlette@0.27", when="@0.95.2:0.106", type=("build", "run"))
     depends_on("py-starlette@0.22.0", when="@:0.89.1", type=("build", "run"))
+    depends_on("py-pydantic@1.7.4:1,2.1.1:2", when="@0.101:", type=("build", "run"))
     depends_on("py-pydantic@1.7.4:1", when="@0.96.1:", type=("build", "run"))
     depends_on("py-pydantic@1.6.2:1", when="@:0.96.0", type=("build", "run"))
+    depends_on("py-typing-extensions@4.8.0:", when="@0.104:", type=("build", "run"))
 
-    conflicts("^py-pydantic@1.7.0:1.7.3,1.8.0:1.8.1")
+    conflicts("^py-pydantic@1.7.0:1.7.3,1.8.0:1.8.1,2.0,2.1.0")
 
     with when("+all"):
         depends_on("py-httpx@0.23:", type=("build", "run"))
