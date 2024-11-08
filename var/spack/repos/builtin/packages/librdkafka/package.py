@@ -31,3 +31,4 @@ class Librdkafka(AutotoolsPackage):
 
     depends_on("zstd")
     depends_on("lz4")
+    depends_on("curl")
