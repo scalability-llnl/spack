@@ -1066,6 +1066,20 @@ def dir_structure_with_things_to_find(tmpdir):
     return str(tmpdir), locations
 
 
+def test_find_path_glob_matches(dir_structure_with_things_to_find):
+    root, locations = dir_structure_with_things_to_find
+    # both file name and path match
+    assert (
+        fs.find(root, "file_two")
+        == fs.find(root, "**/file_two")
+        == fs.find(root, "*/*/file_two")
+        == fs.find(root, "dir_t*/*/*two")
+        == [locations["file_two"]]
+    )
+    # file name matches but not the path
+    assert fs.find(root, "dir_one/*/*two") == fs.find(root, "*/*/*/*/file_two") == []
+
+
 def test_find_max_depth(dir_structure_with_things_to_find):
     root, locations = dir_structure_with_things_to_find
 
