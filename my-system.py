@@ -12,6 +12,8 @@ import archspec.cpu
 from llnl.util.filesystem import mkdirp
 
 import spack.config as config
+import spack.cmd
+import spack.environment as ev
 import spack.platforms
 import spack.util.spack_yaml as syaml
 
@@ -26,6 +28,14 @@ def _system_pickles(dst):
     data = [spack.platforms.host(), archspec.cpu.host()]
     with open(dst, "wb") as f:
         pickle.dump(data, f)
+
+
+def _make_env(dst):
+    env = spack.cmd.find_environment(args)
+    if env:
+        with env:
+            pass
+            #ev.activate(env, use_env_repo=False)
 
 
 def main():
