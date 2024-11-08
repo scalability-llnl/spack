@@ -1234,3 +1234,10 @@ def test_find_input_types(tmp_path: pathlib.Path):
 
     with pytest.raises(TypeError):
         fs.find(1, "file.txt")  # type: ignore
+
+
+def test_find_only_finds_files(tmp_path: pathlib.Path):
+    """ensure that find only returns files even at max_depth"""
+    (tmp_path / "file.txt").write_text("")
+    (tmp_path / "dir").mkdir()
+    assert fs.find(tmp_path, "*", max_depth=0) == [str(tmp_path / "file.txt")]

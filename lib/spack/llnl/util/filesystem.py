@@ -1821,7 +1821,9 @@ def _find_max_depth(
                     _log_file_access_issue(e, dir_entry.path)
                     continue
 
-                if it_is_a_dir and depth < max_depth:
+                if it_is_a_dir:
+                    if depth >= max_depth:
+                        continue
                     try:
                         # The stat should be performed in a try/except block. We repeat that here
                         # vs. moving to the above block because we only want to call `stat` if we
