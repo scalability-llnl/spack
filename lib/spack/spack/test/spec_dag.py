@@ -756,6 +756,48 @@ class TestSpecDag:
         out = s.tree(deptypes=("link", "run"))
         assert "version-test-pkg" not in out
 
+    @pytest.mark.parametrize(
+        "query,expected_length,expected_satisfies",
+        [
+            ({"virtuals": ["mpi"]}, 1, ["mpich", "mpi"]),
+            ({"depflag": dt.BUILD}, 2, ["mpich", "mpi", "callpath"]),
+            ({"depflag": dt.BUILD, "virtuals": ["mpi"]}, 1, ["mpich", "mpi"]),
+            ({"depflag": dt.LINK}, 2, ["mpich", "mpi", "callpath"]),
+            ({"depflag": dt.BUILD | dt.LINK}, 2, ["mpich", "mpi", "callpath"]),
+            ({"virtuals": ["lapack"]}, 0, []),
+        ],
+    )
+    def test_query_dependency_edges(
+        self, default_mock_concretization, query, expected_length, expected_satisfies
+    ):
+        """Tests querying edges to dependencies on the following DAG:
+
+        [    ]  mpileaks@=2.3
+        [bl  ]      ^callpath@=1.0
+        [bl  ]          ^dyninst@=8.2
+        [bl  ]              ^libdwarf@=20130729
+        [bl  ]              ^libelf@=0.8.13
+        [bl  ]      ^mpich@=3.0.4
+        """
+        mpileaks = default_mock_concretization("mpileaks")
+        edges = mpileaks.edges_to_dependencies(**query)
+        assert len(edges) == expected_length
+        for constraint in expected_satisfies:
+            assert any(x.spec.satisfies(constraint) for x in edges)
+
+    def test_query_dependents_edges(self, default_mock_concretization):
+        """Tests querying edges from dependents"""
+        mpileaks = default_mock_concretization("mpileaks")
+        mpich = mpileaks["mpich"]
+
+        # Recover the root with 2 different queries
+        edges_of_link_type = mpich.edges_from_dependents(depflag=dt.LINK)
+        edges_with_mpi = mpich.edges_from_dependents(virtuals=["mpi"])
+        assert edges_with_mpi == edges_of_link_type
+
+        # Check a node dependend upon by 2 parents
+        assert len(mpileaks["libelf"].edges_from_dependents(depflag=dt.LINK)) == 2
+
 
 def test_tree_cover_nodes_reduce_deptype():
     """Test that tree output with deptypes sticks to the sub-dag of interest, instead of looking

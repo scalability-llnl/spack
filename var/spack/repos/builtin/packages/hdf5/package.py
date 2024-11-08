@@ -38,8 +38,7 @@ class Hdf5(CMakePackage):
 
     # The 'develop' version is renamed so that we could uninstall (or patch) it
     # without affecting other develop version.
-    version("develop-1.17", branch="develop")
-    version("develop-1.16", branch="hdf5_1_16")
+    version("develop-2.0", branch="develop")
     version("develop-1.14", branch="hdf5_1_14")
     version("develop-1.12", branch="hdf5_1_12")
     version("develop-1.10", branch="hdf5_1_10")
@@ -580,6 +579,10 @@ class Hdf5(CMakePackage):
         # work-around for https://github.com/HDFGroup/hdf5/issues/1320
         if spec.satisfies("@1.10.8,1.13.0"):
             args.append(self.define("HDF5_INSTALL_CMAKE_DIR", "share/cmake/hdf5"))
+
+        # AOCC does not support _Float16
+        if spec.satisfies("@1.14.4: %aocc"):
+            args.append(self.define("HDF5_ENABLE_NONSTANDARD_FEATURE_FLOAT16", False))
 
         return args
 

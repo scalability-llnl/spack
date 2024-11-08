@@ -399,7 +399,7 @@ SPACK_ALIASES="concretise:concretize;containerise:containerize;rm:remove"
 _spack() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -H --all-help --color -c --config -C --config-scope -d --debug --timestamp --pdb -e --env -D --env-dir -E --no-env --use-env-repo -k --insecure -l --enable-locks -L --disable-locks -m --mock -b --bootstrap -p --profile --sorted-profile --lines -v --verbose --stacktrace --backtrace -V --version --print-shell-vars"
+        SPACK_COMPREPLY="-h --help -H --all-help --color -c --config -C --config-scope -d --debug --timestamp --pdb -e --env -D --env-dir -E --no-env --use-env-repo -k --insecure -l --enable-locks -L --disable-locks -m --mock -b --bootstrap -p --profile --sorted-profile --lines -v --verbose --stacktrace -t --backtrace -V --version --print-shell-vars"
     else
         SPACK_COMPREPLY="add arch audit blame bootstrap build-env buildcache cd change checksum ci clean clone commands compiler compilers concretize concretise config containerize containerise create debug deconcretize dependencies dependents deprecate dev-build develop diff docs edit env extensions external fetch find gc gpg graph help info install license list load location log-parse logs maintainers make-installer mark mirror module patch pkg providers pydoc python reindex remove rm repo resource restage solve spec stage style tags test test-env tutorial undevelop uninstall unit-test unload url verify versions view"
     fi
@@ -693,7 +693,7 @@ _spack_ci() {
 }
 
 _spack_ci_generate() {
-    SPACK_COMPREPLY="-h --help --output-file --copy-to --optimize --dependencies --buildcache-destination --prune-dag --no-prune-dag --check-index-only --artifacts-root"
+    SPACK_COMPREPLY="-h --help --output-file --optimize --dependencies --prune-dag --no-prune-dag --check-index-only --artifacts-root"
 }
 
 _spack_ci_rebuild_index() {
@@ -1023,14 +1023,14 @@ _spack_env() {
     then
         SPACK_COMPREPLY="-h --help"
     else
-        SPACK_COMPREPLY="activate deactivate create remove rm rename mv list ls status st loads view update revert depfile"
+        SPACK_COMPREPLY="activate deactivate create remove rm rename mv list ls status st loads view update revert depfile track untrack"
     fi
 }
 
 _spack_env_activate() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help --sh --csh --fish --bat --pwsh --with-view -v --without-view -V -p --prompt --temp --create --envfile --keep-relative -d --dir"
+        SPACK_COMPREPLY="-h --help --sh --csh --fish --bat --pwsh -v --with-view -V --without-view -p --prompt --temp --create --envfile --keep-relative -d --dir"
     else
         _environments
     fi
@@ -1138,6 +1138,24 @@ _spack_env_depfile() {
         SPACK_COMPREPLY="-h --help --make-prefix --make-target-prefix --make-disable-jobserver --use-buildcache -o --output -G --generator"
     else
         _all_packages
+    fi
+}
+
+_spack_env_track() {
+    if $list_options
+    then
+        SPACK_COMPREPLY="-h --help -n --name -y --yes-to-all"
+    else
+        SPACK_COMPREPLY=""
+    fi
+}
+
+_spack_env_untrack() {
+    if $list_options
+    then
+        SPACK_COMPREPLY="-h --help -f --force -y --yes-to-all"
+    else
+        _environments
     fi
 }
 
@@ -1831,7 +1849,7 @@ _spack_restage() {
 _spack_solve() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help --show -l --long -L --very-long -N --namespaces -I --install-status --no-install-status -y --yaml -j --json -c --cover -t --types --timers --stats -U --fresh --reuse --fresh-roots --reuse-deps --deprecated"
+        SPACK_COMPREPLY="-h --help --show --timers --stats -l --long -L --very-long -N --namespaces -I --install-status --no-install-status -y --yaml -j --json --format -c --cover -t --types -U --fresh --reuse --fresh-roots --reuse-deps --deprecated"
     else
         _all_packages
     fi

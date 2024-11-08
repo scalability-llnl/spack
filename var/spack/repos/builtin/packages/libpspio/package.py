@@ -16,6 +16,7 @@ class Libpspio(AutotoolsPackage):
 
     license("MPL-2.0")
 
+    version("0.4.1", sha256="e4f87f6d8821042db3a88dad60ae07278e36ad2571e28f5d30f02d8b164b4daa")
     version("0.3.0", sha256="4dc092457e481e5cd703eeecd87e6f17749941fe274043550c8a2557a649afc5")
 
     depends_on("c", type="build")  # generated

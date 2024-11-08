@@ -85,6 +85,8 @@ class Papi(AutotoolsPackage, ROCmPackage):
     conflicts("%gcc@8:", when="@5.3.0", msg="Requires GCC version less than 8.0")
     conflicts("+sde", when="@:5", msg="Software defined events (SDE) added in 6.0.0")
     conflicts("^cuda", when="@:5", msg="CUDA support for versions < 6.0.0 not implemented")
+    # https://github.com/icl-utk-edu/papi/pull/205
+    conflicts("^cuda@12.4:", when="@:7.1")
     conflicts("%cce", when="@7.1:", msg="-ffree-form flag not recognized")
 
     conflicts("@=6.0.0", when="+static_tools", msg="Static tools cannot build on version 6.0.0")

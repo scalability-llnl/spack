@@ -9,20 +9,30 @@ import re
 import shlex
 import sys
 from subprocess import PIPE, run
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import spack.spec
 import spack.util.elf
 
+#: Pattern to distinguish glibc from other libc implementations
+GLIBC_PATTERN = r"\b(?:Free Software Foundation|Roland McGrath|Ulrich Depper)\b"
+
+
+def _env() -> Dict[str, str]:
+    """Currently only set LC_ALL=C without clearing further environment variables"""
+    return {**os.environ, "LC_ALL": "C"}
+
 
 def _libc_from_ldd(ldd: str) -> Optional["spack.spec.Spec"]:
     try:
-        result = run([ldd, "--version"], stdout=PIPE, stderr=PIPE, check=False)
+        result = run([ldd, "--version"], stdout=PIPE, stderr=PIPE, check=False, env=_env())
         stdout = result.stdout.decode("utf-8")
     except Exception:
         return None
 
-    if not re.search(r"\bFree Software Foundation\b", stdout):
+    # The string "Free Software Foundation" is sometimes translated and not detected, but the names
+    # of the authors are typically present.
+    if not re.search(GLIBC_PATTERN, stdout):
         return None
 
     version_str = re.match(r".+\(.+\) (.+)", stdout)
@@ -38,7 +48,7 @@ def default_search_paths_from_dynamic_linker(dynamic_linker: str) -> List[str]:
     """If the dynamic linker is glibc at a certain version, we can query the hard-coded library
     search paths"""
     try:
-        result = run([dynamic_linker, "--help"], stdout=PIPE, stderr=PIPE, check=False)
+        result = run([dynamic_linker, "--help"], stdout=PIPE, stderr=PIPE, check=False, env=_env())
         assert result.returncode == 0
         out = result.stdout.decode("utf-8")
     except Exception:
@@ -74,7 +84,9 @@ def libc_from_dynamic_linker(dynamic_linker: str) -> Optional["spack.spec.Spec"]
     # Now try to figure out if glibc or musl, which is the only ones we support.
     # In recent glibc we can simply execute the dynamic loader. In musl that's always the case.
     try:
-        result = run([dynamic_linker, "--version"], stdout=PIPE, stderr=PIPE, check=False)
+        result = run(
+            [dynamic_linker, "--version"], stdout=PIPE, stderr=PIPE, check=False, env=_env()
+        )
         stdout = result.stdout.decode("utf-8")
         stderr = result.stderr.decode("utf-8")
     except Exception:
@@ -91,7 +103,7 @@ def libc_from_dynamic_linker(dynamic_linker: str) -> Optional["spack.spec.Spec"]
             return spec
         except Exception:
             return None
-    elif re.search(r"\bFree Software Foundation\b", stdout):
+    elif re.search(GLIBC_PATTERN, stdout):
         # output is like "ld.so (...) stable release version 2.33."
         match = re.search(r"version (\d+\.\d+(?:\.\d+)?)", stdout)
         if not match:

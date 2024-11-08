@@ -99,5 +99,5 @@ def deconcretize(parser, args):
             " Use `spack deconcretize --all` to deconcretize ALL specs.",
         )
 
-    specs = spack.cmd.parse_specs(args.specs) if args.specs else [any]
+    specs = spack.cmd.parse_specs(args.specs) if args.specs else [None]
     deconcretize_specs(args, specs)

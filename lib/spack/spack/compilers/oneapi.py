@@ -151,11 +151,14 @@ class Oneapi(Compiler):
         # Edge cases for Intel's oneAPI compilers when using the legacy classic compilers:
         # Always pass flags to disable deprecation warnings, since these warnings can
         # confuse tools that parse the output of compiler commands (e.g. version checks).
-        if self.cc and self.cc.endswith("icc") and self.real_version >= Version("2021"):
+        # This is really only needed for Fortran, since oneapi@ should be using either
+        # icx+icpx+ifx or icx+icpx+ifort. But to be on the safe side (some users may
+        # want to try to swap icpx against icpc, for example), and since the Intel LLVM
+        # compilers accept these diag-disable flags, we apply them for all compilers.
+        if self.real_version >= Version("2021") and self.real_version <= Version("2023"):
             env.append_flags("SPACK_ALWAYS_CFLAGS", "-diag-disable=10441")
-        if self.cxx and self.cxx.endswith("icpc") and self.real_version >= Version("2021"):
             env.append_flags("SPACK_ALWAYS_CXXFLAGS", "-diag-disable=10441")
-        if self.fc and self.fc.endswith("ifort") and self.real_version >= Version("2021"):
+        if self.real_version >= Version("2021") and self.real_version <= Version("2024"):
             env.append_flags("SPACK_ALWAYS_FFLAGS", "-diag-disable=10448")
 
         # 2024 release bumped the libsycl version because of an ABI

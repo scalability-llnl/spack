@@ -336,3 +336,40 @@ def test_grouped_exception_base_type():
     message = h.grouped_message(with_tracebacks=False)
     assert "catch-runtime-error" in message
     assert "catch-value-error" not in message
+
+
+def test_class_level_constant_value():
+    """Tests that the Const descriptor does not allow overwriting the value from an instance"""
+
+    class _SomeClass:
+        CONST_VALUE = llnl.util.lang.Const(10)
+
+    with pytest.raises(TypeError, match="not support assignment"):
+        _SomeClass().CONST_VALUE = 11
+
+
+def test_deprecated_property():
+    """Tests the behavior of the DeprecatedProperty descriptor, which is can be used when
+    deprecating an attribute.
+    """
+
+    class _Deprecated(llnl.util.lang.DeprecatedProperty):
+        def factory(self, instance, owner):
+            return 46
+
+    class _SomeClass:
+        deprecated = _Deprecated("deprecated")
+
+    # Default behavior is to just return the deprecated value
+    s = _SomeClass()
+    assert s.deprecated == 46
+
+    # When setting error_level to 1 the attribute warns
+    _SomeClass.deprecated.error_lvl = 1
+    with pytest.warns(UserWarning):
+        assert s.deprecated == 46
+
+    # When setting error_level to 2 an exception is raised
+    _SomeClass.deprecated.error_lvl = 2
+    with pytest.raises(AttributeError):
+        _ = s.deprecated

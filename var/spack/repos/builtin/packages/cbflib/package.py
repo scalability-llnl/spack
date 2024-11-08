@@ -49,8 +49,7 @@ class Cbflib(MakefilePackage):
         mf.filter(r"^C\+\+.+", "C++ = {0}".format(spack_cxx))
         mf.filter("gfortran", spack_fc)
         mf.filter(r"^INSTALLDIR .+", "INSTALLDIR = {0}".format(prefix))
-        real_version = Version(self.compiler.get_real_version())
-        if real_version >= Version("10"):
+        if self.spec.satisfies("%gcc@10:"):
             mf.filter(r"^F90FLAGS[ \t]*=[ \t]*(.+)", "F90FLAGS = \\1 -fallow-invalid-boz")
 
     def build(self, spec, prefix):

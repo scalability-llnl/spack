@@ -74,6 +74,7 @@ def replacements():
         "target_family": lambda: arch.target.family,
         "date": lambda: date.today().strftime("%Y-%m-%d"),
         "env": lambda: ev.active_environment().path if ev.active_environment() else NOMATCH,
+        "spack_short_version": lambda: spack.get_short_version(),
     }
 
 
@@ -154,19 +155,20 @@ def substitute_config_variables(path):
 
     Spack allows paths in configs to have some placeholders, as follows:
 
-    - $env               The active Spack environment.
-    - $spack             The Spack instance's prefix
-    - $tempdir           Default temporary directory returned by tempfile.gettempdir()
-    - $user              The current user's username
-    - $user_cache_path   The user cache directory (~/.spack, unless overridden)
-    - $architecture      The spack architecture triple for the current system
-    - $arch              The spack architecture triple for the current system
-    - $platform          The spack platform for the current system
-    - $os                The OS of the current system
-    - $operating_system  The OS of the current system
-    - $target            The ISA target detected for the system
-    - $target_family     The family of the target detected for the system
-    - $date              The current date (YYYY-MM-DD)
+    - $env                 The active Spack environment.
+    - $spack               The Spack instance's prefix
+    - $tempdir             Default temporary directory returned by tempfile.gettempdir()
+    - $user                The current user's username
+    - $user_cache_path     The user cache directory (~/.spack, unless overridden)
+    - $architecture        The spack architecture triple for the current system
+    - $arch                The spack architecture triple for the current system
+    - $platform            The spack platform for the current system
+    - $os                  The OS of the current system
+    - $operating_system    The OS of the current system
+    - $target              The ISA target detected for the system
+    - $target_family       The family of the target detected for the system
+    - $date                The current date (YYYY-MM-DD)
+    - $spack_short_version The spack short version
 
     These are substituted case-insensitively into the path, and users can
     use either ``$var`` or ``${var}`` syntax for the variables. $env is only

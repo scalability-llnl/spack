@@ -58,6 +58,10 @@ class Hepmc3(CMakePackage):
     conflicts("%gcc@9.3.0", when="@:3.1.1")
     patch("ba38f14d8f56c16cc4105d98f6d4540c928c6150.patch", when="@3.1.2:3.2.1 %gcc@9.3.0")
 
+    @property
+    def libs(self):
+        return find_libraries(["libHepMC3", "libHepMC3Search"], root=self.prefix, recursive=True)
+
     def cmake_args(self):
         spec = self.spec
         from_variant = self.define_from_variant

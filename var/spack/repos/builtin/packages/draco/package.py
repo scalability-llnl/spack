@@ -20,6 +20,7 @@ class Draco(CMakePackage):
     license("BSD-3-Clause-Open-MPI")
 
     version("develop", branch="develop")
+    version("7.19.0", sha256="04b33cfea244052efcdd40d2b9dd79348749d34647aaf4dfcb15cdfdbe989783")
     version("7.18.0", sha256="b210e202a06ffdaf149193b5cba164411fd508e20e573e1dfc46d1f56e3fffaa")
     version("7.14.1", sha256="b05c75f1b8ea1d4fac4900d897fb1c948b470826b174ed8b97b32c6da9f030bf")
     version("7.14.0", sha256="c8abf293d81c1b8020907557c20d8d2f2edf9ac7ae60a534eab052a8c3b7f99d")
@@ -83,6 +84,8 @@ class Draco(CMakePackage):
 
     conflicts("+cuda", when="@:7.6")
     conflicts("+caliper", when="@:7.7")
+    with when("@7.19.0:"):
+        conflicts("gcc@:9.0")
 
     # Fix python discovery.
     patch("d710.patch", when="@7.1.0")
