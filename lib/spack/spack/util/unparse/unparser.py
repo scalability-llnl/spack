@@ -760,7 +760,8 @@ class Unparser(NodeVisitor):
     def _write_docstring(self, node):
         self.fill()
         # Don't emit `u""` because it's not avail in python AST <= 3.7
-        if not self._py_ver_consistent and node.kind == "u":
+        # Ubuntu 18's Python 3.6 doesn't have "kind"
+        if not self._py_ver_consistent and getattr(node, "kind", None) == "u":
             self.write("u")
         # Python 3.8 changed Str to Constant
         value = node.s if type(node).__name__ == "Str" else node.value
@@ -793,7 +794,8 @@ class Unparser(NodeVisitor):
             self.write("...")
         else:
             # Don't emit `u""` because it's not avail in python AST <= 3.7
-            if not self._py_ver_consistent and node.kind == "u":
+            # Ubuntu 18's Python 3.6 doesn't have "kind"
+            if not self._py_ver_consistent and getattr(node, "kind", None) == "u":
                 self.write("u")
             self._write_constant(node.value)
 
