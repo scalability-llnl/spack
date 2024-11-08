@@ -30,7 +30,6 @@ def main():
 
     cfg = pathlib.Path(args.dest) / "config"
     mkdirp(cfg)
-    config.CONFIG.print_section("packages", blame=False, scope=None)
     with open(cfg / "packages.yaml", "w") as f:
         _dump_section("packages", f)
     with open(cfg / "compilers.yaml", "w") as f:
