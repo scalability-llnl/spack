@@ -12,6 +12,7 @@ import spack.build_environment
 import spack.cmd
 import spack.cmd.common.arguments
 import spack.config
+import spack.environment as ev
 import spack.repo
 from spack.cmd.common import arguments
 from spack.installer import PackageInstaller
@@ -102,29 +103,40 @@ def dev_build(self, args):
     if not spack.repo.PATH.exists(spec.name):
         raise spack.repo.UnknownPackageError(spec.name)
 
-    if not spec.versions.concrete_range_as_version:
-        tty.die(
-            "spack dev-build spec must have a single, concrete version. "
-            "Did you forget a package version number?"
-        )
+    env = ev.active_environment()
+    if env:
+        matches = env.all_matching_specs(spec)
+        dev_matches = [m for m in matches if m.is_develop]
+        if len(dev_matches) > 1:
+            tty.die("Too many matching develop specs in the active environment")
+        elif len(dev_matches) < 1:
+            tty.die("No matching develop specs found in the active environment")
+        else:
+            spec = dev_matches[0]
+    else:
+        if not spec.versions.concrete_range_as_version:
+            tty.die(
+                "spack dev-build spec must have a single, concrete version. "
+                "Did you forget a package version number?"
+            )
 
-    source_path = args.source_path
-    if source_path is None:
-        source_path = os.getcwd()
-    source_path = os.path.abspath(source_path)
+        source_path = args.source_path
+        if source_path is None:
+            source_path = os.getcwd()
+        source_path = os.path.abspath(source_path)
 
-    # Forces the build to run out of the source directory.
-    spec.constrain("dev_path=%s" % source_path)
-    spec.concretize()
+        # Forces the build to run out of the source directory.
+        spec.constrain("dev_path=%s" % source_path)
+        spec.concretize()
 
-    if spec.installed:
-        tty.error("Already installed in %s" % spec.prefix)
-        tty.msg("Uninstall or try adding a version suffix for this dev build.")
-        sys.exit(1)
+        if spec.installed:
+            tty.error("Already installed in %s" % spec.prefix)
+            tty.msg("Uninstall or try adding a version suffix for this dev build.")
+            sys.exit(1)
 
-    # disable checksumming if requested
-    if args.no_checksum:
-        spack.config.set("config:checksum", False, scope="command_line")
+        # disable checksumming if requested
+        if args.no_checksum:
+            spack.config.set("config:checksum", False, scope="command_line")
 
     tests = False
     if args.test == "all":
