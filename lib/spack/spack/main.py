@@ -547,7 +547,7 @@ def setup_main_options(args):
         key = syaml.syaml_str("repos")
         key.override = True
         spack.config.CONFIG.scopes["command_line"].sections["repos"] = syaml.syaml_dict(
-            [(key, [spack.paths.mock_packages_path])]
+            [(key, [spack.paths.mock_packages_path, spack.paths.mock_packages_path2])]
         )
         spack.repo.PATH = spack.repo.create(spack.config.CONFIG)
 
