@@ -1831,7 +1831,7 @@ def _find_max_depth(
         for pattern_name, pattern in complex_patterns.items():
             matched_paths[pattern_name].extend(
                 path
-                for path in glob.glob(os.path.join(curr_dir, pattern), include_hidden=True)
+                for path in glob.glob(os.path.join(curr_dir, pattern))
                 if not os.path.isdir(path)
             )
 
