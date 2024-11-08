@@ -2,20 +2,18 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import spack.environment as ev
-import spack.config as config
-import spack.platforms
-from spack.spec import Spec
-import spack.util.spack_yaml as syaml
-
-from llnl.util.filesystem import mkdirp
+import argparse
+import os
+import pathlib
+import pickle
 
 import archspec.cpu
 
-import argparse
-import pathlib
-import pickle
-import os
+from llnl.util.filesystem import mkdirp
+
+import spack.config as config
+import spack.platforms
+import spack.util.spack_yaml as syaml
 
 
 def _dump_section(section, stream):
@@ -23,17 +21,20 @@ def _dump_section(section, stream):
     data[section] = config.CONFIG.get_config(section, scope=None)
     syaml.dump_config(data, stream=stream, default_flow_style=False, blame=None)
 
+
 def _system_pickles(dst):
-    data = [
-        spack.platforms.host(),
-        archspec.cpu.host()
-    ]
+    data = [spack.platforms.host(), archspec.cpu.host()]
     with open(dst, "wb") as f:
         pickle.dump(data, f)
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Collect details for simulating this system elsewhere")
-    parser.add_argument("dest", help="Put all simulation resources in this dir (for target system to use)")
+    parser = argparse.ArgumentParser(
+        description="Collect details for simulating this system elsewhere"
+    )
+    parser.add_argument(
+        "dest", help="Put all simulation resources in this dir (for target system to use)"
+    )
     args = parser.parse_args()
 
     if os.path.exists(args.dest):
