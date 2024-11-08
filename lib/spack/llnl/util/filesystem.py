@@ -20,7 +20,19 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from itertools import accumulate
-from typing import Callable, Deque, Dict, Iterable, List, Match, Optional, Set, Tuple, Union
+from typing import (
+    Callable,
+    Deque,
+    Dict,
+    Iterable,
+    List,
+    Match,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
 
 import llnl.util.symlink
 from llnl.util import tty
@@ -84,6 +96,8 @@ __all__ = [
     "BaseDirectoryVisitor",
     "visit_directory_tree",
 ]
+
+Path = Union[str, pathlib.Path]
 
 if sys.version_info < (3, 7, 4):
     # monkeypatch shutil.copystat to fix PermissionError when copying read-only
@@ -1674,8 +1688,8 @@ def find_first(root: str, files: Union[Iterable[str], str], bfs_depth: int = 2) 
 
 
 def find(
-    root: Union[str, List[str]],
-    files: Union[str, List[str]],
+    root: Union[Path, Sequence[Path]],
+    files: Union[str, Sequence[str]],
     recursive: bool = True,
     max_depth: Optional[int] = None,
 ) -> List[str]:
@@ -1727,11 +1741,15 @@ def find(
 
     Returns a list of absolute, matching file paths.
     """
-    if not isinstance(root, list):
+    if isinstance(root, (str, pathlib.Path)):
         root = [root]
+    elif not isinstance(root, collections.abc.Sequence):
+        raise TypeError(f"'root' arg must be a path or a sequence of paths, not '{type(root)}']")
 
-    if not isinstance(files, list):
+    if isinstance(files, str):
         files = [files]
+    elif not isinstance(files, collections.abc.Sequence):
+        raise TypeError(f"'files' arg must be str or a sequence of str, not '{type(files)}']")
 
     # If recursive is false, max_depth can only be None or 0
     if max_depth and not recursive:
@@ -1759,7 +1777,9 @@ def _dir_id(s: os.stat_result) -> Tuple[int, int]:
     return (s.st_ino, s.st_dev)
 
 
-def _find_max_depth(roots: List[str], globs: List[str], max_depth: int = sys.maxsize) -> List[str]:
+def _find_max_depth(
+    roots: Sequence[Path], globs: Sequence[str], max_depth: int = sys.maxsize
+) -> List[str]:
     """See ``find`` for the public API."""
     # Apply normcase to file patterns and filenames to respect case insensitive filesystems
     regex, groups = fnmatch_translate_multiple([os.path.normcase(x) for x in globs])

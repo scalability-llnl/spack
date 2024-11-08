@@ -1211,3 +1211,26 @@ def test_multiple_patterns(complex_dir_structure):
     # and we could decide to change the exact order in the future)
     assert filenames[0] == "l2-f1"
     assert filenames[1] == "l3-f3"
+
+
+def test_find_input_types(tmp_path: pathlib.Path):
+    """test that find only accepts sequences and instances of pathlib.Path and str for root, and
+    only sequences and instances of str for patterns. In principle mypy catches these issues, but
+    it is not enabled on all call-sites."""
+    (tmp_path / "file.txt").write_text("")
+    assert (
+        fs.find(tmp_path, "file.txt")
+        == fs.find(str(tmp_path), "file.txt")
+        == fs.find([tmp_path, str(tmp_path)], "file.txt")
+        == fs.find((tmp_path, str(tmp_path)), "file.txt")
+        == fs.find(tmp_path, "file.txt")
+        == fs.find(tmp_path, ["file.txt"])
+        == fs.find(tmp_path, ("file.txt",))
+        == [str(tmp_path / "file.txt")]
+    )
+
+    with pytest.raises(TypeError):
+        fs.find(tmp_path, pathlib.Path("file.txt"))  # type: ignore
+
+    with pytest.raises(TypeError):
+        fs.find(1, "file.txt")  # type: ignore
