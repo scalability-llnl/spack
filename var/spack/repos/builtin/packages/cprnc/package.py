@@ -25,6 +25,8 @@ class Cprnc(CMakePackage):
     depends_on("netcdf-fortran")
     depends_on("cmake@3:", type="build")
 
+    patch("install_rpath.patch")
+
     resource(
         name="genf90",
         git="https://github.com/PARALLELIO/genf90",
