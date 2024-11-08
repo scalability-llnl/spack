@@ -15,7 +15,7 @@ class PyPythonMultipart(PythonPackage):
 
     license("Apache-2.0")
 
-    version("0.0.17", sha256="41330d831cae6e2f22902704ead2826ea038d0419530eadff3ea80175aec5538") 
+    version("0.0.17", sha256="41330d831cae6e2f22902704ead2826ea038d0419530eadff3ea80175aec5538")
     version("0.0.5", sha256="f7bb5f611fc600d15fa47b3974c8aa16e93724513b49b5f95c81e6624c83fa43")
 
     depends_on("py-setuptools", type="build")
