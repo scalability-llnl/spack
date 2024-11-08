@@ -265,8 +265,8 @@ class Python(Package):
     variant("tix", default=False, description="Build Tix module", when="+tkinter")
     variant("crypt", default=True, description="Build crypt module", when="@:3.12 platform=linux")
     variant("crypt", default=True, description="Build crypt module", when="@:3.12 platform=darwin")
-    variant("freethread", default=False, description="Build with experimental free-threading support (No GIL)", when="@:3.13")
-    variant("jit", default=False, description="Build with experimental JIT support", when="@:3.13")
+    variant("freethread", default=False, description="Build with experimental free-threading support (No GIL)", when="@3.13:")
+    variant("jit", default=False, description="Build with experimental JIT support", when="@3.13:")
 
     if sys.platform != "win32":
         depends_on("gmake", type="build")
