@@ -60,11 +60,17 @@ class Orca(Package):
         openmpi_version = self.openmpi_versions[version.string].replace(".", "")
         if openmpi_version == "412":
             openmpi_version = "411"
+
         ver_parts = version.string.split("-")
         ver_underscored = ver_parts[-1].replace(".", "_")
         features = ver_parts[:-1] + ["shared"]
         feature_text = "_".join(features)
-        return f"file://{os.getcwd()}/orca_{ver_underscored}_linux_x86-64_{feature_text}_openmpi{openmpi_version}.tar.xz"
+
+        url = f"file://{os.getcwd()}/orca_{ver_underscored}_linux_x86-64_{feature_text}_openmpi{openmpi_version}.tar.xz"
+        if self.spec.satisfies("@=avx2-6.0.1"):
+            url = f"file://{os.getcwd()}/orca_{ver_underscored}_linux_x86-64_shared_openmpi{openmpi_version}_avx2.tar.xz"
+
+        return url
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
