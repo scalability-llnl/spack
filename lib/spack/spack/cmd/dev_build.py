@@ -29,7 +29,11 @@ def setup_parser(subparser):
         "--source-path",
         dest="source_path",
         default=None,
-        help="path to source directory (defaults to the current directory)",
+        help=(
+            "path to source directory (defaults to the current directory)."
+            " ignored when using an active environment since the path is determined"
+            " by the develop section of the environment manifest."
+        ),
     )
     subparser.add_argument(
         "-i",
