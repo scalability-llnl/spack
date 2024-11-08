@@ -15,15 +15,15 @@ class PyTfKeras(PythonPackage):
      Keras 3 is being developed at keras-team/keras."""
 
     homepage = "https://github.com/keras-team/tf-keras"
-    # pypi = "tf-keras/tf_keras-2.17.0.tar.gz"
-    url = "https://github.com/keras-team/tf-keras/archive/refs/tags/v2.17.0.tar.gz"
+    pypi = "tf-keras/tf_keras-2.18.0.tar.gz"
+    # url = "https://github.com/keras-team/tf-keras/archive/refs/tags/v2.18.0.tar.gz"
 
     maintainers("jonas-eschle")
 
     license("Apache-2.0", checked_by="jonas-eschle")
 
-    max_minor = 17
-    version("2.17.0", sha256="62730cf3af47162216ee0130b363f085716d86ac9e2d448a242f478846c2a7e0")
+    max_minor = 18
+    version("2.18.0", sha256="ebf744519b322afead33086a2aba872245473294affd40973694f3eb7c7ad77d")
 
     # Supported Python versions listed in multiple places:
     # * tf-keras/tools/pip_package/setup.py
@@ -35,22 +35,26 @@ class PyTfKeras(PythonPackage):
     # Required dependencies listed in multiple places:
     # * BUILD
     # * WORKSPACE
-    depends_on("py-absl-py", type=("build", "run"))
-    depends_on("py-h5py", type=("build", "run"))
-    depends_on("py-numpy", type=("build", "run"))
     depends_on("py-pandas", type=("build", "run"))
-    depends_on("pil", type=("build", "run"))
-    depends_on("py-portpicker", type=("build", "run"))
     depends_on("py-pydot", type=("build", "run"))
     depends_on("py-scipy", type=("build", "run"))
-    depends_on("py-six", type=("build", "run"))
+
+    depends_on("protobuf@3.20.3", type="build", when=f"@2.18:")
     # the tf-keras versions are following along with TF versions
-    for minor_ver in range(17, max_minor + 1):
+    for minor_ver in range(18, max_minor + 1):
         depends_on(f"py-tensorflow@2.{minor_ver}", type=("build", "run"), when=f"@2.{minor_ver}")
-        depends_on(f"py-tensorboard@2.{minor_ver}", type=("build", "run"), when=f"@2.{minor_ver}")
+        # depends_on(f"py-tensorboard@2.{minor_ver}", type=("build", "run"), when=f"@2.{minor_ver}")
+    depends_on("py-portpicker", type=("build", "run"))
     depends_on("py-pyyaml", type=("build", "run"))
+    depends_on("pil", type=("build", "run"))
+    depends_on("py-numpy@1.26.0:2.0", type=("build", "run"))
+
+
     depends_on("bazel", type="build")
-    depends_on("protobuf", type="build")
+
+    depends_on("py-six", type=("build", "run"))
+    depends_on("py-absl-py", type=("build", "run"))
+    depends_on("py-h5py", type=("build", "run"))
 
     def patch(self):
         infile = join_path(self.package_dir, "protobuf_build.patch")
