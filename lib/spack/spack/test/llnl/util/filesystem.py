@@ -1216,7 +1216,7 @@ def test_find_max_depth_multiple_and_repeated_entry_points(complex_dir_structure
 
 def test_multiple_patterns(complex_dir_structure):
     root, _ = complex_dir_structure
-    paths = fs.find(root, ["l2-f1", "l3-f3", "*"])
+    paths = fs.find(root, ["l2-f1", "l*-d*/l3-f3", "*", "*/*"])
     # There shouldn't be duplicate results with multiple, overlapping patterns
     assert len(set(paths)) == len(paths)
     # All files should be found
@@ -1253,6 +1253,11 @@ def test_find_input_types(tmp_path: pathlib.Path):
 
 def test_find_only_finds_files(tmp_path: pathlib.Path):
     """ensure that find only returns files even at max_depth"""
-    (tmp_path / "file.txt").write_text("")
-    (tmp_path / "dir").mkdir()
-    assert fs.find(tmp_path, "*", max_depth=0) == [str(tmp_path / "file.txt")]
+    (tmp_path / "subdir").mkdir()
+    (tmp_path / "subdir" / "dir").mkdir()
+    (tmp_path / "subdir" / "file.txt").write_text("")
+    assert (
+        fs.find(tmp_path, "*", max_depth=1)
+        == fs.find(tmp_path, "*/*", max_depth=1)
+        == [str(tmp_path / "subdir" / "file.txt")]
+    )

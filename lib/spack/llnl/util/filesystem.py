@@ -1763,10 +1763,28 @@ def _log_file_access_issue(e: OSError, path: str) -> None:
     tty.debug(f"find must skip {path}: {errno_name} {e}")
 
 
-def _dir_id(s: os.stat_result) -> Tuple[int, int]:
+def _file_id(s: os.stat_result) -> Tuple[int, int]:
     # Note: on windows, st_ino is the file index and st_dev is the volume serial number. See
     # https://github.com/python/cpython/blob/3.9/Python/fileutils.c
     return (s.st_ino, s.st_dev)
+
+
+def _dedupe_files(paths: List[str]) -> List[str]:
+    """Deduplicate files by inode and device, dropping files that cannot be accessed."""
+    unique_files: List[str] = []
+    # tuple of (inode, device) for each file without following symlinks
+    visited: Set[Tuple[int, int]] = set()
+    for path in paths:
+        try:
+            stat_info = os.lstat(path)
+        except OSError as e:
+            _log_file_access_issue(e, path)
+            continue
+        file_id = _file_id(stat_info)
+        if file_id not in visited:
+            unique_files.append(path)
+            visited.add(file_id)
+    return unique_files
 
 
 def _find_max_depth(
@@ -1796,7 +1814,7 @@ def _find_max_depth(
         except OSError as e:
             _log_file_access_issue(e, root)
             continue
-        dir_id = _dir_id(stat_root)
+        dir_id = _file_id(stat_root)
         if dir_id not in visited_dirs:
             dir_queue.appendleft((0, root))
             visited_dirs.add(dir_id)
@@ -1811,7 +1829,11 @@ def _find_max_depth(
 
         # Use glob.glob for complex patterns.
         for pattern_name, pattern in complex_patterns.items():
-            matched_paths[pattern_name].extend(glob.glob(os.path.join(curr_dir, pattern)))
+            matched_paths[pattern_name].extend(
+                path
+                for path in glob.glob(os.path.join(curr_dir, pattern), include_hidden=True)
+                if not os.path.isdir(path)
+            )
 
         with dir_iter:
             ordered_entries = sorted(dir_iter, key=lambda x: x.name)
@@ -1840,7 +1862,7 @@ def _find_max_depth(
                         _log_file_access_issue(e, dir_entry.path)
                         continue
 
-                    dir_id = _dir_id(stat_info)
+                    dir_id = _file_id(stat_info)
                     if dir_id not in visited_dirs:
                         dir_queue.appendleft((depth + 1, dir_entry.path))
                         visited_dirs.add(dir_id)
@@ -1853,7 +1875,11 @@ def _find_max_depth(
                             matched_paths[pattern_name].append(dir_entry.path)
                             break
 
-    return [path for paths in matched_paths.values() for path in paths]
+    all_matching_paths = [path for paths in matched_paths.values() for path in paths]
+
+    # we only dedupe files if we have any complex patterns, since only they can match the same file
+    # multiple times
+    return _dedupe_files(all_matching_paths) if complex_patterns else all_matching_paths
 
 
 # Utilities for libraries and headers
