@@ -1076,7 +1076,11 @@ def test_find_path_glob_matches(dir_structure_with_things_to_find):
         == fs.find(root, "dir_t*/*/*two")
         == [locations["file_two"]]
     )
-    # file name matches but not the path
+    # ensure that * does not match directory separators
+    assert fs.find(root, "dir*file_two") == []
+    # ensure that file name matches after / are matched from the start of the file name
+    assert fs.find(root, "*/ile_two") == []
+    # file name matches exist, but not with these paths
     assert fs.find(root, "dir_one/*/*two") == fs.find(root, "*/*/*/*/file_two") == []
 
 
