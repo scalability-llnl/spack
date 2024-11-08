@@ -1748,12 +1748,11 @@ def find(
     if max_depth and not recursive:
         raise ValueError(f"max_depth ({max_depth}) cannot be set if recursive is False")
 
+    tty.debug(f"Find (max depth = {max_depth}): {root} {files}")
     if not recursive:
         max_depth = 0
     elif max_depth is None:
         max_depth = sys.maxsize
-
-    tty.debug(f"Find (max depth = {max_depth}): {root} {files}")
     result = _find_max_depth(root, files, max_depth)
     tty.debug(f"Find complete: {root} {files}")
     return result
