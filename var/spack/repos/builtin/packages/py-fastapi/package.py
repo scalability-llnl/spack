@@ -19,8 +19,12 @@ class PyFastapi(PythonPackage):
     version("0.110.2", sha256="b53d673652da3b65e8cd787ad214ec0fe303cad00d2b529b86ce7db13f17518d")
     with default_args(deprecated=True):
         # https://nvd.nist.gov/vuln/detail/CVE-2024-24762
-        version("0.98.0", sha256="0d3c18886f652038262b5898fec6b09f4ca92ee23e9d9b1d1d24e429f84bf27b")
-        version("0.88.0", sha256="915bf304180a0e7c5605ec81097b7d4cd8826ff87a02bb198e336fb9f3b5ff02")
+        version(
+            "0.98.0", sha256="0d3c18886f652038262b5898fec6b09f4ca92ee23e9d9b1d1d24e429f84bf27b"
+        )
+        version(
+            "0.88.0", sha256="915bf304180a0e7c5605ec81097b7d4cd8826ff87a02bb198e336fb9f3b5ff02"
+        )
 
     variant("all", default=False, description="Build all optional dependencies")
 
