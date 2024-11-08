@@ -24,6 +24,7 @@ class PyTensorflowProbability(Package):
 
     license("Apache-2.0")
 
+    version("0.25.0", sha256="73cf3e52d3b5ee48fc919631e7fa3621849b8ce8d453017016a5148815856bc2")
     version("0.24.0", sha256="3d75418cef09ea357ee879347133ab784fe4637a5ba251a8e06ef930dd970a3e")
     version("0.23.0", sha256="a00769550da9284acbd69e32a005507153ad39b0c190feca2bbbf6373366cc14")
     version("0.22.1", sha256="9c1203b454aaeb48ac67dea862a411dba6b04f67c1e874e0e83bd1d7f13829a3")
@@ -61,6 +62,7 @@ class PyTensorflowProbability(Package):
 
     variant("tf", default=False, description="Build with TensorFlow support")
     with when("+tf"):
+        depends_on("py-tf-keras@2.18:", when="@0.25:", type=("build", "run"))
         depends_on("py-tf-keras@2.17:", when="@0.24:", type=("build", "run"))
         depends_on("py-tensorflow@2.17", when="@0.24", type=("build", "run"))
         depends_on("py-tensorflow@2.15", when="@0.23", type=("build", "run"))
@@ -72,6 +74,7 @@ class PyTensorflowProbability(Package):
     # jaxlib is not required, as it's already a dependency of py-jax
     variant("jax", default=False, description="Build with JAX support")
     with when("+jax"):
+        depends_on("py-jax@0.4.35:0.4", when="@0.25", type=("build", "run"))
         depends_on("py-jax@0.4.25:0.4", when="@0.24", type=("build", "run"))
         depends_on("py-jax@0.4.20:0.4", when="@0.23", type=("build", "run"))
         depends_on("py-jax@0.4.16:0.4", when="@0.22", type=("build", "run"))
