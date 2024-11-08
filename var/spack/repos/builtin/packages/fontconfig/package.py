@@ -58,11 +58,7 @@ class Fontconfig(AutotoolsPackage):
         if not self.spec["libpng"].satisfies("libs=shared"):
             deps.append("libpng")
         if self.spec["libxml2"].satisfies("~shared"):
-            # DH*?
-            # first line is from spack develop, we had the second line
             deps.append("libxml-2.0")
-            # deps.extend(["zlib", "xz", "iconv"])
-            # *DH?
         if deps:
             pc = which("pkg-config")
             for lib in deps:
