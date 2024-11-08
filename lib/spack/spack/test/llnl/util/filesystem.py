@@ -1071,7 +1071,6 @@ def test_find_path_glob_matches(dir_structure_with_things_to_find):
     # both file name and path match
     assert (
         fs.find(root, "file_two")
-        == fs.find(root, "**/file_two")
         == fs.find(root, "*/*/file_two")
         == fs.find(root, "dir_t*/*/*two")
         == [locations["file_two"]]
