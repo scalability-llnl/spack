@@ -1773,11 +1773,16 @@ def _find_max_depth(
     roots: Sequence[Path], globs: Sequence[str], max_depth: int = sys.maxsize
 ) -> List[str]:
     """See ``find`` for the public API."""
-    regex, groups = fnmatch_translate_multiple(
-        [os.path.normcase(posixpath.basename(x)) for x in globs]
-    )
-    # Ordered dictionary that keeps track of the files found for each pattern
-    capture_group_to_paths: Dict[str, List[str]] = {group: [] for group in groups}
+    # We optimize for the common case of simple filename only patterns: a single, combined regex
+    # is used. For complex patterns that include path components, we use a slower glob call from
+    # every directory we visit within max_depth.
+    filename_only_patterns = {
+        f"pattern_{i}": os.path.normcase(x) for i, x in enumerate(globs) if "/" not in x
+    }
+    complex_patterns = {f"pattern_{i}": x for i, x in enumerate(globs) if "/" in x}
+    regex = re.compile(fnmatch_translate_multiple(filename_only_patterns))
+    # Ordered dictionary that keeps track of what pattern found which files
+    matched_paths: Dict[str, List[str]] = {f"pattern_{i}": [] for i, _ in enumerate(globs)}
     # Ensure returned paths are always absolute
     roots = [os.path.abspath(r) for r in roots]
     # Breadth-first search queue. Each element is a tuple of (depth, dir)
@@ -1803,6 +1808,10 @@ def _find_max_depth(
         except OSError as e:
             _log_file_access_issue(e, curr_dir)
             continue
+
+        # Use glob.glob for complex patterns.
+        for pattern_name, pattern in complex_patterns.items():
+            matched_paths[pattern_name].extend(glob.glob(os.path.join(curr_dir, pattern)))
 
         with dir_iter:
             ordered_entries = sorted(dir_iter, key=lambda x: x.name)
@@ -1835,17 +1844,16 @@ def _find_max_depth(
                     if dir_id not in visited_dirs:
                         dir_queue.appendleft((depth + 1, dir_entry.path))
                         visited_dirs.add(dir_id)
-                else:
+                elif filename_only_patterns:
                     m = regex.match(os.path.normcase(dir_entry.name))
                     if not m:
                         continue
-                    # TODO: after a match on file name, do also a match on path.
-                    for group in capture_group_to_paths:
-                        if m.group(group):
-                            capture_group_to_paths[group].append(dir_entry.path)
+                    for pattern_name in filename_only_patterns:
+                        if m.group(pattern_name):
+                            matched_paths[pattern_name].append(dir_entry.path)
                             break
 
-    return [path for paths in capture_group_to_paths.values() for path in paths]
+    return [path for paths in matched_paths.values() for path in paths]
 
 
 # Utilities for libraries and headers
