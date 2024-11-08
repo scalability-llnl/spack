@@ -15,6 +15,7 @@ class PyWerkzeug(PythonPackage):
 
     license("BSD-3-Clause", checked_by="wdconinc")
 
+    version("3.1.3", sha256="60723ce945c19328679790e3282cc758aa4a6040e4bb330f53d30fa546d44746")
     version("3.0.4", sha256="34f2371506b250df4d4f84bfe7b0921e4762525762bbd936614909fe25cd7306")
     version("3.0.0", sha256="3ffff4dcc32db52ef3cc94dff3000a3c2846890f3a5a51800a27b909c5e770f0")
     version("2.3.7", sha256="2b8c0e447b4b9dbcc85dd97b6eeb4dcbaf6c8b6c3be0bd654e25553e0a2157d8")
@@ -33,6 +34,7 @@ class PyWerkzeug(PythonPackage):
     version("0.11.15", sha256="455d7798ac263266dbd38d4841f7534dd35ca9c3da4a8df303f8488f38f3bcc0")
     version("0.11.11", sha256="e72c46bc14405cba7a26bd2ce28df734471bc9016bc8b4cb69466c2c14c2f7e5")
 
+    depends_on("python@3.9:", when="@3.1:", type=("build", "run"))
     depends_on("python@3.8:", when="@2.3:", type=("build", "run"))
     depends_on("python@:3.9", when="@:0.12", type=("build", "run"))
     depends_on("py-flit-core@:3", when="@2.3.7:", type="build")
