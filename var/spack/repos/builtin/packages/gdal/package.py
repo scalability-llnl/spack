@@ -806,13 +806,10 @@ class AutotoolsBuilder(AutotoolsBuilder):
 
         deps = []
         if self.spec["proj"].satisfies("~shared"):
-            deps += ["sqlite", "libtiff", "curl", "openssl"]
-        for dep in deps:
-            if dep not in self.spec:
-                continue
-            ldflags.append(self.spec[dep].libs.search_flags)
-            libs.append(self.spec[dep].libs.link_flags)
-        if self.spec.satisfies("+iconv") and self.spec["libiconv"].satisfies("~shared"):
+            pc = which("pkg-config")
+            ldflags.append(pc("proj", "--static", "--libs-only-L", output=str).strip())
+            libs.append(pc("proj", "--static", "--libs-only-l", output=str).strip())
+        if self.spec.satisfies("+iconv") and self.spec["libiconv"].satisfies("libs=static"):
             libs.append("-liconv")
 
         if ldflags or libs:
