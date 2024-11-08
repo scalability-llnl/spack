@@ -3626,14 +3626,11 @@ class SpecBuilder:
         return NodeArgument(id="0", pkg=pkg)
 
     def __init__(self, specs, hash_lookup=None):
-        self._specs: Dict[NodeArgument, spack.spec.Spec]
-        self._specs = {}
+        self._specs: Dict[NodeArgument, spack.spec.Spec] = {}
 
         # Matches parent nodes to splice node
-        self._splices: Dict[NodeArgument, List[Splice]]
-        self._splices = {}
-        self._splice_dag: Dict[NodeArgument, List[NodeArgument]]
-        self._splice_dag = {}
+        self._splices: Dict[NodeArgument, List[Splice]] = {}
+        self._splice_dag: Dict[NodeArgument, List[NodeArgument]] = {}
         self._result = None
         self._command_line_specs = specs
         self._flag_sources: Dict[Tuple[NodeArgument, str], Set[str]] = collections.defaultdict(
@@ -4022,7 +4019,7 @@ class SpecBuilder:
         for s in self._specs.values():
             _develop_specs_from_env(s, ev.active_environment())
 
-        if spack.config.CONFIG.get("concretizer:splice:automatic"):
+        if any([name == "splice_at_hash" for name, args in function_tuples]):
             resolved_splices = {}
             for node in self._specs:
                 self._resolve_splices_for_node(node, resolved_splices)
@@ -4553,6 +4550,7 @@ class SolverError(InternalConcretizerError):
         # Add attribute expected of the superclass interface
         self.required = None
         self.constraint_type = None
+        self.provided = provided
 
 
 class InvalidSpliceError(spack.error.SpackError):
