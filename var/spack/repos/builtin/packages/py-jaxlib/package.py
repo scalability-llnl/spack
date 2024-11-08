@@ -5,6 +5,7 @@
 
 import tempfile
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 rocm_dependencies = [
@@ -194,7 +195,6 @@ build --local_cpu_resources={make_jobs}
 
         python(*args)
         with working_dir(self.wrapped_package_object.tmp_path):
-            args = std_pip_args + ["--prefix=" + self.prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         remove_linked_tree(self.wrapped_package_object.tmp_path)
         remove_linked_tree(self.wrapped_package_object.buildtmp)

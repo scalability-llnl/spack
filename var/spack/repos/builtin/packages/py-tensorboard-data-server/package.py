@@ -5,6 +5,7 @@
 
 import glob
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -60,5 +61,4 @@ class PyTensorboardDataServer(PythonPackage):
             )
 
         wheel = glob.glob("*.whl")[0]
-        args = std_pip_args + ["--prefix=" + prefix, wheel]
-        pip(*args)
+        pip(*PythonPipBuilder.std_args(self), f"--prefix={prefix}", wheel)

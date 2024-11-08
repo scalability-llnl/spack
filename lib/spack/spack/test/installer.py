@@ -644,13 +644,12 @@ def test_prepare_for_install_on_installed(install_mockery, monkeypatch):
 def test_installer_init_requests(install_mockery):
     """Test of installer initial requests."""
     spec_name = "dependent-install"
-    with spack.config.override("config:install_missing_compilers", True):
-        installer = create_installer([spec_name], {})
+    installer = create_installer([spec_name], {})
 
-        # There is only one explicit request in this case
-        assert len(installer.build_requests) == 1
-        request = installer.build_requests[0]
-        assert request.pkg.name == spec_name
+    # There is only one explicit request in this case
+    assert len(installer.build_requests) == 1
+    request = installer.build_requests[0]
+    assert request.pkg.name == spec_name
 
 
 @pytest.mark.parametrize("transitive", [True, False])
@@ -743,21 +742,20 @@ def test_install_task_requeue_build_specs(install_mockery, monkeypatch, capfd):
 
     # Set the configuration to ensure _requeue_with_build_spec_tasks actually
     # does something.
-    with spack.config.override("config:install_missing_compilers", True):
-        installer = create_installer(["depb"], {})
-        installer._init_queue()
-        request = installer.build_requests[0]
-        task = create_build_task(request.pkg)
+    installer = create_installer(["depb"], {})
+    installer._init_queue()
+    request = installer.build_requests[0]
+    task = create_build_task(request.pkg)
 
-        # Drop one of the specs so its task is missing before _install_task
-        popped_task = installer._pop_task()
-        assert inst.package_id(popped_task.pkg.spec) not in installer.build_tasks
+    # Drop one of the specs so its task is missing before _install_task
+    popped_task = installer._pop_task()
+    assert inst.package_id(popped_task.pkg.spec) not in installer.build_tasks
 
-        monkeypatch.setattr(task, "execute", _missing)
-        installer._install_task(task, None)
+    monkeypatch.setattr(task, "execute", _missing)
+    installer._install_task(task, None)
 
-        # Ensure the dropped task/spec was added back by _install_task
-        assert inst.package_id(popped_task.pkg.spec) in installer.build_tasks
+    # Ensure the dropped task/spec was added back by _install_task
+    assert inst.package_id(popped_task.pkg.spec) in installer.build_tasks
 
 
 def test_release_lock_write_n_exception(install_mockery, tmpdir, capsys):

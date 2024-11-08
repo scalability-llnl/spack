@@ -62,8 +62,9 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("fortran", type="build", when="+openfast")
 
     depends_on("mpi")
-    depends_on("yaml-cpp@0.5.3:")
+    depends_on("yaml-cpp@0.6.0:0.7.0")
     depends_on("openfast@4.0.0:+cxx+netcdf", when="+fsi")
+    depends_on("trilinos@15.1.1", when="@=2.1.0")
     depends_on("trilinos@13.4.1", when="@=2.0.0")
     depends_on("hypre@2.29.0:", when="@2.0.0:+hypre")
     depends_on(
@@ -92,16 +93,16 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
             when="+cuda cuda_arch={0}".format(_arch),
         )
         depends_on(
-            "hypre@develop +mpi+cuda~int64~superlu-dist cuda_arch={0}".format(_arch),
+            "hypre@2.30.0: +cuda cuda_arch={0}".format(_arch),
             when="+hypre+cuda cuda_arch={0}".format(_arch),
         )
     for _arch in ROCmPackage.amdgpu_targets:
         depends_on(
-            "trilinos@13.4: ~shared+rocm+rocm_rdc amdgpu_target={0}".format(_arch),
+            "trilinos~shared+rocm+rocm_rdc amdgpu_target={0}".format(_arch),
             when="+rocm amdgpu_target={0}".format(_arch),
         )
         depends_on(
-            "hypre+rocm amdgpu_target={0}".format(_arch),
+            "hypre@2.30.0: +rocm amdgpu_target={0}".format(_arch),
             when="+hypre+rocm amdgpu_target={0}".format(_arch),
         )
 
