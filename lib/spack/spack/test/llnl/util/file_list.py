@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-from llnl.util.filesystem import HeaderList, LibraryList, find_headers, find_libraries
+from llnl.util.filesystem import HeaderList, LibraryList, find, find_headers, find_libraries
 
 import spack.paths
 
@@ -324,3 +324,33 @@ def test_searching_order(search_fn, search_list, root, kwargs):
 
     # List should be empty here
     assert len(rlist) == 0
+
+
+@pytest.mark.parametrize(
+    "root,search_list,kwargs,expected",
+    [
+        (
+            search_dir,
+            "*/*bar.tx?",
+            {"recursive": False},
+            [
+                os.path.join(search_dir, os.path.join("a", "foobar.txt")),
+                os.path.join(search_dir, os.path.join("b", "bar.txp")),
+                os.path.join(search_dir, os.path.join("c", "bar.txt")),
+            ],
+        ),
+        (
+            search_dir,
+            "*/*bar.tx?",
+            {"recursive": True},
+            [
+                os.path.join(search_dir, os.path.join("a", "foobar.txt")),
+                os.path.join(search_dir, os.path.join("b", "bar.txp")),
+                os.path.join(search_dir, os.path.join("c", "bar.txt")),
+            ],
+        ),
+    ],
+)
+def test_find_with_globbing(root, search_list, kwargs, expected):
+    matches = find(root, search_list, **kwargs)
+    assert sorted(matches) == sorted(expected)
