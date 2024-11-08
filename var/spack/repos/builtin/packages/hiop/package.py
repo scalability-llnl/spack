@@ -190,7 +190,7 @@ class Hiop(CMakePackage, CudaPackage, ROCmPackage):
             )
 
         with when("+cuda @0.7.1:"):
-            args.extend(self.define_from_variant("HIOP_USE_RESOLVE", "cusolver_lu"))
+            args.extend([self.define_from_variant("HIOP_USE_RESOLVE", "cusolver_lu")])
 
         args.extend(
             [
