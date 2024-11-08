@@ -37,7 +37,7 @@ from llnl.util.tty.log import log_output
 import spack
 import spack.cmd
 import spack.config
-import spack.environment as ev
+import spack.environment.shell as ev_shell
 import spack.error
 import spack.modules
 import spack.paths
@@ -917,7 +917,8 @@ def _main(argv=None):
         try:
             env = spack.cmd.find_environment(args)
             if env:
-                ev.activate(env, args.use_env_repo)
+                env_mods = ev_shell.activate(env, args.use_env_repo)
+                env_mods.apply_modifications()
         except spack.config.ConfigFormatError as e:
             # print the context but delay this exception so that commands like
             # `spack config edit` can still work with a bad environment.
