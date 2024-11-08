@@ -2639,9 +2639,9 @@ class SpackSolverSetup:
         for h, spec in self.reusable_and_possible.explicit_items():
             # this indicates that there is a spec like this installed
             self.gen.fact(fn.installed_hash(spec.name, h))
+            # indirection layer between hash constraints and imposition to allow for splicing
             for pred in self.spec_clauses(spec, body=True, required_from=None):
                 self.gen.fact(fn.hash_attr(h, *pred.args))
-            # otherwise, hashes impose their constraints directly
             self.gen.newline()
             # Declare as possible parts of specs that are not in package.py
             # - Add versions to possible versions
