@@ -1769,25 +1769,19 @@ def _dir_id(s: os.stat_result) -> Tuple[int, int]:
     return (s.st_ino, s.st_dev)
 
 
-def _normalize_pattern(glob: str) -> str:
-    """Normalize a glob pattern: ensure we support case insensitive filesystems, and prepend the
-    pattern with **/ (if it does not already), to match any directory in recursive searches on
-    just filename patterns."""
-    glob = os.path.normcase(glob)
-    return f"**/{glob}" if not glob.startswith("**/") else glob
-
-
 def _find_max_depth(
     roots: Sequence[Path], globs: Sequence[str], max_depth: int = sys.maxsize
 ) -> List[str]:
     """See ``find`` for the public API."""
-    regex, groups = fnmatch_translate_multiple([_normalize_pattern(x) for x in globs])
+    regex, groups = fnmatch_translate_multiple(
+        [os.path.normcase(posixpath.basename(x)) for x in globs]
+    )
     # Ordered dictionary that keeps track of the files found for each pattern
     capture_group_to_paths: Dict[str, List[str]] = {group: [] for group in groups}
     # Ensure returned paths are always absolute
     roots = [os.path.abspath(r) for r in roots]
-    # Breadth-first search queue. Each element is a tuple of (depth, root, rel_path)
-    dir_queue: Deque[Tuple[int, str, str]] = collections.deque()
+    # Breadth-first search queue. Each element is a tuple of (depth, dir)
+    dir_queue: Deque[Tuple[int, str]] = collections.deque()
     # Set of visited directories. Each element is a tuple of (inode, device)
     visited_dirs: Set[Tuple[int, int]] = set()
 
@@ -1799,16 +1793,15 @@ def _find_max_depth(
             continue
         dir_id = _dir_id(stat_root)
         if dir_id not in visited_dirs:
-            dir_queue.appendleft((0, root, ""))
+            dir_queue.appendleft((0, root))
             visited_dirs.add(dir_id)
 
     while dir_queue:
-        depth, curr_root, curr_rel_path = dir_queue.pop()
-        curr_path = os.path.join(curr_root, curr_rel_path)
+        depth, curr_dir = dir_queue.pop()
         try:
-            dir_iter = os.scandir(curr_path)
+            dir_iter = os.scandir(curr_dir)
         except OSError as e:
-            _log_file_access_issue(e, curr_path)
+            _log_file_access_issue(e, curr_dir)
             continue
 
         with dir_iter:
@@ -1820,9 +1813,6 @@ def _find_max_depth(
                     # Possible permission issue, or a symlink that cannot be resolved (ELOOP).
                     _log_file_access_issue(e, dir_entry.path)
                     continue
-
-                # We use a posix dir separator because fnmatch patterns use it
-                next_rel_path = posixpath.join(curr_rel_path, os.path.normcase(dir_entry.name))
 
                 if it_is_a_dir:
                     if depth >= max_depth:
@@ -1843,15 +1833,13 @@ def _find_max_depth(
 
                     dir_id = _dir_id(stat_info)
                     if dir_id not in visited_dirs:
-                        dir_queue.appendleft((depth + 1, curr_root, next_rel_path))
+                        dir_queue.appendleft((depth + 1, dir_entry.path))
                         visited_dirs.add(dir_id)
                 else:
-                    # Match all patterns in one go against the relative path of the current file.
-                    # Include a leading `./<rel path>` because all patterns are of the form
-                    # **/<pattern>; and we want to match files directly in the root directory too.
-                    m = regex.match(f"./{next_rel_path}")
+                    m = regex.match(os.path.normcase(dir_entry.name))
                     if not m:
                         continue
+                    # TODO: after a match on file name, do also a match on path.
                     for group in capture_group_to_paths:
                         if m.group(group):
                             capture_group_to_paths[group].append(dir_entry.path)
