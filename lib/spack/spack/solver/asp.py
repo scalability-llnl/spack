@@ -3877,9 +3877,7 @@ class SpecBuilder:
         for edge in orig_spec.edges_to_dependencies():
             edge_name = edge.spec.name
             assert type(edge_name) is str, "Anonymous dependency spec in splice"
-            if edge_name not in edges_by_dep_name:
-                edges_by_dep_name[edge_name] = []
-            edges_by_dep_name[edge_name].append(edge)
+            edges_by_dep_name.set_default(edge_name, []).append(edge)
         # This is the easy case, we can just copy unspliced dependencies
         for name, edges in edges_by_dep_name.items():
             if name not in [s.child_name for s in immediate_splices] and name not in [
