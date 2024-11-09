@@ -31,7 +31,7 @@ class PyPymongo(PythonPackage):
     depends_on("c", type="build")  # generated
 
     depends_on("python@2.7:2.8,3.4:", type=("build", "run"))
-    depends_on("python@3.7:", when="@4.2    :", type=("build", "run"))
+    depends_on("python@3.7:", when="@4.2:", type=("build", "run"))
     depends_on("python@3.8:", when="@4.8:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools@63:", type="build", when="@4.5:")
