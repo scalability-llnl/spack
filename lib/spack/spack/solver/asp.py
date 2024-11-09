@@ -3864,7 +3864,7 @@ class SpecBuilder:
         immediate_splices = self._splices.get(node, [])
         deps_with_splices = self._splice_dag.get(node, [])
         # This node has no splicing to be done to it.
-        if len(immediate_splices) == 0 and len(deps_with_splices) == 0:
+        if not immediate_splices and not deps_with_splices:
             resolved[node] = orig_spec
             return orig_spec
         new_spec = orig_spec.copy(deps=False)
