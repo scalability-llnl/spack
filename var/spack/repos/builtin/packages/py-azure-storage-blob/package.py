@@ -31,13 +31,15 @@ class PyAzureStorageBlob(PythonPackage):
 
     # https://github.com/Azure/azure-sdk-for-python/blob/azure-storage-blob_12.22.0/sdk/storage/azure-storage-blob/setup.py
 
+    depends_on("python@3.8:", type=("build", "run"), when="@12.20:")
     depends_on("py-setuptools", type="build")
-    depends_on("py-azure-core@1.28:1", type=("build", "run"), when="@12.17:")
-    depends_on("py-azure-core@1.26:1", type=("build", "run"), when="@12.15:")
-    depends_on("py-azure-core@1.24.2:1", type=("build", "run"), when="@12.14:")
-    depends_on("py-azure-core@1.23.1:1", type=("build", "run"), when="@12.12:")
-    depends_on("py-azure-core@1.15:1", type=("build", "run"), when="@12.10:")
-    depends_on("py-azure-core@1.10:1", type=("build", "run"))
+    depends_on("py-azure-core@1.28:", type=("build", "run"), when="@12.20:")
+    depends_on("py-azure-core@1.28:1", type=("build", "run"), when="@12.17:12.19")
+    depends_on("py-azure-core@1.26:1", type=("build", "run"), when="@12.15:12.16")
+    depends_on("py-azure-core@1.24.2:1", type=("build", "run"), when="@12.14")
+    depends_on("py-azure-core@1.23.1:1", type=("build", "run"), when="@12.12:12.13")
+    depends_on("py-azure-core@1.15:1", type=("build", "run"), when="@12.10:12.11")
+    depends_on("py-azure-core@1.10:1", type=("build", "run"), when="@:12.19")
     depends_on("py-cryptography@2.1.4:", type=("build", "run"))
     depends_on("py-typing-extensions@4.6:", type=("build", "run"), when="@12.20:")
     depends_on("py-typing-extensions@4.3:", type=("build", "run"), when="@12.17:")

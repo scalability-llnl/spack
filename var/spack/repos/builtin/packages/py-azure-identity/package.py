@@ -31,18 +31,24 @@ class PyAzureIdentity(PythonPackage):
 
     # https://github.com/Azure/azure-sdk-for-python/blob/azure-identity_1.17.1/sdk/identity/azure-identity/setup.py
 
+    depends_on("python@3.8:", type=("build", "run"), when="@1.16:")
     depends_on("py-setuptools", type="build")
-    depends_on("py-azure-core@1.23:1", type=("build", "run"), when="@1.15:")
-    depends_on("py-azure-core@1.11:1", type=("build", "run"), when="@1.12:")
-    depends_on("py-azure-core@1", type=("build", "run"))
+    depends_on("py-azure-core@1.23:", type=("build", "run"), when="@1.16:")
+    depends_on("py-azure-core@1.23:1", type=("build", "run"), when="@1.15")
+    depends_on("py-azure-core@1.11:1", type=("build", "run"), when="@1.12:1.14")
+    depends_on("py-azure-core@1", type=("build", "run"), when="@:1.15")
     depends_on("py-cryptography@2.5:", type=("build", "run"), when="@1.12:")
     depends_on("py-cryptography@2.1.4:", type=("build", "run"))
-    depends_on("py-msal@1.24:1", type=("build", "run"), when="@1.15:")
-    depends_on("py-msal@1.20:1", type=("build", "run"), when="@1.13:")
-    depends_on("py-msal@1.12:1", type=("build", "run"), when="@1.12:")
-    depends_on("py-msal@1", type=("build", "run"))
-    depends_on("py-msal-extensions@0.3:1", type=("build", "run"), when="@1.12:")
+    depends_on("py-msal@1.24:", type=("build", "run"), when="@1.16:")
+    depends_on("py-msal@1.24:1", type=("build", "run"), when="@1.15")
+    depends_on("py-msal@1.20:1", type=("build", "run"), when="@1.13:1.14")
+    depends_on("py-msal@1.12:1", type=("build", "run"), when="@1.12")
+    depends_on("py-msal@1", type=("build", "run"), when="@:1.15")
+    depends_on("py-msal-extensions@0.3:", type=("build", "run"), when="@1.16:")
+    depends_on("py-msal-extensions@0.3:1", type=("build", "run"), when="@1.12:1.15")
     depends_on("py-msal-extensions@0.1.3:0.1", type=("build", "run"), when="@:1.11")
+    depends_on("py-typing-extensions@4:", type=("build", "run"), when="@1.17:")
+
     depends_on("py-six@1.12:", type=("build", "run"), when="@1.12")
     depends_on("py-six@1.6:", type=("build", "run"), when="@:1.11")
 

@@ -29,6 +29,7 @@ class PyAzureCore(PythonPackage):
 
     # https://github.com/Azure/azure-sdk-for-python/blob/azure-core_1.30.2/sdk/core/azure-core/setup.py
 
+    depends_on("python@3.8:", type=("build", "run"), when="@1.30.2:")
     depends_on("py-setuptools", type="build")
     depends_on("py-anyio@3:4", when="@1.29.6", type=("build", "run"))
     depends_on("py-requests@2.21:", when="@1.29.6:", type=("build", "run"))
