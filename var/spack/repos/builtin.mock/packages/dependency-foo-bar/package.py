@@ -18,3 +18,5 @@ class DependencyFooBar(Package):
 
     variant("foo", default=True, description="")
     variant("bar", default=False, description="")
+
+    depends_on("second-dependency-foo-bar-fee")

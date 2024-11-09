@@ -23,6 +23,8 @@ class Sse2neon(Package):
     version("1.5.1", sha256="4001e2dfb14fcf3831211581ed83bcc83cf6a3a69f638dcbaa899044a351bb2a")
     version("1.5.0", sha256="92ab852aac6c8726a615f77438f2aa340f168f9f6e70c72033d678613e97b65a")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.include)
         install("*.h", prefix.include)

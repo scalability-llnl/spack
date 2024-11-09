@@ -9,6 +9,7 @@ import socket
 
 import llnl.util.tty as tty
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -43,6 +44,9 @@ class Apcomp(Package):
         version("0.0.2", sha256="cb2e2c4524889408de2dd3d29665512c99763db13e6f5e35c3b55e52948c649c")
         version("0.0.1", sha256="cbf85fe58d5d5bc2f468d081386cc8b79861046b3bb7e966edfa3f8e95b998b2")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, description="Build with openmp support")
     variant("mpi", default=True, description="Build with MPI support")
     variant("shared", default=True, description="Build Shared Library")
@@ -62,7 +66,7 @@ class Apcomp(Package):
         with working_dir("spack-build", create=True):
             host_cfg_fname = self.create_host_config(spec, prefix)
             print("Configuring APComp...")
-            cmake(*std_cmake_args, "-C", host_cfg_fname, "../src")
+            cmake(*CMakeBuilder.std_args(self), "-C", host_cfg_fname, "../src")
             print("Building APComp...")
             make()
             print("Installing APComp...")
@@ -96,7 +100,7 @@ class Apcomp(Package):
         # Find and record what CMake is used
         ##############################################
 
-        if "+cmake" in spec:
+        if spec.satisfies("+cmake"):
             cmake_exe = spec["cmake"].command.path
         else:
             cmake_exe = which("cmake")
@@ -130,17 +134,17 @@ class Apcomp(Package):
         cfg.write(cmake_cache_entry("CMAKE_CXX_COMPILER", cpp_compiler))
 
         # shared vs static libs
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "ON"))
         else:
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "OFF"))
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "OFF"))
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             mpicc_path = spec["mpi"].mpicc
             mpicxx_path = spec["mpi"].mpicxx
             # if we are using compiler wrappers on cray systems
@@ -153,7 +157,7 @@ class Apcomp(Package):
             cfg.write(cmake_cache_entry("ENABLE_MPI", "ON"))
             cfg.write(cmake_cache_entry("MPI_C_COMPILER", mpicc_path))
             cfg.write(cmake_cache_entry("MPI_CXX_COMPILER", mpicxx_path))
-            if "+blt_find_mpi" in spec:
+            if spec.satisfies("+blt_find_mpi"):
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "ON"))
             else:
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "OFF"))

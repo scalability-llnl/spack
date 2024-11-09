@@ -29,6 +29,8 @@ class LmSensors(MakefilePackage):
     version("3-1-2", sha256="a587f4f37c0f32ac48575338013ee443a0152d87543e8e702db6161ec0ca1161")
     version("3-1-1", sha256="22b5ab0bab853c34298ff617efb292c5dde7b254596b31ce4c6e90b1d1cf8ad8")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("bison", type="build")
     depends_on("flex", type="build")
     depends_on("perl", type="run")

@@ -19,6 +19,8 @@ class Libpaper(AutotoolsPackage):
     version("1.1.29", sha256="26330e21e9a3124658d515fd850b0cde546ff42d89b2596a5264c5f1677f0547")
     version("1.1.28", sha256="c8bb946ec93d3c2c72bbb1d7257e90172a22a44a07a07fb6b802a5bb2c95fddc")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

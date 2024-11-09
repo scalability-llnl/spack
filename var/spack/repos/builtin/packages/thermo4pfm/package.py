@@ -18,4 +18,6 @@ class Thermo4pfm(CMakePackage):
 
     version("1.1.1", sha256="cff3c83405224a39bb34c57e444e208e94c6782d84303acd0588d1dfa61513a1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost")

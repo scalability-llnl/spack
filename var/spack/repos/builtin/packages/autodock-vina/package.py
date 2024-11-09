@@ -27,6 +27,8 @@ class AutodockVina(MakefilePackage):
         url="https://github.com/ccsb-scripps/AutoDock-Vina/archive/refs/tags/v1.1.2-boost-new.tar.gz",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on(
         "boost@1.50.0:1.75.0 +filesystem +program_options +serialization +system +thread",
         when="@1.1.2",

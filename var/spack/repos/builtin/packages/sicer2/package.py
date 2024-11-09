@@ -16,6 +16,8 @@ class Sicer2(PythonPackage):
 
     version("1.0.3", sha256="003e0f46fb45717fa6b1c94b2c21416161f5b3a4896fbb335cf2024daf2560dd")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy", type=("build", "run"))
     depends_on("py-scipy@1.0.0:", type=("build", "run"))

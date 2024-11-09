@@ -24,6 +24,9 @@ class Gexiv2(MesonPackage):
     version("0.12.1", sha256="8aeafd59653ea88f6b78cb03780ee9fd61a2f993070c5f0d0976bed93ac2bd77")
     version("0.12.0", sha256="58f539b0386f36300b76f3afea3a508de4914b27e78f58ee4d142486a42f926a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("cmake@3.4:", type="build")
     depends_on("ninja@1.8.2:", type="build")

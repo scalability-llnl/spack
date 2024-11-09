@@ -26,6 +26,8 @@ class RCaret(RPackage):
     version("6.0-73", sha256="90a0a4a10f1a3b37502cb0ed7d8830063d059a548faabb9cc5d8d34736c7eacb")
     version("6.0-70", sha256="21c5bdf7cf07bece38729465366564d8ca104c2466ee9fd800ca1fd88eb82f38")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r@3.2.0:", type=("build", "run"), when="@6.0-82:")
     depends_on("r-ggplot2", type=("build", "run"))

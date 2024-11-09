@@ -27,6 +27,8 @@ class Soci(CMakePackage):
         url="https://github.com/SOCI/soci/archive/3.2.2.tar.gz",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "cxxstd",
         default=11,

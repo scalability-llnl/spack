@@ -20,6 +20,8 @@ class BppPhylOmics(CMakePackage):
     version("2.3.1", sha256="f4853b99bf0baacf96c9ba567a5875242283cba5fb6f066d74716c6f7d84bd34")
     version("2.3.0", sha256="c4dc3aa39826c50bd8fe7ee4c56a92c8eb9922edc143864a0e2da34481036009")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.6:", type="build")
     depends_on("bpp-core")
     depends_on("bpp-phyl")

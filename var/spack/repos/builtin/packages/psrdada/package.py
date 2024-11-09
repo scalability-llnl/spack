@@ -16,6 +16,8 @@ class Psrdada(AutotoolsPackage, CudaPackage):
 
     version("master", branch="master", preferred=True)
 
+    depends_on("c", type="build")  # generated
+
     conflicts("~cuda", msg="You must specify +cuda")
     conflicts("cuda@11.8")
     conflicts("cuda_arch=none", msg="You must specify the CUDA architecture")

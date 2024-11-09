@@ -15,6 +15,10 @@ class TrilinosCatalystIossAdapter(CMakePackage):
     version("develop", branch="develop")
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("bison", type="build")
     depends_on("flex", type="build")
     depends_on("paraview+mpi+python")

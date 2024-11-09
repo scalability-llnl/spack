@@ -24,6 +24,8 @@ class Hipfft(CMakePackage, CudaPackage, ROCmPackage):
     license("MIT")
 
     version("master", branch="master")
+    version("6.2.1", sha256="5f668fa8b5ed10d47d164d887699d3c14d900d78f6a31bf953f8fbbc08bc5fd1")
+    version("6.2.0", sha256="8d19aebb1bbfea1f235ca08d34393ce39bea35dc9cbfa72a3cf7cdf1c56410e7")
     version("6.1.2", sha256="6753e45d9c671d58e68bed2b0c1bfcd40fad9d690dba3fe6011e67e51dbe3cc6")
     version("6.1.1", sha256="df84e488098d457a7411f6b459537fa5c5ee160027efc3a9a076980bbe57c4d3")
     version("6.1.0", sha256="1a9cf598a932192f7f12b8987d96477f09186f9a95c5a28742f9caeb81640c95")
@@ -40,6 +42,8 @@ class Hipfft(CMakePackage, CudaPackage, ROCmPackage):
         version("5.4.0", sha256="d0a8e790182928b3d19774b8db1eece9b881a422f6a7055c051b12739fded624")
         version("5.3.3", sha256="fd1662cd5b1e1bce9db53b320c0fe614179cd196251efc2ef3365d38922b5cdc")
         version("5.3.0", sha256="ebbe2009b86b688809b6b4d5c3929fc589db455218d54a37790f21339147c5df")
+
+    depends_on("cxx", type="build")  # generated
 
     # default to an 'auto' variant until amdgpu_targets can be given a better default than 'none'
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -79,6 +83,9 @@ class Hipfft(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "master",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"rocfft@{ver}", when=f"+rocm @{ver}")

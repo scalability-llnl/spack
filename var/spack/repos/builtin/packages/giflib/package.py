@@ -10,7 +10,7 @@ class Giflib(MakefilePackage, SourceforgePackage):
     """The GIFLIB project maintains the giflib service library, which has
     been pulling images out of GIFs since 1989."""
 
-    homepage = "http://giflib.sourceforge.net/"
+    homepage = "https://giflib.sourceforge.net/"
     sourceforge_mirror_path = "giflib/giflib-5.1.4.tar.gz"
 
     license("MIT")
@@ -24,6 +24,8 @@ class Giflib(MakefilePackage, SourceforgePackage):
         extension="tar.bz2",
     )
 
+    depends_on("c", type="build")
+
     depends_on("automake", type="build", when="@:5.2.0")
     depends_on("autoconf", type="build", when="@:5.2.0")
     depends_on("m4", type="build", when="@:5.2.0")
@@ -34,9 +36,12 @@ class Giflib(MakefilePackage, SourceforgePackage):
         "https://sourceforge.net/p/giflib/bugs/_discuss/thread/4e811ad29b/c323/attachment/Makefile.patch",
         sha256="a94e7bdd8840a31cecacc301684dfdbf7b98773ad824aeaab611fabfdc513036",
         level=0,
-        when="@5.2: platform=darwin",
+        when="@5.2.0:5.2.1 platform=darwin",
     )
     patch("bsd-head.patch")
+
+    # error: no such file or directory: 'dgif_lib.o'
+    parallel = False
 
     def prefix_and_libversion_args(self):
         args = []
@@ -73,3 +78,6 @@ class Giflib(MakefilePackage, SourceforgePackage):
         if spec.satisfies("@:5.2.0"):
             configure = Executable("./configure")
             configure("--prefix={0}".format(prefix))
+        # remove call to convert in doc makefile
+        with working_dir("doc"):
+            filter_file("^.*convert.*-resize.*$", "", "Makefile")

@@ -28,6 +28,8 @@ class Libmonitor(AutotoolsPackage):
     version("2018.07.18", commit="d28cc1d3c08c02013a68a022a57a6ac73db88166")
     version("2013.02.18", commit="4f2311e413fd90583263d6f20453bbe552ccfef3")
 
+    depends_on("c", type="build")  # generated
+
     # Configure for Rice HPCToolkit.
     variant("hpctoolkit", default=False, description="Configure for HPCToolkit")
 
@@ -62,10 +64,10 @@ class Libmonitor(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+hpctoolkit" in self.spec:
+        if self.spec.satisfies("+hpctoolkit"):
             args.append("--enable-client-signals=%s" % self.signals)
 
-        if "+dlopen" in self.spec:
+        if self.spec.satisfies("+dlopen"):
             args.append("--enable-dlfcn")
         else:
             args.append("--disable-dlfcn")

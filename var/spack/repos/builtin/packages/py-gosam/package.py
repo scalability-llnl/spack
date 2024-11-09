@@ -26,6 +26,10 @@ class PyGosam(Package):
         sha256="4a2b9160d51e3532025b9579a4d17d0e0f8a755b8481aeb8271c1f58eb97ab01",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("form", type="run")
     depends_on("qgraf", type="run")
     depends_on("gosam-contrib", type="link")

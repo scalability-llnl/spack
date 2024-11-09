@@ -1,0 +1,14 @@
+diff --git a/libxfce4panel/Makefile.in b/libxfce4panel/Makefile.in
+index 41642e1..c7d7b51 100644
+--- a/libxfce4panel/Makefile.in
++++ b/libxfce4panel/Makefile.in
+@@ -861,7 +861,7 @@ INTROSPECTION_COMPILER_ARGS = \
+        --includedir=.
+ 
+ @HAVE_INTROSPECTION_TRUE@introspection_sources = $(libxfce4panel_2_0_la_SOURCES)
+-@HAVE_INTROSPECTION_TRUE@libxfce4panel_2_0_gir_INCLUDES = GObject-2.0 GLib-2.0 Gtk-3.0 Libxfce4util-1.0
++@HAVE_INTROSPECTION_TRUE@libxfce4panel_2_0_gir_INCLUDES = GObject-2.0 GLib-2.0 Gtk-3.0 libxfce4util-1.0
+ @HAVE_INTROSPECTION_TRUE@libxfce4panel_2_0_gir_CFLAGS = $(AM_CPPFLAGS)
+ @HAVE_INTROSPECTION_TRUE@libxfce4panel_2_0_gir_LIBS = libxfce4panel-2.0.la
+ @HAVE_INTROSPECTION_TRUE@libxfce4panel_2_0_gir_FILES = $(introspection_sources)
+

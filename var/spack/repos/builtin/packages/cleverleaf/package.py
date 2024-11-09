@@ -22,6 +22,9 @@ class Cleverleaf(CMakePackage):
 
     version("develop", branch="develop")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("samrai@3.8.0:")
     depends_on("hdf5+mpi")
 

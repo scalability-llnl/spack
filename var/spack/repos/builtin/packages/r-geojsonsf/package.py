@@ -18,6 +18,8 @@ class RGeojsonsf(RPackage):
     version("2.0.3", sha256="275ca14672d982e6a95884515f49d8a0aad14f3be62ea01b675a91b0bffb46d1")
     version("2.0.1", sha256="42df40433bfbece5a39cd97b5bd4690b4424855241fcc3e7322ee68a3988bfbf")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-geometries", type=("build", "run"))

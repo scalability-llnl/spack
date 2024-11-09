@@ -22,6 +22,8 @@ class Covfie(CMakePackage, CudaPackage):
 
     version("0.10.0", sha256="d44142b302ffc193ad2229f1d2cc6d8d720dd9da8c37989ada4f23018f86c964")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("concepts", default=False, description="Enforce C++20 concepts")
 
     depends_on("cmake@3.18:", type="build")

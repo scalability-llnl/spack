@@ -16,6 +16,8 @@ class LibpressioAdios1(CMakePackage):
 
     version("0.0.2", sha256="cb3c4ef3c9c3bd5f4c08d1145a07d2ce0c84605a2213b744992c6c8cef998d39")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("adios")
     depends_on("libpressio")
 

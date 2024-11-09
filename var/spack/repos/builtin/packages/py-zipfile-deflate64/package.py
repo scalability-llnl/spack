@@ -16,6 +16,8 @@ class PyZipfileDeflate64(PythonPackage):
 
     version("0.2.0", sha256="875a3299de102edf1c17f8cafcc528b1ca80b62dc4814b9cb56867ec59fbfd18")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools@42:", type="build")
     depends_on("py-setuptools-scm@3.4:+toml", type="build")

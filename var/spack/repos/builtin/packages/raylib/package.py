@@ -19,6 +19,8 @@ class Raylib(CMakePackage):
 
     version("5.0", sha256="98f049b9ea2a9c40a14e4e543eeea1a7ec3090ebdcd329c4ca2cf98bc9793482")
 
+    depends_on("c", type="build")  # generated
+
     # The package includes an llvm variant, which is disabled by default to simplify the build.
     # If enabled, allows Mesa to utilize software-based OpenGL rendering on systems without a GPU.
     variant("llvm", default=False, description="Enables LLVM support in Mesa")

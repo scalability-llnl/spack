@@ -9,7 +9,7 @@ from spack.package import *
 class Antimony(CMakePackage):
     """Human readable language for modifying sbml"""
 
-    homepage = "http://antimony.sourceforge.net/"
+    homepage = "https://antimony.sourceforge.net/"
     url = "antimony"
 
     maintainers("rblake-llnl")

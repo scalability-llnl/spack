@@ -27,6 +27,8 @@ class Munge(AutotoolsPackage):
         url="https://github.com/dun/munge/releases/download/munge-0.5.11/munge-0.5.11.tar.bz2",
     )
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "localstatedir",
         default="PREFIX/var",

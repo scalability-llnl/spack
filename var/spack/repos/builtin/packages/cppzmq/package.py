@@ -30,6 +30,8 @@ class Cppzmq(CMakePackage):
     version("4.2.3", sha256="3e6b57bf49115f4ae893b1ff7848ead7267013087dc7be1ab27636a97144d373")
     version("4.2.2", sha256="3ef50070ac5877c06c6bb25091028465020e181bbfd08f110294ed6bc419737d")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("drafts", default=False, description="Build and install draft classes and methods")
 
     depends_on("cmake@3.0.0:", type="build")

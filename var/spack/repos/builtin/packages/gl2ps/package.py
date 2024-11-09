@@ -19,6 +19,8 @@ class Gl2ps(CMakePackage):
     version("1.4.0", sha256="03cb5e6dfcd87183f3b9ba3b22f04cd155096af81e52988cc37d8d8efe6cf1e2")
     version("1.3.9", sha256="8a680bff120df8bcd78afac276cdc38041fed617f2721bade01213362bcc3640")
 
+    depends_on("c", type="build")  # generated
+
     variant("png", default=True, description="Enable PNG support")
     variant("zlib", default=True, description="Enable compression using ZLIB")
     variant("doc", default=False, description="Generate documentation using pdflatex")
@@ -61,7 +63,7 @@ class Gl2ps(CMakePackage):
         if spec.satisfies("platform=windows"):
             options.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
 
-        if "~doc" in spec:
+        if spec.satisfies("~doc"):
             # Make sure we don't look.
             options.append(self.define("CMAKE_DISABLE_FIND_PACKAGE_LATEX", True))
 

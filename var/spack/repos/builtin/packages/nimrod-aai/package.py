@@ -23,6 +23,8 @@ class NimrodAai(CMakePackage):
     version("23.9", sha256="34f7ee00bbbe9a6d08304473e8893af9bd94af8dbd0bbd50b8b441057023e179")
     version("23.6", sha256="de7e5c5cc2ad97dc0e66628d29c8153fa807821a316eb9aa8ee21a39c69df800")
 
+    depends_on("fortran", type="build")  # generated
+
     variant("debug", default=False, description="Whether to enable debug code")
     variant("openacc", default=False, description="Whether to enable OpenACC")
     variant(

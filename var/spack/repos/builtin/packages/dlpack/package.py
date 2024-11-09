@@ -24,5 +24,8 @@ class Dlpack(Package):
     version("0.2", sha256="419f76ef723d21b72b704b2c4bf718dcd9d2ecd44cd28c8a71798389b7932ae5")
     version("0.1", sha256="c69b06bfe03711e9d9d3f4d3f307d6dfd7e21d4864a053cca26296d5d05c175c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree("include", prefix.include)

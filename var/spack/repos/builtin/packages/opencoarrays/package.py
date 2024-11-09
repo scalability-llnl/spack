@@ -31,6 +31,9 @@ class Opencoarrays(CMakePackage):
     version("1.7.4", sha256="1929dee793ce8f09e3b183e2b07c3e0008580cc76b460b1f7f7c066ad6672e14")
     version("1.6.2", sha256="7855d42a01babc233a070cc87282b5f8ffd538a7c87ec5119605d4d7c6d7f67e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "build_type",
         default="RelWithDebInfo",

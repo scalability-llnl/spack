@@ -10,7 +10,7 @@ class Rrdtool(AutotoolsPackage):
     """RA tool for data logging and analysis."""
 
     homepage = "https://oss.oetiker.ch/rrdtool"
-    url = "http://oss.oetiker.ch/rrdtool/pub/rrdtool-1.7.0.tar.gz"
+    url = "https://oss.oetiker.ch/rrdtool/pub/rrdtool-1.7.0.tar.gz"
 
     license("GPL-2.0-or-later")
 

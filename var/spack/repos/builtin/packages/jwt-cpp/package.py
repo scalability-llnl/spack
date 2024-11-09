@@ -23,6 +23,8 @@ class JwtCpp(CMakePackage):
     version("0.5.0", sha256="079a273f070dd11213e301712319a65881e51ab81535cc436d5313191df852a2")
     version("0.4.0", sha256="f0dcc7b0e8bef8f9c3f434e7121f9941145042c9fe3055a5bdd709085a4f2be4")
 
+    depends_on("cxx", type="build")  # generated
+
     # TODO: jwt-cpp>=0.5.0 has an embedded copy of picojson which can be packaged seperately
 
     # TODO: jwt-cpp>=0.6.0 supports wolfSSL for which there is currently

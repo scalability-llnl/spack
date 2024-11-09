@@ -40,6 +40,9 @@ class PyYt(PythonPackage):
     version("3.2.3", sha256="4d6ccf345d9fab965335c9faf8708c7eea79366b81d77f0f302808be3e82c0ed")
     version("3.2.2", sha256="78866f51e4751534ad60987000f149a8295952b99b37ca249d45e4d11095a5df")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("astropy", default=True, description="enable astropy support")
     variant("h5py", default=True, description="enable h5py support")
     variant("scipy", default=True, description="enable scipy support")

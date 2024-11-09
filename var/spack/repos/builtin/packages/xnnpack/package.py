@@ -22,6 +22,9 @@ class Xnnpack(CMakePackage):
     version("2020-03-23", commit="1b354636b5942826547055252f3b359b54acff95")  # py-torch@1.6:1.7
     version("2020-02-24", commit="7493bfb9d412e59529bcbced6a902d44cfa8ea1c")  # py-torch@1.5
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     generator("ninja")
     depends_on("cmake@3.5:", type="build")
     depends_on("python", type="build")

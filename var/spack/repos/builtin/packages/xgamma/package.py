@@ -18,6 +18,8 @@ class Xgamma(AutotoolsPackage, XorgPackage):
     version("1.0.7", sha256="61f5ef02883d65ab464678ad3d8c5445a0ff727fe6255af90b1b842ddf77370d")
     version("1.0.6", sha256="66da1d67e84146518b69481c6283c5d8f1027ace9ff7e214d3f81954842e796a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxxf86vm")
 

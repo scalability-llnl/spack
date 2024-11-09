@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import glob
-import inspect
 import platform
 import sys
 
@@ -82,6 +81,9 @@ class IntelTbb(CMakePackage, MakefilePackage):
     version("4.4.2", sha256="1ab10e70354685cee3ddf614f3e291434cea86c8eb62031e025f4052278152ad")
     version("4.4.1", sha256="05737bf6dd220b31aad63d77ca59c742271f81b4cc6643aa6f93d37450ae32b5")
     version("4.4", sha256="93c74b6054c69c86fa49d0fce7c50061fc907cb198a7237b8dd058298fd40c0e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     build_system(
         conditional("makefile", when="@:2020.3"),
@@ -185,7 +187,7 @@ class IntelTbb(CMakePackage, MakefilePackage):
 
     @property
     def libs(self):
-        shared = True if "+shared" in self.spec else False
+        shared = True if self.spec.satisfies("+shared") else False
         return find_libraries("libtbb*", root=self.prefix, shared=shared, recursive=True)
 
 
@@ -313,14 +315,13 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder, SetupEnviron
 
         if spec.satisfies("@2017.8,2018.1:"):
             # Generate and install the CMake Config file.
-            cmake_args = (
-                "-DTBB_ROOT={0}".format(prefix),
-                "-DTBB_OS={0}".format(platform.system()),
-                "-P",
-                "tbb_config_generator.cmake",
-            )
             with working_dir(join_path(self.stage.source_path, "cmake")):
-                inspect.getmodule(self).cmake(*cmake_args)
+                cmake(
+                    f"-DTBB_ROOT={prefix}",
+                    f"-DTBB_OS={platform.system()}",
+                    "-P",
+                    "tbb_config_generator.cmake",
+                )
 
     @run_after("install")
     def darwin_fix(self):

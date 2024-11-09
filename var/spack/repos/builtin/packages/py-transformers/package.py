@@ -26,6 +26,8 @@ class PyTransformers(PythonPackage):
     version("4.6.1", sha256="83dbff763b7e7dc57cbef1a6b849655d4fcab6bffdd955c5e8bea12a4f76dc10")
     version("2.8.0", sha256="b9f29cdfd39c28f29e0806c321270dea337d6174a7aa60daf9625bf83dbb12ee")
 
+    depends_on("cxx", type="build")  # generated
+
     with default_args(type="build"):
         depends_on("py-setuptools")
 
@@ -37,8 +39,8 @@ class PyTransformers(PythonPackage):
         depends_on("py-huggingface-hub@0.14.1:0", when="@4.26:")
         depends_on("py-huggingface-hub@0.10:0", when="@4.24:")
         depends_on("py-huggingface-hub@0.0.8", when="@4.6.1")
-        depends_on("py-numpy@1.17:", when="@4.6:")
-        depends_on("py-numpy")
+        depends_on("py-numpy@1.17:1", when="@4.6:")
+        depends_on("py-numpy@:1")
         depends_on("py-packaging@20:", when="@4.24:")
         depends_on("py-packaging", when="@4.6.1")
         depends_on("py-pyyaml@5.1:", when="@4.24:")

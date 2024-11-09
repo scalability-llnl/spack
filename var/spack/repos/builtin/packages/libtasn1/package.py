@@ -29,6 +29,8 @@ class Libtasn1(Package):
     version("4.1", sha256="60ee6571dcfa00cf55406404912274d6dc759cbaa80d666b89d819feeff5f301")
     version("4.0", sha256="41d044f7644bdd1c4f8a5c15ac1885ca1fcbf32f5f6dd4760a19278b979857fe")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         configure(
             "--disable-dependency-tracking",

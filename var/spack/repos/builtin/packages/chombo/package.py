@@ -25,6 +25,10 @@ class Chombo(MakefilePackage):
     version("3.2", commit="71d856c2f469e96755a606db1e5151067da0f54a")
     version("develop", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI parallel support")
     variant("hdf5", default=True, description="Enable HDF5 support")
     variant(
@@ -80,7 +84,7 @@ class Chombo(MakefilePackage):
         # Compilers and Compiler flags
         defs_file.filter(r"^#\s*CXX\s*=.*", "CXX = %s" % spack_cxx)
         defs_file.filter(r"^#\s*FC\s*=.*", "FC = %s" % spack_fc)
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             defs_file.filter(r"^#\s*MPICXX\s*=.*", "MPICXX = %s" % self.spec["mpi"].mpicxx)
 
         # Conditionally determined settings
@@ -88,7 +92,7 @@ class Chombo(MakefilePackage):
         defs_file.filter(r"^#\s*DIM\s*=.*", "DIM = %s" % spec.variants["dims"].value)
 
         # HDF5 settings
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             defs_file.filter(r"^#\s*USE_HDF5\s*=.*", "USE_HDF5 = TRUE")
             defs_file.filter(
                 r"^#\s*HDFINCFLAGS\s*=.*", "HDFINCFLAGS = -I%s" % spec["hdf5"].prefix.include
@@ -96,7 +100,7 @@ class Chombo(MakefilePackage):
             defs_file.filter(
                 r"^#\s*HDFLIBFLAGS\s*=.*", "HDFLIBFLAGS = %s" % spec["hdf5"].libs.ld_flags
             )
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 defs_file.filter(
                     r"^#\s*HDFMPIINCFLAGS\s*=.*",
                     "HDFMPIINCFLAGS = -I%s" % spec["hdf5"].prefix.include,

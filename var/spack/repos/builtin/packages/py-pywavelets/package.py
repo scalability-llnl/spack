@@ -20,6 +20,8 @@ class PyPywavelets(PythonPackage):
     version("1.1.1", sha256="1a64b40f6acb4ffbaccce0545d7fc641744f95351f62e4c6aaa40549326008c9")
     version("0.5.2", sha256="ce36e2f0648ea1781490b09515363f1f64446b0eac524603e5db5e180113bed9")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.8:", when="@1.4.1:", type=("build", "run"))
     depends_on("python@3.5:", when="@1.1.1:", type=("build", "run"))
     depends_on("py-setuptools@:64", type="build")

@@ -29,6 +29,10 @@ class Gchp(CMakePackage):
     version("13.0.0", commit="1f5a5c5630c5d066ff8306cbb8b83e267ca7c265", submodules=True)
     version("dev", branch="dev", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     patch("for_aarch64.patch", when="target=aarch64:")
 
     depends_on("esmf@8.0.1", when="@13.0.0:")

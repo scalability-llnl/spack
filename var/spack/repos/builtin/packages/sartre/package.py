@@ -21,6 +21,10 @@ class Sartre(CMakePackage):
 
     version("1.39", sha256="82ed77243bea61bb9335f705c4b132f0b53d0de17c26b89389fa9cd3adcef44d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     parallel = False
 
     depends_on("gsl")

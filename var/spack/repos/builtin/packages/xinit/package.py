@@ -21,6 +21,9 @@ class Xinit(AutotoolsPackage, XorgPackage):
     version("1.4.0", sha256="17548a5df41621b87d395f1074dfb88b0dc6917f9127540b89c6de4a80f33776")
     version("1.3.4", sha256="754c284875defa588951c1d3d2b20897d3b84918d0a97cb5a4724b00c0da0746")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libx11")
 
     depends_on("xproto@7.0.17:")

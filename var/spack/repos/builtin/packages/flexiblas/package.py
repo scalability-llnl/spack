@@ -22,6 +22,10 @@ class Flexiblas(CMakePackage):
     version("3.0.4", sha256="50a88f2e88994dda91b2a2621850afd9654b3b84820e737e335687a46751be5c")
     version("3.0.3", sha256="926ab31cf56f0618aec34da85314f3b48b6deb661b4e9d6e6a99dc37872b5341")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # virtual dependency
     provides("blas")
     provides("lapack")

@@ -28,4 +28,7 @@ class RStatmod(RPackage):
     version("1.4.32", sha256="2f67a1cfa66126e6345f8a40564a3077d08f1748f17cb8c8fb05c94ed0f57e20")
     version("1.4.30", sha256="9d2c1722a85f53623a9ee9f73d835119ae22ae2b8ec7b50d675401e314ea641f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("r@3.0.0:", type=("build", "run"))

@@ -15,4 +15,6 @@ class Ftjam(AutotoolsPackage):
 
     version("2.5.2", sha256="a5d456f65477d77936e1726f5f803a2e6def18a6c6fccf5ea8528926c136abc8")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("bison")

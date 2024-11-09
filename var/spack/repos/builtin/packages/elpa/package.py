@@ -49,6 +49,10 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
         "2021.05.001", sha256="a4f1a4e3964f2473a5f8177f2091a9da5c6b5ef9280b8272dfefcbc3aad44d41"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, description="Activates OpenMP support")
     variant("mpi", default=True, description="Activates MPI support")
 
@@ -154,7 +158,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
         if spec.target.family != "x86_64":
             options.append("--disable-sse-assembly")
 
-        if "%aocc" in spec or "%fj" in spec:
+        if spec.satisfies("%aocc") or spec.satisfies("%fj"):
             options.append("--disable-shared")
             options.append("--enable-static")
 
@@ -165,17 +169,17 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
         if self.compiler.name == "gcc":
             options.extend(["CFLAGS=-O3", "FCFLAGS=-O3 -ffree-line-length-none"])
 
-        if "%aocc" in spec:
+        if spec.satisfies("%aocc"):
             options.extend(["FCFLAGS=-O3", "CFLAGS=-O3"])
 
-        if "%fj" in spec:
+        if spec.satisfies("%fj"):
             options.append("--disable-Fortran2008-features")
             options.append("--enable-FUGAKU")
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 options.extend(["FCFLAGS=-Kparallel"])
 
         cuda_flag = "nvidia-gpu"
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             prefix = spec["cuda"].prefix
             # Can't yet be changed to the new option --enable-nvidia-gpu-kernels
             # https://github.com/marekandreas/elpa/issues/55
@@ -195,7 +199,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
         else:
             options.append(f"--disable-{cuda_flag}" + kernels)
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             # Can't yet be changed to the new option --enable-amd-gpu-kernels
             # https://github.com/marekandreas/elpa/issues/55
             options.append("--enable-amd-gpu")
@@ -204,7 +208,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
             if spec.satisfies("+gpu_streams"):
                 options.append("--enable-gpu-streams=amd")
 
-        elif "@2021.05.001:" in self.spec:
+        elif self.spec.satisfies("@2021.05.001:"):
             options.append("--disable-amd-gpu" + kernels)
 
         options += self.enable_or_disable("openmp")
@@ -215,7 +219,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
 
         options += [f'LDFLAGS={" ".join(ldflags)}', f'LIBS={" ".join(libs)}']
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             options += [
                 "CC={0}".format(spec["mpi"].mpicc),
                 "CXX={0}".format(spec["mpi"].mpicxx),
@@ -223,7 +227,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
                 "SCALAPACK_LDFLAGS={0}".format(spec["scalapack"].libs.joined()),
             ]
 
-        if "+autotune" in self.spec:
+        if self.spec.satisfies("+autotune"):
             options.append("--enable-autotune-redistribute-matrix")
             # --enable-autotune-redistribute-matrix requires --enable-scalapack-tests as well
             options.append("--enable-scalapack-tests")

@@ -25,6 +25,8 @@ class PyPyerfa(PythonPackage):
     version("2.0.1.1", sha256="dbac74ef8d3d3b0f22ef0ad3bbbdb30b2a9e10570b1fa5a98be34c7be36c9a6b")
     version("2.0.0.1", sha256="2fd4637ffe2c1e6ede7482c13f583ba7c73119d78bef90175448ce506a0ede30")
 
+    depends_on("c", type="build")  # generated
+
     # From setup.cfg
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-numpy@1.25:2", when="@2.0.1.1", type=("build", "run"))

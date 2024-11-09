@@ -14,6 +14,8 @@ class Xprehashprinterlist(AutotoolsPackage, XorgPackage):
 
     version("1.0.1", sha256="396986da064b584138cfcff79a8aed12590a9dab24f1cd2d80b08bc1cb896a43")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxp")
     depends_on("libx11")
 

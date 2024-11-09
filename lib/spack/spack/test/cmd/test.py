@@ -10,11 +10,12 @@ import pytest
 
 from llnl.util.filesystem import copy_tree
 
-import spack.cmd.install
+import spack.cmd.common.arguments
+import spack.cmd.test
 import spack.config
-import spack.package_base
+import spack.install_test
 import spack.paths
-import spack.store
+import spack.spec
 from spack.install_test import TestStatus
 from spack.main import SpackCommand
 
@@ -193,6 +194,9 @@ def test_test_list_all(mock_packages):
     assert set(pkgs) == set(
         [
             "fail-test-audit",
+            "fail-test-audit-deprecated",
+            "fail-test-audit-docstring",
+            "fail-test-audit-impl",
             "mpich",
             "perl-extension",
             "printing-package",

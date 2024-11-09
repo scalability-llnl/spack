@@ -38,6 +38,8 @@ class PyPythran(PythonPackage):
     version("0.9.4", sha256="ec9c91f5331454263b064027292556a184a9f55a50f8615e09b08f57a4909855")
     version("0.9.3", sha256="217427a8225a331fdc8f3efe57871aed775cdf2c6e847a0a83df0aaae4b02493")
 
+    depends_on("cxx", type="build")  # generated
+
     # https://github.com/serge-sans-paille/pythran/pull/2196
     depends_on("py-setuptools@62:", when="@0.15:", type=("build", "run"))
     depends_on("py-setuptools", type=("build", "run"))

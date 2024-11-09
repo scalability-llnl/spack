@@ -18,6 +18,7 @@ class G4emlow(Package):
     maintainers("drbenmorgan")
 
     # Only versions relevant to Geant4 releases built by spack are added
+    version("8.6", sha256="fb7abed0d1db1d8b9ea364279b95e228d7bf3e3a5dc8d449b81665cada4a1a9e")
     version("8.5", sha256="66baca49ac5d45e2ac10c125b4fb266225e511803e66981909ce9cd3e9bcef73")
     version("8.4", sha256="d87de4d2a364cb0a1e1846560525ffc3f735ccdeea8bc426d61775179aebbe8e")
     version("8.2", sha256="3d7768264ff5a53bcb96087604bbe11c60b7fea90aaac8f7d1252183e1a8e427")
@@ -30,15 +31,22 @@ class G4emlow(Package):
     version("6.50", sha256="c97be73fece5fb4f73c43e11c146b43f651c6991edd0edf8619c9452f8ab1236")
     version("6.35", sha256="1564045a0acad344c8d432cd48c2c3bb2e051a81ab3099a84e0f56ba0fe82cec")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(join_path(prefix.share, "data"))
-        install_path = join_path(prefix.share, "data", "G4EMLOW{0}".format(self.version))
+        install_path = join_path(prefix.share, "data", self.g4datasetname)
         install_tree(self.stage.source_path, install_path)
 
     def setup_dependent_run_environment(self, env, dependent_spec):
-        install_path = join_path(self.prefix.share, "data", "G4EMLOW{0}".format(self.version))
+        install_path = join_path(self.prefix.share, "data", self.g4datasetname)
         env.set("G4LEDATA", install_path)
 
     def url_for_version(self, version):
         """Handle version string."""
         return "https://geant4-data.web.cern.ch/geant4-data/datasets/G4EMLOW.%s.tar.gz" % version
+
+    @property
+    def g4datasetname(self):
+        spec = self.spec
+        return "G4EMLOW{0}".format(spec.version)

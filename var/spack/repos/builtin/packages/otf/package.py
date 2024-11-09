@@ -22,6 +22,9 @@ class Otf(AutotoolsPackage):
         "1.12.5salmon", sha256="0a8427360dedb38e8ddca30f14d95f826420c550337c5a79dbb754904e194088"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
 
     def configure_args(self):

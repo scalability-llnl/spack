@@ -38,6 +38,8 @@ class Libtree(MakefilePackage, CMakePackage):
     version("1.0.4", sha256="b15a54b6f388b8bd8636e288fcb581029f1e65353660387b0096a554ad8e9e45")
     version("1.0.3", sha256="67ce886c191d50959a5727246cdb04af38872cd811c9ed4e3822f77a8f40b20b")
 
+    depends_on("c", type="build")  # generated
+
     build_system(
         conditional("cmake", when="@:2"), conditional("makefile", when="@3:"), default="makefile"
     )

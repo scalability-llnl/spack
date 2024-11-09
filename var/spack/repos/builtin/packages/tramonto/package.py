@@ -14,6 +14,9 @@ class Tramonto(CMakePackage):
 
     version("develop", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("trilinos@:12+nox")
 
     def cmake_args(self):

@@ -18,6 +18,9 @@ class Xfs(AutotoolsPackage, XorgPackage):
     version("1.2.0", sha256="56ebdc5ff85af332a0c5dc60c9b971551624bbc312bf6af3d13b925600ea367f")
     version("1.1.4", sha256="28f89b854d1ff14fa1efa5b408e5e1c4f6a145420310073c4e44705feeb6d23b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libxfont@1.4.5:", when="@:1.1")
     depends_on("libxfont2@2.0.1:", when="@1.2:")
     depends_on("font-util")

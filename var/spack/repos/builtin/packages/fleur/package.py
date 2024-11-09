@@ -22,6 +22,10 @@ class Fleur(Package):
     version("4.0", tag="MaX-R4", commit="ea0db7877451e6240124e960c5546318c9ab3953")
     version("3.1", tag="MaX-R3.1", commit="f6288a0699604ad9e11efbfcde824b96db429404")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI support")
     variant("hdf5", default=False, description="Enable HDF5 support")
     variant("scalapack", default=False, description="Enable SCALAPACK")
@@ -78,7 +82,7 @@ class Fleur(Package):
     def setup_build_environment(self, env):
         spec = self.spec
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             env.set("CC", spec["mpi"].mpicc, force=True)
             env.set("FC", spec["mpi"].mpifc, force=True)
             env.set("CXX", spec["mpi"].mpicxx, force=True)
@@ -108,43 +112,43 @@ class Fleur(Package):
         options["-includedir"].append(spec["libxml2"].prefix.include)
         options["-includedir"].append(join_path(spec["libxml2"].prefix.include, "libxml2"))
 
-        if "fft=mkl" in spec:
+        if spec.satisfies("fft=mkl"):
             options["-link"].append(spec["intel-mkl"].libs.link_flags)
             options["-libdir"].append(spec["intel-mkl"].prefix.lib)
             options["-includedir"].append(spec["intel-mkl"].prefix.include)
-        if "fft=fftw" in spec:
+        if spec.satisfies("fft=fftw"):
             options["-link"].append(spec["fftw-api"].libs.link_flags)
             options["-libdir"].append(spec["fftw-api"].prefix.lib)
             options["-includedir"].append(spec["fftw-api"].prefix.include)
-        if "+scalapack" in spec:
+        if spec.satisfies("+scalapack"):
             options["-link"].append(spec["scalapack"].libs.link_flags)
             options["-libdir"].append(spec["scalapack"].prefix.lib)
-        if "+external_libxc" in spec:
+        if spec.satisfies("+external_libxc"):
             # Workaround: The fortran library is called libxcf90.a/so
             #    but spec['wannier90'].libs.link_flags return -lxc
             options["-link"].append("-lxcf90")
             options["-libdir"].append(spec["libxc"].prefix.lib)
             options["-includedir"].append(spec["libxc"].prefix.include)
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             options["-link"].append(spec["hdf5"].libs.link_flags)
             options["-libdir"].append(spec["hdf5"].prefix.lib)
             options["-includedir"].append(spec["hdf5"].prefix.include)
-        if "+magma" in spec:
+        if spec.satisfies("+magma"):
             options["-link"].append(spec["magma"].libs.link_flags)
             options["-libdir"].append(spec["magma"].prefix.lib)
             options["-includedir"].append(spec["magma"].prefix.include)
-        if "+wannier90" in spec:
+        if spec.satisfies("+wannier90"):
             # Workaround: The library is not called wannier90.a/so
             #    for this reason spec['wannier90'].libs.link_flags fails!
             options["-link"].append("-lwannier")
             options["-libdir"].append(spec["wannier90"].prefix.lib)
-        if "+spfft" in spec:
+        if spec.satisfies("+spfft"):
             options["-link"].append(spec["spfft"].libs.link_flags)
             # Workaround: The library is installed in /lib64 not /lib
             options["-libdir"].append(spec["spfft"].prefix.lib + "64")
             # Workaround: The library needs spfft.mod in include/spfft path
             options["-includedir"].append(join_path(spec["spfft"].prefix.include, "spfft"))
-        if "+elpa" in spec:
+        if spec.satisfies("+elpa"):
             options["-link"].append(spec["elpa"].libs.link_flags)
             options["-libdir"].append(spec["elpa"].prefix.lib)
             # Workaround: The library needs elpa.mod in include/elpa_%VERS/modules
@@ -168,7 +172,7 @@ class Fleur(Package):
         with working_dir("build"):
             make()
             mkdirp(prefix.bin)
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 install("fleur_MPI", prefix.bin)
             else:
                 install("fleur", prefix.bin)

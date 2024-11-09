@@ -51,8 +51,8 @@ def test_concretize_root_test_dependencies_are_concretized(unify, mutable_mock_e
 
     with ev.read("test") as e:
         e.unify = unify
-        add("a")
-        add("b")
+        add("pkg-a")
+        add("pkg-b")
         concretize("--test", "root")
         assert e.matching_spec("test-dependency")
 

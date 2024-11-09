@@ -28,6 +28,8 @@ class Fxt(AutotoolsPackage):
     version("0.3.4", sha256="fcd35a5278ac0f10eba12fed4fa436dce79559897fde5b8176d5eee9081970f7")
     version("0.3.3", sha256="3f6fea5211cc242a54496e6242365c99522a5039916789cdbe25a58d05d6a626")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "moreparams",
         default=False,
@@ -46,7 +48,7 @@ class Fxt(AutotoolsPackage):
 
     def patch(self):
         # Increase the value of FXT_MAX_PARAMS (to allow longer task names)
-        if "+moreparams" in self.spec:
+        if self.spec.satisfies("+moreparams"):
             filter_file("#define FXT_MAX_PARAMS.*", "#define FXT_MAX_PARAMS 16", "tools/fxt.h")
 
     def autoreconf(self, spec, prefix):

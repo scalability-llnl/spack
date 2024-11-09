@@ -1263,6 +1263,11 @@ Git fetching supports the following parameters to ``version``:
   option ``--depth 1`` will be used if the version of git and the specified
   transport protocol support it, and ``--single-branch`` will be used if the
   version of git supports it.
+* ``git_sparse_paths``: Use ``sparse-checkout`` to only clone these relative paths.
+  This feature requires ``git`` to be version ``2.25.0`` or later but is useful for
+  large repositories that have separate portions that can be built independently.
+  If paths provided are directories then all the subdirectories and associated files
+  will also be cloned. 
 
 Only one of ``tag``, ``branch``, or ``commit`` can be used at a time.
 
@@ -1360,6 +1365,41 @@ Submodules
 
   For more information about git submodules see the manpage of git: ``man
   git-submodule``.
+
+Sparse-Checkout
+  You can supply ``git_sparse_paths`` at the package or version level to utilize git's 
+  sparse-checkout feature. This will only clone the paths that are specified in the 
+  ``git_sparse_paths`` attribute for the package along with the files in the top level directory.
+  This feature allows you to only clone what you need from a large repository.
+  Note that this is a newer feature in git and requries git ``2.25.0`` or greater.
+  If ``git_sparse_paths`` is supplied and the git version is too old
+  then a warning will be issued and that package will use the standard cloning operations instead.
+  ``git_sparse_paths`` should be supplied as a list of paths, a callable function for versions,
+  or a more complex package attribute using the ``@property`` decorator. The return value should be
+  a list for a callable implementation of ``git_sparse_paths``.
+
+  .. code-block:: python
+
+    def sparse_path_function(package)
+        """a callable function that can be used in side a version"""
+        # paths can be directories or functions, all subdirectories and files are included
+        paths = ["doe", "rae", "me/file.cpp"]
+        if package.spec.version >  Version("1.2.0"):
+            paths.extend(["fae"])
+        return paths
+
+    class MyPackage(package):
+        # can also be a package attribute that will be used if not specified in versions
+        git_sparse_paths = ["doe", "rae"]
+
+        # use the package attribute
+        version("1.0.0")
+        version("1.1.0")
+        # use the function
+        version("1.1.5", git_sparse_paths=sparse_path_func)
+        version("1.2.0", git_sparse_paths=sparse_path_func)
+        version("1.2.5", git_sparse_paths=sparse_path_func)
+        version("1.1.5", git_sparse_paths=sparse_path_func)
 
 .. _github-fetch:
 
@@ -2463,15 +2503,14 @@ with. For example, suppose that in the ``libdwarf`` package you write:
 
    depends_on("libelf@0.8")
 
-Now ``libdwarf`` will require ``libelf`` at *exactly* version ``0.8``.
-You can also specify a requirement for a particular variant or for
-specific compiler flags:
+Now ``libdwarf`` will require ``libelf`` in the range ``0.8``, which
+includes patch versions ``0.8.1``, ``0.8.2``, etc. Apart from version
+restrictions, you can also specify variants if this package requires
+optional features of the dependency.
 
 .. code-block:: python
 
-   depends_on("libelf@0.8+debug")
-   depends_on("libelf debug=True")
-   depends_on("libelf cppflags='-fPIC'")
+   depends_on("libelf@0.8 +parser +pic")
 
 Both users *and* package authors can use the same spec syntax to refer
 to different package configurations. Users use the spec syntax on the
@@ -2479,46 +2518,82 @@ command line to find installed packages or to install packages with
 particular constraints, and package authors can use specs to describe
 relationships between packages.
 
-^^^^^^^^^^^^^^
-Version ranges
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Specifying backward and forward compatibility
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Although some packages require a specific version for their dependencies,
-most can be built with a range of versions. For example, if you are
-writing a package for a legacy Python module that only works with Python
-2.4 through 2.6, this would look like:
+Packages are often compatible with a range of versions of their
+dependencies. This is typically referred to as backward and forward
+compatibility. Spack allows you to specify this in the ``depends_on``
+directive using version ranges.
 
-.. code-block:: python
-
-   depends_on("python@2.4:2.6")
-
-Version ranges in Spack are *inclusive*, so ``2.4:2.6`` means any version
-greater than or equal to ``2.4`` and up to and including any ``2.6.x``. If
-you want to specify that a package works with any version of Python 3 (or
-higher), this would look like:
+**Backwards compatibility** means that the package requires at least a
+certain version of its dependency:
 
 .. code-block:: python
 
-   depends_on("python@3:")
+   depends_on("python@3.10:")
 
-Here we leave out the upper bound. If you want to say that a package
-requires Python 2, you can similarly leave out the lower bound:
+In this case, the package requires Python 3.10 or newer.
 
-.. code-block:: python
-
-   depends_on("python@:2")
-
-Notice that we didn't use ``@:3``. Version ranges are *inclusive*, so
-``@:3`` means "up to and including any 3.x version".
-
-You can also simply write
+Commonly, packages drop support for older versions of a dependency as
+they release new versions. In Spack you can conveniently add every
+backward compatibility rule as a separate line:
 
 .. code-block:: python
 
-   depends_on("python@2.7")
+   # backward compatibility with Python
+   depends_on("python@3.8:")
+   depends_on("python@3.9:", when="@1.2:")
+   depends_on("python@3.10:", when="@1.4:")
 
-to tell Spack that the package needs Python 2.7.x. This is equivalent to
-``@2.7:2.7``.
+This means that in general we need Python 3.8 or newer; from version
+1.2 onwards we need Python 3.9 or newer; from version 1.4 onwards we
+need Python 3.10 or newer. Notice that it's fine to have overlapping
+ranges in the ``when`` clauses.
+
+**Forward compatibility** means that the package requires at most a
+certain version of its dependency. Forward compatibility rules are
+necessary when there are breaking changes in the dependency that the
+package cannot handle. In Spack we often add forward compatibility
+bounds only at the time a new, breaking version of a dependency is
+released. As with backward compatibility, it is typical to see a list
+of forward compatibility bounds in a package file as seperate lines:
+
+.. code-block:: python
+
+   # forward compatibility with Python
+   depends_on("python@:3.12", when="@:1.10")
+   depends_on("python@:3.13", when="@:1.12")
+
+Notice how the ``:`` now appears before the version number both in the
+dependency and in the ``when`` clause. This tells Spack that in general
+we need Python 3.13 or older up to version ``1.12.x``, and up to version
+``1.10.x`` we need Python 3.12 or older. Said differently, forward compatibility
+with Python 3.13 was added in version 1.11, while version 1.13 added forward
+compatibility with Python 3.14.
+
+Notice that a version range ``@:3.12`` includes *any* patch version
+number ``3.12.x``, which is often useful when specifying forward compatibility
+bounds.
+
+So far we have seen open-ended version ranges, which is by far the most
+common use case. It is also possible to specify both a lower and an upper bound
+on the version of a dependency, like this:
+
+.. code-block:: python
+
+   depends_on("python@3.10:3.12")
+
+There is short syntax to specify that a package is compatible with say any
+``3.x`` version:
+
+.. code-block:: python
+
+   depends_on("python@3")
+
+The above is equivalent to ``depends_on("python@3:3")``, which means at least
+Python version 3 and at most any version ``3.x.y``.
 
 In very rare cases, you may need to specify an exact version, for example
 if you need to distinguish between ``3.2`` and ``3.2.1``:

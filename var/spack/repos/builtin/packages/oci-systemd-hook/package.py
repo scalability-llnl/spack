@@ -19,6 +19,8 @@ class OciSystemdHook(AutotoolsPackage):
     version("0.1.18", sha256="c17291bf5151e972c502ec3cc9b445967823444b1f3917481eb419c9e476649e")
     version("0.1.5", sha256="53f773b055928d0f3d25ccc966d0d0b3ccb4dd00e8ff71a067b105142da22763")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

@@ -20,6 +20,8 @@ class Libiconv(AutotoolsPackage, GNUMirrorPackage):
     version("1.15", sha256="ccf536620a45458d26ba83887a983b96827001e92a13847b45e4925cc8913178")
     version("1.14", sha256="72b24ded17d687193c3366d0ebe7cde1e6b18f0df8c55438ac95be39e8a30613")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "libs",
         default="shared,static",
@@ -58,5 +60,5 @@ class Libiconv(AutotoolsPackage, GNUMirrorPackage):
 
     @property
     def libs(self):
-        shared = "libs=shared" in self.spec
+        shared = self.spec.satisfies("libs=shared")
         return find_libraries(["libiconv"], root=self.prefix, recursive=True, shared=shared)

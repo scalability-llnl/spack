@@ -14,7 +14,7 @@ class Psrchive(AutotoolsPackage):
     single-pulse work, RFI mitigation, etc. These tools are utilized by a
     powerful suite of user-end programs that come with the library."""
 
-    homepage = "http://psrchive.sourceforge.net/"
+    homepage = "https://psrchive.sourceforge.net/"
     url = "https://sourceforge.net/projects/psrchive/files/psrchive/2022-05-14/psrchive-2022-05-14.tar.gz/download"
     git = "https://git.code.sf.net/p/psrchive/code.git"
 
@@ -28,6 +28,10 @@ class Psrchive(AutotoolsPackage):
     # https://github.com/lwa-project/pulsar/blob/master/SoftwareStack.md
     # as of Nov 23 2022
     version("2020-10-17", commit="ca12b4a279f3d4adcca223508116d9d270df8cc6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Compile with MPI")
     variant("mkl", default=False, description="Compile with MKL")

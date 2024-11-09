@@ -19,7 +19,7 @@ class PyAliveProgress(PythonPackage):
     version("2.4.1", sha256="089757c8197f27ad972ba27e1060f6db92368d83c736884e159034fd74865323")
     version("1.6.2", sha256="642e1ce98becf226c8c36bf24e10221085998c5465a357a66fb83b7dc618b43e")
 
-    depends_on("python@2.7:3.8", type=("build", "run"))
+    depends_on("python@2.7:3", type=("build", "run"))
     depends_on("python@3.6:3", type=("build", "run"), when="@2:")
     depends_on("python@3.7:3", type=("build", "run"), when="@2.2:")
     depends_on("py-setuptools", type="build")

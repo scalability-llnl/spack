@@ -23,6 +23,8 @@ class Gtkmm(AutotoolsPackage):
     version("2.16.0", sha256="7b2cccda794531ecfa65c01e57614ecba526153ad2a29d580c6e8df028d56ec4")
     version("2.4.11", sha256="0754187a5bcf3795cd7c959de303e6a19a130b0c5927bff1504baa3524bee8c1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("glibmm")
     depends_on("atk")
     depends_on("gtkplus")

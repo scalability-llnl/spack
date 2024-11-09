@@ -18,6 +18,8 @@ class Sambamba(Package):
         "0.6.6", tag="v0.6.6", commit="63cfd5c7b3053e1f7045dec0b5a569f32ef73d06", submodules=True
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ldc~shared", type=("build", "link"))
     depends_on("python", type="build")
 

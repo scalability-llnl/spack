@@ -25,4 +25,7 @@ class Photospline(CMakePackage):
     version("2.0.3", sha256="7045a631c41489085037b05fac98fd9cad73dc4262b7eead143d09e5f8265dec")
     version("2.0.2", sha256="0a3368205a7971a6919483ad5b5f0fbebb74614ec1891c95bb6a4fc9d3b950d4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cfitsio")

@@ -33,6 +33,8 @@ class Mcutils(MakefilePackage):
     version("1.0.1", tag="mcutils-1.0.1", commit="85bb1c9e2761a7c70bdd18955d6cccc120d9c523")
     version("1.0.0", tag="mcutils-1.0.0", commit="7ae9d007493ce65f5eac432d0ea6f730512a0a8a")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("heputils", when="@1.1.0:")
 
     def install(self, spec, prefix):

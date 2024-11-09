@@ -23,6 +23,10 @@ class Orca(Package):
 
     license("LGPL-2.1-or-later")
 
+    version(
+        "avx2-6.0.0", sha256="02c21294efe7b1b721e26cb90f98ee15ad682d02807201b7d217dfe67905a2fd"
+    )
+    version("6.0.0", sha256="219bd1deb6d64a63cb72471926cb81665cbbcdec19f9c9549761be67d49a29c6")
     version("5.0.4", sha256="c4ea5aea60da7bcb18a6b7042609206fbeb2a765c6fa958c5689d450b588b036")
     version("5.0.3", sha256="b8b9076d1711150a6d6cb3eb30b18e2782fa847c5a86d8404b9339faef105043")
     version("4.2.1", sha256="a84b6d2706f0ddb2f3750951864502a5c49d081836b00164448b1d81c577f51a")
@@ -33,17 +37,28 @@ class Orca(Package):
 
     # Map Orca version with the required OpenMPI version
     # OpenMPI@4.1.1 has issues in pmix environments, hence 4.1.2 here
-    openmpi_versions = {"4.2.0": "3.1.4", "4.2.1": "3.1.4", "5.0.3": "4.1.2", "5.0.4": "4.1.2"}
+    openmpi_versions = {
+        "4.2.0": "3.1.4",
+        "4.2.1": "3.1.4",
+        "5.0.3": "4.1.2",
+        "5.0.4": "4.1.2",
+        "6.0.0": "4.1.6",
+        "avx2-6.0.0": "4.1.6",
+    }
     for orca_version, openmpi_version in openmpi_versions.items():
         depends_on(
             "openmpi@{0}".format(openmpi_version), type="run", when="@{0}".format(orca_version)
         )
 
     def url_for_version(self, version):
-        openmpi_version = self.openmpi_versions[str(version.dotted)].replace(".", "")
+        openmpi_version = self.openmpi_versions[version.string].replace(".", "")
         if openmpi_version == "412":
             openmpi_version = "411"
-        return f"file://{os.getcwd()}/orca_{version.underscored}_linux_x86-64_shared_openmpi{openmpi_version}.tar.xz"
+        ver_parts = version.string.split("-")
+        ver_underscored = ver_parts[-1].replace(".", "_")
+        features = ver_parts[:-1] + ["shared"]
+        feature_text = "_".join(features)
+        return f"file://{os.getcwd()}/orca_{ver_underscored}_linux_x86-64_{feature_text}_openmpi{openmpi_version}.tar.xz"
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

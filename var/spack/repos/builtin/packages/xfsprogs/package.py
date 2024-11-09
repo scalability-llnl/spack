@@ -21,6 +21,8 @@ class Xfsprogs(AutotoolsPackage):
 
     version("4.20.0", sha256="beafdfd080352a8c9d543491e0874d0e8809cb643a3b9d352d5feed38d77022a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libinih")
     depends_on("gettext")
     depends_on("uuid")

@@ -16,6 +16,8 @@ class Jbigkit(MakefilePackage):
     version("2.1", sha256="de7106b6bfaf495d6865c7dd7ac6ca1381bd12e0d81405ea81e7f2167263d932")
     version("1.6", sha256="d841b6d0723c1082450967f3ea500be01810a34ec4a97ad10985ae7071a6150b")
 
+    depends_on("c", type="build")  # generated
+
     build_directory = "libjbig"
 
     def edit(self, spec, prefix):

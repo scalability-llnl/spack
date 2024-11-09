@@ -12,14 +12,14 @@ from typing import Any, Dict
 
 from llnl.util.lang import union_dicts
 
-import spack.schema.gitlab_ci  # DEPRECATED
 import spack.schema.merged
-import spack.schema.projections
 
 from .spec_list import spec_list_schema
 
 #: Top level key in a manifest file
 TOP_LEVEL_KEY = "spack"
+
+include_concrete = {"type": "array", "default": [], "items": {"type": "string"}}
 
 properties: Dict[str, Any] = {
     "spack": {
@@ -27,15 +27,13 @@ properties: Dict[str, Any] = {
         "default": {},
         "additionalProperties": False,
         "properties": union_dicts(
-            # Include deprecated "gitlab-ci" section
-            spack.schema.gitlab_ci.properties,
             # merged configuration scope schemas
             spack.schema.merged.properties,
             # extra environment schema properties
             {
                 "include": {"type": "array", "default": [], "items": {"type": "string"}},
                 "specs": spec_list_schema,
-                "include_concrete": {"type": "array", "default": [], "items": {"type": "string"}},
+                "include_concrete": include_concrete,
             },
         ),
     }
@@ -59,15 +57,6 @@ def update(data):
     Returns:
         True if data was changed, False otherwise
     """
-
-    import spack.ci
-
-    if "gitlab-ci" in data:
-        data["ci"] = data.pop("gitlab-ci")
-
-    if "ci" in data:
-        return spack.ci.translate_deprecated_config(data["ci"])
-
     # There are not currently any deprecated attributes in this section
     # that have not been removed
     return False

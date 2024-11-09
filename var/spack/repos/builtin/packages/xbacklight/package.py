@@ -21,6 +21,8 @@ class Xbacklight(AutotoolsPackage, XorgPackage):
     version("1.2.2", sha256="9812497b95b28776539808ba75e8b8a2d48a57416e172e04e9580e65c76a61bb")
     version("1.2.1", sha256="82c80cd851e3eb6d7a216d92465fcf6d5e456c2d5ac12c63cd2757b39fb65b10")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxcb")
     depends_on("xcb-util")
 

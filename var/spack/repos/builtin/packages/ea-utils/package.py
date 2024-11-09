@@ -25,6 +25,9 @@ class EaUtils(MakefilePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("sparsehash")
     depends_on("zlib-api")
     depends_on("gsl")

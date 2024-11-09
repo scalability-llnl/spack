@@ -32,6 +32,8 @@ class RMixtools(RPackage):
     version("1.1.0", sha256="543fd8d8dc8d4b6079ebf491cf97f27d6225e1a6e65d8fd48553ada23ba88d8f")
     version("1.0.4", sha256="62f4b0a17ce520c4f8ed50ab44f120e459143b461a9e420cd39056ee4fc8798c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.2:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.2.0:")
     depends_on("r@4.0.0:", type=("build", "run"), when="@2.0.0:")

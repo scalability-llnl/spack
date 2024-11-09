@@ -32,6 +32,8 @@ class PyMesonPython(PythonPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-colorama", when="platform=windows", type=("build", "run"))
     depends_on("meson@0.63.3:", when="@0.11:", type=("build", "run"))
     depends_on("meson@0.63:", when="@0.9:0.10", type=("build", "run"))

@@ -23,6 +23,8 @@ class Cubist(MakefilePackage):
 
     version("2.07", sha256="f2b20807cd3275e775c42263a4efd3f50df6e495a8b6dc8989ea2d41b973ac1a")
 
+    depends_on("c", type="build")  # generated
+
     def edit(self, spec, prefix):
         makefile = FileFilter("Makefile")
         makefile.filter("SHELL .*", "SHELL  = /bin/bash")

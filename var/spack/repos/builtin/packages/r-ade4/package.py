@@ -30,6 +30,9 @@ class RAde4(RPackage):
     version("1.7-11", sha256="4ccd799ae99bd625840b866a697c4a48adb751660470bf0d6cf9207b1927a572")
     version("1.7-6", sha256="80848e1650dcc0ec921c130efa6f7e9b307f0d107c63e49faa52296eda19cc52")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-mass", type=("build", "run"))
     depends_on("r-pixmap", type=("build", "run"), when="@1.7-16:")

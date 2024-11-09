@@ -44,6 +44,9 @@ class Vacuumms(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("test", default=True, description="enable CMake testing")
     variant("tiff", default=False, description="Build TIFF utilities")
     variant("cuda", default=False, description="Build CUDA applications and utilities")

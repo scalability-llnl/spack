@@ -23,6 +23,10 @@ class Cloc(Package):
     version("1.80", sha256="082f53530eee3f9ee84ec449eca59a77ff114250cd7daf9519679537b5b21d67")
     version("1.74", sha256="55ac423d5766c74236700a47838ed66bea47ba42e1d594fdd894074ba3eb0567")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("perl")
 
     def install(self, spec, prefix):

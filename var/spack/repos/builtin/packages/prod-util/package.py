@@ -27,6 +27,9 @@ class ProdUtil(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
+
     depends_on("w3nco", when="@1")
     depends_on("w3emc", when="@2:")
 

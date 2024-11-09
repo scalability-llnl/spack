@@ -37,6 +37,8 @@ class MongoCxxDriver(CMakePackage):
     version("3.2.1", sha256="d5e62797cbc48c6e5e18bc0a66c14556e78871d05db4bccc295074af51b8421e")
     version("3.2.0", sha256="e26edd44cf20bd6be91907403b6d63a065ce95df4c61565770147a46716aad8c")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mongo-c-driver@1.9.2:")
 
     def url_for_version(self, version):

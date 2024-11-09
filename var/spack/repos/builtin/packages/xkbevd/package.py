@@ -15,6 +15,8 @@ class Xkbevd(AutotoolsPackage, XorgPackage):
     version("1.1.5", sha256="5d6b65a417be57e19a76277601da83271b19de6e71cb0e8821441f6fb9973c47")
     version("1.1.4", sha256="97dc2c19617da115c3d1183807338fa78c3fd074d8355d10a484f7b1c5b18459")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxkbfile")
     depends_on("libx11")
 

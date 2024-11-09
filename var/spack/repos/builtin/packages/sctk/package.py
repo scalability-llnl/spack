@@ -37,6 +37,9 @@ class Sctk(Package):
         url="https://www.openslr.org/resources/4/sctk-2.4.0-20091110-0958.tar.bz2",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         make("config")
         make("all")

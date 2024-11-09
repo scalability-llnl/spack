@@ -18,6 +18,8 @@ class Numamma(CMakePackage):
 
     version("1.1.1", sha256="f79ca22a95df33a1af529ddd653d043f7f0d32a6d196e559aee8bef8fc74771f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("numap")
     depends_on("libbacktrace")
     depends_on("numactl")

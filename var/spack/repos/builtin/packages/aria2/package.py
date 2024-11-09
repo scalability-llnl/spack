@@ -20,6 +20,9 @@ class Aria2(AutotoolsPackage):
     version("1.35.0", sha256="fd85589416f8246cefc4e6ba2fa52da54fdf11fd5602a2db4b6749f7c33b5b2d")
     version("1.34.0", sha256="ec4866985760b506aa36dc9021dbdc69551c1a647823cae328c30a4f3affaa6c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libxml2")
     depends_on("libssh2")
     depends_on("libgcrypt")

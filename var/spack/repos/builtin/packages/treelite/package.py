@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -16,6 +17,9 @@ class Treelite(CMakePackage):
     license("Apache-2.0")
 
     version("0.93", sha256="7d347372f7fdc069904afe93e69ed0bf696ba42d271fe2f8bf6835d2ab2f45d5")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("protobuf", default=False, description="Build with protobuf")
     variant("python", default=True, description="Build with python support")
@@ -47,5 +51,4 @@ class Treelite(CMakePackage):
     def python_install(self):
         if "+python" in self.spec:
             with working_dir("python"):
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

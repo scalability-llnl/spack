@@ -20,6 +20,9 @@ class FrontierClient(MakefilePackage):
     version("2_8_21", sha256="7df9ba61c3e1778aca75c5da6e45ee4d00b5c061d3f7162208e2fbd2ec266a9e")
     version("2_8_20", sha256="81b0f45762d96a33f156e0238631a60eef910a176644e95c6c19a36824bef7e1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pacparser")
     depends_on("expat")
     depends_on("openssl")

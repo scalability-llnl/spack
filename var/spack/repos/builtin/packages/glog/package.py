@@ -20,6 +20,8 @@ class Glog(CMakePackage):
     version("0.4.0", sha256="f28359aeba12f30d73d9e4711ef356dc842886968112162bc73002645139c39c")
     version("0.3.5", sha256="7580e408a2c0b5a89ca214739978ce6ff480b5e7d8d7698a2aa92fadc484d1e0")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gflags")
 
     depends_on("cmake@3:", type="build")

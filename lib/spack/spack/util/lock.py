@@ -19,7 +19,6 @@ from llnl.util.lock import ReadTransaction  # noqa: F401
 from llnl.util.lock import WriteTransaction  # noqa: F401
 
 import spack.error
-import spack.paths
 
 
 class Lock(llnl.util.lock.Lock):

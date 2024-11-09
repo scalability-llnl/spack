@@ -24,3 +24,6 @@ class RTmvnsim(RPackage):
     license("GPL-2.0-only")
 
     version("1.0-2", sha256="97f63d0bab3b240cc7bdbe6e6e74e90ad25a4382a345ee51a26fe3959edeba0f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated

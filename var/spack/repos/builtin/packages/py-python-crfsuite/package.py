@@ -16,5 +16,8 @@ class PyPythonCrfsuite(PythonPackage):
 
     version("0.9.7", sha256="3b4538d2ce5007e4e42005818247bf43ade89ef08a66d158462e2f7c5d63cee7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-cython", type="build")

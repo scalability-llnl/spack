@@ -27,6 +27,8 @@ class RBiostrings(RPackage):
     version("2.46.0", commit="3bf6978c155498b50607d1bb471d1687d185a0fa")
     version("2.44.2", commit="e4a2b320fb21c5cab3ece7b3c6fecaedfb1e5200")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.8.0:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@2.50.2:")
     depends_on("r@4.0.0:", type=("build", "run"), when="@2.62.0:")

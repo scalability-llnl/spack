@@ -21,6 +21,8 @@ class Gflags(CMakePackage):
     version("2.2.2", sha256="34af2f15cf7367513b352bdcd2493ab14ce43692d2dcd9dfc499492966c64dcf")
     version("2.1.2", sha256="d8331bd0f7367c8afd5fcb5f5e85e96868a00fd24b7276fa5fcee1e5575c2662")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8.12:", type="build")
 
     def cmake_args(self):

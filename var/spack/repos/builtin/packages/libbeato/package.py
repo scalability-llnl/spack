@@ -17,3 +17,5 @@ class Libbeato(AutotoolsPackage):
     license("GPL-3.0-or-later")
 
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated

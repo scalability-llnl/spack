@@ -32,6 +32,9 @@ class Interproscan(Package):
         url="ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/4/RELEASE/4.8/iprscan_v4.8.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     resource(
         when="@5.63-95.0 +databases",
         name="databases",

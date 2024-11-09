@@ -21,6 +21,8 @@ class Prometheus(MakefilePackage):
     version("2.17.1", sha256="d0b53411ea0295c608634ca7ef1d43fa0f5559e7ad50705bf4d64d052e33ddaf")
     version("2.17.0", sha256="b5e508f1c747aaf50dd90a48e5e2a3117fec2e9702d0b1c7f97408b87a073009")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("go", type="build")
     depends_on("node-js@11.10.1:", type="build")
     depends_on("yarn", type="build")

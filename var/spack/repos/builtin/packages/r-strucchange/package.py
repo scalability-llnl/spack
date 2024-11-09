@@ -27,6 +27,8 @@ class RStrucchange(RPackage):
     version("1.5-2", sha256="7d247c5ae6f5a63c80e478799d009c57fb8803943aa4286d05f71235cc1002f8")
     version("1.5-1", sha256="740e2e20477b9fceeef767ae1002adc5ec397cb0f7daba5289a2c23b0dddaf31")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10.0:", type=("build", "run"))
     depends_on("r-zoo", type=("build", "run"))
     depends_on("r-sandwich", type=("build", "run"))

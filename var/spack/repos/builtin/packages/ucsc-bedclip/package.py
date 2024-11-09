@@ -16,6 +16,9 @@ class UcscBedclip(Package):
     version("377", sha256="932f149c19641064a9cd3f2382cbb54b45a9292b8444792872d531346925d676")
     version("449", sha256="b5a86863d6cfe2120f6c796a13b1572ad05b22622f6534b95c9d26ccbede09b7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libpng")
     depends_on("uuid")
     depends_on("gmake")

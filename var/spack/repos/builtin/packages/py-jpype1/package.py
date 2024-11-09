@@ -18,6 +18,9 @@ class PyJpype1(PythonPackage):
     version("0.6.1", sha256="0d366228b7b37b0266184161cc7ea1ce58f60199f6ec9451985149ea873774be")
     version("0.6.0", sha256="f5d783520cb4c30595c3bc509065e30fc292ec7cfb57045141eae77c518bcdb0")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("numpy", default=False, description="Build numpy extensions")
 
     depends_on("python@2.6:")

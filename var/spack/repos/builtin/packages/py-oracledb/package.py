@@ -18,6 +18,8 @@ class PyOracledb(PythonPackage):
 
     version("1.2.2", sha256="dd9f63084e44642b484a46b2fcfb4fc921f39facf494a1bab00628fa6409f4fc")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools@40.6.0:", type="build")
     depends_on("py-cryptography@3.2.1:", type=("build", "run"))
     depends_on("py-cython", type="build")

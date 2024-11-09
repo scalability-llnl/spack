@@ -20,6 +20,9 @@ class Nnpack(CMakePackage):
     version("2018-05-21", commit="3eb0d453662d05a708f43b108bed9e17b705383e")  # py-torch@0.4.1
     version("2018-04-05", commit="b63fe1ba8963f1756b8decc593766615cee99c35")  # py-torch@:0.4.0
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     generator("ninja")
     depends_on("cmake@2.8.12:", type="build")
     depends_on("python", type="build")

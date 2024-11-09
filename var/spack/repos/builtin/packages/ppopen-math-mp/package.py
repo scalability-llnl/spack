@@ -29,6 +29,8 @@ class PpopenMathMp(MakefilePackage):
 
     version("master", branch="MATH/MP")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
 
     build_directory = "src"

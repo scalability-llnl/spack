@@ -20,6 +20,8 @@ class PyPoetry(PythonPackage):
     version("1.1.13", sha256="b905ed610085f568aa61574e0e09260c02bff9eae12ff672af39e9f399357ac4")
     version("1.1.12", sha256="5c66e2357fe37b552462a88b7d31bfa2ed8e84172208becd666933c776252567")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.8:3", when="@1.6.0:", type=("build", "run"))
     depends_on("python@3.7:3", when="@1.2.0:", type=("build", "run"))
     depends_on("python@2.7,3.5:3", type=("build", "run"))

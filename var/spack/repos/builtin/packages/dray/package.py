@@ -8,6 +8,7 @@ import socket
 
 import llnl.util.tty as tty
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -56,6 +57,9 @@ class Dray(Package, CudaPackage):
         version("0.1.2", sha256="46937f20124b28dc78a634e8e063a3e7a3bbfd9f424ce2680b08417010c376da")
         version("0.1.1", sha256="e5daa49ee3367c087f5028dc5a08655298beb318014c6f3f65ef4a08fcbe346c")
         version("0.1.0", sha256="8b341138e1069361351e0a94478608c5af479cca76e2f97d556229aed45c0169")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=True, description="Build OpenMP backend")
     variant("shared", default=True, description="Build as shared libs")
@@ -117,7 +121,12 @@ class Dray(Package, CudaPackage):
         with working_dir("spack-build", create=True):
             host_cfg_fname = self.create_host_config(spec, prefix)
             print("Configuring Devil Ray...")
-            cmake(*std_cmake_args, "-C", host_cfg_fname, "../src")
+            cmake(
+                *CMakeBuilder.std_args(self, generator="Unix Makefiles"),
+                "-C",
+                host_cfg_fname,
+                "../src",
+            )
             print("Building Devil Ray...")
             make()
             # run unit tests if requested
@@ -159,7 +168,7 @@ class Dray(Package, CudaPackage):
         # Find and record what CMake is used
         ##############################################
 
-        if "+cmake" in spec:
+        if spec.satisfies("+cmake"):
             cmake_exe = spec["cmake"].command.path
         else:
             cmake_exe = which("cmake")
@@ -196,7 +205,7 @@ class Dray(Package, CudaPackage):
         cfg.write("# cpp compiler used by spack\n")
         cfg.write(cmake_cache_entry("CMAKE_CXX_COMPILER", cpp_compiler))
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             mpicc_path = spec["mpi"].mpicc
             mpicxx_path = spec["mpi"].mpicxx
             # if we are using compiler wrappers on cray systems
@@ -209,7 +218,7 @@ class Dray(Package, CudaPackage):
             cfg.write(cmake_cache_entry("ENABLE_MPI", "ON"))
             cfg.write(cmake_cache_entry("MPI_C_COMPILER", mpicc_path))
             cfg.write(cmake_cache_entry("MPI_CXX_COMPILER", mpicxx_path))
-            if "+blt_find_mpi" in spec:
+            if spec.satisfies("+blt_find_mpi"):
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "ON"))
             else:
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "OFF"))
@@ -247,7 +256,7 @@ class Dray(Package, CudaPackage):
 
         cfg.write("# CUDA Support\n")
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cfg.write(cmake_cache_entry("ENABLE_CUDA", "ON"))
             if "cuda_arch" in spec.variants:
                 cuda_value = spec.variants["cuda_arch"].value
@@ -256,13 +265,13 @@ class Dray(Package, CudaPackage):
         else:
             cfg.write(cmake_cache_entry("ENABLE_CUDA", "OFF"))
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "OFF"))
 
         # shared vs static libs
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "ON"))
         else:
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "OFF"))
@@ -270,7 +279,7 @@ class Dray(Package, CudaPackage):
         #######################
         # Unit Tests
         #######################
-        if "+test" in spec:
+        if spec.satisfies("+test"):
             cfg.write(cmake_cache_entry("DRAY_ENABLE_TESTS", "ON"))
             # we need this to control BLT tests
             cfg.write(cmake_cache_entry("ENABLE_TESTS", "ON"))
@@ -282,7 +291,7 @@ class Dray(Package, CudaPackage):
         #######################
         # Utilities
         #######################
-        if "+utils" in spec:
+        if spec.satisfies("+utils"):
             cfg.write(cmake_cache_entry("DRAY_ENABLE_UTILS", "ON"))
         else:
             cfg.write(cmake_cache_entry("DRAY_ENABLE_UTILS", "OFF"))
@@ -290,7 +299,7 @@ class Dray(Package, CudaPackage):
         #######################
         # Logging
         #######################
-        if "+logging" in spec:
+        if spec.satisfies("+logging"):
             cfg.write(cmake_cache_entry("ENABLE_LOGGING", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_LOGGING", "OFF"))
@@ -298,7 +307,7 @@ class Dray(Package, CudaPackage):
         #######################
         # Status
         #######################
-        if "+stats" in spec:
+        if spec.satisfies("+stats"):
             cfg.write(cmake_cache_entry("ENABLE_STATS", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_STATS", "OFF"))

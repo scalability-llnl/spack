@@ -27,6 +27,9 @@ class Openvkl(CMakePackage):
     version("1.0.0", sha256="81ccae679bfa2feefc4d4b1ce72bcd242ba34d2618fbb418a1c2a05d640d16b4")
     version("0.13.0", sha256="974608259e3a5d8e29d2dfe81c6b2b1830aadeb9bbdc87127f3a7c8631e9f1bd")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("embree@4", when="@1.3.2:")
     depends_on("embree@3.13.0:3", when="@:1.3.1")
     depends_on("embree@3.13.1:", when="@1.0.0:")

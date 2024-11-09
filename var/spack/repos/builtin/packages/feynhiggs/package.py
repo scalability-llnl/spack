@@ -22,5 +22,9 @@ class Feynhiggs(AutotoolsPackage):
 
     version("2.18.1", sha256="3aba89cac6397d7e1a8a9d9dcfeed9fb32eeeee98768b0c0c9f444c2cc125ab9")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     def configure_args(self):
         return ["FFLAGS=-fPIC", "CFLAGS=-fPIC"]

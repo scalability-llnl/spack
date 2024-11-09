@@ -17,6 +17,8 @@ class Szx(CMakePackage, AutotoolsPackage, CudaPackage):
     version("main", branch="main")
     version("1.1.1", commit="b1609dde7702135b647fb92f91833fc84de2492e")
     version("1.1.0", commit="194a9dc91ee8c46632f79de3c87a63ec29c52b26")
+
+    depends_on("cxx", type="build")  # generated
     build_system(
         conditional("cmake", when="@1.1.1:"),
         conditional("autotools", when="@:1.1.0"),

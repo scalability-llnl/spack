@@ -21,6 +21,9 @@ class Zerosum(CMakePackage):
 
     version("main", branch="main")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("perfstubs", default=True, description="Enable PerfStubs support")
     variant("hwloc", default=True, description="Enable HWLOC support")
     variant("mpi", default=True, description="Enable MPI support")

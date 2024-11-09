@@ -28,6 +28,8 @@ class IsaacServer(CMakePackage):
     version("1.3.1", sha256="7dead8f3d5467cbd2cde8187e7b860a4ab7796348895d18291f97a76e28757cf")
     version("1.3.0", sha256="fcf10f4738e7790ef6604e1e2cdd052a129ba4e53a439deaafa9fb2a70585574")
 
+    depends_on("cxx", type="build")  # generated
+
     # variant('gstreamer', default=False, description= \
     #         'Support for RTP streams, e.g. to Twitch or Youtube')
 

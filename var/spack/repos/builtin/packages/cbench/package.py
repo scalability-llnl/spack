@@ -19,6 +19,10 @@ class Cbench(MakefilePackage):
 
     version("1.3.0", sha256="b40fdafd14869b86819e5906a107b0735290a1e58bae229d8166514a72f58732")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("blas")
     depends_on("lapack")

@@ -21,6 +21,8 @@ class PyAstropyHealpix(PythonPackage):
 
     version("0.5", sha256="5ae15da796a840f221fb83e25de791e827b6921bc21a365d99bc1a59c7c0cdad")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type=("build", "run"))
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-astropy@2.0:", type=("build", "run"))

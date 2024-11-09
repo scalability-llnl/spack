@@ -31,6 +31,8 @@ class SpanLite(CMakePackage):
     version("0.2.0", sha256="6e3305fe868442410a00962a39fc59ed494cecc4f99fe2aff187e33932f06e46")
     version("0.1.0", sha256="0a84b9369f86beba326e2160b683fd0922f416ce136437751a9ed70afcc67a1c")
 
+    depends_on("cxx", type="build")  # generated
+
     def cmake_args(self):
         return [
             "-DSPAN_LITE_EXPORT_PACKAGE=ON",

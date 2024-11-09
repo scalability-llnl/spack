@@ -47,6 +47,8 @@ class Musl(MakefilePackage):
     version("1.1.21", sha256="c742b66f6f49c9e5f52f64d8b79fecb5a0f6e0203fca176c70ca20f6be285f44")
     version("1.1.20", sha256="44be8771d0e6c6b5f82dd15662eb2957c9a3173a19a8b49966ac0542bbd40d61")
 
+    depends_on("c", type="build")  # generated
+
     def patch(self):
         config = FileFilter("configure")
         if self.compiler.name == "gcc":

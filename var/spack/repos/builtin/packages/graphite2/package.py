@@ -22,6 +22,9 @@ class Graphite2(CMakePackage):
     version("1.3.14", sha256="f99d1c13aa5fa296898a181dff9b82fb25f6cc0933dbaa7a475d8109bd54209d")
     version("1.3.13", sha256="dd63e169b0d3cf954b397c122551ab9343e0696fb2045e1b326db0202d875f06")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.6:", type="test")
     depends_on("freetype")
 

@@ -16,6 +16,8 @@ class Bamaddrg(MakefilePackage):
 
     version("0.1", sha256="725a689d8326d72f865837b231005a9211d6c70a25b7a3a754df4f90d2996355")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("bamtools", type="build")
 
     def setup_build_environment(self, env):

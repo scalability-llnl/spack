@@ -18,6 +18,10 @@ class Xbraid(MakefilePackage):
     version("2.3.0", sha256="706f0acde201c7c336ade3604679759752a74e2cd6c2a29a8bf5676b6e54b704")
     version("2.2.0", sha256="082623b2ddcd2150b3ace65b96c1e00be637876ec6c94dc8fefda88743b35ba3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
 
     @when("@:2.2.0")

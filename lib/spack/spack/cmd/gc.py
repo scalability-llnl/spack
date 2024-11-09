@@ -41,7 +41,7 @@ def setup_parser(subparser):
         help="do not remove installed build-only dependencies of roots\n"
         "(default is to keep only link & run dependencies)",
     )
-    spack.cmd.common.arguments.add_common_arguments(subparser, ["yes_to_all"])
+    spack.cmd.common.arguments.add_common_arguments(subparser, ["yes_to_all", "constraint"])
 
 
 def roots_from_environments(args, active_env):
@@ -97,6 +97,12 @@ def gc(parser, args):
             root_hashes = None
 
         specs = spack.store.STORE.db.unused_specs(root_hashes=root_hashes, deptype=deptype)
+
+        # limit search to constraint specs if provided
+        if args.constraint:
+            hashes = set(spec.dag_hash() for spec in args.specs())
+            specs = [spec for spec in specs if spec.dag_hash() in hashes]
+
         if not specs:
             tty.msg("There are no unused specs. Spack's store is clean.")
             return

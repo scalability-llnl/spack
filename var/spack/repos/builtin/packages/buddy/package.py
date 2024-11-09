@@ -18,6 +18,9 @@ class Buddy(AutotoolsPackage):
 
     version("2.4", sha256="d3df80a6a669d9ae408cb46012ff17bd33d855529d20f3a7e563d0d913358836")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def configure_args(self):
         if platform.machine() == "aarch64":
             config_args = ["--build=aarch64-unknown-linux-gnu"]

@@ -58,6 +58,8 @@ class MochiMargo(AutotoolsPackage):
     version("0.4.3", sha256="61a634d6983bee2ffa06e1e2da4c541cb8f56ddd9dd9f8e04e8044fb38657475")
     version("0.4.2", sha256="91085e28f50e373b9616e1ae5c3c8d40a19a7d3776259592d8f361766890bcaa")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("json-c", when="@0.9:")
     depends_on("autoconf@2.65:", type=("build"))
     depends_on("m4", type=("build"))

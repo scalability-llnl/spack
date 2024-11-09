@@ -19,6 +19,8 @@ class Epsic(AutotoolsPackage):
     # https://github.com/lwa-project/pulsar/blob/master/SoftwareStack.md
     # last updated 10/17/2020
     version("LWA-10-17-2020", commit="5315cc634f6539ea0a34e403e492472b97e0f086")
+
+    depends_on("cxx", type="build")  # generated
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("yacc", when="@develop", type="build")

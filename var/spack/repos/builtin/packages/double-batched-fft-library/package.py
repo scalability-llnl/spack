@@ -28,6 +28,8 @@ class DoubleBatchedFftLibrary(CMakePackage):
     version("0.4.0", sha256="f3518012b632c92c2a933d70a040d6b0eee2d631ab6b1881a192a8d1624f242d")
     version("0.3.6", sha256="ff163251d77d3c686563141e871c702bf4997c0302d53616add55d6cf9b02d28")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Shared library")
     variant("sycl", default=True, description="Build bbfft-sycl")
     variant("level-zero", default=True, when="~sycl", description="Build bbfft-level-zero")

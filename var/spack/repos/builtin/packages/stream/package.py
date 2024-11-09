@@ -16,6 +16,9 @@ class Stream(MakefilePackage):
 
     version("5.10")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=False, description="Build with OpenMP support")
 
     variant("stream_array_size", default="none", description="Size of work arrays in elements")

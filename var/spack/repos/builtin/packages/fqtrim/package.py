@@ -19,6 +19,8 @@ class Fqtrim(MakefilePackage):
 
     version("0.9.7", sha256="4951538f69dde14a23fc4841ff020434d26eb9622c4e06b43c068c702aa3d0d6")
 
+    depends_on("cxx", type="build")  # generated
+
     def build(self, spec, prefix):
         make("release")
 

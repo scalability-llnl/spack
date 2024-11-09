@@ -15,26 +15,26 @@ deconcretize = SpackCommand("deconcretize")
 def test_env(mutable_mock_env_path, mock_packages):
     ev.create("test")
     with ev.read("test") as e:
-        e.add("a@2.0 foobar=bar ^b@1.0")
-        e.add("a@1.0 foobar=bar ^b@0.9")
+        e.add("pkg-a@2.0 foobar=bar ^pkg-b@1.0")
+        e.add("pkg-a@1.0 foobar=bar ^pkg-b@0.9")
         e.concretize()
         e.write()
 
 
 def test_deconcretize_dep(test_env):
     with ev.read("test") as e:
-        deconcretize("-y", "b@1.0")
+        deconcretize("-y", "pkg-b@1.0")
         specs = [s for s, _ in e.concretized_specs()]
 
     assert len(specs) == 1
-    assert specs[0].satisfies("a@1.0")
+    assert specs[0].satisfies("pkg-a@1.0")
 
 
 def test_deconcretize_all_dep(test_env):
     with ev.read("test") as e:
         with pytest.raises(SpackCommandError):
-            deconcretize("-y", "b")
-        deconcretize("-y", "--all", "b")
+            deconcretize("-y", "pkg-b")
+        deconcretize("-y", "--all", "pkg-b")
         specs = [s for s, _ in e.concretized_specs()]
 
     assert len(specs) == 0
@@ -42,27 +42,27 @@ def test_deconcretize_all_dep(test_env):
 
 def test_deconcretize_root(test_env):
     with ev.read("test") as e:
-        output = deconcretize("-y", "--root", "b@1.0")
+        output = deconcretize("-y", "--root", "pkg-b@1.0")
         assert "No matching specs to deconcretize" in output
         assert len(e.concretized_order) == 2
 
-        deconcretize("-y", "--root", "a@2.0")
+        deconcretize("-y", "--root", "pkg-a@2.0")
         specs = [s for s, _ in e.concretized_specs()]
 
     assert len(specs) == 1
-    assert specs[0].satisfies("a@1.0")
+    assert specs[0].satisfies("pkg-a@1.0")
 
 
 def test_deconcretize_all_root(test_env):
     with ev.read("test") as e:
         with pytest.raises(SpackCommandError):
-            deconcretize("-y", "--root", "a")
+            deconcretize("-y", "--root", "pkg-a")
 
-        output = deconcretize("-y", "--root", "--all", "b")
+        output = deconcretize("-y", "--root", "--all", "pkg-b")
         assert "No matching specs to deconcretize" in output
         assert len(e.concretized_order) == 2
 
-        deconcretize("-y", "--root", "--all", "a")
+        deconcretize("-y", "--root", "--all", "pkg-a")
         specs = [s for s, _ in e.concretized_specs()]
 
     assert len(specs) == 0

@@ -26,6 +26,10 @@ class Mdsplus(AutotoolsPackage):
         submodules=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("java", default=True, description="Build java libraries and applications")
     variant("python", default=True, description="Install python module")
 

@@ -29,6 +29,8 @@ class GobjectIntrospection(MesonPackage, AutotoolsPackage):
     version("1.49.2", sha256="73d59470ba1a546b293f54d023fd09cca03a951005745d86d586b9e3a8dde9ac")
     version("1.48.0", sha256="fa275aaccdbfc91ec0bc9a6fd0562051acdba731e7d584b64a277fec60e75877")
 
+    depends_on("c", type="build")  # generated
+
     build_system(
         conditional("autotools", when="@:1.60"),
         conditional("meson", when="@1.61:"),

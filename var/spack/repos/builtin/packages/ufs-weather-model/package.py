@@ -33,6 +33,9 @@ class UfsWeatherModel(CMakePackage):
         submodules=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI")
     variant(
         "32bit", default=True, description="Enable 32-bit single precision arithmetic in dycore"

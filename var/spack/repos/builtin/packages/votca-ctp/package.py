@@ -31,6 +31,9 @@ class VotcaCtp(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("cmake@2.8:", type="build")
     depends_on("votca-tools@1.5.1")
     depends_on("votca-csg@1.5.1")

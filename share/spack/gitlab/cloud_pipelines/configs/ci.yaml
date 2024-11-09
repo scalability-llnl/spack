@@ -2,7 +2,6 @@ ci:
   target: gitlab
 
   broken-tests-packages:
-    - gptune
     - superlu-dist    # srun -n 4 hangs
     - papyrus
 
@@ -107,10 +106,15 @@ ci:
 
   - noop-job:
       tags: ["service"]
+      image: busybox:latest
       variables:
+        CI_OIDC_REQUIRED: 0
+        GIT_STRATEGY: "none"
         CI_JOB_SIZE: "small"
-        KUBERNETES_CPU_REQUEST: "500m"
-        KUBERNETES_MEMORY_REQUEST: "500M"
+        KUBERNETES_CPU_REQUEST: "100m"
+        KUBERNETES_MEMORY_REQUEST: "5M"
+      before_script:: []
+      after_script:: []
 
   - any-job:
       tags: ["spack"]

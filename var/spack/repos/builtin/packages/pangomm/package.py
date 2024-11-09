@@ -32,6 +32,8 @@ class Pangomm(AutotoolsPackage):
     version("2.14.1", sha256="2ea6cee273cca1aae2ee5a5dac0c416b4dc354e46debb51f20c6eeba828f5ed5")
     version("2.14.0", sha256="baa3b231c9498fb1140254e3feb4eb93c638f07e6e26ae0e36c3699ec14d80fd")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pango")
     depends_on("glibmm")
     depends_on("cairomm")

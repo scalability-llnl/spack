@@ -18,6 +18,8 @@ class Coral(CMakePackage):
 
     version("3.3.10", tag="CORAL_3_3_10", commit="d79c4d94f74e8eaf518841e70c70c1d9b2f816fe")
     version("3.3.3", tag="CORAL_3_3_3", commit="1c0393b2aa8d03748208ce564070d96f1bbd0c29")
+
+    depends_on("cxx", type="build")  # generated
     variant("binary_tag", default="auto", description="Build type")
 
     depends_on("ninja")

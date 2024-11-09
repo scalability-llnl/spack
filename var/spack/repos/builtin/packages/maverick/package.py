@@ -15,6 +15,9 @@ class Maverick(MakefilePackage):
 
     version("1.0.4", sha256="d4634c1b3f09cec9eb60d72348e2f479d74220ecbdebd940bb18b480db8df8cb")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     conflicts("%gcc@:6.0")
     conflicts("%cce")
     conflicts("%apple-clang")

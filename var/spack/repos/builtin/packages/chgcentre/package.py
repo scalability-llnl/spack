@@ -16,6 +16,8 @@ class Chgcentre(CMakePackage):
 
     version("1.6", sha256="5b14f9f56b900072c42dab2a8217cd399fb1bb50aae20f9e3b6ff30ec5b12008")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("casacore")
     depends_on("gsl")
 

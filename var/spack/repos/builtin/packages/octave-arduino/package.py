@@ -17,5 +17,7 @@ class OctaveArduino(OctavePackage, SourceforgePackage):
 
     version("0.2.0", sha256="0562ff48ea4b2cef28e2e03ccc4678dafa16f91d1580245bb7f9f488c4f56238")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("octave-instrctl")
     extends("octave@3.6.0:")

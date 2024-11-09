@@ -25,6 +25,8 @@ class Libassuan(AutotoolsPackage):
     version("2.4.5", sha256="fbfea5d1dbcdee34f2597b0afb3d8bb4eda96c924a1e01b01c2acde68b81625f")
     version("2.4.3", sha256="22843a3bdb256f59be49842abf24da76700354293a066d82ade8134bb5aa2b71")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libgpg-error@1.17:")
 
     conflicts("platform=darwin", when="@3")

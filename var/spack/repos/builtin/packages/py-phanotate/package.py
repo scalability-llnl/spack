@@ -21,6 +21,8 @@ class PyPhanotate(PythonPackage):
 
     version("1.5.0", sha256="589e441d2369e5550aef98b8d99fd079d130363bf881a70ac862fc7a8e0d2c88")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.5.3:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-fastpath@1.3:", type=("build", "run"))

@@ -26,6 +26,8 @@ class PyNetket(PythonPackage):
     version("1.0.3", sha256="b8e54d7ad8b379b740def640d748c6560943aed473755389fc5cf1020b9007de")
     version("1.0.2", sha256="229c906e92a432bbbd0ff0527874f41318f8fc480d12a33c8184f30960ae628b")
 
+    depends_on("cxx", type="build")  # generated
+
     # build only deps
     depends_on("py-setuptools", type="build")
     depends_on("cmake@3.12:", type="build")

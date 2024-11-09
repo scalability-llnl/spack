@@ -16,6 +16,9 @@ class PyPeachpy(PythonPackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-opcodes@0.3.13:", type="build")
     depends_on("py-six", type=("build", "run"))

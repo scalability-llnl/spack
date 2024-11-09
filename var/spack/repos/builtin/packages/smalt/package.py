@@ -15,3 +15,5 @@ class Smalt(AutotoolsPackage, SourceforgePackage):
     license("GPL-3.0-only")
 
     version("0.7.6", sha256="89ccdfe471edba3577b43de9ebfdaedb5cd6e26b02bf4000c554253433796b31")
+
+    depends_on("c", type="build")  # generated

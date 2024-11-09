@@ -17,4 +17,7 @@ class PyPyuwsgi(PythonPackage):
 
     version("2.0.21", sha256="211e8877f5191e347ba905232d04ab30e05ce31ba7a6dac4bfcb48de9845bb52")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

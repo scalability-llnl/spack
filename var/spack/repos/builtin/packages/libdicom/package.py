@@ -17,6 +17,8 @@ class Libdicom(MesonPackage):
     version("1.1.0", sha256="a0ab640e050f373bc5a3e1ec99bee7d5b488652340855223a73002181b094ae8")
     version("1.0.5", sha256="ebf5f7c0d1a0f802c1801f2f762537f014f2a431be3e063142f6ed3c96878abb")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("meson@0.50:", type="build")
     depends_on("ninja", type="build")
     depends_on("pkgconfig", type="build")

@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import sys
+
 from spack.package import *
 
 
@@ -23,11 +25,14 @@ class UtilLinuxUuid(AutotoolsPackage):
     version("2.36.2", sha256="f5dbe79057e7d68e1a46fc04083fc558b26a49499b1b3f50e4f4893150970463")
     version("2.36", sha256="82942cd877a989f6d12d4ce2c757fb67ec53d8c5cd9af0537141ec5f84a2eea3")
 
+    depends_on("c", type="build")  # generated
+
     conflicts("%gcc@:4", when="@2.37:")
 
     depends_on("pkgconfig", type="build")
 
-    provides("uuid")
+    if sys.platform not in ["darwin", "win32"]:
+        provides("uuid")
 
     def url_for_version(self, version):
         url = "https://www.kernel.org/pub/linux/utils/util-linux/v{0}/util-linux-{1}.tar.gz"

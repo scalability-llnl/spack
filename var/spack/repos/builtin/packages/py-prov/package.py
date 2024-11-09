@@ -13,7 +13,7 @@ class PyProv(PythonPackage):
     PROV-O (RDF)
     """
 
-    homepage = "prov.readthedocs.io/"
+    homepage = "https://prov.readthedocs.io/"
     pypi = "prov/prov-2.0.0.tar.gz"
 
     license("MIT")

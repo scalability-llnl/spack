@@ -31,5 +31,7 @@ class Gzip(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     # Gzip makes a recursive symlink if built in-source
     build_directory = "spack-build"

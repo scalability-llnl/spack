@@ -22,6 +22,9 @@ class Jchronoss(CMakePackage):
     version("1.1", sha256="e8230416c94fb58516a4b9293efd0a67edf4a37e82cfae2ced2c0af8b4615f22")
     version("1.0", sha256="6a92d3cf2424fc7eaaeac9bfefe395596275e552ac5660eb4543e43679586f24")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("realtime", default=False, description="Enable Real-Time support")
     variant("openmp", default=False, description="Enable OpenMP constructs")
     variant("ncurses", default=False, description="Enable ncurses-based tool")

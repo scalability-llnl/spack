@@ -19,3 +19,5 @@ class Ftxui(CMakePackage):
     version("4.1.1", sha256="9009d093e48b3189487d67fc3e375a57c7b354c0e43fc554ad31bec74a4bc2dd")
     version("4.0.0", sha256="7276e4117429ebf8e34ea371c3ea4e66eb99e0f234cb4c5c85fca17174a53dfa")
     version("2.0.0", sha256="d891695ef22176f0c09f8261a37af9ad5b262dd670a81e6b83661a23abc2c54f")
+
+    depends_on("cxx", type="build")  # generated

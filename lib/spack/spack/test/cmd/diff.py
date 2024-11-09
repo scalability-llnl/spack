@@ -6,9 +6,9 @@
 import pytest
 
 import spack.cmd.diff
-import spack.config
 import spack.main
-import spack.store
+import spack.repo
+import spack.spec
 import spack.util.spack_json as sjson
 from spack.test.conftest import create_test_repo
 
@@ -181,7 +181,6 @@ def test_diff_cmd(install_mockery, mock_fetch, mock_archive, mock_packages):
     assert ["hash", "mpileaks %s" % specB.dag_hash()] in c["b_not_a"]
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 def test_load_first(install_mockery, mock_fetch, mock_archive, mock_packages):
     """Test with and without the --first option"""
     install_cmd("mpileaks")

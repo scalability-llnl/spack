@@ -22,4 +22,6 @@ class PyWrapt(PythonPackage):
     version("1.11.1", sha256="4aea003270831cceb8a90ff27c4031da6ead7ec1886023b80ce0dfe0adf61533")
     version("1.10.10", sha256="42160c91b77f1bc64a955890038e02f2f72986c01d462d53cb6cb039b995cdd9")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools@38.3:", type="build")

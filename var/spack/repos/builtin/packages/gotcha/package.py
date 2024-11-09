@@ -25,6 +25,9 @@ class Gotcha(CMakePackage):
     version("1.0.2", tag="1.0.2", commit="bed1b7c716ebb0604b3e063121649b5611640f25")
     version("0.0.2", tag="0.0.2", commit="c82f74778f7cae958a1bf21926d34fc910613d19")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("test", default=False, description="Build tests for Gotcha")
     patch(
         "https://github.com/LLNL/GOTCHA/commit/e82b4a1ecb634075d8f5334b796c888c86da0427.patch?full_index=1",

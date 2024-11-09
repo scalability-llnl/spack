@@ -16,6 +16,8 @@ class EverytraceExample(CMakePackage):
 
     version("develop", branch="develop")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("everytrace+mpi+fortran")
 
     # Currently the only MPI this everytrace works with.

@@ -18,6 +18,8 @@ class Cnpy(CMakePackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api", type="link")
 
     def cmake_args(self):

@@ -15,4 +15,6 @@ class Sph2pipe(CMakePackage):
 
     version("2.5", sha256="5be236dc94ed0a301c5c8a369f849f76799ec7e70f25dfc0521068d9d1d4d3e3")
 
+    depends_on("c", type="build")  # generated
+
     patch("cmake.patch")

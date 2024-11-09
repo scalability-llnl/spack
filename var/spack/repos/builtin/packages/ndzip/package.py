@@ -25,6 +25,9 @@ class Ndzip(CMakePackage, CudaPackage):
     version("master", branch="master")
     version("2021-11-30", commit="5b3c34991005c0924a339f2ec06750729ebbf015")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("cuda", description="build with cuda support", default=False)
     variant("openmp", description="build with cuda support", default=False)
 

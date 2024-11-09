@@ -19,6 +19,10 @@ class QuoVadis(CMakePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fortran", default=True, description="Build with Fortran bindings")
     variant("mpi", default=True, description="Build with MPI support")
     variant("mpipat", default=False, description="Affirm MPI processes are threads")

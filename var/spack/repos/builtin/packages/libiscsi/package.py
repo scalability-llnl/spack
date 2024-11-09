@@ -19,6 +19,8 @@ class Libiscsi(AutotoolsPackage):
     version("1.16.0", sha256="35c7be63a8c3a7cee7b697901b6d2dd464e098e1881671eb67462983053b3c7b")
     version("1.15.0", sha256="489e625e58c1e6da2fa3536f9c4b12290f2d3fb4ce14edc0583b8ba500605c34")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

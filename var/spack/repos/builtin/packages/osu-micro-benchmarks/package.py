@@ -44,6 +44,9 @@ class OsuMicroBenchmarks(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("5.4", sha256="e1ca762e13a07205a59b59ad85e85ce0f826b70f76fd555ce5568efb1f2a8f33")
     version("5.3", sha256="d7b3ad4bee48ac32f5bef39650a88f8f2c23a3050b17130c63966283edced89b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")
     variant("papi", description="Enable/Disable support for papi", default=False)
     variant("graphing", description="Enable/Disable support for graphing", default=False)

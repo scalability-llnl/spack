@@ -16,9 +16,11 @@ import pytest
 
 import spack
 import spack.cmd
+import spack.cmd.external
 import spack.compilers
-import spack.config
 import spack.cray_manifest as cray_manifest
+import spack.platforms
+import spack.platforms.test
 import spack.solver.asp
 import spack.spec
 import spack.store

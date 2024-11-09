@@ -21,6 +21,8 @@ class ScineCore(CMakePackage):
     version("6.0.0", sha256="6e47e49694002f9d847507c9aacfe53b2befbff5aa380f8860468afdfe880461")
     version("4.0.2", sha256="7181c6f93d71def22f1e0e5767afc7587c04b49abc03516f6926394868e7adc6")
 
+    depends_on("cxx", type="build")  # generated
+
     resource(
         name="dev",
         url="https://github.com/qcscine/development-utils/archive/refs/tags/5.0.1.tar.gz",

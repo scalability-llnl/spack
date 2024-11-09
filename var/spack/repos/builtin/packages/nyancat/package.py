@@ -18,6 +18,8 @@ class Nyancat(MakefilePackage):
     version("1.5.0", sha256="9ae4f740060b77bba815d8d4e97712d822bd0812a118b88b7fd6b4136a971bce")
     version("1.4.5", sha256="b26d752b95088be9d5caa73daea884572c0fc836ba55f0062e4d975301c4c661")
 
+    depends_on("c", type="build")  # generated
+
     def edit(self, spec, prefix):
         makefile = FileFilter("Makefile")
         makefile.filter(

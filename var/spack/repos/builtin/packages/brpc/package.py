@@ -22,6 +22,9 @@ class Brpc(CMakePackage):
     version("0.9.6", sha256="b872ca844999e0ba768acd823b409761f126590fb34cb0183da915a595161446")
     version("0.9.5", sha256="11ca8942242a4c542c11345b7463a4aea33a11ca33e91d9a2f64f126df8c70e9")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gflags")
     depends_on("protobuf")
     depends_on("leveldb")

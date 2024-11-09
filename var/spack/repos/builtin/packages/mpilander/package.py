@@ -18,6 +18,9 @@ class Mpilander(CMakePackage):
 
     version("develop", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # variant('cuda', default=False, description='Enable CUDA support')
     # variant(
     #     'schedulers',

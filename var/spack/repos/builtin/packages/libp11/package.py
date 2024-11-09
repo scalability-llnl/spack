@@ -27,6 +27,8 @@ class Libp11(AutotoolsPackage):
     version("0.4.9", sha256="9d1c76d74c21ca224f96204982097ebc6b956f645b2b0b5f9c502a20e9ffcfd8")
     version("0.4.8", sha256="acccd56b736942dfcc490d102d2cb2b6afa6b2e448dd1dc5a1b773eadb98f83d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

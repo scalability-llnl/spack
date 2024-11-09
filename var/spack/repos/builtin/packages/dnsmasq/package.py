@@ -29,6 +29,8 @@ class Dnsmasq(MakefilePackage):
     version("2.71", sha256="7d8c64f66a396442e01b639df3ea6b4e02ba88cbe206c80be8de68b6841634c4")
     version("2.70", sha256="8eb7bf53688d6aaede5c90cfd2afcce04803a4efbddfbeecc6297180749e98af")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install("./src/dnsmasq", prefix.bin)

@@ -18,6 +18,8 @@ class Libseccomp(AutotoolsPackage):
     version("2.5.3", sha256="59065c8733364725e9721ba48c3a99bbc52af921daf48df4b1e012fbc7b10a76")
     version("2.3.3", sha256="7fc28f4294cc72e61c529bedf97e705c3acf9c479a8f1a3028d4cd2ca9f3b155")
 
+    depends_on("c", type="build")  # generated
+
     variant("python", default=True, description="Build Python bindings")
 
     depends_on("gperf", type="build", when="@2.5:")
@@ -25,6 +27,6 @@ class Libseccomp(AutotoolsPackage):
 
     def configure_args(self):
         args = []
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args.append("--enable-python")
         return args

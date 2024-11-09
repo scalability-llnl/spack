@@ -28,6 +28,8 @@ class Libxft(AutotoolsPackage, XorgPackage):
     version("2.3.3", sha256="3c3cf88b1a96e49a3d87d67d9452d34b6e25e96ae83959b8d0a980935014d701")
     version("2.3.2", sha256="26cdddcc70b187833cbe9dc54df1864ba4c03a7175b2ca9276de9f05dce74507")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("freetype@2.1.6:")
     depends_on("fontconfig@2.5.92:")
     depends_on("libx11")

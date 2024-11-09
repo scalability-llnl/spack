@@ -386,13 +386,13 @@ class Cudnn(Package):
         # Package is not compiled, and does not work unless LD_LIBRARY_PATH is set
         env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
 
-        if "target=ppc64le: platform=linux" in self.spec:
+        if self.spec.satisfies("target=ppc64le: platform=linux"):
             env.set("cuDNN_ROOT", os.path.join(self.prefix, "targets", "ppc64le-linux"))
 
     def install(self, spec, prefix):
         install_tree(".", prefix)
 
-        if "target=ppc64le: platform=linux" in spec:
+        if spec.satisfies("target=ppc64le: platform=linux"):
             target_lib = os.path.join(prefix, "targets", "ppc64le-linux", "lib")
             if os.path.isdir(target_lib) and not os.path.isdir(prefix.lib):
                 symlink(target_lib, prefix.lib)

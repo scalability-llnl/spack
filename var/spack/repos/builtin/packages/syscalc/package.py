@@ -19,6 +19,9 @@ class Syscalc(MakefilePackage):
         extension=".tgz",
     )
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     tags = ["hep"]
 
     depends_on("lhapdf@6:")

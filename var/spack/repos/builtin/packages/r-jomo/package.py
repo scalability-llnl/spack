@@ -28,6 +28,8 @@ class RJomo(RPackage):
     version("2.6-7", sha256="6e83dab51103511038a3e9a3c762e00cc45ae7080c0a0f64e37bcea8c488db53")
     version("2.6-2", sha256="67496d6d69ddbe9a796789fd8b3ac32cada09a81cf5a8e7b925a21e085e2d87f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r-lme4", type=("build", "run"))
     depends_on("r-survival", type=("build", "run"))
     depends_on("r-mass", type=("build", "run"), when="@2.6-7:")

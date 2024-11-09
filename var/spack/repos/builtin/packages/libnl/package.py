@@ -17,6 +17,8 @@ class Libnl(AutotoolsPackage):
 
     version("3.3.0", sha256="705468b5ae4cd1eb099d2d1c476d6a3abe519bc2810becf12fb1e32de1e074e4")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("bison", type="build")
     depends_on("flex", type="build")
     depends_on("m4", type="build")

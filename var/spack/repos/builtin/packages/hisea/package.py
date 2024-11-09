@@ -22,6 +22,8 @@ class Hisea(MakefilePackage):
         url="https://github.com/lucian-ilie/HISEA/tarball/39e01e98caa0f2101da806ca59306296effe789c",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     # TODO: replace this with an explicit list of components of Boost,
     # for instance depends_on('boost +filesystem')
     # See https://github.com/spack/spack/pull/22303 for reference

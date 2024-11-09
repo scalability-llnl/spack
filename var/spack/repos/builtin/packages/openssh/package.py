@@ -25,6 +25,7 @@ class Openssh(AutotoolsPackage):
 
     license("SSH-OpenSSH")
 
+    version("9.8p1", sha256="dd8bd002a379b5d499dfb050dd1fa9af8029e80461f4bb6c523c49973f5a39f3")
     version("9.7p1", sha256="490426f766d82a2763fcacd8d83ea3d70798750c7bd2aff2e57dc5660f773ffd")
     version("9.6p1", sha256="910211c07255a8c5ad654391b40ee59800710dd8119dd5362de09385aa7a777c")
     version("9.5p1", sha256="f026e7b79ba7fb540f75182af96dc8a8f1db395f922bbc9f6ca603672686086b")
@@ -53,6 +54,9 @@ class Openssh(AutotoolsPackage):
     version("6.8p1", sha256="3ff64ce73ee124480b5bf767b9830d7d3c03bbcb6abe716b78f0192c37ce160e")
     version("6.7p1", sha256="b2f8394eae858dabbdef7dac10b99aec00c95462753e80342e530bbb6f725507")
     version("6.6p1", sha256="48c1f0664b4534875038004cc4f3555b8329c2a81c1df48db5c517800de203bb")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "gssapi", default=True, description="Enable authentication via Kerberos through GSSAPI"
@@ -93,7 +97,13 @@ class Openssh(AutotoolsPackage):
     patch(
         "https://raw.githubusercontent.com/Homebrew/patches/d8b2d8c2612fd251ac6de17bf0cc5174c3aab94c/openssh/patch-sshd.c-apple-sandbox-named-external.diff",
         sha256="3505c58bf1e584c8af92d916fe5f3f1899a6b15cc64a00ddece1dc0874b2f78f",
-        when="platform=darwin",
+        when="@:9.7p1 platform=darwin",
+    )
+    # same as above, but against sshd-session.c instead of sshd.c
+    patch(
+        "https://raw.githubusercontent.com/Homebrew/patches/aa6c71920318f97370d74f2303d6aea387fb68e4/openssh/patch-sshd.c-apple-sandbox-named-external.diff",
+        sha256="3f06fc03bcbbf3e6ba6360ef93edd2301f73efcd8069e516245aea7c4fb21279",
+        when="@9.8p1: platform=darwin",
     )
 
     @classmethod

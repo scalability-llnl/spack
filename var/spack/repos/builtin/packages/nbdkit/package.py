@@ -22,6 +22,9 @@ class Nbdkit(AutotoolsPackage):
     version("1.23.4", sha256="6581e6cc6dbcb42451abad096efd4e1016b3a0f0d1c7a1724d0a76259ab96429")
     version("1.23.3", sha256="78f14b00c771733047abcf882e715f62bb19820a6571cae0ccb5f965054697c6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

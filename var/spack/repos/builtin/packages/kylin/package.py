@@ -23,4 +23,6 @@ class Kylin(MavenPackage):
 
     version("3.1.0", sha256="84073ff16a0dad6e0611fea9fbf2b977b6bac307107a222b7f576a3a3b712157")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("java@8", type=("build", "run"))

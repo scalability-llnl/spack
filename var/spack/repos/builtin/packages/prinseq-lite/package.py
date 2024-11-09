@@ -10,7 +10,7 @@ class PrinseqLite(Package):
     """PRINSEQ will help you to preprocess your genomic or metagenomic
     sequence data in FASTA or FASTQ format."""
 
-    homepage = "http://prinseq.sourceforge.net"
+    homepage = "https://prinseq.sourceforge.net"
     url = "https://sourceforge.net/projects/prinseq/files/standalone/prinseq-lite-0.20.4.tar.gz"
 
     license("GPL-3.0-only")

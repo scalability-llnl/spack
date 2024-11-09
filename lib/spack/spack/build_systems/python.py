@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import functools
-import inspect
 import operator
 import os
 import re
@@ -17,7 +16,7 @@ import archspec
 import llnl.util.filesystem as fs
 import llnl.util.lang as lang
 import llnl.util.tty as tty
-from llnl.util.filesystem import HeaderList, LibraryList
+from llnl.util.filesystem import HeaderList, LibraryList, join_path
 
 import spack.builder
 import spack.config
@@ -25,6 +24,8 @@ import spack.deptypes as dt
 import spack.detection
 import spack.multimethod
 import spack.package_base
+import spack.platforms
+import spack.repo
 import spack.spec
 import spack.store
 from spack.directives import build_system, depends_on, extends
@@ -119,6 +120,12 @@ class PythonExtension(spack.package_base.PackageBase):
             List of strings of module names.
         """
         return []
+
+    @property
+    def bindir(self) -> str:
+        """Path to Python package's bindir, bin on unix like OS's Scripts on Windows"""
+        windows = self.spec.satisfies("platform=windows")
+        return join_path(self.spec.prefix, "Scripts" if windows else "bin")
 
     def view_file_conflicts(self, view, merge_map):
         """Report all file conflicts, excepting special cases for python.
@@ -222,7 +229,7 @@ class PythonExtension(spack.package_base.PackageBase):
 
         # Make sure we are importing the installed modules,
         # not the ones in the source directory
-        python = inspect.getmodule(self).python  # type: ignore[union-attr]
+        python = self.module.python
         for module in self.import_modules:
             with test_part(
                 self,
@@ -309,9 +316,9 @@ class PythonExtension(spack.package_base.PackageBase):
         )
 
         python_externals_detected = [
-            d.spec
-            for d in python_externals_detection.get("python", [])
-            if d.prefix == self.spec.external_path
+            spec
+            for spec in python_externals_detection.get("python", [])
+            if spec.external_path == self.spec.external_path
         ]
         if python_externals_detected:
             return python_externals_detected[0]
@@ -332,7 +339,7 @@ class PythonPackage(PythonExtension):
     legacy_buildsystem = "python_pip"
 
     #: Callback names for install-time test
-    install_time_test_callbacks = ["test"]
+    install_time_test_callbacks = ["test_imports"]
 
     build_system("python_pip")
 
@@ -422,7 +429,7 @@ class PythonPipBuilder(BaseBuilder):
     phases = ("install",)
 
     #: Names associated with package methods in the old build-system format
-    legacy_methods = ("test",)
+    legacy_methods = ("test_imports",)
 
     #: Same as legacy_methods, but the signature is different
     legacy_long_methods = ("install_options", "global_options", "config_settings")
@@ -431,7 +438,7 @@ class PythonPipBuilder(BaseBuilder):
     legacy_attributes = ("archive_files", "build_directory", "install_time_test_callbacks")
 
     #: Callback names for install-time test
-    install_time_test_callbacks = ["test"]
+    install_time_test_callbacks = ["test_imports"]
 
     @staticmethod
     def std_args(cls) -> List[str]:

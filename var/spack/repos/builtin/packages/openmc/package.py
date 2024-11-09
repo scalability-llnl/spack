@@ -36,6 +36,9 @@ class Openmc(CMakePackage):
     version("0.11.0", sha256="19a9d8e9c3b581e9060fbd96d30f1098312d217cb5c925eb6372a5786d9175af")
     version("0.10.0", sha256="47650cb45e2c326ae439208d6f137d75ad3e5c657055912d989592c6e216178f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=False, description="Enable MPI support")
     variant("openmp", default=True, description="Enable OpenMP support")
 

@@ -38,6 +38,9 @@ class Texinfo(AutotoolsPackage, GNUMirrorPackage):
     version("5.1", sha256="50e8067f9758bb2bf175b69600082ac4a27c464cb4bcd48a578edd3127216600")
     version("5.0", sha256="2c579345a39a2a0bb4b8c28533f0b61356504a202da6a25d17d4d866af7f5803")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("perl")
     depends_on("ncurses")
     depends_on("gettext")

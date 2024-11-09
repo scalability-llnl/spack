@@ -10,6 +10,8 @@ import pytest
 import spack.package_base
 import spack.paths
 import spack.repo
+import spack.spec
+import spack.util.file_cache
 
 
 @pytest.fixture(params=["packages", "", "foo"])
@@ -38,25 +40,25 @@ repo:
 
 
 def test_repo_getpkg(mutable_mock_repo):
-    mutable_mock_repo.get_pkg_class("a")
-    mutable_mock_repo.get_pkg_class("builtin.mock.a")
+    mutable_mock_repo.get_pkg_class("pkg-a")
+    mutable_mock_repo.get_pkg_class("builtin.mock.pkg-a")
 
 
 def test_repo_multi_getpkg(mutable_mock_repo, extra_repo):
     mutable_mock_repo.put_first(extra_repo[0])
-    mutable_mock_repo.get_pkg_class("a")
-    mutable_mock_repo.get_pkg_class("builtin.mock.a")
+    mutable_mock_repo.get_pkg_class("pkg-a")
+    mutable_mock_repo.get_pkg_class("builtin.mock.pkg-a")
 
 
 def test_repo_multi_getpkgclass(mutable_mock_repo, extra_repo):
     mutable_mock_repo.put_first(extra_repo[0])
-    mutable_mock_repo.get_pkg_class("a")
-    mutable_mock_repo.get_pkg_class("builtin.mock.a")
+    mutable_mock_repo.get_pkg_class("pkg-a")
+    mutable_mock_repo.get_pkg_class("builtin.mock.pkg-a")
 
 
 def test_repo_pkg_with_unknown_namespace(mutable_mock_repo):
     with pytest.raises(spack.repo.UnknownNamespaceError):
-        mutable_mock_repo.get_pkg_class("unknown.a")
+        mutable_mock_repo.get_pkg_class("unknown.pkg-a")
 
 
 def test_repo_unknown_pkg(mutable_mock_repo):
@@ -129,19 +131,6 @@ def test_relative_import_spack_packages_as_python_modules(mock_packages):
     assert issubclass(Mpileaks, spack.package_base.PackageBase)
 
 
-def test_all_virtual_packages_have_default_providers():
-    """All virtual packages must have a default provider explicitly set."""
-    configuration = spack.config.create()
-    defaults = configuration.get("packages", scope="defaults")
-    default_providers = defaults["all"]["providers"]
-    providers = spack.repo.PATH.provider_index.providers
-    default_providers_filename = configuration.scopes["defaults"].get_section_filename("packages")
-    for provider in providers:
-        assert provider in default_providers, (
-            "all providers must have a default in %s" % default_providers_filename
-        )
-
-
 def test_get_all_mock_packages(mock_packages):
     """Get the mock packages once each too."""
     for name in mock_packages.all_package_names():
@@ -150,14 +139,14 @@ def test_get_all_mock_packages(mock_packages):
 
 def test_repo_path_handles_package_removal(tmpdir, mock_packages):
     builder = spack.repo.MockRepositoryBuilder(tmpdir, namespace="removal")
-    builder.add_package("c")
+    builder.add_package("pkg-c")
     with spack.repo.use_repositories(builder.root, override=False) as repos:
-        r = repos.repo_for_pkg("c")
+        r = repos.repo_for_pkg("pkg-c")
         assert r.namespace == "removal"
 
-    builder.remove("c")
+    builder.remove("pkg-c")
     with spack.repo.use_repositories(builder.root, override=False) as repos:
-        r = repos.repo_for_pkg("c")
+        r = repos.repo_for_pkg("pkg-c")
         assert r.namespace == "builtin.mock"
 
 

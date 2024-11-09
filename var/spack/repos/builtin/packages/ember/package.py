@@ -24,6 +24,8 @@ class Ember(MakefilePackage):
 
     version("1.0.0", sha256="5b2a6b8055b46ab3ea2c7baabaf4d280d837bb7c21eba0c9f59e092c6fc1c4a6")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
 
     # TODO: shmem variant disabled due to lack of shmem spackage

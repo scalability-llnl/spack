@@ -41,6 +41,9 @@ class Libbson(AutotoolsPackage, CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     with when("build_system=cmake"):
         depends_on("cmake@3.1:", type="build")
 

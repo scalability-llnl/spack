@@ -21,6 +21,9 @@ class Fstrack(MakefilePackage):
         "0.5.3.092918", sha256="34b31687fdfa207b9659425238b805eaacf0b0209e7e3343c1a3cb4c9e62345d"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("flow", default=True, description="Build the flow tracker")
 
     depends_on("gmt@4.0:4", when="+flow")
@@ -40,7 +43,7 @@ class Fstrack(MakefilePackage):
         env.set("F90FLAGS_DEBUG", "-g -x f95-cpp-input")
         env.set("LDFLAGS", "-lm")
 
-        if "+flow" in self.spec:
+        if self.spec.satisfies("+flow"):
             env.set("GMTHOME", self.spec["gmt"].prefix)
             env.set("NETCDFDIR", self.spec["netcdf-c"].prefix)
 
@@ -52,7 +55,7 @@ class Fstrack(MakefilePackage):
             make()
 
         with working_dir("fstrack"):
-            if "+flow" in spec:
+            if spec.satisfies("+flow"):
                 make("really_all")
             else:
                 make()

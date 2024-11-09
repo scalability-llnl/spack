@@ -16,6 +16,8 @@ class PyWordcloud(PythonPackage):
 
     version("1.8.1", sha256="e6ef771aac17c1cf8558c8d5ef025796184066d7b78f8118aefe011fb0d22952")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy@1.6.1:", type=("build", "run"))
     depends_on("pil", type=("build", "run"))

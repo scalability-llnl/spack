@@ -24,6 +24,8 @@ class Drishti(PythonPackage):
 
     version("0.4", sha256="bbbb272b4f6f44ae762f6cba28a2c589e15608691c559af0cc2f552590335d7b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("darshan-util", type=("run"))
 
     depends_on("python@3.6:", type=("build", "run"))

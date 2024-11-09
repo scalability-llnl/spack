@@ -22,6 +22,8 @@ class PyPyhdf(PythonPackage):
     version("master", branch="master")
     version("0.10.4", sha256="ea09b2bdafc9be0f7f43d72ff122d8efbde61881f4da3a659b33be5e29215f93")
 
+    depends_on("c", type="build")  # generated
+
     # Python versions
     depends_on("py-setuptools", type="build")
 

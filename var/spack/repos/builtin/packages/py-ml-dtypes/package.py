@@ -21,6 +21,10 @@ class PyMlDtypes(PythonPackage):
     version("0.3.1", tag="v0.3.1", commit="bbeedd470ecac727c42e97648c0f27bfc312af30")
     version("0.2.0", tag="v0.2.0", commit="5b9fc9ad978757654843f4a8d899715dbea30e88")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("python@3.9:", when="@0.3:", type=("build", "link", "run"))
     depends_on("py-numpy@1.21:", type=("build", "link", "run"))
     # https://github.com/jax-ml/ml_dtypes/pull/143

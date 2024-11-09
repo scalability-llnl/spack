@@ -21,6 +21,9 @@ class Chemfiles(CMakePackage):
     version("0.10.4", sha256="b8232ddaae2953538274982838aa6c2df87d300f7e2f80e92c171581e06325ba")
     version("0.10.3", sha256="5f53d87a668a85bebf04e0e8ace0f1db984573de1c54891ba7d37d31cced0408")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=False, description="Build shared libraries")
 
     def cmake_args(self):

@@ -30,6 +30,9 @@ class Neko(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("0.3.2", sha256="0628910aa9838a414f2f27d09ea9474d1b3d7dcb5a7715556049a2fdf81a71ae")
     version("0.3.0", sha256="e46bef72f694e59945514ab8b1ad7d74f87ec9dca2ba2b230e2148662baefdc8")
     version("develop", branch="develop")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     variant("parmetis", default=False, description="Build with support for parmetis")
     variant("xsmm", default=False, description="Build with support for libxsmm")
     variant("gslib", default=False, when="@0.7.0:", description="Build with support for gslib")

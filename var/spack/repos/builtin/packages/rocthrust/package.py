@@ -18,6 +18,8 @@ class Rocthrust(CMakePackage):
     tags = ["rocm"]
 
     maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    version("6.2.1", sha256="de6121e354e4d2d5f90243acc1071e9afb2a335e17570d293b590b85f3f58fa2")
+    version("6.2.0", sha256="8037aadf7ec3d548aa17944e0a47465d608dc6eb7347173a6d76cbf5342e4ab6")
     version("6.1.2", sha256="149ca325fb8a8527781ec2853282a73bf66f60366652c19e8583afc3f1a9c4b6")
     version("6.1.1", sha256="03420d8af687107775a1fbd3db5e8c9872c7c738747de77a5e8c0b3466a3321a")
     version("6.1.0", sha256="8c36fb7b34758579601365a450700899133da5802e5c8370654051b190bd6e1c")
@@ -34,6 +36,8 @@ class Rocthrust(CMakePackage):
         version("5.4.0", sha256="a4799fb1086da3f70c9b95effb1f5f9033c861685e960a8759278463cc55a971")
         version("5.3.3", sha256="0c2fc8d437efaf5c4c859d97adb049d4025025d0be0e0908f59a8112508234e5")
         version("5.3.0", sha256="0e11b12f208d2751e3e507e3a32403c9bd45da4e191671d765d33abd727d9b96")
+
+    depends_on("cxx", type="build")  # generated
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
 
@@ -65,6 +69,8 @@ class Rocthrust(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocprim@{ver}", when=f"@{ver}")

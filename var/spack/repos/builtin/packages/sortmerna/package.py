@@ -17,6 +17,9 @@ class Sortmerna(CMakePackage):
 
     version("2017-07-13", commit="8bde6fa113a5d99a23ae81b48eeea6760e966094")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
     depends_on("sse2neon", when="target=aarch64:")
 

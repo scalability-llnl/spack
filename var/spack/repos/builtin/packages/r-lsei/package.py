@@ -23,3 +23,6 @@ class RLsei(RPackage):
 
     version("1.3-0", sha256="6289058f652989ca8a5ad6fa324ce1762cc9e36c42559c00929b70f762066ab6")
     version("1.2-0", sha256="4781ebd9ef93880260d5d5f23066580ac06061e95c1048fb25e4e838963380f6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated

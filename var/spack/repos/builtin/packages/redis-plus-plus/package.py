@@ -34,6 +34,8 @@ class RedisPlusPlus(CMakePackage):
     version("1.3.5", sha256="a49a72fef26ed39d36a278fcc4e4d92822e111697b5992d8f26f70d16edc6c1f")
     version("1.3.4", sha256="b9f2b3e0f084fe9a7360e44a9ae28aa42067fbaf027734989c778865c2d5dca5")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.18:", type="build")
     depends_on("hiredis@1.0.0:", type=("build", "link"))
     depends_on("hiredis@1.0.0:+ssl", type=("build", "link"), when="+tls")

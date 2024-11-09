@@ -23,6 +23,8 @@ class Gengeo(AutotoolsPackage):
 
     version("163", sha256="9c896d430d8f315a45379d2b82e7d374f36259af66a745bfdee4c022a080d34d")
 
+    depends_on("cxx", type="build")  # generated
+
     extends("python")
 
     depends_on("autoconf", type="build")

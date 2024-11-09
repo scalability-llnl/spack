@@ -23,6 +23,8 @@ class RScuttle(RPackage):
     version("1.4.0", commit="b335263dd56bb859b5dd3ea27ee00dffa0215313")
     version("1.0.4", commit="a827e2759d80e6c3510e2f8fd4bd680274206d9f")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-singlecellexperiment", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))

@@ -32,6 +32,9 @@ class Xxhash(MakefilePackage):
     version("0.5.1", sha256="0171af39eefa06be1e616bc43b250d13bba417e4741135ec85c1fe8dc391997d")
     version("0.5.0", sha256="9605cd18d40d798eb1262bc0c2a154e1a3c138a6a9a0c4c792e855d0c08c23e1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     @property
     def build_targets(self):
         targets = []

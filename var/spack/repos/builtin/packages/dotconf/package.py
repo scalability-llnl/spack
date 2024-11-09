@@ -16,6 +16,8 @@ class Dotconf(AutotoolsPackage):
 
     version("1.3", sha256="7f1ecf40de1ad002a065a321582ed34f8c14242309c3547ad59710ae3c805653")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

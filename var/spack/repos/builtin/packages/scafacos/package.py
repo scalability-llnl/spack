@@ -22,6 +22,10 @@ class Scafacos(AutotoolsPackage):
     version("1.0.1", sha256="2b125f313795c81b0e87eb920082e91addf94c17444f9486d979e691aaded99b")
     version("1.0.0", sha256="cc5762edbecfec0323126b6a6a535dcc3e134fcfef4b00f63eb05fae15244a96")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("fftw")
     depends_on("file")
     depends_on("gmp")

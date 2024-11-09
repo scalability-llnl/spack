@@ -36,6 +36,8 @@ class Hdf5Blosc(Package):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("c-blosc")
     depends_on("hdf5")
     depends_on("libtool", type="build")

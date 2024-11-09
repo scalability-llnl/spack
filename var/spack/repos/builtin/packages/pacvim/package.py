@@ -16,6 +16,8 @@ class Pacvim(MakefilePackage):
 
     version("1.1.1", sha256="c869c5450fbafdfe8ba8a8a9bba3718775926f276f0552052dcfa090d21acb28")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("ncurses")
 
     def edit(self, stage, prefix):

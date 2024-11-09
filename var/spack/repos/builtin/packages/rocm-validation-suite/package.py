@@ -22,6 +22,8 @@ class RocmValidationSuite(CMakePackage):
     license("MIT")
 
     maintainers("srekolam", "renjithravindrankannath")
+    version("6.2.1", sha256="7e1f4f391a5b31087585b250136f3a8c1fdf4c609880499575291c61b3ebbc15")
+    version("6.2.0", sha256="03913a1aae426b9fbb7a4870f408a3af1b8b7d32766515eaccb43107673fe631")
     version("6.1.2", sha256="8ff0c4ec538841d6b8d008d3849a99173cc5a02df5cf4a11dc1d52f630e079c5")
     version("6.1.1", sha256="72d1a40bce5b68f7d5959e10c07576234640b9c9fcb24d6301a76336629d9962")
     version("6.1.0", sha256="712f49bfe3a62c9f9cc6f9dc1c593b57e0b45158bb270d685d1141c9a9e90387")
@@ -38,6 +40,8 @@ class RocmValidationSuite(CMakePackage):
         version("5.4.0", sha256="ca2abfa739c2853f71453e65787e318ab879be8a6a362c4cb4d27baa90f3cd5f")
         version("5.3.3", sha256="9acbc8de9b2e18659f51bd49f6e92ab6c93742e2ed0046322025f017fc12497f")
         version("5.3.0", sha256="d6afb8a5f4eaf860fd510bcfe65e735cbf96d4b8817c758ea7aee84d4c994382")
+
+    depends_on("cxx", type="build")  # generated
 
     patch(
         "007-cleanup-path-reference-donot-download-googletest-yaml-library-path_5.3.patch",
@@ -81,11 +85,15 @@ class RocmValidationSuite(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", when=f"@{ver}")
         depends_on(f"rocblas@{ver}", when=f"@{ver}")
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
+        depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
+        depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
 
     def patch(self):
         if self.spec.satisfies("@5.2:5.4"):
@@ -123,4 +131,20 @@ class RocmValidationSuite(CMakePackage):
         if not os.path.isdir(libloc):
             libloc = self.spec["yaml-cpp"].prefix.lib
         args.append(self.define("YAML_CPP_LIB_PATH", libloc))
+        if self.spec.satisfies("@6.2:"):
+            args.append(
+                self.define(
+                    "CMAKE_CXX_FLAGS",
+                    f"-I{self.spec['rocm-smi-lib'].prefix.include} "
+                    f"-I{self.spec['rocblas'].prefix.include} "
+                    f"-I{self.spec['yaml-cpp'].prefix.include} "
+                    f"-L{self.spec['hip'].prefix.lib} "
+                    f"-L{self.spec['hsa-rocr-dev'].prefix.lib} "
+                    f"-L{self.spec['hsakmt-roct'].prefix.lib} "
+                    f"-L{self.spec['rocm-smi-lib'].prefix.lib} "
+                    f"-L{self.spec['rocblas'].prefix.lib} "
+                    f"{libloc}/libyaml-cpp.a ",
+                )
+            )
+            args.append(self.define("CPACK_PACKAGING_INSTALL_PREFIX", self.spec.prefix))
         return args

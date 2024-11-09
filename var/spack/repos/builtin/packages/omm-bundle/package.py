@@ -19,6 +19,8 @@ class OmmBundle(MakefilePackage):
     version("master", branch="master")
     version("1.0.0", tag="v1.0.0", commit="8b644267284695ff1a40b78d098bda6464a7b821")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("blas")
     depends_on("lapack")

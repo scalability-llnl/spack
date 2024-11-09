@@ -20,6 +20,8 @@ class Gemma(MakefilePackage):
 
     version("0.98.5", sha256="3ed336deee29e370f96ec8f1a240f7b62550e57dcd1694245ce7ec8f42241677")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
     # openblas is the default
     # other lapack implementors can be made to work

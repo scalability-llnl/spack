@@ -32,6 +32,8 @@ class Kitty(Package):
     version("0.10.1", sha256="ef22208497a76e2f88ebe56c176e4608f049b056252cf1bf122c9c1ec711cfa6")
     version("0.10.0", sha256="056563862c5759b740e95efff44b82c1a4efc370092f22f26aee0b774106bf4d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.5:", type=("build", "run"))
     depends_on("harfbuzz@1.5.0:")
     depends_on("libxkbcommon@0.5:")

@@ -52,6 +52,9 @@ class Tcl(AutotoolsPackage, NMakePackage, SourceforgePackage, TclHelper):
     version("8.6.3", sha256="6ce0778de0d50daaa9c345d7c1fd1288fb658f674028812e7eeee992e3051005")
     version("8.5.19", sha256="d3f04456da873d17f02efc30734b0300fb6c3b85028d445fe284b83253a6db18")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     extendable = True
 
     depends_on("zlib-api")

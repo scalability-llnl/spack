@@ -19,6 +19,8 @@ class Memsurfer(PythonPackage):
     version("master", branch="master", submodules=True)
     version("develop", branch="develop", submodules=True)
 
+    depends_on("cxx", type="build")  # generated
+
     extends("python")
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

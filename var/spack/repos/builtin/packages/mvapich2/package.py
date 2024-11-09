@@ -39,6 +39,10 @@ class Mvapich2(AutotoolsPackage):
     version("2.2", sha256="791a6fc2b23de63b430b3e598bf05b1b25b82ba8bf7e0622fc81ba593b3bb131")
     version("2.1", sha256="49f3225ad17d2f3b6b127236a0abdc979ca8a3efb8d47ab4b6cd4f5252d05d29")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     provides("mpi")
     provides("mpi@:3.1", when="@2.3:")
     provides("mpi@:3.0", when="@2.1:")

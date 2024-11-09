@@ -14,6 +14,8 @@ class PpopenApplFdmAt(MakefilePackage):
 
     version("master", branch="ATA/FDM")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     # depends_on('ppopen-appl-fdm', type='build')
 

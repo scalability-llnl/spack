@@ -19,3 +19,6 @@ class Shapelib(CMakePackage):
 
     version("1.6.0", sha256="0bfd1eab9616ca3c420a5ad674b0d07c7c5018620d6ab6ae43917daa18ff0d1e")
     version("1.5.0", sha256="48de3a6a8691b0b111b909c0b908af4627635c75322b3a501c0c0885f3558cad")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

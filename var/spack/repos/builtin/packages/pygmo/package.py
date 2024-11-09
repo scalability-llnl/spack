@@ -21,6 +21,8 @@ class Pygmo(CMakePackage):
     version("master", branch="master")
     version("2.18.0", sha256="9f081cc973297894af09f713f889870ac452bfb32b471f9f7ba08a5e0bb9a125")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries")
 
     # Run-time dependencies

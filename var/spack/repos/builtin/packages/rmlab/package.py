@@ -18,6 +18,8 @@ class Rmlab(CMakePackage):
 
     version("develop", branch="develop")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("png", default=True, description="Enable PNG conversion support")
 
     # modern CMake

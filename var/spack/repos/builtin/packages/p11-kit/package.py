@@ -24,6 +24,8 @@ class P11Kit(AutotoolsPackage):
     version("0.23.20", sha256="8f6116f34735f6902e9db461c5dbe3e7e25b5cb8c38f42ea2a5aede1cf693749")
     version("0.23.19", sha256="c27921404e82244d97b27f46bae654e5814b5963e0ce3c75ad37007ded46f700")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

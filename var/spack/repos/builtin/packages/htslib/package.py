@@ -38,6 +38,9 @@ class Htslib(AutotoolsPackage):
     version("1.3.1", sha256="49d53a2395b8cef7d1d11270a09de888df8ba06f70fe68282e8235ee04124ae6")
     version("1.2", sha256="125c01421d5131afb4c3fd2bc9c7da6f4f1cd9ab5fc285c076080b9aca24bffc")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "libcurl",
         default=True,

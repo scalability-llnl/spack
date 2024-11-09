@@ -31,17 +31,19 @@ class Libxcb(AutotoolsPackage, XorgPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libpthread-stubs")
     depends_on("libxau@0.99.2:")
     depends_on("libxdmcp")
 
     # libxcb 1.X requires xcb-proto >= 1.X
-    depends_on("xcb-proto")
-    depends_on("xcb-proto@1.17:", when="@1.17")
-    depends_on("xcb-proto@1.16:", when="@1.16")
-    depends_on("xcb-proto@1.15:", when="@1.15")
-    depends_on("xcb-proto@1.14:", when="@1.14")
-    depends_on("xcb-proto@1.13:", when="@1.13")
+    depends_on("xcb-proto", type="build")
+    depends_on("xcb-proto@1.17:", when="@1.17", type="build")
+    depends_on("xcb-proto@1.16:", when="@1.16", type="build")
+    depends_on("xcb-proto@1.15:", when="@1.15", type="build")
+    depends_on("xcb-proto@1.14:", when="@1.14", type="build")
+    depends_on("xcb-proto@1.13:", when="@1.13", type="build")
 
     depends_on("python", type="build")
     depends_on("pkgconfig", type="build")
@@ -58,3 +60,13 @@ class Libxcb(AutotoolsPackage, XorgPackage):
 
     def patch(self):
         filter_file("typedef struct xcb_auth_info_t {", "typedef struct {", "src/xcb.h")
+
+    # libxcb fails to build with non-UTF-8 locales, see:
+    # https://www.linuxfromscratch.org/blfs/view/git/x/libxcb.html
+    # https://gitlab.freedesktop.org/xorg/lib/libxcb/-/merge_requests/53 (merged in 1.17.0)
+    # https://gitlab.freedesktop.org/xorg/lib/libxcb/-/merge_requests/60
+    # If a newer release can be verified to build with LC_ALL=en_US.ISO-8859-1,
+    # then we can limit the following function, e.g.
+    # when("@:1.17")
+    def setup_build_environment(self, env):
+        env.set("LC_ALL", "C.UTF-8")

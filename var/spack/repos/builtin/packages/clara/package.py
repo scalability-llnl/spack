@@ -33,6 +33,8 @@ class Clara(CMakePackage, Package):
     version("1.1.1", sha256="10915a49a94d371f05af360d40e9cc9615ab86f200d261edf196a8ddd7efa7f8")
     version("1.1.0", sha256="29ca29d843150aabad702356f79009f5b30dda05ac9674a064362b7edcba5477")
 
+    depends_on("cxx", type="build")  # generated
+
 
 class GenericBuilder(spack.build_systems.generic.GenericBuilder):
     def install(self, pkg, spec, prefix):

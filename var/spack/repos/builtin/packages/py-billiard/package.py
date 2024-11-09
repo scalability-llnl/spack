@@ -20,4 +20,6 @@ class PyBilliard(PythonPackage):
     version("3.6.0.0", sha256="756bf323f250db8bf88462cd042c992ba60d8f5e07fc5636c24ba7d6f4261d84")
     version("3.5.0.5", sha256="42d9a227401ac4fba892918bba0a0c409def5435c4b483267ebfe821afaaba0e")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

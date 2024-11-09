@@ -15,4 +15,6 @@ class PyPy2bit(PythonPackage):
 
     version("0.2.1", sha256="34f7ac22be0eb4b5493063826bcc2016a78eb216bb7130890b50f3572926aeb1")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

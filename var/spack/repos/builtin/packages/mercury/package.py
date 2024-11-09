@@ -29,6 +29,9 @@ class Mercury(CMakePackage):
     version("1.0.0", sha256="fb0e44d13f4652f53e21040435f91d452bc2b629b6e98dcf5292cd0bece899d4")
     version("0.9.0", sha256="40868e141cac035213fe79400f8926823fb1f5a0651fd7027cbe162b063843ef")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("bmi", default=False, description="Use BMI plugin")
     variant("mpi", default=False, description="Use MPI plugin")
     variant("ofi", default=True, when="@1.0.0:", description="Use OFI libfabric plugin")

@@ -24,6 +24,8 @@ class PikaAlgorithms(CMakePackage):
     version("0.1.0", sha256="64da008897dfa7373155595c46d2ce6b97a8a3cb5bea33ae7f2d1ff359f0d9b6")
     version("main", branch="main")
 
+    depends_on("cxx", type="build")
+
     generator("ninja")
 
     map_cxxstd = lambda cxxstd: "2a" if cxxstd == "20" else cxxstd

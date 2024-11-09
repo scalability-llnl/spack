@@ -38,6 +38,10 @@ class OpenspeedshopUtils(CMakePackage):
     version("2.4.2", branch="2.4.2")
     version("2.4.1", branch="2.4.1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "runtime", default=False, description="build only the runtime libraries and collectors."
     )
@@ -86,7 +90,7 @@ class OpenspeedshopUtils(CMakePackage):
 
     # Dependencies for openspeedshop that are common to all
     # the variants of the OpenSpeedShop build
-    depends_on("libtool", type="build")
+    depends_on("libtool", type="link")  # links against libltdl
     depends_on("bison", type="build")
     depends_on("flex@2.6.1", type="build")
 

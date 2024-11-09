@@ -18,6 +18,8 @@ class Bertini(AutotoolsPackage):
 
     version("1.5", sha256="a9a68a96e180fe6a93ba1bc1d61f522784c9a053b049b2cbd98008b5b6deec3c")
 
+    depends_on("c", type="build")  # generated
+
     variant("mpi", default=True, description="Compile in parallel")
 
     depends_on("flex", type="build")

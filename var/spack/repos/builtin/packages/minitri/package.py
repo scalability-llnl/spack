@@ -14,6 +14,8 @@ class Minitri(MakefilePackage):
 
     version("1.0", sha256="e340dbb04b7c182804ebf6f5a946a392f1c68b7f798885c091c3f0d8aaa844ce")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI support")
 
     depends_on("mpi", when="+mpi")

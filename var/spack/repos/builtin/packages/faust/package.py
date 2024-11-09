@@ -22,6 +22,9 @@ class Faust(MakefilePackage):
     version("2.27.2", sha256="3367a868a93b63582bae29ab8783f1df7a10f4084a2bc1d2258ebf3d6a8c31d7")
     version("2.27.1", sha256="b3e93ca573025b231931e5eb92efc1a1e7f7720902aa3b285061519600a8c417")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake", type="build")
 
     def install(self, spec, prefix):

@@ -16,6 +16,9 @@ class Blitz(CMakePackage):
 
     version("1.0.2", sha256="500db9c3b2617e1f03d0e548977aec10d36811ba1c43bb5ef250c0e3853ae1c2")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("python@3:", type="build")
 
     # Fix makefile and include to build with Fujitsu compiler

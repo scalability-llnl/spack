@@ -18,6 +18,10 @@ class PyAuditwheel(PythonPackage):
 
     version("5.1.2", sha256="3ee5830014931ea84af5cd065c637b6614efa03d9b88bd8fbfc924e7ed01d6ba")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools@45:", type="build")
     depends_on("py-setuptools-scm@6.2:", type="build")

@@ -19,5 +19,7 @@ class PyFastpath(PythonPackage):
 
     version("1.9", sha256="3372d306a3c4e4e764b3995946132333726a229e9002879b9112779dd442b31a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.5.3:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

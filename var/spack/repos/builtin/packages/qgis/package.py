@@ -60,6 +60,9 @@ class Qgis(CMakePackage):
     version("3.4.15", sha256="81c93b72adbea41bd765294c0cdb09476a632d8b3f90101abc409ca9ea7fb04d")
     version("3.4.14", sha256="e138716c7ea84011d3b28fb9c75e6a79322fb66f532246393571906a595d7261")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("3d", default=False, description="Build QGIS 3D library")
     variant("analysis", default=True, description="Build QGIS analysis library")
     variant("apidoc", default=False, description="Build QGIS API doxygen documentation")

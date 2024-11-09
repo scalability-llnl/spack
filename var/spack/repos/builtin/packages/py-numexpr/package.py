@@ -27,6 +27,9 @@ class PyNumexpr(PythonPackage):
     version("2.5", sha256="4ca111a9a27c9513c2e2f5b70c0a84ea69081d7d8e4512d4c3f26a485292de0d")
     version("2.4.6", sha256="2681faf55a3f19ba4424cc3d6f0a10610ebd49f029f8453f0ba64dd5c0fe4e0f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.7:", when="@2.8.3:", type=("build", "run"))
     depends_on("python@3.9:", when="@2.8.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

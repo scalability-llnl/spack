@@ -23,6 +23,9 @@ class Tiramisu(CMakePackage, CudaPackage, PythonExtension):
     version("master", branch="master")
     version("2023-2-8", commit="2cd0c43cc1656bfa43cfb6e81d06f770cbf7251e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("python", default=True, description="Install python bindings.")
     extends("python", when="+python")
     variant(

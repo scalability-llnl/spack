@@ -22,6 +22,8 @@ class Psm(MakefilePackage):
     )
     version("2017-04-28", commit="604758e76dc31e68d1de736ccf5ddf16cb22355b")
 
+    depends_on("c", type="build")  # generated
+
     conflicts("%gcc@6:", when="@3.3")
 
     depends_on("uuid")

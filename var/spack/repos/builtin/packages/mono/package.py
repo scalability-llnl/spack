@@ -66,6 +66,10 @@ class Mono(AutotoolsPackage):
     version("5.0.1.1", sha256="48d6ae71d593cd01bf0f499de569359d45856cda325575e1bacb5fabaa7e9718")
     version("4.8.0.524", sha256="ca02614cfc9fe65e310631cd611d7b07d1ff205ce193006d4be0f9919c26bdcf")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     def patch(self):
         if "+patch-folder-path" in self.spec:
             before = 'return "/usr/share";'

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import contextlib
 
-from ._functions import _host, by_name, platforms, prevent_cray_detection, reset
+from ._functions import _host, by_name, platforms, reset
 from ._platform import Platform
 from .darwin import Darwin
 from .freebsd import FreeBSD
@@ -23,7 +23,6 @@ __all__ = [
     "host",
     "by_name",
     "reset",
-    "prevent_cray_detection",
 ]
 
 #: The "real" platform of the host running Spack. This should not be changed
@@ -52,7 +51,6 @@ class _PickleableCallable:
 def use_platform(new_platform):
     global host
 
-    import spack.compilers
     import spack.config
 
     msg = '"{0}" must be an instance of Platform'
@@ -62,16 +60,9 @@ def use_platform(new_platform):
 
     try:
         host = _PickleableCallable(new_platform)
-
-        # Clear configuration and compiler caches
         spack.config.CONFIG.clear_caches()
-        spack.compilers._cache_config_files = []
-
         yield new_platform
 
     finally:
         host = original_host_fn
-
-        # Clear configuration and compiler caches
         spack.config.CONFIG.clear_caches()
-        spack.compilers._cache_config_files = []

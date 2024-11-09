@@ -17,6 +17,8 @@ class Dmidecode(MakefilePackage):
 
     version("3-2", sha256="489d840d076785617a432649603aafa6358327f4376694c062b69dfa359bcc2d")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install("dmidecode", prefix.bin)

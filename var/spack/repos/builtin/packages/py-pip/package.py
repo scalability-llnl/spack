@@ -5,6 +5,7 @@
 import os
 import sys
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -48,8 +49,17 @@ class PyPip(Package, PythonExtension):
         name="pip-bootstrap",
         url="https://bootstrap.pypa.io/pip/zipapp/pip-22.3.1.pyz",
         checksum="c9363c70ad91d463f9492a8a2c89f60068f86b0239bd2a6aa77367aab5fefb3e",
-        when="platform=windows",
+        when="platform=windows ^python@:3.11",
         placement={"pip-22.3.1.pyz": "pip.pyz"},
+        expand=False,
+    )
+
+    resource(
+        name="pip-bootstrap",
+        url="https://bootstrap.pypa.io/pip/zipapp/pip-23.1.pyz",
+        checksum="d9f2fe58c472f9107964df35954f8b74e68c307497a12364b00dc28f36f96816",
+        when="platform=windows ^python@3.12:",
+        placement={"pip-23.1.pyz": "pip.pyz"},
         expand=False,
     )
 
@@ -67,15 +77,14 @@ class PyPip(Package, PythonExtension):
         # itself, see:
         # https://discuss.python.org/t/bootstrapping-a-specific-version-of-pip/12306
         whl = self.stage.archive_file
-        args = std_pip_args + ["--prefix=" + prefix, whl]
         if sys.platform == "win32":
             # On Windows for newer versions of pip, you must bootstrap pip first.
             # In order to achieve this, use the pip.pyz zipapp version of pip to
             # bootstrap the pip wheel install.
-            args.insert(0, os.path.join(self.stage.source_path, "pip.pyz"))
+            script = os.path.join(self.stage.source_path, "pip.pyz")
         else:
-            args.insert(0, os.path.join(whl, "pip"))
-        python(*args)
+            script = os.path.join(whl, "pip")
+        python(script, *PythonPipBuilder.std_args(self), f"--prefix={prefix}", whl)
 
     def setup_dependent_package(self, module, dependent_spec: Spec):
         setattr(module, "pip", python.with_default_args("-m", "pip"))

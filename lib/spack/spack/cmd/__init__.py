@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
+import importlib
 import os
 import re
 import sys
@@ -16,7 +17,8 @@ from llnl.util.lang import attr_setdefault, index_by
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
 
-import spack.config
+import spack.concretize
+import spack.config  # breaks a cycle.
 import spack.environment as ev
 import spack.error
 import spack.extensions
@@ -114,8 +116,8 @@ def get_module(cmd_name):
 
     try:
         # Try to import the command from the built-in directory
-        module_name = "%s.%s" % (__name__, pname)
-        module = __import__(module_name, fromlist=[pname, SETUP_PARSER, DESCRIPTION], level=0)
+        module_name = f"{__name__}.{pname}"
+        module = importlib.import_module(module_name)
         tty.debug("Imported {0} from built-in commands".format(pname))
     except ImportError:
         module = spack.extensions.get_module(cmd_name)
@@ -172,10 +174,29 @@ def parse_specs(
     arg_string = " ".join([quote_kvp(arg) for arg in args])
 
     specs = spack.parser.parse(arg_string)
-    for spec in specs:
-        if concretize:
-            spec.concretize(tests=tests)
-    return specs
+    if not concretize:
+        return specs
+
+    to_concretize = [(s, None) for s in specs]
+    return _concretize_spec_pairs(to_concretize, tests=tests)
+
+
+def _concretize_spec_pairs(to_concretize, tests=False):
+    """Helper method that concretizes abstract specs from a list of abstract,concrete pairs.
+
+    Any spec with a concrete spec associated with it will concretize to that spec. Any spec
+    with ``None`` for its concrete spec will be newly concretized. This method respects unification
+    rules from config."""
+    unify = spack.config.get("concretizer:unify", False)
+
+    concretize_method = spack.concretize.concretize_separately  # unify: false
+    if unify is True:
+        concretize_method = spack.concretize.concretize_together
+    elif unify == "when_possible":
+        concretize_method = spack.concretize.concretize_together_when_possible
+
+    concretized = concretize_method(to_concretize, tests=tests)
+    return [concrete for _, concrete in concretized]
 
 
 def matching_spec_from_env(spec):
@@ -189,6 +210,22 @@ def matching_spec_from_env(spec):
         return env.matching_spec(spec) or spec.concretized()
     else:
         return spec.concretized()
+
+
+def matching_specs_from_env(specs):
+    """
+    Same as ``matching_spec_from_env`` but respects spec unification rules.
+
+    For each spec, if there is a matching spec in the environment it is used. If no
+    matching spec is found, this will return the given spec but concretized in the
+    context of the active environment and other given specs, with unification rules applied.
+    """
+    env = ev.active_environment()
+    spec_pairs = [(spec, env.matching_spec(spec) if env else None) for spec in specs]
+    additional_concrete_specs = (
+        [(concrete, concrete) for _, concrete in env.concretized_specs()] if env else []
+    )
+    return _concretize_spec_pairs(spec_pairs + additional_concrete_specs)[: len(spec_pairs)]
 
 
 def disambiguate_spec(spec, env, local=False, installed=True, first=False):
@@ -237,7 +274,7 @@ def ensure_single_spec_or_die(spec, matching_specs):
     if len(matching_specs) <= 1:
         return
 
-    format_string = "{name}{@version}{%compiler.name}{@compiler.version}{arch=architecture}"
+    format_string = "{name}{@version}{%compiler.name}{@compiler.version}{ arch=architecture}"
     args = ["%s matches multiple packages." % spec, "Matching packages:"]
     args += [
         colorize("  @K{%s} " % s.dag_hash(7)) + s.cformat(format_string) for s in matching_specs
@@ -336,6 +373,7 @@ def display_specs(specs, args=None, **kwargs):
         groups (bool): display specs grouped by arch/compiler (default True)
         decorator (typing.Callable): function to call to decorate specs
         all_headers (bool): show headers even when arch/compiler aren't defined
+        status_fn (typing.Callable): if provided, prepend install-status info
         output (typing.IO): A file object to write to. Default is ``sys.stdout``
 
     """
@@ -359,6 +397,7 @@ def display_specs(specs, args=None, **kwargs):
     groups = get_arg("groups", True)
     all_headers = get_arg("all_headers", False)
     output = get_arg("output", sys.stdout)
+    status_fn = get_arg("status_fn", None)
 
     decorator = get_arg("decorator", None)
     if decorator is None:
@@ -386,6 +425,13 @@ def display_specs(specs, args=None, **kwargs):
     def fmt(s, depth=0):
         """Formatter function for all output specs"""
         string = ""
+
+        if status_fn:
+            # This was copied from spec.tree's colorization logic
+            # then shortened because it seems like status_fn should
+            # always return an InstallStatus
+            string += colorize(status_fn(s).value)
+
         if hashes:
             string += gray_hash(s, hlen) + " "
         string += depth * "    "

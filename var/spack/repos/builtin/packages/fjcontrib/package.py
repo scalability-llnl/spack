@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import inspect
-
 from spack.package import *
 
 
@@ -70,6 +68,8 @@ class Fjcontrib(AutotoolsPackage):
     version("0.001", sha256="51f24ad55e28fb1f9d698270602e5077c920fcf58d8ccfd274efbe829d7dd821")
     version("0.000", sha256="9486b11201e6b6e181b8a3abecd929403ae9aa67de0eb8b7353fb82ab4b89f41")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("fastjet")
 
     build_targets = ["all", "fragile-shared"]
@@ -85,9 +85,9 @@ class Fjcontrib(AutotoolsPackage):
     def build(self, spec, prefix):
         with working_dir(self.build_directory):
             for target in self.build_targets:
-                inspect.getmodule(self).make(target)
+                make(target)
 
     def install(self, spec, prefix):
         with working_dir(self.build_directory):
             for target in self.install_targets:
-                inspect.getmodule(self).make(target)
+                make(target)

@@ -31,6 +31,8 @@ class Examl(MakefilePackage):
     version("3.0.14", sha256="698b538996946ae23a2d6fa1e230c210832e59080da33679ff7d6b342a9e6180")
     version("3.0.13", sha256="893aecb5545798235a17975aa07268693d3526d0aee0ed59a2d6e791248791ed")
 
+    depends_on("c", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI parallel support")
 
     depends_on("mpi", when="+mpi")

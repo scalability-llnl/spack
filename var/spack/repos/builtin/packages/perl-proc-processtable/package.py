@@ -18,4 +18,6 @@ class PerlProcProcesstable(PerlPackage):
 
     version("0.636", sha256="944224ffb00fc1ef35069633770a0afda8623b5c7532d1e4ab48a9df394890fd")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))

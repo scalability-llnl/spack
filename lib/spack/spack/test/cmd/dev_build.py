@@ -9,9 +9,9 @@ import pytest
 
 import llnl.util.filesystem as fs
 
-import spack.build_environment
 import spack.environment as ev
 import spack.error
+import spack.repo
 import spack.spec
 import spack.store
 from spack.main import SpackCommand
@@ -20,10 +20,7 @@ dev_build = SpackCommand("dev-build")
 install = SpackCommand("install")
 env = SpackCommand("env")
 
-pytestmark = [
-    pytest.mark.not_on_windows("does not run on windows"),
-    pytest.mark.disable_clean_stage_check,
-]
+pytestmark = [pytest.mark.disable_clean_stage_check]
 
 
 def test_dev_build_basics(tmpdir, install_mockery):
@@ -96,7 +93,7 @@ def test_dev_build_until_last_phase(tmpdir, install_mockery):
     assert os.path.exists(str(tmpdir))
 
 
-def test_dev_build_before_until(tmpdir, install_mockery, capsys):
+def test_dev_build_before_until(tmpdir, install_mockery):
     spec = spack.spec.Spec(f"dev-build-test-install@0.0.0 dev_path={tmpdir}").concretized()
 
     with tmpdir.as_cwd():
@@ -129,7 +126,7 @@ def test_dev_build_drop_in(tmpdir, mock_packages, monkeypatch, install_mockery, 
     monkeypatch.setattr(os, "execvp", print_spack_cc)
     with tmpdir.as_cwd():
         output = dev_build("-b", "edit", "--drop-in", "sh", "dev-build-test-install@0.0.0")
-        assert "lib/spack/env" in output
+        assert os.path.join("lib", "spack", "env") in output
 
 
 def test_dev_build_fails_already_installed(tmpdir, install_mockery):

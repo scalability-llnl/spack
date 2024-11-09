@@ -19,6 +19,8 @@ class Libpam(AutotoolsPackage):
     version("1.08", sha256="6f6d7530261ba9e2ece84214f1445857d488b7851c28a58356b49f2d9fd36290")
     version("1.07", sha256="104a158e013585e20287f8d33935e93c711b96281e6dda621a5c19575d0b0405")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

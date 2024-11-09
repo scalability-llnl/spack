@@ -183,7 +183,7 @@ class Exodusii(CMakePackage):
                     define("MPI_BASE_DIR", spec["mpi"].prefix),
                 ]
             )
-            if "+fortran" in self.spec:
+            if self.spec.satisfies("+fortran"):
                 options.append(define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc))
 
         # ##################### Dependencies ##########################

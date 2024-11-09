@@ -27,6 +27,10 @@ class Ompss(Package):
 
     version("14.10", sha256="5b38d3e6ce108e7ca73a2599bc698d75ea9f6d90a3be0349faf6d61022e62a38")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # all dependencies are optional, really
     depends_on("mpi")
     # depends_on("openmp")

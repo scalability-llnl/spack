@@ -19,6 +19,8 @@ class Serenity(CMakePackage):
     version("1.6.1", sha256="cc04b13c2e8a010d07389b2fed98981deacf085778d5375b3b6e89b967c3a5e6")
     version("1.4.0", sha256="c7a87fc8e6f8ca21685a27e08d09d49824d9a1e9947fc6abb40d20fbba0cc6e8")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("blas", default=True, description="Use BLAS library with Eigen")
     variant("lapack", default=True, description="Use Lapack library with Eigen")
     variant("python", default=False, description="Build Python bindings")

@@ -25,6 +25,8 @@ class Pennant(MakefilePackage):
     version("0.5", sha256="21ef5889731fad0075f9dab8ffa97af8fd8ff87f6a5fe6434916b6e28cf64e43")
     version("0.4", sha256="65b81b92ed6fdbe407310948dd76ffb48cca155ee05c1f990a649faf81b45bb0")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI support")
     variant("openmp", default=True, description="Build with OpenMP support")
     variant("debug", default=False, description="Enable debug")

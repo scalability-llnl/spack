@@ -38,6 +38,9 @@ class Meep(AutotoolsPackage):
         url="http://ab-initio.mit.edu/meep/old/meep-1.1.1.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("blas", default=True, description="Enable BLAS support")
     variant("lapack", default=True, description="Enable LAPACK support")
     variant("harminv", default=True, description="Enable Harminv support")

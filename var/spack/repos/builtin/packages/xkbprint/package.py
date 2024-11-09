@@ -17,6 +17,8 @@ class Xkbprint(AutotoolsPackage, XorgPackage):
     version("1.0.5", sha256="af5d91b7e5b05f7d081b66e93fca0112cca049b7b6a644b2637b344d52054ac3")
     version("1.0.4", sha256="169ebbf57fc8b7685c577c73a435998a38c27e0d135ce0a55fccc64cbebec768")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxkbfile")
     depends_on("libx11")
 

@@ -19,6 +19,8 @@ class Sumo(CMakePackage):
 
     version("1.5.0", sha256="be6ba0361b487a5e71c81e60b4c07a67826d5e170500c10c37374c1086ac2cb6")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("gdal", default=True, description="gdal support, for arcgis")
     variant("ffmpeg", default=False, description="ffmpeg support, for video output")
     variant(

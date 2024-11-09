@@ -17,6 +17,8 @@ class Libhugetlbfs(AutotoolsPackage):
 
     version("2.24", sha256="d501dfa91c8ead1106967a3d3829f2ba738c3fac0a65cb358ed2ab3870ddc5ef")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

@@ -25,6 +25,8 @@ class TiledMm(CMakePackage, CudaPackage, ROCmPackage):
     version("2.2", sha256="6d0b49c9588ece744166822fd44a7bc5bec3dc666b836de8bf4bf1a7bb675aac")
     version("2.0", sha256="ea554aea8c53d7c8e40044e6d478c0e8137d7e8b09d7cb9650703430d92cf32e")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries")
     variant("examples", default=False, description="Enable examples")
     variant("tests", default=False, description="Enable tests")

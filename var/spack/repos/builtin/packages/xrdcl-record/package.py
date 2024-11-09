@@ -17,4 +17,6 @@ class XrdclRecord(CMakePackage):
 
     version("5.4.2", sha256="fb76284491ff4e723bce4c9e9d87347e98e278e70c597167bc39a162bc876734")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("xrootd")

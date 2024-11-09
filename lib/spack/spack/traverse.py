@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from collections import defaultdict, namedtuple
-from typing import Union
+from collections import defaultdict
+from typing import NamedTuple, Union
 
 import spack.deptypes as dt
 import spack.spec
@@ -12,11 +12,14 @@ import spack.spec
 # Export only the high-level API.
 __all__ = ["traverse_edges", "traverse_nodes", "traverse_tree"]
 
+
 #: Data class that stores a directed edge together with depth at
 #: which the target vertex was found. It is passed to ``accept``
 #: and ``neighbors`` of visitors, so they can decide whether to
 #: follow the edge or not.
-EdgeAndDepth = namedtuple("EdgeAndDepth", ["edge", "depth"])
+class EdgeAndDepth(NamedTuple):
+    edge: "spack.spec.DependencySpec"
+    depth: int
 
 
 def sort_edges(edges):

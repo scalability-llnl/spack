@@ -16,6 +16,8 @@ class Xcursorgen(AutotoolsPackage, XorgPackage):
     version("1.0.7", sha256="6bc32d4977ffd60c00583bfd217f1d1245ca54dafbfbbcdbf14f696f9487b83e")
     version("1.0.6", sha256="4559f2b6eaa93de4cb6968679cf40e39bcbe969b62ebf3ff84f6780f8048ef8c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxcursor")
     depends_on("libpng@1.2.0:")

@@ -33,6 +33,9 @@ class Kentutils(MakefilePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # The bundled version of kentlib has some custom changes that are used by parts of
     # kentlib. See https://github.com/spack/spack/pull/44501#issuecomment-2162789410
     # for some additional details. A built-in version SHOULD work for most things though.

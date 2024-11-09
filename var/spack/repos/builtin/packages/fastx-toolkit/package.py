@@ -17,6 +17,9 @@ class FastxToolkit(AutotoolsPackage):
 
     version("0.0.14", sha256="9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libgtextutils")
 
     # patch implicit fallthrough

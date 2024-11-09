@@ -26,6 +26,8 @@ class Xev(AutotoolsPackage, XorgPackage):
     version("1.2.3", sha256="a3c5fbf339f43ba625a6d84e52ab1a7170581505ef498be6aa4e7bdfbd8d5cef")
     version("1.2.2", sha256="e4c0c7b6f411e8b9731f2bb10d729d167bd00480d172c28b62607a6ea9e45c57")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxrandr@1.2:")
     depends_on("libx11")
 

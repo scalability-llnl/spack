@@ -22,6 +22,8 @@ class GtkDoc(AutotoolsPackage):
     version("1.33.2", sha256="2d1b0cbd26edfcb54694b2339106a02a81d630a7dedc357461aeb186874cc7c0")
     version("1.32", sha256="0890c1f00d4817279be51602e67c4805daf264092adc58f9c04338566e8225ba")
 
+    depends_on("c", type="build")  # generated
+
     # Commented out until package dblatex has been created
     # variant('pdf', default=False, description='Adds PDF support')
 

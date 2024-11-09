@@ -19,6 +19,8 @@ class Opdilib(Package):
     version("1.4", sha256="f1dd2575a8c3b2328df89b732dbeaa23657731d77e4bf7ee201c6571f20d13d5")
     version("1.3.2", sha256="5da4a99ab1332e5c3746cb6d55ee4cd96ce578b06987e2b10e33ae6413b7cf7a")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(join_path(prefix, "include"))
         install_tree(join_path(self.stage.source_path, "include"), join_path(prefix, "include"))
