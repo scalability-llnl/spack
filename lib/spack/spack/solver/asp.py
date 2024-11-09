@@ -3840,9 +3840,7 @@ class SpecBuilder:
         child_hash: str,
     ):
         splice = Splice(splice_node, child_name=child_name, child_hash=child_hash)
-        if parent_node not in self._splices:
-            self._splices[parent_node] = []
-        self._splices[parent_node].append(splice)
+        self._splices.setdefault(parent_node, []).append(splice)
 
     def splice_in_dependency(
         self, parent_node: NodeArgument, child_node: Union[str, NodeArgument]
