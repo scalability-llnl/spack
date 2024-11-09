@@ -3848,7 +3848,7 @@ class SpecBuilder:
         # If child_node is not type NodeArgument, then the encoding guarantees
         # there is also a `splice_at_hash` fact for this splice, which is handled separately
         if isinstance(child_node, NodeArgument):
-            self._splice_dag.set_default(parent_node, []).append(child_node)
+            self._splice_dag.setdefault(parent_node, []).append(child_node)
 
     def _resolve_splices_for_node(
         self, node: NodeArgument, resolved: Dict[NodeArgument, spack.spec.Spec]
@@ -3873,7 +3873,7 @@ class SpecBuilder:
         for edge in orig_spec.edges_to_dependencies():
             edge_name = edge.spec.name
             assert type(edge_name) is str, "Anonymous dependency spec in splice"
-            edges_by_dep_name.set_default(edge_name, []).append(edge)
+            edges_by_dep_name.setdefault(edge_name, []).append(edge)
         # This is the easy case, we can just copy unspliced dependencies
         for name, edges in edges_by_dep_name.items():
             if name not in [s.child_name for s in immediate_splices] and name not in [
@@ -3891,10 +3891,10 @@ class SpecBuilder:
             for e in edges:
                 if e.spec.dag_hash() == old_dep_spec.dag_hash():
                     new_dep_spec = self._resolve_splices_for_node(dep_node, resolved)
-                    other_deps = e.depflag & ~dt.BUILD
-                    if other_deps:
+                    non_build_deps = e.depflag & ~dt.BUILD
+                    if non_build_deps:
                         new_spec.add_dependency_edge(
-                            new_dep_spec, depflag=other_deps, virtuals=e.virtuals
+                            new_dep_spec, depflag=non_build_deps, virtuals=e.virtuals
                         )
                     dirty_edges.add(e)
                 else:
@@ -3905,9 +3905,9 @@ class SpecBuilder:
             for e in edges_by_dep_name[splice.child_name]:
                 if e.spec.dag_hash() == splice.child_hash:
                     potential_clean_edges.discard(e)
-                    other_deps = e.depflag & ~dt.BUILD
+                    non_build_deps = e.depflag & ~dt.BUILD
                     new_spec.add_dependency_edge(
-                        splice_spec, depflag=other_deps, virtuals=e.virtuals
+                        splice_spec, depflag=non_build_deps, virtuals=e.virtuals
                     )
                 else:
                     if e not in dirty_edges:
