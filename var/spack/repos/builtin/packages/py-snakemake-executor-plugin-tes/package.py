@@ -22,7 +22,9 @@ class PySnakemakeExecutorPluginTes(PythonPackage):
 
     depends_on("py-snakemake-interface-common@1.14:1", type=("build", "run"))
     depends_on("py-snakemake-interface-executor-plugins@9", type=("build", "run"), when="@0.1.3:")
-    depends_on("py-snakemake-interface-executor-plugins@8.1.1:8", type=("build", "run"), when="@:0.1.2")
+    depends_on(
+        "py-snakemake-interface-executor-plugins@8.1.1:8", type=("build", "run"), when="@:0.1.2"
+    )
 
     depends_on("python@3.11:3", type=("build", "run"))
     depends_on("py-poetry-core", type="build")

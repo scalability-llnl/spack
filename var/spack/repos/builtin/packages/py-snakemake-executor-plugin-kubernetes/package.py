@@ -28,7 +28,9 @@ class PySnakemakeExecutorPluginKubernetes(PythonPackage):
     depends_on("py-snakemake-interface-common@1.17.3:1", type=("build", "run"), when="@0.2.0:")
     depends_on("py-snakemake-interface-common@1.14.1:1", type=("build", "run"))
     depends_on("py-snakemake-interface-executor-plugins@9", type=("build", "run"), when="@0.1.5:")
-    depends_on("py-snakemake-interface-executor-plugins@8.0.2:8", type=("build", "run"), when="@:0.1.4")
+    depends_on(
+        "py-snakemake-interface-executor-plugins@8.0.2:8", type=("build", "run"), when="@:0.1.4"
+    )
 
     depends_on("python@3.11:3", type=("build", "run"))
     depends_on("py-poetry-core", type="build")
