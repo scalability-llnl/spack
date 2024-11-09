@@ -6,6 +6,7 @@
 """Tests for ``llnl/util/filesystem.py``"""
 import filecmp
 import os
+import pathlib
 import shutil
 import stat
 import sys
@@ -14,7 +15,8 @@ from contextlib import contextmanager
 import pytest
 
 import llnl.util.filesystem as fs
-from llnl.util.symlink import islink, readlink, symlink
+import llnl.util.symlink
+from llnl.util.symlink import _windows_can_symlink, islink, readlink, symlink
 
 import spack.paths
 
@@ -1035,3 +1037,227 @@ def test_windows_sfn(tmpdir):
     assert "d\\LONGER~1" in fs.windows_sfn(d)
     assert "d\\LONGER~2" in fs.windows_sfn(e)
     shutil.rmtree(tmpdir.join("d"))
+
+
+@pytest.fixture
+def dir_structure_with_things_to_find(tmpdir):
+    """
+    <root>/
+        dir_one/
+            file_one
+        dir_two/
+        dir_three/
+            dir_four/
+                file_two
+            file_three
+        file_four
+    """
+    dir_one = tmpdir.join("dir_one").ensure(dir=True)
+    tmpdir.join("dir_two").ensure(dir=True)
+    dir_three = tmpdir.join("dir_three").ensure(dir=True)
+    dir_four = dir_three.join("dir_four").ensure(dir=True)
+
+    locations = {}
+    locations["file_one"] = str(dir_one.join("file_one").ensure())
+    locations["file_two"] = str(dir_four.join("file_two").ensure())
+    locations["file_three"] = str(dir_three.join("file_three").ensure())
+    locations["file_four"] = str(tmpdir.join("file_four").ensure())
+
+    return str(tmpdir), locations
+
+
+def test_find_path_glob_matches(dir_structure_with_things_to_find):
+    root, locations = dir_structure_with_things_to_find
+    # both file name and path match
+    assert (
+        fs.find(root, "file_two")
+        == fs.find(root, "*/*/file_two")
+        == fs.find(root, "dir_t*/*/*two")
+        == [locations["file_two"]]
+    )
+    # ensure that * does not match directory separators
+    assert fs.find(root, "dir*file_two") == []
+    # ensure that file name matches after / are matched from the start of the file name
+    assert fs.find(root, "*/ile_two") == []
+    # file name matches exist, but not with these paths
+    assert fs.find(root, "dir_one/*/*two") == fs.find(root, "*/*/*/*/file_two") == []
+
+
+def test_find_max_depth(dir_structure_with_things_to_find):
+    root, locations = dir_structure_with_things_to_find
+
+    # Make sure the paths we use to verify are absolute
+    assert os.path.isabs(locations["file_one"])
+
+    assert set(fs.find(root, "file_*", max_depth=0)) == {locations["file_four"]}
+    assert set(fs.find(root, "file_*", max_depth=1)) == {
+        locations["file_one"],
+        locations["file_three"],
+        locations["file_four"],
+    }
+    assert set(fs.find(root, "file_two", max_depth=2)) == {locations["file_two"]}
+    assert not set(fs.find(root, "file_two", max_depth=1))
+    assert set(fs.find(root, "file_two")) == {locations["file_two"]}
+    assert set(fs.find(root, "file_*")) == set(locations.values())
+
+
+def test_find_max_depth_relative(dir_structure_with_things_to_find):
+    """find_max_depth should return absolute paths even if the provided path is relative."""
+    root, locations = dir_structure_with_things_to_find
+    with fs.working_dir(root):
+        assert set(fs.find(".", "file_*", max_depth=0)) == {locations["file_four"]}
+        assert set(fs.find(".", "file_two", max_depth=2)) == {locations["file_two"]}
+
+
+@pytest.mark.parametrize("recursive,max_depth", [(False, -1), (False, 1)])
+def test_max_depth_and_recursive_errors(tmpdir, recursive, max_depth):
+    root = str(tmpdir)
+    error_str = "cannot be set if recursive is False"
+    with pytest.raises(ValueError, match=error_str):
+        fs.find(root, ["some_file"], recursive=recursive, max_depth=max_depth)
+
+    with pytest.raises(ValueError, match=error_str):
+        fs.find_libraries(["some_lib"], root, recursive=recursive, max_depth=max_depth)
+
+
+@pytest.fixture(params=[True, False])
+def complex_dir_structure(request, tmpdir):
+    """
+    "lx-dy" means "level x, directory y"
+    "lx-fy" means "level x, file y"
+    "lx-sy" means "level x, symlink y"
+
+    <root>/
+        l1-d1/
+            l2-d1/
+                l3-s1 -> l1-d2 # points to directory above l2-d1
+                l3-d2/
+                    l4-f1
+                l3-s3 -> l1-d1 # cyclic link
+                l3-d4/
+                    l4-f2
+        l1-d2/
+            l2-f1
+            l2-d2/
+                l3-f3
+            l2-s3 -> l2-d2
+        l1-s3 -> l3-d4 # a link that "skips" a directory level
+        l1-s4 -> l2-s3 # a link to a link to a dir
+    """
+    use_junctions = request.param
+    if sys.platform == "win32" and not use_junctions and not _windows_can_symlink():
+        pytest.skip("This Windows instance is not configured with symlink support")
+    elif sys.platform != "win32" and use_junctions:
+        pytest.skip("Junctions are a Windows-only feature")
+
+    l1_d1 = tmpdir.join("l1-d1").ensure(dir=True)
+    l2_d1 = l1_d1.join("l2-d1").ensure(dir=True)
+    l3_d2 = l2_d1.join("l3-d2").ensure(dir=True)
+    l3_d4 = l2_d1.join("l3-d4").ensure(dir=True)
+    l1_d2 = tmpdir.join("l1-d2").ensure(dir=True)
+    l2_d2 = l1_d2.join("l1-d2").ensure(dir=True)
+
+    if use_junctions:
+        link_fn = llnl.util.symlink._windows_create_junction
+    else:
+        link_fn = os.symlink
+
+    link_fn(l1_d2, pathlib.Path(l2_d1) / "l3-s1")
+    link_fn(l1_d1, pathlib.Path(l2_d1) / "l3-s3")
+    link_fn(l3_d4, pathlib.Path(tmpdir) / "l1-s3")
+    l2_s3 = pathlib.Path(l1_d2) / "l2-s3"
+    link_fn(l2_d2, l2_s3)
+    link_fn(l2_s3, pathlib.Path(tmpdir) / "l1-s4")
+
+    locations = {
+        "l4-f1": str(l3_d2.join("l4-f1").ensure()),
+        "l4-f2-full": str(l3_d4.join("l4-f2").ensure()),
+        "l4-f2-link": str(pathlib.Path(tmpdir) / "l1-s3" / "l4-f2"),
+        "l2-f1": str(l1_d2.join("l2-f1").ensure()),
+        "l2-f1-link": str(pathlib.Path(tmpdir) / "l1-d1" / "l2-d1" / "l3-s1" / "l2-f1"),
+        "l3-f3-full": str(l2_d2.join("l3-f3").ensure()),
+        "l3-f3-link-l1": str(pathlib.Path(tmpdir) / "l1-s4" / "l3-f3"),
+    }
+
+    return str(tmpdir), locations
+
+
+def test_find_max_depth_symlinks(complex_dir_structure):
+    root, locations = complex_dir_structure
+    root = pathlib.Path(root)
+    assert set(fs.find(root, "l4-f1")) == {locations["l4-f1"]}
+    assert set(fs.find(root / "l1-s3", "l4-f2", max_depth=0)) == {locations["l4-f2-link"]}
+    assert set(fs.find(root / "l1-d1", "l2-f1")) == {locations["l2-f1-link"]}
+    # File is accessible via symlink and subdir, the link path will be
+    # searched first, and the directory will not be searched again when
+    # it is encountered the second time (via not-link) in the traversal
+    assert set(fs.find(root, "l4-f2")) == {locations["l4-f2-link"]}
+    # File is accessible only via the dir, so the full file path should
+    # be reported
+    assert set(fs.find(root / "l1-d1", "l4-f2")) == {locations["l4-f2-full"]}
+    # Check following links to links
+    assert set(fs.find(root, "l3-f3")) == {locations["l3-f3-link-l1"]}
+
+
+def test_find_max_depth_multiple_and_repeated_entry_points(complex_dir_structure):
+    root, locations = complex_dir_structure
+
+    fst = str(pathlib.Path(root) / "l1-d1" / "l2-d1")
+    snd = str(pathlib.Path(root) / "l1-d2")
+    nonexistent = str(pathlib.Path(root) / "nonexistent")
+
+    assert set(fs.find([fst, snd, fst, snd, nonexistent], ["l*-f*"], max_depth=1)) == {
+        locations["l2-f1"],
+        locations["l4-f1"],
+        locations["l4-f2-full"],
+        locations["l3-f3-full"],
+    }
+
+
+def test_multiple_patterns(complex_dir_structure):
+    root, _ = complex_dir_structure
+    paths = fs.find(root, ["l2-f1", "l*-d*/l3-f3", "*", "*/*"])
+    # There shouldn't be duplicate results with multiple, overlapping patterns
+    assert len(set(paths)) == len(paths)
+    # All files should be found
+    filenames = [os.path.basename(p) for p in paths]
+    assert set(filenames) == {"l2-f1", "l3-f3", "l4-f1", "l4-f2"}
+    # They are ordered by first matching pattern (this is a bit of an implementation detail,
+    # and we could decide to change the exact order in the future)
+    assert filenames[0] == "l2-f1"
+    assert filenames[1] == "l3-f3"
+
+
+def test_find_input_types(tmp_path: pathlib.Path):
+    """test that find only accepts sequences and instances of pathlib.Path and str for root, and
+    only sequences and instances of str for patterns. In principle mypy catches these issues, but
+    it is not enabled on all call-sites."""
+    (tmp_path / "file.txt").write_text("")
+    assert (
+        fs.find(tmp_path, "file.txt")
+        == fs.find(str(tmp_path), "file.txt")
+        == fs.find([tmp_path, str(tmp_path)], "file.txt")
+        == fs.find((tmp_path, str(tmp_path)), "file.txt")
+        == fs.find(tmp_path, "file.txt")
+        == fs.find(tmp_path, ["file.txt"])
+        == fs.find(tmp_path, ("file.txt",))
+        == [str(tmp_path / "file.txt")]
+    )
+
+    with pytest.raises(TypeError):
+        fs.find(tmp_path, pathlib.Path("file.txt"))  # type: ignore
+
+    with pytest.raises(TypeError):
+        fs.find(1, "file.txt")  # type: ignore
+
+
+def test_find_only_finds_files(tmp_path: pathlib.Path):
+    """ensure that find only returns files even at max_depth"""
+    (tmp_path / "subdir").mkdir()
+    (tmp_path / "subdir" / "dir").mkdir()
+    (tmp_path / "subdir" / "file.txt").write_text("")
+    assert (
+        fs.find(tmp_path, "*", max_depth=1)
+        == fs.find(tmp_path, "*/*", max_depth=1)
+        == [str(tmp_path / "subdir" / "file.txt")]
+    )
