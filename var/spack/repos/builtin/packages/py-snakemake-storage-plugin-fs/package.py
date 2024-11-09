@@ -29,7 +29,9 @@ class PySnakemakeStoragePluginFs(PythonPackage):
     depends_on("py-reretry@0.11.8:0.11", type=("build", "run"))
 
     depends_on("py-snakemake-interface-common@1.17:1", type=("build", "run"))
-    depends_on("py-snakemake-interface-storage-plugins@3.2.2:3", type=("build", "run"), when="@1.0.3:")
+    depends_on(
+        "py-snakemake-interface-storage-plugins@3.2.2:3", type=("build", "run"), when="@1.0.3:"
+    )
     depends_on("py-snakemake-interface-storage-plugins@3.1:3", type=("build", "run"))
 
     depends_on("python@3.11:3", type=("build", "run"))

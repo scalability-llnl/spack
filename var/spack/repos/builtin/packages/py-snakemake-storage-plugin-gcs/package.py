@@ -27,7 +27,9 @@ class PySnakemakeStoragePluginGcs(PythonPackage):
 
     depends_on("py-snakemake-interface-common@1.14.2:1", type=("build", "run"), when="@0.1.4:")
     depends_on("py-snakemake-interface-common@1", type=("build", "run"))
-    depends_on("py-snakemake-interface-storage-plugins@3.3:3", type=("build", "run"), when="@1.1.1:")
+    depends_on(
+        "py-snakemake-interface-storage-plugins@3.3:3", type=("build", "run"), when="@1.1.1:"
+    )
     depends_on("py-snakemake-interface-storage-plugins@3", type=("build", "run"))
 
     depends_on("python@3.11:3", type=("build", "run"))

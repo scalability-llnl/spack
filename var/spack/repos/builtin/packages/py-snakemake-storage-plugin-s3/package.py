@@ -26,8 +26,12 @@ class PySnakemakeStoragePluginS3(PythonPackage):
     depends_on("py-urllib3@2:2.1", type=("build", "run"), when="@:0.2.11")
 
     depends_on("py-snakemake-interface-common@1.14:1", type=("build", "run"))
-    depends_on("py-snakemake-interface-storage-plugins@3.2.4:3", type=("build", "run"), when="@0.2.12:")
-    depends_on("py-snakemake-interface-storage-plugins@3.2.2:3", type=("build", "run"), when="@0.2.11:")
+    depends_on(
+        "py-snakemake-interface-storage-plugins@3.2.4:3", type=("build", "run"), when="@0.2.12:"
+    )
+    depends_on(
+        "py-snakemake-interface-storage-plugins@3.2.2:3", type=("build", "run"), when="@0.2.11:"
+    )
     depends_on("py-snakemake-interface-storage-plugins@3", type=("build", "run"))
 
     depends_on("python@3.11:3", type=("build", "run"))

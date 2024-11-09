@@ -35,7 +35,9 @@ class PySnakemakeStoragePluginAzure(PythonPackage):
 
     depends_on("py-snakemake-interface-common@1.17.2:1", type=("build", "run"), when="@0.1.6:")
     depends_on("py-snakemake-interface-common@1.15:1", type=("build", "run"))
-    depends_on("py-snakemake-interface-storage-plugins@3.2.3:3", type=("build", "run"), when="@0.1.6:")
+    depends_on(
+        "py-snakemake-interface-storage-plugins@3.2.3:3", type=("build", "run"), when="@0.1.6:"
+    )
     depends_on("py-snakemake-interface-storage-plugins@3", type=("build", "run"))
 
     depends_on("python@3.11:3", type=("build", "run"))
