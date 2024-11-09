@@ -575,11 +575,6 @@ def mock_repo_path():
     yield spack.repo.from_path(spack.paths.mock_packages_path)
 
 
-@pytest.fixture(scope="session")
-def mock_repo_path2():
-    yield spack.repo.from_path(spack.paths.mock_packages_path2)
-
-
 def _pkg_install_fn(pkg, spec, prefix):
     # sanity_check_prefix requires something in the install directory
     mkdirp(prefix.bin)
@@ -593,20 +588,19 @@ def mock_pkg_install(monkeypatch):
 
 
 @pytest.fixture(scope="function")
-def mock_packages(mock_repo_path, mock_repo_path2, mock_pkg_install, request):
-    """Use the 'builtin.mock' and 'builtin.mock2' repositories instead of 'builtin'"""
+def mock_packages(mock_repo_path, mock_pkg_install, request):
+    """Use the 'builtin.mock' repository instead of 'builtin'"""
     ensure_configuration_fixture_run_before(request)
-    with spack.repo.use_repositories(mock_repo_path, mock_repo_path2) as mock_repo:
+    with spack.repo.use_repositories(mock_repo_path) as mock_repo:
         yield mock_repo
 
 
 @pytest.fixture(scope="function")
-def mutable_mock_repo(request):
+def mutable_mock_repo(mock_repo_path, request):
     """Function-scoped mock packages, for tests that need to modify them."""
     ensure_configuration_fixture_run_before(request)
     mock_repo = spack.repo.from_path(spack.paths.mock_packages_path)
-    mock_repo2 = spack.repo.from_path(spack.paths.mock_packages_path2)
-    with spack.repo.use_repositories(mock_repo, mock_repo2) as mock_repo_path:
+    with spack.repo.use_repositories(mock_repo) as mock_repo_path:
         yield mock_repo_path
 
 

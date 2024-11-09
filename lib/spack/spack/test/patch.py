@@ -499,9 +499,3 @@ def test_invalid_from_dict(mock_packages, config):
     }
     with pytest.raises(spack.fetch_strategy.ChecksumError, match="sha256 checksum failed for"):
         spack.patch.from_dict(dictionary)
-
-
-@pytest.mark.regression("43097")
-def test_cross_repo_patch(mock_packages, config):
-    cross_repo_patch = Spec("patch-a-foreign-dependency")
-    cross_repo_patch.concretize()
