@@ -3845,11 +3845,10 @@ class SpecBuilder:
     def splice_in_dependency(
         self, parent_node: NodeArgument, child_node: Union[str, NodeArgument]
     ):
-        if parent_node not in self._splice_dag:
-            self._splice_dag[parent_node] = []
-        # Hash is the base-case covered by splice_at_hash
+        # If child_node is not type NodeArgument, then the encoding guarantees
+        # there is also a `splice_at_hash` fact for this splice, which is handled separately
         if isinstance(child_node, NodeArgument):
-            self._splice_dag[parent_node].append(child_node)
+            self._splice_dag.set_default(parent_node, []).append(child_node)
 
     def _resolve_splices_for_node(
         self, node: NodeArgument, resolved: Dict[NodeArgument, spack.spec.Spec]
