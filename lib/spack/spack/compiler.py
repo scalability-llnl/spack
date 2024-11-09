@@ -29,6 +29,7 @@ import spack.util.libc
 import spack.util.module_cmd
 import spack.version
 from spack.util.environment import filter_system_paths
+from spack.util.file_cache import FileCache
 
 __all__ = ["Compiler"]
 
@@ -776,7 +777,7 @@ class FileCompilerCache(CompilerCache):
 
     name = os.path.join("compilers", "compilers.json")
 
-    def __init__(self, cache: "spack.caches.FileCacheType") -> None:
+    def __init__(self, cache: "FileCache") -> None:
         self.cache = cache
         self.cache.init_entry(self.name)
         self._data: Dict[str, Dict[str, Optional[str]]] = {}
