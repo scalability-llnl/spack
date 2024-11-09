@@ -3869,8 +3869,7 @@ class SpecBuilder:
             return orig_spec
         new_spec = orig_spec.copy(deps=False)
         new_spec.clear_cached_hashes(ignore=(ht.package_hash.attr,))
-        edges_by_dep_name: Dict[str, List[spack.spec.DependencySpec]]
-        edges_by_dep_name = {}
+        edges_by_dep_name: Dict[str, List[spack.spec.DependencySpec]] = {}
         for edge in orig_spec.edges_to_dependencies():
             edge_name = edge.spec.name
             assert type(edge_name) is str, "Anonymous dependency spec in splice"
