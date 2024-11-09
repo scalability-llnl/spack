@@ -877,8 +877,9 @@ class FlagMap(lang.HashableMap):
                 # Next, if any flags in other propagate, we force them to propagate in our case
                 shared = list(sorted(set(other[flag_type]) - extra_other))
                 for x, y in _shared_subset_pair_iterate(shared, sorted(self[flag_type])):
-                    if x.propagate:
-                        y.propagate = True
+                    if y.propagate is True and x.propagate is False:
+                        changed = True
+                        y.propagate = False
 
         # TODO: what happens if flag groups with a partial (but not complete)
         # intersection specify different behaviors for flag propagation?
@@ -933,6 +934,7 @@ class FlagMap(lang.HashableMap):
             def flags():
                 for flag in v:
                     yield flag
+                    yield flag.propagate
 
             yield flags
 
@@ -963,10 +965,6 @@ def _sort_by_dep_types(dspec: DependencySpec):
     return dspec.depflag
 
 
-#: Enum for edge directions
-EdgeDirection = lang.enum(parent=0, child=1)
-
-
 @lang.lazy_lexicographic_ordering
 class _EdgeMap(collections.abc.Mapping):
     """Represent a collection of edges (DependencySpec objects) in the DAG.
@@ -980,26 +978,20 @@ class _EdgeMap(collections.abc.Mapping):
 
     __slots__ = "edges", "store_by_child"
 
-    def __init__(self, store_by=EdgeDirection.child):
-        # Sanitize input arguments
-        msg = 'unexpected value for "store_by" argument'
-        assert store_by in (EdgeDirection.child, EdgeDirection.parent), msg
+    def __init__(self, store_by_child: bool = True) -> None:
+        self.edges: Dict[str, List[DependencySpec]] = {}
+        self.store_by_child = store_by_child
 
-        #: This dictionary maps a package name to a list of edges
-        #: i.e. to a list of DependencySpec objects
-        self.edges = {}
-        self.store_by_child = store_by == EdgeDirection.child
-
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> List[DependencySpec]:
         return self.edges[key]
 
     def __iter__(self):
         return iter(self.edges)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.edges)
 
-    def add(self, edge: DependencySpec):
+    def add(self, edge: DependencySpec) -> None:
         key = edge.spec.name if self.store_by_child else edge.parent.name
         if key in self.edges:
             lst = self.edges[key]
@@ -1008,8 +1000,8 @@ class _EdgeMap(collections.abc.Mapping):
         else:
             self.edges[key] = [edge]
 
-    def __str__(self):
-        return "{deps: %s}" % ", ".join(str(d) for d in sorted(self.values()))
+    def __str__(self) -> str:
+        return f"{{deps: {', '.join(str(d) for d in sorted(self.values()))}}}"
 
     def _cmp_iter(self):
         for item in sorted(itertools.chain.from_iterable(self.edges.values())):
@@ -1026,24 +1018,32 @@ class _EdgeMap(collections.abc.Mapping):
 
         return clone
 
-    def select(self, parent=None, child=None, depflag: dt.DepFlag = dt.ALL):
-        """Select a list of edges and return them.
+    def select(
+        self,
+        *,
+        parent: Optional[str] = None,
+        child: Optional[str] = None,
+        depflag: dt.DepFlag = dt.ALL,
+        virtuals: Optional[List[str]] = None,
+    ) -> List[DependencySpec]:
+        """Selects a list of edges and returns them.
 
         If an edge:
+
         - Has *any* of the dependency types passed as argument,
-        - Matches the parent and/or child name, if passed
+        - Matches the parent and/or child name
+        - Provides *any* of the virtuals passed as argument
+
         then it is selected.
 
         The deptypes argument needs to be a flag, since the method won't
         convert it for performance reason.
 
         Args:
-            parent (str): name of the parent package
-            child (str): name of the child package
+            parent: name of the parent package
+            child: name of the child package
             depflag: allowed dependency types in flag form
-
-        Returns:
-            List of DependencySpec objects
+            virtuals: list of virtuals on the edge
         """
         if not depflag:
             return []
@@ -1061,6 +1061,10 @@ class _EdgeMap(collections.abc.Mapping):
 
         # Filter by allowed dependency types
         selected = (dep for dep in selected if not dep.depflag or (depflag & dep.depflag))
+
+        # Filter by virtuals
+        if virtuals is not None:
+            selected = (dep for dep in selected if any(v in dep.virtuals for v in virtuals))
 
         return list(selected)
 
@@ -1470,8 +1474,8 @@ class Spec:
         self.architecture = None
         self.compiler = None
         self.compiler_flags = FlagMap(self)
-        self._dependents = _EdgeMap(store_by=EdgeDirection.parent)
-        self._dependencies = _EdgeMap(store_by=EdgeDirection.child)
+        self._dependents = _EdgeMap(store_by_child=False)
+        self._dependencies = _EdgeMap(store_by_child=True)
         self.namespace = None
 
         # initial values for all spec hash types
@@ -1591,7 +1595,7 @@ class Spec:
         return deps[0]
 
     def edges_from_dependents(
-        self, name=None, depflag: dt.DepFlag = dt.ALL
+        self, name=None, depflag: dt.DepFlag = dt.ALL, *, virtuals: Optional[List[str]] = None
     ) -> List[DependencySpec]:
         """Return a list of edges connecting this node in the DAG
         to parents.
@@ -1599,20 +1603,25 @@ class Spec:
         Args:
             name (str): filter dependents by package name
             depflag: allowed dependency types
+            virtuals: allowed virtuals
         """
-        return [d for d in self._dependents.select(parent=name, depflag=depflag)]
+        return [
+            d for d in self._dependents.select(parent=name, depflag=depflag, virtuals=virtuals)
+        ]
 
     def edges_to_dependencies(
-        self, name=None, depflag: dt.DepFlag = dt.ALL
+        self, name=None, depflag: dt.DepFlag = dt.ALL, *, virtuals: Optional[List[str]] = None
     ) -> List[DependencySpec]:
-        """Return a list of edges connecting this node in the DAG
-        to children.
+        """Returns a list of edges connecting this node in the DAG to children.
 
         Args:
             name (str): filter dependencies by package name
             depflag: allowed dependency types
+            virtuals: allowed virtuals
         """
-        return [d for d in self._dependencies.select(child=name, depflag=depflag)]
+        return [
+            d for d in self._dependencies.select(child=name, depflag=depflag, virtuals=virtuals)
+        ]
 
     @property
     def edge_attributes(self) -> str:
@@ -1635,17 +1644,24 @@ class Spec:
         return f"[{result}]"
 
     def dependencies(
-        self, name=None, deptype: Union[dt.DepTypes, dt.DepFlag] = dt.ALL
+        self,
+        name=None,
+        deptype: Union[dt.DepTypes, dt.DepFlag] = dt.ALL,
+        *,
+        virtuals: Optional[List[str]] = None,
     ) -> List["Spec"]:
-        """Return a list of direct dependencies (nodes in the DAG).
+        """Returns a list of direct dependencies (nodes in the DAG)
 
         Args:
-            name (str): filter dependencies by package name
+            name: filter dependencies by package name
             deptype: allowed dependency types
+            virtuals: allowed virtuals
         """
         if not isinstance(deptype, dt.DepFlag):
             deptype = dt.canonicalize(deptype)
-        return [d.spec for d in self.edges_to_dependencies(name, depflag=deptype)]
+        return [
+            d.spec for d in self.edges_to_dependencies(name, depflag=deptype, virtuals=virtuals)
+        ]
 
     def dependents(
         self, name=None, deptype: Union[dt.DepTypes, dt.DepFlag] = dt.ALL
@@ -2185,6 +2201,18 @@ class Spec:
         if params:
             d["parameters"] = params
 
+        if params and not self.concrete:
+            flag_names = [
+                name
+                for name, flags in self.compiler_flags.items()
+                if any(x.propagate for x in flags)
+            ]
+            d["propagate"] = sorted(
+                itertools.chain(
+                    [v.name for v in self.variants.values() if v.propagate], flag_names
+                )
+            )
+
         if self.external:
             d["external"] = syaml.syaml_dict(
                 [
@@ -2357,16 +2385,10 @@ class Spec:
         spec is concrete, the full hash is added as well.  If 'build' is in
         the hash_type, the build hash is also added."""
         node = self.to_node_dict(hash)
+        # All specs have at least a DAG hash
         node[ht.dag_hash.name] = self.dag_hash()
 
-        # dag_hash is lazily computed -- but if we write a spec out, we want it
-        # to be included. This is effectively the last chance we get to compute
-        # it accurately.
-        if self.concrete:
-            # all specs have at least a DAG hash
-            node[ht.dag_hash.name] = self.dag_hash()
-
-        else:
+        if not self.concrete:
             node["concrete"] = False
 
         # we can also give them other hash types if we want
@@ -2998,7 +3020,12 @@ class Spec:
         pkg_variants = pkg_cls.variant_names()
         # reserved names are variants that may be set on any package
         # but are not necessarily recorded by the package's class
-        not_existing = set(spec.variants) - (set(pkg_variants) | set(vt.reserved_names))
+        propagate_variants = [name for name, variant in spec.variants.items() if variant.propagate]
+
+        not_existing = set(spec.variants) - (
+            set(pkg_variants) | set(vt.reserved_names) | set(propagate_variants)
+        )
+
         if not_existing:
             raise vt.UnknownVariantError(
                 f"No such variant {not_existing} for spec: '{spec}'", list(not_existing)
@@ -3025,6 +3052,10 @@ class Spec:
                 raise spack.error.UnsatisfiableSpecError(self, other, "constrain a concrete spec")
 
         other = self._autospec(other)
+        if other.concrete and other.satisfies(self):
+            self._dup(other)
+            return True
+
         if other.abstract_hash:
             if not self.abstract_hash or other.abstract_hash.startswith(self.abstract_hash):
                 self.abstract_hash = other.abstract_hash
@@ -3519,8 +3550,8 @@ class Spec:
         self.architecture = other.architecture.copy() if other.architecture else None
         self.compiler = other.compiler.copy() if other.compiler else None
         if cleardeps:
-            self._dependents = _EdgeMap(store_by=EdgeDirection.parent)
-            self._dependencies = _EdgeMap(store_by=EdgeDirection.child)
+            self._dependents = _EdgeMap(store_by_child=False)
+            self._dependencies = _EdgeMap(store_by_child=True)
         self.compiler_flags = other.compiler_flags.copy()
         self.compiler_flags.spec = self
         self.variants = other.variants.copy()
@@ -4028,7 +4059,7 @@ class Spec:
 
     def __str__(self):
         if self._concrete:
-            return self.format("{name}{@version}{/hash:7}")
+            return self.format("{name}{@version}{/hash}")
 
         if not self._dependencies:
             return self.format()
@@ -4503,8 +4534,69 @@ class VariantMap(lang.HashableMap):
         # Set the item
         super().__setitem__(vspec.name, vspec)
 
-    def satisfies(self, other):
-        return all(k in self and self[k].satisfies(other[k]) for k in other)
+    def partition_variants(self):
+        non_prop, prop = lang.stable_partition(self.values(), lambda x: not x.propagate)
+        # Just return the names
+        non_prop = [x.name for x in non_prop]
+        prop = [x.name for x in prop]
+        return non_prop, prop
+
+    def satisfies(self, other: "VariantMap") -> bool:
+        if self.spec.concrete:
+            return self._satisfies_when_self_concrete(other)
+        return self._satisfies_when_self_abstract(other)
+
+    def _satisfies_when_self_concrete(self, other: "VariantMap") -> bool:
+        non_propagating, propagating = other.partition_variants()
+        result = all(
+            name in self and self[name].satisfies(other[name]) for name in non_propagating
+        )
+        if not propagating:
+            return result
+
+        for node in self.spec.traverse():
+            if not all(
+                node.variants[name].satisfies(other[name])
+                for name in propagating
+                if name in node.variants
+            ):
+                return False
+        return result
+
+    def _satisfies_when_self_abstract(self, other: "VariantMap") -> bool:
+        other_non_propagating, other_propagating = other.partition_variants()
+        self_non_propagating, self_propagating = self.partition_variants()
+
+        # First check variants without propagation set
+        result = all(
+            name in self_non_propagating
+            and (self[name].propagate or self[name].satisfies(other[name]))
+            for name in other_non_propagating
+        )
+        if result is False or (not other_propagating and not self_propagating):
+            return result
+
+        # Check that self doesn't contradict variants propagated by other
+        if other_propagating:
+            for node in self.spec.traverse():
+                if not all(
+                    node.variants[name].satisfies(other[name])
+                    for name in other_propagating
+                    if name in node.variants
+                ):
+                    return False
+
+        # Check that other doesn't contradict variants propagated by self
+        if self_propagating:
+            for node in other.spec.traverse():
+                if not all(
+                    node.variants[name].satisfies(self[name])
+                    for name in self_propagating
+                    if name in node.variants
+                ):
+                    return False
+
+        return result
 
     def intersects(self, other):
         return all(self[k].intersects(other[k]) for k in other if k in self)
@@ -4717,13 +4809,17 @@ class SpecfileReaderBase:
         else:
             spec.compiler = None
 
+        propagated_names = node.get("propagate", [])
         for name, values in node.get("parameters", {}).items():
+            propagate = name in propagated_names
             if name in _valid_compiler_flags:
                 spec.compiler_flags[name] = []
                 for val in values:
-                    spec.compiler_flags.add_flag(name, val, False)
+                    spec.compiler_flags.add_flag(name, val, propagate)
             else:
-                spec.variants[name] = vt.MultiValuedVariant.from_node_dict(name, values)
+                spec.variants[name] = vt.MultiValuedVariant.from_node_dict(
+                    name, values, propagate=propagate
+                )
 
         spec.external_path = None
         spec.external_modules = None

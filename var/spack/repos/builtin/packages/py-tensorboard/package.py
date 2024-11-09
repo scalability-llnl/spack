@@ -17,10 +17,11 @@ class PyTensorboard(PythonPackage):
     # Requires tensorflow
     skip_modules = ["tensorboard.summary._tf"]
 
+    license("Apache-2.0")
     maintainers("aweits")
 
-    license("Apache-2.0")
-
+    version("2.18.0", sha256="107ca4821745f73e2aefa02c50ff70a9b694f39f790b11e6f682f7d326745eab")
+    version("2.17.1", sha256="253701a224000eeca01eee6f7e978aea7b408f60b91eb0babdb04e78947b773e")
     version("2.17.0", sha256="859a499a9b1fb68a058858964486627100b71fcb21646861c61d31846a6478fb")
     version("2.16.2", sha256="9f2b4e7dad86667615c0e5cd072f1ea8403fc032a299f0072d6f74855775cc45")
     version("2.16.1", sha256="928b62567911a8eeb2ebeb7482a9e4599b35f6713a6f2c56655259c18a139569")
@@ -59,19 +60,20 @@ class PyTensorboard(PythonPackage):
         depends_on("py-grpcio@1.24.3:", when="@2.3:")
         depends_on("py-grpcio@1.23.3:", when="@2.2")
         depends_on("py-markdown@2.6.8:")
-        depends_on("py-numpy@1.12.0:")
+        depends_on("py-numpy@1.12:")
         # https://github.com/tensorflow/tensorboard/pull/6871
-        depends_on("py-numpy@:1")
+        depends_on("py-numpy@:1", when="@:2.17")
         # https://github.com/tensorflow/tensorboard/pull/5138
         depends_on("py-numpy@:1.23", when="@:2.5")
-        depends_on("py-protobuf@3.19.6:4", when="@2.17:")
-        depends_on("py-protobuf@3.19.6:", when="@2.15.2:2.16")
+        depends_on("py-packaging", when="@2.18:")
+        depends_on("py-protobuf@3.19.6:", when="@2.15.2:2.16,2.18:")
+        depends_on("py-protobuf@3.19.6:4", when="@2.17")
         depends_on("py-protobuf@3.19.6:4.23", when="@2.12:2.15.1")
         depends_on("py-protobuf@3.9.2:3", when="@2.11")
         depends_on("py-protobuf@3.9.2:3.19", when="@2.9:2.10")
         depends_on("py-protobuf@3.6.0:3.19", when="@:2.8")
-        depends_on("py-setuptools@41.0.0:")
-        depends_on("py-six@1.10.0:", when="@:2.4,2.14:")
+        depends_on("py-setuptools@41:")
+        depends_on("py-six@1.10:", when="@:2.4,2.14:")
         depends_on("py-tensorboard-data-server@0.7", when="@2.12:")
         depends_on("py-tensorboard-data-server@0.6", when="@2.5:2.11")
         depends_on("py-werkzeug@1.0.1:", when="@2.9:")

@@ -1,0 +1,11 @@
+--- patch-a-dependency/configure	2018-08-13 23:13:51.000000000 -0700
++++ patch-a-dependency/configure.patched	2018-08-13 23:14:15.000000000 -0700
+@@ -2,7 +2,7 @@
+ prefix=$(echo $1 | sed 's/--prefix=//')
+ cat > Makefile <<EOF
+ all:
+-	echo Building...
++	echo Patched!
+ 
+ install:
+ 	mkdir -p $prefix

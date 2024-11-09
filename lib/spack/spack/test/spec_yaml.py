@@ -16,6 +16,7 @@ import inspect
 import io
 import json
 import os
+import pickle
 
 import pytest
 import ruamel.yaml
@@ -551,3 +552,26 @@ d: *id001
 e: *id002
 """
     )
+
+
+@pytest.mark.parametrize(
+    "spec_str",
+    [
+        "hdf5 ++mpi",
+        "hdf5 cflags==-g",
+        "hdf5 foo==bar",
+        "hdf5~~mpi++shared",
+        "hdf5 cflags==-g foo==bar cxxflags==-O3",
+        "hdf5 cflags=-g foo==bar cxxflags==-O3",
+    ],
+)
+def test_pickle_roundtrip_for_abstract_specs(spec_str):
+    """Tests that abstract specs correctly round trip when pickled.
+
+    This test compares both spec objects and their string representation, due to some
+    inconsistencies in how `Spec.__eq__` is implemented.
+    """
+    s = spack.spec.Spec(spec_str)
+    t = pickle.loads(pickle.dumps(s))
+    assert s == t
+    assert str(s) == str(t)

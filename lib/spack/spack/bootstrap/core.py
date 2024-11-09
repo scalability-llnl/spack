@@ -45,7 +45,6 @@ import spack.user_environment
 import spack.util.executable
 import spack.util.path
 import spack.util.spack_yaml
-import spack.util.url
 import spack.version
 from spack.installer import PackageInstaller
 
@@ -603,7 +602,10 @@ def bootstrapping_sources(scope: Optional[str] = None):
         current = copy.copy(entry)
         metadata_dir = spack.util.path.canonicalize_path(entry["metadata"])
         metadata_yaml = os.path.join(metadata_dir, METADATA_YAML_FILENAME)
-        with open(metadata_yaml, encoding="utf-8") as stream:
-            current.update(spack.util.spack_yaml.load(stream))
-        list_of_sources.append(current)
+        try:
+            with open(metadata_yaml, encoding="utf-8") as stream:
+                current.update(spack.util.spack_yaml.load(stream))
+            list_of_sources.append(current)
+        except OSError:
+            pass
     return list_of_sources

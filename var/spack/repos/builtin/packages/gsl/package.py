@@ -19,6 +19,7 @@ class Gsl(AutotoolsPackage, GNUMirrorPackage):
 
     license("GPL-3.0-or-later")
 
+    version("2.8", sha256="6a99eeed15632c6354895b1dd542ed5a855c0f15d9ad1326c6fe2b2c9e423190")
     version("2.7.1", sha256="dcb0fbd43048832b757ff9942691a8dd70026d5da0ff85601e52687f6deeb34b")
     version("2.7", sha256="efbbf3785da0e53038be7907500628b466152dbc3c173a87de1b5eba2e23602b")
     version("2.6", sha256="b782339fc7a38fe17689cb39966c4d821236c28018b6593ddb6fd59ee40786a8")

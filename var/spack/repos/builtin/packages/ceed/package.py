@@ -240,7 +240,7 @@ class Ceed(BundlePackage, CudaPackage, ROCmPackage):
 
     # Omega_h
     # ceed-5.0
-    depends_on("omega-h@scorec.10.1.0", when="@5.0.0+omega-h")
+    depends_on("omega-h@10.1.0", when="@5.0.0+omega-h")
     depends_on("omega-h~trilinos", when="@5.0.0+omega-h+quickbuild")
 
     # MFEM, Laghos, Remhos

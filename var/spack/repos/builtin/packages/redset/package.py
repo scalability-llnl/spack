@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Redset(CMakePackage):
+class Redset(CMakePackage, CudaPackage):
     """Create MPI communicators for disparate redundancy sets"""
 
     homepage = "https://github.com/ecp-veloc/redset"
@@ -19,6 +19,7 @@ class Redset(CMakePackage):
     license("MIT")
 
     version("main", branch="main")
+    version("0.4.0", sha256="d278a5d3c1323915c379e2077dbfab1248044c86a04fc56faee6681c66380451")
     version("0.3.0", sha256="007ca5e7e5f4400e22ad7bca82e366cd51c73f28067c955cc16d7d0ff0c06a1b")
     version("0.2.0", sha256="0438b0ba56dafcd5694a8fceeb5a932901307353e056ab29817d30b8387f787f")
     version("0.1.0", sha256="baa75de0d0d6de64ade50cff3d38ee89fd136ce69869182bdaefccf5be5d286d")
@@ -38,7 +39,11 @@ class Redset(CMakePackage):
     depends_on("rankstr@:0.2.0", when="@:0.2.0")
     depends_on("rankstr@0.3.0:", when="@0.3.0:")
 
-    variant("shared", default=True, description="Build with shared libraries")
+    variant("cuda", default=False, description="Enable CUDA support", when="@0.4:")
+    variant("openmp", default=False, description="Enable OpenMP support", when="@0.4:")
+    variant("pthreads", default=False, description="Enable Pthread support", when="@0.4:")
+
+    variant("shared", default=True, description="Build with shared libraries", when="@0.1:")
     depends_on("kvtree+shared", when="@0.1: +shared")
     depends_on("kvtree~shared", when="@0.1: ~shared")
     depends_on("rankstr+shared", when="@0.1: +shared")
@@ -51,7 +56,9 @@ class Redset(CMakePackage):
         args.append(self.define("WITH_KVTREE_PREFIX", spec["kvtree"].prefix))
         args.append(self.define("WITH_RANKSTR_PREFIX", spec["rankstr"].prefix))
 
-        if spec.satisfies("@0.1.0:"):
-            args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
+        args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
+        args.append(self.define_from_variant("ENABLE_CUDA", "cuda"))
+        args.append(self.define_from_variant("ENABLE_OPENMP", "openmp"))
+        args.append(self.define_from_variant("ENABLE_PTHREADS", "pthreads"))
 
         return args

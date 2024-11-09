@@ -38,8 +38,7 @@ class Hdf5(CMakePackage):
 
     # The 'develop' version is renamed so that we could uninstall (or patch) it
     # without affecting other develop version.
-    version("develop-1.17", branch="develop")
-    version("develop-1.16", branch="hdf5_1_16")
+    version("develop-2.0", branch="develop")
     version("develop-1.14", branch="hdf5_1_14")
     version("develop-1.12", branch="hdf5_1_12")
     version("develop-1.10", branch="hdf5_1_10")

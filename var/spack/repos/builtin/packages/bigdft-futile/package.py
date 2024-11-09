@@ -49,6 +49,14 @@ class BigdftFutile(AutotoolsPackage, CudaPackage):
 
     configure_directory = "futile"
 
+    # missing MPI_BOTTOM in fake mpif.h (generated when compiling without MPI support)
+    # similar issue (maybe others) also in 1.9.4 but this patch does not work for 1.9.4
+    patch(
+        "https://gitlab.com/l_sim/bigdft-suite/-/commit/ec7419011fa9fd815de77bfca8642973091fb64b.diff",
+        sha256="66c493e37fe7f7f9800ae7f49bb0172a5b2372a2ce0ee4c3bcb7ff5c59a3925c",
+        when="@1.9.5~mpi",
+    )
+
     def configure_args(self):
         spec = self.spec
         prefix = self.prefix

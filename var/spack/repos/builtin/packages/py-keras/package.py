@@ -5,6 +5,7 @@
 
 import tempfile
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -199,6 +200,5 @@ class PyKeras(PythonPackage):
         build_pip_package("--src", buildpath)
 
         with working_dir(buildpath):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         remove_linked_tree(self.tmp_path)

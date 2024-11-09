@@ -19,6 +19,8 @@ from .spec_list import spec_list_schema
 #: Top level key in a manifest file
 TOP_LEVEL_KEY = "spack"
 
+include_concrete = {"type": "array", "default": [], "items": {"type": "string"}}
+
 properties: Dict[str, Any] = {
     "spack": {
         "type": "object",
@@ -31,7 +33,7 @@ properties: Dict[str, Any] = {
             {
                 "include": {"type": "array", "default": [], "items": {"type": "string"}},
                 "specs": spec_list_schema,
-                "include_concrete": {"type": "array", "default": [], "items": {"type": "string"}},
+                "include_concrete": include_concrete,
             },
         ),
     }

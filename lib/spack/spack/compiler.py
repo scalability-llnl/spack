@@ -4,20 +4,23 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import contextlib
+import hashlib
 import itertools
+import json
 import os
 import platform
 import re
 import shutil
 import sys
 import tempfile
-from typing import List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 
 import llnl.path
 import llnl.util.lang
 import llnl.util.tty as tty
 from llnl.util.filesystem import path_contains_subdirectory, paths_containing_libs
 
+import spack.caches
 import spack.error
 import spack.schema.environment
 import spack.spec
@@ -34,7 +37,7 @@ FLAG_INSTANCE_VARS = ["cflags", "cppflags", "cxxflags", "fflags"]
 
 
 @llnl.util.lang.memoized
-def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()):
+def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()) -> str:
     """Invokes the compiler at a given path passing a single
     version argument and returns the output.
 
@@ -57,7 +60,7 @@ def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()):
     return output
 
 
-def get_compiler_version_output(compiler_path, *args, **kwargs):
+def get_compiler_version_output(compiler_path, *args, **kwargs) -> str:
     """Wrapper for _get_compiler_version_output()."""
     # This ensures that we memoize compiler output by *absolute path*,
     # not just executable name. If we don't do this, and the path changes
@@ -290,6 +293,7 @@ class Compiler:
         self.environment = environment or {}
         self.extra_rpaths = extra_rpaths or []
         self.enable_implicit_rpaths = enable_implicit_rpaths
+        self.cache = COMPILER_CACHE
 
         self.cc = paths[0]
         self.cxx = paths[1]
@@ -390,15 +394,11 @@ class Compiler:
 
         E.g. C++11 flag checks.
         """
-        if not self._real_version:
-            try:
-                real_version = spack.version.Version(self.get_real_version())
-                if real_version == spack.version.Version("unknown"):
-                    return self.version
-                self._real_version = real_version
-            except spack.util.executable.ProcessError:
-                self._real_version = self.version
-        return self._real_version
+        real_version_str = self.cache.get(self).real_version
+        if not real_version_str or real_version_str == "unknown":
+            return self.version
+
+        return spack.version.StandardVersion.from_string(real_version_str)
 
     def implicit_rpaths(self) -> List[str]:
         if self.enable_implicit_rpaths is False:
@@ -445,9 +445,7 @@ class Compiler:
     @property
     def compiler_verbose_output(self) -> Optional[str]:
         """Verbose output from compiling a dummy C source file. Output is cached."""
-        if not hasattr(self, "_compile_c_source_output"):
-            self._compile_c_source_output = self._compile_dummy_c_source()
-        return self._compile_c_source_output
+        return self.cache.get(self).c_compiler_output
 
     def _compile_dummy_c_source(self) -> Optional[str]:
         cc = self.cc if self.cc else self.cxx
@@ -559,7 +557,7 @@ class Compiler:
     # Note: This is not a class method. The class methods are used to detect
     # compilers on PATH based systems, and do not set up the run environment of
     # the compiler. This method can be called on `module` based systems as well
-    def get_real_version(self):
+    def get_real_version(self) -> str:
         """Query the compiler for its version.
 
         This is the "real" compiler version, regardless of what is in the
@@ -569,14 +567,17 @@ class Compiler:
         modifications) to enable the compiler to run properly on any platform.
         """
         cc = spack.util.executable.Executable(self.cc)
-        with self.compiler_environment():
-            output = cc(
-                self.version_argument,
-                output=str,
-                error=str,
-                ignore_errors=tuple(self.ignore_version_errors),
-            )
-            return self.extract_version_from_output(output)
+        try:
+            with self.compiler_environment():
+                output = cc(
+                    self.version_argument,
+                    output=str,
+                    error=str,
+                    ignore_errors=tuple(self.ignore_version_errors),
+                )
+                return self.extract_version_from_output(output)
+        except spack.util.executable.ProcessError:
+            return "unknown"
 
     @property
     def prefix(self):
@@ -603,7 +604,7 @@ class Compiler:
 
     @classmethod
     @llnl.util.lang.memoized
-    def extract_version_from_output(cls, output):
+    def extract_version_from_output(cls, output: str) -> str:
         """Extracts the version from compiler's output."""
         match = re.search(cls.version_regex, output)
         return match.group(1) if match else "unknown"
@@ -732,3 +733,106 @@ class UnsupportedCompilerFlag(spack.error.SpackError):
             )
             + " implement the {0} property and submit a pull request or issue.".format(flag_name),
         )
+
+
+class CompilerCacheEntry:
+    """Deserialized cache entry for a compiler"""
+
+    __slots__ = ["c_compiler_output", "real_version"]
+
+    def __init__(self, c_compiler_output: Optional[str], real_version: str):
+        self.c_compiler_output = c_compiler_output
+        self.real_version = real_version
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Optional[str]]):
+        if not isinstance(data, dict):
+            raise ValueError(f"Invalid {cls.__name__} data")
+        c_compiler_output = data.get("c_compiler_output")
+        real_version = data.get("real_version")
+        if not isinstance(real_version, str) or not isinstance(
+            c_compiler_output, (str, type(None))
+        ):
+            raise ValueError(f"Invalid {cls.__name__} data")
+        return cls(c_compiler_output, real_version)
+
+
+class CompilerCache:
+    """Base class for compiler output cache. Default implementation does not cache anything."""
+
+    def value(self, compiler: Compiler) -> Dict[str, Optional[str]]:
+        return {
+            "c_compiler_output": compiler._compile_dummy_c_source(),
+            "real_version": compiler.get_real_version(),
+        }
+
+    def get(self, compiler: Compiler) -> CompilerCacheEntry:
+        return CompilerCacheEntry.from_dict(self.value(compiler))
+
+
+class FileCompilerCache(CompilerCache):
+    """Cache for compiler output, which is used to determine implicit link paths, the default libc
+    version, and the compiler version."""
+
+    name = os.path.join("compilers", "compilers.json")
+
+    def __init__(self, cache: "spack.caches.FileCacheType") -> None:
+        self.cache = cache
+        self.cache.init_entry(self.name)
+        self._data: Dict[str, Dict[str, Optional[str]]] = {}
+
+    def _get_entry(self, key: str) -> Optional[CompilerCacheEntry]:
+        try:
+            return CompilerCacheEntry.from_dict(self._data[key])
+        except ValueError:
+            del self._data[key]
+        except KeyError:
+            pass
+        return None
+
+    def get(self, compiler: Compiler) -> CompilerCacheEntry:
+        # Cache hit
+        try:
+            with self.cache.read_transaction(self.name) as f:
+                assert f is not None
+                self._data = json.loads(f.read())
+                assert isinstance(self._data, dict)
+        except (json.JSONDecodeError, AssertionError):
+            self._data = {}
+
+        key = self._key(compiler)
+        value = self._get_entry(key)
+        if value is not None:
+            return value
+
+        # Cache miss
+        with self.cache.write_transaction(self.name) as (old, new):
+            try:
+                assert old is not None
+                self._data = json.loads(old.read())
+                assert isinstance(self._data, dict)
+            except (json.JSONDecodeError, AssertionError):
+                self._data = {}
+
+            # Use cache entry that may have been created by another process in the meantime.
+            entry = self._get_entry(key)
+
+            # Finally compute the cache entry
+            if entry is None:
+                self._data[key] = self.value(compiler)
+                entry = CompilerCacheEntry.from_dict(self._data[key])
+
+            new.write(json.dumps(self._data, separators=(",", ":")))
+
+            return entry
+
+    def _key(self, compiler: Compiler) -> str:
+        as_bytes = json.dumps(compiler.to_dict(), separators=(",", ":")).encode("utf-8")
+        return hashlib.sha256(as_bytes).hexdigest()
+
+
+def _make_compiler_cache():
+    return FileCompilerCache(spack.caches.MISC_CACHE)
+
+
+COMPILER_CACHE: CompilerCache = llnl.util.lang.Singleton(_make_compiler_cache)  # type: ignore

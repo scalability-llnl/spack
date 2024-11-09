@@ -21,6 +21,6 @@ class PyMgmetis(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy@1.20.0:1.26.4", type=("build", "run"))
     depends_on("py-cython", type=("build"))
-    depends_on("py-mpi4py@3.0.3:", type=("build", "run"))
+    depends_on("py-mpi4py@3.0.3:3", type=("build", "run"))
     depends_on("py-pytest")
     depends_on("metis+shared", type="all")
