@@ -4019,11 +4019,12 @@ class SpecBuilder:
         for s in self._specs.values():
             _develop_specs_from_env(s, ev.active_environment())
 
-        if any([name == "splice_at_hash" for name, args in function_tuples]):
-            resolved_splices = {}
-            for node in self._specs:
-                self._resolve_splices_for_node(node, resolved_splices)
-            self._specs = resolved_splices
+        # Resolve automatic splices
+        resolved_splices = {}
+        for node in self._specs:
+            self._resolve_splices_for_node(node, resolved_splices)
+        self._specs = resolved_splices
+                        
         # mark concrete and assign hashes to all specs in the solve
         for root in roots.values():
             root._finalize_concretization()
