@@ -27,7 +27,7 @@ class PySnakemakeExecutorPluginAzureBatch(PythonPackage):
     depends_on(
         "py-snakemake-interface-executor-plugins@9.2.0:9", type=("build", "run"), when="@0.2:"
     )
-    depends_on("py-snakemake-interface-executor-plugins@8.1.1:8", type=("build", "run"))
+    depends_on("py-snakemake-interface-executor-plugins@8.1.1:8", type=("build", "run"), when="@:0.1")
 
     depends_on("py-azure-storage-blob@12.20:12", type=("build", "run"), when="@0.2:")
     depends_on("py-azure-storage-blob@12.17:12", type=("build", "run"))
