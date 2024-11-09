@@ -3868,7 +3868,7 @@ class SpecBuilder:
             resolved[node] = orig_spec
             return orig_spec
         new_spec = orig_spec.copy(deps=False)
-        new_spec.clear_cached_hashes((ht.package_hash.attr,))
+        new_spec.clear_cached_hashes(ignore=(ht.package_hash.attr,))
         edges_by_dep_name: Dict[str, List[spack.spec.DependencySpec]]
         edges_by_dep_name = {}
         for edge in orig_spec.edges_to_dependencies():
