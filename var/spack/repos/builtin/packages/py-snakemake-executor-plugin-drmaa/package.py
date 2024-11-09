@@ -15,6 +15,8 @@ class PySnakemakeExecutorPluginDrmaa(PythonPackage):
 
     license("MIT")
 
+    version("0.1.5", sha256="24fe16fc1f1e7ef75bc213cdb960b674bb130ec918a9f6106511a667ffc661b2")
+    version("0.1.4", sha256="93ddefc3fcb5ee2241e4622d04fd1ffcfc58776ff9e723e958a0da2cc2c5fcb7")
     version("0.1.3", sha256="1250d0f307bf3db3aa3f26f85ea5ecc7ae00b2598ea1e1afceab7a457042fa12")
 
     depends_on("py-snakemake-interface-common@1.13:1", type=("build", "run"))
