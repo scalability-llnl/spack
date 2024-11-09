@@ -53,7 +53,7 @@ class Cgal(CMakePackage):
     #      https://cs.nyu.edu/exact/core_pages/svn-core.html
     variant("core", default=False, description="Build the CORE library for algebraic numbers")
     variant("imageio", default=False, description="Build utilities to read/write image files")
-    variant("demos", default=False, description="Build CGAL demos")
+    variant("demos", default=False, description="Build CGAL demos", when="@:5")
     variant("eigen", default=True, description="Build with Eigen support")
 
     # Starting with cgal 6, GMP/MPFR are no longer mandatory and Core library
@@ -87,7 +87,9 @@ class Cgal(CMakePackage):
     # Optional to build CGAL_Qt5 (demos)
     # depends_on('opengl', when='+demos')   # not yet in Spack
     depends_on("qt@5:", when="@:5 +demos")
-    depends_on("qt@6:", when="@6: +demos")
+
+    # Demos are now based on qt6, but at the moment qt6 is not in spack
+    # depends_on("qt@6:", when="@6: +demos")
 
     # Optional Third Party Libraries
     depends_on("eigen", when="+eigen")
