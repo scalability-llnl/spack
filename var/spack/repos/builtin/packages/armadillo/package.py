@@ -87,4 +87,9 @@ class Armadillo(CMakePackage):
             self.define("SuperLU_LIBRARY", spec["superlu"].libs.joined(";")),
             # HDF5 support
             self.define("DETECT_HDF5", "ON" if spec.satisfies("+hdf5") else "OFF"),
+            # disable flexiblas support because armadillo will possibly detect system
+            # flexiblas which causes problems. If this is removed, then SuperLU and ARPACK must
+            # also link with Flexiblas. As this does not seem to be needed with the spack
+            # blas and lapack, it is easier to disable
+            self.define("ALLOW_FLEXIBLAS_LINUX", "OFF"),
         ]
