@@ -35,7 +35,7 @@ class PySnakemakeExecutorPluginAzureBatch(PythonPackage):
     depends_on("py-azure-batch@14", type=("build", "run"))
     depends_on("py-azure-mgmt-batch@17", type=("build", "run"))
     depends_on("py-azure-identity@1.17.1:1", type=("build", "run"), when="@0.2:")
-    depends_on("py-azure-identity@1.14:1", type=("build", "run"))
+    depends_on("py-azure-identity@1.14:1", type=("build", "run"), when="@:0.1")
     depends_on("py-msrest@0.7.1:0.7", type=("build", "run"))
 
     depends_on("python@3.11:3", type=("build", "run"))

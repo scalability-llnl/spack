@@ -20,6 +20,7 @@ class PySnakemakeExecutorPluginDrmaa(PythonPackage):
     version("0.1.3", sha256="1250d0f307bf3db3aa3f26f85ea5ecc7ae00b2598ea1e1afceab7a457042fa12")
 
     depends_on("py-snakemake-interface-common@1.13:1", type=("build", "run"))
+    depends_on("py-snakemake-interface-executor-plugins@9", type=("build", "run"), when="@0.1.4:")
     depends_on("py-snakemake-interface-executor-plugins@8.1:8", type=("build", "run"))
     depends_on("py-drmaa@0.7.9:0.7", type=("build", "run"))
 

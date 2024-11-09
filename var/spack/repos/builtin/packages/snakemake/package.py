@@ -103,12 +103,8 @@ class Snakemake(PythonPackage):
 
     depends_on("py-snakemake-interface-report-plugins@1.1:1", type=("build", "run"), when="@8.22:")
     depends_on("py-snakemake-interface-report-plugins@1", type=("build", "run"), when="@8.5:")
-    depends_on("py-stopit", type=("build", "run"), when="@:8.19.0")
     depends_on("py-tabulate", type=("build", "run"))
     depends_on("py-throttler", type=("build", "run"), when="@7:")
-    depends_on("py-toposort@1.10:1", type=("build", "run"), when="@8.4.12:8.21")
-    depends_on("py-toposort@1.10:", type=("build", "run"), when="@7.24.0:8.21")
-    depends_on("py-toposort", type=("build", "run"), when="@:7.23")
     depends_on("py-wrapt", type=("build", "run"))
     depends_on("py-yte@1.5.1:1", type=("build", "run"), when="@7.28.1:")
     depends_on("py-yte@1", type=("build", "run"), when="@7:7.28.0")
@@ -141,6 +137,10 @@ class Snakemake(PythonPackage):
         depends_on("py-azure-identity", type=("build", "run"))
         depends_on("py-azure-mgmt-batch", type=("build", "run"))
 
+    depends_on("py-stopit", type=("build", "run"), when="@:8.19.0")
+    depends_on("py-toposort@1.10:1", type=("build", "run"), when="@8.4.12:8.21")
+    depends_on("py-toposort@1.10:", type=("build", "run"), when="@7.24.0:8.21")
+    depends_on("py-toposort", type=("build", "run"), when="@:7.23")
     depends_on("py-msrest", type=("build", "run"), when="@7.28.0")
     depends_on("py-filelock", type=("build", "run"), when="@:6")
     depends_on("py-ratelimiter", type=("build", "run"), when="@:6")
