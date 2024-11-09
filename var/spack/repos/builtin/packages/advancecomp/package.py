@@ -22,6 +22,9 @@ class Advancecomp(AutotoolsPackage):
     version("1.23", sha256="fe89d6ab382efc6b6be536b8d58113f36b83d82783d5215c261c14374cba800a")
     version("1.22", sha256="b8c482027a5f78d9a7f871cbba19cc896ed61653d1d93034c9dbe55484952605")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

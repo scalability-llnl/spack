@@ -16,6 +16,9 @@ class Lodepng(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("sdl2")
 
     def install(self, spec, prefix):

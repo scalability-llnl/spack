@@ -32,6 +32,8 @@ class Vala(AutotoolsPackage):
     version("0.48.15", sha256="5f64283f8e69a48c73256cb93578c7db4c35c0b7df079568a4d5b6065b602a50")
     version("0.48.14", sha256="dca57de29f4ce18ee8c6b1e4f1b37ca3843d19dae5c455fceebccc5ae3ffe347")
 
+    depends_on("c", type="build")  # generated
+
     variant("doc", default=False, description="build valadoc")
 
     depends_on("pkgconfig", type="build")

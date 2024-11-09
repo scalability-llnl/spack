@@ -24,6 +24,9 @@ class Nettle(AutotoolsPackage, GNUMirrorPackage):
     version("2.7.1", sha256="bc71ebd43435537d767799e414fce88e521b7278d48c860651216e1fc6555b40")
     version("2.7", sha256="c294ea133c05382cc2effb1734d49f4abeb1ad8515543a333de49a11422cd4d6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gmp")
     depends_on("m4", type="build")
 

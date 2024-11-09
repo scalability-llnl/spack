@@ -24,6 +24,9 @@ class SimpleDftd3(MesonPackage):
     version("0.6.0", sha256="c057361565f570cb128489c70131487f71b6891a40e5292dfe37041596810dfe")
     version("0.5.1", sha256="0411fdaebe438f652a970cb232ae3199c4cc840366ed05fda4c38e634632040d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, description="Use OpenMP parallelisation")
     variant("python", default=False, description="Build Python extension module")
 

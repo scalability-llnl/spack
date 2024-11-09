@@ -20,6 +20,8 @@ class Omm(CMakePackage):
     version("1.2.1", sha256="4876990056efabdd83b0caad52ed56632d9926b61d73fe3efbd04d0f8d242ede")
     version("master", branch="master")
 
+    depends_on("fortran", type="build")  # generated
+
     variant("lapack", default=True, description="Build libOMM with LAPACK interface.")
     variant("mpi", default=True, description="Build libOMM with MPI support.")
     variant(

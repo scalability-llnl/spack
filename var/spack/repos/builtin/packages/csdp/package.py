@@ -18,6 +18,8 @@ class Csdp(MakefilePackage):
 
     version("6.1.1", sha256="0558a46ac534e846bf866b76a9a44e8a854d84558efa50988ffc092f99a138b9")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("atlas")
 
     def edit(self, spec, prefix):

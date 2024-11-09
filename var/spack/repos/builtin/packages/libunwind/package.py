@@ -31,6 +31,9 @@ class Libunwind(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("docs", default=True, description="Build man page")
     variant(
         "libs",
@@ -105,7 +108,7 @@ class Libunwind(AutotoolsPackage):
             ):
                 wrapper_flags.append("-fcommon")
 
-            if "+pic" in self.spec:
+            if self.spec.satisfies("+pic"):
                 wrapper_flags.append(self.compiler.cc_pic_flag)
 
         return (wrapper_flags, None, flags)

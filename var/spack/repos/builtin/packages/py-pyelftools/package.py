@@ -23,4 +23,7 @@ class PyPyelftools(PythonPackage):
     version("0.24", sha256="e9dd97d685a5b96b88a988dabadb88e5a539b64cd7d7927fac9a7368dc4c459c")
     version("0.23", sha256="fc57aadd096e8f9b9b03f1a9578f673ee645e1513a5ff0192ef439e77eab21de")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

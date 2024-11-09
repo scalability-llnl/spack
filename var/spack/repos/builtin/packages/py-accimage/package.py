@@ -20,6 +20,8 @@ class PyAccimage(PythonPackage):
 
     version("0.1.1", sha256="573c56866a42683c7cf25185620fe82ec2ce78468e0621c29fac8f4134a785f5")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python", type=("build", "link", "run"))
     # pip silently replaces distutils with setuptools
     depends_on("py-setuptools", type="build")

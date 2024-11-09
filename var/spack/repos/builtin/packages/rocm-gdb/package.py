@@ -18,6 +18,8 @@ class RocmGdb(AutotoolsPackage):
     license("LGPL-2.0-or-later")
 
     maintainers("srekolam", "renjithravindrankannath")
+    version("6.2.1", sha256="bed312c3fbb9982166538036bb9fd4a75053117c65ba80e34dbdae629a8fe6e4")
+    version("6.2.0", sha256="753fd4f34d49fb0297b01dca2dd7cdf12cd039caa622a5f2d153362d27a8659c")
     version("6.1.2", sha256="19208de18d503e1da79dc0c9085221072a68e299f110dc836204364fa1b532cc")
     version("6.1.1", sha256="3d982abc130a286d227948aca5783f2e4507ef4275be21dad0914e37217ba19e")
     version("6.1.0", sha256="e90d855ca4c1478acf143d45ff0811e7ecd068711db155de6d5f3593cdef6230")
@@ -34,6 +36,10 @@ class RocmGdb(AutotoolsPackage):
         version("5.4.0", sha256="7ee984d99818da04733030b140c1f0929639bc719a5e418d53cc2c2a8cbc9a79")
         version("5.3.3", sha256="9fc3ccd9378ad40f2f0c9577bc400cc9a202d0ae4656378813b67653b9023c46")
         version("5.3.0", sha256="402537baf0779cae586d608505e81173ba85f976fe993f1633e3afe81669350f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3:", type="build")
     depends_on("texinfo", type="build")
@@ -63,6 +69,8 @@ class RocmGdb(AutotoolsPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-dbgapi@{ver}", type="link", when=f"@{ver}")
         depends_on(f"comgr@{ver}", type="link", when=f"@{ver}")
@@ -79,6 +87,8 @@ class RocmGdb(AutotoolsPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

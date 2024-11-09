@@ -14,6 +14,7 @@ import pytest
 import spack.cmd as cmd
 import spack.cmd.find
 import spack.environment as ev
+import spack.store
 import spack.user_environment as uenv
 from spack.main import SpackCommand
 from spack.spec import Spec
@@ -69,11 +70,11 @@ def test_query_arguments():
 
     q_args = query_arguments(args)
     assert "installed" in q_args
-    assert "known" in q_args
+    assert "predicate_fn" in q_args
     assert "explicit" in q_args
     assert q_args["installed"] == ["installed"]
-    assert q_args["known"] is any
-    assert q_args["explicit"] is any
+    assert q_args["predicate_fn"] is None
+    assert q_args["explicit"] is None
     assert "start_date" in q_args
     assert "end_date" not in q_args
     assert q_args["install_tree"] == "all"
@@ -334,7 +335,6 @@ def test_find_command_basic_usage(database):
     assert "mpileaks" in output
 
 
-@pytest.mark.not_on_windows("envirnment is not yet supported on windows")
 @pytest.mark.regression("9875")
 def test_find_prefix_in_env(
     mutable_mock_env_path, install_mockery, mock_fetch, mock_packages, mock_archive

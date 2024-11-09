@@ -56,6 +56,9 @@ class PyGrpcio(PythonPackage):
         # Released 6ish years ago and does not install for python 3.8 with gcc11
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     with default_args(type=("build", "run")):
         depends_on("py-coverage@4:")

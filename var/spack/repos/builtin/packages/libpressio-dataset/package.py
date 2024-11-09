@@ -24,6 +24,9 @@ class LibpressioDataset(CMakePackage):
     version("0.0.3", sha256="b821bd880159c93fe5a960f4b51927a3963b1f0d2b91dc2f6c4655d644e8a28b")
     version("0.0.2", sha256="b5d62260cc596a6239a721bda12293bce34f86266c203a573d3afa8fe0876c2f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("hdf5", default=False, description="add support for hdf5")
     variant("shared", default=True, description="build shared libaries")
 

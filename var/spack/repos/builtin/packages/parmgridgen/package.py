@@ -20,6 +20,8 @@ class Parmgridgen(Package):
 
     version("1.0", sha256="62cdb6e48cfc59124e5d5d360c2841e0fc2feecafe65bda110b74e942740b395")
 
+    depends_on("c", type="build")  # generated
+
     variant("mpi", default=True, description="Activate the compilation of parallel libraries")
 
     depends_on("mpi", when="+mpi")

@@ -18,3 +18,5 @@ class Timew(CMakePackage):
     license("MIT", checked_by="taliaferro")
 
     version("1.7.1", sha256="5e0817fbf092beff12598537c894ec1f34b0a21019f5a3001fe4e6d15c11bd94")
+
+    depends_on("cxx", type="build")  # generated

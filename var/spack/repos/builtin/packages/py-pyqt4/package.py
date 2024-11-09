@@ -19,6 +19,8 @@ class PyPyqt4(SIPPackage):
 
     version("4.12.3", sha256="a00f5abef240a7b5852b7924fa5fdf5174569525dc076cd368a566619e56d472")
 
+    depends_on("cxx", type="build")  # generated
+
     # API files can be installed regardless if QScintilla is installed or not
     variant("qsci_api", default=False, description="Install PyQt API file for QScintilla")
 

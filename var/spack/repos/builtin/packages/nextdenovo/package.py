@@ -16,6 +16,8 @@ class Nextdenovo(MakefilePackage):
 
     version("2.5.2", sha256="f1d07c9c362d850fd737c41e5b5be9d137b1ef3f1aec369dc73c637790611190")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python", type="run")
     depends_on("py-paralleltask", type="run")
 

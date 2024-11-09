@@ -39,6 +39,8 @@ class PypyBootstrap(Package):
     elif platform.system() == "Windows":
         version("2.7-v7.3.12", "84cd3b98812d47a1ddb36f3417cc96b3dbdfa32c2b4e16438f205e1253f7ccea")
 
+    depends_on("c", type="build")  # generated
+
     def url_for_version(self, version):
         url = "https://downloads.python.org/pypy/pypy{}-{}.{}"
         ext = "tar.bz2"

@@ -30,6 +30,9 @@ class VbzCompression(CMakePackage):
     version("1.0.0", commit="2db0e3f62fa7a612dc42dc802401c26781eed068", submodules=True)
     version("0.9.3", commit="9a748efcdd0754be835e1080cf7086f3451e17d1", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.11:", type="build")
     depends_on("zstd@1.3.1:")
     depends_on("hdf5@1.8.16:")

@@ -32,6 +32,8 @@ class Unison(MakefilePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ocaml@4.10.0:~force-safe-string", type=("build", "link"))
 
     with when("@:2.51.2"):

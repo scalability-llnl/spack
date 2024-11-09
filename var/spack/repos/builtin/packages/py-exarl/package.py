@@ -23,6 +23,8 @@ class PyExarl(PythonPackage):
     version("update-spack", branch="update-spack")
     version("0.1.0", tag="v0.1.0", commit="5f5b99884a92f86ea9f637524eca6f4393b9635f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("git-lfs", type=("build"))
     depends_on("py-setuptools", type=("build"))

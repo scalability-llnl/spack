@@ -22,6 +22,9 @@ class RUrltools(RPackage):
 
     version("1.7.3", sha256="6020355c1b16a9e3956674e5dea9ac5c035c8eb3eb6bbdd841a2b5528cafa313")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-triebeard", type=("build", "run"))

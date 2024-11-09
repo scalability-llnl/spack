@@ -21,6 +21,9 @@ class Libusb(AutotoolsPackage):
     version("1.0.21", sha256="7dce9cce9a81194b7065ee912bcd55eeffebab694ea403ffb91b67db66b1824b")
     version("1.0.20", sha256="cb057190ba0a961768224e4dc6883104c6f945b2bf2ef90d7da39e7c1834f7ff")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build", when="@master")
     depends_on("automake", type="build", when="@master")
     depends_on("libtool", type="build", when="@master")

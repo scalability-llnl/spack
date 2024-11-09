@@ -21,6 +21,8 @@ class PyScikitLearnExtra(PythonPackage):
 
     version("0.2.0", sha256="3b1bb5fedde47920eb4b3fa0a0c18f80cc7359d9d0496720178788c6153b8019")
 
+    depends_on("cxx", type="build")  # generated
+
     # For upperbound see https://github.com/scikit-learn-contrib/scikit-learn-extra/issues/164
     depends_on("python@3.6:3.10", type=("build", "run"))
     depends_on("py-setuptools", type="build")

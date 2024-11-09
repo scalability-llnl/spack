@@ -20,6 +20,8 @@ class RpcsvcProto(AutotoolsPackage):
     version("1.4.1", sha256="9429e143bb8dd33d34bf0663f571d4d4a1103e1afd7c49791b367b7ae1ef7f35")
     version("1.4", sha256="4149d5f05d8f7224a4d207362fdfe72420989dc1b028b28b7b62b6c2efe22345")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("gettext")
 
     def configure_args(self):

@@ -18,6 +18,8 @@ class Libfastjson(AutotoolsPackage):
     version("0.99.7", sha256="a142a6e5fa5c9c4ac32615c42fc663a1a14bff305c922e55192b6abf7d1ce1d8")
     version("0.99.6", sha256="617373e5205c84b5f674354df6ee9cba53ef8a227f0d1aa928666ed8a16d5547")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

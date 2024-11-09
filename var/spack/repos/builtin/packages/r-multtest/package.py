@@ -40,6 +40,8 @@ class RMulttest(RPackage):
     version("2.34.0", commit="6ef873e05e6c93ede54f3421424f56eda057cd54")
     version("2.32.0", commit="c5e890dfbffcc3a3f107303a24b6085614312f4a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-biocgenerics", type=("build", "run"))
     depends_on("r-biobase", type=("build", "run"))

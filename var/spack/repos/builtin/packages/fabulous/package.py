@@ -19,6 +19,10 @@ class Fabulous(CMakePackage):
     version("master", branch="master", submodules=True)
     version("1.1.3", sha256="a75a5461984360286c26b104c1d01ac6cf7c3151bfaa42d8e980eb072981f3ef")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("blasmt", default=False, description="use multi-threaded blas and lapack kernels")
     variant("examples", default=False, description="build examples and tests")
 

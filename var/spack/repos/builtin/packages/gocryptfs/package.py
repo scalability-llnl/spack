@@ -20,5 +20,7 @@ class Gocryptfs(GoPackage):
 
     version("2.4.0", sha256="26a93456588506f4078f192b70e7816b6a4042a14b748b28a50d2b6c9b10e2ec")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("openssl")
     depends_on("pkg-config", type="build")

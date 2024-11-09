@@ -31,6 +31,9 @@ class Gate(CMakePackage):
     version("9.1", sha256="aaab874198500b81d45b27cc6d6a51e72cca9519910b893a5c85c8e6d3ffa4fc")
     version("9.0", sha256="8354f392facc0b7ae2ddf0eed61cc43136195b198ba399df25e874886b8b69cb")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("rtk", default=False, description="build support for the Reconstruction Toolkit")
     variant(
         "default_platform",
@@ -52,7 +55,7 @@ class Gate(CMakePackage):
     def cmake_args(self):
         args = []
 
-        if "+rtk" in self.spec:
+        if self.spec.satisfies("+rtk"):
             args.extend(["-DGATE_USE_ITK=ON", "-DGATE_USE_RTK=ON"])
         else:
             args.extend(["-DGATE_USE_ITK=OFF", "-DGATE_USE_RTK=OFF"])

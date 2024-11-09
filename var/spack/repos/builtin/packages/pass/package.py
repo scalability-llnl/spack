@@ -10,13 +10,13 @@ class Pass(MakefilePackage):
     """A minimal password manager following the UNIX philosphy."""
 
     homepage = "https://www.passwordstore.org/"
-    url = "https://git.zx2c4.com/password-store/snapshot/password-store-1.7.4.tar.xz"
+    git = "https://git.zx2c4.com/password-store.git"
 
     maintainers("alecbcs", "taliaferro")
 
     license("GPL-2.0", checked_by="taliaferro")
 
-    version("1.7.4", sha256="cfa9faf659f2ed6b38e7a7c3fb43e177d00edbacc6265e6e32215ff40e3793c0")
+    version("1.7.4", tag="1.7.4", commit="1078f2514d579178d5df7042c6a790e9c9b731ad")
 
     variant("xclip", default=False, description="install the X11 clipboard provider")
 

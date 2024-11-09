@@ -21,6 +21,9 @@ class Openlibm(MakefilePackage):
     version("0.8.0", sha256="03620768df4ca526a63dd675c6de95a5c9d167ff59555ce57a61c6bf49e400ee")
     version("0.7.5", sha256="be983b9e1e40e696e8bbb7eb8f6376d3ca0ae675ae6d82936540385b0eeec15b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def make(self, spec, prefix):
         args = [
             "prefix={0}".format(prefix),

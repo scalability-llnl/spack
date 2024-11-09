@@ -19,6 +19,8 @@ class Mummer4(AutotoolsPackage):
         "4.0.0beta2", sha256="cece76e418bf9c294f348972e5b23a0230beeba7fd7d042d5584ce075ccd1b93"
     )
 
+    depends_on("cxx", type="build")  # generated
+
     conflicts("%gcc@:4.7")
 
     depends_on("perl@5.6.0:", type=("build", "run"))

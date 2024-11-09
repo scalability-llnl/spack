@@ -20,6 +20,9 @@ class PyObspy(PythonPackage):
     version("1.4.1", sha256="9cf37b0ce03de43d80398703c006bfddbd709f32e8460a9404b27df998d3f747")
     version("1.4.0", sha256="336a6e1d9a485732b08173cb5dc1dd720a8e53f3b54c180a62bb8ceaa5fe5c06")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("python@3.8:3", type=("build", "run"))
 
     depends_on("py-setuptools", type="build")

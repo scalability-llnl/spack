@@ -40,5 +40,5 @@ class MultivalueVariant(Package):
 
     depends_on("mpi")
     depends_on("callpath")
-    depends_on("a")
-    depends_on("a@1.0", when="fee=barbaz")
+    depends_on("pkg-a")
+    depends_on("pkg-a@1.0", when="fee=barbaz")

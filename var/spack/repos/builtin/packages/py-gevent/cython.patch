@@ -1,0 +1,9 @@
+--- a/src/gevent/_gevent_cqueue.pxd
++++ b/src/gevent/_gevent_cqueue.pxd
+@@ -75,7 +75,6 @@ cdef class ItemWaiter(Waiter):
+     cdef readonly Queue queue
+ 
+ 
+-@cython.final
+ cdef class UnboundQueue(Queue):
+     pass

@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -23,6 +24,8 @@ class Flatbuffers(CMakePackage):
     version("1.10.0", sha256="3714e3db8c51e43028e10ad7adffb9a36fc4aa5b1a363c2d0c4303dd1be59a7c")
     version("1.9.0", sha256="5ca5491e4260cacae30f1a5786d109230db3f3a6e5a0eb45d0d0608293d247e3")
     version("1.8.0", sha256="c45029c0a0f1a88d416af143e34de96b3091642722aa2d8c090916c6d1498c2e")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build shared instead of static libraries")
     variant("python", default=False, description="Build with python support")
@@ -54,11 +57,10 @@ class Flatbuffers(CMakePackage):
 
     @run_after("install")
     def python_install(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             pydir = join_path(self.stage.source_path, "python")
             with working_dir(pydir):
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
     def cmake_args(self):
         args = []

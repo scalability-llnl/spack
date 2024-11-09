@@ -21,6 +21,8 @@ class ThornadoMini(MakefilePackage):
 
     version("1.0", sha256="8a9f97acc823d374cce567831270cfcc50fa968949e49159c7e3442b93a2827d")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("hdf5+fortran")
     depends_on("lapack")

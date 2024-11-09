@@ -24,6 +24,10 @@ class Serialbox(CMakePackage):
     version("2.5.4", sha256="f4aee8ef284f58e6847968fe4620e222ac7019d805bbbb26c199e4b6a5094fee")
     version("2.5.3", sha256="696499b3f43978238c3bcc8f9de50bce2630c07971c47c9e03af0324652b2d5d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("c", default=True, description="enable C interface")
     variant("python", default=False, description="enable Python interface")
     variant("fortran", default=False, description="enable Fortran interface")

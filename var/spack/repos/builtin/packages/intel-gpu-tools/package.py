@@ -24,6 +24,8 @@ class IntelGpuTools(AutotoolsPackage, XorgPackage):
     version("1.20", sha256="c6ee992301e43ec14ef810ef532e2601ecf7399315f942207ae0dd568fd9c2b7")
     version("1.16", sha256="4874e6e7704c8d315deaf5b44cc9467ea5e502c7f816470a4a28827fcb34643f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libdrm@2.4.64:")
     depends_on("libpciaccess@0.10:", when=(sys.platform != "darwin"))
     depends_on("libunwind")

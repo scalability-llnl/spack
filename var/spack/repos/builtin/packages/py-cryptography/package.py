@@ -15,6 +15,8 @@ class PyCryptography(PythonPackage):
 
     license("Apache-2.0")
 
+    version("42.0.8", sha256="8d09d05439ce7baa8e9e95b07ec5b6c886f548deb7e0f69ef25f64b3bce842f2")
+    version("41.0.7", sha256="13f93ce9bea8016c253b34afc6bd6a75993e5c40672ed5405a9c832f0d4a00bc")
     version("41.0.3", sha256="6d192741113ef5e30d89dcb5b956ef4e1578f304708701b8b73d38e3e1461f34")
     version("40.0.2", sha256="c33c0d32b8594fa647d2e01dbccc303478e16fdd7cf98652d5b3ed11aa5e5c99")
     version("38.0.1", sha256="1db3d807a14931fa317f96435695d9ec386be7b84b618cc61cfa5d08b0ae33d7")
@@ -39,6 +41,7 @@ class PyCryptography(PythonPackage):
     depends_on("py-setuptools@40.6:", when="@2.7:36", type="build")
     depends_on("py-setuptools@18.5:", when="@2.2:2.6", type="build")
     depends_on("py-setuptools@11.3:", when="@:2.1", type="build")
+    depends_on("py-setuptools-rust@1.7.0:", when="@42:", type=("build", "run"))
     depends_on("py-setuptools-rust@0.11.4:", when="@3.4.2:", type="build")
     depends_on("py-setuptools-rust@0.11.4:", when="@3.4:3.4.1", type=("build", "run"))
     depends_on("rust@1.56:", when="@41:", type="build")

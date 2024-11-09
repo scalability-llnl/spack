@@ -31,6 +31,8 @@ class Miniamr(MakefilePackage):
     version("1.4.1", sha256="dd8e8d9fd0768cb4f2c5d7fe6989dfa6bb95a8461f04deaccdbb50b0dd51e97a")
     version("1.4.0", sha256="f0b959c90416288c5ab51ed86b6ba49bc8a319006c2a74a070c94133267edc6f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
 
     @property

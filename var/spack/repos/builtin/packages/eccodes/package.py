@@ -67,6 +67,10 @@ class Eccodes(CMakePackage):
     version("2.5.0", sha256="18ab44bc444168fd324d07f7dea94f89e056f5c5cd973e818c8783f952702e4e")
     version("2.2.0", sha256="1a4112196497b8421480e2a0a1164071221e467853486577c4f07627a702f4c3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("tools", default=False, description="Build the command line tools")
     variant("netcdf", default=False, description="Enable GRIB to NetCDF conversion tool")
     variant(
@@ -333,7 +337,7 @@ class Eccodes(CMakePackage):
             self.define("ENABLE_EXTRA_TESTS", False),
         ]
 
-        if "+netcdf" in self.spec:
+        if self.spec.satisfies("+netcdf"):
             # Prevent possible overriding by environment variables NETCDF_ROOT, NETCDF_DIR, and
             # NETCDF_PATH:
             args.append(self.define("NETCDF_PATH", self.spec["netcdf-c"].prefix))
@@ -346,10 +350,10 @@ class Eccodes(CMakePackage):
         if jp2k == "openjpeg":
             args.append(self.define("OPENJPEG_PATH", self.spec["openjpeg"].prefix))
 
-        if "+png" in self.spec:
+        if self.spec.satisfies("+png"):
             args.append(self.define("ZLIB_ROOT", self.spec["zlib-api"].prefix))
 
-        if "+aec" in self.spec:
+        if self.spec.satisfies("+aec"):
             # Prevent overriding by environment variables AEC_DIR and AEC_PATH:
             args.append(self.define("AEC_DIR", self.spec["libaec"].prefix))
 

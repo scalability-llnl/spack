@@ -20,6 +20,8 @@ class HttpGet(MakefilePackage):
         "2018-05-23", sha256="f04e9d911fbc0cdb7c4ebe91dae1cc951ea14b657f48309c3952dcc938bb2e0d"
     )
 
+    depends_on("c", type="build")  # generated
+
     def url_for_version(self, version):
         ver = datetime.datetime.strptime(str(version), "%Y-%m-%d").date()
         verstr = datetime.datetime.strftime(ver, "%d%b%Y")

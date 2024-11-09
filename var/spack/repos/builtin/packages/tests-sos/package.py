@@ -16,6 +16,10 @@ class TestsSos(AutotoolsPackage):
 
     version("1.5.2", sha256="3a063963ef779419aadc6b21ff2f1e4dcdd3e95fa8ed23545434e56757f3187f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

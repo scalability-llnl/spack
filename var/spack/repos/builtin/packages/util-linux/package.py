@@ -39,6 +39,8 @@ class UtilLinux(AutotoolsPackage):
     version("2.29.1", sha256="a6a7adba65a368e6dad9582d9fbedee43126d990df51266eaee089a73c893653")
     version("2.25", sha256="7e43273a9e2ab99b5a54ac914fddf5d08ba7ab9b114c550e9f03474672bd23a1")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@2.7:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("ncurses", type="link")

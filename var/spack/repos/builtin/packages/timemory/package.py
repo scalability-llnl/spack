@@ -28,6 +28,10 @@ class Timemory(CMakePackage, PythonExtension):
     version("3.0.1", commit="ef638e1cde90275ce7c0e12fc4902c27bcbdeefd", submodules=True)
     version("3.0.0", commit="b36b1673b2c6b7ff3126d8261bef0f8f176c7beb", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries")
     variant("static", default=False, description="Build static libraries")
     variant("pic", default=True, description="Build position independent code")

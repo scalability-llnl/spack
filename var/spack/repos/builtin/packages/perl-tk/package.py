@@ -18,6 +18,9 @@ class PerlTk(PerlPackage):
     version("804.035", sha256="4d2b80291ba6de34d8ec886a085a6dbd2b790b926035a087e99025614c5ffdd4")
     version("804.033", sha256="84756e9b07a2555c8eecf88e63d5cbbba9b1aa97b1e71a3d4aa524a7995a88ad")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("perl-extutils-makemaker", type="build")
     depends_on("libx11")
     depends_on("libxcb")

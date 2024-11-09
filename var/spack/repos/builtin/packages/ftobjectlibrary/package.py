@@ -19,3 +19,5 @@ class Ftobjectlibrary(CMakePackage):
     license("MIT")
 
     version("main", branch="main")
+
+    depends_on("fortran", type="build")  # generated

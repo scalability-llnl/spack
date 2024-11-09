@@ -18,4 +18,6 @@ class JansiNative(MavenPackage):
 
     version("1.8", sha256="053808f58495a5657c7e7f388008b02065fbbb3f231454bfcfa159adc2e2fcea")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("java@8", type=("build", "run"))

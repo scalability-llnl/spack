@@ -14,6 +14,8 @@ class LpSolve(Package):
 
     version("5.5.2.11", sha256="6d4abff5cc6aaa933ae8e6c17a226df0fc0b671c438f69715d41d09fe81f902f")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         with working_dir("lpsolve55"):
             mkdir(prefix.lib)

@@ -23,6 +23,8 @@ class Simulationio(CMakePackage):
     version("9.0.2", sha256="3dd3422e64f6a75215783f6157effd07430e1d0af5884e565f73388a815511f8")
     version("9.0.1", sha256="c2f6c99417165f6eb8cbb9c44822d119586675abb34eabd553eb80f44b53e0c8")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("asdf", default=True, description="Enable ASDF bindings")
     variant("julia", default=False, description="Enable Julia bindings")
     variant("python", default=True, description="Enable Python bindings", when="@9:")

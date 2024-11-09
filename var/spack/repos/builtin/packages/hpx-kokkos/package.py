@@ -24,6 +24,8 @@ class HpxKokkos(CMakePackage, CudaPackage, ROCmPackage):
     version("0.2.0", sha256="289b711cea26afe80be002fc521234c9194cd0e8f69863f3b08b654674dbe5d5")
     version("0.1.0", sha256="24edb817d0969f4aea1b68eab4984c2ea9a58f4760a9b8395e20f85b178f0850")
 
+    depends_on("cxx", type="build")
+
     cxxstds = ("14", "17", "20")
     variant(
         "cxxstd",
@@ -79,7 +81,7 @@ class HpxKokkos(CMakePackage, CudaPackage, ROCmPackage):
             self.define("HPX_KOKKOS_ENABLE_BENCHMARKS", self.run_tests),
         ]
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             args += [self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc)]
 
         return args

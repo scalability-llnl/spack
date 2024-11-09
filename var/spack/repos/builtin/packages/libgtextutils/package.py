@@ -16,3 +16,6 @@ class Libgtextutils(AutotoolsPackage):
 
     patch("text_line_reader.patch")
     version("0.7", sha256="792e0ea3c96ffe3ad65617a104b7dc50684932bc96d2adab501c952fd65c3e4a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

@@ -24,6 +24,8 @@ class Brigand(CMakePackage):
     version("1.1.0", sha256="afdcc6909ebff6994269d3039c31698c2b511a70280072f73382b26855221f64")
     version("1.0.0", sha256="8daf7686ff39792f851ef1977323808b80aab31c5f38ef0ba4e6a8faae491f8d")
 
+    depends_on("cxx", type="build")  # generated
+
     def cmake_args(self):
         args = [self.define("BUILD_TESTING", self.run_tests)]
         return args

@@ -16,6 +16,9 @@ class Dimemas(AutotoolsPackage):
 
     version("5.4.1", sha256="10ddca3745a56ebab5c1ba180f6f4bce5832c4deac50c1b1dc08271db5c7cafa")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

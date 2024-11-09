@@ -28,6 +28,8 @@ class Hohqmesh(CMakePackage):
     version("1.0.1", sha256="8435f13c96d714a287f3c24392330047e2131d53fafe251a77eba365bd2b3141")
     version("1.0.0", sha256="3800e63975d0a61945508f13fb76d5e2145c0260440484252b6b81aa0bfe076d")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("ftobjectlibrary")
 
     parallel = False

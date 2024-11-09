@@ -20,6 +20,8 @@ class Xfontsel(AutotoolsPackage, XorgPackage):
     version("1.0.6", sha256="a7b025cb96b678f03caeb61a2770890359bdab34dc37e09d447b30c54c4df35e")
     version("1.0.5", sha256="9b3ad0cc274398d22be9fa7efe930f4e3749fd4b1b61d9c31a7fb6c1f1ff766e")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxaw")
     depends_on("libxmu")
     depends_on("libxt")

@@ -16,6 +16,8 @@ class PyMikado(PythonPackage):
 
     version("1.2.4", sha256="c0485dba3b7c285599809e058c83f33b5efa9522d20d9f980423410604207f61")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-wheel@0.28.0:", type="build")
     depends_on("py-pyyaml", type=("build", "run"))

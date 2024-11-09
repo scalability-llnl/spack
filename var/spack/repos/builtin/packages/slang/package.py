@@ -18,4 +18,6 @@ class Slang(AutotoolsPackage):
     version("2.3.2", sha256="fc9e3b0fc4f67c3c1f6d43c90c16a5c42d117b8e28457c5b46831b8b5d3ae31a")
     version("2.3.1", sha256="a810d5da7b0c0c8c335393c6b4f12884be6fa7696d9ca9521ef21316a4e00f9d")
 
+    depends_on("c", type="build")  # generated
+
     parallel = False

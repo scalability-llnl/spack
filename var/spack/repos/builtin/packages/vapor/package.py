@@ -29,6 +29,9 @@ class Vapor(CMakePackage):
         preferred=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("doc", default=True, description="Build docs using Doxygen")
     variant("ospray", default=False, description="Enable OSPRay raytracing")
 

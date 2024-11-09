@@ -1,0 +1,31 @@
+--- a/qtbase/mkspecs/common/icc-base-unix.conf	2024-05-07 23:17:16.000000000 -0600
++++ b/qtbase/mkspecs/common/icc-base-unix.conf	2024-07-10 21:32:47.808327220 -0600
+@@ -16,7 +16,7 @@
+ QMAKE_CFLAGS_OPTIMIZE      = -O2
+ QMAKE_CFLAGS_OPTIMIZE_SIZE = -Os
+ 
+-QMAKE_CC                = icc
++QMAKE_CC                = icx
+ QMAKE_LEX               = flex
+ QMAKE_LEXFLAGS          =
+ QMAKE_YACC              = yacc
+@@ -61,7 +61,7 @@
+ QMAKE_CFLAGS_SHANI     += -msha
+ QMAKE_CFLAGS_VAES      += -mvaes
+ 
+-QMAKE_CXX               = icpc
++QMAKE_CXX               = icpx
+ QMAKE_CXXFLAGS          = $$QMAKE_CFLAGS
+ QMAKE_CXXFLAGS_APP      = $$QMAKE_CFLAGS_APP
+ QMAKE_CXXFLAGS_DEPS     = $$QMAKE_CFLAGS_DEPS
+@@ -92,8 +92,8 @@
+ QMAKE_CFLAGS_HIDESYMS   += -fvisibility=hidden
+ QMAKE_CXXFLAGS_HIDESYMS += $$QMAKE_CFLAGS_HIDESYMS -fvisibility-inlines-hidden
+ 
+-QMAKE_LINK              = icpc
+-QMAKE_LINK_SHLIB        = icpc
++QMAKE_LINK              = icpx
++QMAKE_LINK_SHLIB        = icpx
+ QMAKE_LFLAGS            =
+ QMAKE_LFLAGS_RELEASE    =
+ QMAKE_LFLAGS_DEBUG      =

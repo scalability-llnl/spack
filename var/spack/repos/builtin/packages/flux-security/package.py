@@ -27,6 +27,8 @@ class FluxSecurity(AutotoolsPackage):
     version("0.9.0", sha256="2258120c6f32ca0b5b13b166bae56d9bd82a44c6eeaa6bc6187e4a4419bdbcc0")
     version("0.8.0", sha256="9963628063b4abdff6bece03208444c8f23fbfda33c20544c48b21e9f4819ce2")
 
+    depends_on("c", type="build")  # generated
+
     # Need autotools when building on master:
     depends_on("autoconf", type="build", when="@master")
     depends_on("automake", type="build", when="@master")

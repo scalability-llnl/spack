@@ -24,6 +24,8 @@ class Acpid(AutotoolsPackage):
     version("2.0.25", sha256="947d2e4f9b2d61a728ce5d6139901f1b666dcef5e2a48833cb33d82895e261cf")
     version("2.0.24", sha256="05903901369c4ebea1d24e445b4a1d516dd3b07e7864cc752a2d09b4147e1985")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

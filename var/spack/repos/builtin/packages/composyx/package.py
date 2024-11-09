@@ -18,6 +18,10 @@ class Composyx(CMakePackage):
     version("main", branch="main", submodules=True)
     version("1.0.1", sha256="d97936e3b297fde435c165cbe29cb39e5d88ae368be451b1c45b8ee51486782c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # User options
     variant("armadillo", default=False, description="Enable Armadillo interface")
     variant("arpack-ng", default=True, description="Enable arpack eigen/singular value solvers")

@@ -24,6 +24,8 @@ class Socat(AutotoolsPackage):
 
     version("1.7.4.4", sha256="fbd42bd2f0e54a3af6d01bdf15385384ab82dbc0e4f1a5e153b3e0be1b6380ac")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("openssl")
     depends_on("readline")
     depends_on("ncurses")

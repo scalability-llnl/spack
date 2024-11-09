@@ -26,6 +26,8 @@ class AwsOfiNccl(AutotoolsPackage):
     version("1.7.1", sha256="d50a160c7aba76445e5c895fba0f3dbfdec51f702d218168a5e5017806cf0fb0")
     version("1.6.0", sha256="19a6fc91afe9a317fd3154c897fa219eab48fcdddefa66d881f1843c1165f7ee")
 
+    depends_on("c", type="build")  # generated
+
     variant("trace", default=False, description="Enable printing trace messages")
     variant("tests", default=False, description="Build tests")
 

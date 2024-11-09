@@ -20,6 +20,8 @@ class PkgConfig(AutotoolsPackage):
     version("0.29.1", sha256="beb43c9e064555469bd4390dcfd8030b1536e0aa103f08d7abf7ae8cac0cb001")
     version("0.28", sha256="6b6eb31c6ec4421174578652c7e141fdaae2dabad1021f420d8713206ac1f845")
 
+    depends_on("c", type="build")  # generated
+
     provides("pkgconfig")
 
     variant("internal_glib", default=True, description="Builds with internal glib")

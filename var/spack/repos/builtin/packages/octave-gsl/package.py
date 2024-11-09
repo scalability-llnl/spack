@@ -16,6 +16,8 @@ class OctaveGsl(OctavePackage, SourceforgePackage):
 
     version("2.1.1", sha256="d028c52579e251c3f21ebfdf065dffab3ad7893434efda33b501225ef1ea6ed3")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gsl@2.4:")
     extends("octave@2.9.7:")
 

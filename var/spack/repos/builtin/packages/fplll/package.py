@@ -28,6 +28,8 @@ class Fplll(AutotoolsPackage):
     version("5.1.0", sha256="58175c54cc92752576a64361c73e4ea7797fc18fb703b3f22c7570a09075486f")
     version("5.0.3", sha256="d2b11b7dcb26c30ac1aab9ff75aca9b3dd6e0b0b40c382af16017a717dfe05c2")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gmp")
     depends_on("mpfr")
 

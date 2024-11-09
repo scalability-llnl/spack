@@ -27,6 +27,9 @@ class IscDhcp(AutotoolsPackage):
     version("4.3.6", sha256="a41eaf6364f1377fe065d35671d9cf82bbbc8f21207819b2b9f33f652aec6f1b")
     version("4.3.5", sha256="eb95936bf15d2393c55dd505bc527d1d4408289cec5a9fa8abb99f7577e7f954")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

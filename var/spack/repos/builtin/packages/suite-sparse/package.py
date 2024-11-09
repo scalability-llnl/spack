@@ -44,6 +44,10 @@ class SuiteSparse(Package):
     version("4.5.5", sha256="80d1d9960a6ec70031fecfe9adfe5b1ccd8001a7420efb50d6fa7326ef14af91")
     version("4.5.3", sha256="b6965f9198446a502cde48fb0e02236e75fa5700b94c7306fc36599d57b563f4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "pic",
         default=True,
@@ -123,32 +127,44 @@ class SuiteSparse(Package):
             return
 
         symbols = (
-            "dtrsv_",
-            "dgemv_",
-            "dtrsm_",
+            "cgemm_",
+            "cgemv_",
+            "cherk_",
+            "cpotrf_",
+            "ctrsm_",
+            "ctrsv_",
             "dgemm_",
-            "dsyrk_",
+            "dgemv_",
             "dger_",
-            "dscal_",
-            "dpotrf_",
-            "ztrsv_",
-            "zgemv_",
-            "ztrsm_",
-            "zgemm_",
-            "zherk_",
-            "zgeru_",
-            "zscal_",
-            "zpotrf_",
-            "dnrm2_",
             "dlarf_",
+            "dlarfb_",
             "dlarfg_",
             "dlarft_",
-            "dlarfb_",
+            "dnrm2_",
+            "dpotrf_",
+            "dscal_",
+            "dsyrk_",
+            "dtrsm_",
+            "dtrsv_",
             "dznrm2_",
+            "sgemm_",
+            "sgemv_",
+            "spotrf_",
+            "ssyrk_",
+            "strsm_",
+            "strsv_",
+            "zgemm_",
+            "zgemv_",
+            "zgeru_",
+            "zherk_",
             "zlarf_",
+            "zlarfb_",
             "zlarfg_",
             "zlarft_",
-            "zlarfb_",
+            "zpotrf_",
+            "zscal_",
+            "ztrsm_",
+            "ztrsv_",
         )
 
         for symbol in symbols:
@@ -233,6 +249,7 @@ class SuiteSparse(Package):
             # Mongoose directory finds libsuitesparseconfig.so in system
             # directories like /usr/lib.
             cmake_args = [
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
                 f"-DCMAKE_INSTALL_PREFIX={prefix}",
                 f"-DCMAKE_LIBRARY_PATH={prefix.lib}",
                 f"-DBLAS_ROOT={spec['blas'].prefix}",

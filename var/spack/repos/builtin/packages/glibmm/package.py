@@ -19,6 +19,8 @@ class Glibmm(AutotoolsPackage):
     version("2.16.0", sha256="99795b9c6e58e490df740a113408092bf47a928427cbf178d77c35adcb6a57a3")
     version("2.4.8", sha256="78b97bfa1d001cc7b398f76bf09005ba55b45ae20780b297947a1a71c4f07e1f")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libsigcpp")
     # https://libsigcplusplus.github.io/libsigcplusplus/index.html
     # sigc++-2.0 and sigc++-3.0 are different parallel-installable ABIs:

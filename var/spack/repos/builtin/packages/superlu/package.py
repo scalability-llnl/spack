@@ -42,6 +42,9 @@ class Superlu(CMakePackage, Package):
         url="https://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.2.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     build_system(
         conditional("cmake", when="@5:"), conditional("generic", when="@:4"), default="cmake"
     )
@@ -113,7 +116,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
         filter_file(r"include \.\./" + filename, "include ./" + filename, makefile)
 
         # Cache the examples directory for use by stand-alone tests
-        self.pkg.cache_extra_test_sources(self.pkg.examples_src_dir)
+        cache_extra_test_sources(self.pkg, self.pkg.examples_src_dir)
 
     def _make_hdr_for_test(self, lib):
         """Standard configure arguments for make.inc"""

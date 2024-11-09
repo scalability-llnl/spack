@@ -25,6 +25,8 @@ class RLibpressio(RPackage):
     version("1.1", sha256="b86a541e095b6e41b3548f6cd734c1ff50c70edda2806ed66b5205880fbfbb96")
     version("0.0.1", sha256="a508cf3ec1b06c417e0de0e1e4180f3175ead2e4ec23b374425fcf2abfaa1b88")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "third_party", description="include support for 3rd party compressor modules", default=True
     )

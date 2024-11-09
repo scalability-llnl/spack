@@ -19,6 +19,8 @@ class PyBcrypt(PythonPackage):
     version("3.1.6", sha256="169d3e6edbf8717e8856748b72fb02abe8ce8e0b65d733b1509ae9942e77f2a9")
     version("3.1.4", sha256="ca122a2cdcdffb0fd04f9dfe3493766f298bef02dea2f190f35ea6fdee222b96")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.6:", when="@3.2:", type="build")
     depends_on("python@2.7:2,3.4:", when="@3.1.6:", type="build")
     depends_on("py-setuptools@40.8:", when="@3.1.7:", type="build")

@@ -27,6 +27,8 @@ class XcbUtilKeysyms(AutotoolsPackage, XorgPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxcb@1.4:")
 
     depends_on("xproto@7.0.8:")

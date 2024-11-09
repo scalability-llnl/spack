@@ -27,6 +27,10 @@ class QESirius(CMakePackage):
         submodules=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, description="Enables OpenMP support")
     variant("libxc", default=False, description="Support functionals through libxc")
     variant("sirius_apps", default=False, description="Build SIRIUS standalone binaries")
@@ -54,8 +58,6 @@ class QESirius(CMakePackage):
     depends_on("lapack")
     depends_on("git", type="build")
     depends_on("pkgconfig", type="build")
-
-    conflicts("~scalapack", when="+elpa", msg="ELPA requires SCALAPACK support")
 
     variant("scalapack", default=True, description="Enables scalapack support")
 

@@ -38,6 +38,9 @@ class Oce(CMakePackage):
         )
         version("0.16", sha256="841fe4337a5a4e733e36a2efc4fe60a4e6e8974917028df05d47a02f59787515")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("tbb", default=True, description="Build with Intel Threading Building Blocks")
     variant("X11", default=False, description="Build with X11 enabled")
 

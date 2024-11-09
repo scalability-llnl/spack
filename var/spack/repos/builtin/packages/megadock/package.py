@@ -20,6 +20,8 @@ class Megadock(MakefilePackage, CudaPackage):
     version("4.1.1", sha256="5e08416ea86169be9f0a998f081f53c04aa8696ef83b9fcc5bf685fe45d52087")
     version("4.0.3", sha256="c1409a411555f4f7b4eeeda81caf622d8a28259a599ea1d2181069c55f257664")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", description="Enable MPI", default=False)
 
     depends_on("fftw")

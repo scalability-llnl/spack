@@ -19,6 +19,8 @@ class Adlbx(AutotoolsPackage):
     version("0.9.2", sha256="524902d648001b689a98492402d754a607b8c1d0734699154063c1a4f3410d4a")
     version("0.9.1", sha256="8913493fe0c097ff13c721ab057514e5bdb55f6318d4e3512692ab739c3190b3")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("exmcutils@master", when="@master")
     depends_on("exmcutils@:0.5.7", when="@:0.9.2")
     depends_on("exmcutils", when="@0.9.1:")

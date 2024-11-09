@@ -21,6 +21,21 @@
  RDFT_SRC = rdft-serial.c rdft-rank-geq2.c rdft-rank-geq2-transposed.c rdft-rank1-bigvec.c rdft-problem.c rdft-solve.c mpi-rdft.h
  RDFT2_SRC = rdft2-serial.c rdft2-rank-geq2.c rdft2-rank-geq2-transposed.c rdft2-problem.c rdft2-solve.c mpi-rdft2.h
 
+--- mpi/mpi-transpose.h
++++ mpi/mpi-transpose.h
+@@ -55,6 +55,11 @@ int XM(mkplans_posttranspose)(const problem_mpi_transpose *p, planner *plnr,
+ 			      R *I, R *O, int my_pe,
+ 			      plan **cld2, plan **cld2rest, plan **cld3,
+ 			      INT *rest_Ioff, INT *rest_Ooff);
++/* transpose-pairwise-transposed.c: */
++int XM(mkplans_pretranspose)(const problem_mpi_transpose *p, planner *plnr,
++			      R *I, R *O, int my_pe,
++			      plan **cld2, plan **cld2rest, plan **cld3,
++			      INT *rest_Ioff, INT *rest_Ooff);
+ /* various solvers */
+ void XM(transpose_pairwise_register)(planner *p);
+ void XM(transpose_alltoall_register)(planner *p);
+
 --- mpi/mpi-transpose.h	2020-12-10 12:02:44.000000000 +0000
 +++ mpi/mpi-transpose.h	2021-04-06 09:06:12.144841002 +0000
 @@ -59,3 +59,5 @@

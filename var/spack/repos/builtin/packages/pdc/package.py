@@ -38,6 +38,9 @@ class Pdc(CMakePackage):
     version("stable", branch="stable")
     version("develop", branch="develop")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     conflicts("%clang")
 
     depends_on("libfabric")

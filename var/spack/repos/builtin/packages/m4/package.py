@@ -21,6 +21,9 @@ class M4(AutotoolsPackage, GNUMirrorPackage):
     version("1.4.18", sha256="ab2633921a5cd38e48797bf5521ad259bdc4b979078034a3b790d7fec5493fab")
     version("1.4.17", sha256="3ce725133ee552b8b4baca7837fb772940b25e81b2a9dc92537aeaf733538c9e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     patch("gnulib-pgi.patch", when="@1.4.18")
     patch("pgi.patch", when="@1.4.17")
     # The NVIDIA compilers do not currently support some GNU builtins.

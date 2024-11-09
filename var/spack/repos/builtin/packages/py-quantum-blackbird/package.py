@@ -20,6 +20,8 @@ class PyQuantumBlackbird(PythonPackage):
 
     version("0.5.0", sha256="065c73bf5263ce8f9b72dcd2b434f3bfbb471f0a6907c97a617ec0c8bde01db3")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
 
     depends_on("py-numpy@1.16:", type=("build", "run"))

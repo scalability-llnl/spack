@@ -43,3 +43,5 @@ class Opus(AutotoolsPackage):
     version("0.9.2", sha256="6e85c1b57e1d7b7dfe2928bf92586b96b73a9067e054ede45bd8e6d24bd30582")
     version("0.9.1", sha256="206221afc47b87496588013bd4523e1e9f556336c0813f4372773fc536dd4293")
     version("0.9.0", sha256="b2f75c4ac5ab837845eb028413fae2a28754bfb0a6d76416e2af1441ef447649")
+
+    depends_on("c", type="build")  # generated

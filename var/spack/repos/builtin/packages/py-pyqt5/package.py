@@ -19,6 +19,8 @@ class PyPyqt5(SIPPackage):
 
     version("5.15.9", sha256="dc41e8401a90dc3e2b692b411bd5492ab559ae27a27424eed4bd3915564ec4c0")
 
+    depends_on("cxx", type="build")  # generated
+
     # pyproject.toml
     depends_on("py-sip@6.6.2:6", type="build")
     depends_on("py-pyqt-builder@1.14.1:1", type="build")

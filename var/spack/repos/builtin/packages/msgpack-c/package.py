@@ -22,6 +22,9 @@ class MsgpackC(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost", when="@4:")
     depends_on("cmake@2.8.0:", type="build")
     depends_on("cmake@3.1.0:", type="build", when="@4:")

@@ -18,6 +18,8 @@ class Attr(AutotoolsPackage):
     version("2.4.47", sha256="25772f653ac5b2e3ceeb89df50e4688891e21f723c460636548971652af0a859")
     version("2.4.46", sha256="dcd69bdca7ff166bc45141eddbcf21967999a6b66b0544be12a1cc2fd6340e1f")
 
+    depends_on("c", type="build")  # generated
+
     def url_for_version(self, version):
         if version >= Version("2.4.48"):
             url = "http://download.savannah.gnu.org/releases/attr/attr-{0}.tar.gz"

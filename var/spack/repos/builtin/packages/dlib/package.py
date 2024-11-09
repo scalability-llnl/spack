@@ -24,6 +24,10 @@ class Dlib(CMakePackage, CudaPackage):
     version("19.20", sha256="fc3f0986350e8e53aceadf95a71d2f413f1eedc469abda99a462cb528741d411")
     version("19.19", sha256="7af455bb422d3ae5ef369c51ee64e98fa68c39435b0fa23be2e5d593a3d45b87")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("ffmpeg", default=False, description="build ffmpeg image support")
     variant("gif", default=False, description="build gif image support")
     variant("gui", default=False, description="build dlib graphical support")

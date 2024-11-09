@@ -14,4 +14,6 @@ class PyYajl(PythonPackage):
 
     version("0.3.5", sha256="432321ea613692a4782a2368a300f57b59c64a3c8508c7465af3fdc045e7bcc2")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

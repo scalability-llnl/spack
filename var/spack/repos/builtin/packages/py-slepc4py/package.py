@@ -18,6 +18,10 @@ class PySlepc4py(PythonPackage):
     license("BSD-2-Clause")
 
     version("main", branch="main")
+    version("3.22.1", sha256="056d98bf09f5202d25842d5a4a4f553445103e1e26155da52f007c508f3140f8")
+    version("3.22.0", sha256="53db52a72e126787768732790ca73dbc6ff6e49d4d1152e9c3641ba71b97738e")
+    version("3.21.2", sha256="f611ff74e4749f21445b2369dbd0edf404cdf639eecafd54187d0a2865d521a0")
+    version("3.21.1", sha256="bc8e0e270643eef9b63b249080b8fe4433be0b697d55032d9f768ef310bd7b07")
     version("3.21.0", sha256="bfbd90162633486f67a448d2052e1f7182529d18e8bde87367bc4f4dd58e857f")
     version("3.20.2", sha256="89ebd1964edd0eb63d4dbfa977d6f35408f4e19a3da290696fd1197901544bd8")
     version("3.20.1", sha256="7e6d156f7b0891bfa0616b38a502460c62797f16ca146b321e16cce4cf139d07")
@@ -45,19 +49,28 @@ class PySlepc4py(PythonPackage):
 
     patch("ldshared.patch", when="@:3.18")
 
+    depends_on("py-cython@3:", when="@3.20:", type="build")
     depends_on("py-cython@0.29.32:", when="^python@3.11:", type="build")
     depends_on("py-cython@0.24:", type="build")
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy", type=("build", "run"))
 
-    depends_on("py-petsc4py", type=("build", "run"))
     depends_on("py-petsc4py@main", when="@main", type=("build", "run"))
-    for ver in ["3.21", "3.20", "3.19", "3.18", "3.17", "3.16", "3.15", "3.13", "3.12", "3.11"]:
-        depends_on(f"py-petsc4py@{ver}", when=f"@{ver}", type=("build", "run"))
-
-    depends_on("slepc")
     depends_on("slepc@main", when="@main")
-    for ver in ["3.21", "3.20", "3.19", "3.18", "3.17", "3.16", "3.15", "3.13", "3.12", "3.11"]:
+    for ver in [
+        "3.22",
+        "3.21",
+        "3.20",
+        "3.19",
+        "3.18",
+        "3.17",
+        "3.16",
+        "3.15",
+        "3.13",
+        "3.12",
+        "3.11",
+    ]:
+        depends_on(f"py-petsc4py@{ver}", when=f"@{ver}", type=("build", "run"))
         depends_on(f"slepc@{ver}", when=f"@{ver}")
 
     @property

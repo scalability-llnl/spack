@@ -23,6 +23,10 @@ class Must(CMakePackage):
     version("1.8.0", sha256="9754fefd2e4c8cba812f8b56a5dd929bc84aa599b2509305e1eb8518be0a8a39")
     version("1.7.2", sha256="616c54b7487923959df126ac4b47ae8c611717d679fe7ec29f57a89bf0e2e0d0")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("test", default=False, description="Enable must internal tests")
     variant("tsan", default=True, description="Enable thread sanitizer")
     variant("graphviz", default=False, description="Use to generate graphs")

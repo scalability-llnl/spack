@@ -36,6 +36,8 @@ class SingularityLegacy(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libarchive", when="@2.5.2:")
     # these are only needed if we're grabbing the unreleased tree
     depends_on("m4", type="build", when="@2.6-release")

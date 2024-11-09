@@ -23,5 +23,7 @@ class Xtrans(AutotoolsPackage, XorgPackage):
     version("1.4.0", sha256="48ed850ce772fef1b44ca23639b0a57e38884045ed2cbb18ab137ef33ec713f9")
     version("1.3.5", sha256="b7a577c1b6c75030145e53b4793db9c88f9359ac49e7d771d4385d21b3e5945d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

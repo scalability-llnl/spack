@@ -12,6 +12,7 @@
 %=============================================================================
 
 % macOS
+os_compatible("sequoia", "sonoma").
 os_compatible("sonoma", "ventura").
 os_compatible("ventura", "monterey").
 os_compatible("monterey", "bigsur").

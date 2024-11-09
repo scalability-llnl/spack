@@ -28,6 +28,8 @@ class RDeseq2(RPackage):
     version("1.18.1", commit="ef65091d46436af68915124b752f5e1cc55e93a7")
     version("1.16.1", commit="f41d9df2de25fb57054480e50bc208447a6d82fb")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-s4vectors@0.9.25:", type=("build", "run"))
     depends_on("r-s4vectors@0.23.18:", type=("build", "run"), when="@1.30.0:")
     depends_on("r-iranges", type=("build", "run"))

@@ -24,6 +24,7 @@ class Justbuild(Package):
     license("Apache-2.0")
 
     version("master", branch="master")
+    version("1.3.2", tag="v1.3.2", commit="27a56845398b07471f8185648a79a63f97851659")
     version("1.3.1", tag="v1.3.1", commit="b248838ed0f01bc5824caee3a555e7fd22d5ad10")
     version("1.3.0", tag="v1.3.0", commit="a7be2417f358049e6a0e28e01bc4020d8de2fdc5")
     version("1.2.5", tag="v1.2.5", commit="0f7447e3f50e68ecfe00b2db06fb5f154842ac5a")
@@ -35,6 +36,8 @@ class Justbuild(Package):
     version("1.1.3", tag="v1.1.3", commit="3aed5d450aec38be18edec822ac2efac6d49a938")
     version("1.1.2", tag="v1.1.2", commit="67b486e2ce6ab657a98b2212a9b6f68935d07a29")
     version("1.0.0", tag="v1.0.0", commit="c29b671f798e82ba26b5f54ebc9e24c7dcfb8166")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@3:", type=("build", "run"))
     depends_on("wget", type=("build", "run"))

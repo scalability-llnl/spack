@@ -23,3 +23,5 @@ class Iperf3(AutotoolsPackage):
     version("3.12", sha256="72034ecfb6a7d6d67e384e19fb6efff3236ca4f7ed4c518d7db649c447e1ffd6")
     version("3.9", sha256="24b63a26382325f759f11d421779a937b63ca1bc17c44587d2fcfedab60ac038")
     version("3.6", sha256="de5d51e46dc460cc590fb4d44f95e7cad54b74fea1eba7d6ebd6f8887d75946e")
+
+    depends_on("c", type="build")  # generated

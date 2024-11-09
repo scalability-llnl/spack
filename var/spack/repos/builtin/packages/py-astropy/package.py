@@ -29,6 +29,8 @@ class PyAstropy(PythonPackage):
     version("1.1.2", sha256="6f0d84cd7dfb304bb437dda666406a1d42208c16204043bc920308ff8ffdfad1")
     version("1.1.post1", sha256="64427ec132620aeb038e4d8df94d6c30df4cc8b1c42a6d8c5b09907a31566a21")
 
+    depends_on("c", type="build")  # generated
+
     variant("all", default=False, when="@3.2:", description="Enable all functionality")
 
     # Required dependencies

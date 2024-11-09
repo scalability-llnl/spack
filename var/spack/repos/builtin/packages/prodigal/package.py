@@ -17,6 +17,8 @@ class Prodigal(MakefilePackage):
 
     version("2.6.3", sha256="89094ad4bff5a8a8732d899f31cec350f5a4c27bcbdd12663f87c9d1f0ec599f")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         make("INSTALLDIR={0}".format(self.prefix), "install")
 

@@ -19,6 +19,8 @@ class PyPyrevolve(PythonPackage):
 
     version("2.2", sha256="b49aea5cd6c520ac5fcd1d25fa23fe2c5502741d2965f3eee10be067e7b0efb4")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-contexttimer", type=("build", "run"))
     depends_on("py-cython@0.17:", type="build")

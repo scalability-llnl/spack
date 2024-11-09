@@ -21,6 +21,8 @@ class Fp16(CMakePackage):
     version("2018-10-10", commit="34d4bf01bbf7376f2baa71b8fa148b18524d45cf")  # py-torch@1.0
     version("2018-02-25", commit="43d6d17df48ebf622587e7ed9472ea76573799b9")  # py-torch@:0.4
 
+    depends_on("cxx", type="build")  # generated
+
     generator("ninja")
     depends_on("cmake@2.8.12:", type="build")
 

@@ -18,6 +18,9 @@ class PyPyqt5Sip(PythonPackage):
     version("12.12.1", sha256="8fdc6e0148abd12d977a1d3828e7b79aae958e83c6cb5adae614916d888a6b10")
     version("12.9.0", sha256="d3e4489d7c2b0ece9d203ae66e573939f7f60d4d29e089c9f11daa17cfeaae32")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools@30.3:", type="build")
 
     patch(

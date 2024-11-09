@@ -20,6 +20,8 @@ class Xcompmgr(AutotoolsPackage, XorgPackage):
     version("1.1.8", sha256="ba10933678a5665d06fa7096bd08f37316add8ed84aaacd7ba26a97e8f2e0498")
     version("1.1.7", sha256="ef4b23c370f99403bbd9b6227f8aa4edc3bc83fc6d57ee71f6f442397cef505a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxcomposite")
     depends_on("libxfixes")
     depends_on("libxdamage")

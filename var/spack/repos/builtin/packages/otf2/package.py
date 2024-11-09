@@ -59,6 +59,9 @@ class Otf2(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def url_for_version(self, version):
         if version < Version("2.3"):
             return f"https://www.vi-hps.org/cms/upload/packages/otf2/otf2-{version}.tar.gz"

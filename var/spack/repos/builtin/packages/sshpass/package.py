@@ -25,6 +25,8 @@ class Sshpass(AutotoolsPackage):
     version("1.01", sha256="e2adc378d61b72e63b4381fe123de3c63bd4093c9553d3219e83878f379754f4")
     version("1.00", sha256="71d4be85a464a8ce2ae308bc04dcb342918f3989b6a81c74217b5df7f11471f8")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

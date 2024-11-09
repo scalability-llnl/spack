@@ -26,6 +26,9 @@ class Libwebp(AutotoolsPackage):
     version("1.2.0", sha256="2fc8bbde9f97f2ab403c0224fb9ca62b2e6852cbc519e91ceaa7c153ffd88a0c")
     version("1.0.3", sha256="e20a07865c8697bba00aebccc6f54912d6bc333bb4d604e6b07491c1a226b34f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("libwebpmux", default=False, description="Build libwebpmux")
     variant("libwebpdemux", default=False, description="Build libwebpdemux")
     variant("libwebpdecoder", default=False, description="Build libwebpdecoder")

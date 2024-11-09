@@ -1,0 +1,26 @@
+From: Santiago Vila <sanvila@debian.org>
+Subject: manpage typo: amgibuities -> ambiguities
+X-Debian-version: 3.0-12
+
+--- a/man/zip.1
++++ b/man/zip.1
+@@ -297,7 +297,7 @@
+ If Zip64 support for large files and archives is enabled and
+ \fIzip\fR is used as a filter, \fIzip\fR creates a Zip64 archive
+ that requires a PKZIP 4.5 or later compatible unzip to read it.  This is
+-to avoid amgibuities in the zip file structure as defined in the current
++to avoid ambiguities in the zip file structure as defined in the current
+ zip standard (PKWARE AppNote) where the decision to use Zip64 needs to
+ be made before data is written for the entry, but for a stream the size
+ of the data is not known at that point.  If the data is known to be smaller
+--- a/zip.txt
++++ b/zip.txt
+@@ -184,7 +184,7 @@
+ 
+        If  Zip64  support  for  large files and archives is enabled and zip is
+        used as a filter, zip creates a Zip64 archive that requires a PKZIP 4.5
+-       or  later compatible unzip to read it.  This is to avoid amgibuities in
++       or  later compatible unzip to read it.  This is to avoid ambiguities in
+        the zip file structure as defined in the current zip  standard  (PKWARE
+        AppNote)  where  the decision to use Zip64 needs to be made before data
+        is written for the entry, but for a stream the size of the data is  not

@@ -18,6 +18,8 @@ class PyPylith(AutotoolsPackage, PythonExtension):
 
     version("4.0.0", sha256="31e0131683292ee2e62f2c818cc2777f026104ae73d7a8368975dd6560292689")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools")
     depends_on("py-cig-pythia")
     depends_on("spatialdata")

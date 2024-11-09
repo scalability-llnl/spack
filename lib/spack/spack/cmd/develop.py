@@ -12,6 +12,7 @@ import spack.config
 import spack.fetch_strategy
 import spack.repo
 import spack.spec
+import spack.stage
 import spack.util.path
 import spack.version
 from spack.cmd.common import arguments
@@ -62,7 +63,7 @@ def _update_config(spec, path):
     spack.config.change_or_add("develop", find_fn, change_fn)
 
 
-def _retrieve_develop_source(spec, abspath):
+def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
     # "steal" the source code via staging API. We ask for a stage
     # to be created, then copy it afterwards somewhere else. It would be
     # better if we can create the `source_path` directly into its final
@@ -71,21 +72,27 @@ def _retrieve_develop_source(spec, abspath):
     # We construct a package class ourselves, rather than asking for
     # Spec.package, since Spec only allows this when it is concrete
     package = pkg_cls(spec)
-    source_stage = package.stage[0]
+    source_stage: spack.stage.Stage = package.stage[0]
     if isinstance(source_stage.fetcher, spack.fetch_strategy.GitFetchStrategy):
         source_stage.fetcher.get_full_repo = True
         # If we retrieved this version before and cached it, we may have
         # done so without cloning the full git repo; likewise, any
         # mirror might store an instance with truncated history.
-        source_stage.disable_mirrors()
+        source_stage.default_fetcher_only = True
 
     source_stage.fetcher.set_package(package)
     package.stage.steal_source(abspath)
 
 
 def develop(parser, args):
+    # Note: we could put develop specs in any scope, but I assume
+    # users would only ever want to do this for either (a) an active
+    # env or (b) a specified config file (e.g. that is included by
+    # an environment)
+    # TODO: when https://github.com/spack/spack/pull/35307 is merged,
+    # an active env is not required if a scope is specified
+    env = spack.cmd.require_active_env(cmd_name="develop")
     if not args.spec:
-        env = spack.cmd.require_active_env(cmd_name="develop")
         if args.clone is False:
             raise SpackError("No spec provided to spack develop command")
 
@@ -115,16 +122,18 @@ def develop(parser, args):
         raise SpackError("spack develop requires at most one named spec")
 
     spec = specs[0]
+
     version = spec.versions.concrete_range_as_version
     if not version:
-        raise SpackError("Packages to develop must have a concrete version")
+        # look up the maximum version so infintiy versions are preferred for develop
+        version = max(spec.package_class.versions.keys())
+        tty.msg(f"Defaulting to highest version: {spec.name}@{version}")
     spec.versions = spack.version.VersionList([version])
 
     # If user does not specify --path, we choose to create a directory in the
     # active environment's directory, named after the spec
     path = args.path or spec.name
     if not os.path.isabs(path):
-        env = spack.cmd.require_active_env(cmd_name="develop")
         abspath = spack.util.path.canonicalize_path(path, default_wd=env.path)
     else:
         abspath = path
@@ -148,13 +157,6 @@ def develop(parser, args):
 
         _retrieve_develop_source(spec, abspath)
 
-    # Note: we could put develop specs in any scope, but I assume
-    # users would only ever want to do this for either (a) an active
-    # env or (b) a specified config file (e.g. that is included by
-    # an environment)
-    # TODO: when https://github.com/spack/spack/pull/35307 is merged,
-    # an active env is not required if a scope is specified
-    env = spack.cmd.require_active_env(cmd_name="develop")
     tty.debug("Updating develop config for {0} transactionally".format(env.name))
     with env.write_transaction():
         if args.build_directory is not None:

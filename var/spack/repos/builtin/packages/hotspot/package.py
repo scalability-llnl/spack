@@ -15,6 +15,8 @@ class Hotspot(MakefilePackage):
 
     version("6.0", commit="a7a3286e368867c26381e0a23e36b3e273bdeda9")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdir(prefix.bin)
         install("hotspot", prefix.bin)

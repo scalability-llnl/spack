@@ -17,3 +17,5 @@ class RPbivnorm(RPackage):
     license("GPL-2.0-or-later")
 
     version("0.6.0", sha256="07c37d507cb8f8d2d9ae51a9a6d44dfbebd8a53e93c242c4378eaddfb1cc5f16")
+
+    depends_on("fortran", type="build")  # generated

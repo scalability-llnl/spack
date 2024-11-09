@@ -22,4 +22,6 @@ class Mawk(AutotoolsPackage):
     )
     version("1.3.4", sha256="2f2ab8831c441a5793ad333193c888c9ba29c900f009aa23c9fffc100c405925")
 
+    depends_on("c", type="build")  # generated
+
     provides("awk")

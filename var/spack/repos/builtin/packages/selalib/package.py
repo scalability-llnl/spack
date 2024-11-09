@@ -18,6 +18,10 @@ class Selalib(CMakePackage):
 
     version("main", branch="main")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fmempool", default=False, description="Use memory pool")
     variant("mpi", default=True, description="Build with MPI support")
     variant("openmp", default=True, description="Build with OpenMP support")

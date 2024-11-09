@@ -27,6 +27,9 @@ class Faodel(CMakePackage):
     version("1.1811.1", sha256="8e95ee99b8c136ff687eb07a2481ee04560cb1526408eb22ab56cd9c60206916")
     version("1.1803.1", sha256="70ce7125c02601e14abe5985243d67adf677ed9e7a4dd6d3eaef8a97cf281a16")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build Faodel as shared libs")
     variant("mpi", default=True, description="Enable MPI")
 

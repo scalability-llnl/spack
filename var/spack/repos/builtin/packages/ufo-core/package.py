@@ -20,5 +20,7 @@ class UfoCore(CMakePackage):
     version("0.16.0", sha256="ff895386e10920ec399b9951a231e517bd6cf5f70c3b527430c2c1fccff6f181")
     version("0.14.0", sha256="3bf0d1924d6ae3f51673cc8b0b31b17873e79f1a0129a9af54b4062b1b2b3ad7")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("glib")
     depends_on("json-glib")

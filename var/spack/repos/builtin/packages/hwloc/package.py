@@ -26,7 +26,7 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
     """
 
     homepage = "https://www.open-mpi.org/projects/hwloc/"
-    url = "https://download.open-mpi.org/release/hwloc/v2.0/hwloc-2.0.2.tar.gz"
+    url = "https://download.open-mpi.org/release/hwloc/v2.11/hwloc-2.11.1.tar.bz2"
     git = "https://github.com/open-mpi/hwloc.git"
 
     maintainers("bgoglin")
@@ -36,12 +36,9 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
     executables = ["^hwloc-bind$"]
 
     version("master", branch="master")
+    version("2.11.1", sha256="9f320925cfd0daeaf3a3d724c93e127ecac63750c623654dca0298504aac4c2c")
     version("2.10.0", sha256="c7fd8a1404a9719c76aadc642864b9f77aed1dc1fc8882d6af861a9260ba240d")
-    version(
-        "2.9.3",
-        sha256="5985db3a30bbe51234c2cd26ebe4ae9b4c3352ab788b1a464c40c0483bf4de59",
-        preferred=True,
-    )
+    version("2.9.3", sha256="5985db3a30bbe51234c2cd26ebe4ae9b4c3352ab788b1a464c40c0483bf4de59")
     version("2.9.2", sha256="ffb554d5735e0e0a19d1fd4b2b86e771d3b58b2d97f257eedacae67ade5054b3")
     version("2.9.1", sha256="a440e2299f7451dc10a57ddbfa3f116c2a6c4be1bb97c663edd3b9c7b3b3b4cf")
     version("2.9.0", sha256="9d7d3450e0a5fea4cb80ca07dc8db939abb7ab62e2a7bb27f9376447658738ec")
@@ -103,6 +100,8 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
         "oneapi-level-zero", default=False, description="Support Intel OneAPI Level Zero devices"
     )
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("m4", type="build", when="@master")
     depends_on("autoconf", type="build", when="@master")
@@ -179,7 +178,7 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
         if "+rocm" not in self.spec:
             args.append("--disable-rsmi")
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             args.append("--with-rocm={0}".format(self.spec["hip"].prefix))
             args.append("--with-rocm-version={0}".format(self.spec["hip"].version))
 
@@ -193,11 +192,13 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
         args.extend(self.enable_or_disable("pci"))
         args.extend(self.enable_or_disable("libs"))
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append("--with-cuda={0}".format(self.spec["cuda"].prefix))
             args.append("--with-cuda-version={0}".format(self.spec["cuda"].version))
 
-        if "+oneapi-level-zero" in self.spec:
+        if self.spec.satisfies("+oneapi-level-zero"):
             args.append("--enable-levelzero")
+        else:
+            args.append("--disable-levelzero")
 
         return args

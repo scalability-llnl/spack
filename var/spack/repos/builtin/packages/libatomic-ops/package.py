@@ -22,5 +22,7 @@ class LibatomicOps(AutotoolsPackage):
     version("7.6.6", sha256="99feabc5f54877f314db4fadeb109f0b3e1d1a54afb6b4b3dfba1e707e38e074")
     version("7.4.4", sha256="bf210a600dd1becbf7936dd2914cf5f5d3356046904848dcfd27d0c8b12b6f8f")
 
+    depends_on("c", type="build")  # generated
+
     def configure_args(self):
         return ["--enable-shared"]

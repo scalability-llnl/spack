@@ -37,6 +37,8 @@ class Libstdcompat(CMakePackage):
     version("0.0.2", sha256="36424399e649be38bdb21899aa45f94aebba25c66048bab2751b1b3b9fd27238")
     version("0.0.1", sha256="3d63e901f4e20b9032a67086f4b4281f641ee0dea436cf15f7058faa40d8637b")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "cpp_compat",
         values=("11", "14", "17", "20", "23", "auto"),
@@ -88,7 +90,7 @@ class Libstdcompat(CMakePackage):
         args = []
         cpp_compat = self.spec.variants["cpp_compat"].value
 
-        if "cpp_unstable" in self.spec:
+        if self.spec.satisfies("+cpp_unstable"):
             args.append("-DSTDCOMPAT_CXX_UNSTABLE=ON")
 
         if cpp_compat == "auto":

@@ -19,3 +19,5 @@ class Liblzf(AutotoolsPackage):
     license("BSD-2-Clause")
 
     version("3.6", sha256="9c5de01f7b9ccae40c3f619d26a7abec9986c06c36d260c179cedd04b89fb46a")
+
+    depends_on("c", type="build")  # generated

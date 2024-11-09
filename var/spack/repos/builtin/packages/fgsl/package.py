@@ -28,6 +28,9 @@ class Fgsl(AutotoolsPackage):
     version("1.2.0", sha256="e5a4ac08eb744c963e95a46a51d76c56593836077c5ad8c47e240cae57027002")
     version("1.1.0", sha256="a5adce3c3b279d2dacc05b74c598ff89be7ef3ae3ec59b3ec1355750c1bb4832")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

@@ -16,4 +16,6 @@ class PyPywin32(PythonPackage):
 
     version("306", sha256="16e5ad3efbbf997080f67c3010bd4eb0067d499bbade9be1b240b7e85325c167")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

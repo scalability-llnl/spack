@@ -23,6 +23,9 @@ class Mosquitto(CMakePackage):
     version("1.4.15", sha256="7d3b3e245a3b4ec94b05678c8199c806359737949f4cfe0bf936184f6ca89a83")
     version("1.3.5", sha256="16eb3dbef183827665feee9288362c7352cd016ba04ca0402a0ccf857d1c2ab2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("tls", default=True, description="Build with TLS support")
     variant("cjson", default=True, description="Build with cJSON support", when="@2.0.0:")
     variant("static", default=False, description="Build with static libraries", when="@1.5.0:")

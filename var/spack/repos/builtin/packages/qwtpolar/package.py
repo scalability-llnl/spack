@@ -16,6 +16,8 @@ class Qwtpolar(QMakePackage):
 
     version("1.1.1", sha256="6168baa9dbc8d527ae1ebf2631313291a1d545da268a05f4caa52ceadbe8b295")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("qt@4.4:")
     depends_on("qwt@6.1:")
 

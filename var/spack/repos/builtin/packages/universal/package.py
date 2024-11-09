@@ -17,3 +17,6 @@ class Universal(CMakePackage):
     license("MIT")
 
     version("3.68", sha256="67de4e0a3276b873a298ab98f1237ff3fd23240178e71405bf813ee38e4b1f62")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

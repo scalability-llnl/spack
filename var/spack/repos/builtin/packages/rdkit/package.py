@@ -47,6 +47,10 @@ class Rdkit(CMakePackage):
     version("2020_09_1", sha256="ac105498be52ff77f7e9328c41d0e61a2318cac0789d6efc30f5f50dc78a992c")
     version("2020_03_6", sha256="a3663295a149aa0307ace6d1995094d0334180bc8f892fa325558a110154272b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("freetype", default=True, description="Build freetype support")
 
     with when("@2022_09_5:"):

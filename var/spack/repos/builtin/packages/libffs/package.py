@@ -23,6 +23,8 @@ class Libffs(CMakePackage):
     version("1.1.1", sha256="9c3a82b3357e6ac255b65d4f45003dd270dea3ec0cd7a2aa40b59b3eab4bdb83")
     version("1.1", sha256="008fd87c5a6cb216cd757b4dc04057fc987b39b7a367623eb4cf0fd32a9fd81e")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("flex", type="build", when="@:1.4")
     depends_on("bison", type="build", when="@:1.4")
     depends_on("gtkorvo-cercs-env", type="build", when="@:1.4")

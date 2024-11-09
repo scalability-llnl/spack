@@ -18,6 +18,8 @@ class OphidiaIoServer(AutotoolsPackage):
         sha256="8b203c44e0e5497c00f1fdb2322f0b0a41f36900b62a33d95a4570ae1ccc2971",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

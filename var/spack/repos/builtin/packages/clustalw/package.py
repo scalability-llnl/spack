@@ -15,3 +15,5 @@ class Clustalw(AutotoolsPackage):
     license("LGPL-3.0-only")
 
     version("2.1", sha256="e052059b87abfd8c9e695c280bfba86a65899138c82abccd5b00478a80f49486")
+
+    depends_on("cxx", type="build")  # generated

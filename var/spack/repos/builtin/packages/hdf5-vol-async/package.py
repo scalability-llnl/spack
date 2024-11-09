@@ -30,6 +30,8 @@ class Hdf5VolAsync(CMakePackage):
     version("1.6", tag="v1.6", commit="f3406d62ec055cdcfe077979a1068bd102c598a5")
     version("1.5", tag="v1.5", commit="b917713ffcb207d9799c6d6863cf805ee54ccfea")
 
+    depends_on("c", type="build")  # generated
+
     variant("memcpy", default=False, description="Enable buffer copy for dataset write")
 
     depends_on("mpi")

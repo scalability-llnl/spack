@@ -24,6 +24,8 @@ class OmeFilesCpp(CMakePackage):
     version("master", branch="master")
     version("0.6.0", sha256="e0baf3eeb2ea639f426292a36b58adcaa42ce61a4a0f15f34690602f3f5d47c1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@1.53: +filesystem +program_options")
     depends_on("ome-model")
     depends_on("ome-model@master", when="@master")

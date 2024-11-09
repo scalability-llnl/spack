@@ -24,6 +24,9 @@ class Scorpio(CMakePackage):
 
     version("2021-12-10", commit="b802f16877a6562ccdbeca8887910d3bd3e25cbb", preferred=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("cmake@3.16:", type="build")
     depends_on("mpi")
     depends_on("hdf5@1.10.6: +hl +mpi")

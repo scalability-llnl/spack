@@ -21,6 +21,8 @@ class Xclip(AutotoolsPackage):
 
     version("0.13", commit="9aa7090c3b8b437c6489edca32ae43d82e0c1281")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxmu")
     depends_on("libx11")
     depends_on("autoconf", type="build")

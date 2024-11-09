@@ -70,6 +70,8 @@ class RdmaCore(CMakePackage):
     version("17.1", sha256="b47444b7c05d3906deb8771eec3e634984dd83f5e620d5e37d3a83f74f0cc1ba")
     version("13", sha256="e5230fd7cda610753ad1252b40a28b1e9cf836423a10d8c2525b081527760d97")
 
+    depends_on("c", type="build")  # generated
+
     patch("libdrm.patch", when="@34:")
 
     variant(

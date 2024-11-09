@@ -20,6 +20,9 @@ class Libpulsar(CMakePackage):
 
     version("2.7.0", sha256="5bf8e5115075e12c848a9e4474cd47067c3200f7ff13c45f624f7383287e8e5e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zstd")
 
     # TODO: replace this with an explicit list of components of Boost,

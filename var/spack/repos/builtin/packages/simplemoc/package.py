@@ -20,6 +20,8 @@ class Simplemoc(MakefilePackage):
 
     version("4", sha256="a39906014fdb234c43bf26e1919bdc8a13097788812e0b353a492b8e568816a6")
 
+    depends_on("c", type="build")  # generated
+
     tags = ["proxy-app"]
 
     variant("mpi", default=True, description="Build with MPI support")

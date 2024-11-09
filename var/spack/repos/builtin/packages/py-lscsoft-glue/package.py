@@ -18,6 +18,8 @@ class PyLscsoftGlue(PythonPackage):
 
     version("2.0.0", sha256="9bdfaebe4c921d83d1e3d1ca24379a644665e9d7530e7070665f387767c66923")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-six", type=("build", "run"))
     depends_on("py-pyopenssl", type=("build", "run"))

@@ -22,6 +22,8 @@ class Iozone(MakefilePackage):
     version("3_491", sha256="2cc4842d382e46a585d1df9ae1e255695480dcc0fc05c3b1cb32ef3493d0ec9a")
     version("3_465", sha256="2e3d72916e7d7340a7c505fc0c3d28553fcc5ff2daf41d811368e55bd4e6a293")
 
+    depends_on("c", type="build")  # generated
+
     # TODO: Add support for other architectures as necessary
     build_targets = ["linux-AMD64"]
 

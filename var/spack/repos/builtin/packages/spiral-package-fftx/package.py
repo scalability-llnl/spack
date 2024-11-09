@@ -30,6 +30,9 @@ class SpiralPackageFftx(Package):
     version("1.2.1", sha256="3f15aa5949c1b09eb59257cf1c5f6fcddc6e46f77ae9d5fce8acd8b9f99ce941")
     version("1.1.1", sha256="99ec7fab9274d378524b4933917fae23f9590255518c7a124cb46bd5e8d9af37")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # FFTX package is an extension for Spiral (spec: spiral-software).
 
     def install(self, spec, prefix):

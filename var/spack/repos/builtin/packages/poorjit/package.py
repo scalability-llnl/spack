@@ -19,6 +19,8 @@ class Poorjit(CMakePackage):
 
     version("0.0.2", sha256="d7d43ba3b343ac8a6b0fb4928d5882f64a8c13c6fccfc37e1a3f3cd581c2739a")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost+filesystem")
     depends_on("zlib")
     depends_on("fmt")

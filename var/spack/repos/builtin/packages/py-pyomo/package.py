@@ -46,6 +46,9 @@ class PyPyomo(PythonPackage):
     version("5.6.7", sha256="fc97cc9d5a55c5185358ba65c1f9530c9af17e67a9aae7b36c3414f159030ae0")
     version("5.6.6", sha256="813e14a604b9d3ac63bdd0880c07f5f4e1b8f0a8a10345f1b42bee762219c001")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("cython", default=False, description="Enable cythonization of Pyomo.")
     variant("tests", default=False, description="Install testing dependencies.", when="@6.1:")
     variant(

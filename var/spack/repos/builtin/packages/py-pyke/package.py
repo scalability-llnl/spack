@@ -12,7 +12,7 @@ class PyPyke(PythonPackage):
     engine (expert system) written in 100% Python.
     """
 
-    homepage = "https://sourceforge.net/projects/pyke"
+    homepage = "https://sourceforge.net/projects/pyke/"
     url = "https://sourceforge.net/projects/pyke/files/pyke/1.1.1/pyke-1.1.1.zip"
 
     license("MIT")

@@ -29,6 +29,10 @@ class Mvapich(AutotoolsPackage):
     # Prefer the latest stable release
     version("3.0", sha256="ee076c4e672d18d6bf8dd2250e4a91fa96aac1db2c788e4572b5513d86936efb")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     provides("mpi")
     provides("mpi@:3.1")
 
@@ -65,7 +69,7 @@ class Mvapich(AutotoolsPackage):
         "pmi_version",
         description="Which pmi version to be used. If using pmi2 add it to your CFLAGS",
         default="simple",
-        values=("simple", "pmi2"),
+        values=("simple", "pmi2", "pmix"),
         multi=False,
     )
 
@@ -109,12 +113,17 @@ class Mvapich(AutotoolsPackage):
     depends_on("libfabric", when="netmod=ofi")
     depends_on("slurm", when="process_managers=slurm")
     depends_on("ucx", when="netmod=ucx")
+    depends_on("pmix", when="pmi_version=pmix")
 
     with when("process_managers=slurm"):
         conflicts("pmi_version=pmi2")
 
     with when("process_managers=auto"):
         conflicts("pmi_version=pmi2")
+
+    with when("process_managers=hydra"):
+        conflicts("pmi_version=pmi2")
+        conflicts("pmi_version=pmix")
 
     filter_compiler_wrappers("mpicc", "mpicxx", "mpif77", "mpif90", "mpifort", relative_root="bin")
 
@@ -261,6 +270,8 @@ class Mvapich(AutotoolsPackage):
 
         args.extend(self.enable_or_disable("alloca"))
         args.append("--with-pmi=" + spec.variants["pmi_version"].value)
+        if "pmi_version=pmix" in spec:
+            args.append("--with-pmix={0}".format(spec["pmix"].prefix))
 
         if "+debug" in self.spec:
             args.extend(

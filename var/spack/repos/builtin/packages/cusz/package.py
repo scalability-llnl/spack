@@ -24,6 +24,9 @@ class Cusz(CMakePackage, CudaPackage):
     version("0.3.1", commit="02be3cbd07db467decaf45ec9eb593ba6173c809")
     version("0.3", sha256="0feb4f7fd64879fe147624dd5ad164adf3983f79b2e0383d35724f8d185dcb11")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # these version of Cuda provide the CUB headers, but not CUB cmake configuration that we use.
     conflicts("^cuda@11.0.2:11.2.2")
 

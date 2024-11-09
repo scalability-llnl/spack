@@ -23,6 +23,8 @@ class Libksba(AutotoolsPackage):
     version("1.6.4", sha256="bbb43f032b9164d86c781ffe42213a83bf4f2fee91455edfa4654521b8b03b6b")
     version("1.6.3", sha256="3f72c68db30971ebbf14367527719423f0a4d5f8103fc9f4a1c01a9fa440de5c")
 
+    depends_on("c", type="build")  # generated
+
     # Versions before 1.6.3 were deprecated over CVE-2022-3515
     # (https://gnupg.org/blog/20221017-pepe-left-the-ksba.html)
 

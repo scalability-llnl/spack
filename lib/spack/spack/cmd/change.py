@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import spack.cmd
+import spack.spec
 from spack.cmd.common import arguments
 
 description = "change an existing spec in an environment"

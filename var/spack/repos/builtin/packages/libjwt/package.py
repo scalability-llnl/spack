@@ -23,6 +23,8 @@ class Libjwt(AutotoolsPackage):
     version("1.12.1", sha256="d29e4250d437340b076350e910e69fd5539ef8b92528d0306745cec0e343cc17")
     version("1.12.0", sha256="eaf5d8b31d867c02dde767efa2cf494840885a415a3c9a62680bf870a4511bee")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

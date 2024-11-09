@@ -20,4 +20,6 @@ class PyBitstruct(PythonPackage):
 
     version("8.17.0", sha256="eb94b40e4218a23aa8f90406b836a9e6ed83e48b8d112ce3f96408463bd1b874")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

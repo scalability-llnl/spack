@@ -22,5 +22,7 @@ class Cc65(MakefilePackage):
     version("2.15", sha256="adeac1a4b04183dd77fba1d69e56bbf4a6d358e0b253ee43ef4cac2391ba848a")
     version("2.14", sha256="128bda63490eb43ad25fd3615adee4c819c0b7da4b9b8f1801df36bd19e3bdf8")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         make("PREFIX={0}".format(prefix), "install")

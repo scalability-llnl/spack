@@ -16,4 +16,6 @@ class Fastjar(AutotoolsPackage):
 
     version("0.98", sha256="f156abc5de8658f22ee8f08d7a72c88f9409ebd8c7933e9466b0842afeb2f145")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")

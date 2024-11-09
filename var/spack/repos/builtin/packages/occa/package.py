@@ -34,6 +34,10 @@ class Occa(Package):
     version("0.2.0", tag="v0.2.0", commit="2eceaa5706ad6cf3a1b153c1f2a8a2fffa2d5945")
     version("0.1.0", tag="v0.1.0", commit="381e886886dc87823769c5f20d0ecb29dd117afa")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("cuda", default=True, description="Activates support for CUDA")
     variant("openmp", default=True, description="Activates support for OpenMP")
     variant("opencl", default=True, description="Activates support for OpenCL")

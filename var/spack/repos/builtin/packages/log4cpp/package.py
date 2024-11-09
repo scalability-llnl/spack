@@ -13,9 +13,12 @@ class Log4cpp(AutotoolsPackage):
     the Log4j Java library, staying as close to their API as is
     reasonable."""
 
-    homepage = "http://log4cpp.sourceforge.net/"
+    homepage = "https://log4cpp.sourceforge.net/"
     url = "http://sourceforge.net/projects/log4cpp/files/log4cpp-1.1.3.tar.gz"
 
     license("LGPL-2.1-or-later")
 
     version("1.1.3", sha256="2cbbea55a5d6895c9f0116a9a9ce3afb86df383cd05c9d6c1a4238e5e5c8f51d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

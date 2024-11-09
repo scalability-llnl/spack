@@ -28,6 +28,9 @@ class PyStatsmodels(PythonPackage):
     version("0.10.2", sha256="9cd2194c6642a8754e85f9a6e6912cdf996bebf6ff715d3cc67f65dadfd37cc9")
     version("0.10.1", sha256="320659a80f916c2edf9dfbe83512d9004bb562b72eedb7d9374562038697fa10")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("python@3.8:", when="@0.14:", type=("build", "link", "run"))
     depends_on("python", type=("build", "link", "run"))
 

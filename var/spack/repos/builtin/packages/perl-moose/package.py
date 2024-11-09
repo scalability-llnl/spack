@@ -21,6 +21,8 @@ class PerlMoose(PerlPackage):
     version("2.2007", sha256="bc75a320b55ba26ac9e60e11a77b3471066cb615bf7097537ed22e20df88afe8")
     version("2.2006", sha256="a4e00ab25cc41bebc5e7a11d71375fb5e64b56d5f91159afee225d698e06392b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl-cpan-meta-check", type=("build", "run"))
     depends_on("perl-test-cleannamespaces", type=("build", "run"))
     depends_on("perl-devel-overloadinfo", type=("build", "run"))

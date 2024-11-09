@@ -18,6 +18,8 @@ class Tesseract(AutotoolsPackage):
     version("4.1.0", sha256="5c5ed5f1a76888dc57a83704f24ae02f8319849f5c4cf19d254296978a1a1961")
     version("4.0.0", sha256="a1f5422ca49a32e5f35c54dee5112b11b99928fc9f4ee6695cdc6768d69f61dd")
 
+    depends_on("cxx", type="build")  # generated
+
     # do not fetch the jar files from Makefile
     patch("java_Makefile.patch")
 

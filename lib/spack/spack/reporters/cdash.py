@@ -19,10 +19,11 @@ from urllib.request import HTTPSHandler, Request, build_opener
 import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
 
-import spack.build_environment
-import spack.fetch_strategy
-import spack.package_base
+import spack
+import spack.paths
 import spack.platforms
+import spack.spec
+import spack.tengine
 import spack.util.git
 from spack.error import SpackError
 from spack.util.crypto import checksum
@@ -119,7 +120,7 @@ class CDash(Reporter):
         git = spack.util.git.git()
         with working_dir(spack.paths.spack_root):
             self.revision = git("rev-parse", "HEAD", output=str).strip()
-        self.generator = "spack-{0}".format(spack.main.get_version())
+        self.generator = "spack-{0}".format(spack.get_version())
         self.multiple_packages = False
 
     def report_build_name(self, pkg_name):

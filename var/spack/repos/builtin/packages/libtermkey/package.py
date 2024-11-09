@@ -21,6 +21,8 @@ class Libtermkey(MakefilePackage):
     version("0.15b", sha256="6825422c6297e4f81b2c48962b4512585ca8a50bf31f24b3234a1be71a9d7a6e")
     version("0.14", sha256="3d114d4509499b80a583ea39cd35f18268aacf4a7bbf56c142cd032632005c79")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("gzip", type="build")
     depends_on("libtool", type="build")
     depends_on("pkgconfig", type="build")

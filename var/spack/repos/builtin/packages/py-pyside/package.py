@@ -28,6 +28,8 @@ class PyPyside(PythonPackage):
 
     version("1.2.2", sha256="53129fd85e133ef630144c0598d25c451eab72019cdcb1012f2aec773a3f25be")
 
+    depends_on("cxx", type="build")  # generated
+
     # to prevent error: 'PyTypeObject' {aka 'struct _typeobject'} has no member
     # named 'tp_print'
     depends_on("python@:3.8", type=("build", "run"))

@@ -37,4 +37,7 @@ class RGdsfmt(RPackage):
     version("1.14.1", commit="15743647b7eea5b82d3284858b4591fb6e59959d")
     version("1.12.0", commit="d705a95b0bea7be2a2b37e939f45017337ba0fb6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@2.15.0:", type=("build", "run"))

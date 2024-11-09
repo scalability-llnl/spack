@@ -46,6 +46,10 @@ class Papi(AutotoolsPackage, ROCmPackage):
     version("5.4.1", sha256="e131c1449786fe870322a949e44f974a5963824f683232e653fb570cc65d4e87")
     version("5.3.0", sha256="99f2f36398b370e75d100b4a189d5bc0ac4f5dd66df44d441f88fd32e1421524")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("example", default=True, description="Install the example files")
     variant("infiniband", default=False, description="Enable Infiniband support")
     variant("powercap", default=False, description="Enable powercap interface support")
@@ -55,6 +59,12 @@ class Papi(AutotoolsPackage, ROCmPackage):
     variant("cuda", default=False, description="Enable CUDA support")
     variant("nvml", default=False, description="Enable NVML support")
     variant("rocm_smi", default=False, description="Enable ROCm SMI support")
+    variant(
+        "rdpmc",
+        default=True,
+        when="@6.0.0:",
+        description="Enable use of rdpmc for reading counters, when possible",
+    )
 
     variant("shared", default=True, description="Build shared libraries")
     # PAPI requires building static libraries, so there is no "static" variant
@@ -75,6 +85,8 @@ class Papi(AutotoolsPackage, ROCmPackage):
     conflicts("%gcc@8:", when="@5.3.0", msg="Requires GCC version less than 8.0")
     conflicts("+sde", when="@:5", msg="Software defined events (SDE) added in 6.0.0")
     conflicts("^cuda", when="@:5", msg="CUDA support for versions < 6.0.0 not implemented")
+    # https://github.com/icl-utk-edu/papi/pull/205
+    conflicts("^cuda@12.4:", when="@:7.1")
     conflicts("%cce", when="@7.1:", msg="-ffree-form flag not recognized")
 
     conflicts("@=6.0.0", when="+static_tools", msg="Static tools cannot build on version 6.0.0")
@@ -155,6 +167,9 @@ class Papi(AutotoolsPackage, ROCmPackage):
         build_shared = "yes" if "+shared" in spec else "no"
         options.append("--with-shared-lib=" + build_shared)
 
+        build_rdpmc_support = "yes" if "+rdpmc" in spec else "no"
+        options.append("--enable-perfevent-rdpmc=" + build_rdpmc_support)
+
         if "+static_tools" in spec:
             options.append("--with-static-tools")
 
@@ -205,7 +220,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
         if os.path.exists(self.test_src_dir):
-            self.cache_extra_test_sources([self.test_src_dir])
+            cache_extra_test_sources(self, [self.test_src_dir])
 
     def test_smoke(self):
         """Compile and run simple code against the installed papi library."""

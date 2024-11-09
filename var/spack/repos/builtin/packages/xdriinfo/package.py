@@ -18,6 +18,8 @@ class Xdriinfo(AutotoolsPackage, XorgPackage):
     version("1.0.6", sha256="c59d1d97d8b1066ea470407237c87fb131ca9f6c4db4652a6e9461ae03c698ad")
     version("1.0.5", sha256="e4e6abaa4591c540ab63133927a6cebf0a5f4d27dcd978878ab4a422d62a838e")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
     depends_on("expat")
     depends_on("libxshmfence")

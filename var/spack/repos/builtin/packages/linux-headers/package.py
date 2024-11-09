@@ -24,6 +24,9 @@ class LinuxHeaders(Package):
     version("6.2.8", sha256="fed0ad87d42f83a70ce019ff2800bc30a855e672e72bf6d54a014d98d344f665")
     version("4.9.10", sha256="bd6e05476fd8d9ea4945e11598d87bc97806bbc8d03556abbaaf809707661525")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def url_for_version(self, version):
         url = "https://www.kernel.org/pub/linux/kernel/v{0}.x/linux-{1}.tar.xz"
         return url.format(version.up_to(1), version)

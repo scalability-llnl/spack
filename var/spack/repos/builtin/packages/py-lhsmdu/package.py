@@ -13,7 +13,7 @@ class PyLhsmdu(PythonPackage):
     from Deutsch and Deutsch, Latin hypercube sampling with multidimensional
     uniformity."""
 
-    homepage = "http://github.com/sahilm89/lhsmdu"
+    homepage = "https://github.com/sahilm89/lhsmdu"
     pypi = "lhsmdu/lhsmdu-1.1.tar.gz"
     maintainers("liuyangzhuan")
 

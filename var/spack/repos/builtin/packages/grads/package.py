@@ -24,6 +24,8 @@ class Grads(AutotoolsPackage):
     version("2.2.2", sha256="1b5a600d4d407ffcf2fbbbba42037a6e1ebfdb8246ba56b93c628e3c472b4ded")
     version("2.2.1", sha256="695e2066d7d131720d598bac0beb61ac3ae5578240a5437401dc0ffbbe516206")
 
+    depends_on("c", type="build")  # generated
+
     variant("geotiff", default=True, description="Enable GeoTIFF support")
     variant("shapefile", default=True, description="Enable Shapefile support")
     variant("grib2", default=True, description="Enable GRIB2 support")

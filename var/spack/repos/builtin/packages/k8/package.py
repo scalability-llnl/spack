@@ -17,6 +17,8 @@ class K8(Package):
 
     version("0.2.4", sha256="da8a99c7f1ce7f0cb23ff07ce10510e770686b906d5431442a5439743c0b3c47")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api", type="run")
 
     def install(self, spec, prefix):

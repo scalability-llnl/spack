@@ -23,6 +23,8 @@ class Shoremap(MakefilePackage):
 
     version("3.6", sha256="0da4179e92cbc68434a9d8eff7bd5fff55c89fd9a543a2db6bd0f69074f2ec70")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("dislin")
 
     def edit(self, spec, prefix):

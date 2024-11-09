@@ -21,6 +21,8 @@ class PyPyhull(PythonPackage):
 
     version("2015.2.1", sha256="d2ff0aa3298b548287587609a24f4e2aae7f7b8b1df152a90cd313260abc3a24")
 
+    depends_on("c", type="build")  # generated
+
     # From setup.py:
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy", type=("build", "run"))

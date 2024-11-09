@@ -19,6 +19,8 @@ class Miniaero(MakefilePackage):
 
     version("2016-11-11", commit="f46d135479a5be19ec5d146ccaf0e581aeff4596")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("kokkos-legacy")
 
     @property

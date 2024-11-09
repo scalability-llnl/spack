@@ -52,6 +52,8 @@ class Thrust(Package, CMakePackage):
     version("1.8.3", sha256="2254200512fde7f4fd0fc74306286e192ea6ac9037576dbd31309c0579229dbb")
     version("1.8.2", sha256="83bc9e7b769daa04324c986eeaf48fcb53c2dda26bcc77cb3c07f4b1c359feb8")
 
+    depends_on("cxx", type="build")  # generated
+
     # leave the build system of pre-1.17 as originally implemented,
     # but use CMake for newer versions
     build_system(

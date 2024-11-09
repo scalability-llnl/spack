@@ -19,3 +19,5 @@ class Libnfs(CMakePackage):
     version("2.0.0", sha256="7ea6cd8fa6c461d01091e584d424d28e137d23ff4b65b95d01a3fd0ef95d120e")
     version("1.11.0", sha256="fc2e45df14d8714ccd07dc2bbe919e45a2e36318bae7f045cbbb883a7854640f")
     version("1.10.0", sha256="7f6c62a05c7e0f0749f2b13f178a4ed7aaf17bd09e65a10bb147bfe9807da272")
+
+    depends_on("c", type="build")  # generated

@@ -30,6 +30,8 @@ class Gsibec(CMakePackage):
     version("1.0.3", sha256="f104daf55705c5093a3d984073f082017bc9166f51ded36c7f7bb8adf233c916")
     version("1.0.2", sha256="7dc02f1f499e0d9f2843440f517d6c8e5d10ea084cbb2567ec198ba06816bc8b")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi", type=("build", "run"))
     depends_on("netcdf-c +mpi", type=("build", "run"))
     depends_on("netcdf-fortran", type=("build", "run"))

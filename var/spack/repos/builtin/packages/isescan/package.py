@@ -18,6 +18,8 @@ class Isescan(Package):
     version("1.7.2.3", sha256="90ef6bc660e471347f65864bd3563f769ed4b79b1a932195f353c5e86351ab05")
     version("1.7.2.1", sha256="b971a3e86a8cddaa4bcd520ba9e75425bbe93190466f81a3791ae0cb4baf5e5d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.3.3:", type="run")
     depends_on("py-numpy@1.8.0:", type="run")
     depends_on("py-scipy@0.13.1:", type="run")

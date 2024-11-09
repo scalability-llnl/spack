@@ -55,6 +55,10 @@ class Kripke(CMakePackage, CudaPackage, ROCmPackage):
         commit="67e4b0a2f092009d61f44b5122111d388a3bec2a",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI.")
     variant("openmp", default=False, description="Build with OpenMP enabled.")
     variant("caliper", default=False, description="Build with Caliper support enabled.")
@@ -99,14 +103,14 @@ class Kripke(CMakePackage, CudaPackage, ROCmPackage):
             ]
         )
 
-        if "+caliper" in spec:
+        if spec.satisfies("+caliper"):
             args.append("-DENABLE_CALIPER=ON")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append("-DENABLE_MPI=ON")
             args.append(self.define("CMAKE_CXX_COMPILER", self.spec["mpi"].mpicxx))
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             # Set up the hip macros needed by the build
             args.append("-DENABLE_HIP=ON")
             args.append("-DHIP_ROOT_DIR={0}".format(spec["hip"].prefix))
@@ -119,7 +123,7 @@ class Kripke(CMakePackage, CudaPackage, ROCmPackage):
             # Ensure build with hip is disabled
             args.append("-DENABLE_HIP=OFF")
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append("-DENABLE_CUDA=ON")
             args.append(self.define("CMAKE_CUDA_HOST_COMPILER", self.spec["mpi"].mpicxx))
             if not spec.satisfies("cuda_arch=none"):

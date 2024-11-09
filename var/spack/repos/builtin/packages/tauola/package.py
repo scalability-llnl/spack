@@ -18,6 +18,10 @@ class Tauola(AutotoolsPackage):
 
     version("1.1.8", sha256="3f734e8a967682869cca2c1ffebd3e055562613c40853cc81820d8b666805ed5")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("hepmc", default=True, description="Enable hepmc 2.x support")
     variant("hepmc3", default=False, description="Enable hepmc3 support")
     variant("lhapdf", default=True, description="Enable lhapdf support. Required for TauSpinner.")

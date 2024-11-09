@@ -18,6 +18,8 @@ class PyLibsonata(PythonPackage):
     version("master", branch="master")
     version("0.1.25", sha256="b332efa718123ee265263e1583a5998eaa945a13b8a22903873764cf1d8173fa")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("catch2@2.13:", type="test")
     depends_on("cmake@3.16:", type="build")
     depends_on("fmt@7.1:")

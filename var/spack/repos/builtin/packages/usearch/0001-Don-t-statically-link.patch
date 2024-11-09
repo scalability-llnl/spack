@@ -1,0 +1,26 @@
+From 8df3df8574522ec75c085d35f7c42a65dfe16cf4 Mon Sep 17 00:00:00 2001
+From: Alex C Leute <aclrc@rit.edu>
+Date: Thu, 18 Jul 2024 14:39:35 -0400
+Subject: [PATCH] Don't statically link
+
+---
+ src/Makefile | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/Makefile b/src/Makefile
+index e849853..b796f52 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -15,9 +15,6 @@ CXXFLAGS := $(CFLAGS) -DNDEBUG -pthread -O3 -ffast-math -march=native --std=c++1
+ 
+ UNAME_S := $(shell uname -s)
+ LDFLAGS := $(LDFLAGS) -O3 -pthread -lpthread
+-ifeq ($(UNAME_S),Linux)
+-    LDFLAGS += -static
+-endif
+ 
+ HDRS = \
+   accepter.h \
+-- 
+2.43.5
+

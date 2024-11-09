@@ -28,6 +28,8 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
     version("1.29", sha256="cae466e6e58c7292355e7080248f244db3a4cf755f33f4fa25ca7f9a7ed09af0")
     version("1.28", sha256="6a6b65bac00a127a508533c604d5bf1a3d40f82707d56f20cefd38a05e8237de")
 
+    depends_on("c", type="build")  # generated
+
     # A saner default than gzip?
     variant(
         "zip",

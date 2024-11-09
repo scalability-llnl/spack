@@ -30,6 +30,8 @@ class MiopenOpencl(CMakePackage):
         version("5.3.3", sha256="7efc98215d23a2caaf212378c37e9a6484f54a4ed3e9660719286e4f287d3715")
         version("5.3.0", sha256="c5819f593d71beeda2eb24b89182912240cc40f83b2b8f9de695a8e230aa4ea6")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.5:", type="build")
     depends_on("boost@1.67.0:1.73.0", type="link")
 

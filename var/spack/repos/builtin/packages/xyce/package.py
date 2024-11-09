@@ -60,6 +60,9 @@ class Xyce(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.22:", type="build")
     depends_on("flex")
     depends_on("bison")
@@ -224,7 +227,11 @@ class Xyce(CMakePackage):
             flags.append("-DXyce_INTRUSIVE_PCE -Wreorder")
         elif name == "ldflags":
             # Fortran lib (assumes clang is built with gfortran!)
-            if spec.compiler.name in ["gcc", "clang", "apple-clang"]:
+            if (
+                spec.satisfies("%gcc")
+                or spec.satisfies("%clang")
+                or spec.satisfies("%apple-clang")
+            ):
                 fc = Executable(self.compiler.fc)
                 libgfortran = fc(
                     "--print-file-name", "libgfortran." + dso_suffix, output=str

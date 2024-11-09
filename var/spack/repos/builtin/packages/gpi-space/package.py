@@ -35,6 +35,9 @@ class GpiSpace(CMakePackage):
     version("21.12", sha256="51794e2b593b8d1dc7d6310e17744842919bf44205b2cb7a79de2f2bbac3352a")
     version("21.09", sha256="7f3861c2bfec15a4da46378ea38b304e1462ed315cd315b81ab2c2a8ba50dd3e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "monitor",
         default=True,

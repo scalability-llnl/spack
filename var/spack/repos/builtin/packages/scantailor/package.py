@@ -20,6 +20,8 @@ class Scantailor(CMakePackage):
 
     version("0.2.7", sha256="3e27647621d43638888a268902f8fa098b06a70a5da5d0623b1c11220a367910")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("qt@5:")
     depends_on("libjpeg")
     depends_on("zlib-api")

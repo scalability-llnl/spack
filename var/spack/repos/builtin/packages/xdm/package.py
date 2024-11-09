@@ -20,6 +20,8 @@ class Xdm(AutotoolsPackage, XorgPackage):
     version("1.1.12", sha256="8ea737945f69e172afbbc8b5060e4c7ea8079f402eb0a458572197c907020bb4")
     version("1.1.11", sha256="38c544a986143b1f24566c1a0111486b339b92224b927be78714eeeedca12a14")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxmu")
     depends_on("libx11")
     depends_on("libxau")

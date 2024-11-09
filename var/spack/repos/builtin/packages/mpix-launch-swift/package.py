@@ -16,6 +16,8 @@ class MpixLaunchSwift(MakefilePackage):
 
     version("develop", branch="envs")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("stc")
     depends_on("tcl")
     depends_on("mpi")

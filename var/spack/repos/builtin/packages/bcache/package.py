@@ -21,6 +21,8 @@ class Bcache(MakefilePackage):
     version("1.0.5", sha256="1449294ef545b3dc6f715f7b063bc2c8656984ad73bcd81a0dc048cbba416ea9")
     version("1.0.4", sha256="102ffc3a8389180f4b491188c3520f8a4b1a84e5a7ca26d2bd6de1821f4d913d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("uuid")
     depends_on("util-linux")
     depends_on("gettext")

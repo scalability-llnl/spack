@@ -20,6 +20,8 @@ class Agrep(MakefilePackage):
 
     version("3.41", sha256="0508eafaf9725fc67cc955eb6d32ba4f50138443a4fea4275508d2c3f67a234e")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install("agrep", prefix.bin)

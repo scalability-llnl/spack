@@ -21,6 +21,8 @@ class Cdt(CMakePackage):
     version("1.3.6", sha256="15881e4c451f3b7cceade9b11884b3813ff674dff3edae4fb7c440634f8d4c33")
     version("1.3.0", sha256="7e8feadf9534cf79f9bf188365510fd6bc68ea997758e1c68d1569f98da924da")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "boost",
         default=False,

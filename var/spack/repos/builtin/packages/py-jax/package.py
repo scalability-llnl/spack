@@ -24,6 +24,7 @@ class PyJax(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "jonas-eschle")
 
+    version("0.4.31", sha256="fd2d470643a0073d822737f0788f71391656af7e62cc5b2e7995ee390ceac287")
     version("0.4.30", sha256="94d74b5b2db0d80672b61d83f1f63ebf99d2ab7398ec12b2ca0c9d1e97afe577")
     version("0.4.29", sha256="12904571eaefddcdc8c3b8d4936482b783d5a216e99ef5adcd3522fdfb4fc186")
     version("0.4.28", sha256="dcf0a44aff2e1713f0a2b369281cd5b79d8c18fc1018905c4125897cb06b37e9")
@@ -57,25 +58,27 @@ class PyJax(PythonPackage):
 
     with default_args(type=("build", "run")):
         # setup.py
+        depends_on("python@3.10:", when="@0.4.31:")
         depends_on("python@3.9:", when="@0.4.14:")
-        depends_on("py-ml-dtypes@0.4:", when="@0.4.29")
         depends_on("py-ml-dtypes@0.2:", when="@0.4.14:")
         depends_on("py-ml-dtypes@0.1:", when="@0.4.9:")
         depends_on("py-ml-dtypes@0.0.3:", when="@0.4.7:")
+        depends_on("py-numpy@1.24:", when="@0.4.31:")
         depends_on("py-numpy@1.22:", when="@0.4.14:")
         depends_on("py-numpy@1.21:", when="@0.4.7:")
         depends_on("py-numpy@1.20:", when="@0.3:")
         # https://github.com/google/jax/issues/19246
         depends_on("py-numpy@:1", when="@:0.4.25")
         depends_on("py-opt-einsum")
+        depends_on("py-scipy@1.10:", when="@0.4.31:")
         depends_on("py-scipy@1.9:", when="@0.4.19:")
         depends_on("py-scipy@1.7:", when="@0.4.7:")
         depends_on("py-scipy@1.5:", when="@0.3:")
-        depends_on("py-importlib-metadata@4.6:", when="@0.4.11: ^python@:3.9")
 
         # jax/_src/lib/__init__.py
         # https://github.com/google/jax/commit/8be057de1f50756fe7522f7e98b2f30fad56f7e4
         for v in [
+            "0.4.31",
             "0.4.30",
             "0.4.29",
             "0.4.28",
@@ -108,6 +111,7 @@ class PyJax(PythonPackage):
             depends_on(f"py-jaxlib@:{v}", when=f"@{v}")
 
         # See _minimum_jaxlib_version in jax/version.py
+        depends_on("py-jaxlib@0.4.30:", when="@0.4.31:")
         depends_on("py-jaxlib@0.4.27:", when="@0.4.28:")
         depends_on("py-jaxlib@0.4.23:", when="@0.4.27:")
         depends_on("py-jaxlib@0.4.20:", when="@0.4.25:")
@@ -119,3 +123,7 @@ class PyJax(PythonPackage):
         depends_on("py-jaxlib@0.4.4:", when="@0.4.5:")
         depends_on("py-jaxlib@0.4.2:", when="@0.4.3:")
         depends_on("py-jaxlib@0.4.1:", when="@0.4.2:")
+
+        # Historical dependencies
+        depends_on("py-ml-dtypes@0.4:", when="@0.4.29")
+        depends_on("py-importlib-metadata@4.6:", when="@0.4.11:0.4.30 ^python@:3.9")

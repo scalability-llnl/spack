@@ -24,6 +24,8 @@ class Sabre(MakefilePackage):
 
     version("2013-09-27", commit="039a55e500ba07b7e6432ea6ec2ddcfb3471d949")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")
 
     def install(self, spec, prefix):

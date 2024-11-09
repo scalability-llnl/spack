@@ -16,4 +16,6 @@ class Cnmem(CMakePackage):
 
     version("git", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8.8:", type="build")

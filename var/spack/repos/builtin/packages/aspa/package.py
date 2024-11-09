@@ -21,6 +21,8 @@ class Aspa(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI Support")
 
     depends_on("lapack")

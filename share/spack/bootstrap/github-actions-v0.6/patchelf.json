@@ -1,0 +1,49 @@
+{
+  "verified": [
+    {
+      "binaries": [
+        [
+          "gcc-runtime",
+          "vytidi6v26yjvwdbycga2asyx5363kf3",
+          "8c0b786bed22505e2360fb0eaf1f38f9cdd8a96ff19a9bea84e4acbbad1e32f6"
+        ],
+        [
+          "patchelf",
+          "mabcw7ya2bjav54wiknzyoftwtkkx2s3",
+          "820b8013b0b918ad85caa953740497e6c31c09d812bd34d087fc57128bfbdacb"
+        ]
+      ],
+      "spec": "patchelf@0.17.2%gcc platform=linux target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "gcc-runtime",
+          "o6nx7ce6pg2fzah2fbwbpbwb6rkhdwc2",
+          "c942c0fb5d4ae8d875b036c1ab6bc09077dad6f2b43fe0621dee84fd47fcdec3"
+        ],
+        [
+          "patchelf",
+          "hz6j4rmzm65wov77f7t335tbywy5ebnq",
+          "1569df037ea1ea316a50e89f5a0cafa0ce8e20629bbd07fcc3846d9fecd2451c"
+        ]
+      ],
+      "spec": "patchelf@0.17.2%gcc platform=linux target=ppc64le"
+    },
+    {
+      "binaries": [
+        [
+          "gcc-runtime",
+          "7rv2b76tgxqmkwtmngiamwac632cjjba",
+          "b76a4eaef54b24d0ea9b8dfa9392f7ab519f918ae7e1a8bb919539d9adeddbcb"
+        ],
+        [
+          "patchelf",
+          "o6soxsz4hwdhzzbu4j56zwcclqhram25",
+          "79dfb7064e7993a97474c5f6b7560254fe19465a6c4cfc44569852e5a6ab542b"
+        ]
+      ],
+      "spec": "patchelf@0.17.2%gcc platform=linux target=x86_64"
+    }
+  ]
+}

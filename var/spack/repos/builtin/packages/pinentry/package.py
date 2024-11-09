@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-
 from spack.package import *
 
 
@@ -28,6 +27,9 @@ class Pinentry(AutotoolsPackage):
     version("1.2.0", sha256="10072045a3e043d0581f91cd5676fcac7ffee957a16636adedaa4f583a616470")
     version("1.1.1", sha256="cd12a064013ed18e2ee8475e669b9f58db1b225a0144debdb85a68cecddba57f")
     version("1.1.0", sha256="68076686fa724a290ea49cdf0d1c0c1500907d1b759a3bcbfbec0293e8f56570")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     supported_guis = [
         "curses",
@@ -92,17 +94,24 @@ class Pinentry(AutotoolsPackage):
                 args.append("--enable-pinentry-" + gui)
             else:
                 args.append("--disable-pinentry-" + gui)
-
         return args
 
-    def test(self):
-        kwargs = {
-            "exe": self.prefix.bin.pinentry,
-            "options": ["--version"],
-            "expected": [str(self.version)],
-        }
-        self.run_test(**kwargs)
+    def check_version(self, exe_name):
+        """Version check"""
+        exe = which(join_path(self.prefix.bin, exe_name))
+        out = exe("--version", output=str.split, error=str.split)
+        assert str(self.version) in out
+
+    def test_pinentry(self):
+        """Confirm pinentry version"""
+        self.check_version("pinentry")
+
+    def test_guis(self):
+        """Check gui versions"""
         for gui in self.supported_guis:
-            if "gui=" + gui in self.spec:
-                kwargs["exe"] = self.prefix.bin.pinentry + "-" + gui
-                self.run_test(**kwargs)
+            if f"gui={gui}" not in self.spec:
+                continue
+
+            exe_name = f"pinentry-{gui}"
+            with test_part(self, f"test_guis_{gui}", purpose=f"Check {exe_name} version"):
+                self.check_version(exe_name)

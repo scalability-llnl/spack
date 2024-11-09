@@ -20,6 +20,8 @@ class Qrupdate(MakefilePackage, SourceforgePackage):
 
     version("1.1.2", sha256="e2a1c711dc8ebc418e21195833814cb2f84b878b90a2774365f0166402308e08")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("blas")
     depends_on("lapack")
 

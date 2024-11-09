@@ -26,6 +26,9 @@ class Hiredis(MakefilePackage, CMakePackage):
     version("0.13.3", sha256="717e6fc8dc2819bef522deaca516de9e51b9dfa68fe393b7db5c3b6079196f78")
     version("0.13.2", sha256="b0cf73ebe039fe25ecaaa881acdda8bdc393ed997e049b04fc20865835953694")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     build_system(
         conditional("cmake", when="@1:"), conditional("makefile", when="@:0"), default="cmake"
     )
@@ -43,13 +46,17 @@ class Hiredis(MakefilePackage, CMakePackage):
 class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
     @property
     def build_targets(self):
-        use_ssl = 1 if "+ssl" in self.spec else 0
-        run_test_async = 1 if "+test_async" in self.spec else 0
+        use_ssl = 1 if self.spec.satisfies("+ssl") else 0
+        run_test_async = 1 if self.spec.satisfies("+test_async") else 0
         return ["USE_SSL={0}".format(use_ssl), "TEST_ASYNC={0}".format(run_test_async)]
 
     def install(self, pkg, spec, prefix):
         make("PREFIX={0}".format(prefix), "install")
-        if "+test" in self.spec or "+test_async" in self.spec or "+test_ssl" in self.spec:
+        if (
+            self.spec.satisfies("+test")
+            or self.spec.satisfies("+test_async")
+            or self.spec.satisfies("+test_ssl")
+        ):
             make("PREFIX={0}".format(prefix), "test")
 
     @run_after("install")
@@ -60,9 +67,9 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
-        build_test = not ("+test" in self.spec)
-        ssl_test = ("+test_ssl" in self.spec) and ("+test" in self.spec)
-        async_test = ("+test_async" in self.spec) and ("+test" in self.spec)
+        build_test = not self.spec.satisfies("+test")
+        ssl_test = self.spec.satisfies("+test_ssl") and self.spec.satisfies("+test")
+        async_test = self.spec.satisfies("+test_async") and self.spec.satisfies("+test")
 
         args = [
             self.define_from_variant("ENABLE_SSL", "ssl"),

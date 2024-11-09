@@ -61,6 +61,8 @@ class GmapGsnap(AutotoolsPackage):
         "2014-12-28", sha256="108433f3e3ea89b8117c8bb36d396913225caf1261d46ce6d89709ff1b44025d"
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")
     depends_on("bzip2")
     depends_on("perl", type="run")

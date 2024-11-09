@@ -66,6 +66,10 @@ class SingularityEos(CMakePackage, CudaPackage):
 
     variant("closure", default=True, description="Build closure module")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+
     # building/testing/docs
     depends_on("cmake@3.19:", type="build")
     depends_on("python@3:", when="+python")

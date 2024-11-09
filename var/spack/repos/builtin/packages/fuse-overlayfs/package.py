@@ -28,6 +28,8 @@ class FuseOverlayfs(AutotoolsPackage):
     version("1.1.1", sha256="9a1c4221a82059fd9686dd8b519d432bae126c08f9d891fb722bcb51ba4933ec")
     version("1.1.0", sha256="060168c2d5a8c6cc768b4542eba9953b7ff4a31f94bfb2e05b3d1051390838b1")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

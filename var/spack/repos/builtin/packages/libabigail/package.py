@@ -20,6 +20,9 @@ class Libabigail(AutotoolsPackage):
     version("2.0", sha256="3704ae97a56bf076ca08fb5dea6b21db998fbbf14c4f9de12824b78db53b6fda")
     version("1.8", sha256="1cbf260b894ccafc61b2673ba30c020c3f67dbba9dfa88dca3935dff661d665c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("docs", default=False, description="build documentation")
 
     depends_on("elfutils", type=("build", "link"))

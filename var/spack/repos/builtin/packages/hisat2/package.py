@@ -89,24 +89,20 @@ class Hisat2(MakefilePackage):
             pattern = "^#!.*/usr/bin/env python"
             repl = f"#!{self.spec['python'].command.path}"
             files = ["hisat2-build", "hisat2-inspect"]
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
             pattern = "^#!.*/usr/bin/env perl"
             repl = f"#!{self.spec['perl'].command.path}"
             files = ["hisat2"]
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
             pattern = "^#!.*/usr/bin/env python3"
             repl = f"#!{self.spec['python'].command.path}"
             files = glob.glob("*.py")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
         with working_dir(self.prefix.scripts):
             pattern = "^#!.*/usr/bin/perl"
             repl = f"#!{self.spec['perl'].command.path}"
             files = glob.glob("*.pl")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)

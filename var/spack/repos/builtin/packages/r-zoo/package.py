@@ -30,6 +30,8 @@ class RZoo(RPackage):
     version("1.7-14", sha256="4858675fed056a4329c4998517cc944db386447483390bd342de719e0509f598")
     version("1.7-13", sha256="0ca5264d6077c785963705e462aec3e57e0d0651379f9bf4ee32e4f3b25dc754")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10.0:", type=("build", "run"))
     depends_on("r@3.1.0:", type=("build", "run"), when="@1.8-2:")
     depends_on("r-lattice@0.20-27:", type=("build", "run"))

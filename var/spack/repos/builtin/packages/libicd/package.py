@@ -16,6 +16,9 @@ class Libicd(CMakePackage):
 
     version("main", branch="main")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.5:", type="build")
     depends_on("jpeg")
     depends_on("libpng")

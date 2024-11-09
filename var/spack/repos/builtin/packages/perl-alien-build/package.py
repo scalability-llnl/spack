@@ -19,6 +19,8 @@ class PerlAlienBuild(PerlPackage):
     version("2.78", sha256="9140671790a0696920b0a97acd812ab4d0b93ac69306d20679f027dd0c7caa27")
     version("1.86", sha256="f856a46aea72fe77daea5b1788b4ea0dc215f5704f5a35fa063171be8523e4e9")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl-capture-tiny", type=("build", "run"))
     depends_on("perl-ffi-checklib", type=("build", "run"))
     depends_on("perl-file-which", type=("build", "run"))

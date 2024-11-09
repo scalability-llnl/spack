@@ -41,6 +41,8 @@ class Miopengemm(CMakePackage):
         version("5.1.3", sha256="c70fc9e2a6d47356a612e24f5757bf16fdf26e671bd53a0975c1a0978da740b6")
         version("5.1.0", sha256="e2b20cdc20a745bcb7a554852e6b4bd39274c7dcc13fc19a81a282fb4dfa475f")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3:", type="build")
 
     for ver in ["5.3.0", "5.3.3", "5.4.0", "5.4.3", "5.5.0", "5.5.1"]:

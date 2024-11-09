@@ -15,3 +15,5 @@ class IkeScan(AutotoolsPackage):
     license("GPL-2.0-or-later")
 
     version("1.9", sha256="05d15c7172034935d1e46b01dacf1101a293ae0d06c0e14025a4507656f1a7b6")
+
+    depends_on("c", type="build")  # generated

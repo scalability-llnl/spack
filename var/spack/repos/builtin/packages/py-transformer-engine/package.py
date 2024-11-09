@@ -22,6 +22,8 @@ class PyTransformerEngine(PythonPackage):
     version("1.4", tag="v1.4", submodules=True)
     version("main", branch="main", submodules=True)
 
+    depends_on("cxx", type="build")  # generated
+
     variant("userbuffers", default=True, description="Enable userbuffers, this option needs MPI.")
 
     depends_on("py-setuptools", type="build")

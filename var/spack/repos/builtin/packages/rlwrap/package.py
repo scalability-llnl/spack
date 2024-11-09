@@ -21,6 +21,8 @@ class Rlwrap(AutotoolsPackage):
     version("0.44", sha256="cd7ff50cde66e443cbea0049b4abf1cca64a74948371fa4f1b5d9a5bbce1e13c")
     version("0.43", sha256="8e86d0b7882d9b8a73d229897a90edc207b1ae7fa0899dca8ee01c31a93feb2f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("readline@4.2:")
 
     def url_for_version(self, version):

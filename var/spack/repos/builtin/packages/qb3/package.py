@@ -16,6 +16,8 @@ class Qb3(CMakePackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.5:", type="build")
     depends_on("libicd")
 

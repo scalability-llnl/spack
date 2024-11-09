@@ -49,6 +49,9 @@ class Mstk(CMakePackage):
     version("3.0.1", sha256="d44e4bf01b118b1d19710aa839b3f5f0c1a8391264a435f641ba4bd23bcf45ec")
     version("3.0.0", sha256="d993ff5fc6c431067eb97e4089835c7790397d9c1ad88a56523c0591d451df19")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("exodusii", default=False, description="Enable ExodusII")
     variant("use_markers", default=True, description="Enable use of markers")
     variant("parallel", default=False, description="Enable Parallel Support")

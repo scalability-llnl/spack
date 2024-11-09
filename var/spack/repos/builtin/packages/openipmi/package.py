@@ -19,6 +19,8 @@ class Openipmi(AutotoolsPackage):
     version("2.0.28", sha256="8e8b1de2a9a041b419133ecb21f956e999841cf2e759e973eeba9a36f8b40996")
     version("2.0.27", sha256="f3b1fafaaec2e2bac32fec5a86941ad8b8cb64543470bd6d819d7b166713d20b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("popt", type="link")
     depends_on("python", type=("build", "link", "run"))
     depends_on("perl", type=("build", "link", "run"))

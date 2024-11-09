@@ -50,6 +50,9 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
     version("0.168", sha256="b88d07893ba1373c7dd69a7855974706d05377766568a7d9002706d5de72c276")
     version("0.163", sha256="7c774f1eef329309f3b05e730bdac50013155d437518a2ec0e24871d312f2e23")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # Native language support from libintl.
     variant("nls", default=True, description="Enable Native Language Support.")
     variant("exeprefix", default=True, description="Add a prefix to generated executables.")
@@ -125,7 +128,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
         else:
             args.append("--program-prefix=''")
 
-        if "@0.182:" in spec:
+        if spec.satisfies("@0.182:"):
             args.append("--with-zstd=%s" % spec["zstd"].prefix)
 
         if spec.satisfies("@0.183:"):
@@ -134,7 +137,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
             else:
                 args.append("--without-libiconv-prefix")
 
-        if "+nls" in spec:
+        if spec.satisfies("+nls"):
             # Prior to 0.183, only msgfmt is used from gettext.
             if spec.satisfies("@0.183:"):
                 if "intl" not in spec["gettext"].libs.names:
@@ -144,7 +147,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
         else:
             args.append("--disable-nls")
 
-        if "+debuginfod" in spec:
+        if spec.satisfies("+debuginfod"):
             args.append("--enable-debuginfod")
             if spec.satisfies("@0.181:"):
                 args.append("--enable-libdebuginfod")

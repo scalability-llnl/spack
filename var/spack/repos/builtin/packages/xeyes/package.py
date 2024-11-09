@@ -18,6 +18,8 @@ class Xeyes(AutotoolsPackage, XorgPackage):
     version("1.1.2", sha256="4a675b34854da362bd8dff4f21ff92e0c19798b128ea0af24b7fc7c5ac2feea3")
     version("1.1.1", sha256="3a1871a560ab87c72a2e2ecb7fd582474448faec3e254c9bd8bead428ab1bca3")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxt")
     depends_on("libxext")

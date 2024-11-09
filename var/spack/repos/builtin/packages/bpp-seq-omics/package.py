@@ -20,5 +20,7 @@ class BppSeqOmics(CMakePackage):
     version("2.3.1", sha256="3217b35fa98e94824e19e5e2765f4561cb5d5ec0f93f5f4e7fc213e6b5b59e83")
     version("2.3.0", sha256="be0c8c593e48cd94a2a878e8635609788dfa806179f7844ecf8243e548bfe0fa")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("bpp-core")
     depends_on("bpp-seq")

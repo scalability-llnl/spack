@@ -21,6 +21,8 @@ class Semiprof(CMakePackage):
 
     version("0.1", sha256="4fb3823c65a4f5dfbe05e8cbe1911dfd25cd7740597f82c7b3a84472de26f0dc")
 
+    depends_on("cxx", type="build")  # generated
+
     def cmake_args(self):
         return [
             self.define("SEMIPROF_WITH_INSTALL", True),

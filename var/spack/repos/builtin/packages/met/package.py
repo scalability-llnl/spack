@@ -30,6 +30,9 @@ class Met(AutotoolsPackage):
     version("10.0.0", sha256="92f37c8bd83c951d86026cce294a16e4d3aa6dd41905629d0a729fa1bebe668a")
     version("9.1.3", sha256="7356a5ad79ca961fd965cadd93a7bf6c73b3aa5fb1a01a932580b94e66d0d0c8")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, description="Use OpenMP multithreading")
     variant("grib2", default=False, description="Enable compilation of utilities using GRIB2")
     variant("python", default=False, description="Enable python embedding")

@@ -23,6 +23,8 @@ class ModelTraits(CMakePackage):
     version("0.1.0", sha256="ff7c1c5be6977f1d3dc592e8b6c5bff5a8b7ea80d0f059d85c02300bdb8faf2c")
     version("main", branch="main")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("yaml", default=True, description="build the Yaml IO backend")
     variant("simmetrix", default=False, description="build the Simmetrix backend")
     variant("pumi", default=False, description="build the pumi examples")

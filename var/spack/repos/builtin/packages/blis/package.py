@@ -55,17 +55,17 @@ class BlisBase(MakefilePackage):
         spec = self.spec
         config_args = ["--enable-threading={0}".format(spec.variants["threads"].value)]
 
-        if "+ilp64" in spec:
+        if spec.satisfies("+ilp64"):
             config_args.append("--blas-int-size=64")
         else:
             config_args.append("--blas-int-size=32")
 
-        if "+cblas" in spec:
+        if spec.satisfies("+cblas"):
             config_args.append("--enable-cblas")
         else:
             config_args.append("--disable-cblas")
 
-        if "+blas" in spec:
+        if spec.satisfies("+blas"):
             config_args.append("--enable-blas")
         else:
             config_args.append("--disable-blas")
@@ -137,6 +137,10 @@ class Blis(BlisBase):
     version("0.3.1", sha256="957f28d47c5cf71ffc62ce8cc1277e17e44d305b1c2fa8506b0b55617a9f28e4")
     version("0.3.0", sha256="d34d17df7bdc2be8771fe0b7f867109fd10437ac91e2a29000a4a23164c7f0da")
     version("0.2.2", sha256="4a7ecb56034fb20e9d1d8b16e2ef587abbc3d30cb728e70629ca7e795a7998e8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Problems with permissions on installed libraries:
     # https://github.com/flame/blis/issues/343

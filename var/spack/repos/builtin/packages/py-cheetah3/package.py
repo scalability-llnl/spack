@@ -15,5 +15,7 @@ class PyCheetah3(PythonPackage):
 
     version("3.2.6", sha256="f1c2b693cdcac2ded2823d363f8459ae785261e61c128d68464c8781dba0466b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-markdown@2.0.1:", type=("build", "run"))

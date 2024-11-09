@@ -17,6 +17,8 @@ class Gpcnet(MakefilePackage):
 
     version("master")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi", type=("build", "run"))
 
     @property

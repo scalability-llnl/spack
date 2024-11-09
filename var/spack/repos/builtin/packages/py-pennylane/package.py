@@ -12,13 +12,15 @@ class PyPennylane(PythonPackage):
 
     homepage = "https://docs.pennylane.ai/"
     git = "https://github.com/PennyLaneAI/pennylane.git"
-    url = "https://github.com/PennyLaneAI/pennylane/archive/refs/tags/v0.35.1.tar.gz"
+    url = "https://github.com/PennyLaneAI/pennylane/archive/refs/tags/v0.37.0.tar.gz"
 
     maintainers("mlxd", "AmintorDusko", "marcodelapierre", "vincentmr")
 
     license("Apache-2.0")
 
     version("master", branch="master")
+    version("0.37.0", sha256="3e5eaab9da28ac43099e5850fde0c5763bc4e37271804463fc35dab8b08e2f15")
+    version("0.36.0", sha256="10ae174b8fd47de12c1174fd5236c26b50ff40e679b658b3446660e063fb64e1")
     version("0.35.1", sha256="5a234d0605012f3d0201fdcfd2bfe84205a09c8ac42801fe7123eddddec71366")
     version("0.35.0", sha256="3b99185661e8a0d0f7bc2dcc9cfa51dde20e99708c3c7d858c4732f0eb774716")
     version("0.34.0", sha256="f76f544212c028a8f882ce7f66639e7f7c4c9213277bde0454c7f3a7d9d46538")
@@ -35,27 +37,30 @@ class PyPennylane(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools", type=("build", "run"), when="@0.33")
 
-    depends_on("py-numpy", type=("build", "run"))
     depends_on("py-numpy@:1.23", type=("build", "run"), when="@:0.32.0")
+    depends_on("py-numpy@:1.26", type=("build", "run"), when="@0.33.0:")
     depends_on("py-scipy", type=("build", "run"))
     depends_on("py-scipy@:1.10.0", type=("build", "run"), when="@:0.31")
     depends_on("py-networkx", type=("build", "run"))
     depends_on("py-rustworkx", type=("build", "run"), when="@0.30.0:")
     depends_on("py-retworkx", type=("build", "run"), when="@0.28.0:0.29.1")
-    depends_on("py-autograd@:1.5", type=("build", "run"))
+    depends_on("py-autograd@:1.5", type=("build", "run"), when="@:0.32.0")
+    depends_on("py-autograd", type=("build", "run"), when="@0.33.0:")
     depends_on("py-toml", type=("build", "run"))
     depends_on("py-appdirs", type=("build", "run"))
     depends_on("py-semantic-version@2.7:", type=("build", "run"))
     depends_on("py-autoray@0.3.1:", type=("build", "run"), when="@:0.32.0")
     depends_on("py-autoray@0.6.1:", type=("build", "run"), when="@0.33.0:")
+    depends_on("py-autoray@0.6.11:", type=("build", "run"), when="@0.37.0:")
     depends_on("py-cachetools", type=("build", "run"))
     depends_on(
         "py-pennylane-lightning@0.28.0:0.29.0", type=("build", "run"), when="@0.28.0:0.29.1"
     )
-    for v in range(30, 36):
+    for v in range(30, 38):
         depends_on(f"py-pennylane-lightning@0.{v}:", type=("build", "run"), when=f"@0.{v}:")
     depends_on("py-requests", type=("build", "run"))
     depends_on("py-typing-extensions", type=("build", "run"), when="@0.32.0:")
+    depends_on("py-packaging", type=("build", "run"), when="@0.37.0:")
 
     # The following packages are required by the `pl-device-test binary`
     depends_on("py-pytest", type="test")

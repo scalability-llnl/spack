@@ -31,6 +31,9 @@ class Flatcc(CMakePackage):
     version("0.4.1", sha256="de9f668e5555b24c0885f8dc4f4098cc8065c1f428f8209097624035aee487df")
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libs")
 
     depends_on("cmake@2.8:", type="build")

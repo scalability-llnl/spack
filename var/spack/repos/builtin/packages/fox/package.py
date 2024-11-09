@@ -28,6 +28,8 @@ class Fox(AutotoolsPackage):
         sha256="65ef15de9e0f3a396dc36d9ea29c158b78fad47f7184780357b929c94d458923",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     patch("no_rexdebug.patch", when="@1.7.67")
 
     variant("opengl", default=False, description="opengl support")

@@ -21,6 +21,9 @@ class PyBrian2(PythonPackage):
     version("2.0.1", sha256="195d8ced0d20e9069917776948f92aa70b7457bbc6b5222b8199654402ee1153")
     version("2.0rc3", sha256="05f347f5fa6b25d1ce5ec152a2407bbce033599eb6664f32f5331946eb3c7d66")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@2.7:", type=("build", "run"))
     depends_on("python@3.6:", type=("build", "run"), when="@2.4:")
     depends_on("python@3.7:", type=("build", "run"), when="@2.5:")

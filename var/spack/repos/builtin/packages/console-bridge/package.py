@@ -24,3 +24,5 @@ class ConsoleBridge(CMakePackage):
     version("0.5.0", sha256="1cecdf232b1eb883b41cc50d1d38443b2163fdc0497072dc1aa6e7ba30696060")
     version("0.4.4", sha256="1147af6ad6477fcfd640c543684e17ee540e434aa70d6f31c1d137bc86fb937c")
     version("0.4.3", sha256="9f024a38f0947ed9fa67f58829980c2d90d84740e6de20d75cb00866f07a7a0b")
+
+    depends_on("cxx", type="build")  # generated

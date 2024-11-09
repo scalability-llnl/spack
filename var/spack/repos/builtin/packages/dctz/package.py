@@ -19,6 +19,9 @@ class Dctz(CMakePackage):
 
     version("0.2.2", sha256="5d270199b93e81704292ad87787ce961b458865c6a60ef7da59d5073513f6cff")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", description="build a shared library", default=True)
     variant("libpressio", description="use libpressio support", default=True)
 

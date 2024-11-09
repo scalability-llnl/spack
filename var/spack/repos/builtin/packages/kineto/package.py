@@ -26,6 +26,8 @@ class Kineto(CMakePackage):
         "2021-02-04", commit="258d9a471f8d3a50a0f52b85c3fe0902f65489df", submodules=True
     )  # py-torch@1.8.0
 
+    depends_on("cxx", type="build")  # generated
+
     root_cmakelists_dir = "libkineto"
 
     generator("ninja")

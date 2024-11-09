@@ -21,6 +21,9 @@ class Clp(AutotoolsPackage):
     version("1.17.4", sha256="ef412cde00cb1313d9041115a700d8d59d4b8b8b5e4dde43e9deb5108fcfbea8")
     version("1.16.11", sha256="b525451423a9a09a043e6a13d9436e13e3ee7a7049f558ad41a110742fa65f39")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("coinutils")
     depends_on("osi")

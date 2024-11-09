@@ -17,5 +17,7 @@ class Shocklibs(Package):
     version("0.9.29", sha256="81c61f22b869b9923065ee57f9bcf62d95bf266887b09486f6c8e6aa07aa2c0a")
     version("0.9.24", sha256="465d06f33df2570eaf3ffd535a38fc464084ac95a2f145ead5c71f34beeb0a35")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree("libs", prefix.libs)

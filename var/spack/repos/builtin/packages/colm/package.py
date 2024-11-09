@@ -19,3 +19,6 @@ class Colm(AutotoolsPackage):
     license("GPL-2.0-only")
 
     version("0.12.0", sha256="7b545d74bd139f5c622975d243c575310af1e4985059a1427b6fdbb1fb8d6e4d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

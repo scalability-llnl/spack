@@ -44,6 +44,9 @@ class Valgrind(AutotoolsPackage, SourcewarePackage):
     version("3.10.1", sha256="fa253dc26ddb661b6269df58144eff607ea3f76a9bcfe574b0c7726e1dfcb997")
     version("3.10.0", sha256="03047f82dfc6985a4c7d9d2700e17bc05f5e1a0ca6ad902e5d6c81aeb720edc9")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Activates MPI support for valgrind")
     variant("boost", default=True, description="Activates boost support for valgrind")
     variant("only64bit", default=True, description="Sets --enable-only64bit option for valgrind")

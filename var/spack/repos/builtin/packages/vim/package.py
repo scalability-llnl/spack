@@ -41,6 +41,9 @@ class Vim(AutotoolsPackage):
     version("8.0.0134", sha256="1b3e3e7d187eed55cbdb0a1dae6b8f3b885005fbae84222420877d7afa3b2310")
     version("7.4.2367", sha256="a9ae4031ccd73cc60e771e8bf9b3c8b7f10f63a67efce7f61cd694cd8d7cda5c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     _features = ("huge", "big", "normal", "small", "tiny")
 
     variant("cscope", default=False, description="build with cscope support")

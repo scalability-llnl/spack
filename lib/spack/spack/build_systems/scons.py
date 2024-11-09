@@ -2,8 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
-
 import spack.builder
 import spack.package_base
 from spack.directives import build_system, depends_on
@@ -63,8 +61,7 @@ class SConsBuilder(BaseBuilder):
 
     def build(self, pkg, spec, prefix):
         """Build the package."""
-        args = self.build_args(spec, prefix)
-        inspect.getmodule(self.pkg).scons(*args)
+        pkg.module.scons(*self.build_args(spec, prefix))
 
     def install_args(self, spec, prefix):
         """Arguments to pass to install."""
@@ -72,9 +69,7 @@ class SConsBuilder(BaseBuilder):
 
     def install(self, pkg, spec, prefix):
         """Install the package."""
-        args = self.install_args(spec, prefix)
-
-        inspect.getmodule(self.pkg).scons("install", *args)
+        pkg.module.scons("install", *self.install_args(spec, prefix))
 
     def build_test(self):
         """Run unit tests after build.

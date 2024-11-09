@@ -20,6 +20,10 @@ class Everytrace(CMakePackage):
     version("develop", branch="develop")
     version("0.2.2", sha256="0487276bb24e648388862d8e1d8cfe56b529f7e3d840df3fcb5b3a3dad4016e1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Enables MPI parallelism")
     variant("fortran", default=True, description="Enable use with Fortran programs")
     variant("cxx", default=True, description="Enable C++ Exception-based features")

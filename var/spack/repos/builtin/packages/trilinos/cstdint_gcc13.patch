@@ -1,0 +1,33 @@
+diff -Naur spack-src.orig/packages/kokkos/core/src/impl/Kokkos_MemoryPool.cpp spack-src/packages/kokkos/core/src/impl/Kokkos_MemoryPool.cpp
+--- spack-src.orig/packages/kokkos/core/src/impl/Kokkos_MemoryPool.cpp	2024-09-02 10:53:10.022724683 +0200
++++ spack-src/packages/kokkos/core/src/impl/Kokkos_MemoryPool.cpp	2024-09-02 10:57:03.312228742 +0200
+@@ -44,6 +44,7 @@
+ 
+ #include <impl/Kokkos_Error.hpp>
+ 
++#include <cstdint>
+ #include <ostream>
+ #include <sstream>
+ 
+diff -Naur spack-src.orig/packages/teuchos/core/src/Teuchos_BigUIntDecl.hpp spack-src/packages/teuchos/core/src/Teuchos_BigUIntDecl.hpp
+--- spack-src.orig/packages/teuchos/core/src/Teuchos_BigUIntDecl.hpp	2024-09-02 10:53:50.098010896 +0200
++++ spack-src/packages/teuchos/core/src/Teuchos_BigUIntDecl.hpp	2024-09-02 10:51:17.777157344 +0200
+@@ -42,6 +42,7 @@
+ #ifndef TEUCHOS_BIG_UINT_DECL_HPP
+ #define TEUCHOS_BIG_UINT_DECL_HPP
+ 
++#include <cstdint>
+ #include <iosfwd>
+ 
+ /*! \file Teuchos_BigUIntDecl.hpp
+diff -Naur spack-src.orig/packages/teuchos/core/src/Teuchos_PrintDouble.cpp spack-src/packages/teuchos/core/src/Teuchos_PrintDouble.cpp
+--- spack-src.orig/packages/teuchos/core/src/Teuchos_PrintDouble.cpp	2024-09-02 10:54:02.240401775 +0200
++++ spack-src/packages/teuchos/core/src/Teuchos_PrintDouble.cpp	2024-09-02 10:51:34.110672927 +0200
+@@ -42,6 +42,7 @@
+ #include "Teuchos_PrintDouble.hpp"
+ #include "Teuchos_BigUInt.hpp"
+ 
++#include <cstdint>
+ #include <cstring>
+ 
+ namespace Teuchos {

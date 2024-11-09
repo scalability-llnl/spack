@@ -37,6 +37,9 @@ class RGofuncr(RPackage):
     version("1.2.0", commit="140a3cea4fe34d32fef9be756f85e337ce3deded")
     version("1.0.0", commit="becd4ddde085c5477042adb856e7a4f40dbd648e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r+X", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r-vioplot@0.2:", type=("build", "run"))

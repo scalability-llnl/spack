@@ -26,6 +26,9 @@ class Jasper(AutotoolsPackage, CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     build_system(
         conditional("cmake", when="@2:"), conditional("autotools", when="@:1"), default="cmake"
     )

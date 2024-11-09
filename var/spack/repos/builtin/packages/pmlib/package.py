@@ -21,6 +21,10 @@ class Pmlib(CMakePackage):
     version("master", branch="master")
     version("6.4.1", commit="0a35f5bec8c12e532e5a1bdac8c32c659fd3ee11")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Activate MPI support")
     variant("example", default=False, description="This option turns on compiling sample codes.")
     variant("fortran", default=False, description="This option tells a compiler to use a Fortran.")

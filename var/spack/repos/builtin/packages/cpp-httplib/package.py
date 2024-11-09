@@ -30,3 +30,5 @@ class CppHttplib(CMakePackage):
     version("0.3.3", sha256="476471c6fcd4b39fc79a5dd6ad343a2428cb69b4d528557abb6a0b7bf8186e34")
     version("0.2.6", sha256="8678afc0e69bc198edcb8fe0066e46a87373221232ebabde2d78c237f31d3c3d")
     version("0.2.1", sha256="94a6ddd25088b66b7b9e57b9d0ea138c984967e91b21395401642027bf279438")
+
+    depends_on("cxx", type="build")  # generated

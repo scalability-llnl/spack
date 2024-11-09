@@ -21,6 +21,8 @@ class Harminv(AutotoolsPackage):
     version("1.4.2", sha256="5a9a1bf710972442f065d0d62c62d0c4ec3da4a3696d7160a35602c9470bc7a2")
     version("1.4.1", sha256="e1b923c508a565f230aac04e3feea23b888b47d8e19b08816a97ee4444233670")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("blas")
     depends_on("lapack")
 

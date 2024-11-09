@@ -35,6 +35,8 @@ class Geant4Vmc(CMakePackage):
     version("4-0-p2", sha256="cdd73c499cd296f13b6c0d37e161e7d94343f85617b2a7577ded8312248f9b9b")
     version("3-6-p6", sha256="e62a62ff7075ff9afb2ffe420610374f62136094a447bbbc5f739a2238ddb0f0")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.3:", type="build")
     depends_on("geant4")
     depends_on("vmc")

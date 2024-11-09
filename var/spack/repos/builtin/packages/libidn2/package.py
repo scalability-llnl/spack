@@ -28,6 +28,8 @@ class Libidn2(AutotoolsPackage, GNUMirrorPackage):
     version("2.1.0", sha256="032398dbaa9537af43f51a8d94e967e3718848547b1b2a4eb3138b20cad11d32")
     version("2.0.5", sha256="53f69170886f1fa6fa5b332439c7a77a7d22626a82ef17e2c1224858bb4ca2b8")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libunistring")
 
     # in-source build fails

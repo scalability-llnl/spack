@@ -35,6 +35,21 @@ class Verible(Package):
     version("master", branch="master")
 
     version(
+        "0.0.3836",
+        sha256="946625a1527d0a97772ea031ab7358af29e61258c189a2ab0d9533b43e71f35b",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3836-g86ee9bab.tar.gz",
+    )
+    version(
+        "0.0.3671",
+        sha256="9f492cdc64b047f4e91aece8aa01fd2b846d9695510360dde34980daf5dbe0dd",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3671-gf2731544.tar.gz",
+    )
+    version(
+        "0.0.3667",
+        sha256="6a13a902bfd37ecabfd772d619251da40e8ad8e44cf75ec2bc8663046200b02a",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3667-g88d12889.tar.gz",
+    )
+    version(
         "0.0.3624",
         sha256="e5995644e092e72c9d37c492f319b0d4861a3c63d03d1c3cfefe2363bcd6b74f",
         url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3624-gd256d779.tar.gz",
@@ -64,6 +79,8 @@ class Verible(Package):
         sha256="2b83497662b890f875bfe859175aa8e4b87db6e6a177ad08a0694002b8767cb0",
         url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3428-gcfcbb82b.tar.gz",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     maintainers("davekeeshan")
 

@@ -35,6 +35,8 @@ class Gnupg(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("npth@1.2:", when="@2:")
 
     depends_on("libgpg-error@1.24:", when="@2:")

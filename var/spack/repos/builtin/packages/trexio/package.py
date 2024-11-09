@@ -23,6 +23,9 @@ class Trexio(AutotoolsPackage):
     version("2.1.0", sha256="232866c943b98fa8a42d34b55e940f7501634eb5bd426555ba970f5c09775e83")
     version("2.0.0", sha256="6eeef2da44259718b43991eedae4b20d4f90044e38f3b44a8beea52c38b14cb4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("hdf5", default=True, description="Enable HDF5 support")
 
     depends_on("emacs@26.0:", type="build", when="@master")
