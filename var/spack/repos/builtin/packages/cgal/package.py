@@ -56,13 +56,29 @@ class Cgal(CMakePackage):
     variant("demos", default=False, description="Build CGAL demos")
     variant("eigen", default=True, description="Build with Eigen support")
 
-    depends_on("cmake@2.8.11:", type="build")
+    # Starting with cgal 6, GMP/MPFR are no longer mandatory and Core library
+    # is based on on Boost.Multiprecision. However,either GMP backend or Boost backend can be used.
+    # downstream users must also set -DCGAL_DISABLE_GMP=1 if GMP is diabled, thus prefer using gmp
+    variant(
+        "gmp",
+        default=True,
+        description="Enable the GMP backend. Consumers must also set -DCGAL_DISABLE_GMP=1",
+        when="@6:",
+    )
+
+    depends_on("cmake@3.12:3.29", type="build", when="@6:")
+    depends_on("cmake@2.8.11:", type="build", when="@:5")
 
     # Essential Third Party Libraries
     depends_on("boost+exception+math+random+container", when="@5.0:")
+    depends_on("boost@1.72.0:+exception+math+random+container", when="@6:")
     depends_on("boost+thread+system", when="@:5.0")
-    depends_on("gmp")
-    depends_on("mpfr")
+
+    depends_on("gmp", when="@:5")
+    depends_on("mpfr", when="@:5")
+
+    depends_on("gmp", when="@6: +gmp")
+    depends_on("mpfr", when="@6: +gmp")
 
     # Required for CGAL_ImageIO
     # depends_on('opengl', when='+imageio') # not yet in Spack
@@ -70,7 +86,8 @@ class Cgal(CMakePackage):
 
     # Optional to build CGAL_Qt5 (demos)
     # depends_on('opengl', when='+demos')   # not yet in Spack
-    depends_on("qt@5:", when="+demos")
+    depends_on("qt@5:", when="@:5 +demos")
+    depends_on("qt@6:", when="@6: +demos")
 
     # Optional Third Party Libraries
     depends_on("eigen", when="+eigen")
@@ -83,6 +100,19 @@ class Cgal(CMakePackage):
     # depends_on('libqglviewer')
     # depends_on('esbtl')
     # depends_on('intel-tbb')
+
+    # @6: requires C++17 or later
+    # https://www.cgal.org/2024/10/22/cgal601/
+    with when("@6:"):
+        # Gnu g++ 11.4.0 or later (on Linux or macOS)
+        conflicts("%gcc @:11.3.0", when="platform=darwin")
+        conflicts("%gcc @:11.3.0", when="platform=linux")
+
+        # LLVM Clang version 15.0.7 or later (on Linux)
+        conflicts("%clang @:15.0.6", when="platform=linux")
+
+        # Apple Clang compiler versions 10.0.1, 12.0.5, and 15.0.0 (on macOS) (10+ has C++17 support)
+        conflicts("%apple-clang @:10.0.0", when="platform=darwin")
 
     conflicts(
         "~header_only",
@@ -120,7 +150,13 @@ class Cgal(CMakePackage):
         cmake_args.append("-DWITH_CGAL_ImageIO:BOOL=%s" % variant_bool("+imageio"))
         cmake_args.append("-DWITH_CGAL_Qt5:BOOL=%s" % variant_bool("+demos"))
 
+        if spec.satisfies("@6:"):
+            cmake_args.append("-DCXX_STANDARD=17")
+
         if spec.satisfies("@4.9:"):
             cmake_args.append("-DCGAL_HEADER_ONLY:BOOL=%s" % variant_bool("+header_only"))
+
+        if spec.satisfies("~gmp"):
+            cmake_args.append("-DCGAL_DISABLE_GMP:BOOL=1")
 
         return cmake_args
