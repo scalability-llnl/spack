@@ -25,6 +25,8 @@ fc_mapping = [
     ("gfortran", os.path.join("clang", "gfortran")),
     ("xlf90_r", os.path.join("xl_r", "xlf90_r")),
     ("xlf90", os.path.join("xl", "xlf90")),
+    ("xlf2008_r", os.path.join("xl_r", "xlf2008_r")),
+    ("xlf2008", os.path.join("xl", "xlf2008")),
     ("pgfortran", os.path.join("pgi", "pgfortran")),
     ("ifort", os.path.join("intel", "ifort")),
 ]

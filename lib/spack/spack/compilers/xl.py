@@ -8,15 +8,30 @@ import os
 from spack.compiler import Compiler, UnsupportedCompilerFlag
 from spack.version import Version
 
+#: compiler symlink mappings for mixed f90/fc compilers
+fc_mapping = [("xlf2008", os.path.join("xl", "xlf2008"))]
+
 
 class Xl(Compiler):
     # Named wrapper links within build_env_path
-    link_paths = {
-        "cc": os.path.join("xl", "xlc"),
-        "cxx": os.path.join("xl", "xlc++"),
-        "f77": os.path.join("xl", "xlf"),
-        "fc": os.path.join("xl", "xlf90"),
-    }
+    @property
+    def link_paths(self):
+        link_paths = {
+            "cc": os.path.join("xl", "xlc"),
+            "cxx": os.path.join("xl", "xlc++"),
+            "f77": os.path.join("xl", "xlf"),
+        }
+
+        # fortran links need to look at the actual compiler names from
+        # compilers.yaml to figure out which named symlink to use
+        for compiler_name, link_path in fc_mapping:
+            if self.fc and compiler_name in self.fc:
+                link_paths["fc"] = link_path
+                break
+        else:
+            link_paths["fc"] = os.path.join("xl", "xlf90")
+
+        return link_paths
 
     version_argument = "-qversion"
     version_regex = r"([0-9]?[0-9]\.[0-9])"

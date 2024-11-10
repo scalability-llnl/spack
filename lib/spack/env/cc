@@ -336,6 +336,14 @@ case "$command" in
         debug_flags="-g"
         vcheck_flags="${SPACK_ALWAYS_FFLAGS}"
         ;;
+    xlf2008|xlf2008_r)
+        command="$SPACK_FC"
+        language="Fortran 2008"
+        comp="FC"
+        lang_flags=F
+        debug_flags="-g"
+        vcheck_flags="${SPACK_ALWAYS_FFLAGS}"
+        ;;
     f77|xlf|xlf_r|pgf77)
         command="$SPACK_F77"
         language="Fortran 77"

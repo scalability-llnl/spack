@@ -12,6 +12,17 @@ import spack.compilers.apple_clang as apple_clang
 import spack.util.executable
 from spack.version import Version
 
+#: compiler symlink mappings for mixed f77 compilers
+f77_mapping = [("xlf_r", os.path.join("xl_r", "xlf_r")), ("xlf", os.path.join("xl", "xlf"))]
+
+#: compiler symlink mappings for mixed f90/fc compilers
+fc_mapping = [
+    ("xlf90_r", os.path.join("xl_r", "xlf90_r")),
+    ("xlf90", os.path.join("xl", "xlf90")),
+    ("xlf2008_r", os.path.join("xl_r", "xlf2008_r")),
+    ("xlf2008", os.path.join("xl", "xlf2008")),
+]
+
 
 class Gcc(spack.compiler.Compiler):
     # MacPorts builds gcc versions with prefixes and -mp-X or -mp-X.Y suffixes.
@@ -19,13 +30,29 @@ class Gcc(spack.compiler.Compiler):
     # Old compatibility versions may contain XY suffixes.
     suffixes = [r"-mp-\d+(?:\.\d+)?", r"-\d+(?:\.\d+)?", r"\d\d"]
 
-    # Named wrapper links within build_env_path
-    link_paths = {
-        "cc": os.path.join("gcc", "gcc"),
-        "cxx": os.path.join("gcc", "g++"),
-        "f77": os.path.join("gcc", "gfortran"),
-        "fc": os.path.join("gcc", "gfortran"),
-    }
+    # GCC can be used together with different fortran compilers
+    @property
+    def link_paths(self):
+        # clang links are always the same
+        link_paths = {"cc": os.path.join("gcc", "gcc"), "cxx": os.path.join("gcc", "g++")}
+
+        # fortran links need to look at the actual compiler names from
+        # compilers.yaml to figure out which named symlink to use
+        for compiler_name, link_path in f77_mapping:
+            if self.f77 and compiler_name in self.f77:
+                link_paths["f77"] = link_path
+                break
+        else:
+            link_paths["f77"] = os.path.join("gcc", "gfortran")
+
+        for compiler_name, link_path in fc_mapping:
+            if self.fc and compiler_name in self.fc:
+                link_paths["fc"] = link_path
+                break
+        else:
+            link_paths["fc"] = os.path.join("gcc", "gfortran")
+
+        return link_paths
 
     @property
     def verbose_flag(self):
