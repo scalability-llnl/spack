@@ -2784,6 +2784,13 @@ class TestConcretizeSeparately:
         gmake = s["python"].dependencies(name="gmake", deptype="build")
         assert len(gmake) == 1 and gmake[0].satisfies("@=3.0")
 
+    @pytest.mark.parametrize("strategy", ["none", "minimal", "full"])
+    def test_two_setuptools_with_run(self, strategy):
+        """Tests that concretization fails for mixed build/run dependencies on build tools."""
+        spack.config.CONFIG.set("concretizer:duplicates:strategy", strategy)
+        with pytest.raises((spack.error.UnsatisfiableSpecError, vt.InvalidVariantForSpecError)):
+            _ = Spec("py-shapely ^py-numpy+rundep").concretized()
+
     def test_solution_without_cycles(self):
         """Tests that when we concretize a spec with cycles, a fallback kicks in to recompute
         a solution without cycles.
