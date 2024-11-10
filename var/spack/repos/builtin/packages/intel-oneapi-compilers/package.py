@@ -22,7 +22,7 @@ versions = [
         },
         "nvidia-plugin": {
             "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=nvidia&version=2025.0.0&filters[]=12.0&filters[]=linux",
-            "sha256": "e878a6403da046ad030b5f8df299ac866b1a11aa",
+            "sha256": "264a43d2e07c08eb31d6483fb1c289a6b148709e48e9a250efc1b1e9a527feb6",
         },
         "amd-plugin": {
             "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=amd&version=2025.0.0&filters[]=6.1.0&filters[]=linux",
