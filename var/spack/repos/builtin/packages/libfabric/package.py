@@ -199,7 +199,7 @@ class Libfabric(AutotoolsPackage, CudaPackage):
 
         args.extend(self.enable_or_disable("debug"))
 
-        if "+kdreg" in self.spec:
+        if self.spec.satisfies("+kdreg"):
             args.append("--with-kdreg=yes")
         else:
             args.append("--with-kdreg=no")

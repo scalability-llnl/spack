@@ -12,6 +12,9 @@ import llnl.util.tty as tty
 #: this is module-scoped because it needs to be set very early
 debug = 0
 
+#: whether to show a backtrace when an error is printed, enabled with --backtrace.
+SHOW_BACKTRACE = False
+
 
 class SpackError(Exception):
     """This is the superclass for all Spack errors.

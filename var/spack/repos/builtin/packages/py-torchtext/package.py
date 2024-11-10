@@ -93,3 +93,18 @@ class PyTorchtext(PythonPackage):
     depends_on("py-pybind11", when="@0.8:", type=("build", "link"))
     depends_on("py-six", when="@:0.6", type=("build", "run"))
     depends_on("py-sentencepiece", when="@:0.7", type=("build", "run"))
+
+    def patch(self):
+        # Add missing rpaths, which requires patching due to hardcoded cmake_args
+        if self.spec.satisfies("@0.13:"):
+            cmake_args = [
+                f"-DCMAKE_INSTALL_RPATH={python_platlib}/torchtext/lib",
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
+            ]
+            cmake_str = ", ".join(f"'{arg}'" for arg in cmake_args)
+            filter_file(
+                "cmake_args = [",
+                f"cmake_args = [{cmake_str},",
+                "tools/setup_helpers/extension.py",
+                string=True,
+            )

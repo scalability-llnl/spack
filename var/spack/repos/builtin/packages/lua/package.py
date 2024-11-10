@@ -64,8 +64,8 @@ class LuaImplPackage(MakefilePackage):
 
     resource(
         name="luarocks",
-        url="https://luarocks.github.io/luarocks/releases/" "luarocks-3.8.0.tar.gz",
-        sha256="56ab9b90f5acbc42eb7a94cf482e6c058a63e8a1effdf572b8b2a6323a06d923",
+        url="https://luarocks.github.io/luarocks/releases/luarocks-3.11.1.tar.gz",
+        sha256="c3fb3d960dffb2b2fe9de7e3cb004dc4d0b34bb3d342578af84f84325c669102",
         destination="luarocks",
         placement="luarocks",
     )
@@ -259,7 +259,7 @@ class Lua(LuaImplPackage):
     def install(self, spec, prefix):
         make("INSTALL_TOP=%s" % prefix, "install")
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             static_to_shared_library(
                 join_path(prefix.lib, "liblua.a"),
                 arguments=["-lm", "-ldl"],
@@ -269,7 +269,7 @@ class Lua(LuaImplPackage):
 
         # compatibility with ax_lua.m4 from autoconf-archive
         # https://www.gnu.org/software/autoconf-archive/ax_lua.html
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             with working_dir(prefix.lib):
                 # e.g., liblua.so.5.1.5
                 src_path = "liblua.{0}.{1}".format(dso_suffix, str(self.version.up_to(3)))
@@ -290,7 +290,7 @@ class Lua(LuaImplPackage):
 
     @run_after("install")
     def link_pkg_config(self):
-        if "+pcfile" in self.spec:
+        if self.spec.satisfies("+pcfile"):
             versioned_pc_file_name = "lua{0}.pc".format(self.version.up_to(2))
             symlink(
                 join_path(self.prefix.lib, "pkgconfig", versioned_pc_file_name),

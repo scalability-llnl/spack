@@ -14,10 +14,14 @@ class Minizip(AutotoolsPackage):
 
     license("Zlib")
 
-    version("1.2.11", sha256="c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1")
+    version("1.3.1", sha256="9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2022-37434
+        version(
+            "1.2.11", sha256="c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1"
+        )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
 
     configure_directory = "contrib/minizip"
 
@@ -28,8 +32,9 @@ class Minizip(AutotoolsPackage):
     depends_on("zlib-api")
 
     # error: implicit declaration of function 'mkdir' is invalid in C99
-    patch("implicit.patch", when="%apple-clang@12:")
-    patch("implicit.patch", when="%gcc@7.3.0:")
+    with when("@:1.2.11"):
+        patch("implicit.patch", when="%apple-clang@12:")
+        patch("implicit.patch", when="%gcc@7.3.0:")
 
     # statically link to libz.a
     # https://github.com/Homebrew/homebrew-core/blob/master/Formula/minizip.rb

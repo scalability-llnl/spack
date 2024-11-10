@@ -20,6 +20,7 @@ class RRcppcnpy(RPackage):
 
     license("BitTorrent-1.0")
 
+    version("0.2.12", sha256="856dbc857b2d425c80d9a1628e45743234fee2e68575aa9e2d29a6efae60c39a")
     version("0.2.11", sha256="5dbb36f2526c276fd79b8e08a30503dc401cdf54d8c40f61af758c9ee1192f55")
     version("0.2.10", sha256="77d6fbc86520a08da40d44c0b82767099f8f719ca95870d91efff1a9cab1ab9c")
     version("0.2.9", sha256="733f004ad1a8b0e5aafbf547c4349d2df3118afd57f1ff99f20e39135c6edb30")

@@ -42,8 +42,8 @@ class Lesstif(AutotoolsPackage):
             "--disable-debug",
             "--enable-production",
             "--disable-dependency-tracking",
-            "--enable-shared" if "+shared" in spec else "--disable-shared",
-            "--enable-static" if "+static" in spec else "--disable-static",
+            "--enable-shared" if spec.satisfies("+shared") else "--disable-shared",
+            "--enable-static" if spec.satisfies("+static") else "--disable-static",
         ]
 
         return args

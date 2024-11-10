@@ -101,6 +101,8 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant("vtune", default=False, description="Enable Intel Vtune support")
     variant("kokkos", default=True, when="@2.3.0:", description="Enable Kokkos profiling support")
     variant("tests", default=False, description="Enable tests")
+    # TODO change the 'when' argument for the next release of Caliper
+    variant("python", default=False, when="@master", description="Build Python bindings")
 
     depends_on("adiak@0.1:0", when="@2.2:2.10 +adiak")
     depends_on("adiak@0.4:0", when="@2.11: +adiak")
@@ -120,6 +122,9 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("cmake", type="build")
     depends_on("python", type="build")
+
+    depends_on("python@3", when="+python", type=("build", "link", "run"))
+    depends_on("py-pybind11", when="+python", type=("build", "link", "run"))
 
     # sosflow support not yet in 2.0
     conflicts("+sosflow", "@2.0.0:2.11")
@@ -228,6 +233,7 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_option("WITH_KOKKOS", spec.satisfies("+kokkos")))
         entries.append(cmake_cache_option("WITH_VARIORUM", spec.satisfies("+variorum")))
         entries.append(cmake_cache_option("WITH_VTUNE", spec.satisfies("+vtune")))
+        entries.append(cmake_cache_option("WITH_PYTHON_BINDINGS", spec.satisfies("+python")))
 
         # -DWITH_CALLPATH was renamed -DWITH_LIBUNWIND in 2.5
         callpath_flag = "LIBUNWIND" if spec.satisfies("@2.5:") else "CALLPATH"
@@ -237,6 +243,11 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     def cmake_args(self):
         return []
+
+    def setup_run_environment(self, env):
+        if self.spec.satisfies("+python"):
+            env.prepend_path("PYTHONPATH", self.spec.prefix.join(python_platlib))
+            env.prepend_path("PYTHONPATH", self.spec.prefix.join(python_purelib))
 
     @run_after("install")
     def cache_test_sources(self):

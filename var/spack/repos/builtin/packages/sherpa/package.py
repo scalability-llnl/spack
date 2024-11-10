@@ -22,6 +22,7 @@ class Sherpa(CMakePackage, AutotoolsPackage):
 
     license("GPL-3.0-only")
 
+    version("3.0.1", sha256="ff5f43e79a9a10919391242307a771eca0c57b0462c11bfb99ee4a0fe8c48c58")
     version("3.0.0", sha256="e460d8798b323c4ef663293a2c918b1463e9641b35703a54d70d25c852c67d36")
     version("2.2.15", sha256="0300fd719bf6a089b7dc5441f720e669ac1cb030045d87034a4733bee98e7bbc")
     version("2.2.14", sha256="f17d88d7f3bc4234a9db3872e8a3c1f3ef99e1e2dc881ada5ddf848715dc82da")

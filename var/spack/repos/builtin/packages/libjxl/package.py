@@ -30,6 +30,7 @@ class Libjxl(CMakePackage):
     depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.10:", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("brotli")
     depends_on("highway")
 

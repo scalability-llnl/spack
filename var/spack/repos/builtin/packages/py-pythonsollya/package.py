@@ -9,7 +9,7 @@ from spack.package import *
 class PyPythonsollya(PythonPackage):
     """Python wrapper for the Sollya library"""
 
-    homepage = "Python wrapper for the Sollya library"
+    homepage = "https://gitlab.com/metalibm-dev/pythonsollya"
     url = "https://gitlab.com/metalibm-dev/pythonsollya/-/archive/release-0.4.0-alpha0/pythonsollya-release-0.4.0-alpha0.tar.gz"
 
     license("CECILL-2.1")

@@ -32,6 +32,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
 
     license("MIT")
 
+    version("3.9.3", sha256="34a037852ffe6d2163f1b8948a1aa7019ff767148aea55876c1339b22ad751f1")
     version("3.9.2", sha256="bfbcc9f087f012c36151c20c79f8eac9529e1e5298fbded79cd5a1365f0b113a")
     version("3.9.1", sha256="aff3086fee75f5773e33a5598df98d8a4d10be411f777d3ce23584b21d8171ca")
     version("3.9.0", sha256="577f80e9d14ff7c90b6bfbc34201652b4546700c01543efb4f4c3050e0b3fda2")
@@ -641,7 +642,7 @@ class AutotoolsBuilder(AutotoolsBuilder):
         if not variant:
             variant = name
 
-        if variant not in self.pkg.variants:
+        if not self.pkg.has_variant(variant):
             msg = '"{}" is not a variant of "{}"'
             raise KeyError(msg.format(variant, self.name))
 
