@@ -26,7 +26,7 @@ versions = [
         },
         "amd-plugin": {
             "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=amd&version=2025.0.0&filters[]=6.1.0&filters[]=linux",
-            "sha256": "8da98029c431495ad787528eadb4dbb5d22daac6",
+            "sha256": "2c5a147e82f0e995b9c0457b53967cc066d5741d675cb64cb9eba8e3c791a064",
         },
     },
     {
