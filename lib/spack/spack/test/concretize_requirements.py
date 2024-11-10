@@ -983,6 +983,21 @@ def test_requiring_package_on_multiple_virtuals(concretize_scope, mock_packages)
             ["%clang"],
             ["%gcc"],
         ),
+        # Test using preferences on virtuals
+        (
+            """
+            packages:
+              all:
+                providers:
+                  mpi: [mpich]
+              mpi:
+                prefer:
+                - zmpi
+        """,
+            "mpileaks",
+            ["^[virtuals=mpi] zmpi"],
+            ["^[virtuals=mpi] mpich"],
+        ),
     ],
 )
 def test_strong_preferences_packages_yaml(
@@ -1032,6 +1047,16 @@ def test_strong_preferences_packages_yaml(
                   message: "cannot use clang with version 2"
         """,
             "multivalue-variant@=2.3 %clang",
+        ),
+        # Test using conflict on virtual
+        (
+            """
+        packages:
+          mpi:
+            conflict:
+            - mpich
+    """,
+            "mpileaks ^[virtuals=mpi] mpich",
         ),
     ],
 )

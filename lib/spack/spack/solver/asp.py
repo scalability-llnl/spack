@@ -3021,49 +3021,55 @@ class RequirementParser:
         return rules
 
     def rules_from_virtual(self, virtual_str: str) -> List[RequirementRule]:
-        requirements = self.config.get("packages", {}).get(virtual_str, {}).get("require", [])
-        return self._rules_from_requirements(
-            virtual_str, requirements, kind=RequirementKind.VIRTUAL
+        r_kind, requirements = self._raw_yaml_data(virtual_str, section="require", virtual=True)
+        p_kind, preferences = self._raw_yaml_data(virtual_str, section="prefer", virtual=True)
+        c_kind, conflicts = self._raw_yaml_data(virtual_str, section="conflict", virtual=True)
+        return (
+            self._rules_from_requirements(virtual_str, requirements, kind=r_kind)
+            + self._rules_from_preferences(virtual_str, preferences, kind=p_kind)
+            + self._rules_from_conflicts(virtual_str, conflicts, kind=c_kind)
         )
 
     def rules_from_require(self, pkg: "spack.package_base.PackageBase") -> List[RequirementRule]:
-        kind, requirements = self._raw_yaml_data(pkg, section="require")
+        kind, requirements = self._raw_yaml_data(pkg.name, section="require")
         return self._rules_from_requirements(pkg.name, requirements, kind=kind)
 
     def rules_from_prefer(self, pkg: "spack.package_base.PackageBase") -> List[RequirementRule]:
-        result = []
-        kind, preferences = self._raw_yaml_data(pkg, section="prefer")
-        for item in preferences:
-            spec, condition, message = self._parse_prefer_conflict_item(item)
-            result.append(
-                # A strong preference is defined as:
-                #
-                # require:
-                # - any_of: [spec_str, "@:"]
-                RequirementRule(
-                    pkg_name=pkg.name,
-                    policy="any_of",
-                    requirements=[spec, spack.spec.Spec("@:")],
-                    kind=kind,
-                    message=message,
-                    condition=condition,
-                )
-            )
-        return result
+        kind, preferences = self._raw_yaml_data(pkg.name, section="prefer")
+        return self._rules_from_preferences(pkg.name, preferences, kind=kind)
 
     def rules_from_conflict(self, pkg: "spack.package_base.PackageBase") -> List[RequirementRule]:
+        kind, conflicts = self._raw_yaml_data(pkg.name, section="conflict")
+        return self._rules_from_conflicts(pkg.name, conflicts, kind=kind)
+
+    def _rules_from_preferences(
+        self, pkg_name: str, preferences, *, kind: RequirementKind
+    ) -> List[RequirementRule]:
+        # A strong preference is defined as:
+        #
+        # require:
+        # - any_of: [spec_str, "@:"]
+        return self._rules_with_wildcards(pkg_name, preferences, kind=kind, policy="any_of")
+
+    def _rules_from_conflicts(
+        self, pkg_name: str, conflicts, *, kind: RequirementKind
+    ) -> List[RequirementRule]:
+        # A conflict is defined as:
+        #
+        # require:
+        # - one_of: [spec_str, "@:"]
+        return self._rules_with_wildcards(pkg_name, conflicts, kind=kind, policy="one_of")
+
+    def _rules_with_wildcards(
+        self, pkg_name: str, items, *, kind: RequirementKind, policy: str
+    ) -> List[RequirementRule]:
         result = []
-        kind, conflicts = self._raw_yaml_data(pkg, section="conflict")
-        for item in conflicts:
+        for item in items:
             spec, condition, message = self._parse_prefer_conflict_item(item)
             result.append(
-                # A conflict is defined as:
-                #
-                # require:
-                # - one_of: [spec_str, "@:"]
                 RequirementRule(
-                    pkg_name=pkg.name,
-                    policy="one_of",
+                    pkg_name=pkg_name,
+                    policy=policy,
                     requirements=[spec, spack.spec.Spec("@:")],
                     kind=kind,
                     message=message,
@@ -3084,11 +3090,11 @@ class RequirementParser:
             message = item.get("message")
         return spec, condition, message
 
-    def _raw_yaml_data(self, pkg: "spack.package_base.PackageBase", *, section: str):
+    def _raw_yaml_data(self, name: str, *, section: str, virtual: bool = False):
         config = self.config.get("packages")
-        data = config.get(pkg.name, {}).get(section, [])
-        kind = RequirementKind.PACKAGE
-        if not data:
+        data = config.get(name, {}).get(section, [])
+        kind = RequirementKind.PACKAGE if not virtual else RequirementKind.VIRTUAL
+        if not data and not virtual:
             data = config.get("all", {}).get(section, [])
             kind = RequirementKind.DEFAULT
         return kind, data
