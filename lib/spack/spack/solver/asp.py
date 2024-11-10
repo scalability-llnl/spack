@@ -1723,26 +1723,18 @@ class SpackSolverSetup:
             with named_spec(cond, pkg.name):
                 self.version_constraints.add((cond.name, cond.versions))
                 self.version_constraints.add((spec_to_splice.name, spec_to_splice.versions))
-                when_spec_attrs = []
-                splice_spec_hash_attrs = []
                 hash_var = AspVar("Hash")
                 splice_node = fn.node(AspVar("NID"), cond.name)
-                explicit_variants = []
-                for c in self.spec_clauses(cond, body=True, required_from=None):
-                    args = c.args
-                    if args[0] == "node":
-                        continue
-                    if args[0] == "variant_value":
-                        explicit_variants.append(args[2])
-                    when_spec_attrs.append(fn.attr(args[0], splice_node, *args[2:]))
-
-                for c in self.spec_clauses(spec_to_splice, body=True, required_from=None):
-                    args = c.args
-                    if args[0] == "node":
-                        continue
-                    if args[0] == "variant_value":
-                        explicit_variants.append(args[2])
-                    splice_spec_hash_attrs.append(fn.hash_attr(hash_var, *args))
+                when_spec_attrs = [
+                    fn.attr(c.args[0], splice_node, *(c.args[2:]))
+                    for c in self.spec_clauses(cond, body=True, required_from=None)
+                    if c.args[0] != "node"
+                ]
+                splice_spec_hash_attrs = [
+                    fn.hash_attr(hash_var, *(c.args))
+                    for c in self.spec_clauses(spec_to_splice, body=True, required_from=None)
+                    if c.args[0] != "node"                
+                ]
                 if match_variants is None:
                     variant_constraints = []
                 elif match_variants == "*":
@@ -1755,7 +1747,7 @@ class SpackSolverSetup:
                         pkg, cond, spec_to_splice, hash_var, splice_node, filt_match_variants
                     )
                 else:
-                    if any(v in explicit_variants for v in match_variants):
+                    if any(v in cond.variants or v in spec_to_splice.variants for v in match_variants):
                         raise Exception(
                             "Overlap between match_variants and explicitly set variants"
                         )
@@ -1770,10 +1762,7 @@ class SpackSolverSetup:
                     # splice_set_fact,
                     fn.attr("node", splice_node),
                     fn.installed_hash(spec_to_splice.name, hash_var),
-                ]
-                rule_body_components.extend(when_spec_attrs)
-                rule_body_components.extend(splice_spec_hash_attrs)
-                rule_body_components.extend(variant_constraints)
+                ] + when_spec_attrs + splice_spec_hash_attrs + variant_constraints
                 rule_body = ",\n  ".join(str(r) for r in rule_body_components)
                 rule = f"{rule_head} :-\n  {rule_body}."
                 self.gen.append(rule)
