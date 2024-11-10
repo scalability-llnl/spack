@@ -79,7 +79,6 @@ class Pixman(AutotoolsPackage):
 
 
 class MesonBuilder(spack.build_systems.meson.MesonBuilder):
-
     def meson_args(self):
         args = ["-Dlibpng=enabled", "-Dgtk=disabled", "-Db_staticpic=true"]
 
@@ -96,13 +95,14 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         if self.spec.satisfies("%fj"):
             args.append("-Da64-neon=disabled")
 
-        args.append("-Ddefault_library=" + ("shared" if self.spec.satisfies("+shared") else "static"))
+        args.append(
+            "-Ddefault_library=" + ("shared" if self.spec.satisfies("+shared") else "static")
+        )
 
         return args
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
-
     def configure_args(self):
         args = ["--enable-libpng", "--disable-gtk", "--with-pic"]
 
