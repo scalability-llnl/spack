@@ -32,3 +32,5 @@ class Librdkafka(AutotoolsPackage):
     depends_on("zstd")
     depends_on("lz4")
     depends_on("curl")
+    depends_on("openssl")
+    depends_on("zlib")
