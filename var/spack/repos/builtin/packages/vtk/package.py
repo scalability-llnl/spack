@@ -24,11 +24,7 @@ class Vtk(CMakePackage):
 
     license("BSD-3-Clause")
 
-    version(
-        "9.3.1",
-        sha256="8354ec084ea0d2dc3d23dbe4243823c4bfc270382d0ce8d658939fd50061cab8",
-        preferred=True,
-    )
+    version("9.3.1", sha256="8354ec084ea0d2dc3d23dbe4243823c4bfc270382d0ce8d658939fd50061cab8")
     version("9.2.6", sha256="06fc8d49c4e56f498c40fcb38a563ed8d4ec31358d0101e8988f0bb4d539dd12")
     version("9.2.2", sha256="1c5b0a2be71fac96ff4831af69e350f7a0ea3168981f790c000709dcf9121075")
     version("9.1.0", sha256="8fed42f4f8f1eb8083107b68eaa9ad71da07110161a3116ad807f43e5ca5ce96")
@@ -45,17 +41,9 @@ class Vtk(CMakePackage):
         sha256="34c3dc775261be5e45a8049155f7228b6bd668106c72a3c435d95730d17d57bb",
     )
     version("8.2.0", sha256="34c3dc775261be5e45a8049155f7228b6bd668106c72a3c435d95730d17d57bb")
-    version("8.1.2", sha256="0995fb36857dd76ccfb8bb07350c214d9f9099e80b1e66b4a8909311f24ff0db")
-    version("8.1.1", sha256="71a09b4340f0a9c58559fe946dc745ab68a866cf20636a41d97b6046cb736324")
-    version("8.1.0", sha256="6e269f07b64fb13774f5925161fb4e1f379f4e6a0131c8408c555f6b58ef3cb7")
-    version("8.0.1", sha256="49107352923dea6de05a7b4c3906aaf98ef39c91ad81c383136e768dcf304069")
-    version("7.1.0", sha256="5f3ea001204d4f714be972a810a62c0f2277fbb9d8d2f8df39562988ca37497a")
-    version("7.0.0", sha256="78a990a15ead79cdc752e86b83cfab7dbf5b7ef51ba409db02570dbdd9ec32c3")
-    version("6.3.0", sha256="92a493354c5fa66bea73b5fc014154af5d9f3f6cee8d20a826f4cd5d4b0e8a5e")
-    version("6.1.0", sha256="bd7df10a479606d529a8b71f466c44a2bdd11fd534c62ce0aa44fad91883fa34")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # VTK7 defaults to OpenGL2 rendering backend
     variant("opengl2", default=True, description="Enable OpenGL2 backend")
@@ -94,6 +82,9 @@ class Vtk(CMakePackage):
         depends_on("python@:3.8", when="@:8.2.1a", type=("build", "run"))
         # Python 3.10 support from vtk 9.2
         depends_on("python@:3.9", when="@:9.1", type=("build", "run"))
+        depends_on("python@:3.10", when="@:9.2", type=("build", "run"))
+        # Python 3.12 support from vtk 9.3
+        depends_on("python@:3.12", when="@:9.3", type=("build", "run"))
 
     # We need mpi4py if buidling python wrappers and using MPI
     depends_on("py-mpi4py", when="+python+mpi", type="run")
@@ -298,7 +289,6 @@ class Vtk(CMakePackage):
             cmake_args.extend(
                 [
                     "-DVTK_USE_EXTERNAL:BOOL=ON",
-                    "-DVTK_MODULE_USE_EXTERNAL_VTK_fast_float:BOOL=OFF",
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_libharu:BOOL=OFF",
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_pegtl:BOOL=OFF",
                     "-DHDF5_ROOT={0}".format(spec["hdf5"].prefix),
@@ -314,17 +304,12 @@ class Vtk(CMakePackage):
                 )
             if spec.satisfies("@9.2:"):
                 cmake_args.append("-DVTK_MODULE_USE_EXTERNAL_VTK_verdict:BOOL=OFF")
+            if spec.satisfies("@9.3:"):
+                cmake_args.append("-DVTK_MODULE_USE_EXTERNAL_VTK_fast_float:BOOL=OFF")
 
         # Some variable names have changed
         if spec.satisfies("@8.2.0"):
             cmake_args.append("-DVTK_USE_SYSTEM_PUGIXML:BOOL=OFF")
-        elif spec.satisfies("@:8.1"):
-            cmake_args.extend(
-                [
-                    "-DVTK_USE_SYSTEM_LIBPROJ4:BOOL=OFF",
-                    "-DNETCDF_CXX_ROOT={0}".format(spec["netcdf-cxx"].prefix),
-                ]
-            )
 
         if "+mpi" in spec:
             if spec.satisfies("@:8.2.0"):
@@ -461,36 +446,6 @@ class Vtk(CMakePackage):
                 cmake_args.extend(["-DVTK_USE_X:BOOL=ON", "-DVTK_USE_COCOA:BOOL=OFF"])
 
         compile_flags = []
-
-        if spec.satisfies("@:6.1.0"):
-            compile_flags.append("-DGLX_GLXEXT_LEGACY")
-
-            # VTK 6.1.0 (and possibly earlier) does not use
-            # NETCDF_CXX_ROOT to detect NetCDF C++ bindings, so
-            # NETCDF_CXX_INCLUDE_DIR and NETCDF_CXX_LIBRARY must be
-            # used instead to detect these bindings
-            netcdf_cxx_lib = spec["netcdf-cxx"].libs.joined()
-            cmake_args.extend(
-                [
-                    "-DNETCDF_CXX_INCLUDE_DIR={0}".format(spec["netcdf-cxx"].prefix.include),
-                    "-DNETCDF_CXX_LIBRARY={0}".format(netcdf_cxx_lib),
-                ]
-            )
-
-            # Garbage collection is unsupported in Xcode starting with
-            # version 5.1; if the Apple clang version of the compiler
-            # is 5.1.0 or later, unset the required Objective-C flags
-            # to remove the garbage collection flags.  Versions of VTK
-            # after 6.1.0 set VTK_REQUIRED_OBJCXX_FLAGS to the empty
-            # string. This fix was recommended on the VTK mailing list
-            # in March 2014 (see
-            # https://public.kitware.com/pipermail/vtkusers/2014-March/083368.html)
-            if self.spec.satisfies("%apple-clang@5.1.0:"):
-                cmake_args.extend(["-DVTK_REQUIRED_OBJCXX_FLAGS="])
-
-            # A bug in tao pegtl causes build failures with intel compilers
-            if "%intel" in spec and spec.version >= Version("8.2"):
-                cmake_args.append("-DVTK_MODULE_ENABLE_VTK_IOMotionFX:BOOL=OFF")
 
         # -no-ipo prevents an internal compiler error from multi-file
         # optimization (https://github.com/spack/spack/issues/20471)

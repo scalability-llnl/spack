@@ -35,7 +35,7 @@ class Memsurfer(PythonPackage):
     depends_on("cgal@4.13 +shared~core~demos~imageio")
 
     # vtk needs to know whether to build with mesa or opengl
-    depends_on("vtk@8.1.2 ~ffmpeg~mpi+opengl2~qt~xdmf+python")
+    depends_on("vtk@8.1.2: ~ffmpeg~mpi+opengl2~qt~xdmf+python")
 
     # memsurfer's setup needs path to these deps to build extension modules
     def setup_build_environment(self, env):

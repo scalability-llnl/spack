@@ -91,7 +91,11 @@ class PyMne(PythonPackage):
         depends_on("py-psutil", type=("build", "run"))
         depends_on("py-dipy@0.10.1:", type=("build", "run"))  # *
         depends_on("vtk+python", type=("build", "run"))
-        depends_on("vtk+python@:8.1", when="platform=darwim", type=("build", "run"))
+        # Since #36408 (in January 2024), vtk@:8.1 could not be built because
+        # it replaced depends_on("netcdf-cxx") with "netcdf-cxx4" and that
+        # introduced a KeyError that would have to be fixed with the PR,
+        # but was never done.
+        # depends_on("vtk+python@:8.1", when="platform=darwim", type=("build", "run"))
         depends_on("py-mayavi", type=("build", "run"))
         depends_on("py-pysurfer+save_movie", type=("build", "run"))
         depends_on("py-nilearn", type=("build", "run"))
