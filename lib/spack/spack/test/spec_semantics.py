@@ -1975,3 +1975,7 @@ def test_equality_discriminate_on_propagation(lhs, rhs):
     s, t = Spec(lhs), Spec(rhs)
     assert s != t
     assert len({s, t}) == 2
+
+
+def test_comparison_multivalued_variants():
+    assert Spec("x=a") < Spec("x=a,b") < Spec("x==a,b") < Spec("x==a,b,c")

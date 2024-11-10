@@ -8,6 +8,7 @@ import pytest
 
 import spack.config
 import spack.environment as ev
+import spack.paths
 import spack.repo
 import spack.util.spack_yaml as syaml
 from spack.spec import Spec

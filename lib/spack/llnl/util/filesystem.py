@@ -20,7 +20,19 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from itertools import accumulate
-from typing import Callable, Deque, Dict, Iterable, List, Match, Optional, Set, Tuple, Union
+from typing import (
+    Callable,
+    Deque,
+    Dict,
+    Iterable,
+    List,
+    Match,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
 
 import llnl.util.symlink
 from llnl.util import tty
@@ -84,6 +96,8 @@ __all__ = [
     "BaseDirectoryVisitor",
     "visit_directory_tree",
 ]
+
+Path = Union[str, pathlib.Path]
 
 if sys.version_info < (3, 7, 4):
     # monkeypatch shutil.copystat to fix PermissionError when copying read-only
@@ -1674,50 +1688,43 @@ def find_first(root: str, files: Union[Iterable[str], str], bfs_depth: int = 2) 
 
 
 def find(
-    root: Union[str, List[str]],
-    files: Union[str, List[str]],
+    root: Union[Path, Sequence[Path]],
+    files: Union[str, Sequence[str]],
     recursive: bool = True,
     max_depth: Optional[int] = None,
 ) -> List[str]:
-    """Finds all non-directory files matching the filename patterns from ``files`` starting from
-    ``root``. This function returns a deterministic result for the same input and directory
-    structure when run multiple times. Symlinked directories are followed, and unique directories
-    are searched only once. Each matching file is returned only once at lowest depth in case
-    multiple paths exist due to symlinked directories. The function has similarities to the Unix
-    ``find`` utility.
-
-    Examples:
-
-    .. code-block:: console
-
-       $ find -L /usr -name python3 -type f
-
-    is roughly equivalent to
-
-    >>> find("/usr", "python3")
-
-    with the notable difference that this function only lists a single path to each file in case of
-    symlinked directories.
-
-    .. code-block:: console
-
-       $ find -L /usr/local/bin /usr/local/sbin -maxdepth 1 '(' -name python3 -o -name getcap \\
-            ')' -type f
-
-    is roughly equivalent to:
-
-    >>> find(["/usr/local/bin", "/usr/local/sbin"], ["python3", "getcap"], recursive=False)
+    """Finds all non-directory files matching the patterns from ``files`` starting from ``root``.
+    This function returns a deterministic result for the same input and directory structure when
+    run multiple times. Symlinked directories are followed, and unique directories are searched
+    only once. Each matching file is returned only once at lowest depth in case multiple paths
+    exist due to symlinked directories.
 
     Accepts any glob characters accepted by fnmatch:
 
     ==========  ====================================
     Pattern     Meaning
     ==========  ====================================
-    ``*``       matches everything
+    ``*``       matches one or more characters
     ``?``       matches any single character
     ``[seq]``   matches any character in ``seq``
     ``[!seq]``  matches any character not in ``seq``
     ==========  ====================================
+
+    Examples:
+
+    >>> find("/usr", "*.txt", recursive=True, max_depth=2)
+
+    finds all files with the extension ``.txt`` in the directory ``/usr`` and subdirectories up to
+    depth 2.
+
+    >>> find(["/usr", "/var"], ["*.txt", "*.log"], recursive=True)
+
+    finds all files with the extension ``.txt`` or ``.log`` in the directories ``/usr`` and
+    ``/var`` at any depth.
+
+    >>> find("/usr", "GL/*.h", recursive=True)
+
+    finds all header files in a directory GL at any depth in the directory ``/usr``.
 
     Parameters:
         root: One or more root directories to start searching from
@@ -1727,22 +1734,25 @@ def find(
 
     Returns a list of absolute, matching file paths.
     """
-    if not isinstance(root, list):
+    if isinstance(root, (str, pathlib.Path)):
         root = [root]
+    elif not isinstance(root, collections.abc.Sequence):
+        raise TypeError(f"'root' arg must be a path or a sequence of paths, not '{type(root)}']")
 
-    if not isinstance(files, list):
+    if isinstance(files, str):
         files = [files]
+    elif not isinstance(files, collections.abc.Sequence):
+        raise TypeError(f"'files' arg must be str or a sequence of str, not '{type(files)}']")
 
     # If recursive is false, max_depth can only be None or 0
     if max_depth and not recursive:
         raise ValueError(f"max_depth ({max_depth}) cannot be set if recursive is False")
 
+    tty.debug(f"Find (max depth = {max_depth}): {root} {files}")
     if not recursive:
         max_depth = 0
     elif max_depth is None:
         max_depth = sys.maxsize
-
-    tty.debug(f"Find (max depth = {max_depth}): {root} {files}")
     result = _find_max_depth(root, files, max_depth)
     tty.debug(f"Find complete: {root} {files}")
     return result
@@ -1753,21 +1763,47 @@ def _log_file_access_issue(e: OSError, path: str) -> None:
     tty.debug(f"find must skip {path}: {errno_name} {e}")
 
 
-def _dir_id(s: os.stat_result) -> Tuple[int, int]:
+def _file_id(s: os.stat_result) -> Tuple[int, int]:
     # Note: on windows, st_ino is the file index and st_dev is the volume serial number. See
     # https://github.com/python/cpython/blob/3.9/Python/fileutils.c
     return (s.st_ino, s.st_dev)
 
 
-def _find_max_depth(roots: List[str], globs: List[str], max_depth: int = sys.maxsize) -> List[str]:
+def _dedupe_files(paths: List[str]) -> List[str]:
+    """Deduplicate files by inode and device, dropping files that cannot be accessed."""
+    unique_files: List[str] = []
+    # tuple of (inode, device) for each file without following symlinks
+    visited: Set[Tuple[int, int]] = set()
+    for path in paths:
+        try:
+            stat_info = os.lstat(path)
+        except OSError as e:
+            _log_file_access_issue(e, path)
+            continue
+        file_id = _file_id(stat_info)
+        if file_id not in visited:
+            unique_files.append(path)
+            visited.add(file_id)
+    return unique_files
+
+
+def _find_max_depth(
+    roots: Sequence[Path], globs: Sequence[str], max_depth: int = sys.maxsize
+) -> List[str]:
     """See ``find`` for the public API."""
-    # Apply normcase to file patterns and filenames to respect case insensitive filesystems
-    regex, groups = fnmatch_translate_multiple([os.path.normcase(x) for x in globs])
-    # Ordered dictionary that keeps track of the files found for each pattern
-    capture_group_to_paths: Dict[str, List[str]] = {group: [] for group in groups}
+    # We optimize for the common case of simple filename only patterns: a single, combined regex
+    # is used. For complex patterns that include path components, we use a slower glob call from
+    # every directory we visit within max_depth.
+    filename_only_patterns = {
+        f"pattern_{i}": os.path.normcase(x) for i, x in enumerate(globs) if "/" not in x
+    }
+    complex_patterns = {f"pattern_{i}": x for i, x in enumerate(globs) if "/" in x}
+    regex = re.compile(fnmatch_translate_multiple(filename_only_patterns))
+    # Ordered dictionary that keeps track of what pattern found which files
+    matched_paths: Dict[str, List[str]] = {f"pattern_{i}": [] for i, _ in enumerate(globs)}
     # Ensure returned paths are always absolute
     roots = [os.path.abspath(r) for r in roots]
-    # Breadth-first search queue. Each element is a tuple of (depth, directory)
+    # Breadth-first search queue. Each element is a tuple of (depth, dir)
     dir_queue: Deque[Tuple[int, str]] = collections.deque()
     # Set of visited directories. Each element is a tuple of (inode, device)
     visited_dirs: Set[Tuple[int, int]] = set()
@@ -1778,18 +1814,26 @@ def _find_max_depth(roots: List[str], globs: List[str], max_depth: int = sys.max
         except OSError as e:
             _log_file_access_issue(e, root)
             continue
-        dir_id = _dir_id(stat_root)
+        dir_id = _file_id(stat_root)
         if dir_id not in visited_dirs:
             dir_queue.appendleft((0, root))
             visited_dirs.add(dir_id)
 
     while dir_queue:
-        depth, next_dir = dir_queue.pop()
+        depth, curr_dir = dir_queue.pop()
         try:
-            dir_iter = os.scandir(next_dir)
+            dir_iter = os.scandir(curr_dir)
         except OSError as e:
-            _log_file_access_issue(e, next_dir)
+            _log_file_access_issue(e, curr_dir)
             continue
+
+        # Use glob.glob for complex patterns.
+        for pattern_name, pattern in complex_patterns.items():
+            matched_paths[pattern_name].extend(
+                path
+                for path in glob.glob(os.path.join(curr_dir, pattern))
+                if not os.path.isdir(path)
+            )
 
         with dir_iter:
             ordered_entries = sorted(dir_iter, key=lambda x: x.name)
@@ -1801,7 +1845,9 @@ def _find_max_depth(roots: List[str], globs: List[str], max_depth: int = sys.max
                     _log_file_access_issue(e, dir_entry.path)
                     continue
 
-                if it_is_a_dir and depth < max_depth:
+                if it_is_a_dir:
+                    if depth >= max_depth:
+                        continue
                     try:
                         # The stat should be performed in a try/except block. We repeat that here
                         # vs. moving to the above block because we only want to call `stat` if we
@@ -1816,20 +1862,24 @@ def _find_max_depth(roots: List[str], globs: List[str], max_depth: int = sys.max
                         _log_file_access_issue(e, dir_entry.path)
                         continue
 
-                    dir_id = _dir_id(stat_info)
+                    dir_id = _file_id(stat_info)
                     if dir_id not in visited_dirs:
                         dir_queue.appendleft((depth + 1, dir_entry.path))
                         visited_dirs.add(dir_id)
-                else:
-                    m = regex.match(os.path.normcase(os.path.basename(dir_entry.path)))
+                elif filename_only_patterns:
+                    m = regex.match(os.path.normcase(dir_entry.name))
                     if not m:
                         continue
-                    for group in capture_group_to_paths:
-                        if m.group(group):
-                            capture_group_to_paths[group].append(dir_entry.path)
+                    for pattern_name in filename_only_patterns:
+                        if m.group(pattern_name):
+                            matched_paths[pattern_name].append(dir_entry.path)
                             break
 
-    return [path for paths in capture_group_to_paths.values() for path in paths]
+    all_matching_paths = [path for paths in matched_paths.values() for path in paths]
+
+    # we only dedupe files if we have any complex patterns, since only they can match the same file
+    # multiple times
+    return _dedupe_files(all_matching_paths) if complex_patterns else all_matching_paths
 
 
 # Utilities for libraries and headers

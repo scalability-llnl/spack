@@ -378,8 +378,8 @@ class AbstractVariant:
 
     def _cmp_iter(self) -> Iterable:
         yield self.name
-        yield from (str(v) for v in self.value_as_tuple)
         yield self.propagate
+        yield from (str(v) for v in self.value_as_tuple)
 
     def copy(self) -> "AbstractVariant":
         """Returns an instance of a variant equivalent to self

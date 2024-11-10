@@ -1066,6 +1066,23 @@ def dir_structure_with_things_to_find(tmpdir):
     return str(tmpdir), locations
 
 
+def test_find_path_glob_matches(dir_structure_with_things_to_find):
+    root, locations = dir_structure_with_things_to_find
+    # both file name and path match
+    assert (
+        fs.find(root, "file_two")
+        == fs.find(root, "*/*/file_two")
+        == fs.find(root, "dir_t*/*/*two")
+        == [locations["file_two"]]
+    )
+    # ensure that * does not match directory separators
+    assert fs.find(root, "dir*file_two") == []
+    # ensure that file name matches after / are matched from the start of the file name
+    assert fs.find(root, "*/ile_two") == []
+    # file name matches exist, but not with these paths
+    assert fs.find(root, "dir_one/*/*two") == fs.find(root, "*/*/*/*/file_two") == []
+
+
 def test_find_max_depth(dir_structure_with_things_to_find):
     root, locations = dir_structure_with_things_to_find
 
@@ -1085,9 +1102,7 @@ def test_find_max_depth(dir_structure_with_things_to_find):
 
 
 def test_find_max_depth_relative(dir_structure_with_things_to_find):
-    """find_max_depth should return absolute paths even if
-    the provided path is relative.
-    """
+    """find_max_depth should return absolute paths even if the provided path is relative."""
     root, locations = dir_structure_with_things_to_find
     with fs.working_dir(root):
         assert set(fs.find(".", "file_*", max_depth=0)) == {locations["file_four"]}
@@ -1201,7 +1216,7 @@ def test_find_max_depth_multiple_and_repeated_entry_points(complex_dir_structure
 
 def test_multiple_patterns(complex_dir_structure):
     root, _ = complex_dir_structure
-    paths = fs.find(root, ["l2-f1", "l3-f3", "*"])
+    paths = fs.find(root, ["l2-f1", "l*-d*/l3-f3", "*", "*/*"])
     # There shouldn't be duplicate results with multiple, overlapping patterns
     assert len(set(paths)) == len(paths)
     # All files should be found
@@ -1211,3 +1226,38 @@ def test_multiple_patterns(complex_dir_structure):
     # and we could decide to change the exact order in the future)
     assert filenames[0] == "l2-f1"
     assert filenames[1] == "l3-f3"
+
+
+def test_find_input_types(tmp_path: pathlib.Path):
+    """test that find only accepts sequences and instances of pathlib.Path and str for root, and
+    only sequences and instances of str for patterns. In principle mypy catches these issues, but
+    it is not enabled on all call-sites."""
+    (tmp_path / "file.txt").write_text("")
+    assert (
+        fs.find(tmp_path, "file.txt")
+        == fs.find(str(tmp_path), "file.txt")
+        == fs.find([tmp_path, str(tmp_path)], "file.txt")
+        == fs.find((tmp_path, str(tmp_path)), "file.txt")
+        == fs.find(tmp_path, "file.txt")
+        == fs.find(tmp_path, ["file.txt"])
+        == fs.find(tmp_path, ("file.txt",))
+        == [str(tmp_path / "file.txt")]
+    )
+
+    with pytest.raises(TypeError):
+        fs.find(tmp_path, pathlib.Path("file.txt"))  # type: ignore
+
+    with pytest.raises(TypeError):
+        fs.find(1, "file.txt")  # type: ignore
+
+
+def test_find_only_finds_files(tmp_path: pathlib.Path):
+    """ensure that find only returns files even at max_depth"""
+    (tmp_path / "subdir").mkdir()
+    (tmp_path / "subdir" / "dir").mkdir()
+    (tmp_path / "subdir" / "file.txt").write_text("")
+    assert (
+        fs.find(tmp_path, "*", max_depth=1)
+        == fs.find(tmp_path, "*/*", max_depth=1)
+        == [str(tmp_path / "subdir" / "file.txt")]
+    )
