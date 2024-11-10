@@ -40,13 +40,13 @@ import llnl.util.lang
 import llnl.util.tty.color
 
 import spack.deptypes as dt
-from spack.error import SpecError
 import spack.patch
 import spack.spec
 import spack.util.crypto
 import spack.variant
 from spack.dependency import Dependency
 from spack.directives_meta import DirectiveError, DirectiveMeta
+from spack.error import SpecError
 from spack.fetch_strategy import from_kwargs
 from spack.resource import Resource
 from spack.version import (
@@ -508,7 +508,7 @@ def provides(*specs: SpecType, when: WhenType = None):
 
 @directive("splice_specs")
 def can_splice(
-        target: SpecType, *, when: SpecType, match_variants: Union[None, str, List[str]] = None
+    target: SpecType, *, when: SpecType, match_variants: Union[None, str, List[str]] = None
 ):
     """Packages can declare whether they are ABI-compatible with another package
     and thus can be spliced into concrete versions of that package.
@@ -532,9 +532,11 @@ def can_splice(
     def _execute_can_splice(pkg: "spack.package_base.PackageBase"):
         when_spec = _make_when_spec(when)
         if isinstance(match_variants, str) and match_variants != "*":
-            raise ValueError("* is the only valid string for match_variants "
-                             "if looking to provide a single variant, use "
-                             f"[{match_variants}] instead")
+            raise ValueError(
+                "* is the only valid string for match_variants "
+                "if looking to provide a single variant, use "
+                f"[{match_variants}] instead"
+            )
         if isinstance(when_spec, spack.spec.Spec):
             pkg.splice_specs[when_spec] = (spack.spec.Spec(target), match_variants)
         else:
