@@ -62,15 +62,13 @@ def _enable_splicing():
 def test_simple_reuse(splicing_setup):
     with CacheManager(["splice-z@1.0.0+compat"]):
         spack.config.set("packages", _make_specs_non_buildable(["splice-z"]))
-        Spec("splice-z").concretized()
-    assert True
+        assert Spec("splice-z").concretized().satisfies(Spec("splice-z"))
 
 
 def test_simple_dep_reuse(splicing_setup):
     with CacheManager(["splice-z@1.0.0+compat"]):
         spack.config.set("packages", _make_specs_non_buildable(["splice-z"]))
-        Spec("splice-h@1").concretized()
-    assert True
+        assert Spec("splice-h@1").concretized().satisfies(Spec("splice-h@1"))
 
 
 def test_splice_installed_hash(splicing_setup):
@@ -85,8 +83,7 @@ def test_splice_installed_hash(splicing_setup):
         with pytest.raises(Exception):
             goal_spec.concretized()
         _enable_splicing()
-        goal_spec.concretized()
-    assert True
+        assert goal_spec.concretized().satisfies(goal_spec)
 
 
 def test_splice_build_splice_node(splicing_setup):
@@ -96,8 +93,7 @@ def test_splice_build_splice_node(splicing_setup):
         with pytest.raises(Exception):
             goal_spec.concretized()
         _enable_splicing()
-        goal_spec.concretized()
-    assert True
+        assert goal_spec.concretized().satisfies(goal_spec)
 
 
 def test_double_splice(splicing_setup):
@@ -113,7 +109,7 @@ def test_double_splice(splicing_setup):
         with pytest.raises(Exception):
             goal_spec.concretized()
         _enable_splicing()
-        goal_spec.concretized()
+        assert goal_spec.concretized().satisfies(goal_spec)
 
 
 # The next two tests are mirrors of one another
@@ -133,7 +129,7 @@ def test_virtual_multi_splices_in(splicing_setup):
                 Spec(gs).concretized()
         _enable_splicing()
         for gs in goal_specs:
-            Spec(gs).concretized()
+            assert Spec(gs).concretized().satisfies(gs)
 
 
 def test_virtual_multi_can_be_spliced(splicing_setup):
@@ -152,7 +148,7 @@ def test_virtual_multi_can_be_spliced(splicing_setup):
                 Spec(gs).concretized()
         _enable_splicing()
         for gs in goal_specs:
-            Spec(gs).concretized()
+            assert Spec(gs).concretized().satisfies(gs)
 
 
 def test_manyvariant_star_matching_variant_splice(splicing_setup):
@@ -173,7 +169,7 @@ def test_manyvariant_star_matching_variant_splice(splicing_setup):
                 goal.concretized()
         _enable_splicing()
         for goal in goal_specs:
-            goal.concretized()
+            assert goal.concretized().satisfies(goal)
 
     assert True
 
@@ -197,8 +193,7 @@ def test_manyvariant_limited_matching(splicing_setup):
                 s.concretized()
         _enable_splicing()
         for s in goal_specs:
-            s.concretized()
-    assert True
+            assert s.concretized().satisfies(s)
 
 
 def test_external_splice_same_name(splicing_setup):
@@ -217,5 +212,4 @@ def test_external_splice_same_name(splicing_setup):
         spack.config.set("packages", packages_yaml)
         _enable_splicing()
         for s in goal_specs:
-            s.concretized()
-    assert True
+            assert s.concretized().satisfies(s)

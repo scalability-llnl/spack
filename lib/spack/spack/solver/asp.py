@@ -1733,7 +1733,7 @@ class SpackSolverSetup:
                 splice_spec_hash_attrs = [
                     fn.hash_attr(hash_var, *(c.args))
                     for c in self.spec_clauses(spec_to_splice, body=True, required_from=None)
-                    if c.args[0] != "node"                
+                    if c.args[0] != "node"
                 ]
                 if match_variants is None:
                     variant_constraints = []
@@ -1747,7 +1747,9 @@ class SpackSolverSetup:
                         pkg, cond, spec_to_splice, hash_var, splice_node, filt_match_variants
                     )
                 else:
-                    if any(v in cond.variants or v in spec_to_splice.variants for v in match_variants):
+                    if any(
+                        v in cond.variants or v in spec_to_splice.variants for v in match_variants
+                    ):
                         raise Exception(
                             "Overlap between match_variants and explicitly set variants"
                         )
@@ -1758,11 +1760,16 @@ class SpackSolverSetup:
                 rule_head = fn.abi_splice_conditions_hold(
                     i, splice_node, spec_to_splice.name, hash_var
                 )
-                rule_body_components = [
-                    # splice_set_fact,
-                    fn.attr("node", splice_node),
-                    fn.installed_hash(spec_to_splice.name, hash_var),
-                ] + when_spec_attrs + splice_spec_hash_attrs + variant_constraints
+                rule_body_components = (
+                    [
+                        # splice_set_fact,
+                        fn.attr("node", splice_node),
+                        fn.installed_hash(spec_to_splice.name, hash_var),
+                    ]
+                    + when_spec_attrs
+                    + splice_spec_hash_attrs
+                    + variant_constraints
+                )
                 rule_body = ",\n  ".join(str(r) for r in rule_body_components)
                 rule = f"{rule_head} :-\n  {rule_body}."
                 self.gen.append(rule)
@@ -4007,7 +4014,7 @@ class SpecBuilder:
         for node in self._specs:
             self._resolve_splices_for_node(node, resolved_splices)
         self._specs = resolved_splices
-                        
+
         # mark concrete and assign hashes to all specs in the solve
         for root in roots.values():
             root._finalize_concretization()
