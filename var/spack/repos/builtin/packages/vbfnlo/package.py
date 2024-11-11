@@ -55,6 +55,7 @@ class Vbfnlo(AutotoolsPackage):
     depends_on("autoconf", type="build")
     depends_on("m4", type="build")
     depends_on("libtool", type="build")
+    # needed as tcsh is hardcoded in m4/vbfnlo.m4, could be patched out in the future
     depends_on("tcsh", type="build")
 
     @when("@2.7.1")
