@@ -376,13 +376,14 @@ def test_deprecated_property():
 
 
 def test_fnmatch_multiple():
-    regex, groups = llnl.util.lang.fnmatch_translate_multiple(["libf*o.so", "libb*r.so"])
+    named_patterns = {"a": "libf*o.so", "b": "libb*r.so"}
+    regex = re.compile(llnl.util.lang.fnmatch_translate_multiple(named_patterns))
 
     a = regex.match("libfoo.so")
-    assert a and a.group(groups[0]) == "libfoo.so"
+    assert a and a.group("a") == "libfoo.so"
 
     b = regex.match("libbar.so")
-    assert b and b.group(groups[1]) == "libbar.so"
+    assert b and b.group("b") == "libbar.so"
 
     assert not regex.match("libfoo.so.1")
     assert not regex.match("libbar.so.1")

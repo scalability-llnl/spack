@@ -15,6 +15,7 @@ class PyTorchmetrics(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart")
 
+    version("1.5.2", sha256="2d0e4957af0ea76438d2779fe1a626d8cba6cda8607eadb54267598153e7ea63")
     version("1.5.1", sha256="9701632cf811bc460abf07bd7b971b79c1ae9c8231e03d495b53a0975e43fe07")
     version("1.5.0", sha256="c18e68bab4104ad7d2285af601ddc6dc04f9f3b7cafaa8ad13fa1dcc539e33b6")
     version("1.4.3", sha256="5554a19167e91f543afe82ff58a01059c8eec854359ad22896449c2c8fb0ad89")

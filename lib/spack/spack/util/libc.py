@@ -11,6 +11,8 @@ import sys
 from subprocess import PIPE, run
 from typing import Dict, List, Optional
 
+from llnl.util.lang import memoized
+
 import spack.spec
 import spack.util.elf
 
@@ -61,6 +63,14 @@ def default_search_paths_from_dynamic_linker(dynamic_linker: str) -> List[str]:
 
 
 def libc_from_dynamic_linker(dynamic_linker: str) -> Optional["spack.spec.Spec"]:
+    maybe_spec = _libc_from_dynamic_linker(dynamic_linker)
+    if maybe_spec:
+        return maybe_spec.copy()
+    return None
+
+
+@memoized
+def _libc_from_dynamic_linker(dynamic_linker: str) -> Optional["spack.spec.Spec"]:
     if not os.path.exists(dynamic_linker):
         return None
 
