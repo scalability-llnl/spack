@@ -67,9 +67,7 @@ class Openjpeg(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries(
-            "libopenjp{0}".format(self.version.up_to(1)), root=self.prefix, recursive=True
-        )
+        return find_libraries("libopenjp{0}".format(self.version.up_to(1)), root=self.prefix)
 
     def cmake_args(self):
         args = [

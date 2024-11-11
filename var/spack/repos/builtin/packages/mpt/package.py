@@ -32,7 +32,7 @@ class Mpt(BundlePackage):
         if "cxx" in query_parameters:
             libraries = ["libmpicxx"] + libraries
 
-        return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
+        return find_libraries(libraries, root=self.prefix, shared=True)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         # use the Spack compiler wrappers under MPI

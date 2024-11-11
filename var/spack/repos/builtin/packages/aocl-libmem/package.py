@@ -67,7 +67,7 @@ class AoclLibmem(CMakePackage):
     def libs(self):
         """find libmem libs function"""
         shared = "+shared" in self.spec
-        return find_libraries("libaocl-libmem", root=self.prefix, recursive=True, shared=shared)
+        return find_libraries("libaocl-libmem", root=self.prefix, shared=shared)
 
     def cmake_args(self):
         """Runs ``cmake`` in the build directory"""

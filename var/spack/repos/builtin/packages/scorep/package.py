@@ -152,7 +152,7 @@ class Scorep(AutotoolsPackage):
     conflicts("hip@6.0:", when="@1.0:8.3+hip")
 
     def find_libpath(self, libname, root):
-        libs = find_libraries(libname, root, shared=True, recursive=True)
+        libs = find_libraries(libname, root, shared=True)
         if len(libs.directories) == 0:
             return None
         return libs.directories[0]

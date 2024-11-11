@@ -98,7 +98,7 @@ class ParallelNetcdf(AutotoolsPackage):
         else:
             shared = "+shared" in self.spec
 
-        libs = find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        libs = find_libraries(libraries, root=self.prefix, shared=shared)
 
         if libs:
             return libs

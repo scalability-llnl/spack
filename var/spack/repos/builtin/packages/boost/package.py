@@ -172,7 +172,7 @@ class Boost(Package):
         libnames += ["monitor"]
         libraries = ["libboost_*%s*" % lib for lib in libnames]
 
-        return find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        return find_libraries(libraries, root=self.prefix, shared=shared)
 
     variant(
         "context-impl",

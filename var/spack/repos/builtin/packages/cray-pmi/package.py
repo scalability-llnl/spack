@@ -20,8 +20,8 @@ class CrayPmi(Package):
 
     @property
     def headers(self):
-        return find_headers("pmi", self.prefix.include, recursive=True)
+        return find_headers("pmi", self.prefix)
 
     @property
     def libs(self):
-        return find_libraries(["libpmi"], root=self.prefix, recursive=True)
+        return find_libraries(["libpmi"], root=self.prefix)

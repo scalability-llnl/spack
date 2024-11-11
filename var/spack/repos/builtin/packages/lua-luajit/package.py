@@ -48,7 +48,7 @@ class LuaLuajit(LuaImplPackage):
 
     @property
     def headers(self):
-        hdrs = find_headers("luajit", self.prefix.include, recursive=True)
+        hdrs = find_headers("luajit", self.prefix.include)
         hdrs.directories = os.path.dirname(hdrs[0])
         return hdrs or None
 

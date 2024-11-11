@@ -57,7 +57,7 @@ class AoclUtils(CMakePackage):
     def libs(self):
         """find aocl-utils libs function"""
         shared = "+shared" in self.spec
-        return find_libraries("libaoclutils", root=self.prefix, recursive=True, shared=shared)
+        return find_libraries("libaoclutils", root=self.prefix, shared=shared)
 
     def cmake_args(self):
         args = [

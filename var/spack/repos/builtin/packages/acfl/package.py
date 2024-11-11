@@ -386,7 +386,6 @@ class Acfl(Package, CompilerPackage):
             [libname, "libamath", "libastring"],
             root=armpl_prefix,
             shared=self.spec.satisfies("+shared"),
-            recursive=True,
         )
 
         armpl_libs += find_system_libraries(["libm"])

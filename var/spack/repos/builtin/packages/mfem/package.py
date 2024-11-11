@@ -794,9 +794,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
             if "+zfp" in strumpack:
                 zfp = strumpack["zfp"]
                 sp_opt += ["-I%s" % zfp.prefix.include]
-                zfp_lib = find_libraries(
-                    "libzfp", zfp.prefix, shared=("+shared" in zfp), recursive=True
-                )
+                zfp_lib = find_libraries("libzfp", zfp.prefix, shared=("+shared" in zfp))
                 sp_lib += [ld_flags_from_library_list(zfp_lib)]
             if "+cuda" in strumpack:
                 # assuming also ("+cuda" in spec)
@@ -1016,9 +1014,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
         if "+raja" in spec:
             raja = spec["raja"]
             raja_opt = "-I%s" % raja.prefix.include
-            raja_lib = find_libraries(
-                "libRAJA", raja.prefix, shared=("+shared" in raja), recursive=True
-            )
+            raja_lib = find_libraries("libRAJA", raja.prefix, shared=("+shared" in raja))
             if raja.satisfies("^camp"):
                 camp = raja["camp"]
                 raja_opt += " -I%s" % camp.prefix.include
@@ -1133,9 +1129,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
             if "^raja" in hiop:
                 raja = hiop["raja"]
                 hiop_hdrs += raja.headers
-                hiop_libs += find_libraries(
-                    "libRAJA", raja.prefix, shared=("+shared" in raja), recursive=True
-                )
+                hiop_libs += find_libraries("libRAJA", raja.prefix, shared=("+shared" in raja))
                 if raja.satisfies("^camp"):
                     camp = raja["camp"]
                     hiop_hdrs += camp.headers

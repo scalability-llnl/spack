@@ -75,4 +75,4 @@ class Freeglut(CMakePackage, SourceforgePackage):
 
     @property
     def libs(self):
-        return find_libraries(["libglut"], root=self.prefix, recursive=True)
+        return find_libraries(["libglut"], root=self.prefix)

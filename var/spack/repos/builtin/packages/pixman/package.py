@@ -64,9 +64,7 @@ class Pixman(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries(
-            "libpixman-1", self.prefix, shared=self.spec.satisfies("+shared"), recursive=True
-        )
+        return find_libraries("libpixman-1", self.prefix, shared=self.spec.satisfies("+shared"))
 
     def configure_args(self):
         args = ["--enable-libpng", "--disable-gtk", "--with-pic"]

@@ -168,7 +168,7 @@ class Hipsycl(CMakePackage, ROCmPackage):
             rpaths = set()
             if self.spec.satisfies("~rocm"):
                 so_paths = filesystem.find_libraries(
-                    "libc++", self.spec["llvm"].prefix, shared=True, recursive=True
+                    "libc++", self.spec["llvm"].prefix, shared=True
                 )
                 if len(so_paths) != 1:
                     raise InstallError(
@@ -178,7 +178,7 @@ class Hipsycl(CMakePackage, ROCmPackage):
                     )
                 rpaths.add(path.dirname(so_paths[0]))
                 so_paths = filesystem.find_libraries(
-                    "libc++abi", self.spec["llvm"].prefix, shared=True, recursive=True
+                    "libc++abi", self.spec["llvm"].prefix, shared=True
                 )
                 if len(so_paths) != 1:
                     raise InstallError(

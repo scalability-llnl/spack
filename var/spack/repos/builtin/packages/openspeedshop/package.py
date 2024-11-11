@@ -307,7 +307,7 @@ class Openspeedshop(CMakePackage):
         # required for OpenSpeedShop to find loop level
         # performance information
         dyninst_libdir = find_libraries(
-            "libdyninstAPI_RT", root=self.spec["dyninst"].prefix, shared=True, recursive=True
+            "libdyninstAPI_RT", root=self.spec["dyninst"].prefix, shared=True
         )
 
         # Set Dyninst RT library path to support OSS loop resolution code

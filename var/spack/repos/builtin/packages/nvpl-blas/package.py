@@ -69,7 +69,7 @@ class NvplBlas(Package):
 
         name = ["libnvpl_blas_core", f"libnvpl_blas_{int_type}_{threading_type}"]
 
-        return find_libraries(name, spec.prefix.lib, shared=True, recursive=True)
+        return find_libraries(name, spec.prefix.lib, shared=True)
 
     def install(self, spec, prefix):
         install_tree(".", prefix)

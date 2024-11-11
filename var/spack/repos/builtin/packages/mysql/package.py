@@ -161,7 +161,7 @@ class Mysql(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries("libmysqlclient", root=self.prefix, recursive=True)
+        return find_libraries("libmysqlclient", root=self.prefix)
 
     def url_for_version(self, version):
         url = "https://dev.mysql.com/get/Downloads/MySQL-{0}/mysql-{1}.tar.gz"

@@ -67,7 +67,7 @@ class Arrayfire(CMakePackage, CudaPackage):
         if not query_parameters or "unified" in query_parameters:
             libraries.append("libaf")
 
-        return find_libraries(libraries, root=self.prefix, recursive=True)
+        return find_libraries(libraries, root=self.prefix)
 
     def cmake_args(self):
         args = []

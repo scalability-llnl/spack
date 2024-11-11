@@ -44,7 +44,7 @@ class Libaec(CMakePackage):
 
         shared = "~shared" not in self.spec
 
-        libs = find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        libs = find_libraries(libraries, root=self.prefix, shared=shared)
 
         if not libs:
             msg = "Unable to recursively locate {0} {1} libraries in {2}"

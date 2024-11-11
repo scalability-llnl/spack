@@ -87,9 +87,9 @@ class Kentutils(MakefilePackage):
     @property
     def headers(self):
         headers = []
-        headers.extend(find_headers("*", self.prefix.inc, recursive=True))
+        headers.extend(find_headers("*", self.prefix.inc))
         if self.spec.satisfies("+builtin_htslib"):
-            headers.extend(find_headers("*", self.prefix.htslib, recursive=True))
+            headers.extend(find_headers("*", self.prefix.htslib))
         return HeaderList(headers)
 
     @property

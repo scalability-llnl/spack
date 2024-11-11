@@ -32,4 +32,4 @@ class Libxxf86vm(AutotoolsPackage, XorgPackage):
 
     @property
     def libs(self):
-        return find_libraries("libXxf86vm", self.prefix, shared=True, recursive=True)
+        return find_libraries("libXxf86vm", self.prefix, shared=True)

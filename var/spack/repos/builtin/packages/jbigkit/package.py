@@ -38,4 +38,4 @@ class Jbigkit(MakefilePackage):
 
     @property
     def libs(self):
-        return find_libraries("libjbig*", root=self.prefix, shared=False, recursive=True)
+        return find_libraries("libjbig*", root=self.prefix, shared=False)

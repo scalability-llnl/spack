@@ -131,5 +131,5 @@ class FujitsuSsl2(Package):
     @property
     def headers(self):
         path = join_path(self.spec.prefix, "clang-comp")
-        headers = find_headers("cssl", path, recursive=True)
+        headers = find_headers("cssl", path)
         return headers

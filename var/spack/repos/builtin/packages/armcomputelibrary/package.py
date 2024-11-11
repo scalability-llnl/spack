@@ -133,7 +133,6 @@ class Armcomputelibrary(SConsPackage):
             ["libarm_compute", "libarm_compute_core", "libarm_compute_graph"],
             root=self.spec.prefix,
             shared=True,
-            recursive=True,
         )
         return acl_libs
 

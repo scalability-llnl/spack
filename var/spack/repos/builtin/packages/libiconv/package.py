@@ -61,4 +61,4 @@ class Libiconv(AutotoolsPackage, GNUMirrorPackage):
     @property
     def libs(self):
         shared = self.spec.satisfies("libs=shared")
-        return find_libraries(["libiconv"], root=self.prefix, recursive=True, shared=shared)
+        return find_libraries(["libiconv"], root=self.prefix, shared=shared)

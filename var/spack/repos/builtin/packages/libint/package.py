@@ -285,4 +285,4 @@ class Libint(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries("libint2", self.spec.prefix, shared=True, recursive=True)
+        return find_libraries("libint2", self.spec.prefix, shared=True)

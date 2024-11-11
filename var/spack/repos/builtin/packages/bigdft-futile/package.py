@@ -105,4 +105,4 @@ class BigdftFutile(AutotoolsPackage, CudaPackage):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries("libfutile-*", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("libfutile-*", root=self.prefix, shared=shared)

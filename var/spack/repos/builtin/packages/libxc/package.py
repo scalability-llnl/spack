@@ -86,7 +86,7 @@ class Libxc(AutotoolsPackage, CudaPackage):
             else:  # starting from version 4 there is also a stable f03 iface
                 libraries = ["libxcf90", "libxcf03"] + libraries
 
-        return find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        return find_libraries(libraries, root=self.prefix, shared=shared)
 
     def setup_build_environment(self, env):
         # microarchitecture-specific optimization flags should be controlled

@@ -268,7 +268,7 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries("libRAJA", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("libRAJA", root=self.prefix, shared=shared)
 
     @property
     def cache_name(self):

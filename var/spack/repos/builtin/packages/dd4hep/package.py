@@ -149,7 +149,7 @@ class Dd4hep(CMakePackage):
         # We need to override libs here, because we don't build a libdd4hep so
         # the default discovery fails. All libraries that are built by DD4hep
         # start with libDD
-        return find_libraries("libDD*", root=self.prefix, shared=True, recursive=True)
+        return find_libraries("libDD*", root=self.prefix, shared=True)
 
     def cmake_args(self):
         spec = self.spec

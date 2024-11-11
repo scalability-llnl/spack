@@ -159,7 +159,7 @@ class Magics(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries(["libMagPlus"], root=self.prefix, recursive=True)
+        return find_libraries(["libMagPlus"], root=self.prefix)
 
     @property
     def headers(self):

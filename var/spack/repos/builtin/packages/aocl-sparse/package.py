@@ -77,9 +77,7 @@ class AoclSparse(CMakePackage):
     @property
     def libs(self):
         """find libaoclsparse libs function"""
-        return find_libraries(
-            "libaoclsparse", root=self.prefix, shared="+shared" in self.spec, recursive=True
-        )
+        return find_libraries("libaoclsparse", root=self.prefix, shared="+shared" in self.spec)
 
     @property
     def build_directory(self):

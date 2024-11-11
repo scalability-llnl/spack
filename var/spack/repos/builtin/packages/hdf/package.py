@@ -123,7 +123,7 @@ class Hdf(AutotoolsPackage):
         else:
             shared = self.spec.satisfies("+shared")
 
-        libs = find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        libs = find_libraries(libraries, root=self.prefix, shared=shared)
 
         if not libs:
             msg = "Unable to recursively locate {0} {1} libraries in {2}"

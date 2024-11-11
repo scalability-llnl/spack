@@ -70,4 +70,4 @@ class Libxcrypt(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries("libcrypt", root=self.prefix, recursive=True)
+        return find_libraries("libcrypt", root=self.prefix)

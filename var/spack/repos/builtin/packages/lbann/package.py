@@ -267,7 +267,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
     @property
     def libs(self):
         shared = True if self.spec.satisfies("+shared") else False
-        return find_libraries("liblbann", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("liblbann", root=self.prefix, shared=shared)
 
     @property
     def cache_name(self):

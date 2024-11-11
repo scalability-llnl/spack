@@ -55,7 +55,7 @@ class Libevent(AutotoolsPackage):
 
     @property
     def libs(self):
-        libs = find_libraries("libevent", root=self.prefix, shared=True, recursive=True)
+        libs = find_libraries("libevent", root=self.prefix, shared=True)
         return LibraryList(libs)
 
     def configure_args(self):

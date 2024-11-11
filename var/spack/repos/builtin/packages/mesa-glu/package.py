@@ -37,4 +37,4 @@ class MesaGlu(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries("libGLU", self.prefix, recursive=True)
+        return find_libraries("libGLU", self.prefix)

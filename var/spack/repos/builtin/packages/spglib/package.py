@@ -67,7 +67,7 @@ class Spglib(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries("libsymspg", root=self.prefix, shared=True, recursive=True)
+        return find_libraries("libsymspg", root=self.prefix, shared=True)
 
     def cmake_args(self):
         pfx = "SPGLIB_" if self.spec.satisfies("@2.1.0:") else ""

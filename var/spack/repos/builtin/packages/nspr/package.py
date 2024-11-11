@@ -38,6 +38,6 @@ class Nspr(AutotoolsPackage):
 
     @property
     def headers(self):
-        headers = find_headers("*", self.prefix.include, recursive=True)
+        headers = find_headers("*", self.prefix.include)
         headers.directories = [self.prefix.include.nspr]
         return headers

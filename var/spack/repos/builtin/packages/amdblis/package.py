@@ -119,5 +119,4 @@ class Amdblis(BlisBase):
             ["libblis"] if self.spec.satisfies("threads=none") else ["libblis-mt"],
             root=self.prefix,
             shared=self.spec.satisfies("libs=shared"),
-            recursive=True,
         )

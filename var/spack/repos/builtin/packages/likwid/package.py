@@ -109,9 +109,7 @@ class Likwid(Package):
 
     def setup_run_environment(self, env):
         if self.spec.satisfies("+cuda"):
-            libs = find_libraries(
-                "libcupti", root=self.spec["cuda"].prefix, shared=True, recursive=True
-            )
+            libs = find_libraries("libcupti", root=self.spec["cuda"].prefix, shared=True)
             for lib in libs.directories:
                 env.append_path("LD_LIBRARY_PATH", lib)
         if self.spec.satisfies("+rocm"):

@@ -79,4 +79,4 @@ class Kealib(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries("libkea", self.prefix, shared=True, recursive=True)
+        return find_libraries("libkea", self.prefix, shared=True)

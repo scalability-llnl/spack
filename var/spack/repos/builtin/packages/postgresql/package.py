@@ -161,7 +161,7 @@ class Postgresql(AutotoolsPackage):
             "libpgtypes",
             "libpq",
         ]
-        fl_stat = find_libraries(stat_libs, self.prefix, shared=False, recursive=True)
+        fl_stat = find_libraries(stat_libs, self.prefix, shared=False)
 
         dyn_libs = [
             "libecpg_compat",
@@ -179,6 +179,6 @@ class Postgresql(AutotoolsPackage):
         if "+tcl" in self.spec:
             dyn_libs.append("pltcl")
 
-        fl_dyn = find_libraries(dyn_libs, self.prefix, shared=True, recursive=True)
+        fl_dyn = find_libraries(dyn_libs, self.prefix, shared=True)
 
         return fl_dyn + fl_stat

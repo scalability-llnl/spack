@@ -34,4 +34,4 @@ class Libxt(AutotoolsPackage, XorgPackage):
 
     @property
     def libs(self):
-        return find_libraries("libXt", root=self.prefix, shared=True, recursive=True)
+        return find_libraries("libXt", root=self.prefix, shared=True)

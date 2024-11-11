@@ -33,8 +33,6 @@ class Ip2(CMakePackage):
 
     def setup_run_environment(self, env):
         for suffix in ("4", "8", "d"):
-            lib = find_libraries(
-                "libip2_" + suffix, root=self.prefix, shared=False, recursive=True
-            )
+            lib = find_libraries("libip2_" + suffix, root=self.prefix, shared=False)
             env.set("IP2_LIB" + suffix, lib[0])
             env.set("IP2_INC" + suffix, join_path(self.prefix, "include_" + suffix))

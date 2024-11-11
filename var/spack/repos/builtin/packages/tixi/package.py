@@ -49,7 +49,7 @@ class Tixi(CMakePackage):
         # different library names for tixi@2 and tixi@3
         libname = "libtixi3" if "@3" in self.spec else "libTIXI"
         shared = "~shared" not in self.spec
-        return find_libraries(libname, root=self.prefix, shared=shared, recursive=True)
+        return find_libraries(libname, root=self.prefix, shared=shared)
 
     def cmake_args(self):
         return [

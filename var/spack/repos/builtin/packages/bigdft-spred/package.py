@@ -105,4 +105,4 @@ class BigdftSpred(AutotoolsPackage):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries("libspred-*", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("libspred-*", root=self.prefix, shared=shared)

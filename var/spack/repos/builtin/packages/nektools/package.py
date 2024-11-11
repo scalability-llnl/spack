@@ -85,17 +85,17 @@ class Nektools(Package):
         fflags = spec.compiler_flags["fflags"]
         cflags = spec.compiler_flags["cflags"]
         if ("+prenek" in spec) or ("+postnek" in spec):
-            libx11_h = find_headers("Xlib", spec["libx11"].prefix.include, recursive=True)
+            libx11_h = find_headers("Xlib", spec["libx11"].prefix.include)
             if not libx11_h:
                 raise RuntimeError("Xlib.h not found in %s" % spec["libx11"].prefix.include)
             cflags += ["-I%s" % os.path.dirname(libx11_h.directories[0])]
 
-            xproto_h = find_headers("X", spec["xproto"].prefix.include, recursive=True)
+            xproto_h = find_headers("X", spec["xproto"].prefix.include)
             if not xproto_h:
                 raise RuntimeError("X.h not found in %s" % spec["xproto"].prefix.include)
             cflags += ["-I%s" % os.path.dirname(xproto_h.directories[0])]
 
-            libxt_h = find_headers("Intrinsic", spec["libxt"].prefix.include, recursive=True)
+            libxt_h = find_headers("Intrinsic", spec["libxt"].prefix.include)
             if not libxt_h:
                 raise RuntimeError(
                     "X11/Intrinsic.h not found in %s" % spec["libxt"].prefix.include
@@ -133,13 +133,9 @@ class Nektools(Package):
                 # addition of the underscore.
                 filter_file(r"^\$FC -c ", "$FC -qextname -c ", "maketools")
 
-            libx11_lib = find_libraries(
-                "libX11", spec["libx11"].prefix.lib, shared=True, recursive=True
-            )
+            libx11_lib = find_libraries("libX11", spec["libx11"].prefix.lib, shared=True)
             if not libx11_lib:
-                libx11_lib = find_libraries(
-                    "libX11", spec["libx11"].prefix.lib64, shared=True, recursive=True
-                )
+                libx11_lib = find_libraries("libX11", spec["libx11"].prefix.lib64, shared=True)
             if not libx11_lib:
                 raise RuntimeError("libX11 not found in %s/{lib,lib64}" % spec["libx11"].prefix)
             # There is no other way to set the X11 library path except brute

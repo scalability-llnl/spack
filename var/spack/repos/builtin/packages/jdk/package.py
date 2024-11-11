@@ -93,7 +93,7 @@ class Jdk(Package):
 
         Search recursively to find the correct library location."""
 
-        return find_libraries(["libjvm"], root=self.home, recursive=True)
+        return find_libraries(["libjvm"], root=self.home)
 
     def install(self, spec, prefix):
         install_tree(".", prefix)

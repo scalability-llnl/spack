@@ -110,16 +110,12 @@ class Amdlibflame(CMakePackage, LibflameBase):
     @property
     def lapack_libs(self):
         """find lapack_libs function"""
-        return find_libraries(
-            "libflame", root=self.prefix, shared="+shared" in self.spec, recursive=True
-        )
+        return find_libraries("libflame", root=self.prefix, shared="+shared" in self.spec)
 
     @property
     def libs(self):
         """find libflame libs function"""
-        return find_libraries(
-            "libflame", root=self.prefix, shared="+shared" in self.spec, recursive=True
-        )
+        return find_libraries("libflame", root=self.prefix, shared="+shared" in self.spec)
 
     def flag_handler(self, name, flags):
         if name == "cflags":
