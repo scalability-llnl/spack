@@ -43,7 +43,8 @@ connection_ext = {
     "deprecatedProperties": [
         {
             "names": ["access_token"],
-            "message": "Spack no longer supportes plain text access_token in mirror configs",
+            "message": "Use of plain text `access_token` in mirror config is deprecated, use "
+            "environment variables instead (access_token_variable)",
             "error": False,
         }
     ]
@@ -110,7 +111,7 @@ def update(data):
         if not section or not isinstance(section, dict):
             return
 
-        if set(["access_token", "access_token_variable"]).issubset(set(section.keys())):
+        if "access_token" in section and "access_token_variable" in section:
             errors.append(
                 f'{name}: mirror credential "access_token" conflicts with "access_token_variable"'
             )

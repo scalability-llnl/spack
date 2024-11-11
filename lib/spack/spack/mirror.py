@@ -167,18 +167,19 @@ class Mirror:
             if "secret_variable" in access_pair:
                 if access_pair["secret_variable"] not in os.environ:
                     errors.append(
-                        f"secret_variable {access_pair['secret_variable']} not set in environment"
+                        f"environment variable `{access_pair['secret_variable']}` "
+                        "(secret_variable) not set"
                     )
 
         if access_token_variable:
             if access_token_variable not in os.environ:
                 errors.append(
-                    f"access_token_variable {access_pair['access_token_variable']}"
-                    " not set in environment"
+                    f"environment variable `{access_pair['access_token_variable']}` "
+                    "(access_token_variable) not set"
                 )
 
         if errors:
-            msg = f"Could not validate {direction} configuruation for mirror {self.name}:\n\t"
+            msg = f"invalid {direction} configuration for mirror {self.name}: "
             msg += "\n    ".join(errors)
             raise spack.mirror.MirrorError(msg)
 
@@ -199,8 +200,10 @@ class Mirror:
 
         if warn_deprecated_access_pair:
             tty.warn(
-                f"In mirror {self.name}: Using access_pair with a pain text secret is "
-                "deprecated, prefer id/secret_variable keys"
+                f"in mirror {self.name}: support for plain text secrets in config files "
+                "(access_pair: [id, secret]) is deprecated and will be removed in a future Spack "
+                "version. Use environment variables instead (access_pair: "
+                "{id: ..., secret_variable: ...})"
             )
 
         keys = [

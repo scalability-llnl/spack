@@ -292,8 +292,8 @@ def _configure_access_pair(
             id_arg_tok = id_tok.replace("_", "-")
             secret_arg_tok = secret_tok.replace("_", "-")
             tty.warn(
-                "Exepected both parts of the access pair to be specified. "
-                f"(ie. --{id_arg_tok} and {secret_arg_tok})"
+                "Expected both parts of the access pair to be specified. "
+                f"(i.e. --{id_arg_tok} and --{secret_arg_tok})"
             )
 
         return None
