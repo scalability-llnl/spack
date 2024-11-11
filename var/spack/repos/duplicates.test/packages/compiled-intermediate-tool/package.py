@@ -5,14 +5,14 @@
 from spack.package import *
 
 
-class PyShapely(Package):
-    """An extension that depends on pinned build dependencies"""
+class CompiledIntermediateTool(Package):
+    """A cmake-built intermediate tool."""
 
     homepage = "http://www.example.com"
     url = "http://www.example.com/tdep-1.0.tar.gz"
 
-    version("1.25.0", md5="0123456789abcdef0123456789abcdef")
+    version("4.0", md5="0123456789abcdef0123456789abcdef")
+    version("3.0", md5="0123456789abcdef0123456789abcdef")
 
-    extends("python")
-    depends_on("py-numpy", type=("build", "link", "run"))
-    depends_on("py-setuptools@=60", type=("build", "run"))
+    depends_on("seemake@4", when="@4", type="build")
+    depends_on("seemake@3", when="@3", type="build")

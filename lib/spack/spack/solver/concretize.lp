@@ -95,10 +95,9 @@ unify(SetID, PackageName) :- unification_set(SetID, node(_, PackageName)).
 unification_set("root", PackageNode) :- attr("root", PackageNode).
 unification_set(SetID, ChildNode) :- attr("depends_on", ParentNode, ChildNode, Type), Type != "build", unification_set(SetID, ParentNode).
 
-unification_set(("build", node(X, Child)), node(X, Child))
+unification_set(("build", ParentNode), node(X, Child))
   :- attr("depends_on", ParentNode, node(X, Child), Type),
      Type == "build",
-     multiple_unification_sets(Child),
      unification_set(SetID, ParentNode).
 
 unification_set("generic_build", node(X, Child))

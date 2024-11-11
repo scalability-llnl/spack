@@ -152,18 +152,28 @@ class MinimalDuplicatesCounter(NoDuplicatesCounter):
 class FullDuplicatesCounter(MinimalDuplicatesCounter):
     def possible_packages_facts(self, gen, fn):
         build_tools = spack.repo.PATH.packages_with_tags("build-tools")
-        counter = collections.Counter(
-            list(self._link_run) + list(self._total_build) + list(self._direct_build)
+        dep_tree = spack.package_base.possible_dependencies(
+            *self.specs, virtuals=self._possible_virtuals, depflag=self.all_types
         )
-        gen.h2("Maximum number of nodes")
-        for pkg, count in sorted(counter.items(), key=lambda x: (x[1], x[0])):
-            count = min(count, 2)
-            gen.fact(fn.max_dupes(pkg, count))
+        dep_counter = collections.Counter(
+            [dep for pkg_deps in dep_tree.values() for dep in pkg_deps]
+        )
+        dupe_build_tools = set([n for n in build_tools if dep_counter[n] > 1])
+        possible_dupes = set(
+            spack.package_base.possible_dependencies(
+                *dupe_build_tools, virtuals=self._possible_virtuals, depflag=self.all_types
+            )
+        )
+
+        gen.h2("Packages with at most a single node")
+        for pkg in sorted(self.possible_dependencies() - possible_dupes):
+            gen.fact(fn.max_dupes(pkg, 1))
         gen.newline()
 
-        gen.h2("Build unification sets ")
-        for name in sorted(self.possible_dependencies() & build_tools):
-            gen.fact(fn.multiple_unification_sets(name))
+        gen.h2("Packages with at multiple possible nodes (build-tools)")
+        for pkg in sorted(possible_dupes):
+            gen.fact(fn.max_dupes(pkg, 2))
+            gen.fact(fn.multiple_unification_sets(pkg))
         gen.newline()
 
         gen.h2("Possible package in link-run subDAG")

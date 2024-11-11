@@ -2784,6 +2784,106 @@ class TestConcretizeSeparately:
         gmake = s["python"].dependencies(name="gmake", deptype="build")
         assert len(gmake) == 1 and gmake[0].satisfies("@=3.0")
 
+    @pytest.mark.parametrize("strategy", ["none", "minimal", "full"])
+    def test_two_setuptools_with_run(self, strategy):
+        """Tests that concretization fails for mixed build/run dependencies on build tools."""
+        spack.config.CONFIG.set("concretizer:duplicates:strategy", strategy)
+        with pytest.raises((spack.error.UnsatisfiableSpecError, vt.InvalidVariantForSpecError)):
+            _ = Spec("py-shapely ^py-numpy+rundep").concretized()
+
+    @pytest.mark.parametrize("strategy", ["minimal", "full"])
+    def test_two_cmake_with_dep_gmake(self, strategy):
+        """Tests that we can concretize separate build dependencies, when we
+        are dealing with nested build tools.
+
+        o compiled-tool@1.0
+        |\
+        o | seemake@4.0
+        o | gmake@4.1
+         /
+        o compiled-intermediate-tool@3.0
+        o seemake@3.0
+        o gmake@3.0
+
+        """
+        spack.config.CONFIG.set("concretizer:duplicates:strategy", strategy)
+        s = Spec("compiled-tool").concretized()
+        seemake = s["compiled-tool"].dependencies(name="seemake", deptype="build")
+        assert len(seemake) == 1 and seemake[0].satisfies("@=4.0")
+        gmake = seemake[0].dependencies(name="gmake")
+        assert len(gmake) == 1 and gmake[0].satisfies("@=4.1")
+
+        cit = s["compiled-tool"].dependencies(name="compiled-intermediate-tool", deptype="build")
+        assert len(cit) == 1 and cit[0].satisfies("@=3.0")
+        seemake = cit[0].dependencies(name="seemake")
+        assert len(seemake) == 1 and seemake[0].satisfies("@=3.0")
+        gmake = seemake[0].dependencies(name="gmake")
+        assert len(gmake) == 1 and gmake[0].satisfies("@=3.0")
+
+    @pytest.mark.parametrize("strategy", ["full"])
+    def test_two_cmake_with_run_dep(self, strategy):
+        """Tests that we can concretize separate build dependencies with conflicting
+        (non-build-tool) dependencies in the build-tool stack.
+
+        o compiled-tool@1.0
+        |\
+        | o seemake@4.0
+        | o curl@4.0
+        o compiled-intermediate-tool@3.0
+        o seemake@3.0
+        o curl@3.0
+
+        """
+        spack.config.CONFIG.set("concretizer:duplicates:strategy", strategy)
+        spack.config.CONFIG.set("packages:all:require", "+rundep")
+        s = Spec("compiled-tool").concretized()
+        seemake = s["compiled-tool"].dependencies(name="seemake", deptype="build")
+        assert len(seemake) == 1 and seemake[0].satisfies("@=4.0")
+        curl = seemake[0].dependencies(name="curl")
+        assert len(curl) == 1 and curl[0].satisfies("@=4.0")
+
+        cit = s["compiled-tool"].dependencies(name="compiled-intermediate-tool", deptype="build")
+        assert len(cit) == 1 and cit[0].satisfies("@=3.0")
+        seemake = cit[0].dependencies(name="seemake")
+        assert len(seemake) == 1 and seemake[0].satisfies("@=3.0")
+        curl = seemake[0].dependencies(name="curl")
+        assert len(curl) == 1 and curl[0].satisfies("@=3.0")
+
+    @pytest.mark.parametrize("strategy", ["full"])
+    def test_two_cmake_with_transient_run_dep(self, strategy):
+        """Tests that we can concretize separate build dependencies with conflicting
+        (non-build-tool) dependencies of nested build dependencies in the build-tool stack.
+
+        o compiled-tool@1.0
+        |\
+        | o seemake@4.0
+        | o buildtool@4.0
+        | o curl@4.0
+        o compiled-intermediate-tool@3.0
+        o seemake@3.0
+        o buildtool@3.0
+        o curl@3.0
+
+        """
+        spack.config.CONFIG.set("concretizer:duplicates:strategy", strategy)
+        spack.config.CONFIG.set("packages:all:require", "+nestedrundep")
+        s = Spec("compiled-tool").concretized()
+        seemake = s["compiled-tool"].dependencies(name="seemake", deptype="build")
+        assert len(seemake) == 1 and seemake[0].satisfies("@=4.0")
+        buildtool = seemake[0].dependencies(name="buildtool")
+        assert len(buildtool) == 1 and buildtool[0].satisfies("@=4.0")
+        curl = buildtool[0].dependencies(name="curl")
+        assert len(curl) == 1 and curl[0].satisfies("@=4.0")
+
+        cit = s["compiled-tool"].dependencies(name="compiled-intermediate-tool", deptype="build")
+        assert len(cit) == 1 and cit[0].satisfies("@=3.0")
+        seemake = cit[0].dependencies(name="seemake")
+        assert len(seemake) == 1 and seemake[0].satisfies("@=3.0")
+        buildtool = seemake[0].dependencies(name="buildtool")
+        assert len(buildtool) == 1 and buildtool[0].satisfies("@=3.0")
+        curl = buildtool[0].dependencies(name="curl")
+        assert len(curl) == 1 and curl[0].satisfies("@=3.0")
+
     def test_solution_without_cycles(self):
         """Tests that when we concretize a spec with cycles, a fallback kicks in to recompute
         a solution without cycles.
