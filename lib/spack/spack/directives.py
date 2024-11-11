@@ -537,10 +537,9 @@ def can_splice(
                 "if looking to provide a single variant, use "
                 f"[{match_variants}] instead"
             )
-        if isinstance(when_spec, spack.spec.Spec):
-            pkg.splice_specs[when_spec] = (spack.spec.Spec(target), match_variants)
-        else:
-            raise SpecError(f"{when_spec} failed to resolve to a valid spec")
+        if when_spec is None:
+            return
+        pkg.splice_specs[when_spec] = (spack.spec.Spec(target), match_variants)
 
     return _execute_can_splice
 
