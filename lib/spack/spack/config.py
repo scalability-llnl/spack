@@ -731,6 +731,9 @@ class Configuration:
             raise spack.error.ConfigError(f"cannot read '{section}' configuration") from e
 
 
+ConfigurationType = Union[Configuration, lang.Singleton]
+
+
 @contextlib.contextmanager
 def override(
     path_or_scope: Union[ConfigScope, str], value: Optional[Any] = None

@@ -222,13 +222,13 @@ def read(path, apply_updates):
     compilers = list()
     if "compilers" in json_data:
         compilers.extend(compiler_from_entry(x, path) for x in json_data["compilers"])
-    tty.debug("{0}: {1} compilers read from manifest".format(path, str(len(compilers))))
+    tty.debug(f"{path}: {str(len(compilers))} compilers read from manifest")
     # Filter out the compilers that already appear in the configuration
     compilers = spack.compilers.select_new_compilers(compilers)
     if apply_updates and compilers:
         for compiler in compilers:
             try:
-                spack.compilers.add_compilers_to_config([compiler])
+                spack.compilers.add_compiler_to_config(compiler)
             except Exception:
                 warnings.warn(
                     f"Could not add compiler {str(compiler.spec)}: "
