@@ -16,7 +16,6 @@ import pytest
 
 import llnl.util.filesystem as fs
 
-import spack.compilers.config
 import spack.concretize
 import spack.deptypes as dt
 import spack.error
@@ -34,21 +33,28 @@ def mpi_names(mock_repo_path):
     return [spec.name for spec in mock_repo_path.providers_for("mpi")]
 
 
+@pytest.fixture(scope="module")
+def compiler_names(mock_repo_path):
+    return [spec.name for spec in mock_repo_path.providers_for("c")]
+
+
 @pytest.fixture()
-def mpileaks_possible_deps(mock_packages, mpi_names):
+def mpileaks_possible_deps(mock_packages, mpi_names, compiler_names):
     possible = {
-        "callpath": set(["dyninst"] + mpi_names),
+        "callpath": set(["dyninst"] + mpi_names + compiler_names),
         "low-priority-provider": set(),
-        "dyninst": set(["libdwarf", "libelf"]),
+        "dyninst": set(["libdwarf", "libelf"] + compiler_names),
         "fake": set(),
+        "gcc": set(),
         "intel-parallel-studio": set(),
-        "libdwarf": set(["libelf"]),
-        "libelf": set(),
-        "mpich": set(),
-        "mpich2": set(),
-        "mpileaks": set(["callpath"] + mpi_names),
+        "libdwarf": set(["libelf"] + compiler_names),
+        "libelf": set(compiler_names),
+        "llvm": set(),
+        "mpich": set(compiler_names),
+        "mpich2": set(compiler_names),
+        "mpileaks": set(["callpath"] + mpi_names + compiler_names),
         "multi-provider-mpi": set(),
-        "zmpi": set(["fake"]),
+        "zmpi": set(["fake"] + compiler_names),
     }
     return possible
 
@@ -58,31 +64,38 @@ def test_possible_dependencies(mock_packages, mpileaks_possible_deps):
     expanded_possible_deps = pkg_cls.possible_dependencies(expand_virtuals=True)
     assert mpileaks_possible_deps == expanded_possible_deps
     assert {
-        "callpath": {"dyninst", "mpi"},
-        "dyninst": {"libdwarf", "libelf"},
-        "libdwarf": {"libelf"},
-        "libelf": set(),
+        "c": set(),
+        "callpath": {"dyninst", "mpi", "c"},
+        "cxx": set(),
+        "dyninst": {"libdwarf", "libelf", "c"},
+        "libdwarf": {"libelf", "c", "cxx"},
+        "libelf": {"c"},
         "mpi": set(),
-        "mpileaks": {"callpath", "mpi"},
+        "mpileaks": {"c", "callpath", "mpi"},
     } == pkg_cls.possible_dependencies(expand_virtuals=False)
 
 
 def test_possible_direct_dependencies(mock_packages, mpileaks_possible_deps):
     pkg_cls = spack.repo.PATH.get_pkg_class("mpileaks")
     deps = pkg_cls.possible_dependencies(transitive=False, expand_virtuals=False)
-    assert {"callpath": set(), "mpi": set(), "mpileaks": {"callpath", "mpi"}} == deps
+    assert {
+        "c": set(),
+        "callpath": set(),
+        "mpi": set(),
+        "mpileaks": {"callpath", "mpi", "c"},
+    } == deps
 
 
-def test_possible_dependencies_virtual(mock_packages, mpi_names):
-    expected = dict(
-        (name, set(dep for dep in spack.repo.PATH.get_pkg_class(name).dependencies_by_name()))
-        for name in mpi_names
+def test_possible_dependencies_virtual(mock_packages, mpi_names, compiler_names):
+    expected = {
+        name: set(spack.repo.PATH.get_pkg_class(name).dependencies_by_name()) for name in mpi_names
+    }
+
+    # One mock MPI has a dependency, and they depend on C, C++, and Fortran
+    expected.update({"fake": set(), "c": set(), "cxx": set(), "fortran": set()})
+    assert expected == spack.package_base.possible_dependencies(
+        "mpi", expand_virtuals=False, transitive=False
     )
-
-    # only one mock MPI has a dependency
-    expected["fake"] = set()
-
-    assert expected == spack.package_base.possible_dependencies("mpi", transitive=False)
 
 
 def test_possible_dependencies_missing(mock_packages):
@@ -117,10 +130,10 @@ def test_possible_dependencies_with_multiple_classes(mock_packages, mpileaks_pos
     expected = mpileaks_possible_deps.copy()
     expected.update(
         {
-            "dt-diamond": set(["dt-diamond-left", "dt-diamond-right"]),
-            "dt-diamond-left": set(["dt-diamond-bottom"]),
-            "dt-diamond-right": set(["dt-diamond-bottom"]),
-            "dt-diamond-bottom": set(),
+            "dt-diamond": {"dt-diamond-left", "dt-diamond-right", "gcc", "llvm"},
+            "dt-diamond-left": {"dt-diamond-bottom", "gcc", "llvm"},
+            "dt-diamond-right": {"dt-diamond-bottom", "gcc", "llvm"},
+            "dt-diamond-bottom": {"gcc", "llvm"},
         }
     )
 
@@ -272,11 +285,9 @@ def test_package_fetcher_fails():
 
 
 def test_package_test_no_compilers(mock_packages, monkeypatch, capfd):
-    def compilers(compiler, arch_spec):
-        return None
-
-    monkeypatch.setattr(spack.compilers.config, "compilers_for_spec", compilers)
-
+    """Ensures that a test which needs the compiler, and build dependencies, to run, is skipped
+    if no compiler is available.
+    """
     s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     pkg.test_requires_compiler = True

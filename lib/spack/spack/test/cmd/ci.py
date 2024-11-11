@@ -178,9 +178,9 @@ spack:
     assert yaml_contents["workflow"]["rules"] == [{"when": "always"}]
 
     assert "stages" in yaml_contents
-    assert len(yaml_contents["stages"]) == 5
+    assert len(yaml_contents["stages"]) == 6
     assert yaml_contents["stages"][0] == "stage-0"
-    assert yaml_contents["stages"][4] == "stage-rebuild-index"
+    assert yaml_contents["stages"][5] == "stage-rebuild-index"
 
     assert "rebuild-index" in yaml_contents
     rebuild_job = yaml_contents["rebuild-index"]
@@ -1061,7 +1061,7 @@ spack:
             with open(tmp_path / "spec.json", "w", encoding="utf-8") as f:
                 f.write(concrete_spec.to_json(hash=ht.dag_hash))
 
-            install_cmd("--add", "-f", str(tmp_path / "spec.json"))
+            install_cmd("--fake", "--add", "-f", str(tmp_path / "spec.json"))
             buildcache_cmd("push", "-u", "-f", mirror_url, "callpath")
             ci_cmd("rebuild-index")
 
