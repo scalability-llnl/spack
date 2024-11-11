@@ -64,6 +64,7 @@ __all__ = [
     "DirectiveMeta",
     "DisableRedistribute",
     "version",
+    "conditional",
     "conflicts",
     "depends_on",
     "extends",
@@ -575,6 +576,15 @@ def patch(
         cur_patches.append(patch)
 
     return _execute_patch
+
+
+def conditional(*values: List[Any], when: Optional[WhenType] = None):
+    """Conditional values that can be used in variant declarations."""
+    # _make_when_spec returns None when the condition is statically false.
+    when = _make_when_spec(when)
+    return spack.variant.ConditionalVariantValues(
+        spack.variant.Value(x, when=when) for x in values
+    )
 
 
 @directive("variants")
