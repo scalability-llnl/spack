@@ -20,6 +20,7 @@ class Vbfnlo(AutotoolsPackage):
     license("GPL-2.0-only")
 
     # The commented out versions exist, but are not tested
+    version("3.0", sha256="b9df02603e4f801f866360c720191a29afdb958d0bd4369ea7d810e761503e51")
     version(
         "3.0.0beta5", sha256="777a3dedb365ea9abc38848a60f30d325da3799cbad69fa308664b94a8c31a90"
     )
