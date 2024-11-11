@@ -4,7 +4,6 @@
 
 import subprocess
 
-import spack.compiler
 from spack.package import *
 
 
@@ -376,11 +375,8 @@ class Mapl(CMakePackage):
         fflags = []
         if self.compiler.name in ["gcc", "clang", "apple-clang"]:
             fflags.append("-ffree-line-length-none")
-            gfortran_major_ver = int(
-                spack.compiler.get_compiler_version_output(self.compiler.fc, "-dumpversion").split(
-                    "."
-                )[0]
-            )
+
+            gfortran_major_ver = int(self.spec["fortran"].version[0])
             if gfortran_major_ver >= 10:
                 fflags.append("-fallow-invalid-boz")
                 fflags.append("-fallow-argument-mismatch")

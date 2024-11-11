@@ -10,7 +10,7 @@ import sys
 
 import llnl.util.tty as tty
 
-import spack.compilers
+import spack.compilers.config
 import spack.version
 from spack.package import *
 
@@ -402,9 +402,9 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         "1.0", sha256="cf75e56852caebe90231d295806ac3441f37dc6d9ad17b1381791ebb78e21564"
     )  # libmpi.so.0.0.0
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     patch("ad_lustre_rwcontig_open_source.patch", when="@1.6.5")
     patch("llnl-platforms.patch", when="@1.6.5")
@@ -1284,7 +1284,7 @@ with '-Wl,-commons,use_dylibs' and without
 
         # NAG compiler is usually mixed with GCC, which has a different
         # prefix for linker arguments.
-        if self.compiler.name == "nag":
+        if self.spec["fortran"].name == "nag":
             x.filter("-Wl,--enable-new-dtags", "", string=True, backup=False)
 
     # For v4 and lower
@@ -1417,7 +1417,7 @@ with '-Wl,-commons,use_dylibs' and without
 
 
 def get_spack_compiler_spec(compiler):
-    spack_compilers = spack.compilers.find_compilers([os.path.dirname(compiler)])
+    spack_compilers = spack.compilers.config.find_compilers([os.path.dirname(compiler)])
     actual_compiler = None
     # check if the compiler actually matches the one we want
     for spack_compiler in spack_compilers:

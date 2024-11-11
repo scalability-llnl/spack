@@ -88,6 +88,9 @@ class Go(Package):
 
     phases = ["build", "install"]
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     def url_for_version(self, version):
         return f"https://go.dev/dl/go{version}.src.tar.gz"
 
@@ -101,8 +104,8 @@ class Go(Package):
         env.set("GOROOT_FINAL", self.spec.prefix.go)
         # We need to set CC/CXX_FOR_TARGET, otherwise cgo will use the
         # internal Spack wrappers and fail.
-        env.set("CC_FOR_TARGET", self.compiler.cc)
-        env.set("CXX_FOR_TARGET", self.compiler.cxx)
+        env.set("CC_FOR_TARGET", self.spec["c"].package.cc)
+        env.set("CXX_FOR_TARGET", self.spec["cxx"].package.cxx)
         env.set("GOMAXPROCS", make_jobs)
 
     def build(self, spec, prefix):
