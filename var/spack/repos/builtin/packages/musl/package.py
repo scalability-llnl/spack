@@ -48,6 +48,8 @@ class Musl(MakefilePackage):
 
     depends_on("c", type="build")  # generated
 
+    conflicts("glibc")
+
     def patch(self):
         config = FileFilter("configure")
         if self.compiler.name == "gcc":
