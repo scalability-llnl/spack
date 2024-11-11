@@ -1,0 +1,49 @@
+diff -ur boost_1_79_0/boost/json/impl/array.ipp boost_1_79_0/boost/json/impl/array.ipp
+--- boost_1_79_0/boost/json/impl/array.ipp	2022-04-06 17:02:43.000000000 -0400
++++ boost_1_79_0/boost/json/impl/array.ipp	2022-04-13 20:55:20.464359478 -0400
+@@ -491,8 +491,11 @@
+     auto const p = &(*t_)[0] +
+         (pos - &(*t_)[0]);
+     destroy(p, p + 1);
+-    relocate(p, p + 1, 1);
+     --t_->size;
++    if(t_->size > 0)
++        relocate(p, p + 1,
++            t_->size - (p -
++                &(*t_)[0]));
+     return p;
+ }
+ 
+diff -ur boost_1_79_0/libs/json/test/array.cpp boost_1_79_0/libs/json/test/array.cpp
+--- boost_1_79_0/libs/json/test/array.cpp	2022-04-06 17:02:43.000000000 -0400
++++ boost_1_79_0/libs/json/test/array.cpp	2022-04-13 20:53:32.671782680 -0400
+@@ -1270,6 +1270,21 @@
+     }
+ 
+     void
++    testIssue692()
++    {
++	    array a;
++	    object obj;
++	    obj["test1"] = "hello";
++	    a.push_back(obj);
++	    a.push_back(obj);
++	    a.push_back(obj);
++	    a.push_back(obj);
++	    a.push_back(obj);
++	    while(a.size())
++		    a.erase(a.begin());
++    }
++
++    void
+     run()
+     {
+         testDestroy();
+@@ -1283,6 +1298,7 @@
+         testExceptions();
+         testEquality();
+         testHash();
++        testIssue692();
+     }
+ };
+ 

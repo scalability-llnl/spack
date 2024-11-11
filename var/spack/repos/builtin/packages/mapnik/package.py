@@ -29,10 +29,6 @@ class Mapnik(AutotoolsPackage):
         "boost@:1.69.0 +regex+filesystem+system+icu+program_options cxxstd=11", when="@3.0.22"
     )
 
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
     depends_on("icu4c")
     depends_on("zlib-api")
     depends_on("freetype")
