@@ -81,6 +81,38 @@ spack:
     - matrix:
         - [$packages]
         - [$variants]
+      exclude:
+        # Does not yet support Spack-installed ROCm
+        - py-horovod ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-jax ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-jaxlib ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-keras backend=jax ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-keras backend=torch ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-botorch ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-efficientnet-pytorch ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-gpytorch ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-kornia ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-lightning ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-pytorch-gradual-warmup-lr ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-pytorch-lightning ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-segmentation-models-pytorch ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-timm ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torch ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torch-cluster ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torch-geometric ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torch-nvidia-apex ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torch-scatter ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torch-sparse ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torch-spline-conv ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torchaudio ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torchdata ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torchfile ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torchgeo ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torchmetrics ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torchtext ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-torchvision ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-vector-quantize-pytorch ++rocm amdgpu_target==gfx90a ~~cuda
+        - py-xgboost ++rocm amdgpu_target==gfx90a ~~cuda
 
   ci:
     pipeline-gen:
