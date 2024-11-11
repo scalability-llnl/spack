@@ -26,6 +26,7 @@ def setup_parser(subparser):
     subparser.add_argument(
         "--pickle", metavar="FILE", help="dump a pickled source-able environment to FILE"
     )
+    subparser.add_argument("--dive", action="store_true", help="dive into the build-env in a subshell")
     subparser.add_argument(
         "spec",
         nargs=argparse.REMAINDER,
@@ -134,6 +135,9 @@ def emulate_env_utility(cmd_name, context: Context, args):
         # Dump a source-able environment to a pickle file.
         tty.msg("Pickling a source-able environment to {0}".format(args.pickle))
         pickle_environment(args.pickle)
+
+    if args.dive:
+        os.execvp(cmd[0], [cmd[0]])
 
     if cmd:
         # Execute the command with the new environment

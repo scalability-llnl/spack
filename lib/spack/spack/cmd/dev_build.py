@@ -13,6 +13,7 @@ import spack.cmd
 import spack.cmd.common.arguments
 import spack.config
 import spack.environment as ev
+import spack.prompt
 import spack.repo
 from spack.cmd.common import arguments
 from spack.installer import PackageInstaller
@@ -64,6 +65,12 @@ def setup_parser(subparser):
         dest="shell",
         default=None,
         help="drop into a build environment in a new shell, e.g., bash",
+    )
+    subparser.add_argument(
+        "-p",
+        "--prompt",
+        action="store_true",
+        help="change the prompt when droping into the build-env",
     )
     subparser.add_argument(
         "--test",
@@ -162,5 +169,8 @@ def dev_build(self, args):
 
     # drop into the build environment of the package?
     if args.shell is not None:
-        spack.build_environment.setup_package(spec.package, dirty=False)
+        mods = spack.build_environment.setup_package(spec.package, dirty=False)
+        if args.prompt:
+            mods.extend(spack.prompt.prompt_modifications(f"{spec.name}-build-env", args.shell))
+        mods.apply_modifications()
         os.execvp(args.shell, [args.shell])

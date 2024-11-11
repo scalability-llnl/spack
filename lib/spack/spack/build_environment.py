@@ -822,7 +822,7 @@ def load_external_modules(pkg):
             load_module(external_module)
 
 
-def setup_package(pkg, dirty, context: Context = Context.BUILD):
+def setup_package(pkg, dirty, context: Context = Context.BUILD, interactive: bool = False):
     """Execute all environment setup routines."""
     if context not in (Context.BUILD, Context.TEST):
         raise ValueError(f"'context' must be Context.BUILD or Context.TEST - got {context}")
@@ -873,6 +873,8 @@ def setup_package(pkg, dirty, context: Context = Context.BUILD):
             load_module(mod)
 
     load_external_modules(pkg)
+
+    env_mods.set("SPACK_BUILD_ENV", f"{pkg.spec.name}-{pkg.spec.dag_hash()}")
 
     # Make sure nothing's strange about the Spack environment.
     validate(env_mods, tty.warn)

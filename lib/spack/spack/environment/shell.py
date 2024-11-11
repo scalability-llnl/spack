@@ -3,13 +3,12 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
-import textwrap
 from typing import Optional
 
 import llnl.util.tty as tty
-from llnl.util.tty.color import colorize
 
 import spack.environment as ev
+import spack.prompt
 import spack.repo
 import spack.store
 from spack.util.environment import EnvironmentModifications
@@ -24,66 +23,32 @@ def activate_header(env, shell, prompt=None, view: Optional[str] = None):
         if view:
             cmds += "setenv SPACK_ENV_VIEW %s;\n" % view
         cmds += 'alias despacktivate "spack env deactivate";\n'
-        if prompt:
-            cmds += "if (! $?SPACK_OLD_PROMPT ) "
-            cmds += 'setenv SPACK_OLD_PROMPT "${prompt}";\n'
-            cmds += 'set prompt="%s ${prompt}";\n' % prompt
     elif shell == "fish":
-        if "color" in os.getenv("TERM", "") and prompt:
-            prompt = colorize("@G{%s} " % prompt, color=True)
-
         cmds += "set -gx SPACK_ENV %s;\n" % env.path
         if view:
             cmds += "set -gx SPACK_ENV_VIEW %s;\n" % view
         cmds += "function despacktivate;\n"
         cmds += "   spack env deactivate;\n"
         cmds += "end;\n"
-        #
-        # NOTE: We're not changing the fish_prompt function (which is fish's
-        # solution to the PS1 variable) here. This is a bit fiddly, and easy to
-        # screw up => spend time reasearching a solution. Feedback welcome.
-        #
     elif shell == "bat":
         # TODO: Color
         cmds += 'set "SPACK_ENV=%s"\n' % env.path
         if view:
             cmds += 'set "SPACK_ENV_VIEW=%s"\n' % view
         # TODO: despacktivate
-        # TODO: prompt
     elif shell == "pwsh":
         cmds += "$Env:SPACK_ENV='%s'\n" % env.path
         if view:
             cmds += "$Env:SPACK_ENV_VIEW='%s'\n" % view
     else:
-        bash_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=True)
-        zsh_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=False, zsh=True)
-
         cmds += "export SPACK_ENV=%s;\n" % env.path
         if view:
             cmds += "export SPACK_ENV_VIEW=%s;\n" % view
         cmds += "alias despacktivate='spack env deactivate';\n"
-        if prompt:
-            cmds += textwrap.dedent(
-                rf"""
-                if [ -z ${{SPACK_OLD_PS1+x}} ]; then
-                    if [ -z ${{PS1+x}} ]; then
-                        PS1='$$$$';
-                    fi;
-                    export SPACK_OLD_PS1="${{PS1}}";
-                fi;
-                if [ -n "${{TERM:-}}" ] && [ "${{TERM#*color}}" != "${{TERM}}" ] && \
-                   [ -n "${{BASH:-}}" ];
-                then
-                    export PS1="{bash_color_prompt} ${{PS1}}";
-                elif [ -n "${{TERM:-}}" ] && [ "${{TERM#*color}}" != "${{TERM}}" ] && \
-                     [ -n "${{ZSH_NAME:-}}" ];
-                then
-                    export PS1="{zsh_color_prompt} ${{PS1}}";
-                else
-                    export PS1="{prompt} ${{PS1}}";
-                fi
-                """
-            ).lstrip("\n")
+
+    if prompt:
+        cmds += spack.prompt.custom_prompt(prompt, shell)
+
     return cmds
 
 
