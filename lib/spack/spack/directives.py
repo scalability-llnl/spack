@@ -513,19 +513,18 @@ def can_splice(
     and thus can be spliced into concrete versions of that package.
 
     Args:
-        target: The spec that the current package is ABI-compatible with
-        (i.e., the spec that will be replaced by the splice).
+        target: The spec that the current package is ABI-compatible with.
 
         when: An anonymous spec constraining current package for when it is
-        ABI-compatible with the target
+            ABI-compatible with target.
 
         match_variants: A list of variants that must match
-        between the target spec and the current package, with special value '*'
-        which matches all variants. Example: a variant is defined on both
-        packages called json, and they are ABI-compatible whenever they agree on
-        the json variant (regardless of whether it is turned on or off).  Note
-        that this cannot be applied to multi-valued variants and multi-valued
-        variants will be skipped by '*'.
+            between target spec and current package, with special value '*'
+            which matches all variants. Example: a variant is defined on both
+            packages called json, and they are ABI-compatible whenever they agree on
+            the json variant (regardless of whether it is turned on or off).  Note
+            that this cannot be applied to multi-valued variants and multi-valued
+            variants will be skipped by '*'.
     """
 
     def _execute_can_splice(pkg: "spack.package_base.PackageBase"):
