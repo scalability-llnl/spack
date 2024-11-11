@@ -3840,7 +3840,7 @@ class SpecBuilder:
         Creates a size oracle of all specs in self._specs such that the size of
         each spec is computed exactly once
         """
-        memoized_sizes = {}
+        memoized_sizes: Dict[spack.spec.Spec, int] = {}
         work_stack = list(self._specs.values())
         while len(work_stack) > 0:
             curr_spec = work_stack.pop()
