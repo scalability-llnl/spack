@@ -273,10 +273,10 @@ def test_add_config_path(mutable_config):
     assert set_value == "/path/to/config.yaml"
 
     # Now a package:all setting
-    path = "packages:all:compiler:[gcc]"
+    path = "packages:all:target:[x86_64]"
     spack.config.add(path)
-    compilers = spack.config.get("packages")["all"]["compiler"]
-    assert "gcc" in compilers
+    targets = spack.config.get("packages")["all"]["target"]
+    assert "x86_64" in targets
 
     # Try quotes to escape brackets
     path = (
@@ -923,7 +923,6 @@ def test_single_file_scope(config, env_yaml):
         # from the single-file config
         assert spack.config.get("config:verify_ssl") is False
         assert spack.config.get("config:dirty") is False
-        assert spack.config.get("packages:all:compiler") == ["gcc@4.5.3", "gcc", "clang"]
 
         # from the lower config scopes
         assert spack.config.get("config:checksum") is True
@@ -947,7 +946,7 @@ spack:
         verify_ssl: False
     packages::
         all:
-            compiler: [ 'gcc@4.5.3' ]
+            target: [ x86_64 ]
     repos:
         - /x/y/z
 """
@@ -960,7 +959,7 @@ spack:
     with spack.config.override(scope):
         # from the single-file config
         assert spack.config.get("config:verify_ssl") is False
-        assert spack.config.get("packages:all:compiler") == ["gcc@4.5.3"]
+        assert spack.config.get("packages:all:target") == ["x86_64"]
 
         # from the lower config scopes
         assert spack.config.get("config:checksum") is True
@@ -1225,10 +1224,10 @@ def test_user_config_path_is_default_when_env_var_is_empty(working_env):
 
 
 def test_default_install_tree(monkeypatch, default_config):
-    s = spack.spec.Spec("nonexistent@x.y.z %none@a.b.c arch=foo-bar-baz")
+    s = spack.spec.Spec("nonexistent@x.y.z arch=foo-bar-baz")
     monkeypatch.setattr(s, "dag_hash", lambda length: "abc123")
     _, _, projections = spack.store.parse_install_tree(spack.config.get("config"))
-    assert s.format(projections["all"]) == "foo-bar-baz/none-a.b.c/nonexistent-x.y.z-abc123"
+    assert s.format(projections["all"]) == "foo/baz/nonexistent-x.y.z-abc123"
 
 
 def test_local_config_can_be_disabled(working_env):
@@ -1299,7 +1298,7 @@ def test_config_collect_urls(mutable_empty_config, mock_spider_configs, url, isf
         (github_url.format("tree"), False, False),
         (gitlab_url, False, False),
         ("{0}/README.md".format(github_url.format("blob")), True, True),
-        ("{0}/compilers.yaml".format(gitlab_url), True, False),
+        ("{0}/packages.yaml".format(gitlab_url), True, False),
         (None, False, True),
     ],
 )

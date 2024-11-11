@@ -301,21 +301,28 @@ def test_setup_spack_repro_version(tmpdir, capfd, last_two_git_commits, monkeypa
 
 
 def test_get_spec_filter_list(mutable_mock_env_path, mutable_mock_repo):
-    """Test that given an active environment and list of touched pkgs,
-    we get the right list of possibly-changed env specs"""
+    """Tests that, given an active environment and list of touched pkgs, we get the right
+    list of possibly-changed env specs.
+
+    The test concretizes the following environment:
+
+    [    ]  hypre@=0.2.15+shared build_system=generic
+    [bl  ]      ^openblas-with-lapack@=0.2.15 build_system=generic
+    [    ]  mpileaks@=2.3~debug~opt+shared+static build_system=generic
+    [bl  ]      ^callpath@=1.0 build_system=generic
+    [bl  ]          ^dyninst@=8.2 build_system=generic
+    [bl  ]              ^libdwarf@=20130729 build_system=generic
+    [bl  ]              ^libelf@=0.8.13 build_system=generic
+    [b   ]      ^gcc@=10.2.1 build_system=generic languages='c,c++,fortran'
+    [ l  ]      ^gcc-runtime@=10.2.1 build_system=generic
+    [bl  ]      ^mpich@=3.0.4~debug build_system=generic
+
+    and simulates a change in libdwarf.
+    """
     e1 = ev.create("test")
     e1.add("mpileaks")
     e1.add("hypre")
     e1.concretize()
-
-    # Concretizing the above environment results in the following graphs:
-
-    # mpileaks -> mpich (provides mpi virtual dep of mpileaks)
-    #          -> callpath -> dyninst -> libelf
-    #                                 -> libdwarf -> libelf
-    #                      -> mpich (provides mpi dep of callpath)
-
-    # hypre -> openblas-with-lapack (provides lapack and blas virtual deps of hypre)
 
     touched = ["libdwarf"]
 
@@ -328,17 +335,25 @@ def test_get_spec_filter_list(mutable_mock_env_path, mutable_mock_repo):
     # no spec traversals.  Passing any other number yields differing
     # numbers of possibly affected specs.
 
-    full_set = set(["mpileaks", "mpich", "callpath", "dyninst", "libdwarf", "libelf"])
-    empty_set = set([])
-    depth_2_set = set(["mpich", "callpath", "dyninst", "libdwarf", "libelf"])
-    depth_1_set = set(["dyninst", "libdwarf", "libelf"])
-    depth_0_set = set(["libdwarf", "libelf"])
+    full_set = {
+        "mpileaks",
+        "mpich",
+        "callpath",
+        "dyninst",
+        "libdwarf",
+        "libelf",
+        "gcc",
+        "gcc-runtime",
+    }
+    depth_2_set = {"mpich", "callpath", "dyninst", "libdwarf", "libelf", "gcc", "gcc-runtime"}
+    depth_1_set = {"dyninst", "libdwarf", "libelf", "gcc", "gcc-runtime"}
+    depth_0_set = {"libdwarf", "libelf", "gcc", "gcc-runtime"}
 
     expectations = {
         None: full_set,
         3: full_set,
         100: full_set,
-        -1: empty_set,
+        -1: set(),
         0: depth_0_set,
         1: depth_1_set,
         2: depth_2_set,
@@ -346,8 +361,7 @@ def test_get_spec_filter_list(mutable_mock_env_path, mutable_mock_repo):
 
     for key, val in expectations.items():
         affected_specs = ci.get_spec_filter_list(e1, touched, dependent_traverse_depth=key)
-        affected_pkg_names = set([s.name for s in affected_specs])
-        print(f"{key}: {affected_pkg_names}")
+        affected_pkg_names = {s.name for s in affected_specs}
         assert affected_pkg_names == val
 
 
