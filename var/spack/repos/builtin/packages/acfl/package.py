@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
+import os.path
 
 import spack.platforms
 from spack.package import *
@@ -356,6 +357,11 @@ class Acfl(Package, CompilerPackage):
     provides("lapack")
     provides("fftw-api@3")
 
+    provides("c", "cxx")
+    provides("fortran")
+
+    requires("platform=linux", msg="acfl is only available for linux")
+
     depends_on("gmake", type="build")
 
     # Licensing - Not required from 22.0.1 on.
@@ -376,6 +382,23 @@ class Acfl(Package, CompilerPackage):
     compiler_version_regex = (
         r"Arm C\/C\+\+\/Fortran Compiler version ([\d\.]+) \(build number \d+\) "
     )
+
+    opt_flags = ["-O", "-O0", "-O1", "-O2", "-O3", "-Ofast"]
+
+    link_paths = {
+        "c": os.path.join("arm", "armclang"),
+        "cxx": os.path.join("arm", "armclang++"),
+        "fortran": os.path.join("arm", "armflang"),
+    }
+
+    required_libs = ["libclang", "libflang"]
+
+    def _standard_flag(self, *, language, standard):
+        flags = {
+            "cxx": {"11": "-std=c++11", "14": "-std=c++14", "17": "-std=c++1z"},
+            "c": {"99": "-std=c99", "11": "-std=c11"},
+        }
+        return flags[language][standard]
 
     @property
     def cc(self):
@@ -463,6 +486,9 @@ class Acfl(Package, CompilerPackage):
         env.append_path("LD_LIBRARY_PATH", join_path(armpl_dir, "lib"))
         env.prepend_path("LIBRARY_PATH", join_path(arm_dir, "lib"))
         env.prepend_path("MANPATH", join_path(arm_dir, "share", "man"))
+
+    def archspec_name(self):
+        return "arm"
 
     @run_after("install")
     def check_install(self):

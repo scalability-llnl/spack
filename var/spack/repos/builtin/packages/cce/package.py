@@ -1,6 +1,8 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os.path
+
 from spack.package import *
 
 
@@ -20,10 +22,29 @@ class Cce(Package, CompilerPackage):
         r"[Cc]ray (?:clang|C :|C\+\+ :|Fortran :) [Vv]ersion.*?(\d+(?:\.\d+)+)"
     )
 
-    # notify when the package is updated.
+    debug_flags = ["-g", "-G0", "-G1", "-G2", "-Gfast"]
+
+    liink_paths = {
+        "c": os.path.join("cce", "craycc"),
+        "cxx": os.path.join("cce", "case-insensitive", "crayCC"),
+        "fortran": os.path.join("cce", "crayftn"),
+    }
+
     maintainers("becker33")
 
     version("16.0.0")
+
+    provides("c", "cxx")
+    provides("fortran")
+
+    requires("platform=linux")
+
+    def _standard_flag(self, *, language, standard):
+        flags = {
+            "cxx": {"11": "-std=c++11", "14": "-std=c++14", "17": "-std=c++17"},
+            "c": {"99": "-std=c99", "11": "-std=c11"},
+        }
+        return flags[language][standard]
 
     def install(self, spec, prefix):
         raise NotImplementedError("cray compiler must be configured as external")
