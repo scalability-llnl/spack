@@ -15,7 +15,7 @@ import spack.spec
 import spack.util.module_cmd
 import spack.util.spack_yaml as syaml
 from spack.error import ConfigError
-from spack.spec import CompilerSpec, Spec
+from spack.spec import Spec
 from spack.version import Version
 
 
@@ -105,16 +105,6 @@ class TestConcretizePreferences:
         update_packages("multivalue-variant", "variants", "foo=bar")
         assert_variant_values("multivalue-variant foo=*", foo=("bar",))
 
-    @pytest.mark.parametrize(
-        "compiler_str,spec_str",
-        [("gcc@=9.4.0", "mpileaks"), ("clang@=15.0.0", "mpileaks"), ("gcc@=9.4.0", "openmpi")],
-    )
-    def test_preferred_compilers(self, compiler_str, spec_str):
-        """Test preferred compilers are applied correctly"""
-        update_packages("all", "compiler", [compiler_str])
-        spec = spack.concretize.concretize_one(spec_str)
-        assert spec.compiler == CompilerSpec(compiler_str)
-
     def test_preferred_target(self, mutable_mock_repo):
         """Test preferred targets are applied correctly"""
         spec = concretize("mpich")
@@ -127,12 +117,12 @@ class TestConcretizePreferences:
 
         spec = concretize("mpileaks")
         assert str(spec["mpileaks"].target) == preferred
-        assert str(spec["mpich"].target) == preferred
+        assert str(spec["mpi"].target) == preferred
 
         update_packages("all", "target", [default])
         spec = concretize("mpileaks")
         assert str(spec["mpileaks"].target) == default
-        assert str(spec["mpich"].target) == default
+        assert str(spec["mpi"].target) == default
 
     def test_preferred_versions(self):
         """Test preferred package versions are applied correctly"""

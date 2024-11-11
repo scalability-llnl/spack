@@ -365,20 +365,20 @@ def test_read_cray_manifest_add_compiler_failure(
     """Check that cray manifest can be read even if some compilers cannot
     be added.
     """
-    orig_add_compilers_to_config = spack.compilers.add_compilers_to_config
+    orig_add_compiler_to_config = spack.compilers.add_compiler_to_config
 
     class fail_for_clang:
         def __init__(self):
             self.called_with_clang = False
 
-        def __call__(self, compilers, **kwargs):
-            if any(x.name == "clang" for x in compilers):
+        def __call__(self, compiler, **kwargs):
+            if compiler.name == "clang":
                 self.called_with_clang = True
                 raise Exception()
-            return orig_add_compilers_to_config(compilers, **kwargs)
+            return orig_add_compiler_to_config(compiler, **kwargs)
 
     checker = fail_for_clang()
-    monkeypatch.setattr(spack.compilers, "add_compilers_to_config", checker)
+    monkeypatch.setattr(spack.compilers, "add_compiler_to_config", checker)
 
     with tmpdir.as_cwd():
         test_db_fname = "external-db.json"
