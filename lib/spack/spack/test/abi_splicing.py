@@ -229,7 +229,6 @@ def test_spliced_build_deps_only_in_build_spec(splicing_setup):
         assert build_spec is not None
         # Build spec has spliced build dependencies
         assert _has_build_dependency(build_spec, "splice-h")
+        assert _has_build_dependency(build_spec, "splice-z")
         # Spliced build dependencies are removed
-        assert not _has_build_dependency(concr_goal, "splice-h")
-        # Unspliced build dependency of splice-z is still present in requested spec
-        assert _has_build_dependency(concr_goal, "splice-z")
+        assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
