@@ -3876,7 +3876,9 @@ class SpecBuilder:
                 n.pkg for n in deps_with_splices
             ]:
                 for e in edges:
-                    new_spec.add_dependency_edge(e.spec, depflag=e.depflag & ~dt.BUILD, virtuals=e.virtuals)
+                    new_spec.add_dependency_edge(
+                        e.spec, depflag=e.depflag & ~dt.BUILD, virtuals=e.virtuals
+                    )
         # This is the case where splices may occurr deeper in dependencies
         potential_clean_edges = set()
         dirty_edges = set()
