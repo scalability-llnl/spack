@@ -46,7 +46,6 @@ import spack.util.crypto
 import spack.variant
 from spack.dependency import Dependency
 from spack.directives_meta import DirectiveError, DirectiveMeta
-from spack.error import SpecError
 from spack.fetch_strategy import from_kwargs
 from spack.resource import Resource
 from spack.version import (
