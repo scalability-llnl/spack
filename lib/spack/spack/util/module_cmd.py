@@ -14,9 +14,11 @@ from typing import MutableMapping, Optional
 
 import llnl.util.tty as tty
 
+import spack.error
+
 # This list is not exhaustive. Currently we only use load and unload
 # If we need another option that changes the environment, add it here.
-module_change_commands = ["load", "swap", "unload", "purge", "use", "unuse"]
+module_change_commands = ["load", "swap", "unload", "purge", "reset", "use", "unuse"]
 
 # This awk script is a posix alternative to `env -0`
 awk_cmd = r"""awk 'BEGIN{for(name in ENVIRON)""" r"""printf("%s=%s%c", name, ENVIRON[name], 0)}'"""
@@ -26,24 +28,33 @@ def module(
     *args,
     module_template: Optional[str] = None,
     environb: Optional[MutableMapping[bytes, bytes]] = None,
+    fail_on_error: bool = True,
 ):
     module_cmd = module_template or ("module " + " ".join(args))
     environb = environb or os.environb
 
     if args[0] in module_change_commands:
-        # Suppress module output
-        module_cmd += r" >/dev/null 2>&1; " + awk_cmd
+        # Capture module stdout and stderr both to stderr
+        # Capture environ dump to stdout
+        script = module_cmd + r" >&2; export _SPACK_MODULE_EXIT_STATUS=$?; " + awk_cmd
         module_p = subprocess.Popen(
-            module_cmd,
+            script,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.PIPE,
             shell=True,
             executable="/bin/bash",
             env=environb,
         )
 
         new_environb = {}
-        output = module_p.communicate()[0]
+        output, stderr = module_p.communicate()
+
+        # Check awk exit status
+        if fail_on_error and module_p.returncode != 0:
+            raise ModuleCmdError(
+                f"Unexpected script exit with status {module_p.returncode}: {script}",
+                stderr.decode(errors="ignore"),
+            )
 
         # Loop over each environment variable key=value byte string
         for entry in output.strip(b"\0").split(b"\0"):
@@ -53,21 +64,38 @@ def module(
                 continue
             new_environb[parts[0]] = parts[1]
 
+        # Check module exit status
+        module_status = new_environb[b"_SPACK_MODULE_EXIT_STATUS"]
+        del new_environb[b"_SPACK_MODULE_EXIT_STATUS"]
+        if fail_on_error and module_status != b"0":
+            raise ModuleCmdError(
+                f"Module command exit with status {module_status!r}: {module_cmd}",
+                stderr.decode(errors="ignore"),
+            )
+
         # Update os.environ with new dict
         environb.clear()
         environb.update(new_environb)  # novermin
+
+        # We captured module command stdout and stderr both to stderr
+        return str(stderr.decode())
 
     else:
         # Simply execute commands that don't change state and return output
         module_p = subprocess.Popen(
             module_cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.STDOUT,  # stderr goes to stdout's pipe too
             shell=True,
             executable="/bin/bash",
         )
-        # Decode and str to return a string object in both python 2 and 3
-        return str(module_p.communicate()[0].decode())
+        output, _ = module_p.communicate()
+        if fail_on_error and module_p.returncode != 0:
+            raise ModuleCmdError(
+                f"Command exited with status {module_p.returncode}: {module_cmd}",
+                output.decode(errors="ignore"),
+            )
+        return str(output.decode())
 
 
 def load_module(mod):
@@ -224,3 +252,7 @@ def get_path_from_module_contents(text, module_name):
 
     # Unable to find path in module
     return None
+
+
+class ModuleCmdError(spack.error.SpackError):
+    """Raised when an environment-module command failed."""

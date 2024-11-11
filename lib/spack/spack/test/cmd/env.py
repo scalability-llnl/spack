@@ -3478,7 +3478,7 @@ spack:
 
 
 @pytest.mark.regression("18338")
-def test_newline_in_commented_sequence_is_not_an_issue(tmpdir):
+def test_newline_in_commented_sequence_is_not_an_issue(tmpdir, monkeypatch):
     spack_yaml = """
 spack:
   specs:
@@ -3495,6 +3495,9 @@ spack:
 """
     abspath = tmpdir.join("spack.yaml")
     abspath.write(spack_yaml)
+
+    # Don't actually run module commands
+    monkeypatch.setattr(spack.util.module_cmd, "module", lambda *args: "")
 
     def extract_dag_hash(environment):
         _, dyninst = next(iter(environment.specs_by_hash.items()))

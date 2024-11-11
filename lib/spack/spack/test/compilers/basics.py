@@ -823,6 +823,9 @@ echo "4.4.4"
     }
     compiler_dict = {"compiler": compiler_info}
 
+    # Don't actually run module commands
+    monkeypatch.setattr(spack.util.module_cmd, "module", lambda *args: "")
+
     # Run and confirm output
     compilers = spack.compilers.get_compilers([compiler_dict])
     assert len(compilers) == 1
