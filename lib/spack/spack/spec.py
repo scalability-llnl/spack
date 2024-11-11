@@ -1109,7 +1109,7 @@ def _headers_default_handler(spec: "Spec"):
         NoHeadersError: If no headers are found
     """
     home = getattr(spec.package, "home")
-    headers = fs.find_headers("*", root=home, recursive=True, heuristic=True)
+    headers = fs.find_headers("*", root=home)
 
     if headers:
         return headers
@@ -1159,9 +1159,7 @@ def _libs_default_handler(spec: "Spec"):
     for shared in search_shared:
         # Since we are searching for link libraries, on Windows search only for
         # ".Lib" extensions by default as those represent import libraries for implicit links.
-        libs = fs.find_libraries(
-            name, home, shared=shared, recursive=True, runtime=False, heuristic=True
-        )
+        libs = fs.find_libraries(name, home, shared=shared, runtime=False)
         if libs:
             return libs
 

@@ -2108,9 +2108,8 @@ class HeaderList(FileList):
 def find_headers(
     headers: Union[List[str], str],
     root: str,
-    recursive: bool = False,
+    recursive: Union[bool, str] = "heuristic",
     *,
-    heuristic: bool = True,
     max_depth: Optional[int] = None,
 ) -> HeaderList:
     """Returns an iterable object containing a list of full paths to
@@ -2130,10 +2129,8 @@ def find_headers(
     Parameters:
         headers: Header name(s) to search for
         root: The root directory to start searching from
-        recursive: if False (default) search only root folder, if True recurse from the root. Note
-            that recursive search does not imply exhaustive search if heuristic is True.
-        heuristic: if True (default), use a non-exhaustive, faster search. Has no effect
-            if recursive is False.
+        recursive: if False search only root folder, if True recurse from the root. Defaults to
+            "heuristic", which uses a non-exhaustive, faster search.
         max_depth: if set, don't search below this depth. Cannot be set if recursive is False.
 
     Returns:
@@ -2146,6 +2143,9 @@ def find_headers(
             f"{find_headers.__name__} expects a string or sequence of strings as the "
             f"first argument [got {type(headers)} instead]"
         )
+
+    if recursive is False and max_depth is not None:
+        raise ValueError(f"max_depth ({max_depth}) cannot be set if recursive is False")
 
     # Construct the right suffix for the headers
     suffixes = [
@@ -2167,8 +2167,8 @@ def find_headers(
     # List of headers we are searching with suffixes
     headers = [f"{header}.{suffix}" for header in headers for suffix in suffixes]
 
-    if not recursive or not heuristic:
-        return HeaderList(find(root, headers, recursive=recursive))
+    if isinstance(recursive, bool):
+        return HeaderList(find(root, headers, recursive=recursive, max_depth=max_depth))
 
     # The heuristic here is simpler than the one for libraries: restrict search to <root>/include
     # (if root isn't an include directory itself) and limit search depth so that headers are found
@@ -2351,9 +2351,9 @@ def find_libraries(
     libraries: Union[List[str], str],
     root: str,
     shared: bool = True,
-    recursive: bool = False,
+    recursive: Union[bool, str] = "heuristic",
     runtime: bool = True,
-    heuristic: bool = True,
+    *,
     max_depth: Optional[int] = None,
 ) -> LibraryList:
     """Find libraries in the specified root directory.
@@ -2373,12 +2373,10 @@ def find_libraries(
         libraries: library name(s) to search for
         root: the root directory to start searching from
         shared: if True searches for shared libraries, otherwise for static. Defaults to True.
-        recursive: if False (default) search only root folder, if True recurse from the root. Note
-            that recursive search does not imply exhaustive search if heuristic is True.
+        recursive: if False search only root folder, if True recurse from the root. Defaults to
+            "heuristic", which uses a non-exhaustive, faster search.
         runtime: Windows only option, no-op elsewhere. If True (default), search for runtime shared
             libs (.DLL), otherwise, search for .Lib files. If shared is False, this has no meaning.
-        heuristic: if True (default), use a non-exhaustive, faster search. Has no effect if
-            recursive is False.
         max_depth: if set, don't search below this depth. Cannot be set if recursive is False.
 
     Returns:
@@ -2393,7 +2391,7 @@ def find_libraries(
             f"first argument [got {type(libraries)} instead]"
         )
 
-    if not recursive and max_depth is not None:
+    if recursive is False and max_depth is not None:
         raise ValueError(f"max_depth ({max_depth}) cannot be set if recursive is False")
 
     if sys.platform == "win32":
@@ -2419,10 +2417,8 @@ def find_libraries(
     # List of libraries we are searching with suffixes
     libraries = [f"{lib}.{suffix}" for lib in libraries for suffix in suffixes]
 
-    if not recursive:
-        return LibraryList(find(root, libraries, recursive=False))
-    elif not heuristic:
-        return LibraryList(find(root, libraries, recursive=True, max_depth=max_depth))
+    if isinstance(recursive, bool):
+        return LibraryList(find(root, libraries, recursive=recursive, max_depth=max_depth))
 
     # Heuristic search: a form of non-exhaustive iterative deepening, in order to return early if
     # libraries are found in their usual locations. This is the default behavior for recursive
