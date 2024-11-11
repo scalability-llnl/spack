@@ -34,7 +34,6 @@ import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
 import spack.error
-import spack.hash_types as ht
 import spack.package_base
 import spack.package_prefs
 import spack.platforms
@@ -3625,7 +3624,6 @@ class SpecBuilder:
 
         # Matches parent nodes to splice node
         self._splices: Dict[NodeArgument, List[Splice]] = {}
-        self._splice_dag: Dict[NodeArgument, List[NodeArgument]] = {}
         self._result = None
         self._command_line_specs = specs
         self._flag_sources: Dict[Tuple[NodeArgument, str], Set[str]] = collections.defaultdict(
@@ -3837,88 +3835,69 @@ class SpecBuilder:
         splice = Splice(splice_node, child_name=child_name, child_hash=child_hash)
         self._splices.setdefault(parent_node, []).append(splice)
 
-    def splice_in_dependency(
-        self, parent_node: NodeArgument, child_node: Union[str, NodeArgument]
-    ):
-        # If child_node is not type NodeArgument, then the encoding guarantees
-        # there is also a `splice_at_hash` fact for this splice, which is handled separately
-        if isinstance(child_node, NodeArgument):
-            self._splice_dag.setdefault(parent_node, []).append(child_node)
-
-    def _resolve_splices_for_node(
-        self, node: NodeArgument, resolved: Dict[NodeArgument, spack.spec.Spec]
-    ) -> spack.spec.Spec:
+    def _create_memoized_spec_size_oracle(self) -> Dict[spack.spec.Spec, int]:
         """
-        This function both caches it's answer in resolved, and returns the
-        spec resulting from resolving splices in the nodes
+        Creates a size oracle of all specs in self._specs such that the size of
+        each spec is computed exactly once
         """
-        # Bottom up caching
-        if node in resolved:
-            return resolved[node]
-        orig_spec = self._specs[node]
-        immediate_splices = self._splices.get(node, [])
-        deps_with_splices = self._splice_dag.get(node, [])
-        # This node has no splicing to be done to it.
-        if not immediate_splices and not deps_with_splices:
-            resolved[node] = orig_spec
-            return orig_spec
-        new_spec = orig_spec.copy(deps=False)
-        new_spec.clear_cached_hashes(ignore=(ht.package_hash.attr,))
-        edges_by_dep_name: Dict[str, List[spack.spec.DependencySpec]] = {}
-        for edge in orig_spec.edges_to_dependencies():
-            edge_name = edge.spec.name
-            # this assertion narrows the type for typecheckers
-            assert type(edge_name) is str, "Anonymous dependency spec in splice"
-            edges_by_dep_name.setdefault(edge_name, []).append(edge)
-        # This is the easy case, we can just copy unspliced dependencies
-        for name, edges in edges_by_dep_name.items():
-            if name not in [s.child_name for s in immediate_splices] and name not in [
-                n.pkg for n in deps_with_splices
-            ]:
-                for e in edges:
-                    new_spec.add_dependency_edge(
-                        e.spec, depflag=e.depflag & ~dt.BUILD, virtuals=e.virtuals
-                    )
-        # This is the case where splices may occurr deeper in dependencies
-        potential_clean_edges = set()
-        dirty_edges = set()
-        for dep_node in deps_with_splices:
-            old_dep_spec = self._specs[dep_node]
-            dep_name = old_dep_spec.name
-            edges = edges_by_dep_name[dep_name]
-            for e in edges:
-                if e.spec.dag_hash() == old_dep_spec.dag_hash():
-                    new_dep_spec = self._resolve_splices_for_node(dep_node, resolved)
-                    non_build_deps = e.depflag & ~dt.BUILD
-                    if non_build_deps:
-                        new_spec.add_dependency_edge(
-                            new_dep_spec, depflag=non_build_deps, virtuals=e.virtuals
-                        )
-                    dirty_edges.add(e)
+        memoized_sizes = {}
+        work_stack = list(self._specs.values())
+        while len(work_stack) > 0:
+            curr_spec = work_stack.pop()
+            if curr_spec in memoized_sizes:
+                continue
+            # marker for whether one or more deps needs to be found to get size
+            need_deps = False
+            # running sum of the sizes of dependencies, starting at 1 makes
+            # specs with no dependencies have size 1
+            curr_sum = 1
+            for d in curr_spec.traverse(root=False):
+                assert type(d) is spack.spec.Spec
+                if d in memoized_sizes:
+                    curr_sum += memoized_sizes[d]
                 else:
-                    potential_clean_edges.add(e)
-        # This is the case where this node is being immediately spliced
-        for splice in immediate_splices:
-            splice_spec = self._resolve_splices_for_node(splice.splice_node, resolved)
-            for e in edges_by_dep_name[splice.child_name]:
-                if e.spec.dag_hash() == splice.child_hash:
-                    potential_clean_edges.discard(e)
-                    non_build_deps = e.depflag & ~dt.BUILD
+                    # First iteration that requires dependencies to be computed
+                    # pushes parent to the bottom of the stack
+                    if not need_deps:
+                        work_stack.append(curr_spec)
+                        need_deps = True
+                    work_stack.append(d)
+            if not need_deps:
+                memoized_sizes[curr_spec] = curr_sum
+        return memoized_sizes
+
+    def _resolve_automatic_splices(self):
+        """After all of the specs have been concretized, apply all immediate
+        splices in size order. This ensures that all dependencies are resolved
+        before their parents, allowing for maximal sharing and minimal copying.
+        """
+        spec_sizes = self._create_memoized_spec_size_oracle()
+        fixed_specs = {}
+        for node, spec in sorted(self._specs.items(), key=lambda x: spec_sizes[x[1]]):
+            immediate = self._splices.get(node, [])
+            if not immediate and not any(
+                edge.spec in fixed_specs for edge in spec.edges_to_dependencies()
+            ):
+                continue
+            new_spec = spec.copy(deps=False)
+            new_spec.build_spec = spec
+            for edge in spec.edges_to_dependencies():
+                depflag = edge.depflag & ~dt.BUILD
+                if any(edge.spec.dag_hash() == splice.child_hash for splice in immediate):
+                    splice = [s for s in immediate if s.child_hash == edge.spec.dag_hash()][0]
                     new_spec.add_dependency_edge(
-                        splice_spec, depflag=non_build_deps, virtuals=e.virtuals
+                        self._specs[splice.splice_node], depflag=depflag, virtuals=edge.virtuals
+                    )
+                elif edge.spec in fixed_specs:
+                    new_spec.add_dependency_edge(
+                        fixed_specs[edge.spec], depflag=depflag, virtuals=edge.virtuals
                     )
                 else:
-                    if e not in dirty_edges:
-                        potential_clean_edges.add(e)
-        # We have now looked at all of the edges, so these are clean
-        for e in potential_clean_edges:
-            new_spec.add_dependency_edge(e.spec, depflag=e.depflag, virtuals=e.virtuals)
-
-        # By this point we have covered all of the dependencies, so we can add
-        # the build_spec, update the memo cache and return
-        new_spec._build_spec = orig_spec
-        resolved[node] = new_spec
-        return new_spec
+                    new_spec.add_dependency_edge(
+                        edge.spec, depflag=depflag, virtuals=edge.virtuals
+                    )
+            self._specs[node] = new_spec
+            fixed_specs[spec] = new_spec
 
     @staticmethod
     def sort_fn(function_tuple) -> Tuple[int, int]:
@@ -3983,11 +3962,7 @@ class SpecBuilder:
                 # we also need to keep track of splicing information.
                 spec = self._specs.get(args[0])
                 if spec and spec.concrete:
-                    do_not_ignore_attrs = [
-                        "node_flag_source",
-                        "splice_at_hash",
-                        "splice_in_dependency",
-                    ]
+                    do_not_ignore_attrs = ["node_flag_source", "splice_at_hash"]
                     if name not in do_not_ignore_attrs:
                         continue
 
@@ -4011,15 +3986,11 @@ class SpecBuilder:
         for s in self._specs.values():
             _develop_specs_from_env(s, ev.active_environment())
 
-        # Resolve automatic splices
-        resolved_splices = {}
-        for node in self._specs:
-            self._resolve_splices_for_node(node, resolved_splices)
-        self._specs = resolved_splices
-
         # mark concrete and assign hashes to all specs in the solve
         for root in roots.values():
             root._finalize_concretization()
+
+        self._resolve_automatic_splices()
 
         for s in self._specs.values():
             spack.spec.Spec.ensure_no_deprecated(s)

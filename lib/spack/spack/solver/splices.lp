@@ -54,9 +54,3 @@ imposed_constraint(Hash, "virtual_on_edge", ParentName, SpliceName, VirtName) :-
   hash_attr(Hash, "virtual_on_edge", ParentName, DepName, VirtName),
   attr("splice_at_hash", node(ID, ParentName), node(SID, SpliceName), DepName, DepHash).
 
-attr("splice_in_dependency", ParentNode, DepHash) :-
-  attr("splice_at_hash", ParentNode, SpliceNode, DepName, DepHash).
-
-attr("splice_in_dependency", ParentNode, ChildNode) :-
-  attr("splice_in_dependency", ChildNode, _),
-  depends_on(ParentNode, ChildNode).
