@@ -24,7 +24,8 @@ class Xfsprogs(AutotoolsPackage):
     depends_on("c", type="build")  # generated
 
     depends_on("libinih")
-    depends_on("gettext@:0.21.1")
+    depends_on("gettext")
+    depends_on("gettext@:0.21.1", when="@:6.3")
     depends_on("uuid")
     depends_on("util-linux")
 
