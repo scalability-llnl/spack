@@ -4,7 +4,7 @@
 import os
 import re
 
-import spack.compilers
+import spack.compilers.config
 from spack.package import *
 
 
@@ -48,7 +48,7 @@ class SpectrumMpi(BundlePackage):
         def get_spack_compiler_spec(compilers_found):
             # check using cc for now, as everyone should have that defined.
             path = os.path.dirname(compilers_found["cc"])
-            spack_compilers = spack.compilers.find_compilers([path])
+            spack_compilers = spack.compilers.config.find_compilers([path])
             actual_compiler = None
             # check if the compiler actually matches the one we want
             for spack_compiler in spack_compilers:

@@ -86,7 +86,7 @@ class Vasp(MakefilePackage, CudaPackage):
     depends_on("nccl", when="@6.3: +cuda")
     depends_on("hdf5+fortran+mpi", when="+hdf5")
     # at the very least the nvhpc mpi seems required
-    depends_on("nvhpc+mpi+lapack+blas", when="%nvhpc")
+    requires("^nvhpc+mpi+lapack+blas", when="%nvhpc")
 
     conflicts(
         "%gcc@:8", msg="GFortran before 9.x does not support all features needed to build VASP"

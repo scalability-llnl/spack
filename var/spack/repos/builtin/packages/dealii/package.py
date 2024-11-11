@@ -54,9 +54,9 @@ class Dealii(CMakePackage, CudaPackage):
     version("8.2.1", sha256="d75674e45fe63cd9fa294460fe45228904d51a68f744dbb99cd7b60720f3b2a0")
     version("8.1.0", sha256="d666bbda2a17b41b80221d7029468246f2658051b8c00d9c5907cd6434c4df99")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     # Configuration variants
     variant(
@@ -685,7 +685,7 @@ class Dealii(CMakePackage, CudaPackage):
         # Add flags for machine vectorization, used when tutorials
         # and user code is built.
         # See https://github.com/dealii/dealii/issues/9164
-        options.append(self.define("DEAL_II_CXX_FLAGS", os.environ["SPACK_TARGET_ARGS"]))
+        options.append(self.define("DEAL_II_CXX_FLAGS", os.environ["SPACK_TARGET_ARGS_CXX"]))
 
         # platform introspection - needs to be disabled in some environments
         if spec.satisfies("+platform-introspection"):

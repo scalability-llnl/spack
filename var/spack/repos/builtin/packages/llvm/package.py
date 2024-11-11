@@ -7,7 +7,6 @@ import sys
 
 from llnl.util.lang import classproperty
 
-import spack.compilers
 from spack.build_systems.cmake import get_cmake_prefix_path
 from spack.operating_systems.mac_os import macos_sdk_path
 from spack.package import *
@@ -28,7 +27,7 @@ class LlvmDetection(PackageBase):
         reject = re.compile(
             r"-(vscode|cpp|cl|ocl|gpu|tidy|rename|scan-deps|format|refactor|offload|"
             r"check|query|doc|move|extdef|apply|reorder|change-namespace|"
-            r"include-fixer|import-test|dap|server)"
+            r"include-fixer|import-test|dap|server|PerfectShuffle)"
         )
         return [x for x in exes_in_prefix if not reject.search(x)]
 
@@ -401,6 +400,9 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     provides("libllvm@4", when="@4.0.0:4")
     provides("libllvm@3", when="@3.0.0:3")
 
+    provides("c", "cxx", when="+clang")
+    provides("fortran", when="+flang")
+
     extends("python", when="+python")
 
     # Build dependency
@@ -502,9 +504,9 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             },
         }.items():
             with when(v):
-                for comp in spack.compilers.supported_compilers():
-                    conflicts("%{0}{1}".format(comp, compiler_conflicts.get(comp, "")))
-        del v, compiler_conflicts, comp
+                for _name, _constraint in compiler_conflicts.items():
+                    conflicts(f"%{_name}{_constraint}")
+        del v, compiler_conflicts, _name, _constraint
 
     # libomptarget
     conflicts("+cuda", when="@15:")  # +cuda variant is obselete since LLVM 15
@@ -881,6 +883,55 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         if self.spec.satisfies("+flang"):
             result = os.path.join(self.spec.prefix.bin, "flang")
         return result
+
+    debug_flags = [
+        "-gcodeview",
+        "-gdwarf-2",
+        "-gdwarf-3",
+        "-gdwarf-4",
+        "-gdwarf-5",
+        "-gline-tables-only",
+        "-gmodules",
+        "-g",
+    ]
+
+    opt_flags = ["-O0", "-O1", "-O2", "-O3", "-Ofast", "-Os", "-Oz", "-Og", "-O", "-O4"]
+
+    link_paths = {
+        "c": os.path.join("clang", "clang"),
+        "cxx": os.path.join("clang", "clang++"),
+        "fortran": os.path.join("clang", "flang"),
+    }
+
+    required_libs = ["libclang"]
+
+    def _standard_flag(self, *, language, standard):
+        flags = {
+            "cxx": {
+                "11": [("@3.3:", "-std=c++11")],
+                "14": [("@3.5:", "-std=c++14")],
+                "17": [("@3.5:4", "-std=c++1z"), ("@5:", "-std=c++17")],
+                "20": [("@5:10", "-std=c++2a"), ("@11:", "-std=c++20")],
+                "23": [("@12:16", "-std=c++2b"), ("@17:", "-std=c++23")],
+            },
+            "c": {
+                "99": [("@:", "-std=c99")],
+                "11": [("@3.1:", "-std=c11")],
+                "17": [("@6:", "-std=c17")],
+                "23": [("@9:17", "-std=c2x"), ("@18:", "-std=c23")],
+            },
+        }
+        for condition, flag in flags[language][standard]:
+            if self.spec.satisfies(condition):
+                return flag
+        else:
+            raise RuntimeError(
+                f"{self.spec} does not support the '{standard}' standard "
+                f"for the '{language}' language"
+            )
+
+    def archspec_name(self):
+        return "clang"
 
     @property
     def libs(self):

@@ -23,6 +23,8 @@ class WinGpg(Package):
 
     version("2.4.5", sha256="249ab87bd06abea3140054089bad44d9a5d1531413590576da609142db2673ec")
 
+    depends_on("c", type="build")
+
     @classmethod
     def determine_version(cls, exe):
         output = Executable(exe)("--version", output=str, error=str)

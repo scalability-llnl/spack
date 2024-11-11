@@ -243,16 +243,6 @@ class Cmake(Package):
         match = re.search(r"cmake.*version\s+(\S+)", output)
         return match.group(1) if match else None
 
-    def flag_handler(self, name, flags):
-        if name == "cxxflags" and self.compiler.name == "fj":
-            cxx11plus_flags = (self.compiler.cxx11_flag, self.compiler.cxx14_flag)
-            cxxpre11_flags = self.compiler.cxx98_flag
-            if any(f in flags for f in cxxpre11_flags):
-                raise ValueError("cannot build cmake pre-c++11 standard")
-            elif not any(f in flags for f in cxx11plus_flags):
-                flags.append(self.compiler.cxx11_flag)
-        return (flags, None, None)
-
     def bootstrap_args(self):
         spec = self.spec
         args = []

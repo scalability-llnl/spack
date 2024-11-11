@@ -19,8 +19,7 @@ class IntelOneapiRuntime(Package):
 
     tags = ["runtime"]
 
-    requires("%oneapi")
-
+    depends_on("intel-oneapi-compilers", type="build")
     depends_on("gcc-runtime", type="link")
 
     LIBRARIES = [
@@ -46,7 +45,8 @@ class IntelOneapiRuntime(Package):
     depends_on("libc", type="link", when="platform=linux")
 
     def install(self, spec, prefix):
-        libraries = get_elf_libraries(compiler=self.compiler, libraries=self.LIBRARIES)
+        oneapi_pkg = self.spec["intel-oneapi-compilers"].package
+        libraries = get_elf_libraries(compiler=oneapi_pkg, libraries=self.LIBRARIES)
         mkdir(prefix.lib)
 
         if not libraries:

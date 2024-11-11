@@ -35,6 +35,11 @@ class LuaLpeg(LuaPackage):
 
     depends_on("lua-lang@:5.1.9", when="@:0.12.1 ^[virtuals=lua-lang] lua")
 
+    @property
+    def libs(self):
+        libraries = [f"**/lua/{self.spec['lua-lang'].version.up_to(2)}/lpeg"]
+        return find_libraries(libraries, root=self.prefix)
+
 
 class LuaBuilder(spack.build_systems.lua.LuaBuilder):
     # without this, the resulting library cannot be linked by a normal link phase, the

@@ -6,7 +6,7 @@ import os
 import re
 import sys
 
-import spack.compilers
+import spack.compilers.config
 import spack.package_base
 from spack.package import *
 
@@ -383,7 +383,7 @@ supported, and netmod is ignored if device is ch3:sock.""",
     @classmethod
     def determine_variants(cls, exes, version):
         def get_spack_compiler_spec(compiler):
-            spack_compilers = spack.compilers.find_compilers([os.path.dirname(compiler)])
+            spack_compilers = spack.compilers.config.find_compilers([os.path.dirname(compiler)])
             actual_compiler = None
             # check if the compiler actually matches the one we want
             for spack_compiler in spack_compilers:
@@ -508,25 +508,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
         # Else bootstrap with autotools
         bash = which("bash")
         bash("./autogen.sh")
-
-    @run_before("autoreconf")
-    def die_without_fortran(self):
-        # Until we can pass variants such as +fortran through virtual
-        # dependencies depends_on('mpi'), require Fortran compiler to
-        # avoid delayed build errors in dependents.
-        # The user can work around this by disabling Fortran explicitly
-        # with ~fortran
-
-        f77 = self.compiler.f77
-        fc = self.compiler.fc
-
-        fortran_missing = f77 is None or fc is None
-
-        if "+fortran" in self.spec and fortran_missing:
-            raise InstallError(
-                "mpich +fortran requires Fortran compilers. Configure "
-                "Fortran compiler or disable Fortran support with ~fortran"
-            )
 
     def configure_args(self):
         spec = self.spec

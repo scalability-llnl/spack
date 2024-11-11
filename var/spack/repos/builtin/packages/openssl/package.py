@@ -154,7 +154,7 @@ class Openssl(Package):  # Uses Fake Autotools, should subclass Package
         if spec.satisfies("@1.0"):
             options.append("no-krb5")
         # clang does not support the .arch directive in assembly files.
-        if "clang" in self.compiler.cc and spec.target.family == "aarch64":
+        if "clang" in self.spec["c"].package.cc and spec.target.family == "aarch64":
             options.append("no-asm")
         elif "%nvhpc" in spec:
             # Last tested on nvidia@22.3 for x86_64:

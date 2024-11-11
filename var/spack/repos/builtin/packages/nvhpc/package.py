@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #
 # Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
-
+import os.path
 import platform
 
 from spack.package import *
@@ -446,9 +446,7 @@ class Nvhpc(Package, CompilerPackage):
         if pkg:
             version(ver, sha256=pkg[0], url=pkg[1])
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("gcc languages=c,c++,fortran", type="run")
 
     variant("blas", default=True, description="Enable BLAS")
     variant(
@@ -469,7 +467,8 @@ class Nvhpc(Package, CompilerPackage):
     provides("lapack", when="+lapack")
     provides("mpi", when="+mpi")
 
-    requires("%gcc", msg="nvhpc must be installed with %gcc")
+    provides("c", "cxx")
+    provides("fortran")
 
     # For now we only detect compiler components
     # It will require additional work to detect mpi/lapack/blas components
@@ -479,6 +478,28 @@ class Nvhpc(Package, CompilerPackage):
     fortran_names = ["nvfortran"]
     compiler_version_argument = "--version"
     compiler_version_regex = r"nv[^ ]* (?:[^ ]+ Dev-r)?([0-9.]+)(?:-[0-9]+)?"
+
+    debug_flags = ["-g", "-gopt"]
+    opt_flags = ["-O", "-O0", "-O1", "-O2", "-O3", "-O4"]
+
+    pic_flag = "-fpic"
+    openmp_flag = "-mp"
+
+    link_paths = {
+        "c": os.path.join("nvhpc", "nvc"),
+        "cxx": os.path.join("nvhpc", "nvc++"),
+        "fortran": os.path.join("nvhpc", "nvfortran"),
+    }
+
+    required_libs = ["libnvc", "libnvf"]
+    stdcxx_libs = ("-c++libs",)
+
+    def _standard_flag(self, *, language, standard):
+        flags = {
+            "cxx": {"11": "--c++11", "14": "--c++14", "17": "--c++17"},
+            "c": {"99": "-c99", "11": "-c11"},
+        }
+        return flags[language][standard]
 
     @classmethod
     def determine_variants(cls, exes, version_str):
@@ -509,11 +530,11 @@ class Nvhpc(Package, CompilerPackage):
 
         makelocalrc_args = [
             "-gcc",
-            self.compiler.cc,
+            spec["gcc"].package.cc,
             "-gpp",
-            self.compiler.cxx,
+            spec["gcc"].package.cxx,
             "-g77",
-            self.compiler.f77,
+            spec["gcc"].package.fortran,
             "-x",
             compilers_bin,
         ]
