@@ -14,17 +14,16 @@ import stat
 import urllib.parse
 import urllib.request
 import warnings
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 import llnl.util.tty.color as clr
 from llnl.util.link_tree import ConflictingSpecsError
-from llnl.util.symlink import readlink, symlink
+from llnl.util.symlink import islink, readlink, symlink
 
 import spack
 import spack.caches
-import spack.compilers
 import spack.concretize
 import spack.config
 import spack.deptypes as dt
@@ -43,7 +42,6 @@ import spack.user_environment as uenv
 import spack.util.environment
 import spack.util.hash
 import spack.util.lock as lk
-import spack.util.parallel
 import spack.util.path
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
@@ -55,7 +53,7 @@ from spack.spec import Spec
 from spack.spec_list import SpecList
 from spack.util.path import substitute_path_variables
 
-SpecPair = Tuple[spack.spec.Spec, spack.spec.Spec]
+SpecPair = spack.concretize.SpecPair
 
 #: environment variable used to indicate the active environment
 spack_env_var = "SPACK_ENV"
@@ -670,7 +668,7 @@ class ViewDescriptor:
 
     @property
     def _current_root(self):
-        if not os.path.islink(self.root):
+        if not islink(self.root):
             return None
 
         root = readlink(self.root)
@@ -1533,9 +1531,7 @@ class Environment:
         ]
         return new_user_specs, kept_user_specs, specs_to_concretize
 
-    def _concretize_together_where_possible(
-        self, tests: bool = False
-    ) -> List[Tuple[spack.spec.Spec, spack.spec.Spec]]:
+    def _concretize_together_where_possible(self, tests: bool = False) -> Sequence[SpecPair]:
         # Avoid cyclic dependency
         import spack.solver.asp
 
@@ -1550,7 +1546,7 @@ class Environment:
 
         ret = []
         result = spack.concretize.concretize_together_when_possible(
-            *specs_to_concretize, tests=tests
+            specs_to_concretize, tests=tests
         )
         for abstract, concrete in result:
             # Only add to the environment if it's from this environment (not included in)
@@ -1563,7 +1559,7 @@ class Environment:
 
         return ret
 
-    def _concretize_together(self, tests: bool = False) -> List[SpecPair]:
+    def _concretize_together(self, tests: bool = False) -> Sequence[SpecPair]:
         """Concretization strategy that concretizes all the specs
         in the same DAG.
         """
@@ -1577,8 +1573,8 @@ class Environment:
         self.specs_by_hash = {}
 
         try:
-            concretized_specs: List[SpecPair] = spack.concretize.concretize_together(
-                *specs_to_concretize, tests=tests
+            concretized_specs = spack.concretize.concretize_together(
+                specs_to_concretize, tests=tests
             )
         except spack.error.UnsatisfiableSpecError as e:
             # "Enhance" the error message for multiple root specs, suggest a less strict
@@ -1627,7 +1623,7 @@ class Environment:
         to_concretize = [
             (root, None) for root in self.user_specs if root not in old_concretized_user_specs
         ]
-        concretized_specs = spack.concretize.concretize_separately(*to_concretize, tests=tests)
+        concretized_specs = spack.concretize.concretize_separately(to_concretize, tests=tests)
 
         by_hash = {}
         for abstract, concrete in concretized_specs:

@@ -42,6 +42,7 @@ class Verilator(AutotoolsPackage):
 
     version("master", branch="master")
 
+    version("5.030", sha256="b9e7e97257ca3825fcc75acbed792b03c3ec411d6808ad209d20917705407eac")
     version("5.028", sha256="02d4b6f34754b46a97cfd70f5fcbc9b730bd1f0a24c3fc37223397778fcb142c")
     version("5.026", sha256="87fdecf3967007d9ee8c30191ff2476f2a33635d0e0c6e3dbf345cc2f0c50b78")
     version("5.024", sha256="88b04c953e7165c670d6a700f202cef99c746a0867b4e2efe1d7ea789dee35f3")
@@ -87,7 +88,7 @@ class Verilator(AutotoolsPackage):
 
     conflicts("%gcc@:6", msg="C++14 support required")
 
-    patch("fix_compile_gch.patch", level=1, when="@5.0.18:")
+    patch("fix_compile_gch.patch", level=1, when="@5.018:5.028")
 
     # we need to fix the CXX and LINK paths, as they point to the spack
     # wrapper scripts which aren't usable without spack

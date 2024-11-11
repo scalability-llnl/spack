@@ -60,8 +60,8 @@ class Rpm(AutotoolsPackage):
     # Always required
     depends_on("popt")
 
-    # Without this file patch, we don't detect lua
-    depends_on("lua+pcfile@5.3.5:", when="+lua")
+    # support for embedded Lua interpreter
+    depends_on("lua@5.3.5:", when="+lua")
 
     # Enable POSIX.1e draft 15 file capabilities support
     depends_on("libcap", when="+posix")
