@@ -276,10 +276,6 @@ class PythonExtension(spack.package_base.PackageBase):
                         if not python.architecture.target:
                             python.architecture.target = archspec.cpu.host().family.name
 
-                    # Ensure compiler information is present
-                    if not python.compiler:
-                        python.compiler = self.spec.compiler
-
                     python.external_path = self.spec.external_path
                     python._mark_concrete()
             self.spec.add_dependency_edge(python, depflag=dt.BUILD | dt.LINK | dt.RUN, virtuals=())

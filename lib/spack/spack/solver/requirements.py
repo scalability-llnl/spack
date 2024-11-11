@@ -9,6 +9,7 @@ from llnl.util import tty
 import spack.config
 import spack.error
 import spack.package_base
+import spack.repo
 import spack.spec
 from spack.config import get_mark_from_yaml_data
 
@@ -194,20 +195,30 @@ class RequirementParser:
         self, pkg_name: str, *, constraint: spack.spec.Spec, kind: RequirementKind
     ) -> bool:
         """Returns True if a requirement constraint should be rejected"""
-        if kind == RequirementKind.DEFAULT:
-            # Requirements under all: are applied only if they are satisfiable considering only
-            # package rules, so e.g. variants must exist etc. Otherwise, they are rejected.
-            try:
-                s = spack.spec.Spec(pkg_name)
-                s.constrain(constraint)
-                s.validate_or_raise()
-            except spack.error.SpackError as e:
-                tty.debug(
-                    f"[SETUP] Rejecting the default '{constraint}' requirement "
-                    f"on '{pkg_name}': {str(e)}",
-                    level=2,
-                )
-                return True
+        # If it's a specific package requirement, it's never rejected
+        if kind != RequirementKind.DEFAULT:
+            return False
+
+        # Reject default requirements for runtimes and compilers
+        if pkg_name in spack.repo.PATH.packages_with_tags("runtime"):
+            return True
+
+        if pkg_name in spack.repo.PATH.packages_with_tags("compiler"):
+            return True
+
+        # Requirements under all: are applied only if they are satisfiable considering only
+        # package rules, so e.g. variants must exist etc. Otherwise, they are rejected.
+        try:
+            s = spack.spec.Spec(pkg_name)
+            s.constrain(constraint)
+            s.validate_or_raise()
+        except spack.error.SpackError as e:
+            tty.debug(
+                f"[SETUP] Rejecting the default '{constraint}' requirement "
+                f"on '{pkg_name}': {str(e)}",
+                level=2,
+            )
+            return True
         return False
 
 

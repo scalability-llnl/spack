@@ -14,6 +14,8 @@
 #heuristic attr("virtual_node", node(X, Virtual)). [60, init]
 #heuristic attr("virtual_node", node(X, Virtual)). [-1, sign]
 #heuristic attr("virtual_node", node(0, Virtual)) : node_depends_on_virtual(PackageNode, Virtual). [1@2, sign]
+#heuristic attr("virtual_node", node(0, "c")).     [1@3, sign]
+#heuristic attr("virtual_node", node(0, "cxx")).   [1@3, sign]
 
 #heuristic attr("depends_on", ParentNode, ChildNode, Type). [150, init]
 #heuristic attr("depends_on", ParentNode, ChildNode, Type). [4,  factor]
@@ -37,6 +39,3 @@
 % Use default targets
 #heuristic attr("node_target", node(PackageID, Package), Target). [-1, sign]
 #heuristic attr("node_target", node(PackageID, Package), Target) : target_weight(Target, 0), attr("node", node(PackageID, Package)). [1@2, sign]
-
-% Use the default compilers
-#heuristic node_compiler(node(PackageID, Package), ID) : compiler_weight(ID, 0), compiler_id(ID), attr("node", node(PackageID, Package)). [30, init]
