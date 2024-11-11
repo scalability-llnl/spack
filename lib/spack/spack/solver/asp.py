@@ -889,7 +889,6 @@ class PyclingoDriver:
         timer.start("solve")
         solve_result = self.control.solve(**solve_kwargs)
         timer.stop("solve")
-        timer.stop()
 
         # once done, construct the solve result
         result = Result(specs)
