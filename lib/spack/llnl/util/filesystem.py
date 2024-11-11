@@ -1833,9 +1833,11 @@ def _find_max_depth(
                 path for path in glob.glob(os.path.join(curr_dir, pattern))
             )
 
+        # List of subdirectories by path and (inode, device) tuple
+        subdirs: List[Tuple[str, Tuple[int, int]]] = []
+
         with dir_iter:
-            ordered_entries = sorted(dir_iter, key=lambda x: x.name)
-            for dir_entry in ordered_entries:
+            for dir_entry in dir_iter:
 
                 # Match filename only patterns
                 if filename_only_patterns:
@@ -1846,7 +1848,7 @@ def _find_max_depth(
                                 matched_paths[pattern_name].append(dir_entry.path)
                                 break
 
-                # Enqueue directories if we haven't reached max_depth
+                # Collect subdirectories
                 if depth >= max_depth:
                     continue
 
@@ -1864,14 +1866,22 @@ def _find_max_depth(
                     _log_file_access_issue(e, dir_entry.path)
                     continue
 
-                dir_id = _file_id(stat_info)
-                if dir_id not in visited_dirs:
-                    dir_queue.appendleft((depth + 1, dir_entry.path))
-                    visited_dirs.add(dir_id)
+                subdirs.append((dir_entry.path, _file_id(stat_info)))
 
+        # Enqueue subdirectories in a deterministic order
+        if subdirs:
+            subdirs.sort(key=lambda s: os.path.basename(s[0]))
+            for subdir, subdir_id in subdirs:
+                if subdir_id not in visited_dirs:
+                    dir_queue.appendleft((depth + 1, subdir))
+                    visited_dirs.add(subdir_id)
+
+    # Sort the matched paths for deterministic output
+    for paths in matched_paths.values():
+        paths.sort()
     all_matching_paths = [path for paths in matched_paths.values() for path in paths]
 
-    # we only dedupe files if we have any complex patterns, since only they can match the same file
+    # We only dedupe files if we have any complex patterns, since only they can match the same file
     # multiple times
     return _dedupe_files(all_matching_paths) if complex_patterns else all_matching_paths
 
