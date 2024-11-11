@@ -124,8 +124,8 @@ def test_virtual_multi_splices_in(splicing_setup):
     ]
     with CacheManager(cache):
         spack.config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
-        with pytest.raises(Exception):
-            for gs in goal_specs:
+        for gs in goal_specs:
+            with pytest.raises(Exception):
                 Spec(gs).concretized()
         _enable_splicing()
         for gs in goal_specs:
