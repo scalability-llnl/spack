@@ -14,6 +14,7 @@ class Xfsprogs(AutotoolsPackage):
 
     license("LGPL-2.1-or-later")
 
+    version("6.11.0", sha256="dae3bb432196f7b183b2e6bd5dc44bf33edbd7d0e85bd37d25c235df81b8100a")
     version("5.11.0", sha256="0e9c390fcdbb8a79e1b8f5e6e25fd529fc9f9c2ef8f2d5e647b3556b82d1b353")
     version("5.8.0", sha256="8ef46ed9e6bb927f407f541dc4324857c908ddf1374265edc910d23724048c6b")
     version("5.7.0", sha256="8f2348a68a686a3f4491dda5d62dd32d885fbc52d32875edd41e2c296e7b4f35")
