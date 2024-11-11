@@ -3867,6 +3867,7 @@ class SpecBuilder:
         edges_by_dep_name: Dict[str, List[spack.spec.DependencySpec]] = {}
         for edge in orig_spec.edges_to_dependencies():
             edge_name = edge.spec.name
+            # this assertion narrows the type for typecheckers
             assert type(edge_name) is str, "Anonymous dependency spec in splice"
             edges_by_dep_name.setdefault(edge_name, []).append(edge)
         # This is the easy case, we can just copy unspliced dependencies
