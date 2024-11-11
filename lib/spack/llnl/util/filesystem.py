@@ -2172,10 +2172,10 @@ def find_headers(
 
     # The heuristic here is simpler than the one for libraries: restrict search to <root>/include
     # (if root isn't an include directory itself) and limit search depth so that headers are found
-    # not deeper than <root>/include/<subdir>/*.
+    # not deeper than <root>/include/<subdir>/<subdir>/*.
 
     if max_depth is None:
-        max_depth = 2
+        max_depth = 3
 
     if os.path.basename(root).lower() != "include":
         root = os.path.join(root, "include")
