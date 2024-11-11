@@ -1130,16 +1130,16 @@ def complex_dir_structure(request, tmpdir):
     <root>/
         l1-d1/
             l2-d1/
-                l3-s1 -> l1-d2 # points to directory above l2-d1
                 l3-d2/
                     l4-f1
-                l3-s3 -> l1-d1 # cyclic link
                 l3-d4/
                     l4-f2
+                l3-s1 -> l1-d2 # points to directory above l2-d1
+                l3-s3 -> l1-d1 # cyclic link
         l1-d2/
-            l2-f1
             l2-d2/
                 l3-f3
+            l2-f1
             l2-s3 -> l2-d2
         l1-s3 -> l3-d4 # a link that "skips" a directory level
         l1-s4 -> l2-s3 # a link to a link to a dir
@@ -1155,7 +1155,7 @@ def complex_dir_structure(request, tmpdir):
     l3_d2 = l2_d1.join("l3-d2").ensure(dir=True)
     l3_d4 = l2_d1.join("l3-d4").ensure(dir=True)
     l1_d2 = tmpdir.join("l1-d2").ensure(dir=True)
-    l2_d2 = l1_d2.join("l1-d2").ensure(dir=True)
+    l2_d2 = l1_d2.join("l2-d2").ensure(dir=True)
 
     if use_junctions:
         link_fn = llnl.util.symlink._windows_create_junction
