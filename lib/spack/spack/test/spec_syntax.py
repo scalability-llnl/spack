@@ -818,9 +818,7 @@ def test_dep_spec_by_hash(database, config):
     assert "zmpi" in mpileaks_hash_fake
     assert mpileaks_hash_fake["zmpi"] == spack.spec.Spec("zmpi")
 
-    mpileaks_hash_zmpi = SpecParser(
-        f"mpileaks %{mpileaks_zmpi.compiler} ^ /{zmpi.dag_hash()}"
-    ).next_spec()
+    mpileaks_hash_zmpi = SpecParser(f"mpileaks ^ /{zmpi.dag_hash()}").next_spec()
     mpileaks_hash_zmpi.replace_hash()
     assert "zmpi" in mpileaks_hash_zmpi
     assert mpileaks_hash_zmpi["zmpi"] == zmpi

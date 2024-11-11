@@ -85,7 +85,7 @@ def test_tag_get_available(tags, expected, mock_packages):
 
 
 def test_tag_get_installed_packages(mock_packages, mock_archive, mock_fetch, install_mockery):
-    install("mpich")
+    install("--fake", "mpich")
 
     for skip in [False, True]:
         all_pkgs = spack.tag.packages_with_tags(None, True, skip)

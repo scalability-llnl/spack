@@ -54,19 +54,19 @@ def disable_capture(capfd):
 
 
 def test_logs_cmd_errors(install_mockery, mock_fetch, mock_archive, mock_packages):
-    spec = spack.concretize.concretize_one("libelf")
+    spec = spack.concretize.concretize_one("pkg-c")
     assert not spec.installed
 
     with pytest.raises(spack.main.SpackCommandError, match="is not installed or staged"):
-        logs("libelf")
+        logs("pkg-c")
 
     with pytest.raises(spack.main.SpackCommandError, match="Too many specs"):
-        logs("libelf mpi")
+        logs("pkg-c mpi")
 
-    install("libelf")
+    install("pkg-c")
     os.remove(spec.package.install_log_path)
     with pytest.raises(spack.main.SpackCommandError, match="No logs are available"):
-        logs("libelf")
+        logs("pkg-c")
 
 
 def _write_string_to_path(string, path):
@@ -98,7 +98,7 @@ def test_dump_logs(install_mockery, mock_fetch, mock_archive, mock_packages, dis
             spack.cmd.logs._logs(cmdline_spec, concrete_spec)
             assert _rewind_collect_and_decode(redirected_stdout) == stage_log_content
 
-    install("libelf")
+    install("--fake", "libelf")
 
     # Sanity check: make sure a path is recorded, regardless of whether
     # it exists (if it does exist, we will overwrite it with content

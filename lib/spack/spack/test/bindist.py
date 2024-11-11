@@ -150,10 +150,7 @@ def install_dir_non_default_layout(tmpdir):
     """Hooks a fake install directory with a non-default layout"""
     opt_dir = tmpdir.join("opt")
     original_store, spack.store.STORE = spack.store.STORE, spack.store.Store(
-        str(opt_dir),
-        projections={
-            "all": "{name}/{version}/{architecture}-{compiler.name}-{compiler.version}-{hash}"
-        },
+        str(opt_dir), projections={"all": "{name}-{version}-{hash:4}"}
     )
     try:
         yield spack.store
@@ -389,7 +386,7 @@ def test_spec_needs_rebuild(monkeypatch, tmpdir):
     s = spack.concretize.concretize_one("libdwarf")
 
     # Install a package
-    install_cmd(s.name)
+    install_cmd("--fake", s.name)
 
     # Put installed package in the buildcache
     buildcache_cmd("push", "-u", mirror_dir.strpath, s.name)
@@ -418,7 +415,7 @@ def test_generate_index_missing(monkeypatch, tmpdir, mutable_config):
     s = spack.concretize.concretize_one("libdwarf")
 
     # Install a package
-    install_cmd("--no-cache", s.name)
+    install_cmd("--fake", "--no-cache", s.name)
 
     # Create a buildcache and update index
     buildcache_cmd("push", "-u", mirror_dir.strpath, s.name)
@@ -542,11 +539,8 @@ def test_install_legacy_buildcache_layout(mutable_config, compiler_factory, inst
     where the .spack file contained a repeated spec.json and another
     compressed archive file containing the install tree.  This test
     makes sure we can still read that layout."""
-    mutable_config.set(
-        "compilers", [compiler_factory(spec="gcc@4.5.0", operating_system="debian6")]
-    )
     legacy_layout_dir = os.path.join(test_path, "data", "mirrors", "legacy_layout")
-    mirror_url = "file://{0}".format(legacy_layout_dir)
+    mirror_url = f"file://{legacy_layout_dir}"
     filename = (
         "test-debian6-core2-gcc-4.5.0-archive-files-2.0-"
         "l3vdiqvbobmspwyb4q2b62fz6nitd4hk.spec.json"
@@ -555,9 +549,7 @@ def test_install_legacy_buildcache_layout(mutable_config, compiler_factory, inst
     mirror_cmd("add", "--scope", "site", "test-legacy-layout", mirror_url)
     output = install_cmd("--no-check-signature", "--cache-only", "-f", spec_json_path, output=str)
     mirror_cmd("rm", "--scope=site", "test-legacy-layout")
-    expect_line = (
-        "Extracting archive-files-2.0-" "l3vdiqvbobmspwyb4q2b62fz6nitd4hk from binary cache"
-    )
+    expect_line = "Extracting archive-files-2.0-l3vdiqvbobmspwyb4q2b62fz6nitd4hk from binary cache"
     assert expect_line in output
 
 
@@ -1131,10 +1123,11 @@ def test_get_valid_spec_file_no_json(tmp_path, filename):
         bindist._get_valid_spec_file(str(tmp_path / filename), max_supported_layout=1)
 
 
-def test_download_tarball_with_unsupported_layout_fails(tmp_path, mutable_config, capsys):
+def test_download_tarball_with_unsupported_layout_fails(
+    tmp_path, mock_packages, mutable_config, capsys
+):
     layout_version = bindist.CURRENT_BUILD_CACHE_LAYOUT_VERSION + 1
-    spec = Spec("gmake@4.4.1%gcc@13.1.0 arch=linux-ubuntu23.04-zen2")
-    spec._mark_concrete()
+    spec = spack.concretize.concretize_one("pkg-c")
     spec_dict = spec.to_dict()
     spec_dict["buildcache_layout_version"] = layout_version
 

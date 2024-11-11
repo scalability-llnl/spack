@@ -182,9 +182,9 @@ spack:
     assert yaml_contents["workflow"]["rules"] == [{"when": "always"}]
 
     assert "stages" in yaml_contents
-    assert len(yaml_contents["stages"]) == 5
+    assert len(yaml_contents["stages"]) == 6
     assert yaml_contents["stages"][0] == "stage-0"
-    assert yaml_contents["stages"][4] == "stage-rebuild-index"
+    assert yaml_contents["stages"][5] == "stage-rebuild-index"
 
     assert "rebuild-index" in yaml_contents
     rebuild_job = yaml_contents["rebuild-index"]

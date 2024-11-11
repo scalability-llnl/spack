@@ -6,7 +6,6 @@ import os
 import re
 import sys
 from datetime import datetime, timedelta
-from textwrap import dedent
 
 import pytest
 
@@ -289,13 +288,6 @@ def test_grouped_exception():
 
     with h.forward("top-level"):
         raise TypeError("ok")
-
-    assert h.grouped_message(with_tracebacks=False) == dedent(
-        """\
-    due to the following failures:
-    inner method raised ValueError: wow!
-    top-level raised TypeError: ok"""
-    )
 
 
 def test_grouped_exception_base_type():

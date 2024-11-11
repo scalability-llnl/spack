@@ -493,7 +493,7 @@ packages:
     spec = spack.concretize.concretize_one(spec_str)
     assert "c" in spec
     for s in spec.traverse():
-        if "c" in s:
+        if "c" in s and s.name not in ("gcc", "llvm"):
             assert s.satisfies(requirement_str)
 
 
