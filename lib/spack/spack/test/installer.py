@@ -1018,8 +1018,8 @@ def test_install_fail_multi(install_mockery, mock_fetch, monkeypatch):
 
 def test_install_fail_fast_on_detect(install_mockery, monkeypatch, capsys):
     """Test fail_fast install when an install failure is detected."""
-    b = spack.concretize.concretize_one("pkg-b")
-    c = spack.concretize.concretize_one("pkg-c")
+    # Note: this test depends on the order of the installations
+    b, c = spack.concretize.concretize_one("pkg-b"), spack.concretize.concretize_one("pkg-c")
     b_id, c_id = inst.package_id(b), inst.package_id(c)
 
     installer = create_installer([b, c], {"fail_fast": True})
@@ -1031,9 +1031,9 @@ def test_install_fail_fast_on_detect(install_mockery, monkeypatch, capsys):
     with pytest.raises(spack.error.InstallError, match="after first install failure"):
         installer.install()
 
-    assert b_id in installer.failed, "Expected b to be marked as failed"
-    assert c_id not in installer.failed, "Expected no attempt to install pkg-c"
-    assert f"{b_id} failed to install" in capsys.readouterr().err
+    assert c_id in installer.failed, "Expected b to be marked as failed"
+    assert b_id not in installer.failed, "Expected no attempt to install pkg-c"
+    assert f"{c_id} failed to install" in capsys.readouterr().err
 
 
 def _test_install_fail_fast_on_except_patch(installer, **kwargs):
@@ -1066,10 +1066,11 @@ def test_install_fail_fast_on_except(install_mockery, monkeypatch, capsys):
 def test_install_lock_failures(install_mockery, monkeypatch, capfd):
     """Cover basic install lock failure handling in a single pass."""
 
+    # Note: this test relies on installing a package with no dependencies
     def _requeued(installer, task, install_status):
         tty.msg("requeued {0}".format(task.pkg.spec.name))
 
-    installer = create_installer(["pkg-b"], {})
+    installer = create_installer(["pkg-c"], {})
 
     # Ensure never acquire a lock
     monkeypatch.setattr(inst.PackageInstaller, "_ensure_locked", _not_locked)
@@ -1088,13 +1089,14 @@ def test_install_lock_failures(install_mockery, monkeypatch, capfd):
 
 def test_install_lock_installed_requeue(install_mockery, monkeypatch, capfd):
     """Cover basic install handling for installed package."""
-    b = spack.concretize.concretize_one("pkg-b")
-    b_pkg_id = inst.package_id(b)
-    installer = create_installer([b])
+    # Note: this test relies on installing a package with no dependencies
+    concrete_spec = spack.concretize.concretize_one("pkg-c")
+    pkg_id = inst.package_id(concrete_spec)
+    installer = create_installer([concrete_spec])
 
     def _prep(installer, task):
-        installer.installed.add(b_pkg_id)
-        tty.msg(f"{b_pkg_id} is installed")
+        installer.installed.add(pkg_id)
+        tty.msg(f"{pkg_id} is installed")
 
         # also do not allow the package to be locked again
         monkeypatch.setattr(inst.PackageInstaller, "_ensure_locked", _not_locked)
@@ -1111,7 +1113,7 @@ def test_install_lock_installed_requeue(install_mockery, monkeypatch, capfd):
     with pytest.raises(spack.error.InstallError, match="request failed"):
         installer.install()
 
-    assert b_pkg_id not in installer.installed
+    assert pkg_id not in installer.installed
 
     expected = ["is installed", "read locked", "requeued"]
     for exp, ln in zip(expected, capfd.readouterr().out.splitlines()):
@@ -1120,6 +1122,7 @@ def test_install_lock_installed_requeue(install_mockery, monkeypatch, capfd):
 
 def test_install_read_locked_requeue(install_mockery, monkeypatch, capfd):
     """Cover basic read lock handling for uninstalled package with requeue."""
+    # Note: this test relies on installing a package with no dependencies
     orig_fn = inst.PackageInstaller._ensure_locked
 
     def _read(installer, lock_type, pkg):
@@ -1142,7 +1145,7 @@ def test_install_read_locked_requeue(install_mockery, monkeypatch, capfd):
     # Ensure don't continually requeue the task
     monkeypatch.setattr(inst.PackageInstaller, "_requeue_task", _requeued)
 
-    installer = create_installer(["pkg-b"], {})
+    installer = create_installer(["pkg-c"], {})
 
     with pytest.raises(spack.error.InstallError, match="request failed"):
         installer.install()
@@ -1157,7 +1160,8 @@ def test_install_read_locked_requeue(install_mockery, monkeypatch, capfd):
 
 def test_install_skip_patch(install_mockery, mock_fetch):
     """Test the path skip_patch install path."""
-    installer = create_installer(["pkg-b"], {"fake": False, "skip_patch": True})
+    # Note: this test relies on installing a package with no dependencies
+    installer = create_installer(["pkg-c"], {"fake": False, "skip_patch": True})
     installer.install()
     assert inst.package_id(installer.build_requests[0].pkg.spec) in installer.installed
 
@@ -1177,8 +1181,9 @@ def test_overwrite_install_backup_success(temporary_store, config, mock_packages
     When doing an overwrite install that fails, Spack should restore the backup
     of the original prefix, and leave the original spec marked installed.
     """
+    # Note: this test relies on installing a package with no dependencies
     # Get a build task. TODO: refactor this to avoid calling internal methods
-    installer = create_installer(["pkg-b"])
+    installer = create_installer(["pkg-c"])
     installer._init_queue()
     task = installer._pop_task()
 
@@ -1219,6 +1224,7 @@ def test_overwrite_install_backup_failure(temporary_store, config, mock_packages
     original prefix. If that fails, the spec is lost, and it should be removed
     from the database.
     """
+    # Note: this test relies on installing a package with no dependencies
 
     class InstallerThatAccidentallyDeletesTheBackupDir:
         def _install_task(self, task, install_status):
@@ -1238,7 +1244,7 @@ def test_overwrite_install_backup_failure(temporary_store, config, mock_packages
             self.called = True
 
     # Get a build task. TODO: refactor this to avoid calling internal methods
-    installer = create_installer(["pkg-b"])
+    installer = create_installer(["pkg-c"])
     installer._init_queue()
     task = installer._pop_task()
 

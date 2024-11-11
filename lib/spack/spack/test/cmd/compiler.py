@@ -10,7 +10,6 @@ import spack.cmd.compiler
 import spack.compilers.config
 import spack.config
 import spack.main
-import spack.spec
 import spack.util.pattern
 import spack.version
 
