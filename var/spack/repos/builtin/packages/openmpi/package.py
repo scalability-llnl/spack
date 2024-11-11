@@ -452,33 +452,34 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     patch("pmix_getline_pmix_version.patch", when="@5.0.0:5.0.3")
     patch("pmix_getline_pmix_version-prte.patch", when="@5.0.3")
 
+    FABRICS = (
+        "psm",
+        "psm2",
+        "verbs",
+        "mxm",
+        "ucx",
+        "ofi",
+        "fca",
+        "hcoll",
+        "ucc",
+        "xpmem",
+        "cma",
+        "knem",
+    )
+
     variant(
         "fabrics",
         values=disjoint_sets(
-            ("auto",),
-            (
-                "psm",
-                "psm2",
-                "verbs",
-                "mxm",
-                "ucx",
-                "ofi",
-                "fca",
-                "hcoll",
-                "ucc",
-                "xpmem",
-                "cma",
-                "knem",
-            ),  # shared memory transports
+            ("auto",), FABRICS  # shared memory transports
         ).with_non_feature_values("auto", "none"),
         description="List of fabrics that are enabled; " "'auto' lets openmpi determine",
     )
 
+    SCHEDULERS = ("alps", "lsf", "tm", "slurm", "sge", "loadleveler")
+
     variant(
         "schedulers",
-        values=disjoint_sets(
-            ("auto",), ("alps", "lsf", "tm", "slurm", "sge", "loadleveler")
-        ).with_non_feature_values("auto", "none"),
+        values=disjoint_sets(("auto",), SCHEDULERS).with_non_feature_values("auto", "none"),
         description="List of schedulers for which support is enabled; "
         "'auto' lets openmpi determine",
     )
@@ -806,24 +807,26 @@ class Openmpi(AutotoolsPackage, CudaPackage):
                     variants.append("~pmi")
 
             # fabrics
-            fabrics = get_options_from_variant(cls, "fabrics")
             used_fabrics = []
-            for fabric in fabrics:
+            for fabric in cls.FABRICS:
                 match = re.search(r"\bMCA (?:mtl|btl|pml): %s\b" % fabric, output)
                 if match:
                     used_fabrics.append(fabric)
             if used_fabrics:
                 variants.append("fabrics=" + ",".join(used_fabrics))
+            else:
+                variants.append("fabrics=none")
 
             # schedulers
-            schedulers = get_options_from_variant(cls, "schedulers")
             used_schedulers = []
-            for scheduler in schedulers:
+            for scheduler in cls.SCHEDULERS:
                 match = re.search(r"\bMCA (?:prrte|ras): %s\b" % scheduler, output)
                 if match:
                     used_schedulers.append(scheduler)
             if used_schedulers:
                 variants.append("schedulers=" + ",".join(used_schedulers))
+            else:
+                variants.append("schedulers=none")
 
             # Get the appropriate compiler
             match = re.search(r"\bC compiler absolute: (\S+)", output)
@@ -1412,12 +1415,3 @@ def is_enabled(text):
     if text in set(["t", "true", "enabled", "yes", "1"]):
         return True
     return False
-
-
-# This code gets all the fabric names from the variants list
-# Idea taken from the AutotoolsPackage source.
-def get_options_from_variant(self, name):
-    values = self.variants[name][0].values
-    if getattr(values, "feature_values", None):
-        values = values.feature_values
-    return values
