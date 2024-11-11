@@ -312,11 +312,12 @@ def _find_query(args, env):
         specs_meeting_q_args = set(spack.store.STORE.db.query(hashes=spec_hashes, **q_args))
 
         results = list()
-        for spec in env_specs:
-            if not spec.installed:
-                concretized_but_not_installed.append(spec)
-            if spec in specs_meeting_q_args:
-                results.append(spec)
+        with spack.store.STORE.db.read_transaction():
+            for spec in env_specs:
+                if not spec.installed:
+                    concretized_but_not_installed.append(spec)
+                if spec in specs_meeting_q_args:
+                    results.append(spec)
     else:
         results = args.specs(**q_args)
 
