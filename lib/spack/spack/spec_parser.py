@@ -335,6 +335,17 @@ class SpecNodeParser:
                 SpecTokens.COMPILER_AND_VERSION
             ):
                 build_dependency = spack.spec.Spec(self.ctx.current_token.value[1:])
+                name_conversion = {
+                    "clang": "llvm",
+                    "oneapi": "intel-oneapi-compilers",
+                    "rocmcc": "llvm-amdgpu",
+                    "intel": "intel-oneapi-compiler-classic",
+                    "arm": "acfl",
+                }
+
+                if build_dependency.name in name_conversion:
+                    build_dependency.name = name_conversion[build_dependency.name]
+
                 initial_spec._add_dependency(
                     build_dependency, depflag=spack.deptypes.BUILD, virtuals=()
                 )

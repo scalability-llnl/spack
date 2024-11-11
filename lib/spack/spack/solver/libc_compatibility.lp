@@ -8,25 +8,29 @@
 % These rules are used on Linux
 %=============================================================================
 
-% A package cannot be reused if the libc is not compatible with it
+
+% A package cannot be reused if it needs a libc that is not compatible with the current one
 error(100, "Cannot reuse {0} since we cannot determine libc compatibility", ReusedPackage)
   :- provider(node(X, LibcPackage), node(0, "libc")),
      attr("version", node(X, LibcPackage), LibcVersion),
-     attr("hash", node(R, ReusedPackage), Hash),
-     % Libc packages can be reused without the "compatible_libc" attribute
-     ReusedPackage != LibcPackage,
+     concrete(node(R, ReusedPackage)),
+     attr("needs_libc", node(R, ReusedPackage)),
      not attr("compatible_libc", node(R, ReusedPackage), LibcPackage, LibcVersion).
 
-% A libc is needed in the DAG
-:- has_built_packages(), not provider(_, node(0, "libc")).
+% In case we don't need a provider for libc, ensure there's at least one compatible libc on the host
+error(100, "Cannot reuse {0} since we cannot determine libc compatibility", ReusedPackage)
+  :- not provider(_, node(0, "libc")),
+     concrete(node(R, ReusedPackage)),
+     attr("needs_libc", node(R, ReusedPackage)),
+     not attr("compatible_libc", node(R, ReusedPackage), _, _).
 
 % Non-libc reused specs must be host libc compatible. In case we build packages, we get a
 % host compatible libc provider from other rules. If nothing is built, there is no libc provider,
 % since it's pruned from reusable specs, meaning we have to explicitly impose reused specs are host
 % compatible.
-:- attr("hash", node(R, ReusedPackage), Hash),
-   not provider(node(R, ReusedPackage), node(0, "libc")),
-   not attr("compatible_libc", node(R, ReusedPackage), _, _).
+%:- attr("hash", node(R, ReusedPackage), Hash),
+%   not provider(node(R, ReusedPackage), node(0, "libc")),
+%   not attr("compatible_libc", node(R, ReusedPackage), _, _).
 
 % The libc provider must be one that a compiler can target
 :- has_built_packages(),
@@ -34,9 +38,3 @@ error(100, "Cannot reuse {0} since we cannot determine libc compatibility", Reus
    attr("node", node(X, LibcPackage)),
    attr("version", node(X, LibcPackage), LibcVersion),
    not host_libc(LibcPackage, LibcVersion).
-
-% A built node must depend on libc
-:- build(PackageNode),
-   provider(LibcNode, node(0, "libc")),
-   not external(PackageNode),
-   not depends_on(PackageNode, LibcNode).
