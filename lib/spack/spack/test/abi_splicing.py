@@ -171,8 +171,6 @@ def test_manyvariant_star_matching_variant_splice(splicing_setup):
         for goal in goal_specs:
             assert goal.concretized().satisfies(goal)
 
-    assert True
-
 
 def test_manyvariant_limited_matching(splicing_setup):
     cache = [
