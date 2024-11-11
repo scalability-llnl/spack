@@ -44,6 +44,10 @@ class PyCryptography(PythonPackage):
     depends_on("py-setuptools@11.3:", when="@:2.1", type="build")
     with when("@43:"):
         depends_on("py-maturin@1", type="build")
+        conflicts(
+            "^py-setuptools@74.0.0,74.1.0,74.1.1,74.1.2,74.1.3,75.0.0,75.1.0,75.2.0",
+            msg="some setuptools version are incompatible",
+        )
     with when("@:42"):
         depends_on("py-setuptools-rust@1.7.0:", when="@42:", type=("build", "run"))
         depends_on("py-setuptools-rust@0.11.4:", when="@3.4.2:", type="build")
