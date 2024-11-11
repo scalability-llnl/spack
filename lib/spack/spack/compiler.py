@@ -428,6 +428,11 @@ class Compiler:
     @property
     def default_libc(self) -> Optional["spack.spec.Spec"]:
         """Determine libc targeted by the compiler from link line"""
+        # technically this should be testing the target platform of the compiler, but we don't have
+        # that, so stick to host platform for now.
+        if sys.platform in ("darwin", "win32"):
+            return None
+
         dynamic_linker = self.default_dynamic_linker
 
         if not dynamic_linker:
