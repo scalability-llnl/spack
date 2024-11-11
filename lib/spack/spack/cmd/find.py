@@ -303,7 +303,7 @@ def _find_query(args, env):
     if env:
         all_env_specs = env.all_specs()
         if args.constraint:
-            init_specs = spack.cmd.parse_specs(args.constraint)
+            init_specs = cmd.parse_specs(args.constraint)
             env_specs = env.all_matching_specs(*init_specs)
         else:
             env_specs = all_env_specs
@@ -330,7 +330,7 @@ def _find_query(args, env):
     elif results:
         pass
     elif args.constraint:
-        raise spack.cmd.NoSpecMatches()
+        raise cmd.NoSpecMatches()
 
     # If tags have been specified on the command line, filter by tags
     if args.tags:
@@ -341,7 +341,7 @@ def _find_query(args, env):
         ]
 
     if args.loaded:
-        results = spack.cmd.filter_loaded_specs(results)
+        results = cmd.filter_loaded_specs(results)
 
     return results, concretized_but_not_installed
 
@@ -356,7 +356,7 @@ def find(parser, args):
 
     try:
         results, concretized_but_not_installed = _find_query(args, env)
-    except spack.cmd.NoSpecMatches:
+    except cmd.NoSpecMatches:
         # Note: this uses args.constraint vs. args.constraint_specs because
         # the latter only exists if you call args.specs()
         tty.die(f"No package matches the query: {' '.join(args.constraint)}")
@@ -397,9 +397,9 @@ def find(parser, args):
                     concretized_suffix += " (show with `spack find -c`)"
 
             pkg_type = "loaded" if args.loaded else "installed"
-            spack.cmd.print_how_many_pkgs(results, pkg_type, suffix=installed_suffix)
+            cmd.print_how_many_pkgs(results, pkg_type, suffix=installed_suffix)
 
             if env:
-                spack.cmd.print_how_many_pkgs(
+                cmd.print_how_many_pkgs(
                     concretized_but_not_installed, "concretized", suffix=concretized_suffix
                 )
