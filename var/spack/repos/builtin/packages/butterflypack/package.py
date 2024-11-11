@@ -62,9 +62,9 @@ class Butterflypack(CMakePackage):
     # https://github.com/spack/spack/issues/31818
     patch("qopenmp-for-oneapi.patch", when="@2.1.1 %oneapi")
 
-    patch("longline.patch", when="%fj")
-    patch("fjfortran.patch", when="%fj")
-    patch("isnan.patch", when="%fj")
+    patch("longline.patch", when="%fj @1.2.0")
+    patch("fjfortran.patch", when="%fj @1.2.0")
+    patch("isnan.patch", when="%fj @1.2.0")
 
     def cmake_args(self):
         spec = self.spec
