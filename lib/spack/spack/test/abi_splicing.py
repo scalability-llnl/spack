@@ -13,7 +13,7 @@ import spack.package_base
 import spack.paths
 import spack.repo
 import spack.solver.asp
-import spack.spec
+import spack.deptypes as dt
 from spack.installer import PackageInstaller
 from spack.spec import Spec
 
@@ -57,6 +57,9 @@ def splicing_setup(mutable_database, mock_packages, monkeypatch):
 
 def _enable_splicing():
     spack.config.set("concretizer:splice", {"automatic": True})
+    
+def _has_build_dependency(spec: Spec, name:str):
+    return any(s.name == name for s in spec.dependencies(None, dt.BUILD))
 
 
 def test_simple_reuse(splicing_setup):
@@ -84,7 +87,7 @@ def test_splice_installed_hash(splicing_setup):
             goal_spec.concretized()
         _enable_splicing()
         assert goal_spec.concretized().satisfies(goal_spec)
-
+        
 
 def test_splice_build_splice_node(splicing_setup):
     with CacheManager(["splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat"]):
@@ -211,3 +214,22 @@ def test_external_splice_same_name(splicing_setup):
         _enable_splicing()
         for s in goal_specs:
             assert s.concretized().satisfies(s)
+
+def test_spliced_build_deps_only_in_build_spec(splicing_setup):
+    cache = [
+        "splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.0",
+    ]
+    goal_spec = Spec("splice-t@1.0 ^splice-h@1.0.2 ^splice-z@1.0.0")
+
+    with CacheManager(cache):
+        _enable_splicing()
+        concr_goal = goal_spec.concretized()
+        build_spec = concr_goal._build_spec
+        # Spec has been spliced 
+        assert build_spec is not None
+        # Build spec has spliced build dependencies 
+        assert _has_build_dependency(build_spec, "splice-h")
+        # Spliced build dependencies are removed
+        assert not _has_build_dependency(concr_goal, "splice-h")
+        # Unspliced build dependency of splice-z is still present in requested spec
+        assert _has_build_dependency(concr_goal, "splice-z")
