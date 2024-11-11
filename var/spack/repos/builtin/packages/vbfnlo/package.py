@@ -41,7 +41,6 @@ class Vbfnlo(AutotoolsPackage):
 
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
-    # version('2.7.0',      sha256='0e96c0912599e3000fffec5305700b947b604a7b06c7975851503f445311e4ef')
 
     # Documentation is broken on some systems:
     # See https://github.com/vbfnlo/vbfnlo/issues/2
@@ -55,6 +54,7 @@ class Vbfnlo(AutotoolsPackage):
     depends_on("autoconf", type="build")
     depends_on("m4", type="build")
     depends_on("libtool", type="build")
+    depends_on("tcsh", type="build")
 
     @when("@2.7.1")
     def setup_build_environment(self, env):
