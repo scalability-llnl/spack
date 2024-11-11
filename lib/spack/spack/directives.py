@@ -583,7 +583,7 @@ def conditional(*values: List[Any], when: Optional[WhenType] = None):
     # _make_when_spec returns None when the condition is statically false.
     when = _make_when_spec(when)
     return spack.variant.ConditionalVariantValues(
-        spack.variant.Value(x, when=when) for x in values
+        spack.variant.ConditionalValue(x, when=when) for x in values
     )
 
 

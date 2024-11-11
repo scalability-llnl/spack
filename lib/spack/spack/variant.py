@@ -775,18 +775,21 @@ def disjoint_sets(*sets):
 
 
 @functools.total_ordering
-class Value:
-    """Conditional value that might be used in variants."""
+class ConditionalValue:
+    """Conditional value for a variant."""
 
     value: Any
-    when: Optional["spack.spec.Spec"]  # optional b/c we need to know about disabled values
+
+    # optional because statically disabled values (when=False) are set to None
+    # when=True results in spack.spec.Spec()
+    when: Optional["spack.spec.Spec"]
 
     def __init__(self, value: Any, when: Optional["spack.spec.Spec"]):
         self.value = value
         self.when = when
 
     def __repr__(self):
-        return f"Value({self.value}, when={self.when})"
+        return f"ConditionalValue({self.value}, when={self.when})"
 
     def __str__(self):
         return str(self.value)
