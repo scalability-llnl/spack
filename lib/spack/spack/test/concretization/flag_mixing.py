@@ -75,24 +75,23 @@ def test_mix_spec_and_dependent(concretize_scope, test_repo):
 
 def _compiler_cfg_one_entry_with_cflags(cflags):
     return f"""\
-compilers::
-- compiler:
-    spec: gcc@12.100.100
-    paths:
-      cc: /usr/bin/fake-gcc
-      cxx: /usr/bin/fake-g++
-      f77: null
-      fc: null
-    flags:
-      cflags: {cflags}
-    operating_system: debian6
-    modules: []
+packages:
+  gcc:
+    externals:
+    - spec: gcc@12.100.100
+      prefix: /fake
+      extra_attributes:
+        compilers:
+          c: /fake/bin/gcc
+          cxx: /fake/bin/g++
+        flags:
+          cflags: {cflags}
 """
 
 
 def test_mix_spec_and_compiler_cfg(concretize_scope, test_repo):
     conf_str = _compiler_cfg_one_entry_with_cflags("-Wall")
-    update_concretize_scope(conf_str, "compilers")
+    update_concretize_scope(conf_str, "packages")
 
     s1 = spack.concretize.concretize_one('y %gcc@12.100.100 cflags="-O2"')
     assert s1.satisfies('cflags="-Wall -O2"')
@@ -135,17 +134,20 @@ def test_flag_order_and_grouping(
 
     The ordering rules are explained in ``asp.SpecBuilder.reorder_flags``.
     """
+    conf_str = """
+packages:
+"""
+    if cmp_flags:
+        conf_str = _compiler_cfg_one_entry_with_cflags(cmp_flags)
+
     if req_flags:
         conf_str = f"""\
-packages:
+{conf_str}
   y:
     require: cflags="{req_flags}"
 """
-        update_concretize_scope(conf_str, "packages")
 
-    if cmp_flags:
-        conf_str = _compiler_cfg_one_entry_with_cflags(cmp_flags)
-        update_concretize_scope(conf_str, "compilers")
+    update_concretize_scope(conf_str, "packages")
 
     compiler_spec = ""
     if cmp_flags:
@@ -180,7 +182,7 @@ def test_two_dependents_flag_mixing(concretize_scope, test_repo):
 
 def test_propagate_and_compiler_cfg(concretize_scope, test_repo):
     conf_str = _compiler_cfg_one_entry_with_cflags("-f2")
-    update_concretize_scope(conf_str, "compilers")
+    update_concretize_scope(conf_str, "packages")
 
     root_spec = spack.concretize.concretize_one("v %gcc@12.100.100 cflags=='-f1'")
     assert root_spec["y"].satisfies("cflags='-f1 -f2'")
@@ -237,7 +239,7 @@ spack:
 """
 
     conf_str = _compiler_cfg_one_entry_with_cflags("-f1")
-    update_concretize_scope(conf_str, "compilers")
+    update_concretize_scope(conf_str, "packages")
 
     manifest_file = tmp_path / ev.manifest_name
     manifest_file.write_text(env_content)

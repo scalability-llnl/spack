@@ -48,6 +48,7 @@ import spack.paths
 import spack.platforms
 import spack.repo
 import spack.solver.asp
+import spack.solver.libc
 import spack.spec
 import spack.stage
 import spack.store
@@ -359,18 +360,6 @@ def no_chdir():
     yield
     if os.path.isdir(original_wd):
         assert os.getcwd() == original_wd
-
-
-@pytest.fixture(scope="function", autouse=True)
-def reset_compiler_cache():
-    """Ensure that the compiler cache is not shared across Spack tests
-
-    This cache can cause later tests to fail if left in a state incompatible
-    with the new configuration. Since tests can make almost unlimited changes
-    to their setup, default to not use the compiler cache across tests."""
-    spack.compilers._compiler_cache = {}
-    yield
-    spack.compilers._compiler_cache = {}
 
 
 def onerror(func, path, error_info):
@@ -710,8 +699,8 @@ def configuration_dir(tmpdir_factory, linux_os):
     config.write(config_template.read_text().format(install_tree_root, locks))
 
     target = str(archspec.cpu.host().family)
-    compilers = tmpdir.join("site", "compilers.yaml")
-    compilers_template = test_config / "compilers.yaml"
+    compilers = tmpdir.join("site", "packages.yaml")
+    compilers_template = test_config / "packages.yaml"
     compilers.write(compilers_template.read_text().format(linux_os=linux_os, target=target))
 
     modules = tmpdir.join("site", "modules.yaml")
@@ -805,12 +794,12 @@ def concretize_scope(mutable_config, tmpdir):
 
 
 @pytest.fixture
-def no_compilers_yaml(mutable_config):
+def no_packages_yaml(mutable_config):
     """Creates a temporary configuration without compilers.yaml"""
     for local_config in mutable_config.scopes.values():
         if not isinstance(local_config, spack.config.DirectoryConfigScope):
             continue
-        compilers_yaml = local_config.get_section_filename("compilers")
+        compilers_yaml = local_config.get_section_filename("packages")
         if os.path.exists(compilers_yaml):
             os.remove(compilers_yaml)
     return mutable_config
@@ -2086,15 +2075,11 @@ repo:
 def compiler_factory():
     """Factory for a compiler dict, taking a spec and an OS as arguments."""
 
-    def _factory(*, spec, operating_system):
+    def _factory(*, spec):
         return {
-            "compiler": {
-                "spec": spec,
-                "operating_system": operating_system,
-                "paths": {"cc": "/path/to/cc", "cxx": "/path/to/cxx", "f77": None, "fc": None},
-                "modules": [],
-                "target": str(archspec.cpu.host().family),
-            }
+            "spec": f"{spec}",
+            "prefix": "/path",
+            "extra_attributes": {"compilers": {"c": "/path/bin/cc", "cxx": "/path/bin/cxx"}},
         }
 
     return _factory
@@ -2110,6 +2095,10 @@ def _true(x):
     return True
 
 
+def _libc_from_python(self):
+    return spack.spec.Spec("glibc@=2.28")
+
+
 @pytest.fixture()
 def do_not_check_runtimes_on_reuse(monkeypatch):
     monkeypatch.setattr(spack.solver.asp, "_has_runtime_dependencies", _true)
@@ -2119,8 +2108,11 @@ def do_not_check_runtimes_on_reuse(monkeypatch):
 def _c_compiler_always_exists():
     fn = spack.solver.asp.c_compiler_runs
     spack.solver.asp.c_compiler_runs = _true
+    mthd = spack.solver.libc.CompilerPropertyDetector.default_libc
+    spack.solver.libc.CompilerPropertyDetector.default_libc = _libc_from_python
     yield
     spack.solver.asp.c_compiler_runs = fn
+    spack.solver.libc.CompilerPropertyDetector.default_libc = mthd
 
 
 @pytest.fixture(scope="session")
