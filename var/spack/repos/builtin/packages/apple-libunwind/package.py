@@ -66,13 +66,9 @@ class AppleLibunwind(Package):
         it will link dynamically to `/usr/lib/system/libunwind.dylib`.
 
         """
-        libs = find_libraries("libSystem", self.prefix.lib, shared=True, recursive=False)
-        if libs:
-            return libs
-        return None
+        return find_libraries("libSystem", self.prefix.lib, shared=True, recursive=False)
 
     @property
     def headers(self):
         """Export the Apple libunwind header"""
-        hdrs = HeaderList(find(self.prefix.include, "libunwind.h", recursive=False))
-        return hdrs or None
+        return HeaderList(find(self.prefix.include, "libunwind.h", recursive=False))

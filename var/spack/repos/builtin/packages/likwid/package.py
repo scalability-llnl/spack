@@ -195,7 +195,7 @@ class Likwid(Package):
             filter_file("^BUILDAPPDAEMON.*", "BUILDAPPDAEMON = true", "config.mk")
             cudainc = spec["cuda"].prefix.include
             filter_file("^CUDAINCLUDE.*", "CUDAINCLUDE = {0}".format(cudainc), "config.mk")
-            cuptihead = HeaderList(find(spec["cuda"].prefix, "cupti.h", recursive=True))
+            cuptihead = find_headers("cupti", spec["cuda"].prefix, recursive=True)
             filter_file(
                 "^CUPTIINCLUDE.*",
                 "CUPTIINCLUDE = {0}".format(cuptihead.directories[0]),

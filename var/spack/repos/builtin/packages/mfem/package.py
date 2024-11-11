@@ -1061,7 +1061,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
 
         if "+conduit" in spec:
             conduit = spec["conduit"]
-            headers = HeaderList(find(conduit.prefix.include, "conduit.hpp", recursive=True))
+            headers = find_headers("conduit", conduit.prefix)
             conduit_libs = ["libconduit", "libconduit_relay", "libconduit_blueprint"]
             libs = find_libraries(conduit_libs, conduit.prefix.lib, shared=("+shared" in conduit))
             libs += LibraryList(find_system_libraries("libdl"))
@@ -1280,8 +1280,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     @property
     def headers(self):
         """Export the main mfem header, mfem.hpp."""
-        hdrs = HeaderList(find(self.prefix.include, "mfem.hpp", recursive=False))
-        return hdrs or None
+        return find_headers("mfem", self.prefix.include, recursive=False)
 
     @property
     def libs(self):
