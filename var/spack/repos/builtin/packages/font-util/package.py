@@ -253,7 +253,7 @@ class FontUtil(AutotoolsPackage, XorgPackage):
         autoreconf = which("autoreconf")
 
         for font in fonts:
-            fontroot = find(font, "*", recursive=False)
+            fontroot = gob.glob(join_path(font, "*"))
             with working_dir(fontroot[0]):
                 autoreconf(*autoconf_args)
                 configure = Executable("./configure")
