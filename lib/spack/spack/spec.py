@@ -631,6 +631,17 @@ class ArchSpec:
     def __contains__(self, string):
         return string in str(self) or string in self.target
 
+    def complete_with_defaults(self) -> None:
+        default_architecture = spack.spec.ArchSpec.default_arch()
+        if not self.platform:
+            self.platform = default_architecture.platform
+
+        if not self.os:
+            self.os = default_architecture.os
+
+        if not self.target:
+            self.target = default_architecture.target
+
 
 class CompilerSpec:
     """The CompilerSpec field represents the compiler or range of compiler
@@ -2911,9 +2922,14 @@ class Spec:
                 spack.repo.PATH.get_pkg_class(spec.fullname)
 
             # validate compiler in addition to the package name.
-            if spec.compiler:
-                if not spack.compilers.supported(spec.compiler):
-                    raise UnsupportedCompilerError(spec.compiler.name)
+            if spec.dependencies(deptype="build"):
+                pkg_cls = spack.repo.PATH.get_pkg_class(spec.fullname)
+                # FIXME (compiler as nodes): raise if we use %gcc on pkgs that do not depend on C
+                pkg_dependencies = pkg_cls.dependency_names()
+                if not any(x in pkg_dependencies for x in ("c", "cxx", "fortran")):
+                    raise UnsupportedCompilerError(
+                        f"{spec.fullname} does not depend on 'c', 'cxx, or 'fortran'"
+                    )
 
             # Ensure correctness of variants (if the spec is not virtual)
             if not spack.repo.PATH.is_virtual(spec.name):
