@@ -9,7 +9,7 @@ import archspec.cpu
 
 from llnl.util.symlink import readlink
 
-import spack.compiler
+import spack.build_systems.compiler
 import spack.platforms
 import spack.repo
 import spack.util.libc
@@ -32,9 +32,9 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
 
     license("GPL-2.0-or-later AND LGPL-2.1-or-later")
 
-    provides("c")
-    provides("cxx")
-    provides("fortran")
+    provides("c", when="languages=c")
+    provides("cxx", when="languages=c++")
+    provides("fortran", when="languages=fortran")
 
     version("master", branch="master")
 
@@ -591,7 +591,12 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         # This weirdness is because it could be called on an abstract spec
         if "languages" not in self.spec.variants:
             return self.compiler_languages
-        return [x for x in self.compiler_languages if x in self.spec.variants["languages"].value]
+        variant_value = {"cxx": "c++"}
+        return [
+            x
+            for x in self.compiler_languages
+            if self.spec.satisfies(f"languages={variant_value.get(x, x)}")
+        ]
 
     c_names = ["gcc"]
     cxx_names = ["g++"]
@@ -602,6 +607,40 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
     compiler_version_regex = r"([0-9.]+)"
     compiler_version_argument = ("-dumpfullversion", "-dumpversion")
 
+    link_paths = {
+        "c": os.path.join("gcc", "gcc"),
+        "cxx": os.path.join("gcc", "g++"),
+        "fortran": os.path.join("gcc", "gfortran"),
+    }
+
+    debug_flags = ["-g", "-gstabs+", "-gstabs", "-gxcoff+", "-gxcoff", "-gvms"]
+    opt_flags = ["-O", "-O0", "-O1", "-O2", "-O3", "-Os", "-Ofast", "-Og"]
+
+    required_libs = ["libgcc", "libgfortran"]
+    stdcxx_libs = "-lstdc++"
+
+    def _standard_flag(self, *, language, standard):
+        flags = {
+            "cxx": {
+                "98": [("@6:", "-std=c++98"), ("@:5", "")],
+                "11": [("@4.3:4.6", "-std=c++0x"), ("@4.7:", "-std=c++11")],
+                "14": [("@4.8", "-std=c++1y"), ("@4.9:", "-std=c++14")],
+                "17": [("@5", "-std=c++1z"), ("@6:", "-std=c++17")],
+                "20": [("@8:10", "-std=c++2a"), ("@11:", "-std=c++20")],
+                "23": [("@11:13", "-std=c++2b"), ("@14:", "-std=c++23")],
+            },
+            "c": {"99": [("@4.5:", "-std=c99")], "11": [("@4.7:", "-std=c11")]},
+        }
+        for condition, flag in flags[language][standard]:
+            if self.spec.satisfies(condition):
+                return flag
+
+        else:
+            raise RuntimeError(
+                f"{self.spec} does not support the '{standard}' standard "
+                f"for the '{language}' language"
+            )
+
     @classmethod
     def filter_detected_exes(cls, prefix, exes_in_prefix):
         # Apple's gcc is actually apple clang, so skip it.
@@ -609,7 +648,9 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
             not_apple_clang = []
             for exe in exes_in_prefix:
                 try:
-                    output = spack.compiler.get_compiler_version_output(exe, "--version")
+                    output = spack.build_systems.compiler.compiler_output(
+                        exe, version_argument="--version"
+                    )
                 except Exception:
                     output = ""
                 if "clang version" in output:
@@ -1154,7 +1195,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         )
         pkg("*").depends_on(
             f"gcc-runtime@{str(spec.version)}:",
-            when=f"%{str(spec)}",
+            when=f"^[deptypes=build] {spec.name}@{spec.versions}",
             type="link",
             description=f"If any package uses %{str(spec)}, "
             f"it depends on gcc-runtime@{str(spec.version)}:",
@@ -1169,18 +1210,21 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         for fortran_virtual in ("fortran-rt", gfortran_str):
             pkg("*").depends_on(
                 fortran_virtual,
-                when=f"%{str(spec)}",
-                languages=["fortran"],
+                when=f"^[virtuals=fortran deptypes=build] {spec.name}@{spec.versions}",
                 type="link",
                 description=f"Add a dependency on '{gfortran_str}' for nodes compiled with "
                 f"{str(spec)} and using the 'fortran' language",
             )
         # The version of gcc-runtime is the same as the %gcc used to "compile" it
-        pkg("gcc-runtime").requires(f"@={str(spec.version)}", when=f"%{str(spec)}")
+        pkg("gcc-runtime").requires(
+            f"@{str(spec.versions)}", when=f"^[deptypes=build] {spec.name}@{spec.versions}"
+        )
 
         # If a node used %gcc@X.Y its dependencies must use gcc-runtime@:X.Y
         # (technically @:X is broader than ... <= @=X but this should work in practice)
-        pkg("*").propagate(f"%gcc@:{str(spec.version)}", when=f"%{str(spec)}")
+        pkg("*").propagate(
+            f"gcc@:{str(spec.version)}", when=f"^[deptypes=build] {spec.name}@{spec.versions}"
+        )
 
     def _post_buildcache_install_hook(self):
         if not self.spec.satisfies("platform=linux"):

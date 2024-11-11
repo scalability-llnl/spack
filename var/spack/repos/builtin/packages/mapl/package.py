@@ -4,7 +4,6 @@
 
 import subprocess
 
-import spack.compiler
 from spack.package import *
 
 
@@ -256,9 +255,7 @@ class Mapl(CMakePackage):
     # MAPL can use ifx only from MAPL 2.51 onwards and only supports
     # ifx 2025.0 and newer due to bugs in ifx.
     conflicts("%oneapi@2025:", when="@:2.50")
-    # NOTE there is a further check on oneapi in the cmake_args below
-    # that is hard to conflict since we don't know the fortran compiler
-    # at this point
+    conflicts("^[virtuals=fortran] intel-oneapi-compilers")
 
     variant("flap", default=False, description="Build with FLAP support", when="@:2.39")
     variant("pflogger", default=True, description="Build with pFlogger support")
@@ -381,32 +378,13 @@ class Mapl(CMakePackage):
         fflags = []
         if self.compiler.name in ["gcc", "clang", "apple-clang"]:
             fflags.append("-ffree-line-length-none")
-            gfortran_major_ver = int(
-                spack.compiler.get_compiler_version_output(self.compiler.fc, "-dumpversion").split(
-                    "."
-                )[0]
-            )
+
+            gfortran_major_ver = int(self.spec["fortran"].version[0])
             if gfortran_major_ver >= 10:
                 fflags.append("-fallow-invalid-boz")
                 fflags.append("-fallow-argument-mismatch")
         if fflags:
             args.append(self.define("CMAKE_Fortran_FLAGS", " ".join(fflags)))
-
-        # If oneapi@:2024 is used and it gets past the conflict above, we might be
-        # using ifx or ifort. If we are using ifx and the MAPL version is 2.50 or older
-        # we need to raise an error
-
-        if self.spec.satisfies("@:2.50 %oneapi@:2024"):
-            # We now need to get which Fortran compiler is used here but there
-            # isn't an easy way like:
-            #   if self.spec["fortran"].name == "ifx":
-            # yet (see https://github.com/spack/spack/pull/45189)
-            # So we need to parse the output of $FC --version
-            output = spack.compiler.get_compiler_version_output(
-                self.compiler.fc, "-diag-disable=10448 --version", ignore_errors=True
-            )
-            if "ifx" in output:
-                raise InstallError("MAPL versions 2.50 and older do not support ifx")
 
         # Scripts often need to know the MPI stack used to setup the environment.
         # Normally, we can autodetect this, but building with Spack does not
