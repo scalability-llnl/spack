@@ -50,7 +50,7 @@ class NvplBlas(Package):
 
     @property
     def blas_headers(self):
-        return find_all_headers(self.spec.prefix.include)
+        return find_headers("*", self.spec.prefix)
 
     @property
     def blas_libs(self):

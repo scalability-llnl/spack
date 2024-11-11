@@ -58,7 +58,7 @@ class NvplLapack(Package):
 
     @property
     def lapack_headers(self):
-        return find_all_headers(self.spec.prefix.include)
+        return find_headers("*", self.spec.prefix.include)
 
     @property
     def lapack_libs(self):

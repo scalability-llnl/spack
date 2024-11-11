@@ -24,17 +24,6 @@ class Libzip(CMakePackage, AutotoolsPackage):
         sha256="06eb8e9141fd19e2788cabaea9c9c2fd4d488d9e1484eb474bbfcac78e7b1d88",
         url="https://github.com/nih-at/libzip/releases/download/rel-1-6-1/libzip-1.6.1.tar.gz",
     )
-    # older releases are available on libzip.org
-    version(
-        "1.3.2",
-        sha256="ab4c34eb6c3a08b678cd0f2450a6c57a13e9618b1ba34ee45d00eb5327316457",
-        deprecated=True,
-    )
-    version(
-        "1.2.0",
-        sha256="6cf9840e427db96ebf3936665430bab204c9ebbd0120c326459077ed9c907d9f",
-        deprecated=True,
-    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -50,10 +39,3 @@ class Libzip(CMakePackage, AutotoolsPackage):
     build_system(
         conditional("cmake", when="@1.4:"), conditional("autotools", when="@:1.3"), default="cmake"
     )
-
-    @property
-    def headers(self):
-        # Up to version 1.3.0 zipconf.h was installed outside of self.prefix.include
-        return find_all_headers(
-            self.prefix if self.spec.satisfies("@:1.3.0") else self.prefix.include
-        )

@@ -139,7 +139,7 @@ class Armcomputelibrary(SConsPackage):
     @property
     def headers(self):
         incdir = join_path(self.spec.prefix, "include")
-        hlist = find_all_headers(incdir)
+        hlist = find_headers("*", incdir)
         hlist.directories = [incdir]
         return hlist
 

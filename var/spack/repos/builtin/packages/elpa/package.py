@@ -130,7 +130,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
             "elpa{suffix}-{version}".format(suffix=suffix, version=elpa_version),
         )
 
-        hlist = find_all_headers(incdir)
+        hlist = find_headers("*", incdir)
         hlist.directories = [incdir]
         return hlist
 

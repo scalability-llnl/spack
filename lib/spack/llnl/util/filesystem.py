@@ -2185,17 +2185,17 @@ def find_headers(
 
 
 @system_path_filter
-def find_all_headers(root):
-    """Convenience function that returns the list of all headers found
-    in the directory passed as argument.
+def find_all_headers(root: str) -> HeaderList:
+    """Convenience function that returns the list of all headers found in the directory passed as
+    argument.
 
     Args:
-        root (str): directory where to look recursively for header files
+        root: directory where to look recursively for header files
 
     Returns:
         List of all headers found in ``root`` and subdirectories.
     """
-    return find_headers("*", root=root, recursive=True, heuristic=False, max_depth=sys.maxsize)
+    return find_headers("*", root=root, recursive=True)
 
 
 class LibraryList(FileList):

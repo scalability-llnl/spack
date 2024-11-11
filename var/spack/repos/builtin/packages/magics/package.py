@@ -163,6 +163,6 @@ class Magics(CMakePackage):
 
     @property
     def headers(self):
-        hl = find_all_headers(self.prefix.include)
+        hl = find_headers("*", self.prefix)
         hl.directories = [self.prefix.include, self.prefix.include.magics]
         return hl

@@ -415,7 +415,7 @@ class Acfl(Package, CompilerPackage):
 
         incdir = join_path(armpl_dir, suffix)
 
-        hlist = find_all_headers(incdir)
+        hlist = find_headers("*", incdir)
         hlist.directories = [incdir]
         return hlist
 
