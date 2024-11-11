@@ -62,7 +62,10 @@ import spack.util.web
 import spack.version
 from spack.fetch_strategy import URLFetchStrategy
 from spack.installer import PackageInstaller
+from spack.main import SpackCommand
 from spack.util.pattern import Bunch
+
+mirror_cmd = SpackCommand("mirror")
 
 
 @pytest.fixture(autouse=True)
@@ -970,12 +973,26 @@ def _return_none(*args):
     return None
 
 
+def _compiler_output(self):
+    return ""
+
+
+def _get_real_version(self):
+    return str(self.version)
+
+
 @pytest.fixture(scope="function", autouse=True)
 def disable_compiler_execution(monkeypatch, request):
     """Disable compiler execution to determine implicit link paths and libc flavor and version.
     To re-enable use `@pytest.mark.enable_compiler_execution`"""
     if "enable_compiler_execution" not in request.keywords:
-        monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _return_none)
+        monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _compiler_output)
+        monkeypatch.setattr(spack.compiler.Compiler, "get_real_version", _get_real_version)
+
+
+@pytest.fixture(autouse=True)
+def disable_compiler_output_cache(monkeypatch):
+    monkeypatch.setattr(spack.compiler, "COMPILER_CACHE", spack.compiler.CompilerCache())
 
 
 @pytest.fixture(scope="function")
@@ -987,6 +1004,38 @@ def install_mockery(temporary_store: spack.store.Store, mutable_config, mock_pac
 
     # Wipe out any cached prefix failure locks (associated with the session-scoped mock archive)
     temporary_store.failure_tracker.clear_all()
+
+
+@pytest.fixture(scope="module")
+def temporary_mirror_dir(tmpdir_factory):
+    dir = tmpdir_factory.mktemp("mirror")
+    dir.ensure("build_cache", dir=True)
+    yield str(dir)
+    dir.join("build_cache").remove()
+
+
+@pytest.fixture(scope="function")
+def temporary_mirror(temporary_mirror_dir):
+    mirror_url = url_util.path_to_file_url(temporary_mirror_dir)
+    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
+    yield temporary_mirror_dir
+    mirror_cmd("rm", "--scope=site", "test-mirror-func")
+
+
+@pytest.fixture(scope="function")
+def mutable_temporary_mirror_dir(tmpdir_factory):
+    dir = tmpdir_factory.mktemp("mirror")
+    dir.ensure("build_cache", dir=True)
+    yield str(dir)
+    dir.join("build_cache").remove()
+
+
+@pytest.fixture(scope="function")
+def mutable_temporary_mirror(mutable_temporary_mirror_dir):
+    mirror_url = url_util.path_to_file_url(mutable_temporary_mirror_dir)
+    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
+    yield mutable_temporary_mirror_dir
+    mirror_cmd("rm", "--scope=site", "test-mirror-func")
 
 
 @pytest.fixture(scope="function")
@@ -1979,6 +2028,11 @@ def pytest_runtest_setup(item):
     not_on_windows_marker = item.get_closest_marker(name="not_on_windows")
     if not_on_windows_marker and sys.platform == "win32":
         pytest.skip(*not_on_windows_marker.args)
+
+    # Skip items marked "only windows" if they're run anywhere but Windows
+    only_windows_marker = item.get_closest_marker(name="only_windows")
+    if only_windows_marker and sys.platform != "win32":
+        pytest.skip(*only_windows_marker.args)
 
 
 def _sequential_executor(*args, **kwargs):

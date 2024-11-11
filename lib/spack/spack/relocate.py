@@ -205,23 +205,33 @@ def macho_find_paths(orig_rpaths, deps, idpath, old_layout_root, prefix_to_prefi
     paths_to_paths dictionary which maps all of the old paths to new paths
     """
     paths_to_paths = dict()
+    # Sort from longest path to shortest, to ensure we try /foo/bar/baz before /foo/bar
+    prefix_iteration_order = sorted(prefix_to_prefix, key=len, reverse=True)
     for orig_rpath in orig_rpaths:
         if orig_rpath.startswith(old_layout_root):
-            for old_prefix, new_prefix in prefix_to_prefix.items():
+            for old_prefix in prefix_iteration_order:
+                new_prefix = prefix_to_prefix[old_prefix]
                 if orig_rpath.startswith(old_prefix):
                     new_rpath = re.sub(re.escape(old_prefix), new_prefix, orig_rpath)
                     paths_to_paths[orig_rpath] = new_rpath
+                    break
         else:
             paths_to_paths[orig_rpath] = orig_rpath
 
     if idpath:
-        for old_prefix, new_prefix in prefix_to_prefix.items():
+        for old_prefix in prefix_iteration_order:
+            new_prefix = prefix_to_prefix[old_prefix]
             if idpath.startswith(old_prefix):
                 paths_to_paths[idpath] = re.sub(re.escape(old_prefix), new_prefix, idpath)
+                break
+
     for dep in deps:
-        for old_prefix, new_prefix in prefix_to_prefix.items():
+        for old_prefix in prefix_iteration_order:
+            new_prefix = prefix_to_prefix[old_prefix]
             if dep.startswith(old_prefix):
                 paths_to_paths[dep] = re.sub(re.escape(old_prefix), new_prefix, dep)
+                break
+
         if dep.startswith("@"):
             paths_to_paths[dep] = dep
 
@@ -270,40 +280,14 @@ def modify_macho_object(cur_path, rpaths, deps, idpath, paths_to_paths):
         install_name_tool = executable.Executable("install_name_tool")
         install_name_tool(*args)
 
-    return
-
-
-def modify_object_macholib(cur_path, paths_to_paths):
-    """
-    This function is used when install machO buildcaches on linux by
-    rewriting mach-o loader commands for dependency library paths of
-    mach-o binaries and the id path for mach-o libraries.
-    Rewritting of rpaths is handled by replace_prefix_bin.
-    Inputs
-    mach-o binary to be modified
-    dictionary mapping paths in old install layout to new install layout
-    """
-
-    dll = macholib.MachO.MachO(cur_path)
-    dll.rewriteLoadCommands(paths_to_paths.get)
-
-    try:
-        f = open(dll.filename, "rb+")
-        for header in dll.headers:
-            f.seek(0)
-            dll.write(f)
-        f.seek(0, 2)
-        f.flush()
-        f.close()
-    except Exception:
-        pass
-
-    return
-
 
 def macholib_get_paths(cur_path):
     """Get rpaths, dependent libraries, and library id of mach-o objects."""
-    headers = macholib.MachO.MachO(cur_path).headers
+    headers = []
+    try:
+        headers = macholib.MachO.MachO(cur_path).headers
+    except ValueError:
+        pass
     if not headers:
         tty.warn("Failed to read Mach-O headers: {0}".format(cur_path))
         commands = []
@@ -415,10 +399,7 @@ def relocate_macho_binaries(
             # normalized paths
             rel_to_orig = macho_make_paths_normal(orig_path_name, rpaths, deps, idpath)
             # replace the relativized paths with normalized paths
-            if sys.platform == "darwin":
-                modify_macho_object(path_name, rpaths, deps, idpath, rel_to_orig)
-            else:
-                modify_object_macholib(path_name, rel_to_orig)
+            modify_macho_object(path_name, rpaths, deps, idpath, rel_to_orig)
             # get the normalized paths in the mach-o binary
             rpaths, deps, idpath = macholib_get_paths(path_name)
             # get the mapping of paths in old prefix to path in new prefix
@@ -426,10 +407,7 @@ def relocate_macho_binaries(
                 rpaths, deps, idpath, old_layout_root, prefix_to_prefix
             )
             # replace the old paths with new paths
-            if sys.platform == "darwin":
-                modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
-            else:
-                modify_object_macholib(path_name, paths_to_paths)
+            modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
             # get the new normalized path in the mach-o binary
             rpaths, deps, idpath = macholib_get_paths(path_name)
             # get the mapping of paths to relative paths in the new prefix
@@ -437,10 +415,7 @@ def relocate_macho_binaries(
                 path_name, new_layout_root, rpaths, deps, idpath
             )
             # replace the new paths with relativized paths in the new prefix
-            if sys.platform == "darwin":
-                modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
-            else:
-                modify_object_macholib(path_name, paths_to_paths)
+            modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
         else:
             # get the paths in the old prefix
             rpaths, deps, idpath = macholib_get_paths(path_name)
@@ -449,10 +424,7 @@ def relocate_macho_binaries(
                 rpaths, deps, idpath, old_layout_root, prefix_to_prefix
             )
             # replace the old paths with new paths
-            if sys.platform == "darwin":
-                modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
-            else:
-                modify_object_macholib(path_name, paths_to_paths)
+            modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
 
 
 def _transform_rpaths(orig_rpaths, orig_root, new_prefixes):

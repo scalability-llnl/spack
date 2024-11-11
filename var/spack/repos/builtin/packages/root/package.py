@@ -34,6 +34,7 @@ class Root(CMakePackage):
     version("develop", branch="master")
 
     # Production version
+    version("6.32.06", sha256="3fc032d93fe848dea5adb1b47d8f0a86279523293fee0aa2b3cd52a1ffab7247")
     version("6.32.04", sha256="132f126aae7d30efbccd7dcd991b7ada1890ae57980ef300c16421f9d4d07ea8")
     version("6.32.02", sha256="3d0f76bf05857e1807ccfb2c9e014f525bcb625f94a2370b455f4b164961602d")
     version("6.32.00", sha256="12f203681a59041c474ce9523761e6f0e8861b3bee78df5f799a8db55189e5d2")
@@ -428,6 +429,8 @@ class Root(CMakePackage):
     # Incompatible variants
     if sys.platform == "darwin":
         conflicts("+opengl", when="~x ~aqua", msg="root+opengl requires X or Aqua")
+        # https://github.com/root-project/root/issues/7160
+        conflicts("+aqua", when="~opengl", msg="+aqua requires OpenGL to be enabled")
     else:
         conflicts("+opengl", when="~x", msg="root+opengl requires X")
     conflicts("+math", when="~gsl", msg="root+math requires GSL")
@@ -456,6 +459,10 @@ class Root(CMakePackage):
     # See https://github.com/root-project/root/issues/11714
     if sys.platform == "darwin" and macos_version() >= Version("13"):
         conflicts("@:6.26.09", msg="macOS 13 support was added in root 6.26.10")
+
+    # See https://github.com/root-project/root/issues/16219
+    if sys.platform == "darwin" and macos_version() >= Version("15"):
+        conflicts("@:6.32.05", msg="macOS 15 support was added in root 6.32.06")
 
     # ROOT <6.14 is incompatible with Python >=3.7, which is the minimum supported by spack
     conflicts("+python", when="@:6.13", msg="Spack wants python >=3.7, too new for ROOT <6.14")
@@ -533,21 +540,26 @@ class Root(CMakePackage):
         _add_variant(v, f, "gviz", "+graphviz")
         _add_variant(v, f, "http", "+http")
         _add_variant(v, f, ("imt", "tbb"), "+tbb")
-        _add_variant(v, f, "jemalloc", "+jemalloc")
-        _add_variant(v, f, "memstat", "+memstat")
+        if Version(version_str) <= Version("6.28"):
+            _add_variant(v, f, "jemalloc", "+jemalloc")
+        if Version(version_str) <= Version("6.17"):
+            _add_variant(v, f, "memstat", "+memstat")
         _add_variant(v, f, ("minuit", "minuit2"), "+minuit")
         _add_variant(v, f, "mlp", "+mlp")
         _add_variant(v, f, "mysql", "+mysql")
-        _add_variant(v, f, "oracle", "+oracle")
+        if Version(version_str) <= Version("6.30"):
+            _add_variant(v, f, "oracle", "+oracle")
         _add_variant(v, f, "pgsql", "+postgres")
-        _add_variant(v, f, "pythia6", "+pythia6")
+        if Version(version_str) <= Version("6.30"):
+            _add_variant(v, f, "pythia6", "+pythia6")
         _add_variant(v, f, "pythia8", "+pythia8")
         _add_variant(v, f, "pyroot", "+python")
-        _add_variant(v, f, ("qt", "qtgsi"), "+qt4")
+        if Version(version_str) <= Version("6.17"):
+            _add_variant(v, f, ("qt", "qtgsi"), "+qt4")
         _add_variant(v, f, "r", "+r")
         _add_variant(v, f, "roofit", "+roofit")
         # webui feature renamed to webgui in 6.18
-        if Version(version_str).satisfies("@6.18:"):
+        if Version(version_str) >= Version("6.18"):
             _add_variant(v, f, ("root7", "webgui"), "+webgui")
         else:
             _add_variant(v, f, ("root7", "webui"), "+webgui")
@@ -556,7 +568,8 @@ class Root(CMakePackage):
         _add_variant(v, f, "spectrum", "+spectrum")
         _add_variant(v, f, "sqlite", "+sqlite")
         _add_variant(v, f, "ssl", "+ssl")
-        _add_variant(v, f, "table", "+table")
+        if Version(version_str) <= Version("6.17"):
+            _add_variant(v, f, "table", "+table")
         _add_variant(v, f, "thread", "+threads")
         _add_variant(v, f, "tmva", "+tmva")
         _add_variant(v, f, "tmva-cpu", "+tmva-cpu")
@@ -567,7 +580,8 @@ class Root(CMakePackage):
         _add_variant(v, f, "vc", "+vc")
         _add_variant(v, f, "vdt", "+vdt")
         _add_variant(v, f, "veccore", "+veccore")
-        _add_variant(v, f, "vmc", "+vmc")
+        if Version(version_str) <= Version("6.25"):
+            _add_variant(v, f, "vmc", "+vmc")
         _add_variant(v, f, ("x11", "xft"), "+x")
         _add_variant(v, f, "xml", "+xml")
         _add_variant(v, f, "xrootd", "+xrootd")
@@ -620,7 +634,7 @@ class Root(CMakePackage):
             define("builtin_freetype", False),
             define("builtin_ftgl", False),
             define("builtin_gl2ps", False),
-            define("builtin_glew", self.spec.satisfies("platform=darwin")),
+            define("builtin_glew", False),
             define("builtin_gsl", False),
             define("builtin_llvm", True),
             define("builtin_lz4", self.spec.satisfies("@6.12.02:6.12")),

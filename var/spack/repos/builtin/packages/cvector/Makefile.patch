@@ -1,0 +1,19 @@
+--- a/Makefile
++++ b/Makefile
+@@ -89,11 +89,11 @@ else
+ INCLUDES = -I$(INC)
+ endif
+ 
+-COMPILE_COMMAND        =  $(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c
+-LIBRARY_LINK_COMMAND   =  $(LIBTOOL) --mode=link  $(CC) -version-info $(VERSION) -release $(RELEASE) -no-undefined -rpath $(INSTALL_PREFIX)/lib
+-BUILD_COMMAND_LOCAL    =  $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(INCLUDES)
+-BUILD_COMMAND_DYNAMIC  =  $(LIBTOOL) --mode=link $(CC) $(CFLAGS) -dynamic -I $(INSTALL_PREFIX)/include
+-BUILD_COMMAND_STATIC   =  $(LIBTOOL) --mode=link $(CC) $(CFLAGS) -static -I $(INSTALL_PREFIX)/include
++COMPILE_COMMAND        =  $(LIBTOOL) --mode=compile --tag=CC $(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c
++LIBRARY_LINK_COMMAND   =  $(LIBTOOL) --mode=link --tag=CC $(CC) -version-info $(VERSION) -release $(RELEASE) -no-undefined -rpath $(INSTALL_PREFIX)/lib
++BUILD_COMMAND_LOCAL    =  $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) $(INCLUDES)
++BUILD_COMMAND_DYNAMIC  =  $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) -dynamic -I $(INSTALL_PREFIX)/include
++BUILD_COMMAND_STATIC   =  $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) -static -I $(INSTALL_PREFIX)/include
+ INSTALL_COMMAND        =  $(LIBTOOL) --mode=install cp
+ INSTALL_FINISH_COMMAND =  $(LIBTOOL) --mode=finish
+ 

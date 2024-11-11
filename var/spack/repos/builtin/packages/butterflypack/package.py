@@ -28,6 +28,7 @@ class Butterflypack(CMakePackage):
     license("BSD-3-Clause-LBNL")
 
     version("master", branch="master")
+    version("3.2.0", sha256="0f1570947f0a7c0e130bbec3abbb2fa275ae453dc3f428e7a3a2265fecafe1ae")
     version("2.4.0", sha256="12d04e7101b2c8292b5c62d9f42b5cd1e8a3c5af639d2665596e3e4255fd0804")
     version("2.2.2", sha256="73f67073e4291877f1eee19483a8a7b3c761eaf79a75805d52105ceedead85ea")
     version("2.2.1", sha256="4cedc2896a6b368773ce4f9003aa2c0230baf56a4464a6b899a155e01406a232")
@@ -61,9 +62,9 @@ class Butterflypack(CMakePackage):
     # https://github.com/spack/spack/issues/31818
     patch("qopenmp-for-oneapi.patch", when="@2.1.1 %oneapi")
 
-    patch("longline.patch", when="%fj")
-    patch("fjfortran.patch", when="%fj")
-    patch("isnan.patch", when="%fj")
+    patch("longline.patch", when="@1.2.0 %fj")
+    patch("fjfortran.patch", when="@1.2.0 %fj")
+    patch("isnan.patch", when="@1.2.0 %fj")
 
     def cmake_args(self):
         spec = self.spec

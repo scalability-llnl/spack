@@ -17,6 +17,7 @@ class PyFenicsFfcx(PythonPackage):
     license("LGPL-3.0-or-later")
 
     version("main", branch="main")
+    version("0.9.0", sha256="afa517272a3d2249f513cb711c50b77cf8368dd0b8f5ea4b759142229204a448")
     version("0.8.0", sha256="8a854782dbd119ec1c23c4522a2134d5281e7f1bd2f37d64489f75da055282e3")
     version("0.7.0", sha256="7f3c3ca91d63ce7831d37799cc19d0551bdcd275bdfa4c099711679533dd1c71")
     version("0.6.0", sha256="076fad61d406afffd41019ae1abf6da3f76406c035c772abad2156127667980e")
@@ -29,16 +30,16 @@ class PyFenicsFfcx(PythonPackage):
 
     # CFFI is required at runtime for JIT support
     depends_on("py-cffi", type=("build", "run"))
-    # py-numpy>=1.21 required because FFCx uses NumPy typing (version
-    # requirement not properly set in the FFCx pyproject.toml file)
     depends_on("py-numpy@1.21:", type=("build", "run"))
 
     depends_on("py-fenics-ufl@main", type=("build", "run"), when="@main")
+    depends_on("py-fenics-ufl@2024.2.0:", type=("build", "run"), when="@0.9")
     depends_on("py-fenics-ufl@2024.1.0:", type=("build", "run"), when="@0.8")
     depends_on("py-fenics-ufl@2023.2.0", type=("build", "run"), when="@0.7")
     depends_on("py-fenics-ufl@2023.1", type=("build", "run"), when="@0.6")
 
     depends_on("py-fenics-basix@main", type=("build", "run"), when="@main")
+    depends_on("py-fenics-basix@0.9", type=("build", "run"), when="@0.9")
     depends_on("py-fenics-basix@0.8", type=("build", "run"), when="@0.8")
     depends_on("py-fenics-basix@0.7", type=("build", "run"), when="@0.7")
     depends_on("py-fenics-basix@0.6", type=("build", "run"), when="@0.6")

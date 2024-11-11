@@ -8,17 +8,19 @@ import pathlib
 import platform
 import re
 import sys
-from typing import List, Optional, Tuple
+from itertools import chain
+from typing import List, Optional, Set, Tuple
 
 import llnl.util.filesystem as fs
+from llnl.util.lang import stable_partition
 
-import spack.build_environment
 import spack.builder
 import spack.deptypes as dt
 import spack.error
 import spack.package_base
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
+from spack.util.environment import filter_system_paths
 
 from ._checks import BaseBuilder, execute_build_time_tests
 
@@ -150,6 +152,24 @@ def generator(*names: str, default: Optional[str] = None):
     )
     for x in not_used:
         conflicts(f"generator={x}")
+
+
+def get_cmake_prefix_path(pkg: spack.package_base.PackageBase) -> List[str]:
+    """Obtain the CMAKE_PREFIX_PATH entries for a package, based on the cmake_prefix_path package
+    attribute of direct build/test and transitive link dependencies."""
+    # Add direct build/test deps
+    selected: Set[str] = {s.dag_hash() for s in pkg.spec.dependencies(deptype=dt.BUILD | dt.TEST)}
+    # Add transitive link deps
+    selected.update(s.dag_hash() for s in pkg.spec.traverse(root=False, deptype=dt.LINK))
+    # Separate out externals so they do not shadow Spack prefixes
+    externals, spack_built = stable_partition(
+        (s for s in pkg.spec.traverse(root=False, order="topo") if s.dag_hash() in selected),
+        lambda x: x.external,
+    )
+
+    return filter_system_paths(
+        path for spec in chain(spack_built, externals) for path in spec.package.cmake_prefix_paths
+    )
 
 
 class CMakePackage(spack.package_base.PackageBase):
@@ -358,6 +378,16 @@ class CMakeBuilder(BaseBuilder):
             "-G",
             generator,
             define("CMAKE_INSTALL_PREFIX", pathlib.Path(pkg.prefix).as_posix()),
+            define("CMAKE_INSTALL_RPATH_USE_LINK_PATH", True),
+            # only include the install prefix lib dirs; rpaths for deps are added by USE_LINK_PATH
+            define(
+                "CMAKE_INSTALL_RPATH",
+                [
+                    pathlib.Path(pkg.prefix, "lib").as_posix(),
+                    pathlib.Path(pkg.prefix, "lib64").as_posix(),
+                ],
+            ),
+            define("CMAKE_PREFIX_PATH", get_cmake_prefix_path(pkg)),
             define("CMAKE_BUILD_TYPE", build_type),
         ]
 
@@ -371,15 +401,6 @@ class CMakeBuilder(BaseBuilder):
 
         _conditional_cmake_defaults(pkg, args)
         _maybe_set_python_hints(pkg, args)
-
-        # Set up CMake rpath
-        args.extend(
-            [
-                define("CMAKE_INSTALL_RPATH_USE_LINK_PATH", True),
-                define("CMAKE_INSTALL_RPATH", spack.build_environment.get_rpaths(pkg)),
-                define("CMAKE_PREFIX_PATH", spack.build_environment.get_cmake_prefix_path(pkg)),
-            ]
-        )
 
         return args
 
@@ -541,6 +562,13 @@ class CMakeBuilder(BaseBuilder):
 
     def cmake(self, pkg, spec, prefix):
         """Runs ``cmake`` in the build directory"""
+
+        # skip cmake phase if it is an incremental develop build
+        if spec.is_develop and os.path.isfile(
+            os.path.join(self.build_directory, "CMakeCache.txt")
+        ):
+            return
+
         options = self.std_cmake_args
         options += self.cmake_args()
         options.append(os.path.abspath(self.root_cmakelists_dir))

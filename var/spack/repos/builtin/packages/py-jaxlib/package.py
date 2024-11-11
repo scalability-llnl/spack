@@ -5,6 +5,7 @@
 
 import tempfile
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 rocm_dependencies = [
@@ -128,6 +129,10 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         when="@:0.4.25",
     )
 
+    # Might be able to be applied to earlier versions
+    # backports https://github.com/abseil/abseil-cpp/pull/1732
+    patch("jaxxlatsl.patch", when="@0.4.28:0.4.32 target=aarch64:")
+
     conflicts(
         "cuda_arch=none",
         when="+cuda",
@@ -190,7 +195,6 @@ build --local_cpu_resources={make_jobs}
 
         python(*args)
         with working_dir(self.wrapped_package_object.tmp_path):
-            args = std_pip_args + ["--prefix=" + self.prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         remove_linked_tree(self.wrapped_package_object.tmp_path)
         remove_linked_tree(self.wrapped_package_object.buildtmp)

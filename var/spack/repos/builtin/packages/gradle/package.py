@@ -19,6 +19,9 @@ class Gradle(Package):
 
     license("Apache-2.0", checked_by="wdconinc")
 
+    version("8.10.2", sha256="2ab88d6de2c23e6adae7363ae6e29cbdd2a709e992929b48b6530fd0c7133bd6")
+    version("8.10.1", sha256="fdfca5dbc2834f0ece5020465737538e5ba679deeff5ab6c09621d67f8bb1a15")
+    version("8.10", sha256="682b4df7fe5accdca84a4d1ef6a3a6ab096b3efd5edf7de2bd8c758d95a93703")
     version("8.9", sha256="258e722ec21e955201e31447b0aed14201765a3bfbae296a46cf60b70e66db70")
     version("8.8", sha256="f8b4f4772d302c8ff580bc40d0f56e715de69b163546944f787c87abf209c961")
     version("8.7", sha256="194717442575a6f96e1c1befa2c30e9a4fc90f701d7aee33eb879b79e7ff05c0")

@@ -44,7 +44,8 @@ import types
 from collections import defaultdict
 from enum import Flag, auto
 from itertools import chain
-from typing import Dict, List, Optional, Set, Tuple
+from multiprocessing.connection import Connection
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import archspec.cpu
 
@@ -54,7 +55,6 @@ from llnl.util.filesystem import join_path
 from llnl.util.lang import dedupe, stable_partition
 from llnl.util.symlink import symlink
 from llnl.util.tty.color import cescape, colorize
-from llnl.util.tty.log import MultiProcessFd
 
 import spack.build_systems._checks
 import spack.build_systems.cmake
@@ -91,7 +91,7 @@ from spack.util.environment import (
 )
 from spack.util.executable import Executable
 from spack.util.log_parse import make_log_context, parse_log_events
-from spack.util.module_cmd import load_module, path_from_modules
+from spack.util.module_cmd import load_module
 
 #
 # This can be set by the user to globally disable parallel builds.
@@ -617,13 +617,11 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
     """
     module = ModuleChangePropagator(pkg)
 
-    if context == Context.BUILD:
-        module.std_cmake_args = spack.build_systems.cmake.CMakeBuilder.std_args(pkg)
-        module.std_meson_args = spack.build_systems.meson.MesonBuilder.std_args(pkg)
-        module.std_pip_args = spack.build_systems.python.PythonPipBuilder.std_args(pkg)
-
     jobs = spack.config.determine_number_of_jobs(parallel=pkg.parallel)
     module.make_jobs = jobs
+    if context == Context.BUILD:
+        module.std_meson_args = spack.build_systems.meson.MesonBuilder.std_args(pkg)
+        module.std_pip_args = spack.build_systems.python.PythonPipBuilder.std_args(pkg)
 
     # TODO: make these build deps that can be installed if not found.
     module.make = MakeExecutable("make", jobs)
@@ -790,21 +788,6 @@ def get_rpath_deps(pkg: spack.package_base.PackageBase) -> List[spack.spec.Spec]
     """Return immediate or transitive dependencies (depending on the package) that need to be
     rpath'ed. If a package occurs multiple times, the newest version is kept."""
     return _get_rpath_deps_from_spec(pkg.spec, pkg.transitive_rpaths)
-
-
-def get_rpaths(pkg):
-    """Get a list of all the rpaths for a package."""
-    rpaths = [pkg.prefix.lib, pkg.prefix.lib64]
-    deps = get_rpath_deps(pkg)
-    rpaths.extend(d.prefix.lib for d in deps if os.path.isdir(d.prefix.lib))
-    rpaths.extend(d.prefix.lib64 for d in deps if os.path.isdir(d.prefix.lib64))
-    # Second module is our compiler mod name. We use that to get rpaths from
-    # module show output.
-    if pkg.compiler.modules and len(pkg.compiler.modules) > 1:
-        mod_rpath = path_from_modules([pkg.compiler.modules[1]])
-        if mod_rpath:
-            rpaths.append(mod_rpath)
-    return list(dedupe(filter_system_paths(rpaths)))
 
 
 def load_external_modules(pkg):
@@ -1065,6 +1048,12 @@ class SetupContext:
                     # This includes runtime dependencies, also runtime deps of direct build deps.
                     set_package_py_globals(pkg, context=Context.RUN)
 
+        # Looping over the set of packages a second time
+        # ensures all globals are loaded into the module space prior to
+        # any package setup. This guarantees package setup methods have
+        # access to expected module level definitions such as "spack_cc"
+        for dspec, flag in chain(self.external, self.nonexternal):
+            pkg = dspec.package
             for spec in dspec.dependents():
                 # Note: some specs have dependents that are unreachable from the root, so avoid
                 # setting globals for those.
@@ -1073,6 +1062,15 @@ class SetupContext:
                 dependent_module = ModuleChangePropagator(spec.package)
                 pkg.setup_dependent_package(dependent_module, spec)
                 dependent_module.propagate_changes_to_mro()
+
+        if self.context == Context.BUILD:
+            pkg = self.specs[0].package
+            module = ModuleChangePropagator(pkg)
+            # std_cmake_args is not sufficiently static to be defined
+            # in set_package_py_globals and is deprecated so its handled
+            # here as a special case
+            module.std_cmake_args = spack.build_systems.cmake.CMakeBuilder.std_args(pkg)
+            module.propagate_changes_to_mro()
 
     def get_env_modifications(self) -> EnvironmentModifications:
         """Returns the environment variable modifications for the given input specs and context.
@@ -1143,45 +1141,61 @@ class SetupContext:
                 env.prepend_path("PATH", bin_dir)
 
 
-def get_cmake_prefix_path(pkg):
-    # Note that unlike modifications_from_dependencies, this does not include
-    # any edits to CMAKE_PREFIX_PATH defined in custom
-    # setup_dependent_build_environment implementations of dependency packages
-    build_deps = set(pkg.spec.dependencies(deptype=("build", "test")))
-    link_deps = set(pkg.spec.traverse(root=False, deptype=("link")))
-    build_link_deps = build_deps | link_deps
-    spack_built = []
-    externals = []
-    # modifications_from_dependencies updates CMAKE_PREFIX_PATH by first
-    # prepending all externals and then all non-externals
-    for dspec in pkg.spec.traverse(root=False, order="post"):
-        if dspec in build_link_deps:
-            if dspec.external:
-                externals.insert(0, dspec)
-            else:
-                spack_built.insert(0, dspec)
-
-    ordered_build_link_deps = spack_built + externals
-    cmake_prefix_path_entries = []
-    for spec in ordered_build_link_deps:
-        cmake_prefix_path_entries.extend(spec.package.cmake_prefix_paths)
-
-    return filter_system_paths(cmake_prefix_path_entries)
-
-
 def _setup_pkg_and_run(
-    serialized_pkg, function, kwargs, write_pipe, input_multiprocess_fd, jsfd1, jsfd2
+    serialized_pkg: "spack.subprocess_context.PackageInstallContext",
+    function: Callable,
+    kwargs: Dict,
+    write_pipe: Connection,
+    input_pipe: Optional[Connection],
+    jsfd1: Optional[Connection],
+    jsfd2: Optional[Connection],
 ):
+    """Main entry point in the child process for Spack builds.
+
+    ``_setup_pkg_and_run`` is called by the child process created in
+    ``start_build_process()``, and its main job is to run ``function()`` on behalf of
+    some Spack installation (see :ref:`spack.installer.PackageInstaller._install_task`).
+
+    The child process is passed a ``write_pipe``, on which it's expected to send one of
+    the following:
+
+    * ``StopPhase``: error raised by a build process indicating it's stopping at a
+      particular build phase.
+
+    * ``BaseException``: any exception raised by a child build process, which will be
+      wrapped in ``ChildError`` (which adds a bunch of debug info and log context) and
+      raised in the parent.
+
+    * The return value of ``function()``, which can be anything (except an exception).
+      This is returned to the caller.
+
+    Note: ``jsfd1`` and ``jsfd2`` are passed solely to ensure that the child process
+    does not close these file descriptors. Some ``multiprocessing`` backends will close
+    them automatically in the child if they are not passed at process creation time.
+
+    Arguments:
+        serialized_pkg: Spack package install context object (serialized form of the
+            package that we'll build in the child process).
+        function: function to call in the child process; serialized_pkg is passed to
+            this as the first argument.
+        kwargs: additional keyword arguments to pass to ``function()``.
+        write_pipe: multiprocessing ``Connection`` to the parent process, to which the
+            child *must* send a result (or an error) back to parent on.
+        input_multiprocess_fd: stdin from the parent (not passed currently on Windows)
+        jsfd1: gmake Jobserver file descriptor 1.
+        jsfd2: gmake Jobserver file descriptor 2.
+
+    """
+
     context: str = kwargs.get("context", "build")
 
     try:
-        # We are in the child process. Python sets sys.stdin to
-        # open(os.devnull) to prevent our process and its parent from
-        # simultaneously reading from the original stdin. But, we assume
-        # that the parent process is not going to read from it till we
-        # are done with the child, so we undo Python's precaution.
-        if input_multiprocess_fd is not None:
-            sys.stdin = os.fdopen(input_multiprocess_fd.fd)
+        # We are in the child process. Python sets sys.stdin to open(os.devnull) to prevent our
+        # process and its parent from simultaneously reading from the original stdin. But, we
+        # assume that the parent process is not going to read from it till we are done with the
+        # child, so we undo Python's precaution. closefd=False since Connection has ownership.
+        if input_pipe is not None:
+            sys.stdin = os.fdopen(input_pipe.fileno(), closefd=False)
 
         pkg = serialized_pkg.restore()
 
@@ -1197,13 +1211,14 @@ def _setup_pkg_and_run(
         # Do not create a full ChildError from this, it's not an error
         # it's a control statement.
         write_pipe.send(e)
-    except BaseException:
+    except BaseException as e:
         # catch ANYTHING that goes wrong in the child process
-        exc_type, exc, tb = sys.exc_info()
 
         # Need to unwind the traceback in the child because traceback
         # objects can't be sent to the parent.
-        tb_string = traceback.format_exc()
+        exc_type = type(e)
+        tb = e.__traceback__
+        tb_string = "".join(traceback.format_exception(exc_type, e, tb))
 
         # build up some context from the offending package so we can
         # show that, too.
@@ -1220,8 +1235,8 @@ def _setup_pkg_and_run(
         elif context == "test":
             logfile = os.path.join(pkg.test_suite.stage, pkg.test_suite.test_log_name(pkg.spec))
 
-        error_msg = str(exc)
-        if isinstance(exc, (spack.multimethod.NoSuchMethodError, AttributeError)):
+        error_msg = str(e)
+        if isinstance(e, (spack.multimethod.NoSuchMethodError, AttributeError)):
             process = "test the installation" if context == "test" else "build from sources"
             error_msg = (
                 "The '{}' package cannot find an attribute while trying to {}. "
@@ -1231,7 +1246,7 @@ def _setup_pkg_and_run(
                 "More information at https://spack.readthedocs.io/en/latest/packaging_guide.html#installation-procedure"
             ).format(pkg.name, process, context)
             error_msg = colorize("@*R{{{}}}".format(error_msg))
-            error_msg = "{}\n\n{}".format(str(exc), error_msg)
+            error_msg = "{}\n\n{}".format(str(e), error_msg)
 
         # make a pickleable exception to send to parent.
         msg = "%s: %s" % (exc_type.__name__, error_msg)
@@ -1249,8 +1264,8 @@ def _setup_pkg_and_run(
 
     finally:
         write_pipe.close()
-        if input_multiprocess_fd is not None:
-            input_multiprocess_fd.close()
+        if input_pipe is not None:
+            input_pipe.close()
 
 
 def start_build_process(pkg, function, kwargs):
@@ -1277,23 +1292,9 @@ def start_build_process(pkg, function, kwargs):
     If something goes wrong, the child process catches the error and
     passes it to the parent wrapped in a ChildError.  The parent is
     expected to handle (or re-raise) the ChildError.
-
-    This uses `multiprocessing.Process` to create the child process. The
-    mechanism used to create the process differs on different operating
-    systems and for different versions of Python. In some cases "fork"
-    is used (i.e. the "fork" system call) and some cases it starts an
-    entirely new Python interpreter process (in the docs this is referred
-    to as the "spawn" start method). Breaking it down by OS:
-
-    - Linux always uses fork.
-    - Mac OS uses fork before Python 3.8 and "spawn" for 3.8 and after.
-    - Windows always uses the "spawn" start method.
-
-    For more information on `multiprocessing` child process creation
-    mechanisms, see https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
     """
     read_pipe, write_pipe = multiprocessing.Pipe(duplex=False)
-    input_multiprocess_fd = None
+    input_fd = None
     jobserver_fd1 = None
     jobserver_fd2 = None
 
@@ -1302,14 +1303,13 @@ def start_build_process(pkg, function, kwargs):
     try:
         # Forward sys.stdin when appropriate, to allow toggling verbosity
         if sys.platform != "win32" and sys.stdin.isatty() and hasattr(sys.stdin, "fileno"):
-            input_fd = os.dup(sys.stdin.fileno())
-            input_multiprocess_fd = MultiProcessFd(input_fd)
+            input_fd = Connection(os.dup(sys.stdin.fileno()))
         mflags = os.environ.get("MAKEFLAGS", False)
         if mflags:
             m = re.search(r"--jobserver-[^=]*=(\d),(\d)", mflags)
             if m:
-                jobserver_fd1 = MultiProcessFd(int(m.group(1)))
-                jobserver_fd2 = MultiProcessFd(int(m.group(2)))
+                jobserver_fd1 = Connection(int(m.group(1)))
+                jobserver_fd2 = Connection(int(m.group(2)))
 
         p = multiprocessing.Process(
             target=_setup_pkg_and_run,
@@ -1318,7 +1318,7 @@ def start_build_process(pkg, function, kwargs):
                 function,
                 kwargs,
                 write_pipe,
-                input_multiprocess_fd,
+                input_fd,
                 jobserver_fd1,
                 jobserver_fd2,
             ),
@@ -1338,8 +1338,8 @@ def start_build_process(pkg, function, kwargs):
 
     finally:
         # Close the input stream in the parent process
-        if input_multiprocess_fd is not None:
-            input_multiprocess_fd.close()
+        if input_fd is not None:
+            input_fd.close()
 
     def exitcode_msg(p):
         typ = "exit" if p.exitcode >= 0 else "signal"
