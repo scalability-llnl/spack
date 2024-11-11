@@ -17,8 +17,6 @@ import spack.spec
 from spack.environment.environment import ViewDescriptor
 from spack.version import Version
 
-pytestmark = [pytest.mark.usefixtures("enable_runtimes")]
-
 
 def _concretize_with_reuse(*, root_str, reused_str):
     reused_spec = spack.concretize.concretize_one(reused_str)
@@ -34,14 +32,6 @@ def runtime_repo(mutable_config):
     repo = os.path.join(spack.paths.repos_path, "compiler_runtime.test")
     with spack.repo.use_repositories(repo) as mock_repo:
         yield mock_repo
-
-
-@pytest.fixture
-def enable_runtimes():
-    original = spack.solver.asp.WITH_RUNTIME
-    spack.solver.asp.WITH_RUNTIME = True
-    yield
-    spack.solver.asp.WITH_RUNTIME = original
 
 
 def test_correct_gcc_runtime_is_injected_as_dependency(runtime_repo):

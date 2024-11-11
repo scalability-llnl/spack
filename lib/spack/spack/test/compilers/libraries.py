@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import copy
@@ -74,6 +73,7 @@ class TestCompilerPropertyDetector:
         detector = spack.compilers.libraries.CompilerPropertyDetector(mock_gcc)
         assert detector._compile_dummy_c_source() is None
 
+    @pytest.mark.not_on_windows("Module files are not supported on Windows")
     def test_compile_dummy_c_source_load_env(self, mock_gcc, monkeypatch, tmp_path):
         gcc = tmp_path / "gcc"
         gcc.write_text(
@@ -104,10 +104,13 @@ class TestCompilerPropertyDetector:
     @pytest.mark.not_on_windows("Not supported on Windows")
     def test_implicit_rpaths(self, mock_gcc, dirs_with_libfiles, monkeypatch):
         lib_to_dirs, all_dirs = dirs_with_libfiles
-        monkeypatch.setattr(spack.compilers.libraries.CompilerPropertyDetector, "_CACHE", {})
 
         detector = spack.compilers.libraries.CompilerPropertyDetector(mock_gcc)
-        detector._CACHE[mock_gcc.dag_hash()] = "ld " + " ".join(f"-L{d}" for d in all_dirs)
+        monkeypatch.setattr(
+            spack.compilers.libraries.CompilerPropertyDetector,
+            "_compile_dummy_c_source",
+            lambda self: "ld " + " ".join(f"-L{d}" for d in all_dirs),
+        )
 
         retrieved_rpaths = detector.implicit_rpaths()
         assert set(retrieved_rpaths) == set(lib_to_dirs["libstdc++"] + lib_to_dirs["libgfortran"])

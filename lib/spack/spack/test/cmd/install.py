@@ -54,14 +54,14 @@ def test_install_package_and_dependency(
 ):
     log = "test"
     with tmpdir.as_cwd():
-        install("--log-format=junit", "--log-file={0}".format(log), "libdwarf")
+        install("--fake", "--log-format=junit", f"--log-file={log}", "libdwarf")
 
     files = tmpdir.listdir()
-    filename = tmpdir.join("{0}.xml".format(log))
+    filename = tmpdir.join(f"{log}.xml")
     assert filename in files
 
     content = filename.open().read()
-    assert 'tests="2"' in content
+    assert 'tests="3"' in content
     assert 'failures="0"' in content
     assert 'errors="0"' in content
 
@@ -97,20 +97,21 @@ def test_install_package_already_installed(
     tmpdir, mock_packages, mock_archive, mock_fetch, install_mockery
 ):
     with tmpdir.as_cwd():
-        install("libdwarf")
-        install("--log-format=junit", "--log-file=test.xml", "libdwarf")
+        install("--fake", "libdwarf")
+        install("--fake", "--log-format=junit", "--log-file=test.xml", "libdwarf")
 
     files = tmpdir.listdir()
     filename = tmpdir.join("test.xml")
     assert filename in files
 
     content = filename.open().read()
-    assert 'tests="2"' in content
+    print(content)
+    assert 'tests="4"' in content
     assert 'failures="0"' in content
     assert 'errors="0"' in content
 
     skipped = [line for line in content.split("\n") if "skipped" in line]
-    assert len(skipped) == 2
+    assert len(skipped) == 4
 
 
 @pytest.mark.parametrize(
@@ -183,8 +184,8 @@ def test_install_with_source(mock_packages, mock_archive, mock_fetch, install_mo
 
 
 def test_install_env_variables(mock_packages, mock_archive, mock_fetch, install_mockery):
-    spec = spack.concretize.concretize_one("libdwarf")
-    install("libdwarf")
+    spec = spack.concretize.concretize_one("pkg-c")
+    install("pkg-c")
     assert os.path.isfile(spec.package.install_env_path)
 
 
@@ -203,10 +204,9 @@ def test_show_log_on_error(mock_packages, mock_archive, mock_fetch, install_mock
 
 
 def test_install_overwrite(mock_packages, mock_archive, mock_fetch, install_mockery):
-    # Try to install a spec and then to reinstall it.
-    spec = spack.concretize.concretize_one("libdwarf")
-
-    install("libdwarf")
+    """Tests installing a spec, and then re-installing it in the same prefix."""
+    spec = spack.concretize.concretize_one("pkg-c")
+    install("pkg-c")
 
     # Ignore manifest and install times
     manifest = os.path.join(
@@ -228,7 +228,7 @@ def test_install_overwrite(mock_packages, mock_archive, mock_fetch, install_mock
 
     assert bad_md5 != expected_md5
 
-    install("--overwrite", "-y", "libdwarf")
+    install("--overwrite", "-y", "pkg-c")
 
     assert os.path.exists(spec.prefix)
     assert fs.hash_directory(spec.prefix, ignore=ignores) == expected_md5
@@ -236,12 +236,10 @@ def test_install_overwrite(mock_packages, mock_archive, mock_fetch, install_mock
 
 
 def test_install_overwrite_not_installed(mock_packages, mock_archive, mock_fetch, install_mockery):
-    # Try to install a spec and then to reinstall it.
-    spec = spack.concretize.concretize_one("libdwarf")
-
+    """Tests that overwrite doesn't fail if the package is not installed"""
+    spec = spack.concretize.concretize_one("pkg-c")
     assert not os.path.exists(spec.prefix)
-
-    install("--overwrite", "-y", "libdwarf")
+    install("--overwrite", "-y", "pkg-c")
     assert os.path.exists(spec.prefix)
 
 
@@ -272,12 +270,10 @@ def test_install_commit(mock_git_version_info, install_mockery, mock_packages, m
 def test_install_overwrite_multiple(mock_packages, mock_archive, mock_fetch, install_mockery):
     # Try to install a spec and then to reinstall it.
     libdwarf = spack.concretize.concretize_one("libdwarf")
-
-    install("libdwarf")
-
     cmake = spack.concretize.concretize_one("cmake")
 
-    install("cmake")
+    install("--fake", "libdwarf")
+    install("--fake", "cmake")
 
     ld_manifest = os.path.join(
         libdwarf.prefix,
@@ -313,7 +309,7 @@ def test_install_overwrite_multiple(mock_packages, mock_archive, mock_fetch, ins
     assert bad_libdwarf_md5 != expected_libdwarf_md5
     assert bad_cmake_md5 != expected_cmake_md5
 
-    install("--overwrite", "-y", "libdwarf", "cmake")
+    install("--fake", "--overwrite", "-y", "libdwarf", "cmake")
     assert os.path.exists(libdwarf.prefix)
     assert os.path.exists(cmake.prefix)
 
@@ -548,10 +544,10 @@ def test_cdash_upload_build_error(tmpdir, mock_fetch, install_mockery, capfd):
 def test_cdash_upload_clean_build(tmpdir, mock_fetch, install_mockery, capfd):
     # capfd interferes with Spack's capturing of e.g., Build.xml output
     with capfd.disabled(), tmpdir.as_cwd():
-        install("--log-file=cdash_reports", "--log-format=cdash", "pkg-a")
+        install("--log-file=cdash_reports", "--log-format=cdash", "pkg-c")
         report_dir = tmpdir.join("cdash_reports")
         assert report_dir in tmpdir.listdir()
-        report_file = report_dir.join("pkg-a_Build.xml")
+        report_file = report_dir.join("Build.xml")
         assert report_file in report_dir.listdir()
         content = report_file.open().read()
         assert "</Build>" in content
@@ -568,14 +564,14 @@ def test_cdash_upload_extra_params(tmpdir, mock_fetch, install_mockery, capfd):
             "--cdash-build=my_custom_build",
             "--cdash-site=my_custom_site",
             "--cdash-track=my_custom_track",
-            "pkg-a",
+            "pkg-c",
         )
         report_dir = tmpdir.join("cdash_reports")
         assert report_dir in tmpdir.listdir()
-        report_file = report_dir.join("pkg-a_Build.xml")
+        report_file = report_dir.join("Build.xml")
         assert report_file in report_dir.listdir()
         content = report_file.open().read()
-        assert 'Site BuildName="my_custom_build - pkg-a"' in content
+        assert 'Site BuildName="my_custom_build"' in content
         assert 'Name="my_custom_site"' in content
         assert "-my_custom_track" in content
 
@@ -585,17 +581,17 @@ def test_cdash_buildstamp_param(tmpdir, mock_fetch, install_mockery, capfd):
     # capfd interferes with Spack's capture of e.g., Build.xml output
     with capfd.disabled(), tmpdir.as_cwd():
         cdash_track = "some_mocked_track"
-        buildstamp_format = "%Y%m%d-%H%M-{0}".format(cdash_track)
+        buildstamp_format = f"%Y%m%d-%H%M-{cdash_track}"
         buildstamp = time.strftime(buildstamp_format, time.localtime(int(time.time())))
         install(
             "--log-file=cdash_reports",
             "--log-format=cdash",
-            "--cdash-buildstamp={0}".format(buildstamp),
-            "pkg-a",
+            f"--cdash-buildstamp={buildstamp}",
+            "pkg-c",
         )
         report_dir = tmpdir.join("cdash_reports")
         assert report_dir in tmpdir.listdir()
-        report_file = report_dir.join("pkg-a_Build.xml")
+        report_file = report_dir.join("Build.xml")
         assert report_file in report_dir.listdir()
         content = report_file.open().read()
         assert buildstamp in content
@@ -609,8 +605,7 @@ def test_cdash_install_from_spec_json(
     with capfd.disabled(), tmpdir.as_cwd():
         spec_json_path = str(tmpdir.join("spec.json"))
 
-        pkg_spec = spack.concretize.concretize_one("pkg-a")
-
+        pkg_spec = spack.concretize.concretize_one("pkg-c")
         with open(spec_json_path, "w", encoding="utf-8") as fd:
             fd.write(pkg_spec.to_json(hash=ht.dag_hash))
 
@@ -626,7 +621,7 @@ def test_cdash_install_from_spec_json(
 
         report_dir = tmpdir.join("cdash_reports")
         assert report_dir in tmpdir.listdir()
-        report_file = report_dir.join("pkg-a_Configure.xml")
+        report_file = report_dir.join("Configure.xml")
         assert report_file in report_dir.listdir()
         content = report_file.open().read()
         install_command_regex = re.compile(
@@ -635,7 +630,7 @@ def test_cdash_install_from_spec_json(
         m = install_command_regex.search(content)
         assert m
         install_command = m.group(1)
-        assert "pkg-a@" in install_command
+        assert "pkg-c@" in install_command
 
 
 @pytest.mark.disable_clean_stage_check
@@ -672,7 +667,7 @@ def test_cache_only_fails(tmpdir, mock_fetch, install_mockery, capfd):
     with capfd.disabled():
         out = install("--cache-only", "libdwarf", fail_on_error=False)
 
-    assert "Failed to install libelf" in out
+    assert "Failed to install gcc-runtime" in out
     assert "Skipping build of libdwarf" in out
     assert "was not installed" in out
 
@@ -806,12 +801,12 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
     # Activate the environment
     with e:
         # Assert using --no-add with a spec not in the env fails
-        inst_out = install("--no-add", "boost", fail_on_error=False, output=str)
+        inst_out = install("--fake", "--no-add", "boost", fail_on_error=False, output=str)
 
         assert "You can add specs to the environment with 'spack add " in inst_out
 
         # Without --add, ensure that two packages "a" get installed
-        inst_out = install("pkg-a", output=str)
+        inst_out = install("--fake", "pkg-a", output=str)
         assert len([x for x in e.all_specs() if x.installed and x.name == "pkg-a"]) == 2
 
         # Install an unambiguous dependency spec (that already exists as a dep
@@ -845,14 +840,14 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
         # root of the environment as well as installed.
         assert b_spec not in e.roots()
 
-        install("--add", "pkg-b")
+        install("--fake", "--add", "pkg-b")
 
         assert b_spec in e.roots()
         assert b_spec not in e.uninstalled_specs()
 
         # Install a novel spec with --add and make sure it is added  as a root
         # and installed.
-        install("--add", "bowtie")
+        install("--fake", "--add", "bowtie")
 
         assert any([s.name == "bowtie" for s in e.roots()])
         assert not any([s.name == "bowtie" for s in e.uninstalled_specs()])
@@ -880,7 +875,7 @@ def test_cdash_auth_token(tmpdir, mock_fetch, install_mockery, monkeypatch, capf
     # capfd interferes with Spack's capturing
     with tmpdir.as_cwd(), capfd.disabled():
         monkeypatch.setenv("SPACK_CDASH_AUTH_TOKEN", "asdf")
-        out = install("-v", "--log-file=cdash_reports", "--log-format=cdash", "pkg-a")
+        out = install("--fake", "-v", "--log-file=cdash_reports", "--log-format=cdash", "pkg-a")
         assert "Using CDash auth token from environment" in out
 
 
@@ -941,7 +936,7 @@ def test_install_env_with_tests_all(
     with ev.read("test"):
         test_dep = spack.concretize.concretize_one("test-dependency")
         add("depb")
-        install("--test", "all")
+        install("--fake", "--test", "all")
         assert os.path.exists(test_dep.prefix)
 
 
@@ -953,7 +948,7 @@ def test_install_env_with_tests_root(
     with ev.read("test"):
         test_dep = spack.concretize.concretize_one("test-dependency")
         add("depb")
-        install("--test", "root")
+        install("--fake", "--test", "root")
         assert not os.path.exists(test_dep.prefix)
 
 

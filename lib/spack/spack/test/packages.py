@@ -69,7 +69,7 @@ class TestPackage:
 
         # Check dictionaries that should have been filled by directives
         dependencies = pkg_cls.dependencies_by_name()
-        assert len(dependencies) == 3
+        assert len(dependencies) == 4
         assert "cmake" in dependencies
         assert "openblas" in dependencies
         assert "mpi" in dependencies

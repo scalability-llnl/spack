@@ -15,6 +15,7 @@ import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 
 import spack.compilers.libraries
+import spack.config
 import spack.package_base
 import spack.paths
 import spack.util.executable

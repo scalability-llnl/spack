@@ -13,6 +13,8 @@ import spack.environment
 import spack.store
 import spack.util.path
 
+from .conftest import _true
+
 
 @pytest.fixture
 def active_mock_environment(mutable_config, mutable_mock_env_path):
@@ -93,12 +95,14 @@ def test_raising_exception_if_bootstrap_disabled(mutable_config):
         spack.bootstrap.config.store_path()
 
 
-def test_raising_exception_module_importable():
+def test_raising_exception_module_importable(config, monkeypatch):
+    monkeypatch.setattr(spack.bootstrap.core, "source_is_enabled", _true)
     with pytest.raises(ImportError, match='cannot bootstrap the "asdf" Python module'):
         spack.bootstrap.core.ensure_module_importable_or_raise("asdf")
 
 
-def test_raising_exception_executables_in_path():
+def test_raising_exception_executables_in_path(config, monkeypatch):
+    monkeypatch.setattr(spack.bootstrap.core, "source_is_enabled", _true)
     with pytest.raises(RuntimeError, match="cannot bootstrap any of the asdf, fdsa executables"):
         spack.bootstrap.core.ensure_executables_in_path_or_raise(["asdf", "fdsa"], "python")
 
@@ -218,12 +222,10 @@ def test_source_is_disabled(mutable_config):
     # Get the configuration dictionary of the current bootstrapping source
     conf = next(iter(spack.bootstrap.core.bootstrapping_sources()))
 
-    # The source is not explicitly enabled or disabled, so the following
-    # call should raise to skip using it for bootstrapping
+    # The source is not explicitly enabled or disabled, so the following should return False
     assert not spack.bootstrap.core.source_is_enabled(conf)
 
-    # Try to explicitly disable the source and verify that the behavior
-    # is the same as above
+    # Try to explicitly disable the source and verify that the behavior is the same as above
     spack.config.add("bootstrap:trusted:{0}:{1}".format(conf["name"], False))
     assert not spack.bootstrap.core.source_is_enabled(conf)
 

@@ -18,15 +18,7 @@ import spack.store
 import spack.variant
 import spack.version as vn
 from spack.error import SpecError, UnsatisfiableSpecError
-from spack.spec import (
-    ArchSpec,
-    CompilerSpec,
-    DependencySpec,
-    Spec,
-    SpecFormatSigilError,
-    SpecFormatStringError,
-    UnsupportedCompilerError,
-)
+from spack.spec import ArchSpec, DependencySpec, Spec, SpecFormatSigilError, SpecFormatStringError
 from spack.variant import (
     InvalidVariantValueError,
     MultipleValuesInExclusiveVariantError,
@@ -460,8 +452,6 @@ class TestSpecSemantics:
             ("foo platform=linux", "platform=test os=redhat6 target=x86"),
             ("foo os=redhat6", "platform=test os=debian6 target=x86_64"),
             ("foo target=x86_64", "platform=test os=redhat6 target=x86"),
-            ("foo%intel", "%gcc"),
-            ("foo%intel", "%gcc"),
             ("foo%gcc@4.3", "%gcc@4.4:4.6"),
             ("foo@4.0%gcc", "@1:3%gcc"),
             ("foo@4.0%gcc@4.5", "@1:3%gcc@4.4:4.6"),
@@ -935,7 +925,6 @@ class TestSpecSemantics:
             "{name}",
             "{version}",
             "{@version}",
-            "{%compiler}",
             "{namespace}",
             "{ namespace=namespace}",
             "{ namespace =namespace}",
@@ -1511,15 +1500,16 @@ class TestSpecSemantics:
         ("git-test@git.foo/bar", "{name}-{version}", str(pathlib.Path("git-test-git.foo_bar"))),
         ("git-test@git.foo/bar", "{name}-{version}-{/hash}", None),
         ("git-test@git.foo/bar", "{name}/{version}", str(pathlib.Path("git-test", "git.foo_bar"))),
+        # {compiler} is 'none' if a package does not depend on C, C++, or Fortran
         (
-            "git-test@{0}=1.0%gcc".format("a" * 40),
+            f"git-test@{'a' * 40}=1.0%gcc",
             "{name}/{version}/{compiler}",
-            str(pathlib.Path("git-test", "{0}_1.0".format("a" * 40), "gcc")),
+            str(pathlib.Path("git-test", f"{'a' * 40}_1.0", "none")),
         ),
         (
             "git-test@git.foo/bar=1.0%gcc",
             "{name}/{version}/{compiler}",
-            str(pathlib.Path("git-test", "git.foo_bar_1.0", "gcc")),
+            str(pathlib.Path("git-test", "git.foo_bar_1.0", "none")),
         ),
     ],
 )
@@ -1703,12 +1693,18 @@ def test_call_dag_hash_on_old_dag_hash_spec(mock_packages, default_mock_concreti
 def test_spec_trim(mock_packages, config):
     top = spack.concretize.concretize_one("dt-diamond")
     top.trim("dt-diamond-left")
-    remaining = set(x.name for x in top.traverse())
-    assert set(["dt-diamond", "dt-diamond-right", "dt-diamond-bottom"]) == remaining
+    remaining = {x.name for x in top.traverse()}
+    assert {
+        "dt-diamond",
+        "dt-diamond-right",
+        "dt-diamond-bottom",
+        "gcc-runtime",
+        "gcc",
+    } == remaining
 
     top.trim("dt-diamond-right")
-    remaining = set(x.name for x in top.traverse())
-    assert set(["dt-diamond"]) == remaining
+    remaining = {x.name for x in top.traverse()}
+    assert {"dt-diamond", "gcc-runtime", "gcc"} == remaining
 
 
 @pytest.mark.regression("30861")
@@ -1736,11 +1732,6 @@ def test_concretize_partial_old_dag_hash_spec(mock_packages, config):
 
     # make sure package hash is NOT recomputed
     assert not getattr(spec["dt-diamond-bottom"], "_package_hash", None)
-
-
-def test_unsupported_compiler():
-    with pytest.raises(UnsupportedCompilerError):
-        Spec("gcc%fake-compiler").validate_or_raise()
 
 
 def test_package_hash_affects_dunder_and_dag_hash(mock_packages, default_mock_concretization):
@@ -1815,10 +1806,10 @@ def test_abstract_contains_semantic(lhs, rhs, expected, mock_packages):
         (ArchSpec, "None-ubuntu20.04-None", "None-ubuntu20.04-None", (True, True, True)),
         (ArchSpec, "None-ubuntu20.04-None", "None-ubuntu22.04-None", (False, False, False)),
         # Compiler
-        (CompilerSpec, "gcc", "clang", (False, False, False)),
-        (CompilerSpec, "gcc", "gcc@5", (True, False, True)),
-        (CompilerSpec, "gcc@5", "gcc@5.3", (True, False, True)),
-        (CompilerSpec, "gcc@5", "gcc@5-tag", (True, False, True)),
+        (Spec, "gcc", "clang", (False, False, False)),
+        (Spec, "gcc", "gcc@5", (True, False, True)),
+        (Spec, "gcc@5", "gcc@5.3", (True, False, True)),
+        (Spec, "gcc@5", "gcc@5-tag", (True, False, True)),
         # Flags (flags are a map, so for convenience we initialize a full Spec)
         # Note: the semantic is that of sv variants, not mv variants
         (Spec, "cppflags=-foo", "cppflags=-bar", (True, False, False)),
@@ -1884,8 +1875,8 @@ def test_intersects_and_satisfies(factory, lhs_str, rhs_str, results):
             "None-ubuntu20.04-nocona,haswell",
         ),
         # Compiler
-        (CompilerSpec, "gcc@5", "gcc@5-tag", True, "gcc@5-tag"),
-        (CompilerSpec, "gcc@5", "gcc@5", False, "gcc@5"),
+        (Spec, "foo %gcc@5", "foo %gcc@5-tag", True, "foo %gcc@5-tag"),
+        (Spec, "foo %gcc@5", "foo %gcc@5", False, "foo %gcc@5"),
         # Flags
         (Spec, "cppflags=-foo", "cppflags=-foo", False, "cppflags=-foo"),
         (Spec, "cppflags=-foo", "cflags=-foo", True, "cppflags=-foo cflags=-foo"),

@@ -45,8 +45,8 @@ class TestTcl:
             len([x for x in content if "if {![info exists ::env(LMOD_VERSION_MAJOR)]} {" in x])
             == 1
         )
-        assert len([x for x in content if "depends-on " in x]) == 2
-        assert len([x for x in content if "module load " in x]) == 2
+        assert len([x for x in content if "depends-on " in x]) == 3
+        assert len([x for x in content if "module load " in x]) == 3
 
         # dtbuild1 has
         # - 1 ('run',) dependency
@@ -76,8 +76,8 @@ class TestTcl:
             len([x for x in content if "if {![info exists ::env(LMOD_VERSION_MAJOR)]} {" in x])
             == 1
         )
-        assert len([x for x in content if "depends-on " in x]) == 5
-        assert len([x for x in content if "module load " in x]) == 5
+        assert len([x for x in content if "depends-on " in x]) == 6
+        assert len([x for x in content if "module load " in x]) == 6
 
         # dtbuild1 has
         # - 1 ('run',) dependency
@@ -101,7 +101,7 @@ class TestTcl:
         module_configuration("prerequisites_direct")
         content = modulefile_content(f"mpileaks target={host_architecture_str}")
 
-        assert len([x for x in content if "prereq" in x]) == 2
+        assert len([x for x in content if "prereq" in x]) == 3
 
     def test_prerequisites_all(
         self, modulefile_content, module_configuration, host_architecture_str
@@ -111,7 +111,7 @@ class TestTcl:
         module_configuration("prerequisites_all")
         content = modulefile_content(f"mpileaks target={host_architecture_str}")
 
-        assert len([x for x in content if "prereq" in x]) == 5
+        assert len([x for x in content if "prereq" in x]) == 6
 
     def test_alter_environment(self, modulefile_content, module_configuration):
         """Tests modifications to run-time environment."""
@@ -236,14 +236,14 @@ class TestTcl:
         module_configuration("exclude")
         content = modulefile_content("mpileaks ^zmpi")
 
-        assert len([x for x in content if "module load " in x]) == 1
+        assert len([x for x in content if "module load " in x]) == 2
 
         with pytest.raises(FileNotFoundError):
             modulefile_content(f"callpath target={host_architecture_str}")
 
         content = modulefile_content(f"zmpi target={host_architecture_str}")
 
-        assert len([x for x in content if "module load " in x]) == 1
+        assert len([x for x in content if "module load " in x]) == 2
 
     def test_naming_scheme_compat(self, factory, module_configuration):
         """Tests backwards compatibility for naming_scheme key"""
@@ -481,8 +481,8 @@ class TestTcl:
 
         # Test the mpileaks that should have the autoloaded dependencies
         content = modulefile_content("mpileaks ^mpich2")
-        assert len([x for x in content if "depends-on " in x]) == 2
-        assert len([x for x in content if "module load " in x]) == 2
+        assert len([x for x in content if "depends-on " in x]) == 3
+        assert len([x for x in content if "module load " in x]) == 3
 
         # Test the mpileaks that should NOT have the autoloaded dependencies
         content = modulefile_content("mpileaks ^mpich")
