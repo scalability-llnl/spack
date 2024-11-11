@@ -3838,45 +3838,13 @@ class SpecBuilder:
         splice = Splice(splice_node, child_name=child_name, child_hash=child_hash)
         self._splices.setdefault(parent_node, []).append(splice)
 
-    def _create_memoized_spec_size_oracle(self) -> Dict[spack.spec.Spec, int]:
-        """
-        Creates a size oracle of all specs in self._specs such that the size of
-        each spec is computed exactly once
-        """
-        memoized_sizes: Dict[spack.spec.Spec, int] = {}
-        work_stack = list(self._specs.values())
-        while len(work_stack) > 0:
-            curr_spec = work_stack.pop()
-            if curr_spec in memoized_sizes:
-                continue
-            # marker for whether one or more deps needs to be found to get size
-            need_deps = False
-            # running sum of the sizes of dependencies, starting at 1 makes
-            # specs with no dependencies have size 1
-            curr_sum = 1
-            for d in curr_spec.traverse(root=False):
-                assert type(d) is spack.spec.Spec
-                if d in memoized_sizes:
-                    curr_sum += memoized_sizes[d]
-                else:
-                    # First iteration that requires dependencies to be computed
-                    # pushes parent to the bottom of the stack
-                    if not need_deps:
-                        work_stack.append(curr_spec)
-                        need_deps = True
-                    work_stack.append(d)
-            if not need_deps:
-                memoized_sizes[curr_spec] = curr_sum
-        return memoized_sizes
-
     def _resolve_automatic_splices(self):
         """After all of the specs have been concretized, apply all immediate
         splices in size order. This ensures that all dependencies are resolved
         before their parents, allowing for maximal sharing and minimal copying.
         """
-        spec_sizes = self._create_memoized_spec_size_oracle()
         fixed_specs = {}
-        for node, spec in sorted(self._specs.items(), key=lambda x: spec_sizes[x[1]]):
+        for node, spec in sorted(self._specs.items(), key=lambda x: len(x[1])):
             immediate = self._splices.get(node, [])
             if not immediate and not any(
                 edge.spec in fixed_specs for edge in spec.edges_to_dependencies()

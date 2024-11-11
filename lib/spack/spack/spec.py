@@ -1431,6 +1431,8 @@ def tree(
 class Spec:
     #: Cache for spec's prefix, computed lazily in the corresponding property
     _prefix = None
+    #: Cache for spec's length, computed lazily in the corresponding property
+    _length = None
     abstract_hash = None
 
     @staticmethod
@@ -3699,6 +3701,18 @@ class Spec:
             return SpecBuildInterface(child, name, query_parameters, _parent=self)
 
         return child
+
+    def __len__(self):
+        if not self.concrete:
+            raise spack.error.SpecError(f"Cannot get length of abstract spec: {self}")
+
+        if not self._length:
+            self._length = 1 + sum(len(dep) for dep in self.dependencies())
+        return self._length
+
+    def __bool__(self):
+        # Need to define this so __len__ isn't used by default
+        return True
 
     def __contains__(self, spec):
         """True if this spec or some dependency satisfies the spec.
