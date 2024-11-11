@@ -17,7 +17,6 @@ from typing import Any, Callable, Collection, Iterable, List, Optional, Tuple, T
 import llnl.util.lang as lang
 import llnl.util.tty.color
 
-import spack.directives
 import spack.error as error
 import spack.parser
 import spack.spec
@@ -267,7 +266,7 @@ def _flatten(values) -> Collection:
 
     flattened: List = []
     for item in values:
-        if isinstance(item, _ConditionalVariantValues):
+        if isinstance(item, ConditionalVariantValues):
             flattened.extend(item)
         else:
             flattened.append(item)
@@ -885,15 +884,8 @@ def prevalidate_variant_value(
     )
 
 
-class _ConditionalVariantValues(lang.TypedMutableSequence):
+class ConditionalVariantValues(lang.TypedMutableSequence):
     """A list, just with a different type"""
-
-
-def conditional(*values: List[Any], when: Optional["spack.directives.WhenType"] = None):
-    """Conditional values that can be used in variant declarations."""
-    # _make_when_spec returns None when the condition is statically false.
-    when = spack.directives._make_when_spec(when)
-    return _ConditionalVariantValues([Value(x, when=when) for x in values])
 
 
 class DuplicateVariantError(error.SpecError):

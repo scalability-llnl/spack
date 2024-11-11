@@ -103,12 +103,7 @@ from spack.package_completions import *
 from spack.spec import InvalidSpecDetected, Spec
 from spack.util.executable import *
 from spack.util.filesystem import file_command, fix_darwin_install_name, mime_type
-from spack.variant import (
-    any_combination_of,
-    auto_or_any_combination_of,
-    conditional,
-    disjoint_sets,
-)
+from spack.variant import any_combination_of, auto_or_any_combination_of, disjoint_sets
 from spack.version import Version, ver
 
 # These are just here for editor support; they will be replaced when the build env
