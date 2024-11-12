@@ -5,6 +5,7 @@
 
 from spack.package import *
 
+
 class Pace(CMakePackage):
     """interatomic Potentials in Atomic Cluster Expansion (PACE)
 
@@ -32,5 +33,5 @@ class Pace(CMakePackage):
     version(
         "2024.11.9",
         sha256="fac15d79d981353627305f7759c92b64022740f0a8b8c47dc7125967f4650c70",
-        url="https://github.com/ICAMS/lammps-user-pace/archive/e2d941286da81a286adf60cc9ddd2c794dc4a6f2.tar.gz"
+        url="https://github.com/ICAMS/lammps-user-pace/archive/e2d941286da81a286adf60cc9ddd2c794dc4a6f2.tar.gz",
     )
