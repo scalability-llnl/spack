@@ -17,7 +17,7 @@ class Yyjson(CMakePackage):
     version("0.10.0", sha256="0d901cb2c45c5586e3f3a4245e58c2252d6b24bf4b402723f6179523d389b165")
 
     depends_on("c", type="build")
-    depends_on("cxx", type="build") # TODO: test only dependency, but does not work
+    depends_on("cxx", type="build")  # TODO: test only dependency, but does not work
 
     def cmake_args(self):
         return [self.define("YYJSON_BUILD_TESTS", self.run_tests)]
