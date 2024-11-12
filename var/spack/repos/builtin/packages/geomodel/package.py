@@ -72,7 +72,7 @@ class Geomodel(CMakePackage):
         depends_on("hdf5+cxx")
         depends_on("qt +gui +opengl +sql")
         depends_on("coin3d")
-        depends_on("soqt qt=5")
+        depends_on("soqt")
         depends_on("opengl")
 
     def cmake_args(self):
