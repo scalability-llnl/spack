@@ -124,10 +124,8 @@ packages_path = os.path.join(repos_path, "builtin")
 mock_packages_path = os.path.join(repos_path, "builtin.mock")
 
 #
-# Writable things in $spack/var/spack
-# TODO: Deprecate these, as we want a read-only spack prefix by default.
-# TODO: These should probably move to user cache, or some other location.
-#
+# Writable things in $var_path
+# In older spack, this is $spack/var/spack
 # fetch cache for downloaded files
 default_fetch_cache_path = os.path.join(var_path, "cache")
 
