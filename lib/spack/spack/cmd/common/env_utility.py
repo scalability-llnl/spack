@@ -156,7 +156,11 @@ def emulate_env_utility(cmd_name, context: Context, args):
             ),
         )
 
-    mods = build_environment.setup_package(spec.package, args.dirty, context)
+    if cmd:
+        run_command_in_subshell(spec, context, cmd, prompt=args.dive)
+    else:
+        # setup build env if no command to run
+        build_environment.setup_package(spec.package, args.dirty, context)
 
     if args.dump:
         # Dump a source-able environment to a text file.
@@ -167,9 +171,6 @@ def emulate_env_utility(cmd_name, context: Context, args):
         # Dump a source-able environment to a pickle file.
         tty.msg("Pickling a source-able environment to {0}".format(args.pickle))
         pickle_environment(args.pickle)
-
-    if cmd:
-        run_command_in_subshell(spec, context, cmd, prompt=args.dive, location=args.cd)
 
     elif not bool(args.pickle or args.dump):
         # If no command or dump/pickle option then act like the "env" command

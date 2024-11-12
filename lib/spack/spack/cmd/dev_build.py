@@ -17,6 +17,7 @@ import spack.prompt
 import spack.repo
 from spack.cmd.common import arguments
 from spack.cmd.common.env_utility import run_command_in_subshell
+from spack.context import Context
 from spack.installer import PackageInstaller
 
 description = "developer build: build from user managed code"
@@ -171,5 +172,5 @@ def dev_build(self, args):
     # drop into the build environment of the package?
     if args.shell is not None:
         run_command_in_subshell(
-            spec, context.BUILD, [args.shell], prompt=args.prompt, shell=args.shell
+            spec, Context.BUILD, [args.shell], prompt=args.prompt, shell=args.shell
         )
