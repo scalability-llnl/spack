@@ -94,7 +94,9 @@ class Wgl(Package):
     # As noted above, the headers neccesary to include
     @property
     def headers(self):
-        return find_headers("GL", root=os.path.join(self.prefix.Include, str(self.version) + ".0"))
+        return find_headers(
+            "GL", root=os.path.join(self.prefix.Include, str(self.version) + ".0"), recursive=True
+        )
 
     @property
     def libs(self):
