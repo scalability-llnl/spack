@@ -10,6 +10,7 @@ import llnl.util.tty as tty
 import spack.cmd
 import spack.deptypes as dt
 import spack.error
+import spack.prompt
 import spack.spec
 import spack.store
 from spack import build_environment, traverse
@@ -26,7 +27,9 @@ def setup_parser(subparser):
     subparser.add_argument(
         "--pickle", metavar="FILE", help="dump a pickled source-able environment to FILE"
     )
-    subparser.add_argument("--dive", action="store_true", help="dive into the build-env in a subshell")
+    subparser.add_argument(
+        "--dive", action="store_true", help="dive into the build-env in a subshell"
+    )
     subparser.add_argument(
         "spec",
         nargs=argparse.REMAINDER,
@@ -124,7 +127,7 @@ def emulate_env_utility(cmd_name, context: Context, args):
             ),
         )
 
-    build_environment.setup_package(spec.package, args.dirty, context)
+    mods = build_environment.setup_package(spec.package, args.dirty, context)
 
     if args.dump:
         # Dump a source-able environment to a text file.
@@ -136,12 +139,13 @@ def emulate_env_utility(cmd_name, context: Context, args):
         tty.msg("Pickling a source-able environment to {0}".format(args.pickle))
         pickle_environment(args.pickle)
 
-    if args.dive:
-        os.execvp(cmd[0], [cmd[0]])
-
     if cmd:
         # Execute the command with the new environment
         os.execvp(cmd[0], cmd)
+
+    if args.dive:
+        mods.extend(spack.prompt.prompt_modifications(f"{spec.name}-build-env", cmd[0]))
+        os.execvp(cmd[0], [cmd[0]])
 
     elif not bool(args.pickle or args.dump):
         # If no command or dump/pickle option then act like the "env" command

@@ -805,7 +805,7 @@ def load_external_modules(pkg):
             load_module(external_module)
 
 
-def setup_package(pkg, dirty, context: Context = Context.BUILD, interactive: bool = False):
+def setup_package(pkg, dirty, context: Context = Context.BUILD):
     """Execute all environment setup routines."""
     if context not in (Context.BUILD, Context.TEST):
         raise ValueError(f"'context' must be Context.BUILD or Context.TEST - got {context}")

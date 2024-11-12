@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 import textwrap
+
 from llnl.util.tty.color import colorize
 
 from spack.util.environment import EnvironmentModifications
@@ -19,16 +20,16 @@ def prompt_modifications(prompt, shell, env=os.environ):
         mods.set("SPACK_OLD_PROMPT", env.get("prompt", None))
         mods.set("prompt", prompt)
     else:
-        mods.set('SPACK_OLD_PS1', env.get('PS1', '$$$$'))
-        if 'TERM' in env and 'color' in env['TERM']:
-            if 'BASH' in env:
+        mods.set("SPACK_OLD_PS1", env.get("PS1", "$$$$"))
+        if "TERM" in env and "color" in env["TERM"]:
+            if "BASH" in env:
                 bash_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=True)
-                mods.set('PS1', f"{bash_color_prompt} {env.get('PS1','$ ')}")
+                mods.set("PS1", f"{bash_color_prompt} {env.get('PS1','$ ')}")
             else:
                 zsh_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=False, zsh=True)
-                mods.set('PS1', f"{zsh_color_prompt} {env.get('PS1', '$ ')}")
+                mods.set("PS1", f"{zsh_color_prompt} {env.get('PS1', '$ ')}")
         else:
-            mods.set('PS1', f"{prompt} {env.get('PS1', '$ ')}")
+            mods.set("PS1", f"{prompt} {env.get('PS1', '$ ')}")
 
     return mods
 
@@ -70,4 +71,3 @@ def custom_prompt(prompt, shell):
             """
         ).lstrip("\n")
     return cmds
-
