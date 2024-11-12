@@ -455,6 +455,10 @@ class Configuration:
 
     def highest_precedence_scope(self) -> ConfigScope:
         """Writable scope with highest precedence."""
+        if "install" in self.scopes:
+            # Preference is to write into config scope associated with
+            # the installation tree, if it exists for this Configuration
+            return self.scopes["install"]
         return next(s for s in reversed(self.scopes.values()) if s.writable)  # type: ignore
 
     def highest_precedence_non_platform_scope(self) -> ConfigScope:
