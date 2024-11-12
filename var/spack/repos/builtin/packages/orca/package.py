@@ -26,7 +26,7 @@ class Orca(Package):
     version(
         "avx2-6.0.1", sha256="f31f98256a0c6727b6ddfe50aa3ac64c45549981138d670a57e90114b4b9c9d2"
     )
-    version("6.0.1", sha256="5aadad86f323dd2fa9dc00c94ff3aa7fe6e006d740aad8a410c5090ce26ea98c")
+    version("6.0.1", sha256="5e9b49588375e0ce5bc32767127cc725f5425917804042cdecdfd5c6b965ef61")
     version(
         "avx2-6.0.0", sha256="02c21294efe7b1b721e26cb90f98ee15ad682d02807201b7d217dfe67905a2fd"
     )
