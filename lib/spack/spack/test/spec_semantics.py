@@ -1763,8 +1763,8 @@ def test_package_hash_affects_dunder_and_dag_hash(mock_packages, default_mock_co
     assert a1.dag_hash() == a2.dag_hash()
     assert a1.process_hash() == a2.process_hash()
 
-    a1.clear_cached_hashes()
-    a2.clear_cached_hashes()
+    a1.clear_caches()
+    a2.clear_caches()
 
     # tweak the dag hash of one of these specs
     new_hash = "00000000000000000000000000000000"
