@@ -35,7 +35,7 @@ A build matrix showing which packages are working on which systems is shown belo
       .. code-block:: console
 
          apt update
-         apt install bzip2 ca-certificates file g++ gcc gfortran git gnupg gzip lsb-release patch python3 tar unzip xz-utils zstd
+         apt install bzip2 ca-certificates file g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd
 
    .. tab-item:: RHEL
 
@@ -43,14 +43,14 @@ A build matrix showing which packages are working on which systems is shown belo
 
          dnf install epel-release
          dnf group install "Development Tools"
-         dnf install gcc-gfortran gnupg2 redhat-lsb-core python3 unzip
+         dnf install gcc-gfortran redhat-lsb-core python3 unzip
 
    .. tab-item:: macOS Brew
 
       .. code-block:: console
 
          brew update
-         brew install gcc git gnupg zip
+         brew install gcc git zip
 
 ------------
 Installation
