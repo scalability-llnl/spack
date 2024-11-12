@@ -5,7 +5,7 @@
 
 
 from spack.package import *
-from spack.variant import _ConditionalVariantValues
+from spack.variant import ConditionalVariantValues
 
 
 class Vecgeom(CMakePackage, CudaPackage):
@@ -21,6 +21,11 @@ class Vecgeom(CMakePackage, CudaPackage):
     maintainers("drbenmorgan", "sethrj")
 
     version("master", branch="master")
+    version(
+        "1.2.9",
+        url="https://gitlab.cern.ch/-/project/981/uploads/55a89cafbf48a418bec68be42867d4bf/VecGeom-v1.2.9.tar.gz",
+        sha256="93ee9ce6f7b2d704e9b9db22fad68f81b8eaf17453452969fc47e93dba4bfaf4",
+    )
     version(
         "1.2.8",
         url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/db11697eb81d6f369e9ded1078de946b/VecGeom-v1.2.8.tar.gz",
@@ -191,7 +196,7 @@ class Vecgeom(CMakePackage, CudaPackage):
 
     def std_when(values):
         for v in values:
-            if isinstance(v, _ConditionalVariantValues):
+            if isinstance(v, ConditionalVariantValues):
                 for c in v:
                     yield (c.value, c.when)
             else:

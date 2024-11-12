@@ -78,6 +78,7 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
     depends_on("z3", type="link")
     depends_on("zlib-api", type="link")
     depends_on("ncurses+termlib", type="link")
+    depends_on("libxml2", type="link")
     depends_on("pkgconfig", type="build")
 
     # This flavour of LLVM doesn't work on MacOS, so we should ensure that it

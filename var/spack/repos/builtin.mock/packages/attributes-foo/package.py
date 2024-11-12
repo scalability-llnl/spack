@@ -44,7 +44,7 @@ class AttributesFoo(BundlePackage):
     # Header provided by the bar virutal package
     @property
     def bar_headers(self):
-        return find_headers("bar/bar", root=self.home.include, recursive=False)
+        return find_headers("bar", root=self.home.include, recursive=True)
 
     # Libary provided by the bar virtual package
     @property
@@ -59,7 +59,7 @@ class AttributesFoo(BundlePackage):
     # Header provided by the baz virtual package
     @property
     def baz_headers(self):
-        return find_headers("baz/baz", root=self.baz_home.include, recursive=False)
+        return find_headers("baz", root=self.baz_home.include, recursive=True)
 
     # Library provided by the baz virtual package
     @property
