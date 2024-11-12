@@ -17,6 +17,7 @@ from llnl.util.lang import attr_setdefault, index_by
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
 
+import spack.concretize
 import spack.config  # breaks a cycle.
 import spack.environment as ev
 import spack.error
@@ -194,7 +195,7 @@ def _concretize_spec_pairs(to_concretize, tests=False):
     elif unify == "when_possible":
         concretize_method = spack.concretize.concretize_together_when_possible
 
-    concretized = concretize_method(*to_concretize, tests=tests)
+    concretized = concretize_method(to_concretize, tests=tests)
     return [concrete for _, concrete in concretized]
 
 
@@ -542,6 +543,18 @@ class CommandNameError(spack.error.SpackError):
     def __init__(self, name):
         self.name = name
         super().__init__("{0} is not a permissible Spack command name.".format(name))
+
+
+class MultipleSpecsMatch(Exception):
+    """Raised when multiple specs match a constraint, in a context where
+    this is not allowed.
+    """
+
+
+class NoSpecMatches(Exception):
+    """Raised when no spec matches a constraint, in a context where
+    this is not allowed.
+    """
 
 
 ########################################

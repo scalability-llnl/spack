@@ -58,7 +58,8 @@ class RocmValidationSuite(CMakePackage):
     # It expects rocm components headers and libraries in /opt/rocm
     # It doesn't find package to include the library and include path without this patch.
     patch("009-replacing-rocm-path-with-package-path.patch", when="@6.0")
-    patch("009-replacing-rocm-path-with-package-path-6.1.patch", when="@6.1")
+    patch("009-replacing-rocm-path-with-package-path-6.1.patch", when="@6.1:6.2.0")
+    patch("009-replacing-rocm-path-with-package-path-6.2.1.patch", when="@6.2.1")
     depends_on("cmake@3.5:", type="build")
     depends_on("zlib-api", type="link")
     depends_on("yaml-cpp~shared")
@@ -94,6 +95,9 @@ class RocmValidationSuite(CMakePackage):
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
+    for ver in ["6.2.1"]:
+        depends_on(f"hiprand@{ver}", when=f"@{ver}")
+        depends_on(f"rocrand@{ver}", when=f"@{ver}")
 
     def patch(self):
         if self.spec.satisfies("@5.2:5.4"):
@@ -104,7 +108,7 @@ class RocmValidationSuite(CMakePackage):
             filter_file(
                 r"@ROCM_PATH@/rvs", self.spec.prefix.rvs, "rvs/conf/deviceid.sh.in", string=True
             )
-        elif self.spec.satisfies("@6.0:"):
+        elif self.spec.satisfies("@6.0:6.1"):
             filter_file(
                 "@ROCM_PATH@/rvs", self.spec.prefix.bin, "rvs/conf/deviceid.sh.in", string=True
             )
@@ -119,6 +123,9 @@ class RocmValidationSuite(CMakePackage):
             self.define("YAML_CPP_INCLUDE_DIRS", self.spec["yaml-cpp"].prefix.include),
             self.define("UT_INC", self.spec["googletest"].prefix.include),
         ]
+        if self.spec.satisfies("@6.2.1:"):
+            args.append(self.define("HIPRAND_DIR", self.spec["hiprand"].prefix)),
+            args.append(self.define("ROCRAND_DIR", self.spec["rocrand"].prefix)),
         libloc = self.spec["googletest"].prefix.lib64
         if not os.path.isdir(libloc):
             libloc = self.spec["googletest"].prefix.lib
@@ -131,20 +138,5 @@ class RocmValidationSuite(CMakePackage):
         if not os.path.isdir(libloc):
             libloc = self.spec["yaml-cpp"].prefix.lib
         args.append(self.define("YAML_CPP_LIB_PATH", libloc))
-        if self.spec.satisfies("@6.2:"):
-            args.append(
-                self.define(
-                    "CMAKE_CXX_FLAGS",
-                    f"-I{self.spec['rocm-smi-lib'].prefix.include} "
-                    f"-I{self.spec['rocblas'].prefix.include} "
-                    f"-I{self.spec['yaml-cpp'].prefix.include} "
-                    f"-L{self.spec['hip'].prefix.lib} "
-                    f"-L{self.spec['hsa-rocr-dev'].prefix.lib} "
-                    f"-L{self.spec['hsakmt-roct'].prefix.lib} "
-                    f"-L{self.spec['rocm-smi-lib'].prefix.lib} "
-                    f"-L{self.spec['rocblas'].prefix.lib} "
-                    f"{libloc}/libyaml-cpp.a ",
-                )
-            )
-            args.append(self.define("CPACK_PACKAGING_INSTALL_PREFIX", self.spec.prefix))
+
         return args

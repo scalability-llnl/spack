@@ -222,11 +222,9 @@ def make_env_decorator(env):
 def display_env(env, args, decorator, results):
     """Display extra find output when running in an environment.
 
-    Find in an environment outputs 2 or 3 sections:
-
-    1. Root specs
-    2. Concretized roots (if asked for with -c)
-    3. Installed specs
+    In an environment, `spack find` outputs a preliminary section
+    showing the root specs of the environment (this is in addition
+    to the section listing out specs matching the query parameters).
 
     """
     tty.msg("In environment %s" % env.name)
@@ -299,6 +297,56 @@ def display_env(env, args, decorator, results):
         print()
 
 
+def _find_query(args, env):
+    q_args = query_arguments(args)
+    concretized_but_not_installed = list()
+    if env:
+        all_env_specs = env.all_specs()
+        if args.constraint:
+            init_specs = cmd.parse_specs(args.constraint)
+            env_specs = env.all_matching_specs(*init_specs)
+        else:
+            env_specs = all_env_specs
+
+        spec_hashes = set(x.dag_hash() for x in env_specs)
+        specs_meeting_q_args = set(spack.store.STORE.db.query(hashes=spec_hashes, **q_args))
+
+        results = list()
+        with spack.store.STORE.db.read_transaction():
+            for spec in env_specs:
+                if not spec.installed:
+                    concretized_but_not_installed.append(spec)
+                if spec in specs_meeting_q_args:
+                    results.append(spec)
+    else:
+        results = args.specs(**q_args)
+
+    # use groups by default except with format.
+    if args.groups is None:
+        args.groups = not args.format
+
+    # Exit early with an error code if no package matches the constraint
+    if concretized_but_not_installed and args.show_concretized:
+        pass
+    elif results:
+        pass
+    elif args.constraint:
+        raise cmd.NoSpecMatches()
+
+    # If tags have been specified on the command line, filter by tags
+    if args.tags:
+        packages_with_tags = spack.repo.PATH.packages_with_tags(*args.tags)
+        results = [x for x in results if x.name in packages_with_tags]
+        concretized_but_not_installed = [
+            x for x in concretized_but_not_installed if x.name in packages_with_tags
+        ]
+
+    if args.loaded:
+        results = cmd.filter_loaded_specs(results)
+
+    return results, concretized_but_not_installed
+
+
 def find(parser, args):
     env = ev.active_environment()
 
@@ -307,34 +355,12 @@ def find(parser, args):
     if not env and args.show_concretized:
         tty.die("-c / --show-concretized requires an active environment")
 
-    if env:
-        if args.constraint:
-            init_specs = spack.cmd.parse_specs(args.constraint)
-            results = env.all_matching_specs(*init_specs)
-        else:
-            results = env.all_specs()
-    else:
-        q_args = query_arguments(args)
-        results = args.specs(**q_args)
-
-    decorator = make_env_decorator(env) if env else lambda s, f: f
-
-    # use groups by default except with format.
-    if args.groups is None:
-        args.groups = not args.format
-
-    # Exit early with an error code if no package matches the constraint
-    if not results and args.constraint:
-        constraint_str = " ".join(str(s) for s in args.constraint_specs)
-        tty.die(f"No package matches the query: {constraint_str}")
-
-    # If tags have been specified on the command line, filter by tags
-    if args.tags:
-        packages_with_tags = spack.repo.PATH.packages_with_tags(*args.tags)
-        results = [x for x in results if x.name in packages_with_tags]
-
-    if args.loaded:
-        results = spack.cmd.filter_loaded_specs(results)
+    try:
+        results, concretized_but_not_installed = _find_query(args, env)
+    except cmd.NoSpecMatches:
+        # Note: this uses args.constraint vs. args.constraint_specs because
+        # the latter only exists if you call args.specs()
+        tty.die(f"No package matches the query: {' '.join(args.constraint)}")
 
     if args.install_status or args.show_concretized:
         status_fn = spack.spec.Spec.install_status
@@ -345,14 +371,16 @@ def find(parser, args):
     if args.json:
         cmd.display_specs_as_json(results, deps=args.deps)
     else:
+        decorator = make_env_decorator(env) if env else lambda s, f: f
+
         if not args.format:
             if env:
                 display_env(env, args, decorator, results)
 
         if not args.only_roots:
-            display_results = results
-            if not args.show_concretized:
-                display_results = list(x for x in results if x.installed)
+            display_results = list(results)
+            if args.show_concretized:
+                display_results += concretized_but_not_installed
             cmd.display_specs(
                 display_results, args, decorator=decorator, all_headers=True, status_fn=status_fn
             )
@@ -370,13 +398,9 @@ def find(parser, args):
                     concretized_suffix += " (show with `spack find -c`)"
 
             pkg_type = "loaded" if args.loaded else "installed"
-            spack.cmd.print_how_many_pkgs(
-                list(x for x in results if x.installed), pkg_type, suffix=installed_suffix
-            )
+            cmd.print_how_many_pkgs(results, pkg_type, suffix=installed_suffix)
 
             if env:
-                spack.cmd.print_how_many_pkgs(
-                    list(x for x in results if not x.installed),
-                    "concretized",
-                    suffix=concretized_suffix,
+                cmd.print_how_many_pkgs(
+                    concretized_but_not_installed, "concretized", suffix=concretized_suffix
                 )

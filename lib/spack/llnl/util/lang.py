@@ -5,15 +5,17 @@
 
 import collections.abc
 import contextlib
+import fnmatch
 import functools
 import itertools
 import os
 import re
 import sys
 import traceback
+import typing
 import warnings
 from datetime import datetime, timedelta
-from typing import Callable, Iterable, List, Tuple, TypeVar
+from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
 
 # Ignore emacs backups when listing modules
 ignore_modules = r"^\.#|~$"
@@ -857,6 +859,19 @@ def elide_list(line_list: List[str], max_num: int = 10) -> List[str]:
     if len(line_list) > max_num:
         return [*line_list[: max_num - 1], "...", line_list[-1]]
     return line_list
+
+
+if sys.version_info >= (3, 9):
+    PatternStr = re.Pattern[str]
+else:
+    PatternStr = typing.Pattern[str]
+
+
+def fnmatch_translate_multiple(named_patterns: Dict[str, str]) -> str:
+    """Similar to ``fnmatch.translate``, but takes an ordered dictionary where keys are pattern
+    names, and values are filename patterns. The output is a regex that matches any of the
+    patterns in order, and named capture groups are used to identify which pattern matched."""
+    return "|".join(f"(?P<{n}>{fnmatch.translate(p)})" for n, p in named_patterns.items())
 
 
 @contextlib.contextmanager

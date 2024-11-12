@@ -19,6 +19,11 @@ class Rivet(AutotoolsPackage):
 
     license("GPL-3.0-or-later")
 
+    version("4.0.2", sha256="65a3b36f42bff782ed2767930e669e09b140899605d7972fc8f77785b4a882c0")
+    version("4.0.1", sha256="4e8692d6e8a53961c77983eb6ba4893c3765cf23f705789e4d865be4892eff79")
+    version("4.0.0", sha256="d3c42d9b83ede3e7f4b534535345c2e06e6dafb851454c2b0a5d2331ab0f04d0")
+    version("3.1.10", sha256="458b8e0df1de738e9972d24b260eaa087df12c99d4fe9dee5377d47ea6a49919")
+    version("3.1.9", sha256="f6532045da61eeb2adc20a9abc4166b4b2d41ab2c1ca5b500cd616bb1b92e7b1")
     version("3.1.8", sha256="75b3f3d419ca6388d1fd2ec0eda7e1f90f324b996ccf0591f48a5d2e28dccc13")
     version("3.1.7", sha256="27c7dbbcb5fd7ee81caf136daf4e960bca0ec255d9fa1abe602f4d430861b27a")
     version("3.1.6", sha256="1cf6ebb6a79d181c441d1d0c7c6d623c423817c61093f36f21adaae23e679090")
@@ -34,7 +39,12 @@ class Rivet(AutotoolsPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
-    variant("hepmc", default="2", values=("2", "3"), description="HepMC version to link against")
+    variant(
+        "hepmc",
+        default="2",
+        values=(conditional("2", when="@:3"), "3"),
+        description="HepMC version to link against",
+    )
 
     # According to A. Buckley (main Rivet developer):
     # "typically a given Rivet version will work with
@@ -48,8 +58,13 @@ class Rivet(AutotoolsPackage):
     depends_on("yoda@1.8.2", when="@3.1.1")
     depends_on("yoda@1.8.3", when="@3.1.2")
     depends_on("yoda@1.8.5:", when="@3.1.3:")
-    depends_on("yoda@1.9.5:", when="@3.1.6:")
+    depends_on("yoda@1.9.6:", when="@3.1.6:")
     depends_on("yoda@1.9.7:", when="@3.1.7:")
+    depends_on("yoda@1.9.8:", when="@3.1.8:")
+    depends_on("yoda@1.9.9:", when="@3.1.9:")
+    depends_on("yoda@1.9.10:", when="@3.1.10:")
+    depends_on("yoda@:1", when="@:3")
+    depends_on("yoda@2.0.1:", when="@4.0.0:")
 
     # The following versions were not a part of LCG stack
     # and thus the exact version of YODA is unknown
@@ -57,9 +72,13 @@ class Rivet(AutotoolsPackage):
 
     depends_on("hepmc", when="hepmc=2")
     depends_on("hepmc3", when="hepmc=3")
+    conflicts(
+        "hepmc@3.3.0", when="@:4.0.0 hepmc=3", msg="patch-level zero requires at least 4.0.1"
+    )
     depends_on("fastjet plugins=cxx")
     depends_on("fastjet@3.4.0:", when="@3.1.7:")
     depends_on("fjcontrib")
+    depends_on("highfive", when="@4:")
     depends_on("python", type=("build", "run"))
     depends_on("py-cython@0.24.0:", type="build")
     depends_on("swig", type="build")
@@ -104,11 +123,15 @@ class Rivet(AutotoolsPackage):
             args += ["--with-hepmc=" + self.spec["hepmc"].prefix]
         else:
             args += ["--with-hepmc3=" + self.spec["hepmc3"].prefix]
+            args += ["--with-hepmc3-libpath=" + self.spec["hepmc3"].libs.directories[0]]
 
         args += ["--with-fastjet=" + self.spec["fastjet"].prefix]
         args += ["--with-yoda=" + self.spec["yoda"].prefix]
 
         args += ["--with-fjcontrib=" + self.spec["fjcontrib"].prefix]
+
+        if self.spec.satisfies("^highfive"):
+            args += ["--with-highfive=" + self.spec["highfive"].prefix]
 
         args += ["--disable-pdfmanual"]
 

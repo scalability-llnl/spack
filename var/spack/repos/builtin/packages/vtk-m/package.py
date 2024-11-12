@@ -185,6 +185,12 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
         when="@1.6.0:2.1 +cuda ^cuda@12.5:",
     )
 
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("@:2.2.0 %oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
+
     def cmake_args(self):
         spec = self.spec
         options = []
