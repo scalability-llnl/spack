@@ -19,25 +19,25 @@ import spack.util.hash as hash
 #: This file lives in $prefix/lib/spack/spack/__file__
 prefix = str(PurePath(llnl.util.filesystem.ancestor(__file__, 4)))
 
-# Below paths pull configuration from the host environment.
-#
-# There are three environment variables you can use to isolate spack from
-# the host environment:
-# - `SPACK_USER_CONFIG_PATH`: override `~/.spack` location (for config and caches)
-# - `SPACK_SYSTEM_CONFIG_PATH`: override `/etc/spack` configuration scope.
-# - `SPACK_DISABLE_LOCAL_CONFIG`: disable both of these locations.
-
 
 # User configuration and caches in $HOME/.spack
+# Override w/ `SPACK_USER_CONFIG_PATH`
 def _get_user_config_path():
     return os.path.expanduser(os.getenv("SPACK_USER_CONFIG_PATH") or "~%s.spack" % os.sep)
 
 
 # Configuration in /etc/spack on the system
+# Override w/ `SPACK_SYSTEM_CONFIG_PATH`
 def _get_system_config_path():
     return os.path.expanduser(
         os.getenv("SPACK_SYSTEM_CONFIG_PATH") or os.sep + os.path.join("etc", "spack")
     )
+
+
+def dir_is_occupied(x, except_for=None):
+    x = pathlib.Path(x)
+    except_for = except_for or set()
+    return not (x.is_dir() and bool(set(x.iterdir()) - except_for))
 
 
 #: User configuration location
@@ -97,11 +97,6 @@ default_license_dir = os.path.join(etc_path, "licenses")
 # Things in $spack/var/spack
 #
 read_var_path = os.path.join(prefix, "var", "spack")
-
-def dir_is_occupied(x, except_for=None):
-    x = pathlib.Path(x)
-    except_for = except_for or set()
-    return not (x.is_dir() and bool(set(x.iterdir()) - except_for))
 
 internal_opt_path = os.path.join(prefix, "opt")
 
