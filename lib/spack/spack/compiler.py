@@ -428,6 +428,11 @@ class Compiler:
     @property
     def default_libc(self) -> Optional["spack.spec.Spec"]:
         """Determine libc targeted by the compiler from link line"""
+        # technically this should be testing the target platform of the compiler, but we don't have
+        # that, so stick to host platform for now.
+        if sys.platform in ("darwin", "win32"):
+            return None
+
         dynamic_linker = self.default_dynamic_linker
 
         if not dynamic_linker:
@@ -449,14 +454,20 @@ class Compiler:
         return self.cache.get(self).c_compiler_output
 
     def _compile_dummy_c_source(self) -> Optional[str]:
-        cc = self.cc if self.cc else self.cxx
+        if self.cc:
+            cc = self.cc
+            ext = "c"
+        else:
+            cc = self.cxx
+            ext = "cc"
+
         if not cc or not self.verbose_flag:
             return None
 
         try:
             tmpdir = tempfile.mkdtemp(prefix="spack-implicit-link-info")
             fout = os.path.join(tmpdir, "output")
-            fin = os.path.join(tmpdir, "main.c")
+            fin = os.path.join(tmpdir, f"main.{ext}")
 
             with open(fin, "w") as csource:
                 csource.write(
