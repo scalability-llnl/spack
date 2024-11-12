@@ -9,7 +9,7 @@ import os
 import re
 import sys
 from collections import Counter
-from typing import Dict, List, Set, Union
+from typing import List, Union
 
 import llnl.string
 import llnl.util.tty as tty
