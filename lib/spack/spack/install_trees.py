@@ -52,8 +52,8 @@ def install_tree_config():
 
 def _most_recent_internal_call():
     """If called within an audit for a Python library function, finds
-       the most recent spot within Spack's source code that generated
-       the call.
+    the most recent spot within Spack's source code that generated
+    the call.
     """
 
     stack = inspect.stack()
