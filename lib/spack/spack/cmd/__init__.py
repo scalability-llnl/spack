@@ -184,17 +184,17 @@ def parse_specs(
 
     # Special case if every spec has an abstract spec
     if all(spec.concrete or spec.abstract_hash for spec in specs):
-        ret = [s.concretized() for s in specs]
+        ret = [s.lookup_hash() for s in specs]
 
         unify = spack.config.get("concretizer:unify", False)
         if unify is True:  # True, "when_possible", False are possible values
+            runtimes = spack.repo.PATH.packages_with_tags("runtime")
             specs_per_name = Counter(
                 spec.name
                 for spec in traverse.traverse_nodes(
                     ret, deptype=("link", "run"), key=traverse.by_dag_hash
                 )
-                # TODO: make this less special -- client code shouldn't need to know this.
-                if spec.name != "gcc-runtime"  # gcc runtime is special and allowed multiples
+                if spec.name not in runtimes  # runtimes are allowed multiple times
             )
 
             conflicts = sorted(name for name, count in specs_per_name.items() if count > 1)
