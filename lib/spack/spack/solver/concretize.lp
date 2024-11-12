@@ -316,17 +316,20 @@ possible_version_weight(node(ID, Package), Weight)
 
 % If there is at least a version that satisfy the constraint, impose a lower
 % bound on the choice rule to avoid false positives with the error below
-1 { attr("version", node(ID, Package), Version) : pkg_fact(Package, version_satisfies(Constraint, Version)) }
+{ attr("version", node(ID, Package), Version) : pkg_fact(Package, version_satisfies(Constraint, Version)) }
   :- attr("node_version_satisfies", node(ID, Package), Constraint),
-     pkg_fact(Package, version_satisfies(Constraint, _)),
-     internal_error("must choose a single version to satisfy version constraints").
+     pkg_fact(Package, version_satisfies(Constraint, _)).
 
 % More specific error message if the version cannot satisfy some constraint
 % Otherwise covered by `no_version_error` and `versions_conflict_error`.
-error(10, "Cannot satisfy '{0}@{1}'", Package, Constraint)
+error(1, "Cannot satisfy '{0}@{1}'", Package, Constraint)
   :- attr("node_version_satisfies", node(ID, Package), Constraint),
      attr("version", node(ID, Package), Version),
      not pkg_fact(Package, version_satisfies(Constraint, Version)).
+
+error(10, "Cannot satisfy '{0}@{1}'", Package, Constraint)
+  :- attr("node_version_satisfies", node(ID, Package), Constraint),
+     not attr("version", node(ID, Package), _).
 
 attr("node_version_satisfies", node(ID, Package), Constraint)
   :- attr("version", node(ID, Package), Version),
@@ -1235,7 +1238,7 @@ propagated_flag(node(PackageID, Package), node_flag(FlagType, Flag, FlagGroup, S
 attr("node_flag", PackageNode, NodeFlag) :- propagated_flag(PackageNode, NodeFlag, _).
 
 % Cannot propagate the same flag from two distinct sources
-error(100, "{0} and {1} cannot both propagate compiler flags '{2}' to {3}", Source1, Source2, Package, FlagType) :-
+error(100, "{0} and {1} cannot both propagate compiler flags '{2}' to {3}", Source1, Source2, FlagType, Package) :-
   propagated_flag(node(ID, Package), node_flag(FlagType, _, _, _), node(_, Source1)),
   propagated_flag(node(ID, Package), node_flag(FlagType, _, _, _), node(_, Source2)),
   Source1 < Source2.
@@ -1268,7 +1271,7 @@ has_built_packages() :- build(X), not external(X).
 
 % FIXME (compiler as nodes): is this version constraint always required and better than the callback?
 % "gcc-runtime" and the "gcc" it depends on must be at the same version
-% attr("version", node(X, "gcc"), Version) :-
+% attr("version", node(Y, "gcc"), Version) :-
 %   attr("version", node(X, "gcc-runtime"), Version),
 %   attr("depends_on", node(X, "gcc-runtime"), node(Y, "gcc"), "build").
 

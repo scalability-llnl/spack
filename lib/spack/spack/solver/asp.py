@@ -2724,7 +2724,7 @@ class SpackSolverSetup:
                                 arg = ast_sym(ast_sym(term.atom).arguments[0])
                                 symbol = AspFunction(name)(arg.string)
                                 self.assumptions.append((parse_term(str(symbol)), True))
-                                self.gen.asp_problem.append(f"{symbol}.\n")
+                                self.gen.asp_problem.append(f"{{ {symbol} }}.\n")
 
         path = os.path.join(parent_dir, "concretize.lp")
         parse_files([path], visit)
