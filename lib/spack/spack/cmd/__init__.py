@@ -8,7 +8,8 @@ import importlib
 import os
 import re
 import sys
-from typing import List, Union
+from collections import Counter
+from typing import Dict, List, Set, Union
 
 import llnl.string
 import llnl.util.tty as tty
@@ -183,22 +184,21 @@ def parse_specs(
 
     # Special case if every spec has an abstract spec
     if all(spec.concrete or spec.abstract_hash for spec in specs):
-        ret = [s.concretize() for s in specs]
+        ret = [s.concretized() for s in specs]
 
         unify = spack.config.get("concretizer:unify", False)
-        if unify is True:
-            hashes_per_name = {}
-            for spec in ret:
-                for dep in spec.traverse(deptype=("link", "run")):
-                    if dep.name == "gcc-runtime":
-                        # gcc runtime is allowed multiple times in a DAG unlike other pkgs
-                        continue
-                    specs_per_name.set_default(dep.name, set()).append(dep.dag_hash())
-            if any(len(hashes) > 1 for _, hashes in hashes_per_name.items()):
-                msg = ("Specs conflict and `concretizer:unify` is configured true.\n",)
+        if unify is True:  # True, "when_possible", False are possible values
+            specs_per_name = Counter(
+                dep.name
+                for spec in ret
+                for dep in spec.traverse(deptype=("link", "run"))
+                if dep.name != "gcc-runtime"  # gcc runtime is special and allowed multiples
+            )
+            if any(count > 1 for count in specs_per_name.values()):
+                msg = "Specs conflict and `concretizer:unify` is configured true.\n"
                 msg += f"    specs: {specs}\n"
                 msg += "    Either loosen the spec constraints or change unification config."
-                raise UnsatisfiableSpecError("msg")
+                raise spack.error.SpecError(msg)
         return ret
 
     to_concretize = [(s, None) for s in specs]
