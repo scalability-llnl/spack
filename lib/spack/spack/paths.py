@@ -19,6 +19,33 @@ import spack.util.hash as hash
 #: This file lives in $prefix/lib/spack/spack/__file__
 prefix = str(PurePath(llnl.util.filesystem.ancestor(__file__, 4)))
 
+# Below paths pull configuration from the host environment.
+#
+# There are three environment variables you can use to isolate spack from
+# the host environment:
+# - `SPACK_USER_CONFIG_PATH`: override `~/.spack` location (for config and caches)
+# - `SPACK_SYSTEM_CONFIG_PATH`: override `/etc/spack` configuration scope.
+# - `SPACK_DISABLE_LOCAL_CONFIG`: disable both of these locations.
+
+
+# User configuration and caches in $HOME/.spack
+def _get_user_config_path():
+    return os.path.expanduser(os.getenv("SPACK_USER_CONFIG_PATH") or "~%s.spack" % os.sep)
+
+
+# Configuration in /etc/spack on the system
+def _get_system_config_path():
+    return os.path.expanduser(
+        os.getenv("SPACK_SYSTEM_CONFIG_PATH") or os.sep + os.path.join("etc", "spack")
+    )
+
+
+#: User configuration location
+user_config_path = _get_user_config_path()
+
+#: System configuration location
+system_config_path = _get_system_config_path()
+
 #: synonym for prefix
 spack_root = prefix
 
@@ -144,34 +171,6 @@ default_user_bootstrap_path = os.path.join(user_cache_path, "bootstrap")
 
 #: transient caches for Spack data (virtual cache, patch sha256 lookup, etc.)
 default_misc_cache_path = os.path.join(user_cache_path, "cache")
-
-
-# Below paths pull configuration from the host environment.
-#
-# There are three environment variables you can use to isolate spack from
-# the host environment:
-# - `SPACK_USER_CONFIG_PATH`: override `~/.spack` location (for config and caches)
-# - `SPACK_SYSTEM_CONFIG_PATH`: override `/etc/spack` configuration scope.
-# - `SPACK_DISABLE_LOCAL_CONFIG`: disable both of these locations.
-
-
-# User configuration and caches in $HOME/.spack
-def _get_user_config_path():
-    return os.path.expanduser(os.getenv("SPACK_USER_CONFIG_PATH") or "~%s.spack" % os.sep)
-
-
-# Configuration in /etc/spack on the system
-def _get_system_config_path():
-    return os.path.expanduser(
-        os.getenv("SPACK_SYSTEM_CONFIG_PATH") or os.sep + os.path.join("etc", "spack")
-    )
-
-
-#: User configuration location
-user_config_path = _get_user_config_path()
-
-#: System configuration location
-system_config_path = _get_system_config_path()
 
 #: Recorded directory where spack command was originally invoked
 spack_working_dir = None
