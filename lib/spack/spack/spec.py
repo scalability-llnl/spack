@@ -59,7 +59,7 @@ import platform
 import re
 import socket
 import warnings
-from typing import Any, Callable, Dict, List, Match, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Match, Optional, Set, Tuple, Union
 
 import archspec.cpu
 
@@ -2828,7 +2828,7 @@ class Spec:
             msg += "    For each package listed, choose another spec\n"
             raise SpecDeprecatedError(msg)
 
-    def concretize(self, tests: Union[bool, List[str]] = False) -> None:
+    def concretize(self, tests: Union[bool, Iterable[str]] = False) -> None:
         """Concretize the current spec.
 
         Args:
@@ -2956,7 +2956,7 @@ class Spec:
         for spec in self.traverse():
             spec._cached_hash(ht.dag_hash)
 
-    def concretized(self, tests: bool = False) -> "spack.spec.Spec":
+    def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "spack.spec.Spec":
         """This is a non-destructive version of concretize().
 
         First clones, then returns a concrete version of this package

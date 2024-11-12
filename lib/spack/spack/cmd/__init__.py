@@ -190,14 +190,19 @@ def parse_specs(
         if unify is True:  # True, "when_possible", False are possible values
             specs_per_name = Counter(
                 spec.name
-                for spec in traverse.traverse_nodes(ret, deptype=("link", "run"))
+                for spec in traverse.traverse_nodes(
+                    ret, deptype=("link", "run"), key=traverse.by_dag_hash
+                )
+                # TODO: make this less special -- client code shouldn't need to know this.
                 if spec.name != "gcc-runtime"  # gcc runtime is special and allowed multiples
             )
-            if any(count > 1 for count in specs_per_name.values()):
-                msg = "Specs conflict and `concretizer:unify` is configured true.\n"
-                msg += f"    specs: {specs}\n"
-                msg += "    Either loosen the spec constraints or change unification config."
-                raise spack.error.SpecError(msg)
+
+            conflicts = sorted(name for name, count in specs_per_name.items() if count > 1)
+            if conflicts:
+                raise spack.error.SpecError(
+                    "Specs conflict and `concretizer:unify` is configured true.",
+                    f"    specs depend on multiple versions of {', '.join(conflicts)}",
+                )
         return ret
 
     to_concretize = [(s, None) for s in specs]
