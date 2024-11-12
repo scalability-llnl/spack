@@ -180,7 +180,7 @@ def parse_specs(
 
     # Special case for concretizing a single spec
     if len(specs) == 1:
-        return specs[0].concretized()
+        return [specs[0].concretized()]
 
     # Special case if every spec has an abstract spec
     if all(spec.concrete or spec.abstract_hash for spec in specs):
