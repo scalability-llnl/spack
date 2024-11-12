@@ -31,12 +31,13 @@ import spack.config
 import spack.database
 import spack.directory_layout
 import spack.error
+import spack.install_trees
 import spack.paths
 import spack.spec
 import spack.util.path
 
 #: default installation root
-DEFAULT_INSTALL_TREE_ROOT = spack.paths.installs_base
+DEFAULT_INSTALL_TREE_ROOT = spack.install_trees.install_tree()
 
 
 def parse_install_tree(config_dict):
