@@ -3769,8 +3769,7 @@ class Spec:
             self.edges_to_dependencies(depflag=dt.BUILD | dt.TEST),
         )
 
-        # Consider runtime dependencies and direct build/test deps before transitive dependencies,
-        # and prefer matches closest to the root.
+        # Consider runtime dependencies and direct build/test deps only
         try:
             edge = next((e for e in order() if e.spec.name == name or name in e.virtuals))
         except StopIteration:
