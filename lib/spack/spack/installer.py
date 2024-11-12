@@ -868,7 +868,6 @@ class Task:
         pkg: "spack.package_base.PackageBase",
         request: BuildRequest,
         *,
-        compiler: bool = False,
         start: float = 0.0,
         attempts: int = 0,
         status: BuildStatus = BuildStatus.QUEUED,
@@ -1198,15 +1197,15 @@ class InstallTask(Task):
 
         tty.msg(install_msg(pkg_id, self.pid, install_status))
         self.start = self.start or time.time()
-        self.status = STATUS_INSTALLING
+        self.status = BuildStatus.INSTALLING
 
         try:
             if _install_from_cache(pkg, self.explicit, unsigned):
-                if self.compiler:
-                    _add_compiler_package_to_config(pkg)
                 return ExecuteResult.SUCCESS
             elif self.cache_only:
-                raise InstallError("No binary found when cache-only was specified", pkg=pkg)
+                raise spack.error.InstallError(
+                    "No binary found when cache-only was specified", pkg=pkg
+                )
             else:
                 tty.msg(f"No binary for {pkg_id} found: installing from source")
                 return ExecuteResult.MISSING_BINARY
@@ -1224,10 +1223,9 @@ class InstallTask(Task):
         build_task = BuildTask(
             pkg=self.pkg,
             request=self.request,
-            compiler=self.compiler,
             start=0,
             attempts=self.attempts,
-            status=STATUS_ADDED,
+            status=BuildStatus.QUEUED,
             installed=installed,
         )
 
@@ -1756,7 +1754,7 @@ class PackageInstaller:
 
                 # Add a new task if we need one
                 if dep_id not in self.build_tasks and dep_id not in self.installed:
-                    self._add_init_task(dep_pkg, task.request, False, self.all_dependencies)
+                    self._add_init_task(dep_pkg, task.request, self.all_dependencies)
                 # Add edges for an existing task if it exists
                 elif dep_id in self.build_tasks:
                     for parent in dep.dependents():
@@ -1856,28 +1854,6 @@ class PackageInstaller:
         return rc  # Used by reporters to skip requeued tasks
 
     def _overwrite_install_task(self, task: Task, install_status: InstallStatus) -> ExecuteResult:
-        """
-        Try to run the install task overwriting the package prefix.
-        If this fails, try to recover the original install prefix. If that fails
-        too, mark the spec as uninstalled. This function always the original
-        install error if installation fails.
-        """
-
-
-class OverwriteInstall:
-    def __init__(
-        self,
-        installer: PackageInstaller,
-        database: spack.database.Database,
-        task: Task,
-        install_status: InstallStatus,
-    ):
-        self.installer = installer
-        self.database = database
-        self.task = task
-        self.install_status = install_status
-
-    def install(self):
         """
         Try to run the install task overwriting the package prefix.
         If this fails, try to recover the original install prefix. If that fails
