@@ -3753,16 +3753,10 @@ class Spec:
             self.edges_to_dependencies(depflag=dt.BUILD | dt.TEST),
         )
 
-        # Consider runtime dependencies and direct build/test deps before transitive dependencies,
-        # and prefer matches closest to the root.
+        # Consider runtime dependencies and direct build/test deps only
         try:
             child: Spec = next(
-                e.spec
-                for e in itertools.chain(
-                    (e for e in order() if e.spec.name == name or name in e.virtuals),
-                    # for historical reasons
-                    (e for e in order() if e.spec.concrete and e.spec.package.provides(name)),
-                )
+                e.spec for e in order() if e.spec.name == name or name in e.virtuals
             )
         except StopIteration:
             raise KeyError(f"No spec with name {name} in {self}")
