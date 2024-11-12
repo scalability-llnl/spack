@@ -48,5 +48,25 @@ def install_tree_config():
     return cfgs
 
 
+def _guard_writes(event, args):
+    if event == "open":
+        path, mode = args[:2]
+        abs_path = os.path.abspath(path)
+        intent_to_modify = set(mode) & set("wax")
+        if abs_path.startswith(paths.prefix) and intent_to_modify:
+            pass
+    elif event == "shutil.copyfile":
+        src, dst = args[:2]
+        abs_dst = os.path.abspath(dst)
+        if abs_dst.startswith(paths.prefix):
+            pass
+
+
+def guard_writes_into_spack():
+    import sys
+
+    sys.addaudithook(_guard_writes)
+
+
 def shared_trees():
     return pathlib.Path(paths.system_config_path) / "install-trees"
