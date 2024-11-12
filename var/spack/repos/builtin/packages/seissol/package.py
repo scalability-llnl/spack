@@ -155,7 +155,7 @@ class Seissol(CMakePackage, CudaPackage, ROCmPackage):
     conflicts(
         "%intel",
         when="@1.3:",
-        msg="The Intel compiler is unsupported from version 1.3 onward. Please use e.g.gcc or oneapi",
+        msg="The Intel compiler is unsupported from v1.3 onward. Please use e.g.gcc or oneapi",
     )
 
     variant(
@@ -267,7 +267,7 @@ class Seissol(CMakePackage, CudaPackage, ROCmPackage):
             if self.spec.satisfies("+cuda"):
                 cuda_arch = self.spec.variants["cuda_arch"].value[0]
                 args.append(f"-DDEVICE_ARCH=sm_{cuda_arch}")
-                args.append("-DUSE_GRAPH_CAPTURING=ON -DENABLE_PROFILING_MARKERS=ON")
+                rgs.append("-DUSE_GRAPH_CAPTURING=ON -DENABLE_PROFILING_MARKERS=ON")
                 if self.spec.satisfies("~sycl_gemm"):
                     args.append("-DDEVICE_BACKEND=cuda")
 
