@@ -218,7 +218,7 @@ def root_path(name, module_set_name):
     # Merge config values into the defaults so we prefer configured values
     roots = spack.config.merge_yaml(defaults, roots)
 
-    path = roots.get(name, os.path.join(spack.paths.share_path, name))
+    path = roots.get(name, os.path.join(spack.paths.modules_base, name))
     return spack.util.path.canonicalize_path(path)
 
 

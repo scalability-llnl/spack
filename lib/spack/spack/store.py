@@ -35,8 +35,8 @@ import spack.paths
 import spack.spec
 import spack.util.path
 
-#: default installation root, relative to the Spack install path
-DEFAULT_INSTALL_TREE_ROOT = os.path.join(spack.paths.opt_path, "spack")
+#: default installation root
+DEFAULT_INSTALL_TREE_ROOT = spack.paths.installs_base
 
 
 def parse_install_tree(config_dict):
