@@ -39,6 +39,7 @@ import spack.cmd
 import spack.config
 import spack.environment as ev
 import spack.error
+import spack.install_trees
 import spack.modules
 import spack.paths
 import spack.platforms
@@ -572,6 +573,9 @@ def setup_main_options(args):
     # when to use color (takes always, auto, or never)
     if args.color is not None:
         color.set_color_when(args.color)
+
+    if args.install_root:
+        spack.install_trees.install_root = args.install_root
 
 
 def allows_unknown_args(command):

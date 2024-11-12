@@ -88,6 +88,8 @@ def user_root():
 def shared_trees():
     root_dir = pathlib.Path(system_config_path) / "install-trees"
 
+per_spack_user_root = str(user_root())
+
 #
 # Things in $spack/etc/spack
 #
@@ -104,15 +106,13 @@ if dir_is_occupied(internal_opt_path):
     opt_path = internal_opt_path
     modules_base = share_path
 else:
-    opt_path = os.path.join(str(user_root()), "opt")
-    modules_base = os.path.join(str(user_root()), "modules")
+    opt_path = os.path.join(per_spack_user_root, "opt")
+    modules_base = os.path.join(per_spack_user_root, "modules")
 
 if dir_is_occupied(read_var_path, except_for={"repos"}):
     var_path = read_var_path
 else:
-    var_path = os.path.join(str(user_root()), "var", "spack")
-
-installs_base = os.path.join(internal_opt_path, "spack")
+    var_path = os.path.join(per_spack_user_root, "var", "spack")
 
 # TODO: also check share_path/{lmod, tcl}
 # TODO: can use new-style locations if user explicitly specifies --install-root
