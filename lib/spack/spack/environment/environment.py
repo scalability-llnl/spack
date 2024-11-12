@@ -2777,7 +2777,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         if concrete:
             include_keyword = included_concrete_name
 
-        includes = self.pristine_configuration.get(include_keyword, [])
+        includes = self.configuration.get(include_keyword, [])
 
         return includes
 
@@ -2819,7 +2819,6 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             include_list[:0] = include
             config[include_keyword] = include_list
 
-        _add_includes(self.pristine_configuration)
         _add_includes(self.configuration)
 
         self.changed = True
@@ -2862,7 +2861,6 @@ class EnvironmentManifestFile(collections.abc.Mapping):
                     if ii in include_idx_map:
                         include_idx_map.pop(ii)
 
-        _remove_includes(self.pristine_configuration.get(include_keyword))
         _remove_includes(self.configuration.get(include_keyword))
 
         self.changed = True

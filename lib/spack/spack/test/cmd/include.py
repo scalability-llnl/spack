@@ -10,11 +10,7 @@ from spack.main import SpackCommand
 
 # TODO-27021
 # everything here uses the mock_env_path
-pytestmark = [
-    pytest.mark.usefixtures("mutable_mock_env_path", "config", "mutable_mock_repo"),
-    pytest.mark.maybeslow,
-    pytest.mark.not_on_windows("Envs unsupported on Windows"),
-]
+pytestmark = [pytest.mark.usefixtures("config", "mutable_mock_repo"), pytest.mark.maybeslow]
 
 env = SpackCommand("env")
 add = SpackCommand("add")
@@ -74,9 +70,9 @@ packages:
     test = ev.read(str(config_dir / "test"))
     # Ensure the the order of config includes matches the expected order 2, 1, 0
     # assert len(test.manifest.list_includes()) == 3
-    assert str(config_dir / "2") in test.manifest.pristine_configuration["include"][0]
-    assert str(config_dir / "1") in test.manifest.pristine_configuration["include"][1]
-    assert str(config_dir / "0") in test.manifest.pristine_configuration["include"][2]
+    assert str(config_dir / "2") in test.manifest.configuration["include"][0]
+    assert str(config_dir / "1") in test.manifest.configuration["include"][1]
+    assert str(config_dir / "0") in test.manifest.configuration["include"][2]
 
 
 def test_include_config_remove(tmp_path):
@@ -109,8 +105,8 @@ spack:
 
     # Verify that only the "2" include path exists
     test = ev.read(str(config_dir / "test"))
-    assert len(test.manifest.pristine_configuration["include"]) == 1
-    assert str(config_dir / "2") in test.manifest.pristine_configuration["include"][0]
+    assert len(test.manifest.configuration["include"]) == 1
+    assert str(config_dir / "2") in test.manifest.configuration["include"][0]
 
 
 def test_include_config_list(tmp_path):
@@ -166,19 +162,19 @@ spack:
         e = ev.read(str(env_dir / name))
         return e.specs_by_hash, e
 
-    bspecs, _ = create_test_env("B", test_env_template.format("b"))
-    especs, _ = create_test_env("E", test_env_template.format("e"))
+    bspecs, _ = create_test_env("B", test_env_template.format("pkg-b"))
+    especs, _ = create_test_env("E", test_env_template.format("pkg-e"))
 
     # Create a A environment that includes B and E
-    _, testa = create_test_env("A", test_env_template.format("a"))
+    _, testa = create_test_env("A", test_env_template.format("pkg-a"))
     with testa:
         include("--concrete", "add", str(env_dir / "B"))
         include("--concrete", "add", str(env_dir / "E"))
         concretize("-f")
 
     testa = ev.read(str(env_dir / "A"))
-    assert str(env_dir / "B") in testa.manifest.pristine_configuration["include_concrete"]
-    assert str(env_dir / "E") in testa.manifest.pristine_configuration["include_concrete"]
+    assert str(env_dir / "B") in testa.manifest.configuration["include_concrete"]
+    assert str(env_dir / "E") in testa.manifest.configuration["include_concrete"]
     # TODO: Add checks for reuse of included concrete specs once that works
 
 
@@ -207,11 +203,11 @@ spack:
         e = ev.read(str(env_dir / name))
         return e.specs_by_hash, e
 
-    bspecs, _ = create_test_env("B", test_env_template.format("b"))
-    especs, _ = create_test_env("E", test_env_template.format("e"))
+    bspecs, _ = create_test_env("B", test_env_template.format("pkg-b"))
+    especs, _ = create_test_env("E", test_env_template.format("pkg-e"))
 
     # Create a A environment that includes B and E
-    _, testa = create_test_env("A", test_env_template.format("a"))
+    _, testa = create_test_env("A", test_env_template.format("pkg-a"))
     with testa:
         include("--concrete", "add", str(env_dir / "B"))
         include("--concrete", "add", str(env_dir / "E"))
@@ -219,8 +215,8 @@ spack:
         concretize("-f")
 
     testa = ev.read(str(env_dir / "A"))
-    assert str(env_dir / "B") not in testa.manifest.pristine_configuration["include_concrete"]
-    assert str(env_dir / "E") in testa.manifest.pristine_configuration["include_concrete"]
+    assert str(env_dir / "B") not in testa.manifest.configuration["include_concrete"]
+    assert str(env_dir / "E") in testa.manifest.configuration["include_concrete"]
     # TODO: Add checks for reuse of included concrete specs once that works
 
 
@@ -252,11 +248,11 @@ spack:
         e = ev.read(str(env_dir / name))
         return e.specs_by_hash, e
 
-    bspecs, _ = create_test_env("B", test_env_template.format("b"))
-    especs, _ = create_test_env("E", test_env_template.format("e"))
+    bspecs, _ = create_test_env("B", test_env_template.format("pkg-b"))
+    especs, _ = create_test_env("E", test_env_template.format("pkg-e"))
 
     # Create a A environment that includes B and E
-    _, testa = create_test_env("A", test_env_template.format("a"))
+    _, testa = create_test_env("A", test_env_template.format("pkg-a"))
     with testa:
         include("--concrete", "add", str(env_dir / "B"))
         include("--concrete", "add", str(env_dir / "E"))
