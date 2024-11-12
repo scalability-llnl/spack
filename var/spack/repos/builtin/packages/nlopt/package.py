@@ -51,17 +51,12 @@ class Nlopt(CMakePackage):
     extends("python", when="+python")
 
     def cmake_args(self):
-        # Add arguments other than
-        # CMAKE_INSTALL_PREFIX and CMAKE_BUILD_TYPE
         spec = self.spec
-        args = []
-
-        # Specify on command line to alter defaults:
-        # eg: spack install nlopt@master +guile -octave +cxx
-
-        args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
-        args.append(self.define_from_variant("NLOPT_OCTAVE", "octave"))
-        args.append(self.define_from_variant("NLOPT_CXX", "cxx"))
+        args = [
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define_from_variant("NLOPT_OCTAVE", "octave"),
+            self.define_from_variant("NLOPT_CXX", "cxx"),
+        ]
 
         if spec.satisfies("+matlab"):
             args.append(self.define("Matlab_ROOT_DIR", spec["matlab"].command.path))
