@@ -97,14 +97,16 @@ class LmodConfiguration(BaseConfiguration):
 
     default_projections = {"all": "{name}/{version}"}
 
+    compiler: Optional[spack.spec.Spec]
+
     def __init__(self, spec: spack.spec.Spec, module_set_name: str, explicit: bool) -> None:
         super().__init__(spec, module_set_name, explicit)
 
         # FIXME (compiler as nodes): make this a bit more robust
         candidates = collections.defaultdict(list)
         for node in spec.traverse(deptype=("link", "run")):
-            candidates["c"].extend(node.dependencies(virtuals="c"))
-            candidates["cxx"].extend(node.dependencies(virtuals="c"))
+            candidates["c"].extend(node.dependencies(virtuals=("c",)))
+            candidates["cxx"].extend(node.dependencies(virtuals=("c",)))
 
         # FIXME (compiler as nodes): decide what to do when we have more than one C compiler
         if candidates["c"] and len(set(candidates["c"])) == 1:
