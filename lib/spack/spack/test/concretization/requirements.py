@@ -10,8 +10,10 @@ import pytest
 import spack.config
 import spack.error
 import spack.package_base
+import spack.paths
 import spack.repo
 import spack.solver.asp
+import spack.store
 import spack.util.spack_yaml as syaml
 import spack.version
 from spack.installer import PackageInstaller

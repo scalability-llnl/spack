@@ -28,7 +28,7 @@ class LlvmDetection(PackageBase):
         # Executables like lldb-vscode-X are daemon listening on some port and would hang Spack
         # during detection. clang-cl, clang-cpp, etc. are dev tools that we don't need to test
         reject = re.compile(
-            r"-(vscode|cpp|cl|gpu|tidy|rename|scan-deps|format|refactor|offload|"
+            r"-(vscode|cpp|cl|ocl|gpu|tidy|rename|scan-deps|format|refactor|offload|"
             r"check|query|doc|move|extdef|apply|reorder|change-namespace|"
             r"include-fixer|import-test|dap|server)"
         )

@@ -18,7 +18,7 @@ import os.path
 import sys
 import traceback
 import urllib.parse
-from typing import List, Optional, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import llnl.url
 import llnl.util.symlink
@@ -153,8 +153,66 @@ class Mirror:
         """Get the valid, canonicalized fetch URL"""
         return self.get_url("push")
 
+    def ensure_mirror_usable(self, direction: str = "push"):
+        access_pair = self._get_value("access_pair", direction)
+        access_token_variable = self._get_value("access_token_variable", direction)
+
+        errors = []
+
+        # Verify that the credentials that are variables expand
+        if access_pair and isinstance(access_pair, dict):
+            if "id_variable" in access_pair and access_pair["id_variable"] not in os.environ:
+                errors.append(f"id_variable {access_pair['id_variable']} not set in environment")
+            if "secret_variable" in access_pair:
+                if access_pair["secret_variable"] not in os.environ:
+                    errors.append(
+                        f"environment variable `{access_pair['secret_variable']}` "
+                        "(secret_variable) not set"
+                    )
+
+        if access_token_variable:
+            if access_token_variable not in os.environ:
+                errors.append(
+                    f"environment variable `{access_pair['access_token_variable']}` "
+                    "(access_token_variable) not set"
+                )
+
+        if errors:
+            msg = f"invalid {direction} configuration for mirror {self.name}: "
+            msg += "\n    ".join(errors)
+            raise spack.mirror.MirrorError(msg)
+
     def _update_connection_dict(self, current_data: dict, new_data: dict, top_level: bool):
-        keys = ["url", "access_pair", "access_token", "profile", "endpoint_url"]
+        # Only allow one to exist in the config
+        if "access_token" in current_data and "access_token_variable" in new_data:
+            current_data.pop("access_token")
+        elif "access_token_variable" in current_data and "access_token" in new_data:
+            current_data.pop("access_token_variable")
+
+        # If updating to a new access_pair that is the deprecated list, warn
+        warn_deprecated_access_pair = False
+        if "access_pair" in new_data:
+            warn_deprecated_access_pair = isinstance(new_data["access_pair"], list)
+        # If the not updating the current access_pair, and it is the deprecated list, warn
+        elif "access_pair" in current_data:
+            warn_deprecated_access_pair = isinstance(current_data["access_pair"], list)
+
+        if warn_deprecated_access_pair:
+            tty.warn(
+                f"in mirror {self.name}: support for plain text secrets in config files "
+                "(access_pair: [id, secret]) is deprecated and will be removed in a future Spack "
+                "version. Use environment variables instead (access_pair: "
+                "{id: ..., secret_variable: ...})"
+            )
+
+        keys = [
+            "url",
+            "access_pair",
+            "access_token",
+            "access_token_variable",
+            "profile",
+            "endpoint_url",
+        ]
         if top_level:
             keys += ["binary", "source", "signed", "autopush"]
         changed = False
@@ -270,11 +328,53 @@ class Mirror:
 
         return _url_or_path_to_url(url)
 
-    def get_access_token(self, direction: str) -> Optional[str]:
-        return self._get_value("access_token", direction)
+    def get_credentials(self, direction: str) -> Dict[str, Any]:
+        """Get the mirror credentials from the mirror config
 
-    def get_access_pair(self, direction: str) -> Optional[List]:
-        return self._get_value("access_pair", direction)
+        Args:
+            direction: fetch or push mirror config
+
+        Returns:
+            Dictionary from credential type string to value
+
+            Credential Type Map:
+                access_token -> str
+                access_pair  -> tuple(str,str)
+                profile      -> str
+        """
+        creddict: Dict[str, Any] = {}
+        access_token = self.get_access_token(direction)
+        if access_token:
+            creddict["access_token"] = access_token
+
+        access_pair = self.get_access_pair(direction)
+        if access_pair:
+            creddict.update({"access_pair": access_pair})
+
+        profile = self.get_profile(direction)
+        if profile:
+            creddict["profile"] = profile
+
+        return creddict
+
+    def get_access_token(self, direction: str) -> Optional[str]:
+        tok = self._get_value("access_token_variable", direction)
+        if tok:
+            return os.environ.get(tok)
+        else:
+            return self._get_value("access_token", direction)
+        return None
+
+    def get_access_pair(self, direction: str) -> Optional[Tuple[str, str]]:
+        pair = self._get_value("access_pair", direction)
+        if isinstance(pair, (tuple, list)) and len(pair) == 2:
+            return (pair[0], pair[1]) if all(pair) else None
+        elif isinstance(pair, dict):
+            id_ = os.environ.get(pair["id_variable"]) if "id_variable" in pair else pair["id"]
+            secret = os.environ.get(pair["secret_variable"])
+            return (id_, secret) if id_ and secret else None
+        else:
+            return None
 
     def get_profile(self, direction: str) -> Optional[str]:
         return self._get_value("profile", direction)

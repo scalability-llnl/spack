@@ -83,10 +83,17 @@ jobs:
 
   all-prechecks:
     needs: [ prechecks ]
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
     - name: Success
-      run: "true"
+      run: |
+        if [ "${{ needs.prechecks.result }}" == "failure" ] || [ "${{ needs.prechecks.result }}" == "canceled" ]; then
+          echo "Unit tests failed." 
+          exit 1
+        else
+          exit 0
+        fi
 
   coverage:
     needs: [ unit-tests, prechecks ]
@@ -94,8 +101,19 @@ jobs:
     secrets: inherit
 
   all:
-    needs: [ coverage, bootstrap ]
+    needs: [ unit-tests, coverage, bootstrap ]
+    if: ${{ always() }}
     runs-on: ubuntu-latest
+    # See https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs#needs-context
     steps:
-    - name: Success
-      run: "true"
+    - name: Status summary
+      run: |
+        if [ "${{ needs.unit-tests.result }}" == "failure" ] || [ "${{ needs.unit-tests.result }}" == "canceled" ]; then
+          echo "Unit tests failed." 
+          exit 1
+        elif [ "${{ needs.bootstrap.result }}" == "failure" ] || [ "${{ needs.bootstrap.result }}" == "canceled" ]; then
+          echo "Bootstrap tests failed." 
+          exit 1
+        else
+          exit 0
+        fi

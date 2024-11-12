@@ -2316,6 +2316,7 @@ class TestConcretize:
 
     @pytest.mark.regression("36339")
     @pytest.mark.not_on_windows("Not supported on Windows")
+    @pytest.mark.enable_compiler_execution
     def test_compiler_with_custom_non_numeric_version(self, mock_executable):
         """Test that, when a compiler has a completely made up version, we can use its
         'real version' to detect targets and don't raise during concretization.

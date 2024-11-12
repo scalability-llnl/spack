@@ -127,6 +127,12 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+sycl", when="@:2022.07.00", msg="SYCL support requires SLATE version 2023.08.25")
     conflicts("^hip@5.6.0:", when="@:2023.08.25", msg="Incompatible version of HIP/ROCm")
 
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
+
     def cmake_args(self):
         spec = self.spec
         backend_config = "-Duse_cuda=%s" % ("+cuda" in spec)

@@ -329,9 +329,9 @@ def test_update_4():
 
 
 @pytest.mark.parametrize("direction", ["fetch", "push"])
-def test_update_connection_params(direction):
+def test_update_connection_params(direction, tmpdir, monkeypatch):
     """Test whether new connection params expand the mirror config to a dict."""
-    m = spack.mirror.Mirror("https://example.com")
+    m = spack.mirror.Mirror("https://example.com", "example")
 
     assert m.update(
         {
@@ -354,11 +354,63 @@ def test_update_connection_params(direction):
             "endpoint_url": "https://example.com",
         },
     }
-
-    assert m.get_access_pair(direction) == ["username", "password"]
+    assert m.get_access_pair(direction) == ("username", "password")
     assert m.get_access_token(direction) == "token"
     assert m.get_profile(direction) == "profile"
     assert m.get_endpoint_url(direction) == "https://example.com"
+
+    # Expand environment variables
+    os.environ["_SPACK_TEST_PAIR_USERNAME"] = "expanded_username"
+    os.environ["_SPACK_TEST_PAIR_PASSWORD"] = "expanded_password"
+    os.environ["_SPACK_TEST_TOKEN"] = "expanded_token"
+
+    assert m.update(
+        {
+            "access_pair": {
+                "id_variable": "_SPACK_TEST_PAIR_USERNAME",
+                "secret_variable": "_SPACK_TEST_PAIR_PASSWORD",
+            }
+        },
+        direction,
+    )
+
+    assert m.to_dict() == {
+        "url": "https://example.com",
+        direction: {
+            "url": "http://example.org",
+            "access_pair": {
+                "id_variable": "_SPACK_TEST_PAIR_USERNAME",
+                "secret_variable": "_SPACK_TEST_PAIR_PASSWORD",
+            },
+            "access_token": "token",
+            "profile": "profile",
+            "endpoint_url": "https://example.com",
+        },
+    }
+
+    assert m.get_access_pair(direction) == ("expanded_username", "expanded_password")
+
+    assert m.update(
+        {
+            "access_pair": {"id": "username", "secret_variable": "_SPACK_TEST_PAIR_PASSWORD"},
+            "access_token_variable": "_SPACK_TEST_TOKEN",
+        },
+        direction,
+    )
+
+    assert m.to_dict() == {
+        "url": "https://example.com",
+        direction: {
+            "url": "http://example.org",
+            "access_pair": {"id": "username", "secret_variable": "_SPACK_TEST_PAIR_PASSWORD"},
+            "access_token_variable": "_SPACK_TEST_TOKEN",
+            "profile": "profile",
+            "endpoint_url": "https://example.com",
+        },
+    }
+
+    assert m.get_access_pair(direction) == ("username", "expanded_password")
+    assert m.get_access_token(direction) == "expanded_token"
 
 
 def test_mirror_name_or_url_dir_parsing(tmp_path):

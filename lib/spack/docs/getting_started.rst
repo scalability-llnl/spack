@@ -35,7 +35,7 @@ A build matrix showing which packages are working on which systems is shown belo
       .. code-block:: console
 
          apt update
-         apt install build-essential ca-certificates coreutils curl environment-modules gfortran git gpg lsb-release python3 python3-distutils python3-venv unzip zip
+         apt install bzip2 ca-certificates file g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd
 
    .. tab-item:: RHEL
 
@@ -43,14 +43,14 @@ A build matrix showing which packages are working on which systems is shown belo
 
          dnf install epel-release
          dnf group install "Development Tools"
-         dnf install curl findutils gcc-gfortran gnupg2 hostname iproute redhat-lsb-core python3 python3-pip python3-setuptools unzip python3-boto3
+         dnf install gcc-gfortran redhat-lsb-core python3 unzip
 
    .. tab-item:: macOS Brew
 
       .. code-block:: console
 
          brew update
-         brew install curl gcc git gnupg zip
+         brew install gcc git zip
 
 ------------
 Installation

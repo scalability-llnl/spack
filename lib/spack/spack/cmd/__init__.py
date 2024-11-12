@@ -545,6 +545,18 @@ class CommandNameError(spack.error.SpackError):
         super().__init__("{0} is not a permissible Spack command name.".format(name))
 
 
+class MultipleSpecsMatch(Exception):
+    """Raised when multiple specs match a constraint, in a context where
+    this is not allowed.
+    """
+
+
+class NoSpecMatches(Exception):
+    """Raised when no spec matches a constraint, in a context where
+    this is not allowed.
+    """
+
+
 ########################################
 # argparse types for argument validation
 ########################################

@@ -1436,14 +1436,13 @@ class SpackSolverSetup:
         for value in sorted(values):
             pkg_fact(fn.variant_possible_value(vid, value))
 
-            # when=True means unconditional, so no need for conditional values
-            if getattr(value, "when", True) is True:
+            # we're done here for unconditional values
+            if not isinstance(value, vt.ConditionalValue):
                 continue
 
-            # now we have to handle conditional values
-            quoted_value = spack.parser.quote_if_needed(str(value))
-            vstring = f"{name}={quoted_value}"
-            variant_has_value = spack.spec.Spec(vstring)
+            # make a spec indicating whether the variant has this conditional value
+            variant_has_value = spack.spec.Spec()
+            variant_has_value.variants[name] = spack.variant.AbstractVariant(name, value.value)
 
             if value.when:
                 # the conditional value is always "possible", but it imposes its when condition as
@@ -1454,10 +1453,12 @@ class SpackSolverSetup:
                     imposed_spec=value.when,
                     required_name=pkg.name,
                     imposed_name=pkg.name,
-                    msg=f"{pkg.name} variant {name} has value '{quoted_value}' when {value.when}",
+                    msg=f"{pkg.name} variant {name} has value '{value.value}' when {value.when}",
                 )
             else:
-                # We know the value is never allowed statically (when was false), but we can't just
+                vstring = f"{name}='{value.value}'"
+
+                # We know the value is never allowed statically (when was None), but we can't just
                 # ignore it b/c it could come in as a possible value and we need a good error msg.
                 # So, it's a conflict -- if the value is somehow used, it'll trigger an error.
                 trigger_id = self.condition(
