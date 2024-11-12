@@ -267,7 +267,7 @@ class Seissol(CMakePackage, CudaPackage, ROCmPackage):
             if self.spec.satisfies("+cuda"):
                 cuda_arch = self.spec.variants["cuda_arch"].value[0]
                 args.append(f"-DDEVICE_ARCH=sm_{cuda_arch}")
-                rgs.append("-DUSE_GRAPH_CAPTURING=ON -DENABLE_PROFILING_MARKERS=ON")
+                args.append("-DUSE_GRAPH_CAPTURING=ON -DENABLE_PROFILING_MARKERS=ON")
                 if self.spec.satisfies("~sycl_gemm"):
                     args.append("-DDEVICE_BACKEND=cuda")
 
