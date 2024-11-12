@@ -177,6 +177,30 @@ def parse_specs(
     if not concretize:
         return specs
 
+    # Special case for concretizing a single spec
+    if len(specs) == 1:
+        return specs[0].concretized()
+
+    # Special case if every spec has an abstract spec
+    if all(spec.concrete or spec.abstract_hash for spec in specs):
+        ret = [s.concretize() for s in specs]
+
+        unify = spack.config.get("concretizer:unify", False)
+        if unify is True:
+            hashes_per_name = {}
+            for spec in ret:
+                for dep in spec.traverse(deptype=("link", "run")):
+                    if dep.name == "gcc-runtime":
+                        # gcc runtime is allowed multiple times in a DAG unlike other pkgs
+                        continue
+                    specs_per_name.set_default(dep.name, set()).append(dep.dag_hash())
+            if any(len(hashes) > 1 for _, hashes in hashes_per_name.items()):
+                msg = ("Specs conflict and `concretizer:unify` is configured true.\n",)
+                msg += f"    specs: {specs}\n"
+                msg += "    Either loosen the spec constraints or change unification config."
+                raise UnsatisfiableSpecError("msg")
+        return ret
+
     to_concretize = [(s, None) for s in specs]
     return _concretize_spec_pairs(to_concretize, tests=tests)
 
