@@ -503,9 +503,11 @@ def make_argument_parser(**kwargs):
         "--print-shell-vars", action="store", help="print info needed by setup-env.*sh"
     )
     parser.add_argument(
-        '--install-root', dest='install_root',
-        action='store', default=None,
-        help='specify non-default install tree'
+        "--install-root",
+        dest="install_root",
+        action="store",
+        default=None,
+        help="specify non-default install tree",
     )
 
     return parser

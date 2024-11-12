@@ -7,9 +7,10 @@
 For tracking install trees.
 """
 
-import spack.paths as paths
-
 import os
+import pathlib
+
+import spack.paths as paths
 
 install_root = None
 
@@ -17,10 +18,8 @@ _old_installs_base = os.path.join(paths.internal_opt_path, "spack")
 
 default_install_base = os.path.join(paths.per_spack_user_root, "installs")
 
-alias = {
-    ".root": _old_installs_base,
-    ".user": default_install_base,
-}
+alias = {".root": _old_installs_base, ".user": default_install_base}
+
 
 def install_tree():
     """
@@ -47,3 +46,7 @@ def install_tree_config():
     root = install_tree()
     cfgs = os.path.join(root, "configs")
     return cfgs
+
+
+def shared_trees():
+    return pathlib.Path(paths.system_config_path) / "install-trees"

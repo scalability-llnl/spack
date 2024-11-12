@@ -10,10 +10,11 @@ throughout Spack and should bring in a minimal number of external
 dependencies.
 """
 import os
-from pathlib import PurePath
 import pathlib
+from pathlib import PurePath
 
 import llnl.util.filesystem
+
 import spack.util.hash as hash
 
 #: This file lives in $prefix/lib/spack/spack/__file__
@@ -74,6 +75,7 @@ hooks_path = os.path.join(module_path, "hooks")
 share_path = os.path.join(prefix, "share", "spack")
 etc_path = os.path.join(prefix, "etc", "spack")
 
+
 def user_root():
     """Default install tree and config scope.
 
@@ -84,9 +86,6 @@ def user_root():
     spack_prefix = prefix
     return pathlib.Path(user_config_path, hash.b32_hash(spack_prefix)[:7])
 
-
-def shared_trees():
-    root_dir = pathlib.Path(system_config_path) / "install-trees"
 
 per_spack_user_root = str(user_root())
 
