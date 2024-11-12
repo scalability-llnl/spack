@@ -178,15 +178,36 @@ def parse_specs(
     if not concretize:
         return specs
 
+    to_concretize = [(s, None) for s in specs]
+    return _concretize_spec_pairs(to_concretize, tests=tests)
+
+
+def _concretize_spec_pairs(to_concretize, tests=False):
+    """Helper method that concretizes abstract specs from a list of abstract,concrete pairs.
+
+    Any spec with a concrete spec associated with it will concretize to that spec. Any spec
+    with ``None`` for its concrete spec will be newly concretized. This method respects unification
+    rules from config."""
+    unify = spack.config.get("concretizer:unify", False)
+
     # Special case for concretizing a single spec
-    if len(specs) == 1:
-        return [specs[0].concretized()]
+    if len(to_concretize) == 1:
+        abstract, concrete = to_concretize[0]
+        return [concrete or abstract.concretized()]
 
-    # Special case if every spec has an abstract spec
-    if all(spec.concrete or spec.abstract_hash for spec in specs):
-        ret = [s if s.concrete else s.lookup_hash() for s in specs]
+    # Special case if every spec is either concrete or has an abstract hash
+    if all(
+        concrete or abstract.concrete or abstract.abstract_hash
+        for abstract, concrete in to_concretize
+    ):
+        # Get all the concrete specs
+        ret = [
+            concrete or (abstract if abstract.concrete else abstract.lookup_hash())
+            for abstract, concrete in to_concretize
+        ]
 
-        unify = spack.config.get("concretizer:unify", False)
+        # If unify: true, check that specs don't conflict
+        # Since all concrete, "when_possible" is not relevant
         if unify is True:  # True, "when_possible", False are possible values
             runtimes = spack.repo.PATH.packages_with_tags("runtime")
             specs_per_name = Counter(
@@ -205,18 +226,7 @@ def parse_specs(
                 )
         return ret
 
-    to_concretize = [(s, None) for s in specs]
-    return _concretize_spec_pairs(to_concretize, tests=tests)
-
-
-def _concretize_spec_pairs(to_concretize, tests=False):
-    """Helper method that concretizes abstract specs from a list of abstract,concrete pairs.
-
-    Any spec with a concrete spec associated with it will concretize to that spec. Any spec
-    with ``None`` for its concrete spec will be newly concretized. This method respects unification
-    rules from config."""
-    unify = spack.config.get("concretizer:unify", False)
-
+    # Standard case
     concretize_method = spack.concretize.concretize_separately  # unify: false
     if unify is True:
         concretize_method = spack.concretize.concretize_together
