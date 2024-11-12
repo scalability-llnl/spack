@@ -37,8 +37,7 @@ class PyBlosc2(PythonPackage):
         depends_on("py-cython")
         depends_on("cmake@3.11:")
         depends_on("ninja")
-
-        depends_on("pkgconfig", type="build")
+        depends_on("pkgconfig")
 
     def setup_build_environment(self, env):
         cmake_args = [*CMakeBuilder.std_args(self), CMakeBuilder.define("USE_SYSTEM_BLOSC2", True)]
