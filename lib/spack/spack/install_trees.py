@@ -7,7 +7,30 @@
 For tracking install trees.
 """
 
-# Default install tree is ~/<spack-prefix-hash>/
-# That has a config scope, add it in config.py
+import spack.paths as paths
+import spack.util.hash as hash
 
-# Also look in /etc/spack/ for install trees
+import pathlib
+
+
+def use_new_root():
+    internal_opt_dir = pathlib.Path(paths.internal_opt_path)
+    # If the spack-internal opt/ dir is nonempty, we are using the old
+    # root
+    return not (internal_opt_dir.is_dir() and any(internal_opt_dir.iterdir()))
+
+
+
+def user_root():
+    """Default install tree and config scope.
+
+    Applies when $spack/opt is not an install tree.
+
+    ~/<spack-prefix-hash>/
+    """
+    spack_prefix = paths.prefix
+    return pathlib.Path(paths.user_config_path, hash.b32_hash(spack_prefix)[:7])
+
+
+def shared_trees():
+    root_dir = pathlib.Path(paths.system_config_path) / "install-trees"

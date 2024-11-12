@@ -11,8 +11,10 @@ dependencies.
 """
 import os
 from pathlib import PurePath
+import pathlib
 
 import llnl.util.filesystem
+import spack.util.hash as hash
 
 #: This file lives in $prefix/lib/spack/spack/__file__
 prefix = str(PurePath(llnl.util.filesystem.ancestor(__file__, 4)))
@@ -42,9 +44,22 @@ build_systems_path = os.path.join(module_path, "build_systems")
 operating_system_path = os.path.join(module_path, "operating_systems")
 test_path = os.path.join(module_path, "test")
 hooks_path = os.path.join(module_path, "hooks")
-opt_path = os.path.join(prefix, "opt")
 share_path = os.path.join(prefix, "share", "spack")
 etc_path = os.path.join(prefix, "etc", "spack")
+
+def user_root():
+    """Default install tree and config scope.
+
+    Applies when $spack/opt is not an install tree.
+
+    ~/<spack-prefix-hash>/
+    """
+    spack_prefix = prefix
+    return pathlib.Path(user_config_path, hash.b32_hash(spack_prefix)[:7])
+
+
+def shared_trees():
+    root_dir = pathlib.Path(system_config_path) / "install-trees"
 
 #
 # Things in $spack/etc/spack
@@ -54,10 +69,31 @@ default_license_dir = os.path.join(etc_path, "licenses")
 #
 # Things in $spack/var/spack
 #
-var_path = os.path.join(prefix, "var", "spack")
+read_var_path = os.path.join(prefix, "var", "spack")
+
+def dir_is_occupied(x, except_for=None):
+    x = pathlib.Path(x)
+    except_for = except_for or set()
+    return not (x.is_dir() and bool(set(x.iterdir()) - except_for))
+
+internal_opt_path = os.path.join(prefix, "opt")
+
+if dir_is_occupied(internal_opt_path):
+    opt_path = internal_opt_path
+else:
+    opt_path = os.path.join(str(user_root()), "opt")
+
+if dir_is_occupied(read_var_path, except_for={"repos"}):
+    var_path = read_var_path
+else:
+    var_path = os.path.join(str(user_root()), "var", "spack")
+
+# TODO: also check share_path/{lmod, tcl}
+# TODO: can use new-style locations if user explicitly specifies --install-root
+# TODO: can shutil.mv everything in {opt, var} except installs into new user root
 
 # read-only things in $spack/var/spack
-repos_path = os.path.join(var_path, "repos")
+repos_path = os.path.join(read_var_path, "repos")
 packages_path = os.path.join(repos_path, "builtin")
 mock_packages_path = os.path.join(repos_path, "builtin.mock")
 
