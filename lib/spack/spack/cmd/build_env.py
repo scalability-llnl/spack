@@ -14,7 +14,7 @@ level = "long"
 setup_parser = env_utility.setup_parser
 
 
-#TODO create a dropin/dive funciton that dev_build and build_env cmd's can use
+# TODO create a dropin/dive funciton that dev_build and build_env cmd's can use
 # create a default shell utility for picking the current shell to start with
 def build_env(parser, args):
     env_utility.emulate_env_utility("build-env", Context.BUILD, args)

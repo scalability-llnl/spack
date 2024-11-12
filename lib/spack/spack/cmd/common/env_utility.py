@@ -29,7 +29,10 @@ def setup_parser(subparser):
         "--pickle", metavar="FILE", help="dump a pickled source-able environment to FILE"
     )
     subparser.add_argument(
-        "--dive", action="store_true", help="dive into the build-env in a subshell"
+        "-d", "--dive", action="store_true", help="dive into the build-env in a subshell"
+    )
+    subparser.add_argument(
+        "--status", action="store_true", help="check shell for an active build environment"
     )
     subparser.add_argument(
         "spec",
@@ -80,7 +83,25 @@ class AreDepsInstalledVisitor:
         return item.edge.spec.edges_to_dependencies(depflag=depflag)
 
 
+def run_command_in_subshell(
+    spec, context, cmd, prompt=False, dirty=False, shell=active_shell_type()
+):
+    mods = build_environment.setup_package(spec.package, dirty, context)
+    if prompt:
+        mods.extend(spack.prompt.prompt_modifications(f"{spec.name}-{str(context)}-env", shell))
+    mods.apply_modifications()
+    os.execvp(cmd[0], cmd)
+
+
 def emulate_env_utility(cmd_name, context: Context, args):
+    if args.status:
+        context_var = os.environ.get(f"SPACK_{str(context).upper()}_ENV", None)
+        if context_var:
+            tty.msg(f"In {str(context)} env {context_var}")
+        else:
+            tty.msg(f"{str(context)} environment not detected")
+        exit(0)
+
     if not args.spec:
         tty.die("spack %s requires a spec." % cmd_name)
 
@@ -97,6 +118,12 @@ def emulate_env_utility(cmd_name, context: Context, args):
         spec = args.spec[0]
         cmd = args.spec[1:]
 
+    if args.dive:
+        if cmd:
+            tty.die("--dive and additional commands can't be run together")
+        else:
+            cmd = [active_shell_type()]
+
     if not spec:
         tty.die("spack %s requires a spec." % cmd_name)
 
@@ -111,6 +138,7 @@ def emulate_env_utility(cmd_name, context: Context, args):
     visitor = AreDepsInstalledVisitor(context=context)
 
     # Mass install check needs read transaction.
+    # FIXME: this command is slow
     with spack.store.STORE.db.read_transaction():
         traverse.traverse_breadth_first_with_visitor([spec], traverse.CoverNodesVisitor(visitor))
 
@@ -141,14 +169,7 @@ def emulate_env_utility(cmd_name, context: Context, args):
         pickle_environment(args.pickle)
 
     if cmd:
-        # Execute the command with the new environment
-        os.execvp(cmd[0], cmd)
-
-    if args.dive:
-        shell = active_shell_type()
-        mods.extend(spack.prompt.prompt_modifications(f"{spec.name}-{str(context)}-env", shell))
-        mods.apply_modifications()
-        os.execvp(shell, [shell])
+        run_command_in_subshell(spec, context, cmd, prompt=args.dive, location=args.cd)
 
     elif not bool(args.pickle or args.dump):
         # If no command or dump/pickle option then act like the "env" command

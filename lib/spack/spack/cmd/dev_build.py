@@ -16,6 +16,7 @@ import spack.environment as ev
 import spack.prompt
 import spack.repo
 from spack.cmd.common import arguments
+from spack.cmd.common.env_utility import run_command_in_subshell
 from spack.installer import PackageInstaller
 
 description = "developer build: build from user managed code"
@@ -169,8 +170,6 @@ def dev_build(self, args):
 
     # drop into the build environment of the package?
     if args.shell is not None:
-        mods = spack.build_environment.setup_package(spec.package, dirty=False)
-        if args.prompt:
-            mods.extend(spack.prompt.prompt_modifications(f"{spec.name}-build-env", args.shell))
-        mods.apply_modifications()
-        os.execvp(args.shell, [args.shell])
+        run_command_in_subshell(
+            spec, context.BUILD, [args.shell], prompt=args.prompt, shell=args.shell
+        )
