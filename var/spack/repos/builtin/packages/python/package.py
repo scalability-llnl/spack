@@ -17,6 +17,7 @@ import llnl.util.tty as tty
 from llnl.util.lang import dedupe
 
 from spack.build_environment import dso_suffix, stat_suffix
+from spack.error import NoHeadersError, NoLibrariesError
 from spack.package import *
 from spack.util.prefix import Prefix
 
@@ -1088,7 +1089,7 @@ print(json.dumps(config))
             if lib:
                 return lib
 
-        raise spack.error.NoLibrariesError(
+        raise NoLibrariesError(
             "Unable to find {} libraries with the following names:\n\n* ".format(self.name)
             + "\n* ".join(candidates)
         )
@@ -1109,12 +1110,12 @@ print(json.dumps(config))
         candidates = list(dedupe(candidates))
 
         for directory in candidates:
-            headers = find_headers("pyconfig", directory)
+            headers = find_headers("pyconfig", directory, recursive=False)
             if headers:
                 config_h = headers[0]
                 break
         else:
-            raise spack.error.NoHeadersError(
+            raise NoHeadersError(
                 "Unable to locate {} headers in any of these locations:\n\n* ".format(self.name)
                 + "\n* ".join(candidates)
             )
