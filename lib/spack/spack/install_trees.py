@@ -7,8 +7,10 @@
 For tracking install trees.
 """
 
+import inspect
 import os
 import pathlib
+import warnings
 
 import spack.paths as paths
 
@@ -48,18 +50,55 @@ def install_tree_config():
     return cfgs
 
 
+def _most_recent_internal_call():
+    """If called within an audit for a Python library function, finds
+       the most recent spot within Spack's source code that generated
+       the call.
+    """
+
+    stack = inspect.stack()
+    this_file = str(pathlib.Path(__file__).resolve())
+    for frame in stack:
+        frame_loc = pathlib.Path(frame.filename).resolve()
+        if str(frame_loc) != this_file:
+            return frame_loc, frame.lineno
+
+    return None, None
+
+
+_recorded_accesses = set()
+
+
+def _attempted_modify_internal(msg):
+    loc, line = _most_recent_internal_call()
+    if loc:
+        if (loc, line) not in _recorded_accesses:
+            _recorded_accesses.add((loc, line))
+            msg += f" at {loc}:{line}"
+            warnings.warn(msg)
+    else:
+        msg += " (no location)"
+        warnings.warn(msg)
+
+
 def _guard_writes(event, args):
     if event == "open":
         path, mode = args[:2]
+        if not mode:
+            # Some internal Python libs can call open(..., mode=None)
+            return
+        if not isinstance(path, str):
+            # Skip instances of open() that function like fdopen
+            return
         abs_path = os.path.abspath(path)
-        intent_to_modify = set(mode) & set("wax")
+        intent_to_modify = bool(set(mode) & set("wax"))
         if abs_path.startswith(paths.prefix) and intent_to_modify:
-            pass
+            _attempted_modify_internal(f"Open {path} in mode {mode}")
     elif event == "shutil.copyfile":
         src, dst = args[:2]
         abs_dst = os.path.abspath(dst)
         if abs_dst.startswith(paths.prefix):
-            pass
+            _attempted_modify_internal(f"Copy targets {abs_dst}")
 
 
 def guard_writes_into_spack():
