@@ -184,7 +184,7 @@ def parse_specs(
 
     # Special case if every spec has an abstract spec
     if all(spec.concrete or spec.abstract_hash for spec in specs):
-        ret = [s.lookup_hash() for s in specs]
+        ret = [s if s.concrete else s.lookup_hash() for s in specs]
 
         unify = spack.config.get("concretizer:unify", False)
         if unify is True:  # True, "when_possible", False are possible values
