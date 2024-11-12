@@ -49,7 +49,7 @@ class PyCryptography(PythonPackage):
             msg="some setuptools version are incompatible",
         )
     with when("@:42"):
-        depends_on("py-setuptools-rust@1.7.0:", when="@42:", type=("build", "run"))
+        depends_on("py-setuptools-rust@1.7.0:", when="@42", type=("build", "run"))
         depends_on("py-setuptools-rust@0.11.4:", when="@3.4.2:", type="build")
         depends_on("py-setuptools-rust@0.11.4:", when="@3.4:3.4.1", type=("build", "run"))
     depends_on("rust@1.56:", when="@41:", type="build")
