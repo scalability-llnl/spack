@@ -24,8 +24,10 @@ class CbtfKrell(CMakePackage):
     version("1.9.4", branch="1.9.4")
     version("1.9.3", branch="1.9.3")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    # See https://github.com/spack/spack/pull/47133#pullrequestreview-2430991688 and below:
+    conflicts("%gcc@10:")
 
     # MPI variants
     variant(
@@ -54,6 +56,8 @@ class CbtfKrell(CMakePackage):
 
     # Dependencies for cbtf-krell
     depends_on("cmake@3.0.2:", type="build")
+
+    depends_on("gotcha")
 
     # For rpcgen
     depends_on("rpcsvc-proto", type="build")
