@@ -189,10 +189,9 @@ def parse_specs(
         unify = spack.config.get("concretizer:unify", False)
         if unify is True:  # True, "when_possible", False are possible values
             specs_per_name = Counter(
-                dep.name
-                for spec in ret
-                for dep in spec.traverse(deptype=("link", "run"))
-                if dep.name != "gcc-runtime"  # gcc runtime is special and allowed multiples
+                spec.name
+                for spec in traverse.traverse_nodes(ret, deptype=("link", "run"))
+                if spec.name != "gcc-runtime"  # gcc runtime is special and allowed multiples
             )
             if any(count > 1 for count in specs_per_name.values()):
                 msg = "Specs conflict and `concretizer:unify` is configured true.\n"
