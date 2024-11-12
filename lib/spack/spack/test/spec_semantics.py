@@ -2042,3 +2042,22 @@ def test_satisfies_and_subscript_with_compilers(default_mock_concretization):
 
     # We need to pass through "pkg-a" to get "gmake" with [] notation
     assert s["pkg-a"].dependencies(name="gmake")[0] == s["pkg-a"]["gmake"]
+
+
+@pytest.mark.parametrize(
+    "spec_str,spec_fmt,expected",
+    [
+        # Depends on C
+        ("mpileaks", "{name}-{compiler.name}", "mpileaks-gcc"),
+        ("mpileaks", "{name}-{compiler.name}-{compiler.version}", "mpileaks-gcc-10.2.1"),
+        # No compiler
+        ("pkg-c", "{name}-{compiler.name}", "pkg-c-none"),
+        ("pkg-c", "{name}-{compiler.name}-{compiler.version}", "pkg-c-none-none"),
+    ],
+)
+def test_spec_format_with_compiler_adaptors(
+    spec_str, spec_fmt, expected, default_mock_concretization
+):
+    """Tests the output of spec format, when involving `Spec.compiler` adaptors"""
+    s = default_mock_concretization(spec_str)
+    assert s.format(spec_fmt) == expected
