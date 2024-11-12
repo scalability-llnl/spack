@@ -17,6 +17,7 @@ from spack import build_environment, traverse
 from spack.cmd.common import arguments
 from spack.context import Context
 from spack.util.environment import dump_environment, pickle_environment
+from spack.util.shell_detection import active_shell_type
 
 
 def setup_parser(subparser):
@@ -144,8 +145,10 @@ def emulate_env_utility(cmd_name, context: Context, args):
         os.execvp(cmd[0], cmd)
 
     if args.dive:
-        mods.extend(spack.prompt.prompt_modifications(f"{spec.name}-build-env", cmd[0]))
-        os.execvp(cmd[0], [cmd[0]])
+        shell = active_shell_type()
+        mods.extend(spack.prompt.prompt_modifications(f"{spec.name}-{str(context)}-env", shell))
+        mods.apply_modifications()
+        os.execvp(shell, [shell])
 
     elif not bool(args.pickle or args.dump):
         # If no command or dump/pickle option then act like the "env" command
