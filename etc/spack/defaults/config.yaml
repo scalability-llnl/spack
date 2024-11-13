@@ -220,4 +220,4 @@ config:
     concretise: concretize
     containerise: containerize
     rm: remove
-    build-env-dive: build-env --dive
+    dev-dive: build-env --cd build-dir --dive

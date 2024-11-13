@@ -16,10 +16,8 @@ def active_shell_type(env=os.environ):
             return "ps1"
         else:
             try:
-                output = subprocess.run(
+                output = subprocess.check_output(
                     'powershell -Command "echo $PSVersionTable"',
-                    shell=True,
-                    check=True,
                     universal_newlines=True,
                 )
                 if "PSVersion" in output:
@@ -34,4 +32,5 @@ def active_shell_type(env=os.environ):
         if shell:
             return shell
         else:
-            raise SpackError("No shell type detected for the Unix process")
+            # assume it is a bourne shell
+            return "sh"

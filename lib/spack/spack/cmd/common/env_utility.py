@@ -15,6 +15,7 @@ import spack.spec
 import spack.store
 from spack import build_environment, traverse
 from spack.cmd.common import arguments
+from spack.cmd.location import location_emulator
 from spack.context import Context
 from spack.util.environment import dump_environment, pickle_environment
 from spack.util.shell_detection import active_shell_type
@@ -30,6 +31,11 @@ def setup_parser(subparser):
     )
     subparser.add_argument(
         "-d", "--dive", action="store_true", help="dive into the build-env in a subshell"
+    )
+    subparser.add_argument(
+        "-c",
+        "--cd",
+        help="location to dive to or run command from (takes arguments from 'spack cd')",
     )
     subparser.add_argument(
         "--status", action="store_true", help="check shell for an active build environment"
@@ -84,12 +90,19 @@ class AreDepsInstalledVisitor:
 
 
 def run_command_in_subshell(
-    spec, context, cmd, prompt=False, dirty=False, shell=active_shell_type()
+    spec, context, cmd, prompt=False, dirty=False, cd_arg=None, shell=active_shell_type()
 ):
     mods = build_environment.setup_package(spec.package, dirty, context)
+
     if prompt:
         mods.extend(spack.prompt.prompt_modifications(f"{spec.name}-{str(context)}-env", shell))
     mods.apply_modifications()
+
+    if cd_arg:
+        prefix = "-" if len(cd_arg) == 1 else "--"
+        location = location_emulator(f"{prefix}{cd_arg}", f"/{spec.dag_hash()}")
+        os.chdir(location)
+
     os.execvp(cmd[0], cmd)
 
 
@@ -157,7 +170,7 @@ def emulate_env_utility(cmd_name, context: Context, args):
         )
 
     if cmd:
-        run_command_in_subshell(spec, context, cmd, prompt=args.dive)
+        run_command_in_subshell(spec, context, cmd, prompt=args.dive, cd_arg=args.cd)
     else:
         # setup build env if no command to run
         build_environment.setup_package(spec.package, args.dirty, context)
