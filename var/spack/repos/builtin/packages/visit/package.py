@@ -82,7 +82,9 @@ class Visit(CMakePackage):
     depends_on("fortran", type="build")  # generated
 
     root_cmakelists_dir = "src"
-    generator("ninja")
+    generator("ninja", "make")
+    # Temporary fix for now due to issue installing with ninja generator
+    conflicts("generator=ninja", when="+python")
 
     variant("gui", default=True, description="Enable VisIt's GUI")
     variant("adios2", default=True, description="Enable ADIOS2 file format")
