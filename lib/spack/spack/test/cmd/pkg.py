@@ -315,6 +315,7 @@ def test_pkg_grep(mock_packages, capfd):
             "depends-on-manyvariants",
             "manyvariants",
             "splice-a",
+            "splice-depends-on-t",
             "splice-h",
             "splice-t",
             "splice-vh",
