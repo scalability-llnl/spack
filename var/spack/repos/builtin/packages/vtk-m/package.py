@@ -7,6 +7,7 @@
 import os
 import sys
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -249,7 +250,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
                 options.append("-DCMAKE_CUDA_HOST_COMPILER={0}".format(env["SPACK_CXX"]))
 
                 if spec.satisfies("@1.9.0:") and spec.satisfies("^cmake@3.18:"):
-                    options.append(self.builder.define_cuda_architectures(self))
+                    options.append(CMakeBuilder.define_cuda_architectures(self))
 
                 else:
                     # VTKm_CUDA_Architecture only accepts a single CUDA arch
@@ -269,7 +270,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
 
             # hip support
             if "+rocm" in spec:
-                options.append(self.builder.define_hip_architectures(self))
+                options.append(CMakeBuilder.define_hip_architectures(self))
 
         return options
 
