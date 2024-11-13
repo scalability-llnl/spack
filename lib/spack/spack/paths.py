@@ -119,6 +119,7 @@ mock_packages_path = os.path.join(repos_path, "builtin.mock")
 mock_gpg_data_path = os.path.join(var_path, "gpg.mock", "data")
 mock_gpg_keys_path = os.path.join(var_path, "gpg.mock", "keys")
 
+
 # Below paths are where Spack can write information for the user.
 # Some are caches, some are not exactly caches.
 #

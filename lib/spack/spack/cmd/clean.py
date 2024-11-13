@@ -13,11 +13,11 @@ import llnl.util.tty as tty
 import spack.caches
 import spack.cmd
 import spack.config
+import spack.paths as paths
 import spack.stage
 import spack.store
 import spack.util.path
 from spack.cmd.common import arguments
-import spack.paths as paths
 
 description = "remove temporary build files and/or downloaded archives"
 section = "build"
