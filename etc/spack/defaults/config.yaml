@@ -75,10 +75,6 @@ config:
   # name/hash.
   test_stage: $user_cache_path/test
 
-  # Cache directory for already downloaded source tarballs and archived
-  # repositories. This can be purged with `spack clean --downloads`.
-  source_cache: $spack/var/spack/cache
-
 
   ## Directory where spack managed environments are created and stored
   # environments_root: $spack/var/spack/environments

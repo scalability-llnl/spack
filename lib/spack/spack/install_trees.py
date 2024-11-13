@@ -100,7 +100,7 @@ def _guard_writes(event, args):
         intent_to_modify = bool((set(mode) & set("wax")) or "r+" in mode)
         if abs_path.startswith(paths.prefix) and intent_to_modify:
             _attempted_modify_internal(f"Open {path} in mode [{mode}]")
-    elif event == "shutil.copyfile":
+    elif event in ["shutil.copyfile", "os.rename", "shutil.move"]:
         _, dst = args[:2]
         abs_dst = os.path.abspath(dst)
         if abs_dst.startswith(paths.prefix):

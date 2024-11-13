@@ -114,7 +114,6 @@ else:
     var_path = os.path.join(per_spack_user_root, "var", "spack")
 
 # TODO: also check share_path/{lmod, tcl}
-# TODO: can use new-style locations if user explicitly specifies --install-root
 # TODO: can shutil.mv everything in {opt, var} except installs into new user root
 
 # read-only things in $spack/var/spack
@@ -122,13 +121,8 @@ repos_path = os.path.join(read_var_path, "repos")
 packages_path = os.path.join(repos_path, "builtin")
 mock_packages_path = os.path.join(repos_path, "builtin.mock")
 
-#
-# Writable things in $var_path
-# In older spack, this is $spack/var/spack
-# fetch cache for downloaded files
-default_fetch_cache_path = os.path.join(var_path, "cache")
-
-# GPG paths.
+# GPG keys may be written into $spack/var/spack for older instances
+# of spack, but otherwise are written into $per_spack_user
 gpg_keys_path = os.path.join(var_path, "gpg")
 mock_gpg_data_path = os.path.join(var_path, "gpg.mock", "data")
 mock_gpg_keys_path = os.path.join(var_path, "gpg.mock", "keys")
@@ -149,6 +143,8 @@ def _get_user_cache_path():
 
 
 user_cache_path = str(PurePath(_get_user_cache_path()))
+
+default_fetch_cache_path = os.path.join(user_cache_path, "downloads")
 
 #: junit, cdash, etc. reports about builds
 reports_path = os.path.join(user_cache_path, "reports")
