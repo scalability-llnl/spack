@@ -226,7 +226,7 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
             )
 
         with working_dir(test_dir):
-            opts = self.builder.std_cmake_args + self.cmake_args() + ["."]
+            opts = self.std_cmake_args + self.cmake_args() + ["."]
             cmake = self.spec["cmake"].command
             cmake(*opts)
 

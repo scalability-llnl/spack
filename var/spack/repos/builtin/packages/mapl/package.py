@@ -423,7 +423,7 @@ class Mapl(CMakePackage):
     @run_after("build")
     @on_package_attributes(run_tests=True)
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             # The test suite contains a lot of tests. We select only those
             # that are cheap. Note this requires MPI and 6 processes
             ctest("--output-on-failure", "-L", "ESSENTIAL")

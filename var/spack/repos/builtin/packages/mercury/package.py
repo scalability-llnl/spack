@@ -160,5 +160,5 @@ class Mercury(CMakePackage):
     def check(self):
         """Unit tests fail when run in parallel."""
 
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test", parallel=False)

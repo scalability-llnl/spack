@@ -267,10 +267,10 @@ class CMakePackage(spack.package_base.PackageBase):
     # Legacy methods (used by too many packages to change them,
     # need to forward to the builder)
     def define(self, cmake_var: str, value: Any) -> str:
-        return self.builder.define(cmake_var, value)
+        return define(cmake_var, value)
 
     def define_from_variant(self, cmake_var: str, variant: Optional[str] = None) -> str:
-        return self.builder.define_from_variant(cmake_var, variant)
+        return define_from_variant(self, cmake_var, variant)
 
 
 @spack.builder.builder("cmake")
@@ -412,144 +412,23 @@ class CMakeBuilder(BaseBuilder):
 
     @staticmethod
     def define_cuda_architectures(pkg: spack.package_base.PackageBase) -> str:
-        """Returns the str ``-DCMAKE_CUDA_ARCHITECTURES:STRING=(expanded cuda_arch)``.
-
-        ``cuda_arch`` is variant composed of a list of target CUDA architectures and
-        it is declared in the cuda package.
-
-        This method is no-op for cmake<3.18 and when ``cuda_arch`` variant is not set.
-
-        """
-        cmake_flag = str()
-        if "cuda_arch" in pkg.spec.variants and pkg.spec.satisfies("^cmake@3.18:"):
-            cmake_flag = CMakeBuilder.define(
-                "CMAKE_CUDA_ARCHITECTURES", pkg.spec.variants["cuda_arch"].value
-            )
-
-        return cmake_flag
+        return define_cuda_architectures(pkg)
 
     @staticmethod
     def define_hip_architectures(pkg: spack.package_base.PackageBase) -> str:
-        """Returns the str ``-DCMAKE_HIP_ARCHITECTURES:STRING=(expanded amdgpu_target)``.
-
-        ``amdgpu_target`` is variant composed of a list of the target HIP
-        architectures and it is declared in the rocm package.
-
-        This method is no-op for cmake<3.18 and when ``amdgpu_target`` variant is
-        not set.
-
-        """
-        cmake_flag = str()
-        if "amdgpu_target" in pkg.spec.variants and pkg.spec.satisfies("^cmake@3.21:"):
-            cmake_flag = CMakeBuilder.define(
-                "CMAKE_HIP_ARCHITECTURES", pkg.spec.variants["amdgpu_target"].value
-            )
-
-        return cmake_flag
+        return define_hip_architectures(pkg)
 
     @staticmethod
     def define(cmake_var: str, value: Any) -> str:
-        """Return a CMake command line argument that defines a variable.
-
-        The resulting argument will convert boolean values to OFF/ON
-        and lists/tuples to CMake semicolon-separated string lists. All other
-        values will be interpreted as strings.
-
-        Examples:
-
-            .. code-block:: python
-
-                [define('BUILD_SHARED_LIBS', True),
-                 define('CMAKE_CXX_STANDARD', 14),
-                 define('swr', ['avx', 'avx2'])]
-
-            will generate the following configuration options:
-
-            .. code-block:: console
-
-                ["-DBUILD_SHARED_LIBS:BOOL=ON",
-                 "-DCMAKE_CXX_STANDARD:STRING=14",
-                 "-DSWR:STRING=avx;avx2]
-
-        """
-        # Create a list of pairs. Each pair includes a configuration
-        # option and whether or not that option is activated
-        if isinstance(value, bool):
-            kind = "BOOL"
-            value = "ON" if value else "OFF"
-        else:
-            kind = "STRING"
-            if isinstance(value, collections.abc.Sequence) and not isinstance(value, str):
-                value = ";".join(str(v) for v in value)
-            else:
-                value = str(value)
-
-        return "".join(["-D", cmake_var, ":", kind, "=", value])
+        return define(cmake_var, value)
 
     def define_from_variant(self, cmake_var: str, variant: Optional[str] = None) -> str:
-        """Return a CMake command line argument from the given variant's value.
-
-        The optional ``variant`` argument defaults to the lower-case transform
-        of ``cmake_var``.
-
-        This utility function is similar to
-        :meth:`~spack.build_systems.autotools.AutotoolsBuilder.with_or_without`.
-
-        Examples:
-
-            Given a package with:
-
-            .. code-block:: python
-
-                variant('cxxstd', default='11', values=('11', '14'),
-                        multi=False, description='')
-                variant('shared', default=True, description='')
-                variant('swr', values=any_combination_of('avx', 'avx2'),
-                        description='')
-
-            calling this function like:
-
-            .. code-block:: python
-
-                [self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
-                 self.define_from_variant('CMAKE_CXX_STANDARD', 'cxxstd'),
-                 self.define_from_variant('SWR')]
-
-            will generate the following configuration options:
-
-            .. code-block:: console
-
-                ["-DBUILD_SHARED_LIBS:BOOL=ON",
-                 "-DCMAKE_CXX_STANDARD:STRING=14",
-                 "-DSWR:STRING=avx;avx2]
-
-            for ``<spec-name> cxxstd=14 +shared swr=avx,avx2``
-
-        Note: if the provided variant is conditional, and the condition is not met,
-                this function returns an empty string. CMake discards empty strings
-                provided on the command line.
-        """
-
-        if variant is None:
-            variant = cmake_var.lower()
-
-        if not self.pkg.has_variant(variant):
-            raise KeyError('"{0}" is not a variant of "{1}"'.format(variant, self.pkg.name))
-
-        if variant not in self.pkg.spec.variants:
-            return ""
-
-        value = self.pkg.spec.variants[variant].value
-        if isinstance(value, (tuple, list)):
-            # Sort multi-valued variants for reproducibility
-            value = sorted(value)
-
-        return self.define(cmake_var, value)
+        return define_from_variant(self.pkg, cmake_var, variant)
 
     @property
     def build_dirname(self) -> str:
         """Directory name to use when building the package."""
-        return "spack-build-%s" % self.pkg.spec.dag_hash(7)
+        return f"spack-build-{self.pkg.spec.dag_hash(7)}"
 
     @property
     def build_directory(self) -> str:
@@ -626,3 +505,137 @@ class CMakeBuilder(BaseBuilder):
             elif self.generator == "Ninja":
                 self.pkg._if_ninja_target_execute("test", jobs_env="CTEST_PARALLEL_LEVEL")
                 self.pkg._if_ninja_target_execute("check")
+
+
+def define(cmake_var: str, value: Any) -> str:
+    """Return a CMake command line argument that defines a variable.
+
+    The resulting argument will convert boolean values to OFF/ON and lists/tuples to CMake
+    semicolon-separated string lists. All other values will be interpreted as strings.
+
+    Examples:
+
+        .. code-block:: python
+
+            [define("BUILD_SHARED_LIBS", True),
+                define("CMAKE_CXX_STANDARD", 14),
+                define("swr", ["avx", "avx2"])]
+
+        will generate the following configuration options:
+
+        .. code-block:: console
+
+            ["-DBUILD_SHARED_LIBS:BOOL=ON",
+                "-DCMAKE_CXX_STANDARD:STRING=14",
+                "-DSWR:STRING=avx;avx2]
+
+    """
+    # Create a list of pairs. Each pair includes a configuration
+    # option and whether or not that option is activated
+    if isinstance(value, bool):
+        kind = "BOOL"
+        value = "ON" if value else "OFF"
+    else:
+        kind = "STRING"
+        if isinstance(value, collections.abc.Sequence) and not isinstance(value, str):
+            value = ";".join(str(v) for v in value)
+        else:
+            value = str(value)
+
+    return "".join(["-D", cmake_var, ":", kind, "=", value])
+
+
+def define_from_variant(
+    pkg: spack.package_base.PackageBase, cmake_var: str, variant: Optional[str] = None
+) -> str:
+    """Return a CMake command line argument from the given variant's value.
+
+    The optional ``variant`` argument defaults to the lower-case transform
+    of ``cmake_var``.
+
+    Examples:
+
+        Given a package with:
+
+        .. code-block:: python
+
+            variant("cxxstd", default="11", values=("11", "14"),
+                    multi=False, description="")
+            variant("shared", default=True, description="")
+            variant("swr", values=any_combination_of("avx", "avx2"),
+                    description="")
+
+        calling this function like:
+
+        .. code-block:: python
+
+            [
+                self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+                self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
+                self.define_from_variant("SWR"),
+            ]
+
+        will generate the following configuration options:
+
+        .. code-block:: console
+
+            [
+                "-DBUILD_SHARED_LIBS:BOOL=ON",
+                "-DCMAKE_CXX_STANDARD:STRING=14",
+                "-DSWR:STRING=avx;avx2",
+            ]
+
+        for ``<spec-name> cxxstd=14 +shared swr=avx,avx2``
+
+    Note: if the provided variant is conditional, and the condition is not met, this function
+        returns an empty string. CMake discards empty strings provided on the command line.
+    """
+    if variant is None:
+        variant = cmake_var.lower()
+
+    if not pkg.has_variant(variant):
+        raise KeyError('"{0}" is not a variant of "{1}"'.format(variant, pkg.name))
+
+    if variant not in pkg.spec.variants:
+        return ""
+
+    value = pkg.spec.variants[variant].value
+    if isinstance(value, (tuple, list)):
+        # Sort multi-valued variants for reproducibility
+        value = sorted(value)
+
+    return define(cmake_var, value)
+
+
+def define_hip_architectures(pkg: spack.package_base.PackageBase) -> str:
+    """Returns the str ``-DCMAKE_HIP_ARCHITECTURES:STRING=(expanded amdgpu_target)``.
+
+    ``amdgpu_target`` is variant composed of a list of the target HIP
+    architectures and it is declared in the rocm package.
+
+    This method is no-op for cmake<3.18 and when ``amdgpu_target`` variant is
+    not set.
+
+    """
+    if "amdgpu_target" in pkg.spec.variants and pkg.spec.satisfies("^cmake@3.21:"):
+        return CMakeBuilder.define(
+            "CMAKE_HIP_ARCHITECTURES", pkg.spec.variants["amdgpu_target"].value
+        )
+
+    return ""
+
+
+def define_cuda_architectures(pkg: spack.package_base.PackageBase) -> str:
+    """Returns the str ``-DCMAKE_CUDA_ARCHITECTURES:STRING=(expanded cuda_arch)``.
+
+    ``cuda_arch`` is variant composed of a list of target CUDA architectures and
+    it is declared in the cuda package.
+
+    This method is no-op for cmake<3.18 and when ``cuda_arch`` variant is not set.
+
+    """
+    if "cuda_arch" in pkg.spec.variants and pkg.spec.satisfies("^cmake@3.18:"):
+        return CMakeBuilder.define(
+            "CMAKE_CUDA_ARCHITECTURES", pkg.spec.variants["cuda_arch"].value
+        )
+    return ""

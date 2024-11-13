@@ -292,7 +292,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
             env.append_path("HDF5_PLUGIN_PATH", self.prefix.plugins)
 
     def flag_handler(self, name, flags):
-        if self.builder.build_system == "autotools":
+        if self.spec.satisfies("build_system=autotools"):
             if name == "cflags":
                 if "+pic" in self.spec:
                     flags.append(self.compiler.cc_pic_flag)

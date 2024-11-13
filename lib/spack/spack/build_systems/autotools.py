@@ -72,10 +72,10 @@ class AutotoolsPackage(spack.package_base.PackageBase):
     # Legacy methods (used by too many packages to change them,
     # need to forward to the builder)
     def enable_or_disable(self, *args, **kwargs):
-        return self.builder.enable_or_disable(*args, **kwargs)
+        return spack.builder.create(self).enable_or_disable(*args, **kwargs)
 
     def with_or_without(self, *args, **kwargs):
-        return self.builder.with_or_without(*args, **kwargs)
+        return spack.builder.create(self).with_or_without(*args, **kwargs)
 
 
 @spack.builder.builder("autotools")

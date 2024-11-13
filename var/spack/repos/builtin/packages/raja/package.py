@@ -448,7 +448,7 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
     @property
     def build_relpath(self):
         """Relative path to the cmake build subdirectory."""
-        return join_path("..", self.builder.build_dirname)
+        return join_path("..", self.build_dirname)
 
     @run_after("install")
     def setup_build_tests(self):

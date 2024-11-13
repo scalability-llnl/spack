@@ -119,7 +119,7 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
     patch("0001-suite-sparse-include-path-6.1.1.patch", when="@6.1.1:")
 
     def check(self):
-        exe = join_path(self.builder.build_directory, "clients", "staging", "hipsolver-test")
+        exe = join_path(self.build_directory, "clients", "staging", "hipsolver-test")
         exe = which(exe)
         exe(["--gtest_filter=-*known_bug*"])
 
