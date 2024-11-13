@@ -310,6 +310,12 @@ class Legion(CMakePackage, ROCmPackage):
         "sysomp", default=False, description="Use system OpenMP implementation instead of Realm's"
     )
 
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
+
     def cmake_args(self):
         spec = self.spec
         from_variant = self.define_from_variant

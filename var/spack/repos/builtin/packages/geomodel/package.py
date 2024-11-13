@@ -54,6 +54,14 @@ class Geomodel(CMakePackage):
         when="+fullsimlight",
     )
 
+    variant(
+        "cxxstd",
+        default="17",
+        values=("17", "20", "23"),
+        multi=False,
+        description="Use the specified C++ standard when building",
+    )
+
     conflicts("+fullsimlight", when="+fsl", msg="FSL triggers the build of the FullSimLight")
 
     depends_on("cmake@3.16:", type="build")
@@ -80,5 +88,6 @@ class Geomodel(CMakePackage):
             self.define_from_variant("GEOMODEL_BUILD_FSL", "fsl"),
             self.define_from_variant("GEOMODEL_BUILD_EXAMPLES", "examples"),
             self.define_from_variant("GEOMODEL_BUILD_TOOLS", "tools"),
+            self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
         ]
         return args

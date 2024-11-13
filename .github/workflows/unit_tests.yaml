@@ -174,7 +174,7 @@ jobs:
         spack bootstrap disable github-actions-v0.6
         spack bootstrap status
         spack solve zlib
-        spack unit-test --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml lib/spack/spack/test/concretize.py
+        spack unit-test --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml lib/spack/spack/test/concretization/core.py
     - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
       with:
         name: coverage-clingo-cffi

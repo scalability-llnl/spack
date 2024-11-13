@@ -63,7 +63,8 @@ class MiopenHip(CMakePackage):
 
     patch("miopen-hip-include-nlohmann-include-directory.patch", when="@5.4.0:5.7")
     patch("0002-add-include-dir-miopen-hip-6.0.0.patch", when="@6.0")
-    patch("0002-add-include-dir-miopen-hip-6.1.0.patch", when="@6.1")
+    patch("0001-link-with-roctracer-when-building-miopendriver-6.1.0.patch", when="@6.1")
+    patch("0001-link-with-roctracer-when-building-miopendriver-6.2.0.patch", when="@6.2:")
     patch(
         "https://github.com/ROCm/MIOpen/commit/f60aa1ff89f8fb596b4a6a4c70aa7d557803db87.patch?full_index=1",
         sha256="7f382c872d89f22da1ad499e85ffe9881cc7404c8465e42877a210a09382e2ea",
@@ -135,7 +136,7 @@ class MiopenHip(CMakePackage):
         depends_on("nlohmann-json", type="link")
         depends_on(f"rocmlir@{ver}", when=f"@{ver}")
     for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
-        depends_on("roctracer-dev@" + ver, when="@" + ver)
+        depends_on(f"roctracer-dev@{ver}", when=f"@{ver}")
     for ver in ["6.1.0", "6.1.1", "6.1.2"]:
         depends_on("googletest")
     for ver in ["6.2.0", "6.2.1"]:
@@ -200,19 +201,19 @@ class MiopenHip(CMakePackage):
             args.append(self.define("MIOPEN_USE_MLIR", "OFF"))
         if self.spec.satisfies("@5.7.0:"):
             args.append(self.define("MIOPEN_ENABLE_AI_IMMED_MODE_FALLBACK", "OFF"))
-        if self.spec.satisfies("@6:6.1"):
+        if self.spec.satisfies("@6.0"):
             args.append(
                 "-DROCTRACER_INCLUDE_DIR={0}".format(self.spec["roctracer-dev"].prefix.include)
             )
             args.append("-DROCTRACER_LIB_DIR={0}".format(self.spec["roctracer-dev"].prefix.lib))
-        if self.spec.satisfies("@6.1"):
             args.append("-DSQLITE_INCLUDE_DIR={0}".format(self.spec["sqlite"].prefix.include))
-        if self.spec.satisfies("@6.2:"):
+        if self.spec.satisfies("@6.1:"):
+            args.append(self.define("MIOPEN_USE_ROCTRACER", "ON"))
             args.append(
                 self.define(
                     "CMAKE_CXX_FLAGS",
                     f"-I{self.spec['roctracer-dev'].prefix.include} "
-                    f"-L{self.spec['roctracer-dev'].prefix.lib} "
+                    f"-L{self.spec['roctracer-dev'].prefix.roctracer.lib} "
                     f"-I{self.spec['nlohmann-json'].prefix.include} "
                     f"-I{self.spec['sqlite'].prefix.include} ",
                 )

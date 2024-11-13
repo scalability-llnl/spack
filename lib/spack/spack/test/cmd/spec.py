@@ -179,3 +179,43 @@ def test_spec_version_assigned_git_ref_as_version(name, version, error):
     else:
         output = spec(name + "@" + version)
         assert version in output
+
+
+@pytest.mark.parametrize(
+    "unify, spec_hash_args, match, error",
+    [
+        # success cases with unfiy:true
+        (True, ["mpileaks_mpich"], "mpich", None),
+        (True, ["mpileaks_zmpi"], "zmpi", None),
+        (True, ["mpileaks_mpich", "dyninst"], "mpich", None),
+        (True, ["mpileaks_zmpi", "dyninst"], "zmpi", None),
+        # same success cases with unfiy:false
+        (False, ["mpileaks_mpich"], "mpich", None),
+        (False, ["mpileaks_zmpi"], "zmpi", None),
+        (False, ["mpileaks_mpich", "dyninst"], "mpich", None),
+        (False, ["mpileaks_zmpi", "dyninst"], "zmpi", None),
+        # cases with unfiy:false
+        (True, ["mpileaks_mpich", "mpileaks_zmpi"], "callpath, mpileaks", spack.error.SpecError),
+        (False, ["mpileaks_mpich", "mpileaks_zmpi"], "zmpi", None),
+    ],
+)
+def test_spec_unification_from_cli(
+    install_mockery, mutable_config, mutable_database, unify, spec_hash_args, match, error
+):
+    """Ensure specs grouped together on the CLI are concretized together when unify:true."""
+    spack.config.set("concretizer:unify", unify)
+
+    db = spack.store.STORE.db
+    spec_lookup = {
+        "mpileaks_mpich": db.query_one("mpileaks ^mpich").dag_hash(),
+        "mpileaks_zmpi": db.query_one("mpileaks ^zmpi").dag_hash(),
+        "dyninst": db.query_one("dyninst").dag_hash(),
+    }
+
+    hashes = [f"/{spec_lookup[name]}" for name in spec_hash_args]
+    if error:
+        with pytest.raises(error, match=match):
+            output = spec(*hashes)
+    else:
+        output = spec(*hashes)
+        assert match in output
