@@ -29,6 +29,7 @@ import spack.caches
 import spack.config
 import spack.error
 import spack.fetch_strategy
+import spack.mirror
 import spack.oci.image
 import spack.repo
 import spack.spec

@@ -24,6 +24,7 @@ import spack.deptypes as dt
 import spack.detection
 import spack.multimethod
 import spack.package_base
+import spack.phase_callbacks
 import spack.platforms
 import spack.repo
 import spack.spec
@@ -543,4 +544,4 @@ class PythonPipBuilder(BaseBuilder):
         with fs.working_dir(self.build_directory):
             pip(*args)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)

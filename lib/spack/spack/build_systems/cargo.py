@@ -7,6 +7,7 @@ import llnl.util.filesystem as fs
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on
 from spack.multimethod import when
 
@@ -77,7 +78,7 @@ class CargoBuilder(BaseBuilder):
         with fs.working_dir(self.build_directory):
             fs.install_tree("out", prefix)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
     def check(self):
         """Run "cargo test"."""

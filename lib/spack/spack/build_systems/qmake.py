@@ -6,6 +6,7 @@ from llnl.util.filesystem import working_dir
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on
 
 from ._checks import BaseBuilder, execute_build_time_tests
@@ -81,4 +82,4 @@ class QMakeBuilder(BaseBuilder):
         with working_dir(self.build_directory):
             self.pkg._if_make_target_execute("check")
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)

@@ -6,6 +6,7 @@ import os
 
 import spack.build_systems.cmake
 import spack.build_systems.generic
+import spack.phase_callbacks
 from spack.package import *
 
 
@@ -84,7 +85,7 @@ class Superlu(CMakePackage, Package):
             superlu()
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class BaseBuilder(metaclass=spack.phase_callbacks.PhaseCallbacksMeta):
     @run_after("install")
     def setup_standalone_tests(self):
         """Set up and copy example source files after the package is installed

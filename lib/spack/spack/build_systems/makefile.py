@@ -8,6 +8,7 @@ import llnl.util.filesystem as fs
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, conflicts, depends_on
 from spack.multimethod import when
 
@@ -109,7 +110,7 @@ class MakefileBuilder(BaseBuilder):
         with fs.working_dir(self.build_directory):
             pkg.module.make(*self.install_targets)
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
     def check(self):
         """Run "make" on the ``test`` and ``check`` targets, if found."""
@@ -117,7 +118,7 @@ class MakefileBuilder(BaseBuilder):
             self.pkg._if_make_target_execute("test")
             self.pkg._if_make_target_execute("check")
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
     def installcheck(self):
         """Searches the Makefile for an ``installcheck`` target
@@ -127,4 +128,4 @@ class MakefileBuilder(BaseBuilder):
             self.pkg._if_make_target_execute("installcheck")
 
     # On macOS, force rpaths for shared library IDs and remove duplicate rpaths
-    spack.builder.run_after("install", when="platform=darwin")(apply_macos_rpath_fixups)
+    spack.phase_callbacks.run_after("install", when="platform=darwin")(apply_macos_rpath_fixups)

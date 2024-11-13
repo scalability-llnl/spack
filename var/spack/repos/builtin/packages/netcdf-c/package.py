@@ -10,6 +10,7 @@ import sys
 from llnl.util.lang import dedupe
 
 import spack.builder
+import spack.phase_callbacks
 from spack.build_systems import autotools, cmake
 from spack.package import *
 from spack.util.environment import filter_system_paths
@@ -305,7 +306,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
         return find_libraries("libnetcdf", root=self.prefix, shared=shared, recursive=True)
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class BaseBuilder(metaclass=spack.phase_callbacks.PhaseCallbacksMeta):
     def setup_dependent_build_environment(self, env, dependent_spec):
         # Some packages, e.g. ncview, refuse to build if the compiler path returned by nc-config
         # differs from the path to the compiler that the package should be built with. Therefore,

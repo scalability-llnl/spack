@@ -8,6 +8,7 @@ import sys
 
 from llnl.util.filesystem import find_first
 
+import spack.phase_callbacks
 from spack.package import *
 from spack.util.environment import is_system_path
 
@@ -123,7 +124,7 @@ class Tcl(AutotoolsPackage, NMakePackage, SourceforgePackage, TclHelper):
                     env.prepend_path("TCLLIBPATH", tcllibpath, separator=" ")
 
 
-class BaseBuilder(TclHelper, metaclass=spack.builder.PhaseCallbacksMeta):
+class BaseBuilder(TclHelper, metaclass=spack.phase_callbacks.PhaseCallbacksMeta):
     @run_after("install")
     def symlink_tclsh(self):
         # There's some logic regarding this suffix in the build system

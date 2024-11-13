@@ -6,6 +6,7 @@ from llnl.util.filesystem import working_dir
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on
 
 from ._checks import BaseBuilder, execute_build_time_tests, execute_install_time_tests
@@ -136,7 +137,7 @@ class WafBuilder(BaseBuilder):
         """
         pass
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
     def install_test(self):
         """Run unit tests after install.
@@ -146,4 +147,4 @@ class WafBuilder(BaseBuilder):
         """
         pass
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)

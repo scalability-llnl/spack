@@ -9,7 +9,7 @@ import platform
 import re
 import sys
 from itertools import chain
-from typing import List, Optional, Set, Tuple
+from typing import Any, List, Optional, Set, Tuple
 
 import llnl.util.filesystem as fs
 from llnl.util.lang import stable_partition
@@ -18,6 +18,9 @@ import spack.builder
 import spack.deptypes as dt
 import spack.error
 import spack.package_base
+import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
 from spack.util.environment import filter_system_paths
@@ -116,7 +119,7 @@ def _conditional_cmake_defaults(pkg: spack.package_base.PackageBase, args: List[
         args.append(CMakeBuilder.define("CMAKE_POLICY_DEFAULT_CMP0042", "NEW"))
 
 
-def generator(*names: str, default: Optional[str] = None):
+def generator(*names: str, default: Optional[str] = None) -> None:
     """The build system generator to use.
 
     See ``cmake --help`` for a list of valid generators.
@@ -263,11 +266,11 @@ class CMakePackage(spack.package_base.PackageBase):
 
     # Legacy methods (used by too many packages to change them,
     # need to forward to the builder)
-    def define(self, *args, **kwargs):
-        return self.builder.define(*args, **kwargs)
+    def define(self, cmake_var: str, value: Any) -> str:
+        return self.builder.define(cmake_var, value)
 
-    def define_from_variant(self, *args, **kwargs):
-        return self.builder.define_from_variant(*args, **kwargs)
+    def define_from_variant(self, cmake_var: str, variant: Optional[str] = None) -> str:
+        return self.builder.define_from_variant(cmake_var, variant)
 
 
 @spack.builder.builder("cmake")
@@ -321,15 +324,15 @@ class CMakeBuilder(BaseBuilder):
     build_time_test_callbacks = ["check"]
 
     @property
-    def archive_files(self):
+    def archive_files(self) -> List[str]:
         """Files to archive for packages based on CMake"""
         files = [os.path.join(self.build_directory, "CMakeCache.txt")]
-        if _supports_compilation_databases(self):
+        if _supports_compilation_databases(self.pkg):
             files.append(os.path.join(self.build_directory, "compile_commands.json"))
         return files
 
     @property
-    def root_cmakelists_dir(self):
+    def root_cmakelists_dir(self) -> str:
         """The relative path to the directory containing CMakeLists.txt
 
         This path is relative to the root of the extracted tarball,
@@ -338,16 +341,17 @@ class CMakeBuilder(BaseBuilder):
         return self.pkg.stage.source_path
 
     @property
-    def generator(self):
+    def generator(self) -> str:
         if self.spec.satisfies("generator=make"):
             return "Unix Makefiles"
         if self.spec.satisfies("generator=ninja"):
             return "Ninja"
-        msg = f'{self.spec.format()} has an unsupported value for the "generator" variant'
-        raise ValueError(msg)
+        raise ValueError(
+            f"{self.spec.format()} has an unsupported value " 'for the "generator" variant'
+        )
 
     @property
-    def std_cmake_args(self):
+    def std_cmake_args(self) -> List[str]:
         """Standard cmake arguments provided as a property for
         convenience of package writers
         """
@@ -356,7 +360,9 @@ class CMakeBuilder(BaseBuilder):
         return args
 
     @staticmethod
-    def std_args(pkg, generator=None):
+    def std_args(
+        pkg: spack.package_base.PackageBase, generator: Optional[str] = None
+    ) -> List[str]:
         """Computes the standard cmake arguments for a generic package"""
         default_generator = "Ninja" if sys.platform == "win32" else "Unix Makefiles"
         generator = generator or default_generator
@@ -405,7 +411,7 @@ class CMakeBuilder(BaseBuilder):
         return args
 
     @staticmethod
-    def define_cuda_architectures(pkg):
+    def define_cuda_architectures(pkg: spack.package_base.PackageBase) -> str:
         """Returns the str ``-DCMAKE_CUDA_ARCHITECTURES:STRING=(expanded cuda_arch)``.
 
         ``cuda_arch`` is variant composed of a list of target CUDA architectures and
@@ -423,7 +429,7 @@ class CMakeBuilder(BaseBuilder):
         return cmake_flag
 
     @staticmethod
-    def define_hip_architectures(pkg):
+    def define_hip_architectures(pkg: spack.package_base.PackageBase) -> str:
         """Returns the str ``-DCMAKE_HIP_ARCHITECTURES:STRING=(expanded amdgpu_target)``.
 
         ``amdgpu_target`` is variant composed of a list of the target HIP
@@ -442,7 +448,7 @@ class CMakeBuilder(BaseBuilder):
         return cmake_flag
 
     @staticmethod
-    def define(cmake_var, value):
+    def define(cmake_var: str, value: Any) -> str:
         """Return a CMake command line argument that defines a variable.
 
         The resulting argument will convert boolean values to OFF/ON
@@ -480,7 +486,7 @@ class CMakeBuilder(BaseBuilder):
 
         return "".join(["-D", cmake_var, ":", kind, "=", value])
 
-    def define_from_variant(self, cmake_var, variant=None):
+    def define_from_variant(self, cmake_var: str, variant: Optional[str] = None) -> str:
         """Return a CMake command line argument from the given variant's value.
 
         The optional ``variant`` argument defaults to the lower-case transform
@@ -541,16 +547,16 @@ class CMakeBuilder(BaseBuilder):
         return self.define(cmake_var, value)
 
     @property
-    def build_dirname(self):
+    def build_dirname(self) -> str:
         """Directory name to use when building the package."""
         return "spack-build-%s" % self.pkg.spec.dag_hash(7)
 
     @property
-    def build_directory(self):
+    def build_directory(self) -> str:
         """Full-path to the directory to use when building the package."""
         return os.path.join(self.pkg.stage.path, self.build_dirname)
 
-    def cmake_args(self):
+    def cmake_args(self) -> List[str]:
         """List of all the arguments that must be passed to cmake, except:
 
             * CMAKE_INSTALL_PREFIX
@@ -560,7 +566,12 @@ class CMakeBuilder(BaseBuilder):
         """
         return []
 
-    def cmake(self, pkg, spec, prefix):
+    def cmake(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Runs ``cmake`` in the build directory"""
 
         # skip cmake phase if it is an incremental develop build
@@ -575,7 +586,12 @@ class CMakeBuilder(BaseBuilder):
         with fs.working_dir(self.build_directory, create=True):
             pkg.module.cmake(*options)
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Make the build targets"""
         with fs.working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
@@ -584,7 +600,12 @@ class CMakeBuilder(BaseBuilder):
                 self.build_targets.append("-v")
                 pkg.module.ninja(*self.build_targets)
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Make the install targets"""
         with fs.working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
@@ -592,9 +613,9 @@ class CMakeBuilder(BaseBuilder):
             elif self.generator == "Ninja":
                 pkg.module.ninja(*self.install_targets)
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
-    def check(self):
+    def check(self) -> None:
         """Search the CMake-generated files for the targets ``test`` and ``check``,
         and runs them if found.
         """

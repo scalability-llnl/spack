@@ -8,30 +8,16 @@ import copy
 import functools
 from typing import List, Optional, Tuple
 
-from llnl.util import lang
-
 import spack.error
 import spack.multimethod
+import spack.package_base
+import spack.phase_callbacks
 import spack.repo
+import spack.spec
+import spack.util.environment
 
 #: Builder classes, as registered by the "builder" decorator
 BUILDER_CLS = {}
-
-#: An object of this kind is a shared global state used to collect callbacks during
-#: class definition time, and is flushed when the class object is created at the end
-#: of the class definition
-#:
-#: Args:
-#:    attribute_name (str): name of the attribute that will be attached to the builder
-#:    callbacks (list): container used to temporarily aggregate the callbacks
-CallbackTemporaryStage = collections.namedtuple(
-    "CallbackTemporaryStage", ["attribute_name", "callbacks"]
-)
-
-#: Shared global state to aggregate "@run_before" callbacks
-_RUN_BEFORE = CallbackTemporaryStage(attribute_name="run_before_callbacks", callbacks=[])
-#: Shared global state to aggregate "@run_after" callbacks
-_RUN_AFTER = CallbackTemporaryStage(attribute_name="run_after_callbacks", callbacks=[])
 
 #: Map id(pkg) to a builder, to avoid creating multiple
 #: builders for the same package object.
@@ -59,7 +45,7 @@ def create(pkg):
     return the builder object that can install it.
 
     Args:
-         pkg (spack.package_base.PackageBase): package for which we want the builder
+         pkg: package for which we want the builder
     """
     if id(pkg) not in _BUILDERS:
         _BUILDERS[id(pkg)] = _create(pkg)
@@ -103,7 +89,7 @@ def _create(pkg):
     to look for build-related methods in the ``*Package``.
 
     Args:
-        pkg (spack.package_base.PackageBase): package object for which we need a builder
+        pkg: package object for which we need a builder
     """
     package_buildsystem = buildsystem_name(pkg)
     default_builder_cls = BUILDER_CLS[package_buildsystem]
@@ -213,99 +199,18 @@ def _create(pkg):
     return Adapter(pkg)
 
 
-def buildsystem_name(pkg):
+def buildsystem_name(pkg: spack.package_base.PackageBase) -> str:
     """Given a package object with an associated concrete spec,
-    return the name of its build system.
-
-    Args:
-         pkg (spack.package_base.PackageBase): package for which we want
-            the build system name
-    """
+    return the name of its build system."""
     try:
         return pkg.spec.variants["build_system"].value
     except KeyError:
         # We are reading an old spec without the build_system variant
-        return pkg.legacy_buildsystem
-
-
-class PhaseCallbacksMeta(type):
-    """Permit to register arbitrary functions during class definition and run them
-    later, before or after a given install phase.
-
-    Each method decorated with ``run_before`` or ``run_after`` gets temporarily
-    stored in a global shared state when a class being defined is parsed by the Python
-    interpreter. At class definition time that temporary storage gets flushed and a list
-    of callbacks is attached to the class being defined.
-    """
-
-    def __new__(mcs, name, bases, attr_dict):
-        for temporary_stage in (_RUN_BEFORE, _RUN_AFTER):
-            staged_callbacks = temporary_stage.callbacks
-
-            # Here we have an adapter from an old-style package. This means there is no
-            # hierarchy of builders, and every callback that had to be combined between
-            # *Package and *Builder has been combined already by _PackageAdapterMeta
-            if name == "Adapter":
-                continue
-
-            # If we are here we have callbacks. To get a complete list, we accumulate all the
-            # callbacks from base classes, we deduplicate them, then prepend what we have
-            # registered here.
-            #
-            # The order should be:
-            # 1. Callbacks are registered in order within the same class
-            # 2. Callbacks defined in derived classes precede those defined in base
-            #    classes
-            callbacks_from_base = []
-            for base in bases:
-                current_callbacks = getattr(base, temporary_stage.attribute_name, None)
-                if not current_callbacks:
-                    continue
-                callbacks_from_base.extend(current_callbacks)
-            callbacks_from_base = list(lang.dedupe(callbacks_from_base))
-            # Set the callbacks in this class and flush the temporary stage
-            attr_dict[temporary_stage.attribute_name] = staged_callbacks[:] + callbacks_from_base
-            del temporary_stage.callbacks[:]
-
-        return super(PhaseCallbacksMeta, mcs).__new__(mcs, name, bases, attr_dict)
-
-    @staticmethod
-    def run_after(phase, when=None):
-        """Decorator to register a function for running after a given phase.
-
-        Args:
-            phase (str): phase after which the function must run.
-            when (str): condition under which the function is run (if None, it is always run).
-        """
-
-        def _decorator(fn):
-            key = (phase, when)
-            item = (key, fn)
-            _RUN_AFTER.callbacks.append(item)
-            return fn
-
-        return _decorator
-
-    @staticmethod
-    def run_before(phase, when=None):
-        """Decorator to register a function for running before a given phase.
-
-        Args:
-           phase (str): phase before which the function must run.
-           when (str): condition under which the function is run (if None, it is always run).
-        """
-
-        def _decorator(fn):
-            key = (phase, when)
-            item = (key, fn)
-            _RUN_BEFORE.callbacks.append(item)
-            return fn
-
-        return _decorator
+        return pkg.legacy_buildsystem  # type: ignore
 
 
 class BuilderMeta(
-    PhaseCallbacksMeta,
+    spack.phase_callbacks.PhaseCallbacksMeta,
     spack.multimethod.MultiMethodMeta,
     type(collections.abc.Sequence),  # type: ignore
 ):
@@ -400,8 +305,12 @@ class _PackageAdapterMeta(BuilderMeta):
             )
 
         combine_callbacks = _PackageAdapterMeta.combine_callbacks
-        attr_dict[_RUN_BEFORE.attribute_name] = combine_callbacks(_RUN_BEFORE.attribute_name)
-        attr_dict[_RUN_AFTER.attribute_name] = combine_callbacks(_RUN_AFTER.attribute_name)
+        attr_dict[spack.phase_callbacks._RUN_BEFORE.attribute_name] = combine_callbacks(
+            spack.phase_callbacks._RUN_BEFORE.attribute_name
+        )
+        attr_dict[spack.phase_callbacks._RUN_AFTER.attribute_name] = combine_callbacks(
+            spack.phase_callbacks._RUN_AFTER.attribute_name
+        )
 
         return super(_PackageAdapterMeta, mcs).__new__(mcs, name, bases, attr_dict)
 
@@ -421,8 +330,8 @@ class InstallationPhase:
         self.name = name
         self.builder = builder
         self.phase_fn = self._select_phase_fn()
-        self.run_before = self._make_callbacks(_RUN_BEFORE.attribute_name)
-        self.run_after = self._make_callbacks(_RUN_AFTER.attribute_name)
+        self.run_before = self._make_callbacks(spack.phase_callbacks._RUN_BEFORE.attribute_name)
+        self.run_after = self._make_callbacks(spack.phase_callbacks._RUN_AFTER.attribute_name)
 
     def _make_callbacks(self, callbacks_attribute):
         result = []
@@ -489,9 +398,6 @@ class Builder(collections.abc.Sequence, metaclass=BuilderMeta):
 
     The builder behaves like a sequence, and when iterated over return the
     "phases" of the installation in the correct order.
-
-    Args:
-        pkg (spack.package_base.PackageBase): package object to be built
     """
 
     #: Sequence of phases. Must be defined in derived classes
@@ -511,16 +417,18 @@ class Builder(collections.abc.Sequence, metaclass=BuilderMeta):
     #: Matching artifacts found at the end of the build process will be
     #: copied in the same directory tree as _spack_build_logfile and
     #: _spack_build_envfile.
-    archive_files: List[str] = []
+    @property
+    def archive_files(self) -> List[str]:
+        return []
 
-    def __init__(self, pkg):
+    def __init__(self, pkg: spack.package_base.PackageBase):
         self.pkg = pkg
         self.callbacks = {}
         for phase in self.phases:
             self.callbacks[phase] = InstallationPhase(phase, self)
 
     @property
-    def spec(self):
+    def spec(self) -> spack.spec.Spec:
         return self.pkg.spec
 
     @property
@@ -531,53 +439,47 @@ class Builder(collections.abc.Sequence, metaclass=BuilderMeta):
     def prefix(self):
         return self.pkg.prefix
 
-    def setup_build_environment(self, env):
+    def setup_build_environment(
+        self, env: spack.util.environment.EnvironmentModifications
+    ) -> None:
         """Sets up the build environment for a package.
 
         This method will be called before the current package prefix exists in
         Spack's store.
 
         Args:
-            env (spack.util.environment.EnvironmentModifications): environment
-                modifications to be applied when the package is built. Package authors
+            env: environment modifications to be applied when the package is built. Package authors
                 can call methods on it to alter the build environment.
         """
         if not hasattr(super(), "setup_build_environment"):
             return
-        super().setup_build_environment(env)
+        super().setup_build_environment(env)  # type: ignore
 
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        """Sets up the build environment of packages that depend on this one.
+    def setup_dependent_build_environment(
+        self, env: spack.util.environment.EnvironmentModifications, dependent_spec: spack.spec.Spec
+    ) -> None:
+        """Sets up the build environment of a package that depends on this one.
 
-        This is similar to ``setup_build_environment``, but it is used to
-        modify the build environments of packages that *depend* on this one.
+        This is similar to ``setup_build_environment``, but it is used to modify the build
+        environment of a package that *depends* on this one.
 
-        This gives packages like Python and others that follow the extension
-        model a way to implement common environment or compile-time settings
-        for dependencies.
+        This gives packages the ability to set environment variables for the build of the
+        dependent, which can be useful to provide search hints for headers or libraries if they are
+        not in standard locations.
 
-        This method will be called before the dependent package prefix exists
-        in Spack's store.
-
-        Examples:
-            1. Installing python modules generally requires ``PYTHONPATH``
-            to point to the ``lib/pythonX.Y/site-packages`` directory in the
-            module's install prefix. This method could be used to set that
-            variable.
+        This method will be called before the dependent package prefix exists in Spack's store.
 
         Args:
-            env (spack.util.environment.EnvironmentModifications): environment
-                modifications to be applied when the dependent package is built.
+            env: environment modifications to be applied when the dependent package is built.
                 Package authors can call methods on it to alter the build environment.
 
-            dependent_spec (spack.spec.Spec): the spec of the dependent package
-                about to be built. This allows the extendee (self) to query
-                the dependent's state. Note that *this* package's spec is
+            dependent_spec: the spec of the dependent package about to be built. This allows the
+                extendee (self) to query the dependent's state. Note that *this* package's spec is
                 available as ``self.spec``
         """
         if not hasattr(super(), "setup_dependent_build_environment"):
             return
-        super().setup_dependent_build_environment(env, dependent_spec)
+        super().setup_dependent_build_environment(env, dependent_spec)  # type: ignore
 
     def __getitem__(self, idx):
         key = self.phases[idx]
@@ -593,8 +495,3 @@ class Builder(collections.abc.Sequence, metaclass=BuilderMeta):
     def __str__(self):
         msg = '"{0}" builder for "{1}"'
         return msg.format(type(self).build_system, self.pkg.spec.format("{name}/{hash:7}"))
-
-
-# Export these names as standalone to be used in packages
-run_after = PhaseCallbacksMeta.run_after
-run_before = PhaseCallbacksMeta.run_before

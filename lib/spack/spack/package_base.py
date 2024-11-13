@@ -32,7 +32,6 @@ import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 from llnl.util.link_tree import LinkTree
 
-import spack.builder
 import spack.compilers
 import spack.config
 import spack.dependency
@@ -44,6 +43,7 @@ import spack.hooks
 import spack.mirror
 import spack.multimethod
 import spack.patch
+import spack.phase_callbacks
 import spack.repo
 import spack.spec
 import spack.store
@@ -299,7 +299,7 @@ class DetectablePackageMeta(type):
 
 
 class PackageMeta(
-    spack.builder.PhaseCallbacksMeta,
+    spack.phase_callbacks.PhaseCallbacksMeta,
     DetectablePackageMeta,
     spack.directives.DirectiveMeta,
     spack.multimethod.MultiMethodMeta,
@@ -2014,72 +2014,58 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         """
         return None, None, flags
 
-    def setup_run_environment(self, env):
+    def setup_run_environment(self, env: spack.util.environment.EnvironmentModifications) -> None:
         """Sets up the run environment for a package.
 
         Args:
-            env (spack.util.environment.EnvironmentModifications): environment
-                modifications to be applied when the package is run. Package authors
+            env: environment modifications to be applied when the package is run. Package authors
                 can call methods on it to alter the run environment.
         """
         pass
 
-    def setup_dependent_run_environment(self, env, dependent_spec):
+    def setup_dependent_run_environment(
+        self, env: spack.util.environment.EnvironmentModifications, dependent_spec: spack.spec.Spec
+    ) -> None:
         """Sets up the run environment of packages that depend on this one.
 
-        This is similar to ``setup_run_environment``, but it is used to
-        modify the run environments of packages that *depend* on this one.
+        This is similar to ``setup_run_environment``, but it is used to modify the run environment
+        of a package that *depends* on this one.
 
-        This gives packages like Python and others that follow the extension
-        model a way to implement common environment or run-time settings
-        for dependencies.
+        This gives packages like Python and others that follow the extension model a way to
+        implement common environment or run-time settings for dependencies.
 
         Args:
-            env (spack.util.environment.EnvironmentModifications): environment
-                modifications to be applied when the dependent package is run.
-                Package authors can call methods on it to alter the build environment.
+            env: environment modifications to be applied when the dependent package is run. Package
+                authors can call methods on it to alter the build environment.
 
-            dependent_spec (spack.spec.Spec): The spec of the dependent package
-                about to be run. This allows the extendee (self) to query
-                the dependent's state. Note that *this* package's spec is
+            dependent_spec: The spec of the dependent package about to be run. This allows the
+                extendee (self) to query the dependent's state. Note that *this* package's spec is
                 available as ``self.spec``
         """
         pass
 
-    def setup_dependent_package(self, module, dependent_spec):
-        """Set up Python module-scope variables for dependent packages.
+    def setup_dependent_package(self, module, dependent_spec: spack.spec.Spec) -> None:
+        """Set up module-scope global variables for dependent packages.
 
-        Called before the install() method of dependents.
-
-        Default implementation does nothing, but this can be
-        overridden by an extendable package to set up the module of
-        its extensions. This is useful if there are some common steps
-        to installing all extensions for a certain package.
+        This function is called when setting up the build and run environments of a DAG.
 
         Examples:
 
-        1. Extensions often need to invoke the ``python`` interpreter
-           from the Python installation being extended. This routine
-           can put a ``python()`` Executable object in the module scope
-           for the extension package to simplify extension installs.
+        1. Extensions often need to invoke the ``python`` interpreter from the Python installation
+           being extended. This routine can put a ``python`` Executable as a global in the module
+           scope for the extension package to simplify extension installs.
 
-        2. MPI compilers could set some variables in the dependent's
-           scope that point to ``mpicc``, ``mpicxx``, etc., allowing
-           them to be called by common name regardless of which MPI is used.
-
-        3. BLAS/LAPACK implementations can set some variables
-           indicating the path to their libraries, since these
-           paths differ by BLAS/LAPACK implementation.
+        2. MPI compilers could set some variables in the dependent's scope that point to ``mpicc``,
+           ``mpicxx``, etc., allowing them to be called by common name regardless of which MPI is
+           used.
 
         Args:
-            module (spack.package_base.PackageBase.module): The Python ``module``
-                object of the dependent package. Packages can use this to set
-                module-scope variables for the dependent to use.
+            module: The Python ``module`` object of the dependent package. Packages can use this to
+                set module-scope variables for the dependent to use.
 
-            dependent_spec (spack.spec.Spec): The spec of the dependent package
-                about to be built. This allows the extendee (self) to
-                query the dependent's state.  Note that *this*
-                package's spec is available as ``self.spec``.
+            dependent_spec: The spec of the dependent package about to be built. This allows the
+                extendee (self) to query the dependent's state.  Note that *this* package's spec is
+                available as ``self.spec``.
         """
         pass
 
@@ -2106,7 +2092,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     #  arguments. This is implemented for build system classes where
     #  appropriate and will otherwise raise a NotImplementedError.
 
-    def flags_to_build_system_args(self, flags):
+    def flags_to_build_system_args(self, flags: Dict[str, List[str]]) -> None:
         # Takes flags as a dict name: list of values
         if any(v for v in flags.values()):
             msg = "The {0} build system".format(self.__class__.__name__)
@@ -2308,10 +2294,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         Get the rpath args as a string, with -Wl,-rpath, for each element
         """
         return " ".join("-Wl,-rpath,%s" % p for p in self.rpath)
-
-    @property
-    def builder(self):
-        return spack.builder.create(self)
 
 
 inject_flags = PackageBase.inject_flags

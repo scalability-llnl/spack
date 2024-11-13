@@ -40,7 +40,7 @@ class MyBuilder(BaseBuilder):
     def install(self, pkg, spec, prefix):
         pkg.install(spec, prefix)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
     def test_callback(self):
         self.pkg.test_callback()

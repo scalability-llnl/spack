@@ -5,6 +5,7 @@
 
 import os.path
 
+import spack.phase_callbacks
 from spack.package import *
 from spack.util.environment import is_system_path
 
@@ -208,7 +209,7 @@ class Glib(MesonPackage, AutotoolsPackage):
         return find_libraries(["libglib*"], root=self.prefix, recursive=True)
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class BaseBuilder(metaclass=spack.phase_callbacks.PhaseCallbacksMeta):
     @property
     def dtrace_copy_path(self):
         return join_path(self.stage.source_path, "dtrace-copy")

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import spack.builder
+import spack.phase_callbacks
 from spack.build_systems import autotools, cmake
 from spack.package import *
 
@@ -145,7 +146,7 @@ class Proj(CMakePackage, AutotoolsPackage):
         env.set("PROJ_LIB", self.prefix.share.proj)
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class BaseBuilder(metaclass=spack.phase_callbacks.PhaseCallbacksMeta):
     def setup_build_environment(self, env):
         env.set("PROJ_LIB", join_path(self.pkg.stage.source_path, "nad"))
 

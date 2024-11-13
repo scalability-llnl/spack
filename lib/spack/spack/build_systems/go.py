@@ -7,6 +7,7 @@ import llnl.util.filesystem as fs
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, extends
 from spack.multimethod import when
 
@@ -99,7 +100,7 @@ class GoBuilder(BaseBuilder):
             fs.mkdirp(prefix.bin)
             fs.install(pkg.name, prefix.bin)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
     def check(self):
         """Run ``go test .`` in the source directory"""

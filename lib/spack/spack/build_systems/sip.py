@@ -11,6 +11,7 @@ from llnl.util.filesystem import find, working_dir
 import spack.builder
 import spack.install_test
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on, extends
 from spack.multimethod import when
 from spack.util.executable import Executable
@@ -170,4 +171,4 @@ class SIPBuilder(BaseBuilder):
         """Arguments to pass to install."""
         return []
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
