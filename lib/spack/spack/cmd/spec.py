@@ -116,9 +116,9 @@ def spec(parser, args):
     else:
         tty.die("spack spec requires at least one spec or an active environment")
 
-    for input, output in specs:
-        # With --yaml or --json, just print the raw specs to output
-        if args.format:
+    # With --yaml, --json, or --format, just print the raw specs to output
+    if args.format:
+        for _, output in specs:
             if args.format == "yaml":
                 # use write because to_yaml already has a newline.
                 sys.stdout.write(output.to_yaml(hash=ht.dag_hash))
@@ -126,19 +126,8 @@ def spec(parser, args):
                 print(output.to_json(hash=ht.dag_hash))
             else:
                 print(output.format(args.format))
-            continue
+        return
 
-        with tree_context():
-            # Only show the headers for input specs that are not concrete to avoid
-            # repeated output. This happens because parse_specs outputs concrete
-            # specs for `/hash` inputs.
-            if not input.concrete:
-                tree_kwargs["hashes"] = False  # Always False for input spec
-                print("Input spec")
-                print("--------------------------------")
-                print(input.tree(**tree_kwargs))
-                print("Concretized")
-                print("--------------------------------")
-
-            tree_kwargs["hashes"] = args.long or args.very_long
-            print(output.tree(**tree_kwargs))
+    with tree_context():
+        tree_kwargs["hashes"] = args.long or args.very_long
+        print(spack.spec.tree([concrete for _, concrete in specs], **tree_kwargs))
