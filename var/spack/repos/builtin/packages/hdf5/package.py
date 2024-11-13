@@ -675,9 +675,11 @@ class Hdf5(CMakePackage):
                         symlink(new, old)
 
     @run_after("install")
-    @when("+mpi")
     def symlink_mpi_libs(self):
         """Compatibility layer to support projects looking for the MPI suffix"""
+        if self.spec.satisfies("+mpi"):
+            return
+
         with working_dir(self.prefix.lib):
             symlink_libs = [
                 "libhdf5{mpi_suffix}{lib_suffix}",
