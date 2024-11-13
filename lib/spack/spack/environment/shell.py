@@ -158,7 +158,7 @@ def activate(
     # become PATH variables.
     #
 
-    print(env.spec_lists)
+    # Something here to actually read the environment?
     
     try:
         if view and env.has_view(view):
