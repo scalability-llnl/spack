@@ -36,7 +36,7 @@ import spack.compilers
 import spack.config
 import spack.dependency
 import spack.deptypes as dt
-import spack.directives
+import spack.directives_meta
 import spack.error
 import spack.fetch_strategy as fs
 import spack.hooks
@@ -51,6 +51,7 @@ import spack.url
 import spack.util.environment
 import spack.util.path
 import spack.util.web
+import spack.variant
 from spack.error import InstallError, NoURLError, PackageError
 from spack.filesystem_view import YamlFilesystemView
 from spack.install_test import PackageTest, TestSuite
@@ -301,7 +302,7 @@ class DetectablePackageMeta(type):
 class PackageMeta(
     spack.phase_callbacks.PhaseCallbacksMeta,
     DetectablePackageMeta,
-    spack.directives.DirectiveMeta,
+    spack.directives_meta.DirectiveMeta,
     spack.multimethod.MultiMethodMeta,
 ):
     """
@@ -453,7 +454,7 @@ def _names(when_indexed_dictionary: WhenDict) -> List[str]:
     return sorted(all_names)
 
 
-WhenVariantList = List[Tuple["spack.spec.Spec", "spack.variant.Variant"]]
+WhenVariantList = List[Tuple[spack.spec.Spec, spack.variant.Variant]]
 
 
 def _remove_overridden_vdefs(variant_defs: WhenVariantList) -> None:
@@ -492,6 +493,13 @@ def _remove_overridden_vdefs(variant_defs: WhenVariantList) -> None:
             i += 1
 
 
+#: Store whether a given Spec source/binary should not be redistributed.
+class DisableRedistribute:
+    def __init__(self, source, binary):
+        self.source = source
+        self.binary = binary
+
+
 class RedistributionMixin:
     """Logic for determining whether a Package is source/binary
     redistributable.
@@ -499,7 +507,7 @@ class RedistributionMixin:
 
     #: Store whether a given Spec source/binary should not be
     #: redistributed.
-    disable_redistribute: Dict["spack.spec.Spec", "spack.directives.DisableRedistribute"]
+    disable_redistribute: Dict[spack.spec.Spec, DisableRedistribute]
 
     # Source redistribution must be determined before concretization
     # (because source mirrors work with un-concretized Specs).
@@ -612,17 +620,17 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     # Declare versions dictionary as placeholder for values.
     # This allows analysis tools to correctly interpret the class attributes.
     versions: dict
-    dependencies: Dict["spack.spec.Spec", Dict[str, "spack.dependency.Dependency"]]
-    conflicts: Dict["spack.spec.Spec", List[Tuple["spack.spec.Spec", Optional[str]]]]
+    dependencies: Dict[spack.spec.Spec, Dict[str, spack.dependency.Dependency]]
+    conflicts: Dict[spack.spec.Spec, List[Tuple[spack.spec.Spec, Optional[str]]]]
     requirements: Dict[
-        "spack.spec.Spec", List[Tuple[Tuple["spack.spec.Spec", ...], str, Optional[str]]]
+        spack.spec.Spec, List[Tuple[Tuple[spack.spec.Spec, ...], str, Optional[str]]]
     ]
-    provided: Dict["spack.spec.Spec", Set["spack.spec.Spec"]]
-    provided_together: Dict["spack.spec.Spec", List[Set[str]]]
-    patches: Dict["spack.spec.Spec", List["spack.patch.Patch"]]
-    variants: Dict["spack.spec.Spec", Dict[str, "spack.variant.Variant"]]
-    languages: Dict["spack.spec.Spec", Set[str]]
-    splice_specs: Dict["spack.spec.Spec", Tuple["spack.spec.Spec", Union[None, str, List[str]]]]
+    provided: Dict[spack.spec.Spec, Set[spack.spec.Spec]]
+    provided_together: Dict[spack.spec.Spec, List[Set[str]]]
+    patches: Dict[spack.spec.Spec, List[spack.patch.Patch]]
+    variants: Dict[spack.spec.Spec, Dict[str, spack.variant.Variant]]
+    languages: Dict[spack.spec.Spec, Set[str]]
+    splice_specs: Dict[spack.spec.Spec, Tuple[spack.spec.Spec, Union[None, str, List[str]]]]
 
     #: By default, packages are not virtual
     #: Virtual packages override this attribute
@@ -741,7 +749,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
 
     def __init__(self, spec):
         # this determines how the package should be built.
-        self.spec: "spack.spec.Spec" = spec
+        self.spec: spack.spec.Spec = spec
 
         # Allow custom staging paths for packages
         self.path = None
@@ -809,9 +817,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         return defs
 
     @classmethod
-    def variant_items(
-        cls,
-    ) -> Iterable[Tuple["spack.spec.Spec", Dict[str, "spack.variant.Variant"]]]:
+    def variant_items(cls) -> Iterable[Tuple[spack.spec.Spec, Dict[str, spack.variant.Variant]]]:
         """Iterate over ``cls.variants.items()`` with overridden definitions removed."""
         # Note: This is quadratic in the average number of variant definitions per name.
         # That is likely close to linear in practice, as there are few variants with
@@ -829,7 +835,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
             if filtered_variants_by_name:
                 yield when, filtered_variants_by_name
 
-    def get_variant(self, name: str) -> "spack.variant.Variant":
+    def get_variant(self, name: str) -> spack.variant.Variant:
         """Get the highest precedence variant definition matching this package's spec.
 
         Arguments:
