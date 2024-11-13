@@ -3849,8 +3849,12 @@ class SpecBuilder:
         topo_order = {
             id(spec): index
             for index, spec in enumerate(
-                traverse.traverse_nodes(
-                    self._specs.values(), order="topo", key=traverse.by_dag_hash
+                reversed(
+                    list(
+                        traverse.traverse_nodes(
+                            self._specs.values(), order="topo", key=traverse.by_dag_hash
+                        )
+                    )
                 )
             )
         }

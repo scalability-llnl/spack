@@ -229,3 +229,19 @@ def test_spliced_build_deps_only_in_build_spec(splicing_setup):
         assert _has_build_dependency(build_spec, "splice-z")
         # Spliced build dependencies are removed
         assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
+
+
+def test_spliced_transitive_dependency(splicing_setup):
+    cache = ["splice-depends-on-t@1.0 ^splice-h@1.0.1"]
+    goal_spec = Spec("splice-depends-on-t^splice-h@1.0.2")
+
+    with CacheManager(cache):
+        spack.config.set("packages", _make_specs_non_buildable(["splice-depends-on-t"]))
+        _enable_splicing()
+        concr_goal = goal_spec.concretized()
+        # Spec has been spliced
+        assert concr_goal._build_spec is not None
+        assert concr_goal["splice-t"]._build_spec is not None
+        assert concr_goal.satisfies(goal_spec)
+        # Spliced build dependencies are removed
+        assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
