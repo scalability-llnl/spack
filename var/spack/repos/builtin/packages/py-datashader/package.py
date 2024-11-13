@@ -11,7 +11,6 @@ class PyDatashader(PythonPackage):
     meaningful representations of large amounts of data"""
 
     homepage = "https://datashader.org"
-    #pypi = "uxarray/uxarray-2024.10.0.tar.gz"
     pypi = "datashader/datashader-0.16.3.tar.gz"
     git = "https://github.com/holoviz/datashader.git"
 

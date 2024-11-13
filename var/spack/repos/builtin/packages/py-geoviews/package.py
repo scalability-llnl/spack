@@ -13,11 +13,10 @@ class PyGeoviews(PythonPackage):
     pypi = "geoviews/geoviews-1.13.0.tar.gz"
     git = "https://github.com/holoviz/geoviews.git"
 
-
     license("BSD-3-Clause", checked_by="climbfuji")
 
     version("1.13.0", sha256="7554a1e9114995acd243546fac6c6c7f157fc28529fde6ab236a72a6e77fe0bf")
-    #version("1.12.0", sha256="e2cbef0605e8fd1529bc643a31aeb61997f8f93c9b41a5aff8b2b355a76fa789")
+    # version("1.12.0", sha256="e2cbef0605e8fd1529bc643a31aeb61997f8f93c9b41a5aff8b2b355a76fa789")
 
     depends_on("python@3.10:", type=("build", "run"))
     depends_on("py-hatchling", type="build")
@@ -33,18 +32,3 @@ class PyGeoviews(PythonPackage):
     depends_on("py-pyproj", type="run")
     depends_on("py-shapely", type="run")
     depends_on("py-xyzservices", type="run")
-
-    #[project.optional-dependencies]
-    #recommended = [
-    #    'datashader',
-    #    'geopandas',
-    #    'matplotlib >2.2',
-    #    'netcdf4',
-    #    'pandas',
-    #    'pooch',
-    #    'pyct',
-    #    'scipy',
-    #    'shapely',
-    #    'xarray',
-    #]
-    #tests = ['psutil', 'pytest', 'pytest-xdist']

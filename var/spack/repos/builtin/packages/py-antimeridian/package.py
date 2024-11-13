@@ -19,6 +19,6 @@ class PyAntimeridian(PythonPackage):
 
     depends_on("python@3.10:", type=("build", "run"))
     depends_on("py-hatchling", type="build")
-    
+
     depends_on("py-numpy@1.22.4:", type="run")
     depends_on("py-shapely@2:", type="run")

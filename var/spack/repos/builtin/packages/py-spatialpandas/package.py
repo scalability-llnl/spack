@@ -13,7 +13,6 @@ class PySpatialpandas(PythonPackage):
     pypi = "spatialpandas/spatialpandas-1.19.1.tar.gz"
     git = "https://github.com/holoviz/spatialpandas.git"
 
-
     license("BSD-2-Clause", checked_by="climbfuji")
 
     version("0.4.10", sha256="032e24ebb40f75c5c79cb79d7c281f2990e69ba382c0b24acb53da7bba60851c")

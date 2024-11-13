@@ -13,7 +13,6 @@ class PyHvplot(PythonPackage):
     pypi = "hvplot/hvplot-1.19.1.tar.gz"
     git = "http://github.com/holoviz/hvplot.git"
 
-
     license("BSD-3-Clause", checked_by="climbfuji")
 
     version("0.11.1", sha256="989ed0389189adc47edcd2601d2eab18bf366e74b07f5e2873e021323c4a14bb")
