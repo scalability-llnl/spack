@@ -8,6 +8,7 @@ import importlib
 import os
 import re
 import sys
+from collections import Counter
 from typing import List, Union
 
 import llnl.string
@@ -24,6 +25,7 @@ import spack.error
 import spack.extensions
 import spack.parser
 import spack.paths
+import spack.repo
 import spack.spec
 import spack.store
 import spack.traverse as traverse
@@ -189,6 +191,43 @@ def _concretize_spec_pairs(to_concretize, tests=False):
     rules from config."""
     unify = spack.config.get("concretizer:unify", False)
 
+    # Special case for concretizing a single spec
+    if len(to_concretize) == 1:
+        abstract, concrete = to_concretize[0]
+        return [concrete or abstract.concretized()]
+
+    # Special case if every spec is either concrete or has an abstract hash
+    if all(
+        concrete or abstract.concrete or abstract.abstract_hash
+        for abstract, concrete in to_concretize
+    ):
+        # Get all the concrete specs
+        ret = [
+            concrete or (abstract if abstract.concrete else abstract.lookup_hash())
+            for abstract, concrete in to_concretize
+        ]
+
+        # If unify: true, check that specs don't conflict
+        # Since all concrete, "when_possible" is not relevant
+        if unify is True:  # True, "when_possible", False are possible values
+            runtimes = spack.repo.PATH.packages_with_tags("runtime")
+            specs_per_name = Counter(
+                spec.name
+                for spec in traverse.traverse_nodes(
+                    ret, deptype=("link", "run"), key=traverse.by_dag_hash
+                )
+                if spec.name not in runtimes  # runtimes are allowed multiple times
+            )
+
+            conflicts = sorted(name for name, count in specs_per_name.items() if count > 1)
+            if conflicts:
+                raise spack.error.SpecError(
+                    "Specs conflict and `concretizer:unify` is configured true.",
+                    f"    specs depend on multiple versions of {', '.join(conflicts)}",
+                )
+        return ret
+
+    # Standard case
     concretize_method = spack.concretize.concretize_separately  # unify: false
     if unify is True:
         concretize_method = spack.concretize.concretize_together

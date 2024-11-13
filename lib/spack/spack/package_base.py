@@ -622,6 +622,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     patches: Dict["spack.spec.Spec", List["spack.patch.Patch"]]
     variants: Dict["spack.spec.Spec", Dict[str, "spack.variant.Variant"]]
     languages: Dict["spack.spec.Spec", Set[str]]
+    splice_specs: Dict["spack.spec.Spec", Tuple["spack.spec.Spec", Union[None, str, List[str]]]]
 
     #: By default, packages are not virtual
     #: Virtual packages override this attribute

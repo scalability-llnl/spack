@@ -59,7 +59,7 @@ import platform
 import re
 import socket
 import warnings
-from typing import Any, Callable, Dict, List, Match, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Match, Optional, Set, Tuple, Union
 
 import archspec.cpu
 
@@ -1431,6 +1431,8 @@ def tree(
 class Spec:
     #: Cache for spec's prefix, computed lazily in the corresponding property
     _prefix = None
+    #: Cache for spec's length, computed lazily in the corresponding property
+    _length = None
     abstract_hash = None
 
     @staticmethod
@@ -2828,7 +2830,7 @@ class Spec:
             msg += "    For each package listed, choose another spec\n"
             raise SpecDeprecatedError(msg)
 
-    def concretize(self, tests: Union[bool, List[str]] = False) -> None:
+    def concretize(self, tests: Union[bool, Iterable[str]] = False) -> None:
         """Concretize the current spec.
 
         Args:
@@ -2907,7 +2909,7 @@ class Spec:
             if (not value) and s.concrete and s.installed:
                 continue
             elif not value:
-                s.clear_cached_hashes()
+                s.clear_caches()
             s._mark_root_concrete(value)
 
     def _finalize_concretization(self):
@@ -2956,7 +2958,7 @@ class Spec:
         for spec in self.traverse():
             spec._cached_hash(ht.dag_hash)
 
-    def concretized(self, tests=False):
+    def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "spack.spec.Spec":
         """This is a non-destructive version of concretize().
 
         First clones, then returns a concrete version of this package
@@ -3700,6 +3702,18 @@ class Spec:
 
         return child
 
+    def __len__(self):
+        if not self.concrete:
+            raise spack.error.SpecError(f"Cannot get length of abstract spec: {self}")
+
+        if not self._length:
+            self._length = 1 + sum(len(dep) for dep in self.dependencies())
+        return self._length
+
+    def __bool__(self):
+        # Need to define this so __len__ isn't used by default
+        return True
+
     def __contains__(self, spec):
         """True if this spec or some dependency satisfies the spec.
 
@@ -4256,7 +4270,7 @@ class Spec:
         for ancestor in ancestors_in_context:
             # Only set it if it hasn't been spliced before
             ancestor._build_spec = ancestor._build_spec or ancestor.copy()
-            ancestor.clear_cached_hashes(ignore=(ht.package_hash.attr,))
+            ancestor.clear_caches(ignore=(ht.package_hash.attr,))
             for edge in ancestor.edges_to_dependencies(depflag=dt.BUILD):
                 if edge.depflag & ~dt.BUILD:
                     edge.depflag &= ~dt.BUILD
@@ -4450,7 +4464,7 @@ class Spec:
 
         return spec
 
-    def clear_cached_hashes(self, ignore=()):
+    def clear_caches(self, ignore=()):
         """
         Clears all cached hashes in a Spec, while preserving other properties.
         """
@@ -4458,7 +4472,9 @@ class Spec:
             if h.attr not in ignore:
                 if hasattr(self, h.attr):
                     setattr(self, h.attr, None)
-        self._dunder_hash = None
+        for attr in ("_dunder_hash", "_prefix", "_length"):
+            if attr not in ignore:
+                setattr(self, attr, None)
 
     def __hash__(self):
         # If the spec is concrete, we leverage the process hash and just use

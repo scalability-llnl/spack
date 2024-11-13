@@ -78,7 +78,8 @@ properties: Dict[str, Any] = {
                                 "transitive": {"type": "boolean", "default": False},
                             },
                         },
-                    }
+                    },
+                    "automatic": {"type": "boolean"},
                 },
             },
             "duplicates": {

@@ -1267,7 +1267,7 @@ Git fetching supports the following parameters to ``version``:
   This feature requires ``git`` to be version ``2.25.0`` or later but is useful for
   large repositories that have separate portions that can be built independently.
   If paths provided are directories then all the subdirectories and associated files
-  will also be cloned. 
+  will also be cloned.
 
 Only one of ``tag``, ``branch``, or ``commit`` can be used at a time.
 
@@ -1367,8 +1367,8 @@ Submodules
   git-submodule``.
 
 Sparse-Checkout
-  You can supply ``git_sparse_paths`` at the package or version level to utilize git's 
-  sparse-checkout feature. This will only clone the paths that are specified in the 
+  You can supply ``git_sparse_paths`` at the package or version level to utilize git's
+  sparse-checkout feature. This will only clone the paths that are specified in the
   ``git_sparse_paths`` attribute for the package along with the files in the top level directory.
   This feature allows you to only clone what you need from a large repository.
   Note that this is a newer feature in git and requries git ``2.25.0`` or greater.
@@ -2392,7 +2392,7 @@ by the ``--jobs`` option:
 .. code-block:: python
    :emphasize-lines: 7, 11
    :linenos:
- 
+
    class Xios(Package):
       ...
       def install(self, spec, prefix):
@@ -5420,7 +5420,7 @@ by build recipes. Examples of checking :ref:`variant settings <variants>` and
     determine whether it needs to also set up build dependencies (see
     :ref:`test-build-tests`).
 
-The ``MyPackage`` package below provides two basic test examples: 
+The ``MyPackage`` package below provides two basic test examples:
 ``test_example`` and ``test_example2``.  The first runs the installed
 ``example`` and ensures its output contains an expected string. The second
 runs ``example2`` without checking output so is only concerned with confirming
@@ -5737,7 +5737,7 @@ subdirectory of the installation prefix. They are automatically copied to
 the appropriate relative paths under the test stage directory prior to
 executing stand-alone tests.
 
-.. tip:: 
+.. tip::
 
     *Perform test-related conversions once when copying files.*
 
@@ -7113,6 +7113,46 @@ might write:
    CXXFLAGS += -I$DWARF_PREFIX/include
    CXXFLAGS += -L$DWARF_PREFIX/lib
 
+.. _abi_compatibility:
+
+----------------------------
+Specifying ABI Compatibility
+----------------------------
+
+Packages can include ABI-compatibility information using the
+``can_splice`` directive. For example, if ``Foo`` version 1.1 can
+always replace version 1.0, then the package could have:
+
+.. code-block:: python
+
+   can_splice("foo@1.0", when="@1.1")
+
+For virtual packages, packages can also specify ABI-compabitiliby with
+other packages providing the same virtual. For example, ``zlib-ng``
+could specify:
+
+.. code-block:: python
+
+   can_splice("zlib@1.3.1", when="@2.2+compat")
+
+Some packages have ABI-compatibility that is dependent on matching
+variant values, either for all variants or for some set of
+ABI-relevant variants. In those cases, it is not necessary to specify
+the full combinatorial explosion. The ``match_variants`` keyword can
+cover all single-value variants.
+
+.. code-block:: python
+
+   can_splice("foo@1.1", when="@1.2", match_variants=["bar"])  # any value for bar as long as they're the same
+   can_splice("foo@1.2", when="@1.3", match_variants="*")  # any variant values if all single-value variants match
+
+The concretizer will use ABI compatibility to determine automatic
+splices when :ref:`automatic splicing<automatic_splicing>` is enabled.
+
+.. note::
+
+   The ``can_splice`` directive is experimental, and may be replaced
+   by a higher-level interface in future versions of Spack.
 
 .. _package_class_structure:
 
