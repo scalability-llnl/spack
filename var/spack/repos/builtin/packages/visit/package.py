@@ -124,6 +124,7 @@ class Visit(CMakePackage):
     )
 
     depends_on("cmake@3.14.7:", type="build")
+    depends_on("cmake@3.24:", type="build", when="@3.4:")
     depends_on("mpi", when="+mpi")
     conflicts("mpi", when="~mpi")
 
