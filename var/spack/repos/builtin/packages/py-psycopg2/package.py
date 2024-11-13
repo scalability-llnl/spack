@@ -16,6 +16,8 @@ class PyPsycopg2(PythonPackage):
     version("2.9.1", sha256="de5303a6f1d0a7a34b9d40e4d3bef684ccc44a49bbe3eb85e3c0bffb4a131b7c")
     version("2.8.6", sha256="fb23f6c71107c37fd667cb4ea363ddeb936b348bbd6449278eb92c189699f543")
 
+    depends_on("c", type="build")  # generated
+
     # https://www.psycopg.org/docs/install.html#prerequisites
     # https://github.com/psycopg/psycopg2/blob/master/doc/src/install.rst
     # https://www.psycopg.org/docs/news.html#news

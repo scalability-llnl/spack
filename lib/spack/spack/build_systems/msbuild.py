@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 from typing import List  # novm
 
 import llnl.util.filesystem as fs
@@ -24,7 +23,6 @@ class MSBuildPackage(spack.package_base.PackageBase):
     build_system("msbuild")
     conflicts("platform=linux", when="build_system=msbuild")
     conflicts("platform=darwin", when="build_system=msbuild")
-    conflicts("platform=cray", when="build_system=msbuild")
 
 
 @spack.builder.builder("msbuild")
@@ -105,7 +103,7 @@ class MSBuildBuilder(BaseBuilder):
     def build(self, pkg, spec, prefix):
         """Run "msbuild" on the build targets specified by the builder."""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).msbuild(
+            pkg.module.msbuild(
                 *self.std_msbuild_args,
                 *self.msbuild_args(),
                 self.define_targets(*self.build_targets),
@@ -115,6 +113,6 @@ class MSBuildBuilder(BaseBuilder):
         """Run "msbuild" on the install targets specified by the builder.
         This is INSTALL by default"""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).msbuild(
+            pkg.module.msbuild(
                 *self.msbuild_install_args(), self.define_targets(*self.install_targets)
             )

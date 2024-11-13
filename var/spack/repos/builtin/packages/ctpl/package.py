@@ -17,6 +17,8 @@ class Ctpl(AutotoolsPackage):
 
     version("0.3", sha256="034875ba8e1ce87b7ee85bc7146a6a2b2a6ac0518482b36d65eb67dd09c03d0a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

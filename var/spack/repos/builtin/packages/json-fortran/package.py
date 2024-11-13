@@ -29,6 +29,8 @@ class JsonFortran(CMakePackage):
     version("7.0.0", sha256="9b5b6235489b27d572bbc7620ed8e039fa9d4d14d41b1581b279be9db499f32c")
     version("6.11.0", sha256="0ce38236a0debcd775108684b835f9f92ca9d6594da714c0025014fe9f03eec3")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("cmake@2.8.8:", type="build")
 
     def cmake_args(self):

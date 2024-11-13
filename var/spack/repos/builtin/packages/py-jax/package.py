@@ -24,6 +24,10 @@ class PyJax(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "jonas-eschle")
 
+    version("0.4.31", sha256="fd2d470643a0073d822737f0788f71391656af7e62cc5b2e7995ee390ceac287")
+    version("0.4.30", sha256="94d74b5b2db0d80672b61d83f1f63ebf99d2ab7398ec12b2ca0c9d1e97afe577")
+    version("0.4.29", sha256="12904571eaefddcdc8c3b8d4936482b783d5a216e99ef5adcd3522fdfb4fc186")
+    version("0.4.28", sha256="dcf0a44aff2e1713f0a2b369281cd5b79d8c18fc1018905c4125897cb06b37e9")
     version("0.4.27", sha256="f3d7f19bdc0a17ccdb305086099a5a90c704f904d4272a70debe06ae6552998c")
     version("0.4.26", sha256="2cce025d0a279ec630d550524749bc8efe25d2ff47240d2a7d4cfbc5090c5383")
     version("0.4.25", sha256="a8ee189c782de2b7b2ffb64a8916da380b882a617e2769aa429b71d79747b982")
@@ -49,40 +53,35 @@ class PyJax(PythonPackage):
     version("0.4.5", sha256="1633e56d34b18ddfa7d2a216ce214fa6fa712d36552532aaa71da416aede7268")
     version("0.4.4", sha256="39b07e07343ed7c74492ee5e75db77456d3afdd038a322671f09fc748f6392cb")
     version("0.4.3", sha256="d43f08f940aa30eb339965cfb3d6bee2296537b0dc2f0c65ccae3009279529ae")
-    version(
-        "0.3.23",
-        sha256="bff436e15552a82c0ebdef32737043b799e1e10124423c57a6ae6118c3a7b6cd",
-        deprecated=True,
-    )
-    version(
-        "0.2.25",
-        sha256="822e8d1e06257eaa0fdc4c0a0686c4556e9f33647fa2a766755f984786ae7446",
-        deprecated=True,
-    )
 
     depends_on("py-setuptools", type="build")
 
     with default_args(type=("build", "run")):
         # setup.py
+        depends_on("python@3.10:", when="@0.4.31:")
         depends_on("python@3.9:", when="@0.4.14:")
-        depends_on("python@3.8:", when="@0.4:")
         depends_on("py-ml-dtypes@0.2:", when="@0.4.14:")
         depends_on("py-ml-dtypes@0.1:", when="@0.4.9:")
         depends_on("py-ml-dtypes@0.0.3:", when="@0.4.7:")
+        depends_on("py-numpy@1.24:", when="@0.4.31:")
         depends_on("py-numpy@1.22:", when="@0.4.14:")
         depends_on("py-numpy@1.21:", when="@0.4.7:")
         depends_on("py-numpy@1.20:", when="@0.3:")
-        depends_on("py-numpy@1.18:")
+        # https://github.com/google/jax/issues/19246
+        depends_on("py-numpy@:1", when="@:0.4.25")
         depends_on("py-opt-einsum")
+        depends_on("py-scipy@1.10:", when="@0.4.31:")
         depends_on("py-scipy@1.9:", when="@0.4.19:")
         depends_on("py-scipy@1.7:", when="@0.4.7:")
         depends_on("py-scipy@1.5:", when="@0.3:")
-        depends_on("py-scipy@1.2.1:")
-        depends_on("py-importlib-metadata@4.6:", when="@0.4.11: ^python@:3.9")
 
         # jax/_src/lib/__init__.py
         # https://github.com/google/jax/commit/8be057de1f50756fe7522f7e98b2f30fad56f7e4
         for v in [
+            "0.4.31",
+            "0.4.30",
+            "0.4.29",
+            "0.4.28",
             "0.4.27",
             "0.4.26",
             "0.4.25",
@@ -108,11 +107,12 @@ class PyJax(PythonPackage):
             "0.4.5",
             "0.4.4",
             "0.4.3",
-            "0.3.23",
         ]:
             depends_on(f"py-jaxlib@:{v}", when=f"@{v}")
 
         # See _minimum_jaxlib_version in jax/version.py
+        depends_on("py-jaxlib@0.4.30:", when="@0.4.31:")
+        depends_on("py-jaxlib@0.4.27:", when="@0.4.28:")
         depends_on("py-jaxlib@0.4.23:", when="@0.4.27:")
         depends_on("py-jaxlib@0.4.20:", when="@0.4.25:")
         depends_on("py-jaxlib@0.4.19:", when="@0.4.21:")
@@ -123,16 +123,7 @@ class PyJax(PythonPackage):
         depends_on("py-jaxlib@0.4.4:", when="@0.4.5:")
         depends_on("py-jaxlib@0.4.2:", when="@0.4.3:")
         depends_on("py-jaxlib@0.4.1:", when="@0.4.2:")
-        depends_on("py-jaxlib@0.3.22:", when="@0.3.24:")
-        depends_on("py-jaxlib@0.3.15:", when="@0.3.18:")
-        depends_on("py-jaxlib@0.3.14:", when="@0.3.15:")
-        depends_on("py-jaxlib@0.3.7:", when="@0.3.8:")
-        depends_on("py-jaxlib@0.3.2:", when="@0.3.7:")
-        depends_on("py-jaxlib@0.3.0:", when="@0.3.2:")
-        depends_on("py-jaxlib@0.1.74:", when="@0.2.26:")
-        depends_on("py-jaxlib@0.1.69:", when="@0.2.18:")
 
         # Historical dependencies
-        depends_on("py-absl-py", when="@:0.3")
-        depends_on("py-typing-extensions", when="@:0.3")
-        depends_on("py-etils+epath", when="@0.3")
+        depends_on("py-ml-dtypes@0.4:", when="@0.4.29")
+        depends_on("py-importlib-metadata@4.6:", when="@0.4.11:0.4.30 ^python@:3.9")

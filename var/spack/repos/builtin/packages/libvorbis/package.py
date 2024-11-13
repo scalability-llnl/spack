@@ -20,6 +20,8 @@ class Libvorbis(AutotoolsPackage):
     version("1.3.7", sha256="0e982409a9c3fc82ee06e08205b1355e5c6aa4c36bca58146ef399621b0ce5ab")
     version("1.3.5", sha256="6efbcecdd3e5dfbf090341b485da9d176eb250d893e3eb378c428a2db38301ce")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libogg")
 
     depends_on("pkgconfig", type="build")

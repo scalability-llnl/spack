@@ -50,6 +50,11 @@ class Silo(AutotoolsPackage):
     version("4.9", sha256="90f3d069963d859c142809cfcb034bc83eb951f61ac02ccb967fc8e8d0409854")
     version("4.8", sha256="c430c1d33fcb9bc136a99ad473d535d6763bd1357b704a915ba7b1081d58fb21")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    variant("python", default=True, description="Enable Python support")
     variant("fortran", default=True, description="Enable Fortran support")
     variant("shared", default=True, description="Build shared libraries")
     variant("silex", default=False, description="Builds Silex, a GUI for viewing Silo files")
@@ -137,12 +142,18 @@ class Silo(AutotoolsPackage):
                     # presented with an HDF5 API consistent with the HDF5 version.
                     # Use the latest even-numbered API version, i.e. v1.13.1 uses
                     # API v1.12
-                    maj_ver = int(spec["hdf5"].version[0])
-                    min_ver = int(spec["hdf5"].version[1])
+
+                    # hdf5 support branches have a `develop` prefix
+                    if "develop" in str(spec["hdf5"].version):
+                        maj_ver = int(spec["hdf5"].version[1])
+                        min_ver = int(spec["hdf5"].version[2])
+                    else:
+                        maj_ver = int(spec["hdf5"].version[0])
+                        min_ver = int(spec["hdf5"].version[1])
                     min_apiver = int(min_ver / 2) * 2
                     flags.append("-DH5_USE_{0}{1}_API".format(maj_ver, min_apiver))
 
-            if spec.compiler.name in ["clang", "apple-clang"]:
+            if spec.satisfies("%clang") or spec.satisfies("%apple-clang"):
                 flags.append("-Wno-implicit-function-declaration")
         return (flags, None, None)
 
@@ -194,14 +205,14 @@ class Silo(AutotoolsPackage):
 
     def configure_args(self):
         spec = self.spec
-        config_args = [
-            "--enable-install-lite-headers",
-            "--enable-fortran" if "+fortran" in spec else "--disable-fortran",
-            "--enable-silex" if "+silex" in spec else "--disable-silex",
-            "--enable-shared" if "+shared" in spec else "--disable-shared",
-            "--enable-hzip" if "+hzip" in spec else "--disable-hzip",
-            "--enable-fpzip" if "+fpzip" in spec else "--disable-fpzip",
-        ]
+        config_args = ["--enable-install-lite-headers"]
+
+        config_args.extend(self.enable_or_disable("pythonmodule", variant="python"))
+        config_args.extend(self.enable_or_disable("fortran"))
+        config_args.extend(self.enable_or_disable("silex"))
+        config_args.extend(self.enable_or_disable("shared"))
+        config_args.extend(self.enable_or_disable("hzip"))
+        config_args.extend(self.enable_or_disable("fpzip"))
 
         # Do not specify the prefix of zlib if it is in a system directory
         # (see https://github.com/spack/spack/pull/21900).

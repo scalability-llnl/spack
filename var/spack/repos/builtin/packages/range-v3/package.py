@@ -41,6 +41,8 @@ class RangeV3(CMakePackage):
     version("0.2.1", sha256="25d5e3dad8052d668873e960bd78f068bebfba3bd28a278f805ea386f9438790")
     version("0.2.0", sha256="49b1a62a7a36dab582521c8034d8e736a8922af664d007c1529d3162b1294331")
 
+    depends_on("cxx", type="build")  # generated
+
     # Note that as of 0.3.6 range is a header-only library so it is not
     # necessary to match standards with packages using this
     # one. Eventually range-v3 will be obsoleted by the C++ standard.

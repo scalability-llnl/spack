@@ -20,4 +20,6 @@ class Cargs(CMakePackage):
     version("1.1.0", sha256="87e7da5b539f574d48529870cb0620ef5a244a5ee2eac73cc7559dedc04128ca")
     version("1.0.3", sha256="ddba25bd35e9c6c75bc706c126001b8ce8e084d40ef37050e6aa6963e836eb8b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("cmake@3.14.7:", type=("build"))

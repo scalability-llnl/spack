@@ -18,6 +18,8 @@ class PyMetomiRose(PythonPackage):
 
     version("2.1.0", sha256="1b60135a434fe4325d364a57e8f5e81e90f39b373b9d68733458c1adc2513c05")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-aiofiles", type=("build", "run"))
     depends_on("py-jinja2@2.10.1:", type=("build", "run"))

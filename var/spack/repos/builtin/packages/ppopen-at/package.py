@@ -17,6 +17,10 @@ class PpopenAt(MakefilePackage):
 
     version("master", branch="AT")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     def edit(self, spec, prefix):
         makefile_in = FileFilter("Makefile.in")
         makefile_in.filter("gcc", spack_cxx)

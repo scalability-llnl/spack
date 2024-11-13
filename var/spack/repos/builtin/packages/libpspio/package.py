@@ -18,6 +18,9 @@ class Libpspio(AutotoolsPackage):
 
     version("0.3.0", sha256="4dc092457e481e5cd703eeecd87e6f17749941fe274043550c8a2557a649afc5")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fortran", default=False, description="Enable Fortran bindings")
 
     depends_on("autoconf", type="build")

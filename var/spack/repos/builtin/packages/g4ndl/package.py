@@ -17,6 +17,7 @@ class G4ndl(Package):
 
     maintainers("drbenmorgan")
 
+    version("4.7.1", sha256="d3acae48622118d2579de24a54d533fb2416bf0da9dd288f1724df1485a46c7c")
     version("4.7", sha256="7e7d3d2621102dc614f753ad928730a290d19660eed96304a9d24b453d670309")
     version("4.6", sha256="9d287cf2ae0fb887a2adce801ee74fb9be21b0d166dab49bcbee9408a5145408")
     version("4.5", sha256="cba928a520a788f2bc8229c7ef57f83d0934bb0c6a18c31ef05ef4865edcdf8e")

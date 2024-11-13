@@ -30,8 +30,8 @@ class Xl(Package, CompilerPackage):
 
     @classmethod
     def determine_variants(cls, exes, version_str):
-        _r_exes = [e for e in exes if "_r" in e]
-        _exes = [e for e in exes if "_r" not in e]
+        _r_exes = [e for e in exes if e.endswith("_r")]
+        _exes = [e for e in exes if not e.endswith("_r")]
 
         _r_compilers = cls.determine_compiler_paths(exes=_r_exes) if _r_exes else None
         _compilers = cls.determine_compiler_paths(exes=_exes) if _exes else None

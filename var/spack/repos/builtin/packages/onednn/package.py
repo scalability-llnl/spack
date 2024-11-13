@@ -71,6 +71,9 @@ class Onednn(CMakePackage):
     version("0.10", sha256="e783d6d085e4dd930a990cf02a76401071f606c6f40e47eae4dc638b54146430")
     version("0.9", sha256="721ab6a14e05f9916645ebb410c3e97fae660d09a1c7df4da7958676504e572b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     default_cpu_runtime = "omp"
     if sys.platform == "darwin":
         default_cpu_runtime = "tbb"

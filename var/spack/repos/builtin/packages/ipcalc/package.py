@@ -21,6 +21,8 @@ class Ipcalc(MakefilePackage):
     version("0.2.2", sha256="bf1b95eca219e564c85fa4233fe65342963cf3e8a303a7e10b4dd7269c864794")
     version("0.2.0", sha256="c965c1296172a6acc50d54dfe81f7e5d589f9762b5d9ae459eee00349675336b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("geoip-api-c")
 
     def setup_build_environment(self, env):

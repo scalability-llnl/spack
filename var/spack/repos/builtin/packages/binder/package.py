@@ -24,13 +24,19 @@ class Binder(CMakePackage):
     license("MIT")
 
     version("master", branch="master")
+    version("1.4.2", tag="v1.4.2", commit="b9f309e0513e745a7465571321e87595fa33d195")
     version("1.3.0", tag="v1.3.0", commit="e9b55985af297ca161d615058e4a5da07c22bc77")
     version("1.2.0", tag="v1.2.0", commit="90cf5b31b6f4ecad3fe87518ca2b949dc9e8ed1a")
     version("1.1.0", tag="v1.0.0", commit="3de7949343197295250f988716d511a264b21324")
     version("1.0.0", tag="v1.0.0", commit="3de7949343197295250f988716d511a264b21324")
 
+    depends_on("cxx", type="build")  # generated
+
     # Add dependencies
-    depends_on("llvm+clang+llvm_dylib@7.0:9")
+    depends_on("llvm+clang+llvm_dylib@7.0:9", when="@:1.3.0")
+    depends_on("llvm+clang+llvm_dylib@7.0:", when="@1.4.2:")
+
+    patch("llvm_dir.patch", when="@1.4.2:")
 
     def cmake_args(self):
         spec = self.spec

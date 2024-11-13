@@ -20,6 +20,8 @@ class PkgConfig(AutotoolsPackage):
     version("0.29.1", sha256="beb43c9e064555469bd4390dcfd8030b1536e0aa103f08d7abf7ae8cac0cb001")
     version("0.28", sha256="6b6eb31c6ec4421174578652c7e141fdaae2dabad1021f420d8713206ac1f845")
 
+    depends_on("c", type="build")  # generated
+
     provides("pkgconfig")
 
     variant("internal_glib", default=True, description="Builds with internal glib")
@@ -53,17 +55,18 @@ class PkgConfig(AutotoolsPackage):
         env.append_path("ACLOCAL_PATH", self.prefix.share.aclocal)
 
     def configure_args(self):
+        spec = self.spec
         config_args = ["--enable-shared"]
 
-        if "+internal_glib" in self.spec:
+        if spec.satisfies("+internal_glib"):
             # There's a bootstrapping problem here;
             # glib uses pkg-config as well, so break
             # the cycle by using the internal glib.
             config_args.append("--with-internal-glib")
 
-        c_name = self.spec.compiler.name
-        if "oneapi" in c_name or "cce" in c_name:
-            # Don't treat int-conversion warning as error with oneapi and cce.
-            config_args.append("CFLAGS=-Wno-error=int-conversion")
+        for strict_compiler in ("%oneapi", "%cce", "%apple-clang@15:", "%clang@15:"):
+            if spec.satisfies(strict_compiler):
+                config_args.append("CFLAGS=-Wno-error=int-conversion")
+                break
 
         return config_args

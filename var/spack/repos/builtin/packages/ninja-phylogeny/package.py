@@ -18,6 +18,8 @@ class NinjaPhylogeny(MakefilePackage):
 
     version("0.98", sha256="55675e1a9d51eddb3decc9a7570b6bcddb12e8a922cf1ca0a1ea43995793c9db")
 
+    depends_on("cxx", type="build")  # generated
+
     build_directory = "NINJA"
 
     def edit(self, spec, prefix):

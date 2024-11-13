@@ -33,6 +33,8 @@ class Pajeng(CMakePackage):
     version("1.1", sha256="986d03e6deed20a3b9d0e076b1be9053c1bc86c8b41ca36cce3ba3b22dc6abca")
     version("1.0", sha256="4d98d1a78669290d0a2e6bfe07a1eb4ab96bd05e5ef78da96d2c3cf03b023aa0")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("static", default=False, description="Build as static library")
     variant("doc", default=False, description="The Paje Trace File documentation")
     variant("lib", default=True, description="Build libpaje")

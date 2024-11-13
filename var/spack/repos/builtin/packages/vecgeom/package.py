@@ -22,6 +22,16 @@ class Vecgeom(CMakePackage, CudaPackage):
 
     version("master", branch="master")
     version(
+        "1.2.9",
+        url="https://gitlab.cern.ch/-/project/981/uploads/55a89cafbf48a418bec68be42867d4bf/VecGeom-v1.2.9.tar.gz",
+        sha256="93ee9ce6f7b2d704e9b9db22fad68f81b8eaf17453452969fc47e93dba4bfaf4",
+    )
+    version(
+        "1.2.8",
+        url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/db11697eb81d6f369e9ded1078de946b/VecGeom-v1.2.8.tar.gz",
+        sha256="769f59e8377f8268e253a9b2a3eee86868a9ebc1fa66c968b96e19c31440c12b",
+    )
+    version(
         "1.2.7",
         url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/e4172cca4f6f731ef15e2780ecbb1645/VecGeom-v1.2.7.tar.gz",
         sha256="d264c69b78bf431b9542be1f1af087517eac629da03cf2da62eb1e433fe06021",
@@ -147,6 +157,8 @@ class Vecgeom(CMakePackage, CudaPackage):
         commit="a7e0828c915ff936a79e672d1dd84b087a323b51",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")
 
     _cxxstd_values = (conditional("11", "14", when="@:1.1"), "17", conditional("20", when="@1.2:"))
     variant(

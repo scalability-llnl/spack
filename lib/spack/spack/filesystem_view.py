@@ -10,8 +10,9 @@ import re
 import shutil
 import stat
 import sys
-from typing import Optional
+from typing import Callable, Dict, Optional
 
+from llnl.string import comma_or
 from llnl.util import tty
 from llnl.util.filesystem import (
     mkdirp,
@@ -32,6 +33,7 @@ from llnl.util.symlink import symlink
 from llnl.util.tty.color import colorize
 
 import spack.config
+import spack.directory_layout
 import spack.paths
 import spack.projections
 import spack.relocate
@@ -49,19 +51,20 @@ __all__ = ["FilesystemView", "YamlFilesystemView"]
 _projections_path = ".spack/projections.yaml"
 
 
-def view_symlink(src, dst, **kwargs):
-    # keyword arguments are irrelevant
-    # here to fit required call signature
+LinkCallbackType = Callable[[str, str, "FilesystemView", Optional[spack.spec.Spec]], None]
+
+
+def view_symlink(src: str, dst: str, *args, **kwargs) -> None:
     symlink(src, dst)
 
 
-def view_hardlink(src, dst, **kwargs):
-    # keyword arguments are irrelevant
-    # here to fit required call signature
+def view_hardlink(src: str, dst: str, *args, **kwargs) -> None:
     os.link(src, dst)
 
 
-def view_copy(src: str, dst: str, view, spec: Optional[spack.spec.Spec] = None):
+def view_copy(
+    src: str, dst: str, view: "FilesystemView", spec: Optional[spack.spec.Spec] = None
+) -> None:
     """
     Copy a file from src to dst.
 
@@ -98,33 +101,48 @@ def view_copy(src: str, dst: str, view, spec: Optional[spack.spec.Spec] = None):
 
         spack.relocate.relocate_text(files=[dst], prefixes=prefix_to_projection)
 
-    try:
-        os.chown(dst, src_stat.st_uid, src_stat.st_gid)
-    except OSError:
-        tty.debug(f"Can't change the permissions for {dst}")
+    # The os module on Windows does not have a chown function.
+    if sys.platform != "win32":
+        try:
+            os.chown(dst, src_stat.st_uid, src_stat.st_gid)
+        except OSError:
+            tty.debug(f"Can't change the permissions for {dst}")
 
 
-def view_func_parser(parsed_name):
-    # What method are we using for this view
-    if parsed_name in ("hardlink", "hard"):
+#: supported string values for `link_type` in an env, mapped to canonical values
+_LINK_TYPES = {
+    "hardlink": "hardlink",
+    "hard": "hardlink",
+    "copy": "copy",
+    "relocate": "copy",
+    "add": "symlink",
+    "symlink": "symlink",
+    "soft": "symlink",
+}
+
+_VALID_LINK_TYPES = sorted(set(_LINK_TYPES.values()))
+
+
+def canonicalize_link_type(link_type: str) -> str:
+    """Return canonical"""
+    canonical = _LINK_TYPES.get(link_type)
+    if not canonical:
+        raise ValueError(
+            f"Invalid link type: '{link_type}. Must be one of {comma_or(_VALID_LINK_TYPES)}'"
+        )
+    return canonical
+
+
+def function_for_link_type(link_type: str) -> LinkCallbackType:
+    link_type = canonicalize_link_type(link_type)
+    if link_type == "hardlink":
         return view_hardlink
-    elif parsed_name in ("copy", "relocate"):
-        return view_copy
-    elif parsed_name in ("add", "symlink", "soft"):
+    elif link_type == "symlink":
         return view_symlink
-    else:
-        raise ValueError(f"invalid link type for view: '{parsed_name}'")
+    elif link_type == "copy":
+        return view_copy
 
-
-def inverse_view_func_parser(view_type):
-    # get string based on view type
-    if view_type is view_hardlink:
-        link_name = "hardlink"
-    elif view_type is view_copy:
-        link_name = "copy"
-    else:
-        link_name = "symlink"
-    return link_name
+    assert False, "invalid link type"  # need mypy Literal values
 
 
 class FilesystemView:
@@ -140,7 +158,16 @@ class FilesystemView:
     directory structure.
     """
 
-    def __init__(self, root, layout, **kwargs):
+    def __init__(
+        self,
+        root: str,
+        layout: spack.directory_layout.DirectoryLayout,
+        *,
+        projections: Optional[Dict] = None,
+        ignore_conflicts: bool = False,
+        verbose: bool = False,
+        link_type: str = "symlink",
+    ):
         """
         Initialize a filesystem view under the given `root` directory with
         corresponding directory `layout`.
@@ -149,15 +176,17 @@ class FilesystemView:
         """
         self._root = root
         self.layout = layout
+        self.projections = {} if projections is None else projections
 
-        self.projections = kwargs.get("projections", {})
-
-        self.ignore_conflicts = kwargs.get("ignore_conflicts", False)
-        self.verbose = kwargs.get("verbose", False)
+        self.ignore_conflicts = ignore_conflicts
+        self.verbose = verbose
 
         # Setup link function to include view
-        link_func = kwargs.get("link", view_symlink)
-        self.link = ft.partial(link_func, view=self)
+        self.link_type = link_type
+        self._link = function_for_link_type(link_type)
+
+    def link(self, src: str, dst: str, spec: Optional[spack.spec.Spec] = None) -> None:
+        self._link(src, dst, self, spec)
 
     def add_specs(self, *specs, **kwargs):
         """
@@ -255,8 +284,24 @@ class YamlFilesystemView(FilesystemView):
     Filesystem view to work with a yaml based directory layout.
     """
 
-    def __init__(self, root, layout, **kwargs):
-        super().__init__(root, layout, **kwargs)
+    def __init__(
+        self,
+        root: str,
+        layout: spack.directory_layout.DirectoryLayout,
+        *,
+        projections: Optional[Dict] = None,
+        ignore_conflicts: bool = False,
+        verbose: bool = False,
+        link_type: str = "symlink",
+    ):
+        super().__init__(
+            root,
+            layout,
+            projections=projections,
+            ignore_conflicts=ignore_conflicts,
+            verbose=verbose,
+            link_type=link_type,
+        )
 
         # Super class gets projections from the kwargs
         # YAML specific to get projections from YAML file
@@ -637,9 +682,6 @@ class YamlFilesystemView(FilesystemView):
 class SimpleFilesystemView(FilesystemView):
     """A simple and partial implementation of FilesystemView focused on performance and immutable
     views, where specs cannot be removed after they were added."""
-
-    def __init__(self, root, layout, **kwargs):
-        super().__init__(root, layout, **kwargs)
 
     def _sanity_check_view_projection(self, specs):
         """A very common issue is that we end up with two specs of the same package, that project

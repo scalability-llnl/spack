@@ -71,11 +71,14 @@ class Visit(CMakePackage):
     version("3.1.1", sha256="0b60ac52fd00aff3cf212a310e36e32e13ae3ca0ddd1ea3f54f75e4d9b6c6cf0")
     version("3.0.1", sha256="a506d4d83b8973829e68787d8d721199523ce7ec73e7594e93333c214c2c12bd")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     root_cmakelists_dir = "src"
     generator("ninja")
 
     variant("gui", default=True, description="Enable VisIt's GUI")
-    variant("osmesa", default=False, description="Use OSMesa for off-screen CPU rendering")
     variant("adios2", default=True, description="Enable ADIOS2 file format")
     variant("hdf5", default=True, description="Enable HDF5 file format")
     variant("netcdf", default=True, description="Enable NetCDF file format")
@@ -105,16 +108,15 @@ class Visit(CMakePackage):
     # Fix const-correctness in VTK interface
     patch("vtk-8.2-constcorrect.patch", when="@3.3.3 ^vtk@8.2.1a")
 
-    # Exactly one of 'gui' or 'osmesa' has to be enabled
-    conflicts("+gui", when="+osmesa")
+    conflicts(
+        "+gui", when="^[virtuals=gl] osmesa", msg="GUI cannot be activated with OSMesa front-end"
+    )
 
     depends_on("cmake@3.14.7:", type="build")
-
     depends_on("mpi", when="+mpi")
 
     # VTK flavors
     depends_on("vtk@8.1:8 +opengl2")
-    depends_on("vtk +osmesa", when="+osmesa")
     depends_on("vtk +qt", when="+gui")
     depends_on("vtk +python", when="+python")
     depends_on("vtk +mpi", when="+mpi")
@@ -125,11 +127,12 @@ class Visit(CMakePackage):
     depends_on(
         "vtk",
         patches=[patch("vtk_rendering_opengl2_x11.patch")],
-        when="~osmesa platform=linux ^vtk@8",
+        when="platform=linux ^[virtuals=gl] glx ^vtk@8",
     )
     depends_on("vtk", patches=[patch("vtk_wrapping_python_x11.patch")], when="+python ^vtk@8")
 
     depends_on("glu")
+    depends_on("gl")
 
     # VisIt doesn't work with later versions of qt.
     depends_on("qt+gui+opengl@5:5.14", when="+gui")
@@ -291,10 +294,11 @@ class Visit(CMakePackage):
                 self.define("VISIT_OSMESA_DIR", "IGNORE"),
                 self.define("OpenGL_GL_PREFERENCE", "LEGACY"),
                 self.define("OPENGL_INCLUDE_DIR", spec["gl"].headers.directories[0]),
+                self.define("OPENGL_gl_LIBRARY", spec["gl"].libs[0]),
                 self.define("OPENGL_glu_LIBRARY", spec["glu"].libs[0]),
             ]
         )
-        if "+osmesa" in spec:
+        if spec.satisfies("^[virtuals=gl] osmesa"):
             args.extend(
                 [
                     self.define("HAVE_OSMESA", True),
@@ -302,8 +306,6 @@ class Visit(CMakePackage):
                     self.define("OPENGL_gl_LIBRARY", spec["osmesa"].libs[0]),
                 ]
             )
-        else:
-            args.append(self.define("OPENGL_gl_LIBRARY", spec["gl"].libs[0]))
 
         if "+hdf5" in spec:
             args.append(self.define("HDF5_DIR", spec["hdf5"].prefix))

@@ -21,6 +21,8 @@ class Parmetis(CMakePackage):
     version("4.0.3", sha256="f2d9a231b7cf97f1fee6e8c9663113ebf6c240d407d3c118c55b3633d6be6e5f")
     version("4.0.2", sha256="5acbb700f457d3bda7d4bb944b559d7f21f075bb6fa4c33f42c261019ef2f0b2")
 
+    depends_on("c", type="build")  # generated
+
     variant("shared", default=True, description="Enables the build of shared libraries.")
     variant("gdb", default=False, description="Enables gdb support.")
     variant("int64", default=False, description="Sets the bit width of METIS's index type to 64.")

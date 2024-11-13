@@ -21,6 +21,8 @@ class RecolaSm(CMakePackage):
 
     version("2.2.3", sha256="9ebdc4fd8ca48789de0b6bbb2ab7e4845c92d19dfe0c3f67866cbf114d6242a5")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("collier")
 
     def cmake_args(self):

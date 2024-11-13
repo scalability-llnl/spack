@@ -21,4 +21,6 @@ class PyRuamelOrdereddict(PythonPackage):
 
     version("0.4.14", sha256="281051d26eb2b18ef3d920e1e260716a52bd058a6b1a2f324102fc6a15cb8d4a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

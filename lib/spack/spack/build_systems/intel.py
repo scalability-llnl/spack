@@ -22,9 +22,10 @@ from llnl.util.filesystem import (
     install,
 )
 
+import spack.builder
 import spack.error
 from spack.build_environment import dso_suffix
-from spack.package_base import InstallError
+from spack.error import InstallError
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 from spack.util.prefix import Prefix
@@ -846,6 +847,7 @@ class IntelPackage(Package):
             "^mpich@2:" in spec_root
             or "^cray-mpich" in spec_root
             or "^mvapich2" in spec_root
+            or "^mvapich" in spec_root
             or "^intel-mpi" in spec_root
             or "^intel-oneapi-mpi" in spec_root
             or "^intel-parallel-studio" in spec_root
@@ -936,32 +938,15 @@ class IntelPackage(Package):
             "I_MPI_ROOT": self.normalize_path("mpi"),
         }
 
-        # CAUTION - SIMILAR code in:
-        #   var/spack/repos/builtin/packages/mpich/package.py
-        #   var/spack/repos/builtin/packages/openmpi/package.py
-        #   var/spack/repos/builtin/packages/mvapich2/package.py
-        #
-        # On Cray, the regular compiler wrappers *are* the MPI wrappers.
-        if "platform=cray" in self.spec:
-            # TODO: Confirm
-            wrapper_vars.update(
-                {
-                    "MPICC": compilers_of_client["CC"],
-                    "MPICXX": compilers_of_client["CXX"],
-                    "MPIF77": compilers_of_client["F77"],
-                    "MPIF90": compilers_of_client["F90"],
-                }
-            )
-        else:
-            compiler_wrapper_commands = self.mpi_compiler_wrappers
-            wrapper_vars.update(
-                {
-                    "MPICC": compiler_wrapper_commands["MPICC"],
-                    "MPICXX": compiler_wrapper_commands["MPICXX"],
-                    "MPIF77": compiler_wrapper_commands["MPIF77"],
-                    "MPIF90": compiler_wrapper_commands["MPIF90"],
-                }
-            )
+        compiler_wrapper_commands = self.mpi_compiler_wrappers
+        wrapper_vars.update(
+            {
+                "MPICC": compiler_wrapper_commands["MPICC"],
+                "MPICXX": compiler_wrapper_commands["MPICXX"],
+                "MPIF77": compiler_wrapper_commands["MPIF77"],
+                "MPIF90": compiler_wrapper_commands["MPIF90"],
+            }
+        )
 
         # Ensure that the directory containing the compiler wrappers is in the
         # PATH. Spack packages add `prefix.bin` to their dependents' paths,

@@ -21,6 +21,8 @@ class Banner(AutotoolsPackage):
 
     version("1.3.5", sha256="fb21c42620a0a668334b5732a6216b23b3990ca5d87cf3b15f0689dc617e7fdc")
 
+    depends_on("c", type="build")  # generated
+
     def url_for_version(self, version):
         return "https://github.com/pronovic/banner/archive/refs/tags/BANNER_V{0}.tar.gz".format(
             version

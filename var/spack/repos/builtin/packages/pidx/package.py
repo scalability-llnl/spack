@@ -20,5 +20,8 @@ class Pidx(CMakePackage):
 
     version("1.0", commit="6afa1cf71d1c41263296dc049c8fabaf73c296da")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8.4:", type="build")
     depends_on("mpi")

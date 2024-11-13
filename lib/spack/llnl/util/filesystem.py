@@ -27,8 +27,6 @@ from llnl.util import tty
 from llnl.util.lang import dedupe, memoized
 from llnl.util.symlink import islink, readlink, resolve_link_target_relative_to_the_link, symlink
 
-from spack.util.executable import Executable, which
-
 from ..path import path_to_os_path, system_path_filter
 
 if sys.platform != "win32":
@@ -49,11 +47,11 @@ __all__ = [
     "copy_mode",
     "filter_file",
     "find",
+    "find_first",
     "find_headers",
     "find_all_headers",
     "find_libraries",
     "find_system_libraries",
-    "fix_darwin_install_name",
     "force_remove",
     "force_symlink",
     "getuid",
@@ -187,12 +185,18 @@ def polite_filename(filename: str) -> str:
     return _polite_antipattern().sub("_", filename)
 
 
-def getuid():
+def getuid() -> Union[str, int]:
+    """Returns os getuid on non Windows
+    On Windows returns 0 for admin users, login string otherwise
+    This is in line with behavior from get_owner_uid which
+    always returns the login string on Windows
+    """
     if sys.platform == "win32":
         import ctypes
 
+        # If not admin, use the string name of the login as a unique ID
         if ctypes.windll.shell32.IsUserAnAdmin() == 0:
-            return 1
+            return os.getlogin()
         return 0
     else:
         return os.getuid()
@@ -214,6 +218,15 @@ def _win_rename(src, dst):
 
 
 @system_path_filter
+def msdos_escape_parens(path):
+    """MS-DOS interprets parens as grouping parameters even in a quoted string"""
+    if sys.platform == "win32":
+        return path.replace("(", "^(").replace(")", "^)")
+    else:
+        return path
+
+
+@system_path_filter
 def rename(src, dst):
     # On Windows, os.rename will fail if the destination file already exists
     # os.replace is the same as os.rename on POSIX and is MoveFileExW w/
@@ -231,42 +244,6 @@ def path_contains_subdirectory(path, root):
     norm_root = os.path.abspath(root).rstrip(os.path.sep) + os.path.sep
     norm_path = os.path.abspath(path).rstrip(os.path.sep) + os.path.sep
     return norm_path.startswith(norm_root)
-
-
-@memoized
-def file_command(*args):
-    """Creates entry point to `file` system command with provided arguments"""
-    file_cmd = which("file", required=True)
-    for arg in args:
-        file_cmd.add_default_arg(arg)
-    return file_cmd
-
-
-@memoized
-def _get_mime_type():
-    """Generate method to call `file` system command to aquire mime type
-    for a specified path
-    """
-    if sys.platform == "win32":
-        # -h option (no-dereference) does not exist in Windows
-        return file_command("-b", "--mime-type")
-    else:
-        return file_command("-b", "-h", "--mime-type")
-
-
-def mime_type(filename):
-    """Returns the mime type and subtype of a file.
-
-    Args:
-        filename: file to be analyzed
-
-    Returns:
-        Tuple containing the MIME type and subtype
-    """
-    output = _get_mime_type()(filename, output=str, error=str).strip()
-    tty.debug("==> " + output)
-    type, _, subtype = output.partition("/")
-    return type, subtype
 
 
 #: This generates the library filenames that may appear on any OS.
@@ -553,7 +530,13 @@ def exploding_archive_handler(tarball_container, stage):
 
 
 @system_path_filter(arg_slice=slice(1))
-def get_owner_uid(path, err_msg=None):
+def get_owner_uid(path, err_msg=None) -> Union[str, int]:
+    """Returns owner UID of path destination
+    On non Windows this is the value of st_uid
+    On Windows this is the login string associated with the
+     owning user.
+
+    """
     if not os.path.exists(path):
         mkdirp(path, mode=stat.S_IRWXU)
 
@@ -745,7 +728,6 @@ def copy_tree(
     src: str,
     dest: str,
     symlinks: bool = True,
-    allow_broken_symlinks: bool = sys.platform != "win32",
     ignore: Optional[Callable[[str], bool]] = None,
     _permissions: bool = False,
 ):
@@ -768,8 +750,6 @@ def copy_tree(
         src (str): the directory to copy
         dest (str): the destination directory
         symlinks (bool): whether or not to preserve symlinks
-        allow_broken_symlinks (bool): whether or not to allow broken (dangling) symlinks,
-            On Windows, setting this to True will raise an exception. Defaults to true on unix.
         ignore (typing.Callable): function indicating which files to ignore
         _permissions (bool): for internal use only
 
@@ -777,8 +757,6 @@ def copy_tree(
         IOError: if *src* does not match any files or directories
         ValueError: if *src* is a parent directory of *dest*
     """
-    if allow_broken_symlinks and sys.platform == "win32":
-        raise llnl.util.symlink.SymlinkError("Cannot allow broken symlinks on Windows!")
     if _permissions:
         tty.debug("Installing {0} to {1}".format(src, dest))
     else:
@@ -822,7 +800,7 @@ def copy_tree(
             if islink(s):
                 link_target = resolve_link_target_relative_to_the_link(s)
                 if symlinks:
-                    target = os.readlink(s)
+                    target = readlink(s)
                     if os.path.isabs(target):
 
                         def escaped_path(path):
@@ -851,16 +829,14 @@ def copy_tree(
                 copy_mode(s, d)
 
     for target, d, s in links:
-        symlink(target, d, allow_broken_symlinks=allow_broken_symlinks)
+        symlink(target, d)
         if _permissions:
             set_install_permissions(d)
             copy_mode(s, d)
 
 
 @system_path_filter
-def install_tree(
-    src, dest, symlinks=True, ignore=None, allow_broken_symlinks=sys.platform != "win32"
-):
+def install_tree(src, dest, symlinks=True, ignore=None):
     """Recursively install an entire directory tree rooted at *src*.
 
     Same as :py:func:`copy_tree` with the addition of setting proper
@@ -871,21 +847,12 @@ def install_tree(
         dest (str): the destination directory
         symlinks (bool): whether or not to preserve symlinks
         ignore (typing.Callable): function indicating which files to ignore
-        allow_broken_symlinks (bool): whether or not to allow broken (dangling) symlinks,
-            On Windows, setting this to True will raise an exception.
 
     Raises:
         IOError: if *src* does not match any files or directories
         ValueError: if *src* is a parent directory of *dest*
     """
-    copy_tree(
-        src,
-        dest,
-        symlinks=symlinks,
-        allow_broken_symlinks=allow_broken_symlinks,
-        ignore=ignore,
-        _permissions=True,
-    )
+    copy_tree(src, dest, symlinks=symlinks, ignore=ignore, _permissions=True)
 
 
 @system_path_filter
@@ -1619,6 +1586,12 @@ def remove_linked_tree(path):
             shutil.rmtree(os.path.realpath(path), **kwargs)
             os.unlink(path)
         else:
+            if sys.platform == "win32":
+                # Adding this prefix allows shutil to remove long paths on windows
+                # https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry
+                long_path_pfx = "\\\\?\\"
+                if not path.startswith(long_path_pfx):
+                    path = long_path_pfx + path
             shutil.rmtree(path, **kwargs)
 
 
@@ -1666,41 +1639,6 @@ def safe_remove(*files_or_dirs):
         for original_path, temporary_path in removed.items():
             shutil.move(temporary_path, original_path)
         raise
-
-
-@system_path_filter
-def fix_darwin_install_name(path):
-    """Fix install name of dynamic libraries on Darwin to have full path.
-
-    There are two parts of this task:
-
-    1. Use ``install_name('-id', ...)`` to change install name of a single lib
-    2. Use ``install_name('-change', ...)`` to change the cross linking between
-       libs. The function assumes that all libraries are in one folder and
-       currently won't follow subfolders.
-
-    Parameters:
-        path (str): directory in which .dylib files are located
-    """
-    libs = glob.glob(join_path(path, "*.dylib"))
-    for lib in libs:
-        # fix install name first:
-        install_name_tool = Executable("install_name_tool")
-        install_name_tool("-id", lib, lib)
-        otool = Executable("otool")
-        long_deps = otool("-L", lib, output=str).split("\n")
-        deps = [dep.partition(" ")[0][1::] for dep in long_deps[2:-1]]
-        # fix all dependencies:
-        for dep in deps:
-            for loc in libs:
-                # We really want to check for either
-                #     dep == os.path.basename(loc)   or
-                #     dep == join_path(builddir, os.path.basename(loc)),
-                # but we don't know builddir (nor how symbolic links look
-                # in builddir). We thus only compare the basenames.
-                if os.path.basename(dep) == os.path.basename(loc):
-                    install_name_tool("-change", dep, loc, lib)
-                    break
 
 
 def find_first(root: str, files: Union[Iterable[str], str], bfs_depth: int = 2) -> Optional[str]:
@@ -2429,9 +2367,10 @@ class WindowsSimulatedRPath:
         """
         for pth in dest:
             if os.path.isfile(pth):
-                self._additional_library_dependents.add(pathlib.Path(pth).parent)
+                new_pth = pathlib.Path(pth).parent
             else:
-                self._additional_library_dependents.add(pathlib.Path(pth))
+                new_pth = pathlib.Path(pth)
+            self._additional_library_dependents.add(new_pth)
 
     @property
     def rpaths(self):
@@ -2509,8 +2448,14 @@ class WindowsSimulatedRPath:
 
         # for each binary install dir in self.pkg (i.e. pkg.prefix.bin, pkg.prefix.lib)
         # install a symlink to each dependent library
-        for library, lib_dir in itertools.product(self.rpaths, self.library_dependents):
-            self._link(library, lib_dir)
+
+        # do not rpath for system libraries included in the dag
+        # we should not be modifying libraries managed by the Windows system
+        # as this will negatively impact linker behavior and can result in permission
+        # errors if those system libs are not modifiable by Spack
+        if "windows-system" not in getattr(self.pkg, "tags", []):
+            for library, lib_dir in itertools.product(self.rpaths, self.library_dependents):
+                self._link(library, lib_dir)
 
 
 @system_path_filter

@@ -1,0 +1,24 @@
+From 0672d33d7c449fe75b0be5d476d1151b26e39b99 Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Thu, 5 Sep 2024 14:29:36 +0000
+Subject: [PATCH] Remove install for VERSION.sha
+
+---
+ CMakeLists.txt | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 05aac32..9cf588a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -278,7 +278,6 @@ install(
+ # support files and version info
+ install(
+     FILES src/argparser.py src/config.py src/omniperf_base.py src/roofline.py VERSION
+-          VERSION.sha
+     DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/${PROJECT_NAME}
+     COMPONENT main)
+ # src/omniperf_analyze
+--
+2.43.5
+

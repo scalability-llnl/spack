@@ -9,24 +9,30 @@ import re
 from spack.package import *
 
 
+@llnl.util.lang.memoized
 def is_CrayXC():
-    return (spack.platforms.host().name in ["linux", "cray"]) and (
+    return spack.platforms.host().name == "linux" and (
         os.environ.get("CRAYPE_NETWORK_TARGET") == "aries"
     )
 
 
+@llnl.util.lang.memoized
 def is_CrayEX():
-    if spack.platforms.host().name in ["linux", "cray"]:
+    if spack.platforms.host().name == "linux":
         target = os.environ.get("CRAYPE_NETWORK_TARGET")
         if target in ["ofi", "ucx"]:  # normal case
             return True
         elif target is None:  # but some systems lack Cray PrgEnv
             fi_info = which("fi_info")
-            if fi_info and fi_info("-l", output=str).find("cxi") >= 0:
+            if (
+                fi_info
+                and fi_info("-l", output=str, error=str, fail_on_error=False).find("cxi") >= 0
+            ):
                 return True
     return False
 
 
+@llnl.util.lang.memoized
 def cross_detect():
     if is_CrayXC():
         if which("srun"):
@@ -90,8 +96,13 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
         deprecated=True,
         sha256="01be35bef4c0cfd24e9b3d50c88866521b9cac3ad4cbb5b1fc97aea55078810f",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
     # Do NOT add older versions here.
     # UPC++ releases over 2 years old are not supported.
+
+    patch("fix_configure_ldflags.patch", when="@2021.9.0:master")
 
     variant("mpi", default=False, description="Enables MPI-based spawners and mpi-conduit")
 
@@ -136,14 +147,17 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
     )
 
     # UPC++ always relies on GASNet-EX.
-    # The default (and recommendation) is to use the implicit, embedded version.
     # This variant allows overriding with a particular version of GASNet-EX sources,
     # although this is not officially supported and some combinations might be rejected.
-    variant("gasnet", default=False, description="Override embedded GASNet-EX version")
+    # Original default was to use the embedded version of GASNet-EX,
+    # but currently there are newer versions in Spack so we default to that instead.
+    variant("gasnet", default=True, description="Override embedded GASNet-EX with Spack's")
     depends_on("gasnet conduits=none", when="+gasnet")
 
     depends_on("mpi", when="+mpi")
     depends_on("python@2.7.5:", type=("build", "run"))
+
+    depends_on("libfabric", when=is_CrayEX())
 
     conflicts("^hip@:4.4.0", when="+rocm")
 
@@ -206,8 +220,8 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
 
         if is_CrayEX():
             # Probe to find the right libfabric provider (SlingShot 10 vs 11)
-            fi_info = which("fi_info")("-l", output=str)
-            if fi_info.find("cxi") >= 0:
+            fi_info = which(spec["libfabric"].prefix.bin.fi_info) or which("fi_info")
+            if fi_info is None or fi_info("-l", output=str).find("cxi") >= 0:
                 provider = "cxi"
             else:
                 provider = "verbs;ofi_rxm"
@@ -238,13 +252,16 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
 
         if "+cuda" in spec:
             options.append("--enable-cuda")
+            options.append("--with-cuda-home=" + spec["cuda"].prefix)
             options.append("--with-nvcc=" + spec["cuda"].prefix.bin.nvcc)
+            options.append(
+                "--with-ldflags=" + self.compiler.cc_rpath_arg + spec["cuda"].prefix.lib64
+            )
 
         if "+rocm" in spec:
             options.append("--enable-hip")
-            options.append(
-                "--with-ld-flags=" + self.compiler.cc_rpath_arg + spec["hip"].prefix.lib
-            )
+            options.append("--with-hip-home=" + spec["hip"].prefix)
+            options.append("--with-ldflags=" + self.compiler.cc_rpath_arg + spec["hip"].prefix.lib)
 
         if "+level_zero" in spec:
             options.append("--enable-ze")

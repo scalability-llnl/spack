@@ -21,6 +21,10 @@ class Lfortran(CMakePackage):
     version("0.30.0", sha256="aafdfbfe81d69ceb3650ae1cf9bcd8a1f1532d895bf88f3071fe9610859bcd6f")
     version("0.19.0", sha256="d496f61d7133b624deb3562677c0cbf98e747262babd4ac010dbd3ab4303d805")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("llvm", default=True, description="Build with LLVM support")
     variant("stacktrace", default=True, description="Build with stacktrace support")
 

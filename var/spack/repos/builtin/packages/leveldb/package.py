@@ -23,6 +23,9 @@ class Leveldb(CMakePackage):
     version("1.20", sha256="f5abe8b5b209c2f36560b75f32ce61412f39a2922f7045ae764a2c23335b6664")
     version("1.18", sha256="4aa1a7479bc567b95a59ac6fb79eba49f61884d6fd400f20b7af147d54c5cee5")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared library")
 
     depends_on("cmake@3.9:", when="@1.21:", type="build")
@@ -67,7 +70,7 @@ class Leveldb(CMakePackage):
     def cmake_args(self):
         args = []
 
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             args.append("-DBUILD_SHARED_LIBS=ON")
         else:
             args.append("-DBUILD_SHARED_LIBS=OFF")

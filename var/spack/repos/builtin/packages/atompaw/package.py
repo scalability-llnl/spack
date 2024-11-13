@@ -29,6 +29,10 @@ class Atompaw(AutotoolsPackage):
     version("4.0.0.13", sha256="cbd73f11f3e9cc3ff2e5f3ec87498aeaf439555903d0b95a72f3b0a021902020")
     version("3.1.0.3", sha256="15fe9a0369bdcc366370a0ecaa67e803ae54534b479ad63c4c7494a04fa3ea78")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("lapack")
     depends_on("blas")
 

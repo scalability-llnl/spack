@@ -41,11 +41,14 @@ class ScalapackBase(CMakePackage):
     patch("fix-build-macos.patch", when="@2.2.0")
 
     def flag_handler(self, name, flags):
-        iflags = []
-        if name == "fflags":
+        if name == "cflags":
+            if self.spec.satisfies("%gcc@14:"):
+                # https://bugzilla.redhat.com/show_bug.cgi?id=2178710
+                flags.append("-std=gnu89")
+        elif name == "fflags":
             if self.spec.satisfies("%cce"):
-                iflags.append("-hnopattern")
-        return (iflags, None, None)
+                flags.append("-hnopattern")
+        return (flags, None, None)
 
     @property
     def libs(self):
@@ -119,5 +122,8 @@ class NetlibScalapack(ScalapackBase):
     version("2.0.1", sha256="a9b34278d4e10b40cbe084c6d87d09af8845e874250719bfbbc497b2a88bfde1")
     version("2.0.0", sha256="e51fbd9c3ef3a0dbd81385b868e2355900148eea689bf915c5383d72daf73114")
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     # versions before 2.0.0 are not using cmake and requires blacs as
     # a separated package

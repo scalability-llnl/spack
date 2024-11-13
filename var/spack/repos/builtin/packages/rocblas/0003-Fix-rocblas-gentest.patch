@@ -1,9 +1,0 @@
-diff -r -u a/clients/common/rocblas_gentest.py b/clients/common/rocblas_gentest.py
---- a/clients/common/rocblas_gentest.py	2021-11-12 12:22:24.359556397 -0700
-+++ b/clients/common/rocblas_gentest.py	2021-11-12 12:22:41.464044040 -0700
-@@ -1,4 +1,4 @@
--#!/usr/bin/python3
-+#!/usr/bin/env python3
- """Copyright 2018-2020 Advanced Micro Devices, Inc.
- Expand rocBLAS YAML test data file into binary Arguments records"""
- 

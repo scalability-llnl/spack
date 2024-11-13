@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
+import importlib
 import os
 import re
 import sys
@@ -16,7 +17,7 @@ from llnl.util.lang import attr_setdefault, index_by
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
 
-import spack.config
+import spack.config  # breaks a cycle.
 import spack.environment as ev
 import spack.error
 import spack.extensions
@@ -114,8 +115,8 @@ def get_module(cmd_name):
 
     try:
         # Try to import the command from the built-in directory
-        module_name = "%s.%s" % (__name__, pname)
-        module = __import__(module_name, fromlist=[pname, SETUP_PARSER, DESCRIPTION], level=0)
+        module_name = f"{__name__}.{pname}"
+        module = importlib.import_module(module_name)
         tty.debug("Imported {0} from built-in commands".format(pname))
     except ImportError:
         module = spack.extensions.get_module(cmd_name)
@@ -237,7 +238,7 @@ def ensure_single_spec_or_die(spec, matching_specs):
     if len(matching_specs) <= 1:
         return
 
-    format_string = "{name}{@version}{%compiler.name}{@compiler.version}{arch=architecture}"
+    format_string = "{name}{@version}{%compiler.name}{@compiler.version}{ arch=architecture}"
     args = ["%s matches multiple packages." % spec, "Matching packages:"]
     args += [
         colorize("  @K{%s} " % s.dag_hash(7)) + s.cformat(format_string) for s in matching_specs
@@ -336,6 +337,7 @@ def display_specs(specs, args=None, **kwargs):
         groups (bool): display specs grouped by arch/compiler (default True)
         decorator (typing.Callable): function to call to decorate specs
         all_headers (bool): show headers even when arch/compiler aren't defined
+        status_fn (typing.Callable): if provided, prepend install-status info
         output (typing.IO): A file object to write to. Default is ``sys.stdout``
 
     """
@@ -359,6 +361,7 @@ def display_specs(specs, args=None, **kwargs):
     groups = get_arg("groups", True)
     all_headers = get_arg("all_headers", False)
     output = get_arg("output", sys.stdout)
+    status_fn = get_arg("status_fn", None)
 
     decorator = get_arg("decorator", None)
     if decorator is None:
@@ -386,6 +389,13 @@ def display_specs(specs, args=None, **kwargs):
     def fmt(s, depth=0):
         """Formatter function for all output specs"""
         string = ""
+
+        if status_fn:
+            # This was copied from spec.tree's colorization logic
+            # then shortened because it seems like status_fn should
+            # always return an InstallStatus
+            string += colorize(status_fn(s).value)
+
         if hashes:
             string += gray_hash(s, hlen) + " "
         string += depth * "    "
@@ -444,7 +454,7 @@ def display_specs(specs, args=None, **kwargs):
 def filter_loaded_specs(specs):
     """Filter a list of specs returning only those that are
     currently loaded."""
-    hashes = os.environ.get(uenv.spack_loaded_hashes_var, "").split(":")
+    hashes = os.environ.get(uenv.spack_loaded_hashes_var, "").split(os.pathsep)
     return [x for x in specs if x.dag_hash() in hashes]
 
 

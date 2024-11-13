@@ -49,6 +49,8 @@ class GoogleCloudCli(Package):
         if system in versions[ver] and machine in versions[ver][system]:
             version(ver, sha256=versions[ver][system][machine])
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python", type=("build", "run"))
 
     def url_for_version(self, version):
@@ -58,7 +60,7 @@ class GoogleCloudCli(Package):
         # https://cloud.google.com/sdk/gcloud/reference/topic/startup
         env.set("CLOUDSDK_PYTHON", self.spec["python"].command.path)
         # ~70 dependencies with no hints as to what versions are supported, just use bundled deps
-        env.set("CLOUDSDK_PYTHON_SITEPACKAGES", 0)
+        env.set("CLOUDSDK_PYTHON_SITEPACKAGES", "0")
 
     def setup_run_environment(self, env):
         self.setup_build_environment(env)

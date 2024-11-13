@@ -19,10 +19,11 @@ from urllib.request import HTTPSHandler, Request, build_opener
 import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
 
-import spack.build_environment
-import spack.fetch_strategy
-import spack.package_base
+import spack
+import spack.paths
 import spack.platforms
+import spack.spec
+import spack.tengine
 import spack.util.git
 from spack.error import SpackError
 from spack.util.crypto import checksum
@@ -58,7 +59,8 @@ MAP_PHASES_TO_CDASH = {
 # Initialize data structures common to each phase's report.
 CDASH_PHASES = set(MAP_PHASES_TO_CDASH.values())
 CDASH_PHASES.add("update")
-
+# CDash request timeout in seconds
+SPACK_CDASH_TIMEOUT = 45
 
 CDashConfiguration = collections.namedtuple(
     "CDashConfiguration", ["upload_url", "packages", "build", "site", "buildstamp", "track"]
@@ -118,7 +120,7 @@ class CDash(Reporter):
         git = spack.util.git.git()
         with working_dir(spack.paths.spack_root):
             self.revision = git("rev-parse", "HEAD", output=str).strip()
-        self.generator = "spack-{0}".format(spack.main.get_version())
+        self.generator = "spack-{0}".format(spack.get_version())
         self.multiple_packages = False
 
     def report_build_name(self, pkg_name):
@@ -447,7 +449,7 @@ class CDash(Reporter):
                 # By default, urllib2 only support GET and POST.
                 # CDash expects this file to be uploaded via PUT.
                 request.get_method = lambda: "PUT"
-                response = opener.open(request)
+                response = opener.open(request, timeout=SPACK_CDASH_TIMEOUT)
                 if self.current_package_name not in self.buildIds:
                     resp_value = response.read()
                     if isinstance(resp_value, bytes):

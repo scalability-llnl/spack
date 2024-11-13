@@ -17,5 +17,7 @@ class Libshm(Package):
 
     version("master")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree("include", prefix.include)

@@ -20,6 +20,9 @@ class Sam2p(Package):
     version("master", branch="master")
     version("2021-05-04", commit="f3e9cc0a2df1880a63f9f37c96e3595bca890cfa")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         compile_sh = Executable("./compile.sh")
         compile_sh()

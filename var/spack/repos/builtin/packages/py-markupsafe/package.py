@@ -29,4 +29,7 @@ class PyMarkupsafe(PythonPackage):
     version("0.20", sha256="f6cf3bd233f9ea6147b21c7c02cac24e5363570ce4fd6be11dab9f499ed6a7d8")
     version("0.19", sha256="62fcc5d641df8b5ad271ebbd6b77a19cd92eceba1e1a990de4e96c867789f037")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
+    depends_on("python@3.7:", when="@2.0:")

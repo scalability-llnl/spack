@@ -46,6 +46,7 @@ import spack.deptypes as dt
 import spack.repo
 import spack.spec
 import spack.tengine
+import spack.traverse
 
 
 def find(seq, predicate):

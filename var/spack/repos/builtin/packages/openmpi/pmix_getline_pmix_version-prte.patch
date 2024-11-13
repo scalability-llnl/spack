@@ -1,0 +1,14 @@
+diff --git a/3rd-party/prrte/src/tools/prte/prte.c b/3rd-party/prrte/src/tools/prte/prte.c
+index 3c62ef4b66..d15347d324 100644
+--- a/3rd-party/prrte/src/tools/prte/prte.c
++++ b/3rd-party/prrte/src/tools/prte/prte.c
+@@ -256,7 +256,7 @@ static void shutdown_callback(int fd, short flags, void *arg)
+     exit(PRTE_ERROR_DEFAULT_EXIT_CODE);
+ }
+ 
+-#if PMIX_NUMERIC_VERSION < 0x00040208
++#if PMIX_NUMERIC_VERSION < 0x00040205
+ static char *pmix_getline(FILE *fp)
+ {
+     char *ret, *buff;
+

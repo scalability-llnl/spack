@@ -19,6 +19,9 @@ class Xxdiff(MakefilePackage):
     version("master", branch="master")
     version("2023-01-10", commit="604300ea9875611726ba885fb14f872b964df579")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("flex@2.5.31:", type="build")
     depends_on("bison", type="build")
     depends_on("qt@5:", type=("build", "link", "run"))

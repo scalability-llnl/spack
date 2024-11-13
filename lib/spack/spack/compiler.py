@@ -18,7 +18,6 @@ import llnl.util.lang
 import llnl.util.tty as tty
 from llnl.util.filesystem import path_contains_subdirectory, paths_containing_libs
 
-import spack.compilers
 import spack.error
 import spack.schema.environment
 import spack.spec
@@ -29,6 +28,9 @@ import spack.version
 from spack.util.environment import filter_system_paths
 
 __all__ = ["Compiler"]
+
+PATH_INSTANCE_VARS = ["cc", "cxx", "f77", "fc"]
+FLAG_INSTANCE_VARS = ["cflags", "cppflags", "cxxflags", "fflags"]
 
 
 @llnl.util.lang.memoized
@@ -200,18 +202,6 @@ class Compiler:
     support for specific compilers, their possible names, arguments,
     and how to identify the particular type of compiler."""
 
-    # Subclasses use possible names of C compiler
-    cc_names: List[str] = []
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names: List[str] = []
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names: List[str] = []
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names: List[str] = []
-
     # Optional prefix regexes for searching for this type of compiler.
     # Prefixes are sometimes used for toolchains
     prefixes: List[str] = []
@@ -279,18 +269,13 @@ class Compiler:
     def opt_flags(self):
         return ["-O", "-O0", "-O1", "-O2", "-O3"]
 
-    # Cray PrgEnv name that can be used to load this compiler
-    PrgEnv: Optional[str] = None
-    # Name of module used to switch versions of this compiler
-    PrgEnv_compiler: Optional[str] = None
-
     def __init__(
         self,
         cspec,
         operating_system,
         target,
         paths,
-        modules=None,
+        modules: Optional[List[str]] = None,
         alias=None,
         environment=None,
         extra_rpaths=None,
@@ -430,14 +415,19 @@ class Compiler:
         return list(paths_containing_libs(link_dirs, all_required_libs))
 
     @property
-    def default_libc(self) -> Optional["spack.spec.Spec"]:
-        """Determine libc targeted by the compiler from link line"""
+    def default_dynamic_linker(self) -> Optional[str]:
+        """Determine default dynamic linker from compiler link line"""
         output = self.compiler_verbose_output
 
         if not output:
             return None
 
-        dynamic_linker = spack.util.libc.parse_dynamic_linker(output)
+        return spack.util.libc.parse_dynamic_linker(output)
+
+    @property
+    def default_libc(self) -> Optional["spack.spec.Spec"]:
+        """Determine libc targeted by the compiler from link line"""
+        dynamic_linker = self.default_dynamic_linker
 
         if not dynamic_linker:
             return None
@@ -623,18 +613,6 @@ class Compiler:
         return cls.default_version(cc)
 
     @classmethod
-    def cxx_version(cls, cxx):
-        return cls.default_version(cxx)
-
-    @classmethod
-    def f77_version(cls, f77):
-        return cls.default_version(f77)
-
-    @classmethod
-    def fc_version(cls, fc):
-        return cls.default_version(fc)
-
-    @classmethod
     def search_regexps(cls, language):
         # Compile all the regular expressions used for files beforehand.
         # This searches for any combination of <prefix><name><suffix>
@@ -695,10 +673,6 @@ class Compiler:
         try:
             # load modules and set env variables
             for module in self.modules:
-                # On cray, mic-knl module cannot be loaded without cce module
-                # See: https://github.com/spack/spack/issues/3153
-                if os.environ.get("CRAY_CPU_TARGET") == "mic-knl":
-                    spack.util.module_cmd.load_module("cce")
                 spack.util.module_cmd.load_module(module)
 
             # apply other compiler environment changes
@@ -709,6 +683,30 @@ class Compiler:
             # Restore environment regardless of whether inner code succeeded
             os.environ.clear()
             os.environ.update(backup_env)
+
+    def to_dict(self):
+        flags_dict = {fname: " ".join(fvals) for fname, fvals in self.flags.items()}
+        flags_dict.update(
+            {attr: getattr(self, attr, None) for attr in FLAG_INSTANCE_VARS if hasattr(self, attr)}
+        )
+        result = {
+            "spec": str(self.spec),
+            "paths": {attr: getattr(self, attr, None) for attr in PATH_INSTANCE_VARS},
+            "flags": flags_dict,
+            "operating_system": str(self.operating_system),
+            "target": str(self.target),
+            "modules": self.modules or [],
+            "environment": self.environment or {},
+            "extra_rpaths": self.extra_rpaths or [],
+        }
+
+        if self.enable_implicit_rpaths is not None:
+            result["implicit_rpaths"] = self.enable_implicit_rpaths
+
+        if self.alias:
+            result["alias"] = self.alias
+
+        return result
 
 
 class CompilerAccessError(spack.error.SpackError):

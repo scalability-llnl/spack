@@ -20,6 +20,9 @@ class MpiSerial(AutotoolsPackage):
     version("2.5.0", sha256="2faf459ea1f37020662067e7ab6c76b926501c4b94e8fdf77591c0040ba1f006")
     version("2.3.0", sha256="cc55e6bf0ae5e1d93aafa31ba91bfc13e896642a511c3101695ea05eccf97988")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "fort-real-size",
         values=int,

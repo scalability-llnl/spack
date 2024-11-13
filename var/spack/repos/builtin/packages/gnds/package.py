@@ -15,9 +15,9 @@ class Gnds(CMakePackage):
     homepage = "https://code.ornl.gov/RNSD/gnds"
     url = "https://code.ornl.gov/RNSD/gnds/-/archive/v0.0.1/gnds-v0.0.1.tar.gz"
 
-    maintainers("sethrj")
-
     version("0.0.1", sha256="4c8faaa01a3e6fb08ec3e8e126a76f75b5442509a46b993e325ec79dd9f04879")
+
+    depends_on("cxx", type="build")
 
     variant("shared", default=True, description="Build shared libraries")
 

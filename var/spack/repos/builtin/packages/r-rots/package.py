@@ -25,6 +25,8 @@ class RRots(RPackage):
     version("1.6.0", commit="3567ac1142ba97770b701ee8e5f9e3e6c781bd56")
     version("1.4.0", commit="2e656514a4bf5a837ee6e14ce9b28a61dab955e7")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-biobase", type=("build", "run"))

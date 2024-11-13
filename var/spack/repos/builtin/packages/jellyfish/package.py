@@ -28,6 +28,8 @@ class Jellyfish(AutotoolsPackage):
         url="https://www.cbcb.umd.edu/software/jellyfish/jellyfish-1.1.11.tar.gz",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("perl", when="@2.2.7:", type=("build", "run"))
     variant("ruby", default=False, description="Enable ruby bindings")
     # Info: python bindings exist, but are for python2 which is no longer supported in spack

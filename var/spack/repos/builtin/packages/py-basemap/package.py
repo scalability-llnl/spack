@@ -17,6 +17,9 @@ class PyBasemap(PythonPackage):
 
     version("1.2.1", sha256="3fb30424f18cd4ffd505e30fd9c810ae81b999bb92f950c76553e1abc081faa7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # Per Github issue #3813, setuptools is required at runtime in order
     # to make mpl_toolkits a namespace package that can span multiple
     # directories (i.e., matplotlib and basemap)

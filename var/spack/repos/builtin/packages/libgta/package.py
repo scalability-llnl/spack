@@ -16,6 +16,9 @@ class Libgta(CMakePackage):
 
     version("1.2.1", sha256="d445667e145f755f0bc34ac89b63a6bfdce1eea943f87ee7a3f23dc0dcede8b1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.5:", type="build")
 
     def cmake_args(self):

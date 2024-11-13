@@ -3,22 +3,24 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections.abc
-import inspect
 import os
 import pathlib
 import platform
 import re
 import sys
-from typing import List, Optional, Tuple
+from itertools import chain
+from typing import List, Optional, Set, Tuple
 
 import llnl.util.filesystem as fs
+from llnl.util.lang import stable_partition
 
-import spack.build_environment
 import spack.builder
 import spack.deptypes as dt
+import spack.error
 import spack.package_base
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
+from spack.util.environment import filter_system_paths
 
 from ._checks import BaseBuilder, execute_build_time_tests
 
@@ -108,6 +110,11 @@ def _conditional_cmake_defaults(pkg: spack.package_base.PackageBase, args: List[
     if _supports_compilation_databases(pkg):
         args.append(CMakeBuilder.define("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
+    # Enable MACOSX_RPATH by default when cmake_minimum_required < 3
+    # https://cmake.org/cmake/help/latest/policy/CMP0042.html
+    if pkg.spec.satisfies("platform=darwin") and cmake.satisfies("@3:"):
+        args.append(CMakeBuilder.define("CMAKE_POLICY_DEFAULT_CMP0042", "NEW"))
+
 
 def generator(*names: str, default: Optional[str] = None):
     """The build system generator to use.
@@ -141,9 +148,28 @@ def generator(*names: str, default: Optional[str] = None):
         default=default,
         values=_values,
         description="the build system generator to use",
+        when="build_system=cmake",
     )
     for x in not_used:
         conflicts(f"generator={x}")
+
+
+def get_cmake_prefix_path(pkg: spack.package_base.PackageBase) -> List[str]:
+    """Obtain the CMAKE_PREFIX_PATH entries for a package, based on the cmake_prefix_path package
+    attribute of direct build/test and transitive link dependencies."""
+    # Add direct build/test deps
+    selected: Set[str] = {s.dag_hash() for s in pkg.spec.dependencies(deptype=dt.BUILD | dt.TEST)}
+    # Add transitive link deps
+    selected.update(s.dag_hash() for s in pkg.spec.traverse(root=False, deptype=dt.LINK))
+    # Separate out externals so they do not shadow Spack prefixes
+    externals, spack_built = stable_partition(
+        (s for s in pkg.spec.traverse(root=False, order="topo") if s.dag_hash() in selected),
+        lambda x: x.external,
+    )
+
+    return filter_system_paths(
+        path for spec in chain(spack_built, externals) for path in spec.package.cmake_prefix_paths
+    )
 
 
 class CMakePackage(spack.package_base.PackageBase):
@@ -340,7 +366,7 @@ class CMakeBuilder(BaseBuilder):
             msg = "Invalid CMake generator: '{0}'\n".format(generator)
             msg += "CMakePackage currently supports the following "
             msg += "primary generators: '{0}'".format("', '".join(valid_primary_generators))
-            raise spack.package_base.InstallError(msg)
+            raise spack.error.InstallError(msg)
 
         try:
             build_type = pkg.spec.variants["build_type"].value
@@ -352,6 +378,16 @@ class CMakeBuilder(BaseBuilder):
             "-G",
             generator,
             define("CMAKE_INSTALL_PREFIX", pathlib.Path(pkg.prefix).as_posix()),
+            define("CMAKE_INSTALL_RPATH_USE_LINK_PATH", True),
+            # only include the install prefix lib dirs; rpaths for deps are added by USE_LINK_PATH
+            define(
+                "CMAKE_INSTALL_RPATH",
+                [
+                    pathlib.Path(pkg.prefix, "lib").as_posix(),
+                    pathlib.Path(pkg.prefix, "lib64").as_posix(),
+                ],
+            ),
+            define("CMAKE_PREFIX_PATH", get_cmake_prefix_path(pkg)),
             define("CMAKE_BUILD_TYPE", build_type),
         ]
 
@@ -365,15 +401,6 @@ class CMakeBuilder(BaseBuilder):
 
         _conditional_cmake_defaults(pkg, args)
         _maybe_set_python_hints(pkg, args)
-
-        # Set up CMake rpath
-        args.extend(
-            [
-                define("CMAKE_INSTALL_RPATH_USE_LINK_PATH", True),
-                define("CMAKE_INSTALL_RPATH", spack.build_environment.get_rpaths(pkg)),
-                define("CMAKE_PREFIX_PATH", spack.build_environment.get_cmake_prefix_path(pkg)),
-            ]
-        )
 
         return args
 
@@ -500,7 +527,7 @@ class CMakeBuilder(BaseBuilder):
         if variant is None:
             variant = cmake_var.lower()
 
-        if variant not in self.pkg.variants:
+        if not self.pkg.has_variant(variant):
             raise KeyError('"{0}" is not a variant of "{1}"'.format(variant, self.pkg.name))
 
         if variant not in self.pkg.spec.variants:
@@ -535,28 +562,35 @@ class CMakeBuilder(BaseBuilder):
 
     def cmake(self, pkg, spec, prefix):
         """Runs ``cmake`` in the build directory"""
+
+        # skip cmake phase if it is an incremental develop build
+        if spec.is_develop and os.path.isfile(
+            os.path.join(self.build_directory, "CMakeCache.txt")
+        ):
+            return
+
         options = self.std_cmake_args
         options += self.cmake_args()
         options.append(os.path.abspath(self.root_cmakelists_dir))
         with fs.working_dir(self.build_directory, create=True):
-            inspect.getmodule(self.pkg).cmake(*options)
+            pkg.module.cmake(*options)
 
     def build(self, pkg, spec, prefix):
         """Make the build targets"""
         with fs.working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
-                inspect.getmodule(self.pkg).make(*self.build_targets)
+                pkg.module.make(*self.build_targets)
             elif self.generator == "Ninja":
                 self.build_targets.append("-v")
-                inspect.getmodule(self.pkg).ninja(*self.build_targets)
+                pkg.module.ninja(*self.build_targets)
 
     def install(self, pkg, spec, prefix):
         """Make the install targets"""
         with fs.working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
-                inspect.getmodule(self.pkg).make(*self.install_targets)
+                pkg.module.make(*self.install_targets)
             elif self.generator == "Ninja":
-                inspect.getmodule(self.pkg).ninja(*self.install_targets)
+                pkg.module.ninja(*self.install_targets)
 
     spack.builder.run_after("build")(execute_build_time_tests)
 

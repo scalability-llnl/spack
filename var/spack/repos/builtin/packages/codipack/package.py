@@ -22,6 +22,8 @@ class Codipack(CMakePackage, Package):
     version("1.9.3", sha256="27dd92d0b5132de37b431989c0c3d5bd829821a6a2e31e0529137e427421f06e")
     version("openmp", branch="experimentalOpenMPSupport")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.12:", type="build", when="@2.1.0:")
 
     build_system(

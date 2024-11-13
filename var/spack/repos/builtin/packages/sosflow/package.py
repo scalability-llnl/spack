@@ -16,6 +16,9 @@ class Sosflow(CMakePackage):
 
     version("spack", tag="spack-build-v0.9901", commit="57c77f18af88b01615d5900124f9cfd1770c8241")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libevpath")
     depends_on("sqlite@3:")
     depends_on("pkgconfig")

@@ -24,6 +24,8 @@ class Libfastcommon(Package):
     version("1.0.40", sha256="ebb89a1bfeb5b140f596fd3e2a0ff202420be05a4d80ef67ddcfdbb248b9fef8")
     version("1.0.39", sha256="72ca36f83f3453564ca09d2d0c31354b868cf52ef5a24cfb15e66d0e505c90ac")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         sh = which("sh")
         sh("make.sh")

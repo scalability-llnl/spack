@@ -30,6 +30,9 @@ class Scale(MakefilePackage):
     version("5.3.6", sha256="3ab0d42cdb16eee568c65b880899e861e464e92088ceb525066c726f31d04848")
     version("5.2.6", sha256="e63141d05810e3f41fc89c9eb15e2319d753832adabdac8f7c8dd7acc0f5f8ed")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi@2:", type=("build", "link", "run"))
     depends_on("netcdf-c")
     depends_on("netcdf-fortran")

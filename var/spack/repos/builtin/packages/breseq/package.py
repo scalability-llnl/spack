@@ -21,6 +21,9 @@ class Breseq(AutotoolsPackage):
     version("0.33.1", sha256="e24a50e254ad026c519747313b9e42bbeb32bd766a6a06ed369bd5b9dc50e84d")
     version("0.31.1", sha256="ffc8a7f40a5ad918234e465e9d4cdf74be02fd29091b13720c2cab1dc238cf5c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

@@ -51,6 +51,9 @@ class Dyninst(CMakePackage):
         "8.2.1", tag="v8.2.1", commit="939afcbad1a8273636a3686a31b51dae4f1f0c11", deprecated=True
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "openmp",
         default=True,
@@ -136,12 +139,12 @@ class Dyninst(CMakePackage):
             self.define("LibIberty_LIBRARIES", spec["libiberty"].libs),
         ]
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             args.append("-DUSE_OpenMP=ON")
         else:
             args.append("-DUSE_OpenMP=OFF")
 
-        if "+static" in spec:
+        if spec.satisfies("+static"):
             args.append("-DENABLE_STATIC_LIBS=YES")
         else:
             args.append("-DENABLE_STATIC_LIBS=NO")
@@ -191,14 +194,14 @@ class Dyninst(CMakePackage):
 
         # Openmp applies to version 10.x or later.
         if spec.satisfies("@10.0.0:"):
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 args.append("-DUSE_OpenMP=ON")
             else:
                 args.append("-DUSE_OpenMP=OFF")
 
         # Static libs started with version 9.1.0.
         if spec.satisfies("@9.1.0:"):
-            if "+static" in spec:
+            if spec.satisfies("+static"):
                 args.append("-DENABLE_STATIC_LIBS=1")
             else:
                 args.append("-DENABLE_STATIC_LIBS=NO")

@@ -9,7 +9,7 @@ from spack.package import *
 class PyPanel(PythonPackage):
     """A high level app and dashboarding solution for Python."""
 
-    homepage = "http://panel.holoviz.org/"
+    homepage = "https://panel.holoviz.org/"
     pypi = "panel/panel-0.14.4.tar.gz"
 
     license("BSD-3-Clause")

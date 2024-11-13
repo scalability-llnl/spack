@@ -18,6 +18,8 @@ class Mira(AutotoolsPackage):
 
     version("4.0.2", sha256="a32cb2b21e0968a5536446287c895fe9e03d11d78957554e355c1080b7b92a80")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@1.46:")
 
     # TODO: replace this with an explicit list of components of Boost,

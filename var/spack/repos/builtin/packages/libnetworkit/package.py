@@ -31,6 +31,8 @@ class Libnetworkit(CMakePackage):
     version("7.0", sha256="4faf16c5fae3e14d3c1b6f30e25c6e093dcf6a3dbf021235f3161ac2a527f682")
     version("6.1", sha256="22c953ea1054c356663b31c77114c2f0c8fec17e0e707aeec23026241beab9b2")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("static", default=False, description="Enables the build of shared libraries")
     variant("doc", default=False, description="Enables the build with sphinx documentation")
 

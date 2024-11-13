@@ -14,6 +14,8 @@ class ByteUnixbench(MakefilePackage):
 
     version("5.1.3", sha256="3a6bb00f270a5329682dff20fd2c1ab5332ef046eb54a96a0d7bd371005d31a3")
 
+    depends_on("c", type="build")  # generated
+
     build_directory = "UnixBench"
 
     @property

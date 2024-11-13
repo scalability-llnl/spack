@@ -26,6 +26,8 @@ class HybridLambda(AutotoolsPackage):
 
     version("develop", submodules=True)
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

@@ -24,6 +24,10 @@ class Perfstubs(CMakePackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     variant("static", default=False, description="Build static executable support")
 
     def cmake_args(self):

@@ -60,6 +60,9 @@ class MariadbCClient(CMakePackage):
     version("2.2.0", sha256="3825b068d38bc19d6ad1eaecdd74bcd49d6ddd9d00559fb150e4e851a55bbbd4")
     version("2.1.0", sha256="568050b89463af7610d458669fd9eee06dcc9405689aca8a526ac8c013b59167")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     provides("mariadb-client")
     provides("mysql-client")
 

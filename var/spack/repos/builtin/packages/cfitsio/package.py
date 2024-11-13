@@ -29,6 +29,9 @@ class Cfitsio(AutotoolsPackage):
     version("3.41", sha256="a556ac7ea1965545dcb4d41cfef8e4915eeb8c0faa1b52f7ff70870f8bb5734c")
     version("3.37", sha256="092897c6dae4dfe42d91d35a738e45e8236aa3d8f9b3ffc7f0e6545b8319c63a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("bzip2", default=True, description="Enable bzip2 support")
     variant("shared", default=True, description="Build shared libraries")
 
@@ -45,7 +48,7 @@ class Cfitsio(AutotoolsPackage):
     def configure_args(self):
         spec = self.spec
         extra_args = []
-        if "+bzip2" in spec:
+        if spec.satisfies("+bzip2"):
             extra_args.append(f"--with-bzip2={spec['bzip2'].prefix}"),
         return extra_args
 
@@ -54,7 +57,7 @@ class Cfitsio(AutotoolsPackage):
         targets = ["all"]
 
         # Build shared if variant is set.
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             targets += ["shared"]
 
         return targets

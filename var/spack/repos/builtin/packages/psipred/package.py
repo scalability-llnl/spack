@@ -19,6 +19,8 @@ class Psipred(MakefilePackage):
 
     version("4.02", sha256="b4009b6a5f8b76c6d60ac91c4a743512d844864cf015c492fb6d1dc0d092c467")
 
+    depends_on("c", type="build")  # generated
+
     variant("blast-plus", default=False, description="Use blast-plus in place of blast-legacy")
 
     depends_on("blast-legacy", type="run", when="~blast-plus")

@@ -29,6 +29,8 @@ class KokkosKernelsLegacy(MakefilePackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     # make sure kokkos kernels version matches kokkos
     depends_on("kokkos-legacy@2.5.00", when="@2.5.00")
     depends_on("kokkos-legacy@2.6.00", when="@2.6.00")

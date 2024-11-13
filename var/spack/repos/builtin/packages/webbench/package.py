@@ -16,6 +16,8 @@ class Webbench(MakefilePackage):
 
     version("1.5", commit="b1acf3c01cc914729fe188dfc8ed761858028d4f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ntirpc")
 
     def setup_build_environment(self, env):

@@ -83,6 +83,8 @@ class VotcaTools(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     # https://github.com/votca/tools/pull/229, fix mkl in exported target
     patch(
         "https://github.com/votca/tools/pull/229.patch?full_index=1",

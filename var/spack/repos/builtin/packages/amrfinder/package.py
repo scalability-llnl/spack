@@ -24,6 +24,8 @@ class Amrfinder(MakefilePackage):
     version("3.10.30", sha256="2f1e30b86935a27cee740bd7229a41fbce278f2f60b33b8e51592bab8bdf23f1")
     version("3.10.24", sha256="fce299c980cda740dcc4f53f9b2dc9061c856213e5bdbc2c339185a5fb7dcf6a")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("blast-plus")
     depends_on("hmmer")
     depends_on("curl")

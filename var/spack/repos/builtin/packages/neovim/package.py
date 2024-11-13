@@ -19,6 +19,8 @@ class Neovim(CMakePackage):
 
     version("master", branch="master")
     version("stable", tag="stable", commit="d772f697a281ce9c58bf933997b87c7f27428a60")
+    version("0.10.0", sha256="372ea2584b0ea2a5a765844d95206bda9e4a57eaa1a2412a9a0726bab750f828")
+    version("0.9.5", sha256="fe74369fc30a32ec7a086b1013acd0eacd674e7570eb1acc520a66180c9e9719")
     version("0.9.4", sha256="148356027ee8d586adebb6513a94d76accc79da9597109ace5c445b09d383093")
     version("0.9.2", sha256="06b8518bad4237a28a67a4fbc16ec32581f35f216b27f4c98347acee7f5fb369")
     version("0.9.1", sha256="8db17c2a1f4776dcda00e59489ea0d98ba82f7d1a8ea03281d640e58d8a3a00e")
@@ -76,6 +78,8 @@ class Neovim(CMakePackage):
         sha256="72e263f9d23fe60403d53a52d4c95026b0be428c1b9c02b80ab55166ea3f62b5",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "no_luajit",
@@ -135,6 +139,12 @@ class Neovim(CMakePackage):
         depends_on("libvterm@0.3:", type="link")
     with when("@0.9:"):
         depends_on("tree-sitter@0.20.8:")
+    with when("@0.10:"):
+        depends_on("cmake@3.13:", type="build")
+        depends_on("libvterm@0.3.3:")
+        depends_on("tree-sitter@0.20.9:")
+    with when("@master"):
+        depends_on("utf8proc", type="link")
 
     # Support for `libvterm@0.2:` has been added in neovim@0.8.0
     # term: Add support for libvterm >= 0.2 (https://github.com/neovim/neovim/releases/tag/v0.8.0)

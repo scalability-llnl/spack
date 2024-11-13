@@ -15,5 +15,7 @@ class Vmatch(Package):
 
     version("2.3.0", sha256="5e18d0dddf04e86dad193fcdde6e48f3901365932634125602d8808f35acf979")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree(self.stage.source_path, prefix.bin)

@@ -18,6 +18,8 @@ class Which(AutotoolsPackage):
 
     version("2.21", sha256="f4a245b94124b377d8b49646bf421f9155d36aa7614b6ebf83705d3ffc76eaad")
 
+    depends_on("c", type="build")  # generated
+
     executables = ["which"]
 
     @classmethod

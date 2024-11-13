@@ -17,6 +17,8 @@ class Libtar(AutotoolsPackage):
     version("1.2.19", sha256="5fea7152106b1b8cda109da27f505439865dd196da94f503fab18264591ddf64")
     version("1.2.18", sha256="a5ac82dae9677b5b74333ed63043b9699c7ef561e2eacf301188c277952d4b7d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

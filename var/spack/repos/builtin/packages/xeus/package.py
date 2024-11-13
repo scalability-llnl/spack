@@ -22,6 +22,8 @@ class Xeus(CMakePackage):
     version("0.15.0", sha256="bc99235b24d5757dc129f3ed531501fb0d0667913927ed39ee24281952649183")
     version("0.14.1", sha256="a6815845d4522ec279f142d3b4e92ef52cd80847b512146a65f256a77e058cfe")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("examples", default=False, description="Build examples")
     variant("shared", default=True, description="Build shared libraries")
 

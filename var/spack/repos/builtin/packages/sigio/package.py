@@ -22,9 +22,7 @@ class Sigio(CMakePackage):
     version("2.3.3", sha256="2b4a04be3be10f222d0ff47f973f65a03b8b5521dcad8e8866f3bfe4e8dfafab")
     version("2.3.2", sha256="333f3cf3a97f97103cbafcafc2ad89b24faa55b1332a98adc1637855e8a5b613")
 
-    variant("pfunit", default=False, description="Use pFunit to enable unit testing")
-
-    depends_on("pfunit", when="+pfunit")
+    depends_on("fortran", type="build")
 
     conflicts("%oneapi", when="@:2.3.2", msg="Requires @2.3.3: for Intel OneAPI")
 

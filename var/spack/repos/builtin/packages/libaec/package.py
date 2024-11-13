@@ -29,6 +29,9 @@ class Libaec(CMakePackage):
     version("1.0.1", sha256="3668eb4ed36724441e488a7aadc197426afef4b1e8bd139af6d3e36023906459")
     version("1.0.0", sha256="849f08b08ddaaffe543d06d0ced5e4ee3e526b13a67c5f422d126b1c9cf1b546")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Builds a shared version of the library")
 
     @property

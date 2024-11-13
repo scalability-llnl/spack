@@ -21,6 +21,8 @@ class PyStorm(PythonPackage):
         url="https://files.pythonhosted.org/packages/source/s/storm/storm-0.23.tar.bz2",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-six", type=("build", "run"))
     depends_on("py-zope-interface@4:", type=("build", "run"))

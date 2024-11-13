@@ -23,3 +23,5 @@ class F90cache(AutotoolsPackage):
         sha256="be3fe77b676bc784dd45b3f65b4a5db34d858ed29156b29d8da38b24585bda7d",
         url="http://distfiles.exherbo.org/distfiles/f90cache-0.99.tar.bz2",
     )
+
+    depends_on("c", type="build")  # generated

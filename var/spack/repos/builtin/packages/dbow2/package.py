@@ -18,6 +18,8 @@ class Dbow2(CMakePackage):
     version("master", branch="master")
     version("shinsumicco", git="https://github.com/shinsumicco/DBoW2.git", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.0:", type="build")
     # TODO: replace this with an explicit list of components of Boost,
     # for instance depends_on('boost +filesystem')

@@ -19,6 +19,9 @@ class Chaco(CMakePackage):
     version("develop", branch="truchas")
     version("2020-07-16", commit="92a877b381933d12b02507413897f696d81b4682", preferred=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="build shared library")
 
     depends_on("cmake@3.16:", type="build")

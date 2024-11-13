@@ -25,12 +25,14 @@ class Gapbs(MakefilePackage):
     version("1.4", sha256="d91ecfe364e8c307e9e5535d730ef8ef8554b71d33891b70d0c4665cc11178bb")
     version("1.0", sha256="a7516998c4994592053c7aa0c76282760a8e009865a6b7a1c7c40968be1ca55d")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("serial", default=False, description="Version with no parallelism")
 
     def build(self, spec, prefix):
         cxx_flags = ["-O3", self.compiler.cxx11_flag]
 
-        if "-serial" in spec:
+        if spec.satisfies("-serial"):
             cxx_flags.append(self.compiler.openmp_flag)
 
         make("CXX_FLAGS=" + " ".join(cxx_flags))

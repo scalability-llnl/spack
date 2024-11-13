@@ -10,7 +10,7 @@ class Ldsc(PythonPackage):
     """ldsc is a command line tool for estimating heritability and genetic correlation from
     GWAS summary statistics. ldsc also computes LD scores"""
 
-    homepage = "http://github.com/bulik/ldsc"
+    homepage = "https://github.com/bulik/ldsc"
     pypi = "ldsc/ldsc-2.0.1.tar.gz"
 
     license("GPL-3.0-only", checked_by="A-N-Other")

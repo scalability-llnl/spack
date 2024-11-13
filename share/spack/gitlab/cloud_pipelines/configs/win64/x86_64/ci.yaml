@@ -1,0 +1,4 @@
+ci:
+  pipeline-gen:
+  - build-job:
+      tags: [x86_64-win]

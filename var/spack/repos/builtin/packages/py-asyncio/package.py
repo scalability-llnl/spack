@@ -21,5 +21,7 @@ class PyAsyncio(PythonPackage):
     version("3.4.2", sha256="ba28d351c579875e2a1cb1989e310285d3eb76c5bb749694b6ddd3901f8d39de")
     version("3.4.1", sha256="51cdfbd4964ef8286cbef7d88f9b7abcc8b710ecec0a0794aa354f94ef703126")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.3:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

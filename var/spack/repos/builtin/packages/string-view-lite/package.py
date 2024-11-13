@@ -26,6 +26,8 @@ class StringViewLite(CMakePackage):
     version("0.2.0", sha256="c8ae699dfd2ccd15c5835e9b1d246834135bbb91b82f7fc4211b8ac366bffd34")
     version("0.1.0", sha256="7de87d6595230a6085655dab6145340bc423f2cf206263ef73c9b78f7b153340")
 
+    depends_on("cxx", type="build")  # generated
+
     def cmake_args(self):
         return [
             "-DSTRINGVIEW_LITE_OPT_BUILD_TESTS=%s" % ("ON" if self.run_tests else "OFF"),

@@ -11,14 +11,16 @@ import llnl.util.filesystem as fs
 
 import spack.config
 import spack.environment as ev
+import spack.package_base
 import spack.spec
+import spack.stage
+import spack.util.git
+import spack.util.path
 from spack.main import SpackCommand
 
 add = SpackCommand("add")
 develop = SpackCommand("develop")
 env = SpackCommand("env")
-
-pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
 @pytest.mark.usefixtures("mutable_mock_env_path", "mock_packages", "mock_fetch", "mutable_config")
@@ -62,6 +64,12 @@ class TestDevelop:
         with ev.read("test") as e:
             develop("--no-clone", "-p", str(tmpdir), "mpich@1.0")
             self.check_develop(e, spack.spec.Spec("mpich@=1.0"), str(tmpdir))
+
+    def test_develop_no_version(self, tmpdir):
+        env("create", "test")
+        with ev.read("test") as e:
+            develop("--no-clone", "-p", str(tmpdir), "mpich")
+            self.check_develop(e, spack.spec.Spec("mpich@=main"), str(tmpdir))
 
     def test_develop(self):
         env("create", "test")

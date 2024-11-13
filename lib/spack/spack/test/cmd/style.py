@@ -11,6 +11,7 @@ import pytest
 
 from llnl.util.filesystem import FileFilter
 
+import spack.cmd.style
 import spack.main
 import spack.paths
 import spack.repo
@@ -22,6 +23,12 @@ style_data = os.path.join(spack.paths.test_path, "data", "style")
 
 
 style = spack.main.SpackCommand("style")
+
+
+ISORT = which("isort")
+BLACK = which("black")
+FLAKE8 = which("flake8")
+MYPY = which("mypy")
 
 
 @pytest.fixture(autouse=True)
@@ -38,7 +45,7 @@ def flake8_package(tmpdir):
     change to the ``flake8`` mock package, yields the filename, then undoes the
     change on cleanup.
     """
-    repo = spack.repo.Repo(spack.paths.mock_packages_path)
+    repo = spack.repo.from_path(spack.paths.mock_packages_path)
     filename = repo.filename_for_package_name("flake8")
     rel_path = os.path.dirname(os.path.relpath(filename, spack.paths.prefix))
     tmp = tmpdir / rel_path / "flake8-ci-package.py"
@@ -54,7 +61,7 @@ def flake8_package(tmpdir):
 @pytest.fixture
 def flake8_package_with_errors(scope="function"):
     """A flake8 package with errors."""
-    repo = spack.repo.Repo(spack.paths.mock_packages_path)
+    repo = spack.repo.from_path(spack.paths.mock_packages_path)
     filename = repo.filename_for_package_name("flake8")
     tmp = filename + ".tmp"
 
@@ -130,7 +137,7 @@ def test_changed_files_all_files():
     assert os.path.join(spack.paths.module_path, "spec.py") in files
 
     # a mock package
-    repo = spack.repo.Repo(spack.paths.mock_packages_path)
+    repo = spack.repo.from_path(spack.paths.mock_packages_path)
     filename = repo.filename_for_package_name("flake8")
     assert filename in files
 
@@ -190,8 +197,8 @@ def external_style_root(git, flake8_package_with_errors, tmpdir):
     yield tmpdir, py_file
 
 
-@pytest.mark.skipif(not which("isort"), reason="isort is not installed.")
-@pytest.mark.skipif(not which("black"), reason="black is not installed.")
+@pytest.mark.skipif(not ISORT, reason="isort is not installed.")
+@pytest.mark.skipif(not BLACK, reason="black is not installed.")
 def test_fix_style(external_style_root):
     """Make sure spack style --fix works."""
     tmpdir, py_file = external_style_root
@@ -209,10 +216,10 @@ def test_fix_style(external_style_root):
     assert filecmp.cmp(broken_py, fixed_py)
 
 
-@pytest.mark.skipif(not which("flake8"), reason="flake8 is not installed.")
-@pytest.mark.skipif(not which("isort"), reason="isort is not installed.")
-@pytest.mark.skipif(not which("mypy"), reason="mypy is not installed.")
-@pytest.mark.skipif(not which("black"), reason="black is not installed.")
+@pytest.mark.skipif(not FLAKE8, reason="flake8 is not installed.")
+@pytest.mark.skipif(not ISORT, reason="isort is not installed.")
+@pytest.mark.skipif(not MYPY, reason="mypy is not installed.")
+@pytest.mark.skipif(not BLACK, reason="black is not installed.")
 def test_external_root(external_style_root, capfd):
     """Ensure we can run in a separate root directory w/o configuration files."""
     tmpdir, py_file = external_style_root
@@ -238,7 +245,7 @@ def test_external_root(external_style_root, capfd):
     assert "lib/spack/spack/dummy.py:7: [F401] 'os' imported but unused" in output
 
 
-@pytest.mark.skipif(not which("flake8"), reason="flake8 is not installed.")
+@pytest.mark.skipif(not FLAKE8, reason="flake8 is not installed.")
 def test_style(flake8_package, tmpdir):
     root_relative = os.path.relpath(flake8_package, spack.paths.prefix)
 
@@ -264,7 +271,7 @@ def test_style(flake8_package, tmpdir):
     assert "spack style checks were clean" in output
 
 
-@pytest.mark.skipif(not which("flake8"), reason="flake8 is not installed.")
+@pytest.mark.skipif(not FLAKE8, reason="flake8 is not installed.")
 def test_style_with_errors(flake8_package_with_errors):
     root_relative = os.path.relpath(flake8_package_with_errors, spack.paths.prefix)
     output = style(
@@ -275,8 +282,8 @@ def test_style_with_errors(flake8_package_with_errors):
     assert "spack style found errors" in output
 
 
-@pytest.mark.skipif(not which("black"), reason="black is not installed.")
-@pytest.mark.skipif(not which("flake8"), reason="flake8 is not installed.")
+@pytest.mark.skipif(not BLACK, reason="black is not installed.")
+@pytest.mark.skipif(not FLAKE8, reason="flake8 is not installed.")
 def test_style_with_black(flake8_package_with_errors):
     output = style("--tool", "black,flake8", flake8_package_with_errors, fail_on_error=False)
     assert "black found errors" in output

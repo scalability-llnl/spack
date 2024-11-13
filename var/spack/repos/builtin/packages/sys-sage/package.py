@@ -17,9 +17,12 @@ class SysSage(CMakePackage):
 
     license("Apache-2.0")
 
+    version("0.5.0", sha256="044e53bf0f3873325fa4dedb510849d58b23b5a2c654d41b1389a318b2cb7ee1")
     version("0.4.3", sha256="e24313c4274576c1511a62e1b27c86a78cea7e4c123b8a53303cfc70de978faa")
     version("master", branch="master")
     version("develop", branch="develop")
+
+    depends_on("cxx", type="build")  # generated
 
     conflicts("%gcc@:7", msg="gcc can be used from version 8 and above")
 

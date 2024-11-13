@@ -13,8 +13,9 @@ class PyWerkzeug(PythonPackage):
     pypi = "werkzeug/werkzeug-3.0.0.tar.gz"
     git = "https://github.com/pallets/werkzeug.git"
 
-    license("BSD-3-Clause")
+    license("BSD-3-Clause", checked_by="wdconinc")
 
+    version("3.0.4", sha256="34f2371506b250df4d4f84bfe7b0921e4762525762bbd936614909fe25cd7306")
     version("3.0.0", sha256="3ffff4dcc32db52ef3cc94dff3000a3c2846890f3a5a51800a27b909c5e770f0")
     version("2.3.7", sha256="2b8c0e447b4b9dbcc85dd97b6eeb4dcbaf6c8b6c3be0bd654e25553e0a2157d8")
     version("2.3.4", sha256="1d5a58e0377d1fe39d061a5de4469e414e78ccb1e1e59c0f5ad6fa1c36c52b76")

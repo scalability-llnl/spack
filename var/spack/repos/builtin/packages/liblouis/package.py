@@ -22,3 +22,5 @@ class Liblouis(AutotoolsPackage):
     version("3.13.0", sha256="2803b89a2bff9f02032125fa7b7d0a204a60d8d14f232242344b5f09535e9a01")
     version("3.12.0", sha256="87d9bad6d75916270bad14bb22fa5f487c7edee4774878c04bef82833bc9467d")
     version("3.11.0", sha256="b802aba0bff49636907ca748225e21c56ecf3f3ebc143d582430036d4d9f6259")
+
+    depends_on("c", type="build")  # generated

@@ -22,6 +22,8 @@ class Roms(MakefilePackage):
     version("3.9", sha256="8e93f6ed40040e3f1b88d456ea9411ed3c06f280dc50b2787d6e5f793f58f1bc")
     version("3.8", sha256="99fb69239e70edaef35771d82e203e43cd301dde4f2a5662da038499b7258ae7")
 
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=False, description="Turn on shared-memory parallelization in ROMS")
     variant("mpi", default=True, description="Turn on distributed-memory parallelization in ROMS")
     variant(

@@ -17,6 +17,8 @@ class PyFastremap(PythonPackage):
 
     version("1.14.1", sha256="067d42d6cb3b1b0789889efd1d7fae58006c82ada4a8446d40e9e838b358ee7c")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.7:3", type=("build", "run"))
 
     depends_on("py-setuptools", type="build")

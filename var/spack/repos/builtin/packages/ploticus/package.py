@@ -9,11 +9,13 @@ from spack.package import *
 class Ploticus(MakefilePackage):
     """Ploticus can produce various types of plots and graphs."""
 
-    homepage = "http://ploticus.sourceforge.net/doc/welcome.html"
+    homepage = "https://ploticus.sourceforge.net/doc/welcome.html"
 
     maintainers("Christoph-TU")
 
     version("2.42", sha256="3f29e4b9f405203a93efec900e5816d9e1b4381821881e241c08cab7dd66e0b0")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("libpng")

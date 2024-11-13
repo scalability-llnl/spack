@@ -19,3 +19,6 @@ class RRann(RPackage):
     cran = "RANN"
 
     version("2.6.1", sha256="b299c3dfb7be17aa41e66eff5674fddd2992fb6dd3b10bc59ffbf0c401697182")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

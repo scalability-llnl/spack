@@ -9,7 +9,7 @@ from spack.package import *
 class Squashfs(MakefilePackage):
     """Squashfs - read only compressed filesystem"""
 
-    homepage = "http://squashfs.sourceforge.net"
+    homepage = "https://squashfs.sourceforge.net"
     url = "https://downloads.sourceforge.net/project/squashfs/squashfs/squashfs4.3/squashfs4.3.tar.gz"
 
     license("GPL-2.0-or-later")
@@ -51,6 +51,8 @@ class Squashfs(MakefilePackage):
         sha256="18948edbe06bac2c4307eea99bfb962643e4b82e5b7edd541b4d743748e12e21",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     variant("gzip", default=True, description="Enable gzip compression support")
     variant("lz4", default=False, description="Enable LZ4 compression support")

@@ -31,6 +31,9 @@ class Rivet(AutotoolsPackage):
     version("3.0.1", sha256="e7551168b86a05c9c029c319c313a0aa142a476195e7ff986c896c1b868f89dd")
     version("3.0.0", sha256="3944434d3791dccb54f7b2257589df6252cc7c065ce9deb57fbef466ff9e62b1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("hepmc", default="2", values=("2", "3"), description="HepMC version to link against")
 
     # According to A. Buckley (main Rivet developer):

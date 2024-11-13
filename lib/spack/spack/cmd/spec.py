@@ -14,6 +14,7 @@ import spack.environment as ev
 import spack.hash_types as ht
 import spack.spec
 import spack.store
+import spack.traverse
 from spack.cmd.common import arguments
 
 description = "show what would be installed, given a spec"
@@ -95,21 +96,28 @@ def spec(parser, args):
     if args.install_status:
         tree_context = spack.store.STORE.db.read_transaction
 
-    # Use command line specified specs, otherwise try to use environment specs.
+    env = ev.active_environment()
+
     if args.specs:
         input_specs = spack.cmd.parse_specs(args.specs)
         concretized_specs = spack.cmd.parse_specs(args.specs, concretize=True)
         specs = list(zip(input_specs, concretized_specs))
+    elif env:
+        env.concretize()
+        specs = env.concretized_specs()
+
+        if not args.format:
+            # environments are printed together in a combined tree() invocation,
+            # except when using --yaml or --json, which we print spec by spec below.
+            tree_kwargs["key"] = spack.traverse.by_dag_hash
+            tree_kwargs["hashes"] = args.long or args.very_long
+            print(spack.spec.tree([concrete for _, concrete in specs], **tree_kwargs))
+            return
     else:
-        env = ev.active_environment()
-        if env:
-            env.concretize()
-            specs = env.concretized_specs()
-        else:
-            tty.die("spack spec requires at least one spec or an active environment")
+        tty.die("spack spec requires at least one spec or an active environment")
 
     for input, output in specs:
-        # With -y, just print YAML to output.
+        # With --yaml or --json, just print the raw specs to output
         if args.format:
             if args.format == "yaml":
                 # use write because to_yaml already has a newline.

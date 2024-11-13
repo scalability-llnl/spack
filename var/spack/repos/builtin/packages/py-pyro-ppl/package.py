@@ -20,6 +20,8 @@ class PyPyroPpl(PythonPackage):
     version("1.8.1", sha256="d7c049eb2e7485a612b4dd99c24c309cc860c7cbc6b1973387034f5436d1c8d6")
     version("1.8.0", sha256="68e4ea30f219227dd88e55de2550d3f8c20a20adbdb67ad1e13b50868bb2ac0c")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.7:", when="@1.8.1:", type=("build", "run"))
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

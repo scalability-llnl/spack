@@ -27,6 +27,8 @@ class ScitokensCpp(CMakePackage):
     version("0.7.1", sha256="44a1bca188897b1e97645149d1f6bc187cd0e482ad36159ca376834f028ce5ef")
     version("0.7.0", sha256="72600cf32523b115ec7abf4ac33fa369e0a655b3d3b390e1f68363e6c4e961b6")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "cxxstd",
         default="11",

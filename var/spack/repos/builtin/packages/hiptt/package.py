@@ -20,6 +20,8 @@ class Hiptt(MakefilePackage, ROCmPackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     patch("bugfix_make.patch")
 
     # To enable this package add it to the LD_LIBRARY_PATH

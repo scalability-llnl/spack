@@ -20,3 +20,5 @@ class Stress(AutotoolsPackage):
     license("GPL-2.0-or-later")
 
     version("1.0.4", sha256="b03dbb9664d7f8dcb3eadc918c2e8eb822f5a3ba47d9bd51246540bac281bd75")
+
+    depends_on("c", type="build")  # generated

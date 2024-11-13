@@ -18,7 +18,7 @@ class WinWdk(Package):
     """
 
     homepage = "https://learn.microsoft.com/en-us/windows-hardware/drivers/"
-    tags = ["windows"]
+    tags = ["windows", "windows-system"]
 
     # The wdk has many libraries and executables. Record one for detection purposes
     libraries = ["mmos.lib"]
@@ -81,7 +81,7 @@ class WinWdk(Package):
     depends_on("win-sdk@10.0.15063", when="@10.0.15063")
     depends_on("win-sdk@10.0.14393", when="@10.0.14393")
 
-    for plat in ["linux", "darwin", "cray"]:
+    for plat in ["linux", "darwin"]:
         conflicts("platform=%s" % plat)
 
     @classmethod

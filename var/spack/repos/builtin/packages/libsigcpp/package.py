@@ -21,6 +21,8 @@ class Libsigcpp(AutotoolsPackage):
     version("2.1.1", sha256="7a2bd0b521544b31051c476205a0e74ace53771ec1a939bfec3c297b50c9fd78")
     version("2.0.3", sha256="6ee6d5f164d8a34da33d2251cdb348b4f5769bf993ed8a6d4055bd47562f94a2")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("m4", when="@:2.9", type="build")
 
     def url_for_version(self, version):

@@ -17,3 +17,5 @@ class Libgff(CMakePackage):
     maintainers("ajxander12")
 
     version("2.0.0", sha256="7656b19459a7ca7d2fd0fcec4f2e0fd0deec1b4f39c703a114e8f4c22d82a99c")
+
+    depends_on("cxx", type="build")  # generated

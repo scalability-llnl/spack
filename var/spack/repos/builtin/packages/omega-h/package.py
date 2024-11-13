@@ -20,6 +20,11 @@ class OmegaH(CMakePackage, CudaPackage):
     tags = ["e4s"]
     version("main", branch="main")
     version(
+        "scorec.10.8.5",
+        commit="62026fc305356abb5e02a9fce3fead9cf5077fbe",
+        git="https://github.com/SCOREC/omega_h.git",
+    )
+    version(
         "scorec.10.7.0",
         commit="0e5de8618c3370f702e08c1b1af476dbbc118892",
         git="https://github.com/SCOREC/omega_h.git",
@@ -59,6 +64,9 @@ class OmegaH(CMakePackage, CudaPackage):
     variant("gmsh", default=False, description="Use Gmsh C++ API")
     variant("kokkos", default=False, description="Use Kokkos")
 
+    depends_on("cxx", type="build")
+    depends_on("c", type="build", when="+mpi")
+
     depends_on("gmsh", when="+examples")
     depends_on("gmsh@4.4.1:", when="+gmsh")
     depends_on("mpi", when="+mpi")
@@ -72,6 +80,12 @@ class OmegaH(CMakePackage, CudaPackage):
         when="@scorec.10.1.0:",
         msg="Thrust is broken in CUDA = 11.2.* see https://github.com/sandialabs/omega_h/issues/366",
     )
+    conflicts(
+        "^cuda@:11.3",
+        when="@scorec.10.8.5:",
+        msg="see https://github.com/SCOREC/omega_h/issues/66",
+    )
+
     # the sandia repo has a fix for cuda > 11.2 support
     #  see github.com/sandialabs/omega_h/pull/373
     conflicts(
@@ -158,23 +172,20 @@ class OmegaH(CMakePackage, CudaPackage):
 
         return (None, None, flags)
 
-    def test(self):
-        if self.spec.version < Version("9.34.1"):
-            print("Skipping tests since only relevant for versions > 9.34.1")
-            return
+    def test_mesh(self):
+        """test construction, adaptation, and conversion of a mesh"""
+        if self.spec.satisfies("@:9.34.0") and not self.spec.satisfies("@:scorec"):
+            raise SkipTest("Package must be installed as version 9.34.1 or later")
 
-        exe = join_path(self.prefix.bin, "osh_box")
-        options = ["1", "1", "1", "2", "2", "2", "box.osh"]
-        description = "testing mesh construction"
-        self.run_test(exe, options, purpose=description)
+        with test_part(self, "test_mesh_create", purpose="mesh construction"):
+            exe = which(self.prefix.bin.osh_box)
+            exe("1", "1", "1", "2", "2", "2", "box.osh")
 
-        exe = join_path(self.prefix.bin, "osh_scale")
-        options = ["box.osh", "100", "box_100.osh"]
-        expected = "adapting took"
-        description = "testing mesh adaptation"
-        self.run_test(exe, options, expected, purpose=description)
+        with test_part(self, "test_mesh_adapt", purpose="mesh adaptation"):
+            exe = which(self.prefix.bin.osh_scale)
+            actual = exe("box.osh", "100", "box_100.osh", output=str.split, error=str.split)
+            assert "adapting took" in actual
 
-        exe = join_path(self.prefix.bin, "osh2vtk")
-        options = ["box_100.osh", "box_100_vtk"]
-        description = "testing mesh to vtu conversion"
-        self.run_test(exe, options, purpose=description)
+        with test_part(self, "test_mesh_convert", purpose="mesh to vtu conversion"):
+            exe = which(self.prefix.bin.osh2vtk)
+            exe("box_100.osh", "box_100_vtk")

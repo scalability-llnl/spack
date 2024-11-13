@@ -24,16 +24,31 @@ class Damask(BundlePackage):
 
     """
 
-    homepage = "https://damask.mpie.de"
+    homepage = "https://damask-multiphysics.org"
 
     maintainers("MarDiehl")
 
+    version("3.0.1")
+    version("3.0.0")
+    version("3.0.0-beta2")
     version("3.0.0-beta")
     version("3.0.0-alpha8")
     version("3.0.0-alpha7")
     version("3.0.0-alpha6")
     version("3.0.0-alpha5")
     version("3.0.0-alpha4")
+
+    depends_on("damask-grid@3.0.1", when="@3.0.1", type="run")
+    depends_on("damask-mesh@3.0.1", when="@3.0.1", type="run")
+    depends_on("py-damask@3.0.1", when="@3.0.1", type="run")
+
+    depends_on("damask-grid@3.0.0", when="@3.0.0", type="run")
+    depends_on("damask-mesh@3.0.0", when="@3.0.0", type="run")
+    depends_on("py-damask@3.0.0", when="@3.0.0", type="run")
+
+    depends_on("damask-grid@3.0.0-beta2", when="@3.0.0-beta2", type="run")
+    depends_on("damask-mesh@3.0.0-beta2", when="@3.0.0-beta2", type="run")
+    depends_on("py-damask@3.0.0-beta2", when="@3.0.0-beta2", type="run")
 
     depends_on("damask-grid@3.0.0-beta", when="@3.0.0-beta", type="run")
     depends_on("damask-mesh@3.0.0-beta", when="@3.0.0-beta", type="run")

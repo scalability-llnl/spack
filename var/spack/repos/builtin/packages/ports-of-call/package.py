@@ -34,6 +34,9 @@ class PortsOfCall(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # todo: disable cmake default?
+    depends_on("cxx", type="build")
+
     variant(
         "portability_strategy",
         description="Portability strategy backend",

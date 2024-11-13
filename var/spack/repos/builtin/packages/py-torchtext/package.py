@@ -42,6 +42,9 @@ class PyTorchtext(PythonPackage):
     version("0.6.0", tag="0.6.0", commit="3a54c7f52584f201c17ca7489b52b812152612dc")
     version("0.5.0", tag="0.5.0", commit="0169cde2f1d446ae886ef0be07e9a673585ed256")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
         depends_on("python@3.8:3.12", when="@0.17.2:")

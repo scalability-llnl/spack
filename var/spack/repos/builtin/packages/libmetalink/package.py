@@ -20,6 +20,8 @@ class Libmetalink(AutotoolsPackage):
     version("0.1.2", sha256="64af0979c11658f7a1659ca97ebc3c7bac8104253bf504015ac3b9c363382bae")
     version("0.1.1", sha256="e9b8dff68b0b999884c21f68d9b1cc0c1993270e3e1f639f82e27b1eb960cb66")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

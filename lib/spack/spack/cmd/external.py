@@ -7,7 +7,7 @@ import errno
 import os
 import re
 import sys
-from typing import List, Optional
+from typing import List, Optional, Set
 
 import llnl.util.tty as tty
 import llnl.util.tty.colify as colify
@@ -18,8 +18,9 @@ import spack.config
 import spack.cray_manifest as cray_manifest
 import spack.detection
 import spack.error
+import spack.package_base
 import spack.repo
-import spack.util.environment
+import spack.spec
 from spack.cmd.common import arguments
 
 description = "manage external packages in Spack configuration"
@@ -138,14 +139,26 @@ def external_find(args):
         candidate_packages, path_hints=args.path, max_workers=args.jobs
     )
 
-    new_entries = spack.detection.update_configuration(
+    new_specs = spack.detection.update_configuration(
         detected_packages, scope=args.scope, buildable=not args.not_buildable
     )
-    if new_entries:
+
+    # If the user runs `spack external find --not-buildable mpich` we also mark `mpi` non-buildable
+    # to avoid that the concretizer picks a different mpi provider.
+    if new_specs and args.not_buildable:
+        virtuals: Set[str] = {
+            virtual.name
+            for new_spec in new_specs
+            for virtual_specs in spack.repo.PATH.get_pkg_class(new_spec.name).provided.values()
+            for virtual in virtual_specs
+        }
+        new_virtuals = spack.detection.set_virtuals_nonbuildable(virtuals, scope=args.scope)
+        new_specs.extend(spack.spec.Spec(name) for name in new_virtuals)
+
+    if new_specs:
         path = spack.config.CONFIG.get_config_filename(args.scope, "packages")
-        msg = "The following specs have been detected on this system and added to {0}"
-        tty.msg(msg.format(path))
-        spack.cmd.display_specs(new_entries)
+        tty.msg(f"The following specs have been detected on this system and added to {path}")
+        spack.cmd.display_specs(new_specs)
     else:
         tty.msg("No new external packages detected")
 

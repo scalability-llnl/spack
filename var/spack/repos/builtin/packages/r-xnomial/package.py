@@ -26,4 +26,6 @@ class RXnomial(RPackage):
 
     version("1.0.4", sha256="e6237f79d96f02bb30af1cf055ae9f70541abba34ce045a9d4359b5304189dd7")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.14:", type=("build", "run"))

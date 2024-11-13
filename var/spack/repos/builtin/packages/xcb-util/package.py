@@ -26,6 +26,8 @@ class XcbUtil(AutotoolsPackage, XorgPackage):
         url="https://xcb.freedesktop.org/dist/xcb-util-0.4.0.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxcb@1.4:")
 
     depends_on("pkgconfig", type="build")

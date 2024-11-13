@@ -1,6 +1,6 @@
-From 687438d41a42527858dc104b5fcb371d472949e2 Mon Sep 17 00:00:00 2001
+From 18a4feabdac234a1af62ae458be44e24c63017e2 Mon Sep 17 00:00:00 2001
 From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
-Date: Tue, 7 May 2024 22:17:54 +0000
+Date: Mon, 20 May 2024 22:56:55 -0700
 Subject: [PATCH] Updating cmake with include and library path for spack for
  6.1
 
@@ -20,12 +20,12 @@ Subject: [PATCH] Updating cmake with include and library path for spack for
  perf.so/CMakeLists.txt         |  8 ++++----
  pesm.so/CMakeLists.txt         |  6 +++---
  rcqt.so/CMakeLists.txt         |  6 +++---
- rvs/CMakeLists.txt             | 18 ++++++++++--------
+ rvs/CMakeLists.txt             | 16 +++++++++-------
  rvslib/CMakeLists.txt          |  2 +-
  smqt.so/CMakeLists.txt         |  6 +++---
  testif.so/CMakeLists.txt       |  6 +++---
  tst.so/CMakeLists.txt          |  2 +-
- 20 files changed, 78 insertions(+), 75 deletions(-)
+ 20 files changed, 77 insertions(+), 74 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 6bce31b..f7e31c9 100644
@@ -338,7 +338,7 @@ index c4e2964..7a6b368 100644
  ## define source files
  set(SOURCES src/rvs_module.cpp src/action.cpp src/action_run.cpp
 diff --git a/peqt.so/CMakeLists.txt b/peqt.so/CMakeLists.txt
-index ead507d..567358b 100644
+index ead507d..8623ee9 100644
 --- a/peqt.so/CMakeLists.txt
 +++ b/peqt.so/CMakeLists.txt
 @@ -107,9 +107,9 @@ else()
@@ -349,7 +349,7 @@ index ead507d..567358b 100644
 +include_directories(./ ../ ${HSA_PATH})
  # Add directories to look for library files to link
 -link_directories(${RVS_LIB_DIR} ${ASAN_LIB_PATH})
-+link_directories(${RVS_LIB_DIR} ${HSA_PATH}/lib/ ${HSAKMT_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR} ${YAML_CPP_INCLUDE_DIRS})
++link_directories(${RVS_LIB_DIR} ${HSA_PATH}/lib/ ${HSAKMT_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
  ## additional libraries
  set (PROJECT_LINK_LIBS rvslib libpci.so libm.so)
  
@@ -435,18 +435,23 @@ index c0099ab..8d92982 100644
  ## define source files
  set(SOURCES 
 diff --git a/rvs/CMakeLists.txt b/rvs/CMakeLists.txt
-index 3909be8..7db90e4 100644
+index 3909be8..d55423b 100644
 --- a/rvs/CMakeLists.txt
 +++ b/rvs/CMakeLists.txt
-@@ -113,21 +113,23 @@ else()
- endif()
+@@ -34,6 +34,7 @@ set ( RVS "rvs" )
+ set ( RVS_PACKAGE "rvs-roct" )
+ set ( RVS_COMPONENT "lib${RVS}" )
+ set ( RVS_TARGET "${RVS}" )
++set ( YAML_CPP_LIBRARIES "${YAML_CPP_LIB_PATH}")
  
+ project ( ${RVS_TARGET} )
+ 
+@@ -115,19 +116,20 @@ endif()
  ## define include directories
--include_directories(./ ../ ${YAML_CPP_INCLUDE_DIRS})
-+include_directories(./ ../ ${YAML_INC_DIR})
+ include_directories(./ ../ ${YAML_CPP_INCLUDE_DIRS})
  ## define lib directories
 -link_directories(${CMAKE_CURRENT_BINARY_DIR} ${RVS_LIB_DIR} ${ROCT_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ROCM_SMI_LIB_DIR} ${ASAN_LIB_PATH})
-+link_directories(${CMAKE_CURRENT_BINARY_DIR} ${RVS_LIB_DIR} ${RVS_LIB_DIR}/.. ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR} ${YAML_CPP_LIBRARIES} ${ROCT_LIB_DIR} ${ROCBLAS_LIB_DIR} )
++link_directories(${CMAKE_CURRENT_BINARY_DIR} ${RVS_LIB_DIR} ${RVS_LIB_DIR}/.. ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR} ${ROCT_LIB_DIR} ${ROCBLAS_LIB_DIR} ${YAML_CPP_LIBRARIES})
  
  ## additional libraries
 -set(ROCBLAS_LIB "rocblas")
@@ -457,7 +462,7 @@ index 3909be8..7db90e4 100644
 +set(ROCBLAS_LIB "${ROCBLAS_LIB_DIR}/librocblas.so")
 +set(ROC_THUNK_NAME "${HSAKMT_LIB_DIR}/libhsakmt.a")
 +set(CORE_RUNTIME_NAME "${HSA_PATH}/lib/libhsa-runtime64.so")
-+set(YAML_CPP_LIB "${YAML_INC_DIR}/../lib64/libyaml-cpp.a")
++set(YAML_CPP_LIB "${YAML_CPP_LIBRARIES}/libyaml-cpp.a")
 +set(CORE_RUNTIME_TARGET "${CORE_RUNTIME_NAME}")
 +set(PROJECT_LINK_LIBS libdl.so libpthread.so libpci.so)
  
@@ -465,13 +470,12 @@ index 3909be8..7db90e4 100644
  add_executable(${RVS_TARGET} src/rvs.cpp)
  target_link_libraries(${RVS_TARGET} rvslib
 -  ${ROCBLAS_LIB} ${ROCM_SMI_LIB} ${ROC_THUNK_NAME} ${CORE_RUNTIME_TARGET} ${ROCM_CORE} ${PROJECT_LINK_LIBS})
-+  ${ROCBLAS_LIB} ${ROCM_SMI_LIB} ${ROC_THUNK_NAME} ${CORE_RUNTIME_TARGET} ${ROCM_CORE} ${PROJECT_LINK_LIBS} ${YAML_CPP_LIB}
-+  ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so )
++  ${ROCBLAS_LIB} ${ROCM_SMI_LIB} ${ROC_THUNK_NAME} ${CORE_RUNTIME_TARGET} ${ROCM_CORE} ${PROJECT_LINK_LIBS} ${YAML_CPP_LIB})
  add_dependencies(${RVS_TARGET} rvslib)
  
  install(TARGETS ${RVS_TARGET}
 diff --git a/rvslib/CMakeLists.txt b/rvslib/CMakeLists.txt
-index 8d29590..d52aee3 100644
+index 8d29590..e824bdb 100644
 --- a/rvslib/CMakeLists.txt
 +++ b/rvslib/CMakeLists.txt
 @@ -116,7 +116,7 @@ endif()
@@ -479,7 +483,7 @@ index 8d29590..d52aee3 100644
  ## define include directories
  include_directories(./ ../ ../rvs
 -  ${ROCM_SMI_INC_DIR} ${ROCR_INC_DIR} ${ROCBLAS_INC_DIR} ${HIP_INC_DIR})
-+  ${ROCM_SMI_INC_DIR} ${HIP_PATH} ${ROCBLAS_INC_DIR} ${YAML_INC_DIR})
++  ${ROCM_SMI_INC_DIR} ${HIP_PATH} ${ROCBLAS_INC_DIR} ${YAML_CPP_INCLUDE_DIRS})
  
  link_directories(${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
  
@@ -535,5 +539,5 @@ index 1a1a8b0..0ca398d 100644
    RETURN()
  endif()
 -- 
-2.31.1
+2.43.0
 

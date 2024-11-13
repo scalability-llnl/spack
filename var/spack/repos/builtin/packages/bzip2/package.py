@@ -28,6 +28,8 @@ class Bzip2(Package, SourcewarePackage):
     version("1.0.7", sha256="e768a87c5b1a79511499beb41500bcc4caf203726fff46a6f5f9ad27fe08ab2b")
     version("1.0.6", sha256="a2848f34fcd5d6cf47def00461fcb528a0484d8edef8208d6d2e2909dc61d9cd")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "shared",
         default=(sys.platform != "win32"),
@@ -47,7 +49,6 @@ class Bzip2(Package, SourcewarePackage):
         depends_on("diffutils", type="build")
 
     depends_on("gmake", type="build", when="platform=linux")
-    depends_on("gmake", type="build", when="platform=cray")
     depends_on("gmake", type="build", when="platform=darwin")
 
     @classmethod
@@ -64,9 +65,9 @@ class Bzip2(Package, SourcewarePackage):
 
     def flag_handler(self, name, flags):
         if name == "cflags":
-            if "+pic" in self.spec:
+            if self.spec.satisfies("+pic"):
                 flags.append(self.compiler.cc_pic_flag)
-            if "+debug" in self.spec:
+            if self.spec.satisfies("+debug"):
                 flags.append("-g")
         return (flags, None, None)
 
@@ -122,7 +123,7 @@ class Bzip2(Package, SourcewarePackage):
 
     def install(self, spec, prefix):
         # Build the dynamic library first
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             make("-f", "Makefile-libbz2_so")
 
         # Build the static library and everything else
@@ -144,7 +145,7 @@ class Bzip2(Package, SourcewarePackage):
             make()
             make("install", "PREFIX={0}".format(prefix))
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             install("bzip2-shared", join_path(prefix.bin, "bzip2"))
 
             v1, v2, v3 = (self.spec.version.up_to(i) for i in (1, 2, 3))

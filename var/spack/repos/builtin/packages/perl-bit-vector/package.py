@@ -16,4 +16,6 @@ class PerlBitVector(PerlPackage):
 
     version("7.4", sha256="3c6daa671fecfbc35f92a9385b563d65f50dfc6bdc8b4805f9ef46c0d035a926")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl-carp-clan", type=("build", "run"))

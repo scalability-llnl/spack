@@ -14,6 +14,8 @@ class Scripts(AutotoolsPackage, XorgPackage):
 
     version("1.0.1", sha256="0ed6dabdbe821944d61830489ad5f21bd934550456b9157a1cd8a32f76e08279")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libx11")
 
     depends_on("pkgconfig", type="build")

@@ -16,7 +16,7 @@ class Xproto(AutotoolsPackage, XorgPackage):
     but are depended upon by many other X Window System packages to provide
     common definitions and porting layer."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/proto/x11proto"
+    homepage = "https://gitlab.freedesktop.org/xorg/proto/x11proto"
     xorg_mirror_path = "proto/xproto-7.0.31.tar.gz"
 
     version("7.0.31", sha256="6d755eaae27b45c5cc75529a12855fed5de5969b367ed05003944cf901ed43c7")

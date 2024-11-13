@@ -28,6 +28,8 @@ class Tempestremap(AutotoolsPackage):
     version("2.0.1", sha256="a3f1bef8cc413a689d429ac56f2bcc2e1d282d99797c3375233de792a7448ece")
     version("2.0.0", sha256="5850e251a4ad04fc924452f49183e5e12c38725832a568e57fa424a844b8a000")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

@@ -78,23 +78,16 @@
         "image": "quay.io/almalinuxorg/almalinux:8"
       }
     },
-    "centos:stream": {
+    "centos:stream9": {
       "bootstrap": {
-        "template": "container/centos_stream.dockerfile",
-        "image": "quay.io/centos/centos:stream"
+        "template": "container/centos_stream9.dockerfile",
+        "image": "quay.io/centos/centos:stream9"
       },
       "os_package_manager": "dnf_epel",
-      "build": "spack/centos-stream",
+      "build": "spack/centos-stream9",
       "final": {
-        "image": "quay.io/centos/centos:stream"
+        "image": "quay.io/centos/centos:stream9"
       }
-    },
-    "centos:7": {
-      "bootstrap": {
-        "template": "container/centos_7.dockerfile"
-      },
-      "os_package_manager": "yum",
-      "build": "spack/centos7"
     },
     "opensuse/leap:15": {
       "bootstrap": {

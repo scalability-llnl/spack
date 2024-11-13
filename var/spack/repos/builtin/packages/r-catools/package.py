@@ -23,6 +23,9 @@ class RCatools(RPackage):
     version("1.17.1.1", sha256="d53e2c5c77f1bd4744703d7196dbc9b4671a120bbb5b9b3edc45fc57c0650c06")
     version("1.17.1", sha256="d32a73febf00930355cc00f3e4e71357412e0f163faae6a4bf7f552cacfe9af4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@2.2.0:", type=("build", "run"))
     depends_on("r@3.6.0:", type=("build", "run"), when="@1.18.1:")
     depends_on("r-bitops", type=("build", "run"))

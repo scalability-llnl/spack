@@ -25,6 +25,9 @@ class Texstudio(QMakePackage):
     version("2.12.12", sha256="5978daa806c616f9a1eea231bb613f0bc1037d7d2435ee5ca6b14fe88a2caa8c")
     version("2.12.10", sha256="92cf9cbb536e58a5929611fa40438cd9d7ea6880022cd3c5de0483fd15d3df0b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "poppler",
         default=True,

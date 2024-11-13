@@ -14,7 +14,7 @@ from contextlib import contextmanager
 import pytest
 
 import llnl.util.filesystem as fs
-from llnl.util.symlink import islink, symlink
+from llnl.util.symlink import islink, readlink, symlink
 
 import spack.paths
 
@@ -181,7 +181,7 @@ class TestCopyTree:
 
             assert os.path.exists("dest/a/b2")
             with fs.working_dir("dest/a"):
-                assert os.path.exists(os.readlink("b2"))
+                assert os.path.exists(readlink("b2"))
 
             assert os.path.realpath("dest/f/2") == os.path.abspath("dest/a/b/2")
             assert os.path.realpath("dest/2") == os.path.abspath("dest/1")
@@ -274,14 +274,14 @@ class TestInstallTree:
                 assert not os.path.islink("dest/2")
             check_added_exe_permissions("source/2", "dest/2")
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="Broken symlinks not allowed on Windows")
+    @pytest.mark.not_on_windows("Broken symlinks not allowed on Windows")
     def test_allow_broken_symlinks(self, stage):
         """Test installing with a broken symlink."""
         with fs.working_dir(str(stage)):
-            symlink("nonexistant.txt", "source/broken", allow_broken_symlinks=True)
-            fs.install_tree("source", "dest", symlinks=True, allow_broken_symlinks=True)
+            symlink("nonexistant.txt", "source/broken")
+            fs.install_tree("source", "dest", symlinks=True)
             assert os.path.islink("dest/broken")
-            assert not os.path.exists(os.readlink("dest/broken"))
+            assert not os.path.exists(readlink("dest/broken"))
 
     def test_glob_src(self, stage):
         """Test using a glob as the source."""
@@ -1000,7 +1000,7 @@ def test_rename_dest_exists(tmpdir):
         shutil.rmtree(tmpdir.join("f"))
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="No-op on non Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_sfn(tmpdir):
     # first check some standard Windows locations
     # we know require sfn names

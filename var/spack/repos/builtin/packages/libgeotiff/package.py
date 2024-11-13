@@ -27,6 +27,8 @@ class Libgeotiff(AutotoolsPackage):
     version("1.4.3", sha256="b8510d9b968b5ee899282cdd5bef13fd02d5a4c19f664553f81e31127bc47265")
     version("1.4.2", sha256="ad87048adb91167b07f34974a8e53e4ec356494c29f1748de95252e8f81a5e6e")
 
+    depends_on("c", type="build")  # generated
+
     variant("zlib", default=True, description="Include zlib support")
     variant("jpeg", default=True, description="Include jpeg support")
     variant("proj", default=True, description="Use PROJ.x library")
@@ -37,6 +39,7 @@ class Libgeotiff(AutotoolsPackage):
     depends_on("proj", when="+proj")
     depends_on("proj@:5", when="@:1.4+proj")
     depends_on("proj@6:", when="@1.5:+proj")
+    depends_on("pkgconfig", type="build")
 
     # Patches required to fix rounding issues in unit tests
     # https://github.com/OSGeo/libgeotiff/issues/16
@@ -61,31 +64,26 @@ class Libgeotiff(AutotoolsPackage):
 
         args = ["--with-libtiff={0}".format(spec["libtiff"].prefix)]
 
-        if "+zlib" in spec:
+        if spec.satisfies("+zlib"):
             args.append("--with-zlib={0}".format(spec["zlib-api"].prefix))
         else:
             args.append("--with-zlib=no")
 
-        if "+jpeg" in spec:
+        if spec.satisfies("+jpeg"):
             args.append("--with-jpeg={0}".format(spec["jpeg"].prefix))
         else:
             args.append("--with-jpeg=no")
 
-        if "+proj" in spec:
+        if spec.satisfies("+proj"):
             args.append("--with-proj={0}".format(spec["proj"].prefix))
         else:
             args.append("--with-proj=no")
 
         if self.spec["proj"].satisfies("~shared"):
-            ldflags = []
-            libs = []
-            for dep in ["sqlite", "libtiff", "curl", "openssl"]:
-                if dep not in self.spec:
-                    continue
-                ldflags.append(self.spec[dep].libs.search_flags)
-                libs.append(self.spec[dep].libs.link_flags)
-            if ldflags or libs:
-                args.append("LDFLAGS=%s" % " ".join(ldflags))
-                args.append("LIBS=%s" % " ".join(libs))
+            pc = which("pkg-config")
+            ldflags = pc("proj", "--static", "--libs-only-L", output=str).strip()
+            libs = pc("proj", "--static", "--libs-only-l", output=str).strip()
+            args.append(f"LDFLAGS={ldflags}")
+            args.append(f"LIBS={libs}")
 
         return args

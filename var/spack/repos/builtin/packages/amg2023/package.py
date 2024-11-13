@@ -21,6 +21,8 @@ class Amg2023(CMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="main")
 
+    depends_on("c", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI support")
     variant("openmp", default=False, description="Enable OpenMP support")
     variant("caliper", default=False, description="Enable Caliper monitoring")

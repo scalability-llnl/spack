@@ -33,6 +33,8 @@ class RAbaenrichment(RPackage):
     version("1.8.0", commit="cb8155ee9a04fb55b2a2e8c23df7c0be15bb2624")
     version("1.6.0", commit="d2a0467dcb7aa6e103e3b83dccd6510b0e142ac1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r+X", type=("build", "run"))
     depends_on("r@3.2:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@1.8.0:")

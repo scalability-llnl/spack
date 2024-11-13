@@ -22,6 +22,8 @@ class EtsfIo(Package):
 
     version("1.0.4", sha256="3140c2cde17f578a0e6b63acb27a5f6e9352257a1371a17b9c15c3d0ef078fa4")
 
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Add MPI support")
 
     depends_on("netcdf-fortran")
@@ -29,6 +31,13 @@ class EtsfIo(Package):
 
     patch("tests_module.patch")
     patch("tests_init.patch")
+
+    def flag_handler(self, name, flags):
+        if name == "fflags":
+            flags.append(self.compiler.f77_pic_flag)
+        elif name == "fcflags":
+            flags.append(self.compiler.fc_pic_flag)
+        return flags, None, None
 
     def install(self, spec, prefix):
         options = ["--prefix=%s" % prefix]

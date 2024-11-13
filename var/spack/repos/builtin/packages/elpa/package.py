@@ -25,6 +25,9 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("master", branch="master")
 
     version(
+        "2024.03.001", sha256="41c6cbf56d2dac26443faaba8a77307d261bf511682a64b96e24def77c813622"
+    )
+    version(
         "2023.11.001-patched",
         sha256="62ee109afc06539507f459c08b958dc4db65b757dbd77f927678c77f7687415e",
         url="https://elpa.mpcdf.mpg.de/software/tarball-archive/Releases/2023.11.001/elpa-2023.11.001-patched.tar.gz",
@@ -46,13 +49,24 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
         "2021.05.001", sha256="a4f1a4e3964f2473a5f8177f2091a9da5c6b5ef9280b8272dfefcbc3aad44d41"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, description="Activates OpenMP support")
     variant("mpi", default=True, description="Activates MPI support")
-    variant("gpu_streams", default=True, description="Activates GPU streams support")
+
+    with when("@2021.11.001:"):
+        variant(
+            "autotune", default=False, description="Enables autotuning for matrix restribution"
+        )
+        variant(
+            "gpu_streams", default=True, when="+cuda", description="Activates GPU streams support"
+        )
 
     patch("fujitsu.patch", when="%fj")
 
-    depends_on("autoconf", type="build", when="@master")
+    depends_on("autoconf@2.71:", type="build", when="@master")
     depends_on("automake", type="build", when="@master")
 
     depends_on("blas")
@@ -62,12 +76,20 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
     depends_on("rocblas", when="+rocm")
     depends_on("libtool", type="build")
     depends_on("python@3:", type="build")
+    depends_on("scalapack", when="+autotune")
 
-    with when("@2021.11.01:"):
-        variant(
-            "autotune", default=False, description="Enables autotuning for matrix restribution"
+    # Force openmp propagation on some providers of blas/lapack, as adviced by docs
+    # https://gitlab.mpcdf.mpg.de/elpa/elpa/-/blob/master/documentation/PERFORMANCE_TUNING.md?ref_type=heads#builds-with-openmp-enabled
+    with when("+openmp"):
+        requires("^openblas threads=openmp", when="^[virtuals=blas,lapack] openblas")
+        requires("^intel-mkl threads=openmp", when="^[virtuals=blas,lapack] intel-mkl")
+        requires(
+            "^intel-oneapi-mkl threads=openmp", when="^[virtuals=blas,lapack] intel-oneapi-mkl"
         )
-        depends_on("scalapack", when="+autotune")
+        requires(
+            "^intel-parallel-studio threads=openmp",
+            when="^[virtuals=blas,lapack] intel-parallel-studio",
+        )
 
     # fails to build due to broken type-bound procedures in OMP parallel regions
     conflicts(
@@ -76,10 +98,9 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
         msg="ELPA-2021.05.001+ requires GCC-8+ for OpenMP support",
     )
     conflicts("+mpi", when="+rocm", msg="ROCm support and MPI are not yet compatible")
-
     conflicts(
         "+gpu_streams",
-        when="+openmp",
+        when="@:2023.11.001-patched +openmp",
         msg="GPU streams currently not supported in combination with OpenMP",
     )
 
@@ -137,7 +158,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
         if spec.target.family != "x86_64":
             options.append("--disable-sse-assembly")
 
-        if "%aocc" in spec or "%fj" in spec:
+        if spec.satisfies("%aocc") or spec.satisfies("%fj"):
             options.append("--disable-shared")
             options.append("--enable-static")
 
@@ -148,17 +169,17 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
         if self.compiler.name == "gcc":
             options.extend(["CFLAGS=-O3", "FCFLAGS=-O3 -ffree-line-length-none"])
 
-        if "%aocc" in spec:
+        if spec.satisfies("%aocc"):
             options.extend(["FCFLAGS=-O3", "CFLAGS=-O3"])
 
-        if "%fj" in spec:
+        if spec.satisfies("%fj"):
             options.append("--disable-Fortran2008-features")
             options.append("--enable-FUGAKU")
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 options.extend(["FCFLAGS=-Kparallel"])
 
         cuda_flag = "nvidia-gpu"
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             prefix = spec["cuda"].prefix
             # Can't yet be changed to the new option --enable-nvidia-gpu-kernels
             # https://github.com/marekandreas/elpa/issues/55
@@ -178,7 +199,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
         else:
             options.append(f"--disable-{cuda_flag}" + kernels)
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             # Can't yet be changed to the new option --enable-amd-gpu-kernels
             # https://github.com/marekandreas/elpa/issues/55
             options.append("--enable-amd-gpu")
@@ -187,23 +208,18 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
             if spec.satisfies("+gpu_streams"):
                 options.append("--enable-gpu-streams=amd")
 
-        elif "@2021.05.001:" in self.spec:
+        elif self.spec.satisfies("@2021.05.001:"):
             options.append("--disable-amd-gpu" + kernels)
 
         options += self.enable_or_disable("openmp")
 
         # Additional linker search paths and link libs
-        ldflags = [spec["blas"].libs.search_flags, spec["lapack"].libs.search_flags]
+        ldflags = [spec["blas"].libs.search_flags, spec["lapack"].libs.search_flags, "-lstdc++"]
         libs = [spec["lapack"].libs.link_flags, spec["blas"].libs.link_flags]
-
-        # If using blas with openmp support, link with openmp
-        # Needed for Spack-provided OneAPI MKL and for many externals
-        if self.spec["blas"].satisfies("threads=openmp"):
-            ldflags.append(self.compiler.openmp_flag)
 
         options += [f'LDFLAGS={" ".join(ldflags)}', f'LIBS={" ".join(libs)}']
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             options += [
                 "CC={0}".format(spec["mpi"].mpicc),
                 "CXX={0}".format(spec["mpi"].mpicxx),
@@ -211,7 +227,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
                 "SCALAPACK_LDFLAGS={0}".format(spec["scalapack"].libs.joined()),
             ]
 
-        if "+autotune" in self.spec:
+        if self.spec.satisfies("+autotune"):
             options.append("--enable-autotune-redistribute-matrix")
             # --enable-autotune-redistribute-matrix requires --enable-scalapack-tests as well
             options.append("--enable-scalapack-tests")

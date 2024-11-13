@@ -70,6 +70,7 @@ import spack.deptypes
 import spack.error
 import spack.spec
 import spack.version
+from spack.error import SpecSyntaxError
 
 IS_WINDOWS = sys.platform == "win32"
 #: Valid name for specs and variants. Here we are not using
@@ -328,19 +329,26 @@ class SpecParser:
         if not self.ctx.next_token:
             return initial_spec
 
+        def add_dependency(dep, **edge_properties):
+            """wrapper around root_spec._add_dependency"""
+            try:
+                root_spec._add_dependency(dep, **edge_properties)
+            except spack.error.SpecError as e:
+                raise SpecParsingError(str(e), self.ctx.current_token, self.literal_str) from e
+
         initial_spec = initial_spec or spack.spec.Spec()
-        root_spec = SpecNodeParser(self.ctx).parse(initial_spec)
+        root_spec = SpecNodeParser(self.ctx, self.literal_str).parse(initial_spec)
         while True:
             if self.ctx.accept(TokenType.START_EDGE_PROPERTIES):
                 edge_properties = EdgeAttributeParser(self.ctx, self.literal_str).parse()
                 edge_properties.setdefault("depflag", 0)
                 edge_properties.setdefault("virtuals", ())
                 dependency = self._parse_node(root_spec)
-                root_spec._add_dependency(dependency, **edge_properties)
+                add_dependency(dependency, **edge_properties)
 
             elif self.ctx.accept(TokenType.DEPENDENCY):
                 dependency = self._parse_node(root_spec)
-                root_spec._add_dependency(dependency, depflag=0, virtuals=())
+                add_dependency(dependency, depflag=0, virtuals=())
 
             else:
                 break
@@ -348,7 +356,7 @@ class SpecParser:
         return root_spec
 
     def _parse_node(self, root_spec):
-        dependency = SpecNodeParser(self.ctx).parse()
+        dependency = SpecNodeParser(self.ctx, self.literal_str).parse()
         if dependency is None:
             msg = (
                 "the dependency sigil and any optional edge attributes must be followed by a "
@@ -367,10 +375,11 @@ class SpecParser:
 class SpecNodeParser:
     """Parse a single spec node from a stream of tokens"""
 
-    __slots__ = "ctx", "has_compiler", "has_version"
+    __slots__ = "ctx", "has_compiler", "has_version", "literal_str"
 
-    def __init__(self, ctx):
+    def __init__(self, ctx, literal_str):
         self.ctx = ctx
+        self.literal_str = literal_str
         self.has_compiler = False
         self.has_version = False
 
@@ -388,7 +397,8 @@ class SpecNodeParser:
         if not self.ctx.next_token or self.ctx.expect(TokenType.DEPENDENCY):
             return initial_spec
 
-        initial_spec = initial_spec or spack.spec.Spec()
+        if initial_spec is None:
+            initial_spec = spack.spec.Spec()
 
         # If we start with a package name we have a named spec, we cannot
         # accept another package name afterwards in a node
@@ -405,12 +415,21 @@ class SpecNodeParser:
         elif self.ctx.accept(TokenType.FILENAME):
             return FileParser(self.ctx).parse(initial_spec)
 
+        def raise_parsing_error(string: str, cause: Optional[Exception] = None):
+            """Raise a spec parsing error with token context."""
+            raise SpecParsingError(string, self.ctx.current_token, self.literal_str) from cause
+
+        def add_flag(name: str, value: str, propagate: bool):
+            """Wrapper around ``Spec._add_flag()`` that adds parser context to errors raised."""
+            try:
+                initial_spec._add_flag(name, value, propagate)
+            except Exception as e:
+                raise_parsing_error(str(e), e)
+
         while True:
             if self.ctx.accept(TokenType.COMPILER):
                 if self.has_compiler:
-                    raise spack.spec.DuplicateCompilerSpecError(
-                        f"{initial_spec} cannot have multiple compilers"
-                    )
+                    raise_parsing_error("Spec cannot have multiple compilers")
 
                 compiler_name = self.ctx.current_token.value[1:]
                 initial_spec.compiler = spack.spec.CompilerSpec(compiler_name.strip(), ":")
@@ -418,9 +437,7 @@ class SpecNodeParser:
 
             elif self.ctx.accept(TokenType.COMPILER_AND_VERSION):
                 if self.has_compiler:
-                    raise spack.spec.DuplicateCompilerSpecError(
-                        f"{initial_spec} cannot have multiple compilers"
-                    )
+                    raise_parsing_error("Spec cannot have multiple compilers")
 
                 compiler_name, compiler_version = self.ctx.current_token.value[1:].split("@")
                 initial_spec.compiler = spack.spec.CompilerSpec(
@@ -434,9 +451,8 @@ class SpecNodeParser:
                 or self.ctx.accept(TokenType.VERSION)
             ):
                 if self.has_version:
-                    raise spack.spec.MultipleVersionError(
-                        f"{initial_spec} cannot have multiple versions"
-                    )
+                    raise_parsing_error("Spec cannot have multiple versions")
+
                 initial_spec.versions = spack.version.VersionList(
                     [spack.version.from_string(self.ctx.current_token.value[1:])]
                 )
@@ -445,29 +461,25 @@ class SpecNodeParser:
 
             elif self.ctx.accept(TokenType.BOOL_VARIANT):
                 variant_value = self.ctx.current_token.value[0] == "+"
-                initial_spec._add_flag(
-                    self.ctx.current_token.value[1:].strip(), variant_value, propagate=False
-                )
+                add_flag(self.ctx.current_token.value[1:].strip(), variant_value, propagate=False)
 
             elif self.ctx.accept(TokenType.PROPAGATED_BOOL_VARIANT):
                 variant_value = self.ctx.current_token.value[0:2] == "++"
-                initial_spec._add_flag(
-                    self.ctx.current_token.value[2:].strip(), variant_value, propagate=True
-                )
+                add_flag(self.ctx.current_token.value[2:].strip(), variant_value, propagate=True)
 
             elif self.ctx.accept(TokenType.KEY_VALUE_PAIR):
                 match = SPLIT_KVP.match(self.ctx.current_token.value)
                 assert match, "SPLIT_KVP and KEY_VALUE_PAIR do not agree."
 
-                name, delim, value = match.groups()
-                initial_spec._add_flag(name, strip_quotes_and_unescape(value), propagate=False)
+                name, _, value = match.groups()
+                add_flag(name, strip_quotes_and_unescape(value), propagate=False)
 
             elif self.ctx.accept(TokenType.PROPAGATED_KEY_VALUE_PAIR):
                 match = SPLIT_KVP.match(self.ctx.current_token.value)
                 assert match, "SPLIT_KVP and PROPAGATED_KEY_VALUE_PAIR do not agree."
 
-                name, delim, value = match.groups()
-                initial_spec._add_flag(name, strip_quotes_and_unescape(value), propagate=True)
+                name, _, value = match.groups()
+                add_flag(name, strip_quotes_and_unescape(value), propagate=True)
 
             elif self.ctx.expect(TokenType.DAG_HASH):
                 if initial_spec.abstract_hash:
@@ -587,10 +599,6 @@ def parse_one_or_raise(
         raise ValueError(message)
 
     return result
-
-
-class SpecSyntaxError(Exception):
-    """Base class for Spec syntax errors"""
 
 
 class SpecTokenizationError(SpecSyntaxError):

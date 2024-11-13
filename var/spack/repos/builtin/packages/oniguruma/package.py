@@ -19,6 +19,8 @@ class Oniguruma(AutotoolsPackage):
     version("6.9.4", sha256="4669d22ff7e0992a7e93e116161cac9c0949cd8960d1c562982026726f0e6d53")
     version("6.1.3", sha256="480c850cd7c7f2fcaad0942b4a488e2af01fbb8e65375d34908f558b432725cf")
 
+    depends_on("c", type="build")  # generated
+
     @property
     def libs(self):
         return find_libraries("libonig", root=self.prefix, recursive=True)

@@ -16,13 +16,23 @@ class Stdexec(CMakePackage):
 
     license("Apache-2.0")
 
+    version("24.09", sha256="d2d811c852dc6c53527a244a54ae343d6b65a50c23ea49f93723e3082435fff4")
     version("23.03", sha256="2c9dfb6e56a190543049d2300ccccd1b626f4bb82af5b607869c626886fadd15")
     version("main", branch="main")
+
+    depends_on("cxx", type="build")
 
     depends_on("cmake@3.23.1:", type="build")
 
     conflicts("%gcc@:10")
     conflicts("%clang@:12")
 
+    @when("@:23.03")
     def build(self, spec, prefix):
         pass
+
+    def cmake_args(self):
+        return [
+            self.define("STDEXEC_BUILD_TESTS", self.run_tests),
+            self.define("STDEXEC_BUILD_EXAMPLES", False),
+        ]

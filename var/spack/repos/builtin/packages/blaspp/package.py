@@ -22,6 +22,9 @@ class Blaspp(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master")
     version(
+        "2024.05.31", sha256="24f325d2e1c2cc4275324bd88406555688379480877d19553656a0328287927a"
+    )
+    version(
         "2023.11.05", sha256="62dfc03ec07c0826e0466dc2c204b460caa929d53ad4f050cb132d92670be7ce"
     )
     version(
@@ -48,6 +51,8 @@ class Blaspp(CMakePackage, CudaPackage, ROCmPackage):
     version(
         "2020.10.00", sha256="ce148cfe397428d507c72d7d9eba5e9d3f55ad4cd842e6e873c670183dcb7795"
     )
+
+    depends_on("cxx", type="build")  # generated
 
     variant("openmp", default=True, description="Use OpenMP internally.")
     variant("shared", default=True, description="Build shared libraries")
@@ -86,11 +91,11 @@ class Blaspp(CMakePackage, CudaPackage, ROCmPackage):
         backend_config = "-Duse_cuda=%s" % ("+cuda" in spec)
         if self.version >= Version("2021.04.01"):
             backend = "none"
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 backend = "cuda"
-            if "+rocm" in spec:
+            if spec.satisfies("+rocm"):
                 backend = "hip"
-            if "+sycl" in spec:
+            if spec.satisfies("+sycl"):
                 backend = "sycl"
             backend_config = "-Dgpu_backend=%s" % backend
 

@@ -45,6 +45,10 @@ class SuperluDist(CMakePackage, CudaPackage, ROCmPackage):
     version("5.1.0", sha256="73f292ab748b590b6dd7469e6986aeb95d279b8b8b3da511c695a396bdbc996c")
     version("5.0.0", sha256="78d1d6460ff16b3f71e4bcd7306397574d54d421249553ccc26567f00a10bfc6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("int64", default=False, description="Build with 64 bit integers")
     variant(
         "openmp",
@@ -93,8 +97,8 @@ class SuperluDist(CMakePackage, CudaPackage, ROCmPackage):
         append_define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx)
         append_define("CMAKE_INSTALL_LIBDIR", self.prefix.lib)
         append_define("CMAKE_INSTALL_BINDIR", self.prefix.bin)
-        append_define("TPL_BLAS_LIBRARIES", spec["blas"].libs)
-        append_define("TPL_LAPACK_LIBRARIES", spec["lapack"].libs)
+        append_define("TPL_BLAS_LIBRARIES", spec["blas"].libs.ld_flags)
+        append_define("TPL_LAPACK_LIBRARIES", spec["lapack"].libs.ld_flags)
         append_define("TPL_ENABLE_LAPACKLIB", True)
         append_define("USE_XSDK_DEFAULTS", True)
 
@@ -165,7 +169,7 @@ class SuperluDist(CMakePackage, CudaPackage, ROCmPackage):
     def cache_test_sources(self):
         """Copy the example matrices after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.examples_src_dir])
+        cache_extra_test_sources(self, [self.examples_src_dir])
 
     def test_pddrive(self):
         """run cached pddrive"""

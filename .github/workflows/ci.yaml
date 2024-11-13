@@ -15,18 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prechecks:
-    needs: [ changes ]
-    uses: ./.github/workflows/valid-style.yml
-    secrets: inherit
-    with:
-      with_coverage: ${{ needs.changes.outputs.core }}
-  all-prechecks:
-    needs: [ prechecks ]
-    runs-on: ubuntu-latest
-    steps:
-    - name: Success
-      run: "true"
   # Check which files have been updated by the PR
   changes:
     runs-on: ubuntu-latest
@@ -36,7 +24,7 @@ jobs:
       core: ${{ steps.filter.outputs.core }}
       packages: ${{ steps.filter.outputs.packages }}
     steps:
-      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         if: ${{ github.event_name == 'push' }}
         with:
           fetch-depth: 0
@@ -53,6 +41,13 @@ jobs:
             - 'var/spack/repos/builtin/packages/clingo/**'
             - 'var/spack/repos/builtin/packages/python/**'
             - 'var/spack/repos/builtin/packages/re2c/**'
+            - 'var/spack/repos/builtin/packages/gnupg/**'
+            - 'var/spack/repos/builtin/packages/libassuan/**'
+            - 'var/spack/repos/builtin/packages/libgcrypt/**'
+            - 'var/spack/repos/builtin/packages/libgpg-error/**'
+            - 'var/spack/repos/builtin/packages/libksba/**'
+            - 'var/spack/repos/builtin/packages/npth/**'
+            - 'var/spack/repos/builtin/packages/pinentry/**'
             - 'lib/spack/**'
             - 'share/spack/**'
             - '.github/workflows/bootstrap.yml'
@@ -72,18 +67,34 @@ jobs:
     needs: [ prechecks, changes ]
     uses: ./.github/workflows/bootstrap.yml
     secrets: inherit
+
   unit-tests:
     if: ${{ github.repository == 'spack/spack' && needs.changes.outputs.core == 'true' }}
     needs: [ prechecks, changes ]
     uses: ./.github/workflows/unit_tests.yaml
     secrets: inherit
-  windows:
-    if: ${{ github.repository == 'spack/spack' && needs.changes.outputs.core == 'true' }}
-    needs: [ prechecks ]
-    uses: ./.github/workflows/windows_python.yml
+
+  prechecks:
+    needs: [ changes ]
+    uses: ./.github/workflows/valid-style.yml
     secrets: inherit
+    with:
+      with_coverage: ${{ needs.changes.outputs.core }}
+
+  all-prechecks:
+    needs: [ prechecks ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Success
+      run: "true"
+
+  coverage:
+    needs: [ unit-tests, prechecks ]
+    uses: ./.github/workflows/coverage.yml
+    secrets: inherit
+
   all:
-    needs: [ windows, unit-tests, bootstrap ]
+    needs: [ coverage, bootstrap ]
     runs-on: ubuntu-latest
     steps:
     - name: Success

@@ -17,6 +17,9 @@ class PyUjson(PythonPackage):
     version("4.0.2", sha256="c615a9e9e378a7383b756b7e7a73c38b22aeb8967a8bfbffd4741f7ffd043c4d")
     version("1.35", sha256="f66073e5506e91d204ab0c614a148d5aa938bdbf104751be66f8ad7a222f5f86")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools@42:", when="@5:", type="build")
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools-scm@3.4:+toml", when="@5:", type="build")

@@ -17,6 +17,8 @@ class Qtltools(MakefilePackage):
     version("1.3.1", sha256="033b9b61923fd65c4b8b80bc0add321e6fd6fb40de49d15c2dfe6a4d7e60764a")
     version("1.3", sha256="032020d7e038eac4ec01701343a887bced7cca356cbd24b3d5bbadf83686faeb")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost +pic +iostreams +program_options")
     depends_on("gsl")
     depends_on("htslib ~libcurl ~libdeflate")

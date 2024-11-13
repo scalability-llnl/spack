@@ -18,6 +18,8 @@ class Eagle(MakefilePackage):
     version("1.1.3", sha256="bd510b8eef2de14898cbf417e1c7a30b97ddaba24e5e2834da7b02767362fe3c")
     version("1.1.2", sha256="afe967560d1f8fdbd0caf4b93b5f2a86830e9e4d399fee4a526140431343045e")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("curl")
     depends_on("zlib-api")
     depends_on("lzma")

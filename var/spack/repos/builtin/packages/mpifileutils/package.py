@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Mpifileutils(Package):
+class Mpifileutils(CMakePackage):
     """mpiFileUtils is a suite of MPI-based tools to manage large datasets,
     which may vary from large directory trees to large files.
     High-performance computing users often generate large datasets with
@@ -32,17 +32,23 @@ class Mpifileutils(Package):
     version("0.9.1", sha256="15a22450f86b15e7dc4730950b880fda3ef6f59ac82af0b268674d272aa61c69")
     version("0.9", sha256="1b8250af01aae91c985ca5d61521bfaa4564e46efa15cee65cd0f82cf5a2bcfb")
 
+    depends_on("c", type="build")  # generated
+
+    variant("xattr", default=True, description="Enable code for extended attributes")
+    variant("lustre", default=False, description="Enable optimizations and features for Lustre")
+    variant("gpfs", default=False, description="Enable optimizations and features for GPFS")
+    variant("experimental", default=False, description="Install experimental tools")
+    variant("daos", default=False, description="Enable DAOS support", when="@0.11:")
+
     patch("nosys_getdents.patch", when="@:0.10.1 target=aarch64:")
 
     conflicts("platform=darwin")
 
     depends_on("mpi")
-    depends_on("libcircle@0.3:")
+    depends_on("libcircle")
 
-    # need precise version of dtcmp, since DTCMP_Segmented_exscan added
-    # in v1.0.3 but renamed in v1.1.0 and later
-    depends_on("dtcmp@1.0.3", when="@:0.7")
-    depends_on("dtcmp@1.1.0:", when="@0.8:")
+    # DTCMP_Segmented_exscan renamed in v1.1.0
+    depends_on("dtcmp@1.1.0:")
 
     # fixes were added to libarchive somewhere between 3.1.2 and 3.5.0
     # which helps with file names that start with "._", bumping to newer
@@ -51,124 +57,33 @@ class Mpifileutils(Package):
     depends_on("libarchive@3.5.1:", when="@0.11:")
 
     depends_on("attr", when="@0.11.1:+xattr")
-
     depends_on("daos", when="+daos")
-
     depends_on("bzip2")
-
     depends_on("libcap")
-
     depends_on("openssl")
-
-    depends_on("cmake@3.1:", when="@0.9:", type="build")
-
-    variant("xattr", default=True, description="Enable code for extended attributes")
-
-    variant("lustre", default=False, description="Enable optimizations and features for Lustre")
-
-    variant("gpfs", default=False, description="Enable optimizations and features for GPFS")
-    conflicts("+gpfs", when="@:0.8.1")
-
-    variant("experimental", default=False, description="Install experimental tools")
-    conflicts("+experimental", when="@:0.6")
-
-    variant("daos", default=False, description="Enable DAOS support", when="@0.11:")
+    depends_on("cmake@3.1:", type="build")
 
     def flag_handler(self, name, flags):
         spec = self.spec
-        iflags = []
         if name == "cflags":
             if spec.satisfies("%oneapi"):
-                iflags.append("-Wno-error=implicit-function-declaration")
-        return (iflags, None, None)
+                flags.append("-Wno-error=implicit-function-declaration")
+        return (flags, None, None)
 
     def cmake_args(self):
-        args = std_cmake_args
-        args.append("-DCMAKE_INSTALL_PREFIX=%s" % self.spec.prefix)
-        args.append("-DWITH_DTCMP_PREFIX=%s" % self.spec["dtcmp"].prefix)
-        args.append("-DWITH_LibCircle_PREFIX=%s" % self.spec["libcircle"].prefix)
-
-        if self.spec.satisfies("+xattr"):
-            args.append("-DENABLE_XATTRS=ON")
-        else:
-            args.append("-DENABLE_XATTRS=OFF")
-
-        if self.spec.satisfies("+lustre"):
-            args.append("-DENABLE_LUSTRE=ON")
-        else:
-            args.append("-DENABLE_LUSTRE=OFF")
-
-        if self.spec.satisfies("+gpfs"):
-            args.append("-DENABLE_GPFS=ON")
-        else:
-            args.append("-DENABLE_GPFS=OFF")
-
-        if self.spec.satisfies("+experimental"):
-            args.append("-DENABLE_EXPERIMENTAL=ON")
-        else:
-            args.append("-DENABLE_EXPERIMENTAL=OFF")
+        args = [
+            self.define("WITH_DTCMP_PREFIX", self.spec["dtcmp"].prefix),
+            self.define("WITH_LibCircle_PREFIX", self.spec["libcircle"].prefix),
+            self.define_from_variant("ENABLE_XATTRS", "xattr"),
+            self.define_from_variant("ENABLE_LUSTRE", "lustre"),
+            self.define_from_variant("ENABLE_GPFS", "gpfs"),
+            self.define_from_variant("ENABLE_EXPERIMENTAL", "experimental"),
+        ]
 
         if self.spec.satisfies("+daos"):
-            args.append("-DENABLE_DAOS=ON")
-            args.append("-DWITH_DAOS_PREFIX=%s" % self.spec["daos"].prefix)
+            args.append(self.define("ENABLE_DAOS", True))
+            args.append(self.define("WITH_DAOS_PREFIX", self.spec["daos"].prefix))
         else:
-            args.append("-DENABLE_DAOS=OFF")
+            args.append(self.define("ENABLE_DAOS", False))
 
         return args
-
-    @when("@0.9:")
-    def install(self, spec, prefix):
-        args = self.cmake_args()
-
-        source_directory = self.stage.source_path
-        build_directory = join_path(source_directory, "build")
-
-        with working_dir(build_directory, create=True):
-            cmake(source_directory, *args)
-            make()
-            make("install")
-
-        if self.run_tests:
-            make("test")
-
-    def configure_args(self):
-        args = []
-        args.append("--prefix=%s" % self.spec.prefix)
-        args.append("CPPFLAGS=-I%s/src/common" % pwd())
-        args.append("libarchive_CFLAGS=-I%s" % self.spec["libarchive"].prefix.include)
-        args.append(
-            "libarchive_LIBS=%s %s"
-            % (self.spec["libarchive"].libs.search_flags, self.spec["libarchive"].libs.link_flags)
-        )
-        args.append("libcircle_CFLAGS=-I%s" % self.spec["libcircle"].prefix.include)
-        args.append(
-            "libcircle_LIBS=%s %s"
-            % (self.spec["libcircle"].libs.search_flags, self.spec["libcircle"].libs.link_flags)
-        )
-        args.append("--with-dtcmp=%s" % self.spec["dtcmp"].prefix)
-
-        if self.spec.satisfies("+xattr"):
-            args.append("CFLAGS=-DDCOPY_USE_XATTRS")
-
-        if self.spec.satisfies("+lustre"):
-            args.append("--enable-lustre")
-        else:
-            args.append("--disable-lustre")
-
-        if self.spec.satisfies("@0.7:"):
-            if self.spec.satisfies("+experimental"):
-                args.append("--enable-experimental")
-            else:
-                args.append("--disable-experimental")
-        return args
-
-    @when("@:0.8.1")
-    def install(self, spec, prefix):
-        args = self.configure_args()
-
-        configure(*args)
-        make()
-        make("install")
-
-        if self.run_tests:
-            make("test")

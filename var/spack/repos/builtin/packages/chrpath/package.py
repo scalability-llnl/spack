@@ -16,3 +16,5 @@ class Chrpath(AutotoolsPackage):
     license("GPL-2.0-or-later")
 
     version("0.16", sha256="bb0d4c54bac2990e1bdf8132f2c9477ae752859d523e141e72b3b11a12c26e7b")
+
+    depends_on("c", type="build")  # generated

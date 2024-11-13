@@ -22,6 +22,10 @@ class Xcfun(CMakePackage):
     version("2.0.1", sha256="719383c3fffdd5da5b005f56ffd97457b0b2fb48317e955263ef5384d53ddfca")
     version("2.0.0", sha256="34398e935c522d0b55e1803fd6116e7cd40677d1add8894ef08362361705cf25")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     extends("python")
     depends_on("cmake@3.14:", type="build")
     depends_on("python@3:")

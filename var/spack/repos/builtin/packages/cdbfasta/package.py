@@ -16,6 +16,8 @@ class Cdbfasta(MakefilePackage):
 
     version("2017-03-16", commit="b3e481fe02dfbc767a3842bcb1b687c60376a5e8")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
 
     def install(self, spec, prefix):

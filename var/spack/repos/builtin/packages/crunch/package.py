@@ -21,6 +21,8 @@ class Crunch(CMakePackage):
     # No stable releases since 2012
     version("master", branch="build_fixes")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.5:", type="build")
 
     conflicts("platform=darwin")

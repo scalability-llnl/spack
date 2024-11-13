@@ -9,6 +9,8 @@ In a normal Spack installation, this is invoked from the bin/spack script
 after the system path is set up.
 """
 import argparse
+
+# import spack.modules.common
 import inspect
 import io
 import operator
@@ -32,20 +34,20 @@ import llnl.util.tty.colify
 import llnl.util.tty.color as color
 from llnl.util.tty.log import log_output
 
+import spack
 import spack.cmd
 import spack.config
 import spack.environment as ev
+import spack.error
 import spack.modules
 import spack.paths
 import spack.platforms
 import spack.repo
-import spack.solver.asp
 import spack.spec
 import spack.store
 import spack.util.debug
 import spack.util.environment
-import spack.util.git
-import spack.util.path
+import spack.util.lock
 from spack.error import SpackError
 
 #: names of profile statistics
@@ -98,73 +100,13 @@ section_order = {
 #: Properties that commands are required to set.
 required_command_properties = ["level", "section", "description"]
 
-#: Recorded directory where spack command was originally invoked
-spack_working_dir = None
 spack_ld_library_path = os.environ.get("LD_LIBRARY_PATH", "")
-
-#: Whether to print backtraces on error
-SHOW_BACKTRACE = False
-
-
-def set_working_dir():
-    """Change the working directory to getcwd, or spack prefix if no cwd."""
-    global spack_working_dir
-    try:
-        spack_working_dir = os.getcwd()
-    except OSError:
-        os.chdir(spack.paths.prefix)
-        spack_working_dir = spack.paths.prefix
 
 
 def add_all_commands(parser):
     """Add all spack subcommands to the parser."""
     for cmd in spack.cmd.all_commands():
         parser.add_command(cmd)
-
-
-def get_spack_commit():
-    """Get the Spack git commit sha.
-
-    Returns:
-        (str or None) the commit sha if available, otherwise None
-    """
-    git_path = os.path.join(spack.paths.prefix, ".git")
-    if not os.path.exists(git_path):
-        return None
-
-    git = spack.util.git.git()
-    if not git:
-        return None
-
-    rev = git(
-        "-C",
-        spack.paths.prefix,
-        "rev-parse",
-        "HEAD",
-        output=str,
-        error=os.devnull,
-        fail_on_error=False,
-    )
-    if git.returncode != 0:
-        return None
-
-    match = re.match(r"[a-f\d]{7,}$", rev)
-    return match.group(0) if match else None
-
-
-def get_version():
-    """Get a descriptive version of this instance of Spack.
-
-    Outputs '<PEP440 version> (<git commit sha>)'.
-
-    The commit sha is only added when available.
-    """
-    version = spack.spack_version
-    commit = get_spack_commit()
-    if commit:
-        version += " ({0})".format(commit)
-
-    return version
 
 
 def index_commands():
@@ -444,8 +386,9 @@ def make_argument_parser(**kwargs):
         "--config-scope",
         dest="config_scopes",
         action="append",
-        metavar="DIR",
-        help="add a custom configuration scope",
+        metavar="DIR|ENV",
+        help="add directory or environment as read-only configuration scope, without activating "
+        "the environment.",
     )
     parser.add_argument(
         "-d",
@@ -546,6 +489,7 @@ def make_argument_parser(**kwargs):
         help="add stacktraces to all printed statements",
     )
     parser.add_argument(
+        "-t",
         "--backtrace",
         action="store_true",
         default="SPACK_BACKTRACE" in os.environ,
@@ -581,8 +525,7 @@ def setup_main_options(args):
 
     if args.debug or args.backtrace:
         spack.error.debug = True
-        global SHOW_BACKTRACE
-        SHOW_BACKTRACE = True
+        spack.error.SHOW_BACKTRACE = True
 
     if args.debug:
         spack.util.debug.register_interrupt_handler()
@@ -809,6 +752,8 @@ def print_setup_info(*info):
     This is in ``main.py`` to make it fast; the setup scripts need to
     invoke spack in login scripts, and it needs to be quick.
     """
+    import spack.modules.common
+
     shell = "csh" if "csh" in info else "sh"
 
     def shell_set(var, value):
@@ -953,7 +898,7 @@ def _main(argv=None):
 
     # version is special as it does not require a command or loading and additional infrastructure
     if args.version:
-        print(get_version())
+        print(spack.get_version())
         return 0
 
     # ------------------------------------------------------------------------
@@ -1038,7 +983,7 @@ def finish_parse_and_run(parser, cmd_name, main_args, env_format_error):
             raise env_format_error
 
     # many operations will fail without a working directory.
-    set_working_dir()
+    spack.paths.set_working_dir()
 
     # now we can actually execute the command.
     if main_args.spack_profile or main_args.sorted_profile:
@@ -1073,19 +1018,19 @@ def main(argv=None):
         e.die()  # gracefully die on any SpackErrors
 
     except KeyboardInterrupt:
-        if spack.config.get("config:debug") or SHOW_BACKTRACE:
+        if spack.config.get("config:debug") or spack.error.SHOW_BACKTRACE:
             raise
         sys.stderr.write("\n")
         tty.error("Keyboard interrupt.")
         return signal.SIGINT.value
 
     except SystemExit as e:
-        if spack.config.get("config:debug") or SHOW_BACKTRACE:
+        if spack.config.get("config:debug") or spack.error.SHOW_BACKTRACE:
             traceback.print_exc()
         return e.code
 
     except Exception as e:
-        if spack.config.get("config:debug") or SHOW_BACKTRACE:
+        if spack.config.get("config:debug") or spack.error.SHOW_BACKTRACE:
             raise
         tty.error(e)
         return 3

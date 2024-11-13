@@ -16,4 +16,6 @@ class CsaC(AutotoolsPackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     configure_directory = "csa"

@@ -22,6 +22,8 @@ class Gmodel(CMakePackage):
 
     version("2.1.0", sha256="80df0c6dc413a9ffa0f0e7b65118b05b643ba3e1bfcac28fb91d2d3ad017fda0")
 
+    depends_on("cxx", type="build")  # generated
+
     # fix error [-Werror,-Wzero-as-null-pointer-constant]
     # fix error [-Werror,-Wunused-template]
     # Ref: https://github.com/ibaned/gmodel/commit/6b81ec190cf2ce9a6554a99cb6d759b023393cdd

@@ -21,3 +21,5 @@ class Args(CMakePackage):
     version("6.2.3", sha256="c202d15fc4b30519a08bae7df9e6f4fdc40ac2434ba65d83a108ebbf6e4822c2")
     version("6.2.2", sha256="8016fb0fc079d746433be3df9cf662e3e931e730aaf9f69f2287eac79ac643c1")
     version("6.2.1", sha256="699b91fae4509b09974274838e2038612da24eeae89e62d0bc580457a9e261b0")
+
+    depends_on("cxx", type="build")  # generated

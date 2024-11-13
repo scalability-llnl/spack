@@ -24,6 +24,9 @@ class CeresSolver(CMakePackage):
     version("1.14.0", sha256="4744005fc3b902fed886ea418df70690caa8e2ff6b5a90f3dd88a3d291ef8e8e")
     version("1.12.0", sha256="745bfed55111e086954126b748eb9efe20e30be5b825c6dec3c525cf20afc895")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("suitesparse", default=False, description="Build with SuiteSparse")
     variant("shared", default=True, description="Build shared libraries")
     variant("examples", default=False, description="Build examples")
@@ -49,17 +52,17 @@ class CeresSolver(CMakePackage):
                 ]
             )
 
-        if "+suitesparse" in self.spec:
+        if self.spec.satisfies("+suitesparse"):
             args.append("-DSUITESPARSE=ON")
         else:
             args.append("-DSUITESPARSE=OFF")
 
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             args.append("-DBUILD_SHARED_LIBS=ON")
         else:
             args.append("-DBUILD_SHARED_LIBS=OFF")
 
-        if "+examples" in self.spec:
+        if self.spec.satisfies("+examples"):
             args.append("-DBUILD_EXAMPLES=ON")
         else:
             args.append("-DBUILD_EXAMPLES=OFF")

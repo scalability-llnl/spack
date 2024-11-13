@@ -17,6 +17,10 @@ class FindExternals1(AutotoolsPackage):
     version("1.0", md5="abcdef1234567890abcdef1234567890")
 
     @classmethod
+    def determine_version(cls, exe):
+        return "1.0"
+
+    @classmethod
     def determine_spec_details(cls, prefix, exes_in_prefix):
         exe_to_path = dict((os.path.basename(p), p) for p in exes_in_prefix)
         exes = [x for x in exe_to_path.keys() if "find-externals1-exe" in x]
@@ -28,4 +32,4 @@ class FindExternals1(AutotoolsPackage):
             match = re.search(r"find-externals1.*version\s+(\S+)", output)
             if match:
                 version_str = match.group(1)
-                return Spec.from_detection("find-externals1@{0}".format(version_str))
+                return Spec.from_detection(f"find-externals1@{version_str}", external_path=prefix)

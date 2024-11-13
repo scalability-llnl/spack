@@ -32,6 +32,8 @@ class RS4vectors(RPackage):
     version("0.16.0", commit="00fec03fcbcb7cff37917fab0da28d91fdf9dc3d")
     version("0.14.7", commit="40af17fe0b8e93b6a72fc787540d2961773b8e23")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@0.28.1:")
     depends_on("r-biocgenerics@0.21.1:", type=("build", "run"))

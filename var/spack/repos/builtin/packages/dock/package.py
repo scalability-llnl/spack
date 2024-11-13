@@ -29,7 +29,7 @@ class Dock(Package):
     depends_on("mpi", when="+mpi")
 
     def setup_build_environment(self, env):
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             env.set("MPICH_HOME", self.spec["mpi"].prefix)
 
     def install(self, spec, prefix):
@@ -48,7 +48,7 @@ class Dock(Package):
             sh_args = ["./configure", compiler_targets[self.compiler.name]]
             config_source = compiler_targets[self.compiler.name]
 
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 sh_args.append("parallel")
                 config_source = config_source + ".parallel"
 

@@ -27,6 +27,8 @@ class Cbtf(CMakePackage):
     version("1.9.4", branch="1.9.4")
     version("1.9.3", branch="1.9.3")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "runtime", default=False, description="build only the runtime libraries and collectors."
     )

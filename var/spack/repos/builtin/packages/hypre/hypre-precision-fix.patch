@@ -1,0 +1,27 @@
+diff --git a/src/distributed_ls/ParaSails/ConjGrad.c b/src/distributed_ls/ParaSails/ConjGrad.c
+index 0ef71b36f..7abbc38aa 100644
+--- a/src/distributed_ls/ParaSails/ConjGrad.c
++++ b/src/distributed_ls/ParaSails/ConjGrad.c
+@@ -33,19 +33,19 @@ static HYPRE_Real InnerProd(HYPRE_Int n, HYPRE_Real *x, HYPRE_Real *y, MPI_Comm
+ static void CopyVector(HYPRE_Int n, HYPRE_Real *x, HYPRE_Real *y)
+ {
+     HYPRE_Int one = 1;
+-    hypre_F90_NAME_BLAS(dcopy, DCOPY)(&n, x, &one, y, &one);
++    hypre_dcopy(&n, x, &one, y, &one);
+ }
+ 
+ static void ScaleVector(HYPRE_Int n, HYPRE_Real alpha, HYPRE_Real *x)
+ {
+     HYPRE_Int one = 1;
+-    hypre_F90_NAME_BLAS(dscal, DSCAL)(&n, &alpha, x, &one);
++    hypre_dscal(&n, &alpha, x, &one);
+ }
+ 
+ static void Axpy(HYPRE_Int n, HYPRE_Real alpha, HYPRE_Real *x, HYPRE_Real *y)
+ {
+     HYPRE_Int one = 1;
+-    hypre_F90_NAME_BLAS(daxpy, DAXPY)(&n, &alpha, x, &one, y, &one);
++    hypre_daxpy(&n, &alpha, x, &one, y, &one);
+ }
+ 
+ 

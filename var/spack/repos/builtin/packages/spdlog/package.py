@@ -50,6 +50,8 @@ class Spdlog(CMakePackage):
     version("0.10.0", sha256="fbbc53c1cc09b93b4c3d76b683bbe9315e2efe3727701227374dce6aa4264075")
     version("0.9.0", sha256="bbbe5a855c8b309621352921d650449eb2f741d35d55ec50fb4d8122ddfb8f01")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries (v1.4.0+)")
 
     depends_on("cmake@3.2:", when="@:1.7.0", type="build")

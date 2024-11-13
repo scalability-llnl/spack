@@ -21,6 +21,9 @@ class RRhdf5filters(RPackage):
     version("1.6.0", commit="5f7f3a5b7dabd6e7d0c50cda70290e2472ff4f53")
     version("1.2.0", commit="25af0180f926b4b3ea11b30ec9277d26ad3d56b3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-rhdf5lib", type=("build", "run"))
     depends_on("gmake", type="build")
     depends_on("zlib-api")

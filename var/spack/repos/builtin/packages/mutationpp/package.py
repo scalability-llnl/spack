@@ -24,6 +24,10 @@ class Mutationpp(CMakePackage):
     version("1.0.0", sha256="928df99accd1a02706a57246edeef8ebbf3bd91bb40492258ee18b810a7e0194")
     version("0.3.1", sha256="a6da2816e145ac9fcfbd8920595b7f65ce7bc8df0bec572b32647720758cbe69")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fortran", default=True, description="Enable Fortran interface")
     variant("data", default=True, description="Install default model data")
     variant("examples", default=True, description="Install examples")

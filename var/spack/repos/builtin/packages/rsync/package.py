@@ -16,6 +16,7 @@ class Rsync(AutotoolsPackage):
 
     license("GPL-3.0-or-later")
 
+    version("3.3.0", sha256="7399e9a6708c32d678a72a63219e96f23be0be2336e50fd1348498d07041df90")
     version("3.2.7", sha256="4e7d9d3f6ed10878c58c5fb724a67dacf4b6aac7340b13e488fb2dc41346f2bb")
     version("3.2.6", sha256="fb3365bab27837d41feaf42e967c57bd3a47bc8f10765a3671efd6a3835454d3")
     version("3.2.5", sha256="2ac4d21635cdf791867bc377c35ca6dda7f50d919a58be45057fd51600c69aba")
@@ -25,6 +26,9 @@ class Rsync(AutotoolsPackage):
     version("3.1.3", sha256="55cc554efec5fdaad70de921cd5a5eeb6c29a95524c715f3bbf849235b0800c0")
     version("3.1.2", sha256="ecfa62a7fa3c4c18b9eccd8c16eaddee4bd308a76ea50b5c02a5840f09c0a1c2")
     version("3.1.1", sha256="7de4364fcf5fe42f3bdb514417f1c40d10bbca896abe7e7f2c581c6ea08a2621")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("popt")

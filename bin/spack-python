@@ -22,4 +22,4 @@
 #
 # This is compatible across platforms.
 #
-exec /usr/bin/env spack python "$@"
+exec spack python "$@"

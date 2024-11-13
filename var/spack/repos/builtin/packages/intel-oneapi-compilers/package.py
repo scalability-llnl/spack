@@ -4,11 +4,53 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import platform
 
 from spack.build_environment import dso_suffix
 from spack.package import *
 
 versions = [
+    {
+        "version": "2025.0.0",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/ac92f2bb-4818-4e53-a432-f8b34d502f23/intel-dpcpp-cpp-compiler-2025.0.0.740_offline.sh",
+            "sha256": "04fadf63789acee731895e631db63f65a98b8279db3d0f48bdf0d81e6103bdd8",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/69f79888-2d6c-4b20-999e-e99d72af68d4/intel-fortran-compiler-2025.0.0.723_offline.sh",
+            "sha256": "2be6d607ce84f35921228595b118fbc516d28587cbc4e6dcf6b7219e5cd1a9a9",
+        },
+    },
+    {
+        "version": "2024.2.1",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh",
+            "sha256": "af0243f80640afa94c7f9c8151da91d7ab17f448f542fa76d785230dec712048",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/5e7b0f1c-6f25-4cc8-94d7-3a527e596739/l_fortran-compiler_p_2024.2.1.80_offline.sh",
+            "sha256": "6f6dab82a88082a7a39f6feb699343c521f58c6481a1bb87edba7e2550995b6d",
+        },
+        "nvidia-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=nvidia&version=2024.2.1&filters[]=12.0&filters[]=linux",
+            "sha256": "2c377027c650291ccd8267cbf75bd3d00c7b11998cc59d5668a02a0cbc2c015f",
+        },
+    },
+    {
+        "version": "2024.2.0",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6780ac84-6256-4b59-a647-330eb65f32b6/l_dpcpp-cpp-compiler_p_2024.2.0.495_offline.sh",
+            "sha256": "9463aa979314d2acc51472d414ffcee032e9869ca85ac6ff4c71d39500e5173d",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/801143de-6c01-4181-9911-57e00fe40181/l_fortran-compiler_p_2024.2.0.426_offline.sh",
+            "sha256": "fd19a302662b2f86f76fc115ef53a69f16488080278dba4c573cc705f3a52ffa",
+        },
+        "nvidia-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=nvidia&version=2024.2.0&filters[]=12.0&filters[]=linux",
+            "sha256": "0622df0054364b01e91e7ed72a33cb3281e281db5b0e86579f516b1cc5336b0f",
+        },
+    },
     {
         "version": "2024.1.0",
         "cpp": {
@@ -223,7 +265,8 @@ versions = [
 
 @IntelOneApiPackage.update_description
 class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
-    """Intel oneAPI Compilers. Includes: icc, icpc, ifort, icx, icpx, and ifx."""
+    """Intel oneAPI Compilers. Includes: icx, icpx, ifx, and ifort.
+    Releases before 2024.0 include icc/icpc"""
 
     maintainers("rscohn2")
 
@@ -239,8 +282,10 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
     )
 
     # See https://github.com/spack/spack/issues/39252
-    depends_on("patchelf@:0.17", type="build")
-
+    depends_on("patchelf@:0.17", type="build", when="@:2024.1")
+    # Add the nvidia variant
+    variant("nvidia", default=False, description="Install NVIDIA plugin for OneAPI")
+    conflicts("@:2022.2.1", when="+nvidia", msg="Codeplay NVIDIA plugin requires newer release")
     # TODO: effectively gcc is a direct dependency of intel-oneapi-compilers, but we
     # cannot express that properly. For now, add conflicts for non-gcc compilers
     # instead.
@@ -255,6 +300,14 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
                 when="@{0}".format(v["version"]),
                 expand=False,
                 **v["ftn"],
+            )
+        if "nvidia-plugin" in v:
+            resource(
+                name="nvidia-plugin-installer",
+                placement="nvidia-plugin-installer",
+                when="@{0}".format(v["version"]),
+                expand=False,
+                **v["nvidia-plugin"],
             )
 
     @property
@@ -315,6 +368,18 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
             # Some installers have a bug and do not return an error code when failing
             if not is_exe(self._llvm_bin.ifx):
                 raise RuntimeError("Fortran install failed")
+        # install nvidia-plugin
+        if self.spec.satisfies("+nvidia"):
+            nvidia_script = find("nvidia-plugin-installer", "*")
+            if nvidia_script:
+                if platform.system() == "Linux":
+                    bash = Executable("bash")
+                    # Installer writes files in ~/intel set HOME so it goes to prefix
+                    bash.add_default_env("HOME", prefix)
+                    # Installer checks $XDG_RUNTIME_DIR/.bootstrapper_lock_file as well
+                    bash.add_default_env("XDG_RUNTIME_DIR", join_path(self.stage.path, "runtime"))
+                    # For NVIDIA plugin installer
+                    bash(nvidia_script[0], "-y", "--install-dir", self.prefix)
 
     @run_after("install")
     def inject_rpaths(self):
@@ -327,6 +392,12 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
         # issues. I am using the 2024 release as a milestone to stop
         # patching everything and just patching the binaries that have
         # a problem.
+
+        # 2024.2 no longer needs patching
+        if self.spec.satisfies("@2024.2:"):
+            return
+
+        # 2024 fixed all but these 2
         patchelf = which("patchelf")
         if self.spec.satisfies("@2024:"):
             patchelf.add_default_arg("--set-rpath", self.component_prefix.lib)
@@ -386,7 +457,11 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
             llvm_flags.append("-Wno-unused-command-line-argument")
 
         self.write_config_file(common_flags + llvm_flags, self._llvm_bin, ["icx", "icpx"])
-        self.write_config_file(common_flags + classic_flags, self._llvm_bin, ["ifx"])
+        self.write_config_file(
+            common_flags + (llvm_flags if self.spec.satisfies("@2022.1.0:") else classic_flags),
+            self._llvm_bin,
+            ["ifx"],
+        )
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["ifort"])
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["icc", "icpc"])
 

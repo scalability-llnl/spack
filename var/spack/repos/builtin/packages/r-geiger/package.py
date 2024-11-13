@@ -24,6 +24,9 @@ class RGeiger(RPackage):
     version("2.0.6.1", sha256="2a95e20a3a90c096343b014344dd97e699e954da99c151c17fc6c245c77dba0b")
     version("2.0.6", sha256="e13b2c526378eaf9356b00bbe21b3c2c956327f8062fed638ccc1f49591c3eff")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@2.15.0:", type=("build", "run"))
     depends_on("r-ape@3.0-6:", type=("build", "run"))
     depends_on("r-mass", type=("build", "run"))

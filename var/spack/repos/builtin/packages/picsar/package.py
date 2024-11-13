@@ -18,6 +18,10 @@ class Picsar(MakefilePackage):
 
     version("develop", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("prod", default=True, description="Production mode (without FFTW)")
     variant(
         "prod_spectral", default=False, description="Production mode with spectral solver and FFTW"

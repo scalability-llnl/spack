@@ -15,6 +15,10 @@ class Paintor(MakefilePackage):
 
     version("3.0", sha256="cc39d3c334cc6d787e4f04847192c9d0185025a2ca46910bd38901b6679d198f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("nlopt")
     depends_on("eigen")
 

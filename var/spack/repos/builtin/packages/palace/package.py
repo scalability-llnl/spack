@@ -20,6 +20,8 @@ class Palace(CMakePackage):
     version("0.12.0", tag="v0.12.0", commit="8c192071206466638d5818048ee712e1fada386f")
     version("0.11.2", tag="v0.11.2", commit="6c3aa5f84a934a6ddd58022b2945a1bdb5fa329d")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries")
     variant("int64", default=False, description="Use 64 bit integers")
     variant("openmp", default=False, description="Use OpenMP for shared-memory parallelism")

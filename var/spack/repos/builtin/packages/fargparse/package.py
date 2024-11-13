@@ -31,6 +31,8 @@ class Fargparse(CMakePackage):
     version("1.2.0", sha256="4d14584d2bd5406267e3eacd35b50548dd9e408526465e89514690774217da70")
     version("1.1.2", sha256="89f63f181ccf183ca6212aee7ed7e39d510e3df938b0b16d487897ac9a61647f")
 
+    depends_on("fortran", type="build")
+
     depends_on("gftl-shared")
     depends_on("gftl")
     depends_on("cmake@3.12:", type="build")

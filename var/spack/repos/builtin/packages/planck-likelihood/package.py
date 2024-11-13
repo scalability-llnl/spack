@@ -21,6 +21,9 @@ class PlanckLikelihood(Package):
         url="https://irsa.ipac.caltech.edu/data/Planck/release_2/software/COM_Likelihood_Code-v2.0.R2.00.tar.bz2",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("lensing-ext", default=False, description="Provide lensing-ext data")
     variant("plik-DS", default=False, description="Provide plik-DS data")
     variant("plik-HM-ext", default=False, description="Provide plik-HM-ext data")
@@ -80,9 +83,9 @@ class PlanckLikelihood(Package):
         filter_file("^\t@", "\t", "Makefile")
 
         makeflags = [
-            "PREFIX=%s" % prefix,
+            f"PREFIX={prefix}",
             "COLORS=0",
-            "CFITSIOPATH=%s" % spec["cfitsio"].prefix,
+            f"CFITSIOPATH={spec['cfitsio'].prefix}",
             "CC=cc",
             "FC=fc",
             "IFORTLIBPATH=",
@@ -90,9 +93,9 @@ class PlanckLikelihood(Package):
             "GFORTRANLIBPATH=",
             "GFORTRANRUNTIME=-lgfortran -lgomp",
             "LAPACKLIBPATH=",
-            "LAPACK=%s" % (spec["lapack"].libs + spec["blas"].libs).ld_flags,
-            "COPENMP=%s" % self.compiler.openmp_flag,
-            "FOPENMP=%s" % self.compiler.openmp_flag,
+            f"LAPACK={(spec['lapack'].libs + spec['blas'].libs).ld_flags}",
+            f"COPENMP={self.compiler.openmp_flag}",
+            f"FOPENMP={self.compiler.openmp_flag}",
         ]
 
         # Build

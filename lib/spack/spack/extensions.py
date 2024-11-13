@@ -17,6 +17,7 @@ from typing import List
 
 import llnl.util.lang
 
+import spack.cmd
 import spack.config
 import spack.error
 import spack.util.path

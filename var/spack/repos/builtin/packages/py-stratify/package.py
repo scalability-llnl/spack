@@ -19,6 +19,8 @@ class PyStratify(PythonPackage):
 
     version("0.1", sha256="5426f3b66e45e1010952d426e5a7be42cd45fe65f1cd73a98fee1eb7c110c6ee")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy", type=("build", "run"))
     depends_on("py-cython", type=("build", "run"))

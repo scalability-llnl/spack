@@ -1,0 +1,11 @@
+--- a/Makefile.in	2024-07-17 19:21:06.292521857 +0200
++++ b/Makefile.in	2024-07-17 19:29:45.896742764 +0200
+@@ -236,7 +236,7 @@
+ 	$(compile-c)
+ 
+ $(build_dir)/cha_commitid.c: force
+-	$(quiet) VER=`cd $(source_dir) && git describe --long --always` && \
++	$(quiet) VER="3.5" && \
+ 	         echo "const char * const Cha_CommitID = \"$$VER\";" > $(build_dir)/cha_commitid.c
+ 
+ $(ci_files): $(build_dir)/settings

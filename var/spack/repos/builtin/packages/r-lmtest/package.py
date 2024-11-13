@@ -24,5 +24,8 @@ class RLmtest(RPackage):
     version("0.9-36", sha256="be9f168d6554e9cd2be0f9d8fc3244f055dce90d1fca00f05bcbd01daa4ed56b")
     version("0.9-34", sha256="86eead67ed6d6c6be3fbee97d5ce45e6ca06a981f974ce01a7754a9e33770d2e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("r@3.0.0:", type=("build", "run"))
     depends_on("r-zoo", type=("build", "run"))

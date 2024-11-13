@@ -18,6 +18,8 @@ class PyPyodbc(PythonPackage):
 
     version("4.0.26", sha256="e52700b5d24a846483b5ab80acd9153f8e593999c9184ffea11596288fb33de3")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@2.7:2.8,3.4:", type=("build", "link", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("unixodbc")

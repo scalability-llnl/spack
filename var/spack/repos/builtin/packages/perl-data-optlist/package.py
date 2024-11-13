@@ -14,6 +14,7 @@ class PerlDataOptlist(PerlPackage):
 
     license("GPL-1.0-or-later OR Artistic-1.0-Perl")
 
+    version("0.114", sha256="9fd1093b917a21fb79ae1607db53d113b4e0ad8fe0ae776cb077a7e50044fdf3")
     version("0.113", sha256="36aebc5817b7d4686b649434c2ee41f45c8bf97d4ca5a99f607cc40f695a4285")
     version("0.110", sha256="366117cb2966473f2559f2f4575ff6ae69e84c69a0f30a0773e1b51a457ef5c3")
 

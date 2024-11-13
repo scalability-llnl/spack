@@ -9,6 +9,7 @@ import pytest
 
 import archspec.cpu
 
+import spack.config
 import spack.paths
 import spack.repo
 import spack.solver.asp
@@ -16,10 +17,7 @@ import spack.spec
 from spack.environment.environment import ViewDescriptor
 from spack.version import Version
 
-pytestmark = [
-    pytest.mark.only_clingo("Original concretizer does not support compiler runtimes"),
-    pytest.mark.usefixtures("enable_runtimes"),
-]
+pytestmark = [pytest.mark.usefixtures("enable_runtimes")]
 
 
 def _concretize_with_reuse(*, root_str, reused_str):
@@ -32,7 +30,7 @@ def _concretize_with_reuse(*, root_str, reused_str):
 
 
 @pytest.fixture
-def runtime_repo(config):
+def runtime_repo(mutable_config):
     repo = os.path.join(spack.paths.repos_path, "compiler_runtime.test")
     with spack.repo.use_repositories(repo) as mock_repo:
         yield mock_repo
@@ -47,8 +45,8 @@ def enable_runtimes():
 
 
 def test_correct_gcc_runtime_is_injected_as_dependency(runtime_repo):
-    s = spack.spec.Spec("a%gcc@10.2.1 ^b%gcc@9.4.0").concretized()
-    a, b = s["a"], s["b"]
+    s = spack.spec.Spec("pkg-a%gcc@10.2.1 ^pkg-b%gcc@9.4.0").concretized()
+    a, b = s["pkg-a"], s["pkg-b"]
 
     # Both a and b should depend on the same gcc-runtime directly
     assert a.dependencies("gcc-runtime") == b.dependencies("gcc-runtime")
@@ -61,16 +59,16 @@ def test_correct_gcc_runtime_is_injected_as_dependency(runtime_repo):
 def test_external_nodes_do_not_have_runtimes(runtime_repo, mutable_config, tmp_path):
     """Tests that external nodes don't have runtime dependencies."""
 
-    packages_yaml = {"b": {"externals": [{"spec": "b@1.0", "prefix": f"{str(tmp_path)}"}]}}
+    packages_yaml = {"pkg-b": {"externals": [{"spec": "pkg-b@1.0", "prefix": f"{str(tmp_path)}"}]}}
     spack.config.set("packages", packages_yaml)
 
-    s = spack.spec.Spec("a%gcc@10.2.1").concretized()
+    s = spack.spec.Spec("pkg-a%gcc@10.2.1").concretized()
 
-    a, b = s["a"], s["b"]
+    a, b = s["pkg-a"], s["pkg-b"]
 
     # Since b is an external, it doesn't depend on gcc-runtime
     assert a.dependencies("gcc-runtime")
-    assert a.dependencies("b")
+    assert a.dependencies("pkg-b")
     assert not b.dependencies("gcc-runtime")
 
 
@@ -78,23 +76,36 @@ def test_external_nodes_do_not_have_runtimes(runtime_repo, mutable_config, tmp_p
     "root_str,reused_str,expected,nruntime",
     [
         # The reused runtime is older than we need, thus we'll add a more recent one for a
-        ("a%gcc@10.2.1", "b%gcc@9.4.0", {"a": "gcc-runtime@10.2.1", "b": "gcc-runtime@9.4.0"}, 2),
-        # The root is compiled with an older compiler, thus we'll reuse the runtime from b
-        ("a%gcc@9.4.0", "b%gcc@10.2.1", {"a": "gcc-runtime@10.2.1", "b": "gcc-runtime@10.2.1"}, 1),
+        (
+            "pkg-a%gcc@10.2.1",
+            "pkg-b%gcc@9.4.0",
+            {"pkg-a": "gcc-runtime@10.2.1", "pkg-b": "gcc-runtime@9.4.0"},
+            2,
+        ),
+        # The root is compiled with an older compiler, thus we'll NOT reuse the runtime from b
+        (
+            "pkg-a%gcc@9.4.0",
+            "pkg-b%gcc@10.2.1",
+            {"pkg-a": "gcc-runtime@9.4.0", "pkg-b": "gcc-runtime@9.4.0"},
+            1,
+        ),
         # Same as before, but tests that we can reuse from a more generic target
         pytest.param(
-            "a%gcc@9.4.0",
-            "b%gcc@10.2.1 target=x86_64",
-            {"a": "gcc-runtime@10.2.1 target=x86_64", "b": "gcc-runtime@10.2.1 target=x86_64"},
+            "pkg-a%gcc@9.4.0",
+            "pkg-b%gcc@10.2.1 target=x86_64",
+            {"pkg-a": "gcc-runtime@9.4.0", "pkg-b": "gcc-runtime@9.4.0"},
             1,
             marks=pytest.mark.skipif(
                 str(archspec.cpu.host().family) != "x86_64", reason="test data is x86_64 specific"
             ),
         ),
         pytest.param(
-            "a%gcc@10.2.1",
-            "b%gcc@9.4.0 target=x86_64",
-            {"a": "gcc-runtime@10.2.1 target=x86_64", "b": "gcc-runtime@9.4.0 target=x86_64"},
+            "pkg-a%gcc@10.2.1",
+            "pkg-b%gcc@9.4.0 target=x86_64",
+            {
+                "pkg-a": "gcc-runtime@10.2.1 target=x86_64",
+                "pkg-b": "gcc-runtime@9.4.0 target=x86_64",
+            },
             2,
             marks=pytest.mark.skipif(
                 str(archspec.cpu.host().family) != "x86_64", reason="test data is x86_64 specific"
@@ -102,17 +113,19 @@ def test_external_nodes_do_not_have_runtimes(runtime_repo, mutable_config, tmp_p
         ),
     ],
 )
+@pytest.mark.regression("44444")
 def test_reusing_specs_with_gcc_runtime(root_str, reused_str, expected, nruntime, runtime_repo):
     """Tests that we can reuse specs with a "gcc-runtime" leaf node. In particular, checks
     that the semantic for gcc-runtimes versions accounts for reused packages too.
+
+    Reusable runtime versions should be lower, or equal, to that of parent nodes.
     """
     root, reused_spec = _concretize_with_reuse(root_str=root_str, reused_str=reused_str)
 
-    assert f"{expected['b']}" in reused_spec
     runtime_a = root.dependencies("gcc-runtime")[0]
-    assert runtime_a.satisfies(expected["a"])
-    runtime_b = root["b"].dependencies("gcc-runtime")[0]
-    assert runtime_b.satisfies(expected["b"])
+    assert runtime_a.satisfies(expected["pkg-a"])
+    runtime_b = root["pkg-b"].dependencies("gcc-runtime")[0]
+    assert runtime_b.satisfies(expected["pkg-b"])
 
     runtimes = [x for x in root.traverse() if x.name == "gcc-runtime"]
     assert len(runtimes) == nruntime
@@ -123,8 +136,7 @@ def test_reusing_specs_with_gcc_runtime(root_str, reused_str, expected, nruntime
     [
         # Ensure that, whether we have multiple runtimes in the DAG or not,
         # we always link only the latest version
-        ("a%gcc@10.2.1", "b%gcc@9.4.0", ["gcc-runtime@10.2.1"], ["gcc-runtime@9.4.0"]),
-        ("a%gcc@9.4.0", "b%gcc@10.2.1", ["gcc-runtime@10.2.1"], ["gcc-runtime@9.4.0"]),
+        ("pkg-a%gcc@10.2.1", "pkg-b%gcc@9.4.0", ["gcc-runtime@10.2.1"], ["gcc-runtime@9.4.0"])
     ],
 )
 def test_views_can_handle_duplicate_runtime_nodes(

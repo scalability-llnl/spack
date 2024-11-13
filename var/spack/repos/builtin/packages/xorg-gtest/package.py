@@ -15,6 +15,8 @@ class XorgGtest(AutotoolsPackage, XorgPackage):
 
     version("0.7.1", sha256="6cedc7904c698472783203bd686e777db120b808bb4052e451a822e437b72682")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxi")
     depends_on("xorg-server")

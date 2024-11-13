@@ -26,6 +26,8 @@ class Memcached(AutotoolsPackage):
     version("1.5.14", sha256="ae8ed2ed853b840a8430d8575d4e91b87c550b111874b416c551001403ac6a74")
     version("1.5.13", sha256="ae59a8b49be17afb344e57c8a8d64f9ae38b6efbc3f9115a422dbcb2b23795fc")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

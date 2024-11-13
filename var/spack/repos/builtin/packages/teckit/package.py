@@ -30,6 +30,9 @@ class Teckit(AutotoolsPackage):
     version("2.5.6", commit="41c20be2793e1afcbb8de6339af89d1eeab84fe8")
     version("2.5.5", commit="2733fd9895819e3697257550cc39b8e419c1ee7e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

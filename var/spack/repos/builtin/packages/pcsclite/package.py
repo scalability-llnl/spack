@@ -22,6 +22,8 @@ class Pcsclite(AutotoolsPackage):
     version("master", branch="master")
     version("1.9.8", sha256="502d80c557ecbee285eb99fe8703eeb667bcfe067577467b50efe3420d1b2289")
 
+    depends_on("c", type="build")  # generated
+
     # no libudev/systemd package currently in spack
     variant("libudev", default=False, description="Build with libudev")
 

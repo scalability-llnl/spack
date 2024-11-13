@@ -10,7 +10,7 @@ class Utf8cpp(Package):
     """A simple, portable and lightweight generic library for handling UTF-8
     encoded strings."""
 
-    homepage = "http://utfcpp.sourceforge.net/"
+    homepage = "https://utfcpp.sourceforge.net/"
 
     version("2.3.4", sha256="3373cebb25d88c662a2b960c4d585daf9ae7b396031ecd786e7bb31b15d010ef")
 

@@ -21,6 +21,8 @@ class EpicsCaGateway(MakefilePackage):
 
     version("2.1.3", sha256="f6e9dba46951a168d3208fc57054138759d56ebd8a7c07b496e8f5b8a56027d7")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("epics-base")
     depends_on("epics-pcas")
 

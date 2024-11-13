@@ -20,4 +20,6 @@ class Dateutils(AutotoolsPackage):
     version("0.4.6", sha256="26a071317ae5710f226a3e6ba9a54d3764cd9efe3965aecc18e75372088757cd")
     version("0.4.5", sha256="16d6a0fe7b7d49ddbb303f33538dd7304a0d4af5a0369bcbf275db6a5060cbde")
 
+    depends_on("c", type="build")  # generated
+
     build_directory = "spack-build"

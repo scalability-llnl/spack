@@ -13,21 +13,6 @@ from spack.version import ver
 
 
 class Aocc(Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["clang"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["clang++"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["flang"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["flang"]
-
-    PrgEnv = "PrgEnv-aocc"
-    PrgEnv_compiler = "aocc"
-
     version_argument = "--version"
 
     @property

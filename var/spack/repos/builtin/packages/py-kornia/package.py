@@ -23,6 +23,7 @@ class PyKornia(PythonPackage):
         "adamjstewart",
     )
 
+    version("0.7.3", sha256="0eb861ea5d7e6c3891ae699a8b7103a5783af0a7c41888ca482420dd3d055306")
     version("0.7.2", sha256="f834ccd51188d071ed286a6727471c94344ea2a718903cc6f0e56a92f9c66ac5")
     version("0.7.1", sha256="65b54a50f70c1f88240b557fda3fdcc1ab866982a5d062e52213130f5a48465c")
     version("0.7.0", sha256="72cba6a0965a15caf10a664647654412effb7c0b9afcf40e458bc005f976ffac")

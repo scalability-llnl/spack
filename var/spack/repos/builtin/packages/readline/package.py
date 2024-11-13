@@ -26,6 +26,8 @@ class Readline(AutotoolsPackage, GNUMirrorPackage):
     version("7.0", sha256="750d437185286f40a369e1e4f4764eda932b9459b5ec9a731628393dd3d32334")
     version("6.3", sha256="56ba6071b9462f980c5a72ab0023893b65ba6debb4eeb475d7a563dc65cafd43")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ncurses")
 
     patches = [

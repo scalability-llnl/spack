@@ -18,5 +18,7 @@ class Newt(AutotoolsPackage):
     version("0.52.20", sha256="8d66ba6beffc3f786d4ccfee9d2b43d93484680ef8db9397a4fb70b5adbb6dbc")
     version("0.52.19", sha256="08c0db56c21996af6a7cbab99491b774c6c09cef91cd9b03903c84634bff2e80")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("slang")
     depends_on("popt")

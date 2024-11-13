@@ -29,6 +29,10 @@ class Nlopt(CMakePackage):
     version("2.6.0", sha256="a13077cdf5f5f1127eaaac0bf1e06744bfe98d8a4a3430a15e0af50a69f451ab")
     version("2.5.0", sha256="c6dd7a5701fff8ad5ebb45a3dc8e757e61d52658de3918e38bab233e7fd3b4ae")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Enables the build of shared libraries")
     variant("python", default=True, description="Build python wrappers")
     variant("guile", default=False, description="Enable Guile support")

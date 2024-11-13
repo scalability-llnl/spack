@@ -18,4 +18,6 @@ class RBase64enc(RPackage):
 
     version("0.1-3", sha256="6d856d8a364bcdc499a0bf38bfd283b7c743d08f0b288174fba7dbf0a04b688d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.9.0:", type=("build", "run"))

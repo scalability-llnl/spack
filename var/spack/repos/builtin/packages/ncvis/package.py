@@ -20,6 +20,8 @@ class Ncvis(CMakePackage):
         "2022.08.28", sha256="a522926739b2a05ef0b436fe67a2014557f9e5fecf3b7d7700964e9006a4bf3e"
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake", type="build")
     depends_on("netcdf-c", type="link")
     depends_on("wxwidgets+opengl", type="link")

@@ -23,6 +23,8 @@ class PyDevlib(PythonPackage):
     version("0.0.3", sha256="29ec5f1de481783ab0b9efc111dfeb67c890187d56fca8592b25ee756ff32902")
     version("0.0.2", sha256="972f33be16a06572a19b67d909ee0ed6cb6f21f9a9da3c43fd0ff5851421051d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-python-dateutil", type=("build", "run"))
     depends_on("py-pexpect@3.3:", type=("build", "run"))

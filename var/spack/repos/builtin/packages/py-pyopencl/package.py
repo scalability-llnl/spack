@@ -19,6 +19,8 @@ class PyPyopencl(PythonPackage):
 
     version("2020.2.2", sha256="31fcc79fb6862998e98d91a624c0bd4f0ab4c5d418d199912d4d312c64e437ec")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("ocl-icd", type=("build", "link", "run"))
     depends_on("opencl", type=("build", "link", "run"))
     depends_on("python@3.6:", type=("build", "run"))

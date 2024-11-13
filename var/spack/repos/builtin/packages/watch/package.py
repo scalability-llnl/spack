@@ -21,6 +21,8 @@ class Watch(AutotoolsPackage):
     version("master", branch="master")
     version("3.3.15", tag="v3.3.15", commit="7bb949bcba13c107fa0f45d2d0298b1ad6b6d6cc")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

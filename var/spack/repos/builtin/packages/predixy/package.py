@@ -20,6 +20,8 @@ class Predixy(MakefilePackage):
     version("1.0.4", sha256="30a7dd44ce507a7a2f8a570c59c9133df239a7f8bad14ef1b97df92b2ee96d40")
     version("1.0.3", sha256="d815d0ffcd33b16bfee76fe5523bdd47cf9acca0419eaa284d5ccda4cf62b828")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(self.prefix.bin)
         install("src/predixy", self.prefix.bin)

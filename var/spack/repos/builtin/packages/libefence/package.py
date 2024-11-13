@@ -22,6 +22,8 @@ class Libefence(MakefilePackage):
 
     version("2.2.6", sha256="a949e0dedb06cbcd444566cce1457223f2c41abd3513f21663f30f19ccc48e24")
 
+    depends_on("c", type="build")  # generated
+
     def build(self, spec, prefix):
         make()
 

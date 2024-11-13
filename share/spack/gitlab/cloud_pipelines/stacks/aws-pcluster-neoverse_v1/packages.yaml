@@ -19,7 +19,10 @@ packages:
   llvm:
     variants: ~lldb
   mpas-model:
-    require: "precision=single make_target=llvm %arm ^parallelio+pnetcdf"
+    require:
+      - one_of:
+          - "precision=single make_target=llvm %arm ^parallelio+pnetcdf"
+          - "precision=single %gcc ^parallelio+pnetcdf"
   mpich:
     require: "mpich pmi=pmi2 device=ch4 netmod=ofi +slurm"
   nvhpc:
@@ -44,7 +47,7 @@ packages:
   slurm:
     buildable: false
     externals:
-      - prefix: /opt/slurm/
+      - prefix: ${SLURM_ROOT}
         spec: slurm@${SLURM_VERSION} +pmix
   wrf:
     require:

@@ -41,6 +41,9 @@ class Kahip(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "deterministic",
         default=False,
@@ -65,6 +68,8 @@ class Kahip(CMakePackage):
     # *) second is for files only present in 2.00
     patch("fix-sconstruct-for-py3.patch", when="@2:2.10 ^python@3:")
     patch("fix-sconstruct-for-py3-v2.00.patch", when="@2.00 ^python@3:")
+
+    patch("cstdint.patch", when="@3:")
 
     # 'when' decorators to override new CMake build approach (old build was SConstruct).
     @when("@:2.10")

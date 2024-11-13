@@ -78,6 +78,9 @@ class Pfunit(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
+
     variant("mpi", default=False, description="Enable MPI")
     variant(
         "use_comm_world",

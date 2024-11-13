@@ -17,6 +17,8 @@ class Smartdenovo(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("sse2neon", when="target=aarch64:")
 
     patch(

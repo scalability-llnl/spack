@@ -14,6 +14,8 @@ class RRsubread(RPackage):
     version("2.16.0", commit="62b92c9ed3fc2be89ed9f29e3db1809d1e115dbc")
     version("2.14.2", commit="863bd98c6523b888da59335a6acb516d2676d412")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))
     depends_on("r-r-utils", type=("build", "run"))

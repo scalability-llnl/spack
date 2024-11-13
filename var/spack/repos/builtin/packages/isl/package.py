@@ -25,6 +25,9 @@ class Isl(AutotoolsPackage):
     version("0.15", sha256="8ceebbf4d9a81afa2b4449113cee4b7cb14a687d7a549a963deb5e2a41458b6b")
     version("0.14", sha256="7e3c02ff52f8540f6a85534f54158968417fd676001651c8289c705bd0228f36")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gmp")
 
     def configure_args(self):

@@ -28,6 +28,8 @@ class MpiTestSuite(AutotoolsPackage):
 
     version("1.1.1", sha256="4cb7bdbdafa0855dab96d996f863b5d364c935e678c057ada3c8869c3666e926")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake@1.14:", type="build")
     depends_on("libtool", type="build")

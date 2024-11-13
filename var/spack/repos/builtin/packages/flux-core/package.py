@@ -22,6 +22,11 @@ class FluxCore(AutotoolsPackage):
     license("LGPL-3.0-only")
 
     version("master", branch="master")
+    version("0.66.0", sha256="0a25cfb1ebc033c249614eb2350c6fb57b00cdf3c584d0759c787f595c360daa")
+    version("0.65.0", sha256="a60bc7ed13b8e6d09e99176123a474aad2d9792fff6eb6fd4da2a00e1d2865ab")
+    version("0.64.0", sha256="0334d6191915f1b89b70cdbf14f24200f8899da31090df5f502020533b304bb3")
+    version("0.63.0", sha256="f0fd339f0e24cb26331ad55062d3c1e1c7c81df41c0d7f8727aa0700c7baa1ae")
+    version("0.62.0", sha256="54a227741901ca758236c024296b8cd53718eea0050fc6363d2b2979aa0bf1e9")
     version("0.61.2", sha256="06f38143723e3f8331f55893ad8f74d43eb0588078f91abb603690c3e5f5112c")
     version("0.61.1", sha256="59cc730b34b732a1d00355bb5589bf2d26bf522b4a31ebfabff70ddb3afb51d6")
     version("0.61.0", sha256="02cedc6abb12816cbb01f2195c1acf7b6552c1d8b9029f899148df48a7cd05e2")
@@ -58,71 +63,8 @@ class FluxCore(AutotoolsPackage):
     version("0.30.0", sha256="e51fde4464140367ae4bc1b44f960675ea0a6f58eede3a561cacd8a11ca3e776")
     version("0.29.0", sha256="c13b40e82d66356e75208a689a495ca01f0a013e2e45ac8ea202ed8224987323")
     version("0.28.0", sha256="9a784def7186b0036091bd8d6d8fe5bc3425ab2927e1465e1c9ad266631c285d")
-    version(
-        "0.27.0",
-        sha256="abd46d38081ba6b501adb1c111374b39d6ae72ac1aec9fbbf31943a856541d3a",
-        deprecated=True,
-    )
-    version(
-        "0.26.0",
-        sha256="58bfd4742c59364b13cd83214e8f70735952d01793800b149cae056fddfeeff1",
-        deprecated=True,
-    )
-    version(
-        "0.25.0",
-        sha256="3c97e21eaec51e8aa0eaee6aa8eb23246650d102a6b6a5c9943cd69e3c8e1008",
-        deprecated=True,
-    )
-    version(
-        "0.24.0",
-        sha256="fb7e0f9a44d84144a8eaf8f42a5d7e64a4a847861d0ddc2ad8fc4908b5a9190e",
-        deprecated=True,
-    )
-    version(
-        "0.23.0",
-        sha256="918b181be4e27c32f02d5036230212cd9235dc78dc2bde249c3651d6f75866c7",
-        deprecated=True,
-    )
-    version(
-        "0.22.0",
-        sha256="1dd0b737199b8a40f245e6a4e1b3b28770f0ecf2f483d284232080b8b252521f",
-        deprecated=True,
-    )
-    version(
-        "0.21.0",
-        sha256="cc1b7a46d7c1c1a3e99e8861bba0dde89a97351eabd6f1b264788bd76e64c329",
-        deprecated=True,
-    )
-    version(
-        "0.20.0",
-        sha256="2970b9b1c389fc4a381f9e605921ce0eb6aa9339387ea741978bcffb4bd81b6f",
-        deprecated=True,
-    )
-    version(
-        "0.19.0",
-        sha256="f45328a37d989c308c46639a9ed771f47b11184422cf5604249919fbd320d6f5",
-        deprecated=True,
-    )
-    version(
-        "0.18.0",
-        sha256="9784bbca94177a32dbbc99728e8925bf894f3aebaa316961d6ea85df32d59545",
-        deprecated=True,
-    )
-    version(
-        "0.17.0",
-        sha256="3f8c6cb72982028f86a96c0098cacd3a6e9de359fa1cf077380c835a20e7b7f7",
-        deprecated=True,
-    )
-    version(
-        "0.16.0",
-        sha256="1582f7fb4d2313127418c34de7c9ce4f5fef00622d19cedca7bed929f4709f10",
-        deprecated=True,
-    )
-    version(
-        "0.15.0",
-        sha256="51bc2eae69501f802459fc82f191eb5e8ae0b4f7e9e77ac18543a850cc8445f5",
-        deprecated=True,
-    )
+
+    depends_on("c", type="build")  # generated
 
     # Avoid the infinite symlink issue
     # This workaround is documented in PR #3543
@@ -140,27 +82,22 @@ class FluxCore(AutotoolsPackage):
     depends_on("ncurses@6.2:", when="@0.32.0:")
     depends_on("libzmq@4.0.4:")
     depends_on("czmq@3.0.1:", when="@:0.54.0")
-    depends_on("hwloc@1.11.1:1", when="@:0.17.0")
-    depends_on("hwloc@1.11.1:", when="@0.17.0:")
+    depends_on("hwloc@1.11.1:")
     depends_on("hwloc +cuda", when="+cuda")
     # Provide version hints for lua so that the concretizer succeeds when no
     # explicit flux-core version is given. See issue #10000 for details
     depends_on("lua", type=("build", "run", "link"))
-    depends_on("lua@5.1:5.2", when="@:0.17.0")
-    depends_on("lua@5.1:5.3", when="@0.18.0:")
+    depends_on("lua@5.1:5.3")
     depends_on("lua-luaposix")
     # `link` dependency on python due to Flux's `pymod` module
-    depends_on("python@3.6:", when="@0.17:", type=("build", "link", "run"))
-    depends_on("python@2.7:", type=("build", "link", "run"))
+    depends_on("python@3.6:", type=("build", "link", "run"))
     # Use of distutils in configure script dropped in v0.55
     depends_on("python@:3.11", when="@:0.54", type=("build", "link", "run"))
     depends_on("py-cffi@1.1:", type=("build", "run"))
-    depends_on("py-six@1.9:", when="@:0.24", type=("build", "run"))
     depends_on("py-pyyaml@3.10:", type=("build", "run"))
     depends_on("py-jsonschema@2.3:", type=("build", "run"), when="@:0.58.0")
     depends_on("py-ply", type=("build", "run"), when="@0.46.1:")
-    depends_on("jansson")
-    depends_on("jansson@2.10:", when="@0.21.0:")
+    depends_on("jansson@2.10:")
     depends_on("pkgconfig")
     depends_on("lz4")
     depends_on("sqlite")
@@ -246,6 +183,12 @@ class FluxCore(AutotoolsPackage):
         env.append_path("LUA_PATH", "./?.lua", separator=";")
 
     def setup_run_environment(self, env):
+        # If this package is external, we expect the external provider to set things
+        # like LUA paths. So, we early return. If the package is not external,
+        # properly set these environment variables to make sure the user environment
+        # is configured correctly
+        if self.spec.external:
+            return
         env.prepend_path(
             "LUA_PATH", os.path.join(self.spec.prefix, self.lua_share_dir, "?.lua"), separator=";"
         )
@@ -268,7 +211,7 @@ class FluxCore(AutotoolsPackage):
         args = ["--enable-pylint=no"]
         if "+docs" not in self.spec:
             args.append("--disable-docs")
-        if "+security" in self.spec:
+        if self.spec.satisfies("+security"):
             args.append("--with-flux-security")
         return args
 
@@ -285,4 +228,4 @@ class FluxCore(AutotoolsPackage):
                     flags = []
                 flags.append("-Wno-error=maybe-uninitialized")
 
-        return (flags, None, None)
+        return flags, None, None

@@ -10,7 +10,7 @@ class Nco(AutotoolsPackage):
     """The NCO toolkit manipulates and analyzes data stored in
     netCDF-accessible formats"""
 
-    homepage = "http://nco.sourceforge.net/"
+    homepage = "https://nco.sourceforge.net/"
     url = "https://github.com/nco/nco/archive/5.0.1.tar.gz"
 
     license("BSD-3-Clause")
@@ -40,6 +40,9 @@ class Nco(AutotoolsPackage):
     version("4.6.2", sha256="cec82e35d47a6bbf8ab9301d5ff4cf08051f489b49e8529ebf780380f2c21ed3")
     version("4.6.1", sha256="7433fe5901f48eb5170f24c6d53b484161e1c63884d9350600070573baf8b8b0")
     version("4.5.5", sha256="bc6f5b976fdfbdec51f2ebefa158fa54672442c2fd5f042ba884f9f32c2ad666")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # https://github.com/nco/nco/issues/43
     patch("NUL-0-NULL.patch", when="@:4.6.7")

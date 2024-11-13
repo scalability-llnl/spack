@@ -33,6 +33,8 @@ class Mrcpp(CMakePackage):
     version("1.0.1", sha256="b4d7120545da3531bc7aa0a4cb4eb579fdbe1f8e5d32b1fd1086976583e3e27c")
     version("1.0.0", sha256="0858146141d3a60232e8874380390f9e9fa0b1bd6e67099d5833704478213efd")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("openmp", default=True, description="Enable OpenMP support.")
 
     variant("mpi", default=True, description="Enable MPI support")

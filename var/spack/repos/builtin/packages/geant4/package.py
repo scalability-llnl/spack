@@ -21,7 +21,16 @@ class Geant4(CMakePackage):
     executables = ["^geant4-config$"]
 
     maintainers("drbenmorgan", "sethrj")
-
+    version(
+        "11.3.0.beta",
+        sha256="572ba1570ca3b5b6f2a28ccbffa459901f6a986b79da1ebfdbf2f6f3dc5e14bf",
+        deprecated=True,
+    )
+    version(
+        "11.2.2",
+        sha256="3a8d98c63fc52578f6ebf166d7dffaec36256a186d57f2520c39790367700c8d",
+        preferred=True,
+    )
     version("11.2.1", sha256="76c9093b01128ee2b45a6f4020a1bcb64d2a8141386dea4674b5ae28bcd23293")
     version("11.2.0", sha256="9ff544739b243a24dac8f29a4e7aab4274fc0124fd4e1c4972018213dc6991ee")
     version("11.1.3", sha256="5d9a05d4ccf8b975649eab1d615fc1b8dce5937e01ab9e795bffd04149240db6")
@@ -48,6 +57,8 @@ class Geant4(CMakePackage):
     version("10.3.3", sha256="bcd36a453da44de9368d1d61b0144031a58e4b43a6d2d875e19085f2700a89d8")
     version("10.0.4", sha256="97f3744366b00143d1eed52f8786823034bbe523f45998106f798af61d83f863")
 
+    depends_on("cxx", type="build")
+
     _cxxstd_values = (
         conditional("11", "14", when="@:10"),
         conditional("17", when="@10.4.1:"),
@@ -67,6 +78,7 @@ class Geant4(CMakePackage):
     variant("x11", default=False, description="Optional X11 support")
     variant("motif", default=False, description="Optional motif support")
     variant("qt", default=False, description="Enable Qt support")
+    variant("hdf5", default=False, description="Enable HDF5 support", when="@10.4:")
     variant("python", default=False, description="Enable Python bindings", when="@10.6.2:11.0")
     variant("tbb", default=False, description="Use TBB as a tasking backend", when="@11:")
     variant("timemory", default=False, description="Use TiMemory for profiling", when="@9.5:")
@@ -93,7 +105,9 @@ class Geant4(CMakePackage):
         "10.7.4",
         "11.0",
         "11.1",
-        "11.2:",
+        "11.2.0:11.2.1",
+        "11.2.2:11.2",
+        "11.3:",
     ]:
         depends_on("geant4-data@" + _vers, type="run", when="@" + _vers)
 
@@ -109,6 +123,7 @@ class Geant4(CMakePackage):
     extends("python", when="+python")
 
     # CLHEP version requirements to be reviewed
+    depends_on("clhep@2.4.7.1:", when="@11.3:")
     depends_on("clhep@2.4.6.0:", when="@11.1:")
     depends_on("clhep@2.4.5.1:", when="@11.0.0:")
     depends_on("clhep@2.4.4.0:", when="@10.7.0:")
@@ -117,6 +132,7 @@ class Geant4(CMakePackage):
 
     # Vecgeom specific versions for each Geant4 version
     with when("+vecgeom"):
+        depends_on("vecgeom@1.2.8:", when="@11.3:")
         depends_on("vecgeom@1.2.6:", when="@11.2:")
         depends_on("vecgeom@1.2.0:", when="@11.1")
         depends_on("vecgeom@1.1.18:1.1", when="@11.0.0:11.0")
@@ -124,6 +140,9 @@ class Geant4(CMakePackage):
         depends_on("vecgeom@1.1.5", when="@10.6.0:10.6")
         depends_on("vecgeom@1.1.0", when="@10.5.0:10.5")
         depends_on("vecgeom@0.5.2", when="@10.4.0:10.4")
+
+    with when("+hdf5"):
+        depends_on("hdf5 +threadsafe")
 
     def std_when(values):
         for v in values:
@@ -151,8 +170,13 @@ class Geant4(CMakePackage):
     depends_on("libxmu", when="+x11")
     depends_on("motif", when="+motif")
     with when("+qt"):
-        depends_on("qt@5: +opengl")
-        depends_on("qt@5.9:", when="@11.2:")
+        depends_on("qmake")
+        with when("^[virtuals=qmake] qt-base"):
+            depends_on("qt-base +accessibility +gui +opengl")
+        with when("^[virtuals=qmake] qt"):
+            depends_on("qt@5: +opengl")
+            depends_on("qt@5.9:", when="@11.2:")
+    conflicts("@:11.1 ^[virtuals=qmake] qt-base", msg="Qt6 not supported before 11.2")
 
     # As released, 10.0.4 has inconsistently capitalised filenames
     # in the cmake files; this patch also enables cxxstd 14
@@ -170,6 +194,9 @@ class Geant4(CMakePackage):
 
     # See https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2556
     patch("package-cache.patch", level=1, when="@10.7.0:11.1.2^cmake@3.17:")
+
+    # Issue with Twisted tubes, see https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2619
+    patch("twisted-tubes.patch", level=1, when="@11.2.0:11.2.2")
 
     # NVHPC: "thread-local declaration follows non-thread-local declaration"
     conflicts("%nvhpc", when="+threads")
@@ -262,7 +289,7 @@ class Geant4(CMakePackage):
         options.append(self.define_from_variant("GEANT4_BUILD_MULTITHREADED", "threads"))
         options.append(self.define_from_variant("GEANT4_USE_TBB", "tbb"))
 
-        if "+threads" in spec:
+        if spec.satisfies("+threads"):
             # Locked at global-dynamic to allow use cases that load the
             # geant4 libs at application runtime
             options.append(self.define("GEANT4_BUILD_TLS_MODEL", "global-dynamic"))
@@ -277,22 +304,26 @@ class Geant4(CMakePackage):
         options.append(self.define("GEANT4_INSTALL_DATADIR", self.datadir))
 
         # Vecgeom
-        if "+vecgeom" in spec:
+        if spec.satisfies("+vecgeom"):
             options.append(self.define("GEANT4_USE_USOLIDS", True))
             options.append(self.define("USolids_DIR", spec["vecgeom"].prefix.lib.CMake.USolids))
 
         # Visualization options
         if "platform=darwin" not in spec:
-            if "+x11 +opengl" in spec:
+            if spec.satisfies("+x11 +opengl"):
                 options.append(self.define("GEANT4_USE_OPENGL_X11", True))
-            if "+motif +opengl" in spec:
+            if spec.satisfies("+motif +opengl"):
                 options.append(self.define("GEANT4_USE_XM", True))
-            if "+x11" in spec:
+            if spec.satisfies("+x11"):
                 options.append(self.define("GEANT4_USE_RAYTRACER_X11", True))
 
-        if "+qt" in spec:
+        if spec.satisfies("+qt"):
             options.append(self.define("GEANT4_USE_QT", True))
-            options.append(self.define("QT_QMAKE_EXECUTABLE", spec["qt"].prefix.bin.qmake))
+            if spec.satisfies("^[virtuals=qmake] qt-base"):
+                options.append(self.define("GEANT4_USE_QT_QT6", True))
+            options.append(self.define("QT_QMAKE_EXECUTABLE", spec["qmake"].prefix.bin.qmake))
+
+        options.append(self.define_from_variant("GEANT4_USE_HDF5", "hdf5"))
 
         options.append(self.define_from_variant("GEANT4_USE_VTK", "vtk"))
 

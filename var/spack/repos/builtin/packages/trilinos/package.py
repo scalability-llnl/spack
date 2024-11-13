@@ -5,6 +5,7 @@
 
 import os
 import pathlib
+import re
 import sys
 
 from spack.build_environment import dso_suffix
@@ -34,7 +35,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     url = "https://github.com/trilinos/Trilinos/archive/refs/tags/trilinos-release-12-12-1.tar.gz"
     git = "https://github.com/trilinos/Trilinos.git"
 
-    maintainers("keitat", "sethrj", "kuberry", "jwillenbring", "psakievich")
+    maintainers("keitat", "kuberry", "jwillenbring", "psakievich")
 
     tags = ["e4s"]
 
@@ -42,6 +43,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master")
     version("develop", branch="develop")
+    version("16.0.0", sha256="46bfc40419ed2aa2db38c144fb8e61d4aa8170eaa654a88d833ba6b92903f309")
     version("15.1.1", sha256="2108d633d2208ed261d09b2d6b2fbae7a9cdc455dd963c9c94412d38d8aaefe4")
     version("15.0.0", sha256="5651f1f967217a807f2c418a73b7e649532824dbf2742fa517951d6cc11518fb")
     version("14.4.0", sha256="8e7d881cf6677aa062f7bfea8baa1e52e8956aa575d6a4f90f2b6f032632d4c6")
@@ -70,10 +72,19 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     version("11.14.2", sha256="f22b2b0df7b88e28b992e19044ba72b845292b93cbbb3a948488199647381119")
     version("11.14.1", sha256="f10fc0a496bf49427eb6871c80816d6e26822a39177d850cc62cf1484e4eec07")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+
     # ###################### Variants ##########################
 
     # Build options
     variant("complex", default=False, description="Enable complex numbers in Trilinos")
+    variant(
+        "cuda_constexpr",
+        default=False,
+        description="Enable relaxed constexpr functions for CUDA build",
+    )
     variant("cuda_rdc", default=False, description="Turn on RDC for CUDA build")
     variant("rocm_rdc", default=False, description="Turn on RDC for ROCm build")
     variant(
@@ -377,9 +388,6 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     # Fix: https://github.com/xiaoyeli/superlu_dist/commit/09cb1430f7be288fd4d75b8ed461aa0b7e68fefe
     # is not tagged yet. See discussion here https://github.com/trilinos/Trilinos/issues/11839
     conflicts("+cuda +stokhos +superlu-dist")
-    # Cuda UVM must be enabled prior to 13.2
-    # See https://github.com/spack/spack/issues/28869
-    conflicts("~uvm", when="@:13.1 +cuda")
 
     # stokhos fails on xl/xl_r
     conflicts("+stokhos", when="%xl")
@@ -400,7 +408,8 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     # ###################### Dependencies ##########################
 
     # External Kokkos
-    depends_on("kokkos@4.3.00", when="@master: +kokkos")
+    depends_on("kokkos@4.4.01", when="@master: +kokkos")
+    depends_on("kokkos@4.3.01", when="@16.0.0 +kokkos")
     depends_on("kokkos@4.2.01", when="@15.1.0:15.1.1 +kokkos")
     depends_on("kokkos@4.1.00", when="@14.4.0:15.0.0 +kokkos")
 
@@ -425,7 +434,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("cgns", when="+exodus")
     depends_on("cmake@3.23:", type="build", when="@14.0.0:")
     depends_on("hdf5+hl", when="+hdf5")
-    for plat in ["cray", "darwin", "linux"]:
+    for plat in ["darwin", "linux"]:
         depends_on("hypre~internal-superlu~int64", when="+hypre platform=%s" % plat)
     depends_on("hypre-cmake~int64", when="+hypre platform=windows")
     depends_on("kokkos-nvcc-wrapper", when="+wrapper")
@@ -449,7 +458,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("scalapack", when="+mumps")
     depends_on("scalapack", when="+strumpack+mpi")
     depends_on("strumpack+shared", when="+strumpack")
-    depends_on("suite-sparse", when="+suite-sparse")
+    depends_on("suite-sparse@:7.3.1", when="+suite-sparse")
     depends_on("superlu-dist", when="+superlu-dist")
     depends_on("superlu@3:5.2", when="@12.18.1: +superlu")
     depends_on("superlu@3:5.1.1", when="@12.14.1 +superlu")
@@ -507,6 +516,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
         "0001-use-the-gcnArchName-inplace-of-gcnArch-as-gcnArch-is.patch",
         when="@15.0.0 ^hip@6.0 +rocm",
     )
+    patch("cstdint_gcc13.patch", when="@13.4.0:13.4.1 %gcc@13.0.0:")
 
     # Allow building with +teko gotype=long
     patch(
@@ -543,7 +553,11 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
                 flags.append("-Wl,-undefined,dynamic_lookup")
 
             # Fortran lib (assumes clang is built with gfortran!)
-            if "+fortran" in spec and spec.compiler.name in ["gcc", "clang", "apple-clang"]:
+            if spec.satisfies("+fortran") and (
+                spec.satisfies("%gcc")
+                or spec.satisfies("%clang")
+                or spec.satisfies("%apple-clang")
+            ):
                 fc = Executable(self.compiler.fc)
                 libgfortran = fc(
                     "--print-file-name", "libgfortran." + dso_suffix, output=str
@@ -604,6 +618,30 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         define = self.define
         define_from_variant = self.define_from_variant
+
+        if self.spec.satisfies("@master: +kokkos"):
+            with open(
+                os.path.join(self.stage.source_path, "packages", "kokkos", "CMakeLists.txt")
+            ) as f:
+                all_txt = f.read()
+            r = dict(
+                re.findall(r".*set\s?\(\s?Kokkos_VERSION_(MAJOR|MINOR|PATCH)\s?(\d+)", all_txt)
+            )
+            kokkos_version_in_trilinos_source = Version(
+                ".".join([r["MAJOR"], r["MINOR"], r["PATCH"].zfill(2)])
+            )
+            kokkos_version_specified = spec["kokkos"].version
+            if kokkos_version_in_trilinos_source != kokkos_version_specified:
+                raise InstallError(
+                    "For Trilinos@[master,develop], ^kokkos version in spec must "
+                    "match version in Trilinos source code. Specify ^kokkos@{0} ".format(
+                        kokkos_version_in_trilinos_source
+                    )
+                    + "for trilinos@[master,develop] instead of ^kokkos@{0}.\n".format(
+                        kokkos_version_specified
+                    )
+                    + "Trilinos recipe maintainers, please update the ^kokkos version range"
+                )
 
         def _make_definer(prefix):
             def define_enable(suffix, value=None):
@@ -978,6 +1016,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
                     [
                         define_kok_enable("CUDA_UVM", use_uvm),
                         define_kok_enable("CUDA_LAMBDA", True),
+                        define_kok_enable("CUDA_CONSTEXPR", "cuda_constexpr"),
                         define_kok_enable("CUDA_RELOCATABLE_DEVICE_CODE", "cuda_rdc"),
                     ]
                 )

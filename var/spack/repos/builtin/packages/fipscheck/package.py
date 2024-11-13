@@ -17,6 +17,8 @@ class Fipscheck(AutotoolsPackage):
     version("7.0.0.397", sha256="6bce42faabf372d08b6f8fadb4fa9e65671bebf6c0c91eab8c59ae96b1e7d600")
     version("7.0.0.396", sha256="058aafac78f3c0c5b65107686538b09eeb52cbb9b7ede688f3502df7d69c1209")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

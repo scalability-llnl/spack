@@ -18,6 +18,8 @@ class Batchedblas(MakefilePackage):
 
     version("1.0", sha256="798ae4e7cc4ad5c3d5f3479f3d001da566d7d5205779103aaf10cd5b956ba433")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("blas")
 
     patch("AVX2.patch")

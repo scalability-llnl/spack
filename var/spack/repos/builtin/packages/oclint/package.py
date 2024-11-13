@@ -18,6 +18,8 @@ class Oclint(Package):
 
     version("0.13", sha256="a0fd188673863e6357d6585b9bb9c3affe737df134b9383a1a5ed021d09ed848")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python", type=("build"))
     depends_on("git", type=("build"))
     depends_on("subversion", type=("build"))

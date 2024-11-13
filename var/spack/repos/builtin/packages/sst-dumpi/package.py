@@ -30,6 +30,10 @@ class SstDumpi(AutotoolsPackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("autoconf@1.68:", type="build")
     depends_on("automake@1.11.1:", type="build")
     depends_on("libtool@1.2.4:", type="build")

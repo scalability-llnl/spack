@@ -25,7 +25,7 @@ class Astral(Package):
     )
     version("4.10.7", sha256="314b49e0129ec06a7c78a1b60d590259ede6a5e75253407031e108d8048fcc79")
 
-    depends_on("java", type=("build", "run"))
+    depends_on("java@11", type=("build", "run"))
     depends_on("zip", type="build")
 
     def install(self, spec, prefix):

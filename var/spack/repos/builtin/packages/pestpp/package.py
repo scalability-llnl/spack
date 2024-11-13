@@ -20,6 +20,10 @@ class Pestpp(CMakePackage):
     version("5.2.3", sha256="6b86a7db863a034e730480046a4b7b4a8dc7cc798658a5404a961be379c05dc3")
     version("5.0.5", sha256="b9695724758f69c1199371608b01419973bd1475b1788039a2fab6313f6ed67c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI support")
 
     depends_on("cmake@3.9:", type="build")

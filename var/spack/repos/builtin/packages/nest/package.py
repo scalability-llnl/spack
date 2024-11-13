@@ -22,6 +22,9 @@ class Nest(CMakePackage):
     version("3.0", sha256="d481ea67f3251fe3aadf5252ab0a999172f0cd5536c5985366d271d772e686e6")
     version("2.20.1", sha256="df3d32b5899d5d444f708037b290f889ac6ff8eae6b7be9e9faee2c0d660d8e5")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     maintainers("ikitayama")
 
     variant("python", default=False, description="Build the PyNest interface")
@@ -50,7 +53,7 @@ class Nest(CMakePackage):
 
     depends_on("gsl", when="+gsl")
     depends_on("readline")
-    depends_on("libtool")
+    depends_on("libtool", type="link")  # links against libltdl
     depends_on("pkgconfig", type="build")
 
     extends("python", when="+python")

@@ -1,0 +1,5 @@
+{
+  "name": "Ubuntu 20.04",
+  "image": "ghcr.io/spack/ubuntu20.04-runner-amd64-gcc-11.4:2023.08.01",
+  "postCreateCommand": "./.devcontainer/postCreateCommand.sh"
+}

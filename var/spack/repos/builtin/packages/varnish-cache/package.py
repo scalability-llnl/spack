@@ -20,6 +20,8 @@ class VarnishCache(AutotoolsPackage):
     version("6.3.0", sha256="c7170d4bc57f1d2454da046fc5e43e2d19a804448d2dd839fa5c33f76bd677bb")
     version("6.2.3", sha256="64cd273aa155c78c21e74def53622be5920c8a7d952fee74f0663e57a01c9a9d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

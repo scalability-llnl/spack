@@ -20,6 +20,8 @@ class Nauty(AutotoolsPackage):
 
     version("2.6r7", sha256="97b5648de17645895cbd56a9a0b3e23cf01f5332c476d013ea459f1a0363cdc6")
 
+    depends_on("c", type="build")  # generated
+
     # Debian/ Fedora patches for @2.6r7:
     urls_for_patches = {
         "@2.6r7": [

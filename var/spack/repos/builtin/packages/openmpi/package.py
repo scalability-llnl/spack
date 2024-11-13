@@ -44,10 +44,16 @@ class Openmpi(AutotoolsPackage, CudaPackage):
 
     # Current
     version(
-        "5.0.3", sha256="990582f206b3ab32e938aa31bbf07c639368e4405dca196fabe7f0f76eeda90b"
-    )  # libmpi.so.40.40.3
+        "5.0.5", sha256="6588d57c0a4bd299a24103f4e196051b29e8b55fbda49e11d5b3d32030a32776"
+    )  # libmpi.so.40.40.5
 
     # Still supported
+    version(
+        "5.0.4", sha256="64526852cdd88b2d30e022087c16ab3e03806c451b10cd691d5c1ac887d8ef9d"
+    )  # libmpi.so.40.40.4
+    version(
+        "5.0.3", sha256="990582f206b3ab32e938aa31bbf07c639368e4405dca196fabe7f0f76eeda90b"
+    )  # libmpi.so.40.40.3
     version(
         "5.0.2", sha256="ee46ad8eeee2c3ff70772160bff877cbf38c330a0bc3b3ddc811648b3396698f"
     )  # libmpi.so.40.40.2
@@ -388,6 +394,10 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         "1.0", sha256="cf75e56852caebe90231d295806ac3441f37dc6d9ad17b1381791ebb78e21564"
     )  # libmpi.so.0.0.0
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     patch("ad_lustre_rwcontig_open_source.patch", when="@1.6.5")
     patch("llnl-platforms.patch", when="@1.6.5")
     patch("configure.patch", when="@1.10.1")
@@ -433,16 +443,11 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     patch("btlsmcuda-fix-problem-with-makefile.patch", when="@5.0.0")
     patch("accelerator-build-components-as-dso-s-by-default.patch", when="@5.0.0:5.0.1")
 
-    # Patch to allow two-level namespace on a MacOS platform when building
-    # openmpi. Unfortuntately, the openmpi configure command has flat namespace
-    # hardwired in. In spack, this only works for openmpi up to versions 4,
-    # because for versions 5+ autoreconf is triggered (see below) and this
-    # patch needs to be applied (again) AFTER autoreconf ran.
-    def patch(self):
-        spec = self.spec
-        if "+two_level_namespace" in spec and spec.satisfies("platform=darwin"):
-            print("Applying configure patch for two_level_namespace on MacOS")
-            filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
+    # OpenMPI 5.0.0-5.0.3 needs to change PMIX version check to compile w/ PMIX > 4.2.5
+    # https://github.com/open-mpi/ompi/issues/12537#issuecomment-2103350910
+    # https://github.com/openpmix/prrte/pull/1957
+    patch("pmix_getline_pmix_version.patch", when="@5.0.0:5.0.3")
+    patch("pmix_getline_pmix_version-prte.patch", when="@5.0.3")
 
     variant(
         "fabrics",
@@ -476,7 +481,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     )
 
     # Additional support options
-    variant("atomics", default=False, description="Enable built-in atomics")
+    variant("atomics", default=True, description="Enable built-in atomics")
     variant("java", default=False, when="@1.7.4:", description="Build Java support")
     variant("static", default=False, description="Build static libraries")
     variant("sqlite3", default=False, when="@1.7.3:1", description="Build SQLite3 support")
@@ -537,6 +542,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     variant(
         "orterunprefix",
         default=False,
+        when="@1.3:4",
         description="Prefix Open MPI to PATH and LD_LIBRARY_PATH on local and remote hosts",
     )
     # Adding support to build a debug version of OpenMPI that activates
@@ -555,6 +561,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     variant(
         "legacylaunchers",
         default=False,
+        when="@1.6:4 schedulers=slurm",
         description="Do not remove mpirun/mpiexec when building with slurm",
     )
     # Variants to use internal packages
@@ -562,6 +569,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     variant("internal-pmix", default=False, description="Use internal pmix")
     variant("internal-libevent", default=False, description="Use internal libevent")
     variant("openshmem", default=False, description="Enable building OpenSHMEM")
+    variant("debug", default=False, description="Make debug build", when="build_system=autotools")
 
     variant(
         "two_level_namespace",
@@ -572,9 +580,19 @@ with '-Wl,-commons,use_dylibs' and without
 '-Wl,-flat_namespace'.""",
     )
 
-    provides("mpi")
-    provides("mpi@:2.2", when="@1.6.5")
-    provides("mpi@:3.0", when="@1.7.5:")
+    # Patch to allow two-level namespace on a MacOS platform when building
+    # openmpi. Unfortuntately, the openmpi configure command has flat namespace
+    # hardwired in. In spack, this only works for openmpi up to versions 4,
+    # because for versions 5+ autoreconf is triggered (see below) and this
+    # patch needs to be applied (again) AFTER autoreconf ran.
+    @when("+two_level_namespace platform=darwin")
+    def patch(self):
+        filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
+
+    provides("mpi@:2.0", when="@:1.2")
+    provides("mpi@:2.1", when="@1.3:1.7.2")
+    provides("mpi@:2.2", when="@1.7.3:1.7.4")
+    provides("mpi@:3.0", when="@1.7.5:1.10.7")
     provides("mpi@:3.1", when="@2.0.0:")
 
     if sys.platform != "darwin":
@@ -668,11 +686,6 @@ with '-Wl,-commons,use_dylibs' and without
     # knem support was added in 1.5
     conflicts("fabrics=knem", when="@:1.4")
 
-    conflicts(
-        "schedulers=slurm ~pmi",
-        when="@1.5.4",
-        msg="+pmi is required for openmpi to work with Slurm.",
-    )
     conflicts(
         "schedulers=loadleveler",
         when="@3:",
@@ -996,18 +1009,26 @@ with '-Wl,-commons,use_dylibs' and without
     def autoreconf(self, spec, prefix):
         perl = which("perl")
         perl("autogen.pl")
+        if spec.satisfies("+two_level_namespace platform=darwin"):
+            print("Re-applying configure patch for two_level_namespace on MacOS after autoreconf")
+            filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     @when("@5.0.0:5.0.1")
     def autoreconf(self, spec, prefix):
         perl = which("perl")
         perl("autogen.pl", "--force")
-        if "+two_level_namespace" in spec and spec.satisfies("platform=darwin"):
+        if spec.satisfies("+two_level_namespace platform=darwin"):
             print("Re-applying configure patch for two_level_namespace on MacOS after autoreconf")
             filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     def configure_args(self):
         spec = self.spec
         config_args = ["--enable-shared", "--disable-silent-rules", "--disable-sphinx"]
+
+        # Work around incompatibility with new apple-clang linker
+        # https://github.com/open-mpi/ompi/issues/12427
+        if spec.satisfies("@:4.1.6,5.0.0:5.0.3 %apple-clang@15:"):
+            config_args.append("--with-wrapper-fcflags=-Wl,-ld_classic")
 
         # All rpath flags should be appended with self.compiler.cc_rpath_arg.
         # Later, we might need to update share/openmpi/mpic++-wrapper-data.txt
@@ -1032,9 +1053,9 @@ with '-Wl,-commons,use_dylibs' and without
             config_args.append("--enable-mca-no-build=plm-rsh")
 
         # Useful for ssh-based environments
-        if spec.satisfies("@1.3:"):
-            if spec.satisfies("+orterunprefix"):
-                config_args.append("--enable-orterun-prefix-by-default")
+        # For v4 and lower
+        if spec.satisfies("+orterunprefix"):
+            config_args.append("--enable-orterun-prefix-by-default")
 
         # some scientific packages ignore deprecated/remove symbols. Re-enable
         # them for now, for discussion see
@@ -1047,7 +1068,7 @@ with '-Wl,-commons,use_dylibs' and without
             config_args.extend(self.with_or_without("fabrics"))
 
         if spec.satisfies("@2.0.0:"):
-            if "fabrics=xpmem platform=cray" in spec:
+            if "fabrics=xpmem" in spec:
                 config_args.append("--with-cray-xpmem")
             else:
                 config_args.append("--without-cray-xpmem")
@@ -1055,6 +1076,9 @@ with '-Wl,-commons,use_dylibs' and without
         # Schedulers
         if "schedulers=auto" not in spec:
             config_args.extend(self.with_or_without("schedulers"))
+
+        if spec.satisfies("schedulers=lsf"):
+            config_args.append("--with-lsf-libdir={0}".format(spec["lsf"].libs.directories[0]))
 
         config_args.extend(self.enable_or_disable("memchecker"))
         if spec.satisfies("+memchecker"):
@@ -1162,26 +1186,14 @@ with '-Wl,-commons,use_dylibs' and without
                 config_args.append("--disable-wrapper-runpath")
 
             # Add extra_rpaths and implicit_rpaths into the wrappers.
-            if wrapper_ldflags and any(self.compiler.linker_arg in x for x in wrapper_ldflags):
-                for i in range(len(wrapper_ldflags)):
-                    if wrapper_ldflags[i].startswith(self.compiler.linker_arg):
-                        rpaths = ",".join(
-                            self.compiler.extra_rpaths + self.compiler.implicit_rpaths()
-                        )
-                        # Remove leading '-Wl'
-                        rpaths = (self.compiler.cc_rpath_arg + rpaths).lstrip(
-                            self.compiler.linker_arg
-                        )
-                        wrapper_ldflags[i] += "{}".format(rpaths)
-            else:
-                wrapper_ldflags.extend(
-                    [
-                        self.compiler.cc_rpath_arg + path
-                        for path in itertools.chain(
-                            self.compiler.extra_rpaths, self.compiler.implicit_rpaths()
-                        )
-                    ]
-                )
+            wrapper_ldflags.extend(
+                [
+                    self.compiler.cc_rpath_arg + path
+                    for path in itertools.chain(
+                        self.compiler.extra_rpaths, self.compiler.implicit_rpaths()
+                    )
+                ]
+            )
         else:
             config_args.append("--disable-wrapper-rpath")
             config_args.append("--disable-wrapper-runpath")
@@ -1208,6 +1220,25 @@ with '-Wl,-commons,use_dylibs' and without
 
         #       if spec.satisfies("@5.0.0:") and spec.satisfies("%oneapi"):
         #           config_args.append("--disable-io-romio")
+
+        # https://www.intel.com/content/www/us/en/developer/articles/release-notes/oneapi-c-compiler-release-notes.html :
+        # Key Features in Intel C++ Compiler Classic 2021.7
+        #
+        # The Intel C++ Classic Compiler is deprecated and an additional
+        # diagnostic message will be output with each invocation. This
+        # diagnostic may impact expected output during compilation. For
+        # example, using the compiler to produce preprocessed information
+        # (icpc -E) will produce the additional deprecation diagnostic,
+        # interfering with the expected preprocessed output.
+        #
+        # This output can be disabled by using -diag-disable=10441 on
+        # Linux/macOS or /Qdiag-disable:10441 on Windows. You can add this
+        # option on the command line, configuration file or option setting
+        # environment variables.
+        if spec.satisfies("%intel@2021.7.0:"):
+            config_args.append("CPPFLAGS=-diag-disable=10441")
+
+        config_args += self.enable_or_disable("debug")
 
         return config_args
 
@@ -1258,6 +1289,7 @@ with '-Wl,-commons,use_dylibs' and without
         if self.compiler.name == "nag":
             x.filter("-Wl,--enable-new-dtags", "", string=True, backup=False)
 
+    # For v4 and lower
     @run_after("install")
     def delete_mpirun_mpiexec(self):
         # The preferred way to run an application when Slurm is the
@@ -1267,7 +1299,7 @@ with '-Wl,-commons,use_dylibs' and without
         # applications via mpirun or mpiexec, and leaves srun as the
         # only sensible choice (orterun is still present, but normal
         # users don't know about that).
-        if "@1.6: ~legacylaunchers schedulers=slurm" in self.spec:
+        if self.spec.satisfies("~legacylaunchers schedulers=slurm"):
             exe_list = [
                 self.prefix.bin.mpirun,
                 self.prefix.bin.mpiexec,
@@ -1289,7 +1321,7 @@ with '-Wl,-commons,use_dylibs' and without
         Copy the example files after the package is installed to an
         install test subdirectory for use during `spack test run`.
         """
-        self.cache_extra_test_sources(self.extra_install_tests)
+        cache_extra_test_sources(self, self.extra_install_tests)
 
     def run_installed_binary(self, bin, options, expected):
         """run and check outputs for the installed binary"""
@@ -1307,7 +1339,7 @@ with '-Wl,-commons,use_dylibs' and without
         self.run_installed_binary("mpirun", options, [f"openmpi-{self.spec.version}"])
 
     def test_opmpi_info(self):
-        """test installed mpirun"""
+        """test installed ompi_info"""
         self.run_installed_binary("ompi_info", [], [f"Ident string: {self.spec.version}", "MCA"])
 
     def test_version(self):

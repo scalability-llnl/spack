@@ -13,9 +13,9 @@ import llnl.util.tty as tty
 
 import spack.config
 import spack.environment as ev
-import spack.repo
+import spack.error
 import spack.schema.env
-import spack.schema.packages
+import spack.spec
 import spack.store
 import spack.util.spack_yaml as syaml
 from spack.cmd.common import arguments
@@ -156,7 +156,7 @@ def print_flattened_configuration(*, blame: bool) -> None:
     """
     env = ev.active_environment()
     if env is not None:
-        pristine = env.manifest.pristine_yaml_content
+        pristine = env.manifest.yaml_content
         flattened = pristine.copy()
         flattened[spack.schema.env.TOP_LEVEL_KEY] = pristine[spack.schema.env.TOP_LEVEL_KEY].copy()
     else:
@@ -256,7 +256,7 @@ def config_remove(args):
         existing.pop(value, None)
     else:
         # This should be impossible to reach
-        raise spack.config.ConfigError("Config has nested non-dict values")
+        raise spack.error.ConfigError("Config has nested non-dict values")
 
     spack.config.set(path, existing, scope)
 
@@ -264,7 +264,9 @@ def config_remove(args):
 def _can_update_config_file(scope: spack.config.ConfigScope, cfg_file):
     if isinstance(scope, spack.config.SingleFileScope):
         return fs.can_access(cfg_file)
-    return fs.can_write_to_dir(scope.path) and fs.can_access(cfg_file)
+    elif isinstance(scope, spack.config.DirectoryConfigScope):
+        return fs.can_write_to_dir(scope.path) and fs.can_access(cfg_file)
+    return False
 
 
 def _config_change_requires_scope(path, spec, scope, match_spec=None):
@@ -338,7 +340,7 @@ def _config_change(config_path, match_spec_str=None):
         if not changed:
             existing_requirements = spack.config.get(key_path)
             if isinstance(existing_requirements, str):
-                raise spack.config.ConfigError(
+                raise spack.error.ConfigError(
                     "'config change' needs to append a requirement,"
                     " but existing require: config is not a list"
                 )
@@ -362,14 +364,11 @@ def config_change(args):
 def config_update(args):
     # Read the configuration files
     spack.config.CONFIG.get_config(args.section, scope=args.scope)
-    updates: List[spack.config.ConfigScope] = list(
-        filter(
-            lambda s: not isinstance(
-                s, (spack.config.InternalConfigScope, spack.config.ImmutableConfigScope)
-            ),
-            spack.config.CONFIG.format_updates[args.section],
-        )
-    )
+    updates: List[spack.config.ConfigScope] = [
+        x
+        for x in spack.config.CONFIG.format_updates[args.section]
+        if not isinstance(x, spack.config.InternalConfigScope) and x.writable
+    ]
 
     cannot_overwrite, skip_system_scope = [], False
     for scope in updates:
@@ -447,7 +446,7 @@ def _can_revert_update(scope_dir, cfg_file, bkp_file):
 
 
 def config_revert(args):
-    scopes = [args.scope] if args.scope else [x.name for x in spack.config.CONFIG.file_scopes]
+    scopes = [args.scope] if args.scope else [x.name for x in spack.config.CONFIG.writable_scopes]
 
     # Search for backup files in the configuration scopes
     Entry = collections.namedtuple("Entry", ["scope", "cfg", "bkp"])
@@ -537,11 +536,11 @@ def config_prefer_upstream(args):
         # Get and list all the variants that differ from the default.
         variants = []
         for var_name, variant in spec.variants.items():
-            if var_name in ["patches"] or var_name not in spec.package.variants:
+            if var_name in ["patches"] or not spec.package.has_variant(var_name):
                 continue
 
-            variant_desc, _ = spec.package.variants[var_name]
-            if variant.value != variant_desc.default:
+            vdef = spec.package.get_variant(var_name)
+            if variant.value != vdef.default:
                 variants.append(str(variant))
         variants.sort()
         variants = " ".join(variants)

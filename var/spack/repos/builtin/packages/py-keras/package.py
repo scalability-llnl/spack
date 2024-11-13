@@ -5,6 +5,7 @@
 
 import tempfile
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -22,6 +23,10 @@ class PyKeras(PythonPackage):
     maintainers("adamjstewart")
     license("Apache-2.0")
 
+    version("3.6.0", sha256="405727525a3522ed8f9ec0b46e0667e4c65fcf714a067322c16a00d902ded41d")
+    version("3.5.0", sha256="53ae4f9472ec9d9c6941c82a3fda86969724ace3b7630a94ba0a1f17ba1065c3")
+    version("3.4.1", sha256="34cd9aeaa008914715149234c215657ca758e1b473bd2aab2e211ac967d1f8fe")
+    version("3.4.0", sha256="c4b05b150b1c4df27b4a17efd137b2d5e20f385f146fd48636791d675e75059d")
     version("3.3.3", sha256="f2fdffc8434fd77045cf8fb21816dbaa2308d5f76974ca924b2f60b40433b1a0")
     version("3.3.2", sha256="e7e2ccba2dfe2cf10b82e3c75ea971b82a4c62560dc562c43b33f7790127c92f")
     version("3.3.1", sha256="03531beb01b108b867683762ceaacd0f28efc40cb92eee3c8c988b80cf718bbe")
@@ -83,6 +88,7 @@ class PyKeras(PythonPackage):
         depends_on("py-h5py")
         depends_on("py-optree", when="@3.1:")
         depends_on("py-ml-dtypes", when="@3.0.5:")
+        depends_on("py-packaging", when="@3.4:")
 
         # requirements-common.txt
         depends_on("py-scipy")
@@ -91,21 +97,30 @@ class PyKeras(PythonPackage):
         depends_on("py-protobuf", when="@3:")
 
         # requirements-tensorflow-cuda.txt
-        depends_on("py-tensorflow@2.16.1:2.16", when="@3.0: backend=tensorflow")
+        with when("backend=tensorflow"):
+            depends_on("py-tensorflow@2.17", when="@3.5:")
+            depends_on("py-tensorflow@2.16.1:2.16", when="@3.0:3.4")
 
         # requirements-jax-cuda.txt
-        depends_on("py-jax@0.4.23", when="@3.0.5: backend=jax")
-        depends_on("py-jax", when="@3: backend=jax")
+        with when("backend=jax"):
+            depends_on("py-jax@0.4.28", when="@3.6:")
+            depends_on("py-jax@0.4.23", when="@3.0.5:3.5")
+            depends_on("py-jax", when="@3:")
 
         # requirements-torch-cuda.txt
-        depends_on("py-torch@2.2.1", when="@3.1.0: backend=torch")
-        depends_on("py-torch@2.1.2", when="@3.0.3:3.0.5 backend=torch")
-        depends_on("py-torch@2.1.1", when="@3.0.1:3.0.2 backend=torch")
-        depends_on("py-torch@2.1.0", when="@3.0.0 backend=torch")
-        depends_on("py-torchvision@0.17.1", when="@3.1.0: backend=torch")
-        depends_on("py-torchvision@0.16.2", when="@3.0.3:3.0.5 backend=torch")
-        depends_on("py-torchvision@0.16.1", when="@3.0.1:3.0.2 backend=torch")
-        depends_on("py-torchvision@0.16.0", when="@3.0.0 backend=torch")
+        with when("backend=torch"):
+            depends_on("py-torch@2.4.1", when="@3.6:")
+            depends_on("py-torch@2.4.0", when="@3.5")
+            depends_on("py-torch@2.2.1", when="@3.1:3.4")
+            depends_on("py-torch@2.1.2", when="@3.0.3:3.0.5")
+            depends_on("py-torch@2.1.1", when="@3.0.1:3.0.2")
+            depends_on("py-torch@2.1.0", when="@3.0.0")
+            depends_on("py-torchvision@0.19.1", when="@3.6:")
+            depends_on("py-torchvision@0.19.0", when="@3.5")
+            depends_on("py-torchvision@0.17.1", when="@3.1:3.4")
+            depends_on("py-torchvision@0.16.2", when="@3.0.3:3.0.5")
+            depends_on("py-torchvision@0.16.1", when="@3.0.1:3.0.2")
+            depends_on("py-torchvision@0.16.0", when="@3.0.0")
 
     # Historical dependencies
     with default_args(type="build"):
@@ -115,6 +130,8 @@ class PyKeras(PythonPackage):
     with default_args(type=("build", "run")):
         depends_on("pil", when="@:2")
         depends_on("py-dm-tree", when="@3.0")
+        # https://github.com/keras-team/keras/issues/19691
+        depends_on("py-numpy@:1", when="@:3.4")
         depends_on("py-portpicker", when="@2.10:2")
         depends_on("py-pydot", when="@:2")
         depends_on("py-pyyaml", when="@:2")
@@ -183,6 +200,5 @@ class PyKeras(PythonPackage):
         build_pip_package("--src", buildpath)
 
         with working_dir(buildpath):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         remove_linked_tree(self.tmp_path)

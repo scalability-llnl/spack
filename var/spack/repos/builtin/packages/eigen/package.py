@@ -36,6 +36,10 @@ class Eigen(CMakePackage):
     version("3.2.6", sha256="e097b8dcc5ad30d40af4ad72d7052e3f78639469baf83cffaadc045459cda21f")
     version("3.2.5", sha256="8068bd528a2ff3885eb55225c27237cf5cda834355599f05c2c85345db8338b4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # there is a bug that provokes bad parsing of nvhpc version
     patch(
         "https://gitlab.com/libeigen/eigen/-/commit/001a57519a7aa909d3bf0cd8c6ec8a9cd19d9c70.diff",

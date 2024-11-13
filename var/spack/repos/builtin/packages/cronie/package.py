@@ -19,6 +19,8 @@ class Cronie(AutotoolsPackage):
     version("1.6.1", sha256="1ddbc8f8d07dfe1d45998b0a0cbd9a216cd4d7bc64d1626b2bc8b3a69e4641d1")
     version("1.5.5", sha256="22c2a2b22577c0f776c1268d0e0f305c5c041e10155022a345b43b665da0ffe9")
 
+    depends_on("c", type="build")  # generated
+
     def autoreconf(self, spec, prefix):
         bash = which("bash")
         bash("./autogen.sh")

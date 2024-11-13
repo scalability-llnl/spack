@@ -18,6 +18,8 @@ class PerlSerealDecoder(PerlPackage):
 
     version("5.004", sha256="68ef0314d87d1a6e60bb0f66fcf43eb2cacdeb1754432f5e25e784e39d3e6784")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl@5.8.0:", type=("build", "link", "run", "test"))
     depends_on("perl-devel-checklib@1.16:", type=("build"))
     depends_on("perl-test-deep", type=("build", "link", "test"))
