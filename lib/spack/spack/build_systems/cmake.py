@@ -347,7 +347,7 @@ class CMakeBuilder(BaseBuilder):
         if self.spec.satisfies("generator=ninja"):
             return "Ninja"
         raise ValueError(
-            f"{self.spec.format()} has an unsupported value " 'for the "generator" variant'
+            f'{self.spec.format()} has an unsupported value for the "generator" variant'
         )
 
     @property
