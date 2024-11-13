@@ -100,7 +100,13 @@ def run_command_in_subshell(
 
     if cd_arg:
         prefix = "-" if len(cd_arg) == 1 else "--"
-        location = location_emulator(f"{prefix}{cd_arg}", f"/{spec.dag_hash()}")
+        loc_args = [f"{prefix}{cd_arg}"]
+
+        # don't add spec for cd if using env since spec hash is not the env
+        if not (cd_arg == "e" or cd_arg == "env"):
+            loc_args.append(f"/{spec.dag_hash()}")
+
+        location = location_emulator(*loc_args)
         os.chdir(location)
 
     os.execvp(cmd[0], cmd)
