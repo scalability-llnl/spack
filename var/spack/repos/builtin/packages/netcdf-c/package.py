@@ -9,7 +9,6 @@ import sys
 
 from llnl.util.lang import dedupe
 
-import spack.builder
 import spack.phase_callbacks
 from spack.build_systems import autotools, cmake
 from spack.package import *

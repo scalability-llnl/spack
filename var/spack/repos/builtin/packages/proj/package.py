@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import spack.builder
 import spack.phase_callbacks
 from spack.build_systems import autotools, cmake
 from spack.package import *

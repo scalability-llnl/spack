@@ -6,7 +6,6 @@ import os
 
 import llnl.util.filesystem as fs
 
-import spack.builder
 import spack.phase_callbacks
 from spack.build_systems import autotools, nmake
 from spack.package import *
