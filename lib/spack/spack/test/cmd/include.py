@@ -10,7 +10,11 @@ from spack.main import SpackCommand
 
 # TODO-27021
 # everything here uses the mock_env_path
-pytestmark = [pytest.mark.usefixtures("config", "mutable_mock_repo"), pytest.mark.maybeslow]
+pytestmark = [
+    pytest.mark.usefixtures("config", "mutable_mock_repo"),
+    pytest.mark.not_on_windows("Envs are not supported on windows"),
+    pytest.mark.maybeslow,
+]
 
 env = SpackCommand("env")
 add = SpackCommand("add")
