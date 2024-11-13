@@ -3839,25 +3839,26 @@ class SpecBuilder:
         self._splices.setdefault(parent_node, []).append(splice)
 
     def _resolve_automatic_splices(self):
-        """After all of the specs have been concretized, apply all immediate
-        splices in size order. This ensures that all dependencies are resolved
-        before their parents, allowing for maximal sharing and minimal copying.
+        """After all of the specs have been concretized, apply all immediate splices in size order.
+
+        This ensures that all dependencies are resolved before their parents, allowing for maximal
+        sharing and minimal copying.
         """
         fixed_specs = {}
-        node_counts = {}
+        path_counts = {}
 
         # Count and cache number of dependency paths in a spec
-        # Dependency paths proxies for node count for this algorithm and easier to compute
-        def node_count(spec: spack.spec.Spec):
+        # This proxies for node count and is easier to compute
+        def path_count(spec: spack.spec.Spec):
             assert spec.concrete
-            count = node_counts.get(id(spec), None)
+            count = path_counts.get(id(spec), None)
             if count is None:
-                count = 1 + sum(node_count(dep) for dep in spec.dependencies())
-                node_counts[id(spec)] = count
+                count = 1 + sum(path_count(dep) for dep in spec.dependencies())
+                path_counts[id(spec)] = count
             return count
 
         # iterate over specs sorted by their dep count
-        for node, spec in sorted(self._specs.items(), key=lambda x: node_count(x[1])):
+        for node, spec in sorted(self._specs.items(), key=lambda x: path_count(x[1])):
             immediate = self._splices.get(node, [])
             if not immediate and not any(
                 edge.spec in fixed_specs for edge in spec.edges_to_dependencies()
