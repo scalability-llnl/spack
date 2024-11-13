@@ -22,7 +22,6 @@ from llnl.util.filesystem import (
     install,
 )
 
-import spack.builder
 import spack.error
 import spack.phase_callbacks
 from spack.build_environment import dso_suffix

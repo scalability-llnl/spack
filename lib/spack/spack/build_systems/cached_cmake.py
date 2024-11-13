@@ -10,7 +10,6 @@ from typing import Tuple
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
-import spack.builder
 import spack.phase_callbacks
 
 from .cmake import CMakeBuilder, CMakePackage
