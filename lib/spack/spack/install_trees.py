@@ -91,7 +91,7 @@ def _guard_writes(event, args):
             # Skip instances of open() that function like fdopen
             return
         abs_path = os.path.abspath(path)
-        intent_to_modify = bool(set(mode) & set("wax"))
+        intent_to_modify = bool((set(mode) & set("wax")) or "r+" in mode)
         if abs_path.startswith(paths.prefix) and intent_to_modify:
             _attempted_modify_internal(f"Open {path} in mode [{mode}]")
     elif event == "shutil.copyfile":
