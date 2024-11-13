@@ -16,11 +16,11 @@ import spack.paths as paths
 
 install_root = None
 
-_old_installs_base = os.path.join(paths.internal_opt_path, "spack")
+_old_install_base = os.path.join("prefix", "opt", "spack")
 
-default_install_base = os.path.join(paths.per_spack_user_root, "installs")
+_default_install_base = os.path.join(paths.per_spack_user_root, "installs")
 
-alias = {".root": _old_installs_base, ".user": default_install_base}
+alias = {".root": _old_install_base, ".user": _default_install_base}
 
 
 def install_tree():
@@ -36,12 +36,12 @@ def install_tree():
         # User can e.g. say --install-root=.root to refer to
         # the installation tree inside of the Spack prefix
         return alias.get(install_root, install_root)
-    elif paths.dir_is_occupied(default_install_base):
-        return default_install_base
-    elif paths.dir_is_occupied(_old_installs_base):
-        return _old_installs_base
+    elif paths.dir_is_occupied(_default_install_base):
+        return _default_install_base
+    elif paths.dir_is_occupied(_old_install_base):
+        return _old_install_base
     else:
-        return default_install_base
+        return _default_install_base
 
 
 def install_tree_config():

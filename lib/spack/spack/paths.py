@@ -76,6 +76,17 @@ share_path = os.path.join(prefix, "share", "spack")
 etc_path = os.path.join(prefix, "etc", "spack")
 
 
+#
+# Things in $spack/etc/spack
+#
+default_license_dir = os.path.join(etc_path, "licenses")
+
+#
+# Things in $spack/var/spack
+#
+read_var_path = os.path.join(prefix, "var", "spack")
+
+
 def user_root():
     """Default install tree and config scope.
 
@@ -89,22 +100,9 @@ def user_root():
 
 per_spack_user_root = str(user_root())
 
-#
-# Things in $spack/etc/spack
-#
-default_license_dir = os.path.join(etc_path, "licenses")
-
-#
-# Things in $spack/var/spack
-#
-read_var_path = os.path.join(prefix, "var", "spack")
-
-internal_opt_path = os.path.join(prefix, "opt")
-
-if dir_is_occupied(internal_opt_path):
-    opt_path = internal_opt_path
-else:
-    opt_path = os.path.join(per_spack_user_root, "opt")
+#: transient caches for Spack data (virtual cache, patch sha256 lookup, etc.)
+#: placed in per-spack-instance user root
+default_misc_cache_path = os.path.join(per_spack_user_root, "cache")
 
 if dir_is_occupied(read_var_path, except_for={"repos", "gpg.mock"}):
     var_path = read_var_path
@@ -118,7 +116,13 @@ for module_dir in ["lmod", "modules"]:
 if not modules_base:
     modules_base = os.path.join(per_spack_user_root, "modules")
 
-# TODO: can shutil.mv everything in {opt, var} except installs into new user root
+old_envs_path = os.path.join(var_path, "environments")
+if dir_is_occupied(old_envs_path):
+    envs_path = old_envs_path
+else:
+    envs_path = os.path.join(per_spack_user_root, "environments")
+
+# TODO: we could shutil.mv resources from old paths to new paths
 
 # read-only things in $spack/var/spack
 repos_path = os.path.join(read_var_path, "repos")
@@ -130,8 +134,6 @@ mock_packages_path = os.path.join(repos_path, "builtin.mock")
 gpg_keys_path = os.path.join(var_path, "gpg")
 mock_gpg_data_path = os.path.join(read_var_path, "gpg.mock", "data")
 mock_gpg_keys_path = os.path.join(read_var_path, "gpg.mock", "keys")
-gpg_path = os.path.join(opt_path, "spack", "gpg")
-
 
 # Below paths are where Spack can write information for the user.
 # Some are caches, some are not exactly caches.
@@ -165,9 +167,11 @@ user_repos_cache_path = os.path.join(user_cache_path, "git_repos")
 #: bootstrap store for bootstrapping clingo and other tools
 default_user_bootstrap_path = os.path.join(user_cache_path, "bootstrap")
 
-#: transient caches for Spack data (virtual cache, patch sha256 lookup, etc.)
-#: placed in per-spack-instance user root
-default_misc_cache_path = os.path.join(per_spack_user_root, "cache")
+old_gpg_path = os.path.join("prefix", "opt" "spack", "gpg")
+if dir_is_occupied(old_gpg_path):
+    gpg_path = old_gpg_path
+else:
+    gpg_path = os.path.join(user_cache_path, "gpg")
 
 #: Recorded directory where spack command was originally invoked
 spack_working_dir = None
