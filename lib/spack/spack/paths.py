@@ -38,7 +38,7 @@ def _get_system_config_path():
 def dir_is_occupied(x, except_for=None):
     x = pathlib.Path(x)
     except_for = except_for or set()
-    return not (x.is_dir() and bool(set(x.iterdir()) - except_for))
+    return x.is_dir() and bool(set(x.iterdir()) - except_for)
 
 
 #: User configuration location

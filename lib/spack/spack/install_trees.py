@@ -93,12 +93,17 @@ def _guard_writes(event, args):
         abs_path = os.path.abspath(path)
         intent_to_modify = bool(set(mode) & set("wax"))
         if abs_path.startswith(paths.prefix) and intent_to_modify:
-            _attempted_modify_internal(f"Open {path} in mode {mode}")
+            _attempted_modify_internal(f"Open {path} in mode [{mode}]")
     elif event == "shutil.copyfile":
-        src, dst = args[:2]
+        _, dst = args[:2]
         abs_dst = os.path.abspath(dst)
         if abs_dst.startswith(paths.prefix):
-            _attempted_modify_internal(f"Copy targets {abs_dst}")
+            _attempted_modify_internal(f"copy dst {abs_dst}")
+    elif event == "os.mkdir":
+        path = args[0]
+        abs_path = os.path.abspath(path)
+        if abs_path.startswith(paths.prefix):
+            _attempted_modify_internal(f"mkdir {abs_path}")
 
 
 def guard_writes_into_spack():
