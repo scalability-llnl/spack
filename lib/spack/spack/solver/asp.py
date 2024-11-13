@@ -3848,9 +3848,11 @@ class SpecBuilder:
         fixed_specs = {}
         topo_order = {
             id(spec): index
-            for index, spec in enumerate(traverse.traverse_nodes(
-                self.specs.values(), order="topo", key=traverse.by_dag_hash
-            ))
+            for index, spec in enumerate(
+                traverse.traverse_nodes(
+                    self._specs.values(), order="topo", key=traverse.by_dag_hash
+                )
+            )
         }
 
         # iterate over specs, children before parents
