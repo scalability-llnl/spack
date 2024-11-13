@@ -3854,7 +3854,7 @@ class SpecBuilder:
         }
 
         # iterate over specs, children before parents
-        for node, spec in sorted(self._specs.items(), key=lambda x: topo_order.index(id(x[1]))):
+        for node, spec in sorted(self._specs.items(), key=lambda x: topo_order[id(x[1])]):
             immediate = self._splices.get(node, [])
             if not immediate and not any(
                 edge.spec in fixed_specs for edge in spec.edges_to_dependencies()
