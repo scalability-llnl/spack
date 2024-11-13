@@ -172,7 +172,7 @@ class FluxSched(CMakePackage, AutotoolsPackage):
         return os.path.join("lib", "lua", str(self.lua_version))
 
     def setup_build_environment(self, env):
-        env.prepend_path("PYTHON", os.path.join(self.spec["python"].prefix.bin, "python3"))
+        env.set("PYTHON", self.spec["python"].command.path)
 
     def setup_run_environment(self, env):
         # If this package is external, we expect the external provider to set
