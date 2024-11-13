@@ -3846,7 +3846,8 @@ class SpecBuilder:
         fixed_specs = {}
         node_counts = {}
 
-        # Count and cache number of transitive dependencies in a spec
+        # Count and cache number of dependency paths in a spec
+        # Dependency paths proxies for node count for this algorithm and easier to compute
         def node_count(spec: spack.spec.Spec):
             assert spec.concrete
             count = node_counts.get(id(spec), None)
