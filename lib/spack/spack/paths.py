@@ -84,7 +84,7 @@ default_license_dir = os.path.join(etc_path, "licenses")
 #
 # Things in $spack/var/spack
 #
-read_var_path = os.path.join(prefix, "var", "spack")
+var_path = os.path.join(prefix, "var", "spack")
 
 
 def user_root():
@@ -104,11 +104,6 @@ per_spack_user_root = str(user_root())
 #: placed in per-spack-instance user root
 default_misc_cache_path = os.path.join(per_spack_user_root, "cache")
 
-if dir_is_occupied(read_var_path, except_for={"repos", "gpg.mock"}):
-    var_path = read_var_path
-else:
-    var_path = os.path.join(per_spack_user_root, "var", "spack")
-
 modules_base = None
 for module_dir in ["lmod", "modules"]:
     if dir_is_occupied(os.path.join(share_path, module_dir)):
@@ -124,16 +119,14 @@ else:
 
 # TODO: we could shutil.mv resources from old paths to new paths
 
-# read-only things in $spack/var/spack
-repos_path = os.path.join(read_var_path, "repos")
+# $spack/var/spack is generally read-only. Older instances may
+# write gpg keys or environments into ...var/
+repos_path = os.path.join(var_path, "repos")
 packages_path = os.path.join(repos_path, "builtin")
 mock_packages_path = os.path.join(repos_path, "builtin.mock")
 
-# GPG keys may be written into $spack/var/spack for older instances
-# of spack, but otherwise are written into $per_spack_user
-gpg_keys_path = os.path.join(var_path, "gpg")
-mock_gpg_data_path = os.path.join(read_var_path, "gpg.mock", "data")
-mock_gpg_keys_path = os.path.join(read_var_path, "gpg.mock", "keys")
+mock_gpg_data_path = os.path.join(var_path, "gpg.mock", "data")
+mock_gpg_keys_path = os.path.join(var_path, "gpg.mock", "keys")
 
 # Below paths are where Spack can write information for the user.
 # Some are caches, some are not exactly caches.
@@ -172,6 +165,12 @@ if dir_is_occupied(old_gpg_path):
     gpg_path = old_gpg_path
 else:
     gpg_path = os.path.join(user_cache_path, "gpg")
+
+old_gpg_keys_path = os.path.join(var_path, "gpg")
+if dir_is_occupied(old_gpg_keys_path):
+    gpg_keys_path = old_gpg_keys_path
+else:
+    gpg_keys_path = os.path.join(user_cache_path, "gpg-keys")
 
 #: Recorded directory where spack command was originally invoked
 spack_working_dir = None

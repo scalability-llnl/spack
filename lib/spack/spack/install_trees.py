@@ -16,7 +16,7 @@ import spack.paths as paths
 
 install_root = None
 
-_old_install_base = os.path.join("prefix", "opt", "spack")
+_old_install_base = os.path.join(paths.prefix, "opt", "spack")
 
 _default_install_base = os.path.join(paths.per_spack_user_root, "installs")
 
