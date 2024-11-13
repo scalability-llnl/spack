@@ -54,7 +54,6 @@ import spack.util.web
 import spack.variant
 from spack.error import InstallError, NoURLError, PackageError
 from spack.filesystem_view import YamlFilesystemView
-from spack.install_test import PackageTest, TestSuite
 from spack.solver.version_order import concretization_version_order
 from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite, compute_stage_name
 from spack.util.package_hash import package_hash
@@ -714,7 +713,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     test_requires_compiler: bool = False
 
     #: TestSuite instance used to manage stand-alone tests for 1+ specs.
-    test_suite: Optional["TestSuite"] = None
+    test_suite: Optional[Any] = None
 
     def __init__(self, spec):
         # this determines how the package should be built.
@@ -736,7 +735,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         # init internal variables
         self._stage: Optional[StageComposite] = None
         self._fetcher = None
-        self._tester: Optional["PackageTest"] = None
+        self._tester: Optional[Any] = None
 
         # Set up timing variables
         self._fetch_time = 0.0
@@ -1348,11 +1347,13 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
     @property
     def tester(self):
+        import spack.install_test
+
         if not self.spec.versions.concrete:
             raise ValueError("Cannot retrieve tester for package without concrete version.")
 
         if not self._tester:
-            self._tester = PackageTest(self)
+            self._tester = spack.install_test.PackageTest(self)
         return self._tester
 
     @property
