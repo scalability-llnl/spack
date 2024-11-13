@@ -3839,26 +3839,22 @@ class SpecBuilder:
         self._splices.setdefault(parent_node, []).append(splice)
 
     def _resolve_automatic_splices(self):
-        """After all of the specs have been concretized, apply all immediate splices in size order.
+        """After all of the specs have been concretized, apply all immediate splices.
 
-        This ensures that all dependencies are resolved before their parents, allowing for maximal
-        sharing and minimal copying.
+        Use reverse topological order to ensure that all dependencies are resolved
+        before their parents, allowing for maximal sharing and minimal copying.
+
         """
         fixed_specs = {}
-        path_counts = {}
+        topo_order = [
+            id(spec)
+            for spec in traverse.traverse_nodes(
+                self.specs.values(), order="topo", key=traverse.by_dag_hash
+            )
+        ]
 
-        # Count and cache number of dependency paths in a spec
-        # This proxies for node count and is easier to compute
-        def path_count(spec: spack.spec.Spec):
-            assert spec.concrete
-            count = path_counts.get(id(spec), None)
-            if count is None:
-                count = 1 + sum(path_count(dep) for dep in spec.dependencies())
-                path_counts[id(spec)] = count
-            return count
-
-        # iterate over specs sorted by their dep count
-        for node, spec in sorted(self._specs.items(), key=lambda x: path_count(x[1])):
+        # iterate over specs, children before parents
+        for node, spec in sorted(self._specs.items(), key=lambda x: topo_order.index(id(x[1]))):
             immediate = self._splices.get(node, [])
             if not immediate and not any(
                 edge.spec in fixed_specs for edge in spec.edges_to_dependencies()
