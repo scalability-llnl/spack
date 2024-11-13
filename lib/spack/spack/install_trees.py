@@ -82,6 +82,12 @@ def _attempted_modify_internal(msg):
 
 
 def _guard_writes(event, args):
+    # Note: this doesn't catch files opened in "r" mode and then
+    # later upgraded to "w" mode (e.g. our locks). I think to track
+    # that properly we would need to (a) patch builtins.open to
+    # map all paths to FDs as they are opened (and delete on close)
+    # and (b) audit fcntl.fcntl events, using reverse mapping on
+    # FD to check associated path
     if event == "open":
         path, mode = args[:2]
         if not mode:
