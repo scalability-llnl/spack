@@ -483,24 +483,31 @@ working in the subshell they can call ``exit`` to leave the build subshell.
 
 .. code-block:: console
 
+   # create and setup a spack environment for development
+   # ====
    $ spack env activate --temp
    $ spack add zlib-ng
    $ spack stage -p $SPACK_ENV zlib-ng
    $ spack develop zlib-ng
+   
+   # build and make changes
+   # =====
    $ spack install -u autoreconf zlib-ng
-   # fails
+   # [ fails ]
    $ spack dev-dive zlib-ng
-   # prompt changed, let's check the location is the build directory
+   # prompt changed, confirm the location is the build directory
    zlib-ng-build-env $ pwd
    /private/var/folders/ln/1_3kxbwd35s_ylsjlm3zmqmc00307v/T/spack-ne8_m488/zlib-ng
    # confirm build-env in case we forget where we are in subshell hierarchy
    zlib-ng-build-env $ spack build-env --status
    ==> In build env zlib-ng-wrsaadvkbg7rjj7kfjw5rhdrrfdswcmm
-   # fix code
+   # [ fix code ]
    zlib-ng-build-env $ make -j6
-   # builds  now
+   # [ builds  now ]
    zlib-ng-build-env $ exit
-   # no longer in the build environment
+
+   # exit subshell and rebuild environment 
+   # ====
    $ spack build-env --status
    ==> build environment not detected
    $ spack install
