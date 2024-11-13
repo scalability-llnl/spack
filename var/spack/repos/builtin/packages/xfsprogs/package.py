@@ -44,7 +44,10 @@ class Xfsprogs(AutotoolsPackage):
         env.append_path("C_INCLUDE_PATH", self.spec["util-linux"].prefix.include.blkid)
 
     def configure_args(self):
-        return ["--with-systemd-unit-dir=" + self.spec["xfsprogs"].prefix.lib.systemd.system]
+        args = ["--with-systemd-unit-dir=" + self.spec["xfsprogs"].prefix.lib.systemd.system]
+        if self.version >= Version("6.11.0"):
+            args.append("--with-udev-rule-dir=" + self.spec["xfsprogs"].prefix)
+        return args
 
     def install(self, spec, prefix):
         make("install")
