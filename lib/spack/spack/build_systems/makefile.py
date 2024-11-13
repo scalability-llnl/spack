@@ -9,6 +9,8 @@ import llnl.util.filesystem as fs
 import spack.builder
 import spack.package_base
 import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, conflicts, depends_on
 from spack.multimethod import when
 
@@ -92,27 +94,42 @@ class MakefileBuilder(BaseBuilder):
     install_time_test_callbacks = ["installcheck"]
 
     @property
-    def build_directory(self):
+    def build_directory(self) -> str:
         """Return the directory containing the main Makefile."""
         return self.pkg.stage.source_path
 
-    def edit(self, pkg, spec, prefix):
+    def edit(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Edit the Makefile before calling make. The default is a no-op."""
         pass
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Run "make" on the build targets specified by the builder."""
         with fs.working_dir(self.build_directory):
             pkg.module.make(*self.build_targets)
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Run "make" on the install targets specified by the builder."""
         with fs.working_dir(self.build_directory):
             pkg.module.make(*self.install_targets)
 
     spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
-    def check(self):
+    def check(self) -> None:
         """Run "make" on the ``test`` and ``check`` targets, if found."""
         with fs.working_dir(self.build_directory):
             self.pkg._if_make_target_execute("test")
@@ -120,7 +137,7 @@ class MakefileBuilder(BaseBuilder):
 
     spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
-    def installcheck(self):
+    def installcheck(self) -> None:
         """Searches the Makefile for an ``installcheck`` target
         and runs it if found.
         """

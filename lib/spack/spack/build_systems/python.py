@@ -375,7 +375,7 @@ class PythonPackage(PythonExtension):
         return None
 
     @property
-    def python_spec(self):
+    def python_spec(self) -> Spec:
         """Get python-venv if it exists or python otherwise."""
         python, *_ = self.spec.dependencies("python-venv") or self.spec.dependencies("python")
         return python
