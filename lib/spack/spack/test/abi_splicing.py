@@ -10,9 +10,6 @@ import pytest
 
 import spack.config
 import spack.deptypes as dt
-import spack.package_base
-import spack.paths
-import spack.repo
 import spack.solver.asp
 from spack.installer import PackageInstaller
 from spack.spec import Spec

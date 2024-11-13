@@ -7,6 +7,7 @@ import re
 
 import pytest
 
+import spack.config
 import spack.environment as ev
 import spack.error
 import spack.spec

@@ -25,6 +25,7 @@ import spack.error
 import spack.extensions
 import spack.parser
 import spack.paths
+import spack.repo
 import spack.spec
 import spack.store
 import spack.traverse as traverse
