@@ -17,8 +17,7 @@ def active_shell_type(env=os.environ):
         else:
             try:
                 output = subprocess.check_output(
-                    'powershell -Command "echo $PSVersionTable"',
-                    universal_newlines=True,
+                    'powershell -Command "echo $PSVersionTable"', universal_newlines=True
                 )
                 if "PSVersion" in output:
                     return "ps1"
