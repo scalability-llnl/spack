@@ -6,7 +6,7 @@ import collections
 import collections.abc
 import copy
 import functools
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Type
 
 import spack.error
 import spack.multimethod
@@ -17,19 +17,19 @@ import spack.spec
 import spack.util.environment
 
 #: Builder classes, as registered by the "builder" decorator
-BUILDER_CLS = {}
+BUILDER_CLS: Dict[str, Type["Builder"]] = {}
 
 #: Map id(pkg) to a builder, to avoid creating multiple
 #: builders for the same package object.
-_BUILDERS = {}
+_BUILDERS: Dict[int, "Builder"] = {}
 
 
-def builder(build_system_name):
+def builder(build_system_name: str):
     """Class decorator used to register the default builder
     for a given build-system.
 
     Args:
-        build_system_name (str): name of the build-system
+        build_system_name: name of the build-system
     """
 
     def _decorator(cls):
@@ -40,13 +40,9 @@ def builder(build_system_name):
     return _decorator
 
 
-def create(pkg):
-    """Given a package object with an associated concrete spec,
-    return the builder object that can install it.
-
-    Args:
-         pkg: package for which we want the builder
-    """
+def create(pkg: spack.package_base.PackageBase) -> "Builder":
+    """Given a package object with an associated concrete spec, return the builder object that can
+    install it."""
     if id(pkg) not in _BUILDERS:
         _BUILDERS[id(pkg)] = _create(pkg)
     return _BUILDERS[id(pkg)]
@@ -61,7 +57,7 @@ class _PhaseAdapter:
         return self.phase_fn(self.builder.pkg, spec, prefix)
 
 
-def get_builder_class(pkg, name: str) -> Optional[type]:
+def get_builder_class(pkg, name: str) -> Optional[Type["Builder"]]:
     """Return the builder class if a package module defines it."""
     cls = getattr(pkg.module, name, None)
     if cls and cls.__module__.startswith(spack.repo.ROOT_PYTHON_NAMESPACE):
@@ -69,7 +65,7 @@ def get_builder_class(pkg, name: str) -> Optional[type]:
     return None
 
 
-def _create(pkg):
+def _create(pkg: spack.package_base.PackageBase) -> "Builder":
     """Return a new builder object for the package object being passed as argument.
 
     The function inspects the build-system used by the package object and try to:
@@ -154,8 +150,8 @@ def _create(pkg):
     # with the same name is defined in the Package, it will override this definition
     # (when _ForwardToBaseBuilder is initialized)
     for method_name in (
-        base_cls.phases
-        + base_cls.legacy_methods
+        base_cls.phases  # type: ignore
+        + base_cls.legacy_methods  # type: ignore
         + getattr(base_cls, "legacy_long_methods", tuple())
         + ("setup_build_environment", "setup_dependent_build_environment")
     ):
@@ -167,14 +163,14 @@ def _create(pkg):
 
         return __forward
 
-    for attribute_name in base_cls.legacy_attributes:
+    for attribute_name in base_cls.legacy_attributes:  # type: ignore
         setattr(
             _ForwardToBaseBuilder,
             attribute_name,
             property(forward_property_to_getattr(attribute_name)),
         )
 
-    class Adapter(base_cls, metaclass=_PackageAdapterMeta):
+    class Adapter(base_cls, metaclass=_PackageAdapterMeta):  # type: ignore
         def __init__(self, pkg):
             # Deal with custom phases in packages here
             if hasattr(pkg, "phases"):
