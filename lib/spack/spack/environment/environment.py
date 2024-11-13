@@ -1657,6 +1657,9 @@ class Environment:
 
         return self.views[default_view_name]
 
+#    def has_environment_variable_modifications(self) -> bool:
+#        return True
+
     def has_view(self, view_name: str) -> bool:
         return view_name in self.views
 

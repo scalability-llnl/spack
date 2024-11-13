@@ -157,6 +157,9 @@ def activate(
     # MANPATH, PYTHONPATH, etc. All variables that end in PATH (case-sensitive)
     # become PATH variables.
     #
+
+    print(env.spec_lists)
+    
     try:
         if view and env.has_view(view):
             with spack.store.STORE.db.read_transaction():
@@ -206,3 +209,4 @@ def deactivate() -> EnvironmentModifications:
     ev.deactivate()
 
     return env_mods
+
