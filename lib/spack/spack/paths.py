@@ -103,17 +103,21 @@ internal_opt_path = os.path.join(prefix, "opt")
 
 if dir_is_occupied(internal_opt_path):
     opt_path = internal_opt_path
-    modules_base = share_path
 else:
     opt_path = os.path.join(per_spack_user_root, "opt")
-    modules_base = os.path.join(per_spack_user_root, "modules")
 
-if dir_is_occupied(read_var_path, except_for={"repos", "read-gpg"}):
+if dir_is_occupied(read_var_path, except_for={"repos", "gpg.mock"}):
     var_path = read_var_path
 else:
     var_path = os.path.join(per_spack_user_root, "var", "spack")
 
-# TODO: also check share_path/{lmod, tcl}
+modules_base = None
+for module_dir in ["lmod", "modules"]:
+    if dir_is_occupied(os.path.join(share_path, module_dir)):
+        modules_base = share_path
+if not modules_base:
+    modules_base = os.path.join(per_spack_user_root, "modules")
+
 # TODO: can shutil.mv everything in {opt, var} except installs into new user root
 
 # read-only things in $spack/var/spack
@@ -124,8 +128,8 @@ mock_packages_path = os.path.join(repos_path, "builtin.mock")
 # GPG keys may be written into $spack/var/spack for older instances
 # of spack, but otherwise are written into $per_spack_user
 gpg_keys_path = os.path.join(var_path, "gpg")
-mock_gpg_data_path = os.path.join(var_path, "gpg.mock", "data")
-mock_gpg_keys_path = os.path.join(var_path, "gpg.mock", "keys")
+mock_gpg_data_path = os.path.join(read_var_path, "gpg.mock", "data")
+mock_gpg_keys_path = os.path.join(read_var_path, "gpg.mock", "keys")
 gpg_path = os.path.join(opt_path, "spack", "gpg")
 
 
