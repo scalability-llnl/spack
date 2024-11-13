@@ -500,41 +500,7 @@ class DisableRedistribute:
         self.binary = binary
 
 
-class RedistributionMixin:
-    """Logic for determining whether a Package is source/binary
-    redistributable.
-    """
-
-    #: Store whether a given Spec source/binary should not be
-    #: redistributed.
-    disable_redistribute: Dict[spack.spec.Spec, DisableRedistribute]
-
-    # Source redistribution must be determined before concretization
-    # (because source mirrors work with un-concretized Specs).
-    @classmethod
-    def redistribute_source(cls, spec):
-        """Whether it should be possible to add the source of this
-        package to a Spack mirror.
-        """
-        for when_spec, disable_redistribute in cls.disable_redistribute.items():
-            if disable_redistribute.source and spec.satisfies(when_spec):
-                return False
-
-        return True
-
-    @property
-    def redistribute_binary(self):
-        """Whether it should be possible to create a binary out of an
-        installed instance of this package.
-        """
-        for when_spec, disable_redistribute in self.__class__.disable_redistribute.items():
-            if disable_redistribute.binary and self.spec.satisfies(when_spec):
-                return False
-
-        return True
-
-
-class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass=PackageMeta):
+class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     """This is the superclass for all spack packages.
 
     ***The Package class***
@@ -631,6 +597,9 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     variants: Dict[spack.spec.Spec, Dict[str, spack.variant.Variant]]
     languages: Dict[spack.spec.Spec, Set[str]]
     splice_specs: Dict[spack.spec.Spec, Tuple[spack.spec.Spec, Union[None, str, List[str]]]]
+
+    #: Store whether a given Spec source/binary should not be redistributed.
+    disable_redistribute: Dict[spack.spec.Spec, DisableRedistribute]
 
     #: By default, packages are not virtual
     #: Virtual packages override this attribute
@@ -1009,6 +978,26 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         return os.path.join(
             self.global_license_dir, self.name, os.path.basename(self.license_files[0])
         )
+
+    # Source redistribution must be determined before concretization (because source mirrors work
+    # with abstract specs).
+    @classmethod
+    def redistribute_source(cls, spec):
+        """Whether it should be possible to add the source of this
+        package to a Spack mirror."""
+        for when_spec, disable_redistribute in cls.disable_redistribute.items():
+            if disable_redistribute.source and spec.satisfies(when_spec):
+                return False
+        return True
+
+    @property
+    def redistribute_binary(self):
+        """Whether it should be possible to create a binary out of an installed instance of this
+        package."""
+        for when_spec, disable_redistribute in self.disable_redistribute.items():
+            if disable_redistribute.binary and self.spec.satisfies(when_spec):
+                return False
+        return True
 
     # NOTE: return type should be Optional[Literal['all', 'specific', 'none']] in
     # Python 3.8+, but we still support 3.6.

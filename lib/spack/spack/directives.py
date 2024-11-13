@@ -517,7 +517,7 @@ def can_splice(
             variants will be skipped by '*'.
     """
 
-    def _execute_can_splice(pkg: "spack.package_base.PackageBase"):
+    def _execute_can_splice(pkg: spack.package_base.PackageBase):
         when_spec = _make_when_spec(when)
         if isinstance(match_variants, str) and match_variants != "*":
             raise ValueError(
