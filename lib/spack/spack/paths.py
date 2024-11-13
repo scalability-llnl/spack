@@ -108,7 +108,7 @@ else:
     opt_path = os.path.join(per_spack_user_root, "opt")
     modules_base = os.path.join(per_spack_user_root, "modules")
 
-if dir_is_occupied(read_var_path, except_for={"repos"}):
+if dir_is_occupied(read_var_path, except_for={"repos", "read-gpg"}):
     var_path = read_var_path
 else:
     var_path = os.path.join(per_spack_user_root, "var", "spack")
@@ -166,7 +166,8 @@ user_repos_cache_path = os.path.join(user_cache_path, "git_repos")
 default_user_bootstrap_path = os.path.join(user_cache_path, "bootstrap")
 
 #: transient caches for Spack data (virtual cache, patch sha256 lookup, etc.)
-default_misc_cache_path = os.path.join(user_cache_path, "cache")
+#: placed in per-spack-instance user root
+default_misc_cache_path = os.path.join(per_spack_user_root, "cache")
 
 #: Recorded directory where spack command was originally invoked
 spack_working_dir = None
