@@ -121,7 +121,3 @@ def guard_writes_into_spack():
     import sys
 
     sys.addaudithook(_guard_writes)
-
-
-def shared_trees():
-    return pathlib.Path(paths.system_config_path) / "install-trees"
