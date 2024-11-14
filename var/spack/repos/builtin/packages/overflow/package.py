@@ -17,7 +17,7 @@ class Overflow(CMakePackage):
 
 
     homepage = "https://overflow.larc.nasa.gov"
-    url = "file:///aerolab/admin/software/dist/overflow/over2.4c.tar.gz"
+    url = "file:///auto/admin/software/dist/overflow/over2.4c.tar.gz"
 
     version("2.4b", sha256="89ba0302477726ca5a49154bb4c50e96ce4c23ec2901f7b03d24e5a197566021")
     version("2.4c", sha256="a2fe09924817a408649c60c613a5eb7a655b454a91e6248a2fd6098b44b7dec3")

@@ -4,9 +4,8 @@ class Chem(AutotoolsPackage):
     """MSU Chem"""
 
     homepage = "https://web.cse.msstate.edu/~luke/loci"
-    url = "file:///aerolab/admin/software/dist/chem/chem-4.0-p6a.tgz"
+    url = "file:///auto/admin/software/dist/chem/chem-4.0-p6a.tgz"
 
-    version("4.0-p5", sha256="47b67e7069fd7dc970025612533c4183ac5f8addfe653a96ff7ac4c8a45840f2")
     version("4.0-p6a", sha256="f5137523c06a591f7b0381f293b2bcb052c8803b04fcfcb1349db1592ff524c8")
 
     patch('chem_jsc_d.patch')

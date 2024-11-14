@@ -29,7 +29,7 @@ class Pegasus(Package):
     inside a solid body."""
 
     homepage = "https://www.nas.nasa.gov/publications/software/docs/pegasus5/pages/sec1.html"
-    url = "file:///aerolab/admin/software/dist/pegasus/pegasus5.2d.tar.gz"
+    url = "file:///auto/admin/software/dist/pegasus/pegasus5.2d.tar.gz"
 
     # notify when the package is updated.
     # maintainers("github_user1", "github_user2")

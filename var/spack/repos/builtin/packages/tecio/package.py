@@ -14,14 +14,13 @@ class Tecio(CMakePackage):
 
     homepage = "https://www.tecplot.com/products/tecio-library/"
     #url = "file://{}/tecio.tgz".format(os.getcwd())
-    url = "file:///aerolab/admin/software/dist/tecplot/tecio.2023.1.1.tgz"
+    url = "file:///auto/admin/software/dist/tecplot/tecio.2023.1.1.tgz"
 
     manual_download = True
 
     maintainers("snehring")
 
     version("2023.1.1", sha256="1468430e3cf6f019175da2559e63c5d6cf61c8569a3e994890448d1c6f7aa1f3")
-
 
     #depends_on("cmake@3.0.2:", type="build")
 

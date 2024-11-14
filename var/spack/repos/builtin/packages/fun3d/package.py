@@ -11,7 +11,7 @@ class Fun3d(AutotoolsPackage):
     """NASA's FUN3D CFD Solver"""
 
     homepage = "https://fun3d.larc.nasa.gov/"
-    url = "file:///aerolab/admin/software/dist/fun3d/fun3d_intg-14.0d03712b.tar.gz"
+    url = "file:///auto/admin/software/dist/fun3d/fun3d_intg-14.0d03712b.tar.gz"
 
     version("14.0d03712b", sha256="d92cdb39994771389effe99f783fe72094481d6d114518593070017def27c4ac")
 

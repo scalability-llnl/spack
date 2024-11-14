@@ -4,7 +4,7 @@ class Loci(AutotoolsPackage):
     """Logic Programming for Parallel Computational Field Simulations"""
 
     homepage = "https://web.cse.msstate.edu/~luke/loci"
-    url = "file:///aerolab/admin/software/dist/loci/Loci-4.0-p5.tgz"
+    url = "file:///auto/admin/software/dist/loci/Loci-4.0-p5.tgz"
 
     version("4.0-p5",  sha256="47b67e7069fd7dc970025612533c4183ac5f8addfe653a96ff7ac4c8a45840f2")
 
