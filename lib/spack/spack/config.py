@@ -845,6 +845,8 @@ def create() -> Configuration:
     # This is disabled if user asks for no local configuration.
     if not disable_local_config:
         configuration_paths.append(("system", spack.paths.system_config_path))
+        if spack.install_scheme.scheme() == spack.install_scheme.InstallScheme.USER:
+            configuration_paths.append(("admin-customer", spack.paths.admin_customer_cfg))
 
     # Site configuration is per spack instance, for sites or projects
     # No site-level configs should be checked into spack by default.
