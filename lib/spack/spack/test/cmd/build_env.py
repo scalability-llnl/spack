@@ -70,6 +70,7 @@ def test_pickle(tmpdir):
 def test_cd(cd_key, tmpdir, monkeypatch, capfd):
     """test that a subshell will navigate using spack cd before running commands"""
     cmd = "pwd" if sys.platform != "win32" else "Get-Location"
+
     def mock_execvp(_, args):
         """os.execvp will kill take over the pytest process when it is successful"""
         result = subprocess.check_output(args, universal_newlines=True)
