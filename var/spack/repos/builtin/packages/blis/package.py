@@ -49,7 +49,6 @@ class BlisBase(MakefilePackage):
     provides("blas", when="+cblas")
 
     conflicts("%nvhpc")
-    conflicts("%pgi")
 
     def configure_args(self):
         spec = self.spec

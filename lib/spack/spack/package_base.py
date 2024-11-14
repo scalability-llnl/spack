@@ -1016,7 +1016,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         * ``"none"``: filter out all ``-Werror*`` flags.
         * ``None``: respect the user's configuration (``"none"`` by default).
         """
-        if self.spec.satisfies("%nvhpc@:23.3") or self.spec.satisfies("%pgi"):
+        if self.spec.satisfies("%nvhpc@:23.3"):
             # Filtering works by replacing -Werror with -Wno-error, but older nvhpc and
             # PGI do not understand -Wno-error, so we disable filtering.
             return "all"

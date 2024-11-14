@@ -1928,71 +1928,29 @@ to the empty list.
 String. A URL pointing to license setup instructions for the software.
 Defaults to the empty string.
 
-For example, let's take a look at the package for the PGI compilers.
+For example, let's take a look at the Arm Forge package.
 
 .. code-block:: python
 
    # Licensing
    license_required = True
-   license_comment  = "#"
-   license_files    = ["license.dat"]
-   license_vars     = ["PGROUPD_LICENSE_FILE", "LM_LICENSE_FILE"]
-   license_url      = "http://www.pgroup.com/doc/pgiinstall.pdf"
+   license_comment = "#"
+   license_files = ["licences/Licence"]
+   license_vars = [
+       "ALLINEA_LICENSE_DIR",
+       "ALLINEA_LICENCE_DIR",
+       "ALLINEA_LICENSE_FILE",
+       "ALLINEA_LICENCE_FILE",
+   ]
+   license_url = "https://developer.arm.com/documentation/101169/latest/Use-Arm-Licence-Server"
 
-As you can see, PGI requires a license. Its license manager, FlexNet, uses
-the ``#`` symbol to denote a comment. It expects the license file to be
-named ``license.dat`` and to be located directly in the installation prefix.
-If you would like the installation file to be located elsewhere, simply set
-``PGROUPD_LICENSE_FILE`` or ``LM_LICENSE_FILE`` after installation. For
-further instructions on installation and licensing, see the URL provided.
+Arm Forge requires a license. Its license manager uses the ``#`` symbol to denote a comment.
+It expects the license file to be named ``License`` and to be located in a ``licenses`` directory
+in the installation prefix.
 
-Let's walk through a sample PGI installation to see exactly what Spack is
-and isn't capable of. Since PGI does not provide a download URL, it must
-be downloaded manually. It can either be added to a mirror or located in
-the current directory when ``spack install pgi`` is run. See :ref:`mirrors`
-for instructions on setting up a mirror.
-
-After running ``spack install pgi``, the first thing that will happen is
-Spack will create a global license file located at
-``$SPACK_ROOT/etc/spack/licenses/pgi/license.dat``. It will then open up the
-file using :ref:`your favorite editor <controlling-the-editor>`. It will look like
-this:
-
-.. code-block:: sh
-
-   # A license is required to use pgi.
-   #
-   # The recommended solution is to store your license key in this global
-   # license file. After installation, the following symlink(s) will be
-   # added to point to this file (relative to the installation prefix):
-   #
-   #   license.dat
-   #
-   # Alternatively, use one of the following environment variable(s):
-   #
-   #   PGROUPD_LICENSE_FILE
-   #   LM_LICENSE_FILE
-   #
-   # If you choose to store your license in a non-standard location, you may
-   # set one of these variable(s) to the full pathname to the license file, or
-   # port@host if you store your license keys on a dedicated license server.
-   # You will likely want to set this variable in a module file so that it
-   # gets loaded every time someone tries to use pgi.
-   #
-   # For further information on how to acquire a license, please refer to:
-   #
-   #   http://www.pgroup.com/doc/pgiinstall.pdf
-   #
-   # You may enter your license below.
-
-You can add your license directly to this file, or tell FlexNet to use a
-license stored on a separate license server. Here is an example that
-points to a license server called licman1:
-
-.. code-block:: none
-
-   SERVER licman1.mcs.anl.gov 00163eb7fba5 27200
-   USE_SERVER
+If you would like the installation file to be located elsewhere, simply set ``ALLINEA_LICENSE_DIR`` or
+one of the other license variables after installation. For further instructions on installation and
+licensing, see the URL provided.
 
 If your package requires the license to install, you can reference the
 location of this global license using ``self.global_license_file``.

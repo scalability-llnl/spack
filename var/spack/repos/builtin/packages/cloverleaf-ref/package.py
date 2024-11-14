@@ -97,9 +97,6 @@ class CloverleafRef(MakefilePackage):
             targets.append("COMPILER=CRAY")
             targets.append("OMP_CRAY=-fopenmp")
 
-        elif self.spec.satisfies("%pgi"):
-            targets.append("COMPILER=PGI")
-
         elif self.spec.satisfies("%xl"):
             targets.append("COMPILER=XLF")
 

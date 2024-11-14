@@ -17,7 +17,8 @@ import spack.repo
 import spack.spec
 import spack.store
 from spack.cmd.common import arguments
-from spack.database import InstallStatuses
+
+from ..enums import InstallRecordStatus
 
 description = "list and search installed packages"
 section = "basic"
@@ -137,20 +138,21 @@ def setup_parser(subparser):
     subparser.add_argument(
         "--loaded", action="store_true", help="show only packages loaded in the user environment"
     )
-    subparser.add_argument(
+    only_missing_or_deprecated = subparser.add_mutually_exclusive_group()
+    only_missing_or_deprecated.add_argument(
         "-M",
         "--only-missing",
         action="store_true",
         dest="only_missing",
         help="show only missing dependencies",
     )
+    only_missing_or_deprecated.add_argument(
+        "--only-deprecated", action="store_true", help="show only deprecated packages"
+    )
     subparser.add_argument(
         "--deprecated",
         action="store_true",
         help="show deprecated packages as well as installed specs",
-    )
-    subparser.add_argument(
-        "--only-deprecated", action="store_true", help="show only deprecated packages"
     )
     subparser.add_argument(
         "--install-tree",
@@ -165,14 +167,23 @@ def setup_parser(subparser):
 
 
 def query_arguments(args):
-    # Set up query arguments.
-    installed = []
-    if not (args.only_missing or args.only_deprecated):
-        installed.append(InstallStatuses.INSTALLED)
-    if (args.deprecated or args.only_deprecated) and not args.only_missing:
-        installed.append(InstallStatuses.DEPRECATED)
-    if (args.missing or args.only_missing) and not args.only_deprecated:
-        installed.append(InstallStatuses.MISSING)
+    if args.only_missing and (args.deprecated or args.missing):
+        raise RuntimeError("cannot use --only-missing with --deprecated, or --missing")
+
+    if args.only_deprecated and (args.deprecated or args.missing):
+        raise RuntimeError("cannot use --only-deprecated with --deprecated, or --missing")
+
+    installed = InstallRecordStatus.INSTALLED
+    if args.only_missing:
+        installed = InstallRecordStatus.MISSING
+    elif args.only_deprecated:
+        installed = InstallRecordStatus.DEPRECATED
+
+    if args.missing:
+        installed |= InstallRecordStatus.MISSING
+
+    if args.deprecated:
+        installed |= InstallRecordStatus.DEPRECATED
 
     predicate_fn = None
     if args.unknown:

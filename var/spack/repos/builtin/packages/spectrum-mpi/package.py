@@ -37,7 +37,6 @@ class SpectrumMpi(BundlePackage):
     def determine_variants(cls, exes, version):
         compiler_suites = {
             "xl": {"cc": "mpixlc", "cxx": "mpixlC", "f77": "mpixlf", "fc": "mpixlf"},
-            "pgi": {"cc": "mpipgicc", "cxx": "mpipgic++", "f77": "mpipgifort", "fc": "mpipgifort"},
             "default": {"cc": "mpicc", "cxx": "mpicxx", "f77": "mpif77", "fc": "mpif90"},
         }
 
@@ -110,11 +109,6 @@ class SpectrumMpi(BundlePackage):
             self.spec.mpicxx = os.path.join(self.prefix.bin, "mpixlC")
             self.spec.mpif77 = os.path.join(self.prefix.bin, "mpixlf")
             self.spec.mpifc = os.path.join(self.prefix.bin, "mpixlf")
-        elif "%pgi" in dependent_spec:
-            self.spec.mpicc = os.path.join(self.prefix.bin, "mpipgicc")
-            self.spec.mpicxx = os.path.join(self.prefix.bin, "mpipgic++")
-            self.spec.mpif77 = os.path.join(self.prefix.bin, "mpipgifort")
-            self.spec.mpifc = os.path.join(self.prefix.bin, "mpipgifort")
         else:
             self.spec.mpicc = os.path.join(self.prefix.bin, "mpicc")
             self.spec.mpicxx = os.path.join(self.prefix.bin, "mpicxx")
@@ -127,11 +121,6 @@ class SpectrumMpi(BundlePackage):
             env.set("MPICXX", os.path.join(self.prefix.bin, "mpixlC"))
             env.set("MPIF77", os.path.join(self.prefix.bin, "mpixlf"))
             env.set("MPIF90", os.path.join(self.prefix.bin, "mpixlf"))
-        elif "%pgi" in dependent_spec:
-            env.set("MPICC", os.path.join(self.prefix.bin, "mpipgicc"))
-            env.set("MPICXX", os.path.join(self.prefix.bin, "mpipgic++"))
-            env.set("MPIF77", os.path.join(self.prefix.bin, "mpipgifort"))
-            env.set("MPIF90", os.path.join(self.prefix.bin, "mpipgifort"))
         else:
             env.set("MPICC", os.path.join(self.prefix.bin, "mpicc"))
             env.set("MPICXX", os.path.join(self.prefix.bin, "mpic++"))
@@ -153,11 +142,6 @@ class SpectrumMpi(BundlePackage):
             env.set("MPICXX", os.path.join(self.prefix.bin, "mpixlC"))
             env.set("MPIF77", os.path.join(self.prefix.bin, "mpixlf"))
             env.set("MPIF90", os.path.join(self.prefix.bin, "mpixlf"))
-        elif "%pgi" in self.spec:
-            env.set("MPICC", os.path.join(self.prefix.bin, "mpipgicc"))
-            env.set("MPICXX", os.path.join(self.prefix.bin, "mpipgic++"))
-            env.set("MPIF77", os.path.join(self.prefix.bin, "mpipgifort"))
-            env.set("MPIF90", os.path.join(self.prefix.bin, "mpipgifort"))
         else:
             env.set("MPICC", os.path.join(self.prefix.bin, "mpicc"))
             env.set("MPICXX", os.path.join(self.prefix.bin, "mpic++"))

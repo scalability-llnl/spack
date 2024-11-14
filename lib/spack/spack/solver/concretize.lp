@@ -1455,7 +1455,7 @@ attr("node_flag", PackageNode, NodeFlag) :- attr("node_flag_set", PackageNode, N
 #defined installed_hash/2.
 #defined abi_splice_conditions_hold/4.
 
-% These are the previously concretized attributes of the installed package as 
+% These are the previously concretized attributes of the installed package as
 % a hash. It has the general form:
 % hash_attr(Hash, Attribute, PackageName, Args*)
 #defined hash_attr/3.
@@ -1479,12 +1479,12 @@ hash_attr(Hash, "node_version_satisfies", PackageName, Constraint) :-
 
 % This recovers the exact semantics for hash reuse hash and depends_on are where
 % splices are decided, and virtual_on_edge can result in name-changes, which is
-% why they are all treated separately. 
+% why they are all treated separately.
 imposed_constraint(Hash, Attr, PackageName) :-
   hash_attr(Hash, Attr, PackageName).
 imposed_constraint(Hash, Attr, PackageName, A1) :-
   hash_attr(Hash, Attr, PackageName, A1), Attr != "hash".
-imposed_constraint(Hash, Attr, PackageName, Arg1, Arg2) :- 
+imposed_constraint(Hash, Attr, PackageName, Arg1, Arg2) :-
   hash_attr(Hash, Attr, PackageName, Arg1, Arg2),
   Attr != "depends_on",
   Attr != "virtual_on_edge".
@@ -1492,16 +1492,16 @@ imposed_constraint(Hash, Attr, PackageName, A1, A2, A3) :-
   hash_attr(Hash, Attr, PackageName, A1, A2, A3).
 imposed_constraint(Hash, "hash", PackageName, Hash) :- installed_hash(PackageName, Hash).
 % Without splicing, we simply recover the exact semantics
-imposed_constraint(ParentHash, "hash", ChildName, ChildHash) :- 
+imposed_constraint(ParentHash, "hash", ChildName, ChildHash) :-
   hash_attr(ParentHash, "hash", ChildName, ChildHash),
   ChildHash != ParentHash,
   not abi_splice_conditions_hold(_, _, ChildName, ChildHash).
-  
+
 imposed_constraint(Hash, "depends_on", PackageName, DepName, Type) :-
   hash_attr(Hash, "depends_on", PackageName, DepName, Type),
   hash_attr(Hash, "hash", DepName, DepHash),
   not attr("splice_at_hash", _, _, DepName, DepHash).
-  
+
 imposed_constraint(Hash, "virtual_on_edge", PackageName, DepName, VirtName) :-
   hash_attr(Hash, "virtual_on_edge", PackageName, DepName, VirtName),
   not attr("splice_at_hash", _, _, DepName,_).
@@ -1511,7 +1511,7 @@ imposed_constraint(Hash, "virtual_on_edge", PackageName, DepName, VirtName) :-
 
 impose(Hash, PackageNode) :- attr("hash", PackageNode, Hash), attr("node", PackageNode).
 
-% If there is not a hash for a package, we build it. 
+% If there is not a hash for a package, we build it.
 build(PackageNode) :- attr("node", PackageNode), not concrete(PackageNode).
 
 

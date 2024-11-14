@@ -96,7 +96,6 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "intel": "intel",
         "llvm": "llvm",
         "oneapi": "intel",
-        "pgi": "pgi",
         "rocmcc": "clang",
         "unset": "unset",
     }
@@ -553,7 +552,6 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "%intel",
         "%llvm",
         "%oneapi",
-        "%pgi",
         "%rocmcc",
         policy="one_of",
     )

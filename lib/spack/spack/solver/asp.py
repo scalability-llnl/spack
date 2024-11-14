@@ -3839,12 +3839,21 @@ class SpecBuilder:
         self._splices.setdefault(parent_node, []).append(splice)
 
     def _resolve_automatic_splices(self):
-        """After all of the specs have been concretized, apply all immediate
-        splices in size order. This ensures that all dependencies are resolved
+        """After all of the specs have been concretized, apply all immediate splices.
+
+        Use reverse topological order to ensure that all dependencies are resolved
         before their parents, allowing for maximal sharing and minimal copying.
+
         """
         fixed_specs = {}
-        for node, spec in sorted(self._specs.items(), key=lambda x: len(x[1])):
+
+        # create a mapping from dag hash to an integer representing position in reverse topo order.
+        specs = self._specs.values()
+        topo_order = list(traverse.traverse_nodes(specs, order="topo", key=traverse.by_dag_hash))
+        topo_lookup = {spec.dag_hash(): index for index, spec in enumerate(reversed(topo_order))}
+
+        # iterate over specs, children before parents
+        for node, spec in sorted(self._specs.items(), key=lambda x: topo_lookup[x[1].dag_hash()]):
             immediate = self._splices.get(node, [])
             if not immediate and not any(
                 edge.spec in fixed_specs for edge in spec.edges_to_dependencies()

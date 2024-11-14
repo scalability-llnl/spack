@@ -537,22 +537,6 @@ def test_nvhpc_flags():
     supported_flag_test("stdcxx_libs", ("-c++libs",), "nvhpc@=20.9")
 
 
-def test_pgi_flags():
-    supported_flag_test("openmp_flag", "-mp", "pgi@=1.0")
-    supported_flag_test("cxx11_flag", "-std=c++11", "pgi@=1.0")
-    unsupported_flag_test("c99_flag", "pgi@=12.9")
-    supported_flag_test("c99_flag", "-c99", "pgi@=12.10")
-    unsupported_flag_test("c11_flag", "pgi@=15.2")
-    supported_flag_test("c11_flag", "-c11", "pgi@=15.3")
-    supported_flag_test("cc_pic_flag", "-fpic", "pgi@=1.0")
-    supported_flag_test("cxx_pic_flag", "-fpic", "pgi@=1.0")
-    supported_flag_test("f77_pic_flag", "-fpic", "pgi@=1.0")
-    supported_flag_test("fc_pic_flag", "-fpic", "pgi@=1.0")
-    supported_flag_test("stdcxx_libs", ("-pgc++libs",), "pgi@=1.0")
-    supported_flag_test("debug_flags", ["-g", "-gopt"], "pgi@=1.0")
-    supported_flag_test("opt_flags", ["-O", "-O0", "-O1", "-O2", "-O3", "-O4"], "pgi@=1.0")
-
-
 def test_xl_flags():
     supported_flag_test("openmp_flag", "-qsmp=omp", "xl@=1.0")
     unsupported_flag_test("cxx11_flag", "xl@=13.0")
