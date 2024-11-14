@@ -38,6 +38,8 @@ class PyDask(PythonPackage):
         description="Install requirements for dask.delayed (dask.imperative)",
     )
 
+    conflicts("~array", when="@2023.8: +dataframe", msg="From 2023.8, +dataframe requires +array")
+
     depends_on("python@3.8:", type=("build", "run"), when="@2022.10.2:")
 
     depends_on("py-setuptools", type="build")
