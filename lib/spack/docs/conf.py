@@ -210,7 +210,7 @@ nitpick_ignore = [
     # Spack classes that are private and we don't want to expose
     ("py:class", "spack.provider_index._IndexBase"),
     ("py:class", "spack.repo._PrependFileLoader"),
-    ("py:class", "spack.build_systems._checks.BaseBuilder"),
+    ("py:class", "spack.build_systems._checks.BuilderWithDefaults"),
     # Spack classes that intersphinx is unable to resolve
     ("py:class", "spack.version.StandardVersion"),
     ("py:class", "spack.spec.DependencySpec"),
