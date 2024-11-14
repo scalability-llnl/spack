@@ -8,9 +8,9 @@ class Cgt(AutotoolsPackage):
     """NASA CGT"""
 
     homepage = "https://www.nas.nasa.gov/software/chimera.html"
-    url = "file:///aerolab/admin/software/dist/cgt/chimera2.2git.tar.gz"
+    url = "file:///auto/admin/software/dist/cgt/chimera2.2dev.tar.gz"
 
-    version("2.2git", sha256="e5133b23af83d619ae99cb191539f2f62e88ddfb749a72a4f10fac294cf78597")
+    version("2.2dev", sha256="091bf927637a671eb6def1a4be044f498349ce4478e82c0ea1aec26eff531af5")
 
     variant("dp",    default=False, description="Enable double precision.")
     variant("oggui", default=True, description="Build Overgrid GUI.")
