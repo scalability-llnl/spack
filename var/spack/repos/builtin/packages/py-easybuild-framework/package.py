@@ -21,4 +21,6 @@ class PyEasybuildFramework(PythonPackage):
     version("4.0.0", sha256="f5c40345cc8b9b5750f53263ade6c9c3a8cd3dfab488d58f76ac61a8ca7c5a77")
 
     depends_on("python@3.5:", type=("build", "run"))
+    # NOTE: @:4.7.0 and older have a dependency on distutils.
+    depends_on("python@:3.11", type="build", when="@:4.7.0")
     depends_on("py-setuptools", type=("build", "run"))
