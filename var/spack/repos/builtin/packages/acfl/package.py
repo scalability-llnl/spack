@@ -35,6 +35,36 @@ _os_map = {
 }
 
 _versions = {
+    "24.10.1": {
+        "RHEL-8": (
+            "0e894ce2a9d7af8fabe21368a44e9f71d25bda80413fb8dd22f389c3c5e36100",
+            "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10.1/arm-compiler-for-linux_24.10.1_RHEL-8_aarch64.tar",
+        ),
+        "RHEL-9": (
+            "5c2cd9c6f505050a39012f180a5c739065f140fe45b9c3039f3e6e6b7c911002",
+            "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10.1/arm-compiler-for-linux_24.10.1_RHEL-9_aarch64.tar",
+        ),
+        "SLES-15": (
+            "3b33b397b253a14994b6341f219ed6af5cf79ba8fc5acb99fa028deb4344fbaf",
+            "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10.1/arm-compiler-for-linux_24.10.1_SLES-15_aarch64.tar",
+        ),
+        "Ubuntu-20.04": (
+            "5a5e47cbb1a28f633961a418ff990f72bdd76c2854da80aa3dcf7619bb0fcc8c",
+            "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10.1/arm-compiler-for-linux_24.10.1_Ubuntu-20.04_aarch64.tar",
+        ),
+        "Ubuntu-22.04": (
+            "d1da0469a0c6df62911edd2bbe49525aa56fffe9a9f419aa19e9aaa9a8bd0295",
+            "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10.1/arm-compiler-for-linux_24.10.1_Ubuntu-22.04_aarch64.tar",
+        ),
+        "AmazonLinux-2": (
+            "bfcb0de00be5b65a37d41473a9f85ac49b29ccb83e0338e57910fa0a9ffef79d",
+            "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10.1/arm-compiler-for-linux_24.10.1_AmazonLinux-2_aarch64.tar",
+        ),
+        "AmazonLinux-2023": (
+            "56a292dd2283c842d5bcfbeaa9bdb81d28f30f7500a7fd113487ecc456652fe9",
+            "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10.1/arm-compiler-for-linux_24.10.1_AmazonLinux-2023_aarch64.tar",
+        ),
+    },
     "24.10": {
         "RHEL-8": (
             "7c685c5393345baff573dc53ea3bb84e6293f9e51808e168ececcf51efb45813",
@@ -242,9 +272,7 @@ def get_os(ver):
         return _os_map_before_23.get(spack_os, "")
     if ver.startswith("23") or ver == "24.04":
         return {**_os_map, "centos7": "RHEL-7", "rhel7": "RHEL-7"}.get(spack_os, "RHEL-7")
-    if ver == "24.10":
-        return _os_map.get(spack_os, "RHEL-8")
-    return "RHEL-8"
+    return _os_map.get(spack_os, "RHEL-8")
 
 
 def get_armpl_version_to_3(spec):
