@@ -36,14 +36,21 @@ class Cgal(CMakePackage):
 
     depends_on("cxx", type="build")  # generated
 
-    variant("shared", default=True, description="Enables the build of shared libraries")
+    # @5: is header only and doesn't build shared libs
+    variant(
+        "shared", default=True, description="Enables the build of shared libraries", when="@:4.14"
+    )
+
     variant(
         "build_type",
         default="Release",
         description="The build type to build",
         values=("Debug", "Release"),
     )
-    variant("header_only", default=False, description="Install in header only mode")
+
+    # header only is the default and only option for 5+
+    # https://doc.cgal.org/latest/Manual/installation.html
+    variant("header_only", default=False, description="Install in header only mode", when="@:4.13")
 
     # ---- See "7 CGAL Libraries" at:
     # https://doc.cgal.org/latest/Manual/installation.html
@@ -59,12 +66,14 @@ class Cgal(CMakePackage):
     # Starting with cgal 6, GMP/MPFR are no longer mandatory and Core library
     # is based on on Boost.Multiprecision. However,either GMP backend or Boost backend can be used.
     # downstream users must also set -DCGAL_DISABLE_GMP=1 if GMP is diabled, thus prefer using gmp
-    variant(
-        "gmp",
-        default=True,
-        description="Enable the GMP backend. Consumers must also set -DCGAL_DISABLE_GMP=1",
-        when="@6:",
-    )
+    # it seems like this is supposed to cache CGAL_DISABLE_GMP status in the install but
+    # it doesn't seem to work https://github.com/CGAL/cgal/issues/8606
+    # variant(
+    #     "gmp",
+    #     default=True,
+    #     description="Enable the GMP backend. Consumers must also set -DCGAL_DISABLE_GMP=1",
+    #     when="@6:",
+    # )
 
     depends_on("cmake@3.12:3.29", type="build", when="@6:")
     depends_on("cmake@2.8.11:", type="build", when="@:5")
@@ -141,6 +150,16 @@ class Cgal(CMakePackage):
         if spec.satisfies("+eigen"):
             env.set("EIGEN3_INC_DIR", spec["eigen"].headers.directories[0])
 
+    # at the moment it is not clear how non-cmake consumers should deal with this variant
+    # as it requires setting -DCGAL_DISABLE_GMP:BOOL=1 for all consuming targets
+    # therefore, disable with non-cmake dependents and this should be revisited in the future
+    # def setup_dependent_package(self, module, dependent_spec):
+    #     if self.spec.satisfies("~gmp") and not dependent_spec.satisfies("build_system=cmake"):
+    #         raise RuntimeError(
+    #             "The boost multiprecision backend is currently only configurable "
+    #             "with cmake dependents."
+    #         )
+
     def cmake_args(self):
         # Installation instructions:
         # https://doc.cgal.org/latest/Manual/installation.html
@@ -159,7 +178,7 @@ class Cgal(CMakePackage):
         if spec.satisfies("@4.9:"):
             cmake_args.append("-DCGAL_HEADER_ONLY:BOOL=%s" % variant_bool("+header_only"))
 
-        if spec.satisfies("~gmp"):
-            cmake_args.append("-DCGAL_DISABLE_GMP:BOOL=1")
+        # if spec.satisfies("~gmp"):
+        #    cmake_args.append("-DCGAL_DISABLE_GMP:BOOL=1")
 
         return cmake_args
