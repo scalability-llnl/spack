@@ -86,8 +86,8 @@ class Cgal(CMakePackage):
     depends_on("gmp", when="@:5")
     depends_on("mpfr", when="@:5")
 
-    depends_on("gmp", when="@6: +gmp")
-    depends_on("mpfr", when="@6: +gmp")
+    # depends_on("gmp", when="@6: +gmp")
+    # depends_on("mpfr", when="@6: +gmp")
 
     # Required for CGAL_ImageIO
     # depends_on('opengl', when='+imageio') # not yet in Spack
@@ -112,7 +112,8 @@ class Cgal(CMakePackage):
     # depends_on('esbtl')
     # depends_on('intel-tbb')
 
-    # @6: requires C++17 or later
+    # @6: requires C++17 or later. The table gives tested
+    # compilers, but gives the lower limit
     # https://www.cgal.org/2024/10/22/cgal601/
     with when("@6:"):
         # Gnu g++ 11.4.0 or later (on Linux or macOS)
@@ -125,6 +126,9 @@ class Cgal(CMakePackage):
         # Apple Clang compiler versions 10.0.1, 12.0.5, and 15.0.0 (on macOS)
         # (10+ has C++17 support)
         conflicts("%apple-clang @:10.0.0", when="platform=darwin")
+
+        # Visual C++ 15.9 or later
+        conflicts("%msvc @:15.8", when="platform=windows")
 
     conflicts(
         "~header_only",
