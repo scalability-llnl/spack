@@ -3847,7 +3847,7 @@ class SpecBuilder:
         """
         fixed_specs = {}
         topo_order = {
-            id(spec): index
+            spec.dag_hash(): index
             for index, spec in enumerate(
                 reversed(
                     list(
@@ -3860,7 +3860,7 @@ class SpecBuilder:
         }
 
         # iterate over specs, children before parents
-        for node, spec in sorted(self._specs.items(), key=lambda x: topo_order[id(x[1])]):
+        for node, spec in sorted(self._specs.items(), key=lambda x: topo_order[x[1].dag_hash()]):
             immediate = self._splices.get(node, [])
             if not immediate and not any(
                 edge.spec in fixed_specs for edge in spec.edges_to_dependencies()
