@@ -7,7 +7,8 @@ from spack.package import *
 
 
 class PyUxarray(PythonPackage):
-    """Xarray extension for unstructured climate and global weather data analysis and visualization"""
+    """Xarray extension for unstructured climate and global weather data analysis and
+    visualization"""
 
     homepage = "https://uxarray.readthedocs.io"
     pypi = "uxarray/uxarray-2024.10.0.tar.gz"
