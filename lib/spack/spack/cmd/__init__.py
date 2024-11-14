@@ -270,12 +270,12 @@ def matching_specs_from_env(specs):
 
 
 def disambiguate_spec(
-    spec: "spack.spec.Spec",
+    spec: spack.spec.Spec,
     env: Optional["ev.Environment"],
     local: bool = False,
     installed: Union[bool, InstallRecordStatus] = True,
     first: bool = False,
-) -> "spack.spec.Spec":
+) -> spack.spec.Spec:
     """Given a spec, figure out which installed package it refers to.
 
     Args:
@@ -290,12 +290,12 @@ def disambiguate_spec(
 
 
 def disambiguate_spec_from_hashes(
-    spec: "spack.spec.Spec",
+    spec: spack.spec.Spec,
     hashes: List[str],
     local: bool = False,
     installed: Union[bool, InstallRecordStatus] = True,
     first: bool = False,
-) -> "spack.spec.Spec":
+) -> spack.spec.Spec:
     """Given a spec and a list of hashes, get concrete spec the spec refers to.
 
     Arguments:

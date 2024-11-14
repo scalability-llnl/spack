@@ -100,7 +100,7 @@ def find_matching_specs(
     hashes = env.all_hashes() if env else None
 
     # List of specs that match expressions given via command line
-    specs_from_cli: List["spack.spec.Spec"] = []
+    specs_from_cli: List[spack.spec.Spec] = []
     has_errors = False
     for spec in specs:
         matching = spack.store.STORE.db.query_local(
