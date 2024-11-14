@@ -680,17 +680,17 @@ class Hdf5(CMakePackage):
         if not self.spec.satisfies("+mpi"):
             return
 
-        with working_dir(self.prefix.lib):
-            symlink_libs = [
-                "libhdf5{mpi_suffix}{lib_suffix}",
-                "libhdf5{mpi_suffix}_hl{lib_suffix}",
-            ]
-            for lib_f in symlink_libs:
-                for lib_suffix in (".so", ".a"):
-                    src = lib_f.format(mpi_suffix="", lib_suffix=lib_suffix)
-                    dst = lib_f.format(mpi_suffix="_mpi", lib_suffix=lib_suffix)
-                    if os.path.isfile(src) and not os.path.isfile(dst):
-                        symlink(src, dst)
+        mpi_libs = ["libhdf5{mpi_suffix}", "libhdf5{mpi_suffix}_hl"]
+        for lib_f in mpi_libs:
+            src_name = lib_f.format(mpi_suffix="")
+            dst_name = lib_f.format(mpi_suffix="_mpi")
+            libs = find_libraries(src_name, root=self.prefix, recursive=True)
+            for lib_path in libs:
+                prefix = os.path.dirname(lib_path)
+                src_lib = os.path.basename(lib_path)
+                dst_lib = dst_name.join(src_lib.rsplit(src_name, 1))
+                with working_dir(prefix):
+                    symlink(src_lib, dst_lib)
 
     @property
     @llnl.util.lang.memoized
