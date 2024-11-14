@@ -119,7 +119,6 @@ SPACK_DEBUG = "SPACK_DEBUG"
 SPACK_SHORT_SPEC = "SPACK_SHORT_SPEC"
 SPACK_DEBUG_LOG_ID = "SPACK_DEBUG_LOG_ID"
 SPACK_DEBUG_LOG_DIR = "SPACK_DEBUG_LOG_DIR"
-SPACK_CCACHE_BINARY = "SPACK_CCACHE_BINARY"
 SPACK_SYSTEM_DIRS = "SPACK_SYSTEM_DIRS"
 
 # Platform-specific library suffix.
@@ -514,13 +513,6 @@ def set_wrapper_variables(pkg, env):
     env.set(SPACK_SHORT_SPEC, pkg.spec.short_spec)
     env.set(SPACK_DEBUG_LOG_ID, pkg.spec.format("{name}-{hash:7}"))
     env.set(SPACK_DEBUG_LOG_DIR, spack.paths.spack_working_dir)
-
-    if spack.config.get("config:ccache"):
-        # Enable ccache in the compiler wrapper
-        env.set(SPACK_CCACHE_BINARY, spack.util.executable.which_string("ccache", required=True))
-    else:
-        # Avoid cache pollution if a build system forces `ccache <compiler wrapper invocation>`.
-        env.set("CCACHE_DISABLE", "1")
 
     # Gather information about various types of dependencies
     rpath_hashes = set(s.dag_hash() for s in get_rpath_deps(pkg))

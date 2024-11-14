@@ -13,6 +13,7 @@ from llnl.util.lang import union_dicts
 
 import spack.config
 import spack.schema.projections
+import Executable from spack.util
 
 #: Properties for inclusion in other schemas
 properties: Dict[str, Any] = {
@@ -84,6 +85,20 @@ properties: Dict[str, Any] = {
             "build_language": {"type": "string"},
             "build_jobs": {"type": "integer", "minimum": 1},
             "ccache": {"type": "boolean"},
+            "compiler_launcher": {
+                "oneOf": [
+                    {"type": "string"},
+                    {
+                        "type": "object",
+                        "properties": {
+                            "cc": {"type": "string"},
+                            "cxx": {"type": "string"},
+                            "fortran": {"type": "string"},
+                            "rustc": {"type": "string"},
+                        },
+                    },
+                ]
+            },
             "db_lock_timeout": {"type": "integer", "minimum": 1},
             "package_lock_timeout": {
                 "anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]
@@ -134,6 +149,8 @@ def update(data):
     Returns:
         True if data was changed, False otherwise
     """
+    import llnl.util.tty as tty
+
     # currently deprecated properties are
     # install_tree: <string>
     # install_path_scheme: <string>
@@ -160,6 +177,36 @@ def update(data):
         update_data = spack.config.merge_yaml(update_data, projections_data)
         data["install_tree"] = update_data
         changed = True
+
+    use_ccache = data.pop("ccache", None)
+    if use_ccache:
+        if not data.get("compiler_launcher", None):
+            data["compiler_launcher"] = {"cxx": "ccache", "cc": "ccache"}
+            tty.warn(
+                "'config:ccache' is deprecated, use 'config:compiler_launcher:ccache' instead"
+            )
+            changed = True
+        else:
+            tty.warn("'config:ccache' is ignored, using 'config:compiler_launcher' instead")
+
+    compiler_launcher = data.get("compiler_launcher", None)
+    if isinstance(compiler_launcher, str):
+        # only auto-expand launcher to C and CXX
+        # Fortran and RustC both have additional
+        # restrictions that need to be resolved
+        # by the configuration.
+        data["compiler_launcher"] = {"cxx": compiler_launcher, "cc": compiler_launcher}
+
+    # Validate that the launcher(s) exists
+    if "compiler_launcher" in data:
+        launchers = data["compiler_launcher"]
+        for lang, launcher_name in launchers:
+            if not launcher_name:
+                continue
+
+            launcher = Executable(launcher_name)
+            if not launcher:
+                raise RuntimeError(f"No {launchers['lang']} binary found in PATH")
 
     use_curl = data.pop("use_curl", None)
     if use_curl is not None:

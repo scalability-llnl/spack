@@ -1,0 +1,47 @@
+#!/bin/bash
+
+SCCACHE_VERSION=v0.7.4
+SCCACHE_DIST=x86_64-unknown-linux-musl
+SCCACHE_URL=https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${SCCACHE_DIST}.tar.gz
+
+set -e
+set -x
+
+# download and validate
+curl -LSs ${SCCACHE_URL} --output sccache.tar.gz
+echo "$(curl -LSs ${SCCACHE_URL}.sha256) sccache.tar.gz" > sccache.tar.gz.sha256
+sha256sum --check sccache.tar.gz.sha256
+
+# extract to spack bin
+sccache_path=$(tar --list -f sccache.tar.gz | grep "/sccache")
+tar -x ${sccache_path} -zf ./sccache.tar.gz
+mv ${sccache_path} ${CI_PROJECT_DIR}/bin/
+
+# Compute sccache port to avoid conflicts
+if [ ! -z ${CI_JOB_ID} ];
+then
+  SCCACHE_SERVER_PORT=$(expr 30000 + ${CI_JOB_ID} % 10000)
+else
+  SCCACHE_SERVER_PORT=$(expr 30000 + ${RANDOM} % 10000)
+fi
+
+export SCCACHE_SERVER_PORT
+
+[ -n ${SCCACHE_ERROR_LOG} ] && mkdir -p $(dirname ${SCCACHE_ERROR_LOG})
+
+# Pull requests are not privileged
+if [ "${SPACK_PIPELINE_TYPE}" == "spack_pull_request"]; then
+  export SCCACHE_S3_NO_CREDENTIALS=true
+else
+  export SCCACHE_S3_NO_CREDENTIALS=false
+fi
+
+# Configure environment file
+echo "set -a" > cache_env.txt
+env | grep SCCACHE_ >> cache_env.txt
+echo "set +a" >> cache_env.txt
+
+echo "Starting sccache, listening on ${SCCACHE_SERVER_PORT}"
+
+${CI_PROJECT_DIR}/bin/sccache --start-server
+${CI_PROJECT_DIR}/bin/sccache --show-stats

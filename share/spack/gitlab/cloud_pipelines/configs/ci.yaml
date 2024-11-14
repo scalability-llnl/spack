@@ -8,6 +8,31 @@ ci:
   broken-specs-url: "https://dummy.io" # s3://spack-binaries/broken-specs"
 
   pipeline-gen:
+  - any-job-remove:
+      id_tokens:: no-oidc-tokens
+
+  # Configure sccache
+  - build-job:
+      variables:
+        SCCACHE_CONF: "${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/configs/sccache.conf"
+        SCCACHE_BUCKET: "spack-binaries"
+        SCCACHE_S3_KEY_PREFIX: "/experiments/develop/sccache"
+        SCCACHE_S3_USE_SSL: "true"
+        SCCACHE_REGION: us-east-1
+        SCCACHE_LOG: "debug"
+        SCCACHE_ERROR_LOG: "${CI_PROJECT_DIR}/${SPACK_JOB_LOG_DIR}/sccache_log.txt"
+        # Setting this to avoid phantom servers
+        SCCACHE_IDLE_TIMEOUT: "3600"
+      before_script:
+      - - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/setup-${CACHE_TYPE}"
+        - "[ -f cache_env.txt ] && source cache_env.txt"
+      # Print sccache statistics
+      script-:
+      - - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/stats-${CACHE_TYPE}"
+      # Try to stop the server
+      after_script:
+      - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/teardown-${CACHE_TYPE}"
+
   - build-job:
       before_script-:
       - - cat /proc/loadavg || true
@@ -25,6 +50,7 @@ ci:
       script::
       - - spack config blame mirrors
         - spack --color=always --backtrace ci rebuild --tests > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)
+      - - "[ ! -z ${CACHE_TYPE} ] && ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/stats-${CACHE_TYPE}"
       after_script:
       - - cat /proc/loadavg || true
         - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true

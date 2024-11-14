@@ -400,7 +400,7 @@ e4s-oneapi-build:
 ########################################
 # E4S on Power
 ########################################
-.e4s-power-generate-tags-and-image:
+e4s-power-generate-tags-and-image:
   image: { "name": "ghcr.io/spack/ubuntu20.04-runner-ppc64-gcc-11.4:2023.08.01", "entrypoint": [""] }
   tags: ["spack", "public", "large", "ppc64le"]
 
@@ -808,7 +808,7 @@ ml-darwin-aarch64-mps-build:
 # AWS ParallelCluster
 ########################################
 
-.aws-pcluster-generate:
+aws-pcluster-generate:
   image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07", "entrypoint": [""] }
   before_script:
     # Use gcc from pre-installed spack store

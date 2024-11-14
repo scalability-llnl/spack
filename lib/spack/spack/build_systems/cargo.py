@@ -6,6 +6,7 @@
 import llnl.util.filesystem as fs
 
 import spack.builder
+import spack.config
 import spack.package_base
 from spack.directives import build_system, depends_on
 from spack.multimethod import when
