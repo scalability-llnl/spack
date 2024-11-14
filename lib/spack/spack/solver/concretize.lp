@@ -1365,12 +1365,16 @@ node_target_compatible(PackageNode, Target)
 #defined target_satisfies/2.
 compiler(Compiler) :- compiler_supports_target(Compiler, _, _).
 
-% can't use targets on node if the compiler for the node doesn't support them
-error(100, "{0} compiler '{2}@{3}' incompatible with 'target={1}'", Package, Target, Compiler, Version)
+% Can't use targets on node if the compiler for the node doesn't support them
+language("c").
+language("cxx").
+language("fortran").
+
+error(10, "{0} compiler '{2}@{3}' incompatible with 'target={1}'", Package, Target, Compiler, Version)
   :- attr("node_target", node(X, Package), Target),
-     attr("depends_on", node(X, Package), node(Y, Compiler), "build"),
+     attr("virtual_on_edge", node(X, Package), node(Y, Compiler), Language),
      attr("version", node(Y, Compiler), Version),
-     compiler(Compiler),
+     compiler(Compiler), language(Language),
      not compiler_supports_target(Compiler, Version, Target),
      build(node(X, Package)).
 
