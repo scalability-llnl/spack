@@ -20,7 +20,7 @@ class PyPintXarray(PythonPackage):
     with when("@0.4:"):
         depends_on("py-setuptools@64:", type="build")
         depends_on("py-setuptools-scm@7.0:+toml", type="build")
-        depends_on("python@3.9:", when="@0.4:", type=("build", "run"))
+        depends_on("python@3.9:", type=("build", "run"))
         depends_on("py-numpy@1.23:", type=("build", "run"))
         depends_on("py-xarray@2022.06.0:", type=("build", "run"))
         depends_on("py-pint@0.21:", type=("build", "run"))
@@ -28,7 +28,7 @@ class PyPintXarray(PythonPackage):
     with when("@:0.3"):
         depends_on("py-setuptools@42:", type="build")
         depends_on("py-setuptools-scm@3.4:+toml", type="build")
-        depends_on("python@3.8:", when="@0.3:", type=("build", "run"))
+        depends_on("python@3.8:", type=("build", "run"))
         depends_on("py-numpy@1.17:", type=("build", "run"))
         depends_on("py-xarray@0.16.1:", type=("build", "run"))
         depends_on("py-pint@0.16:", type=("build", "run"))
