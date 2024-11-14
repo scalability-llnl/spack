@@ -19,7 +19,7 @@ class RocmDbgapi(CMakePackage):
     url = "https://github.com/ROCm/ROCdbgapi/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocm-dbgapi"]
 
     license("MIT")
