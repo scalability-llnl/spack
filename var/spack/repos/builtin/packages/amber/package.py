@@ -148,7 +148,6 @@ class Amber(Package, CudaPackage):
     conflicts(
         "+openmp", when="%apple-clang", msg="OpenMP not available for the Apple clang compiler"
     )
-    conflicts("+openmp", when="%pgi", msg="OpenMP not available for the pgi compiler")
 
     def url_for_version(self, version):
         url = "file://{0}/Amber{1}.tar.bz2".format(os.getcwd(), version)
@@ -182,8 +181,6 @@ class Amber(Package, CudaPackage):
             compiler = "gnu"
         elif self.spec.satisfies("%intel"):
             compiler = "intel"
-        elif self.spec.satisfies("%pgi"):
-            compiler = "pgi"
         elif self.spec.satisfies("%nvhpc"):
             compiler = "pgi"
         elif self.spec.satisfies("%clang"):

@@ -21,7 +21,6 @@ class Nlopt(CMakePackage):
     license("LGPL-2.1-or-later")
 
     version("master", branch="master")
-
     version("2.8.0", sha256="e02a4956a69d323775d79fdaec7ba7a23ed912c7d45e439bc933d991ea3193fd")
     version("2.7.1", sha256="db88232fa5cef0ff6e39943fc63ab6074208831dc0031cf1545f6ecd31ae2a1a")
     version("2.7.0", sha256="b881cc2a5face5139f1c5a30caf26b7d3cb43d69d5e423c9d78392f99844499f")
@@ -53,26 +52,14 @@ class Nlopt(CMakePackage):
     extends("python", when="+python")
 
     def cmake_args(self):
-        # Add arguments other than
-        # CMAKE_INSTALL_PREFIX and CMAKE_BUILD_TYPE
         spec = self.spec
-        args = []
+        args = [
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define_from_variant("NLOPT_OCTAVE", "octave"),
+            self.define_from_variant("NLOPT_CXX", "cxx"),
+        ]
 
-        # Specify on command line to alter defaults:
-        # eg: spack install nlopt@master +guile -octave +cxx
-
-        # On is default
-        if "~shared" in spec:
-            args.append("-DBUILD_SHARED_LIBS:Bool=OFF")
-
-        # On is default
-        if "~octave" in spec:
-            args.append("-DNLOPT_OCTAVE:Bool=OFF")
-
-        if "+cxx" in spec:
-            args.append("-DNLOPT_CXX:BOOL=ON")
-
-        if "+matlab" in spec:
-            args.append("-DMatlab_ROOT_DIR=%s" % spec["matlab"].command.path)
+        if spec.satisfies("+matlab"):
+            args.append(self.define("Matlab_ROOT_DIR", spec["matlab"].command.path))
 
         return args

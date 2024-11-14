@@ -159,8 +159,8 @@ class TestSpecSemantics:
             ("foo%intel", "%intel", "foo%intel"),
             ("foo%gcc", "%gcc@4.7.2", "foo%gcc@4.7.2"),
             ("foo%intel", "%intel@4.7.2", "foo%intel@4.7.2"),
-            ("foo%pgi@4.5", "%pgi@4.4:4.6", "foo%pgi@4.5"),
-            ("foo@2.0%pgi@4.5", "@1:3%pgi@4.4:4.6", "foo@2.0%pgi@4.5"),
+            ("foo%gcc@4.5", "%gcc@4.4:4.6", "foo%gcc@4.5"),
+            ("foo@2.0%gcc@4.5", "@1:3%gcc@4.4:4.6", "foo@2.0%gcc@4.5"),
             ("foo %gcc@4.7.3", "%gcc@4.7", "foo %gcc@4.7.3"),
             ("libelf %gcc@4.4.7", "libelf %gcc@4.4.7", "libelf %gcc@4.4.7"),
             ("libelf", "libelf %gcc@4.4.7", "libelf %gcc@4.4.7"),
@@ -462,10 +462,10 @@ class TestSpecSemantics:
             ("foo target=x86_64", "platform=test os=redhat6 target=x86"),
             ("foo arch=test-frontend-frontend", "platform=test os=frontend target=backend"),
             ("foo%intel", "%gcc"),
-            ("foo%intel", "%pgi"),
-            ("foo%pgi@4.3", "%pgi@4.4:4.6"),
-            ("foo@4.0%pgi", "@1:3%pgi"),
-            ("foo@4.0%pgi@4.5", "@1:3%pgi@4.4:4.6"),
+            ("foo%intel", "%gcc"),
+            ("foo%gcc@4.3", "%gcc@4.4:4.6"),
+            ("foo@4.0%gcc", "@1:3%gcc"),
+            ("foo@4.0%gcc@4.5", "@1:3%gcc@4.4:4.6"),
             ("builtin.mock.mpich", "builtin.mpich"),
             ("mpileaks ^builtin.mock.mpich", "^builtin.mpich"),
             ("mpileaks^mpich@1.2", "^mpich@2.0"),
@@ -1763,8 +1763,8 @@ def test_package_hash_affects_dunder_and_dag_hash(mock_packages, default_mock_co
     assert a1.dag_hash() == a2.dag_hash()
     assert a1.process_hash() == a2.process_hash()
 
-    a1.clear_cached_hashes()
-    a2.clear_cached_hashes()
+    a1.clear_caches()
+    a2.clear_caches()
 
     # tweak the dag hash of one of these specs
     new_hash = "00000000000000000000000000000000"

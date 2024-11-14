@@ -180,7 +180,7 @@ class Mirror:
         if errors:
             msg = f"invalid {direction} configuration for mirror {self.name}: "
             msg += "\n    ".join(errors)
-            raise spack.mirror.MirrorError(msg)
+            raise MirrorError(msg)
 
     def _update_connection_dict(self, current_data: dict, new_data: dict, top_level: bool):
         # Only allow one to exist in the config

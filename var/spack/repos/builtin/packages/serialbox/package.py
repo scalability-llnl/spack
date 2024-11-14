@@ -45,9 +45,6 @@ class Serialbox(CMakePackage):
     )
 
     depends_on("cmake@3.12:", type="build")
-    # We might be provided with an external vanilla cmake, and we need one with
-    # with https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5025
-    depends_on("cmake@3.19:", when="%pgi", type="build")
 
     depends_on("boost@1.54:", type="build")
     depends_on("boost+filesystem+system", when="~std-filesystem", type=("build", "link"))
@@ -147,10 +144,7 @@ class Serialbox(CMakePackage):
             # undefined reference to
             #     `std::experimental::filesystem::v1::__cxx11::path::
             #         _M_find_extension[abi:cxx11]() const'
-            if any(
-                self.spec.satisfies("{0}+std-filesystem".format(x))
-                for x in ["%intel@:19.0.1", "%pgi@:19.9"]
-            ):
+            if self.spec.satisfies("%intel@:19.0.1+std-filesystem"):
                 cmake_flags.append("-D_GLIBCXX_USE_CXX11_ABI=0")
 
         return flags, None, (cmake_flags or None)
