@@ -411,7 +411,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "kim",
         "h5md",
         "tools",
-        "rheo"
+        "rheo",
     ):
         depends_on("c", type="build", when=f"+{c_pkg}")
 

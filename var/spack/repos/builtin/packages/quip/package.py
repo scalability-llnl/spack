@@ -67,8 +67,8 @@ class Quip(MakefilePackage):
         if self.spec.satisfies("+netcdf"):
             netcdf = "1"
         quip_arch = f"{host_os}_{arch}_{compiler}"
-        blas = self.spec['blas'].libs.ld_flags
-        lapack = self.spec['lapack'].libs.ld_flags
+        blas = self.spec["blas"].libs.ld_flags
+        lapack = self.spec["lapack"].libs.ld_flags
         env.set("GIT_VERSION", str(self.version))
         env.set("QUIP_ARCH", quip_arch)
         env.set("QUIP_ROOT", self.build_directory)
