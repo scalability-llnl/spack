@@ -82,7 +82,7 @@ config:
 
   # Cache directory for miscellaneous files, like the package index.
   # This can be purged with `spack clean --misc-cache`
-  misc_cache: $user_cache_path/cache
+  misc_cache: $per_spack_user/cache
 
 
   # Timeout in seconds used for downloading sources etc. This only applies
