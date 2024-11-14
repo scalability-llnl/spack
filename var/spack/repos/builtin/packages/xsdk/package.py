@@ -170,12 +170,14 @@ class Xsdk(BundlePackage, CudaPackage, ROCmPackage):
     xsdk_depends_on("dealii ~trilinos", when="~trilinos +dealii")
     xsdk_depends_on(
         "dealii@9.5.1~assimp~python~doc~gmsh+petsc+slepc+mpi~int64"
-        + "~netcdf+metis+sundials~ginkgo~symengine~simplex~arborx~cgal~oce",
+        + "~netcdf+metis+sundials~ginkgo~symengine~simplex~arborx~cgal~oce"
+        + "~opencascade",
         when="@1.0.0 +dealii",
     )
     xsdk_depends_on(
         "dealii@9.4.0~assimp~python~doc~gmsh+petsc+slepc+mpi~int64"
-        + "~netcdf+metis+sundials~ginkgo~symengine~simplex~arborx~cgal",
+        + "~netcdf+metis+sundials~ginkgo~symengine~simplex~arborx~cgal~oce"
+        + "~opencascade",
         when="@0.8.0 +dealii",
     )
 
