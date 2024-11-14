@@ -308,8 +308,10 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     depends_on("sundials@2.7.0:+mpi+hypre", when="@3.3.2:+sundials+mpi")
     depends_on("sundials@5.0.0:5", when="@4.1.0:4.4+sundials~mpi")
     depends_on("sundials@5.0.0:5+mpi+hypre", when="@4.1.0:4.4+sundials+mpi")
-    depends_on("sundials@5.0.0:6.7.0", when="@4.5.0:+sundials~mpi")
-    depends_on("sundials@5.0.0:6.7.0+mpi+hypre", when="@4.5.0:+sundials+mpi")
+    depends_on("sundials@5.0.0:6.7.0", when="@4.5.0:4.6+sundials~mpi")
+    depends_on("sundials@5.0.0:6.7.0+mpi+hypre", when="@4.5.0:4.6+sundials+mpi")
+    depends_on("sundials@5.0.0:", when="@4.7.0:+sundials~mpi")
+    depends_on("sundials@5.0.0:+mpi+hypre", when="@4.7.0:+sundials+mpi")
     conflicts("cxxstd=11", when="^sundials@6.4.0:")
     for sm_ in CudaPackage.cuda_arch_values:
         depends_on(
@@ -507,6 +509,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
         sha256="2a31682d876626529e2778a216d403648b83b90997873659a505d982d0e65beb",
     )
     patch("mfem-4.7.patch", when="@4.7.0")
+    patch("mfem-4.7-sundials-7.patch", when="@4.7.0+sundials ^sundials@7:")
 
     phases = ["configure", "build", "install"]
 

@@ -733,6 +733,8 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
             # Q: should the result be ordered by dependency?
         else:
             sun_libs = ["libsundials_" + p for p in query_parameters]
+            if self.spec.satisfies("@7:"):
+                sun_libs += ["libsundials_core"]
         is_shared = "+shared" in self.spec
 
         libs = find_libraries(sun_libs, root=self.prefix, shared=is_shared, recursive=True)
