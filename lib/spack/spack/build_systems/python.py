@@ -35,7 +35,7 @@ from spack.install_test import test_part
 from spack.spec import Spec
 from spack.util.prefix import Prefix
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 def _flatten_dict(dictionary: Mapping[str, object]) -> Iterable[str]:
@@ -426,7 +426,7 @@ class PythonPackage(PythonExtension):
 
 
 @spack.builder.builder("python_pip")
-class PythonPipBuilder(BaseBuilder):
+class PythonPipBuilder(BuilderWithDefaults):
     phases = ("install",)
 
     #: Names associated with package methods in the old build-system format

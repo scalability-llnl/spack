@@ -25,7 +25,7 @@ from spack.util.executable import Executable
 from spack.version import Version
 
 from ._checks import (
-    BaseBuilder,
+    BuilderWithDefaults,
     apply_macos_rpath_fixups,
     ensure_build_dependencies_or_raise,
     execute_build_time_tests,
@@ -79,7 +79,7 @@ class AutotoolsPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("autotools")
-class AutotoolsBuilder(BaseBuilder):
+class AutotoolsBuilder(BuilderWithDefaults):
     """The autotools builder encodes the default way of installing software built
     with autotools. It has four phases that can be overridden, if need be:
 

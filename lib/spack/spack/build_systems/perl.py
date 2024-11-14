@@ -15,7 +15,7 @@ from spack.directives import build_system, extends
 from spack.install_test import SkipTest, test_part
 from spack.util.executable import Executable
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 
 class PerlPackage(spack.package_base.PackageBase):
@@ -85,7 +85,7 @@ class PerlPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("perl")
-class PerlBuilder(BaseBuilder):
+class PerlBuilder(BuilderWithDefaults):
     """The perl builder provides four phases that can be overridden, if required:
 
         1. :py:meth:`~.PerlBuilder.configure`

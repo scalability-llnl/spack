@@ -25,7 +25,7 @@ from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
 from spack.util.environment import filter_system_paths
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 # Regex to extract the primary generator from the CMake generator
 # string.
@@ -280,7 +280,7 @@ class CMakePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("cmake")
-class CMakeBuilder(BaseBuilder):
+class CMakeBuilder(BuilderWithDefaults):
     """The cmake builder encodes the default way of building software with CMake. IT
     has three phases that can be overridden:
 

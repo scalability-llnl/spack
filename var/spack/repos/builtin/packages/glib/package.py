@@ -5,7 +5,6 @@
 
 import os.path
 
-import spack.phase_callbacks
 from spack.package import *
 from spack.util.environment import is_system_path
 
@@ -209,7 +208,7 @@ class Glib(MesonPackage, AutotoolsPackage):
         return find_libraries(["libglib*"], root=self.prefix, recursive=True)
 
 
-class BaseBuilder(metaclass=spack.phase_callbacks.PhaseCallbacksMeta):
+class AnyBuilder(BaseBuilder):
     @property
     def dtrace_copy_path(self):
         return join_path(self.stage.source_path, "dtrace-copy")
@@ -289,7 +288,7 @@ class BaseBuilder(metaclass=spack.phase_callbacks.PhaseCallbacksMeta):
             filter_file(pattern, repl, myfile, backup=False)
 
 
-class MesonBuilder(BaseBuilder, spack.build_systems.meson.MesonBuilder):
+class MesonBuilder(AnyBuilder, spack.build_systems.meson.MesonBuilder):
     def meson_args(self):
         args = []
         if self.spec.satisfies("@2.63.5:"):
@@ -331,7 +330,7 @@ class MesonBuilder(BaseBuilder, spack.build_systems.meson.MesonBuilder):
         return args
 
 
-class AutotoolsBuilder(BaseBuilder, spack.build_systems.autotools.AutotoolsBuilder):
+class AutotoolsBuilder(AnyBuilder, spack.build_systems.autotools.AutotoolsBuilder):
     def configure_args(self):
         args = []
         if self.spec.satisfies("+libmount"):

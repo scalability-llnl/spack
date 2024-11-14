@@ -15,7 +15,7 @@ import spack.util.prefix
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 
 class MesonPackage(spack.package_base.PackageBase):
@@ -65,7 +65,7 @@ class MesonPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("meson")
-class MesonBuilder(BaseBuilder):
+class MesonBuilder(BuilderWithDefaults):
     """The Meson builder encodes the default way to build software with Meson.
     The builder has three phases that can be overridden, if need be:
 

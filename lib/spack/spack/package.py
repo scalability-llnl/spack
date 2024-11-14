@@ -74,6 +74,7 @@ from spack.build_systems.sourceforge import SourceforgePackage
 from spack.build_systems.sourceware import SourcewarePackage
 from spack.build_systems.waf import WafPackage
 from spack.build_systems.xorg import XorgPackage
+from spack.builder import BaseBuilder
 from spack.config import determine_number_of_jobs
 from spack.deptypes import ALL_TYPES as all_deptypes
 from spack.directives import *

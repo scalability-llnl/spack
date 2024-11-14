@@ -388,40 +388,33 @@ class InstallationPhase:
         return copy.deepcopy(self)
 
 
-class Builder(collections.abc.Sequence, metaclass=BuilderMeta):
-    """A builder is a class that, given a package object (i.e. associated with
-    concrete spec), knows how to install it.
+class BaseBuilder(metaclass=BuilderMeta):
+    """An interface for builders, without any phases defined. This class is exposed in the package
+    API, so that packagers can create a single class to define ``setup_build_environment`` and
+    ``@run_before`` and ``@run_after`` callbacks that can be shared among different builders.
 
-    The builder behaves like a sequence, and when iterated over return the
-    "phases" of the installation in the correct order.
+    Example:
+
+    .. code-block:: python
+
+       class AnyBuilder(BaseBuilder):
+           @run_after("install")
+           def fixup_install(self):
+                # do something after the package is installed
+                pass
+
+           def setup_build_environment(self, env):
+                env.set("MY_ENV_VAR", "my_value")
+
+        class CMakeBuilder(cmake.CMakeBuilder, AnyBuilder):
+            pass
+
+        class AutotoolsBuilder(autotools.AutotoolsBuilder, AnyBuilder):
+            pass
     """
 
-    #: Sequence of phases. Must be defined in derived classes
-    phases: Tuple[str, ...] = ()
-    #: Build system name. Must also be defined in derived classes.
-    build_system: Optional[str] = None
-
-    legacy_methods: Tuple[str, ...] = ()
-    legacy_attributes: Tuple[str, ...] = ()
-
-    # type hints for some of the legacy methods
-    build_time_test_callbacks: List[str]
-    install_time_test_callbacks: List[str]
-
-    #: List of glob expressions. Each expression must either be
-    #: absolute or relative to the package source path.
-    #: Matching artifacts found at the end of the build process will be
-    #: copied in the same directory tree as _spack_build_logfile and
-    #: _spack_build_envfile.
-    @property
-    def archive_files(self) -> List[str]:
-        return []
-
-    def __init__(self, pkg: spack.package_base.PackageBase):
+    def __init__(self, pkg: spack.package_base.PackageBase) -> None:
         self.pkg = pkg
-        self.callbacks = {}
-        for phase in self.phases:
-            self.callbacks[phase] = InstallationPhase(phase, self)
 
     @property
     def spec(self) -> spack.spec.Spec:
@@ -477,17 +470,51 @@ class Builder(collections.abc.Sequence, metaclass=BuilderMeta):
             return
         super().setup_dependent_build_environment(env, dependent_spec)  # type: ignore
 
+    def __repr__(self):
+        fmt = "{name}{/hash:7}"
+        return f"{self.__class__.__name__}({self.spec.format(fmt)})"
+
+    def __str__(self):
+        fmt = "{name}{/hash:7}"
+        return f'"{self.__class__.__name__}" builder for "{self.spec.format(fmt)}"'
+
+
+class Builder(BaseBuilder, collections.abc.Sequence):
+    """A builder is a class that, given a package object (i.e. associated with concrete spec),
+    knows how to install it.
+
+    The builder behaves like a sequence, and when iterated over return the "phases" of the
+    installation in the correct order.
+    """
+
+    #: Sequence of phases. Must be defined in derived classes
+    phases: Tuple[str, ...] = ()
+    #: Build system name. Must also be defined in derived classes.
+    build_system: Optional[str] = None
+
+    legacy_methods: Tuple[str, ...] = ()
+    legacy_attributes: Tuple[str, ...] = ()
+
+    # type hints for some of the legacy methods
+    build_time_test_callbacks: List[str]
+    install_time_test_callbacks: List[str]
+
+    #: List of glob expressions. Each expression must either be absolute or relative to the package
+    #: source path. Matching artifacts found at the end of the build process will be copied in the
+    #: same directory tree as _spack_build_logfile and _spack_build_envfile.
+    @property
+    def archive_files(self) -> List[str]:
+        return []
+
+    def __init__(self, pkg: spack.package_base.PackageBase) -> None:
+        super().__init__(pkg)
+        self.callbacks = {}
+        for phase in self.phases:
+            self.callbacks[phase] = InstallationPhase(phase, self)
+
     def __getitem__(self, idx):
         key = self.phases[idx]
         return self.callbacks[key]
 
     def __len__(self):
         return len(self.phases)
-
-    def __repr__(self):
-        msg = "{0}({1})"
-        return msg.format(type(self).__name__, self.pkg.spec.format("{name}/{hash:7}"))
-
-    def __str__(self):
-        msg = '"{0}" builder for "{1}"'
-        return msg.format(type(self).build_system, self.pkg.spec.format("{name}/{hash:7}"))

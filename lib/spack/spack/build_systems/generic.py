@@ -9,7 +9,7 @@ import spack.directives
 import spack.package_base
 import spack.phase_callbacks
 
-from ._checks import BaseBuilder, apply_macos_rpath_fixups, execute_install_time_tests
+from ._checks import BuilderWithDefaults, apply_macos_rpath_fixups, execute_install_time_tests
 
 
 class Package(spack.package_base.PackageBase):
@@ -27,7 +27,7 @@ class Package(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("generic")
-class GenericBuilder(BaseBuilder):
+class GenericBuilder(BuilderWithDefaults):
     """A builder for a generic build system, that require packagers
     to implement an "install" phase.
     """

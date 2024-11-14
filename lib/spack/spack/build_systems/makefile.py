@@ -15,7 +15,7 @@ from spack.directives import build_system, conflicts, depends_on
 from spack.multimethod import when
 
 from ._checks import (
-    BaseBuilder,
+    BuilderWithDefaults,
     apply_macos_rpath_fixups,
     execute_build_time_tests,
     execute_install_time_tests,
@@ -39,7 +39,7 @@ class MakefilePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("makefile")
-class MakefileBuilder(BaseBuilder):
+class MakefileBuilder(BuilderWithDefaults):
     """The Makefile builder encodes the most common way of building software with
     Makefiles. It has three phases that can be overridden, if need be:
 

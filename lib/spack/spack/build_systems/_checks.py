@@ -128,8 +128,8 @@ def execute_install_time_tests(builder: spack.builder.Builder):
     builder.pkg.tester.phase_tests(builder, "install", builder.install_time_test_callbacks)
 
 
-class BaseBuilder(spack.builder.Builder):
-    """Base class for builders to register common checks"""
+class BuilderWithDefaults(spack.builder.Builder):
+    """Base class for all specific builders with common callbacks registered."""
 
     # Check that self.prefix is there after installation
     spack.phase_callbacks.run_after("install")(sanity_check_prefix)

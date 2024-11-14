@@ -16,7 +16,7 @@ from spack.directives import build_system, depends_on, extends
 from spack.multimethod import when
 from spack.util.executable import Executable
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 class SIPPackage(spack.package_base.PackageBase):
@@ -104,7 +104,7 @@ class SIPPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("sip")
-class SIPBuilder(BaseBuilder):
+class SIPBuilder(BuilderWithDefaults):
     """The SIP builder provides the following phases that can be overridden:
 
     * configure

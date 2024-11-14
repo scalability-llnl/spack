@@ -7,7 +7,7 @@ import spack.package_base
 import spack.phase_callbacks
 from spack.directives import build_system, depends_on
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 
 class SConsPackage(spack.package_base.PackageBase):
@@ -29,7 +29,7 @@ class SConsPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("scons")
-class SConsBuilder(BaseBuilder):
+class SConsBuilder(BuilderWithDefaults):
     """The Scons builder provides the following phases that can be overridden:
 
     1. :py:meth:`~.SConsBuilder.build`
