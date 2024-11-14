@@ -120,9 +120,9 @@ class Harfbuzz(MesonPackage, AutotoolsPackage):
         if name == "cxxflags":
             flags.append(self.compiler.cxx11_flag)
         if name == "cflags":
-            if "%pgi" not in self.spec and self.spec.satisfies("%gcc@:5.1"):
+            if self.spec.satisfies("%gcc@:5.1"):
                 flags.append("-std=gnu99")
-        return (None, None, flags)
+        return None, None, flags
 
     def setup_run_environment(self, env):
         env.prepend_path("GI_TYPELIB_PATH", join_path(self.prefix.lib, "girepository-1.0"))

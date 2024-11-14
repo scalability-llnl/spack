@@ -62,7 +62,7 @@ spack:
   - conduit
   - cp2k +mpi
   - datatransferkit
-  - dealii
+  - dealii ~vtk # https://github.com/spack/spack/pull/45554#issuecomment-2457255720
   - drishti
   - dxt-explorer
   - dyninst

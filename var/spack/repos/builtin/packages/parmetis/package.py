@@ -40,13 +40,6 @@ class Parmetis(CMakePackage):
     # https://bitbucket.org/petsc/pkg-parmetis/commits/82409d68aa1d6cbc70740d0f35024aae17f7d5cb/raw/
     patch("pkg-parmetis-82409d68aa1d6cbc70740d0f35024aae17f7d5cb.patch")
 
-    def flag_handler(self, name, flags):
-        if name == "cflags":
-            if "%pgi" in self.spec:
-                my_flags = flags + ["-c11"]
-                return (None, None, my_flags)
-        return (None, None, flags)
-
     def url_for_version(self, version):
         url = "http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis"
         if version < Version("3.2.0"):

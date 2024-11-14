@@ -84,7 +84,7 @@ spack:
   - charliecloud
   - conduit
   - datatransferkit
-  - dealii
+  - dealii ~vtk ~taskflow cflags=-O0 cxxflags=-O0 # +vtk +taskflow: ^taskflow: CMake Error at CMakeLists.txt:81 (message): Taskflow currently supports the following compilers: g++ v7.0 or above, clang++ v6.0 or above; use -O0 to work around compiler failure
   - drishti
   - dxt-explorer
   - ecp-data-vis-sdk ~cuda ~rocm +adios2 ~ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp # +ascent: fides: fides/xgc/XGCCommon.cxx:233:10: error: no member named 'iota' in namespace 'std'; +visit: visit_vtk/lightweight/vtkSkewLookupTable.C:32:10: error: cannot initialize return object of type 'unsigned char *' with an rvalue of type 'const unsigned char *'

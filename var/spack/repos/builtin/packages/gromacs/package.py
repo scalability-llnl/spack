@@ -183,7 +183,7 @@ class Gromacs(CMakePackage, CudaPackage):
         "sve",
         default=True,
         description="Enable SVE on aarch64 if available",
-        when="target=neoverse_v1:,neoverse_v2:",
+        when="target=neoverse_v1:,neoverse_v2:,neoverse_n2:",
     )
     variant(
         "sve", default=True, description="Enable SVE on aarch64 if available", when="target=a64fx"

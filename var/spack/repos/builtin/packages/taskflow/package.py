@@ -31,7 +31,6 @@ class Taskflow(CMakePackage):
     conflicts("%clang@:3.5")
     conflicts("%apple-clang@:8.0.0")
     # untested: conflicts('%intel@:15')
-    # untested: conflicts('%pgi@:14')
 
     def cmake_args(self):
         try:
