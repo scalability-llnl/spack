@@ -14,7 +14,7 @@ import warnings
 
 import spack.paths as paths
 
-install_root = None
+scheme = None
 
 _in_spack = os.path.join(paths.prefix, "opt", "spack")
 
@@ -23,19 +23,18 @@ _in_user = os.path.join(paths.per_spack_user_root, "installs")
 alias = {".root": _in_spack, ".user": _in_user}
 
 
-def install_tree():
+def default_install_location():
     """
     Selecting install-tree
 
-    - if user specifies --install-root, we use that
-    - if $user_root has one, we use that
-    - if $old_install_path is occupied, we use that
-    - otherwise, we use $user_root
+    - if user specifies --install-scheme, we use that
+    - if there is config or installs in $per_spack user, use that
+    - otherwise, we are managing installs inside of Spack
     """
-    if install_root:
+    if scheme:
         # User can e.g. say --install-root=.root to refer to
         # the installation tree inside of the Spack prefix
-        return alias.get(install_root, install_root)
+        return alias.get(scheme, scheme)
     elif paths.dir_is_occupied(_in_user):
         return _in_user
     else:
@@ -46,8 +45,8 @@ def install_tree():
         return _in_spack
 
 
-def install_tree_config():
-    root = install_tree()
+def config():
+    root = default_install_location()
     cfgs = os.path.join(root, "configs")
     return cfgs
 

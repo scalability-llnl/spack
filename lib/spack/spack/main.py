@@ -39,7 +39,7 @@ import spack.cmd
 import spack.config
 import spack.environment as ev
 import spack.error
-import spack.install_trees
+import spack.install_scheme
 import spack.modules
 import spack.paths
 import spack.platforms
@@ -503,8 +503,8 @@ def make_argument_parser(**kwargs):
         "--print-shell-vars", action="store", help="print info needed by setup-env.*sh"
     )
     parser.add_argument(
-        "--install-root",
-        dest="install_root",
+        "--install-scheme",
+        dest="install_scheme",
         action="store",
         default=None,
         help="specify non-default install tree",
@@ -576,8 +576,8 @@ def setup_main_options(args):
     if args.color is not None:
         color.set_color_when(args.color)
 
-    if args.install_root:
-        spack.install_trees.install_root = args.install_root
+    if args.install_scheme:
+        spack.install_scheme.scheme = args.install_scheme
 
 
 def allows_unknown_args(command):

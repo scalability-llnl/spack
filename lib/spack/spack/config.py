@@ -853,7 +853,7 @@ def create() -> Configuration:
     # Python package's can register configuration scopes via entry_points
     configuration_paths.extend(config_paths_from_entry_points())
 
-    configuration_paths.append(("install", spack.install_trees.install_tree_config()))
+    configuration_paths.append(("install", spack.install_trees.config()))
 
     # User configuration can override both spack defaults and site config
     # This is disabled if user asks for no local configuration.
