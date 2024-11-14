@@ -7,6 +7,7 @@ import os
 import re
 import sys
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.build_systems.generic import GenericBuilder
 from spack.package import *
 
@@ -54,6 +55,12 @@ class Msmpi(Package):
         self.spec.mpicxx = dependent_module.spack_cxx
         self.spec.mpifc = dependent_module.spack_fc
         self.spec.mpif77 = dependent_module.spack_f77
+        CMakeBuilder.setup_dependent_cmake_package(
+            dependent_spec,
+            CMakeBuilder.define("MPI_EXECUTABLE", self.prefix.bin.mpiexec),
+            CMakeBuilder.define("MPI_SKIP_COMPILER_WRAPPER", True),
+            CMakeBuilder.define("MPI_ASSUME_NO_BUILTIN_MPI", True),
+        )
 
 
 class GenericBuilder(GenericBuilder):

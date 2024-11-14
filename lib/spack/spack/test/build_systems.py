@@ -255,7 +255,7 @@ spack:
                 e.install_all()
 
 
-@pytest.mark.usefixtures("config", "mock_packages")
+@pytest.mark.usefixtures("config", "mock_packages", "working_env")
 class TestCMakePackage:
     def test_cmake_std_args(self, default_mock_concretization):
         # Call the function on a CMakePackage instance
@@ -319,6 +319,13 @@ class TestCMakePackage:
         s = default_mock_concretization("vtk-m +rocm amdgpu_target=gfx900 ^cmake@3.23")
         option = spack.build_systems.cmake.CMakeBuilder.define_hip_architectures(s.package)
         assert "-DCMAKE_HIP_ARCHITECTURES:STRING=gfx900" == option
+
+    def test_cmake_dependent_args(self, concretize_and_setup, monkeypatch):
+        def cmake_arg_check(*options):
+            assert "-DDEP_TEST_ARG=ON" in options
+
+        s = concretize_and_setup("cmake-client-dependent")
+        monkeypatch.setattr(s.package.module, "cmake", cmake_arg_check)
 
 
 @pytest.mark.usefixtures("config", "mock_packages")

@@ -320,6 +320,10 @@ class CMakeBuilder(BaseBuilder):
     #: Callback names for build-time test
     build_time_test_callbacks = ["check"]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dependency_args = []
+
     @property
     def archive_files(self):
         """Files to archive for packages based on CMake"""
@@ -354,6 +358,13 @@ class CMakeBuilder(BaseBuilder):
         args = CMakeBuilder.std_args(self.pkg, generator=self.generator)
         args += getattr(self.pkg, "cmake_flag_args", [])
         return args
+
+    @staticmethod
+    def setup_dependent_cmake_package(dependent_spec, *propagated_args):
+        """Helper method to propagate required CMake cache definitions to dependent
+        packages"""
+        if dependent_spec.satisfies("build_system=cmake"):
+            dependent_spec.package.builder.dependency_args += propagated_args
 
     @staticmethod
     def std_args(pkg, generator=None):
@@ -569,7 +580,7 @@ class CMakeBuilder(BaseBuilder):
         ):
             return
 
-        options = self.std_cmake_args
+        options = self.std_cmake_args + self.dependency_args
         options += self.cmake_args()
         options.append(os.path.abspath(self.root_cmakelists_dir))
         with fs.working_dir(self.build_directory, create=True):
