@@ -30,12 +30,16 @@ def default_install_location():
     - if user specifies --install-scheme, we use that
     - if there is config or installs in $per_spack user, use that
     - otherwise, we are managing installs inside of Spack
+    - ... unless the Spack prefix is not writable by us
     """
     if scheme:
         # User can e.g. say --install-root=.root to refer to
         # the installation tree inside of the Spack prefix
         return alias.get(scheme, scheme)
     elif paths.dir_is_occupied(_in_user):
+        return _in_user
+    elif not os.access(paths.prefix, os.W_OK):
+        # If we can't write into the Spack prefix we use ~
         return _in_user
     else:
         # In the future, we may only choose the in-spack
