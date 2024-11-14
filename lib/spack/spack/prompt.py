@@ -42,7 +42,8 @@ def custom_prompt(prompt, shell):
         cmds += 'set prompt="%s ${prompt}";\n' % prompt
     elif shell == "fish":
         if "color" in os.getenv("TERM", ""):
-            prompt = colorize(f"@G{prompt} " % prompt, color=True)
+            prompt = colorize(f"@G{prompt}", color=True)
+        cmds += "set -gx SPACK_PROMPT '%s';\n" % prompt
     elif shell == "bat" or shell == "pwsh":
         # TODO
         pass
