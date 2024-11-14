@@ -40,7 +40,7 @@ from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 from llnl.util import filesystem, lang, tty
 
 import spack.error
-import spack.install_trees
+import spack.install_scheme
 import spack.paths
 import spack.platforms
 import spack.schema
@@ -853,7 +853,7 @@ def create() -> Configuration:
     # Python package's can register configuration scopes via entry_points
     configuration_paths.extend(config_paths_from_entry_points())
 
-    configuration_paths.append(("install", spack.install_trees.config()))
+    configuration_paths.append(("install", spack.install_scheme.config()))
 
     # User configuration can override both spack defaults and site config
     # This is disabled if user asks for no local configuration.
