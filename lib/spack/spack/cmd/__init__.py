@@ -271,7 +271,7 @@ def matching_specs_from_env(specs):
 
 def disambiguate_spec(
     spec: spack.spec.Spec,
-    env: Optional["ev.Environment"],
+    env: Optional[ev.Environment],
     local: bool = False,
     installed: Union[bool, InstallRecordStatus] = True,
     first: bool = False,
