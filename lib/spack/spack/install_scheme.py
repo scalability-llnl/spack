@@ -21,14 +21,16 @@ _in_spack = os.path.join(paths.prefix, "opt", "spack")
 
 _in_user = os.path.join(paths.per_spack_user_root, "installs")
 
+
 class InstallScheme:
     ROOT = 0
     USER = 1
 
+
 aliases = {"root": InstallScheme.ROOT, "user": InstallScheme.USER}
 
 
-def set(alias):
+def set_scheme(alias):
     if alias in aliases:
         _scheme = aliases[alias]
 
