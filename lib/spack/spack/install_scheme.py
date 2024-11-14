@@ -31,6 +31,7 @@ aliases = {"root": InstallScheme.ROOT, "user": InstallScheme.USER}
 
 
 def set_scheme(alias):
+    global _scheme
     if alias in aliases:
         _scheme = aliases[alias]
 
