@@ -577,7 +577,7 @@ def setup_main_options(args):
         color.set_color_when(args.color)
 
     if args.install_scheme:
-        spack.install_scheme.scheme = args.install_scheme
+        spack.install_scheme.set(args.install_scheme)
 
 
 def allows_unknown_args(command):

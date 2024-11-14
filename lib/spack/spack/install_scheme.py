@@ -12,15 +12,47 @@ import os
 import pathlib
 import warnings
 
+import spack.error
 import spack.paths as paths
 
-scheme = None
+_scheme = None
 
 _in_spack = os.path.join(paths.prefix, "opt", "spack")
 
 _in_user = os.path.join(paths.per_spack_user_root, "installs")
 
-alias = {".root": _in_spack, ".user": _in_user}
+class InstallScheme:
+    ROOT = 0
+    USER = 1
+
+aliases = {"root": InstallScheme.ROOT, "user": InstallScheme.USER}
+
+
+def set(alias):
+    if alias in aliases:
+        _scheme = aliases[alias]
+
+
+def scheme():
+    return _determine_scheme()
+
+
+def _determine_scheme():
+    global _scheme
+    if _scheme:
+        pass
+    elif paths.dir_is_occupied(_in_user):
+        _scheme = InstallScheme.USER
+    elif not os.access(paths.prefix, os.W_OK):
+        # If we can't write into the Spack prefix we use ~
+        _scheme = InstallScheme.USER
+    else:
+        # In the future, we may only choose the in-spack
+        # scheme if that install tree is populated, but for
+        # now even new instances of Spack should install
+        # into the Spack prefix
+        _scheme = InstallScheme.ROOT
+    return _scheme
 
 
 def default_install_location():
@@ -32,27 +64,23 @@ def default_install_location():
     - otherwise, we are managing installs inside of Spack
     - ... unless the Spack prefix is not writable by us
     """
-    if scheme:
-        # User can e.g. say --install-root=.root to refer to
-        # the installation tree inside of the Spack prefix
-        return alias.get(scheme, scheme)
-    elif paths.dir_is_occupied(_in_user):
+    chosen = scheme()
+    if chosen == InstallScheme.USER:
         return _in_user
-    elif not os.access(paths.prefix, os.W_OK):
-        # If we can't write into the Spack prefix we use ~
-        return _in_user
-    else:
-        # In the future, we may only choose the in-spack
-        # scheme if that install tree is populated, but for
-        # now even new instances of Spack should install
-        # into the Spack prefix
+    elif chosen == InstallScheme.ROOT:
         return _in_spack
+    else:
+        raise InstallSchemeError(f"Unset or unexpected scheme: {chosen}")
 
 
 def config():
     root = default_install_location()
     cfgs = os.path.join(root, "configs")
     return cfgs
+
+
+class InstallSchemeError(spack.error.SpackError):
+    pass
 
 
 def _most_recent_internal_call():
