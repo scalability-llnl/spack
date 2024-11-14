@@ -73,7 +73,7 @@ class Eigen(CMakePackage, ROCmPackage):
         values=("Debug", "Release", "RelWithDebInfo"),
     )
 
-    depends_on("boost@1.53:", when="@master")
+    depends_on("boost@1.53:", when="@master", type="test")
     # TODO: latex and doxygen needed to produce docs with make doc
     # TODO: Other dependencies might be needed to test this package
 
@@ -90,6 +90,7 @@ class Eigen(CMakePackage, ROCmPackage):
             args.append(self.define("ROCM_PATH", self.spec["hip"].prefix))
             args.append(self.define("HIP_PATH", self.spec["hip"].prefix))
             args.append(self.define("EIGEN_TEST_HIP", "ON"))
+        if self.spec.satisfies("@master") and self.run_tests:
             args.append(self.define("Boost_INCLUDE_DIR", self.spec["boost"].prefix.include))
         return args
 
