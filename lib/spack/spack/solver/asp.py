@@ -3846,21 +3846,14 @@ class SpecBuilder:
 
         """
         fixed_specs = {}
-        topo_order = {
-            spec.dag_hash(): index
-            for index, spec in enumerate(
-                reversed(
-                    list(
-                        traverse.traverse_nodes(
-                            self._specs.values(), order="topo", key=traverse.by_dag_hash
-                        )
-                    )
-                )
-            )
-        }
+
+        # create a mapping from dag hash to an integer representing position in reverse topo order.
+        specs = self._specs.values()
+        topo_order = list(traverse.traverse_nodes(specs, order="topo", key=traverse.by_dag_hash))
+        topo_lookup = {spec.dag_hash(): index for index, spec in enumerate(reversed(topo_order))}
 
         # iterate over specs, children before parents
-        for node, spec in sorted(self._specs.items(), key=lambda x: topo_order[x[1].dag_hash()]):
+        for node, spec in sorted(self._specs.items(), key=lambda x: topo_lookup[x[1].dag_hash()]):
             immediate = self._splices.get(node, [])
             if not immediate and not any(
                 edge.spec in fixed_specs for edge in spec.edges_to_dependencies()
