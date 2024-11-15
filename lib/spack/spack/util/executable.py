@@ -14,7 +14,7 @@ import llnl.util.tty as tty
 import spack.error
 import spack.util.environment
 
-__all__ = ["Executable", "which", "ProcessError"]
+__all__ = ["Executable", "which", "which_string", "ProcessError"]
 
 
 class Executable:

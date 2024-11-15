@@ -7,7 +7,6 @@ import os
 
 import spack.build_systems.cmake
 from spack.package import *
-from spack.util.executable import which
 
 
 class Mmg(CMakePackage):
