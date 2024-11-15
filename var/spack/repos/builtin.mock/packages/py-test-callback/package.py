@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import spack.pkg.builtin.mock.python as mp
-from spack.build_systems._checks import BaseBuilder, execute_install_time_tests
+from spack.build_systems._checks import BuilderWithDefaults, execute_install_time_tests
 from spack.package import *
 
 
@@ -31,7 +31,7 @@ class PyTestCallback(mp.Python):
 
 
 @spack.builder.builder("testcallback")
-class MyBuilder(BaseBuilder):
+class MyBuilder(BuilderWithDefaults):
     phases = ("install",)
 
     #: Callback names for install-time test
@@ -40,7 +40,7 @@ class MyBuilder(BaseBuilder):
     def install(self, pkg, spec, prefix):
         pkg.install(spec, prefix)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
     def test_callback(self):
         self.pkg.test_callback()

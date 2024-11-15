@@ -69,6 +69,8 @@ from spack.directory_layout import (
 from spack.error import SpackError
 from spack.util.crypto import bit_length
 
+from .enums import InstallRecordStatus
+
 # TODO: Provide an API automatically retyring a build after detecting and
 # TODO: clearing a failure.
 
@@ -160,36 +162,12 @@ def _autospec(function):
     return converter
 
 
-class InstallStatus(str):
-    pass
-
-
-class InstallStatuses:
-    INSTALLED = InstallStatus("installed")
-    DEPRECATED = InstallStatus("deprecated")
-    MISSING = InstallStatus("missing")
-
-    @classmethod
-    def canonicalize(cls, query_arg):
-        if query_arg is True:
-            return [cls.INSTALLED]
-        if query_arg is False:
-            return [cls.MISSING]
-        if query_arg is any:
-            return [cls.INSTALLED, cls.DEPRECATED, cls.MISSING]
-        if isinstance(query_arg, InstallStatus):
-            return [query_arg]
-        try:
-            statuses = list(query_arg)
-            if all(isinstance(x, InstallStatus) for x in statuses):
-                return statuses
-        except TypeError:
-            pass
-
-        raise TypeError(
-            "installation query must be `any`, boolean, "
-            "InstallStatus, or iterable of InstallStatus"
-        )
+def normalize_query(installed: Union[bool, InstallRecordStatus]) -> InstallRecordStatus:
+    if installed is True:
+        installed = InstallRecordStatus.INSTALLED
+    elif installed is False:
+        installed = InstallRecordStatus.MISSING
+    return installed
 
 
 class InstallRecord:
@@ -227,8 +205,8 @@ class InstallRecord:
         installation_time: Optional[float] = None,
         deprecated_for: Optional[str] = None,
         in_buildcache: bool = False,
-        origin=None,
-    ):
+        origin: Optional[str] = None,
+    ) -> None:
         self.spec = spec
         self.path = str(path) if path else None
         self.installed = bool(installed)
@@ -239,14 +217,12 @@ class InstallRecord:
         self.in_buildcache = in_buildcache
         self.origin = origin
 
-    def install_type_matches(self, installed):
-        installed = InstallStatuses.canonicalize(installed)
+    def install_type_matches(self, installed: InstallRecordStatus) -> bool:
         if self.installed:
-            return InstallStatuses.INSTALLED in installed
+            return InstallRecordStatus.INSTALLED in installed
         elif self.deprecated_for:
-            return InstallStatuses.DEPRECATED in installed
-        else:
-            return InstallStatuses.MISSING in installed
+            return InstallRecordStatus.DEPRECATED in installed
+        return InstallRecordStatus.MISSING in installed
 
     def to_dict(self, include_fields=DEFAULT_INSTALL_RECORD_FIELDS):
         rec_dict = {}
@@ -1396,7 +1372,13 @@ class Database:
             if spec.package.extends(extendee_spec):
                 yield spec.package
 
-    def _get_by_hash_local(self, dag_hash, default=None, installed=any):
+    def _get_by_hash_local(
+        self,
+        dag_hash: str,
+        default: Optional[List["spack.spec.Spec"]] = None,
+        installed: Union[bool, InstallRecordStatus] = InstallRecordStatus.ANY,
+    ) -> Optional[List["spack.spec.Spec"]]:
+        installed = normalize_query(installed)
         # hash is a full hash and is in the data somewhere
         if dag_hash in self._data:
             rec = self._data[dag_hash]
@@ -1405,8 +1387,7 @@ class Database:
             else:
                 return default
 
-        # check if hash is a prefix of some installed (or previously
-        # installed) spec.
+        # check if hash is a prefix of some installed (or previously installed) spec.
         matches = [
             record.spec
             for h, record in self._data.items()
@@ -1418,52 +1399,43 @@ class Database:
         # nothing found
         return default
 
-    def get_by_hash_local(self, dag_hash, default=None, installed=any):
+    def get_by_hash_local(
+        self,
+        dag_hash: str,
+        default: Optional[List["spack.spec.Spec"]] = None,
+        installed: Union[bool, InstallRecordStatus] = InstallRecordStatus.ANY,
+    ) -> Optional[List["spack.spec.Spec"]]:
         """Look up a spec in *this DB* by DAG hash, or by a DAG hash prefix.
 
-        Arguments:
-            dag_hash (str): hash (or hash prefix) to look up
-            default (object or None): default value to return if dag_hash is
-                not in the DB (default: None)
-            installed (bool or InstallStatus or typing.Iterable or None):
-                if ``True``, includes only installed
-                specs in the search; if ``False`` only missing specs, and if
-                ``any``, all specs in database. If an InstallStatus or iterable
-                of InstallStatus, returns specs whose install status
-                (installed, deprecated, or missing) matches (one of) the
-                InstallStatus. (default: any)
+        Args:
+            dag_hash: hash (or hash prefix) to look up
+            default: default value to return if dag_hash is not in the DB
+            installed: if ``True``, includes only installed specs in the search; if ``False``
+                only missing specs. Otherwise, a InstallRecordStatus flag.
 
-        ``installed`` defaults to ``any`` so that we can refer to any
-        known hash.  Note that ``query()`` and ``query_one()`` differ in
-        that they only return installed specs by default.
+        ``installed`` defaults to ``InstallRecordStatus.ANY`` so we can refer to any known hash.
 
-        Returns:
-            (list): a list of specs matching the hash or hash prefix
-
+        ``query()`` and ``query_one()`` differ in that they only return installed specs by default.
         """
         with self.read_transaction():
             return self._get_by_hash_local(dag_hash, default=default, installed=installed)
 
-    def get_by_hash(self, dag_hash, default=None, installed=any):
+    def get_by_hash(
+        self,
+        dag_hash: str,
+        default: Optional[List["spack.spec.Spec"]] = None,
+        installed: Union[bool, InstallRecordStatus] = InstallRecordStatus.ANY,
+    ) -> Optional[List["spack.spec.Spec"]]:
         """Look up a spec by DAG hash, or by a DAG hash prefix.
 
-        Arguments:
-            dag_hash (str): hash (or hash prefix) to look up
-            default (object or None): default value to return if dag_hash is
-                not in the DB (default: None)
-            installed (bool or InstallStatus or typing.Iterable or None):
-                if ``True``, includes only installed specs in the search; if ``False``
-                only missing specs, and if ``any``, all specs in database. If an
-                InstallStatus or iterable of InstallStatus, returns specs whose install
-                status (installed, deprecated, or missing) matches (one of) the
-                InstallStatus. (default: any)
+        Args:
+            dag_hash: hash (or hash prefix) to look up
+            default: default value to return if dag_hash is not in the DB
+            installed: if ``True``, includes only installed specs in the search; if ``False``
+                only missing specs. Otherwise, a InstallRecordStatus flag.
 
-        ``installed`` defaults to ``any`` so that we can refer to any
-        known hash.  Note that ``query()`` and ``query_one()`` differ in
-        that they only return installed specs by default.
-
-        Returns:
-            (list): a list of specs matching the hash or hash prefix
+        ``installed`` defaults to ``InstallRecordStatus.ANY`` so we can refer to any known hash.
+        ``query()`` and ``query_one()`` differ in that they only return installed specs by default.
 
         """
 
@@ -1483,7 +1455,7 @@ class Database:
         query_spec: Optional[Union[str, "spack.spec.Spec"]] = None,
         *,
         predicate_fn: Optional[SelectType] = None,
-        installed: Union[bool, InstallStatus, List[InstallStatus]] = True,
+        installed: Union[bool, InstallRecordStatus] = True,
         explicit: Optional[bool] = None,
         start_date: Optional[datetime.datetime] = None,
         end_date: Optional[datetime.datetime] = None,
@@ -1491,6 +1463,7 @@ class Database:
         in_buildcache: Optional[bool] = None,
         origin: Optional[str] = None,
     ) -> List["spack.spec.Spec"]:
+        installed = normalize_query(installed)
 
         # Restrict the set of records over which we iterate first
         matching_hashes = self._data
@@ -1560,7 +1533,7 @@ class Database:
         query_spec: Optional[Union[str, "spack.spec.Spec"]] = None,
         *,
         predicate_fn: Optional[SelectType] = None,
-        installed: Union[bool, InstallStatus, List[InstallStatus]] = True,
+        installed: Union[bool, InstallRecordStatus] = True,
         explicit: Optional[bool] = None,
         start_date: Optional[datetime.datetime] = None,
         end_date: Optional[datetime.datetime] = None,
@@ -1620,7 +1593,7 @@ class Database:
         query_spec: Optional[Union[str, "spack.spec.Spec"]] = None,
         *,
         predicate_fn: Optional[SelectType] = None,
-        installed: Union[bool, InstallStatus, List[InstallStatus]] = True,
+        installed: Union[bool, InstallRecordStatus] = True,
         explicit: Optional[bool] = None,
         start_date: Optional[datetime.datetime] = None,
         end_date: Optional[datetime.datetime] = None,
@@ -1628,7 +1601,7 @@ class Database:
         hashes: Optional[List[str]] = None,
         origin: Optional[str] = None,
         install_tree: str = "all",
-    ):
+    ) -> List["spack.spec.Spec"]:
         """Queries the Spack database including all upstream databases.
 
         Args:
@@ -1709,13 +1682,14 @@ class Database:
             )
 
         results = list(local_results) + list(x for x in upstream_results if x not in local_results)
-        return sorted(results)
+        results.sort()
+        return results
 
     def query_one(
         self,
         query_spec: Optional[Union[str, "spack.spec.Spec"]],
         predicate_fn: Optional[SelectType] = None,
-        installed: Union[bool, InstallStatus, List[InstallStatus]] = True,
+        installed: Union[bool, InstallRecordStatus] = True,
     ) -> Optional["spack.spec.Spec"]:
         """Query for exactly one spec that matches the query spec.
 

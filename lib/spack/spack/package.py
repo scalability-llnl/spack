@@ -74,7 +74,7 @@ from spack.build_systems.sourceforge import SourceforgePackage
 from spack.build_systems.sourceware import SourcewarePackage
 from spack.build_systems.waf import WafPackage
 from spack.build_systems.xorg import XorgPackage
-from spack.builder import run_after, run_before
+from spack.builder import BaseBuilder
 from spack.config import determine_number_of_jobs
 from spack.deptypes import ALL_TYPES as all_deptypes
 from spack.directives import *
@@ -100,6 +100,7 @@ from spack.package_base import (
     on_package_attributes,
 )
 from spack.package_completions import *
+from spack.phase_callbacks import run_after, run_before
 from spack.spec import InvalidSpecDetected, Spec
 from spack.util.executable import *
 from spack.util.filesystem import file_command, fix_darwin_install_name, mime_type

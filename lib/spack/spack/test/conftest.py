@@ -38,7 +38,7 @@ import spack.caches
 import spack.compiler
 import spack.compilers
 import spack.config
-import spack.directives
+import spack.directives_meta
 import spack.environment as ev
 import spack.error
 import spack.modules.common
@@ -1754,7 +1754,7 @@ def clear_directive_functions():
     # Make sure any directive functions overidden by tests are cleared before
     # proceeding with subsequent tests that may depend on the original
     # functions.
-    spack.directives.DirectiveMeta._directives_to_be_executed = []
+    spack.directives_meta.DirectiveMeta._directives_to_be_executed = []
 
 
 @pytest.fixture

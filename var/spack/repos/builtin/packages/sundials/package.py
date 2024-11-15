@@ -743,7 +743,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
     @on_package_attributes(run_tests=True)
     def check_test_install(self):
         """Perform test_install on the build."""
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test_install")
 
     @property

@@ -17,6 +17,7 @@ import spack.environment as ev
 import spack.repo
 import spack.store
 import spack.user_environment as uenv
+from spack.enums import InstallRecordStatus
 from spack.main import SpackCommand
 from spack.spec import Spec
 from spack.test.conftest import create_test_repo
@@ -75,7 +76,7 @@ def test_query_arguments():
     assert "installed" in q_args
     assert "predicate_fn" in q_args
     assert "explicit" in q_args
-    assert q_args["installed"] == ["installed"]
+    assert q_args["installed"] == InstallRecordStatus.INSTALLED
     assert q_args["predicate_fn"] is None
     assert q_args["explicit"] is None
     assert "start_date" in q_args

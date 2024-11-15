@@ -10,7 +10,7 @@ from typing import Tuple
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
-import spack.builder
+import spack.phase_callbacks
 
 from .cmake import CMakeBuilder, CMakePackage
 
@@ -332,7 +332,7 @@ class CachedCMakeBuilder(CMakeBuilder):
         args.extend(["-C", self.cache_path])
         return args
 
-    @spack.builder.run_after("install")
+    @spack.phase_callbacks.run_after("install")
     def install_cmake_cache(self):
         fs.mkdirp(self.pkg.spec.prefix.share.cmake)
         fs.install(self.cache_path, self.pkg.spec.prefix.share.cmake)

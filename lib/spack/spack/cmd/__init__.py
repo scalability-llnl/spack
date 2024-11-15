@@ -9,7 +9,7 @@ import os
 import re
 import sys
 from collections import Counter
-from typing import List, Union
+from typing import List, Optional, Union
 
 import llnl.string
 import llnl.util.tty as tty
@@ -32,6 +32,8 @@ import spack.traverse as traverse
 import spack.user_environment as uenv
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
+
+from ..enums import InstallRecordStatus
 
 # cmd has a submodule called "list" so preserve the python list module
 python_list = list
@@ -267,39 +269,48 @@ def matching_specs_from_env(specs):
     return _concretize_spec_pairs(spec_pairs + additional_concrete_specs)[: len(spec_pairs)]
 
 
-def disambiguate_spec(spec, env, local=False, installed=True, first=False):
+def disambiguate_spec(
+    spec: spack.spec.Spec,
+    env: Optional[ev.Environment],
+    local: bool = False,
+    installed: Union[bool, InstallRecordStatus] = True,
+    first: bool = False,
+) -> spack.spec.Spec:
     """Given a spec, figure out which installed package it refers to.
 
-    Arguments:
-        spec (spack.spec.Spec): a spec to disambiguate
-        env (spack.environment.Environment): a spack environment,
-            if one is active, or None if no environment is active
-        local (bool): do not search chained spack instances
-        installed (bool or spack.database.InstallStatus or typing.Iterable):
-            install status argument passed to database query.
-            See ``spack.database.Database._query`` for details.
+    Args:
+        spec: a spec to disambiguate
+        env: a spack environment, if one is active, or None if no environment is active
+        local: do not search chained spack instances
+        installed: install status argument passed to database query.
+        first: returns the first matching spec, even if more than one match is found
     """
     hashes = env.all_hashes() if env else None
     return disambiguate_spec_from_hashes(spec, hashes, local, installed, first)
 
 
-def disambiguate_spec_from_hashes(spec, hashes, local=False, installed=True, first=False):
+def disambiguate_spec_from_hashes(
+    spec: spack.spec.Spec,
+    hashes: List[str],
+    local: bool = False,
+    installed: Union[bool, InstallRecordStatus] = True,
+    first: bool = False,
+) -> spack.spec.Spec:
     """Given a spec and a list of hashes, get concrete spec the spec refers to.
 
     Arguments:
-        spec (spack.spec.Spec): a spec to disambiguate
-        hashes (typing.Iterable): a set of hashes of specs among which to disambiguate
-        local (bool): do not search chained spack instances
-        installed (bool or spack.database.InstallStatus or typing.Iterable):
-            install status argument passed to database query.
-            See ``spack.database.Database._query`` for details.
+        spec: a spec to disambiguate
+        hashes: a set of hashes of specs among which to disambiguate
+        local: if True, do not search chained spack instances
+        installed: install status argument passed to database query.
+        first: returns the first matching spec, even if more than one match is found
     """
     if local:
         matching_specs = spack.store.STORE.db.query_local(spec, hashes=hashes, installed=installed)
     else:
         matching_specs = spack.store.STORE.db.query(spec, hashes=hashes, installed=installed)
     if not matching_specs:
-        tty.die("Spec '%s' matches no installed packages." % spec)
+        tty.die(f"Spec '{spec}' matches no installed packages.")
 
     elif first:
         return matching_specs[0]

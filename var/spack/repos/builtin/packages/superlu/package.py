@@ -84,7 +84,7 @@ class Superlu(CMakePackage, Package):
             superlu()
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class AnyBuilder(BaseBuilder):
     @run_after("install")
     def setup_standalone_tests(self):
         """Set up and copy example source files after the package is installed
@@ -138,7 +138,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
         ]
 
 
-class CMakeBuilder(BaseBuilder, spack.build_systems.cmake.CMakeBuilder):
+class CMakeBuilder(AnyBuilder, spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
         if self.pkg.version > Version("5.2.1"):
             _blaslib_key = "enable_internal_blaslib"
@@ -153,7 +153,7 @@ class CMakeBuilder(BaseBuilder, spack.build_systems.cmake.CMakeBuilder):
         return args
 
 
-class GenericBuilder(BaseBuilder, spack.build_systems.generic.GenericBuilder):
+class GenericBuilder(AnyBuilder, spack.build_systems.generic.GenericBuilder):
     def install(self, pkg, spec, prefix):
         """Use autotools before version 5"""
         # Define make.inc file
