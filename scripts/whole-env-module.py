@@ -32,10 +32,11 @@ def generate_module(args):
                 f"Specified --view-input {args.view_input} does not exist as a directory"
             )
 
-        descriptor = ev.environment.ViewDescriptor(base_path=args.view_input, root=args.view_input)
+        view_input = os.path.abspath(args.view_input)
+        descriptor = ev.environment.ViewDescriptor(base_path=view_input, root=view_input)
 
         env_mods.extend(uenv.unconditional_environment_modifications(descriptor))
-        view = descriptor.view()
+        view = descriptor.view(new=view_input)
         env_mods.extend(
             uenv.environment_modifications_for_specs(*list(view.get_all_specs()), view=view)
         )
