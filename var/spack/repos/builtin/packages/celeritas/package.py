@@ -70,7 +70,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("hepmc3", when="+hepmc3")
     depends_on("root", when="+root")
     depends_on("swig@4.1:", when="+swig")
-    depends_on("vecgeom", when="+vecgeom")
+    depends_on("vecgeom@1.2.5:", when="+vecgeom")
 
     depends_on("python", type="build")
     depends_on("doxygen", type="build", when="+doc")
@@ -82,8 +82,9 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("root cxxstd=" + _std, when="+root cxxstd=" + _std)
         depends_on("vecgeom cxxstd=" + _std, when="+vecgeom cxxstd=" + _std)
 
-    depends_on("vecgeom@1.2.5:", when="+vecgeom")
-    depends_on("vecgeom +cuda", when="+vecgeom +cuda")
+    for _arch in CudaPackage.cuda_arch_values:
+        depends_on("vecgeom+cuda cuda_arch=" + _arch,
+                   when="+vecgeom +cuda cuda_arch=" + _arch)
 
     conflicts("+rocm", when="+cuda", msg="AMD and NVIDIA accelerators are incompatible")
     conflicts("+rocm", when="+vecgeom", msg="HIP support is only available with ORANGE")
