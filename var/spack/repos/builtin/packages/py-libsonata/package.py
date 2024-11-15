@@ -21,7 +21,7 @@ class PyLibsonata(PythonPackage):
 
     depends_on("cxx", type="build")  # generated
 
-    depends_on("python@3.9:", type=("build", "run"), when="0.1.29:")
+    depends_on("python@3.9:", type=("build", "run"), when="@0.1.29:")
 
     depends_on("catch2@2.13:", type="test")
     depends_on("cmake@3.16:", type="build")
