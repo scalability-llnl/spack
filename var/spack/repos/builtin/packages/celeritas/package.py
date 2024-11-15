@@ -20,18 +20,26 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     license("Apache-2.0")
 
     version("0.5.0", sha256="4a8834224d96fd01897e5872ac109f60d91ef0bd7b63fac05a73dcdb61a5530e")
-    version("0.4.4",
-            sha256="8b5ae63aa2d50c2ecf48d752424e4a33c50c07d9f0f5ca5448246de3286fd836",
-            deprecated=True)
-    version("0.4.3",
-            sha256="b4f603dce1dc9c4894ea4c86f6574026ea8536714982e7dc6dff7472c925c892",
-            deprecated=True)
-    version("0.4.2",
-            sha256="eeca9705413f5e16e0fb81154e042600c8df125af7049912757feb01d43730e2",
-            deprecated=True)
-    version("0.4.1",
-            sha256="24e5c15eb9eec45f52d94a6719ae3505388b49d409cb7e26c875c70ac409bd2c",
-            deprecated=True)
+    version(
+        "0.4.4",
+        sha256="8b5ae63aa2d50c2ecf48d752424e4a33c50c07d9f0f5ca5448246de3286fd836",
+        deprecated=True,
+    )
+    version(
+        "0.4.3",
+        sha256="b4f603dce1dc9c4894ea4c86f6574026ea8536714982e7dc6dff7472c925c892",
+        deprecated=True,
+    )
+    version(
+        "0.4.2",
+        sha256="eeca9705413f5e16e0fb81154e042600c8df125af7049912757feb01d43730e2",
+        deprecated=True,
+    )
+    version(
+        "0.4.1",
+        sha256="24e5c15eb9eec45f52d94a6719ae3505388b49d409cb7e26c875c70ac409bd2c",
+        deprecated=True,
+    )
     version(
         "0.4.0",
         sha256="8b8eaef84641eeca0fc40321d358205fc9d51e3c6dc7bd1bf03218c1919c774e",
@@ -83,18 +91,10 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("vecgeom cxxstd=" + _std, when="+vecgeom cxxstd=" + _std)
 
     for _arch in CudaPackage.cuda_arch_values:
-        depends_on("vecgeom+cuda cuda_arch=" + _arch,
-                   when="+vecgeom +cuda cuda_arch=" + _arch)
+        depends_on("vecgeom+cuda cuda_arch=" + _arch, when="+vecgeom +cuda cuda_arch=" + _arch)
 
     conflicts("+rocm", when="+cuda", msg="AMD and NVIDIA accelerators are incompatible")
     conflicts("+rocm", when="+vecgeom", msg="HIP support is only available with ORANGE")
-    conflicts("^vecgeom+shared@1.2.0", when="+vecgeom +cuda")
-
-    patch(
-        "https://patch-diff.githubusercontent.com/raw/celeritas-project/celeritas/pull/830.patch?full_index=1",
-        sha256="9ac1929a95170b497aaac76f62146f313e4b31aea7271acac354270550d0d685",
-        when="@0.3.0 ^geant4@10",
-    )
 
     def cmake_args(self):
         define = self.define
