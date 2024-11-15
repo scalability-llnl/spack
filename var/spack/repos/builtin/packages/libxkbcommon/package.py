@@ -1,4 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
+    # Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -77,10 +77,11 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
 
     def setup_build_environment(self, env):
         if self.spec["libxml2"].satisfies("~shared"):
-            deps = ["zlib", "xz", "iconv"]
-            ldflags = [self.spec[lib].libs.search_flags for lib in deps]
-            libs = [self.spec[lib].libs.link_flags for lib in deps]
-            env.set("LDFLAGS", " ".join(ldflags + libs))
+            pc = which(join_path(self.spec["pkgconfig"].prefix.bin, "pkg-config"))
+            pc.add_default_env("PKG_CONFIG_PATH", self.spec["libxml2"].prefix.lib.pkgconfig)
+            ldflags = pc("libxml-2.0", "--static", "--libs-only-L", output=str).strip()
+            libs = pc("libxml-2.0", "--static", "--libs-only-l", output=str).strip()
+            env.set("LDFLAGS", f"{ldflags} {libs}")
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
