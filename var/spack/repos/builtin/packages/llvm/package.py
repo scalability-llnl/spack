@@ -10,6 +10,7 @@ import sys
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty
 
+import spack.compilers
 from spack.build_systems.cmake import get_cmake_prefix_path
 from spack.package import *
 from spack.package_base import PackageBase

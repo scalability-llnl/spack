@@ -16,6 +16,7 @@ from typing import Dict, List
 import llnl.util.tty as tty
 from llnl.util.lang import dedupe
 
+import spack.paths
 from spack.build_environment import dso_suffix, stat_suffix
 from spack.package import *
 from spack.util.prefix import Prefix

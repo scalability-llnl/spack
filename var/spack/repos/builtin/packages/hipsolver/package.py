@@ -6,6 +6,7 @@
 import os
 import re
 
+import spack.variant
 from spack.package import *
 
 

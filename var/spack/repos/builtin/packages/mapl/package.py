@@ -5,6 +5,7 @@
 
 import subprocess
 
+import spack.compiler
 from spack.package import *
 
 

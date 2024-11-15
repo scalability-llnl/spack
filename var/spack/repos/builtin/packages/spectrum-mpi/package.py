@@ -5,6 +5,7 @@
 import os
 import re
 
+import spack.compilers
 from spack.package import *
 
 
