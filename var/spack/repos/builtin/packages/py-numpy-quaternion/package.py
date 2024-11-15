@@ -33,12 +33,12 @@ class PyNumpyQuaternion(PythonPackage):
     variant("scipy", default=True, description="Build with scipy support")
     variant("numba", default=True, description="Build with numba support")
 
-    depends_on("python@3.10:", when="@2024.0.3:")
+    depends_on("python@3.10:", when="@2024:")
 
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy@1.13:", type=("build", "run"))
-    depends_on("py-numpy@1.25:2", type=("build", "run"), when="@2024.0.3:")
+    depends_on("py-numpy@1.25:2", type=("build", "run"), when="@2024:")
     depends_on("py-scipy", type=("build", "run"), when="+scipy")
-    depends_on("py-scipy@1.5:1", type=("build", "run"), when="@2024.0.3:+scipy")
+    depends_on("py-scipy@1.5:1", type=("build", "run"), when="@2024:+scipy")
     depends_on("py-numba", type=("build", "run"), when="+numba")
-    depends_on("py-numba@0.55:", type=("build", "run"), when="@2024.0.3:+numba")
+    depends_on("py-numba@0.55:", type=("build", "run"), when="@2024:+numba")
