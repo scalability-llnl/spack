@@ -255,7 +255,7 @@ class IntelOneApiLibraryPackage(IntelOneApiPackage):
         return find_libraries("*", root=self.component_prefix.lib, recursive=not self.v2_layout)
 
 
-class IntelOneApiLibraryPackageWithSdk(IntelOneApiPackage):
+class IntelOneApiLibraryPackageWithSdk(IntelOneApiLibraryPackage):
     """Base class for Intel oneAPI library packages with SDK components.
 
     Contains some convenient default implementations for libraries
