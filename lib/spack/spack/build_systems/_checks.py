@@ -72,7 +72,7 @@ def ensure_build_dependencies_or_raise(
 
     Args:
         spec: concrete spec to be checked.
-        dependencies: list of abstract specs to be satisfied
+        dependencies: list of package names of required build dependencies
         error_msg: brief error message to be prepended to a longer description
 
     Raises:
