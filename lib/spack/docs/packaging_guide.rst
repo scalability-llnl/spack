@@ -679,7 +679,14 @@ http://example.com/foo-8.2.1.tar.gz.
 
 If the URL is particularly complicated or changes based on the release,
 you can override the default URL generation algorithm by defining your
-own ``url_for_version()`` function. For example, the download URL for
+own ``url_for_version()`` function. 
+
+.. warning:
+
+   ``spack versions`` and ``spack checksum`` do not use the custom ``url_for_version()``.
+   See the end of this section for a further description.
+
+For example, the download URL for
 OpenMPI contains the major.minor version in one spot and the
 major.minor.patch version in another:
 
@@ -763,6 +770,12 @@ specify their own ``url``. Spack will use the nearest URL *before* the requested
 version. This is useful for packages that have an easy to extrapolate URL, but
 keep changing their URL format every few releases. With this method, you only
 need to specify the ``url`` when the URL changes.
+
+It is important to note that ``spack versions`` and ``spack checksum`` do not use the custom ``url_for_version()``
+for discovering new versions. These two commands use only the base ``url`` or ``pypi`` fields. Thus,
+these fields should always be updated to reflect the new naming scheme, allowing previously discovered package versions
+to be downloaded via the old url pattern given in ``url_for_version()``. ``spack checksum`` can be used in a non-autodiscovery
+mode which does use ``url_for_version()``. This usage is via ``spack checksum zlib 1.2.13``.
 
 """""""""""""""""""""""
 Mirrors of the main URL
