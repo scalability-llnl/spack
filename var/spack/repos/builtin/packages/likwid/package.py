@@ -26,6 +26,7 @@ class Likwid(Package):
 
     license("GPL-3.0-only")
 
+    version("5.4.0", sha256="0f2b671c69caa993fedb48187b3bdcc94c22400ec84c926fd0898dbff68aa03e")
     version("5.3.0", sha256="c290e554c4253124ac2ab8b056e14ee4d23966b8c9fbfa10ba81f75ae543ce4e")
     version("5.2.2", sha256="7dda6af722e04a6c40536fc9f89766ce10f595a8569b29e80563767a6a8f940e")
     version("5.2.1", sha256="1b8e668da117f24302a344596336eca2c69d2bc2f49fa228ca41ea0688f6cbc2")
