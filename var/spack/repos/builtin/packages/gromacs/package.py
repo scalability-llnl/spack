@@ -7,6 +7,7 @@ import os
 
 import llnl.util.filesystem as fs
 
+import spack.build_systems.cmake
 from spack.package import *
 
 

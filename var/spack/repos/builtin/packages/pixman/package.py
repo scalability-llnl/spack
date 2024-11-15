@@ -5,6 +5,8 @@
 
 import sys
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 

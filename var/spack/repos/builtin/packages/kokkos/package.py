@@ -6,6 +6,7 @@ import os.path
 
 import llnl.util.lang as lang
 
+import spack.build_systems.cmake
 from spack.package import *
 
 

@@ -5,6 +5,8 @@
 
 import os.path
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 from spack.util.environment import is_system_path
 

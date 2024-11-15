@@ -9,6 +9,8 @@ import tempfile
 
 import llnl.util.tty as tty
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
