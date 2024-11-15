@@ -100,10 +100,10 @@ class SetupEnvironment:
         if cxxflags:
             env.set("CXXFLAGS", " ".join(cxxflags))
 
-        # Following only apply to the make build.
-        # For the cuda, openmp, and opencl variants, set the environment
-        # variable OCCA_{CUDA,OPENMP,OPENCL}_ENABLED only if the variant is
-        # disabled. Otherwise, let OCCA autodetect what is available.
+        # Following only apply to the make build. For each variant, set the
+        # environment variable OCCA_{CUDA,OPENMP,OPENCL}_ENABLED only if the
+        # variant is enabled. We disable OCCA autodetect as it causes issues
+        # on head nodes.
         if "+cuda" in spec:
             cuda_dir = spec["cuda"].prefix
             cuda_libs_list = ["libcuda", "libcudart", "libOpenCL"]
@@ -122,10 +122,10 @@ class SetupEnvironment:
         else:
             env.set("OCCA_OPENCL_ENABLED", "0")
 
-        if "~openmp" in spec:
-            env.set("OCCA_OPENMP_ENABLED", "0")
-        else:
+        if "+openmp" in spec:
             env.set("OCCA_OPENMP_ENABLED", "1")
+        else:
+            env.set("OCCA_OPENMP_ENABLED", "0")
 
         # Setup run-time environment for testing.
         env.set("OCCA_VERBOSE", "1")
