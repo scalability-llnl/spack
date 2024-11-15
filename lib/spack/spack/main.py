@@ -510,7 +510,9 @@ def make_argument_parser(**kwargs):
         help="specify install scheme",
     )
     parser.add_argument(
-        "--disable-end-user-config", action="store_true", help="Disable system config scope for end users"
+        "--disable-end-user-config",
+        action="store_true",
+        help="Disable system config scope for end users",
     )
 
     return parser
