@@ -29,58 +29,10 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         sha256="8b8eaef84641eeca0fc40321d358205fc9d51e3c6dc7bd1bf03218c1919c774e",
         deprecated=True,
     )
-    version("0.3.2", sha256="65a33de2518716638375df259d9dfc4d68b821ba1110f56b24c823ef5c5df249")
-    version(
-        "0.3.1",
-        sha256="0f1effab306856d66f5079e8cadcb63e8c1f8a79245b94bf44b89251b3fb0cf0",
-        deprecated=True,
-    )
-    version(
-        "0.3.0",
-        sha256="f9620b6bcd8c9b5324ef215f8e44461f915c3fff47bf85ae442c9dafacaa79ac",
-        deprecated=True,
-    )
-    version("0.2.2", sha256="ba5e341d636e00e3d7dbac13a2016b97014917489f46b8b387a2adf9d9563872")
-    version(
-        "0.2.1",
-        sha256="b3717b43f70dd0da848139da4171ca7a887bb6777908845b6d953d47b1f4db41",
-        deprecated=True,
-    )
-    version(
-        "0.2.0",
-        sha256="12af28fda0e482a9eba89781b4ead445cf6f170bc1b8d88cc814e49b1ec09e9f",
-        deprecated=True,
-    )
-    version("0.1.5", sha256="5e63b9ce7fcfe34a8938565b84453bce51fa6639d1ede13bb59d41de6431cef4")
-    version(
-        "0.1.4",
-        sha256="ea82a03fc750a2a805f87afd9ac944109dd7537edb5c0c370f93d332d4cd47db",
-        deprecated=True,
-    )
-    version(
-        "0.1.3",
-        sha256="992c49a48adba884fe3933c9624da5bf480ef0694809430ae98903f2c28cc881",
-        deprecated=True,
-    )
-    version(
-        "0.1.2",
-        sha256="d123ea2e34267adba387d46bae8c9a1146a2e047f87f2ea5f823878c1684678d",
-        deprecated=True,
-    )
-    version(
-        "0.1.1",
-        sha256="a1d58e29226e89a2330d69c40049d61e7c885cf991824e60ff8c9ccc95fc5ec6",
-        deprecated=True,
-    )
-    version(
-        "0.1.0",
-        sha256="46692977b9b31d73662252cc122d7f016f94139475788bca7fdcb97279b93af8",
-        deprecated=True,
-    )
 
     depends_on("cxx", type="build")
 
-    _cxxstd_values = ("14", "17")
+    _cxxstd_values = ("17",)
 
     # Note: cuda and rocm variants are defined by mixin classes
     variant(
@@ -107,9 +59,6 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("nlohmann-json")
     depends_on("geant4@10.5:", when="@0.4.2: +geant4")
     depends_on("geant4@10.5:11.1", when="@0.3.1:0.4.1 +geant4")
-    depends_on("geant4@10.6:11.1", when="@0.3.0 +geant4")
-    depends_on("geant4@10.6:11.0", when="@0.2.1:0.2 +geant4")
-    depends_on("geant4@10.7:11.0", when="@:0.2.0 +geant4")
     depends_on("hepmc3", when="+hepmc3")
     depends_on("root", when="+root")
     depends_on("swig@4.1:", when="+swig")
@@ -125,11 +74,9 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("root cxxstd=" + _std, when="+root cxxstd=" + _std)
         depends_on("vecgeom cxxstd=" + _std, when="+vecgeom cxxstd=" + _std)
 
-    depends_on("vecgeom@1.2.5:", when="+vecgeom @0.4:")
-    depends_on("vecgeom +gdml@1.1.17:1", when="+vecgeom @:0.3")
+    depends_on("vecgeom@1.2.5:", when="+vecgeom")
     depends_on("vecgeom +cuda", when="+vecgeom +cuda")
 
-    conflicts("cxxstd=14", when="@0.3:")
     conflicts("+rocm", when="+cuda", msg="AMD and NVIDIA accelerators are incompatible")
     conflicts("+rocm", when="+vecgeom", msg="HIP support is only available with ORANGE")
     conflicts("^vecgeom+shared@1.2.0", when="+vecgeom +cuda")
