@@ -132,6 +132,7 @@ lheaderpad = ["-Wl,-headerpad_max_install_names"]
 headerpad = ["-headerpad_max_install_names"]
 
 target_args = ["-march=znver2", "-mtune=znver2"]
+target_args_fc = ["-march=znver4", "-mtune=znver4"]
 
 # common compile arguments: includes, libs, -Wl linker args, other args
 common_compile_args = (
@@ -166,7 +167,9 @@ def wrapper_environment(working_env):
         SPACK_LINK_DIRS=None,
         SPACK_INCLUDE_DIRS=None,
         SPACK_RPATH_DIRS=None,
-        SPACK_TARGET_ARGS="-march=znver2 -mtune=znver2",
+        SPACK_TARGET_ARGS_CC="-march=znver2 -mtune=znver2",
+        SPACK_TARGET_ARGS_CXX="-march=znver2 -mtune=znver2",
+        SPACK_TARGET_ARGS_FORTRAN="-march=znver4 -mtune=znver4",
         SPACK_LINKER_ARG="-Wl,",
         SPACK_DTAGS_TO_ADD="--disable-new-dtags",
         SPACK_DTAGS_TO_STRIP="--enable-new-dtags",
@@ -376,7 +379,7 @@ def test_fc_flags(wrapper_environment, wrapper_flags):
         fc,
         test_args,
         [real_cc]
-        + target_args
+        + target_args_fc
         + test_include_paths
         + ["-Lfoo"]
         + test_library_paths
@@ -423,7 +426,7 @@ def test_Wl_parsing_NAG_is_ignored(wrapper_environment):
     check_args(
         fc,
         ["-Wl,-Wl,,x,,y,,z"],
-        [real_cc] + target_args + ["-Wl,--disable-new-dtags", "-Wl,-Wl,,x,,y,,z"],
+        [real_cc] + target_args_fc + ["-Wl,--disable-new-dtags", "-Wl,-Wl,,x,,y,,z"],
     )
 
 
@@ -832,14 +835,14 @@ def test_no_ccache_prepend_for_fc(wrapper_environment):
         fc,
         test_args,
         # no ccache for Fortran
-        [real_cc] + target_args + common_compile_args,
+        [real_cc] + target_args_fc + common_compile_args,
     )
     os.environ["SPACK_SHORT_SPEC"] = "foo@1.2=darwin-x86_64"
     check_args(
         fc,
         test_args,
         # no ccache for Fortran
-        [real_cc] + target_args + lheaderpad + common_compile_args,
+        [real_cc] + target_args_fc + lheaderpad + common_compile_args,
     )
 
 
