@@ -15,27 +15,41 @@ import spack.config as config
 import spack.cmd
 import spack.environment as ev
 import spack.platforms
+import spack.solver.asp
 import spack.util.spack_yaml as syaml
 
 
 def _dump_section(section, stream):
     data = syaml.syaml_dict()
     data[section] = config.CONFIG.get_config(section, scope=None)
-    syaml.dump_config(data, stream=stream, default_flow_style=False, blame=None)
+    syaml.dump_config(data, stream=stream, default_flow_style=False, blame=False)
 
 
 def _system_pickles(dst):
-    data = [spack.platforms.host(), archspec.cpu.host()]
+    data = [spack.platforms.host(), archspec.cpu.host(), spack.solver.asp.all_libcs()]
     with open(dst, "wb") as f:
         pickle.dump(data, f)
 
 
-def _make_env(dst):
-    env = spack.cmd.find_environment(args)
+def _make_env(dst_dir):
+    user_specs = []
+
+    env = ev.active_environment()
     if env:
         with env:
-            pass
-            #ev.activate(env, use_env_repo=False)
+            user_specs = env.user_specs
+
+    env_yaml = {
+        "spack": {
+            "specs": user_specs.specs_as_yaml_list,
+            "view": False,
+            "packages:": config.get("packages"),
+            "compilers:": config.get("compilers"),
+            "concretizer:": config.get("concretizer"),
+        }
+    }
+    with open(os.path.join(dst_dir, "spack.yaml"), mode="wb") as f:
+        syaml.dump_config(env_yaml, stream=f, default_flow_style=False, blame=False)
 
 
 def main():
@@ -60,6 +74,7 @@ def main():
     with open(cfg / "concretizer.yaml", "w") as f:
         _dump_section("concretizer", f)
 
+    _make_env(root)
     _system_pickles(root / "arch.pkl")
 
 
