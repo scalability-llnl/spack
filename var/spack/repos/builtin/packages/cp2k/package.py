@@ -7,7 +7,6 @@ import os
 import os.path
 import sys
 
-import spack.platforms
 import spack.util.environment
 from spack.build_environment import dso_suffix
 from spack.build_systems import cmake, makefile
