@@ -402,7 +402,7 @@ dtags_to_strip="${SPACK_DTAGS_TO_STRIP}"
 linker_arg="${SPACK_LINKER_ARG}"
 
 # Set up rpath variable according to language.
-rpath="ERROR: RPATH ARG WAS NOT SET"
+rpath="ERROR: RPATH ARG WAS NOT SET, MAYBE THE PACKAGE DOES NOT DEPEND ON ${comp}?"
 eval "rpath=\${SPACK_${comp}_RPATH_ARG:?${rpath}}"
 
 # Dump the mode and exit if the command is dump-mode.
@@ -787,15 +787,17 @@ case "$mode" in
             C)
                 extend spack_flags_list SPACK_ALWAYS_CFLAGS
                 extend spack_flags_list SPACK_CFLAGS
+                preextend flags_list SPACK_TARGET_ARGS_CC
                 ;;
             CXX)
                 extend spack_flags_list SPACK_ALWAYS_CXXFLAGS
                 extend spack_flags_list SPACK_CXXFLAGS
+                preextend flags_list SPACK_TARGET_ARGS_CXX
+                ;;
+            F)
+                preextend flags_list SPACK_TARGET_ARGS_FORTRAN
                 ;;
         esac
-
-        # prepend target args
-        preextend flags_list SPACK_TARGET_ARGS
         ;;
 esac
 
