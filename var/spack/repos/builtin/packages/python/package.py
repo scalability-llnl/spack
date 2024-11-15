@@ -1088,7 +1088,7 @@ print(json.dumps(config))
             if lib:
                 return lib
 
-        raise spack.error.NoLibrariesError(
+        raise NoLibrariesError(
             "Unable to find {} libraries with the following names:\n\n* ".format(self.name)
             + "\n* ".join(candidates)
         )
@@ -1114,7 +1114,7 @@ print(json.dumps(config))
                 config_h = headers[0]
                 break
         else:
-            raise spack.error.NoHeadersError(
+            raise NoHeadersError(
                 "Unable to locate {} headers in any of these locations:\n\n* ".format(self.name)
                 + "\n* ".join(candidates)
             )

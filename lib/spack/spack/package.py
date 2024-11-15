@@ -11,7 +11,7 @@ Everything in this module is automatically imported into Spack package files.
 from os import chdir, environ, getcwd, makedirs, mkdir, remove, removedirs
 from shutil import move, rmtree
 
-from spack.error import InstallError
+from spack.error import InstallError, NoHeadersError, NoLibrariesError
 
 # Emulate some shell commands for convenience
 env = environ

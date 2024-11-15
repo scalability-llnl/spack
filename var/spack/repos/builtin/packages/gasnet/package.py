@@ -145,7 +145,7 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
             try:
                 git = which("git")
                 git("describe", "--long", "--always", output="version.git")
-            except spack.util.executable.ProcessError:
+            except ProcessError:
                 spack.main.send_warning_to_tty("Omitting version stamp due to git error")
 
         # The GASNet-EX library has a highly multi-dimensional configure space,

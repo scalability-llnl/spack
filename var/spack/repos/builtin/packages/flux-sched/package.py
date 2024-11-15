@@ -5,7 +5,6 @@
 
 import os
 
-import spack.util.executable
 from spack.build_systems.autotools import AutotoolsBuilder
 from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
@@ -139,7 +138,7 @@ class FluxSched(CMakePackage, AutotoolsPackage):
                 git("fetch", "--unshallow")
                 git("config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
                 git("fetch", "origin")
-            except spack.util.executable.ProcessError:
+            except ProcessError:
                 git("fetch")
 
     def autoreconf(self, spec, prefix):

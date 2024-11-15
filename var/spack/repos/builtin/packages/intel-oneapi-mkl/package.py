@@ -284,7 +284,7 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         try:
             if self.spec.satisfies("+cluster ^mpi"):
                 resolved_libs = resolved_libs + self.spec["mpi"].libs
-        except spack.error.NoLibrariesError:
+        except NoLibrariesError:
             pass
 
         if self.spec.satisfies("threads=openmp"):

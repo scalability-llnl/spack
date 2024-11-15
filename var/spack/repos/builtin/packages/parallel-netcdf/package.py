@@ -105,7 +105,7 @@ class ParallelNetcdf(AutotoolsPackage):
 
         msg = f"Unable to recursively locate {'shared' if shared else 'static'} \
 {self.spec.name} libraries in {self.spec.prefix}"
-        raise spack.error.NoLibrariesError(msg)
+        raise NoLibrariesError(msg)
 
     @when("@master")
     def autoreconf(self, spec, prefix):

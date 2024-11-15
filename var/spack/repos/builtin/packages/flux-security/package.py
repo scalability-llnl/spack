@@ -5,7 +5,6 @@
 
 import os
 
-import spack.util.executable
 from spack.package import *
 
 
@@ -54,7 +53,7 @@ class FluxSecurity(AutotoolsPackage):
                 git("fetch", "--unshallow")
                 git("config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
                 git("fetch", "origin")
-            except spack.util.executable.ProcessError:
+            except ProcessError:
                 git("fetch")
 
     def autoreconf(self, spec, prefix):
