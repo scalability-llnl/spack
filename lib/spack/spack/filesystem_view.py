@@ -241,10 +241,22 @@ class FilesystemView:
         raise NotImplementedError
 
     def get_all_specs(self):
-        """
-        Get all specs currently active in this view.
-        """
-        raise NotImplementedError
+        md_dirs = []
+        for root, dirs, files in os.walk(self._root):
+            if spack.store.STORE.layout.metadata_dir in dirs:
+                md_dirs.append(os.path.join(root, spack.store.STORE.layout.metadata_dir))
+
+        specs = []
+        for md_dir in md_dirs:
+            if os.path.exists(md_dir):
+                for name_dir in os.listdir(md_dir):
+                    filename = os.path.join(
+                        md_dir, name_dir, spack.store.STORE.layout.spec_file_name
+                    )
+                    spec = get_spec_from_file(filename)
+                    if spec:
+                        specs.append(spec)
+        return specs
 
     def get_spec(self, spec):
         """
@@ -543,24 +555,6 @@ class YamlFilesystemView(FilesystemView):
         if proj:
             return os.path.join(self._root, locator_spec.format_path(proj))
         return self._root
-
-    def get_all_specs(self):
-        md_dirs = []
-        for root, dirs, files in os.walk(self._root):
-            if spack.store.STORE.layout.metadata_dir in dirs:
-                md_dirs.append(os.path.join(root, spack.store.STORE.layout.metadata_dir))
-
-        specs = []
-        for md_dir in md_dirs:
-            if os.path.exists(md_dir):
-                for name_dir in os.listdir(md_dir):
-                    filename = os.path.join(
-                        md_dir, name_dir, spack.store.STORE.layout.spec_file_name
-                    )
-                    spec = get_spec_from_file(filename)
-                    if spec:
-                        specs.append(spec)
-        return specs
 
     def get_conflicts(self, *specs):
         """
