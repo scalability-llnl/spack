@@ -43,7 +43,7 @@ class GoBuilder(spack.build_systems.go.GoBuilder):
             cuda_prefix = self.spec["cuda"].prefix
             env.set("CUDACXX", cuda_prefix.bin.nvcc)
             env.set("CUDA_LIB_DIR", cuda_prefix.lib)
-            env.set("CMAKE_CUDA_ARCHITECTURES", spec.variants["cuda_arch"].value)
+            env.set("CMAKE_CUDA_ARCHITECTURES", self.spec.variants["cuda_arch"].value)
 
     @property
     def generate_args(self):
