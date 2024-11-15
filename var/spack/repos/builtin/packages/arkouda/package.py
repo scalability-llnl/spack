@@ -56,6 +56,7 @@ class Arkouda(MakefilePackage):
     )
 
     requires("^chapel comm=none", when="~distributed")
+    requires("^chapel +python-bindings", when="@2024.10.02:")
     requires(
         "^chapel comm=gasnet",
         "^chapel comm=ugni",
@@ -67,6 +68,12 @@ class Arkouda(MakefilePackage):
     # Some systems need explicit -fPIC flag when building the Arrow functions
     patch("makefile-fpic-2024.06.21.patch", when="@2024.06.21")
     patch("makefile-fpic-2024.10.02.patch", when="@2024.10.02:")
+
+    sanity_check_is_file = [join_path("bin", "arkouda_server")]
+
+    def check(self):
+        # skip b/c we need the python client
+        pass
 
     # override the default edit method to apply the patch
     def edit(self, spec, prefix):
@@ -92,36 +99,5 @@ class Arkouda(MakefilePackage):
             install("arkouda_server_real", prefix.bin)
         install_tree(self.stage.source_path, prefix)
 
-    def setup_run_environment(self, env):
-        env.set(
-            "CHPL_MAKE_THIRD_PARTY",
-            join_path(
-                self.spec["chapel"].prefix,
-                "lib",
-                "chapel",
-                str(self.spec["chapel"].version.up_to(2)),
-            ),
-        )
-
     def setup_build_environment(self, env):
         env.set("CHPL_FLAGS", "--no-compiler-driver")
-        # TODO: have chapel package provide this?
-        env.set(
-            "CHPL_HOME",
-            join_path(
-                self.spec["chapel"].prefix,
-                "share",
-                "chapel",
-                str(self.spec["chapel"].version.up_to(2)),
-            ),
-        )
-        # TODO: have chapel package provide this?
-        env.set(
-            "CHPL_MAKE_THIRD_PARTY",
-            join_path(
-                self.spec["chapel"].prefix,
-                "lib",
-                "chapel",
-                str(self.spec["chapel"].version.up_to(2)),
-            ),
-        )
