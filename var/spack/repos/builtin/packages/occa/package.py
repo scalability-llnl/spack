@@ -49,8 +49,8 @@ class Occa(CMakePackage, MakefilePackage, CudaPackage, ROCmPackage):
         default="makefile",
     )
 
-    variant("opencl", default=True, description="Enable support for OpenCL")
-    variant("openmp", default=True, description="Enable support for OpenMP")
+    variant("openmp", default=False, description="Enable support for OpenMP")
+    variant("opencl", default=False, description="Enable support for OpenCL")
     variant("debug", default=False, description="Enable a build with debug symbols")
 
     conflicts("%gcc@6:", when="^cuda@:8")
@@ -110,17 +110,22 @@ class SetupEnvironment:
             cuda_libs = find_libraries(cuda_libs_list, cuda_dir, shared=True, recursive=True)
             env.set("OCCA_INCLUDE_PATH", cuda_dir.include)
             env.set("OCCA_LIBRARY_PATH", ":".join(cuda_libs.directories))
+            env.set("OCCA_CUDA_ENABLED", "1")
         else:
             env.set("OCCA_CUDA_ENABLED", "0")
 
         # Disable hip autodetection for now since it fails on some machines.
         env.set("OCCA_HIP_ENABLED", "0")
 
-        if "~opencl" in spec:
+        if "+opencl" in spec:
+            env.set("OCCA_OPENCL_ENABLED", "1")
+        else:
             env.set("OCCA_OPENCL_ENABLED", "0")
 
         if "~openmp" in spec:
             env.set("OCCA_OPENMP_ENABLED", "0")
+        else:
+            env.set("OCCA_OPENMP_ENABLED", "1")
 
         # Setup run-time environment for testing.
         env.set("OCCA_VERBOSE", "1")
@@ -143,8 +148,9 @@ class CMakeBuilder(CMakeBuilder, SetupEnvironment):
             cuda_libs = find_libraries(cuda_libs_list, cuda_dir, shared=True, recursive=True)
             include_dirs.append(cuda_dir.include)
             library_dirs.extend(cuda_libs.directories)
+            args.append("-DOCCA_ENABLE_CUDA=ON")
         else:
-            args.append("-DOCCA_ENABLE_CUDA=0")
+            args.append("-DOCCA_ENABLE_CUDA=OFF")
 
         if "+rocm" in spec:
             hip_dir = spec["hip"].prefix
@@ -152,14 +158,19 @@ class CMakeBuilder(CMakeBuilder, SetupEnvironment):
             hip_libs = find_libraries(hip_libs_list, hip_dir, shared=True, recursive=True)
             include_dirs.append(hip_dir.include)
             library_dirs.extend(hip_libs.directories)
+            args.append("-DOCCA_ENABLE_HIP=ON")
         else:
-            args.append("-DOCCA_ENABLE_HIP=0")
+            args.append("-DOCCA_ENABLE_HIP=OFF")
 
-        if "~opencl" in spec:
-            args.append("-DOCCA_ENABLE_OPENCL=0")
+        if "+opencl" in spec:
+            args.append("-DOCCA_ENABLE_OPENCL=ON")
+        else:
+            args.append("-DOCCA_ENABLE_OPENCL=OFF")
 
-        if "~openmp" in spec:
-            args.append("-DOCCA_ENABLE_OPENMP=0")
+        if "+openmp" in spec:
+            args.append("-DOCCA_ENABLE_OPENMP=ON")
+        else:
+            args.append("-DOCCA_ENABLE_OPENMP=OFF")
 
         if "+debug" in spec:
             args.append("-DCMAKE_BUILD_TYPE=Debug")
