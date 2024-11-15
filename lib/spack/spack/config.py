@@ -819,6 +819,9 @@ def _add_command_line_scopes(cfg: Configuration, command_line_scopes: List[str])
             cfg.push_scope(scope)
 
 
+end_user_system_scope = True
+
+
 def create() -> Configuration:
     """Singleton Configuration instance.
 
@@ -845,7 +848,7 @@ def create() -> Configuration:
     # This is disabled if user asks for no local configuration.
     if not disable_local_config:
         configuration_paths.append(("system", spack.paths.system_config_path))
-        if spack.install_scheme.scheme() == spack.install_scheme.InstallScheme.USER:
+        if end_user_system_scope:
             configuration_paths.append(("admin-customer", spack.paths.admin_customer_cfg))
 
     # Site configuration is per spack instance, for sites or projects

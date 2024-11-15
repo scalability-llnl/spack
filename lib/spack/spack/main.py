@@ -507,7 +507,10 @@ def make_argument_parser(**kwargs):
         dest="install_scheme",
         action="store",
         default=None,
-        help="specify non-default install tree",
+        help="specify install scheme",
+    )
+    parser.add_argument(
+        "--disable-end-user-config", action="store_true", help="Disable system config scope for end users"
     )
 
     return parser
@@ -578,6 +581,9 @@ def setup_main_options(args):
 
     if args.install_scheme:
         spack.install_scheme.set_scheme(args.install_scheme)
+
+    if args.disable_end_user_config:
+        spack.config.end_user_system_scope = False
 
 
 def allows_unknown_args(command):
