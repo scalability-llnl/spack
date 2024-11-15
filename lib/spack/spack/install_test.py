@@ -335,53 +335,14 @@ class PackageTest:
         self.test_parts[part_name] = status
         self.counts[status] += 1
 
-    def phase_tests(self, builder, phase_name: str, method_names: List[str]):
-        """Execute the builder's package phase-time tests.
+    def handle_failures(self):
+        """Raise exception if any failures were collected during testing
 
-        Args:
-            builder: builder for package being tested
-            phase_name: the name of the build-time phase (e.g., ``build``, ``install``)
-            method_names: phase-specific callback method names
+        Raises:
+            TestFailure: test failures were collected
         """
-        verbose = tty.is_verbose()
-        fail_fast = spack.config.get("config:fail_fast", False)
-
-        with self.test_logger(verbose=verbose, externals=False) as logger:
-            # Report running each of the methods in the build log
-            log.print_message(logger, f"Running {phase_name}-time tests", verbose)
-            builder.pkg.test_suite.current_test_spec = builder.pkg.spec
-            builder.pkg.test_suite.current_base_spec = builder.pkg.spec
-
-            have_tests = any(name.startswith("test_") for name in method_names)
-            if have_tests:
-                copy_test_files(builder.pkg, builder.pkg.spec)
-
-            for name in method_names:
-                try:
-                    # Prefer the method in the package over the builder's.
-                    # We need this primarily to pick up arbitrarily named test
-                    # methods but also some build-time checks.
-                    fn = getattr(builder.pkg, name, getattr(builder, name))
-
-                    msg = f"RUN-TESTS: {phase_name}-time tests [{name}]"
-                    log.print_message(logger, msg, verbose)
-
-                    fn()
-
-                except AttributeError as e:
-                    msg = f"RUN-TESTS: method not implemented [{name}]"
-                    log.print_message(logger, msg, verbose)
-
-                    self.add_failure(e, msg)
-                    if fail_fast:
-                        break
-
-            if have_tests:
-                log.print_message(logger, "Completed testing", verbose)
-
-            # Raise any collected failures here
-            if self.test_failures:
-                raise TestFailure(self.test_failures)
+        if self.test_failures:
+            raise TestFailure(self.test_failures)
 
     def stand_alone_tests(self, kwargs):
         """Run the package's stand-alone tests.
@@ -683,10 +644,9 @@ def process_test_parts(pkg: Pb, test_specs: List[spack.spec.Spec], verbose: bool
                 ):
                     test_fn(pkg)
 
-        # If fail-fast was on, we error out above
-        # If we collect errors, raise them in batch here
-        if tester.test_failures:
-            raise TestFailure(tester.test_failures)
+        # If fail-fast was on, we errored out above
+        # If we collected errors, raise them in batch here
+        tester.handle_failures()
 
     finally:
         if tester.ran_tests():
