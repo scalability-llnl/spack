@@ -18,7 +18,7 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     homepage = "https://github.com/LLNL/Caliper"
     git = "https://github.com/LLNL/Caliper.git"
-    url = "https://github.com/LLNL/Caliper/archive/v2.11.0.tar.gz"
+    url = "https://github.com/LLNL/Caliper/archive/v2.12.0.tar.gz"
     tags = ["e4s", "radiuss"]
 
     maintainers("daboehme", "adrienbernede")
@@ -28,11 +28,16 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("2.12.0", sha256="3e76d64905e4c17676d78047a8e84edbcbe4176edf789850fce42f69a7d9d1e2")
     version("2.11.0", sha256="b86b733cbb73495d5f3fe06e6a9885ec77365c8aa9195e7654581180adc2217c")
     version("2.10.0", sha256="14c4fb5edd5e67808d581523b4f8f05ace8549698c0e90d84b53171a77f58565")
     version("2.9.1", sha256="4771d630de505eff9227e0ec498d0da33ae6f9c34df23cb201b56181b8759e9e")
     version("2.9.0", sha256="507ea74be64a2dfd111b292c24c4f55f459257528ba51a5242313fa50978371f")
-    version("2.8.0", sha256="17807b364b5ac4b05997ead41bd173e773f9a26ff573ff2fe61e0e70eab496e4")
+    version(
+        "2.8.0",
+        sha256="17807b364b5ac4b05997ead41bd173e773f9a26ff573ff2fe61e0e70eab496e4",
+        deprecated=True
+    )
     version(
         "2.7.0",
         sha256="b3bf290ec2692284c6b4f54cc0c507b5700c536571d3e1a66e56626618024b2b",
@@ -175,9 +180,16 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
             entries.append(cmake_cache_option("WITH_NVTX", False))
 
         if spec.satisfies("+rocm"):
-            entries.append(cmake_cache_option("WITH_ROCTRACER", True))
-            entries.append(cmake_cache_option("WITH_ROCTX", True))
+            if spec["hip"].satisfies("@6.2:") and spec.satisfies("@2.12:"):
+                entries.append(cmake_cache_option("WITH_ROCPROFILER", True))
+                entries.append(cmake_cache_option("WITH_ROCTRACER", False))
+                entries.append(cmake_cache_option("WITH_ROCTX", False))
+            else:
+                entries.append(cmake_cache_option("WITH_ROCPROFILER", False))
+                entries.append(cmake_cache_option("WITH_ROCTRACER", True))
+                entries.append(cmake_cache_option("WITH_ROCTX", True))
         else:
+            entries.append(cmake_cache_option("WITH_ROCPROFILER", False))
             entries.append(cmake_cache_option("WITH_ROCTRACER", False))
             entries.append(cmake_cache_option("WITH_ROCTX", False))
 
