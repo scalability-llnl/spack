@@ -17,7 +17,7 @@ from typing import Callable, List, Optional, Tuple, Type, TypeVar, Union
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
-import llnl.util.tty.log
+import llnl.util.tty.log as log
 from llnl.string import plural
 from llnl.util.lang import nullcontext
 from llnl.util.tty.color import colorize
@@ -50,7 +50,6 @@ spack_install_test_log = "install-time-test-log.txt"
 
 
 ListOrStringType = Union[str, List[str]]
-LogType = Union[llnl.util.tty.log.nixlog, llnl.util.tty.log.winlog]
 
 Pb = TypeVar("Pb", bound="spack.package_base.PackageBase")
 PackageObjectOrClass = Union[Pb, Type[Pb]]
@@ -207,22 +206,6 @@ def install_test_root(pkg: Pb):
     return os.path.join(pkg.metadata_dir, "test")
 
 
-def print_message(logger: LogType, msg: str, verbose: bool = False):
-    """Print the message to the log, optionally echoing.
-
-    Args:
-        logger: instance of the output logger (e.g. nixlog or winlog)
-        msg: message being output
-        verbose: ``True`` displays verbose output, ``False`` suppresses
-            it (``False`` is default)
-    """
-    if verbose:
-        with logger.force_echo():
-            tty.info(msg, format="g")
-    else:
-        tty.info(msg, format="g")
-
-
 def overall_status(current_status: "TestStatus", substatuses: List["TestStatus"]) -> "TestStatus":
     """Determine the overall status based on the current and associated sub status values.
 
@@ -285,10 +268,10 @@ class PackageTest:
         self._logger = None
 
     @property
-    def logger(self) -> Optional[LogType]:
+    def logger(self) -> Optional[log.LogType]:
         """The current logger or, if none, sets to one."""
         if not self._logger:
-            self._logger = llnl.util.tty.log.log_output(self.test_log_file)
+            self._logger = log.log_output(self.test_log_file)
 
         return self._logger
 
@@ -305,7 +288,7 @@ class PackageTest:
         fs.touch(self.test_log_file)  # Otherwise log_parse complains
         fs.set_install_permissions(self.test_log_file)
 
-        with llnl.util.tty.log.log_output(self.test_log_file, verbose) as self._logger:
+        with log.log_output(self.test_log_file, verbose) as self._logger:
             with self.logger.force_echo():  # type: ignore[union-attr]
                 tty.msg("Testing package " + colorize(r"@*g{" + self.pkg_id + r"}"))
 
@@ -365,7 +348,7 @@ class PackageTest:
 
         with self.test_logger(verbose=verbose, externals=False) as logger:
             # Report running each of the methods in the build log
-            print_message(logger, f"Running {phase_name}-time tests", verbose)
+            log.print_message(logger, f"Running {phase_name}-time tests", verbose)
             builder.pkg.test_suite.current_test_spec = builder.pkg.spec
             builder.pkg.test_suite.current_base_spec = builder.pkg.spec
 
@@ -381,20 +364,20 @@ class PackageTest:
                     fn = getattr(builder.pkg, name, getattr(builder, name))
 
                     msg = f"RUN-TESTS: {phase_name}-time tests [{name}]"
-                    print_message(logger, msg, verbose)
+                    log.print_message(logger, msg, verbose)
 
                     fn()
 
                 except AttributeError as e:
                     msg = f"RUN-TESTS: method not implemented [{name}]"
-                    print_message(logger, msg, verbose)
+                    log.print_message(logger, msg, verbose)
 
                     self.add_failure(e, msg)
                     if fail_fast:
                         break
 
             if have_tests:
-                print_message(logger, "Completed testing", verbose)
+                log.print_message(logger, "Completed testing", verbose)
 
             # Raise any collected failures here
             if self.test_failures:
@@ -729,12 +712,12 @@ def test_process(pkg: Pb, kwargs):
 
     with pkg.tester.test_logger(verbose, externals) as logger:
         if pkg.spec.external and not externals:
-            print_message(logger, "Skipped tests for external package", verbose)
+            log.print_message(logger, "Skipped tests for external package", verbose)
             pkg.tester.status(pkg.spec.name, TestStatus.SKIPPED)
             return
 
         if not pkg.spec.installed:
-            print_message(logger, "Skipped not installed package", verbose)
+            log.print_message(logger, "Skipped not installed package", verbose)
             pkg.tester.status(pkg.spec.name, TestStatus.SKIPPED)
             return
 
@@ -883,6 +866,9 @@ class TestSuite:
             self._hash = b32_hash
         return self._hash
 
+    def _run_test(self, pkg, dirty, externals):
+        pkg.do_test(dirty=dirty, externals=externals)
+
     def __call__(self, *args, **kwargs):
         self.write_reproducibility_data()
 
@@ -912,7 +898,8 @@ class TestSuite:
                 fs.mkdirp(test_dir)
 
                 # run the package tests
-                spec.package.do_test(dirty=dirty, externals=externals)
+                # TLD spec.package.do_test(dirty=dirty, externals=externals)
+                self._run_test(spec.package, dirty=dirty, externals=externals)
 
                 # Clean up on success
                 if remove_directory:
