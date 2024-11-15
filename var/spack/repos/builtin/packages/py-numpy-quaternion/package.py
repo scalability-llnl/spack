@@ -36,8 +36,12 @@ class PyNumpyQuaternion(PythonPackage):
     depends_on("python@3.10:", when="@2024:")
 
     depends_on("py-setuptools", type="build")
+    depends_on("py-setuptools@0.61:", type="build", when="@2024:")
+    depends_on("py-hatchling", type="build", when="@2024:")
+
     depends_on("py-numpy@1.13:", type=("build", "run"))
-    depends_on("py-numpy@1.25:2", type=("build", "run"), when="@2024:")
+    depends_on("py-numpy@2", type=("build"), when="@2024:")
+    depends_on("py-numpy@1.25:2", type=("run"), when="@2024:")
     depends_on("py-scipy", type=("build", "run"), when="+scipy")
     depends_on("py-scipy@1.5:1", type=("build", "run"), when="@2024:+scipy")
     depends_on("py-numba", type=("build", "run"), when="+numba")
