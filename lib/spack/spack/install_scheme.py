@@ -23,17 +23,19 @@ _in_user = os.path.join(paths.per_spack_user_root, "installs")
 
 
 class InstallScheme:
-    ROOT = 0
-    USER = 1
+    IN_SPACK = 0
+    OUT_OF_SPACK = 1
 
 
-aliases = {"root": InstallScheme.ROOT, "user": InstallScheme.USER}
+aliases = {"in-spack": InstallScheme.IN_SPACK, "out-of-spack": InstallScheme.OUT_OF_SPACK}
 
 
 def set_scheme(alias):
     global _scheme
     if alias in aliases:
         _scheme = aliases[alias]
+    else:
+        raise InstallSchemeError(f"Unknown install scheme: {alias}")
 
 
 def scheme():
@@ -41,20 +43,22 @@ def scheme():
 
 
 def _determine_scheme():
+    """Automatically choose an install scheme if it has not been set.
+    """
     global _scheme
     if _scheme:
         pass
     elif paths.dir_is_occupied(_in_user):
-        _scheme = InstallScheme.USER
+        _scheme = InstallScheme.OUT_OF_SPACK
     elif not os.access(paths.prefix, os.W_OK):
         # If we can't write into the Spack prefix we use ~
-        _scheme = InstallScheme.USER
+        _scheme = InstallScheme.OUT_OF_SPACK
     else:
         # In the future, we may only choose the in-spack
         # scheme if that install tree is populated, but for
         # now even new instances of Spack should install
         # into the Spack prefix
-        _scheme = InstallScheme.ROOT
+        _scheme = InstallScheme.IN_SPACK
     return _scheme
 
 
@@ -68,9 +72,9 @@ def default_install_location():
     - ... unless the Spack prefix is not writable by us
     """
     chosen = scheme()
-    if chosen == InstallScheme.USER:
+    if chosen == InstallScheme.OUT_OF_SPACK:
         return _in_user
-    elif chosen == InstallScheme.ROOT:
+    elif chosen == InstallScheme.IN_SPACK:
         return _in_spack
     else:
         raise InstallSchemeError(f"Unset or unexpected scheme: {chosen}")
