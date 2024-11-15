@@ -219,8 +219,7 @@ class CompilerPackage(spack.package_base.PackageBase):
 
         env.set("SPACK_LINKER_ARG", self.linker_arg)
 
-        detector = spack.compilers.libraries.CompilerPropertyDetector(self.spec)
-        paths = detector.implicit_rpaths()
+        paths = _implicit_rpaths(pkg=self)
         if paths:
             env.set("SPACK_COMPILER_IMPLICIT_RPATHS", ":".join(paths))
 
@@ -233,7 +232,7 @@ class CompilerPackage(spack.package_base.PackageBase):
             env.set("SPACK_DTAGS_TO_ADD", self.enable_new_dtags)
 
         spec = self.spec
-        uarch = spec.architecture.target
+        uarch = dependent_spec.architecture.target
         version_number, _ = archspec.cpu.version_components(spec.version.dotted_numeric_string)
         try:
             isa_arg = uarch.optimization_flags(spec.name, version_number)
@@ -274,6 +273,12 @@ class CompilerPackage(spack.package_base.PackageBase):
         for item in env_paths:
             env.prepend_path("PATH", item)
         env.set_path("SPACK_ENV_PATH", env_paths)
+
+
+def _implicit_rpaths(pkg: spack.package_base.PackageBase) -> List[str]:
+    detector = spack.compilers.libraries.CompilerPropertyDetector(pkg.spec)
+    paths = detector.implicit_rpaths()
+    return paths
 
 
 @memoized
