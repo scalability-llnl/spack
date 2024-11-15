@@ -270,7 +270,7 @@ class Mapl(CMakePackage):
 
     # ESMF dependency
     depends_on("esmf@8.6.1:", when="@2.45:")
-    depends_on("esmf@8.6.1", when="@=2.40.3.1")
+    depends_on("esmf@8.6.1:", when="@=2.40.3.1")
     depends_on("esmf@8.6.0", when="@2.44")
     depends_on("esmf@8.5:", when="@2.40:2.43")
     depends_on("esmf@8.4", when="@2.34:2.39")
