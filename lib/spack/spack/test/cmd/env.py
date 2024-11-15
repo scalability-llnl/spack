@@ -3036,7 +3036,7 @@ def test_envvar_set_in_activate(
 spack:
   specs:
     - cmake%gcc
-  environment_variable_modifications:
+  env_vars:
     set: 
       ENVAR_SET_IN_ENV_LOAD: "True"
 """

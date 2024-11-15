@@ -35,7 +35,7 @@ properties: Dict[str, Any] = {
                 "include": {"type": "array", "default": [], "items": {"type": "string"}},
                 "specs": spec_list_schema,
                 "include_concrete": include_concrete,
-                "environment_variable_modifications": spack.schema.environment.definition,
+                "env_vars": spack.schema.environment.definition,
 
             },
         ),

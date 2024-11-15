@@ -158,12 +158,14 @@ def activate(
     # become PATH variables.
     #
 
-    # Something here to actually read the environment?
-    
+    env_vars_yaml = env.manifest.configuration.get("env_vars", None)
+    if env_vars_yaml:
+        env_mods.extend(spack.schema.environment.parse(env_vars_yaml))
+ 
     try:
         if view and env.has_view(view):
             with spack.store.STORE.db.read_transaction():
-                env.add_view_to_env(env_mods, view)
+               env.add_view_to_env(env_mods, view)
     except (spack.repo.UnknownPackageError, spack.repo.UnknownNamespaceError) as e:
         tty.error(e)
         tty.die(
@@ -190,6 +192,11 @@ def deactivate() -> EnvironmentModifications:
     env_mods = EnvironmentModifications()
     active = ev.active_environment()
 
+# TODO jfrye - undo shelll mods on deactivate 
+#    mods_yaml = env.manifest.configuration.get("shell_modifications", None)
+#    if mods_yaml:
+#        env_mods.extend(spack.schema.environment.parse(mods_yaml))
+    
     if active is None:
         return env_mods
 
