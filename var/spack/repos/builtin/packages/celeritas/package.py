@@ -40,7 +40,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("cxx", type="build")
 
-    _cxxstd_values = ("17",)
+    _cxxstd_values = ("17", "20")
 
     # Note: cuda and rocm variants are defined by mixin classes
     variant(
