@@ -43,8 +43,7 @@ def scheme():
 
 
 def _determine_scheme():
-    """Automatically choose an install scheme if it has not been set.
-    """
+    """Automatically choose an install scheme if it has not been set."""
     global _scheme
     if _scheme:
         pass
