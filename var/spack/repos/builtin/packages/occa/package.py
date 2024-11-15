@@ -180,6 +180,12 @@ class CMakeBuilder(CMakeBuilder, SetupEnvironment):
 
         return args
 
+    @run_after("build")
+    @on_package_attributes(run_tests=True)
+    def check(self):
+        if self.pkg.run_tests:
+            make("-C", self.prefix, "test", parallel=False)
+
 
 class MakefileBuilder(MakefileBuilder, SetupEnvironment):
     def install(self, pkg, spec, prefix):
@@ -188,5 +194,7 @@ class MakefileBuilder(MakefileBuilder, SetupEnvironment):
         install_tree(".", prefix)
         make("-C", prefix)
 
-        if self.run_tests:
-            make("-C", prefix, "test", parallel=False)
+    @run_after("build")
+    @on_package_attributes(run_tests=True)
+    def check(self):
+        make("-C", self.prefix, "test", parallel=False)
