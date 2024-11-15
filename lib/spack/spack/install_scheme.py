@@ -23,8 +23,8 @@ _in_user = os.path.join(paths.per_spack_user_root, "installs")
 
 
 class InstallScheme:
-    IN_SPACK = 0
-    OUT_OF_SPACK = 1
+    IN_SPACK = 1
+    OUT_OF_SPACK = 2
 
 
 aliases = {"in-spack": InstallScheme.IN_SPACK, "out-of-spack": InstallScheme.OUT_OF_SPACK}
