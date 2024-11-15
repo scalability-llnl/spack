@@ -771,11 +771,14 @@ version. This is useful for packages that have an easy to extrapolate URL, but
 keep changing their URL format every few releases. With this method, you only
 need to specify the ``url`` when the URL changes.
 
-It is important to note that ``spack versions`` and ``spack checksum`` do not use the custom ``url_for_version()``
-for discovering new versions. These two commands use only the base ``url`` or ``pypi`` fields. Thus,
-these fields should always be updated to reflect the new naming scheme, allowing previously discovered package versions
-to be downloaded via the old url pattern given in ``url_for_version()``. ``spack checksum`` can be used in a non-autodiscovery
-mode which does use ``url_for_version()``. This usage is via ``spack checksum zlib 1.2.13``.
+It is important to note that ``spack versions`` and ``spack checksum`` do not use a custom ``url_for_version()``
+for discovering new versions of a package. These two commands only use the base ``url`` field. Thus,
+this field should always be updated to reflect the new naming scheme, allowing previously discovered package versions
+to be downloaded via the old url pattern given in ``url_for_version()``. However, ``spack checksum`` can be used in a 
+non-autodiscovery mode which does use ``url_for_version()``. 
+This usage is via ``spack checksum <package> <version>``, e.g., ``spack checksum zlib 1.2.13``. This differs 
+from the autodiscovery mode ``spack checksum <package>@<version>``, e.g., ``spack checksum zlib@1.2``, which does not use 
+``url_for_version()``.
 
 """""""""""""""""""""""
 Mirrors of the main URL
