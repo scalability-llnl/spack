@@ -95,8 +95,8 @@ class Dyninst(CMakePackage):
         conflicts("^intel-oneapi-tbb@2021.1:")
         conflicts("^intel-parallel-studio")
 
-    depends_on("intel-tbb@2019.9:", when="@13.0.0:")
-    depends_on("tbb@2018.6.0:", when="@10.0.0:12.3.0")
+    depends_on("tbb")
+    requires("^[virtuals=tbb] intel-tbb@2019.9:", when="@13.0.0:")
 
     with when("@13.0.0:"):
         depends_on("cmake@3.14.0:", type="build")
