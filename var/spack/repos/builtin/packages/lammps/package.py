@@ -400,12 +400,12 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
     depends_on("cxx", type="build")
 
-    # mdi, scafacos, ml-quip, qmmm require C, but not available in Spack
-    for c_pkg in ("adios", "atc", "awpmd", "ml-pod", "electrode", "kim", "h5md", "tools", "rheo"):
+    # mdi, ml-quip, qmmm require C, but not available in Spack
+    for c_pkg in ("adios", "atc", "awpmd", "ml-pod", "electrode", "kim", "h5md", "scafacos", "tools", "rheo"):
         depends_on("c", type="build", when=f"+{c_pkg}")
 
-    # scafacos, ml-quip require Fortran, but not available in Spack
-    for fc_pkg in ("kim",):
+    # ml-quip require Fortran, but not available in Spack
+    for fc_pkg in ("kim", "scafacos"):
         depends_on("fortran", type="build", when=f"+{fc_pkg}")
 
     stable_versions = {
@@ -530,6 +530,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "rheo": {"when": "@20240829:"},
         "replica": {},
         "rigid": {"default": True},
+        "scafacos": {"when": "@20210702:"},
         "shock": {},
         "smtbq": {"when": "@20210702:"},
         "snap": {"when": "@:20210527"},
@@ -585,9 +586,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         # "mdi": {"when": "@20210702:"}, no mdi package
         # "ml-pace": {"when": "@20210702:"}, no pace package
         # "ml-quip": {"when": "@20210702:"}, no quip package
-        # "scafacos": {"when": "@20210702:"}, no scafacos package
         # "user-quip": {"when": "@20190201:20210527"}, no quip package
-        # "user-scafacos": {"when": "@20180905:20210527"}, no scafacos package
     }
 
     for pkg_name, pkg_options in supported_packages.items():
@@ -728,6 +727,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         with when(_n2p2_cond):
             depends_on("n2p2@2.1.4:")
             depends_on("n2p2+shared", when="+lib")
+    depends_on("scafacos", when="+scafacos")
     depends_on("vtk", when="+user-vtk")
     depends_on("vtk", when="+vtk")
     depends_on("hipcub", when="~kokkos +rocm")
