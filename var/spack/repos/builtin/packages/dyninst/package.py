@@ -33,12 +33,11 @@ class Dyninst(CMakePackage):
     version("10.2.1", sha256="8077c6c7a12577d2ffdcd07521c1eb1b7367da94d9a7ef10bf14053aeaae7ba1")
     version("10.2.0", sha256="4212b93bef4563c7de7dce4258e899bcde52315a571087e87fde9f8040123b43")
     version("10.1.0", sha256="4a121d70c1bb020408a7a697d74602e18250c3c85800f230566fcccd593c0129")
-    version("10.0.0", sha256="542fccf5c57c4fe784b1a9a9e3db01d40b16ad04e7174dc6f7eb23440485ba06")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    variant("openmp", default=True, description="Enable OpenMP support for ParseAPI ", when="@10:")
+    variant("openmp", default=True, description="Enable OpenMP support for ParseAPI ")
 
     variant("static", default=False, description="Build static libraries")
 
@@ -48,7 +47,6 @@ class Dyninst(CMakePackage):
         "boost+atomic+chrono+date_time+filesystem+system+thread+timer+container+random+exception"
     )
     depends_on("boost@1.61.0:", when="@10.1.0:")
-    depends_on("boost@:1.69", when="@:10.0")
     depends_on("boost@1.67.0:", when="@11.0.0:")
     depends_on("boost@1.70.0:", when="@12:12.3.0")
     depends_on("boost@1.71.0:", when="@13:")
@@ -78,10 +76,8 @@ class Dyninst(CMakePackage):
         conflicts("cmake@3.19.0")
 
     depends_on("cmake@3.4.0:", type="build", when="@10.1.0:")
-    depends_on("cmake@3.0.0:", type="build", when="@10.0.0:10.0")
 
     patch("stat_dysect.patch", when="+stat_dysect")
-    patch("tribool.patch", when="@9.3.0:10.0.0 ^boost@1.69:")
     patch(
         "missing_include_deque.patch",
         when="@10.0.0:12.2.0",
@@ -96,8 +92,6 @@ class Dyninst(CMakePackage):
     # Version 11.0 requires a C++11-compliant ABI
     conflicts("%gcc@:5", when="@11.0.0:")
 
-    # New style cmake args, starting with 10.1.
-    @when("@10.1.0:")
     def cmake_args(self):
         spec = self.spec
         args = [
@@ -113,46 +107,6 @@ class Dyninst(CMakePackage):
         # Make sure Dyninst doesn't try to build its own dependencies outside of Spack
         if spec.satisfies("@10.2.0:12.3.0"):
             args.append(self.define("STERILE_BUILD", True))
-
-        return args
-
-    # Old style cmake args, up through 10.0.
-    @when("@:10.0")
-    def cmake_args(self):
-        spec = self.spec
-
-        # Elf -- the directory containing libelf.h.
-        elf = spec["elfutils"].prefix
-        elf_include = os.path.dirname(find_headers("libelf", elf.include, recursive=True)[0])
-
-        # Dwarf -- the directory containing elfutils/libdw.h or
-        # libdwarf.h, and the path to libdw.so or libdwarf.so.
-        if spec.satisfies("@10.0.0:"):
-            dwarf_include = elf.include
-            dwarf_lib = find_libraries("libdw", elf, recursive=True)
-        else:
-            dwarf_include = spec["libdwarf"].prefix.include
-            dwarf_lib = spec["libdwarf"].libs
-
-        args = [
-            self.define("PATH_BOOST", spec["boost"].prefix),
-            self.define("IBERTY_LIBRARIES", spec["libiberty"].libs),
-            self.define("LIBELF_INCLUDE_DIR", elf_include),
-            self.define("LIBELF_LIBRARIES", spec["elfutils"].libs),
-            self.define("LIBDWARF_INCLUDE_DIR", dwarf_include),
-            self.define("LIBDWARF_LIBRARIES", dwarf_lib),
-            self.define_from_variant("USE_OpenMP", "openmp"),
-            self.define_from_variant("ENABLE_STATIC_LIBS", "static"),
-        ]
-
-        # TBB include and lib directories, version 10.x or later.
-        if spec.satisfies("@10.0.0:"):
-            args.extend(
-                [
-                    self.define("TBB_INCLUDE_DIRS", spec["tbb"].prefix.include),
-                    self.define("TBB_LIBRARY", spec["tbb"].prefix.lib),
-                ]
-            )
 
         return args
 
