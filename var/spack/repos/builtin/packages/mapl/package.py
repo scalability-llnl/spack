@@ -78,6 +78,7 @@ class Mapl(CMakePackage):
     version("2.41.0", sha256="1142f9395e161174e3ec1654fba8bda1d0bd93edc7438b1927d8f5d7b42a0a86")
     version("2.40.5", sha256="85b4a4ac0d843398452808b88d7a5c29435aa37b69b91a1f4bee664e9f367b7d")
     version("2.40.4", sha256="fb843b118d6e56cd4fc4b114c4d6f91956d5c8b3d9389ada56da1dfdbc58904f")
+    version("2.40.3.1", sha256="1e5a9d6a84d23febe826b1adcd2c2b1681bcc2e61c2959a8bbf4756357e22187")
     version("2.40.3", sha256="4b82a314c88a035fc2b91395750aa7950d6bee838786178ed16a3f39a1e45519")
     version("2.40.2", sha256="7327f6f5bce6e09e7f7b930013fba86ee7cbfe8ed4c7c087fc9ab5acbf6640fd")
     version("2.40.1", sha256="6f40f946fabea6ba73b0764092e495505d220455b191b4e454736a0a25ee058c")
@@ -287,6 +288,7 @@ class Mapl(CMakePackage):
 
     # ESMF dependency
     depends_on("esmf@8.6.1:", when="@2.45:")
+    depends_on("esmf@8.6.1:", when="@=2.40.3.1")
     depends_on("esmf@8.6.0", when="@2.44")
     depends_on("esmf@8.5:", when="@2.40:2.43")
     depends_on("esmf@8.4", when="@2.34:2.39")
