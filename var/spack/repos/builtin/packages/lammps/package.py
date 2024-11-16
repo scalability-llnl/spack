@@ -400,8 +400,8 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
     depends_on("cxx", type="build")
 
-    # mdi, scafacos, ml-quip, qmmm require C, but not available in Spack
-    for c_pkg in ("adios", "atc", "awpmd", "ml-pod", "electrode", "kim", "h5md", "tools", "rheo"):
+    # scafacos, ml-quip, qmmm require C, but not available in Spack
+    for c_pkg in ("adios", "atc", "awpmd", "mdi", "ml-pod", "electrode", "kim", "h5md", "tools", "rheo"):
         depends_on("c", type="build", when=f"+{c_pkg}")
 
     # scafacos, ml-quip require Fortran, but not available in Spack
@@ -496,6 +496,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "manifold": {"when": "@20210702:"},
         "manybody": {"default": True},
         "mc": {},
+        "mdi": {"when": "@20210702:"},
         "meam": {"when": "@:20181212,20210702:"},
         "mesont": {"when": "@20210702:"},
         "mgpt": {"when": "@20210702:"},
@@ -582,7 +583,6 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "voronoi": {},
         "vtk": {"when": "@20210702:"},
         "yaff": {"when": "@20210702:"},
-        # "mdi": {"when": "@20210702:"}, no mdi package
         # "ml-pace": {"when": "@20210702:"}, no pace package
         # "ml-quip": {"when": "@20210702:"}, no quip package
         # "scafacos": {"when": "@20210702:"}, no scafacos package
@@ -718,6 +718,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("eigen@3:", when="+machdyn")
     depends_on("py-cython", when="+mliap+python", type="build")
     depends_on("py-cython", when="+ml-iap+python", type="build")
+    depends_on("py-mdi", when="+mdi", type="build")
     depends_on("py-pip", when="+python", type="build")
     depends_on("py-wheel", when="+python", type="build")
     depends_on("py-build", when="+python", type="build")
