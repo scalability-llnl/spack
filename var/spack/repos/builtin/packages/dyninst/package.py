@@ -94,8 +94,8 @@ class Dyninst(CMakePackage):
         conflicts("^intel-oneapi-tbb@2021.1:")
         conflicts("^intel-parallel-studio")
 
-    depends_on("intel-tbb@2019.9:", when="@13.0.0:")
-    depends_on("tbb@2018.6.0:", when="@10.0.0:12.3.0")
+    depends_on("tbb")
+    requires("^[virtuals=tbb] intel-tbb@2019.9:", when="@13.0.0:")
 
     with when("@13.0.0:"):
         depends_on("cmake@3.14.0:", type="build")
@@ -137,7 +137,7 @@ class Dyninst(CMakePackage):
 
         args = [
             "-DBoost_ROOT_DIR=%s" % spec["boost"].prefix,
-            "-DElfUtils_ROOT_DIR=%s" % spec["elf"].prefix,
+            "-DElfUtils_ROOT_DIR=%s" % spec["elfutils"].prefix,
             "-DLibIberty_ROOT_DIR=%s" % spec["libiberty"].prefix,
             "-DTBB_ROOT_DIR=%s" % spec["tbb"].prefix,
             self.define("LibIberty_LIBRARIES", spec["libiberty"].libs),
@@ -166,7 +166,7 @@ class Dyninst(CMakePackage):
         spec = self.spec
 
         # Elf -- the directory containing libelf.h.
-        elf = spec["elf"].prefix
+        elf = spec["elfutils"].prefix
         elf_include = os.path.dirname(find_headers("libelf", elf.include, recursive=True)[0])
 
         # Dwarf -- the directory containing elfutils/libdw.h or
@@ -182,7 +182,7 @@ class Dyninst(CMakePackage):
             "-DPATH_BOOST=%s" % spec["boost"].prefix,
             "-DIBERTY_LIBRARIES=%s" % spec["libiberty"].libs,
             "-DLIBELF_INCLUDE_DIR=%s" % elf_include,
-            "-DLIBELF_LIBRARIES=%s" % spec["elf"].libs,
+            "-DLIBELF_LIBRARIES=%s" % spec["elfutils"].libs,
             "-DLIBDWARF_INCLUDE_DIR=%s" % dwarf_include,
             "-DLIBDWARF_LIBRARIES=%s" % dwarf_lib,
         ]
