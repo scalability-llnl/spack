@@ -22,7 +22,6 @@ class PyWandb(PythonPackage):
 
     depends_on("py-setuptools", type=("build", "run"))
 
-    depends_on("py-pathtools", type=("build", "run"))
     depends_on("py-setproctitle", type=("build", "run"))
     depends_on("py-appdirs@1.4.3:", type=("build", "run"))
     depends_on("py-protobuf@3.19:4", type=("build", "run"))
@@ -31,7 +30,7 @@ class PyWandb(PythonPackage):
 
     depends_on("py-pyyaml", type=("build", "run"))
     depends_on("py-click@7:", type=("build", "run"), when="@0.13")
-    depends_on("py-click@7.1:", type=("build", "run"), when="@0.16:")
+    depends_on("py-click@7.1:", type=("build", "run"), when="@0.15.5:")
     conflicts("^py-click@8.0.0")
     depends_on("py-gitpython@1:", type=("build", "run"))
     conflicts("^py-gitpython@3.1.29")
@@ -39,3 +38,6 @@ class PyWandb(PythonPackage):
     depends_on("py-psutil@5:", type=("build", "run"))
     depends_on("py-sentry-sdk@1.0.0:", type=("build", "run"))
     depends_on("py-dockerpy-creds@0.4.0:", type=("build", "run"))
+
+    # Historical dependencies
+    depends_on("py-pathtools", type=("build", "run"), when="@:0.15")
