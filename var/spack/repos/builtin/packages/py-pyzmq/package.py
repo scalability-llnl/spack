@@ -24,6 +24,8 @@ class PyPyzmq(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("26.2.0", sha256="070672c258581c8e4f640b5159297580a9974b026043bd4ab0470be9ed324f1f")
+    version("26.1.1", sha256="a7db05d8b7cd1a8c6610e9e9aa55d525baae7a44a43e18bc3260eb3f92de96c6")
     version("26.0.3", sha256="dba7d9f2e047dfa2bca3b01f4f84aa5246725203d6284e3790f2ca15fba6b40a")
     version("25.1.2", sha256="93f1aa311e8bb912e34f004cf186407a4e90eec4f0ecc0efd26056bf7eda0226")
     version("25.0.2", sha256="6b8c1bbb70e868dc88801aa532cae6bd4e3b5233784692b786f17ad2962e5149")
