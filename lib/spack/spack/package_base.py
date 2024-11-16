@@ -712,7 +712,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     #: are available to build a custom test code.
     test_requires_compiler: bool = False
 
-    #: TestSuite instance used to manage stand-alone tests for 1+ specs.
+    #: The spec's TestSuite instance, which is used to manage its testing.
     test_suite: Optional[Any] = None
 
     def __init__(self, spec):

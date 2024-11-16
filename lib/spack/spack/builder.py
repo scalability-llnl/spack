@@ -126,11 +126,16 @@ def _create(pkg: spack.package_base.PackageBase) -> "Builder":
                 new_cls_name,
                 bases,
                 {
+                    # boolean to indicate whether install-time tests are run
                     "run_tests": property(lambda x: x.wrapped_package_object.run_tests),
+                    # boolean to indicate whether the package's stand-alone tests
+                    # require a compiler
                     "test_requires_compiler": property(
                         lambda x: x.wrapped_package_object.test_requires_compiler
                     ),
+                    # TestSuite instance the spec is a part of
                     "test_suite": property(lambda x: x.wrapped_package_object.test_suite),
+                    # PackageTest instance to manage the spec's testing
                     "tester": property(lambda x: x.wrapped_package_object.tester),
                 },
             )
@@ -537,12 +542,10 @@ class Builder(BaseBuilder, collections.abc.Sequence):
         fail_fast = spack.config.get("config:fail_fast", False)
 
         tester = self.pkg.tester
-        testsuite = self.pkg.test_suite
         with tester.test_logger(verbose=verbose, externals=False) as logger:
             # Report running each of the methods in the build log
             log.print_message(logger, f"Running {phase_name}-time tests", verbose)
-            testsuite.current_test_spec = self.pkg.spec
-            testsuite.current_base_spec = self.pkg.spec
+            tester.set_current_specs(self.pkg.spec, self.pkg.spec)
 
             have_tests = any(name.startswith("test_") for name in method_names)
             if have_tests:

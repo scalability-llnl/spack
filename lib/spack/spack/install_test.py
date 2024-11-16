@@ -252,15 +252,16 @@ class PackageTest:
         self.test_log_file: str
         self.pkg_id: str
 
-        if pkg.test_suite:
+        if self.pkg.test_suite is not None:
             # Running stand-alone tests
-            self.test_log_file = pkg.test_suite.log_file_for_spec(pkg.spec)
-            self.tested_file = pkg.test_suite.tested_file_for_spec(pkg.spec)
-            self.pkg_id = pkg.test_suite.test_pkg_id(pkg.spec)
+            suite = self.pkg.test_suite
+            self.test_log_file = suite.log_file_for_spec(pkg.spec)  # type: ignore[union-attr]
+            self.tested_file = suite.tested_file_for_spec(pkg.spec)  # type: ignore[union-attr]
+            self.pkg_id = suite.test_pkg_id(pkg.spec)  # type: ignore[union-attr]
         else:
             # Running phase-time tests for a single package whose results are
             # retained in the package's stage directory.
-            pkg.test_suite = TestSuite([pkg.spec])
+            self.pkg.test_suite = TestSuite([pkg.spec])
             self.test_log_file = fs.join_path(pkg.stage.path, spack_install_test_log)
             self.pkg_id = pkg.spec.format("{name}-{version}-{hash:7}")
 
@@ -313,6 +314,13 @@ class PackageTest:
     def add_failure(self, exception: Exception, msg: str):
         """Add the failure details to the current list."""
         self.test_failures.append((exception, msg))
+
+    def set_current_specs(self, base_spec: spack.spec.Spec, test_spec: spack.spec.Spec):
+        # Ignore union-attr check for test_suite since the constructor of this
+        # class ensures it is always not None.
+        test_suite = self.pkg.test_suite
+        test_suite.current_base_spec = base_spec  # type: ignore[union-attr]
+        test_suite.current_test_spec = test_spec  # type: ignore[union-attr]
 
     def status(self, name: str, status: "TestStatus", msg: Optional[str] = None):
         """Track and print the test status for the test part name."""
@@ -826,8 +834,13 @@ class TestSuite:
             self._hash = b32_hash
         return self._hash
 
+    # TODO/TLD: Finish this
     def _run_test(self, pkg, dirty, externals):
         pkg.do_test(dirty=dirty, externals=externals)
+
+    def set_current_specs(self, base_spec: spack.spec.Spec, test_spec: spack.spec.Spec):
+        self.current_base_spec = base_spec
+        self.current_test_spec = test_spec
 
     def __call__(self, *args, **kwargs):
         self.write_reproducibility_data()
@@ -848,8 +861,7 @@ class TestSuite:
 
                 # Set up the test suite to know which test is running
                 spec.package.test_suite = self
-                self.current_base_spec = spec
-                self.current_test_spec = spec
+                self.set_current_specs(spec, spec)
 
                 # setup per-test directory in the stage dir
                 test_dir = self.test_dir_for_spec(spec)
@@ -893,8 +905,7 @@ class TestSuite:
 
             finally:
                 spec.package.test_suite = None
-                self.current_test_spec = None
-                self.current_base_spec = None
+                self.set_current_specs(None, None)
 
         write_test_summary(self.counts)
 
