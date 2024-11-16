@@ -50,28 +50,23 @@ class Dyninst(CMakePackage):
         "8.2.1", tag="v8.2.1", commit="939afcbad1a8273636a3686a31b51dae4f1f0c11", deprecated=True
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
-    variant(
-        "openmp",
-        default=True,
-        description="Enable OpenMP support for ParseAPI " "(version 10.0.0 or later)",
-    )
+    variant("openmp", default=True, description="Enable OpenMP support for ParseAPI ", when="@10:")
 
     variant("static", default=False, description="Build static libraries")
 
     variant("stat_dysect", default=False, description="Patch for STAT's DySectAPI")
 
-    boost_libs = (
-        "+atomic+chrono+date_time+filesystem+system+thread+timer+container+random+exception"
+    depends_on(
+        "boost+atomic+chrono+date_time+filesystem+system+thread+timer+container+random+exception"
     )
-
-    depends_on("boost@1.61.0:" + boost_libs, when="@10.1.0:")
-    depends_on("boost@1.61.0:1.69" + boost_libs, when="@:10.0")
-    depends_on("boost@1.67.0:" + boost_libs, when="@11.0.0:")
-    depends_on("boost@1.70.0:" + boost_libs, when="@12:12.3.0")
-    depends_on("boost@1.71.0:" + boost_libs, when="@13:")
+    depends_on("boost@1.61.0:", when="@10.1.0:")
+    depends_on("boost@:1.69", when="@:10.0")
+    depends_on("boost@1.67.0:", when="@11.0.0:")
+    depends_on("boost@1.70.0:", when="@12:12.3.0")
+    depends_on("boost@1.71.0:", when="@13:")
 
     depends_on("libiberty+pic")
 
@@ -82,11 +77,11 @@ class Dyninst(CMakePackage):
     depends_on("elfutils@0.186:", type="link", when="@12.0.1:")
     depends_on("elfutils@0.178:", type="link", when="@10.2.0:")
     depends_on("elfutils", type="link", when="@9.3.0:10.1")
-    depends_on("libelf", type="link", when="@:9.2")
 
-    # Dyninst uses libdw from elfutils starting with 10.0, and used
-    # libdwarf before that.
-    depends_on("libdwarf", when="@:9")
+    # Dyninst uses libdw from elfutils starting with 10.0, and used libdwarf before that
+    with when("@:9"):
+        depends_on("libelf", type="link")
+        depends_on("libdwarf")
 
     with when("@:12.3.0"):
         # findtbb.cmake in the dynist repo does not work with recent tbb
@@ -135,29 +130,19 @@ class Dyninst(CMakePackage):
     @when("@10.1.0:")
     def cmake_args(self):
         spec = self.spec
-
         args = [
-            "-DBoost_ROOT_DIR=%s" % spec["boost"].prefix,
-            "-DElfUtils_ROOT_DIR=%s" % spec["elfutils"].prefix,
-            "-DLibIberty_ROOT_DIR=%s" % spec["libiberty"].prefix,
-            "-DTBB_ROOT_DIR=%s" % spec["tbb"].prefix,
+            self.define("Boost_ROOT_DIR", spec["boost"].prefix),
+            self.define("ElfUtils_ROOT_DIR", spec["elfutils"].prefix),
+            self.define("LibIberty_ROOT_DIR", spec["libiberty"].prefix),
+            self.define("TBB_ROOT_DIR", spec["tbb"].prefix),
             self.define("LibIberty_LIBRARIES", spec["libiberty"].libs),
+            self.define_from_variant("USE_OpenMP", "openmp"),
+            self.define_from_variant("ENABLE_STATIC_LIBS", "static"),
         ]
 
-        if spec.satisfies("+openmp"):
-            args.append("-DUSE_OpenMP=ON")
-        else:
-            args.append("-DUSE_OpenMP=OFF")
-
-        if spec.satisfies("+static"):
-            args.append("-DENABLE_STATIC_LIBS=YES")
-        else:
-            args.append("-DENABLE_STATIC_LIBS=NO")
-
-        # Make sure Dyninst doesn't try to build its own dependencies
-        # outside of Spack
+        # Make sure Dyninst doesn't try to build its own dependencies outside of Spack
         if spec.satisfies("@10.2.0:12.3.0"):
-            args.append("-DSTERILE_BUILD=ON")
+            args.append(self.define("STERILE_BUILD", True))
 
         return args
 
@@ -180,36 +165,24 @@ class Dyninst(CMakePackage):
             dwarf_lib = spec["libdwarf"].libs
 
         args = [
-            "-DPATH_BOOST=%s" % spec["boost"].prefix,
-            "-DIBERTY_LIBRARIES=%s" % spec["libiberty"].libs,
-            "-DLIBELF_INCLUDE_DIR=%s" % elf_include,
-            "-DLIBELF_LIBRARIES=%s" % spec["elfutils"].libs,
-            "-DLIBDWARF_INCLUDE_DIR=%s" % dwarf_include,
-            "-DLIBDWARF_LIBRARIES=%s" % dwarf_lib,
+            self.define("PATH_BOOST", spec["boost"].prefix),
+            self.define("IBERTY_LIBRARIES", spec["libiberty"].libs),
+            self.define("LIBELF_INCLUDE_DIR", elf_include),
+            self.define("LIBELF_LIBRARIES", spec["elfutils"].libs),
+            self.define("LIBDWARF_INCLUDE_DIR", dwarf_include),
+            self.define("LIBDWARF_LIBRARIES", dwarf_lib),
+            self.define_from_variant("USE_OpenMP", "openmp"),
+            self.define_from_variant("ENABLE_STATIC_LIBS", "static"),
         ]
 
         # TBB include and lib directories, version 10.x or later.
         if spec.satisfies("@10.0.0:"):
             args.extend(
                 [
-                    "-DTBB_INCLUDE_DIRS=%s" % spec["tbb"].prefix.include,
-                    "-DTBB_LIBRARY=%s" % spec["tbb"].prefix.lib,
+                    self.define("TBB_INCLUDE_DIRS", spec["tbb"].prefix.include),
+                    self.define("TBB_LIBRARY", spec["tbb"].prefix.lib),
                 ]
             )
-
-        # Openmp applies to version 10.x or later.
-        if spec.satisfies("@10.0.0:"):
-            if spec.satisfies("+openmp"):
-                args.append("-DUSE_OpenMP=ON")
-            else:
-                args.append("-DUSE_OpenMP=OFF")
-
-        # Static libs started with version 9.1.0.
-        if spec.satisfies("@9.1.0:"):
-            if spec.satisfies("+static"):
-                args.append("-DENABLE_STATIC_LIBS=1")
-            else:
-                args.append("-DENABLE_STATIC_LIBS=NO")
 
         return args
 
