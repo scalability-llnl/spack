@@ -27,7 +27,8 @@ class Googletest(CMakePackage):
     version("1.7.0", sha256="f73a6546fdf9fce9ff93a5015e0333a8af3062a152a9ad6bcb772c96687016cc")
     version("1.6.0", sha256="5fbc058e5b662b9c86d93ac76fefb58eec89cbf26144b49669a38ecb62758447")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("gmock", default=True, when="@1.8:", description="Build with gmock")
     variant("pthreads", default=True, description="Build multithreaded version with pthreads")

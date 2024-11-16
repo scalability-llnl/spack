@@ -48,7 +48,10 @@ class Gloo(CMakePackage, CudaPackage):
     )
 
     generator("ninja")
+
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
+
     depends_on("pkgconfig", type="build")
     depends_on("libuv@1.26:", when="+libuv")
     depends_on("cmake@2.8.12:", type="build")

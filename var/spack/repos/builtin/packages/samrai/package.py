@@ -73,6 +73,7 @@ class Samrai(AutotoolsPackage):
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     # don't build SAMRAI 3+ with tools with gcc
     patch("no-tool-build.patch", when="@3.0.0:%gcc")
