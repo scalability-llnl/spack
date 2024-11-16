@@ -22,6 +22,10 @@ class Pocl(CMakePackage):
     license("MIT")
 
     version("main", branch="main")
+    version("6.0", sha256="de9710223fc1855f833dbbf42ea2681e06aa8ec0464f0201104dc80a74dfd1f2")
+    version("5.0", sha256="fd0bb6e50c2286278c11627b71177991519e1f7ab2576bd8d8742974db414549")
+    version("4.0", sha256="7f4e8ab608b3191c2b21e3f13c193f1344b40aba7738f78762f7b88f45e8ce03")
+    version("3.1", sha256="82314362552e050aff417318dd623b18cf0f1d0f84f92d10a7e3750dd12d3a9a")
     version("3.0", sha256="a3fd3889ef7854b90b8e4c7899c5de48b7494bf770e39fba5ad268a5cbcc719d")
     version("1.8", sha256="0f63377ae1826e16e90038fc8e7f65029be4ff6f9b059f6907174b5c0d1f8ab2")
     version("1.7", sha256="5f6bbc391ba144bc7becc3b90888b25468460d5aa6830f63a3b066137e7bfac3")
@@ -44,6 +48,9 @@ class Pocl(CMakePackage):
     provides("opencl@2.0", when="^llvm@:13")
     provides("opencl@3.0", when="@3: ^llvm@14:")
 
+    depends_on("cmake @3.12:", type="build", when="@4:")
+    depends_on("cmake @3.9:", type="build", when="@3:")
+    depends_on("cmake @3.3:", type="build", when="@1.6:")
     depends_on("cmake @2.8.12:", type="build")
     depends_on("hwloc")
     depends_on("hwloc@:1", when="@:1.1")
@@ -51,7 +58,13 @@ class Pocl(CMakePackage):
     depends_on("pkgconfig", type="build")
 
     depends_on("llvm +clang")
-    depends_on("llvm @14:15", when="@master")
+    # PoCL aims to support **the latest LLVM version** at the time of PoCL release,
+    # **plus the previous** LLVM version
+    depends_on("llvm @18:19", when="@master")
+    depends_on("llvm @17:18", when="@6.0")
+    depends_on("llvm @16:17", when="@5.0")
+    depends_on("llvm @15:16", when="@4.0")
+    depends_on("llvm @14:15", when="@3.1")
     depends_on("llvm @13:14", when="@3.0")
     depends_on("llvm @12:13", when="@1.8")
     depends_on("llvm @11:12", when="@1.7")
