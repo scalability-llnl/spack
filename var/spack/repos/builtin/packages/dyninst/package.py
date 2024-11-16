@@ -81,8 +81,6 @@ class Dyninst(CMakePackage):
     depends_on("cmake@3.0.0:", type="build", when="@10.0.0:10.0")
 
     patch("stat_dysect.patch", when="+stat_dysect")
-    patch("stackanalysis_h.patch", when="@9.2.0")
-    patch("v9.3.2-auto.patch", when="@9.3.2 %gcc@:4.7")
     patch("tribool.patch", when="@9.3.0:10.0.0 ^boost@1.69:")
     patch(
         "missing_include_deque.patch",
