@@ -401,7 +401,18 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("cxx", type="build")
 
     # scafacos, ml-quip, qmmm require C, but not available in Spack
-    for c_pkg in ("adios", "atc", "awpmd", "mdi", "ml-pod", "electrode", "kim", "h5md", "tools", "rheo"):
+    for c_pkg in (
+        "adios",
+        "atc",
+        "awpmd",
+        "electrode",
+        "h5md",
+        "kim",
+        "mdi",
+        "ml-pod",
+        "rheo",
+        "tools",
+    ):
         depends_on("c", type="build", when=f"+{c_pkg}")
 
     # scafacos, ml-quip require Fortran, but not available in Spack
