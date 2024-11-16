@@ -142,6 +142,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         url="https://github.com/kokkos/kokkos/archive/3.0.00.tar.gz",
     )
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")  # Kokkos requires a C++ compiler
 
     depends_on("cmake@3.16:", type="build")
