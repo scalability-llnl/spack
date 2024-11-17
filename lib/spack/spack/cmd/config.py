@@ -518,8 +518,6 @@ def config_prefer_upstream(args):
     for spec in pref_specs:
         # Collect all the upstream compilers and versions for this package.
         pkg = pkgs.get(spec.name, {"version": []})
-        all = pkgs.get("all", {"compiler": []})
-        pkgs["all"] = all
         pkgs[spec.name] = pkg
 
         # We have no existing variant if this is our first added version.
@@ -528,10 +526,6 @@ def config_prefer_upstream(args):
         version = spec.version.string
         if version not in pkg["version"]:
             pkg["version"].append(version)
-
-        compiler = str(spec.compiler)
-        if compiler not in all["compiler"]:
-            all["compiler"].append(compiler)
 
         # Get and list all the variants that differ from the default.
         variants = []
