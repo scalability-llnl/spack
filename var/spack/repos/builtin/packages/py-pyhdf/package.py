@@ -20,6 +20,7 @@ class PyPyhdf(PythonPackage):
     license("MIT")
 
     version("master", branch="master")
+    version("0.11.4", sha256="f4d48ee6f297be76e07b1a31710ef898caa31757dfdf173e5a4b94988ea76164")
     version("0.10.4", sha256="ea09b2bdafc9be0f7f43d72ff122d8efbde61881f4da3a659b33be5e29215f93")
 
     depends_on("c", type="build")  # generated
@@ -31,6 +32,8 @@ class PyPyhdf(PythonPackage):
     depends_on("zlib-api", type=("build", "run"))
     depends_on("hdf@4.2", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"))
+    # https://github.com/fhs/pyhdf/issues/63
+    depends_on("py-numpy@:1.24", when="@0.10.4", type=("build", "run"))
     depends_on("jpeg", type=("build", "run"))
 
     def setup_build_environment(self, env):
