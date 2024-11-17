@@ -18,6 +18,7 @@ class Ollama(GoPackage, CudaPackage):
     # A shell script is run by `go generate` which assumes source is in a git
     # repo.  So we must use git VCS and not tarballs and defeat source caching.
     with default_args(submodules=True, no_cache=True):
+        version("0.4.2", commit="d875e99e4639dc07af90b2e3ea0d175e2e692efb")
         version("0.3.9", commit="a1cef4d0a5f31280ea82b350605775931a6163cb")
         version("0.1.31", commit="dc011d16b9ff160c0be3829fc39a43054f0315d0")
         # This is the last verified non-preview version as of 20240413
