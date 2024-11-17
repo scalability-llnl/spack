@@ -10,8 +10,6 @@ spack:
       require:
       - "%gcc@9.4.0"
       - target=ppc64le
-
-      prefer:
       - "+mpi"
       - "+pic"
       - "cuda_arch=70"
