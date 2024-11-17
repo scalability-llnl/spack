@@ -72,7 +72,7 @@ def index_by(objects, *funcs):
     if isinstance(f, str):
         f = lambda x: getattr(x, funcs[0])
     elif isinstance(f, tuple):
-        f = lambda x: tuple(getattr(x, p) for p in funcs[0])
+        f = lambda x: tuple(getattr(x, p, None) for p in funcs[0])
 
     result = {}
     for o in objects:
