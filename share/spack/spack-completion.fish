@@ -1075,9 +1075,9 @@ set -g __fish_spack_optspecs_spack_compiler_find h/help mixed-toolchain no-mixed
 complete -c spack -n '__fish_spack_using_command compiler find' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command compiler find' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command compiler find' -l mixed-toolchain -f -a mixed_toolchain
-complete -c spack -n '__fish_spack_using_command compiler find' -l mixed-toolchain -d 'Allow mixed toolchains (for example: clang, clang++, gfortran)'
+complete -c spack -n '__fish_spack_using_command compiler find' -l mixed-toolchain -d '(DEPRECATED) Allow mixed toolchains (for example: clang, clang++, gfortran)'
 complete -c spack -n '__fish_spack_using_command compiler find' -l no-mixed-toolchain -f -a mixed_toolchain
-complete -c spack -n '__fish_spack_using_command compiler find' -l no-mixed-toolchain -d 'Do not allow mixed toolchains (for example: clang, clang++, gfortran)'
+complete -c spack -n '__fish_spack_using_command compiler find' -l no-mixed-toolchain -d '(DEPRECATED) Do not allow mixed toolchains (for example: clang, clang++, gfortran)'
 complete -c spack -n '__fish_spack_using_command compiler find' -l scope -r -f -a '_builtin defaults system site user command_line'
 complete -c spack -n '__fish_spack_using_command compiler find' -l scope -r -d 'configuration scope to modify'
 complete -c spack -n '__fish_spack_using_command compiler find' -s j -l jobs -r -f -a jobs
@@ -1089,9 +1089,9 @@ set -g __fish_spack_optspecs_spack_compiler_add h/help mixed-toolchain no-mixed-
 complete -c spack -n '__fish_spack_using_command compiler add' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command compiler add' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command compiler add' -l mixed-toolchain -f -a mixed_toolchain
-complete -c spack -n '__fish_spack_using_command compiler add' -l mixed-toolchain -d 'Allow mixed toolchains (for example: clang, clang++, gfortran)'
+complete -c spack -n '__fish_spack_using_command compiler add' -l mixed-toolchain -d '(DEPRECATED) Allow mixed toolchains (for example: clang, clang++, gfortran)'
 complete -c spack -n '__fish_spack_using_command compiler add' -l no-mixed-toolchain -f -a mixed_toolchain
-complete -c spack -n '__fish_spack_using_command compiler add' -l no-mixed-toolchain -d 'Do not allow mixed toolchains (for example: clang, clang++, gfortran)'
+complete -c spack -n '__fish_spack_using_command compiler add' -l no-mixed-toolchain -d '(DEPRECATED) Do not allow mixed toolchains (for example: clang, clang++, gfortran)'
 complete -c spack -n '__fish_spack_using_command compiler add' -l scope -r -f -a '_builtin defaults system site user command_line'
 complete -c spack -n '__fish_spack_using_command compiler add' -l scope -r -d 'configuration scope to modify'
 complete -c spack -n '__fish_spack_using_command compiler add' -s j -l jobs -r -f -a jobs
@@ -1816,7 +1816,7 @@ complete -c spack -n '__fish_spack_using_command find' -s c -l show-concretized 
 complete -c spack -n '__fish_spack_using_command find' -s f -l show-flags -f -a show_flags
 complete -c spack -n '__fish_spack_using_command find' -s f -l show-flags -d 'show spec compiler flags'
 complete -c spack -n '__fish_spack_using_command find' -l show-full-compiler -f -a show_full_compiler
-complete -c spack -n '__fish_spack_using_command find' -l show-full-compiler -d 'show full compiler specs'
+complete -c spack -n '__fish_spack_using_command find' -l show-full-compiler -d '(DEPRECATED) show full compiler specs. Currently it'"'"'s a no-op'
 complete -c spack -n '__fish_spack_using_command find' -s x -l explicit -f -a explicit
 complete -c spack -n '__fish_spack_using_command find' -s x -l explicit -d 'show only specs that were installed explicitly'
 complete -c spack -n '__fish_spack_using_command find' -s X -l implicit -f -a implicit
