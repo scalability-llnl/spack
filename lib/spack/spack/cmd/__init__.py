@@ -375,8 +375,13 @@ def iter_groups(specs, indent, all_headers):
     index = index_by(specs, ("architecture", "compiler"))
     ispace = indent * " "
 
+    def _key(item):
+        if item is None:
+            return ""
+        return str(item)
+
     # Traverse the index and print out each package
-    for i, (architecture, compiler) in enumerate(sorted(index)):
+    for i, (architecture, compiler) in enumerate(sorted(index, key=_key)):
         if i > 0:
             print()
 
@@ -434,7 +439,6 @@ def display_specs(specs, args=None, **kwargs):
 
     """
 
-    # FIXME (compiler as nodes): remove the "show full compiler" arguments, and its use
     def get_arg(name, default=None):
         """Prefer kwargs, then args, then default."""
         if name in kwargs:
@@ -449,7 +453,6 @@ def display_specs(specs, args=None, **kwargs):
     hashes = get_arg("long", False)
     namespaces = get_arg("namespaces", False)
     flags = get_arg("show_flags", False)
-    full_compiler = get_arg("show_full_compiler", False)
     variants = get_arg("variants", False)
     groups = get_arg("groups", True)
     all_headers = get_arg("all_headers", False)
@@ -471,10 +474,7 @@ def display_specs(specs, args=None, **kwargs):
     if format_string is None:
         nfmt = "{fullname}" if namespaces else "{name}"
         ffmt = ""
-        if full_compiler or flags:
-            ffmt += "{%compiler.name}"
-            if full_compiler:
-                ffmt += "{@compiler.version}"
+        if flags:
             ffmt += " {compiler_flags}"
         vfmt = "{variants}" if variants else ""
         format_string = nfmt + "{@version}" + ffmt + vfmt

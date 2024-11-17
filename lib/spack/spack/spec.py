@@ -630,7 +630,7 @@ class ArchSpec:
         return string in str(self) or string in self.target
 
     def complete_with_defaults(self) -> None:
-        default_architecture = spack.spec.ArchSpec.default_arch()
+        default_architecture = ArchSpec.default_arch()
         if not self.platform:
             self.platform = default_architecture.platform
 
@@ -703,7 +703,8 @@ class DeprecatedCompilerSpec(lang.DeprecatedProperty):
             deps = instance.dependencies(virtuals=language)
             if deps:
                 return CompilerSpec(deps[0])
-        return CompilerSpec(Spec())
+
+        raise AttributeError(f"{instance} has no C, C++, or Fortran compiler")
 
 
 @lang.lazy_lexicographic_ordering
@@ -1435,13 +1436,13 @@ def tree(
 class SpecAnnotations:
     def __init__(self) -> None:
         self.original_spec_format = SPECFILE_FORMAT_VERSION
-        self.compiler_node_attribute: Optional["spack.spec.Spec"] = None
+        self.compiler_node_attribute: Optional["Spec"] = None
 
     def with_spec_format(self, spec_format: int) -> "SpecAnnotations":
         self.original_spec_format = spec_format
         return self
 
-    def with_compiler(self, compiler: "spack.spec.Spec") -> "SpecAnnotations":
+    def with_compiler(self, compiler: "Spec") -> "SpecAnnotations":
         self.compiler_node_attribute = compiler
         return self
 
@@ -3089,10 +3090,9 @@ class Spec:
             if spec.name and not spack.repo.PATH.is_virtual(spec.name):
                 spack.repo.PATH.get_pkg_class(spec.fullname)
 
-            # validate compiler in addition to the package name.
+            # FIXME: atm allow '%' on abstract specs only if they depend on C, C++, or Fortran
             if spec.dependencies(deptype="build"):
                 pkg_cls = spack.repo.PATH.get_pkg_class(spec.fullname)
-                # FIXME (compiler as nodes): raise if we use %gcc on pkgs that do not depend on C
                 pkg_dependencies = pkg_cls.dependency_names()
                 if not any(x in pkg_dependencies for x in ("c", "cxx", "fortran")):
                     raise UnsupportedCompilerError(
@@ -4051,6 +4051,9 @@ class Spec:
                     try:
                         current = getattr(current, part)
                     except AttributeError:
+                        if part == "compiler":
+                            return "none"
+
                         raise SpecFormatStringError(
                             f"Attempted to format attribute {attribute}. "
                             f"Spec {'.'.join(parts[:idx])} has no attribute {part}"
