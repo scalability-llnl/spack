@@ -90,8 +90,7 @@ class SuiteSparse(Package):
             msg="suite-sparse needs task_scheduler_init.h dropped in recent tbb libs",
         )
 
-    # This patch removes unsupported flags for pgi compiler
-    patch("pgi.patch", when="%pgi")
+    # This patch removes unsupported flags for nvhpc compiler
     patch("pgi.patch", when="%nvhpc")
 
     # This patch adds '-lm' when linking libgraphblas and when using clang.
@@ -127,32 +126,44 @@ class SuiteSparse(Package):
             return
 
         symbols = (
-            "dtrsv_",
-            "dgemv_",
-            "dtrsm_",
+            "cgemm_",
+            "cgemv_",
+            "cherk_",
+            "cpotrf_",
+            "ctrsm_",
+            "ctrsv_",
             "dgemm_",
-            "dsyrk_",
+            "dgemv_",
             "dger_",
-            "dscal_",
-            "dpotrf_",
-            "ztrsv_",
-            "zgemv_",
-            "ztrsm_",
-            "zgemm_",
-            "zherk_",
-            "zgeru_",
-            "zscal_",
-            "zpotrf_",
-            "dnrm2_",
             "dlarf_",
+            "dlarfb_",
             "dlarfg_",
             "dlarft_",
-            "dlarfb_",
+            "dnrm2_",
+            "dpotrf_",
+            "dscal_",
+            "dsyrk_",
+            "dtrsm_",
+            "dtrsv_",
             "dznrm2_",
+            "sgemm_",
+            "sgemv_",
+            "spotrf_",
+            "ssyrk_",
+            "strsm_",
+            "strsv_",
+            "zgemm_",
+            "zgemv_",
+            "zgeru_",
+            "zherk_",
             "zlarf_",
+            "zlarfb_",
             "zlarfg_",
             "zlarft_",
-            "zlarfb_",
+            "zpotrf_",
+            "zscal_",
+            "ztrsm_",
+            "ztrsv_",
         )
 
         for symbol in symbols:
@@ -222,8 +233,6 @@ class SuiteSparse(Package):
         # optimizations
         if any([x in spec for x in ("%apple-clang", "%clang", "%gcc", "%intel", "%fj")]):
             make_args += ["CFLAGS+=-fno-common -fexceptions"]
-        elif "%pgi" in spec:
-            make_args += ["CFLAGS+=--exceptions"]
 
         if spack_f77.endswith("xlf") or spack_f77.endswith("xlf_r"):
             make_args += ["CFLAGS+=-DBLAS_NO_UNDERSCORE"]
@@ -237,6 +246,7 @@ class SuiteSparse(Package):
             # Mongoose directory finds libsuitesparseconfig.so in system
             # directories like /usr/lib.
             cmake_args = [
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
                 f"-DCMAKE_INSTALL_PREFIX={prefix}",
                 f"-DCMAKE_LIBRARY_PATH={prefix.lib}",
                 f"-DBLAS_ROOT={spec['blas'].prefix}",

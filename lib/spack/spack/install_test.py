@@ -23,7 +23,6 @@ from llnl.util.lang import nullcontext
 from llnl.util.tty.color import colorize
 
 import spack.build_environment
-import spack.builder
 import spack.config
 import spack.error
 import spack.package_base
@@ -353,9 +352,7 @@ class PackageTest:
         self.test_parts[part_name] = status
         self.counts[status] += 1
 
-    def phase_tests(
-        self, builder: spack.builder.Builder, phase_name: str, method_names: List[str]
-    ):
+    def phase_tests(self, builder, phase_name: str, method_names: List[str]):
         """Execute the builder's package phase-time tests.
 
         Args:
@@ -372,8 +369,7 @@ class PackageTest:
             builder.pkg.test_suite.current_test_spec = builder.pkg.spec
             builder.pkg.test_suite.current_base_spec = builder.pkg.spec
 
-            # TODO (post-34236): "test"->"test_" once remove deprecated methods
-            have_tests = any(name.startswith("test") for name in method_names)
+            have_tests = any(name.startswith("test_") for name in method_names)
             if have_tests:
                 copy_test_files(builder.pkg, builder.pkg.spec)
 
@@ -477,16 +473,9 @@ class PackageTest:
 def test_part(pkg: Pb, test_name: str, purpose: str, work_dir: str = ".", verbose: bool = False):
     wdir = "." if work_dir is None else work_dir
     tester = pkg.tester
-    # TODO (post-34236): "test"->"test_" once remove deprecated methods
     assert test_name and test_name.startswith(
-        "test"
-    ), f"Test name must start with 'test' but {test_name} was provided"
-
-    if test_name == "test":
-        tty.warn(
-            "{}: the 'test' method is deprecated. Convert stand-alone "
-            "test(s) to methods with names starting 'test_'.".format(pkg.name)
-        )
+        "test_"
+    ), f"Test name must start with 'test_' but {test_name} was provided"
 
     title = "test: {}: {}".format(test_name, purpose or "unspecified purpose")
     with fs.working_dir(wdir, create=True):
@@ -646,28 +635,11 @@ def test_functions(
             except spack.repo.UnknownPackageError:
                 tty.debug(f"{vname}: virtual does not appear to have a package file")
 
-    # TODO (post-34236): Remove if removing empty test method check
-    def skip(line):
-        # This should match the lines in the deprecated test() method
-        ln = line.strip()
-        return ln.startswith("#") or ("warn" in ln and "deprecated" in ln)
-
-    doc_regex = r'\s+("""[\w\s\(\)\-\,\;\:]+""")'
     tests = []
     for clss in classes:
         methods = inspect.getmembers(clss, predicate=lambda x: inspect.isfunction(x))
         for name, test_fn in methods:
-            # TODO (post-34236): "test"->"test_" once remove deprecated methods
-            if not name.startswith("test"):
-                continue
-
-            # TODO (post-34236): Could remove empty method check once remove
-            # TODO (post-34236): deprecated methods though some use cases,
-            # TODO (post-34236): such as checking packages have actual, non-
-            # TODO (post-34236): empty tests, may want this check to remain.
-            source = re.sub(doc_regex, r"", inspect.getsource(test_fn)).splitlines()[1:]
-            lines = [ln.strip() for ln in source if not skip(ln)]
-            if not lines:
+            if not name.startswith("test_"):
                 continue
 
             tests.append((clss.__name__, test_fn))  # type: ignore[union-attr]
@@ -789,7 +761,7 @@ def virtuals(pkg):
 
     # hack for compilers that are not dependencies (yet)
     # TODO: this all eventually goes away
-    c_names = ("gcc", "intel", "intel-parallel-studio", "pgi")
+    c_names = ("gcc", "intel", "intel-parallel-studio")
     if pkg.name in c_names:
         v_names.extend(["c", "cxx", "fortran"])
     if pkg.spec.satisfies("llvm+clang"):

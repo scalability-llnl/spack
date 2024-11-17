@@ -12,6 +12,7 @@ from collections import OrderedDict
 from llnl.util.symlink import readlink, symlink
 
 import spack.binary_distribution as bindist
+import spack.deptypes as dt
 import spack.error
 import spack.hooks
 import spack.platforms
@@ -52,6 +53,7 @@ def rewire_node(spec, explicit):
     its subgraph. Binaries, text, and links are all changed in accordance with
     the splice. The resulting package is then 'installed.'"""
     tempdir = tempfile.mkdtemp()
+
     # copy anything installed to a temporary directory
     shutil.copytree(spec.build_spec.prefix, os.path.join(tempdir, spec.dag_hash()))
 
@@ -59,8 +61,21 @@ def rewire_node(spec, explicit):
     # compute prefix-to-prefix for every node from the build spec to the spliced
     # spec
     prefix_to_prefix = OrderedDict({spec.build_spec.prefix: spec.prefix})
-    for build_dep in spec.build_spec.traverse(root=False):
-        prefix_to_prefix[build_dep.prefix] = spec[build_dep.name].prefix
+    build_spec_ids = set(id(s) for s in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD))
+    for s in bindist.deps_to_relocate(spec):
+        analog = s
+        if id(s) not in build_spec_ids:
+            analogs = [
+                d
+                for d in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD)
+                if s._splice_match(d, self_root=spec, other_root=spec.build_spec)
+            ]
+            if analogs:
+                # Prefer same-name analogs and prefer higher versions
+                # This matches the preferences in Spec.splice, so we will find same node
+                analog = max(analogs, key=lambda a: (a.name == s.name, a.version))
+
+        prefix_to_prefix[analog.prefix] = s.prefix
 
     manifest = bindist.get_buildfile_manifest(spec.build_spec)
     platform = spack.platforms.by_name(spec.platform)

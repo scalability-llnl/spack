@@ -71,6 +71,9 @@ class Samrai(AutotoolsPackage):
     depends_on(Boost.with_default_variants, when="@3.0.0:3.11.99", type="build")
     depends_on("silo+mpi", when="+silo")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     # don't build SAMRAI 3+ with tools with gcc
     patch("no-tool-build.patch", when="@3.0.0:%gcc")
 

@@ -9,6 +9,8 @@ import tempfile
 
 import llnl.util.tty as tty
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
@@ -179,6 +181,7 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     depends_on("xz", type="link")
     depends_on("xz+pic libs=static", type="link", when="@:2023.08")
     depends_on("yaml-cpp@0.7.0: +shared", when="@2022.10:")
+    depends_on("googletest@1.8.1: +gmock", type="test", when="@develop")
 
     depends_on("zlib-api")
     depends_on("zlib+shared", when="^[virtuals=zlib-api] zlib")
@@ -408,6 +411,9 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
             "-Dlevel0=" + ("enabled" if spec.satisfies("+level_zero") else "disabled"),
             "-Dgtpin=" + ("enabled" if spec.satisfies("+gtpin") else "disabled"),
         ]
+
+        if spec.satisfies("@develop"):
+            args.append("-Dtests=" + ("enabled" if self.pkg.run_tests else "disabled"))
 
         if spec.satisfies("@:2024.01"):
             args.append(f"--native-file={self.gen_prefix_file()}")

@@ -7,9 +7,7 @@ import os
 import os.path
 import sys
 
-import spack.platforms
 import spack.util.environment
-import spack.util.executable
 from spack.build_environment import dso_suffix
 from spack.build_systems import cmake, makefile
 from spack.package import *
@@ -188,9 +186,10 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     with when("+libint"):
         depends_on("pkgconfig", type="build", when="@7.0:")
         for lmax in HFX_LMAX_RANGE:
+            depends_on(f"libint@2.6.0:+fortran tune=cp2k-lmax-{lmax}", when=f"@7.0: lmax={lmax}")
+            # AOCC only works with libint@2.6.0
             depends_on(
-                "libint@2.6.0:+fortran tune=cp2k-lmax-{0}".format(lmax),
-                when="@7.0: lmax={0}".format(lmax),
+                f"libint@=2.6.0+fortran tune=cp2k-lmax-{lmax}", when=f"@7.0: lmax={lmax} %aocc"
             )
 
     with when("+libxc"):
@@ -200,6 +199,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         depends_on("libxc@5.1.7:5.1", when="@9:2022.2")
         depends_on("libxc@6.1:", when="@2023.1:")
         depends_on("libxc@6.2:", when="@2023.2:")
+        depends_on("libxc@:6", when="@:2024.3")
 
     with when("+spla"):
         depends_on("spla+cuda+fortran", when="+cuda")
@@ -305,6 +305,9 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         depends_on("hipblas")
         depends_on("hipfft")
 
+    # The CMake build system and AOCC are not compatible as of AOCC 5
+    requires("build_system=makefile", when="%aocc")
+
     # CP2K needs compiler specific compilation flags, e.g. optflags
     conflicts("%apple-clang")
     conflicts("%clang")
@@ -374,6 +377,14 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     # https://github.com/cp2k/cp2k/issues/3688
     patch("d4-dispersion-bugfix-2024.3.patch", when="@2024.3")
 
+    # Fix segmentation faults caused by accessing unallocated arrays
+    # https://github.com/cp2k/cp2k/pull/3733
+    patch(
+        "https://github.com/cp2k/cp2k/commit/7a99649828ecf7d5dc53d952a1bf7be6970deabe.patch?full_index=1",
+        sha256="37f4f1a76634ff4a5617fe0c670e6acfe2afa2b2cfc5b2875e438a54baa4525e",
+        when="@2024.2:2024.3",
+    )
+
     def patch(self):
         # Patch for an undefined constant due to incompatible changes in ELPA
         if self.spec.satisfies("@9.1:2022.2 +elpa"):
@@ -421,7 +432,6 @@ class MakefileBuilder(makefile.MakefileBuilder):
         optimization_flags = {
             "gcc": ["-O2", "-funroll-loops", "-ftree-vectorize"],
             "intel": ["-O2", "-pc64", "-unroll"],
-            "pgi": ["-fast"],
             "nvhpc": ["-fast"],
             "cce": ["-O2"],
             "xl": ["-O3"],
@@ -470,7 +480,7 @@ class MakefileBuilder(makefile.MakefileBuilder):
             ]
         elif spec.satisfies("%aocc") or spec.satisfies("%rocmcc"):
             fcflags += ["-ffree-form", "-Mbackslash"]
-        elif spec.satisfies("%pgi") or spec.satisfies("%nvhpc"):
+        elif spec.satisfies("%nvhpc"):
             fcflags += ["-Mfreeform", "-Mextend"]
         elif spec.satisfies("%cce"):
             fcflags += ["-emf", "-ffree", "-hflex_mp=strict"]
@@ -826,6 +836,12 @@ class MakefileBuilder(makefile.MakefileBuilder):
 
             if spec.satisfies("%intel"):
                 mkf.write(fflags("LDFLAGS_C", ldflags + ["-nofor-main"]))
+
+            if spec.satisfies("%aocc@5:"):
+                # ensure C based applications can be build properly
+                mkf.write(fflags("LDFLAGS_C", ldflags + ["-fno-fortran-main"]))
+                # This flag is required for the correct runtime behaviour of the code with aocc@5.0
+                mkf.write(fflags("FCFLAGS", fcflags + ["-mllvm -enable-newgvn=true"]))
 
             mkf.write("# CP2K-specific flags\n\n")
             mkf.write("GPUVER = {0}\n".format(gpuver))

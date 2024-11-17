@@ -16,6 +16,7 @@ class RBindrcpp(RPackage):
 
     license("MIT")
 
+    version("0.2.3", sha256="662dae785aee715855415f4e743281ccbf0832e426084dc2f0ca9c9c908ec9fa")
     version("0.2.2", sha256="48130709eba9d133679a0e959e49a7b14acbce4f47c1e15c4ab46bd9e48ae467")
     version("0.2", sha256="d0efa1313cb8148880f7902a4267de1dcedae916f28d9a0ef5911f44bf103450")
 

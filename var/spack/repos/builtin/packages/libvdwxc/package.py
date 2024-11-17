@@ -56,10 +56,8 @@ class Libvdwxc(AutotoolsPackage):
         return args
 
     # misuse of fftw_plan in m4 for fftw detection (configure fails with gcc 14)
-    # two patches for (1) m4 macro from upstream and (2) pre-generated configure in tarball
-    patch(
-        "https://gitlab.com/libvdwxc/libvdwxc/-/commit/9340f857515c4a2e56d2aa7cf3a21c41ba8559c3.diff",
-        sha256="b9ad695e54a25d7ffa92f783bb0a31d3b421225f97958972e32ba42893844b80",
-        when="@:0.4.0",
-    )
+    # Only the configure script is patched, NOT the m4 macro (to avoid depending on aclocal),
+    # so running autoreconf is not supported.
+    # The relevant upstream fix for the m4 would be:
+    # https://gitlab.com/libvdwxc/libvdwxc/-/commit/9340f857515c4a2e56d2aa7cf3a21c41ba8559c3.diff
     patch("fftw-detection.patch", when="@:0.4.0")

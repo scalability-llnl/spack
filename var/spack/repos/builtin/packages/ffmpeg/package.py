@@ -181,7 +181,6 @@ class Ffmpeg(AutotoolsPackage):
 
     @when("@:6.0 %apple-clang@15:")
     def setup_build_environment(self, env):
-        env.append_flags("LDFLAGS", "-Wl,-ld_classic")
         if self.spec.satisfies("@:3"):
             env.append_flags("CFLAGS", "-Wno-error=incompatible-function-pointer-types")
 

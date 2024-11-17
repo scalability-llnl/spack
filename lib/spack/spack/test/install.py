@@ -353,21 +353,21 @@ def test_install_prefix_collision_fails(config, mock_fetch, mock_packages, tmpdi
     Test that different specs with coinciding install prefixes will fail
     to install.
     """
-    projections = {"projections": {"all": "all-specs-project-to-this-prefix"}}
+    projections = {"projections": {"all": "one-prefix-per-package-{name}"}}
     with spack.store.use_store(str(tmpdir), extra_data=projections):
         with spack.config.override("config:checksum", False):
             pkg_a = Spec("libelf@0.8.13").concretized().package
             pkg_b = Spec("libelf@0.8.12").concretized().package
-            PackageInstaller([pkg_a], explicit=True).install()
+            PackageInstaller([pkg_a], explicit=True, fake=True).install()
 
             with pytest.raises(InstallError, match="Install prefix collision"):
-                PackageInstaller([pkg_b], explicit=True).install()
+                PackageInstaller([pkg_b], explicit=True, fake=True).install()
 
 
 def test_store(install_mockery, mock_fetch):
     spec = Spec("cmake-client").concretized()
     pkg = spec.package
-    PackageInstaller([pkg], explicit=True).install()
+    PackageInstaller([pkg], fake=True, explicit=True).install()
 
 
 @pytest.mark.disable_clean_stage_check

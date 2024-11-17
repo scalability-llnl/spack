@@ -9,7 +9,6 @@ import re
 import sys
 
 from spack.build_environment import dso_suffix
-from spack.error import NoHeadersError
 from spack.operating_systems.mac_os import macos_version
 from spack.package import *
 from spack.pkg.builtin.kokkos import Kokkos
@@ -553,7 +552,11 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
                 flags.append("-Wl,-undefined,dynamic_lookup")
 
             # Fortran lib (assumes clang is built with gfortran!)
-            if "+fortran" in spec and spec.compiler.name in ["gcc", "clang", "apple-clang"]:
+            if spec.satisfies("+fortran") and (
+                spec.satisfies("%gcc")
+                or spec.satisfies("%clang")
+                or spec.satisfies("%apple-clang")
+            ):
                 fc = Executable(self.compiler.fc)
                 libgfortran = fc(
                     "--print-file-name", "libgfortran." + dso_suffix, output=str

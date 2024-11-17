@@ -18,6 +18,7 @@ class Geomodel(CMakePackage):
 
     license("Apache-2.0", checked_by="wdconinc")
 
+    version("6.6.0", sha256="3cefeaa409177d45d3fa63e069b6496ca062991b0d7d71275b1748487659e91b")
     version("6.5.0", sha256="8a2f71493e54ea4d393f4c0075f3ca13df132f172c891825f3ab949cda052c5f")
     version("6.4.0", sha256="369f91f021be83d294ba6a9bdbe00077625e9fe798a396aceece8970e7dd5838")
     version("6.3.0", sha256="d2b101e06d20a8a3b638e6021f517a939f49ea6d8347ce40c927c27efe66b28c")
@@ -53,6 +54,14 @@ class Geomodel(CMakePackage):
         when="+fullsimlight",
     )
 
+    variant(
+        "cxxstd",
+        default="17",
+        values=("17", "20", "23"),
+        multi=False,
+        description="Use the specified C++ standard when building",
+    )
+
     conflicts("+fullsimlight", when="+fsl", msg="FSL triggers the build of the FullSimLight")
 
     depends_on("cmake@3.16:", type="build")
@@ -79,5 +88,6 @@ class Geomodel(CMakePackage):
             self.define_from_variant("GEOMODEL_BUILD_FSL", "fsl"),
             self.define_from_variant("GEOMODEL_BUILD_EXAMPLES", "examples"),
             self.define_from_variant("GEOMODEL_BUILD_TOOLS", "tools"),
+            self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
         ]
         return args

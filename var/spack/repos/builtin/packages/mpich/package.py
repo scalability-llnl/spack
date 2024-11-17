@@ -7,6 +7,7 @@ import os
 import re
 import sys
 
+import spack.compilers
 from spack.build_environment import dso_suffix
 from spack.package import *
 
@@ -135,6 +136,8 @@ supported, and netmod is ignored if device is ch3:sock.""",
 
     conflicts("datatype-engine=yaksa", when="device=ch3")
     conflicts("datatype-engine=yaksa", when="device=ch3:sock")
+    conflicts("datatype-engine=dataloop", when="+cuda")
+    conflicts("datatype-engine=dataloop", when="+rocm")
 
     variant(
         "hcoll",

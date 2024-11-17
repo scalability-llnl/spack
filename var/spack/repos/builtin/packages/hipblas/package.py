@@ -5,6 +5,7 @@
 
 import re
 
+import spack.variant
 from spack.package import *
 
 
@@ -145,7 +146,5 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
         return args
 
     def check(self):
-        exe = Executable(
-            join_path(self.builder.build_directory, "clients", "staging", "hipblas-test")
-        )
+        exe = Executable(join_path(self.build_directory, "clients", "staging", "hipblas-test"))
         exe("--gtest_filter=-*known_bug*")

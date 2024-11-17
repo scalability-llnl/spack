@@ -733,6 +733,8 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
             # Q: should the result be ordered by dependency?
         else:
             sun_libs = ["libsundials_" + p for p in query_parameters]
+            if self.spec.satisfies("@7:"):
+                sun_libs += ["libsundials_core"]
         is_shared = "+shared" in self.spec
 
         libs = find_libraries(sun_libs, root=self.prefix, shared=is_shared, recursive=True)
@@ -743,7 +745,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
     @on_package_attributes(run_tests=True)
     def check_test_install(self):
         """Perform test_install on the build."""
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test_install")
 
     @property

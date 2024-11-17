@@ -7,10 +7,11 @@ import llnl.util.filesystem as fs
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on
 from spack.multimethod import when
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 class CargoPackage(spack.package_base.PackageBase):
@@ -27,7 +28,7 @@ class CargoPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("cargo")
-class CargoBuilder(BaseBuilder):
+class CargoBuilder(BuilderWithDefaults):
     """The Cargo builder encodes the most common way of building software with
     a rust Cargo.toml file. It has two phases that can be overridden, if need be:
 
@@ -77,7 +78,7 @@ class CargoBuilder(BaseBuilder):
         with fs.working_dir(self.build_directory):
             fs.install_tree("out", prefix)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
     def check(self):
         """Run "cargo test"."""

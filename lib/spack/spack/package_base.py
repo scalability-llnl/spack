@@ -32,40 +32,30 @@ import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 from llnl.util.link_tree import LinkTree
 
-import spack.build_environment
-import spack.builder
 import spack.compilers
 import spack.config
 import spack.dependency
 import spack.deptypes as dt
-import spack.directives
+import spack.directives_meta
 import spack.error
 import spack.fetch_strategy as fs
 import spack.hooks
 import spack.mirror
 import spack.multimethod
 import spack.patch
+import spack.phase_callbacks
 import spack.repo
 import spack.spec
 import spack.store
 import spack.url
 import spack.util.environment
-import spack.util.executable
 import spack.util.path
 import spack.util.web
+import spack.variant
 from spack.error import InstallError, NoURLError, PackageError
 from spack.filesystem_view import YamlFilesystemView
-from spack.install_test import (
-    PackageTest,
-    TestFailure,
-    TestStatus,
-    TestSuite,
-    cache_extra_test_sources,
-    install_test_root,
-)
 from spack.solver.version_order import concretization_version_order
 from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite, compute_stage_name
-from spack.util.executable import ProcessError, which
 from spack.util.package_hash import package_hash
 from spack.version import GitVersion, StandardVersion
 
@@ -309,9 +299,9 @@ class DetectablePackageMeta(type):
 
 
 class PackageMeta(
-    spack.builder.PhaseCallbacksMeta,
+    spack.phase_callbacks.PhaseCallbacksMeta,
     DetectablePackageMeta,
-    spack.directives.DirectiveMeta,
+    spack.directives_meta.DirectiveMeta,
     spack.multimethod.MultiMethodMeta,
 ):
     """
@@ -463,7 +453,7 @@ def _names(when_indexed_dictionary: WhenDict) -> List[str]:
     return sorted(all_names)
 
 
-WhenVariantList = List[Tuple["spack.spec.Spec", "spack.variant.Variant"]]
+WhenVariantList = List[Tuple[spack.spec.Spec, spack.variant.Variant]]
 
 
 def _remove_overridden_vdefs(variant_defs: WhenVariantList) -> None:
@@ -502,41 +492,14 @@ def _remove_overridden_vdefs(variant_defs: WhenVariantList) -> None:
             i += 1
 
 
-class RedistributionMixin:
-    """Logic for determining whether a Package is source/binary
-    redistributable.
-    """
-
-    #: Store whether a given Spec source/binary should not be
-    #: redistributed.
-    disable_redistribute: Dict["spack.spec.Spec", "spack.directives.DisableRedistribute"]
-
-    # Source redistribution must be determined before concretization
-    # (because source mirrors work with un-concretized Specs).
-    @classmethod
-    def redistribute_source(cls, spec):
-        """Whether it should be possible to add the source of this
-        package to a Spack mirror.
-        """
-        for when_spec, disable_redistribute in cls.disable_redistribute.items():
-            if disable_redistribute.source and spec.satisfies(when_spec):
-                return False
-
-        return True
-
-    @property
-    def redistribute_binary(self):
-        """Whether it should be possible to create a binary out of an
-        installed instance of this package.
-        """
-        for when_spec, disable_redistribute in self.__class__.disable_redistribute.items():
-            if disable_redistribute.binary and self.spec.satisfies(when_spec):
-                return False
-
-        return True
+#: Store whether a given Spec source/binary should not be redistributed.
+class DisableRedistribute:
+    def __init__(self, source, binary):
+        self.source = source
+        self.binary = binary
 
 
-class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass=PackageMeta):
+class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     """This is the superclass for all spack packages.
 
     ***The Package class***
@@ -622,16 +585,20 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     # Declare versions dictionary as placeholder for values.
     # This allows analysis tools to correctly interpret the class attributes.
     versions: dict
-    dependencies: Dict["spack.spec.Spec", Dict[str, "spack.dependency.Dependency"]]
-    conflicts: Dict["spack.spec.Spec", List[Tuple["spack.spec.Spec", Optional[str]]]]
+    dependencies: Dict[spack.spec.Spec, Dict[str, spack.dependency.Dependency]]
+    conflicts: Dict[spack.spec.Spec, List[Tuple[spack.spec.Spec, Optional[str]]]]
     requirements: Dict[
-        "spack.spec.Spec", List[Tuple[Tuple["spack.spec.Spec", ...], str, Optional[str]]]
+        spack.spec.Spec, List[Tuple[Tuple[spack.spec.Spec, ...], str, Optional[str]]]
     ]
-    provided: Dict["spack.spec.Spec", Set["spack.spec.Spec"]]
-    provided_together: Dict["spack.spec.Spec", List[Set[str]]]
-    patches: Dict["spack.spec.Spec", List["spack.patch.Patch"]]
-    variants: Dict["spack.spec.Spec", Dict[str, "spack.variant.Variant"]]
-    languages: Dict["spack.spec.Spec", Set[str]]
+    provided: Dict[spack.spec.Spec, Set[spack.spec.Spec]]
+    provided_together: Dict[spack.spec.Spec, List[Set[str]]]
+    patches: Dict[spack.spec.Spec, List[spack.patch.Patch]]
+    variants: Dict[spack.spec.Spec, Dict[str, spack.variant.Variant]]
+    languages: Dict[spack.spec.Spec, Set[str]]
+    splice_specs: Dict[spack.spec.Spec, Tuple[spack.spec.Spec, Union[None, str, List[str]]]]
+
+    #: Store whether a given Spec source/binary should not be redistributed.
+    disable_redistribute: Dict[spack.spec.Spec, DisableRedistribute]
 
     #: By default, packages are not virtual
     #: Virtual packages override this attribute
@@ -746,11 +713,11 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     test_requires_compiler: bool = False
 
     #: TestSuite instance used to manage stand-alone tests for 1+ specs.
-    test_suite: Optional["TestSuite"] = None
+    test_suite: Optional[Any] = None
 
     def __init__(self, spec):
         # this determines how the package should be built.
-        self.spec: "spack.spec.Spec" = spec
+        self.spec: spack.spec.Spec = spec
 
         # Allow custom staging paths for packages
         self.path = None
@@ -768,7 +735,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         # init internal variables
         self._stage: Optional[StageComposite] = None
         self._fetcher = None
-        self._tester: Optional["PackageTest"] = None
+        self._tester: Optional[Any] = None
 
         # Set up timing variables
         self._fetch_time = 0.0
@@ -818,9 +785,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         return defs
 
     @classmethod
-    def variant_items(
-        cls,
-    ) -> Iterable[Tuple["spack.spec.Spec", Dict[str, "spack.variant.Variant"]]]:
+    def variant_items(cls) -> Iterable[Tuple[spack.spec.Spec, Dict[str, spack.variant.Variant]]]:
         """Iterate over ``cls.variants.items()`` with overridden definitions removed."""
         # Note: This is quadratic in the average number of variant definitions per name.
         # That is likely close to linear in practice, as there are few variants with
@@ -838,7 +803,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
             if filtered_variants_by_name:
                 yield when, filtered_variants_by_name
 
-    def get_variant(self, name: str) -> "spack.variant.Variant":
+    def get_variant(self, name: str) -> spack.variant.Variant:
         """Get the highest precedence variant definition matching this package's spec.
 
         Arguments:
@@ -1013,6 +978,26 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
             self.global_license_dir, self.name, os.path.basename(self.license_files[0])
         )
 
+    # Source redistribution must be determined before concretization (because source mirrors work
+    # with abstract specs).
+    @classmethod
+    def redistribute_source(cls, spec):
+        """Whether it should be possible to add the source of this
+        package to a Spack mirror."""
+        for when_spec, disable_redistribute in cls.disable_redistribute.items():
+            if disable_redistribute.source and spec.satisfies(when_spec):
+                return False
+        return True
+
+    @property
+    def redistribute_binary(self):
+        """Whether it should be possible to create a binary out of an installed instance of this
+        package."""
+        for when_spec, disable_redistribute in self.disable_redistribute.items():
+            if disable_redistribute.binary and self.spec.satisfies(when_spec):
+                return False
+        return True
+
     # NOTE: return type should be Optional[Literal['all', 'specific', 'none']] in
     # Python 3.8+, but we still support 3.6.
     @property
@@ -1025,7 +1010,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         * ``"none"``: filter out all ``-Werror*`` flags.
         * ``None``: respect the user's configuration (``"none"`` by default).
         """
-        if self.spec.satisfies("%nvhpc@:23.3") or self.spec.satisfies("%pgi"):
+        if self.spec.satisfies("%nvhpc@:23.3"):
             # Filtering works by replacing -Werror with -Wno-error, but older nvhpc and
             # PGI do not understand -Wno-error, so we disable filtering.
             return "all"
@@ -1355,18 +1340,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         """Return the configure args file path on successful installation."""
         return os.path.join(self.metadata_dir, _spack_configure_argsfile)
 
-    # TODO (post-34236): Update tests and all packages that use this as a
-    # TODO (post-34236): package method to the function already available
-    # TODO (post-34236): to packages. Once done, remove this property.
-    @property
-    def install_test_root(self):
-        """Return the install test root directory."""
-        tty.warn(
-            "The 'pkg.install_test_root' property is deprecated with removal "
-            "expected v0.23. Use 'install_test_root(pkg)' instead."
-        )
-        return install_test_root(self)
-
     def archive_install_test_log(self):
         """Archive the install-phase test log, if present."""
         if getattr(self, "tester", None):
@@ -1374,11 +1347,13 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
 
     @property
     def tester(self):
+        import spack.install_test
+
         if not self.spec.versions.concrete:
             raise ValueError("Cannot retrieve tester for package without concrete version.")
 
         if not self._tester:
-            self._tester = PackageTest(self)
+            self._tester = spack.install_test.PackageTest(self)
         return self._tester
 
     @property
@@ -1875,13 +1850,22 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         #
         # BSD Make:
         #     make: don't know how to make test. Stop
+        #
+        # Note: "Stop." is not printed when running a Make jobserver (spack env depfile) that runs
+        # with `make -k/--keep-going`
         missing_target_msgs = [
-            "No rule to make target `{0}'.  Stop.",
-            "No rule to make target '{0}'.  Stop.",
-            "don't know how to make {0}. Stop",
+            "No rule to make target `{0}'.",
+            "No rule to make target '{0}'.",
+            "don't know how to make {0}.",
         ]
 
-        kwargs = {"fail_on_error": False, "output": os.devnull, "error": str}
+        kwargs = {
+            "fail_on_error": False,
+            "output": os.devnull,
+            "error": str,
+            # Remove MAKEFLAGS to avoid inherited flags from Make jobserver (spack env depfile)
+            "extra_env": {"MAKEFLAGS": ""},
+        }
 
         stderr = make("-n", target, **kwargs)
 
@@ -1959,31 +1943,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         resource_stage_folder = "-".join(pieces)
         return resource_stage_folder
 
-    # TODO (post-34236): Update tests and all packages that use this as a
-    # TODO (post-34236): package method to the routine made available to
-    # TODO (post-34236): packages. Once done, remove this method.
-    def cache_extra_test_sources(self, srcs):
-        """Copy relative source paths to the corresponding install test subdir
-
-        This method is intended as an optional install test setup helper for
-        grabbing source files/directories during the installation process and
-        copying them to the installation test subdirectory for subsequent use
-        during install testing.
-
-        Args:
-            srcs (str or list): relative path for files and or
-                subdirectories located in the staged source path that are to
-                be copied to the corresponding location(s) under the install
-                testing directory.
-        """
-        msg = (
-            "'pkg.cache_extra_test_sources(srcs) is deprecated with removal "
-            "expected in v0.23. Use 'cache_extra_test_sources(pkg, srcs)' "
-            "instead."
-        )
-        warnings.warn(msg)
-        cache_extra_test_sources(self, srcs)
-
     def do_test(self, dirty=False, externals=False):
         if self.test_requires_compiler:
             compilers = spack.compilers.compilers_for_spec(
@@ -2006,178 +1965,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         }
 
         self.tester.stand_alone_tests(kwargs)
-
-    # TODO (post-34236): Remove this deprecated method when eliminate test,
-    # TODO (post-34236): run_test, etc.
-    @property
-    def _test_deprecated_warning(self):
-        alt = f"Use any name starting with 'test_' instead in {self.spec.name}."
-        return f"The 'test' method is deprecated. {alt}"
-
-    # TODO (post-34236): Remove this deprecated method when eliminate test,
-    # TODO (post-34236): run_test, etc.
-    def test(self):
-        # Defer tests to virtual and concrete packages
-        warnings.warn(self._test_deprecated_warning)
-
-    # TODO (post-34236): Remove this deprecated method when eliminate test,
-    # TODO (post-34236): run_test, etc.
-    def run_test(
-        self,
-        exe,
-        options=[],
-        expected=[],
-        status=0,
-        installed=False,
-        purpose=None,
-        skip_missing=False,
-        work_dir=None,
-    ):
-        """Run the test and confirm the expected results are obtained
-
-        Log any failures and continue, they will be re-raised later
-
-        Args:
-            exe (str): the name of the executable
-            options (str or list): list of options to pass to the runner
-            expected (str or list): list of expected output strings.
-                Each string is a regex expected to match part of the output.
-            status (int or list): possible passing status values
-                with 0 meaning the test is expected to succeed
-            installed (bool): if ``True``, the executable must be in the
-                install prefix
-            purpose (str): message to display before running test
-            skip_missing (bool): skip the test if the executable is not
-                in the install prefix bin directory or the provided work_dir
-            work_dir (str or None): path to the smoke test directory
-        """
-
-        def test_title(purpose, test_name):
-            if not purpose:
-                return f"test: {test_name}: execute {test_name}"
-
-            match = re.search(r"test: ([^:]*): (.*)", purpose)
-            if match:
-                # The test title has all the expected parts
-                return purpose
-
-            match = re.search(r"test: (.*)", purpose)
-            if match:
-                reason = match.group(1)
-                return f"test: {test_name}: {reason}"
-
-            return f"test: {test_name}: {purpose}"
-
-        base_exe = os.path.basename(exe)
-        alternate = f"Use 'test_part' instead for {self.spec.name} to process {base_exe}."
-        warnings.warn(f"The 'run_test' method is deprecated. {alternate}")
-
-        extra = re.compile(r"[\s,\- ]")
-        details = (
-            [extra.sub("", options)]
-            if isinstance(options, str)
-            else [extra.sub("", os.path.basename(opt)) for opt in options]
-        )
-        details = "_".join([""] + details) if details else ""
-        test_name = f"test_{base_exe}{details}"
-        tty.info(test_title(purpose, test_name), format="g")
-
-        wdir = "." if work_dir is None else work_dir
-        with fsys.working_dir(wdir, create=True):
-            try:
-                runner = which(exe)
-                if runner is None and skip_missing:
-                    self.tester.status(test_name, TestStatus.SKIPPED, f"{exe} is missing")
-                    return
-                assert runner is not None, f"Failed to find executable '{exe}'"
-
-                self._run_test_helper(runner, options, expected, status, installed, purpose)
-                self.tester.status(test_name, TestStatus.PASSED, None)
-                return True
-            except (AssertionError, BaseException) as e:
-                # print a summary of the error to the log file
-                # so that cdash and junit reporters know about it
-                exc_type, _, tb = sys.exc_info()
-
-                self.tester.status(test_name, TestStatus.FAILED, str(e))
-
-                import traceback
-
-                # remove the current call frame to exclude the extract_stack
-                # call from the error
-                stack = traceback.extract_stack()[:-1]
-
-                # Package files have a line added at import time, so we re-read
-                # the file to make line numbers match. We have to subtract two
-                # from the line number because the original line number is
-                # inflated once by the import statement and the lines are
-                # displaced one by the import statement.
-                for i, entry in enumerate(stack):
-                    filename, lineno, function, text = entry
-                    if spack.repo.is_package_file(filename):
-                        with open(filename, "r") as f:
-                            lines = f.readlines()
-                        new_lineno = lineno - 2
-                        text = lines[new_lineno]
-                        stack[i] = (filename, new_lineno, function, text)
-
-                # Format the stack to print and print it
-                out = traceback.format_list(stack)
-                for line in out:
-                    print(line.rstrip("\n"))
-
-                if exc_type is spack.util.executable.ProcessError:
-                    out = io.StringIO()
-                    spack.build_environment.write_log_summary(
-                        out, "test", self.tester.test_log_file, last=1
-                    )
-                    m = out.getvalue()
-                else:
-                    # We're below the package context, so get context from
-                    # stack instead of from traceback.
-                    # The traceback is truncated here, so we can't use it to
-                    # traverse the stack.
-                    context = spack.build_environment.get_package_context(tb)
-                    m = "\n".join(context) if context else ""
-
-                exc = e  # e is deleted after this block
-
-                # If we fail fast, raise another error
-                if spack.config.get("config:fail_fast", False):
-                    raise TestFailure([(exc, m)])
-                else:
-                    self.tester.add_failure(exc, m)
-                return False
-
-    # TODO (post-34236): Remove this deprecated method when eliminate test,
-    # TODO (post-34236): run_test, etc.
-    def _run_test_helper(self, runner, options, expected, status, installed, purpose):
-        status = [status] if isinstance(status, int) else status
-        expected = [expected] if isinstance(expected, str) else expected
-        options = [options] if isinstance(options, str) else options
-
-        if installed:
-            msg = f"Executable '{runner.name}' expected in prefix, "
-            msg += f"found in {runner.path} instead"
-            assert runner.path.startswith(self.spec.prefix), msg
-
-        tty.msg(f"Expecting return code in {status}")
-
-        try:
-            output = runner(*options, output=str.split, error=str.split)
-
-            assert 0 in status, f"Expected {runner.name} execution to fail"
-        except ProcessError as err:
-            output = str(err)
-            match = re.search(r"exited with status ([0-9]+)", output)
-            if not (match and int(match.group(1)) in status):
-                raise
-
-        for check in expected:
-            cmd = " ".join([runner.name] + options)
-            msg = f"Expected '{check}' to match output of `{cmd}`"
-            msg += f"\n\nOutput: {output}"
-            assert re.search(check, output), msg
 
     def unit_test_check(self):
         """Hook for unit tests to assert things about package internals.
@@ -2223,72 +2010,58 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         """
         return None, None, flags
 
-    def setup_run_environment(self, env):
+    def setup_run_environment(self, env: spack.util.environment.EnvironmentModifications) -> None:
         """Sets up the run environment for a package.
 
         Args:
-            env (spack.util.environment.EnvironmentModifications): environment
-                modifications to be applied when the package is run. Package authors
+            env: environment modifications to be applied when the package is run. Package authors
                 can call methods on it to alter the run environment.
         """
         pass
 
-    def setup_dependent_run_environment(self, env, dependent_spec):
+    def setup_dependent_run_environment(
+        self, env: spack.util.environment.EnvironmentModifications, dependent_spec: spack.spec.Spec
+    ) -> None:
         """Sets up the run environment of packages that depend on this one.
 
-        This is similar to ``setup_run_environment``, but it is used to
-        modify the run environments of packages that *depend* on this one.
+        This is similar to ``setup_run_environment``, but it is used to modify the run environment
+        of a package that *depends* on this one.
 
-        This gives packages like Python and others that follow the extension
-        model a way to implement common environment or run-time settings
-        for dependencies.
+        This gives packages like Python and others that follow the extension model a way to
+        implement common environment or run-time settings for dependencies.
 
         Args:
-            env (spack.util.environment.EnvironmentModifications): environment
-                modifications to be applied when the dependent package is run.
-                Package authors can call methods on it to alter the build environment.
+            env: environment modifications to be applied when the dependent package is run. Package
+                authors can call methods on it to alter the build environment.
 
-            dependent_spec (spack.spec.Spec): The spec of the dependent package
-                about to be run. This allows the extendee (self) to query
-                the dependent's state. Note that *this* package's spec is
+            dependent_spec: The spec of the dependent package about to be run. This allows the
+                extendee (self) to query the dependent's state. Note that *this* package's spec is
                 available as ``self.spec``
         """
         pass
 
-    def setup_dependent_package(self, module, dependent_spec):
-        """Set up Python module-scope variables for dependent packages.
+    def setup_dependent_package(self, module, dependent_spec: spack.spec.Spec) -> None:
+        """Set up module-scope global variables for dependent packages.
 
-        Called before the install() method of dependents.
-
-        Default implementation does nothing, but this can be
-        overridden by an extendable package to set up the module of
-        its extensions. This is useful if there are some common steps
-        to installing all extensions for a certain package.
+        This function is called when setting up the build and run environments of a DAG.
 
         Examples:
 
-        1. Extensions often need to invoke the ``python`` interpreter
-           from the Python installation being extended. This routine
-           can put a ``python()`` Executable object in the module scope
-           for the extension package to simplify extension installs.
+        1. Extensions often need to invoke the ``python`` interpreter from the Python installation
+           being extended. This routine can put a ``python`` Executable as a global in the module
+           scope for the extension package to simplify extension installs.
 
-        2. MPI compilers could set some variables in the dependent's
-           scope that point to ``mpicc``, ``mpicxx``, etc., allowing
-           them to be called by common name regardless of which MPI is used.
-
-        3. BLAS/LAPACK implementations can set some variables
-           indicating the path to their libraries, since these
-           paths differ by BLAS/LAPACK implementation.
+        2. MPI compilers could set some variables in the dependent's scope that point to ``mpicc``,
+           ``mpicxx``, etc., allowing them to be called by common name regardless of which MPI is
+           used.
 
         Args:
-            module (spack.package_base.PackageBase.module): The Python ``module``
-                object of the dependent package. Packages can use this to set
-                module-scope variables for the dependent to use.
+            module: The Python ``module`` object of the dependent package. Packages can use this to
+                set module-scope variables for the dependent to use.
 
-            dependent_spec (spack.spec.Spec): The spec of the dependent package
-                about to be built. This allows the extendee (self) to
-                query the dependent's state.  Note that *this*
-                package's spec is available as ``self.spec``.
+            dependent_spec: The spec of the dependent package about to be built. This allows the
+                extendee (self) to query the dependent's state.  Note that *this* package's spec is
+                available as ``self.spec``.
         """
         pass
 
@@ -2315,7 +2088,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     #  arguments. This is implemented for build system classes where
     #  appropriate and will otherwise raise a NotImplementedError.
 
-    def flags_to_build_system_args(self, flags):
+    def flags_to_build_system_args(self, flags: Dict[str, List[str]]) -> None:
         # Takes flags as a dict name: list of values
         if any(v for v in flags.values()):
             msg = "The {0} build system".format(self.__class__.__name__)
@@ -2517,10 +2290,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
         Get the rpath args as a string, with -Wl,-rpath, for each element
         """
         return " ".join("-Wl,-rpath,%s" % p for p in self.rpath)
-
-    @property
-    def builder(self):
-        return spack.builder.create(self)
 
 
 inject_flags = PackageBase.inject_flags

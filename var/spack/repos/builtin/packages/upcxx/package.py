@@ -6,6 +6,7 @@
 import os
 import re
 
+import spack.platforms
 from spack.package import *
 
 

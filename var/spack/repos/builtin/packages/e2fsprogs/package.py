@@ -27,6 +27,7 @@ class E2fsprogs(AutotoolsPackage):
 
     depends_on("texinfo", type="build")
     depends_on("fuse", when="+fuse2fs")
+    depends_on("pkgconfig", when="+fuse2fs")
 
     # fuse3 support is in the yet unreleased 1.47.1
     patch(

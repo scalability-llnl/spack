@@ -42,6 +42,9 @@ class Openimageio(CMakePackage):
     variant("qt", default=False, description="Build qt viewer")
     depends_on("qt@5.6.0:+opengl", when="+qt")
 
+    variant("ocio", default=False, description="Support video frames")
+    depends_on("opencolorio@2.2:", when="+ocio")
+
     def url_for_version(self, version):
         if version >= Version("2"):
             return super().url_for_version(version)
