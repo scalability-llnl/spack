@@ -30,7 +30,6 @@ import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 
-import spack.compilers.config
 import spack.config
 import spack.dependency
 import spack.deptypes as dt
@@ -1813,17 +1812,14 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         return resource_stage_folder
 
     def do_test(self, dirty=False, externals=False):
-        if self.test_requires_compiler:
-            compilers = spack.compilers.config.compilers_for_spec(
-                self.spec.compiler, arch_spec=self.spec.architecture
+        if self.test_requires_compiler and not any(
+            lang in self.spec for lang in ("c", "cxx", "fortran")
+        ):
+            tty.error(
+                f"Skipping tests for package {self.spec}, since a compiler is required, "
+                f"but not available"
             )
-            if not compilers:
-                tty.error(
-                    "Skipping tests for package %s\n"
-                    % self.spec.format("{name}-{version}-{hash:7}")
-                    + "Package test requires missing compiler %s" % self.spec.compiler
-                )
-                return
+            return
 
         kwargs = {
             "dirty": dirty,

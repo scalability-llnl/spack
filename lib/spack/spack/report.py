@@ -77,7 +77,6 @@ class InfoCollector:
                 "packages": [],
             }
             spec_record["properties"].append(Property("architecture", input_spec.architecture))
-            spec_record["properties"].append(Property("compiler", input_spec.compiler))
             self.init_spec_record(input_spec, spec_record)
             self.specs.append(spec_record)
 
