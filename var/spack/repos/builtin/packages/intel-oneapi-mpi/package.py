@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+import os
 import re
 
 from spack.package import *
@@ -140,14 +141,28 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
     conflicts("+generic-names +classic-names")
 
     executables = [r"^mpiicpx$"]
-    version_regex = r"Intel\(R\) MPI Library (\S+)"
 
     @classmethod
     def determine_version(cls, exe):
-        output = Executable(exe)("-v", output=str, error=str)
-        match = re.search(cls.version_regex, output)
-        # strip @ from unsubstituted @IMPI_OFFICIALVERSION@
-        return match.group(1).strip("@") if match else None
+        output = Executable(exe)("-show", output=str, error=str)
+        match = re.search(r"/mpi/(20\d\d\.\d+(\.\d+)?)/", output)
+        return match.group(1) if match else None
+
+    @classmethod
+    def determine_variants(cls, exes, version_str):
+        output = Executable(exes[0])("-show", output=str, error=str)
+        mpidir = re.search(f'-L"?([^" ]+/mpi/{version_str}/)lib"?', output).group(1)
+        libdir = join_path(mpidir, "lib")
+        if os.path.exists(join_path(libdir, "libmpi_ilp64.so")):
+            variants = "+ilp64"
+        else:
+            variants = "~ilp64"
+        libfabricdir = join_path(mpidir, "libfabric")
+        if os.path.exists(join_path(libfabricdir, "libfabric.so")):
+            variants += "~external-libfabric"
+        else:
+            variants += "+external-libfabric"
+        return variants
 
     @property
     def mpiexec(self):
