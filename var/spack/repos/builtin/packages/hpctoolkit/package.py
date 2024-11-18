@@ -199,7 +199,8 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     depends_on("mpi", when="+mpi")
     depends_on("hpcviewer@2022.10:", type="run", when="@2022.10: +viewer")
     depends_on("hpcviewer", type="run", when="+viewer")
-    depends_on("python@3.10:", type=("build", "run"), when="+python")
+    depends_on("python@3.10:", type=("build", "run"), when="@:2023.08 +python")
+    depends_on("python@3.8:", type=("build", "run"), when="@2024.01: +python")
 
     with when("target=x86_64:"):
         depends_on("intel-xed+pic")

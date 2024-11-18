@@ -262,7 +262,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
     depends_on("hwloc@2.0.0:", when="@3.3: +hwloc")
 
     depends_on("libfabric", when="netmod=ofi")
-    depends_on("libfabric fabrics=gni", when="netmod=ofi pmi=cray")
     # The ch3 ofi netmod results in crashes with libfabric 1.7
     # See https://github.com/pmodels/mpich/issues/3665
     depends_on("libfabric@:1.6", when="device=ch3 netmod=ofi")
