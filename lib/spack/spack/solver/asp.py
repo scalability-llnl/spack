@@ -885,7 +885,17 @@ class PyclingoDriver:
             solve_kwargs["on_unsat"] = cores.append
 
         timer.start("solve")
-        solve_result = self.control.solve(**solve_kwargs)
+        time_limit = spack.config.CONFIG.get("concretizer:timeout", -1)
+        with self.control.solve(**solve_kwargs, async_=True) as handle:
+            finished = handle.wait(time_limit)
+            if not finished:
+                specs_str = ", ".join(llnl.util.lang.elide_list([str(s) for s in specs], 4))
+                warnings.warn(
+                    f"Spack is taking more than {time_limit} seconds to solve for {specs_str}, "
+                    f"using the best configuration found so far"
+                )
+                handle.cancel()
+            solve_result = handle.get()
         timer.stop("solve")
 
         # once done, construct the solve result
