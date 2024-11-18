@@ -11,8 +11,8 @@
 # -------------------------------------------------------------------------
 concretizer:
   # Maximum time, in seconds, allowed to clingo for the 'solve' phase. If set
-  # to -1, there is no time limit.
-  timeout: -1
+  # to 0, there is no time limit.
+  timeout: 0
   # Whether to consider installed packages or packages from buildcaches when
   # concretizing specs. If `true`, we'll try to use as many installs/binaries
   # as possible, rather than building. If `false`, we'll always give you a fresh

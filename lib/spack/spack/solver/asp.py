@@ -886,6 +886,9 @@ class PyclingoDriver:
 
         timer.start("solve")
         time_limit = spack.config.CONFIG.get("concretizer:timeout", -1)
+        # Spack uses 0 to set no time limit, clingo API uses -1
+        if time_limit == 0:
+            time_limit = -1
         with self.control.solve(**solve_kwargs, async_=True) as handle:
             finished = handle.wait(time_limit)
             if not finished:
