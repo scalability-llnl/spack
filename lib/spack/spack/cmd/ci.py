@@ -17,6 +17,7 @@ import spack.binary_distribution as bindist
 import spack.ci as spack_ci
 import spack.cmd
 import spack.cmd.buildcache as buildcache
+import spack.cmd.common.arguments
 import spack.config as cfg
 import spack.environment as ev
 import spack.hash_types as ht
