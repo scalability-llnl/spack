@@ -31,11 +31,11 @@ class PyHeat(PythonPackage):
         "netcdf", default=False, description="Use the py-netcdf4 package needed for NetCDF support"
     )
     variant("dev", default=False, description="Use the py-pre-commit package")
-#    variant(
-#        "examples",
-#        default=False,
-#        description="Use py-scikit-learn and py-matplotlib for the example tests",
-#    )
+    variant(
+        "examples",
+        default=False,
+        description="Use py-scikit-learn and py-matplotlib for the example tests",
+    )
     variant("cuda", default=False, description="Build with CUDA support")
     variant("rocm", default=False, description="Build with ROCm support")
 
