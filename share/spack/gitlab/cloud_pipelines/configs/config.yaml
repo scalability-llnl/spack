@@ -1,5 +1,8 @@
 config:
   db_lock_timeout: 120
+  # Ref. share/spack/gitlab/cloud_pipelines/.gitlab-ci.yml::.generate-common
+  # 2x over subscription on request for generate job concretization CPU pool
+  build_jobs: 8
   install_tree:
     root: /home/software/spack
     padded_length: 256
