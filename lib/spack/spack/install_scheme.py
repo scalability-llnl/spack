@@ -158,5 +158,6 @@ def _guard_writes(event, args):
 
 def guard_writes_into_spack():
     import sys
+
     if sys.version_info[:2] >= (3, 8):
         sys.addaudithook(_guard_writes)
