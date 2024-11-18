@@ -34,6 +34,9 @@ ci:
           ${SPACK_ARTIFACTS_ROOT}/user_data/install_times.json || true
       variables:
         CI_JOB_SIZE: "default"
+        SPACK_BUILD_JOBS: "4"
+        KUBERNETES_CPU_REQUEST: "4000m"
+        KUBERNETES_MEMORY_REQUEST: "16G"
         CI_GPG_KEY_ROOT: /mnt/key
         # SPACK_VERBOSE_SCRIPT: "1"
       id_tokens:
