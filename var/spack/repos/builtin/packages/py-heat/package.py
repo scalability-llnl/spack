@@ -62,7 +62,7 @@ class PyHeat(PythonPackage):
         depends_on("py-torch+cuda", when="+cuda", type=("build", "run"))
         depends_on("py-torch+rocm", when="+rocm", type=("build", "run"))
 
-     with when("@1.5"):
+    with when("@1.5"):
         depends_on("python@3.9:3.12", type=("build", "run"))
         depends_on("py-mpi4py@3:", type=("build", "run"))
         depends_on("py-numpy@1.22:1", type=("build", "run"))
