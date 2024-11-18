@@ -4,7 +4,12 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """
-For tracking install trees.
+This module tracks whether we are installing packages into the Spack
+prefix or outside of it. If we are installing outside of Spack, that
+is controlled by ``$per_spack_user/installs/config``. By default,
+when installing outside of Spack, packages are installed into
+``$per_spack_user``; you can change that with
+``config:install_tree:root``.
 """
 
 import inspect
@@ -153,5 +158,5 @@ def _guard_writes(event, args):
 
 def guard_writes_into_spack():
     import sys
-
-    sys.addaudithook(_guard_writes)
+    if sys.version_info[:2] >= (3, 8):
+        sys.addaudithook(_guard_writes)
