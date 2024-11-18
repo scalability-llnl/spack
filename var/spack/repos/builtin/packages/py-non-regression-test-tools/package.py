@@ -23,4 +23,4 @@ class PyNonRegressionTestTools(PythonPackage):
 
     depends_on("py-numpy", type="run")
     depends_on("python@3.10:", type="run")
-    depends_on("py-setuptools@61.0.0:", type="build")
+    depends_on("py-setuptools@61:", type="build")
