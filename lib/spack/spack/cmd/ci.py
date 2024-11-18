@@ -119,6 +119,9 @@ def setup_parser(subparser):
     )
     generate.set_defaults(func=ci_generate)
 
+    spack.cmd.common.arguments.add_concretizer_args(generate)
+    spack.cmd.common.arguments.add_common_arguments(generate, ["jobs"])
+
     # Rebuild the buildcache index associated with the mirror in the
     # active, gitlab-enabled environment.
     index = subparsers.add_parser(
@@ -148,6 +151,7 @@ def setup_parser(subparser):
         help="stop stand-alone tests after the first failure",
     )
     rebuild.set_defaults(func=ci_rebuild)
+    spack.cmd.common.arguments.add_common_arguments(rebuild, ["jobs"])
 
     # Facilitate reproduction of a failed CI build job
     reproduce = subparsers.add_parser(
@@ -410,6 +414,9 @@ def ci_rebuild(args):
     verify_binaries = can_verify and spack_is_pr_pipeline is False
     if not verify_binaries:
         install_args.append("--no-check-signature")
+
+    if args.jobs:
+        install_args.append(f"-j{args.jobs}")
 
     slash_hash = spack_ci.common.win_quote("/" + job_spec.dag_hash())
 
