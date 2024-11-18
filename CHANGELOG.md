@@ -1,3 +1,32 @@
+# v0.22.3 (2024-11-18)
+
+## Bugfixes
+- Forward compatibility with Python 3.13 (#46775, #46983, #47035, #47175)
+- `archspec` was updated to v0.2.5 (#46503, #46958)
+- Fix path to Spack in `spack env depfile` makefile (#46966)
+- Fix `glibc` detection in Chinese locales (#47434)
+- Fix pickle round-trip of specs propagating variants (#47351)
+- Fix a bug where concurrent spack install commands would not always update explicits correctly
+  (#47358)
+- Fix a bug where autopush would run before all post install hooks modifying the install prefix
+  had run (#47329)
+- Fix `spack find -u` (#47102)
+- Fix a bug where sometimes the wrong Python interpreter was used for build dependencies such as
+  `py-setuptools` (#46980)
+- Fix default config errors found by `spack audit externals` (#47308)
+- Fix duplicate printing of external roots in installer (#44917)
+- Fix modules schema in `compilers.yaml` (#47197)
+- Reduce the size of generated YAML for Gitlab CI (#44995)
+- Handle missing metadata file gracefully in bootstrap (#47278)
+- Show underlying errors on fetch failure (#45714)
+- Recognize `.` and `..` as paths instead of names in buildcache commands (#47105)
+- Documentation and style (#46991, #47107, #47110, #47111, #47346, #47307, #47309, #47328, #47160,
+  #47402, #47557, #46709, #47080)
+- Tests and CI fixes (#47165, #46711)
+
+## Package updates
+- ffmpeg: fix hash of patch (#45574)
+
 # v0.22.2 (2024-09-21)
 
 ## Bugfixes
