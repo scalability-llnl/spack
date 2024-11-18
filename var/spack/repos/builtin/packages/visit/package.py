@@ -251,7 +251,6 @@ class Visit(CMakePackage):
         args = [
             self.define("CMAKE_SKIP_COMPATIBILITY_TESTS", True),
             self.define("CMAKE_POSITION_INDEPENDENT_CODE", True),
-            self.define("VISIT_VTK_VERSION", str(spec["vtk"].version)),
             self.define("VTK_MAJOR_VERSION", spec["vtk"].version[0]),
             self.define("VTK_MINOR_VERSION", spec["vtk"].version[1]),
             self.define("VISIT_VTK_DIR", spec["vtk"].prefix),
@@ -260,6 +259,12 @@ class Visit(CMakePackage):
             self.define("VISIT_USE_GLEW", False),
             self.define("VISIT_CONFIG_SITE", "NONE"),
         ]
+
+        # TODO: Remove this hack when VTK 8.2.1a is removed
+        if spec["vtk"].satisfies("@8.2.1a"):
+            args.append(self.define("VISIT_VTK_VERSION", "8.2.1"))
+        else:
+            args.append(self.define("VISIT_VTK_VERSION", str(spec["vtk"].version)))
 
         # Provide the plugin compilation environment so as to extend VisIt
         args.append(self.define_from_variant("VISIT_INSTALL_THIRD_PARTY", "plugins"))
