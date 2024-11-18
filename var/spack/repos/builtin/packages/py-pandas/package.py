@@ -160,3 +160,6 @@ class PyPandas(PythonPackage):
             depends_on("py-xlsxwriter@3.0.3:", when="@2.1:")
             depends_on("py-xlsxwriter@1.4.3:", when="@1.5:")
             depends_on("py-xlsxwriter@1.2.2:", when="@1.4:")
+
+    def config_settings(self, spec, prefix):
+        return {"compile-args": f"-j{make_jobs}"}
