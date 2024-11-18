@@ -32,7 +32,6 @@ import spack.database
 import spack.directory_layout
 import spack.error
 import spack.install_scheme
-import spack.paths
 import spack.spec
 import spack.util.path
 
