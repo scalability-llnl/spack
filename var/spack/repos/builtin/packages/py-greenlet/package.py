@@ -40,3 +40,4 @@ class PyGreenlet(PythonPackage):
         depends_on("python@:3.12", when="@:3.0")
 
     depends_on("py-setuptools", type="build")
+    depends_on("py-setuptools@40.8.0:", type="build", when="@3.0.2:")
