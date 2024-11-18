@@ -146,7 +146,8 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
     def determine_version(cls, exe):
         output = Executable(exe)("-v", output=str, error=str)
         match = re.search(cls.version_regex, output)
-        return match.group(1) if match else None
+        # strip @ from unsubstituted @IMPI_OFFICIALVERSION@
+        return match.group(1).strip("@") if match else None
 
     @property
     def mpiexec(self):
