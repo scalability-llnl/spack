@@ -63,6 +63,7 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
 
     extends("python")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     depends_on("cmake@3.20:3", type="build", when="@:24.08")
