@@ -3,8 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import glob
 import os
+import re
 import subprocess
+import typing
 
 import llnl.util.lang
 
@@ -62,6 +65,9 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("2.1.0", sha256="8e164d9a9e705e6b816857e84833b0922ce0bde6a36a9f3a29734830aac168ef")
     version("2.0.1", sha256="47e1f3789478ea870bd4ecdf52acbe469d171b89b663309325431f3da7c75008")
     version("2.0.0", sha256="a8cab99fd034c7b7229be8d4626ec95cf02072646fb148c74b4f48c460c6059c")
+
+    sanity_check_is_dir = ["bin", join_path("lib", "chapel"), join_path("share", "chapel")]
+    sanity_check_is_file = [join_path("bin", "chpl")]
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -413,6 +419,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "CHPL_GPU",
         "CHPL_GPU_ARCH",
         "CHPL_GPU_MEM_STRATEGY",
+        "CHPL_HOME",
         "CHPL_HOST_ARCH",
         # "CHPL_HOST_CC",
         "CHPL_HOST_COMPILER",
@@ -549,14 +556,12 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     depends_on("gasnet conduits=none", when="gasnet=spack")
     depends_on("gasnet@2024.5.0: conduits=none", when="@2.1.0: gasnet=spack")
 
-    extends("python", when="+python-bindings")
-    requires(
-        "%clang",
-        "%apple-clang",
-        when="+python-bindings",
-        policy="one_of")
+    with when("+python-bindings"):
+        extends("python")
+        requires("%clang", "%apple-clang", policy="one_of")
 
     depends_on("python@3.7:")
+    depends_on("chrpath", type=("build",))
     depends_on("cmake@3.16:")
 
     # ensure we can map the spack compiler name to one of the ones we recognize
@@ -584,16 +589,74 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         for var in self.chpl_env_vars:
             env.unset(var)
 
+    def get_path(self, s: str) -> typing.List[str]:
+        get_path_pat = re.compile(r"(?:RUNPATH|RPATH)=(.*)")
+        m = re.search(get_path_pat, s)
+        if m:
+            paths = m.group(1).split(":")
+            paths = [p.strip() for p in paths if p.strip() != ""]
+            return paths
+        return []
+
+    # Some chapel build scripts depend on CHPL_HOME, this can get encoded into
+    # the frontend library rpaths. this is problematic for the python
+    # bindings which get installed in virtualenv provided by spack. This script
+    # will fix the rpath of the chapel frontend library after installation
+    @run_after("install")
+    def fix_rpath(self):
+        files = []
+        # find all .so in the old lib path
+        for f in glob.glob(
+            join_path(self.prefix.lib, "chapel", str(self._output_version_short), "**", "*.so"),
+            recursive=True,
+        ):
+            files.append(f)
+
+        for f in glob.glob(
+            join_path(self.spec["python-venv"].prefix.lib, "**", "chapel", "*.so"), recursive=True
+        ):
+            files.append(f)
+
+        for f in files:
+            cp = subprocess.run(
+                ["chrpath", "-l", f],
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+            path = cp.stdout.strip()
+            path = self.get_path(path)
+            new_path = []
+            # clean path
+            for p in path:
+                if p == self.prefix.lib64:
+                    continue
+                if p.startswith(str(self.build_directory)):
+                    new_path.append(
+                        str(
+                            join_path(
+                                self.prefix.lib, "chapel", self._output_version_short, "compiler"
+                            )
+                        )
+                    )
+                else:
+                    new_path.append(p)
+            # remove duplicates
+            new_path = list(set(new_path))
+            path = ":".join(new_path)
+            if path:
+                subprocess.check_call(["chrpath", "-r", path, f])
+
     def build(self, spec, prefix):
-        with set_env(CHPL_HOME=self.build_directory):
-            with set_env(CHPL_MAKE_THIRD_PARTY=join_path(self.build_directory, "third-party")):
+        with set_env(CHPL_MAKE_THIRD_PARTY=join_path(self.build_directory, "third-party")):
+            make()
+            with set_env(CHPL_HOME=self.build_directory):
                 if spec.satisfies("+chpldoc"):
                     make("chpldoc")
                 if spec.satisfies("+python-bindings"):
                     make("chapel-py-venv")
                     python("-m", "ensurepip", "--default-pip")
                     python("-m", "pip", "install", "tools/chapel-py")
-                make()
 
     def setup_chpl_platform(self, env):
         if self.spec.variants["host_platform"].value == "unset":
@@ -752,17 +815,17 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     def setup_run_environment(self, env):
         self.setup_env_vars(env)
-        env.prepend_path(
-            "PATH", join_path(self.prefix.share, "chapel", self._output_version_short, "util")
+        chpl_home = join_path(self.prefix.share, "chapel", self._output_version_short)
+        env.prepend_path("PATH", join_path(chpl_home, "util"))
+        env.set(
+            "CHPL_MAKE_THIRD_PARTY",
+            join_path(self.prefix.lib, "chapel", self._output_version_short),
         )
-        if self.spec.satisfies("+python-bindings"):
-            env.prepend_path(
-                "LD_LIBRARY_PATH", join_path(self.prefix.lib, "chapel", self._output_version_short, "compiler")
-            )
+        env.set("CHPL_HOME", chpl_home)
 
     @property
     @llnl.util.lang.memoized
-    def _output_version_long(self):
+    def _output_version_long(self) -> str:
         if str(self.spec.version).lower() == "main":
             return "2.3.0"
         spec_vers_str = str(self.spec.version.up_to(3))
@@ -770,7 +833,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     @property
     @llnl.util.lang.memoized
-    def _output_version_short(self):
+    def _output_version_short(self) -> str:
         if str(self.spec.version).lower() == "main":
             return "2.3"
         spec_vers_str = str(self.spec.version.up_to(2))
