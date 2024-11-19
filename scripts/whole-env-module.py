@@ -37,8 +37,10 @@ def generate_module(args):
 
         env_mods.extend(uenv.unconditional_environment_modifications(descriptor))
         view = descriptor.view(new=view_input)
+        specs_to_consider = list(view.get_all_specs())
+        specs_to_consider.sort(key=lambda s: len(s.traverse()))
         env_mods.extend(
-            uenv.environment_modifications_for_specs(*list(view.get_all_specs()), view=view)
+            uenv.environment_modifications_for_specs(*specs_to_consider, view=view)
         )
 
         # Note: you cannot encode PruneDuplicatePaths into a direct lmod action
