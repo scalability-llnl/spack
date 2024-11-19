@@ -681,9 +681,9 @@ If the URL is particularly complicated or changes based on the release,
 you can override the default URL generation algorithm by defining your
 own ``url_for_version()`` function. 
 
-.. warning:
+.. note:
 
-   ``spack versions`` and ``spack checksum`` do not use the custom ``url_for_version()``.
+   ``spack versions`` and ``spack checksum`` have nuance in how they use a custom ``url_for_version()``.
    See the end of this section for a further description.
 
 For example, the download URL for
@@ -771,14 +771,27 @@ version. This is useful for packages that have an easy to extrapolate URL, but
 keep changing their URL format every few releases. With this method, you only
 need to specify the ``url`` when the URL changes.
 
-It is important to note that ``spack versions`` and ``spack checksum`` do not use a custom ``url_for_version()``
-for discovering new versions of a package. These two commands only use the base ``url`` field. Thus,
-this field should always be updated to reflect the new naming scheme, allowing previously discovered package versions
-to be downloaded via the old url pattern given in ``url_for_version()``. However, ``spack checksum`` can be used in a 
-non-autodiscovery mode which does use ``url_for_version()``. 
-This usage is via ``spack checksum <package> <version>``, e.g., ``spack checksum zlib 1.2.13``. This differs 
-from the autodiscovery mode ``spack checksum <package>@<version>``, e.g., ``spack checksum zlib@1.2``, which does not use 
-``url_for_version()``.
+Lastly, ``spack versions`` and ``spack checksum`` have nuance in how a custom ``url_for_version()``
+is used for discovering new versions of a package. When running ``spack checksum <package>`` or ``spack checksum <package>@3.12``,
+spack crawls web pages discovering new versions matching 3.12 (e.g., 3.12.0, 3.12.1, ...). Small changes to the filename or url are 
+automatically detected, but larger changes such as ``_`` to ``-`` are not. When used in this way, only the ``url`` field is used 
+to determine the url pattern. When run as ``spack checksum python 3.12.0 3.12.1``, spack directly fetches these specific versions
+from the URL extrapolated from ``url`` and ``url_for_version`` package attributes. Thus, the ``url`` field should always be updated
+to reflect the new naming scheme, allowing previously discovered package versions to be downloaded via the old url pattern given 
+in ``url_for_version()``. This behaviour is summarized in the table below:
+
++----------------------------------+----------------------+-------------------------+
+| Command                          | URL Source          | Version Discovery       |
++==================================+======================+=========================+
+| ``spack checksum <package>``     | ``url`` field only  | Crawls for all versions|
++----------------------------------+----------------------+-------------------------+
+| ``spack checksum <package>@3.12``| ``url`` field only  | Crawls for matching    |
+|                                  |                      | versions               |
++----------------------------------+----------------------+-------------------------+
+| ``spack checksum <package>       | Both ``url`` and    | Direct version fetch   |
+| 3.12.0 3.12.1``                 | ``url_for_version`` |                        |
++----------------------------------+----------------------+-------------------------+
+
 
 """""""""""""""""""""""
 Mirrors of the main URL
