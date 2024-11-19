@@ -310,7 +310,6 @@ class Gromacs(CMakePackage, CudaPackage):
     depends_on("sycl", when="+sycl")
     depends_on("lapack")
     depends_on("blas")
-    depends_on("gcc", when="%oneapi ~intel_provided_gcc")
     depends_on("gcc", when="%intel ~intel_provided_gcc")
 
     depends_on("hwloc@1.0:1", when="+hwloc@2016:2018")
@@ -324,7 +323,6 @@ class Gromacs(CMakePackage, CudaPackage):
 
     requires(
         "%intel",
-        "%oneapi",
         policy="one_of",
         when="+intel_provided_gcc",
         msg="Only attempt to find gcc libs for Intel compiler if Intel compiler is used.",
@@ -532,7 +530,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         if self.spec.satisfies("@2020:"):
             options.append("-DGMX_INSTALL_LEGACY_API=ON")
 
-        if self.spec.satisfies("%oneapi") or self.spec.satisfies("%intel"):
+        if self.spec.satisfies("%intel"):
             # If intel-oneapi-compilers was installed through spack the gcc is added to the
             # configuration file.
             if self.spec.satisfies("+intel_provided_gcc") and os.path.exists(
