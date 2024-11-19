@@ -13,6 +13,7 @@ import llnl.util.tty.log as log
 
 import spack.config
 import spack.error
+import spack.install_test
 import spack.multimethod
 import spack.package_base
 import spack.phase_callbacks

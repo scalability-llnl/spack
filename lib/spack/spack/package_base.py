@@ -1947,29 +1947,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         resource_stage_folder = "-".join(pieces)
         return resource_stage_folder
 
-    def do_test(self, dirty=False, externals=False):
-        if self.test_requires_compiler:
-            compilers = spack.compilers.compilers_for_spec(
-                self.spec.compiler, arch_spec=self.spec.architecture
-            )
-            if not compilers:
-                tty.error(
-                    "Skipping tests for package %s\n"
-                    % self.spec.format("{name}-{version}-{hash:7}")
-                    + "Package test requires missing compiler %s" % self.spec.compiler
-                )
-                return
-
-        kwargs = {
-            "dirty": dirty,
-            "fake": False,
-            "context": "test",
-            "externals": externals,
-            "verbose": tty.is_verbose(),
-        }
-
-        self.tester.stand_alone_tests(kwargs)
-
     def unit_test_check(self):
         """Hook for unit tests to assert things about package internals.
 
