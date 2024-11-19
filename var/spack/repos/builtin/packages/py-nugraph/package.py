@@ -18,7 +18,7 @@ class PyNugraph(PythonPackage):
 
     license("MIT", checked_by="vhewes")
 
-    version("develop", branch="main")
+    version("main", branch="main")
     version("24.7.1", sha256="a51c0576ab969c404024b734e5507712e5a9d1d29e14077fee121415779c78f0")
     version("24.7.0", sha256="7e44fbc1eb75a9302d57cabfffd559ddaddb44d0b7198168cbacbeed5e11dd7e")
     version("24.4.0", sha256="927da53b28630921d31ca3b71676ef392b9ff847796b76d593239c6af9276b4c")
