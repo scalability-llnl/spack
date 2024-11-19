@@ -782,7 +782,7 @@ in ``url_for_version()``. This behaviour is summarized in the table below:
 
 =================================== ===================== ==========================
  Command                              URL Source             Version Discovery       
-=================================== ===================== =========================
+=================================== ===================== ==========================
  ``spack checksum <package>``       ``url`` field only    | Crawls for all versions
  ``spack checksum <package>@3.12``  ``url`` field only    | Crawls for matching 
                                                                versions               
