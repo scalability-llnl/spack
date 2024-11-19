@@ -45,8 +45,10 @@ class PyHist(PythonPackage):
         depends_on("py-matplotlib@3.0:", type=("build", "run"))
         depends_on("py-mplhep@0.2.16:", type=("build", "run"))
         with when("@:2.7.0"):
-            depends_on("py-scipy@1.4:", type=("build", "run"))
-            depends_on("py-iminuit@2:", type=("build", "run"))
+            depends_on("py-scipy@1.4:", type=("build", "run"), when="@:2.6.1,2.7.0")
+            depends_on("py-iminuit@2:", type=("build", "run"), when="@:2.6.1,2.7.0")
+            depends_on("py-scipy@1.4:", type=("build", "run"), when="@2.6.2:2.6.3 ^python@:3.10")
+            depends_on("py-iminuit@2:", type=("build", "run"), when="@2.6.2:2.6.3 ^python@:3.10")
 
     with when("+dask"):
         depends_on("py-dask@2022: +dataframe", type=("build", "run"), when="^python@3.8:")
