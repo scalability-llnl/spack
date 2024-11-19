@@ -46,9 +46,6 @@ test_suite_filename = "test_suite.lock"
 #: Name of the test suite results (summary) file
 results_filename = "results.txt"
 
-#: Name of the Spack install phase-time test log file
-spack_install_test_log = "install-time-test-log.txt"
-
 
 ListOrStringType = Union[str, List[str]]
 
@@ -263,7 +260,9 @@ class PackageTest:
             # Running phase-time tests for a single package whose results are
             # retained in the package's stage directory.
             self.pkg.test_suite = TestSuite([pkg.spec])
-            self.test_log_file = fs.join_path(pkg.stage.path, spack_install_test_log)
+            self.test_log_file = fs.join_path(
+                pkg.stage.path, spack.build_environment.install_test_log
+            )
             self.pkg_id = pkg.spec.format("{name}-{version}-{hash:7}")
 
         # Internal logger for test part processing
@@ -306,7 +305,7 @@ class PackageTest:
 
     @property
     def archived_install_test_log(self) -> str:
-        return fs.join_path(self.pkg.metadata_dir, spack_install_test_log)
+        return fs.join_path(self.pkg.metadata_dir, spack.build_environment.install_test_log)
 
     def archive_install_test_log(self, dest_dir: str):
         if os.path.exists(self.test_log_file):
