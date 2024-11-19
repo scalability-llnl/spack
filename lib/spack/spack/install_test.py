@@ -23,6 +23,7 @@ from llnl.util.lang import nullcontext
 from llnl.util.tty.color import colorize
 
 import spack.build_environment
+import spack.compilers
 import spack.config
 import spack.error
 import spack.package_base
@@ -352,15 +353,45 @@ class PackageTest:
         if self.test_failures:
             raise TestFailure(self.test_failures)
 
-    def stand_alone_tests(self, kwargs):
+    def stand_alone_tests(self, dirty=False, externals=False):
         """Run the package's stand-alone tests.
 
         Args:
             kwargs (dict): arguments to be used by the test process
-        """
-        import spack.build_environment
 
-        spack.build_environment.start_build_process(self.pkg, test_process, kwargs)
+        Raises:
+            AttributeError: required test_requires_compiler attribute is missing
+        """
+        pkg = self.pkg
+        spec = pkg.spec
+        pkg_spec = spec.format("{name}-{version}-{hash:7}")
+
+        if not hasattr(pkg, "test_requires_compiler"):
+            raise AttributeError(
+                f"Cannot run tests for {pkg_spec}: missing required "
+                "test_requires_compiler attribute"
+            )
+
+        if pkg.test_requires_compiler:
+            compilers = spack.compilers.compilers_for_spec(
+                spec.compiler, arch_spec=spec.architecture
+            )
+            if not compilers:
+                tty.error(
+                    f"Skipping tests for package {pkg_spec}\n"
+                    f"Package test requires missing compiler {spec.compiler}"
+                )
+                return
+
+        kwargs = {
+            "dirty": dirty,
+            "fake": False,
+            "context": "test",
+            "externals": externals,
+            "verbose": tty.is_verbose(),
+        }
+
+        spack.build_environment.start_build_process(pkg, test_process, kwargs)
 
     def parts(self) -> int:
         """The total number of (checked) test parts."""
@@ -810,7 +841,7 @@ class TestSuite:
         # even if they contain the same spec
         self.specs = [spec.copy() for spec in specs]
         self.current_test_spec = None  # spec currently tested, can be virtual
-        self.current_base_spec = None  # spec currently running do_test
+        self.current_base_spec = None  # spec currently running tests
 
         self.alias = alias
         self._hash = None
@@ -834,10 +865,6 @@ class TestSuite:
             self._hash = b32_hash
         return self._hash
 
-    # TODO/TLD: Finish this
-    def _run_test(self, pkg, dirty, externals):
-        pkg.do_test(dirty=dirty, externals=externals)
-
     def set_current_specs(self, base_spec: spack.spec.Spec, test_spec: spack.spec.Spec):
         self.current_base_spec = base_spec
         self.current_test_spec = test_spec
@@ -851,16 +878,15 @@ class TestSuite:
         externals = kwargs.get("externals", False)
 
         for spec in self.specs:
+            pkg = spec.package
             try:
-                if spec.package.test_suite:
+                if pkg.test_suite:
                     raise TestSuiteSpecError(
-                        "Package {} cannot be run in two test suites at once".format(
-                            spec.package.name
-                        )
+                        f"Package {pkg.name} cannot be run in two test suites at once"
                     )
 
                 # Set up the test suite to know which test is running
-                spec.package.test_suite = self
+                pkg.test_suite = self
                 self.set_current_specs(spec, spec)
 
                 # setup per-test directory in the stage dir
@@ -870,8 +896,7 @@ class TestSuite:
                 fs.mkdirp(test_dir)
 
                 # run the package tests
-                # TLD spec.package.do_test(dirty=dirty, externals=externals)
-                self._run_test(spec.package, dirty=dirty, externals=externals)
+                pkg.tester.stand_alone_tests(dirty=dirty, externals=externals)
 
                 # Clean up on success
                 if remove_directory:
