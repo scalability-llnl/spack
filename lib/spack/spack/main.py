@@ -968,8 +968,20 @@ def _main(argv=None):
 
     with bootstrap_context:
         if args.simulated_system:
-            pass
+            _simulate_system(args.simulated_system)
         return finish_parse_and_run(parser, cmd_name, args, env_format_error)
+
+
+def _simulate_system(state_dir):
+    import pickle
+    import spack.solver.asp
+    import spack.platforms
+    with open(os.path.join(state_dir, "arch.pkl"), "rb") as f:
+        # [spack.platforms.host(), archspec.cpu.host(), spack.solver.asp.all_libcs()]
+        data = pickle.load(f)
+        spack.platforms.host = lambda: data[0]
+        archspec.cpu.host = lambda: data[1]
+        spack.solver.asp.all_libcs = lambda: data[2]
 
 
 def finish_parse_and_run(parser, cmd_name, main_args, env_format_error):
