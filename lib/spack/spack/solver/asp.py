@@ -886,6 +886,7 @@ class PyclingoDriver:
 
         timer.start("solve")
         time_limit = spack.config.CONFIG.get("concretizer:timeout", -1)
+        error_on_timeout = spack.config.CONFIG.get("concretizer:error_on_timeout", True)
         # Spack uses 0 to set no time limit, clingo API uses -1
         if time_limit == 0:
             time_limit = -1
@@ -893,11 +894,12 @@ class PyclingoDriver:
             finished = handle.wait(time_limit)
             if not finished:
                 specs_str = ", ".join(llnl.util.lang.elide_list([str(s) for s in specs], 4))
-                warnings.warn(
-                    f"Spack is taking more than {time_limit} seconds to solve for {specs_str}, "
-                    f"using the best configuration found so far"
-                )
+                header = f"Spack is taking more than {time_limit} seconds to solve for {specs_str}"
+                if error_on_timeout:
+                    raise UnsatisfiableSpecError(f"{header}, stopping concretization")
+                warnings.warn(f"{header}, using the best configuration found so far")
                 handle.cancel()
+
             solve_result = handle.get()
         timer.stop("solve")
 

@@ -89,6 +89,7 @@ properties: Dict[str, Any] = {
                 },
             },
             "timeout": {"type": "integer", "minimum": 0},
+            "error_on_timeout": {"type": "boolean"},
             "os_compatible": {"type": "object", "additionalProperties": {"type": "array"}},
         },
     }
