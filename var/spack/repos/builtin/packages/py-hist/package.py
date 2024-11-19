@@ -13,6 +13,8 @@ class PyHist(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("2.8.0", sha256="0a3e602dd1d2721bd7f2229f456709dde323f6f74952f13ba4e5986c3275f77b")
+    version("2.7.3", sha256="f9f9b56809b190bb546698789cc0d7d040934fc5141d2763c6e49d65e81dbc0b")
     version("2.7.2", sha256="26b1ab810d8b10222db5d161d4acaf64aaa04fe6baaed2966d41c1dac5601d06")
     version("2.7.1", sha256="ffbe314c2bd03c342b9f168dce715ad8f36281eb23172a00970882a9344fe988")
     version("2.7.0", sha256="0ce40fd898ded8ef23d97c77cf1da9caf47b3caaef5fde190055d4d679a2d7a4")
