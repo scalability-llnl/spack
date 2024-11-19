@@ -11,6 +11,7 @@ class PyArkouda(PythonPackage):
 
     homepage = "https://github.com/Bears-R-Us/arkouda"
 
+    # Updating the arkouda PyPI package is future work
     url = "https://github.com/Bears-R-Us/arkouda/archive/refs/tags/v2024.06.21.tar.gz"
     git = "https://github.com/Bears-R-Us/arkouda.git"
 
@@ -46,4 +47,3 @@ class PyArkouda(PythonPackage):
     depends_on("py-pyfiglet", type=("build", "run"))
     depends_on("py-typeguard", type=("build", "run"))
     depends_on("py-tabulate", type=("build", "run"))
-    depends_on("chapel +python-bindings", type=("build", "run"))
