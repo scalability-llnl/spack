@@ -37,7 +37,6 @@ class Openturns(CMakePackage):
     depends_on("bison", type="build")
     depends_on("flex", type="build")
 
-    depends_on("mpi")
     depends_on("lapack")
     depends_on("boost+system+serialization+thread")
     depends_on("intel-tbb")
