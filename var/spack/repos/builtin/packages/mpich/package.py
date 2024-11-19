@@ -60,7 +60,7 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("fortran", type="build", when="+fortran")
 
     variant("hwloc", default=True, description="Use external hwloc package")
     variant("hydra", default=True, description="Build the hydra process manager")

@@ -12,6 +12,7 @@ from llnl.util.lang import classproperty
 
 import spack.compilers
 from spack.build_systems.cmake import get_cmake_prefix_path
+from spack.operating_systems.mac_os import macos_sdk_path
 from spack.package import *
 from spack.package_base import PackageBase
 
@@ -821,6 +822,10 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                     os.symlink(bin, sym)
             env.prepend_path("PATH", self.stage.path)
 
+        if self.spec.satisfies("platform=darwin"):
+            # set the SDKROOT so the bootstrap compiler finds its C++ headers
+            env.set("SDKROOT", macos_sdk_path())
+
     def setup_run_environment(self, env):
         if self.spec.satisfies("+clang"):
             env.set("CC", join_path(self.spec.prefix.bin, "clang"))
@@ -1017,7 +1022,20 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         # Enable building with CLT [and not require full Xcode]
         # https://github.com/llvm/llvm-project/issues/57037
         if self.spec.satisfies("@15.0.0: platform=darwin"):
-            cmake_args.append(define("BUILTINS_CMAKE_ARGS", "-DCOMPILER_RT_ENABLE_IOS=OFF"))
+            cmake_args.append(
+                define(
+                    "BUILTINS_CMAKE_ARGS",
+                    ";".join(
+                        [f"-DCOMPILER_RT_ENABLE_{os}=OFF" for os in ("IOS", "WATCHOS", "TVOS")]
+                    ),
+                )
+            )
+
+        if self.spec.satisfies("platform=darwin"):
+            cmake_args.append(define("LLVM_ENABLE_LIBCXX", True))
+            cmake_args.append(define("DEFAULT_SYSROOT", macos_sdk_path()))
+            # without this libc++ headers are not fond during compiler-rt build
+            cmake_args.append(define("LLVM_BUILD_EXTERNAL_COMPILER_RT", True))
 
         # Semicolon seperated list of projects to enable
         cmake_args.append(define("LLVM_ENABLE_PROJECTS", projects))
