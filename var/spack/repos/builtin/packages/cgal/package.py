@@ -64,18 +64,13 @@ class Cgal(CMakePackage):
     variant("eigen", default=True, description="Build with Eigen support")
 
     # Starting with cgal 6, GMP/MPFR are no longer mandatory and Core library
-    # is based on on Boost.Multiprecision. However, either GMP backend or Boost backend can be used.
-    # Downstream cmake users must also set -DCGAL_DISABLE_GMP=1 or the macro
-    # CMAKE_OVERRIDDEN_DEFAULT_ENT_BACKEND if GMP is disabled. 
-    # This variant doesn't change how cgal is installed, but it does change spack to not depend on
-    # gmp & mpfr.
+    # is based on on Boost.Multiprecision. However, either GMP backend or Boost
+    # backend can be used. Downstream cmake users must also set -DCGAL_DISABLE_GMP=1
+    # or the macro CMAKE_OVERRIDDEN_DEFAULT_ENT_BACKEND if GMP is disabled.
+    # This variant doesn't change how cgal is installed, but it does change spack to
+    # not depend on gmp & mpfr.
     # More details here https://github.com/CGAL/cgal/issues/8606
-    variant(
-        "gmp",
-        default=True,
-        description="Enable the GMP backend",
-        when="@6:",
-    )
+    variant("gmp", default=True, description="Enable the GMP backend", when="@6:")
 
     # Upper bound follows CGAL's @6: CMakeLists.txt
     depends_on("cmake@3.12:3.29", type="build", when="@6:")
@@ -176,6 +171,6 @@ class Cgal(CMakePackage):
             cmake_args.append("-DCGAL_HEADER_ONLY:BOOL=%s" % variant_bool("+header_only"))
 
         if spec.satisfies("~gmp"):
-           cmake_args.append("-DCGAL_DISABLE_GMP:BOOL=1")
+            cmake_args.append("-DCGAL_DISABLE_GMP:BOOL=1")
 
         return cmake_args
