@@ -870,36 +870,6 @@ class DevelopStage(LockableStagingDir):
     def cache_local(self):
         tty.debug("Sources for Develop stages are not cached")
 
-    def cache_mirror(
-        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirror.MirrorStats"
-    ) -> None:
-        #if isinstance(self.default_fetcher, fs.BundleFetchStrategy):
-        #    return
-
-        #elif mirror.skip_unstable_versions and not fs.stable_target(self.default_fetcher):
-        #    return
-
-        #elif not self.mirror_layout:
-        #    return
-
-        if not os.path.exists(self.dev_path):
-            raise StageError("Develop path does not exist yet, run `spack develop`")
-
-        # "Regular" Stage is instantiated with a mirror_layout
-        # mirror_paths: Optional["spack.mirror.MirrorLayout"] = None,
-
-        absolute_storage_path = os.path.join(mirror.root, self.mirror_layout.path)
-
-        if os.path.exists(absolute_storage_path):
-            stats.already_existed(absolute_storage_path)
-        else:
-            self.fetch()
-            self.check()
-            mirror.store(self.fetcher, self.mirror_layout.path)
-            stats.added(absolute_storage_path)
-
-        self.mirror_layout.make_alias(mirror.root)
-
 
 def ensure_access(file):
     """Ensure we can access a directory and die with an error if we can't."""
