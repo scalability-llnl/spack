@@ -974,8 +974,10 @@ def _main(argv=None):
 
 def _simulate_system(state_dir):
     import pickle
-    import spack.solver.asp
+
     import spack.platforms
+    import spack.solver.asp
+
     with open(os.path.join(state_dir, "arch.pkl"), "rb") as f:
         # [spack.platforms.host(), archspec.cpu.host(), spack.solver.asp.all_libcs()]
         data = pickle.load(f)
