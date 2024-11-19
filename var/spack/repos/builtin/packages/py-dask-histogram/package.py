@@ -16,6 +16,7 @@ class PyDaskHistogram(PythonPackage):
 
     license("BSD-3-Clause", checked_by="wdconinc")
 
+    version("2024.9.1", sha256="a3e778b606db4affcc4fc8b6d34f5d99e165ea1691da57f40659032cd79f03e8")
     version("2024.3.0", sha256="834d4d25f5e2c417f5e792fafaa55484c20c9f3812d175125de7ac34f994ef7b")
 
     depends_on("py-hatchling@1.8.0:", type="build")
