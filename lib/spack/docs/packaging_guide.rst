@@ -780,17 +780,15 @@ from the URL extrapolated from ``url`` and ``url_for_version`` package attribute
 to reflect the new naming scheme, allowing previously discovered package versions to be downloaded via the old url pattern given 
 in ``url_for_version()``. This behaviour is summarized in the table below:
 
-+----------------------------------+----------------------+-------------------------+
-| Command                          | URL Source          | Version Discovery       |
-+==================================+======================+=========================+
-| ``spack checksum <package>``     | ``url`` field only  | Crawls for all versions|
-+----------------------------------+----------------------+-------------------------+
-| ``spack checksum <package>@3.12``| ``url`` field only  | Crawls for matching    |
-|                                  |                      | versions               |
-+----------------------------------+----------------------+-------------------------+
-| ``spack checksum <package>       | Both ``url`` and    | Direct version fetch   |
-| 3.12.0 3.12.1``                 | ``url_for_version`` |                        |
-+----------------------------------+----------------------+-------------------------+
+=================================== ===================== ==========================
+ Command                              URL Source             Version Discovery       
+=================================== ===================== =========================
+ ``spack checksum <package>``       ``url`` field only    | Crawls for all versions
+ ``spack checksum <package>@3.12``  ``url`` field only    | Crawls for matching 
+                                                               versions               
+ ``spack checksum <package>         Both ``url`` and      | Direct version fetch   
+ 3.12.0 3.12.1``                    ``url_for_version``                         
+=================================== ===================== ==========================
 
 
 """""""""""""""""""""""
