@@ -327,6 +327,12 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     )
 
     variant(
+        "python-bindings",
+        description="Also build the Python bindings for Chapel frontend (requires LLVM)",
+        default=False,
+    )
+
+    variant(
         "re2",
         description="Build with re2 support",
         default="bundled",
@@ -492,6 +498,13 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "https://chapel-lang.org/docs/usingchapel/chplenv.html#chpl-host-jemalloc",
     )
 
+    conflicts(
+        "llvm=none",
+        when="+python-bindings",
+        msg="Python bindings require building with LLVM, see "
+        "https://chapel-lang.org/docs/tools/chapel-py/chapel-py.html#installation",
+    )
+
     with when("llvm=none"):
         conflicts("+cuda", msg="Cuda support requires building with LLVM")
         conflicts("+rocm", msg="ROCm support requires building with LLVM")
@@ -536,6 +549,13 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     depends_on("gasnet conduits=none", when="gasnet=spack")
     depends_on("gasnet@2024.5.0: conduits=none", when="@2.1.0: gasnet=spack")
 
+    extends("python", when="+python-bindings")
+    requires(
+        "%clang",
+        "%apple-clang",
+        when="+python-bindings",
+        policy="one_of")
+
     depends_on("python@3.7:")
     depends_on("cmake@3.16:")
 
@@ -565,9 +585,15 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
             env.unset(var)
 
     def build(self, spec, prefix):
-        make()
-        if spec.variants["chpldoc"].value:
-            make("chpldoc")
+        with set_env(CHPL_HOME=self.build_directory):
+            with set_env(CHPL_MAKE_THIRD_PARTY=join_path(self.build_directory, "third-party")):
+                if spec.satisfies("+chpldoc"):
+                    make("chpldoc")
+                if spec.satisfies("+python-bindings"):
+                    make("chapel-py-venv")
+                    python("-m", "ensurepip", "--default-pip")
+                    python("-m", "pip", "install", "tools/chapel-py")
+                make()
 
     def setup_chpl_platform(self, env):
         if self.spec.variants["host_platform"].value == "unset":
@@ -729,6 +755,10 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         env.prepend_path(
             "PATH", join_path(self.prefix.share, "chapel", self._output_version_short, "util")
         )
+        if self.spec.satisfies("+python-bindings"):
+            env.prepend_path(
+                "LD_LIBRARY_PATH", join_path(self.prefix.lib, "chapel", self._output_version_short, "compiler")
+            )
 
     @property
     @llnl.util.lang.memoized
