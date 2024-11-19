@@ -28,6 +28,7 @@ class PyHist(PythonPackage):
     variant("fit", default=False, description="Add support for fitting histograms", when="@2.7.1:")
 
     depends_on("python@3.7:", type=("build", "run"))
+    depends_on("python@3.8:", type=("build", "run"), when="@2.8.0:")
     with when("@:2.6.1"):
         depends_on("py-setuptools@45:", type="build")
         depends_on("py-setuptools-scm@3.4:+toml", type="build")
