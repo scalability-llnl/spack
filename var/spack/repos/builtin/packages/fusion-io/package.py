@@ -43,4 +43,3 @@ class FusionIo(CMakePackage):
             args.append(self.define("PYTHON_MODULE_INSTALL_PATH", python_platlib))
 
         return args
-
