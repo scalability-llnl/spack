@@ -10,11 +10,8 @@ import pathlib
 import re
 import shutil
 import stat
-import urllib.parse
-import urllib.request
 import warnings
 
-# TLD from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import llnl.util.filesystem as fs
@@ -33,8 +30,6 @@ import spack.filesystem_view as fsv
 import spack.hash_types as ht
 import spack.paths
 import spack.repo
-import spack.schema.env
-import spack.schema.merged
 import spack.spec
 import spack.spec_list
 import spack.store
@@ -48,7 +43,7 @@ import spack.util.spack_yaml as syaml
 import spack.util.url
 from spack import traverse
 from spack.installer import PackageInstaller
-from spack.schema.env import TOP_LEVEL_KEY
+from spack.schema.env import TOP_LEVEL_KEY, schema, update
 from spack.spec import Spec
 from spack.spec_list import SpecList
 from spack.util.path import substitute_path_variables
@@ -537,14 +532,14 @@ def _read_yaml(str_or_file):
         )
 
     filename = getattr(str_or_file, "name", None)
-    spack.config.validate(data, spack.schema.env.schema, filename)
+    spack.config.validate(data, schema, filename)
     return data
 
 
 def _write_yaml(data, str_or_file):
     """Write YAML to a file preserving comments and dict order."""
     filename = getattr(str_or_file, "name", None)
-    spack.config.validate(data, spack.schema.env.schema, filename)
+    spack.config.validate(data, schema, filename)
     syaml.dump_config(data, str_or_file, default_flow_style=False)
 
 
@@ -1532,8 +1527,8 @@ class Environment:
         return new_user_specs, kept_user_specs, specs_to_concretize
 
     def _concretize_together_where_possible(self, tests: bool = False) -> Sequence[SpecPair]:
-        # Avoid cyclic dependency
-        import spack.solver.asp
+        # # Avoid cyclic dependency
+        # import spack.solver.asp
 
         # Exit early if the set of concretized specs is the set of user specs
         new_user_specs, _, specs_to_concretize = self._get_specs_to_concretize()
@@ -2512,7 +2507,7 @@ def update_yaml(manifest, backup_file):
         data = syaml.load(f)
 
     top_level_key = _top_level_key(data)
-    needs_update = spack.schema.env.update(data[top_level_key])
+    needs_update = update(data[top_level_key])
     if not needs_update:
         msg = "No update needed [manifest={0}]".format(manifest)
         tty.debug(msg)
@@ -2559,7 +2554,7 @@ def is_latest_format(manifest):
     except (OSError, IOError):
         return True
     top_level_key = _top_level_key(data)
-    changed = spack.schema.env.update(data[top_level_key])
+    changed = update(data[top_level_key])
     return not changed
 
 
@@ -2933,10 +2928,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         scopes: List[spack.config.ConfigScope] = [
             *included_scopes,
             spack.config.SingleFileScope(
-                self.scope_name,
-                str(self.manifest_file),
-                spack.schema.env.schema,
-                yaml_path=[TOP_LEVEL_KEY],
+                self.scope_name, str(self.manifest_file), schema, yaml_path=[TOP_LEVEL_KEY]
             ),
         ]
         ensure_no_disallowed_env_config_mods(scopes)

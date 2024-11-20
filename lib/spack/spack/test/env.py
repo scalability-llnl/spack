@@ -12,6 +12,7 @@ import llnl.util.filesystem as fs
 
 import spack.config
 import spack.environment as ev
+import spack.platforms
 import spack.solver.asp
 import spack.spec
 from spack.environment.environment import (
