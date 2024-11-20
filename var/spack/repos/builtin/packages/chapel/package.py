@@ -73,6 +73,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     depends_on("cxx", type="build")  # generated
 
     patch("fix_spack_cc_wrapper_in_cray_prgenv.patch", when="@2.0.0:")
+    patch("fix_chpl_shared_lib_path.patch")
 
     launcher_names = (
         "amudprun",
@@ -505,16 +506,14 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "https://chapel-lang.org/docs/usingchapel/chplenv.html#chpl-host-jemalloc",
     )
 
-    conflicts(
-        "llvm=none",
-        when="+python-bindings",
-        msg="Python bindings require building with LLVM, see "
-        "https://chapel-lang.org/docs/tools/chapel-py/chapel-py.html#installation",
-    )
-
     with when("llvm=none"):
         conflicts("+cuda", msg="Cuda support requires building with LLVM")
         conflicts("+rocm", msg="ROCm support requires building with LLVM")
+        conflicts(
+            "+python-bindings",
+            msg="Python bindings require building with LLVM, see "
+            "https://chapel-lang.org/docs/tools/chapel-py/chapel-py.html#installation",
+        )
 
     # Add dependencies
 
@@ -558,10 +557,8 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     with when("+python-bindings"):
         extends("python")
-        requires("%clang", "%apple-clang", policy="one_of")
 
     depends_on("python@3.7:")
-    depends_on("chrpath", type=("build",))
     depends_on("cmake@3.16:")
 
     # ensure we can map the spack compiler name to one of the ones we recognize
@@ -588,64 +585,6 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         # Clean the environment from any pre-set CHPL_ variables that affect the build
         for var in self.chpl_env_vars:
             env.unset(var)
-
-    def get_path(self, s: str) -> typing.List[str]:
-        get_path_pat = re.compile(r"(?:RUNPATH|RPATH)=(.*)")
-        m = re.search(get_path_pat, s)
-        if m:
-            paths = m.group(1).split(":")
-            paths = [p.strip() for p in paths if p.strip() != ""]
-            return paths
-        return []
-
-    # Some chapel build scripts depend on CHPL_HOME, this can get encoded into
-    # the frontend library rpaths. this is problematic for the python
-    # bindings which get installed in virtualenv provided by spack. This script
-    # will fix the rpath of the chapel frontend library after installation
-    @run_after("install")
-    def fix_rpath(self):
-        files = []
-        # find all .so in the old lib path
-        for f in glob.glob(
-            join_path(self.prefix.lib, "chapel", str(self._output_version_short), "**", "*.so"),
-            recursive=True,
-        ):
-            files.append(f)
-
-        for f in glob.glob(
-            join_path(self.spec["python-venv"].prefix.lib, "**", "chapel", "*.so"), recursive=True
-        ):
-            files.append(f)
-
-        for f in files:
-            cp = subprocess.run(
-                ["chrpath", "-l", f],
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-            )
-            path = cp.stdout.strip()
-            path = self.get_path(path)
-            new_path = []
-            # clean path
-            for p in path:
-                if p == self.prefix.lib64:
-                    continue
-                if p.startswith(str(self.build_directory)):
-                    new_path.append(
-                        str(
-                            join_path(
-                                self.prefix.lib, "chapel", self._output_version_short, "compiler"
-                            )
-                        )
-                    )
-                else:
-                    new_path.append(p)
-            # remove duplicates
-            new_path = list(set(new_path))
-            path = ":".join(new_path)
-            if path:
-                subprocess.check_call(["chrpath", "-r", path, f])
 
     def build(self, spec, prefix):
         with set_env(CHPL_MAKE_THIRD_PARTY=join_path(self.build_directory, "third-party")):
@@ -812,6 +751,8 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     def setup_build_environment(self, env):
         self.unset_chpl_env_vars(env)
         self.setup_env_vars(env)
+        chpl_lib = join_path(self.prefix.lib, "chapel", self._output_version_short, "compiler")
+        env.set("CHPL_SPACK_LIB_INSTALL", chpl_lib)
 
     def setup_run_environment(self, env):
         self.setup_env_vars(env)

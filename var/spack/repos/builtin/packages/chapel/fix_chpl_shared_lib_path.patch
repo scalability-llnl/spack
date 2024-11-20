@@ -1,0 +1,20 @@
+diff --git a/tools/chapel-py/setup.py b/tools/chapel-py/setup.py
+index bee452790c..09c16fbda3 100644
+--- a/tools/chapel-py/setup.py
++++ b/tools/chapel-py/setup.py
+@@ -25,6 +25,7 @@ import sys
+ import glob
+
+ chpl_home = str(os.getenv("CHPL_HOME"))
++chpl_lib_install = str(os.getenv("CHPL_SPACK_LIB_INSTALL"))
+ chpl_printchplenv = os.path.join(chpl_home, "util", "printchplenv")
+ chpl_variables_lines = (
+     subprocess.check_output(
+@@ -67,6 +68,7 @@ LDFLAGS += [
+     "-lChplFrontendShared",
+     "-Wl,-rpath",
+     chpl_lib_path,
++    "-Wl,-rpath,{}".format(chpl_lib_install),
+ ]
+
+ if str(chpl_variables.get("CHPL_SANITIZE")) == "address":
