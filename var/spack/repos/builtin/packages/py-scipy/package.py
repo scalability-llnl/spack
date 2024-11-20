@@ -189,6 +189,13 @@ class PyScipy(PythonPackage):
     # Additional changes needed for scipy-1.8.0
     patch("use_stdc_no_threads_scipy180_addon.patch", when="@1.8: platform=darwin %gcc")
 
+    # https://github.com/scipy/scipy/issues/21884
+    patch(
+        "https://github.com/scipy/scipy/commit/ab7d08c6148286059f6498ab5c3070268d13cbd9.patch?full_index=1",
+        sha256="37209324c6c2d9bf9284bf4726ec3ea7ecafabf736c7a72cf6789af97aebd30b",
+        when="@1.8.0:1.14.0",
+    )
+
     @property
     def archive_files(self):
         return [join_path(self.stage.source_path, "build", "meson-logs", "meson-log.txt")]
