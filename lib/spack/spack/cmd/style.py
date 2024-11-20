@@ -441,7 +441,7 @@ def _run_import_check(
             module = _module_part(root, m.group(0))
             if not module or module in to_add:
                 continue
-            if re.search(rf"import {re.escape(module)}(?!\.)", contents):
+            if re.search(rf"import {re.escape(module)}\b(?!\.)", contents):
                 continue
             to_add.add(module)
             exit_code = 1
