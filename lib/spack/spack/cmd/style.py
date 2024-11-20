@@ -38,7 +38,7 @@ exclude_directories = [os.path.relpath(spack.paths.external_path, spack.paths.pr
 #: double-check the results of other tools (if, e.g., --fix was provided)
 #: The list maps an executable name to a method to ensure the tool is
 #: bootstrapped or present in the environment.
-tool_names = ["import-check", "isort", "black", "flake8", "mypy"]
+tool_names = ["import", "isort", "black", "flake8", "mypy"]
 
 #: warnings to ignore in mypy
 mypy_ignores = [
@@ -389,7 +389,7 @@ def _run_import_check(
     out=sys.stdout,
 ):
     if sys.version_info < (3, 9):
-        print("import-check requires Python 3.9 or later")
+        print("import check requires Python 3.9 or later")
         return 0
 
     is_use = re.compile(r"(?<!from )(?<!import )(?:llnl|spack)\.[a-zA-Z0-9_\.]+")
@@ -465,7 +465,7 @@ def _run_import_check(
     return exit_code
 
 
-@tool("import-check", external=False)
+@tool("import", external=False)
 def run_import_check(import_check_cmd, file_list, args):
     exit_code = _run_import_check(
         file_list,
@@ -474,7 +474,7 @@ def run_import_check(import_check_cmd, file_list, args):
         root=args.root,
         working_dir=args.initial_working_dir,
     )
-    print_tool_result("import-check", exit_code)
+    print_tool_result("import", exit_code)
     return exit_code
 
 

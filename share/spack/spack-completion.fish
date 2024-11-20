@@ -2908,9 +2908,9 @@ complete -c spack -n '__fish_spack_using_command style' -s f -l fix -d 'format a
 complete -c spack -n '__fish_spack_using_command style' -l root -r -f -a root
 complete -c spack -n '__fish_spack_using_command style' -l root -r -d 'style check a different spack instance'
 complete -c spack -n '__fish_spack_using_command style' -s t -l tool -r -f -a tool
-complete -c spack -n '__fish_spack_using_command style' -s t -l tool -r -d 'specify which tools to run (default: import-check, isort, black, flake8, mypy)'
+complete -c spack -n '__fish_spack_using_command style' -s t -l tool -r -d 'specify which tools to run (default: import, isort, black, flake8, mypy)'
 complete -c spack -n '__fish_spack_using_command style' -s s -l skip -r -f -a skip
-complete -c spack -n '__fish_spack_using_command style' -s s -l skip -r -d 'specify tools to skip (choose from import-check, isort, black, flake8, mypy)'
+complete -c spack -n '__fish_spack_using_command style' -s s -l skip -r -d 'specify tools to skip (choose from import, isort, black, flake8, mypy)'
 
 # spack tags
 set -g __fish_spack_optspecs_spack_tags h/help i/installed a/all

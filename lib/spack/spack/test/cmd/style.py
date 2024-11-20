@@ -295,7 +295,7 @@ def test_style_with_black(flake8_package_with_errors):
 
 
 def test_skip_tools():
-    output = style("--skip", "import-check,isort,mypy,black,flake8")
+    output = style("--skip", "import,isort,mypy,black,flake8")
     assert "Nothing to run" in output
 
 
