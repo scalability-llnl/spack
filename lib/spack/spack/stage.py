@@ -812,10 +812,12 @@ class StageComposite(pattern.Composite):
 class DevelopStage(LockableStagingDir):
     requires_patch_success = False
 
-    def __init__(self, name, dev_path, reference_link):
+    def __init__(self, name, dev_path, reference_link,
+                 mirror_id: Optional[str] = None):
         super().__init__(name=name, path=None, keep=False, lock=True)
         self.dev_path = dev_path
         self.source_path = dev_path
+        self.mirror_id = mirror_id
 
         # The path of a link that will point to this stage
         if os.path.isabs(reference_link):
@@ -869,6 +871,34 @@ class DevelopStage(LockableStagingDir):
 
     def cache_local(self):
         tty.debug("Sources for Develop stages are not cached")
+
+    def cache_mirror(
+        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirror.MirrorStats"
+    ) -> None:
+        if not self.mirror_id:
+            raise ValueError()
+        absolute_storage_path = os.path.join(mirror.root, self.mirror_id) + ".tar.gz"
+
+        if os.path.exists(absolute_storage_path):
+            stats.already_existed(absolute_storage_path)
+        else:
+            import spack.util.archive
+            import pathlib
+
+            # This is essentially the logic of `VCSFetchStrategy.archive`
+            base = os.path.basename(self.dev_path)
+            with spack.util.archive.gzip_compressed_tarfile(absolute_storage_path) as (
+                tar,
+                _,
+                _,
+            ):
+                spack.util.archive.reproducible_tarfile_from_prefix(
+                    tar,
+                    self.dev_path,
+                    path_to_name=lambda path: (base / pathlib.PurePath(path)).as_posix(),
+                )
+
+            stats.added(absolute_storage_path)
 
 
 def ensure_access(file):

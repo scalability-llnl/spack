@@ -864,6 +864,36 @@ class TestDevelopStage:
         srctree2 = _create_tree_from_dir_recursive(srcdir)
         assert srctree2 == devtree
 
+    def test_mirror_develop_stage(self, develop_path, tmp_build_stage_dir, tmpdir):
+        import spack.caches
+        import spack.mirror
+        import llnl.util.filesystem
+        import spack.util.compression
+
+        name_of_archive = "dev-src-content"
+
+        dst_cache = tmpdir.join("mirror")
+        dst_cache.ensure(dir=True)
+
+        devtree, srcdir = develop_path
+        stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage", mirror_id="dev-src-content")
+        cache = spack.caches.MirrorCache(root=dst_cache, skip_unstable_versions=False)
+        stats = spack.mirror.MirrorStats()
+        stage.cache_mirror(cache, stats)
+
+        the_resulting_archive = os.path.join(dst_cache, name_of_archive + ".tar.gz")
+
+        decomp_sandbox = tmpdir.join("decompressed")
+        decomp_sandbox.ensure(dir=True)
+        with llnl.util.filesystem.working_dir(decomp_sandbox):
+            decompressor = spack.util.compression.decompressor_for(the_resulting_archive)
+            decompressor(the_resulting_archive)
+
+        import pdb; pdb.set_trace()
+
+        the_resulting_expanded = os.path.join(decomp_sandbox, os.path.basename(srcdir))
+        assert devtree == _create_tree_from_dir_recursive(the_resulting_expanded)
+
 
 def test_stage_create_replace_path(tmp_build_stage_dir):
     """Ensure stage creation replaces a non-directory path."""
