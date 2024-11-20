@@ -437,10 +437,11 @@ def _run_import_check(
             module = _module_part(root, m.group(0))
             if not module or module in to_add:
                 continue
-            if f"import {module}" not in filtered_contents:
-                to_add.add(module)
-                exit_code = 1
-                print(f"{pretty_path}: missing import: {module}", file=out)
+            if re.search(rf"import {re.escape(module)}(?!\.)", contents):
+                continue
+            to_add.add(module)
+            exit_code = 1
+            print(f"{pretty_path}: missing import: {module}", file=out)
 
         if not fix or not to_add and not to_remove:
             continue
