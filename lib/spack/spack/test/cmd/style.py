@@ -389,3 +389,11 @@ def test_run_import_check_syntax_error_and_missing(tmp_path: pathlib.Path):
     assert "syntax-error.py: could not parse" in output
     assert "missing.py: could not parse" in output
     assert exit_code == 1
+
+
+def test_case_sensitive_imports(tmp_path: pathlib.Path):
+    # example.Example is a name, while example.example is a module.
+    (tmp_path / "lib" / "spack" / "example").mkdir(parents=True)
+    (tmp_path / "lib" / "spack" / "example" / "__init__.py").write_text("class Example:\n    pass")
+    (tmp_path / "lib" / "spack" / "example" / "example.py").write_text("foo = 1")
+    assert spack.cmd.style._module_part(str(tmp_path), "example.Example") == "example"

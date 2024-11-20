@@ -373,7 +373,13 @@ def _module_part(root: str, expr: str):
     while parts:
         f1 = os.path.join(root, "lib", "spack", *parts) + ".py"
         f2 = os.path.join(root, "lib", "spack", *parts, "__init__.py")
-        if os.path.exists(f1) or os.path.exists(f2):
+
+        if (
+            os.path.exists(f1)
+            # ensure case sensitive match
+            and f"{parts[-1]}.py" in os.listdir(os.path.dirname(f1))
+            or os.path.exists(f2)
+        ):
             return ".".join(parts)
         parts.pop()
     return None
