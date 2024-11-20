@@ -12,7 +12,7 @@ from datetime import date
 import pytest
 
 import llnl.util.tty as tty
-from llnl.util.filesystem import join_path, touch, touchp
+from llnl.util.filesystem import join_path, mkdirp, touch, touchp
 
 import spack
 import spack.config
@@ -26,6 +26,7 @@ import spack.repo
 import spack.schema.compilers
 import spack.schema.config
 import spack.schema.env
+import spack.schema.include
 import spack.schema.mirrors
 import spack.schema.repos
 import spack.spec
@@ -1038,6 +1039,16 @@ config:
         )
 
 
+def test_bad_include_yaml(tmpdir):
+    with pytest.raises(spack.config.ConfigFormatError, match="is not of type"):
+        check_schema(
+            spack.schema.include.schema,
+            """\
+include: $HOME/include.yaml
+""",
+        )
+
+
 def test_bad_mirrors_yaml(tmpdir):
     with pytest.raises(spack.config.ConfigFormatError):
         check_schema(
@@ -1391,6 +1402,75 @@ def test_config_fetch_remote_configs_skip(
         path = spack.config.fetch_remote_configs(url, dest_dir, skip)
         result_filename = path if path.endswith(".yaml") else join_path(path, filename)
         check_contents(result_filename, expected)
+
+
+def test_include_cfg(mock_low_high_config, write_config_file, tmpdir):
+    cfg1_path = str(tmpdir.join("include1.yaml"))
+    with open(cfg1_path, "w") as f:
+        f.write(
+            """\
+config:
+  verify_ssl: False
+  dirty: True
+packages:
+  python:
+    require:
+    - spec: "@3.11:"
+"""
+        )
+
+    def python_cfg(_spec):
+        return f"""\
+packages:
+  python:
+    require:
+    - spec: {_spec}
+"""
+
+    def write_python_cfg(_spec, _cfg_name):
+        cfg_path = str(tmpdir.join(_cfg_name))
+        with open(cfg_path, "w") as f:
+            f.write(python_cfg(_spec))
+        return cfg_path
+
+    # This config will not be included
+    cfg2_path = write_python_cfg("+shared", "include2.yaml")
+
+    # The config will point to this using substitutable variables,
+    # namely $os; we expect that Spack resolves these variables
+    # into the actual path of the config
+    this_os = spack.platforms.host().default_os
+    cfg3_expanded_path = os.path.join(str(tmpdir), f"{this_os}", "include3.yaml")
+    mkdirp(os.path.dirname(cfg3_expanded_path))
+    with open(cfg3_expanded_path, "w") as f:
+        f.write(python_cfg("+ssl"))
+    cfg3_abstract_path = os.path.join(str(tmpdir), "$os", "include3.yaml")
+
+    # This will be included unconditionally
+    cfg4_path = write_python_cfg("+tk", "include4.yaml")
+
+    # This config will not exist, and the config will explicitly
+    # allow this
+    cfg5_path = os.path.join(str(tmpdir), "non-existent.yaml")
+
+    include_entries = [
+        {"path": f"{cfg1_path}", "when": f'os == "{this_os}"'},
+        {"path": f"{cfg2_path}", "when": "False"},
+        {"path": cfg3_abstract_path},
+        cfg4_path,
+        {"path": cfg5_path, "optional": True},
+    ]
+    include_cfg = {"include": include_entries}
+    write_config_file("include", include_cfg, "low")
+
+    assert not spack.config.get("config:dirty")
+
+    spack.config.update_config_with_includes()
+
+    assert spack.config.get("config:dirty")
+    python_reqs = spack.config.get("packages")["python"]["require"]
+    req_specs = set(x["spec"] for x in python_reqs)
+    assert req_specs == set(["@3.11:", "+ssl", "+tk"])
 
 
 def test_config_file_dir_failure(tmpdir, mutable_empty_config):
