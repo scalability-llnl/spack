@@ -27,7 +27,7 @@ ALLOW_UNRESOLVED = [
     # musl libc
     "ld-musl-*.so.*",
     # glibc
-    "ld-linux-*.so.*",
+    "ld-linux*.so.*",
     "ld64.so.*",
     "libc.so.*",
     "libdl.so.*",
