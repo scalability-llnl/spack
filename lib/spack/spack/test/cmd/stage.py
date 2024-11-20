@@ -172,7 +172,6 @@ def test_stage_spec_filters(
             if spec.satisfies(Spec(exc)):
                 should_be_filtered.append(spec)
 
-    # the least restrictive filter
     filter = StageFilter(exclusions, skip_installed=skip_installed)
     specs_to_stage = [s for s in all_specs if not filter(s)]
     specs_were_filtered = [skip not in specs_to_stage for skip in should_be_filtered]
