@@ -21,7 +21,6 @@ from llnl.string import plural
 from llnl.util.lang import nullcontext
 from llnl.util.tty.color import colorize
 
-import spack.build_environment
 import spack.config
 import spack.error
 import spack.package_base
@@ -398,7 +397,7 @@ class PackageTest:
         Args:
             kwargs (dict): arguments to be used by the test process
         """
-        import spack.build_environment
+        import spack.build_environment  # avoid circular dependency
 
         spack.build_environment.start_build_process(self.pkg, test_process, kwargs)
 
@@ -463,6 +462,8 @@ class PackageTest:
 
 @contextlib.contextmanager
 def test_part(pkg: Pb, test_name: str, purpose: str, work_dir: str = ".", verbose: bool = False):
+    import spack.build_environment  # avoid circular dependency
+
     wdir = "." if work_dir is None else work_dir
     tester = pkg.tester
     assert test_name and test_name.startswith(

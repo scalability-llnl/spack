@@ -42,7 +42,6 @@ from llnl.util import filesystem, lang, tty
 
 import spack.error
 import spack.paths
-import spack.platforms
 import spack.schema
 import spack.schema.bootstrap
 import spack.schema.cdash
@@ -54,6 +53,7 @@ import spack.schema.definitions
 import spack.schema.develop
 import spack.schema.env
 import spack.schema.include
+import spack.schema.merged
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
@@ -63,10 +63,9 @@ import spack.schema.view
 
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
-import spack.util.web as web_util
 import spack.util.url
 from spack.util.cpus import cpus_available
-from spack.util.path import substitute_path_variables
+from spack.util.path import canonicalize_path, substitute_path_variables
 
 #: Dict from section names -> schema for that section
 SECTION_SCHEMAS: Dict[str, Any] = {
@@ -465,7 +464,7 @@ def scopes_from_paths(
                     if basename.endswith(".yaml"):
                         config_path = os.path.join(config_path, basename)
                 else:
-                    staged_path = spack.config.fetch_remote_configs(
+                    staged_path = fetch_remote_configs(
                         config_path, str(config_stage_dir), skip_existing=True
                     )
                     if not staged_path:
@@ -524,7 +523,8 @@ def included_config_scopes(
 
     Returns: included configuration scopes
     """
-    # includes = spack.config.get("include")
+    import spack.environment.environment as env  # circular import
+
     includes = get("include")
     if not includes:
         return []
@@ -548,7 +548,7 @@ def included_config_scopes(
         if not optional:
             required_paths.append(path)
 
-        if always_activate or _eval_conditional(when_str):
+        if always_activate or env._eval_conditional(when_str):
             include_paths.append(path)
 
     return scopes_from_paths(
@@ -936,6 +936,8 @@ def override(
 
 def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool = True) -> None:
     """Add a platform-specific subdirectory for the current platform."""
+    import spack.platforms  # circular dependency
+
     platform = spack.platforms.host().name
     scope = DirectoryConfigScope(
         f"{name}/{platform}", os.path.join(path, platform), writable=writable
@@ -948,6 +950,8 @@ def update_config_with_includes():
     configurations to include. This does not handle recursive includes
     (i.e. if an included config defines an "include:" section).
     """
+    import spack.environment.environment as env  # circular import
+
     includes = CONFIG.get("include")
     if not includes:
         return
@@ -967,13 +971,13 @@ def update_config_with_includes():
                 always_activate = True
             optional |= entry.get("optional", False)
 
-        include_path = spack.util.path.canonicalize_path(include_path)
+        include_path = canonicalize_path(include_path)
         if not os.path.exists(include_path) and not optional:
             raise ValueError(
                 f"Specified include path does not exist and is not optional: {include_path}"
             )
 
-        activate = always_activate or spack.environment.environment._eval_conditional(when_str)
+        activate = always_activate or env._eval_conditional(when_str)
         if activate and os.path.exists(include_path):
             to_add.append(include_path)
 
@@ -1691,6 +1695,8 @@ def collect_urls(base_url: str) -> list:
     Returns:
         List of configuration file(s) or empty list if none
     """
+    import spack.util.web as web_util  # circular import
+
     if not base_url:
         return []
 
@@ -1720,6 +1726,7 @@ def fetch_remote_configs(url: str, dest_dir: str, skip_existing: bool = True) ->
         the root (dest_dir) directory if multiple configuration files exist
         or are retrieved.
     """
+    import spack.util.web as web_util  # circular import
 
     def _fetch_file(url):
         raw = raw_github_gitlab_url(url)
