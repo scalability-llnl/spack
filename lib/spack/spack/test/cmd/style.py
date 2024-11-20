@@ -401,3 +401,8 @@ def test_case_sensitive_imports(tmp_path: pathlib.Path):
     (tmp_path / "lib" / "spack" / "example" / "__init__.py").write_text("class Example:\n    pass")
     (tmp_path / "lib" / "spack" / "example" / "example.py").write_text("foo = 1")
     assert spack.cmd.style._module_part(str(tmp_path), "example.Example") == "example"
+
+
+def test_pkg_imports():
+    assert spack.cmd.style._module_part(spack.paths.prefix, "spack.pkg.builtin.boost") is None
+    assert spack.cmd.style._module_part(spack.paths.prefix, "spack.pkg") is None

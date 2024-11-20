@@ -15,6 +15,7 @@ import llnl.util.tty.color as color
 from llnl.util.filesystem import working_dir
 
 import spack.paths
+import spack.repo
 import spack.util.git
 from spack.util.executable import Executable, which
 
@@ -370,6 +371,9 @@ def run_black(black_cmd, file_list, args):
 
 def _module_part(root: str, expr: str):
     parts = expr.split(".")
+    # spack.pkg is for repositories, don't try to resolve it here.
+    if ".".join(parts[:2]) == spack.repo.ROOT_PYTHON_NAMESPACE:
+        return None
     while parts:
         f1 = os.path.join(root, "lib", "spack", *parts) + ".py"
         f2 = os.path.join(root, "lib", "spack", *parts, "__init__.py")
