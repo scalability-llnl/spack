@@ -94,7 +94,7 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
 
     def _in_directories(self, proj_rel_path: str) -> bool:
         """
-        Check if a path is already in the direcrtory list
+        Check if a path is already in the directory list
         """
         return self._normalize_path(proj_rel_path) in self.directories_normalized
 
