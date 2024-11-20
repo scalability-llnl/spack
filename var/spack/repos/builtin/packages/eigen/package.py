@@ -7,17 +7,19 @@
 from spack.package import *
 
 
-class Eigen(CMakePackage):
+class Eigen(CMakePackage, ROCmPackage):
     """Eigen is a C++ template library for linear algebra matrices,
     vectors, numerical solvers, and related algorithms.
     """
 
     homepage = "https://eigen.tuxfamily.org/"
+    git = "https://gitlab.com/libeigen/eigen.git"
     url = "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz"
     maintainers("HaoZeke")
 
     license("MPL-2.0")
 
+    version("master", branch="master")
     version("3.4.0", sha256="8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72")
     version("3.3.9", sha256="7985975b787340124786f092b3a07d594b2e9cd53bbfe5f3d9b1daee7d55f56f")
     version("3.3.8", sha256="146a480b8ed1fb6ac7cd33fec9eb5e8f8f62c3683b3f850094d9d5c35a92419a")
@@ -36,9 +38,12 @@ class Eigen(CMakePackage):
     version("3.2.6", sha256="e097b8dcc5ad30d40af4ad72d7052e3f78639469baf83cffaadc045459cda21f")
     version("3.2.5", sha256="8068bd528a2ff3885eb55225c27237cf5cda834355599f05c2c85345db8338b4")
 
+    variant("nightly", description="run Nightly test", default=False)
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    # Older eigen releases haven't been tested with ROCm
+    conflicts("+rocm @:3.4.0")
 
     # there is a bug that provokes bad parsing of nvhpc version
     patch(
@@ -68,6 +73,7 @@ class Eigen(CMakePackage):
         values=("Debug", "Release", "RelWithDebInfo"),
     )
 
+    depends_on("boost@1.53:", when="@master", type="test")
     # TODO: latex and doxygen needed to produce docs with make doc
     # TODO: Other dependencies might be needed to test this package
 
@@ -80,7 +86,20 @@ class Eigen(CMakePackage):
             # CMake fails without this flag
             # https://gitlab.com/libeigen/eigen/-/issues/1656
             args += [self.define("BUILD_TESTING", "ON")]
+        if self.spec.satisfies("+rocm"):
+            args.append(self.define("ROCM_PATH", self.spec["hip"].prefix))
+            args.append(self.define("HIP_PATH", self.spec["hip"].prefix))
+            args.append(self.define("EIGEN_TEST_HIP", "ON"))
+        if self.spec.satisfies("@master") and self.run_tests:
+            args.append(self.define("Boost_INCLUDE_DIR", self.spec["boost"].prefix.include))
         return args
+
+    def check(self):
+        ctest_args = ["--test-dir", self.builder.build_directory, "--repeat", "until-pass:3"]
+        if self.spec.satisfies("+nightly"):
+            ctest_args.append("-D")
+            ctest_args.append("Nightly")
+        ctest(*ctest_args)
 
     @property
     def headers(self):

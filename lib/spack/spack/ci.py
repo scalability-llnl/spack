@@ -32,6 +32,7 @@ from llnl.util.tty.color import cescape, colorize
 
 import spack
 import spack.binary_distribution as bindist
+import spack.builder
 import spack.concretize
 import spack.config as cfg
 import spack.error
@@ -1387,7 +1388,11 @@ def copy_stage_logs_to_artifacts(job_spec: spack.spec.Spec, job_log_dir: str) ->
 
     stage_dir = job_pkg.stage.path
     tty.debug(f"stage dir: {stage_dir}")
-    for file in [job_pkg.log_path, job_pkg.env_mods_path, *job_pkg.builder.archive_files]:
+    for file in [
+        job_pkg.log_path,
+        job_pkg.env_mods_path,
+        *spack.builder.create(job_pkg).archive_files,
+    ]:
         copy_files_to_artifacts(file, job_log_dir)
 
 

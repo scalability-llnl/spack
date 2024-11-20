@@ -6,6 +6,7 @@
 import os
 import re
 
+import spack.build_environment
 from spack.hooks.sbang import filter_shebang
 from spack.package import *
 from spack.util.prefix import Prefix

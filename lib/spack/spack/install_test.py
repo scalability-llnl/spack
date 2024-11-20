@@ -23,7 +23,6 @@ from llnl.util.lang import nullcontext
 from llnl.util.tty.color import colorize
 
 import spack.build_environment
-import spack.builder
 import spack.config
 import spack.error
 import spack.package_base
@@ -353,9 +352,7 @@ class PackageTest:
         self.test_parts[part_name] = status
         self.counts[status] += 1
 
-    def phase_tests(
-        self, builder: spack.builder.Builder, phase_name: str, method_names: List[str]
-    ):
+    def phase_tests(self, builder, phase_name: str, method_names: List[str]):
         """Execute the builder's package phase-time tests.
 
         Args:
