@@ -80,3 +80,5 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("py-pre-commit@1.18.3:", when="+dev", type=("build", "link", "run"))
     depends_on("py-scikit-learn@0.24.0:", when="+examples", type=("build", "link", "run"))
     depends_on("py-matplotlib@3.1.0:", when="+examples", type=("build", "link", "run"))
+
+    
