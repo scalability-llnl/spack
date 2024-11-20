@@ -6,6 +6,7 @@
 import os
 import re
 
+import spack.fetch_strategy
 from spack.package import *
 from spack.util.environment import is_system_path
 

@@ -131,7 +131,7 @@ class Serialbox(CMakePackage):
             return libs
 
         msg = "Unable to recursively locate {0} libraries in {1}"
-        raise spack.error.NoLibrariesError(msg.format(self.spec.name, self.spec.prefix))
+        raise NoLibrariesError(msg.format(self.spec.name, self.spec.prefix))
 
     def flag_handler(self, name, flags):
         cmake_flags = []

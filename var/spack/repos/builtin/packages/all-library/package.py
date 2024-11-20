@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class All(CMakePackage):
+class AllLibrary(CMakePackage):
     """A Load Balancing Library (ALL)
 
     The library aims to provide an easy way to include dynamic domain-based

@@ -9,7 +9,6 @@ import llnl.util.tty as tty
 
 from spack.package import *
 from spack.util.environment import set_env
-from spack.util.executable import ProcessError
 
 
 class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
@@ -226,7 +225,7 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
             )
 
         with working_dir(test_dir):
-            opts = self.builder.std_cmake_args + self.cmake_args() + ["."]
+            opts = self.std_cmake_args + self.cmake_args() + ["."]
             cmake = self.spec["cmake"].command
             cmake(*opts)
 

@@ -208,12 +208,13 @@ class MiopenHip(CMakePackage):
             args.append("-DROCTRACER_LIB_DIR={0}".format(self.spec["roctracer-dev"].prefix.lib))
             args.append("-DSQLITE_INCLUDE_DIR={0}".format(self.spec["sqlite"].prefix.include))
         if self.spec.satisfies("@6.1:"):
+            args.append(
+                "-DROCTRACER_INCLUDE_DIR={0}".format(self.spec["roctracer-dev"].prefix.include)
+            )
             args.append(self.define("MIOPEN_USE_ROCTRACER", "ON"))
             args.append(
                 self.define(
                     "CMAKE_CXX_FLAGS",
-                    f"-I{self.spec['roctracer-dev'].prefix.include} "
-                    f"-L{self.spec['roctracer-dev'].prefix.roctracer.lib} "
                     f"-I{self.spec['nlohmann-json'].prefix.include} "
                     f"-I{self.spec['sqlite'].prefix.include} ",
                 )
