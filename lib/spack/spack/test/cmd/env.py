@@ -120,9 +120,8 @@ def check_viewdir_removal(viewdir):
 def test_env_track_nonexistant_path_fails(capfd):
     with pytest.raises(spack.main.SpackCommandError):
         env("track", "path/does/not/exist")
-
-    out, _ = capfd.readouterr()
-    assert "doesn't contain an environment" in out
+        out, _ = capfd.readouterr()
+        assert "doesn't contain an environment" in out
 
 
 def test_env_track_existing_env_fails(capfd):
@@ -130,9 +129,8 @@ def test_env_track_existing_env_fails(capfd):
 
     with pytest.raises(spack.main.SpackCommandError):
         env("track", "--name", "track_test", ev.environment_dir_from_name("track_test"))
-
-    out, _ = capfd.readouterr()
-    assert "environment named track_test already exists" in out
+        out, _ = capfd.readouterr()
+        assert "environment named track_test already exists" in out
 
 
 def test_env_track_valid(tmp_path):
@@ -187,9 +185,9 @@ def test_env_untrack_when_active(tmp_path, capfd):
             with pytest.raises(spack.main.SpackCommandError):
                 env("untrack", "--yes-to-all", env_name)
 
-        # check that environment could not be untracked while active
-        out, _ = capfd.readouterr()
-        assert f"'{env_name}' can't be untracked while activated" in out
+                # check that environment could not be untracked while active
+                out, _ = capfd.readouterr()
+                assert f"'{env_name}' can't be untracked while activated" in out
 
         env("untrack", "-f", env_name)
         out = env("ls")
@@ -205,9 +203,9 @@ def test_env_untrack_managed(tmp_path, capfd):
     with pytest.raises(spack.main.SpackCommandError):
         env("untrack", env_name)
 
-    # check that environment could not be untracked while active
-    out, _ = capfd.readouterr()
-    assert f"'{env_name}' is not a tracked env" in out
+        # check that environment could not be untracked while active
+        out, _ = capfd.readouterr()
+        assert f"'{env_name}' is not a tracked env" in out
 
 
 def test_add():
@@ -3062,7 +3060,6 @@ spack:
         assert not os.path.exists(os.path.join(viewdir, pkg))
 
 
-@pytest.mark.not_on_windows("file not available on Windows")
 @pytest.mark.parametrize("link_type", ["hardlink", "copy", "symlink"])
 def test_view_link_type(
     link_type, tmpdir, mock_fetch, mock_packages, mock_archive, install_mockery
@@ -3476,6 +3473,7 @@ spack:
     env("update", "-y", str(abspath.dirname))
 
 
+@pytest.mark.not_on_windows("modules unsupported on Windows")
 @pytest.mark.regression("18338")
 def test_newline_in_commented_sequence_is_not_an_issue(tmpdir):
     spack_yaml = """
