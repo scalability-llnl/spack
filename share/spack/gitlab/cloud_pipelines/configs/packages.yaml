@@ -1,3 +1,0 @@
-packages:
-  python:
-    require: '@3.12:'
