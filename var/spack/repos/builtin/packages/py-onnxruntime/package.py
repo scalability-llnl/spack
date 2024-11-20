@@ -7,7 +7,7 @@ from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
-class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage, CUDAPackage):
+class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage, CudaPackage):
     """ONNX Runtime is a performance-focused complete scoring
     engine for Open Neural Network Exchange (ONNX) models, with
     an open extensible architecture to continually address the
