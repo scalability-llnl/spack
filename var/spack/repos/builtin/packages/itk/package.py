@@ -81,6 +81,7 @@ class Itk(CMakePackage):
             self.define("BUILD_TESTING", False),
             self.define("BUILD_SHARED_LIBS", True),
             self.define("ITK_USE_SYSTEM_LIBRARIES", True),
+            # https://github.com/InsightSoftwareConsortium/ITK/issues/303
             self.define("ITK_USE_SYSTEM_GOOGLETEST", False),
             self.define("ITK_USE_MKL", use_mkl),
             self.define_from_variant("Module_ITKReview", "review"),
