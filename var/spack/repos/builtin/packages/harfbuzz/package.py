@@ -24,6 +24,7 @@ class Harfbuzz(MesonPackage, AutotoolsPackage):
 
     license("MIT")
 
+    version("10.1.0", sha256="6ce3520f2d089a33cef0fc48321334b8e0b72141f6a763719aaaecd2779ecb82")
     version("10.0.1", sha256="b2cb13bd351904cb9038f907dc0dee0ae07127061242fe3556b2795c4e9748fc")
     version("10.0.0", sha256="c2dfe016ad833a5043ecc6579043f04e8e6d50064e02ad449bb466e6431e3e04")
     version("9.0.0", sha256="a41b272ceeb920c57263ec851604542d9ec85ee3030506d94662067c7b6ab89e")

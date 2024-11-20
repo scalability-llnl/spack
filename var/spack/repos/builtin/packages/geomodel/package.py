@@ -73,11 +73,14 @@ class Geomodel(CMakePackage):
 
     depends_on("geant4", when="+geomodelg4")
     depends_on("geant4", when="+fullsimlight")
+    depends_on("hdf5+cxx", when="+fullsimlight")
     depends_on("hepmc3", when="+hepmc3")
     depends_on("pythia8", when="+pythia")
     with when("+visualization"):
-        depends_on("hdf5")
-        depends_on("qt-base +gui +opengl +sql +widgets")
+        depends_on("hdf5+cxx")
+        depends_on("qt +gui +opengl +sql")
+        depends_on("coin3d")
+        depends_on("soqt")
         depends_on("opengl")
 
     def cmake_args(self):

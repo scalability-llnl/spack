@@ -398,6 +398,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
         if "+cuda" in spec:
             args.append(define("CMAKE_CUDA_ARCHITECTURES", spec.variants["cuda_arch"].value))
+            args.append(define("CUDAToolkit_ROOT", self.spec["cuda"].prefix))
 
         if "+rocm" in spec:
             args.extend(

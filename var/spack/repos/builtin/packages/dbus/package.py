@@ -31,6 +31,7 @@ class Dbus(AutotoolsPackage, MesonPackage):
     )
 
     # Note: odd minor versions are unstable, keep last stable version preferred
+    version("1.15.12", sha256="0589c9c707dd593e31f0709caefa5828e69c668c887a7c0d2e5ba445a86bae4d")
     version("1.15.10", sha256="f700f2f1d0473f11e52f3f3e179f577f31b85419f9ae1972af8c3db0bcfde178")
     version(
         "1.14.10",
