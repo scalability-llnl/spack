@@ -876,7 +876,7 @@ class TestDevelopStage:
         dst_cache.ensure(dir=True)
 
         devtree, srcdir = develop_path
-        stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage", mirror_id="dev-src-content")
+        stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage", mirror_id=name_of_archive)
         cache = spack.caches.MirrorCache(root=dst_cache, skip_unstable_versions=False)
         stats = spack.mirror.MirrorStats()
         stage.cache_mirror(cache, stats)
@@ -889,9 +889,7 @@ class TestDevelopStage:
             decompressor = spack.util.compression.decompressor_for(the_resulting_archive)
             decompressor(the_resulting_archive)
 
-        import pdb; pdb.set_trace()
-
-        the_resulting_expanded = os.path.join(decomp_sandbox, os.path.basename(srcdir))
+        the_resulting_expanded = os.path.join(decomp_sandbox, name_of_archive)
         assert devtree == _create_tree_from_dir_recursive(the_resulting_expanded)
 
 

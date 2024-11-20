@@ -884,17 +884,18 @@ class DevelopStage(LockableStagingDir):
         else:
             import spack.util.archive
             import pathlib
+            import llnl.util.filesystem
 
             # This is essentially the logic of `VCSFetchStrategy.archive`
-            base = os.path.basename(self.dev_path)
-            with spack.util.archive.gzip_compressed_tarfile(absolute_storage_path) as (
+            base = self.mirror_id
+            with llnl.util.filesystem.working_dir(self.dev_path), spack.util.archive.gzip_compressed_tarfile(absolute_storage_path) as (
                 tar,
                 _,
                 _,
             ):
                 spack.util.archive.reproducible_tarfile_from_prefix(
                     tar,
-                    self.dev_path,
+                    prefix=".",
                     path_to_name=lambda path: (base / pathlib.PurePath(path)).as_posix(),
                 )
 
