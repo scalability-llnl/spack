@@ -18,9 +18,9 @@ class PyNonRegressionTestTools(PythonPackage):
 
     version("develop", branch="develop")
     version("main", branch="main")
+    version("1.1.6", tag="v1.1.6")
     version("1.1.4", tag="v1.1.4")
-    version("1.1.2", tag="v1.1.2")
 
     depends_on("py-numpy", type="run")
     depends_on("python@3.10:", type="run")
-    depends_on("py-setuptools@69.2.0:", type="build")
+    depends_on("py-setuptools@61:", type="build")

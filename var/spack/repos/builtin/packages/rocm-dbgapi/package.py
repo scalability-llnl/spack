@@ -19,7 +19,7 @@ class RocmDbgapi(CMakePackage):
     url = "https://github.com/ROCm/ROCdbgapi/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocm-dbgapi"]
 
     license("MIT")
@@ -53,6 +53,7 @@ class RocmDbgapi(CMakePackage):
     depends_on("cxx", type="build")  # generated
     depends_on("cmake@3:", type="build")
     depends_on("hwdata", when="@5.5.0:")
+    depends_on("pciutils", when="@5.5.0:")
 
     for ver in [
         "5.3.0",
@@ -123,4 +124,6 @@ class RocmDbgapi(CMakePackage):
         args = []
         if self.spec.satisfies("@5.3.0:"):
             args.append(self.define("CMAKE_INSTALL_LIBDIR", "lib"))
+        if self.spec.satisfies("@5.5.0:"):
+            args.append(self.define("PCI_IDS_PATH", self.spec["pciutils"].prefix.share))
         return args

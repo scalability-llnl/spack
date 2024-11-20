@@ -22,8 +22,8 @@ from llnl.util.filesystem import (
     install,
 )
 
-import spack.builder
 import spack.error
+import spack.phase_callbacks
 from spack.build_environment import dso_suffix
 from spack.error import InstallError
 from spack.util.environment import EnvironmentModifications
@@ -1163,7 +1163,7 @@ class IntelPackage(Package):
         debug_print(license_type)
         return license_type
 
-    @spack.builder.run_before("install")
+    @spack.phase_callbacks.run_before("install")
     def configure(self):
         """Generates the silent.cfg file to pass to installer.sh.
 
@@ -1250,7 +1250,7 @@ class IntelPackage(Package):
         for f in glob.glob("%s/intel*log" % tmpdir):
             install(f, dst)
 
-    @spack.builder.run_after("install")
+    @spack.phase_callbacks.run_after("install")
     def validate_install(self):
         # Sometimes the installer exits with an error but doesn't pass a
         # non-zero exit code to spack. Check for the existence of a 'bin'
@@ -1258,7 +1258,7 @@ class IntelPackage(Package):
         if not os.path.exists(self.prefix.bin):
             raise InstallError("The installer has failed to install anything.")
 
-    @spack.builder.run_after("install")
+    @spack.phase_callbacks.run_after("install")
     def configure_rpath(self):
         if "+rpath" not in self.spec:
             return
@@ -1276,7 +1276,7 @@ class IntelPackage(Package):
             with open(compiler_cfg, "w") as fh:
                 fh.write("-Xlinker -rpath={0}\n".format(compilers_lib_dir))
 
-    @spack.builder.run_after("install")
+    @spack.phase_callbacks.run_after("install")
     def configure_auto_dispatch(self):
         if self._has_compilers:
             if "auto_dispatch=none" in self.spec:
@@ -1300,7 +1300,7 @@ class IntelPackage(Package):
                 with open(compiler_cfg, "a") as fh:
                     fh.write("-ax{0}\n".format(",".join(ad)))
 
-    @spack.builder.run_after("install")
+    @spack.phase_callbacks.run_after("install")
     def filter_compiler_wrappers(self):
         if ("+mpi" in self.spec or self.provides("mpi")) and "~newdtags" in self.spec:
             bin_dir = self.component_bin_dir("mpi")
@@ -1308,7 +1308,7 @@ class IntelPackage(Package):
                 f = os.path.join(bin_dir, f)
                 filter_file("-Xlinker --enable-new-dtags", " ", f, string=True)
 
-    @spack.builder.run_after("install")
+    @spack.phase_callbacks.run_after("install")
     def uninstall_ism(self):
         # The "Intel(R) Software Improvement Program" [ahem] gets installed,
         # apparently regardless of PHONEHOME_SEND_USAGE_DATA.
@@ -1340,7 +1340,7 @@ class IntelPackage(Package):
         debug_print(d)
         return d
 
-    @spack.builder.run_after("install")
+    @spack.phase_callbacks.run_after("install")
     def modify_LLVMgold_rpath(self):
         """Add libimf.so and other required libraries to the RUNPATH of LLVMgold.so.
 

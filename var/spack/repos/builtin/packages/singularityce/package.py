@@ -8,6 +8,7 @@ import shutil
 
 import llnl.util.tty as tty
 
+import spack.tengine
 from spack.package import *
 
 

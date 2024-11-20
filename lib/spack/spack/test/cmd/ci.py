@@ -17,6 +17,7 @@ from llnl.util.filesystem import mkdirp, working_dir
 import spack
 import spack.binary_distribution
 import spack.ci as ci
+import spack.cmd
 import spack.cmd.ci
 import spack.environment as ev
 import spack.hash_types as ht

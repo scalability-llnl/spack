@@ -11,6 +11,8 @@ import sys
 
 import llnl.util.tty as tty
 
+import spack.compilers
+import spack.version
 from spack.package import *
 
 

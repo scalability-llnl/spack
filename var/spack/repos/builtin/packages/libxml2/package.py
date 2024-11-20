@@ -6,7 +6,6 @@ import os
 
 import llnl.util.filesystem as fs
 
-import spack.builder
 from spack.build_systems import autotools, nmake
 from spack.package import *
 
@@ -225,7 +224,7 @@ class Libxml2(AutotoolsPackage, NMakePackage):
             xmllint("--dtdvalid", dtd_path, data_dir.join("info.xml"))
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class AnyBuilder(BaseBuilder):
     @run_after("install")
     @on_package_attributes(run_tests=True)
     def import_module_test(self):
@@ -234,7 +233,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
                 python("-c", "import libxml2")
 
 
-class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
+class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
     def configure_args(self):
         spec = self.spec
 
@@ -260,7 +259,7 @@ class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
         return args
 
 
-class NMakeBuilder(BaseBuilder, nmake.NMakeBuilder):
+class NMakeBuilder(AnyBuilder, nmake.NMakeBuilder):
     phases = ("configure", "build", "install")
 
     @property

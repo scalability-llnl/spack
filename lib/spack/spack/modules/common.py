@@ -39,7 +39,7 @@ from typing import List, Optional
 
 import llnl.util.filesystem
 import llnl.util.tty as tty
-from llnl.util.lang import dedupe, memoized
+from llnl.util.lang import Singleton, dedupe, memoized
 
 import spack.build_environment
 import spack.config
@@ -246,7 +246,7 @@ def _generate_upstream_module_index():
     return UpstreamModuleIndex(spack.store.STORE.db, module_indices)
 
 
-upstream_module_index = llnl.util.lang.Singleton(_generate_upstream_module_index)
+upstream_module_index = Singleton(_generate_upstream_module_index)
 
 
 ModuleIndexEntry = collections.namedtuple("ModuleIndexEntry", ["path", "use_name"])

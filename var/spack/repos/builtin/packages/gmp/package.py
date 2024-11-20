@@ -26,9 +26,8 @@ class Gmp(AutotoolsPackage, GNUMirrorPackage):
     # Old version needed for a binary package in ghc-bootstrap
     version("4.3.2", sha256="936162c0312886c21581002b79932829aa048cfaf9937c6265aeaa14f1cd1775")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build", when="+cxx")
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

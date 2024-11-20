@@ -9,6 +9,7 @@ import sys
 
 import llnl.util.filesystem as fs
 
+import spack.util.environment
 from spack.package import *
 
 
