@@ -7,7 +7,6 @@
 import filecmp
 import os
 import shutil
-import sys
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import llnl.util.tty as tty
@@ -51,8 +50,13 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
     - A list of merge conflicts in dst/
     """
 
-    def __init__(self, ignore: Optional[Callable[[str], bool]] = None):
+    def __init__(
+        self, ignore: Optional[Callable[[str], bool]] = None, normalize_paths: bool = False
+    ):
         self.ignore = ignore if ignore is not None else lambda f: False
+
+        # On case-insensitive filesystems, normalize paths to detect duplications
+        self.normalize_paths = normalize_paths
 
         # When mapping <src root> to <dst root>/<projection>, we need to prepend the <projection>
         # bit to the relative path in the destination dir.
@@ -78,16 +82,12 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
         self.files: Dict[str, Tuple[str, str]] = {}
         self.files_normalized: Set[str] = set()
 
-    @staticmethod
-    def _normalize_path(path: str) -> str:
+    def _normalize_path(self, path: str) -> str:
         """
         Normalize a path according to the current platform.
-        Assumption: filesystems on darwin are case-insensitive, i.e. FILE1 and file1 will resolve
-        to the same file.
-        One might want to make this more specific by actually testing the filesystem properties,
-        since darwin also has support for other filesystems.
+        This is only done if the init argument `normalize_paths` was set to true by the caller
         """
-        if sys.platform == "darwin":
+        if self.normalize_paths:
             return path.lower()
         else:
             return path

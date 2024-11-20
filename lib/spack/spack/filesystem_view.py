@@ -708,7 +708,13 @@ class SimpleFilesystemView(FilesystemView):
         def skip_list(file):
             return os.path.basename(file) == spack.store.STORE.layout.metadata_dir
 
-        visitor = SourceMergeVisitor(ignore=skip_list)
+        # Determine if the root is on a case-insensitive filesystem
+        sentinel_name = ".sentinel"
+        with open(os.path.join(self._root, sentinel_name), "w") as f:
+            f.write("sentinel")
+        normalize_paths = os.path.exists(os.path.join(self._root, sentinel_name.upper()))
+
+        visitor = SourceMergeVisitor(ignore=skip_list, normalize_paths=normalize_paths)
 
         # Gather all the directories to be made and files to be linked
         for spec in specs:
