@@ -6,10 +6,8 @@
 from spack.package import *
 
 
-class PyHeat(PythonPackage):
-    """Heat is a flexible and seamless open-source software for high performance data analytics
-    and machine learning. It provides highly optimized algorithms and data structures for tensor
-    computations using CPUs, GPUs and distributed cluster systems on top of MPI."""
+class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
+    """HPC data analytics and machine learning for the Python array ecosystem."""
 
     homepage = "https://github.com/helmholtz-analytics/heat/"
     pypi = "heat/heat-1.5.0.tar.gz"
@@ -25,6 +23,7 @@ class PyHeat(PythonPackage):
     version("1.3.1", sha256="8997ddc56a1d3078b44a1e2933adc0a7fbf678bd19bade3ae015bc0e13d40d3b")
     version("1.3.0", sha256="fa247539a559881ffe574a70227d3c72551e7c4a9fb29b0945578d6a840d1c87")
 
+    
     variant("docutils", default=False, description="Use the py-docutils package")
     variant("hdf5", default=False, description="Use the py-h5py package needed for HDF5 support")
     variant(
@@ -39,6 +38,8 @@ class PyHeat(PythonPackage):
     variant("cuda", default=False, description="Build with CUDA support")
     variant("rocm", default=False, description="Build with ROCm support")
 
+    conflicts("+cuda+rocm")
+    
     depends_on("py-setuptools", type="build")
 
     with when("@1.3"):
@@ -49,7 +50,7 @@ class PyHeat(PythonPackage):
         depends_on("py-scipy@0.14:", type=("build", "run"))
         depends_on("pil@6:", type=("build", "run"))
         depends_on("py-torchvision@0.8:", type=("build", "run"))
-        depends_on("py-torch+cuda", when="+cuda", type=("build", "run"))
+        depends_on("py-torch+cuda cuda_arch={}".format(self.spec.variants['cuda_arch'].value), when="+cuda", type=("build", "run"))
         
     with when("@1.4"):
         depends_on("python@3.8:3.11", type=("build", "run"))
@@ -59,7 +60,7 @@ class PyHeat(PythonPackage):
         depends_on("py-scipy@1.10:", type=("build", "run"))
         depends_on("pil@6:", type=("build", "run"))
         depends_on("py-torchvision@0.12:", type=("build", "run"))
-        depends_on("py-torch+cuda", when="+cuda", type=("build", "run"))
+        depends_on("py-torch+cuda cuda_arch={}".format(self.spec.variants['cuda_arch'].value), when="+cuda", type=("build", "run"))
         depends_on("py-torch+rocm", when="+rocm", type=("build", "run"))
 
     with when("@1.5"):
@@ -70,7 +71,7 @@ class PyHeat(PythonPackage):
         depends_on("py-scipy@1.10:", type=("build", "run"))
         depends_on("pil@6:", type=("build", "run"))
         depends_on("py-torchvision@0.12:", type=("build", "run"))
-        depends_on("py-torch+cuda", when="+cuda", type=("build", "run"))
+        depends_on("py-torch+cuda cuda_arch={}".format(self.spec.variants['cuda_arch'].value), when="+cuda", type=("build", "run"))
         depends_on("py-torch+rocm", when="+rocm", type=("build", "run"))
 
     depends_on("py-docutils@0.16:", when="+docutils", type=("build", "link", "run"))
