@@ -291,10 +291,12 @@ class Gromacs(CMakePackage, CudaPackage):
 
     variant(
         "intel_provided_gcc",
+        when="%intel",
         default=False,
-        description="Use this if Intel compiler is installed through spack."
+        description="Use this if Intel classic compiler is installed through spack."
         + "The g++ location is written to icp{c,x}.cfg",
     )
+    depends_on("gcc", when="%intel ~intel_provided_gcc")
 
     depends_on("fftw-api@3")
     depends_on("cmake@2.8.8:3", type="build")
@@ -310,7 +312,6 @@ class Gromacs(CMakePackage, CudaPackage):
     depends_on("sycl", when="+sycl")
     depends_on("lapack")
     depends_on("blas")
-    depends_on("gcc", when="%intel ~intel_provided_gcc")
 
     depends_on("hwloc@1.0:1", when="+hwloc@2016:2018")
     depends_on("hwloc", when="+hwloc@2019:")
@@ -320,13 +321,6 @@ class Gromacs(CMakePackage, CudaPackage):
     depends_on("nvhpc", when="+cufftmp")
     depends_on("nvhpc", when="+nvshmem")
     depends_on("heffte", when="+heffte")
-
-    requires(
-        "%intel",
-        policy="one_of",
-        when="+intel_provided_gcc",
-        msg="Only attempt to find gcc libs for Intel compiler if Intel compiler is used.",
-    )
 
     # If the Intel suite is used for Lapack, it must be used for fftw and vice-versa
     for _intel_pkg in INTEL_MATH_LIBRARIES:
