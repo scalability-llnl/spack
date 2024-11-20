@@ -445,7 +445,7 @@ def _run_import_check(
                 continue
             to_add.add(module)
             exit_code = 1
-            print(f"{pretty_path}: missing import: {module}", file=out)
+            print(f"{pretty_path}: missing import: {module} ({m.group(0)})", file=out)
 
         if not fix or not to_add and not to_remove:
             continue
