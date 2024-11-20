@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+import spack.build_systems.cmake
 from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 

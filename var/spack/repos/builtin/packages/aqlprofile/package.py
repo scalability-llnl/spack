@@ -5,6 +5,7 @@
 
 import os
 
+import spack.platforms
 from spack.package import *
 
 _versions = {

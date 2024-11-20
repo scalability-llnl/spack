@@ -6,6 +6,7 @@
 import os
 import tempfile
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -313,11 +314,11 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
 
         # hip support
         if spec.satisfies("+cuda"):
-            args.append(self.builder.define_cuda_architectures(self))
+            args.append(CMakeBuilder.define_cuda_architectures(self))
 
         # hip support
         if spec.satisfies("+rocm"):
-            args.append(self.builder.define_hip_architectures(self))
+            args.append(CMakeBuilder.define_hip_architectures(self))
 
         return args
 

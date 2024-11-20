@@ -16,6 +16,7 @@ from typing import Dict, List
 import llnl.util.tty as tty
 from llnl.util.lang import dedupe
 
+import spack.paths
 from spack.build_environment import dso_suffix, stat_suffix
 from spack.package import *
 from spack.util.prefix import Prefix
@@ -1088,7 +1089,7 @@ print(json.dumps(config))
             if lib:
                 return lib
 
-        raise spack.error.NoLibrariesError(
+        raise NoLibrariesError(
             "Unable to find {} libraries with the following names:\n\n* ".format(self.name)
             + "\n* ".join(candidates)
         )
@@ -1114,7 +1115,7 @@ print(json.dumps(config))
                 config_h = headers[0]
                 break
         else:
-            raise spack.error.NoHeadersError(
+            raise NoHeadersError(
                 "Unable to locate {} headers in any of these locations:\n\n* ".format(self.name)
                 + "\n* ".join(candidates)
             )

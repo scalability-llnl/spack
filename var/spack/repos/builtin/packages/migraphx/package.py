@@ -159,6 +159,7 @@ class Migraphx(CMakePackage):
                     "CMAKE_CXX_FLAGS", "-fsanitize=address -shared-libasan -I{0}".format(abspath)
                 )
             )
+        args.append(self.define("BUILD_TESTING", self.run_tests))
         return args
 
     def test_unit_tests(self):

@@ -7,10 +7,11 @@ import llnl.util.filesystem as fs
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, extends
 from spack.multimethod import when
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 class GoPackage(spack.package_base.PackageBase):
@@ -32,7 +33,7 @@ class GoPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("go")
-class GoBuilder(BaseBuilder):
+class GoBuilder(BuilderWithDefaults):
     """The Go builder encodes the most common way of building software with
     a golang go.mod file. It has two phases that can be overridden, if need be:
 
@@ -99,7 +100,7 @@ class GoBuilder(BaseBuilder):
             fs.mkdirp(prefix.bin)
             fs.install(pkg.name, prefix.bin)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
     def check(self):
         """Run ``go test .`` in the source directory"""

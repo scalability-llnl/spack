@@ -18,7 +18,8 @@ class Costo(CMakePackage):
 
     license("LGPL-3.0-or-later")
 
-    version("0.0.5", tag="v0.0.5", preferred=True)
+    version("0.0.8", tag="v0.0.8", preferred=True)
+    version("0.0.5", tag="v0.0.5")
     version("develop", branch="devel")
     version("main", branch="main", deprecated=True)
 
