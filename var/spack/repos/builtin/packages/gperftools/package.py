@@ -22,6 +22,7 @@ class Gperftools(AutotoolsPackage, CMakePackage):
 
     build_system(conditional("cmake", when="@2.8.1:"), "autotools", default="cmake")
 
+    version("2.16", sha256="f12624af5c5987f2cc830ee534f754c3c5961eec08004c26a8b80de015cf056f")
     version("2.15", sha256="c69fef855628c81ef56f12e3c58f2b7ce1f326c0a1fe783e5cae0b88cbbe9a80")
     version("2.14", sha256="6b561baf304b53d0a25311bd2e29bc993bed76b7c562380949e7cb5e3846b299")
     version("2.13", sha256="4882c5ece69f8691e51ffd6486df7d79dbf43b0c909d84d3c0883e30d27323e7")
@@ -50,6 +51,8 @@ class Gperftools(AutotoolsPackage, CMakePackage):
 
     depends_on("unwind", when="+libunwind")
     depends_on("cmake@3.12:", type="build", when="build_system=cmake")
+    # https://github.com/gperftools/gperftools/commit/9dfab2cdce5ec1ebb36e2a20e5031ef49cbe8087
+    conflicts("build_system=cmake", when="@2.16:")
 
     # Linker error: src/base/dynamic_annotations.cc:46: undefined reference to
     # `TCMallocGetenvSafe'

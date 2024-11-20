@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Glab(Package):
+class Glab(GoPackage):
     """GitLab's official command line tool."""
 
     homepage = "https://gitlab.com/gitlab-org/cli"
@@ -16,6 +16,7 @@ class Glab(Package):
 
     license("MIT")
 
+    version("1.48.0", sha256="45410de23a7bad37feeae18f47f3c0113d81133ad9bb97c8f0b8afc5409272c7")
     version("1.46.1", sha256="935f732ddacc6e54fc83d06351fc25454ac8a58c465c3efa43e066ea226257c2")
     version("1.36.0", sha256="8d6c759ebfe9c6942fcdb7055a4a5c7209a3b22beb25947f906c9aef3bc067e8")
     version("1.35.0", sha256="7ed31c7a9b425fc15922f83c5dd8634a2758262a4f25f92583378655fcad6303")
@@ -40,16 +41,22 @@ class Glab(Package):
     depends_on("go@1.22.4:", type="build", when="@1.42:")
     depends_on("go@1.22.5:", type="build", when="@1.44:")
     depends_on("go@1.23:", type="build", when="@1.46:")
+    depends_on("go@1.23.2:", type="build", when="@1.48:")
 
-    phases = ["build", "install"]
+    build_directory = "cmd/glab"
 
-    def setup_build_environment(self, env):
-        # Point GOPATH at the top of the staging dir for the build step.
-        env.prepend_path("GOPATH", self.stage.path)
+    @run_after("install")
+    def install_completions(self):
+        glab = Executable(self.prefix.bin.glab)
 
-    def build(self, spec, prefix):
-        make()
+        mkdirp(bash_completion_path(self.prefix))
+        with open(bash_completion_path(self.prefix) / "glab", "w") as file:
+            glab("completion", "-s", "bash", output=file)
 
-    def install(self, spec, prefix):
-        mkdirp(prefix.bin)
-        install("bin/glab", prefix.bin)
+        mkdirp(fish_completion_path(self.prefix))
+        with open(fish_completion_path(self.prefix) / "glab.fish", "w") as file:
+            glab("completion", "-s", "fish", output=file)
+
+        mkdirp(zsh_completion_path(self.prefix))
+        with open(zsh_completion_path(self.prefix) / "_glab", "w") as file:
+            glab("completion", "-s", "zsh", output=file)

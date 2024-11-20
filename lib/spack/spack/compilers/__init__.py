@@ -558,7 +558,7 @@ def get_compilers(config, cspec=None, arch_spec=None):
         except KeyError:
             # TODO: Check if this exception handling makes sense, or if we
             # TODO: need to change / refactor tests
-            family = arch_spec.target
+            family = str(arch_spec.target)
         except AttributeError:
             assert arch_spec is None
 
@@ -803,12 +803,11 @@ class CompilerConfigFactory:
         if not spec.architecture:
             host_platform = spack.platforms.host()
             operating_system = host_platform.operating_system("default_os")
-            target = host_platform.target("default_target").microarchitecture
+            target = host_platform.target("default_target")
         else:
             target = spec.architecture.target
             if not target:
                 target = spack.platforms.host().target("default_target")
-            target = target.microarchitecture
 
             operating_system = spec.os
             if not operating_system:

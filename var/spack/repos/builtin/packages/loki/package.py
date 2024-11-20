@@ -24,6 +24,8 @@ class Loki(MakefilePackage):
 
     def flag_handler(self, name, flags):
         if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
             if self.spec.satisfies("%oneapi@2023.0.0:"):
                 flags.append("-Wno-error=dynamic-exception-spec")
             if self.spec.satisfies("@0.1.7 %gcc@11:"):
@@ -31,14 +33,14 @@ class Loki(MakefilePackage):
         return (flags, None, None)
 
     def build(self, spec, prefix):
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             make("-C", "src", "build-shared")
         else:
             make("-C", "src", "build-static")
 
     def install(self, spec, prefix):
         make("-C", "include", "install", "prefix={0}".format(prefix))
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             make("-C", "src", "install-shared", "prefix={0}".format(prefix))
         else:
             make("-C", "src", "install-static", "prefix={0}".format(prefix))

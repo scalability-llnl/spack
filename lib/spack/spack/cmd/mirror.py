@@ -231,31 +231,133 @@ def setup_parser(subparser):
     )
 
 
+def _configure_access_pair(
+    args, id_tok, id_variable_tok, secret_tok, secret_variable_tok, default=None
+):
+    """Configure the access_pair options"""
+
+    # Check if any of the arguments are set to update this access_pair.
+    # If none are set, then skip computing the new access pair
+    args_id = getattr(args, id_tok)
+    args_id_variable = getattr(args, id_variable_tok)
+    args_secret = getattr(args, secret_tok)
+    args_secret_variable = getattr(args, secret_variable_tok)
+    if not any([args_id, args_id_variable, args_secret, args_secret_variable]):
+        return None
+
+    def _default_value(id_):
+        if isinstance(default, list):
+            return default[0] if id_ == "id" else default[1]
+        elif isinstance(default, dict):
+            return default.get(id_)
+        else:
+            return None
+
+    def _default_variable(id_):
+        if isinstance(default, dict):
+            return default.get(id_ + "_variable")
+        else:
+            return None
+
+    id_ = None
+    id_variable = None
+    secret = None
+    secret_variable = None
+
+    # Get the value/default value if the argument of the inverse
+    if not args_id_variable:
+        id_ = getattr(args, id_tok) or _default_value("id")
+    if not args_id:
+        id_variable = getattr(args, id_variable_tok) or _default_variable("id")
+    if not args_secret_variable:
+        secret = getattr(args, secret_tok) or _default_value("secret")
+    if not args_secret:
+        secret_variable = getattr(args, secret_variable_tok) or _default_variable("secret")
+
+    if (id_ or id_variable) and (secret or secret_variable):
+        if secret:
+            if not id_:
+                raise SpackError("Cannot add mirror with a variable id and text secret")
+
+            return [id_, secret]
+        else:
+            return dict(
+                [
+                    (("id", id_) if id_ else ("id_variable", id_variable)),
+                    ("secret_variable", secret_variable),
+                ]
+            )
+    else:
+        if id_ or id_variable or secret or secret_variable is not None:
+            id_arg_tok = id_tok.replace("_", "-")
+            secret_arg_tok = secret_tok.replace("_", "-")
+            tty.warn(
+                "Expected both parts of the access pair to be specified. "
+                f"(i.e. --{id_arg_tok} and --{secret_arg_tok})"
+            )
+
+        return None
+
+
 def mirror_add(args):
     """add a mirror to Spack"""
     if (
         args.s3_access_key_id
         or args.s3_access_key_secret
         or args.s3_access_token
+        or args.s3_access_key_id_variable
+        or args.s3_access_key_secret_variable
+        or args.s3_access_token_variable
         or args.s3_profile
         or args.s3_endpoint_url
         or args.type
         or args.oci_username
         or args.oci_password
+        or args.oci_username_variable
+        or args.oci_password_variable
         or args.autopush
         or args.signed is not None
     ):
         connection = {"url": args.url}
-        if args.s3_access_key_id and args.s3_access_key_secret:
-            connection["access_pair"] = [args.s3_access_key_id, args.s3_access_key_secret]
+        # S3 Connection
+        if args.s3_access_key_secret:
+            tty.warn(
+                "Configuring mirror secrets as plain text with --s3-access-key-secret is "
+                "deprecated. Use --s3-access-key-secret-variable instead"
+            )
+        if args.oci_password:
+            tty.warn(
+                "Configuring mirror secrets as plain text with --oci-password is deprecated. "
+                "Use --oci-password-variable instead"
+            )
+        access_pair = _configure_access_pair(
+            args,
+            "s3_access_key_id",
+            "s3_access_key_id_variable",
+            "s3_access_key_secret",
+            "s3_access_key_secret_variable",
+        )
+        if access_pair:
+            connection["access_pair"] = access_pair
+
         if args.s3_access_token:
             connection["access_token"] = args.s3_access_token
+        elif args.s3_access_token_variable:
+            connection["access_token_variable"] = args.s3_access_token_variable
+
         if args.s3_profile:
             connection["profile"] = args.s3_profile
+
         if args.s3_endpoint_url:
             connection["endpoint_url"] = args.s3_endpoint_url
-        if args.oci_username and args.oci_password:
-            connection["access_pair"] = [args.oci_username, args.oci_password]
+
+        # OCI Connection
+        access_pair = _configure_access_pair(
+            args, "oci_username", "oci_username_variable", "oci_password", "oci_password_variable"
+        )
+        if access_pair:
+            connection["access_pair"] = access_pair
+
         if args.type:
             connection["binary"] = "binary" in args.type
             connection["source"] = "source" in args.type
@@ -285,16 +387,35 @@ def _configure_mirror(args):
     changes = {}
     if args.url:
         changes["url"] = args.url
-    if args.s3_access_key_id and args.s3_access_key_secret:
-        changes["access_pair"] = [args.s3_access_key_id, args.s3_access_key_secret]
+
+    default_access_pair = entry._get_value("access_pair", direction or "fetch")
+    # TODO: Init access_pair args with the fetch/push/base values in the current mirror state
+    access_pair = _configure_access_pair(
+        args,
+        "s3_access_key_id",
+        "s3_access_key_id_variable",
+        "s3_access_key_secret",
+        "s3_access_key_secret_variable",
+        default=default_access_pair,
+    )
+    if access_pair:
+        changes["access_pair"] = access_pair
     if args.s3_access_token:
         changes["access_token"] = args.s3_access_token
     if args.s3_profile:
         changes["profile"] = args.s3_profile
     if args.s3_endpoint_url:
         changes["endpoint_url"] = args.s3_endpoint_url
-    if args.oci_username and args.oci_password:
-        changes["access_pair"] = [args.oci_username, args.oci_password]
+    access_pair = _configure_access_pair(
+        args,
+        "oci_username",
+        "oci_username_variable",
+        "oci_password",
+        "oci_password_variable",
+        default=default_access_pair,
+    )
+    if access_pair:
+        changes["access_pair"] = access_pair
     if getattr(args, "signed", None) is not None:
         changes["signed"] = args.signed
     if getattr(args, "autopush", None) is not None:

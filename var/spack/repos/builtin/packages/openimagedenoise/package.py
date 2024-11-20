@@ -13,10 +13,11 @@ class Openimagedenoise(CMakePackage):
     under the permissive Apache 2.0 license."""
 
     homepage = "https://www.openimagedenoise.org/"
-    url = "https://github.com/OpenImageDenoise/oidn/releases/download/v1.4.3/oidn-1.4.3.src.tar.gz"
+    url = "https://github.com/RenderKit/oidn/releases/download/v1.4.3/oidn-1.4.3.src.tar.gz"
 
     license("Apache-2.0")
 
+    version("2.3.0", sha256="cce3010962ec84e0ba1acd8c9055a3d8de402fedb1b463517cfeb920a276e427")
     version("2.2.2", sha256="d26b75fa216165086f65bf48c80648290f2cfed7d3c4bfc1e86c247b46c96b7e")
     version("2.1.0", sha256="ce144ba582ff36563d9442ee07fa2a4d249bc85aa93e5b25fc527ff4ee755ed6")
     version("2.0.1", sha256="328eeb9809d18e835dca7203224af3748578794784c026940c02eea09c695b90")

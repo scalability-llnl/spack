@@ -14,4 +14,5 @@ class PerlIpcRun3(PerlPackage):
 
     maintainers("EbiArnie")
 
+    version("0.049", sha256="9d048ae7b9ae63871bae976ba01e081d887392d904e5d48b04e22d35ed22011a")
     version("0.048", sha256="3d81c3cc1b5cff69cca9361e2c6e38df0352251ae7b41e2ff3febc850e463565")

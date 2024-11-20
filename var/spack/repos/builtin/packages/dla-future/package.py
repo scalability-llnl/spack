@@ -223,14 +223,19 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
                     )
         else:
             args.append(self.define("DLAF_WITH_MKL", spec["lapack"].name in INTEL_MATH_LIBRARIES))
+            add_dlaf_prefix = lambda x: x if spec.satisfies("@:0.6") else "DLAF_" + x
             args.append(
                 self.define(
-                    "LAPACK_LIBRARY",
+                    add_dlaf_prefix("LAPACK_LIBRARY"),
                     " ".join([spec[dep].libs.ld_flags for dep in ["blas", "lapack"]]),
                 )
             )
             if spec.satisfies("+scalapack"):
-                args.append(self.define("SCALAPACK_LIBRARY", spec["scalapack"].libs.ld_flags))
+                args.append(
+                    self.define(
+                        add_dlaf_prefix("SCALAPACK_LIBRARY"), spec["scalapack"].libs.ld_flags
+                    )
+                )
 
         args.append(self.define_from_variant("DLAF_WITH_SCALAPACK", "scalapack"))
 

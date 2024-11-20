@@ -14,6 +14,7 @@ class PyAsgiref(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("3.8.1", sha256="c343bd80a0bec947a9860adb4c432ffa7db769836c64238fc34bdc3fec84d590")
     version("3.7.2", sha256="9e0ce3aa93a819ba5b45120216b23878cf6e8525eb3848653452b4192b92afed")
     version("3.5.2", sha256="4a29362a6acebe09bf1d6640db38c1dc3d9217c68e6f9f6204d72667fc19a424")
     version("3.5.0", sha256="2f8abc20f7248433085eda803936d98992f1343ddb022065779f37c5da0181d0")

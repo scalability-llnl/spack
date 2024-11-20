@@ -23,4 +23,22 @@ class Fd(CargoPackage):
     version("8.4.0", sha256="d0c2fc7ddbe74e3fd88bf5bb02e0f69078ee6d2aeea3d8df42f508543c9db05d")
     version("7.4.0", sha256="33570ba65e7f8b438746cb92bb9bc4a6030b482a0d50db37c830c4e315877537")
 
-    depends_on("rust@1.64:", type="build", when="@9:")
+    depends_on("rust@1.64:", type="build", when="@8.7:")
+    depends_on("rust@1.70:", type="build", when="@8.7.1:")
+    depends_on("rust@1.77.2:", type="build", when="@10:")
+
+    @run_after("install")
+    def install_completions(self):
+        fd = Executable(self.prefix.bin.fd)
+
+        mkdirp(bash_completion_path(self.prefix))
+        with open(bash_completion_path(self.prefix) / "fd", "w") as file:
+            fd("--gen-completions", "bash", output=file)
+
+        mkdirp(fish_completion_path(self.prefix))
+        with open(fish_completion_path(self.prefix) / "fd.fish", "w") as file:
+            fd("--gen-completions", "fish", output=file)
+
+        mkdirp(zsh_completion_path(self.prefix))
+        with open(zsh_completion_path(self.prefix) / "_fd", "w") as file:
+            fd("--gen-completions", "zsh", output=file)

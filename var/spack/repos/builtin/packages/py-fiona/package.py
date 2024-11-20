@@ -18,6 +18,7 @@ class PyFiona(PythonPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("1.10.1", sha256="b00ae357669460c6491caba29c2022ff0acfcbde86a95361ea8ff5cd14a86b68")
     version("1.10.0", sha256="3529fd46d269ff3f70aeb9316a93ae95cf2f87d7e148a8ff0d68532bf81ff7ae")
     version("1.9.6", sha256="791b3494f8b218c06ea56f892bd6ba893dfa23525347761d066fb7738acda3b1")
     version("1.9.5", sha256="99e2604332caa7692855c2ae6ed91e1fffdf9b59449aa8032dd18e070e59a2f7")

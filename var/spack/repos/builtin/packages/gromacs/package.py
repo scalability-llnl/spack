@@ -7,6 +7,7 @@ import os
 
 import llnl.util.filesystem as fs
 
+import spack.build_systems.cmake
 from spack.package import *
 
 
@@ -116,7 +117,7 @@ class Gromacs(CMakePackage, CudaPackage):
         description="Enable multi-GPU FFT support with HeFFTe",
     )
     variant("opencl", default=False, description="Enable OpenCL support")
-    variant("sycl", default=False, when="@2021:", description="Enable SYCL support")
+    variant("sycl", default=False, when="@2021: %clang", description="Enable SYCL support")
     variant(
         "intel-data-center-gpu-max",
         default=False,
@@ -183,7 +184,7 @@ class Gromacs(CMakePackage, CudaPackage):
         "sve",
         default=True,
         description="Enable SVE on aarch64 if available",
-        when="target=neoverse_v1:,neoverse_v2:",
+        when="target=neoverse_v1:,neoverse_v2:,neoverse_n2:",
     )
     variant(
         "sve", default=True, description="Enable SVE on aarch64 if available", when="target=a64fx"

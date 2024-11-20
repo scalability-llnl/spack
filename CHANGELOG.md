@@ -1,3 +1,64 @@
+# v0.22.2 (2024-09-21)
+
+## Bugfixes
+- Forward compatibility with Spack 0.23 packages with language dependencies (#45205, #45191)
+- Forward compatibility with `urllib` from Python 3.12.6+ (#46453, #46483)
+- Bump vendored `archspec` for better aarch64 support (#45721, #46445)
+- Support macOS Sequoia (#45018, #45127)
+- Fix regression in `{variants.X}` and `{variants.X.value}` format strings (#46206)
+- Ensure shell escaping of environment variable values in load and activate commands (#42780)
+- Fix an issue where `spec[pkg]` considers specs outside the current DAG (#45090)
+- Do not halt concretization on unknown variants in externals (#45326)
+- Improve validation of `develop` config section (#46485)
+- Explicitly disable `ccache` if turned off in config, to avoid cache pollution (#45275)
+- Improve backwards compatibility in `include_concrete` (#45766)
+- Fix issue where package tags were sometimes repeated (#45160)
+- Make `setup-env.sh` "sourced only" by dropping execution bits (#45641)
+- Make certain source/binary fetch errors recoverable instead of a hard error (#45683)
+- Remove debug statements in package hash computation (#45235)
+- Remove redundant clingo warnings (#45269)
+- Remove hard-coded layout version (#45645)
+- Do not initialize previous store state in `use_store` (#45268)
+- Docs improvements (#46475)
+
+## Package updates
+- `chapel` major update (#42197, #44931, #45304)
+
+# v0.22.1 (2024-07-04)
+
+## Bugfixes
+- Fix reuse of externals on Linux (#44316)
+- Ensure parent gcc-runtime version >= child (#44834, #44870)
+- Ensure the latest gcc-runtime is rpath'ed when multiple exist among link deps (#44219)
+- Improve version detection of glibc (#44154)
+- Improve heuristics for solver (#44893, #44976, #45023)
+- Make strong preferences override reuse (#44373)
+- Reduce verbosity when C compiler is missing (#44182)
+- Make missing ccache executable an error when required (#44740)
+- Make every environment view containing `python` a `venv` (#44382)
+- Fix external detection for compilers with os but no target (#44156)
+- Fix version optimization for roots (#44272)
+- Handle common implementations of pagination of tags in OCI build caches (#43136)
+- Apply fetched patches to develop specs (#44950)
+- Avoid Windows wrappers for filesystem utilities on non-Windows (#44126)
+- Fix issue with long filenames in build caches on Windows (#43851)
+- Fix formatting issue in `spack audit` (#45045)
+- CI fixes (#44582, #43965, #43967, #44279, #44213)
+
+## Package updates
+- protobuf: fix 3.4:3.21 patch checksum (#44443)
+- protobuf: update hash for patch needed when="@3.4:3.21" (#44210)
+- git: bump v2.39 to 2.45; deprecate unsafe versions (#44248)
+- gcc: use -rpath {rpath_dir} not -rpath={rpath dir} (#44315)
+- Remove mesa18 and libosmesa (#44264)
+- Enforce consistency of `gl` providers (#44307)
+- Require libiconv for iconv (#44335, #45026).
+  Notice that glibc/musl also provide iconv, but are not guaranteed to be
+  complete. Set `packages:iconv:require:[glibc]` to restore the old behavior.
+- py-matplotlib: qualify when to do a post install (#44191)
+- rust: fix v1.78.0 instructions (#44127)
+- suite-sparse: improve setting of the `libs` property (#44214)
+- netlib-lapack: provide blas and lapack together (#44981)
 
 # v0.22.0 (2024-05-12)
 
@@ -318,6 +379,16 @@
 * 358 people contributed to this release
     * 344 committers to packages
     * 45 committers to core
+
+# v0.21.3 (2024-10-02)
+
+## Bugfixes
+- Forward compatibility with Spack 0.23 packages with language dependencies (#45205, #45191)
+- Forward compatibility with `urllib` from Python 3.12.6+ (#46453, #46483)
+- Bump `archspec` to 0.2.5-dev for better aarch64 and Windows support (#42854, #44005,
+  #45721, #46445)
+- Support macOS Sequoia (#45018, #45127, #43862)
+- CI and test maintenance (#42909, #42728, #46711, #41943, #43363)
 
 # v0.21.2 (2024-03-01)
 

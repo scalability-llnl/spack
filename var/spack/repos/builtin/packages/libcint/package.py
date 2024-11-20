@@ -68,11 +68,11 @@ class Libcint(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         args = [
-            "-DWITH_RANGE_COULOMB=" + str("+coulomb_erf" in spec),
-            "-DPYPZPX=" + str("+pypzpx" in spec),
-            "-DWITH_F12=" + str("+f12" in spec),
-            "-DBUILD_SHARED_LIBS=" + str("+shared" in spec),
-            "-DENABLE_TEST=" + str("+test" in spec),
+            "-DWITH_RANGE_COULOMB=" + str(spec.satisfies("+coulomb_erf")),
+            "-DPYPZPX=" + str(spec.satisfies("+pypzpx")),
+            "-DWITH_F12=" + str(spec.satisfies("+f12")),
+            "-DBUILD_SHARED_LIBS=" + str(spec.satisfies("+shared")),
+            "-DENABLE_TEST=" + str(spec.satisfies("+test")),
             "-DENABLE_EXAMPLE=OFF",  # Requires fortran compiler
         ]
         return args

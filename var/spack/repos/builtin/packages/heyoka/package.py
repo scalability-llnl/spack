@@ -18,6 +18,8 @@ class Heyoka(CMakePackage):
     # SPDX identifier of the project's license.
     license("MPL-2.0")
 
+    version("6.1.0", sha256="a0f01afb1fb4f93fdc41b2a8dfebf9f9ddd45b28b7b373c4ef9355aeda7107b4")
+    version("6.0.0", sha256="9cf56a6a29db5c72c5203af70d568aede78cb549baf1505b8abd04b888492895")
     version("5.1.0", sha256="dd405328ace718865ae2690384fbf5f7ee4d03ab6821b908e7d0ca0a02c35e14")
     version("5.0.0", sha256="e9a4b5683a08706addc1b448e232f1e269d78586859fe3f4d93d4c5eee3bc8ae")
     version("4.0.3", sha256="47608e785607782d896ae2347a29a143cdb7e5c602f48f5ea795cf682051dbee")
@@ -57,8 +59,10 @@ class Heyoka(CMakePackage):
     # Required dependencies
     depends_on("llvm@13:17", when="@:4")
     depends_on("llvm@13:18", when="@5")
+    depends_on("llvm@15:19", when="@6")
     depends_on("boost@1.69: +serialization")
-    depends_on("fmt@9:10")
+    depends_on("fmt@9:10", when="@:5")
+    depends_on("fmt@9:11", when="@6")
     depends_on("spdlog")
     depends_on("intel-tbb@2021.4.0:")
 

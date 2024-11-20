@@ -4,8 +4,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import filecmp
+import io
 import os
+import pathlib
 import shutil
+import sys
 
 import pytest
 
@@ -15,7 +18,7 @@ import spack.cmd.style
 import spack.main
 import spack.paths
 import spack.repo
-from spack.cmd.style import changed_files
+from spack.cmd.style import _run_import_check, changed_files
 from spack.util.executable import which
 
 #: directory with sample style files
@@ -292,5 +295,97 @@ def test_style_with_black(flake8_package_with_errors):
 
 
 def test_skip_tools():
-    output = style("--skip", "isort,mypy,black,flake8")
+    output = style("--skip", "import-check,isort,mypy,black,flake8")
     assert "Nothing to run" in output
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires Python 3.9+")
+def test_run_import_check(tmp_path: pathlib.Path):
+    file = tmp_path / "issues.py"
+    contents = '''
+import spack.cmd
+import spack.config  # do not drop this import because of this comment
+
+# this comment about spack.error should not be removed
+class Example(spack.build_systems.autotools.AutotoolsPackage):
+    """this is a docstring referencing unused spack.error.SpackError, which is fine"""
+    pass
+
+def foo(config: "spack.error.SpackError"):
+    # the type hint is quoted, so it should not be removed
+    spack.util.executable.Executable("example")
+'''
+    file.write_text(contents)
+    root = str(tmp_path)
+    output_buf = io.StringIO()
+    exit_code = _run_import_check(
+        [str(file)],
+        fix=False,
+        out=output_buf,
+        root_relative=False,
+        root=spack.paths.prefix,
+        working_dir=root,
+    )
+    output = output_buf.getvalue()
+
+    assert "issues.py: redundant import: spack.cmd" in output
+    assert "issues.py: redundant import: spack.config" not in output  # comment prevents removal
+    assert "issues.py: missing import: spack.build_systems.autotools" in output
+    assert "issues.py: missing import: spack.util.executable" in output
+    assert "issues.py: missing import: spack.error" not in output  # not directly used
+    assert exit_code == 1
+    assert file.read_text() == contents  # fix=False should not change the file
+
+    # run it with --fix, should have the same output.
+    output_buf = io.StringIO()
+    exit_code = _run_import_check(
+        [str(file)],
+        fix=True,
+        out=output_buf,
+        root_relative=False,
+        root=spack.paths.prefix,
+        working_dir=root,
+    )
+    output = output_buf.getvalue()
+    assert exit_code == 1
+    assert "issues.py: redundant import: spack.cmd" in output
+    assert "issues.py: missing import: spack.build_systems.autotools" in output
+    assert "issues.py: missing import: spack.util.executable" in output
+
+    # after fix a second fix is idempotent
+    output_buf = io.StringIO()
+    exit_code = _run_import_check(
+        [str(file)],
+        fix=True,
+        out=output_buf,
+        root_relative=False,
+        root=spack.paths.prefix,
+        working_dir=root,
+    )
+    output = output_buf.getvalue()
+    assert exit_code == 0
+    assert not output
+
+    # check that the file was fixed
+    new_contents = file.read_text()
+    assert "import spack.cmd" not in new_contents
+    assert "import spack.build_systems.autotools" in new_contents
+    assert "import spack.util.executable" in new_contents
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires Python 3.9+")
+def test_run_import_check_syntax_error_and_missing(tmp_path: pathlib.Path):
+    (tmp_path / "syntax-error.py").write_text("""this 'is n(ot python code""")
+    output_buf = io.StringIO()
+    exit_code = _run_import_check(
+        [str(tmp_path / "syntax-error.py"), str(tmp_path / "missing.py")],
+        fix=False,
+        out=output_buf,
+        root_relative=True,
+        root=str(tmp_path),
+        working_dir=str(tmp_path / "does-not-matter"),
+    )
+    output = output_buf.getvalue()
+    assert "syntax-error.py: could not parse" in output
+    assert "missing.py: could not parse" in output
+    assert exit_code == 1

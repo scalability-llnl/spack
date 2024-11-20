@@ -7,6 +7,7 @@ import os
 import re
 import sys
 
+import spack.compilers
 from spack.build_environment import dso_suffix
 from spack.package import *
 
@@ -30,6 +31,7 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
     license("mpich2")
 
     version("develop", submodules=True)
+    version("4.2.3", sha256="7a019180c51d1738ad9c5d8d452314de65e828ee240bcb2d1f80de9a65be88a8")
     version("4.2.2", sha256="883f5bb3aeabf627cb8492ca02a03b191d09836bbe0f599d8508351179781d41")
     version("4.2.1", sha256="23331b2299f287c3419727edc2df8922d7e7abbb9fd0ac74e03b9966f9ad42d7")
     version("4.2.0", sha256="a64a66781b9e5312ad052d32689e23252f745b27ee8818ac2ac0c8209bc0b90e")
@@ -58,7 +60,7 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("fortran", type="build", when="+fortran")
 
     variant("hwloc", default=True, description="Use external hwloc package")
     variant("hydra", default=True, description="Build the hydra process manager")
@@ -134,6 +136,8 @@ supported, and netmod is ignored if device is ch3:sock.""",
 
     conflicts("datatype-engine=yaksa", when="device=ch3")
     conflicts("datatype-engine=yaksa", when="device=ch3:sock")
+    conflicts("datatype-engine=dataloop", when="+cuda")
+    conflicts("datatype-engine=dataloop", when="+rocm")
 
     variant(
         "hcoll",
@@ -258,7 +262,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
     depends_on("hwloc@2.0.0:", when="@3.3: +hwloc")
 
     depends_on("libfabric", when="netmod=ofi")
-    depends_on("libfabric fabrics=gni", when="netmod=ofi pmi=cray")
     # The ch3 ofi netmod results in crashes with libfabric 1.7
     # See https://github.com/pmodels/mpich/issues/3665
     depends_on("libfabric@:1.6", when="device=ch3 netmod=ofi")

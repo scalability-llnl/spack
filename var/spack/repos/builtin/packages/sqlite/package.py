@@ -7,6 +7,8 @@ import re
 import sys
 from tempfile import NamedTemporaryFile
 
+import spack.build_systems.autotools
+import spack.build_systems.nmake
 import spack.platforms
 from spack.package import *
 
@@ -218,7 +220,8 @@ class Sqlite(AutotoolsPackage, NMakePackage):
 
     @property
     def libs(self):
-        return find_libraries("libsqlite3", root=self.prefix.lib)
+        prefix = "lib" if sys.platform != "win32" else ""
+        return find_libraries(f"{prefix}sqlite3", root=self.prefix.lib, runtime=False)
 
     def test_example(self):
         """check example table dump"""

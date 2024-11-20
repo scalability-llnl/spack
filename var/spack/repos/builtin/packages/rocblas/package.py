@@ -23,6 +23,7 @@ class Rocblas(CMakePackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.2.1", sha256="cf3bd7b47694f95f387803191615e2ff5c1106175473be7a5b2e8eb6fb99179f")
     version("6.2.0", sha256="184e9b39dcbed57c25f351b047d44c613f8a2bbab3314a20c335f024a12ad4e5")
     version("6.1.2", sha256="1e83918bd7b28ec9ee292c6fb7eb0fc5f4db2d5d831a9a3db541f14a90c20a1a")
     version("6.1.1", sha256="c920742fb8f45512c360cdb40e37d0ac767f042e52f1981264853dab5ec2c876")
@@ -81,8 +82,12 @@ class Rocblas(CMakePackage):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"@{ver}")
+
+    for ver in ["6.2.0", "6.2.1"]:
+        depends_on(f"rocm-smi-lib@{ver}", type="test", when=f"@{ver}")
 
     depends_on("rocm-cmake@master", type="build", when="@master:")
 
@@ -103,6 +108,7 @@ class Rocblas(CMakePackage):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", type="build", when=f"@{ver}")
@@ -140,6 +146,7 @@ class Rocblas(CMakePackage):
         ("@6.1.1", "2b55ccf58712f67b3df0ca53b0445f094fcb96b2"),
         ("@6.1.2", "2b55ccf58712f67b3df0ca53b0445f094fcb96b2"),
         ("@6.2.0", "dbc2062dced66e4cbee8e0591d76e0a1588a4c70"),
+        ("@6.2.1", "dbc2062dced66e4cbee8e0591d76e0a1588a4c70"),
     ]:
         resource(
             name="Tensile",

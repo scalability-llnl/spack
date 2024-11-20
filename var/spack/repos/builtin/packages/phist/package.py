@@ -21,7 +21,7 @@ class Phist(CMakePackage):
     """
 
     homepage = "https://bitbucket.org/essex/phist/"
-    url = "https://bitbucket.org/essex/phist/get/phist-1.11.2.tar.gz"
+    url = "https://bitbucket.org/essex/phist/get/phist-1.12.1.tar.gz"
     git = "https://bitbucket.org/essex/phist.git"
 
     maintainers("jthies")
@@ -35,6 +35,9 @@ class Phist(CMakePackage):
 
     version("develop", branch="devel")
     version("master", branch="master")
+
+    # fixes for tpetra/ghost, clang/Intel-LLVM
+    version("1.12.1", sha256="6b8fe8a994bf6baf698aa691fc2cbecd62cc60219073e48bfe6fd954c0303b9f")
 
     # compatible with trilinos@14:
     version("1.12.0", sha256="0f02e39b16d14cf7c47a3c468e788c7c0e71857eb1c0a4edb601e1e5b67e8668")
@@ -140,6 +143,9 @@ class Phist(CMakePackage):
         description="generate Fortran 2003 bindings (requires Python3 and " "a Fortran compiler)",
     )
 
+    # Build error with LLVM and recent Trilinos, fixed in phist-1.12.1
+    conflicts("%clang", when="kernel_lib=tpetra @:1.12.0")
+    conflicts("%oneapi", when="kernel_lib=tpetra @:1.12.0")
     # Trilinos 14 had some tpetra/kokkos API changes that are reflected in the phist 1.12 tag
     conflicts("^trilinos@14:", when="@:1.11.2")
     # Build error with cray-libsci because they define macro 'I', workaround in phist-1.11.2
@@ -317,7 +323,7 @@ class Phist(CMakePackage):
                 tty.warn("========================== %s =======================" % hint)
                 try:
                     make("check")
-                except spack.util.executable.ProcessError:
+                except ProcessError:
                     raise InstallError("run-test of phist ^mpich: Hint: " + hint)
             else:
                 make("check")
@@ -325,6 +331,7 @@ class Phist(CMakePackage):
     @run_after("install")
     @on_package_attributes(run_tests=True)
     def test_install(self):
+        """run 'make test_install'"""
         # The build script of test_install expects the sources to be copied here:
         install_tree(
             join_path(self.stage.source_path, "exampleProjects"),

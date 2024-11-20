@@ -374,6 +374,13 @@ class Charmpp(Package):
         if spec.satisfies("+tracing"):
             options.append("--enable-tracing")
 
+        # charmpp build was failing with clang based compilers for -DNETWORK=mpi as discussed in
+        # https://github.com/charmplusplus/charm/issues/3645
+        # Fix was suggested in https://github.com/charmplusplus/charm/pull/3646 and the same has
+        # been implemented in v8.0.0
+        if self.spec.satisfies("@8.0.0: %aocc"):
+            options.append("--disable-fortran")
+
         # Call "make" via the build script
         # Note: This builds Charm++ in the "tmp" subdirectory of the
         # install directory. Maybe we could set up a symbolic link

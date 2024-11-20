@@ -3,14 +3,16 @@ spack:
 
   definitions:
   - apps:
-    - gromacs %intel
-    - lammps %intel
-    - mpas-model %intel
+    - gromacs %oneapi
+    - lammps %oneapi
+    # earliest oneapi version with fix does not run on AmazonLinux2, see https://github.com/spack/spack/pull/46457
+    # - mpas-model %oneapi
     - openfoam %gcc
     - palace %oneapi ^superlu-dist%oneapi # hack: force fortran-rt provider through superlu-dist
-    - quantum-espresso %intel
-    # - wrf : While building hdf5 cmake errors out with Detecting Fortran/C Interface: Failed to compile
-    # Root cause: ifort cannot deal with arbitrarily long file names.
+    # TODO: Find out how to make +ipo cmake flag work.
+    # - quantum-espresso %oneapi
+    - openmpi %oneapi
+    - wrf %oneapi
 
   - targets:
       - 'target=x86_64_v4'
@@ -23,7 +25,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-01-29", "entrypoint": [""] }
+        image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07", "entrypoint": [""] }
         before_script:
         - - . "./share/spack/setup-env.sh"
           - . /etc/profile.d/modules.sh

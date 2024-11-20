@@ -7,6 +7,7 @@ import os
 import platform
 import re
 
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
@@ -161,7 +162,7 @@ class Hpcc(MakefilePackage):
         if spec.satisfies("%intel"):
             # with intel-parallel-studio+mpi the '-march' arguments
             # are not passed to icc
-            arch_opt = spec.architecture.target.optimization_flags(spec.compiler)
+            arch_opt = optimization_flags(self.compiler, spec.target)
             self.config["@CCFLAGS@"] = f"-O3 -restrict -ansi-alias -ip {arch_opt}"
             self.config["@CCNOOPT@"] = "-restrict"
         self._write_make_arch(spec, prefix)

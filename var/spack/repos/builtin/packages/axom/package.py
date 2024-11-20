@@ -3,14 +3,12 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import glob
 import os
 import shutil
 import socket
 from os.path import join as pjoin
 
 from spack.package import *
-from spack.util.executable import which_string
 
 
 def get_spec_path(spec, package_name, path_replacements={}, use_bin=False):
@@ -40,6 +38,8 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
     homepage = "https://github.com/LLNL/axom"
     git = "https://github.com/LLNL/axom.git"
     tags = ["radiuss"]
+
+    test_requires_compiler = True
 
     license("BSD-3-Clause")
 
@@ -620,34 +620,29 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     @run_after("install")
     @on_package_attributes(run_tests=True)
-    def check_install(self):
-        """
-        Checks the spack install of axom using axom's
-        using-with-cmake example
-        """
-
-        print("Checking Axom installation...")
-        spec = self.spec
-        install_prefix = spec.prefix
-        example_src_dir = join_path(install_prefix, "examples", "axom", "using-with-cmake")
-        example_build_dir = join_path(example_src_dir, "build")
-        print("Checking using-with-cmake example...")
-        with working_dir(example_build_dir, create=True):
+    def test_install_using_cmake(self):
+        """build example with cmake and run"""
+        example_src_dir = join_path(self.prefix.examples.axom, "using-with-cmake")
+        example_stage_dir = "./cmake"
+        shutil.copytree(example_src_dir, example_stage_dir)
+        with working_dir(join_path(example_stage_dir, "build"), create=True):
             cmake_args = ["-C ../host-config.cmake", example_src_dir]
+            cmake = self.spec["cmake"].command
             cmake(*cmake_args)
             make()
             example = Executable("./example")
             example()
-        print("Checking using-with-make example...")
-        example_src_dir = join_path(install_prefix, "examples", "axom", "using-with-make")
-        example_build_dir = join_path(example_src_dir, "build")
-        example_files = glob.glob(join_path(example_src_dir, "*"))
-        with working_dir(example_build_dir, create=True):
-            for example_file in example_files:
-                shutil.copy(example_file, ".")
-            make("AXOM_DIR={0}".format(install_prefix))
+            make("clean")
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def test_install_using_make(self):
+        """build example with make and run"""
+        example_src_dir = join_path(self.prefix.examples.axom, "using-with-make")
+        example_stage_dir = "./make"
+        shutil.copytree(example_src_dir, example_stage_dir)
+        with working_dir(example_stage_dir, create=True):
+            make(f"AXOM_DIR={self.prefix}")
             example = Executable("./example")
             example()
-
-    def test_install(self):
-        self.check_install()
+            make("clean")

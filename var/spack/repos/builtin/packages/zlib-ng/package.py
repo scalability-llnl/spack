@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import sys
+
 from spack.build_systems import autotools, cmake
 from spack.package import *
 
@@ -55,9 +57,15 @@ class ZlibNg(AutotoolsPackage, CMakePackage):
 
     @property
     def libs(self):
-        name = "libz" if self.spec.satisfies("+compat") else "libz-ng"
+        compat_name = "zlib" if sys.platform == "win32" else "libz"
+        non_compat_name = "zlib-ng" if sys.platform == "win32" else "libz-ng"
+        name = compat_name if self.spec.satisfies("+compat") else non_compat_name
         return find_libraries(
-            name, root=self.prefix, recursive=True, shared=self.spec.satisfies("+shared")
+            name,
+            root=self.prefix,
+            recursive=True,
+            shared=self.spec.satisfies("+shared"),
+            runtime=False,
         )
 
     def flag_handler(self, name, flags):
@@ -71,7 +79,7 @@ class AutotoolsBuilder(autotools.AutotoolsBuilder):
     def pretend_gcc(self):
         # All nice things (PIC flags, symbol versioning) that happen to the compilers that are
         # recognized as gcc (%gcc, %clang, %intel, %oneapi) we want for some other compilers too:
-        if self.spec.compiler.name in ["nvhpc"]:
+        if self.spec.satisfies("%nvhpc"):
             filter_file(r"^gcc=0$", "gcc=1", join_path(self.configure_directory, "configure"))
 
     def configure_args(self):

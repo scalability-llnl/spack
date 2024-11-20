@@ -332,7 +332,7 @@ class PyMatplotlib(PythonPackage):
             include.extend(query.headers.directories)
             try:
                 library.extend(query.libs.directories)
-            except spack.error.NoLibrariesError:
+            except NoLibrariesError:
                 pass
 
         # Build uses a mix of Spack's compiler wrapper and the actual compiler,

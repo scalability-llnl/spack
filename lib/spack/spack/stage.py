@@ -16,6 +16,7 @@ from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
 import llnl.util.lang
+import llnl.util.symlink
 import llnl.util.tty as tty
 from llnl.util.filesystem import (
     can_access,
@@ -33,7 +34,6 @@ from llnl.util.tty.color import colorize
 import spack.caches
 import spack.config
 import spack.error
-import spack.fetch_strategy as fs
 import spack.mirror
 import spack.resource
 import spack.spec
@@ -43,6 +43,7 @@ import spack.util.parallel
 import spack.util.path as sup
 import spack.util.pattern as pattern
 import spack.util.url as url_util
+from spack import fetch_strategy as fs  # breaks a cycle
 from spack.util.crypto import bit_length, prefix_bits
 from spack.util.editor import editor, executable
 from spack.version import StandardVersion, VersionList
@@ -352,8 +353,8 @@ class Stage(LockableStagingDir):
         url_or_fetch_strategy,
         *,
         name=None,
-        mirror_paths: Optional[spack.mirror.MirrorLayout] = None,
-        mirrors: Optional[Iterable[spack.mirror.Mirror]] = None,
+        mirror_paths: Optional["spack.mirror.MirrorLayout"] = None,
+        mirrors: Optional[Iterable["spack.mirror.Mirror"]] = None,
         keep=False,
         path=None,
         lock=True,
@@ -464,7 +465,7 @@ class Stage(LockableStagingDir):
         """Returns the well-known source directory path."""
         return os.path.join(self.path, _source_path_subdir)
 
-    def _generate_fetchers(self, mirror_only=False) -> Generator[fs.FetchStrategy, None, None]:
+    def _generate_fetchers(self, mirror_only=False) -> Generator["fs.FetchStrategy", None, None]:
         fetchers: List[fs.FetchStrategy] = []
         if not mirror_only:
             fetchers.append(self.default_fetcher)
@@ -600,7 +601,7 @@ class Stage(LockableStagingDir):
         spack.caches.FETCH_CACHE.store(self.fetcher, self.mirror_layout.path)
 
     def cache_mirror(
-        self, mirror: spack.caches.MirrorCache, stats: spack.mirror.MirrorStats
+        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirror.MirrorStats"
     ) -> None:
         """Perform a fetch if the resource is not already cached
 
@@ -668,7 +669,7 @@ class Stage(LockableStagingDir):
 class ResourceStage(Stage):
     def __init__(
         self,
-        fetch_strategy: fs.FetchStrategy,
+        fetch_strategy: "fs.FetchStrategy",
         root: Stage,
         resource: spack.resource.Resource,
         **kwargs,

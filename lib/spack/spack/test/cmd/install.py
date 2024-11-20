@@ -906,7 +906,7 @@ def test_cdash_configure_warning(tmpdir, mock_fetch, install_mockery, capfd):
         specfile = "./spec.json"
         with open(specfile, "w") as f:
             f.write(spec.to_json())
-
+        print(spec.to_json())
         install("--log-file=cdash_reports", "--log-format=cdash", specfile)
         # Verify Configure.xml exists with expected contents.
         report_dir = tmpdir.join("cdash_reports")

@@ -16,7 +16,7 @@ class Hepmc3(CMakePackage):
 
     tags = ["hep"]
 
-    maintainers("vvolkl")
+    maintainers("vvolkl", "luketpickering")
 
     license("LGPL-3.0-or-later")
 
@@ -58,11 +58,15 @@ class Hepmc3(CMakePackage):
     conflicts("%gcc@9.3.0", when="@:3.1.1")
     patch("ba38f14d8f56c16cc4105d98f6d4540c928c6150.patch", when="@3.1.2:3.2.1 %gcc@9.3.0")
 
+    @property
+    def libs(self):
+        return find_libraries(["libHepMC3", "libHepMC3Search"], root=self.prefix, recursive=True)
+
     def cmake_args(self):
         spec = self.spec
         from_variant = self.define_from_variant
         args = [
-            from_variant("HEPMC3_ENABLE_PROTOBUF", "protobuf"),
+            from_variant("HEPMC3_ENABLE_PROTOBUFIO", "protobuf"),
             from_variant("HEPMC3_ENABLE_PYTHON", "python"),
             from_variant("HEPMC3_ENABLE_ROOTIO", "rootio"),
             from_variant("HEPMC3_INSTALL_INTERFACES", "interfaces"),
@@ -84,5 +88,7 @@ class Hepmc3(CMakePackage):
                 args.append(
                     self.define("HEPMC3_CXX_STANDARD", spec["root"].variants["cxxstd"].value)
                 )
+        elif spec.satisfies("+protobuf"):
+            args.append(self.define("HEPMC3_CXX_STANDARD", "14"))
 
         return args

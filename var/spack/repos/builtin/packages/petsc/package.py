@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
+import llnl.util.tty as tty
+
 from spack.package import *
 
 
@@ -21,6 +23,9 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     tags = ["e4s"]
 
     version("main", branch="main")
+    version("3.22.1", sha256="7117d3ae6827f681ed9737939d4e86896b4751e27cca941bb07e5703f19a0a7b")
+    version("3.22.0", sha256="2c03f7c0f7ad2649240d4989355cf7fb7f211b75156cd7d424e1d9dd7dfb290b")
+    version("3.21.6", sha256="cb2dc00742a89cf8acf9ff8aae189e6864e8b90f4997f087be6e54ff39c30d74")
     version("3.21.5", sha256="4eb1ec04c1a8988bd524f71f8d7d980dc1853d5be8791c0f19f3c09eef71fdd2")
     version("3.21.4", sha256="a9ae076d4617c7d84ce2bed37194022319c19f19b3930edf148b2bc8ecf2248d")
     version("3.21.3", sha256="6d9ceb99d84d275250c614192dad45955d4a7610e12d8292a07dc49403556d26")
@@ -274,10 +279,11 @@ class Petsc(Package, CudaPackage, ROCmPackage):
         depends_on("rocthrust")
         depends_on("rocprim")
 
-    # Build dependencies
-    depends_on("python@2.6:2.8,3.4:3.8", when="@:3.13", type="build")
-    depends_on("python@2.6:2.8,3.4:", when="@3.14:3.17", type="build")
-    depends_on("python@3.4:", when="@3.18:", type="build")
+    with default_args(type="build"):
+        depends_on("python@2.6:2.8,3.4:")
+        depends_on("python@3.4:", when="@3.18:")
+        depends_on("python@:3.8", when="@:3.13")
+        depends_on("python@:3.12", when="@:3.21")  # import xdrlib
 
     # Other dependencies
     depends_on("metis@5:~int64+real64", when="@:3.7+metis~int64+double")
@@ -508,6 +514,9 @@ class Petsc(Package, CudaPackage, ROCmPackage):
         else:
             hdf5libs = ":hl"
 
+        if "+exodusii+fortran" in spec and "+fortran" in spec:
+            options.append("--with-exodusii-fortran-bindings")
+
         # tuple format (spacklibname, petsclibname, useinc, uselib)
         # default: 'gmp', => ('gmp', 'gmp', True, True)
         # any other combination needs a full tuple
@@ -547,7 +556,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
             ("parallel-netcdf", "pnetcdf", True, True),
             ("moab", "moab", False, False),
             ("random123", "random123", False, False),
-            "exodusii",
+            ("exodusii", "exodusii", False, False),
             "cgns",
             "memkind",
             "p4est",

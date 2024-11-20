@@ -22,6 +22,7 @@ class RoctracerDev(CMakePackage, ROCmPackage):
     libraries = ["libroctracer64"]
 
     license("MIT")
+    version("6.2.1", sha256="9e69c90b9dc650e0d8642ec675082c9566e576285a725c3a5d07a37cebb18810")
     version("6.2.0", sha256="2fc39f47161f41cc041cd5ee4b1bb0e9832508650e832434056423fec3739735")
     version("6.1.2", sha256="073e67e728d5eda16d7944f3abd96348b3f278e9f36cab3ac22773ebaad0d2d6")
     version("6.1.1", sha256="9cb77fd700a0d615056f0db1e9500b73bd0352214f33bdac520e25b9125a926a")
@@ -65,11 +66,13 @@ class RoctracerDev(CMakePackage, ROCmPackage):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
+
     for ver in ["5.3.0", "5.3.3", "5.4.0", "5.4.3"]:
         depends_on(f"rocprofiler-dev@{ver}", when=f"@{ver}")
 
@@ -86,6 +89,7 @@ class RoctracerDev(CMakePackage, ROCmPackage):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
