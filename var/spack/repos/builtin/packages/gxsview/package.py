@@ -82,7 +82,7 @@ class Gxsview(QMakePackage):
             else:
                 fic = "vtk8.pri"
             with open(fic, "a") as fh:
-                fh.write("-lstdc++fs\n")
+                fh.write("\nLIBS += -lstdc++fs\n")
         return args
 
     def install(self, spec, prefix):
