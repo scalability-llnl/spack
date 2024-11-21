@@ -41,8 +41,8 @@ class PyCffi(PythonPackage):
 
     # Based on PyPI wheel availability
     with default_args(type=("build", "link", "run")):
-        depends_on("python@:3.13", when="@1.17:")
-        depends_on("python@:3.12", when="@1.16")
+        depends_on("python@3.8:3.13", when="@1.17:")
+        depends_on("python@3.8:3.12", when="@1.16")
         depends_on("python@:3.11", when="@1.15.1")
         depends_on("python@:3.10", when="@1.15.0")
         depends_on("python@:3.9", when="@1.14.3:1.14")
