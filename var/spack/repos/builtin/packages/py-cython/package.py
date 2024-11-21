@@ -91,7 +91,13 @@ class PyCython(PythonPackage):
         depends_on("python@:3.8", when="@0.29.14:0.29.20")
         depends_on("python@:3.7", when="@:0.29.13")
 
-    depends_on("py-setuptools", type=("build", "run"))
+    # Cythonize command still used distutils until 3.0.4, switched to setuptools
+    # https://github.com/cython/cython/issues/5751
+    # https://github.com/cython/cython/commit/0000fb4c319ef8f7e8eabcc99677f99a8c503cc3
+    depends_on("py-setuptools", when="@3.0.4: ^python@3.12:", type="run")
+    conflicts("^python@3.12:", when="@:3.0.3")
+
+    depends_on("py-setuptools", type="build")
     depends_on("gdb@7.2:", type="test")
 
     # Backports CYTHON_FORCE_REGEN environment variable
