@@ -202,6 +202,7 @@ class CompilerPackage(spack.package_base.PackageBase):
 
         # Populate an object with the list of environment modifications and return it
         link_dir = pathlib.Path(spack.paths.build_env_path)
+        env_paths = []
 
         for language, attr_name, wrapper_var_name, spack_var_name in [
             ("c", "cc", "CC", "SPACK_CC"),
@@ -237,6 +238,25 @@ class CompilerPackage(spack.package_base.PackageBase):
             if isa_arg:
                 env.set(f"SPACK_TARGET_ARGS_{attr_name.upper()}", isa_arg)
 
+            # Add spack build environment path with compiler wrappers first in
+            # the path. We add the compiler wrapper path, which includes default
+            # wrappers (cc, c++, f77, f90), AND a subdirectory containing
+            # compiler-specific symlinks.  The latter ensures that builds that
+            # are sensitive to the *name* of the compiler see the right name when
+            # we're building with the wrappers.
+            #
+            # Conflicts on case-insensitive systems (like "CC" and "cc") are
+            # handled by putting one in the <build_env_path>/case-insensitive
+            # directory.  Add that to the path too.
+            compiler_specific = os.path.join(
+                spack.paths.build_env_path, os.path.dirname(self.link_paths[language])
+            )
+            for item in [spack.paths.build_env_path, compiler_specific]:
+                env_paths.append(item)
+                ci = os.path.join(item, "case-insensitive")
+                if os.path.isdir(ci):
+                    env_paths.append(ci)
+
         # FIXME (compiler as nodes): make these paths language specific
         env.set("SPACK_LINKER_ARG", self.linker_arg)
 
@@ -260,30 +280,8 @@ class CompilerPackage(spack.package_base.PackageBase):
             if extra_rpaths:
                 env.append_path("SPACK_COMPILER_EXTRA_RPATHS", ":".join(extra_rpaths))
 
-        # Add spack build environment path with compiler wrappers first in
-        # the path. We add the compiler wrapper path, which includes default
-        # wrappers (cc, c++, f77, f90), AND a subdirectory containing
-        # compiler-specific symlinks.  The latter ensures that builds that
-        # are sensitive to the *name* of the compiler see the right name when
-        # we're building with the wrappers.
-        #
-        # Conflicts on case-insensitive systems (like "CC" and "cc") are
-        # handled by putting one in the <build_env_path>/case-insensitive
-        # directory.  Add that to the path too.
-        env_paths = []
-        compiler_specific = os.path.join(
-            spack.paths.build_env_path, os.path.dirname(self.link_paths["c"])
-        )
-        for item in [spack.paths.build_env_path, compiler_specific]:
-            env_paths.append(item)
-            ci = os.path.join(item, "case-insensitive")
-            if os.path.isdir(ci):
-                env_paths.append(ci)
-
-        tty.debug("Adding compiler bin/ paths: " + " ".join(env_paths))
         for item in env_paths:
-            env.prepend_path("PATH", item)
-        env.set_path("SPACK_ENV_PATH", env_paths)
+            env.prepend_path("SPACK_ENV_PATH", item)
 
     def archspec_name(self) -> str:
         """Name that archspec uses to refer to this compiler"""
