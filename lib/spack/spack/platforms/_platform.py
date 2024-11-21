@@ -47,7 +47,6 @@ class Platform:
     binary_formats = ["elf"]
 
     front_end: Optional[str] = None
-    back_end: Optional[str] = None
     default: Optional[str] = None  # The default back end target.
 
     front_os: Optional[str] = None
@@ -68,8 +67,8 @@ class Platform:
         that is reserved by spack as an alias.
         """
         if name in Platform.reserved_targets:
-            msg = "{0} is a spack reserved alias and cannot be the name of a target"
-            raise ValueError(msg.format(name))
+            msg = f"{name} is a spack reserved alias and cannot be the name of a target"
+            raise ValueError(msg)
         self.targets[name] = target
 
     def _add_archspec_targets(self):
@@ -88,8 +87,6 @@ class Platform:
             name = self.default
         elif name == "frontend" or name == "fe":
             name = self.front_end
-        elif name == "backend" or name == "be":
-            name = self.back_end
 
         return self.targets.get(name, None)
 
@@ -98,8 +95,8 @@ class Platform:
         platform.operating_sys dictionary.
         """
         if name in Platform.reserved_oss:
-            msg = "{0} is a spack reserved alias and cannot be the name of an OS"
-            raise ValueError(msg.format(name))
+            msg = f"{name} is a spack reserved alias and cannot be the name of an OS"
+            raise ValueError(msg)
         self.operating_sys[name] = os_class
 
     def operating_system(self, name):
@@ -137,7 +134,6 @@ class Platform:
         yield self.name
         yield self.default
         yield self.front_end
-        yield self.back_end
         yield self.default_os
         yield self.front_os
         yield self.back_os

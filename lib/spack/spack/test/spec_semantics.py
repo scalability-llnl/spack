@@ -199,11 +199,6 @@ class TestSpecSemantics:
                 "foo platform=test os=frontend target=frontend",
             ),
             (
-                "foo platform=test target=backend os=backend",
-                "platform=test target=backend os=backend",
-                "foo platform=test target=backend os=backend",
-            ),
-            (
                 "libelf target=default_target os=default_os",
                 "libelf target=default_target os=default_os",
                 "libelf target=default_target os=default_os",
@@ -460,7 +455,6 @@ class TestSpecSemantics:
             ("foo platform=linux", "platform=test os=redhat6 target=x86"),
             ("foo os=redhat6", "platform=test os=debian6 target=x86_64"),
             ("foo target=x86_64", "platform=test os=redhat6 target=x86"),
-            ("foo arch=test-frontend-frontend", "platform=test os=frontend target=backend"),
             ("foo%intel", "%gcc"),
             ("foo%intel", "%gcc"),
             ("foo%gcc@4.3", "%gcc@4.4:4.6"),
