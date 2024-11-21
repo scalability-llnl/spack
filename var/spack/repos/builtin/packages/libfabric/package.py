@@ -6,7 +6,6 @@
 import os
 import re
 
-import spack.platforms.cray
 from spack.package import *
 
 
@@ -69,7 +68,7 @@ class Libfabric(AutotoolsPackage, CudaPackage):
     depends_on("c", type="build")  # generated
 
     fabrics = (
-        conditional("cxi", when=spack.platforms.cray.slingshot_network()),
+        "cxi",
         "efa",
         "gni",
         "mlx",
@@ -89,9 +88,6 @@ class Libfabric(AutotoolsPackage, CudaPackage):
         "verbs",
         "xpmem",
     )
-
-    # CXI is a closed source package and only exists when an external.
-    conflicts("fabrics=cxi")
 
     variant(
         "fabrics",
@@ -132,11 +128,14 @@ class Libfabric(AutotoolsPackage, CudaPackage):
     depends_on("numactl", when="fabrics=opx")
     depends_on("liburing@2.1:", when="+uring")
     depends_on("oneapi-level-zero", when="+level_zero")
+    depends_on("libcxi", when="fabrics=cxi")
 
     depends_on("m4", when="@main", type="build")
     depends_on("autoconf", when="@main", type="build")
     depends_on("automake", when="@main", type="build")
     depends_on("libtool", when="@main", type="build")
+    depends_on("json-c", when="fabrics=cxi", type="build")
+    depends_on("curl", when="fabrics=cxi", type="build")
 
     conflicts("@1.9.0", when="platform=darwin", msg="This distribution is missing critical files")
     conflicts("fabrics=opx", when="@:1.14.99")
@@ -174,6 +173,11 @@ class Libfabric(AutotoolsPackage, CudaPackage):
         return results
 
     def setup_build_environment(self, env):
+        if self.spec.satisfies("fabrics=cxi"):
+            env.append_flags("CFLAGS", f"-I{self.spec['json-c'].prefix.include}")
+            env.append_flags("CFLAGS", f"-I{self.spec['curl'].prefix.include}")
+            env.append_flags("LDFLAGS", f"-L{self.spec['json-c'].prefix.lib}")
+            env.append_flags("LDFLAGS", f"-L{self.spec['curl'].prefix.lib}")
         if self.run_tests:
             env.prepend_path("PATH", self.prefix.bin)
 
