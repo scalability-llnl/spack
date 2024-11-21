@@ -291,12 +291,10 @@ class Gromacs(CMakePackage, CudaPackage):
 
     variant(
         "intel_provided_gcc",
-        when="%intel",
         default=False,
-        description="Use this if Intel classic compiler is installed through spack."
+        description="Use this if Intel compiler is installed through spack."
         + "The g++ location is written to icp{c,x}.cfg",
     )
-    depends_on("gcc", when="%intel ~intel_provided_gcc")
 
     depends_on("fftw-api@3")
     depends_on("cmake@2.8.8:3", type="build")
@@ -312,6 +310,14 @@ class Gromacs(CMakePackage, CudaPackage):
     depends_on("sycl", when="+sycl")
     depends_on("lapack")
     depends_on("blas")
+    depends_on("gcc", when="%intel ~intel_provided_gcc")
+    # TODO this can be expanded to all clang-based compilers once
+    # the principle is demonstrated to work
+    with when("%oneapi ~intel_provided_gcc"):
+        depends_on("gcc-runtime@5:", when="@2020")
+        depends_on("gcc-runtime@7:", when="@2021:2022")
+        depends_on("gcc-runtime@9:", when="@2023:2024")
+        depends_on("gcc-runtime@11:", when="@2025:")
 
     depends_on("hwloc@1.0:1", when="+hwloc@2016:2018")
     depends_on("hwloc", when="+hwloc@2019:")
@@ -321,6 +327,14 @@ class Gromacs(CMakePackage, CudaPackage):
     depends_on("nvhpc", when="+cufftmp")
     depends_on("nvhpc", when="+nvshmem")
     depends_on("heffte", when="+heffte")
+
+    requires(
+        "%intel",
+        "%oneapi",
+        policy="one_of",
+        when="+intel_provided_gcc",
+        msg="Only attempt to find gcc libs for Intel compiler if Intel compiler is used.",
+    )
 
     # If the Intel suite is used for Lapack, it must be used for fftw and vice-versa
     for _intel_pkg in INTEL_MATH_LIBRARIES:
@@ -524,7 +538,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         if self.spec.satisfies("@2020:"):
             options.append("-DGMX_INSTALL_LEGACY_API=ON")
 
-        if self.spec.satisfies("%intel"):
+        if self.spec.satisfies("%oneapi") or self.spec.satisfies("%intel"):
             # If intel-oneapi-compilers was installed through spack the gcc is added to the
             # configuration file.
             if self.spec.satisfies("+intel_provided_gcc") and os.path.exists(
@@ -532,7 +546,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             ):
                 with open(".".join([os.environ["SPACK_CXX"], "cfg"]), "r") as f:
                     options.append("-DCMAKE_CXX_FLAGS={}".format(f.read()))
-            else:
+            elif self.spec.satisfies("+gcc"):
                 options.append("-DGMX_GPLUSPLUS_PATH=%s/g++" % self.spec["gcc"].prefix.bin)
 
         if self.spec.satisfies("+double"):
