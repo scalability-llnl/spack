@@ -91,6 +91,7 @@ from spack.install_test import spack_install_test_log
 from spack.util.environment import (
     SYSTEM_DIR_CASE_ENTRY,
     EnvironmentModifications,
+    PrependPath,
     env_flag,
     filter_system_paths,
     get_path,
@@ -431,12 +432,7 @@ def set_wrapper_environment_variables_for_flags(pkg, env):
             # implicit variables
             env.set(flag.upper(), " ".join(f for f in env_flags[flag]))
     pkg.flags_to_build_system_args(build_system_flags)
-
     env.set("SPACK_SYSTEM_DIRS", SYSTEM_DIR_CASE_ENTRY)
-
-    # FIXME (compiler as nodes): recover this one in the correct packages
-    # compiler.setup_custom_environment(pkg, env)
-
     return env
 
 
@@ -592,8 +588,8 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
     # in setup_run_environment etc, so don't put it context == build)
     link_dir = spack.paths.build_env_path
 
-    # FIXME (compiler as nodes): make this more general, and not tied to three languages
-    # Maybe add a callback?
+    # Set spack_cc, etc. for backward compatibility. This might change if the compiler wrapper
+    # is modeled as a package.
     global_names = {
         "c": ("spack_cc",),
         "cxx": ("spack_cxx",),
@@ -780,6 +776,11 @@ def setup_package(pkg, dirty, context: Context = Context.BUILD):
     tty.debug("setup_package: grabbing modifications from dependencies")
     env_mods.extend(setup_context.get_env_modifications())
     tty.debug("setup_package: collected all modifications from dependencies")
+
+    tty.debug("setup_package: adding compiler wrappers paths")
+    for x in env_mods.group_by_name()["SPACK_ENV_PATH"]:
+        assert isinstance(x, PrependPath), "unexpected setting used for SPACK_ENV_PATH"
+        env_mods.prepend_path("PATH", x.value)
 
     if context == Context.TEST:
         env_mods.prepend_path("PATH", ".")
