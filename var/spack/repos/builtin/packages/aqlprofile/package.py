@@ -12,7 +12,7 @@ _versions = {
     "6.2.4": {
         "apt": (
             "614ad0c01b7f18eaa9e8a33fb73b9d8445c8785841ed41b406e129101dea854d",
-            "https://repo.radeon.com/rocm/apt/6.2.4/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60204.60204-139~20.04_amd64.deb"
+            "https://repo.radeon.com/rocm/apt/6.2.4/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60204.60204-139~20.04_amd64.deb",
         ),
         "yum": (
             "fe499f5f0f4dac3652913d4009ff802d2136725341a8346c797af790700b5f31",
