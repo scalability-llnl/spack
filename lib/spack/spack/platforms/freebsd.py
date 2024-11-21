@@ -21,7 +21,6 @@ class FreeBSD(Platform):
         # Get specific default
         self.default = archspec.cpu.host().name
         self.front_end = self.default
-        self.back_end = self.default
 
         os = FreeBSDOs()
         self.default_os = str(os)

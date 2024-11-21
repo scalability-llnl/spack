@@ -21,7 +21,6 @@ class Linux(Platform):
         # Get specific default
         self.default = archspec.cpu.host().name
         self.front_end = self.default
-        self.back_end = self.default
 
         linux_dist = LinuxDistro()
         self.default_os = str(linux_dist)

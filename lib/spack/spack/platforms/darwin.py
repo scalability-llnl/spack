@@ -23,7 +23,6 @@ class Darwin(Platform):
 
         self.default = archspec.cpu.host().name
         self.front_end = self.default
-        self.back_end = self.default
 
         mac_os = MacOs()
 
