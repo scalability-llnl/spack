@@ -23,7 +23,6 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
     version("1.3.1", sha256="8997ddc56a1d3078b44a1e2933adc0a7fbf678bd19bade3ae015bc0e13d40d3b")
     version("1.3.0", sha256="fa247539a559881ffe574a70227d3c72551e7c4a9fb29b0945578d6a840d1c87")
 
-    
     variant("docutils", default=False, description="Use the py-docutils package")
     variant("hdf5", default=False, description="Use the py-h5py package needed for HDF5 support")
     variant(
@@ -36,11 +35,11 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
         description="Use py-scikit-learn and py-matplotlib for the example tests",
     )
     variant("cuda", default=False, description="Build with CUDA support")
-    variant('cuda_arch', default='80', description='CUDA compute capability')
+    variant("cuda_arch", default="80", description="CUDA compute capability")
     variant("rocm", default=False, description="Build with ROCm support")
 
     conflicts("+cuda+rocm")
-    
+
     depends_on("py-setuptools", type="build")
 
     with when("@1.3"):
@@ -51,7 +50,7 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-scipy@0.14:", type=("build", "run"))
         depends_on("pil@6:", type=("build", "run"))
         depends_on("py-torchvision@0.8:", type=("build", "run"))
-        
+
     with when("@1.4"):
         depends_on("python@3.8:3.11", type=("build", "run"))
         depends_on("py-mpi4py@3:", type=("build", "run"))
@@ -73,7 +72,10 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-torch+rocm", when="+rocm", type=("build", "run"))
 
     for cuda_arch in CudaPackage.cuda_arch_values:
-        depends_on('py-torch cuda_arch={0}'.format(cuda_arch), when='+cuda cuda_arch={0}'.format(cuda_arch))
+        depends_on(
+            "py-torch cuda_arch={0}".format(cuda_arch),
+            when="+cuda cuda_arch={0}".format(cuda_arch)
+        )
 
     depends_on("py-docutils@0.16:", when="+docutils", type=("build", "link", "run"))
     depends_on("py-h5py@2.8.0:", when="+hdf5", type=("build", "link", "run"))
@@ -81,5 +83,3 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("py-pre-commit@1.18.3:", when="+dev", type=("build", "link", "run"))
     depends_on("py-scikit-learn@0.24.0:", when="+examples", type=("build", "link", "run"))
     depends_on("py-matplotlib@3.1.0:", when="+examples", type=("build", "link", "run"))
-
-    
