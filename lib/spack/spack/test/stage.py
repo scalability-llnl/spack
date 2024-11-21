@@ -865,9 +865,10 @@ class TestDevelopStage:
         assert srctree2 == devtree
 
     def test_mirror_develop_stage(self, develop_path, tmp_build_stage_dir, tmpdir):
+        import llnl.util.filesystem
+
         import spack.caches
         import spack.mirror
-        import llnl.util.filesystem
         import spack.util.compression
 
         name_of_archive = "dev-src-content"
@@ -876,7 +877,9 @@ class TestDevelopStage:
         dst_cache.ensure(dir=True)
 
         devtree, srcdir = develop_path
-        stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage", mirror_id=name_of_archive)
+        stage = DevelopStage(
+            "test-stage", srcdir, reference_link="link-to-stage", mirror_id=name_of_archive
+        )
         cache = spack.caches.MirrorCache(root=dst_cache, skip_unstable_versions=False)
         stats = spack.mirror.MirrorStats()
         stage.cache_mirror(cache, stats)
@@ -892,19 +895,23 @@ class TestDevelopStage:
         the_resulting_expanded = os.path.join(decomp_sandbox, name_of_archive)
         assert devtree == _create_tree_from_dir_recursive(the_resulting_expanded)
 
-    def test_develop_from_mirror_cache(self, develop_path, tmp_build_stage_dir,
-            tmpdir, mutable_config, mock_packages,
-            mutable_mock_env_path, mock_fetch
-        ):
-        import spack.stage
-        import spack.main
-        import spack.config
-
+    def test_develop_from_mirror_cache(
+        self,
+        develop_path,
+        tmp_build_stage_dir,
+        tmpdir,
+        mutable_config,
+        mock_packages,
+        mutable_mock_env_path,
+        mock_fetch,
+    ):
         import spack.caches
-        import spack.mirror
-        import llnl.util.filesystem
-        import spack.util.compression
+        import spack.config
         import spack.environment
+        import spack.main
+        import spack.mirror
+        import spack.stage
+        import spack.util.compression
 
         develop = spack.main.SpackCommand("develop")
         env = spack.main.SpackCommand("env")
@@ -913,18 +920,15 @@ class TestDevelopStage:
         the_mirror = tmpdir.join("test-mirror")
         the_mirror.ensure(dir=True)
 
-        spack.config.set("mirrors", {
-            "test": {
-                "binary": False,
-                "url": f"file://{the_mirror}",
-            }
-        })
+        spack.config.set("mirrors", {"test": {"binary": False, "url": f"file://{the_mirror}"}})
 
         devtree, srcdir = develop_path
 
         dev_id = "mpich2-1.5"
 
-        stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage", mirror_id=dev_id)
+        stage = DevelopStage(
+            "test-stage", srcdir, reference_link="link-to-stage", mirror_id=dev_id
+        )
         cache = spack.caches.MirrorCache(root=the_mirror, skip_unstable_versions=False)
         stats = spack.mirror.MirrorStats()
         stage.cache_mirror(cache, stats)

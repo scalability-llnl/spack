@@ -589,6 +589,7 @@ def decompress_single_dir_archive_into(archive_file, dst):
     We want all of ... (but not x) in `dst`
     """
     import llnl.util.filesystem
+
     import spack.stage
 
     decompressor = decompressor_for(archive_file)

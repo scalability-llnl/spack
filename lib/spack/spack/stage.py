@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import errno
 import getpass
-import glob
 import hashlib
 import io
 import os
@@ -25,9 +24,9 @@ from llnl.util.filesystem import (
     install,
     install_tree,
     mkdirp,
+    mv_contents_from,
     partition_path,
     remove_linked_tree,
-    mv_contents_from,
 )
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
@@ -802,8 +801,7 @@ class StageComposite(pattern.Composite):
 class DevelopStage(LockableStagingDir):
     requires_patch_success = False
 
-    def __init__(self, name, dev_path, reference_link,
-                 mirror_id: Optional[str] = None):
+    def __init__(self, name, dev_path, reference_link, mirror_id: Optional[str] = None):
         super().__init__(name=name, path=None, keep=False, lock=True)
         self.dev_path = dev_path
         self.source_path = dev_path
@@ -885,9 +883,11 @@ class DevelopStage(LockableStagingDir):
 
 
 def create_archive_of_x_at_y(x, y, base):
-    import llnl.util.filesystem
-    import spack.util.archive
     import pathlib
+
+    import llnl.util.filesystem
+
+    import spack.util.archive
 
     with llnl.util.filesystem.working_dir(x), spack.util.archive.gzip_compressed_tarfile(y) as (
         tar,
@@ -895,9 +895,7 @@ def create_archive_of_x_at_y(x, y, base):
         _,
     ):
         spack.util.archive.reproducible_tarfile_from_prefix(
-            tar,
-            prefix=".",
-            path_to_name=lambda path: (base / pathlib.PurePath(path)).as_posix(),
+            tar, prefix=".", path_to_name=lambda path: (base / pathlib.PurePath(path)).as_posix()
         )
 
 

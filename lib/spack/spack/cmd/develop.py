@@ -73,10 +73,11 @@ def _retrieve_develop_from_cache(spec, dst):
     b. We might want to provide a cache that users should download
        from
     """
-    import spack.mirror
-    import spack.util.url
-    import spack.util.compression
     import llnl.util.filesystem
+
+    import spack.mirror
+    import spack.util.compression
+    import spack.util.url
 
     mirrors = spack.mirror.MirrorCollection(source=True).values()
     # Note: stages have a notion of one "main" download site, with
