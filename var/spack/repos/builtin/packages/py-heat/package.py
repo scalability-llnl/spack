@@ -36,18 +36,12 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
         description="Use py-scikit-learn and py-matplotlib for the example tests",
     )
     variant("cuda", default=False, description="Build with CUDA support")
+    variant('cuda_arch', default='80', description='CUDA compute capability')
     variant("rocm", default=False, description="Build with ROCm support")
 
     conflicts("+cuda+rocm")
     
     depends_on("py-setuptools", type="build")
-
-
-    def setup_dependent_package(self, module, dependent_spec):
-        if "+cuda" in dependent_spec:
-            cuda_arch = self.spec.variants['cuda_arch'].value
-            print("Extracted cuda_arch:", cuda_arch)
-            dependent_spec.add_variant('cuda_arch', default=cuda_arch)
 
     with when("@1.3"):
         depends_on("python@3.8:3.10", type=("build", "run"))
@@ -57,7 +51,6 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-scipy@0.14:", type=("build", "run"))
         depends_on("pil@6:", type=("build", "run"))
         depends_on("py-torchvision@0.8:", type=("build", "run"))
-        depends_on('py-torch+cuda cuda_arch={cuda_arch}', when='+cuda', type=('build', 'run'))
         
     with when("@1.4"):
         depends_on("python@3.8:3.11", type=("build", "run"))
@@ -67,7 +60,6 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-scipy@1.10:", type=("build", "run"))
         depends_on("pil@6:", type=("build", "run"))
         depends_on("py-torchvision@0.12:", type=("build", "run"))
-        depends_on('py-torch+cuda cuda_arch={cuda_arch}', when='+cuda', type=('build', 'run'))
         depends_on("py-torch+rocm", when="+rocm", type=("build", "run"))
 
     with when("@1.5"):
@@ -78,8 +70,10 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-scipy@1.10:", type=("build", "run"))
         depends_on("pil@6:", type=("build", "run"))
         depends_on("py-torchvision@0.12:", type=("build", "run"))
-        depends_on('py-torch+cuda cuda_arch={cuda_arch}', when='+cuda', type=('build', 'run'))
         depends_on("py-torch+rocm", when="+rocm", type=("build", "run"))
+
+    for cuda_arch in CudaPackage.cuda_arch_values:
+        depends_on('py-torch cuda_arch={0}'.format(cuda_arch), when='+cuda cuda_arch={0}'.format(cuda_arch))
 
     depends_on("py-docutils@0.16:", when="+docutils", type=("build", "link", "run"))
     depends_on("py-h5py@2.8.0:", when="+hdf5", type=("build", "link", "run"))
