@@ -30,21 +30,25 @@ class Vecgeom(CMakePackage, CudaPackage):
         "1.2.9",
         url="https://gitlab.cern.ch/-/project/981/uploads/55a89cafbf48a418bec68be42867d4bf/VecGeom-v1.2.9.tar.gz",
         sha256="93ee9ce6f7b2d704e9b9db22fad68f81b8eaf17453452969fc47e93dba4bfaf4",
+        deprecated=True,
     )
     version(
         "1.2.8",
         url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/db11697eb81d6f369e9ded1078de946b/VecGeom-v1.2.8.tar.gz",
         sha256="769f59e8377f8268e253a9b2a3eee86868a9ebc1fa66c968b96e19c31440c12b",
+        deprecated=True,
     )
     version(
         "1.2.7",
         url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/e4172cca4f6f731ef15e2780ecbb1645/VecGeom-v1.2.7.tar.gz",
         sha256="d264c69b78bf431b9542be1f1af087517eac629da03cf2da62eb1e433fe06021",
+        deprecated=True,
     )
     version(
         "1.2.6",
         url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/0b16aed9907cea62aa5f5914bec99a90/VecGeom-v1.2.6.tar.gz",
         sha256="337f8846491930f3d8bfa4b45a1589d46e5d1d87f2d38c8f7006645c3aa90df8",
+        deprecated=True,
     )
     version(
         "1.2.5",
