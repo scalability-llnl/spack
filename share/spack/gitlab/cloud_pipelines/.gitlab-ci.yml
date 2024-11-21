@@ -951,3 +951,26 @@ windows-vis-build:
   needs:
     - artifacts: True
       job: windows-vis-generate
+
+#######################################
+# Bootstrap x86_64-linux-gnu
+#######################################
+.bootstrap-x86_64-linux-gnu:
+  extends: [ ".linux_x86_64_v3" ]
+  variables:
+    SPACK_CI_STACK_NAME: bootstrap-x86_64-linux-gnu
+
+bootstrap-x86_64-linux-gnu-generate:
+  extends: [ .generate-x86_64, .bootstrap-x86_64-linux-gnu ]
+  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
+
+bootstrap-x86_64-linux-gnu-build:
+  extends: [ .build, .bootstrap-x86_64-linux-gnu ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: bootstrap-x86_64-linux-gnu-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: bootstrap-x86_64-linux-gnu-generate
