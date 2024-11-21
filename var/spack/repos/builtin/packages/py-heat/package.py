@@ -74,7 +74,7 @@ class PyHeat(PythonPackage, CudaPackage, ROCmPackage):
     for cuda_arch in CudaPackage.cuda_arch_values:
         depends_on(
             "py-torch cuda_arch={0}".format(cuda_arch),
-            when="+cuda cuda_arch={0}".format(cuda_arch)
+            when="+cuda cuda_arch={0}".format(cuda_arch),
         )
 
     depends_on("py-docutils@0.16:", when="+docutils", type=("build", "link", "run"))
