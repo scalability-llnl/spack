@@ -83,12 +83,12 @@ class PyCython(PythonPackage):
 
     # Based on PyPI wheel availability
     with default_args(type=("build", "link", "run")):
-        depends_on("python@:3.13", when="@3.0.11:")
-        depends_on("python@:3.12", when="@0.29.35:3.0.10")
-        depends_on("python@:3.11", when="@0.29.29:0.29.34")
-        depends_on("python@:3.10", when="@0.29.25:0.29.28")
-        depends_on("python@:3.9", when="@0.29.21:0.29.24")
-        depends_on("python@:3.8", when="@0.29.14:0.29.20")
+        depends_on("python@:3.13")  # or maybe even drop this line until 3.14 is released
+        depends_on("python@:3.12", when="@:3.0.10")
+        depends_on("python@:3.11", when="@:0.29.34")
+        depends_on("python@:3.10", when="@:0.29.28")
+        depends_on("python@:3.9", when="@:0.29.24")
+        depends_on("python@:3.8", when="@:0.29.20")
         depends_on("python@:3.7", when="@:0.29.13")
 
     # Cythonize command still used distutils until 3.0.4, switched to setuptools
