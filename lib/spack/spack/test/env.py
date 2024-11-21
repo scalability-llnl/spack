@@ -945,7 +945,8 @@ packages:
 
     spack_yaml = env_path / ev.manifest_name
     spack_yaml.write_text(
-        f"""spack:
+        f"""\
+spack:
   include:
   - path: {include_path}
     when: os == '{this_os}'
