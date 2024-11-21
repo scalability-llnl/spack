@@ -35,6 +35,7 @@ class PyMultidict(PythonPackage):
         depends_on("python@:3.8", when="@:4")
 
     depends_on("py-setuptools@40:", type="build")
+    depends_on("py-typing-extensions@4.1:", when="@6.1: ^python@:3.10", type=("build", "run"))
 
     # Historical dependencies
     depends_on("py-pip@18:", when="@:4", type="build")
