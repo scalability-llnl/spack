@@ -56,10 +56,7 @@ class Vecgeom(CMakePackage, CudaPackage):
         sha256="d79ea05125e4d03c5605e5ea232994c500841d207b4543ac3d84758adddc15a9",
         deprecated=True,
     )
-    version(
-        "1.1.20",
-        sha256="e1c75e480fc72bca8f8072ea00320878a9ae375eed7401628b15cddd097ed7fd",
-    )
+    version("1.1.20", sha256="e1c75e480fc72bca8f8072ea00320878a9ae375eed7401628b15cddd097ed7fd")
     version(
         "1.1.5",
         sha256="da674f3bbc75c30f56c1a2d251fa8930c899f27fa64b03a36569924030d87b95",
