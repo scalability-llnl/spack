@@ -579,6 +579,16 @@ def is_git_repo(path):
     return False
 
 
+def test_settings(test_opt, roots):
+    if test_opt == "all":
+        tests = True
+    elif test_opt == "root":
+        tests = [spec.name for spec in roots]
+    else:
+        tests = False
+    return tests
+
+
 class PythonNameError(spack.error.SpackError):
     """Exception class thrown for impermissible python names"""
 
