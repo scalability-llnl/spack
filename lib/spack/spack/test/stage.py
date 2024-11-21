@@ -894,7 +894,7 @@ class TestDevelopStage:
 
     def test_develop_from_mirror_cache(self, develop_path, tmp_build_stage_dir,
             tmpdir, mutable_config, mock_packages,
-            mutable_mock_env_path,
+            mutable_mock_env_path, mock_fetch
         ):
         import spack.stage
         import spack.main
@@ -908,7 +908,7 @@ class TestDevelopStage:
 
         develop = spack.main.SpackCommand("develop")
         env = spack.main.SpackCommand("env")
-        add = spack.main.SpackCommand("env")
+        add = spack.main.SpackCommand("add")
 
         the_mirror = tmpdir.join("test-mirror")
         the_mirror.ensure(dir=True)
@@ -922,7 +922,7 @@ class TestDevelopStage:
 
         devtree, srcdir = develop_path
 
-        dev_id = "mpich-1.5"
+        dev_id = "mpich2-1.5"
 
         stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage", mirror_id=dev_id)
         cache = spack.caches.MirrorCache(root=the_mirror, skip_unstable_versions=False)
@@ -935,7 +935,8 @@ class TestDevelopStage:
             develop("mpich2@1.5")
             e.concretize()
             mpich_spec = list(e.concretized_specs())[0][1]
-            mpich_dev_path = None
+            mpich_dev_path = mpich_spec.variants["dev_path"].value
+            assert devtree == _create_tree_from_dir_recursive(mpich_dev_path)
 
 
 def test_stage_create_replace_path(tmp_build_stage_dir):

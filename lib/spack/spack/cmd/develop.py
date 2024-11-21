@@ -76,6 +76,7 @@ def _retrieve_develop_from_cache(spec, dst):
     import spack.mirror
     import spack.util.url
     import spack.util.compression
+    import llnl.util.filesystem
 
     mirrors = spack.mirror.MirrorCollection(source=True).values()
     # Note: stages have a notion of one "main" download site, with
@@ -88,6 +89,7 @@ def _retrieve_develop_from_cache(spec, dst):
         dev_cache_id = spec.format_path("{name}-{version}")
         where_it_might_be = os.path.join(mirror_root, "develop", dev_cache_id) + ".tar.gz"
         if os.path.exists(where_it_might_be):
+            llnl.util.filesystem.mkdirp(dst)
             spack.util.compression.decompress_single_dir_archive_into(where_it_might_be, dst)
             return True
 
@@ -187,7 +189,8 @@ def develop(parser, args):
                 msg += " Use `spack develop -f` to overwrite."
                 raise SpackError(msg)
 
-        _retrieve_develop_source(spec, abspath)
+        if not _retrieve_develop_from_cache(spec, abspath):
+            _retrieve_develop_source(spec, abspath)
 
     tty.debug("Updating develop config for {0} transactionally".format(env.name))
     with env.write_transaction():

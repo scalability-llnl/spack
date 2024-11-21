@@ -595,9 +595,11 @@ def decompress_single_dir_archive_into(archive_file, dst):
     decompressor = decompressor_for(archive_file)
 
     with spack.stage.Stage("decompress") as stage:
-        with llnl.util.filesystem.working_dir(stage.path):
+        #with llnl.util.filesystem.working_dir(stage.path):
+        #    decompressor(archive_file)
+        #    llnl.util.filesystem.exploding_archive_handler(stage.path, stage)
+        with llnl.util.filesystem.exploding_archive_catch(stage):
             decompressor(archive_file)
-            llnl.util.filesystem.exploding_archive_handler(stage.path, stage)
         llnl.util.filesystem.mv_contents_from(stage.source_path, dst)
 
     #with tempfile.TemporaryDirectory() as tmp_dir:
