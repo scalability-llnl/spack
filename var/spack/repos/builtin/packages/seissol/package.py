@@ -154,8 +154,8 @@ class Seissol(CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts(
         "%intel",
-        when="@1.3:",
-        msg="The Intel compiler is unsupported from v1.3 onward. Please use e.g.gcc or oneapi",
+        when="@1.3",
+        msg="The Intel compiler is unsupported from v1.3. Please use e.g.gcc or oneapi",
     )
 
     variant(
@@ -196,7 +196,7 @@ class Seissol(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("hdf5 +shared +threadsafe +hl +mpi")
 
-    depends_on("netcdf-c@4.6: +shared +mpi", when="+netcdf")
+    depends_on("netcdf-c@4.6:4.8.1 +shared +mpi", when="+netcdf")
 
     depends_on("asagi +mpi +mpi3", when="+asagi")
 
