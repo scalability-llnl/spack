@@ -93,7 +93,7 @@ class PyCython(PythonPackage):
 
     # https://github.com/cython/cython/issues/5751
     # https://github.com/cython/cython/commit/0000fb4c319ef8f7e8eabcc99677f99a8c503cc3
-    depends_on("py-setuptools", when="^python@3.12:", type="run")
+    depends_on("py-setuptools@66:", when="^python@3.12:", type="run")
 
     depends_on("py-setuptools", type="build")
     depends_on("gdb@7.2:", type="test")
