@@ -63,6 +63,37 @@ def _update_config(spec, path):
     spack.config.change_or_add("develop", find_fn, change_fn)
 
 
+def _retrieve_develop_from_cache(spec, dst):
+    """If we are expecting to instantiate our develop source rather
+    than specifying a dev_path that points into a pre-established
+    source directory, there are two possibilities:
+
+    a. We want to download the source via the same channels that
+       Spack normally acquires the package
+    b. We might want to provide a cache that users should download
+       from
+    """
+    import spack.mirror
+    import spack.util.url
+    import spack.util.compression
+
+    mirrors = spack.mirror.MirrorCollection(source=True).values()
+    # Note: stages have a notion of one "main" download site, with
+    # possibly many alternatives. It doesn't quite fit the model of
+    # cached `spack develop` packages
+    for mirror in mirrors:
+        if not mirror.fetch_url.startswith("file://"):
+            continue
+        mirror_root = spack.util.url.local_file_path(mirror.fetch_url)
+        dev_cache_id = spec.format_path("{name}-{version}")
+        where_it_might_be = os.path.join(mirror_root, "develop", dev_cache_id) + ".tar.gz"
+        if os.path.exists(where_it_might_be):
+            spack.util.compression.decompress_single_dir_archive_into(where_it_might_be, dst)
+            return True
+
+    return False
+
+
 def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
     # "steal" the source code via staging API. We ask for a stage
     # to be created, then copy it afterwards somewhere else. It would be
@@ -110,7 +141,8 @@ def develop(parser, args):
             # Both old syntax `spack develop pkg@x` and new syntax `spack develop pkg@=x`
             # are currently supported.
             spec = spack.spec.parse_with_version_concrete(entry["spec"])
-            _retrieve_develop_source(spec, abspath)
+            if not _retrieve_develop_from_cache(spec, abspath):
+                _retrieve_develop_source(spec, abspath)
 
         if not env.dev_specs:
             tty.warn("No develop specs to download")

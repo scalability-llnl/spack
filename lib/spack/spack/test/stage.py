@@ -881,7 +881,7 @@ class TestDevelopStage:
         stats = spack.mirror.MirrorStats()
         stage.cache_mirror(cache, stats)
 
-        the_resulting_archive = os.path.join(dst_cache, name_of_archive + ".tar.gz")
+        the_resulting_archive = os.path.join(dst_cache, "develop", name_of_archive + ".tar.gz")
 
         decomp_sandbox = tmpdir.join("decompressed")
         decomp_sandbox.ensure(dir=True)
@@ -891,6 +891,51 @@ class TestDevelopStage:
 
         the_resulting_expanded = os.path.join(decomp_sandbox, name_of_archive)
         assert devtree == _create_tree_from_dir_recursive(the_resulting_expanded)
+
+    def test_develop_from_mirror_cache(self, develop_path, tmp_build_stage_dir,
+            tmpdir, mutable_config, mock_packages,
+            mutable_mock_env_path,
+        ):
+        import spack.stage
+        import spack.main
+        import spack.config
+
+        import spack.caches
+        import spack.mirror
+        import llnl.util.filesystem
+        import spack.util.compression
+        import spack.environment
+
+        develop = spack.main.SpackCommand("develop")
+        env = spack.main.SpackCommand("env")
+        add = spack.main.SpackCommand("env")
+
+        the_mirror = tmpdir.join("test-mirror")
+        the_mirror.ensure(dir=True)
+
+        spack.config.set("mirrors", {
+            "test": {
+                "binary": False,
+                "url": f"file://{the_mirror}",
+            }
+        })
+
+        devtree, srcdir = develop_path
+
+        dev_id = "mpich-1.5"
+
+        stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage", mirror_id=dev_id)
+        cache = spack.caches.MirrorCache(root=the_mirror, skip_unstable_versions=False)
+        stats = spack.mirror.MirrorStats()
+        stage.cache_mirror(cache, stats)
+
+        env("create", "test")
+        with spack.environment.read("test") as e:
+            add("mpich2")
+            develop("mpich2@1.5")
+            e.concretize()
+            mpich_spec = list(e.concretized_specs())[0][1]
+            mpich_dev_path = None
 
 
 def test_stage_create_replace_path(tmp_build_stage_dir):

@@ -27,6 +27,7 @@ from llnl.util.filesystem import (
     mkdirp,
     partition_path,
     remove_linked_tree,
+    mv_contents_from,
 )
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
@@ -559,18 +560,7 @@ class Stage(LockableStagingDir):
         if not os.path.isdir(dest):
             mkdirp(dest)
 
-        # glob all files and directories in the source path
-        hidden_entries = glob.glob(os.path.join(self.source_path, ".*"))
-        entries = glob.glob(os.path.join(self.source_path, "*"))
-
-        # Move all files from stage to destination directory
-        # Include hidden files for VCS repo history
-        for entry in hidden_entries + entries:
-            if os.path.isdir(entry):
-                d = os.path.join(dest, os.path.basename(entry))
-                shutil.copytree(entry, d, symlinks=True)
-            else:
-                shutil.copy2(entry, dest)
+        mv_contents_from(self.source_path, dest)
 
         # copy archive file if we downloaded from url -- replaces for vcs
         if self.archive_file and os.path.exists(self.archive_file):
@@ -875,31 +865,40 @@ class DevelopStage(LockableStagingDir):
     def cache_mirror(
         self, mirror: "spack.caches.MirrorCache", stats: "spack.mirror.MirrorStats"
     ) -> None:
+        import llnl.util.filesystem
+
         if not self.mirror_id:
             raise ValueError()
-        absolute_storage_path = os.path.join(mirror.root, self.mirror_id) + ".tar.gz"
+
+        llnl.util.filesystem.mkdirp(os.path.join(mirror.root, "develop"))
+
+        absolute_storage_path = os.path.join(mirror.root, "develop", self.mirror_id) + ".tar.gz"
 
         if os.path.exists(absolute_storage_path):
             stats.already_existed(absolute_storage_path)
         else:
-            import spack.util.archive
-            import pathlib
-            import llnl.util.filesystem
-
             # This is essentially the logic of `VCSFetchStrategy.archive`
             base = self.mirror_id
-            with llnl.util.filesystem.working_dir(self.dev_path), spack.util.archive.gzip_compressed_tarfile(absolute_storage_path) as (
-                tar,
-                _,
-                _,
-            ):
-                spack.util.archive.reproducible_tarfile_from_prefix(
-                    tar,
-                    prefix=".",
-                    path_to_name=lambda path: (base / pathlib.PurePath(path)).as_posix(),
-                )
+            create_archive_of_x_at_y(self.dev_path, absolute_storage_path, base)
 
             stats.added(absolute_storage_path)
+
+
+def create_archive_of_x_at_y(x, y, base):
+    import llnl.util.filesystem
+    import spack.util.archive
+    import pathlib
+
+    with llnl.util.filesystem.working_dir(x), spack.util.archive.gzip_compressed_tarfile(y) as (
+        tar,
+        _,
+        _,
+    ):
+        spack.util.archive.reproducible_tarfile_from_prefix(
+            tar,
+            prefix=".",
+            path_to_name=lambda path: (base / pathlib.PurePath(path)).as_posix(),
+        )
 
 
 def ensure_access(file):

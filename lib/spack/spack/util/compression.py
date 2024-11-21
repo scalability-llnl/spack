@@ -580,3 +580,27 @@ def extension_from_magic_numbers(path: str, decompress: bool = False) -> Optiona
 
     # Otherwise, use the extension from the file name.
     return llnl.url.extension_from_path(path)
+
+
+def decompress_single_dir_archive_into(archive_file, dst):
+    """You have a /path/to/archive.tar.gz
+
+    It expands to x/...
+    We want all of ... (but not x) in `dst`
+    """
+    import llnl.util.filesystem
+    #import tempfile
+    import spack.stage
+
+    decompressor = decompressor_for(archive_file)
+
+    with spack.stage.Stage("decompress") as stage:
+        with llnl.util.filesystem.working_dir(stage.path):
+            decompressor(archive_file)
+            llnl.util.filesystem.exploding_archive_handler(stage.path, stage)
+        llnl.util.filesystem.mv_contents_from(stage.source_path, dst)
+
+    #with tempfile.TemporaryDirectory() as tmp_dir:
+    #    with llnl.util.filesystem.working_dir(tmp_dir):
+    #        decompressor = decompressor_for(archive_file)
+    #        decompressor(archive_file)
