@@ -28,7 +28,7 @@ class Libcxi(AutotoolsPackage):
 
     depends_on("libconfig@1.5:")
     depends_on("libuv@1.18:")
-    depends_on("libfuse@2.9.7:2.9.9")  # configure fails with newer, bug?
+    depends_on("libfuse@2.9.7:2")  # configure fails with newer, bug?
     depends_on("libyaml@0.1.7:")
     depends_on("libnl@3:")
     depends_on("numactl@2:")
