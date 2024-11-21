@@ -58,6 +58,12 @@ class Visit(CMakePackage):
     executables = ["^visit$"]
 
     version("develop", branch="develop")
+    version("3.4.1", sha256="942108cb294f4c9584a1628225b0be39c114c7e9e01805fb335d9c0b507689f5")
+    version(
+        "3.4.0",
+        sha256="6cfb8b190045439e39fa6014dfa797de189bd40bbb9aa6facf711ebd908229e3",
+        deprecated=True,
+    )
     version("3.3.3", sha256="cc67abb7585e23b51ad576e797df4108641ae6c8c5e80e5359a279c729769187")
     version("3.3.2", sha256="0ae7c38287598e8d7d238cf284ea8be1096dcf13f58a7e9e444a28a32c085b56")
     version("3.3.1", sha256="2e969d3146b559fb833e4cdfaefa72f303d8ad368ef325f68506003f7bc317b9")
@@ -76,7 +82,9 @@ class Visit(CMakePackage):
     depends_on("fortran", type="build")  # generated
 
     root_cmakelists_dir = "src"
-    generator("ninja")
+    generator("ninja", "make")
+    # Temporary fix for now due to issue installing with ninja generator
+    conflicts("generator=ninja", when="+python")
 
     variant("gui", default=True, description="Enable VisIt's GUI")
     variant("adios2", default=True, description="Enable ADIOS2 file format")
@@ -94,7 +102,7 @@ class Visit(CMakePackage):
     patch("spack-changes-3.0.1.patch", when="@3.0.1")
     patch("nonframework-qwt.patch", when="^qt~framework platform=darwin")
     patch("parallel-hdf5.patch", when="@3.0.1:3.2.2+hdf5+mpi")
-    patch("parallel-hdf5-3.3.patch", when="@3.3.0:+hdf5+mpi")
+    patch("parallel-hdf5-3.3.patch", when="@3.3.0:3.3+hdf5+mpi")
     patch("cmake-findvtkh-3.3.patch", when="@3.3.0:3.3.2+vtkm")
     patch("cmake-findjpeg.patch", when="@3.1.0:3.2.2")
     patch("cmake-findjpeg-3.3.patch", when="@3.3.0")
@@ -108,15 +116,22 @@ class Visit(CMakePackage):
     # Fix const-correctness in VTK interface
     patch("vtk-8.2-constcorrect.patch", when="@3.3.3 ^vtk@8.2.1a")
 
+    # Add dectection for py-pip and enable python extensions with building with GUI
+    patch("19958-enable-python-and-check-pip.patch", when="@3.4:3.4.1 +python")
+
     conflicts(
         "+gui", when="^[virtuals=gl] osmesa", msg="GUI cannot be activated with OSMesa front-end"
     )
 
     depends_on("cmake@3.14.7:", type="build")
+    depends_on("cmake@3.24:", type="build", when="@3.4:")
     depends_on("mpi", when="+mpi")
+    conflicts("mpi", when="~mpi")
 
     # VTK flavors
-    depends_on("vtk@8.1:8 +opengl2")
+    depends_on("vtk +opengl2")
+    depends_on("vtk@8.1:8", when="@:3.3")
+    depends_on("vtk@9.2.6", when="@3.4:")
     depends_on("vtk +qt", when="+gui")
     depends_on("vtk +python", when="+python")
     depends_on("vtk +mpi", when="+mpi")
@@ -135,12 +150,14 @@ class Visit(CMakePackage):
     depends_on("gl")
 
     # VisIt doesn't work with later versions of qt.
-    depends_on("qt+gui+opengl@5:5.14", when="+gui")
+    depends_on("qt+gui+opengl", when="+gui")
+    depends_on("qt@5:5.14", when="+gui")
     depends_on("qwt+opengl", when="+gui")
 
-    # python@3.8 doesn't work with VisIt.
+    # python@3.8 doesn't work with older VisIt.
     depends_on("python@3.2:3.7,3.9:", when="@:3.2 +python")
     depends_on("python@3.2:", when="@3.3: +python")
+    depends_on("py-pip", when="+python")
     extends("python", when="+python")
 
     # VisIt uses the hdf5 1.8 api
@@ -177,13 +194,13 @@ class Visit(CMakePackage):
     with when("+adios2"):
         depends_on("adios2")
         # adios 2.8 removed adios2_taustubs (https://github.com/visit-dav/visit/issues/19209)
-        depends_on("adios2@:2.7.1")
+        # Fixed in 3.4.1
+        depends_on("adios2@:2.7.1", when="@:3.4.0")
         depends_on("adios2+hdf5", when="+hdf5")
         depends_on("adios2~hdf5", when="~hdf5")
         depends_on("adios2+mpi", when="+mpi")
         depends_on("adios2~mpi", when="~mpi")
         depends_on("adios2+python", when="+python")
-        depends_on("adios2~python", when="~python")
 
     # For version 3.3.0 through 3.3.2, we used vtk-h to utilize vtk-m.
     # For version starting with 3.3.3 we use vtk-m directly.
@@ -242,6 +259,12 @@ class Visit(CMakePackage):
             self.define("VISIT_USE_GLEW", False),
             self.define("VISIT_CONFIG_SITE", "NONE"),
         ]
+
+        # TODO: Remove this hack when VTK 8.2.1a is removed
+        if spec["vtk"].satisfies("@8.2.1a"):
+            args.append(self.define("VISIT_VTK_VERSION", "8.2.1"))
+        else:
+            args.append(self.define("VISIT_VTK_VERSION", str(spec["vtk"].version)))
 
         # Provide the plugin compilation environment so as to extend VisIt
         args.append(self.define_from_variant("VISIT_INSTALL_THIRD_PARTY", "plugins"))

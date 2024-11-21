@@ -27,6 +27,7 @@ from llnl.util.lang import elide_list
 
 import spack
 import spack.binary_distribution
+import spack.compiler
 import spack.compilers
 import spack.concretize
 import spack.config
