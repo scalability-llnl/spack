@@ -874,7 +874,6 @@ class DevelopStage(LockableStagingDir):
 
         absolute_storage_path = os.path.join(mirror.root, "develop", self.mirror_id) + ".tar.gz"
 
-        #import pdb; pdb.set_trace()
         if os.path.exists(absolute_storage_path):
             stats.already_existed(absolute_storage_path)
         else:
