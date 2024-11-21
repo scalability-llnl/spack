@@ -10,6 +10,7 @@ import pytest
 
 from llnl.util.filesystem import mkdirp, working_dir
 
+import spack.cmd
 import spack.cmd.pkg
 import spack.main
 import spack.paths
