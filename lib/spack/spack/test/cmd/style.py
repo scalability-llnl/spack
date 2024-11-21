@@ -295,7 +295,7 @@ def test_style_with_black(flake8_package_with_errors):
 
 
 def test_skip_tools():
-    output = style("--skip", "import-check,isort,mypy,black,flake8")
+    output = style("--skip", "import,isort,mypy,black,flake8")
     assert "Nothing to run" in output
 
 
@@ -314,6 +314,7 @@ class Example(spack.build_systems.autotools.AutotoolsPackage):
 def foo(config: "spack.error.SpackError"):
     # the type hint is quoted, so it should not be removed
     spack.util.executable.Executable("example")
+    print(spack.__version__)
 '''
     file.write_text(contents)
     root = str(tmp_path)
@@ -330,6 +331,7 @@ def foo(config: "spack.error.SpackError"):
 
     assert "issues.py: redundant import: spack.cmd" in output
     assert "issues.py: redundant import: spack.config" not in output  # comment prevents removal
+    assert "issues.py: missing import: spack" in output  # used by spack.__version__
     assert "issues.py: missing import: spack.build_systems.autotools" in output
     assert "issues.py: missing import: spack.util.executable" in output
     assert "issues.py: missing import: spack.error" not in output  # not directly used
@@ -349,6 +351,7 @@ def foo(config: "spack.error.SpackError"):
     output = output_buf.getvalue()
     assert exit_code == 1
     assert "issues.py: redundant import: spack.cmd" in output
+    assert "issues.py: missing import: spack" in output
     assert "issues.py: missing import: spack.build_systems.autotools" in output
     assert "issues.py: missing import: spack.util.executable" in output
 
@@ -369,8 +372,9 @@ def foo(config: "spack.error.SpackError"):
     # check that the file was fixed
     new_contents = file.read_text()
     assert "import spack.cmd" not in new_contents
-    assert "import spack.build_systems.autotools" in new_contents
-    assert "import spack.util.executable" in new_contents
+    assert "import spack\n" in new_contents
+    assert "import spack.build_systems.autotools\n" in new_contents
+    assert "import spack.util.executable\n" in new_contents
 
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires Python 3.9+")
@@ -389,3 +393,16 @@ def test_run_import_check_syntax_error_and_missing(tmp_path: pathlib.Path):
     assert "syntax-error.py: could not parse" in output
     assert "missing.py: could not parse" in output
     assert exit_code == 1
+
+
+def test_case_sensitive_imports(tmp_path: pathlib.Path):
+    # example.Example is a name, while example.example is a module.
+    (tmp_path / "lib" / "spack" / "example").mkdir(parents=True)
+    (tmp_path / "lib" / "spack" / "example" / "__init__.py").write_text("class Example:\n    pass")
+    (tmp_path / "lib" / "spack" / "example" / "example.py").write_text("foo = 1")
+    assert spack.cmd.style._module_part(str(tmp_path), "example.Example") == "example"
+
+
+def test_pkg_imports():
+    assert spack.cmd.style._module_part(spack.paths.prefix, "spack.pkg.builtin.boost") is None
+    assert spack.cmd.style._module_part(spack.paths.prefix, "spack.pkg") is None

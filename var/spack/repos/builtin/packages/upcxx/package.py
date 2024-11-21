@@ -6,6 +6,8 @@
 import os
 import re
 
+import llnl.util.lang
+
 import spack.platforms
 from spack.package import *
 

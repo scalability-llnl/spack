@@ -66,7 +66,7 @@ class Mpifileutils(CMakePackage):
     def flag_handler(self, name, flags):
         spec = self.spec
         if name == "cflags":
-            if spec.satisfies("%oneapi"):
+            if spec.satisfies("%oneapi") or spec.satisfies("%cce"):
                 flags.append("-Wno-error=implicit-function-declaration")
         return (flags, None, None)
 

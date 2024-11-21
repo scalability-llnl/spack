@@ -26,6 +26,7 @@ import llnl.url
 from llnl.util import lang, tty
 from llnl.util.filesystem import mkdirp, rename, working_dir
 
+import spack
 import spack.config
 import spack.error
 import spack.util.executable
