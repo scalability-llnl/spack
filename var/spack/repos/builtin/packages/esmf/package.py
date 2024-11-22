@@ -201,9 +201,9 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
     # Make script from mvapich2.patch executable
     @run_before("build")
     def chmod_scripts(self):
-        if self.spec.satisfies(":7.0"):
-        chmod = which("chmod")
-        chmod("+x", "scripts/libs.mvapich2f90")
+        if self.spec.satisfies("@:7.0"):
+            chmod = which("chmod")
+            chmod("+x", "scripts/libs.mvapich2f90")
 
     def url_for_version(self, version):
         if version < Version("8.0.0"):
