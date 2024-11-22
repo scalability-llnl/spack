@@ -621,7 +621,7 @@ def linux_os():
     platform = spack.platforms.host()
     name, version = "debian", "6"
     if platform.name == "linux":
-        current_os = platform.operating_system("default_os")
+        current_os = platform.default_operating_system()
         name, version = current_os.name, current_os.version
     LinuxOS = collections.namedtuple("LinuxOS", ["name", "version"])
     return LinuxOS(name=name, version=version)

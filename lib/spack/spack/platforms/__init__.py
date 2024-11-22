@@ -52,8 +52,7 @@ def use_platform(new_platform):
 
     import spack.config
 
-    msg = '"{0}" must be an instance of Platform'
-    assert isinstance(new_platform, Platform), msg.format(new_platform)
+    assert isinstance(new_platform, Platform), f'"{new_platform}" must be an instance of Platform'
 
     original_host_fn = host
 

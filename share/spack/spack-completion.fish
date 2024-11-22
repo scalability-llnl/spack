@@ -506,9 +506,9 @@ complete -c spack -n '__fish_spack_using_command arch' -s o -l operating-system 
 complete -c spack -n '__fish_spack_using_command arch' -s t -l target -f -a target
 complete -c spack -n '__fish_spack_using_command arch' -s t -l target -d 'print only the target'
 complete -c spack -n '__fish_spack_using_command arch' -s f -l frontend -f -a frontend
-complete -c spack -n '__fish_spack_using_command arch' -s f -l frontend -d 'print frontend'
+complete -c spack -n '__fish_spack_using_command arch' -s f -l frontend -d 'print frontend (DEPRECATED)'
 complete -c spack -n '__fish_spack_using_command arch' -s b -l backend -f -a backend
-complete -c spack -n '__fish_spack_using_command arch' -s b -l backend -d 'print backend'
+complete -c spack -n '__fish_spack_using_command arch' -s b -l backend -d 'print backend (DEPRECATED)'
 
 # spack audit
 set -g __fish_spack_optspecs_spack_audit h/help

@@ -1,6 +1,7 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import warnings
 from typing import Optional
 
 import archspec.cpu
@@ -12,8 +13,7 @@ import spack.error
 
 class NoPlatformError(spack.error.SpackError):
     def __init__(self):
-        msg = "Could not determine a platform for this machine"
-        super().__init__(msg)
+        super().__init__("Could not determine a platform for this machine")
 
 
 @llnl.util.lang.lazy_lexicographic_ordering
@@ -50,6 +50,7 @@ class Platform:
 
     reserved_targets = ["default_target", "frontend", "fe", "backend", "be"]
     reserved_oss = ["default_os", "frontend", "fe", "backend", "be"]
+    deprecated_names = ["frontend", "fe", "backend", "be"]
 
     def __init__(self, name):
         self.targets = {}
@@ -77,6 +78,9 @@ class Platform:
         by a subclass for which we want to provide further aliasing options.
         """
         name = str(name)
+        if name in Platform.deprecated_names:
+            warnings.warn(f"target={name} is deprecated, use target={self.default} instead")
+
         if name in Platform.reserved_targets:
             name = self.default
 
@@ -86,12 +90,21 @@ class Platform:
         """Add the operating_system class object into the
         platform.operating_sys dictionary.
         """
-        if name in Platform.reserved_oss:
+        if name in Platform.reserved_oss + Platform.deprecated_names:
             msg = f"{name} is a spack reserved alias and cannot be the name of an OS"
             raise ValueError(msg)
         self.operating_sys[name] = os_class
 
+    def default_target(self):
+        return self.target(self.default)
+
+    def default_operating_system(self):
+        return self.operating_system(self.default_os)
+
     def operating_system(self, name):
+        if name in Platform.deprecated_names:
+            warnings.warn(f"os={name} is deprecated, use os={self.default_os} instead")
+
         if name in Platform.reserved_oss:
             name = self.default_os
 
