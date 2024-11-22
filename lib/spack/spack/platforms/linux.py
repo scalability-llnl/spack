@@ -16,9 +16,6 @@ class Linux(Platform):
     def __init__(self):
         super().__init__("linux")
 
-        self._add_archspec_targets()
-
-        # Get specific default
         self.default = archspec.cpu.host().name
 
         linux_dist = LinuxDistro()

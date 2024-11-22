@@ -16,9 +16,6 @@ class FreeBSD(Platform):
     def __init__(self):
         super().__init__("freebsd")
 
-        self._add_archspec_targets()
-
-        # Get specific default
         self.default = archspec.cpu.host().name
 
         os = FreeBSDOs()

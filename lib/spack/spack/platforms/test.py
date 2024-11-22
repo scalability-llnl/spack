@@ -23,12 +23,13 @@ class Test(Platform):
         name = name or "test"
         super().__init__(name)
 
+        self.add_operating_system("debian6", spack.operating_systems.OperatingSystem("debian", 6))
+        self.add_operating_system("redhat6", spack.operating_systems.OperatingSystem("redhat", 6))
+
+    def _init_targets(self):
         targets = ("aarch64", "m1") if platform.machine() == "arm64" else ("x86_64", "core2")
         for t in targets:
             self.add_target(t, archspec.cpu.TARGETS[t])
-
-        self.add_operating_system("debian6", spack.operating_systems.OperatingSystem("debian", 6))
-        self.add_operating_system("redhat6", spack.operating_systems.OperatingSystem("redhat", 6))
 
     @classmethod
     def detect(cls):

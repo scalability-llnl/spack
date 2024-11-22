@@ -19,14 +19,10 @@ class Darwin(Platform):
 
     def __init__(self):
         super().__init__("darwin")
-        self._add_archspec_targets()
-
         self.default = archspec.cpu.host().name
 
         mac_os = MacOs()
-
         self.default_os = str(mac_os)
-
         self.add_operating_system(str(mac_os), mac_os)
 
     @classmethod

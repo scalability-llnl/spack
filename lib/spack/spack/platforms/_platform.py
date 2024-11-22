@@ -8,13 +8,6 @@ import archspec.cpu
 
 import llnl.util.lang
 
-import spack.error
-
-
-class NoPlatformError(spack.error.SpackError):
-    def __init__(self):
-        super().__init__("Could not determine a platform for this machine")
-
 
 @llnl.util.lang.lazy_lexicographic_ordering
 class Platform:
@@ -56,6 +49,7 @@ class Platform:
         self.targets = {}
         self.operating_sys = {}
         self.name = name
+        self._init_targets()
 
     def add_target(self, name: str, target: archspec.cpu.Microarchitecture) -> None:
         """Used by the platform specific subclass to list available targets.
@@ -67,7 +61,7 @@ class Platform:
             raise ValueError(msg)
         self.targets[name] = target
 
-    def _add_archspec_targets(self):
+    def _init_targets(self):
         for name, microarchitecture in archspec.cpu.TARGETS.items():
             self.add_target(name, microarchitecture)
 
