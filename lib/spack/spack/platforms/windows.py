@@ -17,8 +17,6 @@ class Windows(Platform):
 
     def __init__(self):
         super().__init__("windows")
-        self._add_archspec_targets()
-
         self.default = archspec.cpu.host().name
 
         windows_os = WindowsOs()
