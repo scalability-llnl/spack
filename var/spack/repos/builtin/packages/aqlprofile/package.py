@@ -231,6 +231,24 @@ class Aqlprofile(Package):
 
     depends_on("cpio")
 
+    for ver in [
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+    ]:
+        depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
+
     def install(self, spec, prefix):
         # find deb or rpm pkg and extract files
         for file in os.listdir("."):
@@ -244,3 +262,6 @@ class Aqlprofile(Package):
 
         install_tree(f"opt/rocm-{spec.version}/share/", prefix.share)
         install_tree(f"opt/rocm-{spec.version}/lib/", prefix.lib)
+
+    def setup_run_environment(self, env):
+        env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
