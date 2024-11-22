@@ -196,7 +196,7 @@ def _concretize_spec_pairs(to_concretize, tests=False):
     # Special case for concretizing a single spec
     if len(to_concretize) == 1:
         abstract, concrete = to_concretize[0]
-        return [concrete or abstract.concretized()]
+        return [concrete or abstract.concretized(tests=tests)]
 
     # Special case if every spec is either concrete or has an abstract hash
     if all(

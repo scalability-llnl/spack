@@ -1210,3 +1210,18 @@ packages:
 
     b0_spec = spack.store.STORE.db.query_one("b0")
     assert "Tested b0" in logs("b0")
+
+
+def test_install_args_cfg_testproperty(
+        mutable_mock_env_path, install_mockery, mutable_config, concretize_scope, test_repo,
+        mock_fetch):
+    conf_str = """\
+packages:
+  c0:
+    install_args:
+      test: true
+"""
+    update_packages_config(conf_str)
+    install("b0")
+
+    assert "Tested c0" in logs("c0")
