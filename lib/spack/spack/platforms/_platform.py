@@ -13,23 +13,10 @@ import llnl.util.lang
 class Platform:
     """Platform is an abstract class extended by subclasses.
 
-    To add a new type of platform (such as cray_xe), create a subclass and set all the
-    class attributes such as priority, front_target, back_target, front_os, back_os.
-
     Platform also contain a priority class attribute. A lower number signifies higher
     priority. These numbers are arbitrarily set and can be changed though often there
     isn't much need unless a new platform is added and the user wants that to be
     detected first.
-
-    Targets are created inside the platform subclasses. Most architecture (like linux,
-    and darwin) will have only one target family (x86_64) but in the case of Cray
-    machines, there is both a frontend and backend processor. The user can specify
-    which targets are present on front-end and back-end architecture.
-
-    Depending on the platform, operating systems are either autodetected or are
-    set. The user can set the frontend and backend operating setting by the class
-    attributes front_os and back_os. The operating system will be responsible for
-    compiler detection.
     """
 
     # Subclass sets number. Controls detection order
@@ -52,10 +39,6 @@ class Platform:
         self._init_targets()
 
     def add_target(self, name: str, target: archspec.cpu.Microarchitecture) -> None:
-        """Used by the platform specific subclass to list available targets.
-        Raises an error if the platform specifies a name
-        that is reserved by spack as an alias.
-        """
         if name in Platform.reserved_targets:
             msg = f"{name} is a spack reserved alias and cannot be the name of a target"
             raise ValueError(msg)
@@ -67,11 +50,6 @@ class Platform:
             self.add_target(name, microarchitecture)
 
     def target(self, name):
-        """This is a getter method for the target dictionary
-        that handles defaulting based on the values provided by default,
-        front-end, and back-end. This can be overwritten
-        by a subclass for which we want to provide further aliasing options.
-        """
         name = str(name)
         if name in Platform.deprecated_names:
             warnings.warn(f"target={name} is deprecated, use target={self.default} instead")
@@ -82,9 +60,6 @@ class Platform:
         return self.targets.get(name, None)
 
     def add_operating_system(self, name, os_class):
-        """Add the operating_system class object into the
-        platform.operating_sys dictionary.
-        """
         if name in Platform.reserved_oss + Platform.deprecated_names:
             msg = f"{name} is a spack reserved alias and cannot be the name of an OS"
             raise ValueError(msg)
@@ -106,8 +81,9 @@ class Platform:
         return self.operating_sys.get(name, None)
 
     def setup_platform_environment(self, pkg, env):
-        """Subclass can override this method if it requires any
-        platform-specific build environment modifications.
+        """Platform-specific build environment modifications.
+
+        This method is meant toi be overridden by subclasses, when needed.
         """
         pass
 
