@@ -928,12 +928,22 @@ def test_env_include_configs(mutable_mock_env_path, mock_packages):
     env_path = mutable_mock_env_path
     env_path.mkdir()
 
-    include_path = str(env_path / "include.yaml")
-    with open(include_path, "w") as f:
+    this_os = spack.platforms.host().default_os
+    config_root = env_path / this_os
+    config_root.mkdir()
+    config_path = str(config_root / "config.yaml")
+    with open(config_path, "w") as f:
         f.write(
             """\
 config:
   verify_ssl: False
+"""
+        )
+
+    packages_path = str(env_path / "packages.yaml")
+    with open(packages_path, "w") as f:
+        f.write(
+            """\
 packages:
   python:
     require:
@@ -941,21 +951,19 @@ packages:
 """
         )
 
-    this_os = spack.platforms.host().default_os
-
     spack_yaml = env_path / ev.manifest_name
     spack_yaml.write_text(
         f"""\
 spack:
   include:
-  - path: {include_path}
-    when: os == '{this_os}'
+  - path: {config_path}
+    optional: true
+  - path: {packages_path}
 """
     )
 
     e = ev.Environment(env_path)
     with e.manifest.use_config():
-        # TODO/TLD: Fix this
         assert not spack.config.get("config:verify_ssl")
         python_reqs = spack.config.get("packages")["python"]["require"]
         req_specs = set(x["spec"] for x in python_reqs)
