@@ -375,23 +375,16 @@ class PackageTest:
 
             for name in method_names:
                 try:
-                    # Prefer the method in the package over the builder's.
-                    # We need this primarily to pick up arbitrarily named test
-                    # methods but also some build-time checks.
-                    fn = getattr(builder.pkg, name, getattr(builder, name))
-
-                    msg = f"RUN-TESTS: {phase_name}-time tests [{name}]"
-                    print_message(logger, msg, verbose)
-
-                    fn()
-
+                    fn = getattr(builder, name, None) or getattr(builder.pkg, name)
                 except AttributeError as e:
-                    msg = f"RUN-TESTS: method not implemented [{name}]"
-                    print_message(logger, msg, verbose)
-
-                    self.add_failure(e, msg)
+                    print_message(logger, f"RUN-TESTS: method not implemented [{name}]", verbose)
+                    self.add_failure(e, f"RUN-TESTS: method not implemented [{name}]")
                     if fail_fast:
                         break
+                    continue
+
+                print_message(logger, f"RUN-TESTS: {phase_name}-time tests [{name}]", verbose)
+                fn()
 
             if have_tests:
                 print_message(logger, "Completed testing", verbose)
