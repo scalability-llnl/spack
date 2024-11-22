@@ -199,9 +199,9 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
     filter_compiler_wrappers("esmf.mk", relative_root="lib")
 
     # Make script from mvapich2.patch executable
-    @when("@:7.0")
     @run_before("build")
     def chmod_scripts(self):
+        if self.spec.satisfies(":7.0"):
         chmod = which("chmod")
         chmod("+x", "scripts/libs.mvapich2f90")
 
