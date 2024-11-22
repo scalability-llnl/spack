@@ -199,6 +199,11 @@ class TestSpecSemantics:
                 "foo platform=test os=frontend target=frontend",
             ),
             (
+                "foo platform=test target=backend os=backend",
+                "platform=test target=backend os=backend",
+                "foo platform=test target=backend os=backend",
+            ),
+            (
                 "libelf target=default_target os=default_os",
                 "libelf target=default_target os=default_os",
                 "libelf target=default_target os=default_os",
@@ -481,7 +486,6 @@ class TestSpecSemantics:
             ("libelf+debug", "libelf~debug"),
             ("libelf+debug~foo", "libelf+debug+foo"),
             ("libelf debug=True", "libelf debug=False"),
-            ("libelf platform=test target=be os=be", "libelf target=fe os=fe"),
             ("namespace=builtin.mock", "namespace=builtin"),
         ],
     )

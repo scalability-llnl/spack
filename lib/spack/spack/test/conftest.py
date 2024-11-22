@@ -680,7 +680,6 @@ def mock_uarch_configuration(mock_uarch_json):
 def mock_targets(mock_uarch_configuration, monkeypatch):
     """Use this fixture to enable mock uarch targets for testing."""
     targets_json, targets = mock_uarch_configuration
-
     monkeypatch.setattr(archspec.cpu.schema, "TARGETS_JSON", targets_json)
     monkeypatch.setattr(archspec.cpu.microarchitecture, "TARGETS", targets)
 

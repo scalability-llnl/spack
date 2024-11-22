@@ -306,12 +306,17 @@ def specfile_for(default_mock_concretization):
         (
             r"os=fe",  # Various translations associated with the architecture
             [Token(SpecTokens.KEY_VALUE_PAIR, value="os=fe")],
-            "arch=test-redhat6-None",
+            "arch=test-debian6-None",
         ),
         (
             r"os=default_os",
             [Token(SpecTokens.KEY_VALUE_PAIR, value="os=default_os")],
             "arch=test-debian6-None",
+        ),
+        (
+            r"target=be",
+            [Token(TokenType.KEY_VALUE_PAIR, value="target=be")],
+            f"arch=test-None-{spack.platforms.test.Test.default}",
         ),
         (
             r"target=default_target",
@@ -997,9 +1002,11 @@ def test_disambiguate_hash_by_spec(spec1, spec2, constraint, mock_packages, monk
         ("x os=fe os=fe", "'os'"),
         ("x os=fe os=be", "'os'"),
         ("x target=fe target=fe", "'target'"),
+        ("x target=fe target=be", "'target'"),
         ("x platform=test platform=test", "'platform'"),
         # TODO: these two seem wrong: need to change how arch is initialized (should fail on os)
         ("x os=fe platform=test target=fe os=fe", "'platform'"),
+        ("x target=be platform=test os=be os=fe", "'platform'"),
         # Dependencies
         ("^[@foo] zlib", "edge attributes"),
         ("x ^[deptypes=link]foo ^[deptypes=run]foo", "conflicting dependency types"),

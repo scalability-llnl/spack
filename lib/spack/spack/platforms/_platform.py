@@ -45,11 +45,7 @@ class Platform:
     #: binary formats used on this platform; used by relocation logic
     binary_formats = ["elf"]
 
-    front_end: Optional[str] = None
-    default: Optional[str] = None  # The default back end target.
-
-    front_os: Optional[str] = None
-    back_os: Optional[str] = None
+    default: Optional[str] = None
     default_os: Optional[str] = None
 
     reserved_targets = ["default_target", "frontend", "fe", "backend", "be"]
@@ -80,12 +76,9 @@ class Platform:
         front-end, and back-end. This can be overwritten
         by a subclass for which we want to provide further aliasing options.
         """
-        # TODO: Check if we can avoid using strings here
         name = str(name)
-        if name == "default_target":
+        if name in Platform.reserved_targets:
             name = self.default
-        elif name == "frontend" or name == "fe":
-            name = self.front_end
 
         return self.targets.get(name, None)
 
@@ -99,12 +92,8 @@ class Platform:
         self.operating_sys[name] = os_class
 
     def operating_system(self, name):
-        if name == "default_os":
+        if name in Platform.reserved_oss:
             name = self.default_os
-        if name == "frontend" or name == "fe":
-            name = self.front_os
-        if name == "backend" or name == "be":
-            name = self.back_os
 
         return self.operating_sys.get(name, None)
 
@@ -116,8 +105,8 @@ class Platform:
 
     @classmethod
     def detect(cls):
-        """Return True if the the host platform is detected to be the current
-        Platform class, False otherwise.
+        """Returns True if the host platform is detected to be the current Platform class,
+        False otherwise.
 
         Derived classes are responsible for implementing this method.
         """
@@ -132,10 +121,7 @@ class Platform:
     def _cmp_iter(self):
         yield self.name
         yield self.default
-        yield self.front_end
         yield self.default_os
-        yield self.front_os
-        yield self.back_os
 
         def targets():
             for t in sorted(self.targets.values()):

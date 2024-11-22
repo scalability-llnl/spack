@@ -20,12 +20,9 @@ class Linux(Platform):
 
         # Get specific default
         self.default = archspec.cpu.host().name
-        self.front_end = self.default
 
         linux_dist = LinuxDistro()
         self.default_os = str(linux_dist)
-        self.front_os = self.default_os
-        self.back_os = self.default_os
         self.add_operating_system(str(linux_dist), linux_dist)
 
     @classmethod

@@ -19,14 +19,9 @@ class Windows(Platform):
         self._add_archspec_targets()
 
         self.default = archspec.cpu.host().name
-        self.front_end = self.default
 
         windows_os = WindowsOs()
-
         self.default_os = str(windows_os)
-        self.front_os = str(windows_os)
-        self.back_os = str(windows_os)
-
         self.add_operating_system(str(windows_os), windows_os)
 
     @classmethod
