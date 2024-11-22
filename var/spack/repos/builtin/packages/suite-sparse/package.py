@@ -90,8 +90,7 @@ class SuiteSparse(Package):
             msg="suite-sparse needs task_scheduler_init.h dropped in recent tbb libs",
         )
 
-    # This patch removes unsupported flags for pgi compiler
-    patch("pgi.patch", when="%pgi")
+    # This patch removes unsupported flags for nvhpc compiler
     patch("pgi.patch", when="%nvhpc")
 
     # This patch adds '-lm' when linking libgraphblas and when using clang.
@@ -234,8 +233,6 @@ class SuiteSparse(Package):
         # optimizations
         if any([x in spec for x in ("%apple-clang", "%clang", "%gcc", "%intel", "%fj")]):
             make_args += ["CFLAGS+=-fno-common -fexceptions"]
-        elif "%pgi" in spec:
-            make_args += ["CFLAGS+=--exceptions"]
 
         if spack_f77.endswith("xlf") or spack_f77.endswith("xlf_r"):
             make_args += ["CFLAGS+=-DBLAS_NO_UNDERSCORE"]

@@ -20,7 +20,7 @@ import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 import llnl.util.tty.color as clr
 from llnl.util.link_tree import ConflictingSpecsError
-from llnl.util.symlink import readlink, symlink
+from llnl.util.symlink import islink, readlink, symlink
 
 import spack
 import spack.caches
@@ -668,7 +668,7 @@ class ViewDescriptor:
 
     @property
     def _current_root(self):
-        if not os.path.islink(self.root):
+        if not islink(self.root):
             return None
 
         root = readlink(self.root)

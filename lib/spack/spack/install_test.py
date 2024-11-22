@@ -23,7 +23,6 @@ from llnl.util.lang import nullcontext
 from llnl.util.tty.color import colorize
 
 import spack.build_environment
-import spack.builder
 import spack.config
 import spack.error
 import spack.package_base
@@ -353,9 +352,7 @@ class PackageTest:
         self.test_parts[part_name] = status
         self.counts[status] += 1
 
-    def phase_tests(
-        self, builder: spack.builder.Builder, phase_name: str, method_names: List[str]
-    ):
+    def phase_tests(self, builder, phase_name: str, method_names: List[str]):
         """Execute the builder's package phase-time tests.
 
         Args:
@@ -764,7 +761,7 @@ def virtuals(pkg):
 
     # hack for compilers that are not dependencies (yet)
     # TODO: this all eventually goes away
-    c_names = ("gcc", "intel", "intel-parallel-studio", "pgi")
+    c_names = ("gcc", "intel", "intel-parallel-studio")
     if pkg.name in c_names:
         v_names.extend(["c", "cxx", "fortran"])
     if pkg.spec.satisfies("llvm+clang"):

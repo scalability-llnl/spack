@@ -1066,6 +1066,23 @@ def dir_structure_with_things_to_find(tmpdir):
     return str(tmpdir), locations
 
 
+def test_find_path_glob_matches(dir_structure_with_things_to_find):
+    root, locations = dir_structure_with_things_to_find
+    # both file name and path match
+    assert (
+        fs.find(root, "file_two")
+        == fs.find(root, "*/*/file_two")
+        == fs.find(root, "dir_t*/*/*two")
+        == [locations["file_two"]]
+    )
+    # ensure that * does not match directory separators
+    assert fs.find(root, "dir*file_two") == []
+    # ensure that file name matches after / are matched from the start of the file name
+    assert fs.find(root, "*/ile_two") == []
+    # file name matches exist, but not with these paths
+    assert fs.find(root, "dir_one/*/*two") == fs.find(root, "*/*/*/*/file_two") == []
+
+
 def test_find_max_depth(dir_structure_with_things_to_find):
     root, locations = dir_structure_with_things_to_find
 
@@ -1085,9 +1102,7 @@ def test_find_max_depth(dir_structure_with_things_to_find):
 
 
 def test_find_max_depth_relative(dir_structure_with_things_to_find):
-    """find_max_depth should return absolute paths even if
-    the provided path is relative.
-    """
+    """find_max_depth should return absolute paths even if the provided path is relative."""
     root, locations = dir_structure_with_things_to_find
     with fs.working_dir(root):
         assert set(fs.find(".", "file_*", max_depth=0)) == {locations["file_four"]}
@@ -1115,16 +1130,16 @@ def complex_dir_structure(request, tmpdir):
     <root>/
         l1-d1/
             l2-d1/
-                l3-s1 -> l1-d2 # points to directory above l2-d1
                 l3-d2/
                     l4-f1
-                l3-s3 -> l1-d1 # cyclic link
                 l3-d4/
                     l4-f2
+                l3-s1 -> l1-d2 # points to directory above l2-d1
+                l3-s3 -> l1-d1 # cyclic link
         l1-d2/
-            l2-f1
             l2-d2/
                 l3-f3
+            l2-f1
             l2-s3 -> l2-d2
         l1-s3 -> l3-d4 # a link that "skips" a directory level
         l1-s4 -> l2-s3 # a link to a link to a dir
@@ -1140,7 +1155,7 @@ def complex_dir_structure(request, tmpdir):
     l3_d2 = l2_d1.join("l3-d2").ensure(dir=True)
     l3_d4 = l2_d1.join("l3-d4").ensure(dir=True)
     l1_d2 = tmpdir.join("l1-d2").ensure(dir=True)
-    l2_d2 = l1_d2.join("l1-d2").ensure(dir=True)
+    l2_d2 = l1_d2.join("l2-d2").ensure(dir=True)
 
     if use_junctions:
         link_fn = llnl.util.symlink._windows_create_junction
@@ -1201,7 +1216,7 @@ def test_find_max_depth_multiple_and_repeated_entry_points(complex_dir_structure
 
 def test_multiple_patterns(complex_dir_structure):
     root, _ = complex_dir_structure
-    paths = fs.find(root, ["l2-f1", "l3-f3", "*"])
+    paths = fs.find(root, ["l2-f1", "l*-d*/l3-f3", "*-f*", "*/*-f*"])
     # There shouldn't be duplicate results with multiple, overlapping patterns
     assert len(set(paths)) == len(paths)
     # All files should be found
@@ -1211,3 +1226,26 @@ def test_multiple_patterns(complex_dir_structure):
     # and we could decide to change the exact order in the future)
     assert filenames[0] == "l2-f1"
     assert filenames[1] == "l3-f3"
+
+
+def test_find_input_types(tmp_path: pathlib.Path):
+    """test that find only accepts sequences and instances of pathlib.Path and str for root, and
+    only sequences and instances of str for patterns. In principle mypy catches these issues, but
+    it is not enabled on all call-sites."""
+    (tmp_path / "file.txt").write_text("")
+    assert (
+        fs.find(tmp_path, "file.txt")
+        == fs.find(str(tmp_path), "file.txt")
+        == fs.find([tmp_path, str(tmp_path)], "file.txt")
+        == fs.find((tmp_path, str(tmp_path)), "file.txt")
+        == fs.find(tmp_path, "file.txt")
+        == fs.find(tmp_path, ["file.txt"])
+        == fs.find(tmp_path, ("file.txt",))
+        == [str(tmp_path / "file.txt")]
+    )
+
+    with pytest.raises(TypeError):
+        fs.find(tmp_path, pathlib.Path("file.txt"))  # type: ignore
+
+    with pytest.raises(TypeError):
+        fs.find(1, "file.txt")  # type: ignore

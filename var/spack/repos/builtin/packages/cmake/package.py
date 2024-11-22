@@ -234,7 +234,7 @@ class Cmake(Package):
     patch("fujitsu_add_linker_option.patch", when="%fj")
 
     # Remove -A from the C++ flags we use when CXX_EXTENSIONS is OFF
-    # Should be fixed in 3.19.
+    # Should be fixed in 3.19. This patch is needed also for nvhpc.
     # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5025
     patch("pgi-cxx-ansi.patch", when="@3.15:3.18")
 

@@ -15,7 +15,7 @@ import traceback
 import typing
 import warnings
 from datetime import datetime, timedelta
-from typing import Callable, Iterable, List, Tuple, TypeVar
+from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
 
 # Ignore emacs backups when listing modules
 ignore_modules = r"^\.#|~$"
@@ -867,24 +867,11 @@ else:
     PatternStr = typing.Pattern[str]
 
 
-def fnmatch_translate_multiple(patterns: List[str]) -> Tuple[PatternStr, List[str]]:
-    """Same as fnmatch.translate, but creates a single regex of the form
-    ``(?P<pattern0>...)|(?P<pattern1>...)|...`` for each pattern in the iterable, where
-    ``patternN`` is a named capture group that matches the corresponding pattern translated by
-    ``fnmatch.translate``. This can be used to match multiple patterns in a single pass. No case
-    normalization is performed on the patterns.
-
-    Args:
-        patterns: list of fnmatch patterns
-
-    Returns:
-        Tuple of the combined regex and the list of named capture groups corresponding to each
-        pattern in the input list.
-    """
-    groups = [f"pattern{i}" for i in range(len(patterns))]
-    regexes = (fnmatch.translate(p) for p in patterns)
-    combined = re.compile("|".join(f"(?P<{g}>{r})" for g, r in zip(groups, regexes)))
-    return combined, groups
+def fnmatch_translate_multiple(named_patterns: Dict[str, str]) -> str:
+    """Similar to ``fnmatch.translate``, but takes an ordered dictionary where keys are pattern
+    names, and values are filename patterns. The output is a regex that matches any of the
+    patterns in order, and named capture groups are used to identify which pattern matched."""
+    return "|".join(f"(?P<{n}>{fnmatch.translate(p)})" for n, p in named_patterns.items())
 
 
 @contextlib.contextmanager

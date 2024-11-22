@@ -330,11 +330,6 @@ class Boost(Package):
     # Patch fix from https://svn.boost.org/trac/boost/ticket/10125
     patch("call_once_variadic.patch", when="@1.54.0:1.55%gcc@5.0:")
 
-    # Patch fix for PGI compiler
-    patch("boost_1.67.0_pgi.patch", when="@1.67.0:1.68%pgi")
-    patch("boost_1.63.0_pgi.patch", when="@1.63.0%pgi")
-    patch("boost_1.63.0_pgi_17.4_workaround.patch", when="@1.63.0%pgi@17.4")
-
     # Patch to override the PGI toolset when using the NVIDIA compilers
     patch("nvhpc-1.74.patch", when="@1.74.0:1.75%nvhpc")
     patch("nvhpc-1.76.patch", when="@1.76.0:1.76%nvhpc")
@@ -453,7 +448,6 @@ class Boost(Package):
             filter_file("<define>BOOST_LOG_USE_AVX2", "", "libs/log/build/Jamfile.v2")
             filter_file("dump_ssse3", "", "libs/log/build/Jamfile.v2")
             filter_file("<define>BOOST_LOG_USE_SSSE3", "", "libs/log/build/Jamfile.v2")
-
             filter_file("-fast", "-O1", "tools/build/src/tools/pgi.jam")
             filter_file("-fast", "-O1", "tools/build/src/engine/build.sh")
 
@@ -484,7 +478,6 @@ class Boost(Package):
             "%arm": "clang",
             "%xl": "xlcpp",
             "%xl_r": "xlcpp",
-            "%pgi": "pgi",
             "%nvhpc": "pgi",
             "%fj": "clang",
         }
@@ -829,18 +822,6 @@ class Boost(Package):
 
     def setup_run_environment(self, env):
         env.set("BOOST_ROOT", self.prefix)
-
-    def setup_dependent_package(self, module, dependent_spec):
-        # Disable find package's config mode for versions of Boost that
-        # didn't provide it. See https://github.com/spack/spack/issues/20169
-        # and https://cmake.org/cmake/help/latest/module/FindBoost.html
-        if self.spec.satisfies("boost@:1.69.0") and dependent_spec.satisfies("build_system=cmake"):
-            args_fn = type(dependent_spec.package.builder).cmake_args
-
-            def _cmake_args(self):
-                return ["-DBoost_NO_BOOST_CMAKE=ON"] + args_fn(self)
-
-            type(dependent_spec.package.builder).cmake_args = _cmake_args
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         if "+context" in self.spec and "context-impl" in self.spec.variants:

@@ -48,6 +48,7 @@ class Sz(CMakePackage, AutotoolsPackage):
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
 
     build_system(
         conditional("autotools", when="@:2.1.8.0"),

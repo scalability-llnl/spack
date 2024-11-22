@@ -135,6 +135,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     )
     variant("eb", default=True, description="Build Embedded Boundary classes", when="@24.10:")
     variant("eb", default=False, description="Build Embedded Boundary classes", when="@:24.09")
+    variant("fft", default=False, description="Build FFT support", when="@24.11:")
     variant("fortran", default=False, description="Build Fortran API")
     variant("linear_solvers", default=True, description="Build linear solvers")
     variant("amrdata", default=False, description="Build data services")
@@ -150,6 +151,9 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
 
     # Build dependencies
     depends_on("mpi", when="+mpi")
+    with when("+fft"):
+        depends_on("rocfft", when="+rocm")
+        depends_on("fftw@3", when="~cuda ~rocm ~sycl")
     with when("+ascent"):
         depends_on("ascent")
         depends_on("ascent +cuda", when="+cuda")
@@ -329,6 +333,9 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant("AMReX_SUNDIALS", "sundials"),
             self.define_from_variant("AMReX_PIC", "pic"),
         ]
+
+        if self.spec.satisfies("+fft"):
+            args.append("-DAMReX_FFT=ON")
 
         if self.spec.satisfies("%fj"):
             args.append("-DCMAKE_Fortran_MODDIR_FLAG=-M")

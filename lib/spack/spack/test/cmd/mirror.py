@@ -17,6 +17,7 @@ import spack.util.url as url_util
 import spack.version
 from spack.main import SpackCommand, SpackCommandError
 
+config = SpackCommand("config")
 mirror = SpackCommand("mirror")
 env = SpackCommand("env")
 add = SpackCommand("add")
@@ -181,19 +182,121 @@ def test_mirror_crud(mutable_config, capsys):
         output = mirror("remove", "mirror")
         assert "Removed mirror" in output
 
-        # Test S3 connection info id/key
-        mirror(
-            "add",
-            "--s3-access-key-id",
-            "foo",
-            "--s3-access-key-secret",
-            "bar",
-            "mirror",
-            "s3://spack-public",
-        )
+        # Test S3 connection info token as variable
+        mirror("add", "--s3-access-token-variable", "aaaaaazzzzz", "mirror", "s3://spack-public")
 
         output = mirror("remove", "mirror")
         assert "Removed mirror" in output
+
+        def do_add_set_seturl_access_pair(
+            id_arg, secret_arg, mirror_name="mirror", mirror_url="s3://spack-public"
+        ):
+            # Test S3 connection info id/key
+            output = mirror("add", id_arg, "foo", secret_arg, "bar", mirror_name, mirror_url)
+            if "variable" not in secret_arg:
+                assert (
+                    f"Configuring mirror secrets as plain text with {secret_arg} is deprecated. "
+                    in output
+                )
+
+            output = config("blame", "mirrors")
+            assert all([x in output for x in ("foo", "bar", mirror_name, mirror_url)])
+            # Mirror access_pair deprecation warning should not be in blame output
+            assert "support for plain text secrets" not in output
+
+            output = mirror("set", id_arg, "foo_set", secret_arg, "bar_set", mirror_name)
+            if "variable" not in secret_arg:
+                assert "support for plain text secrets" in output
+            output = config("blame", "mirrors")
+            assert all([x in output for x in ("foo_set", "bar_set", mirror_name, mirror_url)])
+            if "variable" not in secret_arg:
+                output = mirror(
+                    "set", id_arg, "foo_set", secret_arg + "-variable", "bar_set_var", mirror_name
+                )
+                assert "support for plain text secrets" not in output
+                output = config("blame", "mirrors")
+                assert all(
+                    [x in output for x in ("foo_set", "bar_set_var", mirror_name, mirror_url)]
+                )
+
+            output = mirror(
+                "set-url",
+                id_arg,
+                "foo_set_url",
+                secret_arg,
+                "bar_set_url",
+                "--push",
+                mirror_name,
+                mirror_url + "-push",
+            )
+            output = config("blame", "mirrors")
+            assert all(
+                [
+                    x in output
+                    for x in ("foo_set_url", "bar_set_url", mirror_name, mirror_url + "-push")
+                ]
+            )
+
+            output = mirror("set", id_arg, "a", mirror_name)
+            assert "No changes made to mirror" not in output
+
+            output = mirror("set", secret_arg, "b", mirror_name)
+            assert "No changes made to mirror" not in output
+
+            output = mirror("set-url", id_arg, "c", mirror_name, mirror_url)
+            assert "No changes made to mirror" not in output
+
+            output = mirror("set-url", secret_arg, "d", mirror_name, mirror_url)
+            assert "No changes made to mirror" not in output
+
+            output = mirror("remove", mirror_name)
+            assert "Removed mirror" in output
+
+            output = mirror("add", id_arg, "foo", mirror_name, mirror_url)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("set-url", id_arg, "bar", mirror_name, mirror_url)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("set", id_arg, "bar", mirror_name)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("remove", mirror_name)
+            assert "Removed mirror" in output
+
+            output = mirror("add", secret_arg, "bar", mirror_name, mirror_url)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("set-url", secret_arg, "bar", mirror_name, mirror_url)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("set", secret_arg, "bar", mirror_name)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("remove", mirror_name)
+            assert "Removed mirror" in output
+
+            output = mirror("list")
+            assert "No mirrors configured" in output
+
+        do_add_set_seturl_access_pair("--s3-access-key-id", "--s3-access-key-secret")
+        do_add_set_seturl_access_pair("--s3-access-key-id", "--s3-access-key-secret-variable")
+        do_add_set_seturl_access_pair(
+            "--s3-access-key-id-variable", "--s3-access-key-secret-variable"
+        )
+        with pytest.raises(
+            spack.error.SpackError, match="Cannot add mirror with a variable id and text secret"
+        ):
+            do_add_set_seturl_access_pair("--s3-access-key-id-variable", "--s3-access-key-secret")
+
+        # Test OCI connection info user/password
+        do_add_set_seturl_access_pair("--oci-username", "--oci-password")
+        do_add_set_seturl_access_pair("--oci-username", "--oci-password-variable")
+        do_add_set_seturl_access_pair("--oci-username-variable", "--oci-password-variable")
+        with pytest.raises(
+            spack.error.SpackError, match="Cannot add mirror with a variable id and text secret"
+        ):
+            do_add_set_seturl_access_pair("--s3-access-key-id-variable", "--s3-access-key-secret")
 
         # Test S3 connection info with endpoint URL
         mirror(
@@ -217,6 +320,9 @@ def test_mirror_crud(mutable_config, capsys):
 
         output = mirror("remove", "mirror")
         assert "Removed mirror" in output
+
+        output = mirror("list")
+        assert "No mirrors configured" in output
 
 
 def test_mirror_nonexisting(mutable_config):

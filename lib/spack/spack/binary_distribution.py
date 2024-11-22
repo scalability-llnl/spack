@@ -87,6 +87,8 @@ from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which
 
+from .enums import InstallRecordStatus
+
 BUILD_CACHE_RELATIVE_PATH = "build_cache"
 BUILD_CACHE_KEYS_RELATIVE_PATH = "_pgp"
 
@@ -252,7 +254,7 @@ class BinaryCacheIndex:
 
             spec_list = [
                 s
-                for s in db.query_local(installed=any)
+                for s in db.query_local(installed=InstallRecordStatus.ANY)
                 if s.external or db.query_local_by_spec_hash(s.dag_hash()).in_buildcache
             ]
 
@@ -1181,6 +1183,9 @@ class Uploader:
 
         self.tmpdir: str
         self.executor: concurrent.futures.Executor
+
+        # Verify if the mirror meets the requirements to push
+        self.mirror.ensure_mirror_usable("push")
 
     def __enter__(self):
         self._tmpdir = tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root())

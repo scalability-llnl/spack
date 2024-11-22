@@ -64,7 +64,8 @@ class Mivisionx(CMakePackage):
     patch("0001-add-half-include-path.patch", when="@5.5")
     patch("0001-add-half-include-path-5.6.patch", when="@5.6:6.1")
     patch("0002-add-half-include-path-for-tests.patch", when="@5.5:6.0 +add_tests")
-    patch("0002-add-half-include-path-for-tests-6.1.0.patch", when="@6.1.0: +add_tests")
+    patch("0002-add-half-include-path-for-tests-6.1.0.patch", when="@6.1 +add_tests")
+    patch("0002-add-half-include-path-for-tests-6.2.0.patch", when="@6.2.0: +add_tests")
 
     patch(
         "https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX/commit/da24882438b91a0ae1feee23206b75c1a1256887.patch?full_index=1",
@@ -95,11 +96,6 @@ class Mivisionx(CMakePackage):
                 r"${ROCM_PATH}/llvm/bin/clang++",
                 "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
                 "amd_openvx/openvx/hipvx/CMakeLists.txt",
-                string=True,
-            )
-            filter_file(
-                r"${ROCM_PATH}/llvm/bin/clang++",
-                "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
                 "amd_openvx_extensions/amd_nn/nn_hip/CMakeLists.txt",
                 string=True,
             )
@@ -137,65 +133,41 @@ class Mivisionx(CMakePackage):
                 string=True,
             )
 
+        if self.spec.satisfies("@:6.1 +add_tests"):
+            filter_file(
+                r"${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/mivisionx/rocal",
+                "{0}/include/mivisionx/rocal".format(self.spec.prefix),
+                "utilities/rocAL/rocAL_unittests/CMakeLists.txt",
+                "utilities/rocAL/rocAL_video_unittests/CMakeLists.txt",
+                string=True,
+            )
+            filter_file(
+                r"${ROCM_PATH}/lib",
+                "{0}/lib".format(self.spec.prefix),
+                "utilities/rocAL/rocAL_unittests/CMakeLists.txt",
+                "utilities/rocAL/rocAL_video_unittests/CMakeLists.txt",
+                string=True,
+            )
         if self.spec.satisfies("+add_tests"):
             filter_file(
                 r"${ROCM_PATH}/include/mivisionx",
                 "{0}/include/mivisionx".format(self.spec.prefix),
                 "tests/amd_migraphx_tests/mnist/CMakeLists.txt",
+                "tests/amd_migraphx_tests/resnet50/CMakeLists.txt",
+                "model_compiler/python/nnir_to_clib.py",
                 string=True,
             )
             filter_file(
                 r"${ROCM_PATH}/lib",
                 "{0}/lib".format(self.spec.prefix),
                 "tests/amd_migraphx_tests/mnist/CMakeLists.txt",
-                string=True,
-            )
-            filter_file(
-                r"${ROCM_PATH}/include/mivisionx",
-                "{0}/include/mivisionx".format(self.spec.prefix),
                 "tests/amd_migraphx_tests/resnet50/CMakeLists.txt",
-                string=True,
-            )
-            filter_file(
-                r"${ROCM_PATH}/lib",
-                "{0}/lib".format(self.spec.prefix),
-                "tests/amd_migraphx_tests/resnet50/CMakeLists.txt",
-                string=True,
-            )
-            filter_file(
-                r"${ROCM_PATH}/include/mivisionx",
-                "{0}/include/mivisionx".format(self.spec.prefix),
-                "model_compiler/python/nnir_to_clib.py",
                 string=True,
             )
             filter_file(
                 r"/opt/rocm",
                 "{0}".format(self.spec.prefix),
                 "model_compiler/python/nnir_to_clib.py",
-                string=True,
-            )
-            filter_file(
-                r"${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/mivisionx/rocal",
-                "{0}/include/mivisionx/rocal".format(self.spec.prefix),
-                "utilities/rocAL/rocAL_unittests/CMakeLists.txt",
-                string=True,
-            )
-            filter_file(
-                r"${ROCM_PATH}/lib",
-                "{0}/lib".format(self.spec.prefix),
-                "utilities/rocAL/rocAL_unittests/CMakeLists.txt",
-                string=True,
-            )
-            filter_file(
-                r"${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/mivisionx/rocal",
-                "{0}/include/mivisionx/rocal".format(self.spec.prefix),
-                "utilities/rocAL/rocAL_video_unittests/CMakeLists.txt",
-                string=True,
-            )
-            filter_file(
-                r"${ROCM_PATH}/lib",
-                "{0}/lib".format(self.spec.prefix),
-                "utilities/rocAL/rocAL_video_unittests/CMakeLists.txt",
                 string=True,
             )
 
@@ -337,12 +309,13 @@ class Mivisionx(CMakePackage):
             args.append(
                 self.define("AMDRPP_INCLUDE_DIRS", "{0}/include/rpp".format(spec["rpp"].prefix))
             )
+            args.append(self.define("CMAKE_INSTALL_PREFIX_PYTHON", spec.prefix))
+        if self.spec.satisfies("@5.5:6.2.0"):
             args.append(
                 self.define(
                     "TurboJpeg_LIBRARIES_DIRS", "{0}/lib64".format(spec["libjpeg-turbo"].prefix)
                 )
             )
-            args.append(self.define("CMAKE_INSTALL_PREFIX_PYTHON", spec.prefix))
         return args
 
     @run_after("install")

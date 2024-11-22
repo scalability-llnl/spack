@@ -2,7 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import spack.builder
+import spack.phase_callbacks
 from spack.build_systems import generic
 from spack.package import *
 
@@ -17,7 +17,7 @@ class BuilderAndMixins(Package):
     version("1.0", md5="0123456789abcdef0123456789abcdef")
 
 
-class BuilderMixin(metaclass=spack.builder.PhaseCallbacksMeta):
+class BuilderMixin(metaclass=spack.phase_callbacks.PhaseCallbacksMeta):
     @run_before("install")
     def before_install(self):
         pass

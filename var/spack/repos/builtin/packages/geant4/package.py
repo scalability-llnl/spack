@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.variant import _ConditionalVariantValues
+from spack.variant import ConditionalVariantValues
 
 
 class Geant4(CMakePackage):
@@ -180,7 +180,7 @@ class Geant4(CMakePackage):
 
     def std_when(values):
         for v in values:
-            if isinstance(v, _ConditionalVariantValues):
+            if isinstance(v, ConditionalVariantValues):
                 for c in v:
                     yield (c.value, c.when)
             else:

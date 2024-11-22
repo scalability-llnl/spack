@@ -571,8 +571,13 @@ def _search_for_deprecated_package_methods(pkgs, error_cls):
 @package_properties
 def _ensure_all_package_names_are_lowercase(pkgs, error_cls):
     """Ensure package names are lowercase and consistent"""
+    reserved_names = ("all",)
     badname_regex, errors = re.compile(r"[_A-Z]"), []
     for pkg_name in pkgs:
+        if pkg_name in reserved_names:
+            error_msg = f"The name '{pkg_name}' is reserved, and cannot be used for packages"
+            errors.append(error_cls(error_msg, []))
+
         if badname_regex.search(pkg_name):
             error_msg = f"Package name '{pkg_name}' should be lowercase and must not contain '_'"
             errors.append(error_cls(error_msg, []))
@@ -714,9 +719,9 @@ def _ensure_env_methods_are_ported_to_builders(pkgs, error_cls):
     for pkg_name in pkgs:
         pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
 
-        # values are either Value objects (for conditional values) or the values themselves
+        # values are either ConditionalValue objects or the values themselves
         build_system_names = set(
-            v.value if isinstance(v, spack.variant.Value) else v
+            v.value if isinstance(v, spack.variant.ConditionalValue) else v
             for _, variant in pkg_cls.variant_definitions("build_system")
             for v in variant.values
         )
