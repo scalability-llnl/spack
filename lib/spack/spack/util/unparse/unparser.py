@@ -836,7 +836,7 @@ class Unparser(NodeVisitor):
                 self.traverse(gen)
 
     def visit_comprehension(self, node):
-        if getattr(node, "is_async", False):
+        if node.is_async:
             self.write(" async for ")
         else:
             self.write(" for ")
