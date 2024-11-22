@@ -72,8 +72,6 @@ class NodeVisitor(object):
             elif isinstance(value, AST):
                 self.visit(value)
 
-    # def visit_Constant removed compared to cpython because overridden below anyway
-
 
 # Large float and imaginary literals get turned into infinities in the AST.
 # We unparse those infinities to INFSTR.
