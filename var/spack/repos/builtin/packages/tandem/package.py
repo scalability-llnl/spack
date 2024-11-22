@@ -106,9 +106,9 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
 
     possible_memalign = ("32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "none")
 
-    conflicts(f"^petsc memalign=4")
-    conflicts(f"^petsc memalign=8")
-    conflicts(f"^petsc memalign=16")
+    conflicts("^petsc memalign=4")
+    conflicts("^petsc memalign=8")
+    conflicts("^petsc memalign=16")
 
     for arch, align in arch_alignments.items():
         for forbidden in possible_memalign:
