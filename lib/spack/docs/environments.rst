@@ -657,9 +657,9 @@ This configuration sets the default compiler for all packages to
 Included configurations
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Spack environments allow an ``include`` heading in their yaml
-schema. This heading pulls in external configuration files and applies
-them to the environment.
+Spack environments allow an ``include`` heading in their yaml schema.
+This heading pulls in external configuration files and applies them to
+the environment.
 
 .. code-block:: yaml
 
@@ -668,37 +668,22 @@ them to the environment.
      - environment/relative/path/to/config.yaml
      - https://github.com/path/to/raw/config/compilers.yaml
      - /absolute/path/to/packages.yaml
-
-Configuration files are listed using paths to individual files or directories
-containing them. Path entries may be absolute or relative to the environment
-or specified as URLs. URLs to individual files need link to the *raw* form
-of the file's contents. Only the ``file``, ``ftp``, ``http`` and ``https``
-protocols (or schemes) are supported. Spack-specific, environment and user
-path variables can be used. (See :ref:`config-file-variables` for more
-information.)
-
-Included configuration files are required *unless* they are explicitly optional
-or the entry's condition evaluates to ``false``. Optional includes are specified
-with the ``optional`` clause and conditional with the ``when`` clause. For
-example,
-
-.. code-block:: yaml
-
-   spack:
-     include:
      - path: /path/to/$os/$target/environment
        optional: true
      - path: /path/to/os-specific/config-dir
        when: os == "ventura"
 
-shows both. Use of ``optional: true`` for ``path/to/$os/$target/environment``
-means the path is only applied if it exists. The condition ``os == "ventura"``
-in the ``when`` clause for ``/path/to/os-specific/config-dir`` means the
-path is only applied when the operating system (``os``) is ``ventura``.
+Included configuration files are required *unless* they are explicitly optional
+or the entry's condition evaluates to ``false``. Optional includes are specified
+with the ``optional`` clause and conditional with the ``when`` clause. (See
+:ref:`include-yaml` for more information on optional and conditional entries.)
 
-The same conditions and variables in `Spec List References 
-<https://spack.readthedocs.io/en/latest/environments.html#spec-list-references>`_
-can be used for conditional activation in the ``when`` clauses.
+Files are listed using paths to individual files or directories containing them.
+Path entries may be absolute or relative to the environment or specified as URLs.
+URLs to individual files need link to the *raw* form of the file's contents.
+Only the ``file``, ``ftp``, ``http`` and ``https`` protocols (or schemes) are
+supported. Spack-specific, environment and user path variables can be used.
+(See :ref:`config-file-variables` for more information.)
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
