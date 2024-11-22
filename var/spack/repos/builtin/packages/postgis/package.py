@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import contextlib
+import os
 import tempfile
 
 from spack.package import *
@@ -87,33 +88,11 @@ class Postgis(AutotoolsPackage):
         with self.postgresql():
             make("check")
 
-    # By default package installs under postgresql prefix.
-    # Apparently this is a known bug:
-    # https://postgis.net/docs/postgis_installation.html
-    # The following modifacations that fixed this issue are found in
-    # Guix recipe for postgis.
-    # https://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/geo.scm#n720
-
-    def install(self, spec, prefix):
-        make(
-            "install",
-            "bindir=" + prefix.bin,
-            "libdir=" + prefix.lib,
-            "pkglibdir=" + prefix.lib,
-            "datadir=" + prefix.share,
-            "docdir=" + prefix.share.doc,
-        )
-
-        copy(
-            prefix.share.extension.join("postgis.control"),
-            spec["postgresql"].prefix.share.extension,
-        )
-        filter_file(
-            "$libdir",
-            prefix.lib,
-            spec["postgresql"].prefix.share.extension.join("postgis.control"),
-            string=True,
-        )
+    @run_after("install")
+    def satisfy_sanity_check(self):
+        # sanity_check_prefix requires something in the install directory,
+        # but PostGIS is installed in PostgreSQL's install directory.
+        os.symlink(self.spec["postgresql"].prefix, self.prefix.postgresql)
 
     def test_lib_version(self):
         """Makes sure the PostGIS extension is usable from PostgreSQL."""
@@ -135,10 +114,3 @@ class Postgis(AutotoolsPackage):
                 yield psql
             finally:
                 pg_ctl("-D", data_dir, "stop")
-
-    @run_before("build")
-    def fix_raster_bindir(self):
-        makefile = FileFilter("raster/loader/Makefile")
-        makefile.filter("$(DESTDIR)$(PGSQL_BINDIR)", self.prefix.bin, string=True)
-        makefile = FileFilter("raster/scripts/Makefile")
-        makefile.filter("$(DESTDIR)$(PGSQL_BINDIR)", self.prefix.bin, string=True)
