@@ -1207,6 +1207,9 @@ packages:
     assert os.path.isdir(a0_spec["c0"].package.stage.path)
     assert not os.path.exists(a0_spec.package.stage.path)
 
+    c0_spec = spack.store.STORE.db.query_one("c0")
+    assert bool(os.listdir(c0_spec.prefix.share.c0.src))
+
     assert "Tested b0" in logs("b0")
 
 
