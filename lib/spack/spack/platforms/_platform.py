@@ -62,6 +62,7 @@ class Platform:
         self.targets[name] = target
 
     def _init_targets(self):
+        self.default = archspec.cpu.host().name
         for name, microarchitecture in archspec.cpu.TARGETS.items():
             self.add_target(name, microarchitecture)
 

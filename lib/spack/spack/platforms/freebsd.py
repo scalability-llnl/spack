@@ -3,8 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import platform
 
-import archspec.cpu
-
 from spack.operating_systems.freebsd import FreeBSDOs
 
 from ._platform import Platform
@@ -15,9 +13,6 @@ class FreeBSD(Platform):
 
     def __init__(self):
         super().__init__("freebsd")
-
-        self.default = archspec.cpu.host().name
-
         os = FreeBSDOs()
         self.default_os = str(os)
         self.add_operating_system(str(os), os)

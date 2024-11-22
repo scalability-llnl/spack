@@ -3,8 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import platform
 
-import archspec.cpu
-
 from spack.operating_systems.linux_distro import LinuxDistro
 
 from ._platform import Platform
@@ -15,9 +13,6 @@ class Linux(Platform):
 
     def __init__(self):
         super().__init__("linux")
-
-        self.default = archspec.cpu.host().name
-
         linux_dist = LinuxDistro()
         self.default_os = str(linux_dist)
         self.add_operating_system(str(linux_dist), linux_dist)

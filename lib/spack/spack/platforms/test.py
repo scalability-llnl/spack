@@ -22,7 +22,6 @@ class Test(Platform):
     def __init__(self, name=None):
         name = name or "test"
         super().__init__(name)
-
         self.add_operating_system("debian6", spack.operating_systems.OperatingSystem("debian", 6))
         self.add_operating_system("redhat6", spack.operating_systems.OperatingSystem("redhat", 6))
 
