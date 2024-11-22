@@ -238,14 +238,6 @@ class ArchSpec:
     """Aggregate the target platform, the operating system and the target microarchitecture."""
 
     @staticmethod
-    def _return_arch(os_tag, target_tag):
-        platform = spack.platforms.host()
-        default_os = platform.operating_system(os_tag)
-        default_target = platform.target(target_tag)
-        arch_tuple = str(platform), str(default_os), str(default_target)
-        return ArchSpec(arch_tuple)
-
-    @staticmethod
     def default_arch():
         """Return the default architecture"""
         platform = spack.platforms.host()
