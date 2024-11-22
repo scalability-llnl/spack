@@ -158,6 +158,10 @@ properties: Dict[str, Any] = {
                     },
                     "buildable": {"type": "boolean", "default": True},
                     "permissions": permissions,
+                    "install_args": {
+                        "type": "object",
+                        "default": {},
+                    },
                     # If 'get_full_repo' is promoted to a Package-level
                     # attribute, it could be useful to set it here
                     "package_attributes": package_attributes,
