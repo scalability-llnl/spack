@@ -26,11 +26,14 @@ import spack.error
 import spack.hash_types as ht
 import spack.installer
 import spack.package_base
+import spack.repo
 import spack.store
+import spack.util.spack_yaml as syaml
 from spack.error import SpackError, SpecSyntaxError
 from spack.installer import PackageInstaller
 from spack.main import SpackCommand
 from spack.spec import Spec
+from spack.test.conftest import create_test_repo
 
 install = SpackCommand("install")
 env = SpackCommand("env")
@@ -1097,10 +1100,6 @@ def test_report_filename_for_cdash(install_mockery, mock_fetch):
     assert filename != "https://blahblah/submit.php?project=debugging"
 
 
-from spack.test.conftest import create_test_repo
-import spack.util.spack_yaml as syaml
-import spack.repo
-
 _pkga = (
     "a0",
     """\
@@ -1192,8 +1191,8 @@ logs = SpackCommand("logs")
 
 @pytest.mark.disable_clean_stage_check
 def test_install_args_cfg(
-        mutable_mock_env_path, install_mockery, mutable_config, concretize_scope, test_repo,
-        mock_fetch):
+    mutable_mock_env_path, install_mockery, mutable_config, concretize_scope, test_repo, mock_fetch
+):
     conf_str = """\
 packages:
   c0:
@@ -1208,14 +1207,13 @@ packages:
     assert os.path.isdir(a0_spec["c0"].package.stage.path)
     assert not os.path.exists(a0_spec.package.stage.path)
 
-    b0_spec = spack.store.STORE.db.query_one("b0")
     assert "Tested b0" in logs("b0")
 
 
 @pytest.mark.skipif(True, reason="Not handled yet")
 def test_install_args_cfg_testproperty(
-        mutable_mock_env_path, install_mockery, mutable_config, concretize_scope, test_repo,
-        mock_fetch):
+    mutable_mock_env_path, install_mockery, mutable_config, concretize_scope, test_repo, mock_fetch
+):
     conf_str = """\
 packages:
   c0:
