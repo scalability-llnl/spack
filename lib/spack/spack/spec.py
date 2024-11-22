@@ -254,11 +254,6 @@ class ArchSpec:
         arch_tuple = str(platform), str(default_os), str(default_target)
         return ArchSpec(arch_tuple)
 
-    @staticmethod
-    def frontend_arch():
-        """Return the frontend architecture"""
-        return ArchSpec.default_arch()
-
     __slots__ = "_platform", "_os", "_target"
 
     def __init__(self, spec_or_platform_tuple=(None, None, None)):
