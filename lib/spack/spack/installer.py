@@ -1106,12 +1106,13 @@ class Task:
             return self.request.install_args.get("package_use_cache", _use_cache)
         else:
             return self.request.install_args.get("dependencies_use_cache", _use_cache)
+
     @use_cache.setter
     def use_cache(self, v: bool) -> None:
         self._use_cache = v
         # force override also request
-        self.request.install_args['package_use_cache'] = v
-        self.request.install_args['dependencies_use_cache'] = v
+        self.request.install_args["package_use_cache"] = v
+        self.request.install_args["dependencies_use_cache"] = v
 
     @property
     def cache_only(self) -> bool:
@@ -2400,7 +2401,6 @@ class BuildProcessInstaller:
         fs.install_tree(pkg.stage.source_path, src_target)
 
     def _real_install(self) -> None:
-
         pkg = self.pkg
 
         # Do the real install in the source directory.
