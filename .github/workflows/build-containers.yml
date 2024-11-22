@@ -60,10 +60,8 @@ jobs:
       - name: Determine latest release tag
         id: latest
         run: |
-          git fetch --tags
-          git tag --list --sort=-v:refname
-         # git tag --list --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$'
-          #echo "tag=$(git tag --list --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)" | tee -a $GITHUB_OUTPUT
+          git fetch --quiet --tags
+          echo "tag=$(git tag --list --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)" | tee -a $GITHUB_OUTPUT
 
       - uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96
         id: docker_meta
