@@ -1118,6 +1118,11 @@ class B0(Package):
     version("1.1")
     depends_on("c0")
     depends_on("t0", type="test")
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def test_b0(self):
+        print("Tested b0")
 """,
 )
 
@@ -1130,13 +1135,13 @@ class C0(Package):
     depends_on("d0")
     depends_on("t0", type="test")
 
-    def test(self):
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def test_c0(self):
         # Test dependencies of c0 must be active for this to work
         self.spec["t0"]
 
-        testfile = self.spec.prefix / "test"
-        with open(testfile, "w") as f:
-            f.write("test output for c0")
+        print("Tested c0")
 """,
 )
 
@@ -1182,6 +1187,9 @@ def update_packages_config(conf_str):
     spack.config.set("packages", conf["packages"], scope="concretize")
 
 
+logs = SpackCommand("logs")
+
+
 @pytest.mark.disable_clean_stage_check
 def test_install_args_cfg(
         mutable_mock_env_path, install_mockery, mutable_config, concretize_scope, test_repo,
@@ -1194,8 +1202,11 @@ packages:
       install_source: true
 """
     update_packages_config(conf_str)
-    install("--test=root", "a0")
+    install("--test=root", "a0", "b0")
     a0_spec = spack.store.STORE.db.query_one("a0")
 
     assert os.path.isdir(a0_spec["c0"].package.stage.path)
     assert not os.path.exists(a0_spec.package.stage.path)
+
+    b0_spec = spack.store.STORE.db.query_one("b0")
+    assert "Tested b0" in logs("b0")
