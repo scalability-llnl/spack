@@ -268,7 +268,7 @@ class Unparser(NodeVisitor):
             self.traverse(node.body)
 
     def visit_Module(self, node):
-        # Python < 3.8. Types
+        # Python 3.8 introduced types
         self._type_ignores = {
             ignore.lineno: f"ignore{ignore.tag}" for ignore in getattr(node, "type_ignores", ())
         }
@@ -646,7 +646,8 @@ class Unparser(NodeVisitor):
 
     def visit_JoinedStr(self, node):
         self.write("f")
-        # Python <= 3.11 does not support backslashes inside format parts
+        # Python 3.12 added support for backslashes inside format parts.
+        # We need to keep adding backslashes for python < 3.11 compat.
         if self._avoid_backslashes:
             with self.buffered() as buffer:
                 self._write_fstring_inner(node)
@@ -656,7 +657,7 @@ class Unparser(NodeVisitor):
         for value in node.values:
             with self.buffered() as buffer:
                 self._write_fstring_inner(value)
-            # Python 3.8 changed Str to Constant
+            # Python 3.8 replaced Str with Constant
             fstring_parts.append(
                 ("".join(buffer), isinstance(value, Constant) or type(value).__name__ == "Str")
             )
@@ -704,7 +705,7 @@ class Unparser(NodeVisitor):
             # for both the f-string itself, and format_spec
             for value in node.values:
                 self._write_fstring_inner(value, is_format_spec=is_format_spec)
-        # Python 3.8 changed Str to Constant
+        # Python 3.8 replaced Str with Constant
         elif type(node).__name__ == "Str":
             value = node.s.replace("{", "{{").replace("}", "}}")
 
@@ -761,7 +762,7 @@ class Unparser(NodeVisitor):
         # Ubuntu 18's Python 3.6 doesn't have "kind"
         if not self._py_ver_consistent and getattr(node, "kind", None) == "u":
             self.write("u")
-        # Python 3.8 changed Str to Constant
+        # Python 3.8 replaced Str with Constant
         value = node.s if type(node).__name__ == "Str" else node.value
         self._write_str_avoiding_backslashes(value, quote_types=_MULTI_QUOTES)
 
@@ -1014,7 +1015,7 @@ class Unparser(NodeVisitor):
         # it or add an extra space to get 3 .__abs__().
         if isinstance(node.value, Constant) and isinstance(node.value.value, int):
             self.write(" ")
-        # Python 3.8 changed Num to Constant
+        # Python 3.8 replaced Num with Constant
         elif type(node.value).__name__ == "Num" and isinstance(node.value.n, int):
             self.write(" ")
         self.write(".")
@@ -1063,7 +1064,8 @@ class Unparser(NodeVisitor):
     def visit_Ellipsis(self, node):
         self.write("...")
 
-    # used in Python <= 3.8 -- see _Subscript for 3.9+
+    # Python 3.9 simplified Subscript(Index(value)) to Subscript(value)
+    # https://github.com/python/cpython/commit/13d52c268699f199a8e917a0f1dc4c51e5346c42
     def visit_Index(self, node):
         if is_non_empty_non_star_tuple(node.value):
             self.items_view(self.traverse, node.value.elts)
@@ -1087,7 +1089,8 @@ class Unparser(NodeVisitor):
             for case in node.cases:
                 self.traverse(case)
 
-    # Python < 3.9. ExtSlice(slices) replaced with Tuple(slices, Load()).
+    # Python 3.9 replaced ExtSlice(slices) with Tuple(slices, Load())
+    # https://github.com/python/cpython/commit/13d52c268699f199a8e917a0f1dc4c51e5346c42
     def visit_ExtSlice(self, node):
         self.interleave(lambda: self.write(", "), self.traverse, node.dims)
 
@@ -1100,7 +1103,7 @@ class Unparser(NodeVisitor):
     def visit_arguments(self, node):
         first = True
         # normal arguments
-        # Python < 3.8. Position-only arguments
+        # Python 3.8 introduced position-only arguments (PEP 570)
         all_args = getattr(node, "posonlyargs", []) + node.args
         defaults = [None] * (len(all_args) - len(node.defaults)) + node.defaults
         for index, elements in enumerate(zip(all_args, defaults), 1):
@@ -1113,7 +1116,7 @@ class Unparser(NodeVisitor):
             if d:
                 self.write("=")
                 self.traverse(d)
-                # Python < 3.8. Position-only arguments
+                # Python 3.8 introduced position-only arguments (PEP 570)
             if index == len(getattr(node, "posonlyargs", ())):
                 self.write(", /")
 
@@ -1163,7 +1166,8 @@ class Unparser(NodeVisitor):
             self.write("lambda")
             with self.buffered() as buffer:
                 self.traverse(node.args)
-            # Don't omit extra space to mimic python <= 3.10
+            # Don't omit extra space to keep old package hash
+            # (extra space was removed in python 3.11)
             if buffer or self._py_ver_consistent:
                 self.write(" ", *buffer)
             self.write(": ")
