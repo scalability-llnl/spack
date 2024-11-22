@@ -5,8 +5,6 @@
 
 import platform
 
-import archspec.cpu
-
 from spack.operating_systems.windows_os import WindowsOs
 
 from ._platform import Platform
@@ -17,8 +15,6 @@ class Windows(Platform):
 
     def __init__(self):
         super().__init__("windows")
-        self.default = archspec.cpu.host().name
-
         windows_os = WindowsOs()
         self.default_os = str(windows_os)
         self.add_operating_system(str(windows_os), windows_os)
