@@ -3,6 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import contextlib
+import tempfile
+
 from spack.package import *
 
 
@@ -51,6 +54,11 @@ class Postgis(AutotoolsPackage):
 
     depends_on("gtkplus@:2.24.32", when="+gui")
 
+    def patch(self):
+        # https://trac.osgeo.org/postgis/ticket/4833
+        if self.spec.satisfies("@:3.1.1 ^proj@6:"):
+            filter_file(r"\bpj_get_release\b", "proj_info", "configure")
+
     def setup_build_environment(self, env):
         env.set("POSTGIS_GDAL_ENABLED_DRIVERS", "ENABLE_ALL")
 
@@ -58,11 +66,26 @@ class Postgis(AutotoolsPackage):
         env.set("POSTGIS_GDAL_ENABLED_DRIVERS", "ENABLE_ALL")
 
     def configure_args(self):
-        args = []
-        args.append("--with-sfcgal=" + str(self.spec["sfcgal"].prefix.bin) + "/sfcgal-config")
+        args = [
+            "--with-pgconfig=" + self.spec["postgresql"].prefix.bin.join("pg_config"),
+            "--with-sfcgal=" + self.spec["sfcgal"].prefix.bin.join("sfcgal-config"),
+            "--with-xml2config=" + self.spec["libxml2"].prefix.bin.join("xml2-config"),
+            "--with-geosconfig=" + self.spec["geos"].prefix.bin.join("geos-config"),
+            "--with-projdir=" + self.spec["proj"].prefix,
+            "--with-jsondir=" + self.spec["json-c"].prefix,
+            "--with-protobufdir=" + self.spec["protobuf-c"].prefix,
+            "--with-pcredir=" + self.spec["pcre"].prefix,
+            "--with-gdalconfig=" + self.spec["gdal"].prefix.bin.join("gdal-config"),
+        ]
         if "+gui" in self.spec:
             args.append("--with-gui")
         return args
+
+    @run_after("build")
+    @on_package_attributes(run_tests=True)
+    def check(self):
+        with self.postgresql():
+            make("check")
 
     # By default package installs under postgresql prefix.
     # Apparently this is a known bug:
@@ -70,15 +93,6 @@ class Postgis(AutotoolsPackage):
     # The following modifacations that fixed this issue are found in
     # Guix recipe for postgis.
     # https://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/geo.scm#n720
-
-    def build(self, spec, prefix):
-        make(
-            "bindir=" + prefix.bin,
-            "libdir=" + prefix.lib,
-            "pkglibdir=" + prefix.lib,
-            "datadir=" + prefix.share,
-            "docdir=" + prefix.share.doc,
-        )
 
     def install(self, spec, prefix):
         make(
@@ -89,6 +103,37 @@ class Postgis(AutotoolsPackage):
             "datadir=" + prefix.share,
             "docdir=" + prefix.share.doc,
         )
+
+        copy(
+            prefix.share.extension.join("postgis.control"),
+            spec["postgresql"].prefix.share.extension,
+        )
+        filter_file(
+            "$libdir",
+            prefix.lib,
+            spec["postgresql"].prefix.share.extension.join("postgis.control"),
+            string=True,
+        )
+
+    def test_lib_version(self):
+        with self.postgresql() as psql:
+            psql("-c", "CREATE EXTENSION postgis", "postgres")
+            version = psql("-c", "SELECT PostGIS_Lib_Version()", "-t", "postgres", output=str)
+            check_outputs(str(self.spec.version), version)
+
+    @contextlib.contextmanager
+    def postgresql(self):
+        postgresql_bin_dir = self.spec["postgresql"].prefix.bin
+        initdb = which(postgresql_bin_dir.join("initdb"))
+        pg_ctl = which(postgresql_bin_dir.join("pg_ctl"))
+        with tempfile.TemporaryDirectory() as data_dir:
+            initdb("-A", "trust", "-D", data_dir)
+            pg_ctl("-D", data_dir, "start")
+            try:
+                psql = which(postgresql_bin_dir.join("psql"))
+                yield psql
+            finally:
+                pg_ctl("-D", data_dir, "stop")
 
     @run_before("build")
     def fix_raster_bindir(self):
