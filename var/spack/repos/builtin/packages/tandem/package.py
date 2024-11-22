@@ -29,7 +29,11 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
-    patch("fix_v1.0_compilation.diff", when="@1.0")
+    patch(
+        "fix_v1.0_compilation.diff",
+        when="@1.0",
+        sha256="ef7325c1e59811e1992e3846044232154e4286fcaeae2ea5575a6ae77dda8b7d",
+    )
 
     maintainers("dmay23", "Thomas-Ulrich")
     variant("polynomial_degree", default="2", description="Polynomial degree")
@@ -69,7 +73,6 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("eigen@3.4.0")
 
     depends_on("zlib-api")
-    depends_on("petsc@3.16: +int64 +mumps +scalapack")
 
     # Dictionary for architecture alignments
     arch_alignments = {
@@ -105,6 +108,11 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
         for forbidden in ("4", "8", "16", "32", "64", "128", "none"):
             if forbidden != f"{petsc_align}":
                 conflicts(f"^petsc memalign={forbidden}", when=f"target={arch}")
+
+    depends_on("petsc +int64 +mumps +scalapack")
+    depends_on("petsc@3.22:", when="@1.2:")
+    depends_on("petsc@3.16:3.17", when="@:1.1")
+
     depends_on("petsc +knl", when="target=skylake:")
 
     with when("+cuda"):
