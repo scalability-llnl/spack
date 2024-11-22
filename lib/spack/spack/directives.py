@@ -36,7 +36,6 @@ import os.path
 import re
 from typing import Any, Callable, List, Optional, Tuple, Union
 
-import llnl.util.lang
 import llnl.util.tty.color
 
 import spack.deptypes as dt
