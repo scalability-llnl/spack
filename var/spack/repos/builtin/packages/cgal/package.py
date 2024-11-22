@@ -34,7 +34,8 @@ class Cgal(CMakePackage):
     version("4.7", sha256="50bd0a1cad7a8957b09012f831eebaf7d670e2a3467e8f365ec0c71fa5436369")
     version("4.6.3", sha256="e338027b8767c0a7a6e4fd8679182d1b83b5b1a0da0a1fe4546e7c0ca094fc21")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # @5: is header only and doesn't build shared libs
     variant(

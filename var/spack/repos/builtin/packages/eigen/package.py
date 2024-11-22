@@ -95,7 +95,7 @@ class Eigen(CMakePackage, ROCmPackage):
         return args
 
     def check(self):
-        ctest_args = ["--test-dir", self.builder.build_directory, "--repeat", "until-pass:3"]
+        ctest_args = ["--test-dir", self.build_directory, "--repeat", "until-pass:3"]
         if self.spec.satisfies("+nightly"):
             ctest_args.append("-D")
             ctest_args.append("Nightly")
