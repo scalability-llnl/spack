@@ -116,6 +116,7 @@ class Postgis(AutotoolsPackage):
         )
 
     def test_lib_version(self):
+        """Makes sure the PostGIS extension is usable from PostgreSQL."""
         with self.postgresql() as psql:
             psql("-c", "CREATE EXTENSION postgis", "postgres")
             version = psql("-c", "SELECT PostGIS_Lib_Version()", "-t", "postgres", output=str)
