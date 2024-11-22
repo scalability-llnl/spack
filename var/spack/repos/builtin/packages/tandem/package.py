@@ -103,10 +103,16 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
         "zen3": 64,
         "zen4": 64,
     }
+
+    possible_memalign = ("32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "none")
+
+    conflicts(f"^petsc memalign=4")
+    conflicts(f"^petsc memalign=8")
+    conflicts(f"^petsc memalign=16")
+
     for arch, align in arch_alignments.items():
-        petsc_align = max(32, align)
-        for forbidden in ("4", "8", "16", "32", "64", "128", "none"):
-            if forbidden != f"{petsc_align}":
+        for forbidden in possible_memalign:
+            if forbidden != f"{align}":
                 conflicts(f"^petsc memalign={forbidden}", when=f"target={arch}")
 
     depends_on("petsc +int64 +mumps +scalapack")
