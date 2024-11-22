@@ -129,6 +129,7 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
             depends_on(f"petsc +rocm amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
 
     depends_on("python@3", type="build", when="+python")
+    depends_on("python@3.9:", type="build", when="@:1.2 +python")
     depends_on("py-numpy", type="build", when="+python")
     depends_on("py-setuptools", type="build", when="+python")
 
