@@ -62,8 +62,7 @@ jobs:
       - name: Determine latest release tag
         id: latest
         run: |
-          git tag
-          #git tag --sort=-v:refname
+          git tag --sort=-v:refname
           #git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$'
           #echo "tag=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)" | tee -a $GITHUB_OUTPUT
 
