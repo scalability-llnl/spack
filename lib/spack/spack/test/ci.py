@@ -29,7 +29,6 @@ def test_urlencode_string():
     assert ci._url_encode_string("Spack Test Project") == "Spack+Test+Project"
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 def test_import_signing_key(mock_gnupghome):
     signing_key_dir = spack_paths.mock_gpg_keys_path
     signing_key_path = os.path.join(signing_key_dir, "package-signing-key")
