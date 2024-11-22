@@ -71,6 +71,7 @@ or refer to the full manual below.
 
    configuration
    config_yaml
+   include_yaml
    packages_yaml
    build_settings
    environments
