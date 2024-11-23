@@ -68,14 +68,10 @@ def _update_config(spec, path):
 
 
 def _retrieve_develop_from_cache(spec, dst):
-    """If we are expecting to instantiate our develop source rather
-    than specifying a dev_path that points into a pre-established
-    source directory, there are two possibilities:
+    """Check mirrors for a develop/ subdir.
 
-    a. We want to download the source via the same channels that
-       Spack normally acquires the package
-    b. We might want to provide a cache that users should download
-       from
+    Other than this check, mirrors are generally bypassed when
+    retrieving source for developed packages.
     """
     mirrors = spack.mirror.MirrorCollection(source=True).values()
     # Note: stages have a notion of one "main" download site, with
