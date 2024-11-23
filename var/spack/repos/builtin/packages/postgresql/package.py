@@ -3,7 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import contextlib
+import functools
 import os
+import tempfile
 
 from spack.package import *
 
@@ -118,6 +121,12 @@ class Postgresql(AutotoolsPackage):
         else:
             super().install(spec, prefix)
 
+    def test_version(self):
+        """Makes sure it is possible to connect to the server and query its version."""
+        with self.postgresql() as psql:
+            version = psql("-c", "SHOW server_version", "-t", "postgres", output=str)
+            check_outputs(str(self.spec.version), version)
+
     def setup_build_environment(self, env):
         if self.spec.satisfies("+icu"):
             env.set("ICU_CFLAGS", "-I" + self.spec["icu4c"].prefix.include)
@@ -187,3 +196,16 @@ class Postgresql(AutotoolsPackage):
         fl_dyn = find_libraries(dyn_libs, self.prefix, shared=True, recursive=True)
 
         return fl_dyn + fl_stat
+
+    @contextlib.contextmanager
+    def postgresql(self):
+        bin_dir = self.prefix.bin
+        pg_ctl = which(bin_dir.join("pg_ctl"))
+        with tempfile.TemporaryDirectory() as data_dir:
+            pg_ctl("init", "-D", data_dir, "-o", "-A trust")
+            pg_ctl("start", "-D", data_dir, "-o", f"-h '' -k {data_dir}")
+            try:
+                psql = which(bin_dir.join("psql"))
+                yield functools.partial(psql, "-h", data_dir)
+            finally:
+                pg_ctl("stop", "-D", data_dir)
