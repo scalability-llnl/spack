@@ -103,6 +103,7 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("python@3.9:", when="@0.4.14:")
         depends_on("python@3.8:", when="@0.4.6:")
         # Based on PyPI wheels
+        depends_on("python@:3.13")
         depends_on("python@:3.12", when="@:0.4.33")
         depends_on("python@:3.11", when="@:0.4.16")
 
