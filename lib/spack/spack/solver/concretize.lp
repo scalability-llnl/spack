@@ -1364,6 +1364,12 @@ language("c").
 language("cxx").
 language("fortran").
 
+% FIXME (compiler as nodes): remove when we lift this constraint
+error(10, "Only external compilers are allowed for the {0} language", Language)
+  :- provider(ProviderNode, node(_, Language)),
+     language(Language),
+     not external(ProviderNode).
+
 error(10, "{0} compiler '{2}@{3}' incompatible with 'target={1}'", Package, Target, Compiler, Version)
   :- attr("node_target", node(X, Package), Target),
      attr("virtual_on_edge", node(X, Package), node(Y, Compiler), Language),
