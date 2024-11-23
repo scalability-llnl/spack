@@ -19,6 +19,7 @@ class PyOptEinsum(PythonPackage):
     version("3.2.0", sha256="738b0a1db1d3084d360081bb64d826f9db06d2df7cc0bf8e2c9356028da1fa31")
     version("3.1.0", sha256="edfada4b1d0b3b782ace8bc14e80618ff629abf53143e1e6bbf9bd00b11ece77")
 
-    depends_on("python@3.5:", type=("build", "run"))
+    # https://github.com/dgasmith/opt_einsum/commit/7c8f193f90b6771a6b3065bb5cf6ec2747af8209
+    depends_on("python@:3.11", when="@:3.3", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy@1.7:", type=("build", "run"))
