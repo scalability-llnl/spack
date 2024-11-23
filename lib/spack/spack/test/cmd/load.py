@@ -193,3 +193,25 @@ def test_unload_fails_no_shell(
 
     out = unload("mpileaks", fail_on_error=False)
     assert "To set up shell support" in out
+
+@pytest.mark.parametrize(
+    "shell,set_command",
+    (
+        [("--bat", 'set "%s=%s"')]
+        if sys.platform == "win32"
+        else [("--sh", "export %s=%s"), ("--csh", "setenv %s %s")]
+    ),
+)
+def test_load_and_cache_shell_script(
+    shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
+): # TODO: Remove extras later
+    """"""
+    spec = spack.spec.Spec("mpileaks")
+    spec.concretize()
+
+    install("mpileaks")
+
+    shell_out = load(shell, "mpileaks")
+
+    cached_file = os.path.join(spec.prefix, ".spack", f"mpileaks_shell.csh")
+    assert os.path.isfile(cached_file) # RIkki: cannot find the file

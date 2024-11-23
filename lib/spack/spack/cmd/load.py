@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
 import sys
 
 import spack.cmd
@@ -99,8 +100,14 @@ def load(parser, args):
 
     with spack.store.STORE.db.read_transaction():
         env_mod = uenv.environment_modifications_for_specs(*specs)
+        shell = args.shell if args.shell else os.environ.get("SPACK_SHELL")
         for spec in specs:
+            # if file cached shell script exists skip
             env_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
-        cmds = env_mod.shell_modifications(args.shell)
+            cmds = env_mod.shell_modifications(shell) # this won't work for multiple specs
+
+            path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
+            with open(path, 'w') as f:
+                f.write(cmds)
 
         sys.stdout.write(cmds)
