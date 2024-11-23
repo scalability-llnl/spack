@@ -57,7 +57,7 @@ class Postgis(AutotoolsPackage):
 
     def patch(self):
         # https://trac.osgeo.org/postgis/ticket/4833
-        if self.spec.satisfies("@:3.1.1 ^proj@6:"):
+        if self.spec.satisfies("@:3.1.1 ^proj@8:"):
             filter_file(r"\bpj_get_release\b", "proj_info", "configure")
 
     def setup_build_environment(self, env):
