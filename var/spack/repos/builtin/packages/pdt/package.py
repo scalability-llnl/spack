@@ -38,7 +38,8 @@ class Pdt(AutotoolsPackage):
     version("3.19", sha256="d57234077e2e999f2acf9860ea84369a4694b50cc17fa6728e5255dc5f4a2160")
     version("3.18.1", sha256="d06c2d1793fadebf169752511e5046d7e02cf3fead6135a35c34b1fee6d6d3b2")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("pic", default=False, description="Builds with pic")
 
@@ -50,21 +51,21 @@ class Pdt(AutotoolsPackage):
             filter_file(r"PDT_GXX=g\+\+ ", r"PDT_GXX=clang++ ", "ductape/Makefile")
 
     def configure(self, spec, prefix):
-        options = ["-prefix=%s" % prefix]
-        if self.compiler.name == "xl":
+        options = [f"-prefix={prefix}"]
+        if spec.satisfies("%xl"):
             options.append("-XLC")
-        elif self.compiler.name == "intel":
+        elif spec.satisfies("%intel"):
             options.append("-icpc")
-        elif self.compiler.name == "oneapi":
+        elif spec.satisfies("%oneapi"):
             if spec.satisfies("@3.25.2:"):
                 options.append("-icpx")
             else:
                 options.append("-icpc")
-        elif self.compiler.name == "gcc":
+        elif spec.satisfies("%gcc"):
             options.append("-GNU")
-        elif self.compiler.name in ["clang", "apple-clang", "aocc"]:
+        elif spec.satisfies("%clang") or spec.satisfies("%apple-clang") or spec.satisfies("%aocc"):
             options.append("-clang")
-        elif self.compiler.name == "cce":
+        elif spec.satisfies("%cce"):
             options.append("-CC")
         else:
             raise InstallError("Unknown/unsupported compiler family: " + self.compiler.name)
