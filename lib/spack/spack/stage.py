@@ -7,6 +7,7 @@ import getpass
 import hashlib
 import io
 import os
+import pathlib
 import shutil
 import stat
 import sys
@@ -14,6 +15,7 @@ import tempfile
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
+import llnl.util.filesystem
 import llnl.util.lang
 import llnl.util.symlink
 import llnl.util.tty as tty
@@ -37,6 +39,7 @@ import spack.error
 import spack.mirror
 import spack.resource
 import spack.spec
+import spack.util.archive
 import spack.util.crypto
 import spack.util.lock
 import spack.util.parallel
@@ -875,7 +878,6 @@ class DevelopStage(LockableStagingDir):
         if os.path.exists(absolute_storage_path):
             stats.already_existed(absolute_storage_path)
         else:
-            # This is essentially the logic of `VCSFetchStrategy.archive`
             base = self.mirror_id
             create_archive_of_x_at_y(self.dev_path, absolute_storage_path, base)
 
@@ -883,12 +885,7 @@ class DevelopStage(LockableStagingDir):
 
 
 def create_archive_of_x_at_y(x, y, base):
-    import pathlib
-
-    import llnl.util.filesystem
-
-    import spack.util.archive
-
+    # This is essentially the logic of `VCSFetchStrategy.archive`
     with llnl.util.filesystem.working_dir(x), spack.util.archive.gzip_compressed_tarfile(y) as (
         tar,
         _,

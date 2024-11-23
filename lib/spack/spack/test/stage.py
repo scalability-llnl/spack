@@ -17,10 +17,15 @@ import pytest
 from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_dir
 from llnl.util.symlink import readlink
 
+import spack.caches
 import spack.config
+import spack.environment
 import spack.error
 import spack.fetch_strategy
+import spack.main
+import spack.mirror
 import spack.stage
+import spack.util.compression
 import spack.util.executable
 import spack.util.url as url_util
 from spack.resource import Resource
@@ -865,12 +870,6 @@ class TestDevelopStage:
         assert srctree2 == devtree
 
     def test_mirror_develop_stage(self, develop_path, tmp_build_stage_dir, tmpdir):
-        import llnl.util.filesystem
-
-        import spack.caches
-        import spack.mirror
-        import spack.util.compression
-
         name_of_archive = "dev-src-content"
 
         dst_cache = tmpdir.join("mirror")
@@ -888,7 +887,7 @@ class TestDevelopStage:
 
         decomp_sandbox = tmpdir.join("decompressed")
         decomp_sandbox.ensure(dir=True)
-        with llnl.util.filesystem.working_dir(decomp_sandbox):
+        with working_dir(decomp_sandbox):
             decompressor = spack.util.compression.decompressor_for(the_resulting_archive)
             decompressor(the_resulting_archive)
 
@@ -905,14 +904,6 @@ class TestDevelopStage:
         mutable_mock_env_path,
         mock_fetch,
     ):
-        import spack.caches
-        import spack.config
-        import spack.environment
-        import spack.main
-        import spack.mirror
-        import spack.stage
-        import spack.util.compression
-
         develop = spack.main.SpackCommand("develop")
         env = spack.main.SpackCommand("env")
         add = spack.main.SpackCommand("add")

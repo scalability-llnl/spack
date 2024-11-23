@@ -5,15 +5,19 @@
 import os
 import shutil
 
+import llnl.util.filesystem
 import llnl.util.tty as tty
 
 import spack.cmd
 import spack.config
 import spack.fetch_strategy
+import spack.mirror
 import spack.repo
 import spack.spec
 import spack.stage
+import spack.util.compression
 import spack.util.path
+import spack.util.url
 import spack.version
 from spack.cmd.common import arguments
 from spack.error import SpackError
@@ -73,12 +77,6 @@ def _retrieve_develop_from_cache(spec, dst):
     b. We might want to provide a cache that users should download
        from
     """
-    import llnl.util.filesystem
-
-    import spack.mirror
-    import spack.util.compression
-    import spack.util.url
-
     mirrors = spack.mirror.MirrorCollection(source=True).values()
     # Note: stages have a notion of one "main" download site, with
     # possibly many alternatives. It doesn't quite fit the model of
