@@ -120,8 +120,8 @@ class Postgresql(AutotoolsPackage):
 
     def setup_build_environment(self, env):
         if self.spec.satisfies("+icu"):
-            env.set("ICU_CFLAGS", "-I" + str(self.spec["icu4c"].prefix.include))
-            env.set("ICU_LIBS", "-L" + str(self.spec["icu4c"].prefix.lib) + " -licui18n -licuuc")
+            env.set("ICU_CFLAGS", "-I" + self.spec["icu4c"].prefix.include)
+            env.set("ICU_LIBS", "-L" + self.spec["icu4c"].prefix.lib + " -licui18n -licuuc")
 
     def setup_run_environment(self, env):
         spec = self.spec
