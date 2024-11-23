@@ -25,7 +25,7 @@ class PyOptEinsum(PythonPackage):
         # https://github.com/dgasmith/opt_einsum/commit/7c8f193f90b6771a6b3065bb5cf6ec2747af8209
         depends_on("python@:3.11", when="@:3.3")
 
-    depends_on("py-numpy@1.7:", type=("build", "run"))
+        depends_on("py-numpy@1.7:", when="@:3.3")
 
     depends_on("py-setuptools", when="@:3.3", type="build")
 
