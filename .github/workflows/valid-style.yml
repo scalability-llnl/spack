@@ -1,6 +1,18 @@
 name: style
 
 on:
+  push:
+    branches:
+      - develop
+      - releases/**
+      - spack-stack-dev
+      - release/**
+  pull_request:
+    branches:
+      - develop
+      - releases/**
+      - spack-stack-dev
+      - release/**
   workflow_call:
     inputs:
       with_coverage:
