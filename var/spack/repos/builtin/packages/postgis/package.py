@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import contextlib
+import functools
 import os
 import tempfile
 
@@ -82,11 +83,10 @@ class Postgis(AutotoolsPackage):
             args.append("--with-gui")
         return args
 
-    @run_after("build")
-    @on_package_attributes(run_tests=True)
     def check(self):
-        with self.postgresql():
-            make("check")
+        with self.postgresql() as psql:
+            host = psql("-c", r"\echo :HOST", "-t", "postgres", output=str)
+            make("check", f"PGHOST={host.strip()}")
 
     @run_after("install")
     def satisfy_sanity_check(self):
@@ -104,13 +104,12 @@ class Postgis(AutotoolsPackage):
     @contextlib.contextmanager
     def postgresql(self):
         postgresql_bin_dir = self.spec["postgresql"].prefix.bin
-        initdb = which(postgresql_bin_dir.join("initdb"))
         pg_ctl = which(postgresql_bin_dir.join("pg_ctl"))
         with tempfile.TemporaryDirectory() as data_dir:
-            initdb("-A", "trust", "-D", data_dir)
-            pg_ctl("-D", data_dir, "start")
+            pg_ctl("init", "-D", data_dir, "-o", "-A trust")
+            pg_ctl("start", "-D", data_dir, "-o", f"-h '' -k {data_dir}")
             try:
                 psql = which(postgresql_bin_dir.join("psql"))
-                yield psql
+                yield functools.partial(psql, "-h", data_dir)
             finally:
-                pg_ctl("-D", data_dir, "stop")
+                pg_ctl("stop", "-D", data_dir)
