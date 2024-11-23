@@ -85,10 +85,28 @@ def _retrieve_develop_from_cache(spec, dst):
         where_it_might_be = os.path.join(mirror_root, "develop", dev_cache_id) + ".tar.gz"
         if os.path.exists(where_it_might_be):
             llnl.util.filesystem.mkdirp(dst)
-            spack.util.compression.decompress_single_dir_archive_into(where_it_might_be, dst)
+            decompress_single_dir_archive_into(where_it_might_be, dst)
             return True
 
     return False
+
+
+def decompress_single_dir_archive_into(archive_file, dst):
+    """You have a /path/to/archive.tar.gz
+
+    It expands to x/...
+    We want all of ... (but not x) in `dst`
+    """
+    import llnl.util.filesystem
+
+    import spack.stage
+
+    decompressor = spack.util.compression.decompressor_for(archive_file)
+
+    with spack.stage.Stage("decompress") as stage:
+        with llnl.util.filesystem.exploding_archive_catch(stage):
+            decompressor(archive_file)
+        llnl.util.filesystem.mv_contents_from(stage.source_path, dst)
 
 
 def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
