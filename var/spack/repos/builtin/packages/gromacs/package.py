@@ -301,7 +301,7 @@ class Gromacs(CMakePackage, CudaPackage):
         default=False,
         when="@2024:",
         description="Enable Instrumentation and Tracing Technology (ITT) profiling API",
-        )
+    )
     depends_on("intel-oneapi-vtune", "+intel_itt")
 
     depends_on("fftw-api@3")
@@ -624,8 +624,10 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
 
         if "+intel_itt" in self.spec:
             options.append("-DGMX_USE_ITT=on")
-            options.append("-DITTNOTIFY_INCLUDE_DIR=%s" %
-                           join_path(self.spec["intel-oneapi-vtune"].package.headers))
+            options.append(
+                "-DITTNOTIFY_INCLUDE_DIR=%s"
+                % join_path(self.spec["intel-oneapi-vtune"].package.headers)
+            )
 
         if self.spec.satisfies("~nblib"):
             options.append("-DGMX_INSTALL_NBLIB_API=OFF")
