@@ -54,6 +54,8 @@ class PyIpykernel(PythonPackage):
 
     with default_args(type=("build", "run")):
         depends_on("python@3.8:", when="@6.22:")
+        # use of `imp` module
+        depends_on("python@:3.11", when="@:6.10")
         depends_on("py-debugpy@1.6.5:", when="@6.22:")
         depends_on("py-debugpy@1:", when="@6.11:")
         depends_on("py-debugpy@1.0:1", when="@6:6.10")
