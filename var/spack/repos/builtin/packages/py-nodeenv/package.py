@@ -16,6 +16,10 @@ class PyNodeenv(PythonPackage):
     version("1.7.0", sha256="e0e7f7dfb85fc5394c6fe1e8fa98131a2473e04311a45afb6508f7cf1836fa2b")
     version("1.3.3", sha256="ad8259494cf1c9034539f6cced78a1da4840a4b157e23640bc4a0c0546b0cb7a")
 
-    depends_on("python +ssl", when="@1.5:", type=("build", "run"))
-    depends_on("py-setuptools", when="@1.7:", type=("build", "run"))
+    with default_args(type=("build", "run")):
+        # https://github.com/ekalinin/nodeenv/commit/c1dffc5c64377cfcda9f2befd357e4791903bf39
+        depends_on("python@:3.12", when="@:1.8")
+        depends_on("python +ssl", when="@1.5:")
+        depends_on("py-setuptools", when="@1.7:")
+
     depends_on("py-setuptools", type="build")
