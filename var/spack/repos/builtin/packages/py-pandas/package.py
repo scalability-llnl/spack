@@ -97,7 +97,7 @@ class PyPandas(PythonPackage):
     with default_args(type=("build", "run")):
         # Based on PyPI wheel versions
         depends_on("python@3.9:3.13", when="@2.2.3:")
-        depends_on("python@3.9:3.12", when="@2.1.1:")
+        depends_on("python@3.9:3.12", when="@2.1.1:2.2.2")
         depends_on("python@3.9:3.11", when="@2.1.0")
         depends_on("python@3.8:3.11", when="@1.5:2.0")
         depends_on("python@3.8:3.10", when="@1.4")
