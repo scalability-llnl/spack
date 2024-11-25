@@ -7,15 +7,16 @@ from spack.package import *
 
 
 class PyRuff(PythonPackage):
-    """An extremely fast Python linter, written in Rust."""
+    """An extremely fast Python linter and code formatter, written in Rust."""
 
-    homepage = "https://beta.ruff.rs/docs"
+    homepage = "https://docs.astral.sh/ruff"
     pypi = "ruff/ruff-0.0.276.tar.gz"
     git = "https://github.com/astral-sh/ruff.git"
 
     license("MIT")
     maintainers("adamjstewart")
 
+    version("0.8.0", sha256="a7ccfe6331bf8c8dad715753e157457faf7351c2b69f62f32c165c2dbcbacd44")
     version("0.6.5", sha256="4d32d87fab433c0cf285c3683dd4dae63be05fd7a1d65b3f5bf7cdd05a6b96fb")
     version("0.5.7", sha256="8dfc0a458797f5d9fb622dd0efc52d796f23f0a1493a9527f4e49a550ae9a7e5")
     version("0.4.5", sha256="286eabd47e7d4d521d199cab84deca135557e6d1e0f0d01c29e757c3cb151b54")
@@ -28,5 +29,6 @@ class PyRuff(PythonPackage):
         depends_on("py-maturin@1")
 
         # Found in Cargo.toml
+        depends_on("rust@1.80:", when="@0.7.1:")
         depends_on("rust@1.76:", when="@0.5.6:")
         depends_on("rust@1.71:")

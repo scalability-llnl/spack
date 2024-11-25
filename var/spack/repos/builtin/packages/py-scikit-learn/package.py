@@ -54,7 +54,8 @@ class PyScikitLearn(PythonPackage):
 
     # Based on PyPI wheel availability
     with default_args(type=("build", "link", "run")):
-        depends_on("python@3.9:3.12", when="@1.4:")
+        depends_on("python@3.9:3.13", when="@1.5.2:")
+        depends_on("python@3.9:3.12", when="@1.4:1.5.1")
         depends_on("python@3.8:3.12", when="@1.3.1:1.3")
         depends_on("python@3.8:3.11", when="@1.1.3:1.3.0")
         depends_on("python@3.8:3.10", when="@1.1.0:1.1.2")

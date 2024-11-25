@@ -88,11 +88,13 @@ class Sensei(CMakePackage):
     # HDF5
     depends_on("hdf5", when="+hdf5")
 
-    depends_on("python@3:", when="+python", type=("build", "run"))
-    extends("python", when="+python")
-    depends_on("py-numpy", when="+python", type=("build", "run"))
-    depends_on("py-mpi4py@:3", when="+python", type=("build", "run"))
-    depends_on("swig", when="+python", type="build")
+    with when("+python"):
+        extends("python")
+        depends_on("python@3:", type=("build", "link", "run"))
+        depends_on("py-numpy", type=("build", "run"))
+        depends_on("py-mpi4py@:3", type=("build", "run"))
+        depends_on("swig", type="build")
+
     depends_on("cmake@3.6:", when="@3:", type="build")
     depends_on("pugixml")
     depends_on("mpi")
@@ -160,5 +162,14 @@ class Sensei(CMakePackage):
             if spec.satisfies("@3:"):
                 args.append(self.define("SENSEI_PYTHON_VERSION", 3))
             args.append(self.define_from_variant(f"{prefix}ENABLE_CATALYST_PYTHON", "catalyst"))
+
+            # lib/libsensei.so links to lib/pythonX.Y/site-packages/sensei/_PythonAnalysis.so, so
+            # register the install rpath.
+            install_rpaths = [
+                self.spec.prefix.lib,
+                self.spec.prefix.lib64,
+                join_path(python_platlib, "sensei"),
+            ]
+            args.append(self.define("CMAKE_INSTALL_RPATH", install_rpaths))
 
         return args

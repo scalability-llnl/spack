@@ -28,6 +28,11 @@ class QtPackage(CMakePackage):
         return _url.format(qualname.lower())
 
     @staticmethod
+    def get_git(qualname):
+        _git = "https://github.com/qt/{}.git"
+        return _git.format(qualname.lower())
+
+    @staticmethod
     def get_list_url(qualname):
         _list_url = "https://github.com/qt/{}/tags"
         return _list_url.format(qualname.lower())

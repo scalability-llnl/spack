@@ -6,6 +6,9 @@
 import os
 import sys
 
+import spack.build_systems.makefile
+import spack.build_systems.python
+import spack.compiler
 from spack.build_environment import dso_suffix, stat_suffix
 from spack.package import *
 

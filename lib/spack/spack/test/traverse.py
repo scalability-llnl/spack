@@ -431,3 +431,26 @@ def test_traverse_nodes_no_deps(abstract_specs_dtuse):
     ]
     outputs = [x for x in traverse.traverse_nodes(inputs, deptype=dt.NONE)]
     assert outputs == [abstract_specs_dtuse["dtuse"], abstract_specs_dtuse["dtlink5"]]
+
+
+@pytest.mark.parametrize("cover", ["nodes", "edges"])
+def test_topo_is_bfs_for_trees(cover):
+    """For trees, both DFS and BFS produce a topological order, but BFS is the most sensible for
+    our applications, where we typically want to avoid that transitive dependencies shadow direct
+    depenencies in global search paths, etc. This test ensures that for trees, the default topo
+    order coincides with BFS."""
+    binary_tree = create_dag(
+        nodes=["A", "B", "C", "D", "E", "F", "G"],
+        edges=(
+            ("A", "B", "all"),
+            ("A", "C", "all"),
+            ("B", "D", "all"),
+            ("B", "E", "all"),
+            ("C", "F", "all"),
+            ("C", "G", "all"),
+        ),
+    )
+
+    assert list(traverse.traverse_nodes([binary_tree["A"]], order="topo", cover=cover)) == list(
+        traverse.traverse_nodes([binary_tree["A"]], order="breadth", cover=cover)
+    )
