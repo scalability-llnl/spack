@@ -251,7 +251,7 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
             configure_args.append("--without-mli")
             # FEI option was removed in hypre 2.17
             if self.version < Version("2.17.0"):
-               configure_args.append("--without-fei")
+                configure_args.append("--without-fei")
 
         if spec.satisfies("+superlu-dist"):
             configure_args.append(
