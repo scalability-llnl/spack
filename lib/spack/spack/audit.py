@@ -571,8 +571,13 @@ def _search_for_deprecated_package_methods(pkgs, error_cls):
 @package_properties
 def _ensure_all_package_names_are_lowercase(pkgs, error_cls):
     """Ensure package names are lowercase and consistent"""
+    reserved_names = ("all",)
     badname_regex, errors = re.compile(r"[_A-Z]"), []
     for pkg_name in pkgs:
+        if pkg_name in reserved_names:
+            error_msg = f"The name '{pkg_name}' is reserved, and cannot be used for packages"
+            errors.append(error_cls(error_msg, []))
+
         if badname_regex.search(pkg_name):
             error_msg = f"Package name '{pkg_name}' should be lowercase and must not contain '_'"
             errors.append(error_cls(error_msg, []))

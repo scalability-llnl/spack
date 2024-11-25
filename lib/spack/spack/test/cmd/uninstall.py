@@ -11,6 +11,7 @@ import llnl.util.tty as tty
 import spack.cmd.uninstall
 import spack.environment
 import spack.store
+from spack.enums import InstallRecordStatus
 from spack.main import SpackCommand, SpackCommandError
 
 uninstall = SpackCommand("uninstall")
@@ -129,10 +130,10 @@ def test_force_uninstall_and_reinstall_by_hash(mutable_database):
         specs = spack.store.STORE.db.get_by_hash(dag_hash[:7], installed=installed)
         assert len(specs) == 1 and specs[0] == callpath_spec
 
-        specs = spack.store.STORE.db.get_by_hash(dag_hash, installed=any)
+        specs = spack.store.STORE.db.get_by_hash(dag_hash, installed=InstallRecordStatus.ANY)
         assert len(specs) == 1 and specs[0] == callpath_spec
 
-        specs = spack.store.STORE.db.get_by_hash(dag_hash[:7], installed=any)
+        specs = spack.store.STORE.db.get_by_hash(dag_hash[:7], installed=InstallRecordStatus.ANY)
         assert len(specs) == 1 and specs[0] == callpath_spec
 
         specs = spack.store.STORE.db.get_by_hash(dag_hash, installed=not installed)
@@ -147,7 +148,7 @@ def test_force_uninstall_and_reinstall_by_hash(mutable_database):
         spec = spack.store.STORE.db.query_one("callpath ^mpich", installed=installed)
         assert spec == callpath_spec
 
-        spec = spack.store.STORE.db.query_one("callpath ^mpich", installed=any)
+        spec = spack.store.STORE.db.query_one("callpath ^mpich", installed=InstallRecordStatus.ANY)
         assert spec == callpath_spec
 
         spec = spack.store.STORE.db.query_one("callpath ^mpich", installed=not installed)

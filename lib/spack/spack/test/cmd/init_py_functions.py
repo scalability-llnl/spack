@@ -4,9 +4,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import pytest
 
+import spack.config
 import spack.environment as ev
 import spack.error
 import spack.solver.asp as asp
+import spack.store
 from spack.cmd import (
     CommandNameError,
     PythonNameError,

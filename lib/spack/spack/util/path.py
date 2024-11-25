@@ -55,6 +55,7 @@ NOMATCH = object()
 # Substitutions to perform
 def replacements():
     # break circular imports
+    import spack
     import spack.environment as ev
     import spack.paths
 

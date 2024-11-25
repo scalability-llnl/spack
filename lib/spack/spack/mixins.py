@@ -10,7 +10,7 @@ import os
 
 import llnl.util.filesystem
 
-import spack.builder
+import spack.phase_callbacks
 
 
 def filter_compiler_wrappers(*files, **kwargs):
@@ -111,4 +111,4 @@ def filter_compiler_wrappers(*files, **kwargs):
         if pkg.compiler.name == "nag":
             x.filter("-Wl,--enable-new-dtags", "", **filter_kwargs)
 
-    spack.builder.run_after(after)(_filter_compiler_wrappers_impl)
+    spack.phase_callbacks.run_after(after)(_filter_compiler_wrappers_impl)

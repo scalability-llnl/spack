@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import shutil
+
 from spack.package import *
 
 
@@ -20,8 +22,12 @@ class Yambo(AutotoolsPackage):
     homepage = "https://www.yambo-code.org/index.php"
     url = "https://github.com/yambo-code/yambo/archive/4.2.2.tar.gz"
 
+    maintainers("LydDeb")
+
     license("GPL-2.0-or-later")
 
+    version("5.2.4", sha256="7c3f2602389fc29a0d8570c2fe85fe3768d390cfcbb2d371e83e75c6c951d5fc")
+    version("5.2.3", sha256="a6168d1fa820af857ac51217bd6ad26dda4cc89c07e035bd7dc230038ae1ab9c")
     version("5.2.1", sha256="0ac362854313927d75bbf87be98ff58447f3805f79724c38dc79df07f03a7046")
     version("5.1.1", sha256="c85036ca60507e627c47b6c6aee8241830349e88110e1ce9132ef03ab2c4e9f6")
     version("4.2.2", sha256="86b4ebe679387233266aba49948246c85a32b1e6840d024f162962bd0112448c")
@@ -37,13 +43,13 @@ class Yambo(AutotoolsPackage):
         values=any_combination_of("time", "memory"),
         description="Activate profiling of specific sections",
     )
-
     variant(
         "io",
-        values=any_combination_of("iotk", "etsf-io"),
+        default="iotk",
+        values=("iotk", "etsf-io"),
+        multi=True,
         description="Activate support for different io formats (requires network access)",
     )
-
     # MPI + OpenMP parallelism
     variant("mpi", default=True, description="Enable MPI support")
     variant("openmp", default=False, description="Enable OpenMP support")
@@ -71,18 +77,57 @@ class Yambo(AutotoolsPackage):
     depends_on("netcdf-fortran")
     depends_on("libxc@2.0.3:")
 
+    depends_on("etsf-io", when="io=etsf-io")
+
     build_targets = ["all"]
 
     parallel = False
 
-    # The configure in the package has the string 'cat config/report'
-    # hard-coded, which causes a failure at configure time due to the
-    # current working directory in Spack. Fix this by using the absolute
-    # path to the file.
-    @run_before("configure")
-    def filter_configure(self):
-        report_abspath = join_path(self.build_directory, "config", "report")
-        filter_file("config/report", report_abspath, "configure")
+    sanity_check_is_file = ["bin/yambo"]
+
+    resource(
+        when="@5.2.4",
+        name="ydriver",
+        url="https://github.com/yambo-code/Ydriver/archive/refs/tags/1.4.2.tar.gz",
+        sha256="c242f0700a224325ff59326767614a561b02ce16ddb2ce6c13ddd2d5901cc3e4",
+        destination="ydriver_archive",
+        placement="archive",
+        expand=False,
+    )
+    resource(
+        when="@5.2.1:5.2.3",
+        name="ydriver",
+        url="https://github.com/yambo-code/Ydriver/archive/refs/tags/1.2.0.tar.gz",
+        sha256="0f29a44e9c4b49d3f6be3f159a7ef415932b2ae2f2fdba163af60a0673befe6e",
+        destination="ydriver_archive",
+        placement="archive",
+        expand=False,
+    )
+    # iotk archive is contained inside this git repository
+    resource(
+        when="@5.2",
+        name="iotk",
+        git="https://github.com/yambo-code/yambo-libraries.git",
+        destination="yambo_libraries",
+        expand=False,
+    )
+
+    # ydriver-1.1.0 is required by yambo 5.1.1 but the oldest release in
+    # https://github.com/yambo-code/Ydriver is 1.2.0
+    # So, the air-gapped installation is only available since yambo@5.2.1
+    @when("@5.2")
+    @run_before("autoreconf")
+    def setup_archives(self):
+        if self.spec.satisfies("@5.2.4"):
+            shutil.move("ydriver_archive/archive/1.4.2.tar.gz", "lib/archive/Ydriver-1.4.2.tar.gz")
+        if self.spec.satisfies("@5.2.1:5.2.3"):
+            shutil.move("ydriver_archive/archive/1.2.0.tar.gz", "lib/archive/Ydriver-1.2.0.tar.gz")
+        shutil.move(
+            "yambo_libraries/yambo-libraries/external/iotk-y1.2.2.tar.gz",
+            "lib/archive/iotk-y1.2.2.tar.gz",
+        )
+        shutil.rmtree("ydriver_archive")
+        shutil.rmtree("yambo_libraries")
 
     def enable_or_disable_time(self, activated):
         return "--enable-time-profile" if activated else "--disable-time-profile"
@@ -93,6 +138,52 @@ class Yambo(AutotoolsPackage):
     def enable_or_disable_openmp(self, activated):
         return "--enable-open-mp" if activated else "--disable-open-mp"
 
+    @when("@5")
+    def configure_args(self):
+        spec = self.spec
+        args = [
+            f"--with-hdf5-path={spec['hdf5'].prefix}",
+            f"--prefix={self.stage.source_path}",
+            f"--exec-prefix={self.stage.source_path}",
+        ]
+        # Double precision
+        args.extend(self.enable_or_disable("dp"))
+
+        # Application profiling
+        args.extend(self.enable_or_disable("profile"))
+
+        # MPI + threading
+        args.extend(self.enable_or_disable("mpi"))
+        args.extend(self.enable_or_disable("openmp"))
+
+        if spec.satisfies("+mpi"):
+            args.append(f"--with-scalapack-libs={spec['scalapack'].libs}")
+
+        args.append(f"--with-blas-libs={spec['blas'].libs}")
+        args.append(f"--with-lapack-libs={spec['lapack'].libs}")
+        args.append(f"--with-netcdf-path={spec['netcdf-c'].prefix}")
+        args.append(f"--with-netcdff-path={spec['netcdf-fortran'].prefix}")
+        args.append(f"--with-fft-path={spec['fftw'].prefix}")
+        args.append(f"--with-libxc-path={spec['libxc'].prefix}")
+        args.append("--enable-hdf5-p2y-support")
+        # IO
+        if spec.satisfies("io=etsf-io"):
+            args.append(f"--with-etsf-io-path={spec['etsf-io'].prefix}")
+        args.extend(self.enable_or_disable("io"))
+
+        return args
+
+    # The configure in the package has the string 'cat config/report'
+    # hard-coded, which causes a failure at configure time due to the
+    # current working directory in Spack. Fix this by using the absolute
+    # path to the file.
+    @when("@4.2.1")
+    @run_before("configure")
+    def filter_configure(self):
+        report_abspath = join_path(self.build_directory, "config", "report")
+        filter_file("config/report", report_abspath, "configure")
+
+    @when("@4.2.1")
     def configure_args(self):
         args = [
             # As of version 4.2.1 there are hard-coded paths that make

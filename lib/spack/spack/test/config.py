@@ -15,6 +15,7 @@ import pytest
 import llnl.util.tty as tty
 from llnl.util.filesystem import join_path, touch, touchp
 
+import spack
 import spack.config
 import spack.directory_layout
 import spack.environment as ev

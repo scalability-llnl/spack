@@ -29,6 +29,7 @@ import spack.caches
 import spack.config
 import spack.error
 import spack.fetch_strategy
+import spack.mirror
 import spack.oci.image
 import spack.repo
 import spack.spec
@@ -180,7 +181,7 @@ class Mirror:
         if errors:
             msg = f"invalid {direction} configuration for mirror {self.name}: "
             msg += "\n    ".join(errors)
-            raise spack.mirror.MirrorError(msg)
+            raise MirrorError(msg)
 
     def _update_connection_dict(self, current_data: dict, new_data: dict, top_level: bool):
         # Only allow one to exist in the config

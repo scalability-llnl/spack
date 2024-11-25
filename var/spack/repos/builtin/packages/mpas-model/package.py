@@ -5,7 +5,6 @@
 import os
 
 from spack.package import *
-from spack.util.executable import Executable
 
 
 class MpasModel(MakefilePackage):
@@ -35,9 +34,6 @@ class MpasModel(MakefilePackage):
         "xlf",
         "ftn",
         "titan-cray",
-        "pgi",
-        "pgi-nersc",
-        "pgi-llnl",
         "ifort",
         "ifort-scorep",
         "ifort-gcc",

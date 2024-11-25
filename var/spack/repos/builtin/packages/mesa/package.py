@@ -5,6 +5,7 @@
 import sys
 
 import spack.build_systems.meson
+import spack.variant
 from spack.package import *
 
 
