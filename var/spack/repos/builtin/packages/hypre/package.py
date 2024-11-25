@@ -74,7 +74,7 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
     variant(
         "superlu-dist", default=False, description="Activates support for SuperLU_Dist library"
     )
-    variant("lapack", default=False, description="Use external blas/lapack")
+    variant("lapack", default=True, description="Use external blas/lapack")
     variant("int64", default=False, description="Use 64bit integers")
     variant("mixedint", default=False, description="Use 64bit integers while reducing memory use")
     variant("complex", default=False, description="Use complex values")
