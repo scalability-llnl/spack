@@ -308,8 +308,10 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     depends_on("sundials@2.7.0:+mpi+hypre", when="@3.3.2:+sundials+mpi")
     depends_on("sundials@5.0.0:5", when="@4.1.0:4.4+sundials~mpi")
     depends_on("sundials@5.0.0:5+mpi+hypre", when="@4.1.0:4.4+sundials+mpi")
-    depends_on("sundials@5.0.0:6.7.0", when="@4.5.0:+sundials~mpi")
-    depends_on("sundials@5.0.0:6.7.0+mpi+hypre", when="@4.5.0:+sundials+mpi")
+    depends_on("sundials@5.0.0:6.7.0", when="@4.5.0:4.6+sundials~mpi")
+    depends_on("sundials@5.0.0:6.7.0+mpi+hypre", when="@4.5.0:4.6+sundials+mpi")
+    depends_on("sundials@5.0.0:", when="@4.7.0:+sundials~mpi")
+    depends_on("sundials@5.0.0:+mpi+hypre", when="@4.7.0:+sundials+mpi")
     conflicts("cxxstd=11", when="^sundials@6.4.0:")
     for sm_ in CudaPackage.cuda_arch_values:
         depends_on(
@@ -359,6 +361,8 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     # MUMPS (and SuiteSparse in older versions). On the other hand, PETSc built
     # with MUMPS is not strictly required, so we do not require it here.
     depends_on("petsc@3.8:+mpi+hypre", when="+petsc")
+    # rocPRIM is a dependency when using petsc+rocm and requires C++14 or newer:
+    conflicts("cxxstd=11", when="^rocprim@5.5.0:")
     depends_on("slepc@3.8.0:", when="+slepc")
     # If petsc is built with +cuda, propagate cuda_arch to petsc and slepc
     for sm_ in CudaPackage.cuda_arch_values:
@@ -507,6 +511,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
         sha256="2a31682d876626529e2778a216d403648b83b90997873659a505d982d0e65beb",
     )
     patch("mfem-4.7.patch", when="@4.7.0")
+    patch("mfem-4.7-sundials-7.patch", when="@4.7.0+sundials ^sundials@7:")
 
     phases = ["configure", "build", "install"]
 
@@ -631,6 +636,9 @@ class Mfem(Package, CudaPackage, ROCmPackage):
         if self.spec.satisfies("^sundials@6.4.0:"):
             cxxstd = "14"
         if self.spec.satisfies("^ginkgo"):
+            cxxstd = "14"
+        # When rocPRIM is used (e.g. by PETSc + ROCm) we need C++14:
+        if self.spec.satisfies("^rocprim@5.5.0:"):
             cxxstd = "14"
         cxxstd_req = spec.variants["cxxstd"].value
         if cxxstd_req != "auto":

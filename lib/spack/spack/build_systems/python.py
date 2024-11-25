@@ -24,6 +24,7 @@ import spack.deptypes as dt
 import spack.detection
 import spack.multimethod
 import spack.package_base
+import spack.phase_callbacks
 import spack.platforms
 import spack.repo
 import spack.spec
@@ -34,7 +35,7 @@ from spack.install_test import test_part
 from spack.spec import Spec
 from spack.util.prefix import Prefix
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 def _flatten_dict(dictionary: Mapping[str, object]) -> Iterable[str]:
@@ -374,7 +375,7 @@ class PythonPackage(PythonExtension):
         return None
 
     @property
-    def python_spec(self):
+    def python_spec(self) -> Spec:
         """Get python-venv if it exists or python otherwise."""
         python, *_ = self.spec.dependencies("python-venv") or self.spec.dependencies("python")
         return python
@@ -425,7 +426,7 @@ class PythonPackage(PythonExtension):
 
 
 @spack.builder.builder("python_pip")
-class PythonPipBuilder(BaseBuilder):
+class PythonPipBuilder(BuilderWithDefaults):
     phases = ("install",)
 
     #: Names associated with package methods in the old build-system format
@@ -543,4 +544,4 @@ class PythonPipBuilder(BaseBuilder):
         with fs.working_dir(self.build_directory):
             pip(*args)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)

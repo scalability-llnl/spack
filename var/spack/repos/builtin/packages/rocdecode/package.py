@@ -33,6 +33,8 @@ class Rocdecode(CMakePackage):
         sticky=True,
     )
 
+    depends_on("libva", type="build", when="@6.2:")
+
     for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
 

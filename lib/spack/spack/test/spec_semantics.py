@@ -159,8 +159,8 @@ class TestSpecSemantics:
             ("foo%intel", "%intel", "foo%intel"),
             ("foo%gcc", "%gcc@4.7.2", "foo%gcc@4.7.2"),
             ("foo%intel", "%intel@4.7.2", "foo%intel@4.7.2"),
-            ("foo%pgi@4.5", "%pgi@4.4:4.6", "foo%pgi@4.5"),
-            ("foo@2.0%pgi@4.5", "@1:3%pgi@4.4:4.6", "foo@2.0%pgi@4.5"),
+            ("foo%gcc@4.5", "%gcc@4.4:4.6", "foo%gcc@4.5"),
+            ("foo@2.0%gcc@4.5", "@1:3%gcc@4.4:4.6", "foo@2.0%gcc@4.5"),
             ("foo %gcc@4.7.3", "%gcc@4.7", "foo %gcc@4.7.3"),
             ("libelf %gcc@4.4.7", "libelf %gcc@4.4.7", "libelf %gcc@4.4.7"),
             ("libelf", "libelf %gcc@4.4.7", "libelf %gcc@4.4.7"),
@@ -462,10 +462,10 @@ class TestSpecSemantics:
             ("foo target=x86_64", "platform=test os=redhat6 target=x86"),
             ("foo arch=test-frontend-frontend", "platform=test os=frontend target=backend"),
             ("foo%intel", "%gcc"),
-            ("foo%intel", "%pgi"),
-            ("foo%pgi@4.3", "%pgi@4.4:4.6"),
-            ("foo@4.0%pgi", "@1:3%pgi"),
-            ("foo@4.0%pgi@4.5", "@1:3%pgi@4.4:4.6"),
+            ("foo%intel", "%gcc"),
+            ("foo%gcc@4.3", "%gcc@4.4:4.6"),
+            ("foo@4.0%gcc", "@1:3%gcc"),
+            ("foo@4.0%gcc@4.5", "@1:3%gcc@4.4:4.6"),
             ("builtin.mock.mpich", "builtin.mpich"),
             ("mpileaks ^builtin.mock.mpich", "^builtin.mpich"),
             ("mpileaks^mpich@1.2", "^mpich@2.0"),
@@ -512,9 +512,6 @@ class TestSpecSemantics:
             ("mpich", "mpich +foo"),
             ("mpich", "mpich~foo"),
             ("mpich", "mpich foo=1"),
-            ("mpich", "mpich++foo"),
-            ("mpich", "mpich~~foo"),
-            ("mpich", "mpich foo==1"),
             ("multivalue-variant foo=bar", "multivalue-variant +foo"),
             ("multivalue-variant foo=bar", "multivalue-variant ~foo"),
             ("multivalue-variant fee=bar", "multivalue-variant fee=baz"),
@@ -535,6 +532,58 @@ class TestSpecSemantics:
 
         with pytest.raises(UnsatisfiableSpecError):
             assert rhs.constrain(lhs)
+
+    @pytest.mark.parametrize(
+        "lhs,rhs", [("mpich", "mpich++foo"), ("mpich", "mpich~~foo"), ("mpich", "mpich foo==1")]
+    )
+    def test_concrete_specs_which_satisfy_abstract(self, lhs, rhs, default_mock_concretization):
+        lhs, rhs = default_mock_concretization(lhs), Spec(rhs)
+
+        assert lhs.intersects(rhs)
+        assert rhs.intersects(lhs)
+        assert lhs.satisfies(rhs)
+
+        s1 = lhs.copy()
+        s1.constrain(rhs)
+        assert s1 == lhs and s1.satisfies(lhs)
+
+        s2 = rhs.copy()
+        s2.constrain(lhs)
+        assert s2 == lhs and s2.satisfies(lhs)
+
+    @pytest.mark.parametrize(
+        "lhs,rhs,expected,constrained",
+        [
+            # hdf5++mpi satisfies hdf5, and vice versa, because of the non-contradiction semantic
+            ("hdf5++mpi", "hdf5", True, "hdf5++mpi"),
+            ("hdf5", "hdf5++mpi", True, "hdf5++mpi"),
+            # Same holds true for arbitrary propagated variants
+            ("hdf5++mpi", "hdf5++shared", True, "hdf5++mpi++shared"),
+            # Here hdf5+mpi satisfies hdf5++mpi but not vice versa
+            ("hdf5++mpi", "hdf5+mpi", False, "hdf5+mpi"),
+            ("hdf5+mpi", "hdf5++mpi", True, "hdf5+mpi"),
+            # Non contradiction is violated
+            ("hdf5 ^foo~mpi", "hdf5++mpi", False, "hdf5++mpi ^foo~mpi"),
+            ("hdf5++mpi", "hdf5 ^foo~mpi", False, "hdf5++mpi ^foo~mpi"),
+        ],
+    )
+    def test_abstract_specs_with_propagation(self, lhs, rhs, expected, constrained):
+        """Tests (and documents) behavior of variant propagation on abstract specs.
+
+        Propagated variants do not comply with subset semantic, making it difficult to give
+        precise definitions. Here we document the behavior that has been decided for the
+        practical cases we face.
+        """
+        lhs, rhs, constrained = Spec(lhs), Spec(rhs), Spec(constrained)
+        assert lhs.satisfies(rhs) is expected
+
+        c = lhs.copy()
+        c.constrain(rhs)
+        assert c == constrained
+
+        c = rhs.copy()
+        c.constrain(lhs)
+        assert c == constrained
 
     def test_satisfies_single_valued_variant(self):
         """Tests that the case reported in
@@ -1714,8 +1763,8 @@ def test_package_hash_affects_dunder_and_dag_hash(mock_packages, default_mock_co
     assert a1.dag_hash() == a2.dag_hash()
     assert a1.process_hash() == a2.process_hash()
 
-    a1.clear_cached_hashes()
-    a2.clear_cached_hashes()
+    a1.clear_caches()
+    a2.clear_caches()
 
     # tweak the dag hash of one of these specs
     new_hash = "00000000000000000000000000000000"
@@ -1926,3 +1975,7 @@ def test_equality_discriminate_on_propagation(lhs, rhs):
     s, t = Spec(lhs), Spec(rhs)
     assert s != t
     assert len({s, t}) == 2
+
+
+def test_comparison_multivalued_variants():
+    assert Spec("x=a") < Spec("x=a,b") < Spec("x==a,b") < Spec("x==a,b,c")

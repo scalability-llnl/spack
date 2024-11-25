@@ -69,17 +69,6 @@ def test_icc16_link_paths():
     )
 
 
-def test_pgi_link_paths():
-    check_link_paths(
-        "pgcc-16.3.txt",
-        [
-            os.path.join(
-                root, "usr", "tce", "packages", "pgi", "pgi-16.3", "linux86-64", "16.3", "lib"
-            )
-        ],
-    )
-
-
 def test_gcc7_link_paths():
     check_link_paths("gcc-7.3.1.txt", [])
 

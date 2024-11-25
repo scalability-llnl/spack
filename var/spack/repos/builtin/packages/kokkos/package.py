@@ -6,6 +6,7 @@ import os.path
 
 import llnl.util.lang as lang
 
+import spack.build_systems.cmake
 from spack.package import *
 
 
@@ -142,6 +143,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         url="https://github.com/kokkos/kokkos/archive/3.0.00.tar.gz",
     )
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")  # Kokkos requires a C++ compiler
 
     depends_on("cmake@3.16:", type="build")
@@ -177,6 +179,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     options_variants = {
         "aggressive_vectorization": [False, "Aggressively vectorize loops"],
         "compiler_warnings": [False, "Print all compiler warnings"],
+        "complex_align": [True, "Align complex numbers"],
         "cuda_constexpr": [False, "Activate experimental constexpr features"],
         "cuda_lambda": [False, "Activate experimental lambda features"],
         "cuda_ldg_intrinsic": [False, "Use CUDA LDG intrinsics"],

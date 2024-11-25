@@ -73,7 +73,7 @@ class PyTorchvision(PythonPackage):
 
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
-        depends_on("python@3.9:3.12", when="@0.20:")
+        depends_on("python@3.9:3.13", when="@0.20:")
         depends_on("python@3.8:3.12", when="@0.17:0.19")
         depends_on("python@3.8:3.11", when="@0.15:0.16")
         depends_on("python@:3.10", when="@0.12:0.14")

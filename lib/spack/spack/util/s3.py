@@ -94,20 +94,17 @@ def get_mirror_s3_connection_info(mirror, method):
 
     # access token
     if isinstance(mirror, Mirror):
-        access_token = mirror.get_access_token(method)
-        if access_token:
-            s3_connection["aws_session_token"] = access_token
+        credentials = mirror.get_credentials(method)
+        if credentials:
+            if "access_token" in credentials:
+                s3_connection["aws_session_token"] = credentials["access_token"]
 
-        # access pair
-        access_pair = mirror.get_access_pair(method)
-        if access_pair and access_pair[0] and access_pair[1]:
-            s3_connection["aws_access_key_id"] = access_pair[0]
-            s3_connection["aws_secret_access_key"] = access_pair[1]
+            if "access_pair" in credentials:
+                s3_connection["aws_access_key_id"] = credentials["access_pair"][0]
+                s3_connection["aws_secret_access_key"] = credentials["access_pair"][1]
 
-        # profile
-        profile = mirror.get_profile(method)
-        if profile:
-            s3_connection["profile_name"] = profile
+            if "profile" in credentials:
+                s3_connection["profile_name"] = credentials["profile"]
 
         # endpoint url
         endpoint_url = mirror.get_endpoint_url(method) or os.environ.get("S3_ENDPOINT_URL")

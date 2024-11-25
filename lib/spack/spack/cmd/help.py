@@ -78,8 +78,8 @@ spec expression syntax:
       boxlib @B{dim=2}                  boxlib built for 2 dimensions
       libdwarf @g{%intel} ^libelf@g{%gcc}
           libdwarf, built with intel compiler, linked to libelf built with gcc
-      mvapich2 @g{%pgi} @B{fabrics=psm,mrail,sock}
-          mvapich2, built with pgi compiler, with support for multiple fabrics
+      mvapich2 @g{%gcc} @B{fabrics=psm,mrail,sock}
+          mvapich2, built with gcc compiler, with support for multiple fabrics
 """
 
 

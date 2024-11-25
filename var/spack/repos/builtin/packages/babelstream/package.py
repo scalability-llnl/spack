@@ -390,31 +390,28 @@ register_flag_optional(TARGET_PROCESSOR
         Refer to `nvc++ --help` for the full list"
         "")
         """
-        if self.spec.satisfies("+acc~kokkos~raja"):
-            if (self.spec.compiler.name == "nvhpc") or (self.spec.compiler.name == "pgi"):
-                target_device = "gpu" if "cuda_arch" in self.spec.variants else "multicore"
-                if "cuda_arch" in self.spec.variants:
-                    cuda_arch_list = self.spec.variants["cuda_arch"].value
-                    # the architecture value is only number so append cc_ to the name
-                    cuda_arch = "cc" + cuda_arch_list[0]
-                    # args.append(
-                    #     "-DCXX_EXTRA_FLAGS=" + "-target=" + target_device + "-gpu=" + cuda_arch
-                    # )
-                    args.append("-DCUDA_ARCH=" + cuda_arch)
-                else:
-                    # get the cpu architecture value from user
-                    target_processor = str(
-                        self.spec.target
-                    )  # self.spec.variants["cpu_arch"].value[0]
-                    args.append("-DTARGET_PROCESSOR=" + target_processor)
-                    # args.append(
-                    #     "-DCXX_EXTRA_FLAGS="
-                    #     + "-target="
-                    #     + target_device
-                    #     + "-tp="
-                    #     + target_processor
-                    # )
-                args.append("-DTARGET_DEVICE=" + target_device)
+        if self.spec.satisfies("+acc~kokkos~raja %nvhpc"):
+            target_device = "gpu" if "cuda_arch" in self.spec.variants else "multicore"
+            if "cuda_arch" in self.spec.variants:
+                cuda_arch_list = self.spec.variants["cuda_arch"].value
+                # the architecture value is only number so append cc_ to the name
+                cuda_arch = "cc" + cuda_arch_list[0]
+                # args.append(
+                #     "-DCXX_EXTRA_FLAGS=" + "-target=" + target_device + "-gpu=" + cuda_arch
+                # )
+                args.append("-DCUDA_ARCH=" + cuda_arch)
+            else:
+                # get the cpu architecture value from user
+                target_processor = str(self.spec.target)  # self.spec.variants["cpu_arch"].value[0]
+                args.append("-DTARGET_PROCESSOR=" + target_processor)
+                # args.append(
+                #     "-DCXX_EXTRA_FLAGS="
+                #     + "-target="
+                #     + target_device
+                #     + "-tp="
+                #     + target_processor
+                # )
+            args.append("-DTARGET_DEVICE=" + target_device)
         # ===================================
         #    STDdata,STDindices,STDranges
         # ===================================
