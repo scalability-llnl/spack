@@ -74,6 +74,8 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
     variant(
         "superlu-dist", default=False, description="Activates support for SuperLU_Dist library"
     )
+    variant("blas", default=False, description="Use external blas")
+    variant("lapack", default=False, description="Use external lapack")
     variant("int64", default=False, description="Use 64bit integers")
     variant("mixedint", default=False, description="Use 64bit integers while reducing memory use")
     variant("complex", default=False, description="Use complex values")
@@ -123,8 +125,8 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
         filter_file("\tmake", "\t$(MAKE)", "src/seq_mv/Makefile")
 
     depends_on("mpi", when="+mpi")
-    depends_on("blas")
-    depends_on("lapack")
+    depends_on("blas", when="+blas")
+    depends_on("lapack", when="+lapack")
     depends_on("magma", when="+magma")
     depends_on("superlu-dist", when="+superlu-dist+mpi")
     depends_on("rocsparse", when="+rocm")
@@ -198,17 +200,16 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     def configure_args(self):
         spec = self.spec
-        # Note: --with-(lapack|blas)_libs= needs space separated list of names
-        lapack = spec["lapack"].libs
-        blas = spec["blas"].libs
+        configure_args = [f"--prefix={prefix}"]
 
-        configure_args = [
-            "--prefix=%s" % prefix,
-            "--with-lapack-libs=%s" % " ".join(lapack.names),
-            "--with-lapack-lib-dirs=%s" % " ".join(lapack.directories),
-            "--with-blas-libs=%s" % " ".join(blas.names),
-            "--with-blas-lib-dirs=%s" % " ".join(blas.directories),
-        ]
+        # Note: --with-(lapack|blas)_libs= needs space separated list of names
+        if spec.satisfies("+blas"):
+            configure_args.append("--with-blas-libs=%s" % " ".join(spec["blas"].libs.names))
+            configure_args.append("--with-blas-lib-dirs=%s" % " ".join(spec["blas"].libs.directories))
+
+        if spec.satisfies("+lapack"):
+            configure_args.append("--with-lapack-libs=%s" % " ".join(spec["lapack"].libs.names))
+            configure_args.append("--with-lapack-lib-dirs=%s" % " ".join(spec["lapack"].libs.directories))
 
         if spec.satisfies("+mpi"):
             os.environ["CC"] = spec["mpi"].mpicc
