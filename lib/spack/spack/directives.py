@@ -40,6 +40,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union
 import llnl.util.tty.color
 
 import spack.deptypes as dt
+import spack.fetch_strategy
 import spack.package_base
 import spack.patch
 import spack.spec
@@ -47,7 +48,6 @@ import spack.util.crypto
 import spack.variant
 from spack.dependency import Dependency
 from spack.directives_meta import DirectiveError, DirectiveMeta
-from spack.fetch_strategy import from_kwargs
 from spack.resource import Resource
 from spack.version import (
     GitVersion,
@@ -740,58 +740,55 @@ def variant(
 
 
 @directive("resources")
-def resource(**kwargs):
-    """Define an external resource to be fetched and staged when building the
-    package. Based on the keywords present in the dictionary the appropriate
-    FetchStrategy will be used for the resource. Resources are fetched and
-    staged in their own folder inside spack stage area, and then moved into
-    the stage area of the package that needs them.
+def resource(
+    *,
+    name: Optional[str] = None,
+    destination: str = "",
+    placement: Optional[str] = None,
+    when: WhenType = None,
+    # additional kwargs are as for `version()`
+    **kwargs,
+):
+    """Define an external resource to be fetched and staged when building the package.
+    Based on the keywords present in the dictionary the appropriate FetchStrategy will
+    be used for the resource. Resources are fetched and staged in their own folder
+    inside spack stage area, and then moved into the stage area of the package that
+    needs them.
 
-    List of recognized keywords:
+    Keyword Arguments:
+        name: name for the resource
+        when: condition defining when the resource is needed
+        destination: path, relative to the package stage area, to which resource should be moved
+        placement: optionally rename the expanded resource inside the destination directory
 
-    * 'when' : (optional) represents the condition upon which the resource is
-      needed
-    * 'destination' : (optional) path where to move the resource. This path
-      must be relative to the main package stage area.
-    * 'placement' : (optional) gives the possibility to fine tune how the
-      resource is moved into the main package stage area.
     """
 
     def _execute_resource(pkg):
-        when = kwargs.get("when")
         when_spec = _make_when_spec(when)
         if not when_spec:
             return
 
-        destination = kwargs.get("destination", "")
-        placement = kwargs.get("placement", None)
-
         # Check if the path is relative
         if os.path.isabs(destination):
-            message = (
-                "The destination keyword of a resource directive " "can't be an absolute path.\n"
-            )
-            message += "\tdestination : '{dest}\n'".format(dest=destination)
-            raise RuntimeError(message)
+            msg = "The destination keyword of a resource directive can't be an absolute path.\n"
+            msg += f"\tdestination : '{destination}\n'"
+            raise RuntimeError(msg)
 
         # Check if the path falls within the main package stage area
         test_path = "stage_folder_root"
-        normalized_destination = os.path.normpath(
-            os.path.join(test_path, destination)
-        )  # Normalized absolute path
+
+        # Normalized absolute path
+        normalized_destination = os.path.normpath(os.path.join(test_path, destination))
 
         if test_path not in normalized_destination:
-            message = (
-                "The destination folder of a resource must fall "
-                "within the main package stage directory.\n"
-            )
-            message += "\tdestination : '{dest}'\n".format(dest=destination)
-            raise RuntimeError(message)
+            msg = "Destination of a resource must be within the package stage directory.\n"
+            msg += f"\tdestination : '{destination}'\n"
+            raise RuntimeError(msg)
 
         resources = pkg.resources.setdefault(when_spec, [])
-        name = kwargs.get("name")
-        fetcher = from_kwargs(**kwargs)
-        resources.append(Resource(name, fetcher, destination, placement))
+        resources.append(
+            Resource(name, spack.fetch_strategy.from_kwargs(**kwargs), destination, placement)
+        )
 
     return _execute_resource
 
