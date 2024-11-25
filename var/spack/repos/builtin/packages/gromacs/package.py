@@ -27,6 +27,7 @@ class Gromacs(CMakePackage, CudaPackage):
     url = "https://ftp.gromacs.org/gromacs/gromacs-2022.2.tar.gz"
     list_url = "https://ftp.gromacs.org/gromacs"
     git = "https://gitlab.com/gromacs/gromacs.git"
+
     maintainers("mabraham", "eirrgang", "junghans")
 
     license("GPL-2.0-or-later", when="@:4.5")
@@ -627,7 +628,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             options.append("-DGMX_USE_ITT=on")
             options.append(
                 "-DITTNOTIFY_INCLUDE_DIR=%s"
-                % join_path(self.spec["intel-oneapi-vtune"].package.headers)
+                % self.spec["intel-oneapi-vtune"].package.headers.directories[0]
             )
 
         if self.spec.satisfies("~nblib"):
