@@ -92,6 +92,12 @@ class GobjectIntrospection(MesonPackage, AutotoolsPackage):
         when="@:1.63.1",
     )
 
+    # https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/361
+    # https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/395
+    conflicts(
+        "^python@3.12:",
+        msg="gobject-introspection still uses distutils which was removed in Python 3.12",
+    )
     conflicts(
         "^python@3.11:",
         when="@:1.60",
