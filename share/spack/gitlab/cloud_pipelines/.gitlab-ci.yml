@@ -974,3 +974,26 @@ bootstrap-x86_64-linux-gnu-build:
   needs:
     - artifacts: True
       job: bootstrap-x86_64-linux-gnu-generate
+
+#######################################
+# Bootstrap aarch64-darwin
+#######################################
+.bootstrap-aarch64-darwin:
+  extends: [.darwin_aarch64]
+  variables:
+    SPACK_CI_STACK_NAME: bootstrap-aarch64-darwin
+
+bootstrap-aarch64-darwin-generate:
+  tags: [macos-ventura, apple-clang-15, aarch64-macos]
+  extends: [.bootstrap-aarch64-darwin, .generate-base]
+
+bootstrap-aarch64-darwin-build:
+  extends: [.bootstrap-aarch64-darwin, .build]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: bootstrap-aarch64-darwin-generate
+    strategy: depend
+  needs:
+    - artifacts: true
+      job: bootstrap-aarch64-darwin-generate
