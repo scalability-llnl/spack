@@ -132,12 +132,13 @@ class Python(Package):
     version("3.8.2", sha256="e634a7a74776c2b89516b2e013dda1728c89c8149b9863b8cea21946daf9d561")
     version("3.8.1", sha256="c7cfa39a43b994621b245e029769e9126caa2a93571cee2e743b213cceac35fb")
     version("3.8.0", sha256="f1069ad3cae8e7ec467aa98a6565a62a48ef196cb8f1455a245a08db5e1792df")
-    version(
-        "3.7.17",
-        sha256="fd50161bc2a04f4c22a0971ff0f3856d98b4bf294f89740a9f06b520aae63b49",
-        deprecated=True,
-    )
-    version("3.6.15", sha256="54570b7e339e2cfd72b29c7e2fdb47c0b7b18b7412e61de5b463fc087c13b043")
+    with default_args(deprecated=True):
+        version(
+            "3.7.17", sha256="fd50161bc2a04f4c22a0971ff0f3856d98b4bf294f89740a9f06b520aae63b49"
+        )
+        version(
+            "3.6.15", sha256="54570b7e339e2cfd72b29c7e2fdb47c0b7b18b7412e61de5b463fc087c13b043"
+        )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
