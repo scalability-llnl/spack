@@ -205,11 +205,15 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
         # Note: --with-(lapack|blas)_libs= needs space separated list of names
         if spec.satisfies("+blas"):
             configure_args.append("--with-blas-libs=%s" % " ".join(spec["blas"].libs.names))
-            configure_args.append("--with-blas-lib-dirs=%s" % " ".join(spec["blas"].libs.directories))
+            configure_args.append(
+                "--with-blas-lib-dirs=%s" % " ".join(spec["blas"].libs.directories)
+            )
 
         if spec.satisfies("+lapack"):
             configure_args.append("--with-lapack-libs=%s" % " ".join(spec["lapack"].libs.names))
-            configure_args.append("--with-lapack-lib-dirs=%s" % " ".join(spec["lapack"].libs.directories))
+            configure_args.append(
+                "--with-lapack-lib-dirs=%s" % " ".join(spec["lapack"].libs.directories)
+            )
 
         if spec.satisfies("+mpi"):
             os.environ["CC"] = spec["mpi"].mpicc
