@@ -297,12 +297,12 @@ class Gromacs(CMakePackage, CudaPackage):
     )
 
     variant(
-        "intel_itt",
+        "itt",
         default=False,
         when="@2024:",
-        description="Enable Instrumentation and Tracing Technology (ITT) profiling API",
+        description="Enable Instrumentation and Tracing Technology (ITT) profiling API (from Intel)",
     )
-    depends_on("intel-oneapi-vtune", "+intel_itt")
+    depends_on("intel-oneapi-vtune", "+itt")
 
     depends_on("fftw-api@3")
     depends_on("cmake@2.8.8:3", type="build")
@@ -622,7 +622,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             options.append("-DGMX_GPU_NB_CLUSTER_SIZE=8")
             options.append("-DGMX_GPU_NB_NUM_CLUSTER_PER_CELL_X=1")
 
-        if "+intel_itt" in self.spec:
+        if "+itt" in self.spec:
             options.append("-DGMX_USE_ITT=on")
             options.append(
                 "-DITTNOTIFY_INCLUDE_DIR=%s"
