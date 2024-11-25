@@ -203,6 +203,8 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
 
         # Note: --with-(lapack|blas)_libs= needs space separated list of names
         if spec.satisfies("+lapack"):
+            configure_args.append("--with-lapack")
+            configure_args.append("--with-blas")
             configure_args.append("--with-lapack-libs=%s" % " ".join(spec["lapack"].libs.names))
             configure_args.append("--with-blas-libs=%s" % " ".join(spec["blas"].libs.names))
             configure_args.append(
@@ -247,7 +249,9 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
             configure_args.append("--without-superlu")
             # MLI and FEI do not build without superlu on Linux
             configure_args.append("--without-mli")
-            configure_args.append("--without-fei")
+            # FEI option was removed in hypre 2.17
+            if self.version < Version("2.17.0"):
+               configure_args.append("--without-fei")
 
         if spec.satisfies("+superlu-dist"):
             configure_args.append(
