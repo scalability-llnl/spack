@@ -216,6 +216,11 @@ class Python(Package):
         depends_on("tix", when="+tix")
         depends_on("libxcrypt", when="+crypt")
 
+    patch(
+        "https://bugs.python.org/file44413/alignment.patch",
+        when="@3.6",
+        sha256="d39bacde16128f380933992ea7f237ac8f70f9cdffb40c051aca3be46dc29bdf",
+    )
     # Python needs to be patched to build extensions w/ mixed C/C++ code:
     # https://github.com/NixOS/nixpkgs/pull/19585/files
     # https://bugs.python.org/issue1222585
