@@ -42,6 +42,8 @@ class ScalapackBase(CMakePackage):
 
     def flag_handler(self, name, flags):
         if name == "cflags":
+            if self.spec.satisfies("%cce"):
+                flags.append("-Wno-error=implicit-function-declaration")
             if self.spec.satisfies("%gcc@14:"):
                 # https://bugzilla.redhat.com/show_bug.cgi?id=2178710
                 flags.append("-std=gnu89")
