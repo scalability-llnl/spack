@@ -10,7 +10,6 @@ from llnl.util.symlink import readlink
 
 import spack.build_environment
 from spack.package import *
-from spack.util.executable import Executable
 
 # This is the template for a pkgconfig file for rpm
 # https://github.com/guix-mirror/guix/raw/dcaf70897a0bad38a4638a2905aaa3c46b1f1402/gnu/packages/patches/lua-pkgconfig.patch

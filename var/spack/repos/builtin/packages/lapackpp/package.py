@@ -129,8 +129,8 @@ class Lapackpp(CMakePackage, CudaPackage, ROCmPackage):
 
     def check(self):
         # If the tester fails to build, ensure that the check() fails.
-        if os.path.isfile(join_path(self.builder.build_directory, "test", "tester")):
-            with working_dir(self.builder.build_directory):
+        if os.path.isfile(join_path(self.build_directory, "test", "tester")):
+            with working_dir(self.build_directory):
                 make("check")
         else:
             raise Exception("The tester was not built!")

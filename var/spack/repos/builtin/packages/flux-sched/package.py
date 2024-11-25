@@ -5,7 +5,6 @@
 
 import os
 
-import spack.util.executable
 from spack.build_systems.autotools import AutotoolsBuilder
 from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
@@ -24,6 +23,7 @@ class FluxSched(CMakePackage, AutotoolsPackage):
     license("LGPL-3.0-only")
 
     version("master", branch="master")
+    version("0.39.0", sha256="7e87029f8ad17b9286096e4e2d44982b5d6634908aefde3282497bdd3f44f2f8")
     version("0.38.0", sha256="0cb3efbd490256b28df580bb14f8e89c02084a9126e0b1754d6334a99ecfa969")
     version("0.37.0", sha256="b354d451183fcb8455e6a61d31e18c7f4af13e16a86b71216738f0991a7bcd50")
     version("0.36.1", sha256="0ee37ed364912f3f5a48ed5b5f5f21cb86cda43ff357486695b9454c217ad8b8")
@@ -139,7 +139,7 @@ class FluxSched(CMakePackage, AutotoolsPackage):
                 git("fetch", "--unshallow")
                 git("config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
                 git("fetch", "origin")
-            except spack.util.executable.ProcessError:
+            except ProcessError:
                 git("fetch")
 
     def autoreconf(self, spec, prefix):

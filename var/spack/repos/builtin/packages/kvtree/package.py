@@ -29,7 +29,8 @@ class Kvtree(CMakePackage):
     version("1.0.3", sha256="c742cdb1241ef4cb13767019204d5350a3c4383384bed9fb66680b93ff44b0d4")
     version("1.0.2", sha256="56fb5b747758c24a907a8380e8748d296900d94de9547bc15f6b427ac4ae2ec4")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("zlib-api", type="link")
 

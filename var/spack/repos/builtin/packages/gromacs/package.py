@@ -7,6 +7,7 @@ import os
 
 import llnl.util.filesystem as fs
 
+import spack.build_systems.cmake
 from spack.package import *
 
 
@@ -295,6 +296,15 @@ class Gromacs(CMakePackage, CudaPackage):
         + "The g++ location is written to icp{c,x}.cfg",
     )
 
+    variant(
+        "itt",
+        default=False,
+        when="@2024:",
+        description="Enable Instrumentation and Tracing Technology (ITT)"
+        + " profiling API (from Intel)",
+    )
+    depends_on("intel-oneapi-vtune", "+itt")
+
     depends_on("fftw-api@3")
     depends_on("cmake@2.8.8:3", type="build")
     depends_on("cmake@3.4.3:3", type="build", when="@2018:")
@@ -309,8 +319,14 @@ class Gromacs(CMakePackage, CudaPackage):
     depends_on("sycl", when="+sycl")
     depends_on("lapack")
     depends_on("blas")
-    depends_on("gcc", when="%oneapi ~intel_provided_gcc")
     depends_on("gcc", when="%intel ~intel_provided_gcc")
+    # TODO this can be expanded to all clang-based compilers once
+    # the principle is demonstrated to work
+    with when("%oneapi ~intel_provided_gcc"):
+        depends_on("gcc-runtime@5:", when="@2020")
+        depends_on("gcc-runtime@7:", when="@2021:2022")
+        depends_on("gcc-runtime@9:", when="@2023:2024")
+        depends_on("gcc-runtime@11:", when="@2025:")
 
     depends_on("hwloc@1.0:1", when="+hwloc@2016:2018")
     depends_on("hwloc", when="+hwloc@2019:")
@@ -539,7 +555,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             ):
                 with open(".".join([os.environ["SPACK_CXX"], "cfg"]), "r") as f:
                     options.append("-DCMAKE_CXX_FLAGS={}".format(f.read()))
-            else:
+            elif self.spec.satisfies("^gcc"):
                 options.append("-DGMX_GPLUSPLUS_PATH=%s/g++" % self.spec["gcc"].prefix.bin)
 
         if self.spec.satisfies("+double"):
@@ -606,6 +622,13 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         if self.spec.satisfies("+intel-data-center-gpu-max"):
             options.append("-DGMX_GPU_NB_CLUSTER_SIZE=8")
             options.append("-DGMX_GPU_NB_NUM_CLUSTER_PER_CELL_X=1")
+
+        if "+itt" in self.spec:
+            options.append("-DGMX_USE_ITT=on")
+            options.append(
+                "-DITTNOTIFY_INCLUDE_DIR=%s"
+                % join_path(self.spec["intel-oneapi-vtune"].package.headers)
+            )
 
         if self.spec.satisfies("~nblib"):
             options.append("-DGMX_INSTALL_NBLIB_API=OFF")

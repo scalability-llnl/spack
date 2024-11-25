@@ -5,7 +5,6 @@
 import os
 
 from spack.package import *
-from spack.util.executable import Executable
 
 
 class MpasModel(MakefilePackage):

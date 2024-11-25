@@ -16,6 +16,8 @@ class Neko(AutotoolsPackage, CudaPackage, ROCmPackage):
     url = "https://github.com/ExtremeFLOW/neko/releases/download/v0.3.2/neko-0.3.2.tar.gz"
     maintainers("njansson")
 
+    version("0.9.0", sha256="3cffe629ada1631d8774fa51d8bb14b95dc0cea21578c0e07e70deb611a5091a")
+    version("0.8.1", sha256="ac8162bc18e7112fd21b49c5a9c36f45c7b84896e90738be36a182990798baec")
     version("0.8.0", sha256="09d0b253c8abda9f384bf8f03b17b50d774cb0a1f7b72744a8e863acac516a51")
     version("0.7.2", sha256="5dd17fbae83d0b26dc46fafce4e5444be679cdce9493cef4ff7d504e2f854254")
     version("0.7.1", sha256="c935c3d93b0975db46448045f97aced6ac2cab31a2b8803047f8086f98dcb981")
@@ -37,6 +39,19 @@ class Neko(AutotoolsPackage, CudaPackage, ROCmPackage):
     variant("xsmm", default=False, description="Build with support for libxsmm")
     variant("gslib", default=False, when="@0.7.0:", description="Build with support for gslib")
     variant("hdf5", default=False, when="@develop", description="Build with support for HDF5")
+    variant("hdf5", default=False, when="@0.9.0:", description="Build with support for HDF5")
+    variant(
+        "shared",
+        default=False,
+        when="@develop",
+        description="Builds a shared version of the library",
+    )
+    variant(
+        "shared",
+        default=False,
+        when="@0.9.0:",
+        description="Builds a shared version of the library",
+    )
 
     # Requires cuda or rocm enabled MPI
     variant(
@@ -60,6 +75,8 @@ class Neko(AutotoolsPackage, CudaPackage, ROCmPackage):
     depends_on("json-fortran", when="@0.7.0:")
     depends_on("gslib", when="+gslib")
     depends_on("hdf5+fortran+mpi", when="+hdf5")
+    depends_on("libtool", type="build", when="@develop")
+    depends_on("libtool", type="build", when="@0.9.0:")
 
     def configure_args(self):
         args = []
@@ -74,6 +91,7 @@ class Neko(AutotoolsPackage, CudaPackage, ROCmPackage):
         rocm_fn = lambda x: self.spec["hip"].prefix
         args += self.with_or_without("hip", variant="rocm", activation_value=rocm_fn)
         args += self.enable_or_disable("device-mpi", variant="device-mpi")
+        args += self.enable_or_disable("shared", variant="shared")
 
         if self.spec.satisfies("+cuda"):
             cuda_arch_list = self.spec.variants["cuda_arch"].value

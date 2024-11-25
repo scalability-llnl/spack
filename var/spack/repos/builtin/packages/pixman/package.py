@@ -5,10 +5,12 @@
 
 import sys
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
-class Pixman(AutotoolsPackage):
+class Pixman(AutotoolsPackage, MesonPackage):
     """The Pixman package contains a library that provides low-level
     pixel manipulation features such as image compositing and
     trapezoid rasterization."""

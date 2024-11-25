@@ -27,6 +27,7 @@ from llnl.util.lang import elide_list
 
 import spack
 import spack.binary_distribution
+import spack.compiler
 import spack.compilers
 import spack.concretize
 import spack.config
@@ -885,7 +886,22 @@ class PyclingoDriver:
             solve_kwargs["on_unsat"] = cores.append
 
         timer.start("solve")
-        solve_result = self.control.solve(**solve_kwargs)
+        time_limit = spack.config.CONFIG.get("concretizer:timeout", -1)
+        error_on_timeout = spack.config.CONFIG.get("concretizer:error_on_timeout", True)
+        # Spack uses 0 to set no time limit, clingo API uses -1
+        if time_limit == 0:
+            time_limit = -1
+        with self.control.solve(**solve_kwargs, async_=True) as handle:
+            finished = handle.wait(time_limit)
+            if not finished:
+                specs_str = ", ".join(llnl.util.lang.elide_list([str(s) for s in specs], 4))
+                header = f"Spack is taking more than {time_limit} seconds to solve for {specs_str}"
+                if error_on_timeout:
+                    raise UnsatisfiableSpecError(f"{header}, stopping concretization")
+                warnings.warn(f"{header}, using the best configuration found so far")
+                handle.cancel()
+
+            solve_result = handle.get()
         timer.stop("solve")
 
         # once done, construct the solve result
