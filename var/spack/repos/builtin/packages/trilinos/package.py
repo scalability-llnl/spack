@@ -407,23 +407,25 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     # ###################### Dependencies ##########################
 
     # External Kokkos
-    depends_on("kokkos@4.4.01", when="@master: +kokkos")
-    depends_on("kokkos@4.3.01", when="@16.0.0 +kokkos")
-    depends_on("kokkos@4.2.01", when="@15.1.0:15.1.1 +kokkos")
-    depends_on("kokkos@4.1.00", when="@14.4.0:15.0.0 +kokkos")
+    with when("@14.4: +kokkos"):
+        depends_on("kokkos+wrapper", when="+wrapper")
+        depends_on("kokkos~wrapper", when="~wrapper")
+        depends_on("kokkos~complex_align")
+        depends_on("kokkos@4.4.01", when="@master:")
+        depends_on("kokkos@4.3.01", when="@16")
+        depends_on("kokkos@4.2.01", when="@15.1:15")
+        depends_on("kokkos@4.1.00", when="@14.4:15.0")
+        depends_on("kokkos-kernels@4.4.01", when="@master:")
+        depends_on("kokkos-kernels@4.3.01", when="@16")
+        depends_on("kokkos-kernels@4.2.01", when="@15.1:15")
+        depends_on("kokkos-kernels@4.1.00", when="@14.4:15.0")
 
-    depends_on("kokkos +wrapper", when="trilinos@14.4.0: +kokkos +wrapper")
-    depends_on("kokkos ~wrapper", when="trilinos@14.4.0: +kokkos ~wrapper")
-
-    for a in CudaPackage.cuda_arch_values:
-        arch_str = "+cuda cuda_arch={0}".format(a)
-        kokkos_spec = "kokkos {0}".format(arch_str)
-        depends_on(kokkos_spec, when="@14.4.0: +kokkos {0}".format(arch_str))
-
-    for a in ROCmPackage.amdgpu_targets:
-        arch_str = "+rocm amdgpu_target={0}".format(a)
-        kokkos_spec = "kokkos {0}".format(arch_str)
-        depends_on(kokkos_spec, when="@14.4.0: +kokkos {0}".format(arch_str))
+        for a in CudaPackage.cuda_arch_values:
+            arch_str = f"+cuda cuda_arch={a}"
+            depends_on(f"kokkos{arch_str}", when=arch_str)
+        for a in ROCmPackage.amdgpu_targets:
+            arch_str = f"+rocm amdgpu_target={a}"
+            depends_on(f"kokkos{arch_str}", when=arch_str)
 
     depends_on("adios2", when="+adios2")
     depends_on("binder@1.3:", when="@15: +python", type="build")
@@ -899,8 +901,9 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
             define_tpl(tpl_name, dep_name, dep_name in spec)
 
         # External Kokkos
-        if spec.satisfies("@14.4.0 +kokkos"):
+        if spec.satisfies("@14.4.0: +kokkos"):
             options.append(define_tpl_enable("Kokkos"))
+            options.append(define_tpl_enable("KokkosKernels", True))
 
         # MPI settings
         options.append(define_tpl_enable("MPI"))

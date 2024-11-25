@@ -39,6 +39,9 @@ class NetcdfCxx4(CMakePackage):
 
     filter_compiler_wrappers("ncxx4-config", relative_root="bin")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     def flag_handler(self, name, flags):
         if name == "cflags" and "+pic" in self.spec:
             flags.append(self.compiler.cc_pic_flag)

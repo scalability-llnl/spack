@@ -310,8 +310,14 @@ class Gromacs(CMakePackage, CudaPackage):
     depends_on("sycl", when="+sycl")
     depends_on("lapack")
     depends_on("blas")
-    depends_on("gcc", when="%oneapi ~intel_provided_gcc")
     depends_on("gcc", when="%intel ~intel_provided_gcc")
+    # TODO this can be expanded to all clang-based compilers once
+    # the principle is demonstrated to work
+    with when("%oneapi ~intel_provided_gcc"):
+        depends_on("gcc-runtime@5:", when="@2020")
+        depends_on("gcc-runtime@7:", when="@2021:2022")
+        depends_on("gcc-runtime@9:", when="@2023:2024")
+        depends_on("gcc-runtime@11:", when="@2025:")
 
     depends_on("hwloc@1.0:1", when="+hwloc@2016:2018")
     depends_on("hwloc", when="+hwloc@2019:")
@@ -540,7 +546,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             ):
                 with open(".".join([os.environ["SPACK_CXX"], "cfg"]), "r") as f:
                     options.append("-DCMAKE_CXX_FLAGS={}".format(f.read()))
-            else:
+            elif self.spec.satisfies("^gcc"):
                 options.append("-DGMX_GPLUSPLUS_PATH=%s/g++" % self.spec["gcc"].prefix.bin)
 
         if self.spec.satisfies("+double"):
