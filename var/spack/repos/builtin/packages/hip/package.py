@@ -531,12 +531,6 @@ class Hip(CMakePackage):
                 "clr/hipamd/hip-config-amd.cmake",
                 string=True,
             )
-            filter_file(
-                '"${ROCM_PATH}/llvm"',
-                self.spec["llvm-amdgpu"].prefix,
-                "clr/hipamd/src/hiprtc/CMakeLists.txt",
-                string=True,
-            )
         perl = self.spec["perl"].command
 
         if self.spec.satisfies("@:5.5"):
@@ -561,7 +555,12 @@ class Hip(CMakePackage):
                     filter_file(" -lnuma", f" -L{numactl} -lnuma", "hipBin_amd.h")
 
     def cmake_args(self):
-        args = []
+        args = [
+            # find_package(Clang) and find_package(LLVM) in clr/hipamd/src/hiprtc/CMakeLists.txt
+            # should find llvm-amdgpu
+            self.define("LLVM_ROOT", self.spec["llvm-amdgpu"].prefix),
+            self.define("Clang_ROOT", self.spec["llvm-amdgpu"].prefix),
+        ]
         if self.spec.satisfies("+rocm"):
             args.append(self.define("HSA_PATH", self.spec["hsa-rocr-dev"].prefix))
             args.append(self.define("HIP_COMPILER", "clang"))
