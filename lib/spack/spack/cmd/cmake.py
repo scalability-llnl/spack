@@ -10,6 +10,7 @@ from llnl.util.tty.color import colorize
 
 import spack
 import spack.cmd
+import spack.builder
 from spack.cmd.common import arguments
 from spack.error import SpackError
 from spack.util.environment import EnvironmentModifications
@@ -173,7 +174,7 @@ def cmake(parser, args, unparsed_args):
     std_args = (
         []
         if args.compiler_only
-        else [x for x in app.builder.std_cmake_args if any(n in x for n in accepted_std_args)]
+        else [x for x in spack.builder.create(app).std_cmake_args if any(n in x for n in accepted_std_args)]
     )
 
     app_args = app.cmake_args()
