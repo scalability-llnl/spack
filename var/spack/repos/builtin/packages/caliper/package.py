@@ -108,8 +108,7 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant("tests", default=False, description="Enable tests")
     variant("tools", default=True, description="Enable tools")
 
-    # TODO change the 'when' argument for the next release of Caliper
-    variant("python", default=False, when="@master", description="Build Python bindings")
+    variant("python", default=False, when="@2.12:", description="Build Python bindings")
 
     depends_on("adiak@0.1:0", when="@2.2:2.10 +adiak")
     depends_on("adiak@0.4:0", when="@2.11: +adiak")
@@ -134,7 +133,7 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on("py-pybind11", when="+python", type=("build", "link", "run"))
 
     # sosflow support not yet in 2.0
-    conflicts("+sosflow", "@2.0.0:2.11")
+    conflicts("+sosflow", "@2.0.0:2.12")
     conflicts("+adiak", "@:2.1")
     conflicts("+libdw", "@:2.4")
     conflicts("+rocm", "@:2.7")
@@ -183,16 +182,9 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
             entries.append(cmake_cache_option("WITH_NVTX", False))
 
         if spec.satisfies("+rocm"):
-            if spec["hip"].satisfies("@6.2:") and spec.satisfies("@2.12:"):
-                entries.append(cmake_cache_option("WITH_ROCPROFILER", True))
-                entries.append(cmake_cache_option("WITH_ROCTRACER", False))
-                entries.append(cmake_cache_option("WITH_ROCTX", False))
-            else:
-                entries.append(cmake_cache_option("WITH_ROCPROFILER", False))
-                entries.append(cmake_cache_option("WITH_ROCTRACER", True))
-                entries.append(cmake_cache_option("WITH_ROCTX", True))
+            entries.append(cmake_cache_option("WITH_ROCTRACER", True))
+            entries.append(cmake_cache_option("WITH_ROCTX", True))
         else:
-            entries.append(cmake_cache_option("WITH_ROCPROFILER", False))
             entries.append(cmake_cache_option("WITH_ROCTRACER", False))
             entries.append(cmake_cache_option("WITH_ROCTX", False))
 
