@@ -18,6 +18,7 @@ class Apex(CMakePackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("2.7.0", sha256="81cd7e8dbea35cec2360d6404e20f7527f66410614f06a73c8c782ac2cfdb0b0")
     version("2.6.5", sha256="2ba29a1198c904ac209fc6bc02962304a1416443b249f34ef96889aff39644ce")
     version("2.6.4", sha256="281a673f447762a488577beaa60e48d88cb6354f220457cf8f05c1de2e1fce70")
     version("2.6.3", sha256="7fef12937d3bd1271a01abe44cb931b1d63823fb5c74287a332f3012ed7297d5")

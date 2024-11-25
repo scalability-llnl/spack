@@ -53,8 +53,9 @@ class Julia(MakefilePackage):
     version("1.6.5", sha256="b70ae299ff6b63a9e9cbf697147a48a31b4639476d1947cb52e4201e444f23cb")
     version("1.6.4", sha256="a4aa921030250f58015201e28204bff604a007defc5a379a608723e6bb1808d4")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     variant("precompile", default=True, description="Improve julia startup time")
     variant("openlibm", default=True, description="Use openlibm instead of libm")

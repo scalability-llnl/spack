@@ -91,7 +91,8 @@ class FluxCore(AutotoolsPackage):
     # `link` dependency on python due to Flux's `pymod` module
     depends_on("python@3.6:", type=("build", "link", "run"))
     # Use of distutils in configure script dropped in v0.55
-    depends_on("python@:3.11", when="@:0.54", type=("build", "link", "run"))
+    # Detection of cffi version fixed in v0.68
+    depends_on("python@:3.11", when="@:0.67", type=("build", "link", "run"))
     depends_on("py-cffi@1.1:", type=("build", "run"))
     depends_on("py-pyyaml@3.10:", type=("build", "run"))
     depends_on("py-jsonschema@2.3:", type=("build", "run"), when="@:0.58.0")

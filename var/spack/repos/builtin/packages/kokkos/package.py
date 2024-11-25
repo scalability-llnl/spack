@@ -179,6 +179,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     options_variants = {
         "aggressive_vectorization": [False, "Aggressively vectorize loops"],
         "compiler_warnings": [False, "Print all compiler warnings"],
+        "complex_align": [True, "Align complex numbers"],
         "cuda_constexpr": [False, "Activate experimental constexpr features"],
         "cuda_lambda": [False, "Activate experimental lambda features"],
         "cuda_ldg_intrinsic": [False, "Use CUDA LDG intrinsics"],
