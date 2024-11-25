@@ -38,8 +38,12 @@ class PyNotebook(PythonPackage):
     version("4.0.4", sha256="a57852514bce1b1cf41fa0311f6cf894960cf68b083b55e6c408316b598d5648")
     version("4.0.2", sha256="8478d7e2ab474855b0ff841f693983388af8662d3af1adcb861acb900274f22a")
 
-    depends_on("python@3.7:", type=("build", "run"), when="@6.4:")
-    depends_on("python@3.6:", type=("build", "run"), when="@6.3:")
+    with default_args(type=("build", "run")):
+        depends_on("python@3.7:", when="@6.4:")
+        depends_on("python@3.6:", when="@6.3:")
+        # import pipes in setupbase.py
+        depends_on("python@:3.12", when="@:6")
+
     depends_on("py-jupyter-packaging@0.9:0", when="@6.4.1:", type="build")
 
     depends_on("py-setuptools", when="@5:", type="build")
