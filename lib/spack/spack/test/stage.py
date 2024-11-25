@@ -754,6 +754,17 @@ class TestStage:
         # Make sure the cached stage path values are unchanged.
         assert spack.stage._stage_root is None
 
+    def test_get_stage_root_empty(self, clear_stage_root):
+        # build stage set to empty by user is respected and errors
+        with spack.config.override("config:build_stage::", []):
+            with pytest.raises(spack.stage.StageError):
+                spack.stage.get_stage_root()
+
+        # No build stage set (config section set to empty) uses default
+        expected = spack.stage._resolve_paths(spack.stage._default_stage_config)[0]
+        with spack.config.override("config::", {}):
+            assert spack.stage.get_stage_root() == expected
+
     @pytest.mark.parametrize(
         "path,purged",
         [
