@@ -30,6 +30,7 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
 
     # NOTE: don't add XZ 5.6 until this compromise is resolved:
     # https://www.openwall.com/lists/oss-security/2024/03/29/4
+    version("5.4.7", sha256="9976ed9cd0764e962d852d7d519ee1c3a7f87aca3b86e5d021a45650ba3ecb41")
     version("5.4.6", sha256="913851b274e8e1d31781ec949f1c23e8dbcf0ecf6e73a2436dc21769dd3e6f49")
     version("5.4.5", sha256="8ccf5fff868c006f29522e386fb4c6a1b66463fbca65a4cfc3c4bd596e895e79")
     version("5.4.1", sha256="dd172acb53867a68012f94c17389401b2f274a1aa5ae8f84cbfb8b7e383ea8d3")
@@ -43,7 +44,7 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
     version("5.2.1", sha256="679148f497e0bff2c1adce42dee5a23f746e71321c33ebb0f641a302e30c2a80")
     version("5.2.0", sha256="f7357d7455a1670229b3cca021da71dd5d13b789db62743c20624bdffc9cc4a5")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("pic", default=False, description="Compile with position independent code.")
 
