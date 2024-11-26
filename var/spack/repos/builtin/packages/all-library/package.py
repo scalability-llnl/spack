@@ -15,7 +15,7 @@ class AllLibrary(CMakePackage):
 
     homepage = "http://slms.pages.jsc.fz-juelich.de/websites/all-website/"
     url = "https://gitlab.jsc.fz-juelich.de/SLMS/loadbalancing/-/archive/v0.9.2/loadbalancing-v0.9.2.tar.gz"
-    git = "https://gitlab.jsc.fz-juelich.de/SLMS/loadbalancing"
+    git = "https://gitlab.jsc.fz-juelich.de/SLMS/loadbalancing.git"
 
     maintainers("junghans")
 
@@ -27,13 +27,13 @@ class AllLibrary(CMakePackage):
     variant("fortran", default=False, description="Build with fortran support")
     variant("shared", default=True, description="Build shared libraries")
     variant("vtk", default=False, description="Build with vtk support")
-    variant("voronoi", default=False, description="Enable voronoi-based loadbalancing scheme")
+    variant("voronoi", default=False, description="Enable voronoi-based loadbalancing scheme", when="@0.9.3:")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
     depends_on("fortran", type="build", when="+fortran")
     depends_on("vtk", when="+vtk")
-    depends_on("voropp", when="+voronoi @0.9.3:")
+    depends_on("voropp", when="+voronoi")
 
     depends_on("mpi")
 
