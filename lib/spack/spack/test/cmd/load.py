@@ -205,7 +205,7 @@ def test_unload_fails_no_shell(
 def test_load_and_cache_shell_script(
     shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
 ): # TODO: Remove extras later
-    """"""
+    """TODO: What this test do???"""
     spec = spack.spec.Spec("mpileaks")
     spec.concretize()
 
@@ -213,5 +213,56 @@ def test_load_and_cache_shell_script(
 
     shell_out = load(shell, "mpileaks")
 
-    cached_file = os.path.join(spec.prefix, ".spack", f"mpileaks_shell.csh")
-    assert os.path.isfile(cached_file) # RIkki: cannot find the file
+    path_to_file = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell[2:]}")
+    assert os.path.isfile(path_to_file)
+
+    with open(path_to_file, "r") as f:
+        cached_file = f.read()
+    assert shell_out == cached_file
+
+@pytest.mark.parametrize(
+    "shell,set_command",
+    (
+        [("--bat", 'set "%s=%s"')]
+        if sys.platform == "win32"
+        else [("--sh", "export %s=%s"), ("--csh", "setenv %s %s")]
+    ),
+)
+def test_load_multiple_and_cache_shell_script(
+    shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
+): # TODO: Remove extras later
+    """TODO: What test do??"""
+    mpileaks_spec = spack.spec.Spec("mpileaks")
+    mpileaks_spec.concretize()
+
+    libelf_spec = spack.spec.Spec("libelf")
+    libelf_spec.concretize()
+
+    install("mpileaks")
+    install("libelf")
+
+    mpileaks_shell = load(shell, "mpileaks")
+    libelf_shell = load(shell, "libelf")
+
+    libelf_cache = os.path.join(libelf_spec.prefix, ".spack", f"{libelf_spec.name}_shell.{shell[2:]}")
+    with open(libelf_cache, "r") as f:
+        libelf_file = f.read()
+    print(f"\n\n before both: {libelf_file} hello")
+
+    assert libelf_shell == libelf_file
+
+    unload(shell, "mpileaks")
+    unload(shell, "libelf")
+    both_shell = load(shell, "mpileaks", "libelf")
+
+    libelf_cache = os.path.join(libelf_spec.prefix, ".spack", f"{libelf_spec.name}_shell.{shell[2:]}")
+    with open(libelf_cache, "r") as f:
+        libelf_file = f.read()
+    print(f"\n\n after both: {libelf_file}")
+
+    # assert that what is cached is not a combination of both packages
+    assert libelf_shell == libelf_file
+    # assert mpileaks_shell == 
+    assert both_shell != libelf_file
+   # assert both_shell != 
+

@@ -103,11 +103,15 @@ def load(parser, args):
         shell = args.shell if args.shell else os.environ.get("SPACK_SHELL")
         for spec in specs:
             # if file cached shell script exists skip
+            spec_mod = uenv.environment_modifications_for_specs(*specs)
+            spec_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
+            spec_cmds = spec_mod.shell_modifications(shell)
+
             env_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
             cmds = env_mod.shell_modifications(shell) # this won't work for multiple specs
 
             path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
             with open(path, 'w') as f:
-                f.write(cmds)
+                f.write(spec_cmds)
 
         sys.stdout.write(cmds)
