@@ -114,9 +114,11 @@ class Gromacs(CMakePackage, CudaPackage):
     variant(
         "heffte",
         default=False,
-        when="@2021: +sycl+mpi",
+        when="@2021: +mpi",
         description="Enable multi-GPU FFT support with HeFFTe",
     )
+    depends_on("heffte +cuda", when="+heffte +cuda")
+    depends_on("heffte +sycl", when="+heffte +sycl")
     variant("opencl", default=False, description="Enable OpenCL support")
     variant("sycl", default=False, when="@2021: %clang", description="Enable SYCL support")
     variant(
