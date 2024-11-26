@@ -222,6 +222,13 @@ class Libfabric(AutotoolsPackage, CudaPackage):
             else:
                 args.append(f"--disable-{fabric}")
 
+        if self.spec.satisfies("fabrics=cxi"):
+            args.append(f"--with-json-c={self.spec['json-c'].prefix}")
+            args.append(f"--with-curl={self.spec['curl'].prefix}")
+            args.append(f"--with-cassini-headers={self.spec['cassini-headers'].prefix.include}")
+            args.append(f"--with-cxi-uapi-headers={self.spec['cxi-driver'].prefix.include}")
+            args.append(f"--enable-cxi={self.spec['libcxi'].prefix}")
+
         return args
 
     def installcheck(self):
