@@ -27,7 +27,12 @@ class AllLibrary(CMakePackage):
     variant("fortran", default=False, description="Build with fortran support")
     variant("shared", default=True, description="Build shared libraries")
     variant("vtk", default=False, description="Build with vtk support")
-    variant("voronoi", default=False, description="Enable voronoi-based loadbalancing scheme", when="@0.9.3:")
+    variant(
+        "voronoi",
+        default=False,
+        description="Enable voronoi-based loadbalancing scheme",
+        when="@0.9.3:",
+    )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
