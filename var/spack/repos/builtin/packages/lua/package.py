@@ -10,7 +10,23 @@ from llnl.util.symlink import readlink
 
 import spack.build_environment
 from spack.package import *
-from spack.util.executable import Executable
+
+# This is the template for a pkgconfig file for rpm
+# https://github.com/guix-mirror/guix/raw/dcaf70897a0bad38a4638a2905aaa3c46b1f1402/gnu/packages/patches/lua-pkgconfig.patch
+_LUA_PC_TEMPLATE = """prefix={0}
+libdir={0}/lib
+includedir={0}/include
+bindir={0}/bin
+INSTALL_LMOD={0}/share/lua/{1}
+INSTALL_CMOD={0}/lib/lua/{1}
+INTERPRETER=${{bindir}}/lua
+COMPILER=${{bindir}}/luac
+Name: Lua
+Description: A powerful, fast, lightweight, embeddable scripting language
+Version: {2}
+Libs: -L${{libdir}} -llua -lm
+Cflags: -I${{includedir}}
+"""
 
 
 class LuaImplPackage(MakefilePackage):
@@ -226,7 +242,6 @@ class Lua(LuaImplPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
-    variant("pcfile", default=False, description="Add patch for lua.pc generation")
     variant("shared", default=True, description="Builds a shared version of the library")
 
     provides("lua-lang@5.1", when="@5.1:5.1.99")
@@ -236,12 +251,6 @@ class Lua(LuaImplPackage):
 
     depends_on("ncurses+termlib")
     depends_on("readline")
-
-    patch(
-        "http://lua.2524044.n2.nabble.com/attachment/7666421/0/pkg-config.patch",
-        sha256="208316c2564bdd5343fa522f3b230d84bd164058957059838df7df56876cb4ae",
-        when="+pcfile @:5.3.9999",
-    )
 
     def build(self, spec, prefix):
         if spec.satisfies("platform=darwin"):
@@ -289,10 +298,10 @@ class Lua(LuaImplPackage):
                         os.symlink(src_path, dest_path)
 
     @run_after("install")
-    def link_pkg_config(self):
-        if self.spec.satisfies("+pcfile"):
-            versioned_pc_file_name = "lua{0}.pc".format(self.version.up_to(2))
-            symlink(
-                join_path(self.prefix.lib, "pkgconfig", versioned_pc_file_name),
-                join_path(self.prefix.lib, "pkgconfig", "lua.pc"),
-            )
+    def generate_pkg_config(self):
+        mkdirp(self.prefix.lib.pkgconfig)
+        versioned_pc_file_name = "lua{0}.pc".format(self.version.up_to(2))
+        versioned_pc_file_path = join_path(self.prefix.lib.pkgconfig, versioned_pc_file_name)
+        with open(versioned_pc_file_path, "w") as pcfile:
+            pcfile.write(_LUA_PC_TEMPLATE.format(self.prefix, self.version.up_to(2), self.version))
+        symlink(versioned_pc_file_path, join_path(self.prefix.lib.pkgconfig, "lua.pc"))

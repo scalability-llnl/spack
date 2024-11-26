@@ -17,7 +17,6 @@ import io
 import multiprocessing
 import pickle
 import pydoc
-import sys
 from types import ModuleType
 
 import spack.config
@@ -26,9 +25,6 @@ import spack.paths
 import spack.platforms
 import spack.repo
 import spack.store
-
-_SERIALIZE = sys.platform == "win32" or (sys.version_info >= (3, 8) and sys.platform == "darwin")
-
 
 patches = None
 
@@ -56,7 +52,7 @@ class SpackTestProcess:
         fn()
 
     def create(self):
-        test_state = TestState()
+        test_state = GlobalStateMarshaler()
         return multiprocessing.Process(target=self._restore_and_run, args=(self.fn, test_state))
 
 
@@ -65,49 +61,56 @@ class PackageInstallContext:
     needs to be transmitted to a child process.
     """
 
-    def __init__(self, pkg):
-        if _SERIALIZE:
+    def __init__(self, pkg, *, ctx=None):
+        ctx = ctx or multiprocessing.get_context()
+        self.serialize = ctx.get_start_method() != "fork"
+        if self.serialize:
             self.serialized_pkg = serialize(pkg)
+            self.global_state = GlobalStateMarshaler()
             self.serialized_env = serialize(spack.environment.active_environment())
         else:
             self.pkg = pkg
+            self.global_state = None
             self.env = spack.environment.active_environment()
         self.spack_working_dir = spack.paths.spack_working_dir
-        self.test_state = TestState()
 
     def restore(self):
-        self.test_state.restore()
         spack.paths.spack_working_dir = self.spack_working_dir
-        env = pickle.load(self.serialized_env) if _SERIALIZE else self.env
+        env = pickle.load(self.serialized_env) if self.serialize else self.env
+        # Activating the environment modifies the global configuration, so globals have to
+        # be restored afterward, in case other modifications were applied on top (e.g. from
+        # command line)
         if env:
             spack.environment.activate(env)
+
+        if self.serialize:
+            self.global_state.restore()
+
         # Order of operation is important, since the package might be retrieved
         # from a repo defined within the environment configuration
-        pkg = pickle.load(self.serialized_pkg) if _SERIALIZE else self.pkg
+        pkg = pickle.load(self.serialized_pkg) if self.serialize else self.pkg
         return pkg
 
 
-class TestState:
-    """Spack tests may modify state that is normally read from disk in memory;
-    this object is responsible for properly serializing that state to be
-    applied to a subprocess. This isn't needed outside of a testing environment
-    but this logic is designed to behave the same inside or outside of tests.
+class GlobalStateMarshaler:
+    """Class to serialize and restore global state for child processes.
+
+    Spack may modify state that is normally read from disk or command line in memory;
+    this object is responsible for properly serializing that state to be applied to a subprocess.
     """
 
     def __init__(self):
-        if _SERIALIZE:
-            self.config = spack.config.CONFIG
-            self.platform = spack.platforms.host
-            self.test_patches = store_patches()
-            self.store = spack.store.STORE
+        self.config = spack.config.CONFIG.ensure_unwrapped()
+        self.platform = spack.platforms.host
+        self.test_patches = store_patches()
+        self.store = spack.store.STORE
 
     def restore(self):
-        if _SERIALIZE:
-            spack.config.CONFIG = self.config
-            spack.repo.PATH = spack.repo.create(self.config)
-            spack.platforms.host = self.platform
-            spack.store.STORE = self.store
-            self.test_patches.restore()
+        spack.config.CONFIG = self.config
+        spack.repo.PATH = spack.repo.create(self.config)
+        spack.platforms.host = self.platform
+        spack.store.STORE = self.store
+        self.test_patches.restore()
 
 
 class TestPatches:

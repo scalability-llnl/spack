@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -59,11 +60,9 @@ class PyPynucleus(PythonPackage):
 
     @run_before("install")
     def install_python(self):
-        prefix = self.prefix
         for subpackage in ["packageTools", "base", "metisCy", "fem", "multilevelSolver", "nl"]:
             with working_dir(subpackage):
-                args = std_pip_args + ["--prefix=" + prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
     @run_after("install")
     def install_additional_files(self):

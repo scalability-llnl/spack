@@ -61,12 +61,20 @@ class Edm4hep(CMakePackage):
         description="Use the specified C++ standard when building.",
     )
 
+    variant(
+        "json",
+        default=True,
+        description="Build edm4hep with JSON support and edm4hep2json",
+        when="@0.99.2:",
+    )
+
     depends_on("cmake@3.3:", type="build")
     depends_on("cmake@3.23:", type="build", when="@0.10.3:")
     depends_on("python", type="build")
 
     depends_on("root@6.08:")
-    depends_on("nlohmann-json@3.10.5:")
+    depends_on("nlohmann-json@3.10.5:", when="@0.99.2: +json")
+    depends_on("nlohmann-json@3.10.5:", when="@:0.99.1")
     depends_on("podio@1:", when="@0.99:")
     depends_on("podio@0.15:", when="@:0.10.5")
     for _std in _cxxstd_values:
@@ -88,6 +96,8 @@ class Edm4hep(CMakePackage):
         # C++ Standard
         args.append(self.define("CMAKE_CXX_STANDARD", self.spec.variants["cxxstd"].value))
         args.append(self.define("BUILD_TESTING", self.run_tests))
+        if self.spec.satisfies("@0.99.2: +json"):
+            args.append(self.define_from_variant("EDM4HEP_WITH_JSON", "json"))
         return args
 
     def setup_run_environment(self, env):

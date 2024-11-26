@@ -17,6 +17,7 @@ class Lwgrp(AutotoolsPackage):
     maintainers("CamStan", "gonsie", "adammoody")
 
     version("main", branch="main")
+    version("1.0.6", sha256="9f697978361b4bd9914beaaafffcee0b62a480a9a7dd3d75176910cebda81438")
     version("1.0.5", sha256="16b579e13b8a5218f4fe1b8715f6aafb09133a0cefbcd6b2eaf73802955dee6b")
     version("1.0.4", sha256="0c933df7658660a0225f8e3a940eb2621efa4421397859417c8d90d906d4e90a")
     version("1.0.3", sha256="20b2fc3908bfdf04d1c177f86e227a147214cd155c548b3dd75e54c78e1c1c47")

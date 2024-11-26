@@ -29,6 +29,7 @@ class RMulticool(RPackage):
 
     license("GPL-2.0-only")
 
+    version("1.0.1", sha256="bd72de1fbd7ea32018d6af09ac2af80871ebe26bf9dfdf1ba53f87e6cff56c1f")
     version("0.1-12", sha256="487d28d9c3c606be0cf56e2d8f8b0d79fb71949c68886ea9251fbb1c01664a36")
     version("0.1-11", sha256="1c907e64af2ac39facdf431a5691e69649f64af1f50e198ae39da5bf30026476")
     version("0.1-10", sha256="5bb0cb0d9eb64420c862877247a79bb0afadacfe23262ec8c3fa26e5e34d6ff9")

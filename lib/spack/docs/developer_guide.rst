@@ -333,13 +333,9 @@ inserting them at different places in the spack code base. Whenever a hook
 type triggers by way of a function call, we find all the hooks of that type,
 and run them.
 
-Spack defines hooks by way of a module at ``lib/spack/spack/hooks`` where we can define
-types of hooks in the ``__init__.py``, and then python files in that folder
-can use hook functions. The files are automatically parsed, so if you write
-a new file for some integration (e.g., ``lib/spack/spack/hooks/myintegration.py``
-you can then write hook functions in that file that will be automatically detected,
-and run whenever your hook is called. This section will cover the basic kind
-of hooks, and how to write them.
+Spack defines hooks by way of a module in the ``lib/spack/spack/hooks`` directory.
+This module has to be registered in ``__init__.py`` so that Spack is aware of it.
+This section will cover the basic kind of hooks, and how to write them.
 
 ^^^^^^^^^^^^^^
 Types of Hooks

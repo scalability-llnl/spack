@@ -12,17 +12,24 @@ class SpliceH(Package):
     homepage = "http://www.example.com"
     url = "http://www.example.com/splice-h-1.0.tar.gz"
 
-    version("1.0", md5="0123456789abcdef0123456789abcdef")
+    version("1.0.2")
+    version("1.0.1")
+    version("1.0.0")
 
     variant("foo", default=False, description="nope")
     variant("bar", default=False, description="nope")
     variant("baz", default=False, description="nope")
+    variant("compat", default=True, description="nope")
 
     depends_on("splice-z")
     depends_on("splice-z+foo", when="+foo")
 
     provides("something")
     provides("somethingelse")
+    provides("virtual-abi")
+
+    can_splice("splice-h@1.0.0 +compat", when="@1.0.1 +compat")
+    can_splice("splice-h@1.0.0:1.0.1 +compat", when="@1.0.2 +compat")
 
     def install(self, spec, prefix):
         with open(prefix.join("splice-h"), "w") as f:

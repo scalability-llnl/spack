@@ -12,9 +12,9 @@ from pathlib import Path, PurePath
 import llnl.util.tty as tty
 
 import spack.error
-from spack.util.environment import EnvironmentModifications
+import spack.util.environment
 
-__all__ = ["Executable", "which", "ProcessError"]
+__all__ = ["Executable", "which", "which_string", "ProcessError"]
 
 
 class Executable:
@@ -29,7 +29,7 @@ class Executable:
 
         self.default_env = {}
 
-        self.default_envmod = EnvironmentModifications()
+        self.default_envmod = spack.util.environment.EnvironmentModifications()
         self.returncode = None
         self.ignore_quotes = False
 
@@ -168,17 +168,15 @@ class Executable:
         self.default_envmod.apply_modifications(env)
         env.update(self.default_env)
 
-        from spack.util.environment import EnvironmentModifications  # no cycle
-
         # Apply env argument
-        if isinstance(env_arg, EnvironmentModifications):
+        if isinstance(env_arg, spack.util.environment.EnvironmentModifications):
             env_arg.apply_modifications(env)
         elif env_arg:
             env.update(env_arg)
 
         # Apply extra env
         extra_env = kwargs.get("extra_env", {})
-        if isinstance(extra_env, EnvironmentModifications):
+        if isinstance(extra_env, spack.util.environment.EnvironmentModifications):
             extra_env.apply_modifications(env)
         else:
             env.update(extra_env)

@@ -18,6 +18,7 @@ class RStringfish(RPackage):
 
     license("GPL-3.0-only")
 
+    version("0.16.0", sha256="3608bc83900246297b38df46954bd9aa3b6f463a56eefbe80cfc713eab797993")
     version("0.15.7", sha256="34b1703a8876a40860d35f88a94e069832a7d2bc86189ff07af84ff04fd4b735")
     version("0.15.5", sha256="9df21146a7710e5a9ab4bb53ebc231a580c798b7e541b8d78df53207283f8129")
     version("0.14.2", sha256="9373cfc715cda1527fd20179435977b8e59e19d8c5ef82a31e519f93fb624ced")

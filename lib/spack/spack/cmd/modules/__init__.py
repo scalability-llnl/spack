@@ -19,6 +19,7 @@ import spack.error
 import spack.modules
 import spack.modules.common
 import spack.repo
+from spack.cmd import MultipleSpecsMatch, NoSpecMatches
 from spack.cmd.common import arguments
 
 description = "manipulate module files"
@@ -89,18 +90,6 @@ def add_loads_arguments(subparser):
         help="exclude package from output; may be specified multiple times",
     )
     arguments.add_common_arguments(subparser, ["recurse_dependencies"])
-
-
-class MultipleSpecsMatch(Exception):
-    """Raised when multiple specs match a constraint, in a context where
-    this is not allowed.
-    """
-
-
-class NoSpecMatches(Exception):
-    """Raised when no spec matches a constraint, in a context where
-    this is not allowed.
-    """
 
 
 def one_spec_or_raise(specs):

@@ -26,6 +26,7 @@ class RocprofilerRegister(CMakePackage):
     version("6.1.1", sha256="38242443d9147a04d61374de4cecee686578a3140fed17e88480f564a1f67cc7")
     version("6.1.0", sha256="c6e60447ea2ccca8d6acd8758ac00037347892b16b450e1f99ddd04cc4b6cac1")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
     depends_on("fmt")
     depends_on("glog")

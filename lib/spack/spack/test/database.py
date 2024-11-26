@@ -34,6 +34,7 @@ import spack.repo
 import spack.spec
 import spack.store
 import spack.version as vn
+from spack.enums import InstallRecordStatus
 from spack.installer import PackageInstaller
 from spack.schema.database_index import schema
 from spack.util.executable import Executable
@@ -292,7 +293,7 @@ def _print_ref_counts():
     recs = []
 
     def add_rec(spec):
-        cspecs = spack.store.STORE.db.query(spec, installed=any)
+        cspecs = spack.store.STORE.db.query(spec, installed=InstallRecordStatus.ANY)
 
         if not cspecs:
             recs.append("[ %-7s ] %-20s-" % ("", spec))
@@ -324,7 +325,7 @@ def _print_ref_counts():
 
 def _check_merkleiness():
     """Ensure the spack database is a valid merkle graph."""
-    all_specs = spack.store.STORE.db.query(installed=any)
+    all_specs = spack.store.STORE.db.query(installed=InstallRecordStatus.ANY)
 
     seen = {}
     for spec in all_specs:
@@ -617,7 +618,7 @@ def test_080_root_ref_counts(mutable_database):
     mutable_database.remove("mpileaks ^mpich")
 
     # record no longer in DB
-    assert mutable_database.query("mpileaks ^mpich", installed=any) == []
+    assert mutable_database.query("mpileaks ^mpich", installed=InstallRecordStatus.ANY) == []
 
     # record's deps have updated ref_counts
     assert mutable_database.get_record("callpath ^mpich").ref_count == 0
@@ -627,7 +628,7 @@ def test_080_root_ref_counts(mutable_database):
     mutable_database.add(rec.spec)
 
     # record is present again
-    assert len(mutable_database.query("mpileaks ^mpich", installed=any)) == 1
+    assert len(mutable_database.query("mpileaks ^mpich", installed=InstallRecordStatus.ANY)) == 1
 
     # dependencies have ref counts updated
     assert mutable_database.get_record("callpath ^mpich").ref_count == 1
@@ -643,18 +644,21 @@ def test_090_non_root_ref_counts(mutable_database):
 
     # record still in DB but marked uninstalled
     assert mutable_database.query("callpath ^mpich", installed=True) == []
-    assert len(mutable_database.query("callpath ^mpich", installed=any)) == 1
+    assert len(mutable_database.query("callpath ^mpich", installed=InstallRecordStatus.ANY)) == 1
 
     # record and its deps have same ref_counts
-    assert mutable_database.get_record("callpath ^mpich", installed=any).ref_count == 1
+    assert (
+        mutable_database.get_record("callpath ^mpich", installed=InstallRecordStatus.ANY).ref_count
+        == 1
+    )
     assert mutable_database.get_record("mpich").ref_count == 2
 
     # remove only dependent of uninstalled callpath record
     mutable_database.remove("mpileaks ^mpich")
 
     # record and parent are completely gone.
-    assert mutable_database.query("mpileaks ^mpich", installed=any) == []
-    assert mutable_database.query("callpath ^mpich", installed=any) == []
+    assert mutable_database.query("mpileaks ^mpich", installed=InstallRecordStatus.ANY) == []
+    assert mutable_database.query("callpath ^mpich", installed=InstallRecordStatus.ANY) == []
 
     # mpich ref count updated properly.
     mpich_rec = mutable_database.get_record("mpich")
@@ -668,14 +672,14 @@ def test_100_no_write_with_exception_on_remove(database):
             raise Exception()
 
     with database.read_transaction():
-        assert len(database.query("mpileaks ^zmpi", installed=any)) == 1
+        assert len(database.query("mpileaks ^zmpi", installed=InstallRecordStatus.ANY)) == 1
 
     with pytest.raises(Exception):
         fail_while_writing()
 
     # reload DB and make sure zmpi is still there.
     with database.read_transaction():
-        assert len(database.query("mpileaks ^zmpi", installed=any)) == 1
+        assert len(database.query("mpileaks ^zmpi", installed=InstallRecordStatus.ANY)) == 1
 
 
 def test_110_no_write_with_exception_on_install(database):
@@ -685,14 +689,14 @@ def test_110_no_write_with_exception_on_install(database):
             raise Exception()
 
     with database.read_transaction():
-        assert database.query("cmake", installed=any) == []
+        assert database.query("cmake", installed=InstallRecordStatus.ANY) == []
 
     with pytest.raises(Exception):
         fail_while_writing()
 
     # reload DB and make sure cmake was not written.
     with database.read_transaction():
-        assert database.query("cmake", installed=any) == []
+        assert database.query("cmake", installed=InstallRecordStatus.ANY) == []
 
 
 def test_115_reindex_with_packages_not_in_repo(mutable_database, tmpdir):

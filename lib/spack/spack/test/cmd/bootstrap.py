@@ -170,7 +170,7 @@ def test_remove_and_add_a_source(mutable_config):
     assert not sources
 
     # Add it back and check we restored the initial state
-    _bootstrap("add", "github-actions", "$spack/share/spack/bootstrap/github-actions-v0.5")
+    _bootstrap("add", "github-actions", "$spack/share/spack/bootstrap/github-actions-v0.6")
     sources = spack.bootstrap.core.bootstrapping_sources()
     assert len(sources) == 1
 

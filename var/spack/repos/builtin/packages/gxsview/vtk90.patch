@@ -1,0 +1,51 @@
+diff --git a/gui/geometryviewer/trajectorypane/trajectorycreatingworker.cpp b/gui/geometryviewer/trajectorypane/trajectorycreatingworker.cpp
+index 92802f2..af731e3 100644
+--- a/gui/geometryviewer/trajectorypane/trajectorycreatingworker.cpp
++++ b/gui/geometryviewer/trajectorypane/trajectorycreatingworker.cpp
+@@ -7,6 +7,7 @@
+ #include "trajectorycreatingworker.hpp"
+ 
+ #include <vtkCellData.h>  // for coloring
++#include <vtkUnsignedCharArray.h>
+ 
+ #include "core/image/color.hpp"
+ 
+diff --git a/gui/geometryviewer/trajectorypane/trajectorypane.cpp b/gui/geometryviewer/trajectorypane/trajectorypane.cpp
+index eeae291..337e0e1 100644
+--- a/gui/geometryviewer/trajectorypane/trajectorypane.cpp
++++ b/gui/geometryviewer/trajectorypane/trajectorypane.cpp
+@@ -35,7 +35,7 @@
+ #include <vtkPolyDataMapper.h>
+ #include <vtkProperty.h>
+ #include <vtkSmartPointer.h>
+-#include <vtkQImageToImageSource.h>
++// #include <vtkQImageToImageSource.h>
+ #include <vtkOggTheoraWriter.h>
+ #include <vtkWindowToImageFilter.h>
+ #if  defined(_WIN32) || defined(__WIN32__) || defined(_WIN64) || defined(__WIN64__) || defined(_MSC_VER)
+diff --git a/gui/gui.pro b/gui/gui.pro
+index cab6c36..81861b7 100644
+--- a/gui/gui.pro
++++ b/gui/gui.pro
+@@ -302,7 +302,8 @@ unix:{
+ 
+ 
+ unix:!macx {
+-    LIBS += -lfontconfig
++    LIBS += -L$$FONTCONFIG_LIBDIR -lfontconfig
++    INCLUDEPATH += $$FONTCONFIG_INCDIR
+ 	# gcc7 requires libstdc++fs
+     linux-g++ {
+         lessThan(QMAKE_GCC_MAJOR_VERSION, 8) {
+diff --git a/gui/vtk9.pri b/gui/vtk9.pri
+index 298dedb..82993f2 100644
+--- a/gui/vtk9.pri
++++ b/gui/vtk9.pri
+@@ -58,7 +58,6 @@ LIBS += \
+   -lvtkRenderingGL2PSOpenGL2$$VTK_VER_SUFFIX \
+   -lvtkRenderingSceneGraph$$VTK_VER_SUFFIX \
+   -lvtkRenderingOpenGL2$$VTK_VER_SUFFIX \
+-  -lvtkRenderingQt$$VTK_VER_SUFFIX \
+   -lvtkRenderingUI$$VTK_VER_SUFFIX \
+   -lvtkRenderingVolume$$VTK_VER_SUFFIX \
+   -lvtkRenderingVtkJS$$VTK_VER_SUFFIX \

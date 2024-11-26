@@ -17,6 +17,7 @@ class PyFsspec(PythonPackage):
     # Requires pytest
     skip_modules = ["fsspec.tests"]
 
+    version("2024.10.0", sha256="eda2d8a4116d4f2429db8550f2457da57279247dd930bb12f821b58391359493")
     version("2024.5.0", sha256="1d021b0b0f933e3b3029ed808eb400c08ba101ca2de4b3483fbc9ca23fcee94a")
     version("2024.3.1", sha256="f39780e282d7d117ffb42bb96992f8a90795e4d0fb0f661a70ca39fe9c43ded9")
     version("2024.2.0", sha256="b6ad1a679f760dda52b1168c859d01b7b80648ea6f7f7c7f5a8a91dc3f3ecb84")

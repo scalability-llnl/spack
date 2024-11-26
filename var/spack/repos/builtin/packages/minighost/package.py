@@ -51,8 +51,6 @@ class Minighost(MakefilePackage):
             targets.append("COMPILER_SUITE=cray")
         elif "%intel" in self.spec:
             targets.append("COMPILER_SUITE=intel")
-        elif "%pgi" in self.spec:
-            targets.append("COMPILER_SUITE=pgi")
 
         return targets
 

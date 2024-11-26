@@ -35,6 +35,16 @@ class Verible(Package):
     version("master", branch="master")
 
     version(
+        "0.0.3841",
+        sha256="fbc9cb32aa8a64ba60f24dc89e8573c8ea62c45d76113a0f2ab5b73babed5990",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3841-g5eb8aa34.tar.gz",
+    )
+    version(
+        "0.0.3836",
+        sha256="946625a1527d0a97772ea031ab7358af29e61258c189a2ab0d9533b43e71f35b",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3836-g86ee9bab.tar.gz",
+    )
+    version(
         "0.0.3671",
         sha256="9f492cdc64b047f4e91aece8aa01fd2b846d9695510360dde34980daf5dbe0dd",
         url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3671-gf2731544.tar.gz",

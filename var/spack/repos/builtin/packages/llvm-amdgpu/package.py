@@ -78,6 +78,7 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
     depends_on("z3", type="link")
     depends_on("zlib-api", type="link")
     depends_on("ncurses+termlib", type="link")
+    depends_on("libxml2", type="link")
     depends_on("pkgconfig", type="build")
 
     # This flavour of LLVM doesn't work on MacOS, so we should ensure that it
@@ -222,11 +223,15 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
             self.define("LIBCXXABI_ENABLE_STATIC", "ON"),
             self.define("LIBCXXABI_INSTALL_STATIC_LIBRARY", "OFF"),
             self.define("LLVM_ENABLE_RTTI", "ON"),
-            self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;X86"),
             self.define("LLVM_AMDGPU_ALLOW_NPI_TARGETS", "ON"),
             self.define("PACKAGE_VENDOR", "AMD"),
             self.define("CLANG_ENABLE_AMDCLANG", "ON"),
         ]
+
+        if self.spec.target.family == "aarch64":
+            args.append(self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;AArch64"))
+        else:
+            args.append(self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;X86"))
 
         # Enable rocm-device-libs as a external project
         if self.spec.satisfies("+rocm-device-libs"):
