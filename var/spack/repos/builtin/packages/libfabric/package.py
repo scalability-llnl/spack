@@ -174,12 +174,18 @@ class Libfabric(AutotoolsPackage, CudaPackage):
 
     def setup_build_environment(self, env):
         if self.spec.satisfies("fabrics=cxi"):
+
+            def add_ldflags(name):
+                lib_dir = self.spec[name].libs.directories[0]
+                env.append_flags("LDFLAGS", f"-L{lib_dir}")
+                env.append_flags("LDFLAGS", f"-Wl,-rpath={lib_dir}")
+
             env.append_flags("CFLAGS", f"-I{self.spec['json-c'].prefix.include}")
             env.append_flags("CFLAGS", f"-I{self.spec['curl'].prefix.include}")
-            env.append_flags("LDFLAGS", f"-L{self.spec['json-c'].prefix.lib}")
-            env.append_flags("LDFLAGS", f"-L{self.spec['curl'].prefix.lib}")
+            add_ldflags("json-c")
+            add_ldflags("curl")
             if self.spec.satisfies("^curl +nghttp2"):
-                env.append_flags("LDFLAGS", f"-L{self.spec['nghttp2'].prefix.lib}")
+                add_ldflags("nghttp2")
                 env.append_flags("LDFLAGS", "-lnghttp2")
         if self.run_tests:
             env.prepend_path("PATH", self.prefix.bin)
