@@ -225,6 +225,7 @@ class Python(Package):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
+    depends_on("llvm", type="build")  # generated
 
     extendable = True
 
@@ -265,6 +266,8 @@ class Python(Package):
     variant("tix", default=False, description="Build Tix module", when="+tkinter")
     variant("crypt", default=True, description="Build crypt module", when="@:3.12 platform=linux")
     variant("crypt", default=True, description="Build crypt module", when="@:3.12 platform=darwin")
+    variant("freethread", default=False, description="Build with experimental free-threading support (No GIL)", when="@3.13:")
+    variant("jit", default=False, description="Build with experimental JIT support", when="@3.13:")
 
     if sys.platform != "win32":
         depends_on("gmake", type="build")
@@ -657,6 +660,12 @@ class Python(Package):
                     ),
                 ]
             )
+
+        if "+freethread" in spec:
+            config_args.append("--disable-gil")
+
+        if "+jit" in spec:
+            config_args.append("--enable-experimental-jit")
 
         # https://docs.python.org/3.8/library/sqlite3.html#f1
         if spec.satisfies("+sqlite3 ^sqlite+dynamic_extensions"):
