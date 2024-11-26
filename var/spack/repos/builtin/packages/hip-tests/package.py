@@ -24,26 +24,11 @@ class HipTests(CMakePackage):
     version("6.1.2", sha256="5b14e4a30d8d8fb56c43e262009646ba9188eac1c8ff882d9a606a4bec69b56b")
     version("6.1.1", sha256="10c96ee72adf4580056292ab17cfd858a2fd7bc07abeb41c6780bd147b47f7af")
     version("6.1.0", sha256="cf3a6a7c43116032d933cc3bc88bfc4b17a4ee1513c978e751755ca11a5ed381")
-    version("6.0.2", sha256="740ca064f4909c20d83226a63c2f164f7555783ec5f5f70be5bc23d3587ad829")
-    version("6.0.0", sha256="e8f92a0f5d1f6093ca1fb24ff1b7140128900fcdc6e9f01f153d6907e5c2d807")
-    version("5.7.0", sha256="b1dae3cfc715e71dce92ac1da94265a9398944c76cee85ffab8f0c93665a48d6")
-    version("5.6.1", sha256="5b3002ddfafda162329e4d9e6ac1200eeb48ff08e666b342aa8aeca30750f48b")
-    version("5.6.0", sha256="8cf4509bf9c0747dab8ed8fec1365a9156792034b517207a0b2d63270429fd2e")
-    version("5.5.1", sha256="9c252a7aae6c7347320b9453f671d56b9035ab4aa2e17319a1f5c0c1d0da1157")
-    version("5.5.0", sha256="3a8122cccec079a7a1fd4ea8e664f147a9b9983d5c8931be3b652fcfe0c13e04")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("cmake", type="run")
     for ver in [
-        "5.5.0",
-        "5.5.1",
-        "5.6.0",
-        "5.6.1",
-        "5.7.0",
-        "5.7.1",
-        "6.0.0",
-        "6.0.2",
         "6.1.0",
         "6.1.1",
         "6.1.2",
