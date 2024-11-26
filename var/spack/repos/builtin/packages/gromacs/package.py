@@ -118,7 +118,16 @@ class Gromacs(CMakePackage, CudaPackage):
         description="Enable multi-GPU FFT support with HeFFTe",
     )
     variant("opencl", default=False, description="Enable OpenCL support")
-    variant("sycl", default=False, when="@2021: %clang", description="Enable SYCL support")
+    variant("sycl", default=False, when="@2021:", description="Enable SYCL support")
+    requires(
+        "^intel-oneapi-runtime",
+        "^hipsycl %clang",
+        policy="one_of",
+        when="+sycl",
+        msg="GROMACS SYCL support comes either from intel-oneapi-runtime or a "
+        + "package that provides the virtual package `sycl`, such as AdaptiveCpp "
+        + "plus a clang compiler.",
+    )
     variant(
         "intel-data-center-gpu-max",
         default=False,
