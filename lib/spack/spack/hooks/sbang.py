@@ -28,7 +28,7 @@ if sys.platform == "darwin":
 else:
     system_shebang_limit = 127
     try:
-        # searching for line '#define BINPRM_BUF_SIZE 256' in /usr/src/linux/binfmts.h
+        # searching for line '#define BINPRM_BUF_SIZE 256' in /usr/include/linux/binfmts.h
         # the nbr-1 is the sbang limit on the linux platform
         sbang_limit_re = re.compile("#define BINPRM_BUF_SIZE ([0-9]+)")
         with open("/usr/include/linux/binfmts.h") as f:
