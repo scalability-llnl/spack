@@ -31,4 +31,6 @@ class PySimplejson(PythonPackage):
     version("3.8.0", sha256="217e4797da3a9a4a9fbe6722e0db98070b8443a88212d7acdbd241a7668141d9")
     version("3.3.0", sha256="7a8a6bd82e111976aeb06138316ab10847adf612925072eaff8512228bcf9a1f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

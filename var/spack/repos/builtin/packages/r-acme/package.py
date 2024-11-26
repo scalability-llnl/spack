@@ -32,6 +32,8 @@ class RAcme(RPackage):
     version("2.34.0", commit="1f53d43e420e245423fdf2711d0dcb345f829469")
     version("2.32.0", commit="76372255d7714a0c8128a11c028bf70214dac407")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-biobase@2.5.5:", type=("build", "run"))
     depends_on("r-biocgenerics", type=("build", "run"))

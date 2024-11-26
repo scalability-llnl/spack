@@ -6,6 +6,7 @@
 import os
 import re
 import shutil
+import sys
 
 import llnl.util.lang
 import llnl.util.tty as tty
@@ -19,10 +20,9 @@ class Hdf5(CMakePackage):
     flexible and efficient I/O and for high volume and complex data.
     """
 
-    homepage = "https://portal.hdfgroup.org"
-    url = "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.3/src/hdf5-1.14.3.tar.gz"
-    list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
-    list_depth = 3
+    homepage = "https://support.hdfgroup.org"
+    url = "https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_5/downloads/hdf5-1.14.5.tar.gz"
+
     git = "https://github.com/HDFGroup/hdf5.git"
     maintainers("lrknox", "brtnfld", "byrnHDF", "gheber", "hyoklee", "lkurz")
 
@@ -33,9 +33,13 @@ class Hdf5(CMakePackage):
 
     license("custom")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build", when="+cxx")
+    depends_on("fortran", type="build", when="+fortran")
+
     # The 'develop' version is renamed so that we could uninstall (or patch) it
     # without affecting other develop version.
-    version("develop-1.15", branch="develop")
+    version("develop-2.0", branch="develop")
     version("develop-1.14", branch="hdf5_1_14")
     version("develop-1.12", branch="hdf5_1_12")
     version("develop-1.10", branch="hdf5_1_10")
@@ -44,13 +48,36 @@ class Hdf5(CMakePackage):
     # Odd versions are considered experimental releases
     # Even versions are maintenance versions
     version(
-        "1.14.3",
-        sha256="09cdb287aa7a89148c1638dd20891fdbae08102cf433ef128fd345338aa237c7",
+        "1.14.5",
+        sha256="ec2e13c52e60f9a01491bb3158cb3778c985697131fc6a342262d32a26e58e44",
+        url="https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_5/downloads/hdf5-1.14.5.tar.gz",
         preferred=True,
     )
-    version("1.14.2", sha256="1c342e634008284a8c2794c8e7608e2eaf26d01d445fb3dfd7f33cb2fb51ac53")
-    version("1.14.1-2", sha256="cbe93f275d5231df28ced9549253793e40cd2b555e3d288df09d7b89a9967b07")
-    version("1.14.0", sha256="a571cc83efda62e1a51a0a912dd916d01895801c5025af91669484a1575a6ef4")
+    version(
+        "1.14.4-3",
+        sha256="019ac451d9e1cf89c0482ba2a06f07a46166caf23f60fea5ef3c37724a318e03",
+        url="https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_4/downloads/hdf5-1.14.4-3.tar.gz",
+    )
+    version(
+        "1.14.3",
+        sha256="09cdb287aa7a89148c1638dd20891fdbae08102cf433ef128fd345338aa237c7",
+        url="https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_3/downloads/hdf5-1.14.3.tar.gz",
+    )
+    version(
+        "1.14.2",
+        sha256="1c342e634008284a8c2794c8e7608e2eaf26d01d445fb3dfd7f33cb2fb51ac53",
+        url="https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_2/downloads/hdf5-1.14.2.tar.gz",
+    )
+    version(
+        "1.14.1-2",
+        sha256="cbe93f275d5231df28ced9549253793e40cd2b555e3d288df09d7b89a9967b07",
+        url="https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_1/downloads/hdf5-1.14.1-2.tar.gz",
+    )
+    version(
+        "1.14.0",
+        sha256="a571cc83efda62e1a51a0a912dd916d01895801c5025af91669484a1575a6ef4",
+        url="https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_0/downloads/hdf5-1.14.0.tar.gz",
+    )
     version("1.12.3", sha256="c15adf34647918dd48150ea1bd9dffd3b32a3aec5298991d56048cc3d39b4f6f")
     version("1.12.2", sha256="2a89af03d56ce7502dcae18232c241281ad1773561ec00c0f0e8ee2463910f14")
     version("1.12.1", sha256="79c66ff67e666665369396e9c90b32e238e501f345afd2234186bfb8331081ca")
@@ -109,14 +136,23 @@ class Hdf5(CMakePackage):
     depends_on("cmake@3.12:", type="build")
     depends_on("cmake@3.18:", type="build", when="@1.13:")
 
-    depends_on("mpi", when="+mpi")
+    with when("+mpi"):
+        depends_on("mpi")
+        depends_on("mpich+fortran", when="+fortran ^[virtuals=mpi] mpich")
+
     depends_on("java", type=("build", "run"), when="+java")
     depends_on("szip", when="+szip")
+
     depends_on("zlib-api")
+    # See https://github.com/HDFGroup/hdf5/pull/4147
+    depends_on(
+        "zlib-ng~new_strategies",
+        when="@:1.14.3,develop-1.8:develop-1.12 ^[virtuals=zlib-api] zlib-ng",
+    )
 
     # The compiler wrappers (h5cc, h5fc, etc.) run 'pkg-config'.
     # Skip this on Windows since pkgconfig is autotools
-    for plat in ["cray", "darwin", "linux"]:
+    for plat in ["darwin", "linux"]:
         depends_on("pkgconfig", when=f"platform={plat}", type="run")
 
     conflicts("+mpi", "^mpich@4.0:4.0.3")
@@ -153,6 +189,12 @@ class Hdf5(CMakePackage):
         "+fortran", when="@1.13.3:^cmake@:3.22", msg="cmake_minimum_required is not set correctly."
     )
 
+    # HDF5 searches for zlib CMake config files before it falls back to
+    # FindZLIB.cmake. We don't build zlib with CMake by default, so have to
+    # delete the first search, otherwise it may find a system zlib. See
+    # https://github.com/HDFGroup/hdf5/issues/4904
+    patch("find_package_zlib.patch", when="@1.8.16:1.14.4")
+
     # There are several officially unsupported combinations of the features:
     # 1. Thread safety is not guaranteed via high-level C-API but in some cases
     #    it works.
@@ -169,6 +211,15 @@ class Hdf5(CMakePackage):
     # 3. Parallel features are not supported via CXX API, but for the reasons
     #    described in #2 we allow for such combination.
     # conflicts('+mpi+cxx')
+
+    # Patch needed for HDF5 1.14.3 to fix signaling FPE checks from triggering
+    # at dynamic type system initialization. The type system's builtin types
+    # were refactored in 1.14.3 and switched from compile-time to run-time
+    # initialization. This patch suppresses floating point exception checks
+    # that would otherwise be triggered by this code. Later HDF5 versions
+    # will include the patch code changes.
+    # See https://github.com/HDFGroup/hdf5/pull/3837
+    patch("hdf5_1_14_3_fpe.patch", when="@1.14.3")
 
     # There are known build failures with intel@18.0.1. This issue is
     # discussed and patch is provided at
@@ -261,22 +312,14 @@ class Hdf5(CMakePackage):
     # compiler wrappers and do not need to be changed.
     # These do not exist on Windows.
     # Enable only for supported target platforms.
-    for spack_spec_target_platform in ["linux", "darwin", "cray"]:
+
+    if sys.platform != "win32":
         filter_compiler_wrappers(
-            "h5cc",
-            "h5hlcc",
-            "h5fc",
-            "h5hlfc",
-            "h5c++",
-            "h5hlc++",
-            relative_root="bin",
-            when=f"platform={spack_spec_target_platform}",
+            "h5cc", "h5hlcc", "h5fc", "h5hlfc", "h5c++", "h5hlc++", relative_root="bin"
         )
 
     def url_for_version(self, version):
-        url = (
-            "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-{0}/hdf5-{1}/src/hdf5-{1}.tar.gz"
-        )
+        url = "https://support.hdfgroup.org/archive/support/ftp/HDF5/releases/hdf5-{0}/hdf5-{1}/src/hdf5-{1}.tar.gz"
         return url.format(version.up_to(2), version)
 
     def flag_handler(self, name, flags):
@@ -284,7 +327,12 @@ class Hdf5(CMakePackage):
         cmake_flags = []
 
         if name == "cflags":
-            if spec.compiler.name in ["gcc", "clang", "apple-clang", "oneapi"]:
+            if (
+                spec.satisfies("%gcc")
+                or spec.satisfies("%clang")
+                or spec.satisfies("%apple-clang")
+                or spec.satisfies("%oneapi")
+            ):
                 # Quiet warnings/errors about implicit declaration of functions
                 # in C99:
                 cmake_flags.append("-Wno-error=implicit-function-declaration")
@@ -295,13 +343,9 @@ class Hdf5(CMakePackage):
                 cmake_flags.append(self.compiler.cc_pic_flag)
             if spec.satisfies("@1.8.21 %oneapi@2023.0.0"):
                 cmake_flags.append("-Wno-error=int-conversion")
-            if spec.satisfies("%apple-clang@15:"):
-                cmake_flags.append("-Wl,-ld_classic")
         elif name == "cxxflags":
             if spec.satisfies("@:1.8.12+cxx~shared"):
                 cmake_flags.append(self.compiler.cxx_pic_flag)
-            if spec.satisfies("%apple-clang@15:"):
-                cmake_flags.append("-Wl,-ld_classic")
         elif name == "fflags":
             if spec.satisfies("%cce+fortran"):
                 # Cray compiler generates module files with uppercase names by
@@ -312,7 +356,7 @@ class Hdf5(CMakePackage):
             if spec.satisfies("@:1.8.12+fortran~shared"):
                 cmake_flags.append(self.compiler.fc_pic_flag)
         elif name == "ldlibs":
-            if "+fortran %fj" in spec:
+            if spec.satisfies("+fortran %fj"):
                 cmake_flags.extend(["-lfj90i", "-lfj90f", "-lfjsrcinfo", "-lelf"])
 
         return flags, None, (cmake_flags or None)
@@ -330,7 +374,7 @@ class Hdf5(CMakePackage):
         """
         query_parameters = self.spec.last_query.extra_parameters
 
-        shared = "+shared" in self.spec
+        shared = self.spec.satisfies("+shared")
 
         # This map contains a translation from query_parameters
         # to the libraries needed
@@ -471,7 +515,7 @@ class Hdf5(CMakePackage):
 
     @run_before("cmake")
     def fortran_check(self):
-        if "+fortran" in self.spec and not self.compiler.fc:
+        if self.spec.satisfies("+fortran") and not self.compiler.fc:
             msg = "cannot build a Fortran variant without a Fortran compiler"
             raise RuntimeError(msg)
 
@@ -518,7 +562,7 @@ class Hdf5(CMakePackage):
         # MSMPI does not provide compiler wrappers
         # and pointing these variables at the MSVC compilers
         # breaks CMake's mpi detection for MSMPI.
-        if "+mpi" in spec and "msmpi" not in spec:
+        if spec.satisfies("+mpi") and "msmpi" not in spec:
             args.extend(
                 [
                     "-DMPI_CXX_COMPILER:PATH=%s" % spec["mpi"].mpicxx,
@@ -526,12 +570,16 @@ class Hdf5(CMakePackage):
                 ]
             )
 
-            if "+fortran" in spec:
+            if spec.satisfies("+fortran"):
                 args.extend(["-DMPI_Fortran_COMPILER:PATH=%s" % spec["mpi"].mpifc])
 
         # work-around for https://github.com/HDFGroup/hdf5/issues/1320
         if spec.satisfies("@1.10.8,1.13.0"):
             args.append(self.define("HDF5_INSTALL_CMAKE_DIR", "share/cmake/hdf5"))
+
+        # AOCC does not support _Float16
+        if spec.satisfies("@1.14.4: %aocc"):
+            args.append(self.define("HDF5_ENABLE_NONSTANDARD_FEATURE_FLOAT16", False))
 
         return args
 
@@ -604,12 +652,42 @@ class Hdf5(CMakePackage):
     def link_debug_libs(self):
         # When build_type is Debug, the hdf5 build appends _debug to all library names.
         # Dependents of hdf5 (netcdf-c etc.) can't handle those, thus make symlinks.
-        if "build_type=Debug" in self.spec:
+        if self.spec.satisfies("build_type=Debug"):
             libs = find(self.prefix.lib, "libhdf5*_debug.*", recursive=False)
             with working_dir(self.prefix.lib):
                 for lib in libs:
                     libname = os.path.split(lib)[1]
                     os.symlink(libname, libname.replace("_debug", ""))
+
+    @run_after("install")
+    def symlink_to_h5hl_wrappers(self):
+        if self.spec.satisfies("+hl"):
+            with working_dir(self.prefix.bin):
+                # CMake's FindHDF5 relies only on h5cc so it doesn't find the HL
+                # component unless it uses h5hlcc so we symlink h5cc to h5hlcc etc
+                symlink_files = {"h5cc": "h5hlcc", "h5c++": "h5hlc++"}
+                for old, new in symlink_files.items():
+                    if os.path.isfile(old):
+                        os.remove(old)
+                        symlink(new, old)
+
+    @run_after("install")
+    def symlink_mpi_libs(self):
+        """Compatibility layer to support projects looking for the MPI suffix"""
+        if not self.spec.satisfies("+mpi"):
+            return
+
+        mpi_libs = ["libhdf5{mpi_suffix}", "libhdf5{mpi_suffix}_hl"]
+        for lib_f in mpi_libs:
+            src_name = lib_f.format(mpi_suffix="")
+            dst_name = lib_f.format(mpi_suffix="_mpi")
+            libs = find_libraries(src_name, root=self.prefix, recursive=True)
+            for lib_path in libs:
+                prefix = os.path.dirname(lib_path)
+                src_lib = os.path.basename(lib_path)
+                dst_lib = dst_name.join(src_lib.rsplit(src_name, 1))
+                with working_dir(prefix):
+                    symlink(src_lib, dst_lib)
 
     @property
     @llnl.util.lang.memoized

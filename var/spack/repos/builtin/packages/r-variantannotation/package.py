@@ -25,6 +25,8 @@ class RVariantannotation(RPackage):
     version("1.24.5", commit="468d7f53fd743e04c9af853d58e871b4cc13a090")
     version("1.22.3", commit="3a91b6d4297aa416d5f056dec6f8925eb1a8eaee")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.8.0:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@1.40.0:")
     depends_on("r-biocgenerics@0.15.3:", type=("build", "run"))

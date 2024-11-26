@@ -31,6 +31,9 @@ class Hydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
     version("1.5.3", sha256="faefbe738bd364d0e26ce9ad079a11c93a18c6f075719a365fd4fa5f1f7a989a")
     version("1.5.2", sha256="a902cad3962471216cfa278ba0561c18751d415cd4d6b2417c02a43b0ab2ea33")
     version("1.5.1", sha256="447da564278f98366906d561d9c8bc4d31678c56d761679c2ff3e59ee7a2895c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
     # Older versions are no longer supported.
 
     variant("shared", default=True, description="Enables the build of shared libraries.")
@@ -136,7 +139,7 @@ class Hydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     @property
     def libs(self):
-        shared = True if "+shared" in self.spec else False
+        shared = True if self.spec.satisfies("+shared") else False
         return find_libraries("libHydrogen", root=self.prefix, shared=shared, recursive=True)
 
     def cmake_args(self):
@@ -172,7 +175,7 @@ class Hydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
 
         # FIXME: Enforce this better in the actual CMake.
         entries.append(cmake_cache_string("CMAKE_CXX_STANDARD", "17"))
-        entries.append(cmake_cache_option("BUILD_SHARED_LIBS", "+shared" in spec))
+        entries.append(cmake_cache_option("BUILD_SHARED_LIBS", spec.satisfies("+shared")))
         entries.append(cmake_cache_option("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
         entries.append(cmake_cache_option("MPI_ASSUME_NO_BUILTIN_MPI", True))
@@ -197,7 +200,7 @@ class Hydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         entries = super(Hydrogen, self).initconfig_hardware_entries()
 
-        entries.append(cmake_cache_option("Hydrogen_ENABLE_CUDA", "+cuda" in spec))
+        entries.append(cmake_cache_option("Hydrogen_ENABLE_CUDA", spec.satisfies("+cuda")))
         if spec.satisfies("+cuda"):
             entries.append(cmake_cache_string("CMAKE_CUDA_STANDARD", "17"))
             if not spec.satisfies("cuda_arch=none"):
@@ -212,7 +215,7 @@ class Hydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
             if len(cuda_flags) > 0:
                 entries.append(cmake_cache_string("CMAKE_CUDA_FLAGS", " ".join(cuda_flags)))
 
-        entries.append(cmake_cache_option("Hydrogen_ENABLE_ROCM", "+rocm" in spec))
+        entries.append(cmake_cache_option("Hydrogen_ENABLE_ROCM", spec.satisfies("+rocm")))
         if spec.satisfies("+rocm"):
             entries.append(cmake_cache_string("CMAKE_HIP_STANDARD", "17"))
             if not spec.satisfies("amdgpu_target=none"):
@@ -230,30 +233,36 @@ class Hydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries = super(Hydrogen, self).initconfig_package_entries()
 
         # Basic Hydrogen options
-        entries.append(cmake_cache_option("Hydrogen_ENABLE_TESTING", "+test" in spec))
+        entries.append(cmake_cache_option("Hydrogen_ENABLE_TESTING", spec.satisfies("+test")))
         entries.append(cmake_cache_option("Hydrogen_GENERAL_LAPACK_FALLBACK", True))
-        entries.append(cmake_cache_option("Hydrogen_USE_64BIT_INTS", "+int64" in spec))
-        entries.append(cmake_cache_option("Hydrogen_USE_64BIT_BLAS_INTS", "+int64_blas" in spec))
+        entries.append(cmake_cache_option("Hydrogen_USE_64BIT_INTS", spec.satisfies("+int64")))
+        entries.append(
+            cmake_cache_option("Hydrogen_USE_64BIT_BLAS_INTS", spec.satisfies("+int64_blas"))
+        )
 
         # Advanced dependency options
-        entries.append(cmake_cache_option("Hydrogen_ENABLE_ALUMINUM", "+al" in spec))
-        entries.append(cmake_cache_option("Hydrogen_ENABLE_CUB", "+cub" in spec))
-        entries.append(cmake_cache_option("Hydrogen_ENABLE_GPU_FP16", "+cuda +half" in spec))
-        entries.append(cmake_cache_option("Hydrogen_ENABLE_HALF", "+half" in spec))
-        entries.append(cmake_cache_option("Hydrogen_ENABLE_OPENMP", "+openmp" in spec))
+        entries.append(cmake_cache_option("Hydrogen_ENABLE_ALUMINUM", spec.satisfies("+al")))
+        entries.append(cmake_cache_option("Hydrogen_ENABLE_CUB", spec.satisfies("+cub")))
         entries.append(
-            cmake_cache_option("Hydrogen_ENABLE_OMP_TASKLOOP", "+omp_taskloops" in spec)
+            cmake_cache_option("Hydrogen_ENABLE_GPU_FP16", spec.satisfies("+cuda +half"))
+        )
+        entries.append(cmake_cache_option("Hydrogen_ENABLE_HALF", spec.satisfies("+half")))
+        entries.append(cmake_cache_option("Hydrogen_ENABLE_OPENMP", spec.satisfies("+openmp")))
+        entries.append(
+            cmake_cache_option("Hydrogen_ENABLE_OMP_TASKLOOP", spec.satisfies("+omp_taskloops"))
         )
 
         # Note that CUDA/ROCm are handled above.
 
-        if "blas=openblas" in spec:
-            entries.append(cmake_cache_option("Hydrogen_USE_OpenBLAS", "blas=openblas" in spec))
+        if spec.satisfies("blas=openblas"):
+            entries.append(
+                cmake_cache_option("Hydrogen_USE_OpenBLAS", spec.satisfies("blas=openblas"))
+            )
             # CMAKE_PREFIX_PATH should handle this
             entries.append(cmake_cache_string("OpenBLAS_DIR", spec["openblas"].prefix))
-        elif "blas=mkl" in spec or spec.satisfies("^intel-mkl"):
+        elif spec.satisfies("blas=mkl") or spec.satisfies("^intel-mkl"):
             entries.append(cmake_cache_option("Hydrogen_USE_MKL", True))
-        elif "blas=essl" in spec or spec.satisfies("^essl"):
+        elif spec.satisfies("blas=essl") or spec.satisfies("^essl"):
             entries.append(cmake_cache_string("BLA_VENDOR", "IBMESSL"))
             # IF IBM ESSL is used it needs help finding the proper LAPACK libraries
             entries.append(
@@ -270,7 +279,7 @@ class Hydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
                     % ";".join("-l{0}".format(lib) for lib in self.spec["essl"].libs.names),
                 )
             )
-        elif "blas=accelerate" in spec:
+        elif spec.satisfies("blas=accelerate"):
             entries.append(cmake_cache_option("Hydrogen_USE_ACCELERATE", True))
         elif spec.satisfies("^netlib-lapack"):
             entries.append(cmake_cache_string("BLA_VENDOR", "Generic"))

@@ -30,6 +30,10 @@ class Parallelio(CMakePackage):
     version("2.5.3", sha256="205a0a128fd5262700efc230b3380dc5ab10e74bc5d273ae05db76c9d95487ca")
     version("2.5.2", sha256="935bc120ef3bf4fe09fb8bfdf788d05fb201a125d7346bf6b09e27ac3b5f345c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("pnetcdf", default=False, description="enable pnetcdf")
     variant("timing", default=False, description="enable GPTL timing")
     variant("ncint", default=False, description="enable netcdf integration", when="@2.6.0:")
@@ -65,6 +69,11 @@ class Parallelio(CMakePackage):
 
     # Allow argument mismatch in gfortran versions > 10 for mpi library compatibility
     patch("gfortran.patch", when="@:2.5.8 +fortran %gcc@10:")
+
+    @run_after("install", when="platform=darwin")
+    def darwin_install_name(self):
+        # The shared library is not installed correctly on Darwin; fix this
+        fix_darwin_install_name(self.prefix.lib)
 
     def cmake_args(self):
         define = self.define

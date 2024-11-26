@@ -23,6 +23,9 @@ class Eigenexa(AutotoolsPackage):
         url="https://www.r-ccs.riken.jp/labs/lpnctrt/projects/eigenexa/EigenExa-2.6.tgz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
@@ -71,7 +74,7 @@ class Eigenexa(AutotoolsPackage):
     @run_after("install")
     def cache_test_sources(self):
         """Save off benchmark files for stand-alone tests."""
-        self.cache_extra_test_sources("benchmark")
+        cache_extra_test_sources(self, "benchmark")
 
     def test_benchmarks(self):
         """run benchmark checks"""

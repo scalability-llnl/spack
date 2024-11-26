@@ -11,6 +11,7 @@ from typing import Any, Deque, Dict, Generator, List, NamedTuple, Tuple
 
 from llnl.util import filesystem
 
+import spack.platforms
 import spack.repo
 import spack.spec
 from spack.util import spack_yaml
@@ -32,6 +33,8 @@ class ExpectedTestResult(NamedTuple):
 
     #: Spec to be detected
     spec: str
+    #: Attributes expected in the external spec
+    extra_attributes: Dict[str, str]
 
 
 class DetectionTest(NamedTuple):
@@ -65,7 +68,7 @@ class Runner:
         with self._mock_layout() as path_hints:
             entries = by_path([self.test.pkg_name], path_hints=path_hints)
             _, unqualified_name = spack.repo.partition_package_name(self.test.pkg_name)
-            specs = set(x.spec for x in entries[unqualified_name])
+            specs = set(entries[unqualified_name])
         return list(specs)
 
     @contextlib.contextmanager
@@ -100,7 +103,12 @@ class Runner:
 
     @property
     def expected_specs(self) -> List[spack.spec.Spec]:
-        return [spack.spec.Spec(r.spec) for r in self.test.results]
+        return [
+            spack.spec.Spec.from_detection(
+                item.spec, external_path=self.tmpdir.name, extra_attributes=item.extra_attributes
+            )
+            for item in self.test.results
+        ]
 
 
 def detection_tests(pkg_name: str, repository: spack.repo.RepoPath) -> List[Runner]:
@@ -117,9 +125,13 @@ def detection_tests(pkg_name: str, repository: spack.repo.RepoPath) -> List[Runn
     """
     result = []
     detection_tests_content = read_detection_tests(pkg_name, repository)
+    current_platform = str(spack.platforms.host())
 
     tests_by_path = detection_tests_content.get("paths", [])
     for single_test_data in tests_by_path:
+        if current_platform not in single_test_data.get("platforms", [current_platform]):
+            continue
+
         mock_executables = []
         for layout in single_test_data["layout"]:
             mock_executables.append(
@@ -127,7 +139,11 @@ def detection_tests(pkg_name: str, repository: spack.repo.RepoPath) -> List[Runn
             )
         expected_results = []
         for assertion in single_test_data["results"]:
-            expected_results.append(ExpectedTestResult(spec=assertion["spec"]))
+            expected_results.append(
+                ExpectedTestResult(
+                    spec=assertion["spec"], extra_attributes=assertion.get("extra_attributes", {})
+                )
+            )
 
         current_test = DetectionTest(
             pkg_name=pkg_name, layout=mock_executables, results=expected_results

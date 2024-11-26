@@ -13,7 +13,9 @@ class PyRarfile(PythonPackage):
     pypi = "rarfile/rarfile-4.0.tar.gz"
 
     license("ISC")
+    maintainers("adamjstewart")
 
+    version("4.2", sha256="8e1c8e72d0845ad2b32a47ab11a719bc2e41165ec101fd4d3fe9e92aa3f469ef")
     version("4.1", sha256="db60b3b5bc1c4bdeb941427d50b606d51df677353385255583847639473eda48")
     version("4.0", sha256="67548769229c5bda0827c1663dce3f54644f9dbfba4ae86d4da2b2afd3e602a1")
 

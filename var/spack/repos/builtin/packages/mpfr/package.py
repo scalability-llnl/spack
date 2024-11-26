@@ -30,6 +30,8 @@ class Mpfr(AutotoolsPackage, GNUMirrorPackage):
     version("3.1.3", sha256="f63bb459157cacd223caac545cb816bcdb5a0de28b809e7748b82e9eb89b0afd")
     version("3.1.2", sha256="79c73f60af010a30a5c27a955a1d2d01ba095b72537dab0ecaad57f5a7bb1b6b")
 
+    depends_on("c", type="build")  # generated
+
     # mpir is a drop-in replacement for gmp
     depends_on("gmp@4.1:")  # 4.2.3 or higher is recommended
     depends_on("gmp@5.0:", when="@4.0.0:")  # https://www.mpfr.org/mpfr-4.0.0/

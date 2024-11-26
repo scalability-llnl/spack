@@ -18,4 +18,4 @@ class MissingDependency(Package):
     depends_on("this-is-a-missing-dependency")
 
     # this one is a "real" mock dependency
-    depends_on("a")
+    depends_on("pkg-a")

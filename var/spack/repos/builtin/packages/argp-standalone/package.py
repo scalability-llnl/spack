@@ -18,6 +18,8 @@ class ArgpStandalone(AutotoolsPackage):
 
     version("1.3", sha256="dec79694da1319acd2238ce95df57f3680fea2482096e483323fddf3d818d8be")
 
+    depends_on("c", type="build")  # generated
+
     # Homebrew (https://github.com/Homebrew/homebrew-core) patches
     # argp-standalone to work on Darwin; the patchfile below was taken
     # from

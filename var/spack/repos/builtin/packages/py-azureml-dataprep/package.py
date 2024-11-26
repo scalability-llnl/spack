@@ -13,16 +13,8 @@ class PyAzuremlDataprep(PythonPackage):
     homepage = "https://docs.microsoft.com/en-us/python/api/overview/azure/ml/?view=azure-ml-py"
     url = "https://pypi.io/packages/py3/a/azureml_dataprep/azureml_dataprep-2.0.2-py3-none-any.whl"
 
-    version(
-        "2.11.0",
-        sha256="755c0d7cfe228705aee7adc97813fb6d7d6ecb048b66f47c1fd5897f2709c3a2",
-        expand=False,
-    )
-    version(
-        "2.10.1",
-        sha256="a36f807112ff1e64d21265b8e7f40154c93e3bead539e2a74c9d74200fd77c86",
-        expand=False,
-    )
+    version("2.11.0", sha256="755c0d7cfe228705aee7adc97813fb6d7d6ecb048b66f47c1fd5897f2709c3a2")
+    version("2.10.1", sha256="a36f807112ff1e64d21265b8e7f40154c93e3bead539e2a74c9d74200fd77c86")
 
     variant("fuse", default=False, description="Build with FUSE support")
 

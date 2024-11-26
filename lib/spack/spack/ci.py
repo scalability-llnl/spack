@@ -10,27 +10,32 @@ import json
 import os
 import re
 import shutil
+import ssl
 import stat
 import subprocess
 import sys
 import tempfile
 import time
 import zipfile
-from collections import namedtuple
-from typing import List, Optional
+from collections import defaultdict, namedtuple
+from typing import Dict, List, Optional, Set, Tuple
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
-from urllib.request import HTTPHandler, Request, build_opener
+from urllib.parse import quote, urlencode, urlparse
+from urllib.request import HTTPHandler, HTTPSHandler, Request, build_opener
+
+import ruamel.yaml
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
-from llnl.util.lang import memoized
+from llnl.util.lang import Singleton, memoized
 from llnl.util.tty.color import cescape, colorize
 
 import spack
 import spack.binary_distribution as bindist
+import spack.builder
+import spack.concretize
 import spack.config as cfg
-import spack.environment as ev
+import spack.error
 import spack.main
 import spack.mirror
 import spack.paths
@@ -44,7 +49,33 @@ import spack.util.web as web_util
 from spack import traverse
 from spack.error import SpackError
 from spack.reporters import CDash, CDashConfiguration
+from spack.reporters.cdash import SPACK_CDASH_TIMEOUT
 from spack.reporters.cdash import build_stamp as cdash_build_stamp
+
+
+def _urlopen():
+    error_handler = web_util.SpackHTTPDefaultErrorHandler()
+
+    # One opener with HTTPS ssl enabled
+    with_ssl = build_opener(
+        HTTPHandler(), HTTPSHandler(context=web_util.ssl_create_default_context()), error_handler
+    )
+
+    # One opener with HTTPS ssl disabled
+    without_ssl = build_opener(
+        HTTPHandler(), HTTPSHandler(context=ssl._create_unverified_context()), error_handler
+    )
+
+    # And dynamically dispatch based on the config:verify_ssl.
+    def dispatch_open(fullurl, data=None, timeout=None, verify_ssl=True):
+        opener = with_ssl if verify_ssl else without_ssl
+        timeout = timeout or spack.config.get("config:connect_timeout", 1)
+        return opener.open(fullurl, data, timeout)
+
+    return dispatch_open
+
+
+_dyn_mapping_urlopener = Singleton(_urlopen)
 
 # See https://docs.gitlab.com/ee/ci/yaml/#retry for descriptions of conditions
 JOB_RETRY_CONDITIONS = [
@@ -65,12 +96,10 @@ JOB_RETRY_CONDITIONS = [
 
 TEMP_STORAGE_MIRROR_NAME = "ci_temporary_mirror"
 SPACK_RESERVED_TAGS = ["public", "protected", "notary"]
-# TODO: Remove this in Spack 0.23
-SHARED_PR_MIRROR_URL = "s3://spack-binaries-prs/shared_pr_mirror"
 JOB_NAME_FORMAT = (
-    "{name}{@version} {/hash:7} {%compiler.name}{@compiler.version}{arch=architecture}"
+    "{name}{@version} {/hash:7} {%compiler.name}{@compiler.version}{ arch=architecture}"
 )
-
+IS_WINDOWS = sys.platform == "win32"
 spack_gpg = spack.main.SpackCommand("gpg")
 spack_compiler = spack.main.SpackCommand("compiler")
 
@@ -103,7 +132,7 @@ def get_job_name(spec: spack.spec.Spec, build_group: str = ""):
     job_name = spec.format(JOB_NAME_FORMAT)
 
     if build_group:
-        job_name = "{0} {1}".format(job_name, build_group)
+        job_name = f"{job_name} {build_group}"
 
     return job_name[:255]
 
@@ -113,54 +142,24 @@ def _remove_reserved_tags(tags):
     return [tag for tag in tags if tag not in SPACK_RESERVED_TAGS]
 
 
-def _spec_deps_key(s):
-    return "{0}/{1}".format(s.name, s.dag_hash(7))
+def _spec_ci_label(s):
+    return f"{s.name}/{s.dag_hash(7)}"
 
 
-def _add_dependency(spec_label, dep_label, deps):
-    if spec_label == dep_label:
-        return
-    if spec_label not in deps:
-        deps[spec_label] = set()
-    deps[spec_label].add(dep_label)
+PlainNodes = Dict[str, spack.spec.Spec]
+PlainEdges = Dict[str, Set[str]]
 
 
-def _get_spec_dependencies(specs, deps, spec_labels):
-    spec_deps_obj = _compute_spec_deps(specs)
-
-    if spec_deps_obj:
-        dependencies = spec_deps_obj["dependencies"]
-        specs = spec_deps_obj["specs"]
-
-        for entry in specs:
-            spec_labels[entry["label"]] = entry["spec"]
-
-        for entry in dependencies:
-            _add_dependency(entry["spec"], entry["depends"], deps)
-
-
-def stage_spec_jobs(specs):
-    """Take a set of release specs and generate a list of "stages", where the
-        jobs in any stage are dependent only on jobs in previous stages.  This
-        allows us to maximize build parallelism within the gitlab-ci framework.
+def stage_spec_jobs(specs: List[spack.spec.Spec]) -> Tuple[PlainNodes, PlainEdges, List[Set[str]]]:
+    """Turn a DAG into a list of stages (set of nodes), the list is ordered topologically, so that
+    each node in a stage has dependencies only in previous stages.
 
     Arguments:
-        specs (Iterable): Specs to build
+        specs: Specs to build
 
-    Returns: A tuple of information objects describing the specs, dependencies
-        and stages:
-
-        spec_labels: A dictionary mapping the spec labels (which are formatted
-            as pkg-name/hash-prefix) to concrete specs.
-
-        deps: A dictionary where the keys should also have appeared as keys in
-            the spec_labels dictionary, and the values are the set of
-            dependencies for that spec.
-
-        stages: An ordered list of sets, each of which contains all the jobs to
-            built in that stage.  The jobs are expressed in the same format as
-            the keys in the spec_labels and deps objects.
-
+    Returns: A tuple (nodes, edges, stages) where ``nodes`` maps labels to specs, ``edges`` maps
+        labels to a set of labels of dependencies, and ``stages`` is a topologically ordered list
+        of sets of labels.
     """
 
     # The convenience method below, "_remove_satisfied_deps()", does not modify
@@ -177,17 +176,12 @@ def stage_spec_jobs(specs):
 
         return new_deps
 
-    deps = {}
-    spec_labels = {}
+    nodes, edges = _extract_dag(specs)
 
-    _get_spec_dependencies(specs, deps, spec_labels)
-
-    # Save the original deps, as we need to return them at the end of the
-    # function.  In the while loop below, the "dependencies" variable is
-    # overwritten rather than being modified each time through the loop,
-    # thus preserving the original value of "deps" saved here.
-    dependencies = deps
-    unstaged = set(spec_labels.keys())
+    # Save the original edges, as we need to return them at the end of the function. In the loop
+    # below, the "dependencies" variable is rebound rather than mutated, so "edges" is not mutated.
+    dependencies = edges
+    unstaged = set(nodes.keys())
     stages = []
 
     while dependencies:
@@ -203,17 +197,17 @@ def stage_spec_jobs(specs):
     if unstaged:
         stages.append(unstaged.copy())
 
-    return spec_labels, deps, stages
+    return nodes, edges, stages
 
 
-def _print_staging_summary(spec_labels, stages, mirrors_to_check, rebuild_decisions):
+def _print_staging_summary(spec_labels, stages, rebuild_decisions):
     if not stages:
         return
 
-    mirrors = spack.mirror.MirrorCollection(mirrors=mirrors_to_check, binary=True)
+    mirrors = spack.mirror.MirrorCollection(binary=True)
     tty.msg("Checked the following mirrors for binaries:")
     for m in mirrors.values():
-        tty.msg("  {0}".format(m.fetch_url))
+        tty.msg(f"  {m.fetch_url}")
 
     tty.msg("Staging summary ([x] means a job needs rebuilding):")
     for stage_index, stage in enumerate(stages):
@@ -235,108 +229,36 @@ def _print_staging_summary(spec_labels, stages, mirrors_to_check, rebuild_decisi
             tty.msg(msg)
 
 
-def _compute_spec_deps(spec_list):
-    """
-    Computes all the dependencies for the spec(s) and generates a JSON
-    object which provides both a list of unique spec names as well as a
-    comprehensive list of all the edges in the dependency graph.  For
-    example, given a single spec like 'readline@7.0', this function
-    generates the following JSON object:
+def _extract_dag(specs: List[spack.spec.Spec]) -> Tuple[PlainNodes, PlainEdges]:
+    """Extract a sub-DAG as plain old Python objects with external nodes removed."""
+    nodes: PlainNodes = {}
+    edges: PlainEdges = defaultdict(set)
 
-    .. code-block:: JSON
+    for edge in traverse.traverse_edges(specs, cover="edges"):
+        if (edge.parent and edge.parent.external) or edge.spec.external:
+            continue
+        child_id = _spec_ci_label(edge.spec)
+        nodes[child_id] = edge.spec
+        if edge.parent:
+            parent_id = _spec_ci_label(edge.parent)
+            nodes[parent_id] = edge.parent
+            edges[parent_id].add(child_id)
 
-       {
-           "dependencies": [
-               {
-                   "depends": "readline/ip6aiun",
-                   "spec": "readline/ip6aiun"
-               },
-               {
-                   "depends": "ncurses/y43rifz",
-                   "spec": "readline/ip6aiun"
-               },
-               {
-                   "depends": "ncurses/y43rifz",
-                   "spec": "readline/ip6aiun"
-               },
-               {
-                   "depends": "pkgconf/eg355zb",
-                   "spec": "ncurses/y43rifz"
-               },
-               {
-                   "depends": "pkgconf/eg355zb",
-                   "spec": "readline/ip6aiun"
-               }
-           ],
-           "specs": [
-               {
-                 "spec": "readline@7.0%apple-clang@9.1.0 arch=darwin-highs...",
-                 "label": "readline/ip6aiun"
-               },
-               {
-                 "spec": "ncurses@6.1%apple-clang@9.1.0 arch=darwin-highsi...",
-                 "label": "ncurses/y43rifz"
-               },
-               {
-                 "spec": "pkgconf@1.5.4%apple-clang@9.1.0 arch=darwin-high...",
-                 "label": "pkgconf/eg355zb"
-               }
-           ]
-       }
-
-    """
-    spec_labels = {}
-
-    specs = []
-    dependencies = []
-
-    def append_dep(s, d):
-        dependencies.append({"spec": s, "depends": d})
-
-    for spec in spec_list:
-        for s in spec.traverse(deptype="all"):
-            if s.external:
-                tty.msg("Will not stage external pkg: {0}".format(s))
-                continue
-
-            skey = _spec_deps_key(s)
-            spec_labels[skey] = s
-
-            for d in s.dependencies(deptype="all"):
-                dkey = _spec_deps_key(d)
-                if d.external:
-                    tty.msg("Will not stage external dep: {0}".format(d))
-                    continue
-
-                append_dep(skey, dkey)
-
-    for spec_label, concrete_spec in spec_labels.items():
-        specs.append({"label": spec_label, "spec": concrete_spec})
-
-    deps_json_obj = {"specs": specs, "dependencies": dependencies}
-
-    return deps_json_obj
+    return nodes, edges
 
 
 def _spec_matches(spec, match_string):
     return spec.intersects(match_string)
 
 
-def _format_job_needs(
-    dep_jobs, build_group, prune_dag, rebuild_decisions, enable_artifacts_buildcache
-):
+def _format_job_needs(dep_jobs, build_group, prune_dag, rebuild_decisions):
     needs_list = []
     for dep_job in dep_jobs:
-        dep_spec_key = _spec_deps_key(dep_job)
+        dep_spec_key = _spec_ci_label(dep_job)
         rebuild = rebuild_decisions[dep_spec_key].rebuild
 
         if not prune_dag or rebuild:
-            needs_list.append(
-                {
-                    "job": get_job_name(dep_job, build_group),
-                    "artifacts": enable_artifacts_buildcache,
-                }
-            )
+            needs_list.append({"job": get_job_name(dep_job, build_group), "artifacts": False})
     return needs_list
 
 
@@ -374,8 +296,8 @@ def get_stack_changed(env_path, rev1="HEAD^", rev2="HEAD"):
 
             for path in lines:
                 if ".gitlab-ci.yml" in path or path in env_path:
-                    tty.debug("env represented by {0} changed".format(env_path))
-                    tty.debug("touched file: {0}".format(path))
+                    tty.debug(f"env represented by {env_path} changed")
+                    tty.debug(f"touched file: {path}")
                     return True
     return False
 
@@ -419,7 +341,7 @@ def get_spec_filter_list(env, affected_pkgs, dependent_traverse_depth=None):
     all_concrete_specs = env.all_specs()
     tty.debug("All concrete environment specs:")
     for s in all_concrete_specs:
-        tty.debug("  {0}/{1}".format(s.name, s.dag_hash()[:7]))
+        tty.debug(f"  {s.name}/{s.dag_hash()[:7]}")
     affected_pkgs = frozenset(affected_pkgs)
     env_matches = [s for s in all_concrete_specs if s.name in affected_pkgs]
     visited = set()
@@ -480,12 +402,6 @@ class SpackCI:
 
         self.ir = {
             "jobs": {},
-            "temporary-storage-url-prefix": self.ci_config.get(
-                "temporary-storage-url-prefix", None
-            ),
-            "enable-artifacts-buildcache": self.ci_config.get(
-                "enable-artifacts-buildcache", False
-            ),
             "rebuild-index": self.ci_config.get("rebuild-index", True),
             "broken-specs-url": self.ci_config.get("broken-specs-url", None),
             "broken-tests-packages": self.ci_config.get("broken-tests-packages", []),
@@ -501,16 +417,27 @@ class SpackCI:
             if name not in ["any", "build"]:
                 jobs[name] = self.__init_job("")
 
-    def __init_job(self, spec):
+    def __init_job(self, release_spec):
         """Initialize job object"""
-        return {"spec": spec, "attributes": {}}
+        job_object = {"spec": release_spec, "attributes": {}}
+        if release_spec:
+            job_vars = job_object["attributes"].setdefault("variables", {})
+            job_vars["SPACK_JOB_SPEC_DAG_HASH"] = release_spec.dag_hash()
+            job_vars["SPACK_JOB_SPEC_PKG_NAME"] = release_spec.name
+            job_vars["SPACK_JOB_SPEC_PKG_VERSION"] = release_spec.format("{version}")
+            job_vars["SPACK_JOB_SPEC_COMPILER_NAME"] = release_spec.format("{compiler.name}")
+            job_vars["SPACK_JOB_SPEC_COMPILER_VERSION"] = release_spec.format("{compiler.version}")
+            job_vars["SPACK_JOB_SPEC_ARCH"] = release_spec.format("{architecture}")
+            job_vars["SPACK_JOB_SPEC_VARIANTS"] = release_spec.format("{variants}")
+
+        return job_object
 
     def __is_named(self, section):
         """Check if a pipeline-gen configuration section is for a named job,
         and if so return the name otherwise return none.
         """
         for _name in self.named_jobs:
-            keys = ["{0}-job".format(_name), "{0}-job-remove".format(_name)]
+            keys = [f"{_name}-job", f"{_name}-job-remove"]
             if any([key for key in keys if key in section]):
                 return _name
 
@@ -525,9 +452,9 @@ class SpackCI:
 
         jname = name
         if suffix:
-            jname = "{0}-job{1}".format(name, suffix)
+            jname = f"{name}-job{suffix}"
         else:
-            jname = "{0}-job".format(name)
+            jname = f"{name}-job"
 
         return jname
 
@@ -596,6 +523,7 @@ class SpackCI:
         for section in reversed(pipeline_gen):
             name = self.__is_named(section)
             has_submapping = "submapping" in section
+            has_dynmapping = "dynamic-mapping" in section
             section = cfg.InternalConfigScope._process_dict_keyname_overrides(section)
 
             if name:
@@ -638,6 +566,108 @@ class SpackCI:
                         job["attributes"] = self.__apply_submapping(
                             job["attributes"], job["spec"], section
                         )
+            elif has_dynmapping:
+                mapping = section["dynamic-mapping"]
+
+                dynmap_name = mapping.get("name")
+
+                # Check if this section should be skipped
+                dynmap_skip = os.environ.get("SPACK_CI_SKIP_DYNAMIC_MAPPING")
+                if dynmap_name and dynmap_skip:
+                    if re.match(dynmap_skip, dynmap_name):
+                        continue
+
+                # Get the endpoint
+                endpoint = mapping["endpoint"]
+                endpoint_url = urlparse(endpoint)
+
+                # Configure the request header
+                header = {"User-Agent": web_util.SPACK_USER_AGENT}
+                header.update(mapping.get("header", {}))
+
+                # Expand header environment variables
+                # ie. if tokens are passed
+                for value in header.values():
+                    value = os.path.expandvars(value)
+
+                verify_ssl = mapping.get("verify_ssl", spack.config.get("config:verify_ssl", True))
+                timeout = mapping.get("timeout", spack.config.get("config:connect_timeout", 1))
+
+                required = mapping.get("require", [])
+                allowed = mapping.get("allow", [])
+                ignored = mapping.get("ignore", [])
+
+                # required keys are implicitly allowed
+                allowed = sorted(set(allowed + required))
+                ignored = sorted(set(ignored))
+                required = sorted(set(required))
+
+                # Make sure required things are not also ignored
+                assert not any([ikey in required for ikey in ignored])
+
+                def job_query(job):
+                    job_vars = job["attributes"]["variables"]
+                    query = (
+                        "{SPACK_JOB_SPEC_PKG_NAME}@{SPACK_JOB_SPEC_PKG_VERSION}"
+                        # The preceding spaces are required (ref. https://github.com/spack/spack-gantry/blob/develop/docs/api.md#allocation)
+                        " {SPACK_JOB_SPEC_VARIANTS}"
+                        " arch={SPACK_JOB_SPEC_ARCH}"
+                        "%{SPACK_JOB_SPEC_COMPILER_NAME}@{SPACK_JOB_SPEC_COMPILER_VERSION}"
+                    ).format_map(job_vars)
+                    return f"spec={quote(query)}"
+
+                for job in jobs.values():
+                    if not job["spec"]:
+                        continue
+
+                    # Create request for this job
+                    query = job_query(job)
+                    request = Request(
+                        endpoint_url._replace(query=query).geturl(), headers=header, method="GET"
+                    )
+                    try:
+                        response = _dyn_mapping_urlopener(
+                            request, verify_ssl=verify_ssl, timeout=timeout
+                        )
+                    except Exception as e:
+                        # For now just ignore any errors from dynamic mapping and continue
+                        # This is still experimental, and failures should not stop CI
+                        # from running normally
+                        tty.warn(f"Failed to fetch dynamic mapping for query:\n\t{query}")
+                        tty.warn(f"{e}")
+                        continue
+
+                    config = json.load(codecs.getreader("utf-8")(response))
+
+                    # Strip ignore keys
+                    if ignored:
+                        for key in ignored:
+                            if key in config:
+                                config.pop(key)
+
+                    # Only keep allowed keys
+                    clean_config = {}
+                    if allowed:
+                        for key in allowed:
+                            if key in config:
+                                clean_config[key] = config[key]
+                    else:
+                        clean_config = config
+
+                    # Verify all of the required keys are present
+                    if required:
+                        missing_keys = []
+                        for key in required:
+                            if key not in clean_config.keys():
+                                missing_keys.append(key)
+
+                        if missing_keys:
+                            tty.warn(f"Response missing required keys: {missing_keys}")
+
+                    if clean_config:
+                        job["attributes"] = spack.config.merge_yaml(
+                            job.get("attributes", {}), clean_config
+                        )
 
         for _, job in jobs.items():
             if job["spec"]:
@@ -650,19 +680,17 @@ def generate_gitlab_ci_yaml(
     env,
     print_summary,
     output_file,
+    *,
     prune_dag=False,
     check_index_only=False,
-    run_optimizer=False,
-    use_dependencies=False,
     artifacts_root=None,
-    remote_mirror_override=None,
 ):
     """Generate a gitlab yaml file to run a dynamic child pipeline from
         the spec matrix in the active environment.
 
     Arguments:
         env (spack.environment.Environment): Activated environment object
-            which must contain a gitlab-ci section describing how to map
+            which must contain a ci section describing how to map
             specs to runners
         print_summary (bool): Should we print a summary of all the jobs in
             the stages in which they were placed.
@@ -674,48 +702,24 @@ def generate_gitlab_ci_yaml(
             this mode results in faster yaml generation time). Otherwise, also
             check each spec directly by url (useful if there is no index or it
             might be out of date).
-        run_optimizer (bool): If True, post-process the generated yaml to try
-            try to reduce the size (attempts to collect repeated configuration
-            and replace with definitions).)
-        use_dependencies (bool): If true, use "dependencies" rather than "needs"
-            ("needs" allows DAG scheduling).  Useful if gitlab instance cannot
-            be configured to handle more than a few "needs" per job.
         artifacts_root (str): Path where artifacts like logs, environment
             files (spack.yaml, spack.lock), etc should be written.  GitLab
             requires this to be within the project directory.
-        remote_mirror_override (str): Typically only needed when one spack.yaml
-            is used to populate several mirrors with binaries, based on some
-            criteria.  Spack protected pipelines populate different mirrors based
-            on branch name, facilitated by this option.  DEPRECATED
     """
     with spack.concretize.disable_compiler_existence_check():
         with env.write_transaction():
             env.concretize()
             env.write()
 
-    yaml_root = env.manifest[ev.TOP_LEVEL_KEY]
-
     # Get the joined "ci" config with all of the current scopes resolved
     ci_config = cfg.get("ci")
 
-    config_deprecated = False
     if not ci_config:
-        tty.warn("Environment does not have `ci` a configuration")
-        gitlabci_config = yaml_root.get("gitlab-ci")
-        if not gitlabci_config:
-            tty.die("Environment yaml does not have `gitlab-ci` config section. Cannot recover.")
-
-        tty.warn(
-            "The `gitlab-ci` configuration is deprecated in favor of `ci`.\n",
-            "To update run \n\t$ spack env update /path/to/ci/spack.yaml",
-        )
-        translate_deprecated_config(gitlabci_config)
-        ci_config = gitlabci_config
-        config_deprecated = True
+        raise SpackCIError("Environment does not have a `ci` configuration")
 
     # Default target is gitlab...and only target is gitlab
     if not ci_config.get("target", "gitlab") == "gitlab":
-        tty.die('Spack CI module only generates target "gitlab"')
+        raise SpackCIError('Spack CI module only generates target "gitlab"')
 
     cdash_config = cfg.get("cdash")
     cdash_handler = CDashHandler(cdash_config) if "build-group" in cdash_config else None
@@ -739,7 +743,7 @@ def generate_gitlab_ci_yaml(
         # Requested to prune untouched packages, but assume we won't do that
         # unless we're actually in a git repo.
         rev1, rev2 = get_change_revisions()
-        tty.debug("Got following revisions: rev1={0}, rev2={1}".format(rev1, rev2))
+        tty.debug(f"Got following revisions: rev1={rev1}, rev2={rev2}")
         if rev1 and rev2:
             # If the stack file itself did not change, proceed with pruning
             if not get_stack_changed(env.manifest_path, rev1, rev2):
@@ -747,13 +751,13 @@ def generate_gitlab_ci_yaml(
                 affected_pkgs = compute_affected_packages(rev1, rev2)
                 tty.debug("affected pkgs:")
                 for p in affected_pkgs:
-                    tty.debug("  {0}".format(p))
+                    tty.debug(f"  {p}")
                 affected_specs = get_spec_filter_list(
                     env, affected_pkgs, dependent_traverse_depth=dependent_depth
                 )
                 tty.debug("all affected specs:")
                 for s in affected_specs:
-                    tty.debug("  {0}/{1}".format(s.name, s.dag_hash()[:7]))
+                    tty.debug(f"  {s.name}/{s.dag_hash()[:7]}")
 
     # Allow overriding --prune-dag cli opt with environment variable
     prune_dag_override = os.environ.get("SPACK_PRUNE_UP_TO_DATE", None)
@@ -776,46 +780,34 @@ def generate_gitlab_ci_yaml(
     spack_pipeline_type = os.environ.get("SPACK_PIPELINE_TYPE", None)
 
     copy_only_pipeline = spack_pipeline_type == "spack_copy_only"
-    if copy_only_pipeline and config_deprecated:
-        tty.warn(
-            "SPACK_PIPELINE_TYPE=spack_copy_only is not supported when using\n",
-            "deprecated ci configuration, a no-op pipeline will be generated\n",
-            "instead.",
-        )
+
+    def ensure_expected_target_path(path):
+        """Returns passed paths with all Windows path separators exchanged
+        for posix separators only if copy_only_pipeline is enabled
+
+        This is required as copy_only_pipelines are a unique scenario where
+        the generate job and child pipelines are run on different platforms.
+        To make this compatible w/ Windows, we cannot write Windows style path separators
+        that will be consumed on by the Posix copy job runner.
+
+        TODO (johnwparent): Refactor config + cli read/write to deal only in posix
+        style paths
+        """
+        if copy_only_pipeline and path:
+            path = path.replace("\\", "/")
+        return path
 
     pipeline_mirrors = spack.mirror.MirrorCollection(binary=True)
-    deprecated_mirror_config = False
     buildcache_destination = None
-    if "buildcache-destination" in pipeline_mirrors:
-        if remote_mirror_override:
-            tty.die(
-                "Using the deprecated --buildcache-destination cli option and "
-                "having a mirror named 'buildcache-destination' at the same time "
-                "is not allowed"
-            )
-        buildcache_destination = pipeline_mirrors["buildcache-destination"]
-    else:
-        deprecated_mirror_config = True
-        # TODO: This will be an error in Spack 0.23
+    if "buildcache-destination" not in pipeline_mirrors:
+        raise SpackCIError("spack ci generate requires a mirror named 'buildcache-destination'")
 
-    # TODO: Remove this block in spack 0.23
-    remote_mirror_url = None
-    if deprecated_mirror_config:
-        if "mirrors" not in yaml_root or len(yaml_root["mirrors"].values()) < 1:
-            tty.die("spack ci generate requires an env containing a mirror")
-
-        ci_mirrors = yaml_root["mirrors"]
-        mirror_urls = [url for url in ci_mirrors.values()]
-        remote_mirror_url = mirror_urls[0]
+    buildcache_destination = pipeline_mirrors["buildcache-destination"]
 
     spack_buildcache_copy = os.environ.get("SPACK_COPY_BUILDCACHE", None)
     if spack_buildcache_copy:
         buildcache_copies = {}
-        buildcache_copy_src_prefix = (
-            buildcache_destination.fetch_url
-            if buildcache_destination
-            else remote_mirror_override or remote_mirror_url
-        )
+        buildcache_copy_src_prefix = buildcache_destination.fetch_url
         buildcache_copy_dest_prefix = spack_buildcache_copy
 
     # Check for a list of "known broken" specs that we should not bother
@@ -825,54 +817,9 @@ def generate_gitlab_ci_yaml(
     if "broken-specs-url" in ci_config:
         broken_specs_url = ci_config["broken-specs-url"]
 
-    enable_artifacts_buildcache = False
-    if "enable-artifacts-buildcache" in ci_config:
-        tty.warn("Support for enable-artifacts-buildcache will be removed in Spack 0.23")
-        enable_artifacts_buildcache = ci_config["enable-artifacts-buildcache"]
-
     rebuild_index_enabled = True
     if "rebuild-index" in ci_config and ci_config["rebuild-index"] is False:
         rebuild_index_enabled = False
-
-    temp_storage_url_prefix = None
-    if "temporary-storage-url-prefix" in ci_config:
-        tty.warn("Support for temporary-storage-url-prefix will be removed in Spack 0.23")
-        temp_storage_url_prefix = ci_config["temporary-storage-url-prefix"]
-
-    # If a remote mirror override (alternate buildcache destination) was
-    # specified, add it here in case it has already built hashes we might
-    # generate.
-    # TODO: Remove this block in Spack 0.23
-    mirrors_to_check = None
-    if deprecated_mirror_config and remote_mirror_override:
-        if spack_pipeline_type == "spack_protected_branch":
-            # Overriding the main mirror in this case might result
-            # in skipping jobs on a release pipeline because specs are
-            # up to date in develop.  Eventually we want to notice and take
-            # advantage of this by scheduling a job to copy the spec from
-            # develop to the release, but until we have that, this makes
-            # sure we schedule a rebuild job if the spec isn't already in
-            # override mirror.
-            mirrors_to_check = {"override": remote_mirror_override}
-
-        # If we have a remote override and we want generate pipeline using
-        # --check-index-only, then the override mirror needs to be added to
-        # the configured mirrors when bindist.update() is run, or else we
-        # won't fetch its index and include in our local cache.
-        spack.mirror.add(
-            spack.mirror.Mirror(remote_mirror_override, name="ci_pr_mirror"),
-            cfg.default_modify_scope(),
-        )
-
-    # TODO: Remove this block in Spack 0.23
-    shared_pr_mirror = None
-    if deprecated_mirror_config and spack_pipeline_type == "spack_pull_request":
-        stack_name = os.environ.get("SPACK_CI_STACK_NAME", "")
-        shared_pr_mirror = url_util.join(SHARED_PR_MIRROR_URL, stack_name)
-        spack.mirror.add(
-            spack.mirror.Mirror(shared_pr_mirror, name="ci_shared_pr_mirror"),
-            cfg.default_modify_scope(),
-        )
 
     pipeline_artifacts_dir = artifacts_root
     if not pipeline_artifacts_dir:
@@ -882,9 +829,8 @@ def generate_gitlab_ci_yaml(
     pipeline_artifacts_dir = os.path.abspath(pipeline_artifacts_dir)
     concrete_env_dir = os.path.join(pipeline_artifacts_dir, "concrete_environment")
 
-    # Now that we've added the mirrors we know about, they should be properly
-    # reflected in the environment manifest file, so copy that into the
-    # concrete environment directory, along with the spack.lock file.
+    # Copy the environment manifest file into the concrete environment directory,
+    # along with the spack.lock file.
     if not os.path.exists(concrete_env_dir):
         os.makedirs(concrete_env_dir)
     shutil.copyfile(env.manifest_path, os.path.join(concrete_env_dir, "spack.yaml"))
@@ -897,7 +843,8 @@ def generate_gitlab_ci_yaml(
         cli_scopes = [
             os.path.relpath(s.path, concrete_env_dir)
             for s in cfg.scopes().values()
-            if isinstance(s, cfg.ImmutableConfigScope)
+            if not s.writable
+            and isinstance(s, (cfg.DirectoryConfigScope))
             and s.path not in env_includes
             and os.path.exists(s.path)
         ]
@@ -906,11 +853,7 @@ def generate_gitlab_ci_yaml(
             if scope not in include_scopes and scope not in env_includes:
                 include_scopes.insert(0, scope)
         env_includes.extend(include_scopes)
-        env_yaml_root["spack"]["include"] = env_includes
-
-        if "gitlab-ci" in env_yaml_root["spack"] and "ci" not in env_yaml_root["spack"]:
-            env_yaml_root["spack"]["ci"] = env_yaml_root["spack"].pop("gitlab-ci")
-            translate_deprecated_config(env_yaml_root["spack"]["ci"])
+        env_yaml_root["spack"]["include"] = [ensure_expected_target_path(i) for i in env_includes]
 
         with open(os.path.join(concrete_env_dir, "spack.yaml"), "w") as fd:
             fd.write(syaml.dump_config(env_yaml_root, default_flow_style=False))
@@ -918,8 +861,6 @@ def generate_gitlab_ci_yaml(
     job_log_dir = os.path.join(pipeline_artifacts_dir, "logs")
     job_repro_dir = os.path.join(pipeline_artifacts_dir, "reproduction")
     job_test_dir = os.path.join(pipeline_artifacts_dir, "tests")
-    # TODO: Remove this line in Spack 0.23
-    local_mirror_dir = os.path.join(pipeline_artifacts_dir, "mirror")
     user_artifacts_dir = os.path.join(pipeline_artifacts_dir, "user_data")
 
     # We communicate relative paths to the downstream jobs to avoid issues in
@@ -933,8 +874,6 @@ def generate_gitlab_ci_yaml(
     rel_job_log_dir = os.path.relpath(job_log_dir, ci_project_dir)
     rel_job_repro_dir = os.path.relpath(job_repro_dir, ci_project_dir)
     rel_job_test_dir = os.path.relpath(job_test_dir, ci_project_dir)
-    # TODO: Remove this line in Spack 0.23
-    rel_local_mirror_dir = os.path.join(local_mirror_dir, ci_project_dir)
     rel_user_artifacts_dir = os.path.relpath(user_artifacts_dir, ci_project_dir)
 
     # Speed up staging by first fetching binary indices from all mirrors
@@ -978,7 +917,7 @@ def generate_gitlab_ci_yaml(
     rebuild_decisions = {}
 
     for stage_jobs in stages:
-        stage_name = "stage-{0}".format(stage_id)
+        stage_name = f"stage-{stage_id}"
         stage_names.append(stage_name)
         stage_id += 1
 
@@ -996,7 +935,7 @@ def generate_gitlab_ci_yaml(
                     continue
 
             up_to_date_mirrors = bindist.get_mirrors_for_spec(
-                spec=release_spec, mirrors_to_check=mirrors_to_check, index_only=check_index_only
+                spec=release_spec, index_only=check_index_only
             )
 
             spec_record.rebuild = not up_to_date_mirrors
@@ -1009,7 +948,7 @@ def generate_gitlab_ci_yaml(
             job_object = spack_ci_ir["jobs"][release_spec_dag_hash]["attributes"]
 
             if not job_object:
-                tty.warn("No match found for {0}, skipping it".format(release_spec))
+                tty.warn(f"No match found for {release_spec}, skipping it")
                 continue
 
             if spack_pipeline_type is not None:
@@ -1038,36 +977,16 @@ def generate_gitlab_ci_yaml(
 
             job_name = get_job_name(release_spec, build_group)
 
-            job_vars = job_object.setdefault("variables", {})
-            job_vars["SPACK_JOB_SPEC_DAG_HASH"] = release_spec_dag_hash
-            job_vars["SPACK_JOB_SPEC_PKG_NAME"] = release_spec.name
-            job_vars["SPACK_JOB_SPEC_PKG_VERSION"] = release_spec.format("{version}")
-            job_vars["SPACK_JOB_SPEC_COMPILER_NAME"] = release_spec.format("{compiler.name}")
-            job_vars["SPACK_JOB_SPEC_COMPILER_VERSION"] = release_spec.format("{compiler.version}")
-            job_vars["SPACK_JOB_SPEC_ARCH"] = release_spec.format("{architecture}")
-            job_vars["SPACK_JOB_SPEC_VARIANTS"] = release_spec.format("{variants}")
-
             job_object["needs"] = []
             if spec_label in dependencies:
-                if enable_artifacts_buildcache:
-                    # Get dependencies transitively, so they're all
-                    # available in the artifacts buildcache.
-                    dep_jobs = [d for d in release_spec.traverse(deptype="all", root=False)]
-                else:
-                    # In this case, "needs" is only used for scheduling
-                    # purposes, so we only get the direct dependencies.
-                    dep_jobs = []
-                    for dep_label in dependencies[spec_label]:
-                        dep_jobs.append(spec_labels[dep_label])
+                # In this case, "needs" is only used for scheduling
+                # purposes, so we only get the direct dependencies.
+                dep_jobs = []
+                for dep_label in dependencies[spec_label]:
+                    dep_jobs.append(spec_labels[dep_label])
 
                 job_object["needs"].extend(
-                    _format_job_needs(
-                        dep_jobs,
-                        build_group,
-                        prune_dag,
-                        rebuild_decisions,
-                        enable_artifacts_buildcache,
-                    )
+                    _format_job_needs(dep_jobs, build_group, prune_dag, rebuild_decisions)
                 )
 
             rebuild_spec = spec_record.rebuild
@@ -1119,11 +1038,12 @@ def generate_gitlab_ci_yaml(
 
             if artifacts_root:
                 job_object["needs"].append(
-                    {"job": generate_job_name, "pipeline": "{0}".format(parent_pipeline_id)}
+                    {"job": generate_job_name, "pipeline": f"{parent_pipeline_id}"}
                 )
 
             # Let downstream jobs know whether the spec needed rebuilding, regardless
             # whether DAG pruning was enabled or not.
+            job_vars = job_object["variables"]
             job_vars["SPACK_SPEC_NEEDS_REBUILD"] = str(rebuild_spec)
 
             if cdash_handler:
@@ -1148,19 +1068,6 @@ def generate_gitlab_ci_yaml(
                 },
             )
 
-            # TODO: Remove this block in Spack 0.23
-            if enable_artifacts_buildcache:
-                bc_root = os.path.join(local_mirror_dir, "build_cache")
-                job_object["artifacts"]["paths"].extend(
-                    [
-                        os.path.join(bc_root, p)
-                        for p in [
-                            bindist.tarball_name(release_spec, ".spec.json"),
-                            bindist.tarball_directory_name(release_spec),
-                        ]
-                    ]
-                )
-
             job_object["stage"] = stage_name
             job_object["retry"] = {"max": 2, "when": JOB_RETRY_CONDITIONS}
             job_object["interruptible"] = True
@@ -1175,30 +1082,21 @@ def generate_gitlab_ci_yaml(
                 job_id += 1
 
     if print_summary:
-        _print_staging_summary(spec_labels, stages, mirrors_to_check, rebuild_decisions)
+        _print_staging_summary(spec_labels, stages, rebuild_decisions)
 
-    # Clean up remote mirror override if enabled
-    # TODO: Remove this block in Spack 0.23
-    if deprecated_mirror_config:
-        if remote_mirror_override:
-            spack.mirror.remove("ci_pr_mirror", cfg.default_modify_scope())
-        if spack_pipeline_type == "spack_pull_request":
-            spack.mirror.remove("ci_shared_pr_mirror", cfg.default_modify_scope())
-
-    tty.debug("{0} build jobs generated in {1} stages".format(job_id, stage_id))
+    tty.debug(f"{job_id} build jobs generated in {stage_id} stages")
 
     if job_id > 0:
-        tty.debug(
-            "The max_needs_job is {0}, with {1} needs".format(max_needs_job, max_length_needs)
-        )
+        tty.debug(f"The max_needs_job is {max_needs_job}, with {max_length_needs} needs")
 
     # Use "all_job_names" to populate the build group for this set
     if cdash_handler and cdash_handler.auth_token:
         try:
             cdash_handler.populate_buildgroup(all_job_names)
-        except (SpackError, HTTPError, URLError) as err:
-            tty.warn("Problem populating buildgroup: {0}".format(err))
-    else:
+        except (SpackError, HTTPError, URLError, TimeoutError) as err:
+            tty.warn(f"Problem populating buildgroup: {err}")
+    elif cdash_config:
+        # warn only if there was actually a CDash configuration.
         tty.warn("Unable to populate buildgroup without CDash credentials")
 
     service_job_retries = {
@@ -1206,56 +1104,29 @@ def generate_gitlab_ci_yaml(
         "when": ["runner_system_failure", "stuck_or_timeout_failure", "script_failure"],
     }
 
-    if copy_only_pipeline and not config_deprecated:
+    if copy_only_pipeline:
         stage_names.append("copy")
         sync_job = copy.deepcopy(spack_ci_ir["jobs"]["copy"]["attributes"])
         sync_job["stage"] = "copy"
         if artifacts_root:
-            sync_job["needs"] = [
-                {"job": generate_job_name, "pipeline": "{0}".format(parent_pipeline_id)}
-            ]
+            sync_job["needs"] = [{"job": generate_job_name, "pipeline": f"{parent_pipeline_id}"}]
 
         if "variables" not in sync_job:
             sync_job["variables"] = {}
 
-        sync_job["variables"]["SPACK_COPY_ONLY_DESTINATION"] = (
-            buildcache_destination.fetch_url
-            if buildcache_destination
-            else remote_mirror_override or remote_mirror_url
-        )
+        sync_job["variables"]["SPACK_COPY_ONLY_DESTINATION"] = buildcache_destination.fetch_url
 
-        if "buildcache-source" in pipeline_mirrors:
-            buildcache_source = pipeline_mirrors["buildcache-source"].fetch_url
-        else:
-            # TODO: Remove this condition in Spack 0.23
-            buildcache_source = os.environ.get("SPACK_SOURCE_MIRROR", None)
+        if "buildcache-source" not in pipeline_mirrors:
+            raise SpackCIError("Copy-only pipelines require a mirror named 'buildcache-source'")
+
+        buildcache_source = pipeline_mirrors["buildcache-source"].fetch_url
         sync_job["variables"]["SPACK_BUILDCACHE_SOURCE"] = buildcache_source
+        sync_job["dependencies"] = []
 
         output_object["copy"] = sync_job
         job_id += 1
 
     if job_id > 0:
-        # TODO: Remove this block in Spack 0.23
-        if temp_storage_url_prefix:
-            # There were some rebuild jobs scheduled, so we will need to
-            # schedule a job to clean up the temporary storage location
-            # associated with this pipeline.
-            stage_names.append("cleanup-temp-storage")
-            cleanup_job = copy.deepcopy(spack_ci_ir["jobs"]["cleanup"]["attributes"])
-
-            cleanup_job["stage"] = "cleanup-temp-storage"
-            cleanup_job["when"] = "always"
-            cleanup_job["retry"] = service_job_retries
-            cleanup_job["interruptible"] = True
-
-            cleanup_job["script"] = _unpack_script(
-                cleanup_job["script"],
-                op=lambda cmd: cmd.replace("mirror_prefix", temp_storage_url_prefix),
-            )
-
-            cleanup_job["dependencies"] = []
-            output_object["cleanup"] = cleanup_job
-
         if (
             "script" in spack_ci_ir["jobs"]["signing"]["attributes"]
             and spack_pipeline_type == "spack_protected_branch"
@@ -1272,11 +1143,9 @@ def generate_gitlab_ci_yaml(
             signing_job["interruptible"] = True
             if "variables" not in signing_job:
                 signing_job["variables"] = {}
-            signing_job["variables"]["SPACK_BUILDCACHE_DESTINATION"] = (
-                buildcache_destination.push_url  # need the s3 url for aws s3 sync
-                if buildcache_destination
-                else remote_mirror_override or remote_mirror_url
-            )
+            signing_job["variables"][
+                "SPACK_BUILDCACHE_DESTINATION"
+            ] = buildcache_destination.push_url
             signing_job["dependencies"] = []
 
             output_object["sign-pkgs"] = signing_job
@@ -1287,9 +1156,7 @@ def generate_gitlab_ci_yaml(
             final_job = spack_ci_ir["jobs"]["reindex"]["attributes"]
 
             final_job["stage"] = "stage-rebuild-index"
-            target_mirror = remote_mirror_override or remote_mirror_url
-            if buildcache_destination:
-                target_mirror = buildcache_destination.push_url
+            target_mirror = buildcache_destination.push_url
             final_job["script"] = _unpack_script(
                 final_job["script"],
                 op=lambda cmd: cmd.replace("{index_target_mirror}", target_mirror),
@@ -1307,33 +1174,26 @@ def generate_gitlab_ci_yaml(
         # Capture the version of Spack used to generate the pipeline, that can be
         # passed to `git checkout` for version consistency. If we aren't in a Git
         # repository, presume we are a Spack release and use the Git tag instead.
-        spack_version = spack.main.get_version()
-        version_to_clone = spack.main.get_spack_commit() or f"v{spack.spack_version}"
+        spack_version = spack.get_version()
+        version_to_clone = spack.get_spack_commit() or f"v{spack.spack_version}"
 
         output_object["variables"] = {
             "SPACK_ARTIFACTS_ROOT": rel_artifacts_root,
             "SPACK_CONCRETE_ENV_DIR": rel_concrete_env_dir,
             "SPACK_VERSION": spack_version,
             "SPACK_CHECKOUT_VERSION": version_to_clone,
-            # TODO: Remove this line in Spack 0.23
-            "SPACK_REMOTE_MIRROR_URL": remote_mirror_url,
             "SPACK_JOB_LOG_DIR": rel_job_log_dir,
             "SPACK_JOB_REPRO_DIR": rel_job_repro_dir,
             "SPACK_JOB_TEST_DIR": rel_job_test_dir,
-            # TODO: Remove this line in Spack 0.23
-            "SPACK_LOCAL_MIRROR_DIR": rel_local_mirror_dir,
             "SPACK_PIPELINE_TYPE": str(spack_pipeline_type),
             "SPACK_CI_STACK_NAME": os.environ.get("SPACK_CI_STACK_NAME", "None"),
-            # TODO: Remove this line in Spack 0.23
-            "SPACK_CI_SHARED_PR_MIRROR_URL": shared_pr_mirror or "None",
             "SPACK_REBUILD_CHECK_UP_TO_DATE": str(prune_dag),
             "SPACK_REBUILD_EVERYTHING": str(rebuild_everything),
             "SPACK_REQUIRE_SIGNING": os.environ.get("SPACK_REQUIRE_SIGNING", "False"),
         }
-
-        # TODO: Remove this block in Spack 0.23
-        if deprecated_mirror_config and remote_mirror_override:
-            (output_object["variables"]["SPACK_REMOTE_MIRROR_OVERRIDE"]) = remote_mirror_override
+        output_vars = output_object["variables"]
+        for item, val in output_vars.items():
+            output_vars[item] = ensure_expected_target_path(val)
 
         spack_stack_name = os.environ.get("SPACK_CI_STACK_NAME", None)
         if spack_stack_name:
@@ -1348,37 +1208,21 @@ def generate_gitlab_ci_yaml(
 
             copy_specs_file = os.path.join(
                 copy_specs_dir,
-                "copy_{}_specs.json".format(spack_stack_name if spack_stack_name else "rebuilt"),
+                f"copy_{spack_stack_name if spack_stack_name else 'rebuilt'}_specs.json",
             )
 
             with open(copy_specs_file, "w") as fd:
                 fd.write(json.dumps(buildcache_copies))
 
-        # TODO(opadron): remove this or refactor
-        if run_optimizer:
-            import spack.ci_optimization as ci_opt
-
-            output_object = ci_opt.optimizer(output_object)
-
-        # TODO(opadron): remove this or refactor
-        if use_dependencies:
-            import spack.ci_needs_workaround as cinw
-
-            output_object = cinw.needs_to_dependencies(output_object)
     else:
         # No jobs were generated
         noop_job = spack_ci_ir["jobs"]["noop"]["attributes"]
-        noop_job["retry"] = service_job_retries
+        # If this job fails ignore the status and carry on
+        noop_job["retry"] = 0
+        noop_job["allow_failure"] = True
 
-        if copy_only_pipeline and config_deprecated:
-            tty.debug("Generating no-op job as copy-only is unsupported here.")
-            noop_job["script"] = [
-                'echo "copy-only pipelines are not supported with deprecated ci configs"'
-            ]
-            output_object = {"unsupported-copy": noop_job}
-        else:
-            tty.debug("No specs to rebuild, generating no-op job")
-            output_object = {"no-specs-to-rebuild": noop_job}
+        tty.debug("No specs to rebuild, generating no-op job")
+        output_object = {"no-specs-to-rebuild": noop_job}
 
     # Ensure the child pipeline always runs
     output_object["workflow"] = {"rules": [{"when": "always"}]}
@@ -1386,7 +1230,6 @@ def generate_gitlab_ci_yaml(
     sorted_output = {}
     for output_key, output_value in sorted(output_object.items()):
         sorted_output[output_key] = output_value
-
     if known_broken_specs_encountered:
         tty.error("This pipeline generated hashes known to be broken on develop:")
         display_broken_spec_messages(broken_specs_url, known_broken_specs_encountered)
@@ -1394,8 +1237,11 @@ def generate_gitlab_ci_yaml(
         if not rebuild_everything:
             sys.exit(1)
 
-    with open(output_file, "w") as outf:
-        outf.write(syaml.dump(sorted_output, default_flow_style=True))
+    # Minimize yaml output size through use of anchors
+    syaml.anchorify(sorted_output)
+
+    with open(output_file, "w") as f:
+        ruamel.yaml.YAML().dump(sorted_output, f)
 
 
 def _url_encode_string(input_string):
@@ -1440,7 +1286,7 @@ def import_signing_key(base64_signing_key):
             fd.write(decoded_key)
 
         key_import_output = spack_gpg("trust", sign_key_path, output=str)
-        tty.debug("spack gpg trust {0}".format(sign_key_path))
+        tty.debug(f"spack gpg trust {sign_key_path}")
         tty.debug(key_import_output)
 
     # Now print the keys we have for verifying and signing
@@ -1466,45 +1312,25 @@ def can_verify_binaries():
     return len(gpg_util.public_keys()) >= 1
 
 
-def _push_mirror_contents(input_spec, sign_binaries, mirror_url):
-    """Unchecked version of the public API, for easier mocking"""
-    unsigned = not sign_binaries
-    tty.debug("Creating buildcache ({0})".format("unsigned" if unsigned else "signed"))
-    push_url = spack.mirror.Mirror.from_url(mirror_url).push_url
-    return bindist.push(input_spec, push_url, bindist.PushOptions(force=True, unsigned=unsigned))
-
-
-def push_mirror_contents(input_spec: spack.spec.Spec, mirror_url, sign_binaries):
+def push_to_build_cache(spec: spack.spec.Spec, mirror_url: str, sign_binaries: bool) -> bool:
     """Push one or more binary packages to the mirror.
 
     Arguments:
 
-        input_spec(spack.spec.Spec): Installed spec to push
-        mirror_url (str): Base url of target mirror
-        sign_binaries (bool): If True, spack will attempt to sign binary
-            package before pushing.
+        spec: Installed spec to push
+        mirror_url: URL of target mirror
+        sign_binaries: If True, spack will attempt to sign binary package before pushing.
     """
+    tty.debug(f"Pushing to build cache ({'signed' if sign_binaries else 'unsigned'})")
+    signing_key = bindist.select_signing_key() if sign_binaries else None
+    mirror = spack.mirror.Mirror.from_url(mirror_url)
     try:
-        return _push_mirror_contents(input_spec, sign_binaries, mirror_url)
-    except Exception as inst:
-        # If the mirror we're pushing to is on S3 and there's some
-        # permissions problem, for example, we can't just target
-        # that exception type here, since users of the
-        # `spack ci rebuild' may not need or want any dependency
-        # on boto3.  So we use the first non-boto exception type
-        # in the heirarchy:
-        #     boto3.exceptions.S3UploadFailedError
-        #     boto3.exceptions.Boto3Error
-        #     Exception
-        #     BaseException
-        #     object
-        err_msg = "Error msg: {0}".format(inst)
-        if any(x in err_msg for x in ["Access Denied", "InvalidAccessKeyId"]):
-            tty.msg("Permission problem writing to {0}".format(mirror_url))
-            tty.msg(err_msg)
-            return False
-        else:
-            raise inst
+        with bindist.make_uploader(mirror, signing_key=signing_key) as uploader:
+            uploader.push_or_raise([spec])
+        return True
+    except bindist.PushToBuildCacheError as e:
+        tty.error(f"Problem writing to {mirror_url}: {e}")
+        return False
 
 
 def remove_other_mirrors(mirrors_to_keep, scope=None):
@@ -1531,8 +1357,9 @@ def copy_files_to_artifacts(src, artifacts_dir):
     try:
         fs.copy(src, artifacts_dir)
     except Exception as err:
-        msg = ("Unable to copy files ({0}) to artifacts {1} due to " "exception: {2}").format(
-            src, artifacts_dir, str(err)
+        msg = (
+            f"Unable to copy files ({src}) to artifacts {artifacts_dir} due to "
+            f"exception: {str(err)}"
         )
         tty.warn(msg)
 
@@ -1548,24 +1375,24 @@ def copy_stage_logs_to_artifacts(job_spec: spack.spec.Spec, job_log_dir: str) ->
         job_spec: spec associated with spack install log
         job_log_dir: path into which build log should be copied
     """
-    tty.debug("job spec: {0}".format(job_spec))
-    if not job_spec:
-        msg = "Cannot copy stage logs: job spec ({0}) is required"
-        tty.error(msg.format(job_spec))
-        return
+    tty.debug(f"job spec: {job_spec}")
 
     try:
         pkg_cls = spack.repo.PATH.get_pkg_class(job_spec.name)
         job_pkg = pkg_cls(job_spec)
-        tty.debug("job package: {0}".format(job_pkg))
+        tty.debug(f"job package: {job_pkg}")
     except AssertionError:
-        msg = "Cannot copy stage logs: job spec ({0}) must be concrete"
-        tty.error(msg.format(job_spec))
+        msg = f"Cannot copy stage logs: job spec ({job_spec}) must be concrete"
+        tty.error(msg)
         return
 
     stage_dir = job_pkg.stage.path
-    tty.debug("stage dir: {0}".format(stage_dir))
-    for file in [job_pkg.log_path, job_pkg.env_mods_path, *job_pkg.builder.archive_files]:
+    tty.debug(f"stage dir: {stage_dir}")
+    for file in [
+        job_pkg.log_path,
+        job_pkg.env_mods_path,
+        *spack.builder.create(job_pkg).archive_files,
+    ]:
         copy_files_to_artifacts(file, job_log_dir)
 
 
@@ -1577,13 +1404,19 @@ def copy_test_logs_to_artifacts(test_stage, job_test_dir):
         test_stage (str): test stage path
         job_test_dir (str): the destination artifacts test directory
     """
-    tty.debug("test stage: {0}".format(test_stage))
+    tty.debug(f"test stage: {test_stage}")
     if not os.path.exists(test_stage):
-        msg = "Cannot copy test logs: job test stage ({0}) does not exist"
-        tty.error(msg.format(test_stage))
+        msg = f"Cannot copy test logs: job test stage ({test_stage}) does not exist"
+        tty.error(msg)
         return
 
     copy_files_to_artifacts(os.path.join(test_stage, "*", "*.txt"), job_test_dir)
+
+
+def win_quote(quote_str: str) -> str:
+    if IS_WINDOWS:
+        quote_str = f'"{quote_str}"'
+    return quote_str
 
 
 def download_and_extract_artifacts(url, work_dir):
@@ -1595,7 +1428,7 @@ def download_and_extract_artifacts(url, work_dir):
         url (str): Complete url to artifacts.zip file
         work_dir (str): Path to destination where artifacts should be extracted
     """
-    tty.msg("Fetching artifacts from: {0}\n".format(url))
+    tty.msg(f"Fetching artifacts from: {url}\n")
 
     headers = {"Content-Type": "application/zip"}
 
@@ -1608,11 +1441,11 @@ def download_and_extract_artifacts(url, work_dir):
     request = Request(url, headers=headers)
     request.get_method = lambda: "GET"
 
-    response = opener.open(request)
+    response = opener.open(request, timeout=SPACK_CDASH_TIMEOUT)
     response_code = response.getcode()
 
     if response_code != 200:
-        msg = "Error response code ({0}) in reproduce_ci_job".format(response_code)
+        msg = f"Error response code ({response_code}) in reproduce_ci_job"
         raise SpackError(msg)
 
     artifacts_zip_path = os.path.join(work_dir, "artifacts.zip")
@@ -1642,7 +1475,7 @@ def get_spack_info():
 
             return git_log
 
-    return "no git repo, use spack {0}".format(spack.spack_version)
+    return f"no git repo, use spack {spack.spack_version}"
 
 
 def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
@@ -1665,8 +1498,8 @@ def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
     """
     # figure out the path to the spack git version being used for the
     # reproduction
-    print("checkout_commit: {0}".format(checkout_commit))
-    print("merge_commit: {0}".format(merge_commit))
+    print(f"checkout_commit: {checkout_commit}")
+    print(f"merge_commit: {merge_commit}")
 
     dot_git_path = os.path.join(spack.paths.prefix, ".git")
     if not os.path.exists(dot_git_path):
@@ -1685,14 +1518,14 @@ def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
         git("log", "-1", checkout_commit, output=str, error=os.devnull, fail_on_error=False)
 
         if git.returncode != 0:
-            tty.error("Missing commit: {0}".format(checkout_commit))
+            tty.error(f"Missing commit: {checkout_commit}")
             return False
 
         if merge_commit:
             git("log", "-1", merge_commit, output=str, error=os.devnull, fail_on_error=False)
 
             if git.returncode != 0:
-                tty.error("Missing commit: {0}".format(merge_commit))
+                tty.error(f"Missing commit: {merge_commit}")
                 return False
 
     # Next attempt to clone your local spack repo into the repro dir
@@ -1715,7 +1548,7 @@ def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
         )
 
         if git.returncode != 0:
-            tty.error("Unable to checkout {0}".format(checkout_commit))
+            tty.error(f"Unable to checkout {checkout_commit}")
             tty.msg(co_out)
             return False
 
@@ -1734,7 +1567,7 @@ def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
             )
 
             if git.returncode != 0:
-                tty.error("Unable to merge {0}".format(merge_commit))
+                tty.error(f"Unable to merge {merge_commit}")
                 tty.msg(merge_out)
                 return False
 
@@ -1755,6 +1588,7 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     commands to run to reproduce the build once inside the container.
     """
     work_dir = os.path.realpath(work_dir)
+    platform_script_ext = "ps1" if IS_WINDOWS else "sh"
     download_and_extract_artifacts(url, work_dir)
 
     gpg_path = None
@@ -1765,13 +1599,13 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     lock_file = fs.find(work_dir, "spack.lock")[0]
     repro_lock_dir = os.path.dirname(lock_file)
 
-    tty.debug("Found lock file in: {0}".format(repro_lock_dir))
+    tty.debug(f"Found lock file in: {repro_lock_dir}")
 
     yaml_files = fs.find(work_dir, ["*.yaml", "*.yml"])
 
     tty.debug("yaml files:")
     for yaml_file in yaml_files:
-        tty.debug("  {0}".format(yaml_file))
+        tty.debug(f"  {yaml_file}")
 
     pipeline_yaml = None
 
@@ -1786,10 +1620,10 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
                 pipeline_yaml = yaml_obj
 
     if pipeline_yaml:
-        tty.debug("\n{0} is likely your pipeline file".format(yf))
+        tty.debug(f"\n{yf} is likely your pipeline file")
 
     relative_concrete_env_dir = pipeline_yaml["variables"]["SPACK_CONCRETE_ENV_DIR"]
-    tty.debug("Relative environment path used by cloud job: {0}".format(relative_concrete_env_dir))
+    tty.debug(f"Relative environment path used by cloud job: {relative_concrete_env_dir}")
 
     # Using the relative concrete environment path found in the generated
     # pipeline variable above, copy the spack environment files so they'll
@@ -1803,10 +1637,11 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     shutil.copyfile(orig_yaml_path, copy_yaml_path)
 
     # Find the install script in the unzipped artifacts and make it executable
-    install_script = fs.find(work_dir, "install.sh")[0]
-    st = os.stat(install_script)
-    os.chmod(install_script, st.st_mode | stat.S_IEXEC)
-
+    install_script = fs.find(work_dir, f"install.{platform_script_ext}")[0]
+    if not IS_WINDOWS:
+        # pointless on Windows
+        st = os.stat(install_script)
+        os.chmod(install_script, st.st_mode | stat.S_IEXEC)
     # Find the repro details file.  This just includes some values we wrote
     # during `spack ci rebuild` to make reproduction easier.  E.g. the job
     # name is written here so we can easily find the configuration of the
@@ -1844,7 +1679,7 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
             job_image = job_image_elt["name"]
         else:
             job_image = job_image_elt
-        tty.msg("Job ran with the following image: {0}".format(job_image))
+        tty.msg(f"Job ran with the following image: {job_image}")
 
         # Because we found this job was run with a docker image, so we will try
         # to print a "docker run" command that bind-mounts the directory where
@@ -1919,65 +1754,75 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     job_tags = None
     if "tags" in job_yaml:
         job_tags = job_yaml["tags"]
-        tty.msg("Job ran with the following tags: {0}".format(job_tags))
+        tty.msg(f"Job ran with the following tags: {job_tags}")
 
     entrypoint_script = [
         ["git", "config", "--global", "--add", "safe.directory", mount_as_dir],
-        [".", os.path.join(mount_as_dir if job_image else work_dir, "share/spack/setup-env.sh")],
+        [
+            ".",
+            os.path.join(
+                mount_as_dir if job_image else work_dir,
+                f"share/spack/setup-env.{platform_script_ext}",
+            ),
+        ],
         ["spack", "gpg", "trust", mounted_gpg_path if job_image else gpg_path] if gpg_path else [],
         ["spack", "env", "activate", mounted_env_dir if job_image else repro_dir],
-        [os.path.join(mounted_repro_dir, "install.sh") if job_image else install_script],
+        [
+            (
+                os.path.join(mounted_repro_dir, f"install.{platform_script_ext}")
+                if job_image
+                else install_script
+            )
+        ],
     ]
-
+    entry_script = os.path.join(mounted_workdir, f"entrypoint.{platform_script_ext}")
     inst_list = []
     # Finally, print out some instructions to reproduce the build
     if job_image:
         # Allow interactive
-        entrypoint_script.extend(
-            [
-                [
-                    "echo",
-                    "Re-run install script using:\n\t{0}".format(
-                        os.path.join(mounted_repro_dir, "install.sh")
-                        if job_image
-                        else install_script
-                    ),
-                ],
-                # Allow interactive
-                ["exec", "$@"],
-            ]
+        install_mechanism = (
+            os.path.join(mounted_repro_dir, f"install.{platform_script_ext}")
+            if job_image
+            else install_script
         )
+        entrypoint_script.append(["echo", f"Re-run install script using:\n\t{install_mechanism}"])
+        # Allow interactive
+        if IS_WINDOWS:
+            entrypoint_script.append(["&", "($args -Join ' ')", "-NoExit"])
+        else:
+            entrypoint_script.append(["exec", "$@"])
+
         process_command(
             "entrypoint", entrypoint_script, work_dir, run=False, exit_on_failure=False
         )
 
         docker_command = [
-            [
-                runtime,
-                "run",
-                "-i",
-                "-t",
-                "--rm",
-                "--name",
-                "spack_reproducer",
-                "-v",
-                ":".join([work_dir, mounted_workdir, "Z"]),
-                "-v",
-                ":".join(
-                    [
-                        os.path.join(work_dir, "jobs_scratch_dir"),
-                        os.path.join(mount_as_dir, "jobs_scratch_dir"),
-                        "Z",
-                    ]
-                ),
-                "-v",
-                ":".join([os.path.join(work_dir, "spack"), mount_as_dir, "Z"]),
-                "--entrypoint",
-                os.path.join(mounted_workdir, "entrypoint.sh"),
-                job_image,
-                "bash",
-            ]
+            runtime,
+            "run",
+            "-i",
+            "-t",
+            "--rm",
+            "--name",
+            "spack_reproducer",
+            "-v",
+            ":".join([work_dir, mounted_workdir, "Z"]),
+            "-v",
+            ":".join(
+                [
+                    os.path.join(work_dir, "jobs_scratch_dir"),
+                    os.path.join(mount_as_dir, "jobs_scratch_dir"),
+                    "Z",
+                ]
+            ),
+            "-v",
+            ":".join([os.path.join(work_dir, "spack"), mount_as_dir, "Z"]),
+            "--entrypoint",
         ]
+        if IS_WINDOWS:
+            docker_command.extend(["powershell.exe", job_image, entry_script, "powershell.exe"])
+        else:
+            docker_command.extend([entry_script, job_image, "bash"])
+        docker_command = [docker_command]
         autostart = autostart and setup_result
         process_command("start", docker_command, work_dir, run=autostart)
 
@@ -1986,22 +1831,26 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
             inst_list.extend(
                 [
                     "    - Start the docker container install",
-                    "       $ {0}/start.sh".format(work_dir),
+                    f"       $ {work_dir}/start.{platform_script_ext}",
                 ]
             )
     else:
-        process_command("reproducer", entrypoint_script, work_dir, run=False)
+        autostart = autostart and setup_result
+        process_command("reproducer", entrypoint_script, work_dir, run=autostart)
 
         inst_list.append("\nOnce on the tagged runner:\n\n")
         inst_list.extent(
-            ["    - Run the reproducer script", "       $ {0}/reproducer.sh".format(work_dir)]
+            [
+                "    - Run the reproducer script",
+                f"       $ {work_dir}/reproducer.{platform_script_ext}",
+            ]
         )
 
     if not setup_result:
         inst_list.append("\n    - Clone spack and acquire tested commit")
-        inst_list.append("\n        {0}\n".format(spack_info))
+        inst_list.append(f"\n        {spack_info}\n")
         inst_list.append("\n")
-        inst_list.append("\n        Path to clone spack: {0}/spack\n\n".format(work_dir))
+        inst_list.append(f"\n        Path to clone spack: {work_dir}/spack\n\n")
 
     tty.msg("".join(inst_list))
 
@@ -2020,50 +1869,78 @@ def process_command(name, commands, repro_dir, run=True, exit_on_failure=True):
 
     Returns: the exit code from processing the command
     """
-    tty.debug("spack {0} arguments: {1}".format(name, commands))
 
+    tty.debug(f"spack {name} arguments: {commands}")
     if len(commands) == 0 or isinstance(commands[0], str):
         commands = [commands]
 
-    # Create a string [command 1] && [command 2] && ... && [command n] with commands
-    # quoted using double quotes.
-    args_to_string = lambda args: " ".join('"{}"'.format(arg) for arg in args)
-    full_command = " \n ".join(map(args_to_string, commands))
+    def compose_command_err_handling(args):
+        if not IS_WINDOWS:
+            args = [f'"{arg}"' for arg in args]
+        arg_str = " ".join(args)
+        result = arg_str + "\n"
+        # ErrorActionPreference will handle PWSH commandlets (Spack calls),
+        # but we need to handle EXEs (git, etc) ourselves
+        catch_exe_failure = (
+            """
+if ($LASTEXITCODE -ne 0){{
+    throw 'Command {} has failed'
+}}
+"""
+            if IS_WINDOWS
+            else ""
+        )
+        if exit_on_failure and catch_exe_failure:
+            result += catch_exe_failure.format(arg_str)
+        return result
 
-    # Write the command to a shell script
-    script = "{0}.sh".format(name)
-    with open(script, "w") as fd:
-        fd.write("#!/bin/sh\n\n")
-        fd.write("\n# spack {0} command\n".format(name))
+    # Create a string [command 1] \n [command 2] \n ... \n [command n] with
+    # commands composed into a platform dependent shell script, pwsh on Windows,
+    full_command = "\n".join(map(compose_command_err_handling, commands))
+    # Write the command to a python script
+    if IS_WINDOWS:
+        script = f"{name}.ps1"
+        script_content = [f"\n# spack {name} command\n"]
         if exit_on_failure:
-            fd.write("set -e\n")
+            script_content.append('$ErrorActionPreference = "Stop"\n')
         if os.environ.get("SPACK_VERBOSE_SCRIPT"):
-            fd.write("set -x\n")
-        fd.write(full_command)
-        fd.write("\n")
+            script_content.append("Set-PSDebug -Trace 2\n")
+    else:
+        script = f"{name}.sh"
+        script_content = ["#!/bin/sh\n\n", f"\n# spack {name} command\n"]
+        if exit_on_failure:
+            script_content.append("set -e\n")
+        if os.environ.get("SPACK_VERBOSE_SCRIPT"):
+            script_content.append("set -x\n")
+    script_content.append(full_command)
+    script_content.append("\n")
 
-    st = os.stat(script)
-    os.chmod(script, st.st_mode | stat.S_IEXEC)
+    with open(script, "w") as fd:
+        for line in script_content:
+            fd.write(line)
 
     copy_path = os.path.join(repro_dir, script)
     shutil.copyfile(script, copy_path)
-    st = os.stat(copy_path)
-    os.chmod(copy_path, st.st_mode | stat.S_IEXEC)
+    if not IS_WINDOWS:
+        st = os.stat(copy_path)
+        os.chmod(copy_path, st.st_mode | stat.S_IEXEC)
 
-    # Run the generated install.sh shell script as if it were being run in
+    # Run the generated shell script as if it were being run in
     # a login shell.
     exit_code = None
     if run:
         try:
-            cmd_process = subprocess.Popen(["/bin/sh", "./{0}".format(script)])
+            # We use sh as executor on Linux like platforms, pwsh on Windows
+            interpreter = "powershell.exe" if IS_WINDOWS else "/bin/sh"
+            cmd_process = subprocess.Popen([interpreter, f"./{script}"])
             cmd_process.wait()
             exit_code = cmd_process.returncode
         except (ValueError, subprocess.CalledProcessError, OSError) as err:
-            tty.error("Encountered error running {0} script".format(name))
+            tty.error(f"Encountered error running {name} script")
             tty.error(err)
             exit_code = 1
 
-        tty.debug("spack {0} exited {1}".format(name, exit_code))
+        tty.debug(f"spack {name} exited {exit_code}")
     else:
         # Delete the script, it is copied to the destination dir
         os.remove(script)
@@ -2088,7 +1965,7 @@ def create_buildcache(
     for mirror_url in destination_mirror_urls:
         results.append(
             PushResult(
-                success=push_mirror_contents(input_spec, mirror_url, sign_binaries), url=mirror_url
+                success=push_to_build_cache(input_spec, mirror_url, sign_binaries), url=mirror_url
             )
         )
 
@@ -2122,7 +1999,7 @@ def write_broken_spec(url, pkg_name, stack_name, job_url, pipeline_url, spec_dic
         # If there is an S3 error (e.g., access denied or connection
         # error), the first non boto-specific class in the exception
         # hierarchy is Exception.  Just print a warning and return
-        msg = "Error writing to broken specs list {0}: {1}".format(url, err)
+        msg = f"Error writing to broken specs list {url}: {err}"
         tty.warn(msg)
     finally:
         shutil.rmtree(tmpdir)
@@ -2134,8 +2011,8 @@ def read_broken_spec(broken_spec_url):
     """
     try:
         _, _, fs = web_util.read_from_url(broken_spec_url)
-    except (URLError, web_util.SpackWebError, HTTPError):
-        tty.warn("Unable to read broken spec from {0}".format(broken_spec_url))
+    except web_util.SpackWebError:
+        tty.warn(f"Unable to read broken spec from {broken_spec_url}")
         return None
 
     broken_spec_contents = codecs.getreader("utf-8")(fs).read()
@@ -2150,14 +2027,14 @@ def display_broken_spec_messages(base_url, hashes):
     for spec_hash, broken_spec in [tup for tup in broken_specs if tup[1]]:
         details = broken_spec["broken-spec"]
         if "job-name" in details:
-            item_name = "{0}/{1}".format(details["job-name"], spec_hash[:7])
+            item_name = f"{details['job-name']}/{spec_hash[:7]}"
         else:
             item_name = spec_hash
 
         if "job-stack" in details:
-            item_name = "{0} (in stack {1})".format(item_name, details["job-stack"])
+            item_name = f"{item_name} (in stack {details['job-stack']})"
 
-        msg = "  {0} was reported broken here: {1}".format(item_name, details["job-url"])
+        msg = f"  {item_name} was reported broken here: {details['job-url']}"
         tty.msg(msg)
 
 
@@ -2180,7 +2057,7 @@ def run_standalone_tests(**kwargs):
     log_file = kwargs.get("log_file")
 
     if cdash and log_file:
-        tty.msg("The test log file {0} option is ignored with CDash reporting".format(log_file))
+        tty.msg(f"The test log file {log_file} option is ignored with CDash reporting")
         log_file = None
 
     # Error out but do NOT terminate if there are missing required arguments.
@@ -2206,10 +2083,10 @@ def run_standalone_tests(**kwargs):
             test_args.extend(["--log-file", log_file])
     test_args.append(job_spec.name)
 
-    tty.debug("Running {0} stand-alone tests".format(job_spec.name))
+    tty.debug(f"Running {job_spec.name} stand-alone tests")
     exit_code = process_command("test", test_args, repro_dir)
 
-    tty.debug("spack test exited {0}".format(exit_code))
+    tty.debug(f"spack test exited {exit_code}")
 
 
 class CDashHandler:
@@ -2232,7 +2109,7 @@ class CDashHandler:
         # append runner description to the site if available
         runner = os.environ.get("CI_RUNNER_DESCRIPTION")
         if runner:
-            self.site += " ({0})".format(runner)
+            self.site += f" ({runner})"
 
         # track current spec, if any
         self.current_spec = None
@@ -2240,13 +2117,13 @@ class CDashHandler:
     def args(self):
         return [
             "--cdash-upload-url",
-            self.upload_url,
+            win_quote(self.upload_url),
             "--cdash-build",
-            self.build_name,
+            win_quote(self.build_name),
             "--cdash-site",
-            self.site,
+            win_quote(self.site),
             "--cdash-buildstamp",
-            self.build_stamp,
+            win_quote(self.build_stamp),
         ]
 
     @property  # type: ignore
@@ -2260,21 +2137,13 @@ class CDashHandler:
         Returns: (str) current spec's CDash build name."""
         spec = self.current_spec
         if spec:
-            build_name = "{0}@{1}%{2} hash={3} arch={4} ({5})".format(
-                spec.name,
-                spec.version,
-                spec.compiler,
-                spec.dag_hash(),
-                spec.architecture,
-                self.build_group,
-            )
-            tty.debug(
-                "Generated CDash build name ({0}) from the {1}".format(build_name, spec.name)
-            )
+            build_name = f"{spec.name}@{spec.version}%{spec.compiler} \
+hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
+            tty.debug(f"Generated CDash build name ({build_name}) from the {spec.name}")
             return build_name
 
         build_name = os.environ.get("SPACK_CDASH_BUILD_NAME")
-        tty.debug("Using CDash build name ({0}) from the environment".format(build_name))
+        tty.debug(f"Using CDash build name ({build_name}) from the environment")
         return build_name
 
     @property  # type: ignore
@@ -2288,25 +2157,25 @@ class CDashHandler:
         Returns: (str) current CDash build stamp"""
         build_stamp = os.environ.get("SPACK_CDASH_BUILD_STAMP")
         if build_stamp:
-            tty.debug("Using build stamp ({0}) from the environment".format(build_stamp))
+            tty.debug(f"Using build stamp ({build_stamp}) from the environment")
             return build_stamp
 
         build_stamp = cdash_build_stamp(self.build_group, time.time())
-        tty.debug("Generated new build stamp ({0})".format(build_stamp))
+        tty.debug(f"Generated new build stamp ({build_stamp})")
         return build_stamp
 
     @property  # type: ignore
     @memoized
     def project_enc(self):
-        tty.debug("Encoding project ({0}): {1})".format(type(self.project), self.project))
+        tty.debug(f"Encoding project ({type(self.project)}): {self.project})")
         encode = urlencode({"project": self.project})
         index = encode.find("=") + 1
         return encode[index:]
 
     @property
     def upload_url(self):
-        url_format = "{0}/submit.php?project={1}"
-        return url_format.format(self.url, self.project_enc)
+        url_format = f"{self.url}/submit.php?project={self.project_enc}"
+        return url_format
 
     def copy_test_results(self, source, dest):
         """Copy test results to artifacts directory."""
@@ -2320,11 +2189,11 @@ class CDashHandler:
 
         request = Request(url, data=enc_data, headers=headers)
 
-        response = opener.open(request)
+        response = opener.open(request, timeout=SPACK_CDASH_TIMEOUT)
         response_code = response.getcode()
 
         if response_code not in [200, 201]:
-            msg = "Creating buildgroup failed (response code = {0})".format(response_code)
+            msg = f"Creating buildgroup failed (response code = {response_code})"
             tty.warn(msg)
             return None
 
@@ -2335,10 +2204,10 @@ class CDashHandler:
         return build_group_id
 
     def populate_buildgroup(self, job_names):
-        url = "{0}/api/v1/buildgroup.php".format(self.url)
+        url = f"{self.url}/api/v1/buildgroup.php"
 
         headers = {
-            "Authorization": "Bearer {0}".format(self.auth_token),
+            "Authorization": f"Bearer {self.auth_token}",
             "Content-Type": "application/json",
         }
 
@@ -2346,11 +2215,11 @@ class CDashHandler:
 
         parent_group_id = self.create_buildgroup(opener, headers, url, self.build_group, "Daily")
         group_id = self.create_buildgroup(
-            opener, headers, url, "Latest {0}".format(self.build_group), "Latest"
+            opener, headers, url, f"Latest {self.build_group}", "Latest"
         )
 
         if not parent_group_id or not group_id:
-            msg = "Failed to create or retrieve buildgroups for {0}".format(self.build_group)
+            msg = f"Failed to create or retrieve buildgroups for {self.build_group}"
             tty.warn(msg)
             return
 
@@ -2366,11 +2235,11 @@ class CDashHandler:
         request = Request(url, data=enc_data, headers=headers)
         request.get_method = lambda: "PUT"
 
-        response = opener.open(request)
+        response = opener.open(request, timeout=SPACK_CDASH_TIMEOUT)
         response_code = response.getcode()
 
         if response_code != 200:
-            msg = "Error response code ({0}) in populate_buildgroup".format(response_code)
+            msg = f"Error response code ({response_code}) in populate_buildgroup"
             tty.warn(msg)
 
     def report_skipped(self, spec: spack.spec.Spec, report_dir: str, reason: Optional[str]):
@@ -2395,83 +2264,6 @@ class CDashHandler:
         reporter.test_skipped_report(report_dir, spec, reason)
 
 
-def translate_deprecated_config(config):
-    # Remove all deprecated keys from config
-    mappings = config.pop("mappings", [])
-    match_behavior = config.pop("match_behavior", "first")
-
-    build_job = {}
-    if "image" in config:
-        build_job["image"] = config.pop("image")
-    if "tags" in config:
-        build_job["tags"] = config.pop("tags")
-    if "variables" in config:
-        build_job["variables"] = config.pop("variables")
-
-    # Scripts always override in old CI
-    if "before_script" in config:
-        build_job["before_script:"] = config.pop("before_script")
-    if "script" in config:
-        build_job["script:"] = config.pop("script")
-    if "after_script" in config:
-        build_job["after_script:"] = config.pop("after_script")
-
-    signing_job = None
-    if "signing-job-attributes" in config:
-        signing_job = {"signing-job": config.pop("signing-job-attributes")}
-
-    service_job_attributes = None
-    if "service-job-attributes" in config:
-        service_job_attributes = config.pop("service-job-attributes")
-
-    # If this config already has pipeline-gen do not more
-    if "pipeline-gen" in config:
-        return True if mappings or build_job or signing_job or service_job_attributes else False
-
-    config["target"] = "gitlab"
-
-    config["pipeline-gen"] = []
-    pipeline_gen = config["pipeline-gen"]
-
-    # Build Job
-    submapping = []
-    for section in mappings:
-        submapping_section = {"match": section["match"]}
-        if "runner-attributes" in section:
-            remapped_attributes = {}
-            if match_behavior == "first":
-                for key, value in section["runner-attributes"].items():
-                    # Scripts always override in old CI
-                    if key == "script":
-                        remapped_attributes["script:"] = value
-                    elif key == "before_script":
-                        remapped_attributes["before_script:"] = value
-                    elif key == "after_script":
-                        remapped_attributes["after_script:"] = value
-                    else:
-                        remapped_attributes[key] = value
-            else:
-                # Handle "merge" behavior be allowing scripts to merge in submapping section
-                remapped_attributes = section["runner-attributes"]
-            submapping_section["build-job"] = remapped_attributes
-
-        if "remove-attributes" in section:
-            # Old format only allowed tags in this section, so no extra checks are needed
-            submapping_section["build-job-remove"] = section["remove-attributes"]
-        submapping.append(submapping_section)
-    pipeline_gen.append({"submapping": submapping, "match_behavior": match_behavior})
-
-    if build_job:
-        pipeline_gen.append({"build-job": build_job})
-
-    # Signing Job
-    if signing_job:
-        pipeline_gen.append(signing_job)
-
-    # Service Jobs
-    if service_job_attributes:
-        pipeline_gen.append({"reindex-job": service_job_attributes})
-        pipeline_gen.append({"noop-job": service_job_attributes})
-        pipeline_gen.append({"cleanup-job": service_job_attributes})
-
-    return True
+class SpackCIError(spack.error.SpackError):
+    def __init__(self, msg):
+        super().__init__(msg)

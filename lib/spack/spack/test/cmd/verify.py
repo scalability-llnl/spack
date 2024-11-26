@@ -63,9 +63,7 @@ def test_single_file_verify_cmd(tmpdir):
     assert sorted(errors) == sorted(expected)
 
 
-def test_single_spec_verify_cmd(
-    tmpdir, mock_packages, mock_archive, mock_fetch, config, install_mockery
-):
+def test_single_spec_verify_cmd(tmpdir, mock_packages, mock_archive, mock_fetch, install_mockery):
     # Test the verify command interface to verify a single spec
     install("libelf")
     s = spack.spec.Spec("libelf").concretized()

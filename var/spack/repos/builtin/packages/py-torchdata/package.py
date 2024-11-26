@@ -18,6 +18,8 @@ class PyTorchdata(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("0.9.0", sha256="b547bbe848ad813cc5365fe0bb02051150bec6c7c4ee7bffd6b6d3d7bdeddd75")
+    version("0.8.0", sha256="d5d27b264e79d7d00ad4998f14d097b770332d979672dceb6d038caf204f1208")
     version("0.7.1", sha256="ef9bbdcee759b53c3c9d99e76eb0a66da33d36bfb7f859a25a9b5e737a51fa23")
     version("0.7.0", sha256="0b444719c3abc67201ed0fea92ea9c4100e7f36551ba0d19a09446cc11154eb3")
     version("0.6.1", sha256="c596db251c5e6550db3f00e4308ee7112585cca4d6a1c82a433478fd86693257")
@@ -28,33 +30,40 @@ class PyTorchdata(PythonPackage):
     version("0.4.0", sha256="b4ec446a701680faa620fcb828b98ba36a63fa79da62a1e568d4a683889172da")
     version("0.3.0", sha256="ac36188bf133cf5f1041a28ccb3ee82ba52d4b5d99617be37d64d740acd6cfd4")
 
-    # https://github.com/pytorch/data#version-compatibility
-    depends_on("python@3.8:3.11", when="@0.6:", type=("build", "run"))
-    depends_on("python@3.7:3.10", when="@:0.5", type=("build", "run"))
+    depends_on("cxx", type="build")
 
-    # pyproject.toml
-    depends_on("py-setuptools", type="build")
+    with default_args(type="build"):
+        # pyproject.toml
+        depends_on("py-setuptools")
 
-    # CMakeLists.txt
-    depends_on("cmake@3.13:", when="@0.4:", type="build")
-    depends_on("ninja", when="@0.4:", type="build")
+        # CMakeLists.txt
+        depends_on("cmake@3.13:", when="@0.4:")
+        depends_on("ninja", when="@0.4:")
 
-    # https://github.com/pytorch/data#version-compatibility
-    depends_on("py-torch@main", when="@main", type=("build", "run"))
-    depends_on("py-torch@2.1.1", when="@0.7.1", type=("build", "run"))
-    depends_on("py-torch@2.1.0", when="@0.7.0", type=("build", "run"))
-    depends_on("py-torch@2.0.1", when="@0.6.1", type=("build", "run"))
-    depends_on("py-torch@2.0.0", when="@0.6.0", type=("build", "run"))
-    depends_on("py-torch@1.13.1", when="@0.5.1", type=("build", "run"))
-    depends_on("py-torch@1.13.0", when="@0.5.0", type=("build", "run"))
-    depends_on("py-torch@1.12.1", when="@0.4.1", type=("build", "run"))
-    depends_on("py-torch@1.12.0", when="@0.4.0", type=("build", "run"))
-    depends_on("py-torch@1.11.0", when="@0.3.0", type=("build", "run"))
+    with default_args(type=("build", "run")):
+        # https://github.com/pytorch/data#version-compatibility
+        depends_on("python@3.9:3.12", when="@0.9:")
+        depends_on("python@3.8:3.12", when="@0.8")
+        depends_on("python@3.8:3.11", when="@0.6:0.7")
+        depends_on("python@3.7:3.10", when="@:0.5")
 
-    # requirements.txt
-    depends_on("py-urllib3@1.25:", type=("build", "run"))
-    depends_on("py-requests", type=("build", "run"))
-    depends_on("py-portalocker@2:", when="@0.4:0.5", type=("build", "run"))
+        depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.5.0", when="@0.9.0")
+        depends_on("py-torch@2.4.0", when="@0.8.0")
+        depends_on("py-torch@2.1.1", when="@0.7.1")
+        depends_on("py-torch@2.1.0", when="@0.7.0")
+        depends_on("py-torch@2.0.1", when="@0.6.1")
+        depends_on("py-torch@2.0.0", when="@0.6.0")
+        depends_on("py-torch@1.13.1", when="@0.5.1")
+        depends_on("py-torch@1.13.0", when="@0.5.0")
+        depends_on("py-torch@1.12.1", when="@0.4.1")
+        depends_on("py-torch@1.12.0", when="@0.4.0")
+        depends_on("py-torch@1.11.0", when="@0.3.0")
+
+        # requirements.txt
+        depends_on("py-urllib3@1.25:")
+        depends_on("py-requests")
+        depends_on("py-portalocker@2:", when="@0.4:0.5")
 
     # third_party/CMakeLists.txt
     depends_on("py-pybind11", when="@0.4:")

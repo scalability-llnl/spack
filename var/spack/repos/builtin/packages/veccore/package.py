@@ -34,6 +34,8 @@ class Veccore(CMakePackage):
     version("0.4.0", sha256="0a38b958c92647c30b5709d17edaf39d241b92b988f1040c0fbe24932b42927e")
     version("0.3.2", sha256="d72b03df00f5e94b2d07f78ab3af6d9d956c19e9a1fae07267b48f6fc8d7713f")
 
+    depends_on("cxx", type="build")
+
     variant("vc", default=False, description="Enable Vc backend")
 
     depends_on("vc@1.2.0:", when="@0.2.0: +vc")

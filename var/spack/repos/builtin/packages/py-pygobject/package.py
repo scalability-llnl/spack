@@ -31,6 +31,8 @@ class PyPygobject(PythonPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     extends("python")
 
     depends_on("py-setuptools", type="build")

@@ -2,25 +2,31 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 import os
 import platform
 import posixpath
+import sys
 
 import pytest
+
+import archspec.cpu
 
 from llnl.path import Path, convert_to_platform_path
 from llnl.util.filesystem import HeaderList, LibraryList
 
 import spack.build_environment
+import spack.compiler
+import spack.compilers
 import spack.config
+import spack.deptypes as dt
 import spack.package_base
+import spack.paths
 import spack.spec
 import spack.util.spack_yaml as syaml
 from spack.build_environment import UseMode, _static_to_shared_library, dso_suffix
 from spack.context import Context
+from spack.installer import PackageInstaller
 from spack.paths import build_env_path
-from spack.util.cpus import determine_number_of_jobs
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 
@@ -63,7 +69,8 @@ def build_environment(working_env):
     os.environ["SPACK_LINKER_ARG"] = "-Wl,"
     os.environ["SPACK_DTAGS_TO_ADD"] = "--disable-new-dtags"
     os.environ["SPACK_DTAGS_TO_STRIP"] = "--enable-new-dtags"
-    os.environ["SPACK_SYSTEM_DIRS"] = "/usr/include /usr/lib"
+    os.environ["SPACK_SYSTEM_DIRS"] = "/usr/include|/usr/lib"
+    os.environ["SPACK_MANAGED_DIRS"] = f"{prefix}/opt/spack"
     os.environ["SPACK_TARGET_ARGS"] = ""
 
     if "SPACK_DEPENDENCIES" in os.environ:
@@ -175,11 +182,11 @@ def test_cc_not_changed_by_modules(monkeypatch, working_env):
 
 
 def test_setup_dependent_package_inherited_modules(
-    config, working_env, mock_packages, install_mockery, mock_fetch
+    working_env, mock_packages, install_mockery, mock_fetch
 ):
     # This will raise on regression
     s = spack.spec.Spec("cmake-client-inheritor").concretized()
-    s.package.do_install()
+    PackageInstaller([s.package]).install()
 
 
 @pytest.mark.parametrize(
@@ -283,6 +290,25 @@ def test_compiler_config_modifications(
             assert os.environ[name] == value
             continue
         assert name not in os.environ
+
+
+def test_compiler_custom_env(config, mock_packages, monkeypatch, working_env):
+    if sys.platform == "win32":
+        test_path = r"C:\test\path\element\custom-env" + "\\"
+    else:
+        test_path = r"/test/path/element/custom-env/"
+
+    def custom_env(pkg, env):
+        env.prepend_path("PATH", test_path)
+        env.append_flags("ENV_CUSTOM_CC_FLAGS", "--custom-env-flag1")
+
+    pkg = spack.spec.Spec("cmake").concretized().package
+    monkeypatch.setattr(pkg.compiler, "setup_custom_environment", custom_env)
+    spack.build_environment.setup_package(pkg, False)
+
+    # Note: trailing slash may be stripped by internal logic
+    assert test_path[:-1] in os.environ["PATH"]
+    assert "--custom-env-flag1" in os.environ["ENV_CUSTOM_CC_FLAGS"]
 
 
 def test_external_config_env(mock_packages, mutable_config, working_env):
@@ -455,14 +481,14 @@ def test_parallel_false_is_not_propagating(default_mock_concretization):
     # a foobar=bar (parallel = False)
     # |
     # b (parallel =True)
-    s = default_mock_concretization("a foobar=bar")
+    s = default_mock_concretization("pkg-a foobar=bar")
 
     spack.build_environment.set_package_py_globals(s.package, context=Context.BUILD)
-    assert s["a"].package.module.make_jobs == 1
+    assert s["pkg-a"].package.module.make_jobs == 1
 
-    spack.build_environment.set_package_py_globals(s["b"].package, context=Context.BUILD)
-    assert s["b"].package.module.make_jobs == spack.build_environment.determine_number_of_jobs(
-        parallel=s["b"].package.parallel
+    spack.build_environment.set_package_py_globals(s["pkg-b"].package, context=Context.BUILD)
+    assert s["pkg-b"].package.module.make_jobs == spack.config.determine_number_of_jobs(
+        parallel=s["pkg-b"].package.parallel
     )
 
 
@@ -492,9 +518,33 @@ def test_setting_dtags_based_on_config(config_setting, expected_flag, config, mo
         assert dtags_to_add.value == expected_flag
 
 
+def test_module_globals_available_at_setup_dependent_time(
+    monkeypatch, mutable_config, mock_packages, working_env
+):
+    """Spack built package externaltest depends on an external package
+    externaltool. Externaltool's setup_dependent_package needs to be able to
+    access globals on the dependent"""
+
+    def setup_dependent_package(module, dependent_spec):
+        # Make sure set_package_py_globals was already called on
+        # dependents
+        # ninja is always set by the setup context and is not None
+        dependent_module = dependent_spec.package.module
+        assert hasattr(dependent_module, "ninja")
+        assert dependent_module.ninja is not None
+        dependent_spec.package.test_attr = True
+
+    externaltool = spack.spec.Spec("externaltest").concretized()
+    monkeypatch.setattr(
+        externaltool["externaltool"].package, "setup_dependent_package", setup_dependent_package
+    )
+    spack.build_environment.setup_package(externaltool.package, False)
+    assert externaltool.package.test_attr
+
+
 def test_build_jobs_sequential_is_sequential():
     assert (
-        determine_number_of_jobs(
+        spack.config.determine_number_of_jobs(
             parallel=False,
             max_cpus=8,
             config=spack.config.Configuration(
@@ -508,7 +558,7 @@ def test_build_jobs_sequential_is_sequential():
 
 def test_build_jobs_command_line_overrides():
     assert (
-        determine_number_of_jobs(
+        spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=1,
             config=spack.config.Configuration(
@@ -519,7 +569,7 @@ def test_build_jobs_command_line_overrides():
         == 10
     )
     assert (
-        determine_number_of_jobs(
+        spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=100,
             config=spack.config.Configuration(
@@ -533,7 +583,7 @@ def test_build_jobs_command_line_overrides():
 
 def test_build_jobs_defaults():
     assert (
-        determine_number_of_jobs(
+        spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=10,
             config=spack.config.Configuration(
@@ -543,7 +593,7 @@ def test_build_jobs_defaults():
         == 1
     )
     assert (
-        determine_number_of_jobs(
+        spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=10,
             config=spack.config.Configuration(
@@ -552,24 +602,6 @@ def test_build_jobs_defaults():
         )
         == 10
     )
-
-
-def test_dirty_disable_module_unload(config, mock_packages, working_env, mock_module_cmd):
-    """Test that on CRAY platform 'module unload' is not called if the 'dirty'
-    option is on.
-    """
-    s = spack.spec.Spec("a").concretized()
-
-    # If called with "dirty" we don't unload modules, so no calls to the
-    # `module` function on Cray
-    spack.build_environment.setup_package(s.package, dirty=True)
-    assert not mock_module_cmd.calls
-
-    # If called without "dirty" we unload modules on Cray
-    spack.build_environment.setup_package(s.package, dirty=False)
-    assert mock_module_cmd.calls
-    assert any(("unload", "cray-libsci") == item[0] for item in mock_module_cmd.calls)
-    assert any(("unload", "cray-mpich") == item[0] for item in mock_module_cmd.calls)
 
 
 class TestModuleMonkeyPatcher:
@@ -589,7 +621,7 @@ class TestModuleMonkeyPatcher:
 
         # We can also propagate the settings to classes in the MRO
         module_wrapper.propagate_changes_to_mro()
-        for cls in inspect.getmro(type(s.package)):
+        for cls in s.package.__class__.__mro__:
             current_module = cls.module
             if current_module == spack.package_base:
                 break
@@ -715,3 +747,82 @@ def test_build_system_globals_only_set_on_root_during_build(default_mock_concret
     for depth, spec in root.traverse(depth=True, root=True):
         for variable in build_variables:
             assert hasattr(spec.package.module, variable) == should_be_set(depth)
+
+
+def test_rpath_with_duplicate_link_deps():
+    """If we have two instances of one package in the same link sub-dag, only the newest version is
+    rpath'ed. This is for runtime support without splicing."""
+    runtime_1 = spack.spec.Spec("runtime@=1.0")
+    runtime_2 = spack.spec.Spec("runtime@=2.0")
+    child = spack.spec.Spec("child@=1.0")
+    root = spack.spec.Spec("root@=1.0")
+
+    root.add_dependency_edge(child, depflag=dt.LINK, virtuals=())
+    root.add_dependency_edge(runtime_2, depflag=dt.LINK, virtuals=())
+    child.add_dependency_edge(runtime_1, depflag=dt.LINK, virtuals=())
+
+    rpath_deps = spack.build_environment._get_rpath_deps_from_spec(root, transitive_rpaths=True)
+    assert child in rpath_deps
+    assert runtime_2 in rpath_deps
+    assert runtime_1 not in rpath_deps
+
+
+@pytest.mark.parametrize(
+    "compiler_spec,target_name,expected_flags",
+    [
+        # Homogeneous compilers
+        ("gcc@4.7.2", "ivybridge", "-march=core-avx-i -mtune=core-avx-i"),
+        ("clang@3.5", "x86_64", "-march=x86-64 -mtune=generic"),
+        ("apple-clang@9.1.0", "x86_64", "-march=x86-64"),
+        # Mixed toolchain
+        ("clang@8.0.0", "broadwell", ""),
+    ],
+)
+@pytest.mark.filterwarnings("ignore:microarchitecture specific")
+@pytest.mark.not_on_windows("Windows doesn't support the compiler wrapper")
+def test_optimization_flags(compiler_spec, target_name, expected_flags, compiler_factory):
+    target = archspec.cpu.TARGETS[target_name]
+    compiler_dict = compiler_factory(spec=compiler_spec, operating_system="")["compiler"]
+    if compiler_spec == "clang@8.0.0":
+        compiler_dict["paths"] = {
+            "cc": "/path/to/clang-8",
+            "cxx": "/path/to/clang++-8",
+            "f77": "/path/to/gfortran-9",
+            "fc": "/path/to/gfortran-9",
+        }
+    compiler = spack.compilers.compiler_from_dict(compiler_dict)
+    opt_flags = spack.build_environment.optimization_flags(compiler, target)
+    assert opt_flags == expected_flags
+
+
+@pytest.mark.parametrize(
+    "compiler_str,real_version,target_str,expected_flags",
+    [
+        ("gcc@=9.2.0", None, "haswell", "-march=haswell -mtune=haswell"),
+        # Check that custom string versions are accepted
+        ("gcc@=10foo", "9.2.0", "icelake", "-march=icelake-client -mtune=icelake-client"),
+        # Check that we run version detection (4.4.0 doesn't support icelake)
+        ("gcc@=4.4.0-special", "9.2.0", "icelake", "-march=icelake-client -mtune=icelake-client"),
+        # Check that the special case for Apple's clang is treated correctly
+        # i.e. it won't try to detect the version again
+        ("apple-clang@=9.1.0", None, "x86_64", "-march=x86-64"),
+    ],
+)
+def test_optimization_flags_with_custom_versions(
+    compiler_str,
+    real_version,
+    target_str,
+    expected_flags,
+    monkeypatch,
+    mutable_config,
+    compiler_factory,
+):
+    target = archspec.cpu.TARGETS[target_str]
+    compiler_dict = compiler_factory(spec=compiler_str, operating_system="redhat6")
+    mutable_config.set("compilers", [compiler_dict])
+    if real_version:
+        monkeypatch.setattr(spack.compiler.Compiler, "get_real_version", lambda x: real_version)
+    compiler = spack.compilers.compiler_from_dict(compiler_dict["compiler"])
+
+    opt_flags = spack.build_environment.optimization_flags(compiler, target)
+    assert opt_flags == expected_flags

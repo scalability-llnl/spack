@@ -27,6 +27,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
 
     license("GPL-3.0-or-later AND ( GPL-2.0-or-later OR LGPL-3.0-or-later )")
 
+    version("0.191", sha256="df76db71366d1d708365fc7a6c60ca48398f14367eb2b8954efc8897147ad871")
     version("0.190", sha256="8e00a3a9b5f04bc1dc273ae86281d2d26ed412020b391ffcc23198f10231d692")
     version("0.189", sha256="39bd8f1a338e2b7cd4abc3ff11a0eddc6e690f69578a57478d8179b4148708c8")
     version("0.188", sha256="fb8b0e8d0802005b9a309c60c1d8de32dd2951b56f0c3a3cb56d21ce01595dff")
@@ -48,6 +49,9 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
     version("0.170", sha256="1f844775576b79bdc9f9c717a50058d08620323c1e935458223a12f249c9e066")
     version("0.168", sha256="b88d07893ba1373c7dd69a7855974706d05377766568a7d9002706d5de72c276")
     version("0.163", sha256="7c774f1eef329309f3b05e730bdac50013155d437518a2ec0e24871d312f2e23")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # Native language support from libintl.
     variant("nls", default=True, description="Enable Native Language Support.")
@@ -124,16 +128,16 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
         else:
             args.append("--program-prefix=''")
 
-        if "@0.182:" in spec:
+        if spec.satisfies("@0.182:"):
             args.append("--with-zstd=%s" % spec["zstd"].prefix)
 
         if spec.satisfies("@0.183:"):
-            if spec["iconv"].name == "libc":
+            if spec["iconv"].name == "libiconv":
+                args.append(f"--with-libiconv-prefix={spec['iconv'].prefix}")
+            else:
                 args.append("--without-libiconv-prefix")
-            elif not is_system_path(spec["iconv"].prefix):
-                args.append("--with-libiconv-prefix=" + format(spec["iconv"].prefix))
 
-        if "+nls" in spec:
+        if spec.satisfies("+nls"):
             # Prior to 0.183, only msgfmt is used from gettext.
             if spec.satisfies("@0.183:"):
                 if "intl" not in spec["gettext"].libs.names:
@@ -143,7 +147,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
         else:
             args.append("--disable-nls")
 
-        if "+debuginfod" in spec:
+        if spec.satisfies("+debuginfod"):
             args.append("--enable-debuginfod")
             if spec.satisfies("@0.181:"):
                 args.append("--enable-libdebuginfod")

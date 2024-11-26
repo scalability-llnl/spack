@@ -19,6 +19,8 @@ class PyQiskitNature(PythonPackage):
 
     version("0.2.2", sha256="ce3558d4acf2511111cc398361146af36391d67e5a9fe9c4bd0f727cb56022bf")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools@40.1.0:", type="build")
 

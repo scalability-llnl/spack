@@ -19,6 +19,8 @@ class Vsftpd(MakefilePackage):
     version("3.0.2", sha256="be46f0e2c5528fe021fafc8dab1ecfea0c1f183063a06977f8537fcd0b195e56")
     version("3.0.1", sha256="65487a9fccc0ae566df5999a84448a9ccb57b556b7643ffd345540299487784c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libcap")
 
     def install(self, spec, prefix):

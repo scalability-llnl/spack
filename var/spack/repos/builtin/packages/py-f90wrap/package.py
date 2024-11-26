@@ -19,6 +19,9 @@ class PyF90wrap(PythonPackage):
     version("0.2.6", sha256="e0748eb5e288be7f47829a272fc230373469fb40afccddf91e9973c56da43dd4")
     version("0.2.3", sha256="5577ea92934c5aad378df21fb0805b5fb433d6f2b8b9c1bf1a9ec1e3bf842cff")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # TODO errors with python 3.6 due to UnicodeDecodeError
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

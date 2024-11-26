@@ -16,6 +16,7 @@ from llnl.util.filesystem import working_dir
 
 import spack.package_base
 import spack.spec
+import spack.version
 from spack.version import (
     EmptyRangeError,
     GitVersion,
@@ -213,12 +214,24 @@ def test_nums_and_patch():
     assert_ver_gt("=6.5p1", "=5.6p1")
 
 
-def test_rc_versions():
-    assert_ver_gt("=6.0.rc1", "=6.0")
-    assert_ver_lt("=6.0", "=6.0.rc1")
+def test_prereleases():
+    # pre-releases are special: they are less than final releases
+    assert_ver_lt("=6.0alpha", "=6.0alpha0")
+    assert_ver_lt("=6.0alpha0", "=6.0alpha1")
+    assert_ver_lt("=6.0alpha1", "=6.0alpha2")
+    assert_ver_lt("=6.0alpha2", "=6.0beta")
+    assert_ver_lt("=6.0beta", "=6.0beta0")
+    assert_ver_lt("=6.0beta0", "=6.0beta1")
+    assert_ver_lt("=6.0beta1", "=6.0beta2")
+    assert_ver_lt("=6.0beta2", "=6.0rc")
+    assert_ver_lt("=6.0rc", "=6.0rc0")
+    assert_ver_lt("=6.0rc0", "=6.0rc1")
+    assert_ver_lt("=6.0rc1", "=6.0rc2")
+    assert_ver_lt("=6.0rc2", "=6.0")
 
 
 def test_alpha_beta():
+    # these are not pre-releases, but ordinary string components.
     assert_ver_gt("=10b2", "=10a1")
     assert_ver_lt("=10a2", "=10b2")
 
@@ -275,6 +288,39 @@ def test_version_ranges():
 
     assert_ver_lt("1.2:1.4", "1.5:1.6")
     assert_ver_gt("1.5:1.6", "1.2:1.4")
+
+
+def test_version_range_with_prereleases():
+    # 1.2.1: means from the 1.2.1 release onwards
+    assert_does_not_satisfy("1.2.1alpha1", "1.2.1:")
+    assert_does_not_satisfy("1.2.1beta2", "1.2.1:")
+    assert_does_not_satisfy("1.2.1rc3", "1.2.1:")
+
+    # Pre-releases of 1.2.1 are included in the 1.2.0: range
+    assert_satisfies("1.2.1alpha1", "1.2.0:")
+    assert_satisfies("1.2.1beta1", "1.2.0:")
+    assert_satisfies("1.2.1rc3", "1.2.0:")
+
+    # In Spack 1.2 and 1.2.0 are distinct with 1.2 < 1.2.0. So a lowerbound on 1.2 includes
+    # pre-releases of 1.2.0 as well.
+    assert_satisfies("1.2.0alpha1", "1.2:")
+    assert_satisfies("1.2.0beta2", "1.2:")
+    assert_satisfies("1.2.0rc3", "1.2:")
+
+    # An upperbound :1.1 does not include 1.2.0 pre-releases
+    assert_does_not_satisfy("1.2.0alpha1", ":1.1")
+    assert_does_not_satisfy("1.2.0beta2", ":1.1")
+    assert_does_not_satisfy("1.2.0rc3", ":1.1")
+
+    assert_satisfies("1.2.0alpha1", ":1.2")
+    assert_satisfies("1.2.0beta2", ":1.2")
+    assert_satisfies("1.2.0rc3", ":1.2")
+
+    # You can also construct ranges from prereleases
+    assert_satisfies("1.2.0alpha2:1.2.0beta1", "1.2.0alpha1:1.2.0beta2")
+    assert_satisfies("1.2.0", "1.2.0alpha1:")
+    assert_satisfies("=1.2.0", "1.2.0alpha1:")
+    assert_does_not_satisfy("=1.2.0", ":1.2.0rc345")
 
 
 def test_contains():
@@ -417,12 +463,12 @@ def test_basic_version_satisfaction():
     assert_satisfies("4.7.3", "4.7.3")
 
     assert_satisfies("4.7.3", "4.7")
-    assert_satisfies("4.7.3b2", "4.7")
-    assert_satisfies("4.7b6", "4.7")
+    assert_satisfies("4.7.3v2", "4.7")
+    assert_satisfies("4.7v6", "4.7")
 
     assert_satisfies("4.7.3", "4")
-    assert_satisfies("4.7.3b2", "4")
-    assert_satisfies("4.7b6", "4")
+    assert_satisfies("4.7.3v2", "4")
+    assert_satisfies("4.7v6", "4")
 
     assert_does_not_satisfy("4.8.0", "4.9")
     assert_does_not_satisfy("4.8", "4.9")
@@ -433,12 +479,12 @@ def test_basic_version_satisfaction_in_lists():
     assert_satisfies(["4.7.3"], ["4.7.3"])
 
     assert_satisfies(["4.7.3"], ["4.7"])
-    assert_satisfies(["4.7.3b2"], ["4.7"])
-    assert_satisfies(["4.7b6"], ["4.7"])
+    assert_satisfies(["4.7.3v2"], ["4.7"])
+    assert_satisfies(["4.7v6"], ["4.7"])
 
     assert_satisfies(["4.7.3"], ["4"])
-    assert_satisfies(["4.7.3b2"], ["4"])
-    assert_satisfies(["4.7b6"], ["4"])
+    assert_satisfies(["4.7.3v2"], ["4"])
+    assert_satisfies(["4.7v6"], ["4"])
 
     assert_does_not_satisfy(["4.8.0"], ["4.9"])
     assert_does_not_satisfy(["4.8"], ["4.9"])
@@ -507,6 +553,11 @@ def test_formatted_strings():
         assert v.dotted.joined.string == "123b"
 
 
+def test_dotted_numeric_string():
+    assert Version("1a2b3").dotted_numeric_string == "1.0.2.0.3"
+    assert Version("1a2b3alpha4").dotted_numeric_string == "1.0.2.0.3.0.4"
+
+
 def test_up_to():
     v = Version("1.23-4_5b")
 
@@ -548,9 +599,18 @@ def test_repr_and_str():
     check_repr_and_str("R2016a.2-3_4")
 
 
+@pytest.mark.parametrize(
+    "version_str", ["1.2string3", "1.2-3xyz_4-alpha.5", "1.2beta", "1_x_rc-4"]
+)
+def test_stringify_version(version_str):
+    v = Version(version_str)
+    v.string = None
+    assert str(v) == version_str
+
+
 def test_len():
     a = Version("1.2.3.4")
-    assert len(a) == len(a.version)
+    assert len(a) == len(a.version[0])
     assert len(a) == 4
     b = Version("2018.0")
     assert len(b) == 2

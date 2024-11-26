@@ -31,6 +31,8 @@ class PyLlnlSina(PythonPackage):
     version("1.11.0", tag="v1.11.0", commit="f3e9bb3a122cfae2a9fd82c3c5613cff939d3aa1")
     version("1.10.0", tag="v1.10.0", commit="9c3c0acca5f0d4ac02470571688f00ab0bd61a30")
 
+    depends_on("cxx", type="build")  # generated
+
     # let's remove dependency on orjson
     patch("no_orjson.patch")
     depends_on("py-setuptools", type="build")

@@ -20,6 +20,8 @@ class PyFord(PythonPackage):
     version("6.1.12", sha256="101191e1aa33cfe780ea5b2d66d02c7281b9b314e82bb138d76809a49c08506a")
     version("6.1.11", sha256="feb9a88040e717e84c632e4b023904ab36a463fc9a8ff80c8c7f86454e5d8043")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("py-wheel@0.29:", type="build")
 
     depends_on("py-setuptools@48:", type="build")

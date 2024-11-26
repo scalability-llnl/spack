@@ -16,6 +16,8 @@ class SzCpp(CMakePackage):
 
     version("2022-01-27", commit="9441b79abc89d4bcce53fe18edf0df53fd92d1d7")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", description="build shared libs", default=True)
 
     depends_on("zstd")

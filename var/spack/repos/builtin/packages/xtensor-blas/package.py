@@ -23,6 +23,8 @@ class XtensorBlas(CMakePackage):
     version("0.18.0", sha256="fba992bc08323bc40fd04d6549e50e43b97942624a51e08129102d18c135eec0")
     version("0.17.2", sha256="2798c7e230d0c4b2d357bba20a0ef23a2b774d892be31ebbf702cb9935ea9f64")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.1:", type="build")
     # the information below can be found in the xtensor-blas README
     depends_on("xtensor@0.24.0:", when="@0.20:")

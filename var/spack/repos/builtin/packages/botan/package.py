@@ -16,6 +16,7 @@ class Botan(MakefilePackage):
 
     license("BSD-2-Clause")
 
+    version("3.4.0", sha256="71843afcc0a2c585f8f33fa304f0b58ae4b9c5d8306f894667b3746044277557")
     version("3.3.0", sha256="368f11f426f1205aedb9e9e32368a16535dc11bd60351066e6f6664ec36b85b9")
     version("3.2.0", sha256="049c847835fcf6ef3a9e206b33de05dd38999c325e247482772a5598d9e5ece3")
     version("3.1.1", sha256="30c84fe919936a98fef5331f246c62aa2c0e4d2085b2d4511207f6a20afa3a6b")
@@ -41,6 +42,8 @@ class Botan(MakefilePackage):
     version("2.12.0", sha256="1eaefd459d52f27de1805cff8c68792e0610919648ee98e101980e94edb90a63")
     version("2.11.0", sha256="f7874da2aeb8c018fd77df40b2137879bf90b66f5589490c991e83fb3e8094be")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("doc", default=False, description="Build documentation")
 
     executables = ["^botan$"]
@@ -57,7 +60,7 @@ class Botan(MakefilePackage):
     def configure_args(self):
         spec = self.spec
         args = ["--prefix={0}".format(self.prefix)]
-        if "+doc" in spec:
+        if spec.satisfies("+doc"):
             args.append("--with-documentation")
         else:
             args.append("--without-documentation")

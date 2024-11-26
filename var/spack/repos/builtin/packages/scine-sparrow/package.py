@@ -36,6 +36,8 @@ class ScineSparrow(CMakePackage):
     version("3.1.0", sha256="91412de0f2670a1735c4ca76406db5bea04236eeac0bc1f93ccfe18104aa7ce4")
     version("3.0.0", sha256="70636871694c9363ae3fb2df5050bddb22667b71d875d5a7e9afd872f6a2b65d")
 
+    depends_on("cxx", type="build")  # generated
+
     resource(
         name="dev",
         url="https://github.com/qcscine/development-utils/archive/refs/tags/5.0.1.tar.gz",

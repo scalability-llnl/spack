@@ -33,6 +33,8 @@ class RGenomicranges(RPackage):
     version("1.30.3", commit="e99979054bc50ed8c0109bc54563036c1b368997")
     version("1.28.6", commit="197472d618f3ed04c795dc6ed435500c29619563")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@1.46.1:")
     depends_on("r-biocgenerics@0.21.2:", type=("build", "run"))

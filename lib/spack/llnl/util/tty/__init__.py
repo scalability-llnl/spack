@@ -12,7 +12,7 @@ import textwrap
 import traceback
 from datetime import datetime
 from sys import platform as _platform
-from typing import NoReturn
+from typing import Any, NoReturn
 
 if _platform != "win32":
     import fcntl
@@ -158,21 +158,22 @@ def get_timestamp(force=False):
         return ""
 
 
-def msg(message, *args, **kwargs):
+def msg(message: Any, *args: Any, newline: bool = True) -> None:
     if not msg_enabled():
         return
 
     if isinstance(message, Exception):
-        message = "%s: %s" % (message.__class__.__name__, str(message))
+        message = f"{message.__class__.__name__}: {message}"
+    else:
+        message = str(message)
 
-    newline = kwargs.get("newline", True)
     st_text = ""
     if _stacktrace:
         st_text = process_stacktrace(2)
-    if newline:
-        cprint("@*b{%s==>} %s%s" % (st_text, get_timestamp(), cescape(_output_filter(message))))
-    else:
-        cwrite("@*b{%s==>} %s%s" % (st_text, get_timestamp(), cescape(_output_filter(message))))
+
+    nl = "\n" if newline else ""
+    cwrite(f"@*b{{{st_text}==>}} {get_timestamp()}{cescape(_output_filter(message))}{nl}")
+
     for arg in args:
         print(indent + _output_filter(str(arg)))
 

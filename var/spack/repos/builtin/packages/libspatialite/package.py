@@ -34,6 +34,8 @@ class Libspatialite(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("freexl")
     depends_on("freexl@2:", when="@5.1:")

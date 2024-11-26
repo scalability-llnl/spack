@@ -1,0 +1,15 @@
+diff -ruN spack-src/include/camp/resource/hip.hpp spack-src-patched/include/camp/resource/hip.hpp
+--- spack-src/include/camp/resource/hip.hpp	2021-08-20 23:38:39.000000000 +0000
++++ spack-src-patched/include/camp/resource/hip.hpp	2024-06-06 21:34:25.174477941 +0000
+@@ -111,7 +111,11 @@
+         hipPointerAttribute_t a;
+         hipError_t status = hipPointerGetAttributes(&a, p);
+         if (status == hipSuccess) {
++#if (HIP_VERSION_MAJOR >= 6)
++          switch (a.type) {
++#else
+           switch (a.memoryType) {
++#endif
+             case hipMemoryTypeHost:
+               return MemoryAccess::Pinned;
+             case hipMemoryTypeDevice:

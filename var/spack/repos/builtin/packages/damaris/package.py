@@ -18,6 +18,8 @@ class Damaris(CMakePackage):
     license("LGPL-3.0-or-later")
 
     version("master", branch="master")
+    version("1.11.0", tag="v1.11.0", commit="1aee2a8971584712d81323d77f9805448fe54947")
+    version("1.10.0", tag="v1.10.0", commit="4e6b2641be1f7ded379312a8e7f4644ebe009ec9")
     version("1.9.2", tag="v1.9.2", commit="22c146b4b4ca047d4d36fd904d248e0280b3c0ea")
     version("1.9.1", tag="v1.9.1", commit="2fe83f587837b7ad0b5c187b8ff453f7d3ad2c18")
     version("1.9.0", tag="v1.9.0", commit="23cac3a8ade9f9c20499081a8ed10b3e51801428")
@@ -41,6 +43,10 @@ class Damaris(CMakePackage):
     version(
         "1.3.1", tag="v1.3.1", commit="6cee3690fa7d387acc8f5f650a7b019e13b90284", deprecated=True
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("fortran", default=True, description="Enables Fortran support")
     variant("hdf5", default=False, description="Enables the HDF5 storage plugin")

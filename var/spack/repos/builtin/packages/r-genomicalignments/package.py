@@ -28,6 +28,8 @@ class RGenomicalignments(RPackage):
     version("1.14.2", commit="57b0b35d8b36069d4d94af86af051f0129b28eef")
     version("1.12.2", commit="b5d6f19e4a89b6c1c3e9e58e5ea4eb13870874ef")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@1.30.0:")
     depends_on("r-biocgenerics@0.15.3:", type=("build", "run"))

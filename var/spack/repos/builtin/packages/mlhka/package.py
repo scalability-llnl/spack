@@ -17,6 +17,8 @@ class Mlhka(Package):
 
     version("2.1", commit="e735ddd39073af58da21b00b27dea203736e5467")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         cxx = which("c++")
         cxx("MLHKA_version{0}.cpp".format(self.version), "-o", "MLHKA")

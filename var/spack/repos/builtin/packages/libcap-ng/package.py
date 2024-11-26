@@ -19,6 +19,8 @@ class LibcapNg(AutotoolsPackage):
     version("0.7.11", sha256="78f32ff282b49b7b91c56d317fb6669df26da332c6fc9462870cec2573352222")
     version("0.7.10", sha256="c3c156a215e5be5430b2f3b8717bbd1afdabe458b6068a8d163e71cefe98fc32")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
@@ -33,7 +35,7 @@ class LibcapNg(AutotoolsPackage):
 
     def setup_build_environment(self, env):
         if self.spec.satisfies("+python"):
-            env.set("PYTHON", self.spec["python"].command.path)
+            env.set("PYTHON", python.path)
 
     def configure_args(self):
         args = []

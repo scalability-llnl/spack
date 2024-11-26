@@ -23,6 +23,9 @@ class ZChecker(AutotoolsPackage):
     version("0.6.0", sha256="b01c2c78157234a734c2f4c10a7ab82c329d3cd1a8389d597e09386fa33a3117")
     version("0.5.0", sha256="ad5e68472c511b393ee1ae67d2e3072a22004001cf19a14bd99a2e322a6ce7f9")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=False, description="Enable mpi compilation")
 
     depends_on("mpi", when="+mpi")

@@ -26,6 +26,8 @@ class PpopenApplBem(MakefilePackage):
 
     version("master", branch="APPL/BEM")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
 
     parallel = False

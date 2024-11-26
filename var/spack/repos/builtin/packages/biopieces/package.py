@@ -18,6 +18,8 @@ class Biopieces(Package):
 
     version("2016-04-12", commit="982f80f7c55e2cae67737d80fe35a4e784762856", submodules=True)
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl", type=("build", "run"))
     depends_on("perl-module-build", type=("build", "run"))
     depends_on("perl-bit-vector", type=("build", "run"))

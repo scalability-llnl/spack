@@ -24,6 +24,10 @@ class Asagi(CMakePackage):
     # is preferred to satisfy internal-dependencies
     version("1.0", commit="f67250798b435c308b9a1e7516f916f7855534ec", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "link_type",
         default="shared",

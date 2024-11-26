@@ -18,6 +18,9 @@ class Portcullis(AutotoolsPackage):
     version("1.2.3", sha256="172452b5cef12a8dcc2c1c68527000743114136ee63a0dbe307ac4e2a816bc99")
     version("1.1.2", sha256="5c581a7f827ffeecfe68107b7fe27ed60108325fd2f86a79d93f61b328687749")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf@2.53:", type="build")
     depends_on("automake@1.11:", type="build")
     depends_on("libtool@2.4.2:", type="build")

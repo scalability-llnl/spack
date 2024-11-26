@@ -21,6 +21,8 @@ class Brltty(AutotoolsPackage):
     version("5.5", sha256="cd80a0d225f13779791dc3a72d7f137c06c48e5f2c9600e80a565d2378422207")
     version("5.4", sha256="9ad5a540d29438a755f8b8f1f1534e0eba601c604f3d8223fa00b802959ec636")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

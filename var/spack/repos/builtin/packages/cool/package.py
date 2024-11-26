@@ -21,6 +21,8 @@ class Cool(CMakePackage):
     version("3.3.4", tag="COOL_3_3_4", commit="c3f9f780e0949fc78277c05d21d06fd7ddc6ea48")
     version("3.3.3", tag="COOL_3_3_3", commit="42137f0ecd5028c41a46a99f0b95b56e105ef4e3")
 
+    depends_on("cxx", type="build")  # generated
+
     # Spack-specific patches:
     # * Create python/PyCool/_internal directory
     #   (only necessary for Spack builds, for some reason)

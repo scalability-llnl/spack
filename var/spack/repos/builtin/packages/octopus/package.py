@@ -23,6 +23,7 @@ class Octopus(AutotoolsPackage, CudaPackage):
 
     license("Apache-2.0")
 
+    version("14.1", sha256="6955f4020e69f038650a24509ff19ef35de4fd34e181539f92fa432db9b66ca7")
     version("14.0", sha256="3cf6ef571ff97cc2c226016815d2ac4aa1e00ae3fb0cc693e0aff5620b80373e")
     version("13.0", sha256="b4d0fd496c31a9c4aa4677360e631765049373131e61f396b00048235057aeb1")
     version("12.2", sha256="e919e07703696eadb4ba59352d7a2678a9191b4586cb9da538661615e765a5a2")
@@ -42,6 +43,10 @@ class Octopus(AutotoolsPackage, CudaPackage):
     version("5.0.1", sha256="3423049729e03f25512b1b315d9d62691cd0a6bd2722c7373a61d51bfbee14e0")
 
     version("develop", branch="main")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Build with MPI support")
     variant("scalapack", default=False, when="+mpi", description="Compile with Scalapack")
@@ -300,6 +305,11 @@ class Octopus(AutotoolsPackage, CudaPackage):
             args.append(f"{cxxflags} {gcc10_extra}")
             args.append(f"{cflags} {gcc10_extra}")
 
+        # for octopus 14.1 and above autotools is deprecated in favour of cmake
+        # inorder to continue using autotools we pass `--enable-silent-deprecation`
+        if spec.satisfies("@14.1:"):
+            args.append("--enable-silent-deprecation")
+
         # Disable flags
         #
         # disable gdlib explicitly to avoid
@@ -310,53 +320,37 @@ class Octopus(AutotoolsPackage, CudaPackage):
 
     @run_after("install")
     @on_package_attributes(run_tests=True)
-    def smoke_tests_after_install(self):
+    def benchmark_tests_after_install(self):
         """Function stub to run tests after install if desired
         (for example through `spack install --test=root octopus`)
         """
-        self.smoke_tests()
+        self.test_version()
+        self.test_example()
+        self.test_he()
 
-    def test(self):
-        """Entry point for smoke tests run through `spack test run octopus`."""
-        self.smoke_tests()
-
-    def smoke_tests(self):
-        """Actual smoke tests for Octopus."""
-        #
-        # run "octopus --version"
-        #
-        exe = join_path(self.spec.prefix.bin, "octopus")
-        options = ["--version"]
-        purpose = "Check octopus can execute (--version)"
+    def test_version(self):
+        """Check octopus can execute (--version)"""
         # Example output:
         #
         # spack-v0.17.2$ octopus --version
         # octopus 11.3 (git commit )
-        expected = ["octopus "]
 
-        self.run_test(
-            exe,
-            options=options,
-            expected=expected,
-            status=[0],
-            installed=False,
-            purpose=purpose,
-            skip_missing=False,
-        )
+        exe = which(self.spec.prefix.bin.octopus)
+        out = exe("--version", output=str.split, error=str.split)
+        assert "octopus " in out
+
+    def test_recipe(self):
+        """run recipe example"""
 
         # Octopus expects a file with name `inp` in the current working
         # directory to read configuration information for a simulation run from
         # that file. We copy the relevant configuration file in a dedicated
-        # subfolder for each test.
+        # subfolder for the test.
         #
         # As we like to be able to run these tests also with the
         # `spack install --test=root` command, we cannot rely on
         # self.test_suite.current_test_data_dir, and need to copy the test
         # input files manually (see below).
-
-        #
-        # run recipe example
-        #
 
         expected = [
             "Running octopus",
@@ -365,24 +359,27 @@ class Octopus(AutotoolsPackage, CudaPackage):
             "recipe leads to an edible dish, " 'for it is clearly "system-dependent".',
             "Calculation ended on",
         ]
-        options = []
-        purpose = "Run Octopus recipe example"
+
         with working_dir("example-recipe", create=True):
             print("Current working directory (in example-recipe)")
             fs.copy(join_path(os.path.dirname(__file__), "test", "recipe.inp"), "inp")
-            self.run_test(
-                exe,
-                options=options,
-                expected=expected,
-                status=[0],
-                installed=False,
-                purpose=purpose,
-                skip_missing=False,
-            )
+            exe = which(self.spec.prefix.bin.octopus)
+            out = exe(output=str.split, error=str.split)
+            check_outputs(expected, out)
 
+    def test_he(self):
+        """run He example"""
+
+        # Octopus expects a file with name `inp` in the current working
+        # directory to read configuration information for a simulation run from
+        # that file. We copy the relevant configuration file in a dedicated
+        # subfolder for the test.
         #
-        # run He example
-        #
+        # As we like to be able to run these tests also with the
+        # `spack install --test=root` command, we cannot rely on
+        # self.test_suite.current_test_data_dir, and need to copy the test
+        # input files manually (see below).
+
         expected = [
             "Running octopus",
             "Info: Starting calculation mode.",
@@ -391,17 +388,10 @@ class Octopus(AutotoolsPackage, CudaPackage):
             "Info: Writing states.",
             "Calculation ended on",
         ]
-        options = []
-        purpose = "Run tiny calculation for He"
+
         with working_dir("example-he", create=True):
             print("Current working directory (in example-he)")
             fs.copy(join_path(os.path.dirname(__file__), "test", "he.inp"), "inp")
-            self.run_test(
-                exe,
-                options=options,
-                expected=expected,
-                status=[0],
-                installed=False,
-                purpose=purpose,
-                skip_missing=False,
-            )
+            exe = which(self.spec.prefix.bin.octopus)
+            out = exe(output=str.split, error=str.split)
+            check_outputs(expected, out)

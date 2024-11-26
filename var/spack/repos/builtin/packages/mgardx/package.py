@@ -23,6 +23,9 @@ class Mgardx(CMakePackage):
 
     version("2022-01-27", commit="aabe9de1a331eaeb8eec41125dd45e30c1d03af4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("sz-cpp")
     depends_on("pkgconfig")
     depends_on("zstd")

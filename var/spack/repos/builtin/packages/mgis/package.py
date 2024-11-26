@@ -48,6 +48,10 @@ class Mgis(CMakePackage):
     version("1.0.1", sha256="6102621455bc5d9b1591cd33e93b2e15a9572d2ce59ca6dfa30ba57ae1265c08")
     version("1.0", sha256="279c98da00fa6855edf29c2b8f8bad6e7732298dc62ef67d028d6bbeaac043b3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # variants
     variant("c", default=True, description="Enables c bindings")
     variant("fortran", default=True, description="Enables fortran bindings")

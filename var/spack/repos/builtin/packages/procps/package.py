@@ -29,6 +29,8 @@ class Procps(AutotoolsPackage):
     version("3.3.15", sha256="14dfa751517dd844efa9f492e3ad8071f908a269c6aea643b9a1759235fa2053")
     version("3.3.14", sha256="1ff716e7bde6b3841b8519831690b10b644ed344490369c55e410edc8db2fe18")
 
+    depends_on("c", type="build")  # generated
+
     variant("nls", default=True, description="Enable Native Language Support.")
 
     depends_on("autoconf", type="build")
@@ -70,9 +72,9 @@ class Procps(AutotoolsPackage):
         else:
             args.append("--disable-nls")
 
-        if spec["iconv"].name == "libc":
+        if spec["iconv"].name == "libiconv":
+            args.append(f"--with-libiconv-prefix={spec['iconv'].prefix}")
+        else:
             args.append("--without-libiconv-prefix")
-        elif not is_system_path(spec["iconv"].prefix):
-            args.append("--with-libiconv-prefix={0}".format(spec["iconv"].prefix))
 
         return args

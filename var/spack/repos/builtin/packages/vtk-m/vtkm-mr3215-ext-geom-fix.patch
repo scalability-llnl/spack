@@ -1,0 +1,145 @@
+From 49518e5054c607942f644c82a5289e12b0f50476 Mon Sep 17 00:00:00 2001
+From: Kenneth Moreland <morelandkd@ornl.gov>
+Date: Fri, 3 May 2024 09:22:56 -0400
+Subject: [PATCH] Fix bug with ExtractGeometry filter
+
+The `ExtractGeometry` filter was outputing datasets containing
+`CellSetPermutation` as the representation for the cells. Although this is
+technically correct and a very fast implementation, it is essentially
+useless. The problem is that any downstream processing will have to know
+that the data has a `CellSetPermutation`. None do (because the permutation
+can be on any other cell set type, which creates an explosion of possible
+cell types).
+
+Like was done with `Threshold` a while ago, this problem is fixed by deep
+copying the result into a `CellSetExplicit`. This behavior is consistent
+with VTK.
+---
+ .../changelog/extract-geometry-permutation.md | 13 +++++++
+ .../testing/UnitTestExtractGeometryFilter.cxx | 13 ++++++-
+ .../worklet/ExtractGeometry.h                 | 34 +++++++------------
+ 3 files changed, 37 insertions(+), 23 deletions(-)
+ create mode 100644 docs/changelog/extract-geometry-permutation.md
+
+diff --git a/docs/changelog/extract-geometry-permutation.md b/docs/changelog/extract-geometry-permutation.md
+new file mode 100644
+index 0000000000..8a90495f76
+--- /dev/null
++++ b/docs/changelog/extract-geometry-permutation.md
+@@ -0,0 +1,13 @@
++# Fix bug with ExtractGeometry filter
++
++The `ExtractGeometry` filter was outputing datasets containing
++`CellSetPermutation` as the representation for the cells. Although this is
++technically correct and a very fast implementation, it is essentially
++useless. The problem is that any downstream processing will have to know
++that the data has a `CellSetPermutation`. None do (because the permutation
++can be on any other cell set type, which creates an explosion of possible
++cell types).
++
++Like was done with `Threshold` a while ago, this problem is fixed by deep
++copying the result into a `CellSetExplicit`. This behavior is consistent
++with VTK.
+diff --git a/vtkm/filter/entity_extraction/testing/UnitTestExtractGeometryFilter.cxx b/vtkm/filter/entity_extraction/testing/UnitTestExtractGeometryFilter.cxx
+index 675df8f77c..14de333666 100644
+--- a/vtkm/filter/entity_extraction/testing/UnitTestExtractGeometryFilter.cxx
++++ b/vtkm/filter/entity_extraction/testing/UnitTestExtractGeometryFilter.cxx
+@@ -11,6 +11,7 @@
+ #include <vtkm/cont/testing/MakeTestDataSet.h>
+ #include <vtkm/cont/testing/Testing.h>
+ 
++#include <vtkm/filter/clean_grid/CleanGrid.h>
+ #include <vtkm/filter/entity_extraction/ExtractGeometry.h>
+ 
+ using vtkm::cont::testing::MakeTestDataSet;
+@@ -41,11 +42,21 @@ public:
+     vtkm::cont::DataSet output = extractGeometry.Execute(dataset);
+     VTKM_TEST_ASSERT(test_equal(output.GetNumberOfCells(), 8), "Wrong result for ExtractGeometry");
+ 
++    vtkm::filter::clean_grid::CleanGrid cleanGrid;
++    cleanGrid.SetCompactPointFields(true);
++    cleanGrid.SetMergePoints(false);
++    vtkm::cont::DataSet cleanOutput = cleanGrid.Execute(output);
++
+     vtkm::cont::ArrayHandle<vtkm::Float32> outCellData;
+-    output.GetField("cellvar").GetData().AsArrayHandle(outCellData);
++    cleanOutput.GetField("cellvar").GetData().AsArrayHandle(outCellData);
+ 
+     VTKM_TEST_ASSERT(outCellData.ReadPortal().Get(0) == 21.f, "Wrong cell field data");
+     VTKM_TEST_ASSERT(outCellData.ReadPortal().Get(7) == 42.f, "Wrong cell field data");
++
++    vtkm::cont::ArrayHandle<vtkm::Float32> outPointData;
++    cleanOutput.GetField("pointvar").GetData().AsArrayHandle(outPointData);
++    VTKM_TEST_ASSERT(outPointData.ReadPortal().Get(0) == 99);
++    VTKM_TEST_ASSERT(outPointData.ReadPortal().Get(7) == 90);
+   }
+ 
+   static void TestUniformByBox1()
+diff --git a/vtkm/filter/entity_extraction/worklet/ExtractGeometry.h b/vtkm/filter/entity_extraction/worklet/ExtractGeometry.h
+index 97521335f2..449d7eae60 100644
+--- a/vtkm/filter/entity_extraction/worklet/ExtractGeometry.h
++++ b/vtkm/filter/entity_extraction/worklet/ExtractGeometry.h
+@@ -10,11 +10,13 @@
+ #ifndef vtkm_m_worklet_ExtractGeometry_h
+ #define vtkm_m_worklet_ExtractGeometry_h
+ 
++#include <vtkm/worklet/CellDeepCopy.h>
+ #include <vtkm/worklet/WorkletMapTopology.h>
+ 
+ #include <vtkm/cont/Algorithm.h>
+ #include <vtkm/cont/ArrayCopy.h>
+ #include <vtkm/cont/ArrayHandle.h>
++#include <vtkm/cont/CellSetExplicit.h>
+ #include <vtkm/cont/CellSetPermutation.h>
+ #include <vtkm/cont/CoordinateSystem.h>
+ #include <vtkm/cont/Invoker.h>
+@@ -114,28 +116,13 @@ public:
+     }
+   };
+ 
+-  ////////////////////////////////////////////////////////////////////////////////////
+-  // Extract cells by ids permutes input data
+-  template <typename CellSetType>
+-  vtkm::cont::CellSetPermutation<CellSetType> Run(const CellSetType& cellSet,
+-                                                  const vtkm::cont::ArrayHandle<vtkm::Id>& cellIds)
+-  {
+-    using OutputType = vtkm::cont::CellSetPermutation<CellSetType>;
+-
+-    vtkm::cont::ArrayCopy(cellIds, this->ValidCellIds);
+-
+-    return OutputType(this->ValidCellIds, cellSet);
+-  }
+-
+-  ////////////////////////////////////////////////////////////////////////////////////
+-  // Extract cells by implicit function permutes input data
+   template <typename CellSetType, typename ImplicitFunction>
+-  vtkm::cont::CellSetPermutation<CellSetType> Run(const CellSetType& cellSet,
+-                                                  const vtkm::cont::CoordinateSystem& coordinates,
+-                                                  const ImplicitFunction& implicitFunction,
+-                                                  bool extractInside,
+-                                                  bool extractBoundaryCells,
+-                                                  bool extractOnlyBoundaryCells)
++  vtkm::cont::CellSetExplicit<> Run(const CellSetType& cellSet,
++                                    const vtkm::cont::CoordinateSystem& coordinates,
++                                    const ImplicitFunction& implicitFunction,
++                                    bool extractInside,
++                                    bool extractBoundaryCells,
++                                    bool extractOnlyBoundaryCells)
+   {
+     // Worklet output will be a boolean passFlag array
+     vtkm::cont::ArrayHandle<bool> passFlags;
+@@ -149,7 +136,10 @@ public:
+     vtkm::cont::Algorithm::CopyIf(indices, passFlags, this->ValidCellIds);
+ 
+     // generate the cellset
+-    return vtkm::cont::CellSetPermutation<CellSetType>(this->ValidCellIds, cellSet);
++    vtkm::cont::CellSetPermutation<CellSetType> permutedCellSet(this->ValidCellIds, cellSet);
++
++    vtkm::cont::CellSetExplicit<> outputCells;
++    return vtkm::worklet::CellDeepCopy::Run(permutedCellSet);
+   }
+ 
+   vtkm::cont::ArrayHandle<vtkm::Id> GetValidCellIds() const { return this->ValidCellIds; }
+-- 
+GitLab
+

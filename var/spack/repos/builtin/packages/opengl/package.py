@@ -106,6 +106,6 @@ class Opengl(BundlePackage):
             lib_name = "opengl32"
         elif "platform=darwin" in spec:
             lib_name = "libOpenGL"
-        else:  # linux and cray
+        else:
             lib_name = "libGL"
         return find_libraries(lib_name, root=self.prefix, recursive=True)

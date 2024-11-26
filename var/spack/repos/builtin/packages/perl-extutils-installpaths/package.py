@@ -14,6 +14,7 @@ class PerlExtutilsInstallpaths(PerlPackage):
 
     license("GPL-1.0-or-later OR Artistic-1.0-Perl")
 
+    version("0.013", sha256="65969d3ad8a3a2ea8ef5b4213ed5c2c83961bb5bd12f7ad35128f6bd5b684aa0")
     version("0.012", sha256="84735e3037bab1fdffa3c2508567ad412a785c91599db3c12593a50a1dd434ed")
 
     depends_on("perl-extutils-config", type=("build", "run"))

@@ -19,4 +19,6 @@ class Saws(AutotoolsPackage):
     version("0.1.1", tag="v0.1.1", commit="c483e262b22bdf83ab026d20c35f0e09465d768d")
     version("0.1.0", tag="v0.1.0", commit="312ccc1698cf6c489c0d1eff6db46f54bd9031b7")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python", type="build")

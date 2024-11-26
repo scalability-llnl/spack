@@ -15,6 +15,8 @@ class PyXpyb(AutotoolsPackage):
 
     version("1.3.1", sha256="4056d11f94f17ed4342563955682193c7d004e80e5fa689816f87f3795549c17")
 
+    depends_on("c", type="build")  # generated
+
     extends("python")
 
     depends_on("libxcb@1.5:")

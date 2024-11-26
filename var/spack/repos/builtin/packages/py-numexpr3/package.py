@@ -24,6 +24,9 @@ class PyNumexpr3(PythonPackage):
     license("BSD-3-Clause")
 
     version("3.0.1a1", sha256="de06f1b4206704b5bc19ea09b5c94350b97c211c26bc866f275252a8461b87e6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
     # TODO: Add CMake build system for better control of passing flags related
     # to CPU ISA.
 

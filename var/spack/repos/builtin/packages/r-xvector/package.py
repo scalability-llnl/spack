@@ -26,6 +26,8 @@ class RXvector(RPackage):
     version("0.18.0", commit="27acf47282c9880b54d04dff46c1e50f0c87fa6b")
     version("0.16.0", commit="54615888e1a559da4a81de33e934fc0f1c3ad99f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.8.0:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@0.34.0:")
     depends_on("r-biocgenerics@0.19.2:", type=("build", "run"))

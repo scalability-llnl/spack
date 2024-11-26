@@ -24,6 +24,9 @@ class Sparskit(MakefilePackage):
         url="http://www-users.cs.umn.edu/~saad/software/SPARSKIT/SPARSKIT2.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # The library uses blas routine which needs to be known when the lib is used.
     # A dependent package should add self.spec['blas'].libs.ld_flags
     # at the end of its link line.

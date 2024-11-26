@@ -18,6 +18,8 @@ class IptrafNg(MakefilePackage):
     version("1.2.0", sha256="9725115e501d083674d50a7686029d3a08f920abd35c9a2d4a28b5ddb782417f")
     version("1.1.4", sha256="16b9b05bf5d3725d86409b901696639ad46944d02de6def87b1ceae5310dd35c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ncurses")
 
     def install(self, spec, prefix):

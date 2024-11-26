@@ -21,6 +21,8 @@ class PyCfUnits(PythonPackage):
     version("2.1.4", sha256="25f81ad994af30713ee8f5ef18ffddd83c6ec1ac308e1bd89d45de9d2e0f1c31")
     version("2.1.1", sha256="fa0ef8efd84546e61088aa23e76ebbaf7043167dc3a7f35f34549c234b543530")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-six", type=("build", "run"))

@@ -1,0 +1,19 @@
+diff -ruN spack-src/dpcpp/components/intrinsics.dp.hpp spack-src-patched/dpcpp/components/intrinsics.dp.hpp
+--- spack-src/dpcpp/components/intrinsics.dp.hpp	2024-04-03 18:53:42.724032846 +0000
++++ spack-src-patched/dpcpp/components/intrinsics.dp.hpp	2024-04-03 18:55:01.744543032 +0000
+@@ -67,13 +67,13 @@
+  */
+ __dpct_inline__ int ffs(uint32 mask)
+ {
+-    return (mask == 0) ? 0 : (sycl::ext::intel::ctz(mask) + 1);
++    return (mask == 0) ? 0 : (sycl::ctz(mask) + 1);
+ }
+ 
+ /** @copydoc ffs */
+ __dpct_inline__ int ffs(uint64 mask)
+ {
+-    return (mask == 0) ? 0 : (sycl::ext::intel::ctz(mask) + 1);
++    return (mask == 0) ? 0 : (sycl::ctz(mask) + 1);
+ }
+ 
+ 

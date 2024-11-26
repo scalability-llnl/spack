@@ -19,6 +19,8 @@ class Mysqlpp(AutotoolsPackage):
     version("3.3.0", sha256="449cbc46556cc2cc9f9d6736904169a8df6415f6960528ee658998f96ca0e7cf")
     version("3.2.5", sha256="839cfbf71d50a04057970b8c31f4609901f5d3936eaa86dab3ede4905c4db7a8")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mysql-client")
 
     def configure_args(self):

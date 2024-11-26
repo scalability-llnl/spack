@@ -26,6 +26,8 @@ class Yade(CMakePackage):
     version("2017.01a", sha256="cd35caa6b6a017ee82f894e7d6f0826fddc1d921aea04b5896d3f1da95cb649b")
     version("2016.06a", sha256="6e7374d2dcb7c90026be9229a6b30373f9d82fdefd3dc1f952aa6262924f2579")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake", type="build")
     depends_on("gcc@11.4:", type=("build", "run"))
     depends_on("boost@1.47:", type=("build", "run"))

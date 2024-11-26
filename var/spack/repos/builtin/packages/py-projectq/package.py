@@ -25,6 +25,8 @@ class PyProjectq(PythonPackage):
     version("develop", branch="develop")
     version("0.3.6", commit="fa484fe037a3a1772127bbd00fe4628ddba34611")
 
+    depends_on("cxx", type="build")  # generated
+
     # Dependencies
     depends_on("py-setuptools", type=("build"))
     depends_on("py-numpy", type=("build", "run"))

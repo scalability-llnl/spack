@@ -7,10 +7,15 @@ import os
 
 import pytest
 
+import archspec.cpu
+
+import spack.config
 import spack.environment as ev
 import spack.main
+import spack.modules.common
 import spack.modules.lmod
 import spack.spec
+import spack.util.environment
 
 mpich_spec_string = "mpich@3.0.4"
 mpileaks_spec_string = "mpileaks"
@@ -27,7 +32,7 @@ pytestmark = [
 ]
 
 
-@pytest.fixture(params=["clang@=12.0.0", "gcc@=10.2.1"])
+@pytest.fixture(params=["clang@=15.0.0", "gcc@=10.2.1"])
 def compiler(request):
     return request.param
 
@@ -46,7 +51,7 @@ def provider(request):
     return request.param
 
 
-@pytest.mark.usefixtures("config", "mock_packages")
+@pytest.mark.usefixtures("mutable_config", "mock_packages")
 class TestLmod:
     @pytest.mark.regression("37788")
     @pytest.mark.parametrize("modules_config", ["core_compilers", "core_compilers_at_equal"])
@@ -57,7 +62,7 @@ class TestLmod:
         we can use both ``compiler@version`` and ``compiler@=version`` to specify a core compiler.
         """
         module_configuration(modules_config)
-        module, spec = factory("libelf%clang@12.0.0")
+        module, spec = factory("libelf%clang@15.0.0")
         assert "Core" in module.layout.available_path_parts
 
     def test_file_layout(self, compiler, provider, factory, module_configuration):
@@ -76,7 +81,7 @@ class TestLmod:
         # is transformed to r"Core" if the compiler is listed among core
         # compilers
         # Check that specs listed as core_specs are transformed to "Core"
-        if compiler == "clang@=12.0.0" or spec_string == "mpich@3.0.1":
+        if compiler == "clang@=15.0.0" or spec_string == "mpich@3.0.1":
             assert "Core" in layout.available_path_parts
         else:
             assert compiler.replace("@=", "/") in layout.available_path_parts
@@ -103,14 +108,19 @@ class TestLmod:
         else:
             assert repetitions == 1
 
-    def test_compilers_provided_different_name(self, factory, module_configuration):
-        module_configuration("complex_hierarchy")
-        module, spec = factory("intel-oneapi-compilers%clang@3.3")
+    def test_compilers_provided_different_name(
+        self, factory, module_configuration, compiler_factory
+    ):
+        with spack.config.override(
+            "compilers", [compiler_factory(spec="clang@3.3", operating_system="debian6")]
+        ):
+            module_configuration("complex_hierarchy")
+            module, spec = factory("intel-oneapi-compilers%clang@3.3")
 
-        provides = module.conf.provides
+            provides = module.conf.provides
 
-        assert "compiler" in provides
-        assert provides["compiler"] == spack.spec.CompilerSpec("oneapi@=3.0")
+            assert "compiler" in provides
+            assert provides["compiler"] == spack.spec.CompilerSpec("oneapi@=3.0")
 
     def test_simple_case(self, modulefile_content, module_configuration):
         """Tests the generation of a simple Lua module file."""
@@ -210,6 +220,9 @@ class TestLmod:
 
         assert len([x for x in content if 'setenv("FOO", "{{name}}, {name}, {{}}, {}")' in x]) == 1
 
+    @pytest.mark.skipif(
+        str(archspec.cpu.host().family) != "x86_64", reason="test data is specific for x86_64"
+    )
     def test_help_message(self, modulefile_content, module_configuration):
         """Tests the generation of module help message."""
 
@@ -333,17 +346,18 @@ class TestLmod:
 
         assert "Override successful!" in content
 
-    def test_override_template_in_modules_yaml(self, modulefile_content, module_configuration):
+    def test_override_template_in_modules_yaml(
+        self, modulefile_content, module_configuration, host_architecture_str
+    ):
         """Tests overriding a template from `modules.yaml`"""
         module_configuration("override_template")
 
         content = modulefile_content("override-module-templates")
         assert "Override even better!" in content
 
-        content = modulefile_content("mpileaks target=x86_64")
+        content = modulefile_content(f"mpileaks target={host_architecture_str}")
         assert "Override even better!" in content
 
-    @pytest.mark.usefixtures("config")
     def test_external_configure_args(self, factory):
         # If this package is detected as an external, its configure option line
         # in the module file starts with 'unknown'

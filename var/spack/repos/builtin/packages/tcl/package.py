@@ -8,28 +8,28 @@ import sys
 
 from llnl.util.filesystem import find_first
 
+import spack.build_systems.autotools
+import spack.build_systems.nmake
 from spack.package import *
 from spack.util.environment import is_system_path
 
 is_windows = sys.platform == "win32"
 
 
-class TclHelper:
-    @staticmethod
-    def find_script_dir(spec):
-        # Put more-specific prefixes first
-        check_prefixes = [
-            join_path(spec.prefix, "share", "tcl{0}".format(spec.package.version.up_to(2))),
-            spec.prefix,
-        ]
-        for prefix in check_prefixes:
-            result = find_first(prefix, "init.tcl")
-            if result:
-                return os.path.dirname(result)
-        raise RuntimeError("Cannot locate init.tcl")
+def find_script_dir(spec: Spec) -> str:
+    # Put more-specific prefixes first
+    check_prefixes = [
+        join_path(spec.prefix, "share", "tcl{0}".format(spec.package.version.up_to(2))),
+        spec.prefix,
+    ]
+    for prefix in check_prefixes:
+        result = find_first(prefix, "init.tcl")
+        if result:
+            return os.path.dirname(result)
+    raise RuntimeError("Cannot locate init.tcl")
 
 
-class Tcl(AutotoolsPackage, NMakePackage, SourceforgePackage, TclHelper):
+class Tcl(AutotoolsPackage, NMakePackage, SourceforgePackage):
     """Tcl (Tool Command Language) is a very powerful but easy to learn dynamic
     programming language, suitable for a very wide range of uses, including web and
     desktop applications, networking, administration, testing and many more. Open source
@@ -52,13 +52,15 @@ class Tcl(AutotoolsPackage, NMakePackage, SourceforgePackage, TclHelper):
     version("8.6.3", sha256="6ce0778de0d50daaa9c345d7c1fd1288fb658f674028812e7eeee992e3051005")
     version("8.5.19", sha256="d3f04456da873d17f02efc30734b0300fb6c3b85028d445fe284b83253a6db18")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     extendable = True
 
     depends_on("zlib-api")
 
-    # No compiler wrappers on Windows
-    for plat in ["linux", "darwin", "cray", "freebsd"]:
-        filter_compiler_wrappers("tclConfig.sh", relative_root="lib", when=f"platform={plat}")
+    if sys.platform != "win32":
+        filter_compiler_wrappers("tclConfig.sh", relative_root="lib")
 
     build_system("autotools", "nmake")
     patch("tcl-quote-cc-path.patch", when="platform=windows")
@@ -103,7 +105,7 @@ class Tcl(AutotoolsPackage, NMakePackage, SourceforgePackage, TclHelper):
         """
         # When using tkinter from within spack provided python+tkinter,
         # python will not be able to find Tcl unless TCL_LIBRARY is set.
-        env.set("TCL_LIBRARY", TclHelper.find_script_dir(self.spec))
+        env.set("TCL_LIBRARY", find_script_dir(self.spec))
 
     def setup_dependent_run_environment(self, env, dependent_spec):
         """Set TCLLIBPATH to include the tcl-shipped directory for
@@ -121,7 +123,7 @@ class Tcl(AutotoolsPackage, NMakePackage, SourceforgePackage, TclHelper):
                     env.prepend_path("TCLLIBPATH", tcllibpath, separator=" ")
 
 
-class BaseBuilder(TclHelper, metaclass=spack.builder.PhaseCallbacksMeta):
+class AnyBuilder(BaseBuilder):
     @run_after("install")
     def symlink_tclsh(self):
         # There's some logic regarding this suffix in the build system
@@ -149,7 +151,7 @@ class BaseBuilder(TclHelper, metaclass=spack.builder.PhaseCallbacksMeta):
         * https://wiki.tcl-lang.org/page/TCL_LIBRARY
         * https://wiki.tcl-lang.org/page/TCLLIBPATH
         """
-        env.set("TCL_LIBRARY", TclHelper.find_script_dir(self.spec))
+        env.set("TCL_LIBRARY", find_script_dir(self.spec))
 
         # If we set TCLLIBPATH, we must also ensure that the corresponding
         # tcl is found in the build environment. This to prevent cases
@@ -180,7 +182,7 @@ class BaseBuilder(TclHelper, metaclass=spack.builder.PhaseCallbacksMeta):
                     env.prepend_path("TCLLIBPATH", tcllibpath, separator=" ")
 
 
-class AutotoolsBuilder(BaseBuilder, spack.build_systems.autotools.AutotoolsBuilder):
+class AutotoolsBuilder(AnyBuilder, spack.build_systems.autotools.AutotoolsBuilder):
     configure_directory = "unix"
 
     def install(self, pkg, spec, prefix):
@@ -213,7 +215,7 @@ class AutotoolsBuilder(BaseBuilder, spack.build_systems.autotools.AutotoolsBuild
             make("clean")
 
 
-class NMakeBuilder(BaseBuilder, spack.build_systems.nmake.NMakeBuilder):
+class NMakeBuilder(AnyBuilder, spack.build_systems.nmake.NMakeBuilder):
     build_targets = ["all"]
     install_targets = ["install"]
 

@@ -16,3 +16,5 @@ class Bitsery(CMakePackage):
     license("MIT")
 
     version("5.1.0", sha256="8f46667db5d0b62fdaab33612108498bcbcbe9cfa48d2cd220b2129734440a8d")
+
+    depends_on("cxx", type="build")  # generated

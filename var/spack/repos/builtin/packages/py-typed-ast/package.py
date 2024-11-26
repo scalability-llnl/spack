@@ -25,6 +25,8 @@ class PyTypedAst(PythonPackage):
         url="https://files.pythonhosted.org/packages/source/t/typed-ast/typed-ast-1.3.5.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "wheel",
         default=False,

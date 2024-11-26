@@ -16,4 +16,5 @@ class PyArt(PythonPackage):
 
     version("6.1", sha256="6ab3031e3b7710039e73497b0e750cadfe04d4c1279ce3a123500dbafb9e1b64")
 
-    depends_on("python@3.5:")
+    depends_on("python@3.5:", type=("build", "run"))
+    depends_on("py-setuptools", type="build")

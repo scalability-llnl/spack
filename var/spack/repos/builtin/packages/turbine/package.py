@@ -18,6 +18,9 @@ class Turbine(AutotoolsPackage):
     version("1.3.0", sha256="9709e5dada91a7dce958a7967d6ff2bd39ccc9e7da62d05a875324b5089da393")
     version("1.2.3", sha256="a3156c7e0b39e166da3de8892f55fa5d535b0c99c87a9add067c801098fe51ba")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("python", default=False, description="Enable calling python")
     variant("r", default=False, description="Enable calling R")
     variant("hdf5", default=False, description="Enable HDF5 support")

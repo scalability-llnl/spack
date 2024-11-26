@@ -24,16 +24,18 @@ class Opendatadetector(CMakePackage):
     version("v2", tag="v2", commit="7041ae086dff4ee4a8d5b65f5d9559acc6dbec47")
     version("v1", tag="v1", commit="81c43c6511723c13c15327479082d3dcfa1947c7")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("dd4hep")
     depends_on("root")
     depends_on("boost")
 
     def cmake_args(self):
         args = []
-        # C++ Standard
         args.append("-DCMAKE_CXX_STANDARD=%s" % self.spec["root"].variants["cxxstd"].value)
         return args
 
     def setup_run_environment(self, env):
+        env.set("OPENDATADETECTOR_DATA", join_path(self.prefix.share, "OpenDataDetector"))
         env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
         env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib64)

@@ -18,6 +18,12 @@ class QtShadertools(QtPackage):
 
     license("BSD-3-Clause")
 
+    version("6.7.3", sha256="8ec6a48c41d49b6f9595659169b2c69aecd46e96a88131f19f6a4cda394fa3f4")
+    version("6.7.2", sha256="256ff8199d9f6e97bef57f602c5fa7a32e3c7588bf7efe39e412b810c7ed4ffc")
+    version("6.7.1", sha256="56cfba20c7e8f7a218cac68d237a63ea342ac9a67211ecdf3c7152572632448b")
+    version("6.7.0", sha256="82d9ef04a470db30e90253ddc72fcbc8fea2ecad419a735ecf64bb965560197f")
+    version("6.6.3", sha256="a0e44248cec9011166794da895952cc1f98ddbfa77180174da925c5f749391a8")
+    version("6.6.2", sha256="c6d06a660779990f69b8b2e21eb01ada784f9144cbaeb718ee0da01c33ce2141")
     version("6.6.1", sha256="1206110464f8829e34ca7277bdcd2044e96a98078c9ab9f8b96ed526a4d81526")
     version("6.6.0", sha256="8b34908f8bbc7fb00a00babede91dbbeec9826f5138d390041f239d483e1162a")
     version("6.5.3", sha256="e6c627763db8c60799218947443efb90fb3511342f2212f5e99cd98f6942ed08")
@@ -33,6 +39,8 @@ class QtShadertools(QtPackage):
     version("6.3.0", sha256="3c36d83fc036a144722ce056b2840260005dcbd338e11b9c527d7266a54afd45")
     version("6.2.4", sha256="c3332d91e0894086634d5f8d40638439e6e3653a3a185e1b5f5d23ae3b9f51a1")
     version("6.2.3", sha256="658c4acc2925e57d35bbd38cdf49c08297555ed7d632f9e86bfef76e6d861562")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("qt-base +gui")
 

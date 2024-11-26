@@ -25,6 +25,8 @@ class PyWorkloadAutomation(PythonPackage):
     version("2.7.0", sha256="e9005b9db18e205bf6c4b3e09b15a118abeede73700897427565340dcd589fbb")
     version("2.6.0", sha256="b94341fb067592cebe0db69fcf7c00c82f96b4eb7c7210e34b38473869824cce")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-python-dateutil", type=("build", "run"))
     depends_on("py-pexpect@3.3:", type=("build", "run"))

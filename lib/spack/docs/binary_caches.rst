@@ -220,6 +220,40 @@ section of the configuration:
 
 .. _binary_caches_oci:
 
+---------------------------------
+Automatic push to a build cache
+---------------------------------
+
+Sometimes it is convenient to push packages to a build cache as soon as they are installed. Spack can do this by setting autopush flag when adding a mirror:
+
+.. code-block:: console
+
+    $ spack mirror add --autopush <name> <url or path>
+
+Or the autopush flag can be set for an existing mirror:
+
+.. code-block:: console
+
+    $ spack mirror set --autopush <name>  # enable automatic push for an existing mirror
+    $ spack mirror set --no-autopush <name>  # disable automatic push for an existing mirror
+
+Then after installing a package it is automatically pushed to all mirrors with ``autopush: true``. The command
+
+.. code-block:: console
+
+    $ spack install <package>
+
+will have the same effect as
+
+.. code-block:: console
+
+    $ spack install <package>
+    $ spack buildcache push <cache> <package>  # for all caches with autopush: true
+
+.. note::
+
+    Packages are automatically pushed to a build cache only if they are built from source.
+
 -----------------------------------------
 OCI / Docker V2 registries as build cache
 -----------------------------------------

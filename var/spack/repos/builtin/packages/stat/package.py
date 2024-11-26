@@ -42,6 +42,10 @@ class Stat(AutotoolsPackage):
         url="https://github.com/LLNL/STAT/files/2489327/stat-4.0.1.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # TODO: dysect requires Dyninst patch for version 3.0.0b
     variant("dysect", default=False, description="enable DySectAPI")
     variant("examples", default=False, description="enable examples")

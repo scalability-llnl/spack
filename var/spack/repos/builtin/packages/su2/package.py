@@ -18,6 +18,8 @@ class Su2(MesonPackage):
 
     license("BSD-3-Clause")
 
+    version("8.0.1", commit="8ef4b1be045122b2fdb485bfb5fe4eecd1bc4246", submodules=True)
+    version("8.0.0", commit="1fe59817e984f67ff55146d90d0059e27b772891", submodules=True)
     version("7.5.1", commit="09ba9e3a9605c02d38290e34f42aa6982cb4dd05", submodules=True)
     version("7.5.0", commit="8e8ea59fe6225c8ec4e94d0e0a4b6690ea4294e5", submodules=True)
     version("7.4.0", commit="745e5d922c63c8ec6963b31808c20df2e3bfd075", submodules=True)
@@ -35,6 +37,13 @@ class Su2(MesonPackage):
     version("7.0.1", sha256="eb0550c82ccaef8cb71e4a8775aa71d2020ef085ec3dd19dfafff5d301034f6f")
     version("7.0.0", sha256="6207dcca15eaebc11ce12b2866c937b4ad9b93274edf6f23d0487948ac3963b8")
     version("6.2.0", sha256="ffc953326e8432a1a6534556a5f6cf086046d3149cfcec6b4e7390eebe30ce2e")
+
+    # @:7 is missing few <cstdint> includes, causing a few files to fail with %gcc@13:
+    conflicts("%gcc@13:", when="@:7")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=False, description="Enable MPI support")
     variant("openmp", default=False, description="Enable OpenMP support")
@@ -54,6 +63,8 @@ class Su2(MesonPackage):
 
     depends_on("meson@0.61.1:", type=("build"))
     depends_on("python@3:", type=("build", "run"))
+    depends_on("py-numpy", type="run")
+    depends_on("py-scipy", type="run")
     depends_on("zlib-api")
     depends_on("pkgconfig")
     depends_on("mpi", when="+mpi")
@@ -63,18 +74,19 @@ class Su2(MesonPackage):
     depends_on("openblas", when="+openblas ~mkl")
     depends_on("cmake", type="build", when="+mpp")
 
-    depends_on("codipack@:1.9.3", when="+autodiff")
-    depends_on("codipack@:1.9.3", when="+directdiff")
-    depends_on("medipack", when="+autodiff +mpi")
-    depends_on("medipack", when="+directdiff +mpi")
+    for diff_type in ("+autodiff", "+directdiff"):
+        with when(diff_type):
+            depends_on("codipack@1.9.3", when="@:7.5.1")
+            depends_on("codipack@2.2.0:", when="@8.0.0:")
+            depends_on("medipack", when="+mpi")
     depends_on("opdilib", when="+autodiff +openmp")
-    depends_on("opdilib", when="+directdiff +openmp")
-    depends_on("codipack@openmp", when="+autodiff +openmp")
-    depends_on("codipack@openmp", when="+directdiff +openmp")
 
     # Remove the part that fixes the meson version to 0.61.1.
     # This fix is considered meaningless and will be removed in the next version(@7.6:) of SU2.
     patch("meson_version.patch", when="@7.4.0:7.5.1")
+
+    # Remove the timestamp check of preconfigure.py for version(@8:)
+    patch("remove_preconfigure_timestamp_check.patch", when="@8.0.0:")
 
     def patch(self):
         if self.spec.satisfies("+autodiff") or self.spec.satisfies("+directdiff"):
@@ -84,23 +96,26 @@ class Su2(MesonPackage):
                 "meson.build",
             )
 
-        if (
-            self.spec.satisfies("+autodiff") or self.spec.satisfies("+directdiff")
-        ) and self.spec.satisfiles("+mpi"):
-            filter_file(
-                "externals/medi/include", self.spec["medipack"].prefix.include, "meson.build"
-            )
-            filter_file("externals/medi/src", self.spec["medipack"].prefix.src, "meson.build")
+            if self.spec.satisfies("+mpi"):
+                filter_file(
+                    "externals/medi/include", self.spec["medipack"].prefix.include, "meson.build"
+                )
+                filter_file("externals/medi/src", self.spec["medipack"].prefix.src, "meson.build")
 
-        if (
-            self.spec.satisfies("+autodiff") or self.spec.satisfies("+directdiff")
-        ) and self.spec.satisfies("+openmp"):
+        if self.spec.satisfies("+autodiff") and self.spec.satisfies("+openmp"):
             filter_file(
                 "externals/opdi/include", self.spec["opdilib"].prefix.include, "meson.build"
             )
             filter_file(
                 "externals/opdi/syntax/check.py",
                 join_path(self.spec["opdilib"].prefix.syntax, "check.py"),
+                "meson.build",
+            )
+
+        if self.spec.satisfies("+mpp") and self.spec.satisfies("@8.0:"):
+            filter_file(
+                r"join_paths\(meson\.project_source_root\(\), 'ninja'\)",
+                f"join_paths('{self.spec['ninja'].prefix.bin}', 'ninja')",
                 "meson.build",
             )
 
@@ -114,16 +129,39 @@ class Su2(MesonPackage):
             "-Denable-pywrapper={}".format("+pywrapper" in self.spec),
             "-Denable-mkl={}".format("+mkl" in self.spec),
             "-Denable-openblas={}".format("+openblas" in self.spec),
-            "-Denable-mpp={}".format("+mpp" in self.spec),
             "-Denable-mixedprec={}".format("+midexprec" in self.spec),
         ]
+        if self.spec.version >= Version("7.1.0"):
+            args.append("-Denable-mpp={}".format("+mpp" in self.spec))
 
         if "+mkl" in self.spec:
             args.append("-Dmkl_root=" + self.spec["intel-oneapi-mkl"].prefix)
 
         if "+mpi" in self.spec:
-            args.append("-Dwith-mpi=enabled")
+            args.append("-Dwith-mpi=auto")
         else:
             args.append("-Dwith-mpi=disabled")
 
         return args
+
+    @run_after("install")
+    def install_mpp(self):
+        if "+mpp" in self.spec:
+            mkdirp(join_path(self.prefix, "mpp-data"))
+            mkdirp(join_path(self.prefix, "lib"))
+            install_tree(
+                join_path(self.stage.source_path, "subprojects", "Mutationpp", "data"),
+                join_path(self.prefix, "mpp-data"),
+            )
+            install_tree(
+                join_path(self.build_directory, "subprojects", "Mutationpp"), self.prefix.lib
+            )
+
+    def setup_run_environment(self, env):
+        env.set("su2_run", self.prefix.bin)
+        env.set("su2_home", self.prefix)
+        env.prepend_path("path", self.prefix.bin)
+        env.prepend_path("pythonpath", self.prefix.bin)
+        if "+mpp" in self.spec:
+            env.set("mpp_data_directory", join_path(self.prefix, "mpp-data"))
+            env.prepend_path("ld_library_path", self.prefix.lib)

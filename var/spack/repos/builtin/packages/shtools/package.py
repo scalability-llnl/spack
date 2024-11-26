@@ -20,6 +20,9 @@ class Shtools(MakefilePackage):
     version("4.8", sha256="c36fc86810017e544abbfb12f8ddf6f101a1ac8b89856a76d7d9801ffc8dac44")
     version("4.5", sha256="1975a2a2bcef8c527d321be08c13c2bc479e0d6b81c468a3203f95df59be4f89")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Note: This package also provides Python wrappers. We do not
     # install these properly yet, only the Fortran library is
     # installed.

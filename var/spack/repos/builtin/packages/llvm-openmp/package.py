@@ -43,6 +43,10 @@ class LlvmOpenmp(CMakePackage):
     version("9.0.0", sha256="9979eb1133066376cc0be29d1682bc0b0e7fb541075b391061679111ae4d3b5b")
     version("8.0.0", sha256="f7b1705d2f16c4fc23d6531f67d2dd6fb78a077dd346b02fed64f4b8df65c9d5")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("multicompat", default=True, description="Support the GNU OpenMP runtime interface.")
 
     depends_on("cmake@3.13.4:", when="@12:", type="build")

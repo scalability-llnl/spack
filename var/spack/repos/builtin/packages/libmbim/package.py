@@ -23,6 +23,8 @@ class Libmbim(AutotoolsPackage):
     version("1.14.4", sha256="4b2e8723ea50b2e1d22695850c40abb9f7bcb713ea3b9f91f2c350aaa6ae8d1c")
     version("1.14.2", sha256="bf161c4f78327f8422fd6a820e7e5571d99b719af45429e581bfd6a1585fe4a8")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

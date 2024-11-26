@@ -17,6 +17,8 @@ class Orbit2(AutotoolsPackage):
 
     version("2.14.19", sha256="55c900a905482992730f575f3eef34d50bda717c197c97c08fa5a6eafd857550")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("glib")
     depends_on("libidl")

@@ -19,6 +19,8 @@ class PyTorchtext(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("0.18.0", tag="v0.18.0", commit="9bed85d7a7ae13cf8c28598a88d8e461fe1afcb4")
+    version("0.17.2", tag="v0.17.2", commit="5c34b86897a93ad6564543130661c260a760b356")
     version("0.17.1", tag="v0.17.1", commit="15e55dd73b5de8c179c7bd5cc9e2cc813830fb34")
     version("0.17.0", tag="v0.17.0", commit="400da5c61bab4abaaeaeca91744ca031ad9b2edf")
     version("0.16.2", tag="v0.16.2", commit="299b90e908c1b492139a4cf9da3912660e79a06b")
@@ -40,15 +42,21 @@ class PyTorchtext(PythonPackage):
     version("0.6.0", tag="0.6.0", commit="3a54c7f52584f201c17ca7489b52b812152612dc")
     version("0.5.0", tag="0.5.0", commit="0169cde2f1d446ae886ef0be07e9a673585ed256")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
-        depends_on("python@3.8:3.11", when="@0.15:")
+        depends_on("python@3.8:3.12", when="@0.17.2:")
+        depends_on("python@3.8:3.11", when="@0.15:0.17.1")
         depends_on("python@:3.10", when="@0.13:0.14")
         depends_on("python@:3.9", when="@0.8.1:0.12")
         depends_on("python@:3.8", when="@:0.8.0")
 
         # https://github.com/pytorch/text#installation
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.3.0", when="@0.18.0")
+        depends_on("py-torch@2.2.2", when="@0.17.2")
         depends_on("py-torch@2.2.1", when="@0.17.1")
         depends_on("py-torch@2.2.0", when="@0.17.0")
         depends_on("py-torch@2.1.2", when="@0.16.2")
@@ -85,3 +93,18 @@ class PyTorchtext(PythonPackage):
     depends_on("py-pybind11", when="@0.8:", type=("build", "link"))
     depends_on("py-six", when="@:0.6", type=("build", "run"))
     depends_on("py-sentencepiece", when="@:0.7", type=("build", "run"))
+
+    def patch(self):
+        # Add missing rpaths, which requires patching due to hardcoded cmake_args
+        if self.spec.satisfies("@0.13:"):
+            cmake_args = [
+                f"-DCMAKE_INSTALL_RPATH={python_platlib}/torchtext/lib",
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
+            ]
+            cmake_str = ", ".join(f"'{arg}'" for arg in cmake_args)
+            filter_file(
+                "cmake_args = [",
+                f"cmake_args = [{cmake_str},",
+                "tools/setup_helpers/extension.py",
+                string=True,
+            )

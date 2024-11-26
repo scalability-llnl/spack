@@ -23,6 +23,9 @@ class Music(CMakePackage):
 
     version("2021-12-01", commit="6747c54f3b73ec36719c265fd96362849a83cb45")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "hdf5",
         default=False,

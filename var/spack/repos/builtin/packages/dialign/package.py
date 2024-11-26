@@ -17,6 +17,8 @@ class Dialign(MakefilePackage):
 
     version("2.2.1", sha256="046361bb4ca6e4ab2ac5e634cfcd673f964a887006c09c1b8bd3310fac86f519")
 
+    depends_on("c", type="build")  # generated
+
     build_directory = "src"
 
     def install(self, spec, prefix):

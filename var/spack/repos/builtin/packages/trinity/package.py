@@ -46,6 +46,9 @@ class Trinity(MakefilePackage):
     )
     version("2.6.6", sha256="868dfadeefaf2d3c6150a88d5e86fbc09466d69bbf4a65f70b4f5a7485668984")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake", type="build")
     depends_on("java@8:", type=("build", "run"))
     depends_on("bowtie2")

@@ -49,6 +49,9 @@ class UfsUtils(CMakePackage):
         submodules=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("cmake@3.23:")
     depends_on("bacio")

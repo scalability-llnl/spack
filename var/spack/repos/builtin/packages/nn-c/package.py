@@ -17,6 +17,8 @@ class NnC(AutotoolsPackage):
     version("master", branch="master")
     version("1.86.2", commit="343c7784d38d3270d75d450569fc0b64767c37e9")
 
+    depends_on("c", type="build")  # generated
+
     variant("pic", default=True, description="Produce position-independent code (for shared libs)")
 
     configure_directory = "nn"

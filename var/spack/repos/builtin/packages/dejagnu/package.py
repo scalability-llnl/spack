@@ -19,6 +19,9 @@ class Dejagnu(AutotoolsPackage, GNUMirrorPackage):
     version("1.6", sha256="00b64a618e2b6b581b16eb9131ee80f721baa2669fa0cdee93c500d1a652d763")
     version("1.4.4", sha256="d0fbedef20fb0843318d60551023631176b27ceb1e11de7468a971770d0e048d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("expect", type=("run", "link", "build"))
 
     # DejaGnu 1.4.4 cannot be built in parallel

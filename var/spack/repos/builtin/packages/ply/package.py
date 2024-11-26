@@ -18,6 +18,8 @@ class Ply(AutotoolsPackage):
 
     version("2.1.1", commit="899afb0c35ba2191dd7aa21f13bc7fde2655c475")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

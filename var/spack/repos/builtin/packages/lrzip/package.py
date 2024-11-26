@@ -27,6 +27,9 @@ class Lrzip(Package):
     version("0.616", sha256="6ef50bfec15d7585e5b085067c9fe91a87246ccd14a3165acd08b147bba26a2e")
     version("0.615", sha256="45bc3e09a9c467c9331499e4e7919ea97d0824d24a1f2c3ec9548bb2b9d14898")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # depends_on('coreutils')
     depends_on("lzo")
     depends_on("zlib-api")

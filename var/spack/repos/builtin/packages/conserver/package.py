@@ -22,5 +22,7 @@ class Conserver(AutotoolsPackage):
     version("8.2.2", sha256="05ea1693bf92b42ad2f0a9389c60352ccd35c2ea93c8fc8e618d0153362a7d81")
     version("8.2.1", sha256="251ae01997e8f3ee75106a5b84ec6f2a8eb5ff2f8092438eba34384a615153d0")
 
+    depends_on("c", type="build")  # generated
+
     def setup_run_environment(self, env):
         env.prepend_path("PATH", self.prefix.sbin)

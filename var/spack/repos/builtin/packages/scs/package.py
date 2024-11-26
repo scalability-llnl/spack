@@ -17,6 +17,8 @@ class Scs(MakefilePackage):
 
     version("2.1.1", sha256="0e20b91e8caf744b84aa985ba4e98cc7235ee33612b2bad2bf31ea5ad4e07d93")
 
+    depends_on("c", type="build")  # generated
+
     variant("cuda", default=False, description="Build with Cuda support")
 
     depends_on("blas")

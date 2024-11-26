@@ -117,7 +117,7 @@ def post_install(spec, explicit=None):
         return
 
     # Only enable on platforms using ELF.
-    if not spec.satisfies("platform=linux") and not spec.satisfies("platform=cray"):
+    if not spec.satisfies("platform=linux"):
         return
 
     visit_directory_tree(spec.prefix, ElfFilesWithRPathVisitor())

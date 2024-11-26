@@ -29,6 +29,8 @@ class RBiocneighbors(RPackage):
     version("1.2.0", commit="f754c6300f835142536a4594ddf750481e0fe273")
     version("1.0.0", commit="e252fc04b6d22097f2c5f74406e77d85e7060770")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.5:", type=("build", "run"), when="@1.0.0")
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-s4vectors", type=("build", "run"))

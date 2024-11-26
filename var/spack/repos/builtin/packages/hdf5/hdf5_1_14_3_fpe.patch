@@ -1,0 +1,203 @@
+diff --git a/config/linux-gnulibc1 b/config/linux-gnulibc1
+index 328f8d3cec..079f08d96c 100644
+--- a/config/linux-gnulibc1
++++ b/config/linux-gnulibc1
+@@ -173,10 +173,7 @@ case $FC_BASENAME in
+     nagfor)
+ 
+         F9XSUFFIXFLAG=""
+-        # NOTE: The default is -ieee=stop, which will cause problems
+-        #       when the H5T module performs floating-point type
+-        #       introspection
+-        AM_FCFLAGS="$AM_FCFLAGS -ieee=full"
++        AM_FCFLAGS="$AM_FCFLAGS"
+         FSEARCH_DIRS=""
+ 
+         # Production
+diff --git a/release_docs/RELEASE.txt b/release_docs/RELEASE.txt
+index 200576332b..0aa139761d 100644
+--- a/release_docs/RELEASE.txt
++++ b/release_docs/RELEASE.txt
+@@ -246,6 +246,27 @@ Support for new platforms, languages and compilers
+     -
+ 
+ 
++Patches applied since the HDF5-1.14.3 release
++=============================================
++    Library
++    -------
++    - Suppressed floating-point exceptions in H5T init code
++
++      The floating-point datatype initialization code in H5Tinit_float.c
++      could raise FE_INVALID exceptions while munging bits and performing
++      comparisons that might involve NaN. This was not a problem when the
++      initialization code was executed in H5detect at compile time (prior
++      to 1.14.3), but now that the code is executed at library startup
++      (1.14.3+), these exceptions can be caught by user code, as is the
++      default in the NAG Fortran compiler.
++
++      Starting in 1.14.4, we now suppress floating-point exceptions while
++      initializing the floating-point types and clear FE_INVALID before
++      restoring the original environment.
++
++      Fixes GitHub #3831
++
++
+ Bug Fixes since HDF5-1.14.2 release
+ ===================================
+     Library
+@@ -619,12 +640,6 @@ Known Problems
+     this release with link errors. As a result, Windows binaries for this release
+     will not include Fortran.  The problem will be addressed in HDF5 1.14.4.
+ 
+-    IEEE standard arithmetic enables software to raise exceptions such as overflow,
+-    division by zero, and other illegal operations without interrupting or halting
+-    the program flow. The HDF5 C library intentionally performs these exceptions.
+-    Therefore, the "-ieee=full" nagfor switch is necessary when compiling a program
+-    to avoid stopping on an exception.
+-
+     CMake files do not behave correctly with paths containing spaces.
+     Do not use spaces in paths because the required escaping for handling spaces
+     results in very complex and fragile build files.
+diff --git a/src/H5Tinit_float.c b/src/H5Tinit_float.c
+index 3b9e127fe4..02bb3bad77 100644
+--- a/src/H5Tinit_float.c
++++ b/src/H5Tinit_float.c
+@@ -51,19 +51,23 @@
+  * Function:    DETECT_F
+  *
+  * Purpose:     This macro takes a floating point type like `double' and
+- *              a base name like `natd' and detects byte order, mantissa
+- *              location, exponent location, sign bit location, presence or
+- *              absence of implicit mantissa bit, and exponent bias and
+- *              initializes a detected_t structure with those properties.
++ *              detects byte order, mantissa location, exponent location,
++ *              sign bit location, presence or absence of implicit mantissa
++ *              bit, and exponent bias and initializes a detected_t structure
++ *              with those properties.
++ *
++ *              Note that these operations can raise floating-point
++ *              exceptions and building with some compiler options
++ *              (especially Fortran) can cause problems.
+  *-------------------------------------------------------------------------
+  */
+-#define DETECT_F(TYPE, VAR, INFO)                                                                            \
++#define DETECT_F(TYPE, INFO)                                                                                 \
+     do {                                                                                                     \
+-        TYPE          _v1, _v2, _v3;                                                                         \
+-        unsigned char _buf1[sizeof(TYPE)], _buf3[sizeof(TYPE)];                                              \
+-        unsigned char _pad_mask[sizeof(TYPE)];                                                               \
+-        unsigned char _byte_mask;                                                                            \
+-        int           _i, _j, _last = (-1);                                                                  \
++        TYPE    _v1, _v2, _v3;                                                                               \
++        uint8_t _buf1[sizeof(TYPE)], _buf3[sizeof(TYPE)];                                                    \
++        uint8_t _pad_mask[sizeof(TYPE)];                                                                     \
++        uint8_t _byte_mask;                                                                                  \
++        int     _i, _j, _last = -1;                                                                          \
+                                                                                                              \
+         memset(&INFO, 0, sizeof(INFO));                                                                      \
+         INFO.size = sizeof(TYPE);                                                                            \
+@@ -81,7 +85,7 @@
+         _v1 = (TYPE)4.0L;                                                                                    \
+         H5MM_memcpy(_buf1, (const void *)&_v1, sizeof(TYPE));                                                \
+         for (_i = 0; _i < (int)sizeof(TYPE); _i++)                                                           \
+-            for (_byte_mask = (unsigned char)1; _byte_mask; _byte_mask = (unsigned char)(_byte_mask << 1)) { \
++            for (_byte_mask = (uint8_t)1; _byte_mask; _byte_mask = (uint8_t)(_byte_mask << 1)) {             \
+                 _buf1[_i] ^= _byte_mask;                                                                     \
+                 H5MM_memcpy((void *)&_v2, (const void *)_buf1, sizeof(TYPE));                                \
+                 H5_GCC_CLANG_DIAG_OFF("float-equal")                                                         \
+@@ -118,7 +122,7 @@
+         _v1 = (TYPE)1.0L;                                                                                    \
+         _v2 = (TYPE)-1.0L;                                                                                   \
+         if (H5T__bit_cmp(sizeof(TYPE), INFO.perm, &_v1, &_v2, _pad_mask, &(INFO.sign)) < 0)                  \
+-            HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "failed to detect byte order");                    \
++            HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "failed to determine sign bit");                   \
+                                                                                                              \
+         /* Mantissa */                                                                                       \
+         INFO.mpos = 0;                                                                                       \
+@@ -126,12 +130,11 @@
+         _v1 = (TYPE)1.0L;                                                                                    \
+         _v2 = (TYPE)1.5L;                                                                                    \
+         if (H5T__bit_cmp(sizeof(TYPE), INFO.perm, &_v1, &_v2, _pad_mask, &(INFO.msize)) < 0)                 \
+-            HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "failed to detect byte order");                    \
++            HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "failed to determine mantissa");                   \
+         INFO.msize += 1 + (unsigned)(INFO.imp ? 0 : 1) - INFO.mpos;                                          \
+                                                                                                              \
+         /* Exponent */                                                                                       \
+-        INFO.epos = INFO.mpos + INFO.msize;                                                                  \
+-                                                                                                             \
++        INFO.epos  = INFO.mpos + INFO.msize;                                                                 \
+         INFO.esize = INFO.sign - INFO.epos;                                                                  \
+                                                                                                              \
+         _v1        = (TYPE)1.0L;                                                                             \
+@@ -456,17 +459,24 @@ H5T__set_precision(H5T_fpoint_det_t *d)
+ herr_t H5_NO_UBSAN
+ H5T__init_native_float_types(void)
+ {
++    fenv_t           saved_fenv;
+     H5T_fpoint_det_t det;
+     H5T_t           *dt        = NULL;
+     herr_t           ret_value = SUCCEED;
+ 
+     FUNC_ENTER_PACKAGE
+ 
++    /* Turn off floating-point exceptions while initializing to avoid
++     * tripping over signaling NaNs while looking at "don't care" bits.
++     */
++    if (feholdexcept(&saved_fenv) != 0)
++        HSYS_GOTO_ERROR(H5E_DATATYPE, H5E_CANTSET, FAIL, "can't save floating-point environment");
++
+     /* H5T_NATIVE_FLOAT */
+ 
+     /* Get the type's characteristics */
+     memset(&det, 0, sizeof(H5T_fpoint_det_t));
+-    DETECT_F(float, FLOAT, det);
++    DETECT_F(float, det);
+ 
+     /* Allocate and fill type structure */
+     if (NULL == (dt = H5T__alloc()))
+@@ -497,7 +507,7 @@ H5T__init_native_float_types(void)
+ 
+     /* Get the type's characteristics */
+     memset(&det, 0, sizeof(H5T_fpoint_det_t));
+-    DETECT_F(double, DOUBLE, det);
++    DETECT_F(double, det);
+ 
+     /* Allocate and fill type structure */
+     if (NULL == (dt = H5T__alloc()))
+@@ -528,7 +538,7 @@ H5T__init_native_float_types(void)
+ 
+     /* Get the type's characteristics */
+     memset(&det, 0, sizeof(H5T_fpoint_det_t));
+-    DETECT_F(long double, LDOUBLE, det);
++    DETECT_F(long double, det);
+ 
+     /* Allocate and fill type structure */
+     if (NULL == (dt = H5T__alloc()))
+@@ -561,6 +571,14 @@ H5T__init_native_float_types(void)
+     H5T_native_order_g = det.order;
+ 
+ done:
++    /* Clear any FE_INVALID exceptions from NaN handling */
++    if (feclearexcept(FE_INVALID) != 0)
++        HSYS_GOTO_ERROR(H5E_DATATYPE, H5E_CANTSET, FAIL, "can't clear floating-point exceptions");
++
++    /* Restore the original environment */
++    if (feupdateenv(&saved_fenv) != 0)
++        HSYS_GOTO_ERROR(H5E_DATATYPE, H5E_CANTSET, FAIL, "can't restore floating-point environment");
++
+     if (ret_value < 0) {
+         if (dt != NULL) {
+             dt->shared = H5FL_FREE(H5T_shared_t, dt->shared);
+diff --git a/src/H5private.h b/src/H5private.h
+index 14a0ac3225..3aaa0d5245 100644
+--- a/src/H5private.h
++++ b/src/H5private.h
+@@ -26,6 +26,7 @@
+ #include <ctype.h>
+ #include <errno.h>
+ #include <fcntl.h>
++#include <fenv.h>
+ #include <float.h>
+ #include <math.h>
+ #include <setjmp.h>

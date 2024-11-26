@@ -10,6 +10,7 @@ from llnl.util import lang
 import spack.deptypes as dt
 import spack.package_base
 import spack.repo
+import spack.spec
 
 PossibleDependencies = Set[str]
 
@@ -24,7 +25,13 @@ class Counter:
     """
 
     def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
-        self.specs = specs
+        runtime_pkgs = spack.repo.PATH.packages_with_tags("runtime")
+        runtime_virtuals = set()
+        for x in runtime_pkgs:
+            pkg_class = spack.repo.PATH.get_pkg_class(x)
+            runtime_virtuals.update(pkg_class.provided_virtual_names())
+
+        self.specs = specs + [spack.spec.Spec(x) for x in runtime_pkgs]
 
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
         self.all_types: dt.DepFlag = dt.ALL
@@ -33,7 +40,9 @@ class Counter:
             self.all_types = dt.LINK | dt.RUN | dt.BUILD
 
         self._possible_dependencies: PossibleDependencies = set()
-        self._possible_virtuals: Set[str] = set(x.name for x in specs if x.virtual)
+        self._possible_virtuals: Set[str] = (
+            set(x.name for x in specs if x.virtual) | runtime_virtuals
+        )
 
     def possible_dependencies(self) -> PossibleDependencies:
         """Returns the list of possible dependencies"""

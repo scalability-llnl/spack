@@ -1,0 +1,67 @@
+---  # Neoverse N1 / V1 packages
+packages:
+  acfl:
+    require:
+      - one_of: ["%gcc target=aarch64"]
+        message: "Clang based compilers need GCC libraries and they should be made available for the wide range of CPUs they actually support.
+                Edit $SPACK_ROOT/etc/spack/packages.yaml to change this default."
+  gromacs:
+    require:
+      - one_of:
+          - "gromacs@2021.3 %arm ^fftw ^openmpi"
+          - "gromacs@2021.3 %gcc ^armpl-gcc ^openmpi"
+  libfabric:
+    buildable: true
+    externals:
+      - prefix: /opt/amazon/efa/
+        spec: libfabric@${LIBFABRIC_VERSION}
+    require: ['fabrics=shm,efa']
+  llvm:
+    variants: ~lldb
+  mpas-model:
+    require:
+      - one_of:
+          - "precision=single make_target=llvm %arm ^parallelio+pnetcdf"
+          - "precision=single %gcc ^parallelio+pnetcdf"
+  mpich:
+    require: "mpich pmi=pmi2 device=ch4 netmod=ofi +slurm"
+  nvhpc:
+    require:
+      - one_of:
+          - "nvhpc %gcc target=aarch64"
+        message: "NVHPC should be built with GCC and should be made available for the wide range of CPUs they actually support.
+                Edit $SPACK_ROOT/etc/spack/packages.yaml to change this default."
+  openfoam:
+    require: "openfoam %gcc ^scotch@6.0.9"
+  openmpi:
+    variants: ~atomics ~cuda ~cxx ~cxx_exceptions ~internal-hwloc ~java +legacylaunchers ~lustre ~memchecker +pmi +romio ~singularity +vt +wrapper-rpath fabrics=ofi schedulers=slurm
+    require: '@4:'
+  # Palace does not build correctly with armpl until https://github.com/awslabs/palace/pull/207 is merged into a version.
+  # palace:
+  #   require:
+  #     - one_of: ["palace cxxflags=\"-include cstdint\" ^fmt@9.1.0"]
+  pmix:
+    require: "pmix@3:"
+  quantum-espresso:
+    require: "quantum-espresso@6.6 %gcc ^armpl-gcc"
+  slurm:
+    buildable: false
+    externals:
+      - prefix: ${SLURM_ROOT}
+        spec: slurm@${SLURM_VERSION} +pmix
+  wrf:
+    require:
+      - one_of:
+          - "wrf%arm"
+          - "wrf%gcc"
+  all:
+    compiler: [gcc, arm, nvhpc, clang]
+    providers:
+      blas: [armpl-gcc, openblas]
+      fftw-api: [armpl-gcc, fftw]
+      lapack: [armpl-gcc, openblas]
+      mpi: [openmpi, mpich]
+      scalapack: [netlib-scalapack]
+    permissions:
+      read: world
+      write: user

@@ -23,6 +23,9 @@ class Launchmon(AutotoolsPackage):
     )
     version("1.0.2", sha256="1d301ccccfe0873efcd66da87ed5e4d7bafc560b00aee396d8a9365f53b3a33a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build", when="@master")
     depends_on("automake", type="build", when="@master")
     depends_on("libtool", type="build", when="@master")

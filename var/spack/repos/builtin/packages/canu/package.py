@@ -26,6 +26,9 @@ class Canu(MakefilePackage):
     version("1.7", sha256="c5be54b0ad20729093413e7e722a19637d32e966dc8ecd2b579ba3e4958d378a")
     version("1.5", sha256="06e2c6d7b9f6d325b3b468e9c1a5de65e4689aed41154f2cee5ccd2cef0d5cf6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("git@2.12:", type="build", when="@2.2:")
     depends_on("gnuplot", type="run")
     depends_on("java", type="run")

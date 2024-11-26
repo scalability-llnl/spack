@@ -21,6 +21,8 @@ class Pmerge(AutotoolsPackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("automake@1.14.0:1.14", type="build")
     depends_on("autoconf", type="build")
     depends_on("m4", type="build")

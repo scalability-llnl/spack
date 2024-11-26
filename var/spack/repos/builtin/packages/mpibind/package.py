@@ -30,6 +30,9 @@ class Mpibind(AutotoolsPackage):
     version("0.7.0", commit="3c437a97cd841b9c13abfbe1062a0285e1a29d3e", no_cache=True)
     version("0.5.0", commit="8698f07412232e4dd4de4802b508374dc0de48c9", no_cache=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("cuda", default=False, description="Build w/support for NVIDIA GPUs.")
     variant("rocm", default=False, description="Build w/support for AMD GPUs.")
     variant("flux", default=False, description="Build the Flux plugin.")

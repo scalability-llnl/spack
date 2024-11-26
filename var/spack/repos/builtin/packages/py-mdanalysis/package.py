@@ -27,6 +27,9 @@ class PyMdanalysis(PythonPackage):
     version("2.4.3", sha256="c4fbdc414e4fdda69052fff2a6e412180fe6fa90a42c24793beee04123648c92")
     version("2.4.2", sha256="ae2ee5627391e73f74eaa3c547af3ec6ab8b040d27dedffe3a7ece8e0cd27636")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "analysis",
         default=True,
@@ -42,9 +45,11 @@ class PyMdanalysis(PythonPackage):
     depends_on("py-cython@0.28:", type="build")
 
     # MDAnalysis required dependencies (install_requires)
-    depends_on("py-numpy@1.22.3:1", when="@2.6.0:", type=("build", "run"))
+    depends_on("py-numpy@1.22.3:", when="@2.6.0:", type=("build", "run"))
     depends_on("py-numpy@1.21.0:", when="@2.5.0:", type=("build", "run"))
     depends_on("py-numpy@1.20.0:", type=("build", "run"))
+    # https://github.com/MDAnalysis/mdanalysis/pull/4482
+    depends_on("py-numpy@:1", type=("build", "run"))
 
     depends_on("py-griddataformats@0.4.0:", type=("build", "run"))
     depends_on("py-mmtf-python@1.0.0:", type=("build", "run"))

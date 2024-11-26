@@ -25,6 +25,9 @@ class Cpprestsdk(CMakePackage):
     )
     version("2.9.1", sha256="537358760acd782f4d2ed3a85d92247b4fc423aff9c85347dc31dbb0ab9bab16")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on(
         "boost@1.69.0: +random+chrono+locale+filesystem+system+exception+regex+thread+date_time"
     )

@@ -37,6 +37,8 @@ class Screen(AutotoolsPackage, GNUMirrorPackage):
     version("3.7.2", sha256="6a882385d2810b8220b9e03c75c5fa184dcbd1afdb95974bbac396bb749a6cc0")
     version("3.7.1", sha256="0cd5b1a2cbba6bb2f2bc2145aec650abf02541fd3a2071117a99e4982f6e01da")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ncurses")
     depends_on("autoconf", type="build", when="@4.9.0:")
     depends_on("automake", type="build", when="@4.9.0:")

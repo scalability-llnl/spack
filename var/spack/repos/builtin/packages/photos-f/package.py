@@ -20,6 +20,8 @@ class PhotosF(MakefilePackage):
 
     version("215.5", sha256="3e2b3f60ffe2d3a6a95cf2f156aa24b93e1fa3c439a85fa0ae780ca2f6e0dbb5")
 
+    depends_on("fortran", type="build")  # generated
+
     patch("photos-215.5-update-configure.patch", level=2)
 
     def do_stage(self, mirror_only=False):

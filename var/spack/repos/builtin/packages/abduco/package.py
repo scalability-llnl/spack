@@ -22,5 +22,7 @@ class Abduco(MakefilePackage):
     version("0.5", sha256="bf22226a4488355a7001a5dabbd1e8e3b7e7645efd1519274b956fcb8bcff086")
     version("0.4", sha256="bda3729df116ce41f9a087188d71d934da2693ffb1ebcf33b803055eb478bcbb")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         make(f"PREFIX={prefix}", "install")

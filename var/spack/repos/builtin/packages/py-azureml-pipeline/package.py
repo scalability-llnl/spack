@@ -16,11 +16,7 @@ class PyAzuremlPipeline(PythonPackage):
         "https://pypi.io/packages/py3/a/azureml_pipeline/azureml_pipeline-1.11.0-py3-none-any.whl"
     )
 
-    version(
-        "1.23.0",
-        sha256="ed0fae96771840d3ffd63d63df1b1eed2f50c3b8dbe7b672a4f1ba6e66d0a392",
-        expand=False,
-    )
+    version("1.23.0", sha256="ed0fae96771840d3ffd63d63df1b1eed2f50c3b8dbe7b672a4f1ba6e66d0a392")
 
     depends_on("python@3:", type=("build", "run"))
 

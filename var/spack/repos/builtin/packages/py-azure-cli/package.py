@@ -76,7 +76,7 @@ class PyAzureCli(PythonPackage):
     depends_on("py-azure-mgmt-recoveryservices@0.4.0:0.4", type=("build", "run"))
     depends_on("py-azure-mgmt-recoveryservicesbackup@0.6.0:0.6", type=("build", "run"))
     depends_on("py-azure-mgmt-redhatopenshift@0.1.0", type=("build", "run"))
-    depends_on("py-azure-mgmt-redis@7.0.0:7.0", type=("build", "run"))
+    depends_on("py-azure-mgmt-redis@7.0", type=("build", "run"))
     depends_on("py-azure-mgmt-relay@0.1.0:0.1", type=("build", "run"))
     depends_on("py-azure-mgmt-reservations@0.6.0", type=("build", "run"))
     depends_on("py-azure-mgmt-search@2.0:2", type=("build", "run"))

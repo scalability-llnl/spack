@@ -1,0 +1,28 @@
+From c718e99a9e226b7327ab41396823873999206e38 Mon Sep 17 00:00:00 2001
+From: Vicente Adolfo Bolea Sanchez <vicente.bolea@kitware.com>
+Date: Thu, 27 Jun 2024 18:25:58 -0400
+Subject: [PATCH] kokkos: support ROCM >=6
+
+---
+ source/adios2/helper/kokkos/adiosKokkos.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/source/adios2/helper/kokkos/adiosKokkos.cpp b/source/adios2/helper/kokkos/adiosKokkos.cpp
+index e0599944e..d2619f0d4 100644
+--- a/source/adios2/helper/kokkos/adiosKokkos.cpp
++++ b/source/adios2/helper/kokkos/adiosKokkos.cpp
+@@ -85,7 +85,11 @@ bool IsGPUbuffer(const void *ptr)
+     hipError_t ret;
+     hipPointerAttribute_t attr;
+     ret = hipPointerGetAttributes(&attr, ptr);
++#if defined(ROCM_VERSION_MAJOR) && ROCM_VERSION_MAJOR < 6
+     if (ret == hipSuccess && attr.memoryType == hipMemoryTypeDevice)
++#else
++    if (ret == hipSuccess && attr.type == hipMemoryTypeDevice)
++#endif
+     {
+         return true;
+     }
+-- 
+2.35.3
+

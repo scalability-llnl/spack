@@ -21,6 +21,8 @@ class Acl(AutotoolsPackage):
     version("2.2.49", sha256="c6e01460cac4e47673dd60a7f57b970b49f6998bb564eff141cca129aa8940d1")
     version("2.2.48", sha256="877eaeccc1500baec58391935b46ac7dfc5ffd8c54fbc0385ccd8b2b18ac3fa6")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

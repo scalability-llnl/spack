@@ -14,6 +14,8 @@ class Tabix(MakefilePackage):
 
     version("2013-12-16", commit="1ae158ac79b459f5feeed7490c67519b14ce9f35")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl", type=("build", "run"))
     depends_on("python", type=("build", "run"))
     depends_on("zlib-api", type="link")

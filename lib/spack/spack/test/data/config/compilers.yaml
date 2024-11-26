@@ -1,353 +1,41 @@
 compilers:
 - compiler:
-    spec: clang@3.3
-    operating_system: {0.name}{0.version}
+    spec: gcc@=9.4.0
+    operating_system: {linux_os.name}{linux_os.version}
+    paths:
+      cc: /path/to/gcc
+      cxx: /path/to/g++
+      f77: None
+      fc: None
+    modules: []
+    target: {target}
+- compiler:
+    spec: gcc@=9.4.0
+    operating_system: redhat6
+    paths:
+      cc: /path/to/gcc
+      cxx: /path/to/g++
+      f77: None
+      fc: None
+    modules: []
+    target: {target}
+- compiler:
+    spec: clang@=15.0.0
+    operating_system: {linux_os.name}{linux_os.version}
     paths:
       cc: /path/to/clang
       cxx: /path/to/clang++
       f77: None
       fc: None
-    modules: 'None'
-    target: x86_64
+    modules: []
+    target: {target}
 - compiler:
-    spec: gcc@4.5.0
-    operating_system: {0.name}{0.version}
+    spec: gcc@=10.2.1
+    operating_system: {linux_os.name}{linux_os.version}
     paths:
       cc: /path/to/gcc
       cxx: /path/to/g++
       f77: None
       fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: gcc@4.5.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: clang@3.3
-    operating_system: CNL
-    paths:
-      cc: /path/to/clang
-      cxx: /path/to/clang++
-      f77: None
-      fc: None
-    modules: 'None'
-- compiler:
-    spec: clang@3.3
-    operating_system: SuSE11
-    paths:
-      cc: /path/to/clang
-      cxx: /path/to/clang++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: clang@3.3
-    operating_system: yosemite
-    paths:
-      cc: /path/to/clang
-      cxx: /path/to/clang++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: /path/to/gfortran
-      fc: /path/to/gfortran
-    operating_system: CNL
-    spec: gcc@4.5.0
-    modules: 'None'
-- compiler:
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: /path/to/gfortran
-      fc: /path/to/gfortran
-    operating_system: SuSE11
-    spec: gcc@4.5.0
-    modules: 'None'
-    target: x86_64
-- compiler:
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: /path/to/gfortran
-      fc: /path/to/gfortran
-    operating_system: yosemite
-    spec: gcc@4.5.0
-    modules: 'None'
-    target: x86_64
-- compiler:
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: /path/to/gfortran
-      fc: /path/to/gfortran
-    operating_system: elcapitan
-    spec: gcc@4.5.0
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: clang@3.3
-    operating_system: elcapitan
-    paths:
-      cc: /path/to/clang
-      cxx: /path/to/clang++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: gcc@4.7.2
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc472
-      cxx: /path/to/g++472
-      f77: /path/to/gfortran472
-      fc: /path/to/gfortran472
-    flags:
-      cflags: -O0 -g
-      cxxflags: -O0 -g
-      fflags: -O0 -g
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: gcc@4.4.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc440
-      cxx: /path/to/g++440
-      f77: /path/to/gfortran440
-      fc: /path/to/gfortran440
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: clang@3.5
-    operating_system: redhat6
-    paths:
-      cc: /path/to/clang35
-      cxx: /path/to/clang++35
-      f77: None
-      fc: None
-    flags:
-      cflags: -O3
-      cxxflags: -O3
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: clang@8.0.0
-    operating_system: redhat7
-    paths:
-      cc: /path/to/clang-8
-      cxx: /path/to/clang++-8
-      f77: /path/to/gfortran-9
-      fc: /path/to/gfortran-9
-    flags:
-      cflags: -O3
-      cxxflags: -O3
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: apple-clang@9.1.0
-    operating_system: elcapitan
-    paths:
-      cc: /path/to/clang
-      cxx: /path/to/clang++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: gcc@10foo
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: /path/to/gfortran
-      fc: /path/to/gfortran
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: gcc@4.4.0-special
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: /path/to/gfortran
-      fc: /path/to/gfortran
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: clang@12.0.0
-    operating_system: {0.name}{0.version}
-    paths:
-      cc: /path/to/clang
-      cxx: /path/to/clang++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: aarch64
-- compiler:
-    spec: gcc@10.2.1
-    operating_system: {0.name}{0.version}
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: aarch64
-- compiler:
-    spec: clang@12.0.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/clang
-      cxx: /path/to/clang++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: aarch64
-- compiler:
-    spec: gcc@10.2.1
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: aarch64
-- compiler:
-    spec: gcc@10.1.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: aarch64
-- compiler:
-    spec: gcc@11.1.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: None
-      fc: None
-    flags:
-      cflags: -O0 -g
-      cxxflags: -O0 -g
-      fflags: -O0 -g
-    modules: 'None'
-    target: aarch64
-- compiler:
-    spec: clang@12.2.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/clang35
-      cxx: /path/to/clang++35
-      f77: None
-      fc: None
-    flags:
-      cflags: -O3
-      cxxflags: -O3
-    modules: 'None'
-    target: aarch64
-- compiler:
-    spec: gcc@10foo
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: /path/to/gfortran
-      fc: /path/to/gfortran
-    modules: 'None'
-    target: aarch64
-- compiler:
-    spec: clang@12.0.0
-    operating_system: {0.name}{0.version}
-    paths:
-      cc: /path/to/clang
-      cxx: /path/to/clang++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: gcc@10.2.1
-    operating_system: {0.name}{0.version}
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: clang@12.0.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/clang
-      cxx: /path/to/clang++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: gcc@10.2.1
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: gcc@10.1.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: None
-      fc: None
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: gcc@11.1.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/gcc
-      cxx: /path/to/g++
-      f77: None
-      fc: None
-    flags:
-      cflags: -O0 -g
-      cxxflags: -O0 -g
-      fflags: -O0 -g
-    modules: 'None'
-    target: x86_64
-- compiler:
-    spec: clang@12.2.0
-    operating_system: redhat6
-    paths:
-      cc: /path/to/clang35
-      cxx: /path/to/clang++35
-      f77: None
-      fc: None
-    flags:
-      cflags: -O3
-      cxxflags: -O3
-    modules: 'None'
-    target: x86_64
+    modules: []
+    target: {target}

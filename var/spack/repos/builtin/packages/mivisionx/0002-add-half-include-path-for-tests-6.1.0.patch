@@ -1,0 +1,86 @@
+From 19f084566394c6556cacf1b812a9a64e1fe0610e Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Wed, 12 Jun 2024 23:33:53 +0000
+Subject: [PATCH] add half include path for tests in 6.1
+
+---
+ model_compiler/python/nnir_to_clib.py                | 4 ++++
+ samples/mv_objdetect/CMakeLists.txt                  | 6 +++++-
+ utilities/rocAL/rocAL_unittests/CMakeLists.txt       | 3 ++-
+ utilities/rocAL/rocAL_video_unittests/CMakeLists.txt | 3 ++-
+ 4 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/model_compiler/python/nnir_to_clib.py b/model_compiler/python/nnir_to_clib.py
+index 623bf43..544ed31 100644
+--- a/model_compiler/python/nnir_to_clib.py
++++ b/model_compiler/python/nnir_to_clib.py
+@@ -160,6 +160,10 @@ if (OPENVX_BACKEND_OPENCL_FOUND)
+     include_directories (${OpenCL_INCLUDE_DIRS} ${OpenCL_INCLUDE_DIRS}/Headers )
+ endif()
+ 
++find_path(HALF_INCLUDE_DIR half.hpp)
++message(STATUS "HALF_INCLUDE_DIR: ${HALF_INCLUDE_DIR}")
++include_directories(${HALF_INCLUDE_DIR})
++
+ find_package(OpenCV QUIET)
+ include_directories (${ROCM_PATH}/include ${ROCM_PATH}/include/mivisionx)
+ include_directories (${PROJECT_SOURCE_DIR}/lib)
+diff --git a/samples/mv_objdetect/CMakeLists.txt b/samples/mv_objdetect/CMakeLists.txt
+index 54d527b..c334ae4 100644
+--- a/samples/mv_objdetect/CMakeLists.txt
++++ b/samples/mv_objdetect/CMakeLists.txt
+@@ -29,6 +29,7 @@ project (mvobjdetect)
+ set (CMAKE_CXX_STANDARD 14)
+ 
+ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
++find_path(HALF_INCLUDE_DIR half.hpp)
+ find_package(OpenCV QUIET)
+ 
+ set(ROCM_PATH /opt/rocm CACHE PATH "ROCm Installation Path")
+@@ -50,7 +51,10 @@ if (OPENVX_BACKEND_OPENCL_FOUND)
+     include_directories (${OpenCL_INCLUDE_DIRS} ${OpenCL_INCLUDE_DIRS}/Headers )
+ endif()
+ 
+-include_directories (${ROCM_PATH}/include ${ROCM_PATH}/include/mivisionx ${PROJECT_SOURCE_DIR} )
++find_path(HALF_INCLUDE_DIR half.hpp)
++message(STATUS "HALF_INCLUDE_DIR: ${HALF_INCLUDE_DIR}")
++
++include_directories (${ROCM_PATH}/include/mivisionx ${PROJECT_SOURCE_DIR} ${HALF_INCLUDE_DIR} )
+ link_directories    (${ROCM_PATH}/lib ${PROJECT_SOURCE_DIR}/lib)
+ option (USE_POSTPROC  "Use postprocessing module implementation" ON)
+ set(SOURCES mvobjdetect.cpp mvdeploy_api.cpp visualize.cpp)
+diff --git a/utilities/rocAL/rocAL_unittests/CMakeLists.txt b/utilities/rocAL/rocAL_unittests/CMakeLists.txt
+index ba90dce..f3f2df9 100644
+--- a/utilities/rocAL/rocAL_unittests/CMakeLists.txt
++++ b/utilities/rocAL/rocAL_unittests/CMakeLists.txt
+@@ -43,11 +43,12 @@ include(GNUInstallDirs)
+ 
+ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake)
+ 
++find_path(HALF_INCLUDE_DIR half.hpp)
+ find_package(OpenCV QUIET)
+ find_package(AMDRPP QUIET)
+ 
+ include_directories(${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR})
+-include_directories(${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/mivisionx/rocal)
++include_directories(${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/mivisionx/rocal ${HALF_INCLUDE_DIR})
+ link_directories(${ROCM_PATH}/lib/)
+ file(GLOB My_Source_Files ./*.cpp)
+ add_executable(${PROJECT_NAME} ${My_Source_Files})
+diff --git a/utilities/rocAL/rocAL_video_unittests/CMakeLists.txt b/utilities/rocAL/rocAL_video_unittests/CMakeLists.txt
+index 8f4c0fa..dd23135 100644
+--- a/utilities/rocAL/rocAL_video_unittests/CMakeLists.txt
++++ b/utilities/rocAL/rocAL_video_unittests/CMakeLists.txt
+@@ -48,7 +48,8 @@ find_package(OpenCV QUIET)
+ find_package(AMDRPP QUIET)
+ 
+ include_directories(${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR})
+-include_directories(${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/mivisionx/rocal)
++find_path(HALF_INCLUDE_DIR half.hpp)
++include_directories(${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/mivisionx/rocal ${HALF_INCLUDE_DIR})
+ link_directories(${ROCM_PATH}/lib/)
+ file(GLOB My_Source_Files ./*.cpp)
+ add_executable(${PROJECT_NAME} ${My_Source_Files})
+-- 
+2.27.0
+

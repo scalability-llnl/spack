@@ -5,14 +5,11 @@
 
 import sys
 
-import llnl.util.tty as tty
-
 import spack.cmd
-import spack.cmd.find
+import spack.cmd.common
 import spack.environment as ev
 import spack.store
 import spack.user_environment as uenv
-import spack.util.environment
 from spack.cmd.common import arguments
 
 description = "add package to the user environment"
@@ -71,16 +68,6 @@ def setup_parser(subparser):
     )
 
     subparser.add_argument(
-        "--only",
-        default="package,dependencies",
-        dest="things_to_load",
-        choices=["package", "dependencies"],
-        help="select whether to load the package and its dependencies\n\n"
-        "the default is to load the package and all dependencies. alternatively, "
-        "one can decide to load only the package or only the dependencies",
-    )
-
-    subparser.add_argument(
         "--list",
         action="store_true",
         default=False,
@@ -109,11 +96,6 @@ def load(parser, args):
             "spack load", f"    eval `spack load {{sh_arg}} {specs_str}`"
         )
         return 1
-
-    if args.things_to_load != "package,dependencies":
-        tty.warn(
-            "The `--only` flag in spack load is deprecated and will be removed in Spack v0.22"
-        )
 
     with spack.store.STORE.db.read_transaction():
         env_mod = uenv.environment_modifications_for_specs(*specs)

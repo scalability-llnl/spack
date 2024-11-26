@@ -24,6 +24,8 @@ class Hipace(CMakePackage):
     version("23.05", sha256="33a15cfeada3ca16c2a3af1538caa7ff731df13b48b884045a0fe7974382fcd1")
     version("21.09", sha256="5d27824fe6aac47ce26ca69759140ab4d7844f9042e436c343c03ea4852825f1")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "compute",
         default="noacc",

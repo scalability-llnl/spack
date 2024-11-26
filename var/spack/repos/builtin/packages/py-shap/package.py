@@ -17,6 +17,8 @@ class PyShap(PythonPackage):
 
     version("0.41.0", sha256="a49ea4d65aadbc845a695fa3d7ea0bdfc8c928b8e213b0feedf5868ade4b3ca5")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
 
     depends_on("py-numpy", type=("build", "run"))

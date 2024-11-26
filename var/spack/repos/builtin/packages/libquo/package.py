@@ -27,6 +27,9 @@ class Libquo(AutotoolsPackage):
     version("1.3", sha256="61b0beff15eae4be94b5d3cbcbf7bf757659604465709ed01827cbba45efcf90")
     version("1.2.9", sha256="0a64bea8f52f9eecd89e4ab82fde1c5bd271f3866c612da0ce7f38049409429b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
 
     depends_on("m4", when="@develop", type="build")
@@ -40,11 +43,4 @@ class Libquo(AutotoolsPackage):
         bash("./autogen")
 
     def configure_args(self):
-        config_args = [
-            "CC={0}".format(self.spec["mpi"].mpicc),
-            "FC={0}".format(self.spec["mpi"].mpifc),
-        ]
-        if "%pgi" in self.spec:
-            config_args.append("CFLAGS={0}".format(self.compiler.cc_pic_flag))
-            config_args.append("FCFLAGS={0}".format(self.compiler.fc_pic_flag))
-        return config_args
+        return [f"CC={self.spec['mpi'].mpicc}", f"FC={self.spec['mpi'].mpifc}"]

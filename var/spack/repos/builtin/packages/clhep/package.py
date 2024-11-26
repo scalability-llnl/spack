@@ -53,6 +53,8 @@ class Clhep(CMakePackage):
     version("2.2.0.4", sha256="9bf7fcd9892313c8d1436bc4a4a285a016c4f8e81e1fc65bdf6783207ae57550")
     version("2.1.2.3", sha256="4353231be09c134507092161cd3ced27a065ca0ebb31ee0256e60a8163c47c3b")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "cxxstd",
         default="11",

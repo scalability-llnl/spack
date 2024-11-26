@@ -7,9 +7,7 @@ from spack.package import *
 
 
 class PyNanobind(PythonPackage):
-    """nanobind -- Seamless operability between C++11 and Python.
-
-    nanobind is a small binding library that exposes C++ types in
+    """nanobind is a small binding library that exposes C++ types in
     Python and vice versa. It is reminiscent of Boost.Python and pybind11
     and uses near-identical syntax. In contrast to these existing tools,
     nanobind is more efficient: bindings compile in a shorter amount of time,
@@ -25,6 +23,18 @@ class PyNanobind(PythonPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master", submodules=True)
+    version(
+        "2.2.0", tag="v2.2.0", commit="784efa2a0358a4dc5432c74f5685ee026e20f2b6", submodules=True
+    )
+    version(
+        "2.1.0", tag="v2.1.0", commit="9641bb7151f04120013b812789b3ebdfa7e7324f", submodules=True
+    )
+    version(
+        "2.0.0", tag="v2.0.0", commit="8d7f1ee0621c17fa370b704b2100ffa0243d5bfb", submodules=True
+    )
+    version(
+        "1.9.2", tag="v1.9.2", commit="80a30c8efb093b14f0e744bc7f6a9ef34beb3f7f", submodules=True
+    )
     version(
         "1.8.0", tag="v1.8.0", commit="1a309ba444a47e081dc6213d72345a2fbbd20795", submodules=True
     )
@@ -50,14 +60,20 @@ class PyNanobind(PythonPackage):
         "1.2.0", tag="v1.2.0", commit="ec9350b805d2fe568f65746fd69225eedc5e37ae", submodules=True
     )
 
-    depends_on("python@3.8:", type=("build", "run"))
-    depends_on("py-setuptools@42:", type="build")
-    depends_on("py-scikit-build", type="build")
+    depends_on("cxx", type="build")  # generated
 
-    depends_on("cmake@3.17:", type="build")
-    depends_on("ninja", type="build")
+    depends_on("python@3.8:", type=("build", "run"))
+
+    depends_on("py-setuptools@42:", when="@:2.0", type="build")
+    depends_on("py-scikit-build", when="@:2.0", type="build")
+    depends_on("py-typing-extensions", when="@2.0", type="build")
+    depends_on("ninja", when="@2.0", type="build")
+    depends_on("cmake@3.17:", when="@:2.0", type="build")
+
+    depends_on("py-scikit-build-core+pyproject@0.9:", when="@2.1", type="build")
+    depends_on("py-scikit-build-core+pyproject@0.10:", when="@2.2:", type="build")
 
     @property
     def cmake_prefix_paths(self):
-        paths = [join_path(self.prefix, self.spec["python"].package.platlib, "nanobind", "cmake")]
+        paths = [join_path(python_platlib, "nanobind", "cmake")]
         return paths

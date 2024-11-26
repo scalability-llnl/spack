@@ -16,6 +16,8 @@ class Randfold(MakefilePackage):
 
     version("2.0.1", sha256="b286145deb9ac6197062d98e209da095f00c45a5a615616bcf2b2a6609ed113f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("squid")
 
     def install(self, spec, prefix):

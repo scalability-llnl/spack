@@ -21,6 +21,9 @@ class Libfms(CMakePackage):
     version("develop", branch="master")
     version("0.2.0", tag="v0.2", commit="a66cb96711cc404c411f1bf07ca8db09b6f894eb")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("conduit", default=True, description="Build with Conduit I/O support")
     variant("shared", default=True, description="Build shared libraries")
 
@@ -30,7 +33,7 @@ class Libfms(CMakePackage):
     def cmake_args(self):
         args = []
         args.extend([self.define_from_variant("BUILD_SHARED_LIBS", "shared")])
-        if "+conduit" in self.spec:
+        if self.spec.satisfies("+conduit"):
             args.extend([self.define("CONDUIT_DIR", self.spec["conduit"].prefix)])
 
         return args
@@ -49,6 +52,6 @@ class Libfms(CMakePackage):
         """Export the FMS library.
         Sample usage: spec['libfms'].libs.ld_flags
         """
-        is_shared = "+shared" in self.spec
+        is_shared = self.spec.satisfies("+shared")
         libs = find_libraries("libfms", root=self.prefix, shared=is_shared, recursive=True)
         return libs or None  # Raise an error if no libs are found

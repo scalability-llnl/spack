@@ -22,6 +22,8 @@ class ArmForge(Package):
     # TODO: this mess should be fixed as soon as a way to parametrize/constrain
     #       versions (and checksums) based on the target platform shows up
 
+    skip_version_audit = ["platform=windows"]
+
     if platform.machine() in ["aarch64", "arm64"]:
         version(
             "22.1.3", sha256="131884f998b82673e885a7b42cc883210e3a0229b50af374092140cdfd42a408"

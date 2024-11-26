@@ -18,8 +18,6 @@ class Templight(CMakePackage):
     git = "https://github.com/mikael-s-persson/templight.git"
     llvm_svn = "http://llvm.org/svn/llvm-project/{0}/trunk"
 
-    family = "compiler"  # Used by lmod
-
     # Templight is a patch to clang, so we have three versions to care about:
     # - The one that will be used in Spack specifications
     # - The git branch that we need to fetch from in the templight repo
@@ -63,6 +61,8 @@ class Templight(CMakePackage):
     )
 
     version("2018.07.20", commit="91589f95427620dd0a2346bd69ba922f374aa42a")
+
+    depends_on("cxx", type="build")  # generated
     resource(
         name="llvm-r337566",
         svn=llvm_svn.format("llvm"),

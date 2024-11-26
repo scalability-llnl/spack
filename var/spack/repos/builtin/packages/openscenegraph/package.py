@@ -29,6 +29,9 @@ class Openscenegraph(CMakePackage):
     version("3.2.3", sha256="a1ecc6524197024834e1277916922b32f30246cb583e27ed19bf3bf889534362")
     version("3.1.5", sha256="dddecf2b33302076712100af59b880e7647bc595a9a7cc99186e98d6e0eaeb5c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Builds a shared version of the library")
     variant("apps", default=False, description="Build OpenSceneGraph tools")
     variant("dcmtk", default=False, description="Build support for DICOM files using DCMTK")
@@ -74,10 +77,19 @@ class Openscenegraph(CMakePackage):
     depends_on("poppler+glib", when="+pdf")
     depends_on("librsvg", when="+svg")
 
-    depends_on("ffmpeg@:4 +avresample", when="+ffmpeg")
-    # https://github.com/openscenegraph/OpenSceneGraph/issues/167
-    depends_on("ffmpeg@:2", when="@:3.4.0+ffmpeg")
+    with when("+ffmpeg"):
+        depends_on("ffmpeg")
+        requires("^ffmpeg +avresample", when="^ffmpeg@:4")
+        # https://github.com/openscenegraph/OpenSceneGraph/issues/167
+        depends_on("ffmpeg@:2", when="@:3.4.0")
 
+    # patch submitted for inclusion in OpenSceneGraph for extending compatibility
+    # with ffmpeg from versions up to 4 to versions 5 & 6
+    patch(
+        "https://github.com/openscenegraph/OpenSceneGraph/commit/759620a3b7b787c960a7e414ba26ab5497817d40.patch?full_index=1",
+        sha256="1e6daf0d15e916b69d62519a0ca4f8a722fe2144cbdab7dd182eaffb141e3c1a",
+        when="@3.6:",
+    )
     patch("glibc-jasper.patch", when="@3.4%gcc")
     # from gentoo: https://raw.githubusercontent.com/gentoo/gentoo/9523b20c27d12dd72d1fd5ced3ba4995099925a2/dev-games/openscenegraph/files/openscenegraph-3.6.5-openexr3.patch
     patch("openscenegraph-3.6.5-openexr3.patch", when="@3.6:")

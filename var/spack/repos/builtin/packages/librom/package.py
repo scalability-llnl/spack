@@ -17,6 +17,10 @@ class Librom(AutotoolsPackage):
 
     version("develop", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("lapack")
     depends_on("mpi")
     depends_on("zlib-api")

@@ -27,6 +27,8 @@ class RMakecdfenv(RPackage):
     version("1.54.0", commit="3ff646ddc4b028e46b1e091ff9c2d17ce77cec26")
     version("1.52.0", commit="b88a3e93e3b7feeeca69eda7c1fc5a0826c81120")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.6.0:", type=("build", "run"))
     depends_on("r-affyio", type=("build", "run"))
     depends_on("r-biobase", type=("build", "run"))

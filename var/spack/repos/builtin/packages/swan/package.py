@@ -32,6 +32,8 @@ class Swan(MakefilePackage):
 
     version("4141", sha256="5d411e6602bd4ef764f6c7d23e5e25b588e955cb21a606d6d8a7bc4c9393aa0a")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("netcdf-fortran")
     depends_on("perl", type="build")

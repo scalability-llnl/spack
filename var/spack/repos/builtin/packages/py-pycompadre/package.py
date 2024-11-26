@@ -22,6 +22,10 @@ class PyPycompadre(PythonPackage):
 
     version("master", branch="master", preferred=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("trilinos", default=False, description="Use Kokkos from Trilinos")
     variant(
         "debug",

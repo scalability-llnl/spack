@@ -29,6 +29,10 @@ class Lhapdf5(AutotoolsPackage):
     version("5.8.0", sha256="8381ea5f785dde95772a2b6d5890f1cb72012e223e6861823fd81b09eedaa7a3")
     version("5.7.1", sha256="40529629351598317fbf7b5905661e51b23778019d50451eee78d7b1118e2559")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     def setup_build_environment(self, env):
         env.append_flags("FFLAGS", "-std=legacy")
 

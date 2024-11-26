@@ -12,7 +12,7 @@ class Pythia8(AutotoolsPackage):
     the evolution from a few-body hard process to a complex multiparticle
     final state."""
 
-    homepage = "http://home.thep.lu.se/Pythia/"
+    homepage = "https://pythia.org/"
     url = "https://pythia.org/download/pythia83/pythia8306.tgz"
     list_url = "https://pythia.org/releases/"
 
@@ -22,6 +22,8 @@ class Pythia8(AutotoolsPackage):
 
     license("GPL-2.0-only")
 
+    version("8.312", sha256="bad98e2967b687046c4568c9091d630a0c31b628745c021a994aba4d1d50f8ea")
+    version("8.311", sha256="2782d5e429c1543c67375afe547fd4c4ca0720309deb008f7db78626dc7d1464")
     version("8.310", sha256="90c811abe7a3d2ffdbf9b4aeab51cf6e0a5a8befb4e3efa806f3d5b9c311e227")
     version("8.309", sha256="5bdafd9f2c4a1c47fd8a4e82fb9f0d8fcfba4de1003b8e14be4e0347436d6c33")
     version("8.308", sha256="c2e8c8d38136d85fc0bc9c9fad4c2db679b0819b7d2b6fc9a47f80f99538b4e3")
@@ -57,7 +59,18 @@ class Pythia8(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
+    variant(
+        "cxxstd",
+        default="11",
+        values=("11", "17", "20", "23"),
+        multi=False,
+        description="Use the specified C++ standard when building",
+    )
+
     variant("shared", default=True, description="Build shared library")
+    variant("gzip", default=False, description="Build with gzip support, for reading lhe.gz files")
     variant(
         "hepmc", default=True, description="Export PYTHIA events to the HEPMC format, version 2"
     )
@@ -83,6 +96,7 @@ class Pythia8(AutotoolsPackage):
     variant("mpich", default=False, description="Multi-threading support via MPICH")
     variant("hdf5", default=False, description="Support the use of HDF5 format")
 
+    depends_on("zlib-api", when="+gzip")
     depends_on("rsync", type="build")
     depends_on("hepmc", when="+hepmc")
     depends_on("hepmc3", when="+hepmc3")
@@ -115,6 +129,24 @@ class Pythia8(AutotoolsPackage):
     conflicts("+hdf5", when="@:8.304", msg="HDF5 support was added in 8.304")
     conflicts("+hdf5", when="~mpich", msg="MPICH is required for reading HDF5 files")
 
+    filter_compiler_wrappers("Makefile.inc", relative_root="share/Pythia8/examples")
+
+    @run_before("configure")
+    def setup_configure(self):
+        filter_file(
+            r"-std=c\+\+[0-9][0-9]", f"-std=c++{self.spec.variants['cxxstd'].value}", "configure"
+        )
+
+        # Fix for https://gitlab.com/Pythia8/releases/-/issues/428
+        with when("@:8.311"):
+            filter_file(
+                r"[/]examples[/]Makefile[.]inc\|;n' \\", "/examples/Makefile.inc|' \\", "configure"
+            )
+
+    # Fix for https://gitlab.com/Pythia8/releases/-/issues/523
+    with when("@8.307:8.312 cxxstd=20"):
+        patch("pythia8-cpp20-fjcore-forward-decl.patch")
+
     def configure_args(self):
         args = []
 
@@ -135,15 +167,11 @@ class Pythia8(AutotoolsPackage):
 
         if "+madgraph5amc" in self.spec:
             args.append("--with-mg5mes=" + self.spec["madgraph5amc"].prefix)
-        else:
-            args.append("--without-mg5mes")
 
         args += self.with_or_without("hepmc3", activation_value="prefix")
 
         if "+fastjet" in self.spec:
             args.append("--with-fastjet3=" + self.spec["fastjet"].prefix)
-        else:
-            args.append("--without-fastjet3")
 
         args += self.with_or_without("evtgen", activation_value="prefix")
         args += self.with_or_without("root", activation_value="prefix")
@@ -158,6 +186,10 @@ class Pythia8(AutotoolsPackage):
 
         if self.spec.satisfies("+hdf5"):
             args.append("--with-highfive=" + self.spec["highfive"].prefix)
+
+        args += self.with_or_without(
+            "gzip", activation_value=lambda x: self.spec["zlib-api"].prefix
+        )
 
         return args
 

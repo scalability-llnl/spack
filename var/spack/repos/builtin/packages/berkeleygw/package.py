@@ -17,6 +17,12 @@ class Berkeleygw(MakefilePackage):
     maintainers("migueldiascosta")
 
     version(
+        "4.0",
+        sha256="1a85b03b83b339056f65124bfa96832ca61152236d9bb1cb372e3040fc686a49",
+        url="https://app.box.com/shared/static/22edl07muvhfnd900tnctsjjftbtcqc4.gz",
+        expand=False,
+    )
+    version(
         "3.1.0",
         sha256="7e890a5faa5a6bb601aa665c73903b3af30df7bdd13ee09362b69793bbefa6d2",
         url="https://app.box.com/shared/static/2bik75lrs85zt281ydbup2xa7i5594gy.gz",
@@ -40,6 +46,10 @@ class Berkeleygw(MakefilePackage):
         url="https://app.box.com/shared/static/ze3azi5vlyw7hpwvl9i5f82kaiid6g0x.gz",
         expand=False,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # For parallel computing support, enable +mpi. It uses MPI and ScaLAPACK
     # which are inter-dependent in the berkeleygw code(they need each other):
@@ -112,7 +122,7 @@ class Berkeleygw(MakefilePackage):
         tar("-x", "-f", self.stage.archive_file, "--strip-components=1")
 
         # get generic arch.mk template
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             copy(join_path(self.stage.source_path, "config", "generic.mpi.linux.mk"), "arch.mk")
         else:
             copy(join_path(self.stage.source_path, "config", "generic.serial.linux.mk"), "arch.mk")
@@ -148,11 +158,20 @@ class Berkeleygw(MakefilePackage):
             si_epm_tests.append("Si_hdf5")
         for test in si_epm_tests:
             filter_file(
+                "Precision : 5e-12",
+                "Precision : 6e-12",
+                join_path("testsuite", "Si-EPM", test + ".test"),
+            )
+            filter_file(
                 "Precision : 6e-15",
                 "Precision : 7e-15",
                 join_path("testsuite", "Si-EPM", test + ".test"),
             )
-        for test in ["Si_subspace", "Si_subspace_cplx", "Si_subspace_cplx_spin"]:
+
+        si_epm_subspace_tests = ["Si_subspace", "Si_subspace_cplx_spin"]
+        if self.version < Version("4.0"):
+            si_epm_subspace_tests.append("Si_subspace_cplx")
+        for test in si_epm_subspace_tests:
             filter_file(
                 "Precision : 6e-15",
                 "Precision : 7e-15",
@@ -160,31 +179,37 @@ class Berkeleygw(MakefilePackage):
             )
         filter_file("Precision : 8e-15", "Precision : 9e-15", "testsuite/GaAs-EPM/GaAs.test")
 
+        if self.version < Version("3.1.0"):
+            # np.int alias was removed from numpy
+            filter_file(
+                r"astype\(np.int\)", "astype(int)", "testsuite/Si2-SAPO/analyze_dotproduct.py"
+            )
+
     def build(self, spec, prefix):
         buildopts = []
         paraflags = []
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             paraflags.append("-DMPI")
 
         # We need to copy fflags in case we append to it (#34019):
         fflags = spec.compiler_flags["fflags"][:]
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             paraflags.append("-DOMP")
             fflags.append(self.compiler.openmp_flag)
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             buildopts.append("C_PARAFLAG=-DPARA")
             buildopts.append("PARAFLAG=%s" % " ".join(paraflags))
 
         debugflag = ""
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             debugflag += "-DDEBUG "
-        if "+verbose" in spec:
+        if spec.satisfies("+verbose"):
             debugflag += "-DVERBOSE "
         buildopts.append("DEBUGFLAG=%s" % debugflag)
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             buildopts.append("LINK=%s" % spec["mpi"].mpifc)
             buildopts.append("C_LINK=%s" % spec["mpi"].mpicxx)
         else:
@@ -203,7 +228,7 @@ class Berkeleygw(MakefilePackage):
 
         buildopts.append("LAPACKLIB=%s" % spec["lapack"].libs.ld_flags)
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             mathflags.append("-DUSESCALAPACK")
             buildopts.append("SCALAPACKLIB=%s" % spec["scalapack"].libs.ld_flags)
 
@@ -211,7 +236,7 @@ class Berkeleygw(MakefilePackage):
             buildopts.append("COMPFLAG=-DINTEL")
             buildopts.append("MOD_OPT=-module ")
             buildopts.append("FCPP=cpp -C -P -ffreestanding")
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 buildopts.append("F90free=%s -free" % spec["mpi"].mpifc)
                 buildopts.append("C_COMP=%s" % spec["mpi"].mpicc)
                 buildopts.append("CC_COMP=%s" % spec["mpi"].mpicxx)
@@ -232,8 +257,12 @@ class Berkeleygw(MakefilePackage):
                 f90_flags += " -fallow-argument-mismatch"
             buildopts.append("COMPFLAG=-DGNU")
             buildopts.append("MOD_OPT=-J ")
-            buildopts.append("FCPP=cpp -C -nostdinc")
-            if "+mpi" in spec:
+            # std c11 prevents problems with linebreaks and fortran comments
+            # containing // (which is interpreted as C++ style comment)
+            buildopts.append(
+                "FCPP=%s -C -nostdinc -std=c11" % join_path(self.compiler.prefix, "bin", "cpp")
+            )
+            if spec.satisfies("+mpi"):
                 buildopts.append("F90free=%s %s" % (spec["mpi"].mpifc, f90_flags))
                 buildopts.append("C_COMP=%s %s" % (spec["mpi"].mpicc, c_flags))
                 buildopts.append("CC_COMP=%s %s" % (spec["mpi"].mpicxx, cxx_flags))
@@ -249,7 +278,7 @@ class Berkeleygw(MakefilePackage):
             buildopts.append("COMPFLAG=")
             buildopts.append("MOD_OPT=-module ")
             buildopts.append("FCPP=cpp -C -nostdinc")
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 buildopts.append("F90free=%s %s" % (spec["mpi"].mpifc, f90_flags))
                 buildopts.append("C_COMP=%s %s" % (spec["mpi"].mpicc, c_flags))
                 buildopts.append("CC_COMP=%s %s" % (spec["mpi"].mpicxx, cxx_flags))
@@ -264,16 +293,16 @@ class Berkeleygw(MakefilePackage):
                 "BerkeleyGW with compiler %s" % spec.compiler
             )
 
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             mathflags.append("-DHDF5")
             buildopts.append("HDF5INCLUDE=%s" % spec["hdf5"].prefix.include)
             buildopts.append("HDF5LIB=%s" % spec["hdf5:hl,fortran"].libs.ld_flags)
 
-        if "+elpa" in spec:
+        if spec.satisfies("+elpa"):
             mathflags.append("-DUSEELPA")
             elpa = spec["elpa"]
 
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 elpa_suffix = "_openmp"
             else:
                 elpa_suffix = ""

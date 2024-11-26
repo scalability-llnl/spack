@@ -32,6 +32,8 @@ class CrayMpich(Package):
     depends_on("cray-pmi")
     depends_on("libfabric")
 
+    requires("platform=linux", msg="Cray MPICH is only available on Cray")
+
     # cray-mpich 8.1.7: features MPI compiler wrappers
     variant("wrappers", default=True, when="@8.1.7:", description="enable MPI wrappers")
 
@@ -65,32 +67,33 @@ class CrayMpich(Package):
                 return os.path.dirname(os.path.normpath(libdir))
 
     def setup_run_environment(self, env):
-        if "+wrappers" in self.spec:
+        if self.spec.satisfies("+wrappers"):
             env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
             env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
             env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
             env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
-        else:
+        elif spack_cc is not None:
             env.set("MPICC", spack_cc)
             env.set("MPICXX", spack_cxx)
             env.set("MPIF77", spack_fc)
             env.set("MPIF90", spack_fc)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
-        env.set("MPICH_CC", spack_cc)
-        env.set("MPICH_CXX", spack_cxx)
-        env.set("MPICH_F77", spack_f77)
-        env.set("MPICH_F90", spack_fc)
-        env.set("MPICH_FC", spack_fc)
+        dependent_module = dependent_spec.package.module
+        env.set("MPICH_CC", dependent_module.spack_cc)
+        env.set("MPICH_CXX", dependent_module.spack_cxx)
+        env.set("MPICH_F77", dependent_module.spack_f77)
+        env.set("MPICH_F90", dependent_module.spack_fc)
+        env.set("MPICH_FC", dependent_module.spack_fc)
 
     def setup_dependent_package(self, module, dependent_spec):
         spec = self.spec
-        if "+wrappers" in spec:
+        if spec.satisfies("+wrappers"):
             spec.mpicc = join_path(self.prefix.bin, "mpicc")
             spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
             spec.mpifc = join_path(self.prefix.bin, "mpif90")
             spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-        else:
+        elif spack_cc is not None:
             spec.mpicc = spack_cc
             spec.mpicxx = spack_cxx
             spec.mpifc = spack_fc

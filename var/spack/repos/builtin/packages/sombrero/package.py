@@ -36,6 +36,8 @@ class Sombrero(MakefilePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
 
     maintainers("mmesiti", "edbennett")

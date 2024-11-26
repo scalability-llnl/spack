@@ -272,6 +272,29 @@ def test_breadth_first_versus_depth_first_tree(abstract_specs_chain):
     ]
 
 
+@pytest.mark.parametrize("cover", ["nodes", "edges"])
+@pytest.mark.parametrize("depth_first", [True, False])
+def test_tree_traversal_with_key(cover, depth_first, abstract_specs_chain):
+    """Compare two multisource traversals of the same DAG. In one case the DAG consists of unique
+    Spec instances, in the second case there are identical copies of nodes and edges. Traversal
+    should be equivalent when nodes are identified by dag_hash."""
+    a = abstract_specs_chain["chain-a"]
+    c = abstract_specs_chain["chain-c"]
+    kwargs = {"cover": cover, "depth_first": depth_first}
+    dag_hash = lambda s: s.dag_hash()
+
+    # Traverse DAG spanned by a unique set of Spec instances
+    first = traverse.traverse_tree([a, c], key=id, **kwargs)
+
+    # Traverse equivalent DAG with copies of Spec instances included, keyed by dag hash.
+    second = traverse.traverse_tree([a, c.copy()], key=dag_hash, **kwargs)
+
+    # Check that the same nodes are discovered at the same depth
+    node_at_depth_first = [(depth, dag_hash(edge.spec)) for (depth, edge) in first]
+    node_at_depth_second = [(depth, dag_hash(edge.spec)) for (depth, edge) in second]
+    assert node_at_depth_first == node_at_depth_second
+
+
 def test_breadth_first_versus_depth_first_printing(abstract_specs_chain):
     """Test breadth-first versus depth-first tree printing."""
     s = abstract_specs_chain["chain-a"]
@@ -408,3 +431,26 @@ def test_traverse_nodes_no_deps(abstract_specs_dtuse):
     ]
     outputs = [x for x in traverse.traverse_nodes(inputs, deptype=dt.NONE)]
     assert outputs == [abstract_specs_dtuse["dtuse"], abstract_specs_dtuse["dtlink5"]]
+
+
+@pytest.mark.parametrize("cover", ["nodes", "edges"])
+def test_topo_is_bfs_for_trees(cover):
+    """For trees, both DFS and BFS produce a topological order, but BFS is the most sensible for
+    our applications, where we typically want to avoid that transitive dependencies shadow direct
+    depenencies in global search paths, etc. This test ensures that for trees, the default topo
+    order coincides with BFS."""
+    binary_tree = create_dag(
+        nodes=["A", "B", "C", "D", "E", "F", "G"],
+        edges=(
+            ("A", "B", "all"),
+            ("A", "C", "all"),
+            ("B", "D", "all"),
+            ("B", "E", "all"),
+            ("C", "F", "all"),
+            ("C", "G", "all"),
+        ),
+    )
+
+    assert list(traverse.traverse_nodes([binary_tree["A"]], order="topo", cover=cover)) == list(
+        traverse.traverse_nodes([binary_tree["A"]], order="breadth", cover=cover)
+    )

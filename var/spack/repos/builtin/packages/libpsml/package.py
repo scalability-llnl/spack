@@ -22,6 +22,8 @@ class Libpsml(AutotoolsPackage):
     version("1.1.7", sha256="b3f5431fd3965b66fe01b899c0c3ef73d9f969d67329cd1f5aba84fb056b5dd1")
     version("1.1.6", sha256="521647dbd945b208e5d468fceeb2bc397737d9a659e2c7549597bf4eb29f60df")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("autoconf@2.69:", type="build")
     depends_on("automake@1.14:", type="build")
     depends_on("libtool@2.4.2:", type="build")

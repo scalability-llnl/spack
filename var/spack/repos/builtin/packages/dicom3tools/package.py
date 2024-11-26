@@ -20,6 +20,8 @@ class Dicom3tools(MakefilePackage):
         sha256="3cc2d6056e349e0ac6a093d231d8f4dd7a77e26ed29c1ebaca945dd5e56c1520",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "uid_root",
         default="0.0.0.0",

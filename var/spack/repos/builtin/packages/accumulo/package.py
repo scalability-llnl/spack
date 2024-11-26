@@ -21,5 +21,8 @@ class Accumulo(MavenPackage):
     version("1.9.3", sha256="d9548d5b9cf9f494f027f0fe59d5d6d45d09064359d7761cade62991ce2a5d0c")
     version("1.9.2", sha256="11ab028143ad6313cd5fc701b36b4c35e46a4a3fa2ce663869860b9f6bf5ee4d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("java@8:", type=("build", "run"))
     depends_on("maven@3.5.0:", type="build")

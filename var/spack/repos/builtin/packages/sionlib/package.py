@@ -23,6 +23,10 @@ class Sionlib(AutotoolsPackage):
         extension="tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     patch("for_aarch64.patch", when="target=aarch64:")
 

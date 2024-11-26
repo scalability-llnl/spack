@@ -1,0 +1,10 @@
+--- a/scripts/site_scons/alm/env.py	2024-04-30 14:30:40.936684295 -0500
++++ b/scripts/site_scons/alm/env.py	2024-04-30 14:31:10.901423863 -0500
+@@ -72,6 +72,7 @@
+                     'SPACK_LINKER_ARG',
+                     'SPACK_SHORT_SPEC',
+                     'SPACK_SYSTEM_DIRS',
++                    'SPACK_MANAGED_DIRS',
+                 ]
+ 
+     # add these keys to mydict if they exist in environ

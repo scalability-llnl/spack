@@ -1,0 +1,13 @@
+diff --git a/lib/spack/external/_vendoring/ruamel/yaml/comments.py b/lib/spack/external/_vendoring/ruamel/yaml/comments.py
+index 1badeda585..892c868af3 100644
+--- a/lib/spack/external/_vendoring/ruamel/yaml/comments.py
++++ b/lib/spack/external/_vendoring/ruamel/yaml/comments.py
+@@ -497,7 +497,7 @@ def copy_attributes(self, t, memo=None):
+                   Tag.attrib, merge_attrib]:
+             if hasattr(self, a):
+                 if memo is not None:
+-                    setattr(t, a, copy.deepcopy(getattr(self, a, memo)))
++                    setattr(t, a, copy.deepcopy(getattr(self, a), memo))
+                 else:
+                     setattr(t, a, getattr(self, a))
+         # fmt: on

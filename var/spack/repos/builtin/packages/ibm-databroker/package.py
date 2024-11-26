@@ -28,6 +28,9 @@ class IbmDatabroker(CMakePackage, PythonExtension):
     version("0.6.1", sha256="2c7d6c6a269d4ae97aad4d770533e742f367da84758130c283733f25df83e535")
     version("0.6.0", sha256="5856209d965c923548ebb69119344f1fc596d4c0631121b230448cc91bac4290")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("python", default=False, description="Build Python bindings")
 
     depends_on("cmake@2.8:", type="build")
@@ -44,6 +47,6 @@ class IbmDatabroker(CMakePackage, PythonExtension):
     def cmake_args(self):
         args = []
         args.append("-DDEFAULT_BE=redis")
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args.append("-DPYDBR=1")
         return args

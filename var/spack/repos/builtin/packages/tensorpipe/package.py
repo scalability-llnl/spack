@@ -31,6 +31,9 @@ class Tensorpipe(CMakePackage):
         "2020-06-26", commit="3b8089c9c6717038cff44b70b881d0ad6c93e679", submodules=True
     )  # py-torch@1.6
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     generator("ninja")
     depends_on("cmake@3.5:", type="build")
     depends_on("libuv@1.26:")

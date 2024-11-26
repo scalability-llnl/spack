@@ -641,6 +641,30 @@ def substitute_rpath_and_pt_interp_in_place_or_raise(
         return False
 
 
+def pt_interp(path: str) -> Optional[str]:
+    """Retrieve the interpreter of an executable at `path`."""
+    try:
+        with open(path, "rb") as f:
+            elf = parse_elf(f, interpreter=True)
+    except (OSError, ElfParsingError):
+        return None
+
+    if not elf.has_pt_interp:
+        return None
+
+    return elf.pt_interp_str.decode("utf-8")
+
+
+def get_elf_compat(path):
+    """Get a triplet (EI_CLASS, EI_DATA, e_machine) from an ELF file, which can be used to see if
+    two ELF files are compatible."""
+    # On ELF platforms supporting, we try to be a bit smarter when it comes to shared
+    # libraries, by dropping those that are not host compatible.
+    with open(path, "rb") as f:
+        elf = parse_elf(f, only_header=True)
+        return (elf.is_64_bit, elf.is_little_endian, elf.elf_hdr.e_machine)
+
+
 class ElfCStringUpdatesFailed(Exception):
     def __init__(
         self, rpath: Optional[UpdateCStringAction], pt_interp: Optional[UpdateCStringAction]

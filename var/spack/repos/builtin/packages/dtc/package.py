@@ -18,13 +18,15 @@ class Dtc(MakefilePackage):
 
     version("1.6.1", sha256="6401c9a0f577a270df4632bf0f3e5454ccc7a5ca3caefa67a3e1c29c9c6b8c60")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("bison", type="build")
     # Build error with flex 2.6.3
     #   (convert-dtsv0-lexer.lex.c:398: error: "yywrap" redefined)
     depends_on("flex@2.6.4:", type="build")
-    depends_on("libyaml", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("python", type="build")
+    depends_on("libyaml", type=("build", "link"))
 
     def edit(self, spec, prefix):
         makefile = FileFilter("Makefile")
@@ -33,3 +35,14 @@ class Dtc(MakefilePackage):
             makefile.filter(
                 r"WARNINGS = -Wall", "WARNINGS = -Wall -Wno-unused-command-line-argument"
             )
+
+        if self.spec.satisfies("platform=darwin"):
+            libfdt_makefile = FileFilter("libfdt/Makefile.libfdt")
+            libfdt_makefile.filter(
+                r"LIBFDT_soname = .*", "LIBFDT_soname = libfdt.1.$(SHAREDLIB_EXT)"
+            )
+
+    @run_after("install")
+    def darwin_fix(self):
+        if self.spec.satisfies("platform=darwin"):
+            fix_darwin_install_name(self.prefix.lib)

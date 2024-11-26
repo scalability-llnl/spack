@@ -24,6 +24,8 @@ class PyDulwich(PythonPackage):
     version("0.20.15", sha256="fb1773373ec2af896031f8312af6962a1b8b0176a2de3fb3d84a84ec04498888")
     version("0.20.14", sha256="21d6ee82708f7c67ce3fdcaf1f1407e524f7f4f7411a410a972faa2176baec0d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools@61.2:", when="@0.21.6", type="build")
     depends_on("py-setuptools", type="build")
     depends_on("py-certifi", when="@:0.20.44", type=("build", "run"))

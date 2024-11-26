@@ -20,6 +20,8 @@ class Minismac2d(MakefilePackage):
 
     version("2.0", sha256="ec01b74c06a2c0386efbbb61b14305327342a08fb92bf52e76f60a2063adf065")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
 
     parallel = False

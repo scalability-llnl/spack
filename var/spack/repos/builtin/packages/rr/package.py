@@ -16,6 +16,9 @@ class Rr(CMakePackage):
     version("4.4.0", sha256="b2b24a3f67df47576126421746cd2942a458d2825faa76e8bb3ca43edffa03d3")
     version("4.3.0", sha256="46933cdd706d71c3de05b55937c85ee055c08e67e5c1e6a1278c7feb187ca37a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gdb")
     depends_on("git")
     depends_on("zlib-api")

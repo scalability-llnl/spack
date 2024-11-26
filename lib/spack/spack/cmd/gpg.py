@@ -5,10 +5,12 @@
 
 import argparse
 import os
+import tempfile
 
 import spack.binary_distribution
 import spack.mirror
 import spack.paths
+import spack.stage
 import spack.util.gpg
 import spack.util.url
 from spack.cmd.common import arguments
@@ -115,6 +117,7 @@ def setup_parser(subparser):
         help="URL of the mirror where keys will be published",
     )
     publish.add_argument(
+        "--update-index",
         "--rebuild-index",
         action="store_true",
         default=False,
@@ -220,9 +223,10 @@ def gpg_publish(args):
     elif args.mirror_url:
         mirror = spack.mirror.Mirror(args.mirror_url, args.mirror_url)
 
-    spack.binary_distribution.push_keys(
-        mirror, keys=args.keys, regenerate_index=args.rebuild_index
-    )
+    with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
+        spack.binary_distribution._url_push_keys(
+            mirror, keys=args.keys, tmpdir=tmpdir, update_index=args.update_index
+        )
 
 
 def gpg(parser, args):

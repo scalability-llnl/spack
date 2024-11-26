@@ -23,6 +23,8 @@ class Hevea(MakefilePackage):
     version("2.33", sha256="122f9023f9cfe8b41dd8965b7d9669df21bf41e419bcf5e9de5314f428380d0f")
     version("2.32", sha256="f0c12ee3936364a3aa26da384e3d2ad2344be0091f04f9531f04ecb1dca98aca")
 
+    depends_on("c", type="build")  # generated
+
     # Dependency demands ocamlbuild
     depends_on("ocaml")
     depends_on("ocamlbuild")

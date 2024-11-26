@@ -9,14 +9,21 @@ from spack.package import *
 
 
 class PyNinja(PythonPackage):
-    """Ninja is a small build system with a focus on speed."""
+    """Ninja is a small build system with a focus on speed.
+
+    Deprecated: use ninja instead.
+    """
 
     homepage = "https://ninja-build.org"
     pypi = "ninja/ninja-1.10.2.tar.gz"
 
     license("Apache-2.0")
 
-    version("1.10.2", sha256="bb5e54b9a7343b3a8fc6532ae2c169af387a45b0d4dd5b72c2803e21658c5791")
+    version(
+        "1.10.2",
+        sha256="bb5e54b9a7343b3a8fc6532ae2c169af387a45b0d4dd5b72c2803e21658c5791",
+        deprecated=True,
+    )
 
     depends_on("cmake@3.6:", type="build")
     depends_on("py-setuptools@42:", type="build")

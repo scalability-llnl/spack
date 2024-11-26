@@ -23,6 +23,8 @@ class RPryr(RPackage):
     version("0.1.3", sha256="6acd88341dde4fe247a5cafd3949b281dc6742b7d60f68b57c1feb84b96739ac")
     version("0.1.2", sha256="65c2b7c9f96e2aa683ac9cdab3c215fd3039ecd66a2ba7002a8e77881428c3c6")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.1.0:", type=("build", "run"))
     depends_on("r-stringr", type=("build", "run"))
     depends_on("r-codetools", type=("build", "run"))

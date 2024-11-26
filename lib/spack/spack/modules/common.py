@@ -39,17 +39,15 @@ from typing import List, Optional
 
 import llnl.util.filesystem
 import llnl.util.tty as tty
-from llnl.util.lang import dedupe, memoized
+from llnl.util.lang import Singleton, dedupe, memoized
 
 import spack.build_environment
 import spack.config
 import spack.deptypes as dt
 import spack.environment
 import spack.error
-import spack.modules.common
 import spack.paths
 import spack.projections as proj
-import spack.repo
 import spack.schema.environment
 import spack.spec
 import spack.store
@@ -81,6 +79,17 @@ _valid_tokens = (
     "compilername",
     "compilerver",
 )
+
+
+_FORMAT_STRING_RE = re.compile(r"({[^}]*})")
+
+
+def _format_env_var_name(spec, var_name_fmt):
+    """Format the variable name, but uppercase any formatted fields."""
+    fmt_parts = _FORMAT_STRING_RE.split(var_name_fmt)
+    return "".join(
+        spec.format(part).upper() if _FORMAT_STRING_RE.match(part) else part for part in fmt_parts
+    )
 
 
 def _check_tokens_are_valid(format_string, message):
@@ -237,7 +246,7 @@ def _generate_upstream_module_index():
     return UpstreamModuleIndex(spack.store.STORE.db, module_indices)
 
 
-upstream_module_index = llnl.util.lang.Singleton(_generate_upstream_module_index)
+upstream_module_index = Singleton(_generate_upstream_module_index)
 
 
 ModuleIndexEntry = collections.namedtuple("ModuleIndexEntry", ["path", "use_name"])
@@ -311,67 +320,6 @@ class UpstreamModuleIndex:
         else:
             tty.debug(f"No module is available for upstream package {spec}")
             return None
-
-
-def get_module(module_type, spec, get_full_path, module_set_name="default", required=True):
-    """Retrieve the module file for a given spec and module type.
-
-    Retrieve the module file for the given spec if it is available. If the
-    module is not available, this will raise an exception unless the module
-    is excluded or if the spec is installed upstream.
-
-    Args:
-        module_type: the type of module we want to retrieve (e.g. lmod)
-        spec: refers to the installed package that we want to retrieve a module
-            for
-        required: if the module is required but excluded, this function will
-            print a debug message. If a module is missing but not excluded,
-            then an exception is raised (regardless of whether it is required)
-        get_full_path: if ``True``, this returns the full path to the module.
-            Otherwise, this returns the module name.
-        module_set_name: the named module configuration set from modules.yaml
-            for which to retrieve the module.
-
-    Returns:
-        The module name or path. May return ``None`` if the module is not
-        available.
-    """
-    try:
-        upstream = spec.installed_upstream
-    except spack.repo.UnknownPackageError:
-        upstream, record = spack.store.STORE.db.query_by_spec_hash(spec.dag_hash())
-    if upstream:
-        module = spack.modules.common.upstream_module_index.upstream_module(spec, module_type)
-        if not module:
-            return None
-
-        if get_full_path:
-            return module.path
-        else:
-            return module.use_name
-    else:
-        writer = spack.modules.module_types[module_type](spec, module_set_name)
-        if not os.path.isfile(writer.layout.filename):
-            fmt_str = "{name}{@version}{/hash:7}"
-            if not writer.conf.excluded:
-                raise ModuleNotFoundError(
-                    "The module for package {} should be at {}, but it does not exist".format(
-                        spec.format(fmt_str), writer.layout.filename
-                    )
-                )
-            elif required:
-                tty.debug(
-                    "The module configuration has excluded {}: omitting it".format(
-                        spec.format(fmt_str)
-                    )
-                )
-            else:
-                return None
-
-        if get_full_path:
-            return writer.layout.filename
-        else:
-            return writer.layout.use_name
 
 
 class BaseConfiguration:
@@ -579,7 +527,8 @@ class BaseFileLayout:
         parts = name.split("/")
         name = os.path.join(*parts)
         # Add optional suffixes based on constraints
-        path_elements = [name] + self.conf.suffixes
+        path_elements = [name]
+        path_elements.extend(map(self.spec.format, self.conf.suffixes))
         return "-".join(path_elements)
 
     @property
@@ -737,20 +686,12 @@ class BaseContext(tengine.Context):
         exclude = self.conf.exclude_env_vars
 
         # We may have tokens to substitute in environment commands
-
-        # Prepare a suitable transformation dictionary for the names
-        # of the environment variables. This means turn the valid
-        # tokens uppercase.
-        transform = {}
-        for token in _valid_tokens:
-            transform[token] = lambda s, string: str.upper(string)
-
         for x in env:
             # Ensure all the tokens are valid in this context
             msg = "some tokens cannot be expanded in an environment variable name"
+
             _check_tokens_are_valid(x.name, message=msg)
-            # Transform them
-            x.name = self.spec.format(x.name, transform=transform)
+            x.name = _format_env_var_name(self.spec, x.name)
             if self.modification_needs_formatting(x):
                 try:
                     # Not every command has a value

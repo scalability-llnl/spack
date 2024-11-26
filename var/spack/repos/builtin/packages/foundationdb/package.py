@@ -25,6 +25,9 @@ class Foundationdb(CMakePackage):
     version("6.3.0", sha256="307f99014fe0bb8fbb05399c303f5a7a5007ceee207810857a7b5e6a7df7c8e8")
     version("6.2.24", sha256="9225316e43691ff344224824384acfdf16ff2aac5468d6d810e38846051d5db8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.13.0:", type="build")
     depends_on("mono")
 

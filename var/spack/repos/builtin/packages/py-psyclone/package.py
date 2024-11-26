@@ -34,6 +34,8 @@ class PyPsyclone(PythonPackage):
     version("2.0.0", sha256="94766ffda760404af99f85d70341376192e4a1b8e16e7ae5df980038898a9c41")
     version("1.5.1", sha256="f053ad7316623b2a4002afc79607abda3b22306645e86f2312d9f3fe56d312dc")
 
+    depends_on("fortran", type="build")  # generated
+
     # Current dependencies
     depends_on("py-setuptools", type="build")
     depends_on("py-pyparsing", type=("build", "run"))

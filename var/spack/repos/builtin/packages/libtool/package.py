@@ -32,6 +32,8 @@ class Libtool(AutotoolsPackage, GNUMirrorPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("m4@1.4.6:", type="build")
 
     # the following are places in which libtool depends on findutils

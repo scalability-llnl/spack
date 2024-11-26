@@ -6,27 +6,20 @@
 import hashlib
 import json
 import os
-import time
 import urllib.error
 import urllib.parse
 import urllib.request
 from http.client import HTTPResponse
-from typing import NamedTuple, Tuple
+from typing import List, NamedTuple, Tuple
 from urllib.request import Request
 
 import llnl.util.tty as tty
 
-import spack.binary_distribution
-import spack.config
-import spack.error
 import spack.fetch_strategy
 import spack.mirror
 import spack.oci.opener
-import spack.repo
-import spack.spec
 import spack.stage
-import spack.traverse
-import spack.util.crypto
+import spack.util.url
 
 from .image import Digest, ImageReference
 
@@ -35,16 +28,6 @@ class Blob(NamedTuple):
     compressed_digest: Digest
     uncompressed_digest: Digest
     size: int
-
-
-def create_tarball(spec: spack.spec.Spec, tarfile_path):
-    buildinfo = spack.binary_distribution.get_buildinfo_dict(spec)
-    return spack.binary_distribution._do_create_tarball(tarfile_path, spec.prefix, buildinfo)
-
-
-def _log_upload_progress(digest: Digest, size: int, elapsed: float):
-    elapsed = max(elapsed, 0.001)  # guard against division by zero
-    tty.info(f"Uploaded {digest} ({elapsed:.2f}s, {size / elapsed / 1024 / 1024:.2f} MB/s)")
 
 
 def with_query_param(url: str, param: str, value: str) -> str:
@@ -67,6 +50,42 @@ def with_query_param(url: str, param: str, value: str) -> str:
     return urllib.parse.urlunparse(
         parsed._replace(query=urllib.parse.urlencode(query, doseq=True))
     )
+
+
+def list_tags(ref: ImageReference, _urlopen: spack.oci.opener.MaybeOpen = None) -> List[str]:
+    """Retrieves the list of tags associated with an image, handling pagination."""
+    _urlopen = _urlopen or spack.oci.opener.urlopen
+    tags = set()
+    fetch_url = ref.tags_url()
+
+    while True:
+        # Fetch tags
+        request = Request(url=fetch_url)
+        response = _urlopen(request)
+        spack.oci.opener.ensure_status(request, response, 200)
+        tags.update(json.load(response)["tags"])
+
+        # Check for pagination
+        link_header = response.headers["Link"]
+
+        if link_header is None:
+            break
+
+        tty.debug(f"OCI tag pagination: {link_header}")
+
+        rel_next_value = spack.util.url.parse_link_rel_next(link_header)
+
+        if rel_next_value is None:
+            break
+
+        rel_next = urllib.parse.urlparse(rel_next_value)
+
+        if rel_next.scheme not in ("https", ""):
+            break
+
+        fetch_url = ref.endpoint(rel_next_value)
+
+    return sorted(tags)
 
 
 def upload_blob(
@@ -104,8 +123,6 @@ def upload_blob(
     if not force and blob_exists(ref, digest, _urlopen):
         return False
 
-    start = time.time()
-
     with open(file, "rb") as f:
         file_size = os.fstat(f.fileno()).st_size
 
@@ -130,7 +147,6 @@ def upload_blob(
 
         # Created the blob in one go.
         if response.status == 201:
-            _log_upload_progress(digest, file_size, time.time() - start)
             return True
 
         # Otherwise, do another PUT request.
@@ -154,8 +170,6 @@ def upload_blob(
 
         spack.oci.opener.ensure_status(request, response, 201)
 
-    # print elapsed time and # MB/s
-    _log_upload_progress(digest, file_size, time.time() - start)
     return True
 
 
@@ -364,15 +378,12 @@ def make_stage(
 ) -> spack.stage.Stage:
     _urlopen = _urlopen or spack.oci.opener.urlopen
     fetch_strategy = spack.fetch_strategy.OCIRegistryFetchStrategy(
-        url, checksum=digest.digest, _urlopen=_urlopen
+        url=url, checksum=digest.digest, _urlopen=_urlopen
     )
     # Use blobs/<alg>/<encoded> as the cache path, which follows
     # the OCI Image Layout Specification. What's missing though,
     # is the `oci-layout` and `index.json` files, which are
     # required by the spec.
     return spack.stage.Stage(
-        fetch_strategy,
-        mirror_paths=spack.mirror.OCIImageLayout(digest),
-        name=digest.digest,
-        keep=keep,
+        fetch_strategy, mirror_paths=spack.mirror.OCILayout(digest), name=digest.digest, keep=keep
     )

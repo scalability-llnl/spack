@@ -18,6 +18,7 @@ class Apex(CMakePackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("2.7.0", sha256="81cd7e8dbea35cec2360d6404e20f7527f66410614f06a73c8c782ac2cfdb0b0")
     version("2.6.5", sha256="2ba29a1198c904ac209fc6bc02962304a1416443b249f34ef96889aff39644ce")
     version("2.6.4", sha256="281a673f447762a488577beaa60e48d88cb6354f220457cf8f05c1de2e1fce70")
     version("2.6.3", sha256="7fef12937d3bd1271a01abe44cb931b1d63823fb5c74287a332f3012ed7297d5")
@@ -64,6 +65,10 @@ class Apex(CMakePackage):
         sha256="cd5eddb1f6d26b7dbb4a8afeca2aa28036c7d0987e0af0400f4f96733889c75c",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Disable some default dependencies on Darwin/OSX
     darwin_default = False
@@ -125,6 +130,11 @@ class Apex(CMakePackage):
     # https://github.com/UO-OACISS/apex/pull/177#issuecomment-1726322959
     conflicts("+openmp", when="%gcc")
 
+    # Up to 2.6.3 Kokkos support is always enabled. In 2.6.4 and 2.6.5 there is
+    # a CMake option to disable Kokkos support but it doesn't work:
+    # https://github.com/UO-OACISS/apex/issues/180.
+    conflicts("~kokkos", when="@:2.6.5")
+
     # Patches
 
     # This patch ensures that the missing dependency_tree.hpp header is
@@ -137,7 +147,7 @@ class Apex(CMakePackage):
         # CMake variables were updated in version 2.3.0, to make
         prefix = "APEX_WITH"
         test_prefix = "APEX_"
-        if "@2.2.0" in spec:
+        if spec.satisfies("@2.2.0"):
             prefix = "USE"
             test_prefix = ""
 
@@ -154,32 +164,33 @@ class Apex(CMakePackage):
         args.append(self.define_from_variant(prefix + "_LM_SENSORS", "lmsensors"))
         args.append(self.define_from_variant(prefix + "_TCMALLOC", "gperftools"))
         args.append(self.define_from_variant(prefix + "_JEMALLOC", "jemalloc"))
+        args.append(self.define_from_variant(prefix + "_KOKKOS", "kokkos"))
         args.append(self.define_from_variant(test_prefix + "BUILD_TESTS", "tests"))
         args.append(self.define_from_variant(test_prefix + "BUILD_EXAMPLES", "examples"))
 
-        if "+activeharmony" in spec:
+        if spec.satisfies("+activeharmony"):
             args.append("-DACTIVEHARMONY_ROOT={0}".format(spec["activeharmony"].prefix))
 
-        if "+binutils" in spec:
+        if spec.satisfies("+binutils"):
             args.append("-DBFD_ROOT={0}".format(spec["binutils"].prefix))
 
-        if "+binutils ^binutils+nls" in spec:
+        if spec.satisfies("+binutils ^binutils+nls"):
             if "intl" in self.spec["gettext"].libs.names:
                 args.append("-DCMAKE_SHARED_LINKER_FLAGS=-lintl")
 
-        if "+otf2" in spec:
+        if spec.satisfies("+otf2"):
             args.append("-DOTF2_ROOT={0}".format(spec["otf2"].prefix))
 
-        if "+papi" in spec:
+        if spec.satisfies("+papi"):
             args.append("-DPAPI_ROOT={0}".format(spec["papi"].prefix))
 
-        if "+gperftools" in spec:
+        if spec.satisfies("+gperftools"):
             args.append("-DGPERFTOOLS_ROOT={0}".format(spec["gperftools"].prefix))
 
-        if "+jemalloc" in spec:
+        if spec.satisfies("+jemalloc"):
             args.append("-DJEMALLOC_ROOT={0}".format(spec["jemalloc"].prefix))
 
-        if "+hip" in spec:
+        if spec.satisfies("+hip"):
             args.append("-DROCM_ROOT={0}".format(spec["hip"].prefix))
             args.append("-DROCTRACER_ROOT={0}".format(spec["roctracer-dev"].prefix))
             args.append("-DROCTX_ROOT={0}".format(spec["roctracer-dev"].prefix))

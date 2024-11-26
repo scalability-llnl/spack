@@ -33,6 +33,9 @@ class Lvm2(AutotoolsPackage, SourcewarePackage):
     version("2.03.01", sha256="424e58b074195ec08e0315fa1aff2550590998c33aea5c43bdceb8c1d135530b")
     version("2.03.00", sha256="405992bf76960e60c7219d84d5f1e22edc34422a1ea812e21b2ac3c813d0da4e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def url_for_version(self, version):
         url = "https://sourceware.org/pub/lvm2/releases/LVM2.{0}.tgz"
         return url.format(version)

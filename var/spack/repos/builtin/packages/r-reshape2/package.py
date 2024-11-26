@@ -21,6 +21,8 @@ class RReshape2(RPackage):
     version("1.4.2", sha256="6d3783610379be4c5676d9236cf66276a166b5b96c18f2759e9b219758959b6b")
     version("1.4.1", sha256="fbd49f75a5b0b7266378515af98db310cf6c772bf6e68bed01f38ee99b408042")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.1:", type=("build", "run"), when="@1.4.3:")
     depends_on("r-plyr@1.8.1:", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))

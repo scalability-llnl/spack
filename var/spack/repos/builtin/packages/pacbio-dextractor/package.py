@@ -15,6 +15,8 @@ class PacbioDextractor(MakefilePackage):
 
     version("2016-08-09", commit="89726800346d0bed15d98dcc577f4c7733aab4b1")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("hdf5")
     depends_on("gmake", type="build")
 

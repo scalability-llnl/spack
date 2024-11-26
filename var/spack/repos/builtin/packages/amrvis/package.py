@@ -20,6 +20,8 @@ class Amrvis(MakefilePackage):
 
     version("main", branch="main")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "dims",
         default="3",
@@ -55,7 +57,7 @@ class Amrvis(MakefilePackage):
 
     # Only doing gcc and clang at the moment.
     # Intel currently fails searching for mpiicc, mpiicpc, etc.
-    for comp in ["%intel", "%cce", "%nag", "%pgi", "%xl", "%xl_r"]:
+    for comp in ["%intel", "%cce", "%nag", "%xl", "%xl_r"]:
         conflicts(comp, msg="Amrvis currently only builds with gcc and clang")
 
     # Need to clone AMReX into Amrvis because Amrvis uses AMReX's source
@@ -146,7 +148,7 @@ class Amrvis(MakefilePackage):
         # We don't want an AMREX_HOME the user may have set already
         env.unset("AMREX_HOME")
         # Help force Amrvis to not pick up random system compilers
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             env.set("MPI_HOME", self.spec["mpi"].prefix)
             env.set("CC", self.spec["mpi"].mpicc)
             env.set("CXX", self.spec["mpi"].mpicxx)

@@ -90,10 +90,13 @@ class IntelGtpin(Package):
         url="https://downloadmirror.intel.com/682779/external-gtpin-2.11.4-linux.tar.bz2",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("patchelf", type="build")
 
-    # Gtpin only runs on linux/cray x86_64.
-    conflicts("platform=darwin", msg="intel-gtpin only runs on linux/cray")
+    # Gtpin only runs on linux x86_64.
+    conflicts("platform=darwin", msg="intel-gtpin only runs on linux")
     conflicts("target=ppc64:", msg="intel-gtpin only runs on x86_64")
     conflicts("target=ppc64le:", msg="intel-gtpin only runs on x86_64")
     conflicts("target=aarch64:", msg="intel-gtpin only runs on x86_64")

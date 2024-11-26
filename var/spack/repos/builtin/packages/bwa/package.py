@@ -25,6 +25,8 @@ class Bwa(Package):
         url="https://github.com/lh3/bwa/archive/0.7.12.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")
     depends_on("sse2neon", when="target=aarch64:")
 

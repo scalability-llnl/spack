@@ -19,6 +19,8 @@ class Flap(CMakePackage):
 
     version("master", branch="master", submodules=True)
 
+    depends_on("fortran", type="build")  # generated
+
     def flag_handler(self, name, flags):
         if name in ["cflags", "cxxflags", "cppflags"]:
             return (None, flags, None)

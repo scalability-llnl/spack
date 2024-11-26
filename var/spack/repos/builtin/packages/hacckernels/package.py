@@ -22,6 +22,8 @@ class Hacckernels(CMakePackage):
 
     version("develop", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install("README", prefix)

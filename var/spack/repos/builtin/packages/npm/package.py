@@ -23,6 +23,8 @@ class Npm(Package):
     version("7.24.2", sha256="5b9eeea011f8bc3b76e55cc33339e87213800677f37e0756ad13ef0e9eaccd64")
     version("6.14.18", sha256="c9b15f277e2a0b1b57e05bad04504296a27024555d56c2aa967f862e957ad2ed")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("node-js", type=("build", "run"))
     depends_on("libvips", when="@:7")
 

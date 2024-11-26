@@ -23,6 +23,8 @@ class Pscmc(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     def setup_run_environment(self, env):
         env.set("SCMC_COMPILE_ROOT", self.prefix.source)
         env.set("SCMC_ROOT", join_path(self.prefix.source, "runtime_passes"))

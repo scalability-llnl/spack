@@ -28,6 +28,9 @@ class Z3(CMakePackage):
     version("4.8.7", sha256="8c1c49a1eccf5d8b952dadadba3552b0eac67482b8a29eaad62aa7343a0732c3")
     version("4.5.0", sha256="aeae1d239c5e06ac183be7dd853775b84698db1265cb2258e5918a28372d4a0c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("python", default=False, description="Enable python binding")
     depends_on("python", type="build", when="~python")
     depends_on("python", type=("build", "run"), when="+python")
@@ -53,13 +56,6 @@ class Z3(CMakePackage):
         ]
 
         if spec.satisfies("+python"):
-            args.append(
-                self.define(
-                    "CMAKE_INSTALL_PYTHON_PKG_DIR",
-                    join_path(
-                        prefix.lib, "python%s" % spec["python"].version.up_to(2), "site-packages"
-                    ),
-                )
-            )
+            args.append(self.define("CMAKE_INSTALL_PYTHON_PKG_DIR", python_platlib))
 
         return args

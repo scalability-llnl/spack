@@ -46,6 +46,9 @@ class Cubelib(AutotoolsPackage):
         deprecated="true",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("zlib-api")
 

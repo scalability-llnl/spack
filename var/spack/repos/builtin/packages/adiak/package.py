@@ -22,8 +22,9 @@ class Adiak(CMakePackage):
     license("MIT")
 
     version(
-        "0.4.0", commit="7e8b7233f8a148b402128ed46b2f0c643e3b397e", submodules=True, preferred=True
+        "0.4.1", commit="7ac997111785bee6d9391664b1d18ebc2b3c557b", submodules=True, preferred=True
     )
+    version("0.4.0", commit="7e8b7233f8a148b402128ed46b2f0c643e3b397e", submodules=True)
     version("0.2.2", commit="3aedd494c81c01df1183af28bc09bade2fabfcd3", submodules=True)
     version(
         "0.3.0-alpha",
@@ -33,6 +34,10 @@ class Adiak(CMakePackage):
     )
     version("0.2.1", commit="950e3bfb91519ecb7b7ee7fa3063bfab23c0e2c9", submodules=True)
     version("0.1.1", sha256="438e4652e15e206cd0019423d829fd4f2329323ff0c8861d9586bae051d9624b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi", when="+mpi")
 

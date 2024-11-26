@@ -16,7 +16,11 @@ class PyPythonLspJsonrpc(PythonPackage):
 
     license("MIT")
 
+    version("1.1.2", sha256="4688e453eef55cd952bff762c705cedefa12055c0aec17a06f595bcc002cc912")
     version("1.0.0", sha256="7bec170733db628d3506ea3a5288ff76aa33c70215ed223abdb0d95e957660bd")
 
     depends_on("py-setuptools", type="build")
+    depends_on("py-setuptools@61.2.0:", type="build", when="@1.1.0:")
+    depends_on("py-setuptools-scm@3.4.3:+toml", type="build", when="@1.1.0:")
+
     depends_on("py-ujson@3.0.0:", type=("build", "run"))

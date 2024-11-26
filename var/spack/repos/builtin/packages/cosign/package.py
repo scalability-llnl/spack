@@ -21,6 +21,7 @@ class Cosign(Package):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("2.2.4", sha256="2e31e8638de1869514cb0478796d2b55b455552fbd03c3b7ba0edf27b0b5b944")
     version("1.3.1", sha256="7f7e0af52ee8d795440e66dcc1a7a25783e22d30935f4f957779628b348f38af")
 
     depends_on("go", type="build")

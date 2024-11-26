@@ -16,6 +16,8 @@ class Glimmer(MakefilePackage):
 
     version("3.02b", sha256="ecf28e03d0a675aed7360ca34ca7f19993f5c3ea889273e657ced9fa7d1e2bf6")
 
+    depends_on("cxx", type="build")  # generated
+
     build_directory = "src"
 
     def url_for_version(self, version):

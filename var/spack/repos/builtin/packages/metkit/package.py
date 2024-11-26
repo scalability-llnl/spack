@@ -24,6 +24,8 @@ class Metkit(CMakePackage):
     version("1.9.2", sha256="35d5f67196197cc06e5c2afc6d1354981e7c85a441df79a2fbd774e0c343b0b4")
     version("1.7.0", sha256="8c34f6d8ea5381bd1bcfb22462349d03e1592e67d8137e76b3cecf134a9d338c")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("tools", default=True, description="Build the command line tools")
     variant("grib", default=True, description="Enable support for GRIB format")
     variant("odb", default=False, description="Enable support for ODB data")

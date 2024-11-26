@@ -24,3 +24,8 @@ class PyTatsu(PythonPackage):
     depends_on("py-setuptools", type="build")
     # optional dependency, otherwise falls back to standard implementation
     depends_on("py-regex@2018.8:", type=("build", "run"), when="+future_regex")
+
+    # <<< manual changes
+    # https://github.com/neogeny/TatSu/commit/a4fd84a2785fb0820ed65fe80ebd768458643b66
+    depends_on("python@:3.9", type=("build", "run"), when="@:4")
+    # manual changes >>>

@@ -16,21 +16,9 @@ class PyJupyterlabWidgets(PythonPackage):
 
     license("BSD-3-Clause")
 
-    version(
-        "3.0.3",
-        sha256="6aa1bc0045470d54d76b9c0b7609a8f8f0087573bae25700a370c11f82cb38c8",
-        expand=False,
-    )
-    version(
-        "1.1.0",
-        sha256="c2a9bd3789f120f64d73268c066ed3b000c56bc1dda217be5cdc43e7b4ebad3f",
-        expand=False,
-    )
-    version(
-        "1.0.2",
-        sha256="f5d9efface8ec62941173ba1cffb2edd0ecddc801c11ae2931e30b50492eb8f7",
-        expand=False,
-    )
+    version("3.0.3", sha256="6aa1bc0045470d54d76b9c0b7609a8f8f0087573bae25700a370c11f82cb38c8")
+    version("1.1.0", sha256="c2a9bd3789f120f64d73268c066ed3b000c56bc1dda217be5cdc43e7b4ebad3f")
+    version("1.0.2", sha256="f5d9efface8ec62941173ba1cffb2edd0ecddc801c11ae2931e30b50492eb8f7")
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("python@3.7:", when="@3.0.3:", type=("build", "run"))

@@ -5,6 +5,7 @@
 import itertools
 from typing import List
 
+import spack.spec
 import spack.variant
 from spack.error import SpackError
 from spack.spec import Spec
@@ -212,10 +213,7 @@ def _expand_matrix_constraints(matrix_config):
     results = []
     for combo in itertools.product(*expanded_rows):
         # Construct a combined spec to test against excludes
-        flat_combo = [constraint for constraint_list in combo for constraint in constraint_list]
-
-        # Resolve abstract hashes so we can exclude by their concrete properties
-        flat_combo = [Spec(x).lookup_hash() for x in flat_combo]
+        flat_combo = [Spec(constraint) for constraints in combo for constraint in constraints]
 
         test_spec = flat_combo[0].copy()
         for constraint in flat_combo[1:]:
@@ -228,10 +226,12 @@ def _expand_matrix_constraints(matrix_config):
         # Catch exceptions because we want to be able to operate on
         # abstract specs without needing package information
         try:
-            spack.variant.substitute_abstract_variants(test_spec)
+            spack.spec.substitute_abstract_variants(test_spec)
         except spack.variant.UnknownVariantError:
             pass
-        if any(test_spec.satisfies(x) for x in excludes):
+
+        # Resolve abstract hashes for exclusion criteria
+        if any(test_spec.lookup_hash().satisfies(x) for x in excludes):
             continue
 
         if sigil:

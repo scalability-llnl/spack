@@ -23,4 +23,6 @@ class RBit(RPackage):
     version("1.1-14", sha256="5cbaace1fb643a665a6ca69b90f7a6d624270de82420ca7a44f306753fcef254")
     version("1.1-12", sha256="ce281c87fb7602bf1a599e72f3e25f9ff7a13e390c124a4506087f69ad79d128")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.9.2:", type=("build", "run"))
