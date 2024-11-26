@@ -381,9 +381,10 @@ class TestConcretize:
     ):
         """Tests that nodes get the flags of the associated compiler."""
         mutable_config.set("compilers", [clang12_with_flags, gcc11_with_flags])
+        t = archspec.cpu.host().family
         client = Spec(
-            "cmake-client %gcc@11.1.0 platform=test os=redhat6 target=fe"
-            " ^cmake %clang@12.2.0 platform=test os=redhat6 target=fe"
+            f"cmake-client %gcc@11.1.0 platform=test os=redhat6 target={t}"
+            f" ^cmake %clang@12.2.0 platform=test os=redhat6 target={t}"
         ).concretized()
         cmake = client["cmake"]
         assert set(client.compiler_flags["cflags"]) == {"-O0", "-g"}
@@ -407,7 +408,8 @@ class TestConcretize:
     def test_compiler_flags_differ_identical_compilers(self, mutable_config, clang12_with_flags):
         mutable_config.set("compilers", [clang12_with_flags])
         # Correct arch to use test compiler that has flags
-        spec = Spec("pkg-a %clang@12.2.0 platform=test os=redhat6 target=fe")
+        t = archspec.cpu.host().family
+        spec = Spec(f"pkg-a %clang@12.2.0 platform=test os=redhat6 target={t}")
 
         # Get the compiler that matches the spec (
         compiler = spack.compilers.compiler_for_spec("clang@=12.2.0", spec.architecture)
