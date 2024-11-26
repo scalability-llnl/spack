@@ -18,7 +18,8 @@ class PyTorchCluster(PythonPackage):
 
     version("1.6.3", sha256="78d5a930a5bbd0d8788df8c6d66addd68d6dd292fe3edb401e3dacba26308152")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("python", type=("build", "link", "run"))
     depends_on("py-setuptools", type="build")
