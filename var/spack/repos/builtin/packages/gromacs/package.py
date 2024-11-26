@@ -296,6 +296,15 @@ class Gromacs(CMakePackage, CudaPackage):
         + "The g++ location is written to icp{c,x}.cfg",
     )
 
+    variant(
+        "itt",
+        default=False,
+        when="@2024:",
+        description="Enable Instrumentation and Tracing Technology (ITT)"
+        + " profiling API (from Intel)",
+    )
+    depends_on("intel-oneapi-vtune", "+itt")
+
     depends_on("fftw-api@3")
     depends_on("cmake@2.8.8:3", type="build")
     depends_on("cmake@3.4.3:3", type="build", when="@2018:")
@@ -613,6 +622,13 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         if self.spec.satisfies("+intel-data-center-gpu-max"):
             options.append("-DGMX_GPU_NB_CLUSTER_SIZE=8")
             options.append("-DGMX_GPU_NB_NUM_CLUSTER_PER_CELL_X=1")
+
+        if "+itt" in self.spec:
+            options.append("-DGMX_USE_ITT=on")
+            options.append(
+                "-DITTNOTIFY_INCLUDE_DIR=%s"
+                % join_path(self.spec["intel-oneapi-vtune"].package.headers)
+            )
 
         if self.spec.satisfies("~nblib"):
             options.append("-DGMX_INSTALL_NBLIB_API=OFF")
