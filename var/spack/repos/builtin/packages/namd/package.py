@@ -9,6 +9,7 @@ import sys
 
 import llnl.util.tty as tty
 
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
@@ -175,7 +176,7 @@ class Namd(MakefilePackage, CudaPackage, ROCmPackage):
                 # this options are take from the default provided
                 # configuration files
                 # https://github.com/UIUC-PPL/charm/pull/2778
-                archopt = spec.architecture.target.optimization_flags(spec.compiler)
+                archopt = optimization_flags(self.compiler, spec.target)
 
                 if self.spec.satisfies("^charmpp@:6.10.1"):
                     optims_opts = {

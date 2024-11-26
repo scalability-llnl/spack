@@ -216,9 +216,9 @@ NOT_PROVIDED = object()
 def packages_path():
     """Get the test repo if it is active, otherwise the builtin repo."""
     try:
-        return spack.repo.PATH.get_repo("builtin.mock").packages_path
-    except spack.repo.UnknownNamespaceError:
-        return spack.repo.PATH.get_repo("builtin").packages_path
+        return PATH.get_repo("builtin.mock").packages_path
+    except UnknownNamespaceError:
+        return PATH.get_repo("builtin").packages_path
 
 
 class GitExe:
@@ -314,7 +314,7 @@ def add_package_to_git_stage(packages):
     git = GitExe()
 
     for pkg_name in packages:
-        filename = spack.repo.PATH.filename_for_package_name(pkg_name)
+        filename = PATH.filename_for_package_name(pkg_name)
         if not os.path.isfile(filename):
             tty.die("No such package: %s.  Path does not exist:" % pkg_name, filename)
 
@@ -590,7 +590,7 @@ class RepoIndex:
         self,
         package_checker: FastPackageChecker,
         namespace: str,
-        cache: "spack.caches.FileCacheType",
+        cache: spack.util.file_cache.FileCache,
     ):
         self.checker = package_checker
         self.packages_path = self.checker.packages_path
@@ -683,7 +683,7 @@ class RepoPath:
     def __init__(
         self,
         *repos: Union[str, "Repo"],
-        cache: Optional["spack.caches.FileCacheType"],
+        cache: Optional[spack.util.file_cache.FileCache],
         overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.repos: List[Repo] = []
@@ -965,7 +965,7 @@ class Repo:
         self,
         root: str,
         *,
-        cache: "spack.caches.FileCacheType",
+        cache: spack.util.file_cache.FileCache,
         overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Instantiate a package repository from a filesystem path.
@@ -1440,9 +1440,7 @@ def _path(configuration=None):
     return create(configuration=configuration)
 
 
-def create(
-    configuration: Union["spack.config.Configuration", llnl.util.lang.Singleton]
-) -> RepoPath:
+def create(configuration: spack.config.Configuration) -> RepoPath:
     """Create a RepoPath from a configuration object.
 
     Args:
@@ -1465,7 +1463,7 @@ def create(
 
 
 #: Singleton repo path instance
-PATH: Union[RepoPath, llnl.util.lang.Singleton] = llnl.util.lang.Singleton(_path)
+PATH: RepoPath = llnl.util.lang.Singleton(_path)  # type: ignore
 
 # Add the finder to sys.meta_path
 REPOS_FINDER = ReposFinder()
@@ -1523,8 +1521,10 @@ class MockRepositoryBuilder:
                 Both "dep_type" and "condition" can default to ``None`` in which case
                 ``spack.dependency.default_deptype`` and ``spack.spec.Spec()`` are used.
         """
+        import spack.tengine  # avoid circular import
+
         dependencies = dependencies or []
-        context = {"cls_name": spack.util.naming.mod_to_class(name), "dependencies": dependencies}
+        context = {"cls_name": nm.mod_to_class(name), "dependencies": dependencies}
         template = spack.tengine.make_environment().get_template("mock-repository/package.pyt")
         text = template.render(context)
         package_py = self.recipe_filename(name)
@@ -1583,7 +1583,7 @@ class UnknownPackageError(UnknownEntityError):
                 long_msg = "Use 'spack create' to create a new package."
 
                 if not repo:
-                    repo = spack.repo.PATH
+                    repo = PATH
 
                 # We need to compare the base package name
                 pkg_name = name.rsplit(".", 1)[-1]

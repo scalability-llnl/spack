@@ -10,6 +10,7 @@ import pytest
 
 import spack.cmd.compiler
 import spack.compilers
+import spack.config
 import spack.main
 import spack.spec
 import spack.util.pattern

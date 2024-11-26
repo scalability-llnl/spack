@@ -16,7 +16,9 @@ from llnl.util.symlink import readlink
 
 import spack.config
 import spack.hash_types as ht
+import spack.projections
 import spack.spec
+import spack.store
 import spack.util.spack_json as sjson
 from spack.error import SpackError
 

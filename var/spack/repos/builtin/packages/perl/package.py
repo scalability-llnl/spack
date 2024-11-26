@@ -264,7 +264,7 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
 
     @classmethod
     def determine_version(cls, exe):
-        perl = spack.util.executable.Executable(exe)
+        perl = Executable(exe)
         output = perl("--version", output=str, error=str)
         if output:
             match = re.search(r"perl.*\(v([0-9.]+)\)", output)
@@ -275,7 +275,7 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
     @classmethod
     def determine_variants(cls, exes, version):
         for exe in exes:
-            perl = spack.util.executable.Executable(exe)
+            perl = Executable(exe)
             output = perl("-V", output=str, error=str)
             variants = ""
             if output:

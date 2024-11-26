@@ -19,6 +19,7 @@ class ComposableKernel(CMakePackage):
     license("MIT")
 
     version("master", branch="develop")
+    version("6.2.1", sha256="708ff25218dc5fa977af4a37105b380d7612a70c830fa7977b40b3df8b8d3162")
     version("6.2.0", sha256="4a3024f4f93c080db99d560a607ad758745cd2362a90d0e8f215331686a6bc64")
     version("6.1.2", sha256="54db801e1c14239f574cf94dd764a2f986b4abcc223393d55c49e4b276e738c9")
     version("6.1.1", sha256="f55643c6eee0878e8f2d14a382c33c8b84af0bdf8f31b37b6092b377f7a9c6b5")
@@ -57,6 +58,7 @@ class ComposableKernel(CMakePackage):
 
     for ver in [
         "master",
+        "6.2.1",
         "6.2.0",
         "6.1.2",
         "6.1.1",
@@ -75,6 +77,10 @@ class ComposableKernel(CMakePackage):
         depends_on("hip@" + ver, when="@" + ver)
         depends_on("llvm-amdgpu@" + ver, when="@" + ver)
         depends_on("rocm-cmake@" + ver, when="@" + ver, type="build")
+
+    # Build is breaking on warning, -Werror, -Wunused-parameter. The patch is part of:
+    # https://github.com/ROCm/composable_kernel/commit/959073842c0db839d45d565eb260fd018c996ce4
+    patch("0001-mark-kernels-maybe-unused.patch", when="@6.2")
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
@@ -99,6 +105,8 @@ class ComposableKernel(CMakePackage):
             args.append(self.define("CMAKE_POSITION_INDEPENDENT_CODE", "ON"))
         if self.spec.satisfies("@:5.7"):
             args.append(self.define("CMAKE_CXX_FLAGS", "-O3"))
+        if self.spec.satisfies("@6.2:"):
+            args.append(self.define("BUILD_DEV", "OFF"))
         return args
 
     def build(self, spec, prefix):

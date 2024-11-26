@@ -15,20 +15,21 @@ import pytest
 import llnl.util.tty as tty
 from llnl.util.filesystem import join_path, touch, touchp
 
+import spack
 import spack.config
 import spack.directory_layout
 import spack.environment as ev
-import spack.fetch_strategy
-import spack.main
+import spack.error
 import spack.package_base
 import spack.paths
+import spack.platforms
 import spack.repo
 import spack.schema.compilers
 import spack.schema.config
 import spack.schema.env
 import spack.schema.mirrors
-import spack.schema.packages
 import spack.schema.repos
+import spack.spec
 import spack.store
 import spack.util.path as spack_path
 import spack.util.spack_yaml as syaml
@@ -313,7 +314,7 @@ def test_add_config_path_with_enumerated_type(mutable_config):
     spack.config.add("config:flags:keep_werror:specific")
     assert spack.config.get("config")["flags"]["keep_werror"] == "specific"
 
-    with pytest.raises(spack.config.ConfigError):
+    with pytest.raises(spack.error.ConfigError):
         spack.config.add("config:flags:keep_werror:foo")
 
 
@@ -407,7 +408,7 @@ def test_substitute_config_variables(mock_low_high_config, monkeypatch):
     ) == os.path.abspath(os.path.join("foo", "test", "bar"))
 
     host_target = spack.platforms.host().target("default_target")
-    host_target_family = str(host_target.microarchitecture.family)
+    host_target_family = str(host_target.family)
     assert spack_path.canonicalize_path(
         os.path.join("foo", "$target_family", "bar")
     ) == os.path.abspath(os.path.join("foo", host_target_family, "bar"))
@@ -470,6 +471,13 @@ def test_substitute_date(mock_low_high_config):
     new_path = spack_path.canonicalize_path(test_path)
     assert "$date" in test_path
     assert date.today().strftime("%Y-%m-%d") in new_path
+
+
+def test_substitute_spack_version():
+    version = spack.spack_version_info
+    assert spack_path.canonicalize_path(
+        "spack$spack_short_version/test"
+    ) == spack_path.canonicalize_path(f"spack{version[0]}.{version[1]}/test")
 
 
 PAD_STRING = spack_path.SPACK_PATH_PADDING_CHARS
@@ -872,10 +880,10 @@ def test_bad_command_line_scopes(tmp_path, config):
 
     file_path.write_text("")
 
-    with pytest.raises(spack.config.ConfigError):
+    with pytest.raises(spack.error.ConfigError):
         spack.config._add_command_line_scopes(cfg, [str(file_path)])
 
-    with pytest.raises(spack.config.ConfigError):
+    with pytest.raises(spack.error.ConfigError):
         spack.config._add_command_line_scopes(cfg, [str(non_existing_path)])
 
 
@@ -993,7 +1001,7 @@ config:
     data = scope.get_section("config")
     assert data["config"]["install_tree"] == {"root": "dummy_tree_value"}
 
-    with pytest.raises(spack.config.ConfigError):
+    with pytest.raises(spack.error.ConfigError):
         scope._write_section("config")
 
 

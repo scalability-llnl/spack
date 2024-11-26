@@ -17,10 +17,11 @@ from llnl.util.filesystem import is_exe, working_dir
 import spack.config
 import spack.error
 import spack.fetch_strategy as fs
-import spack.repo
+import spack.url
 import spack.util.crypto as crypto
 import spack.util.executable
 import spack.util.web as web_util
+import spack.version
 from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which

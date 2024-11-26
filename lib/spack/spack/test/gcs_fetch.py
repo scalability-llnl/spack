@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import spack.config
-import spack.error
 import spack.fetch_strategy
 import spack.stage
 

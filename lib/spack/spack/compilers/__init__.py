@@ -8,6 +8,7 @@ system and configuring Spack to use multiple compilers.
 """
 import importlib
 import os
+import re
 import sys
 import warnings
 from typing import Dict, List, Optional
@@ -25,7 +26,6 @@ import spack.paths
 import spack.platforms
 import spack.repo
 import spack.spec
-import spack.version
 from spack.operating_systems import windows_os
 from spack.util.environment import get_path
 from spack.util.naming import mod_to_class
@@ -558,7 +558,7 @@ def get_compilers(config, cspec=None, arch_spec=None):
         except KeyError:
             # TODO: Check if this exception handling makes sense, or if we
             # TODO: need to change / refactor tests
-            family = arch_spec.target
+            family = str(arch_spec.target)
         except AttributeError:
             assert arch_spec is None
 
@@ -632,37 +632,34 @@ def is_mixed_toolchain(compiler):
     Args:
         compiler (spack.compiler.Compiler): a valid compiler object
     """
-    cc = os.path.basename(compiler.cc or "")
-    cxx = os.path.basename(compiler.cxx or "")
-    f77 = os.path.basename(compiler.f77 or "")
-    fc = os.path.basename(compiler.fc or "")
+    import spack.detection.path
+
+    executables = [
+        os.path.basename(compiler.cc or ""),
+        os.path.basename(compiler.cxx or ""),
+        os.path.basename(compiler.f77 or ""),
+        os.path.basename(compiler.fc or ""),
+    ]
 
     toolchains = set()
-    for compiler_cls in all_compiler_types():
-        # Inspect all the compiler toolchain we know. If a compiler is the
-        # only compiler supported there it belongs to that toolchain.
-        def name_matches(name, name_list):
-            # This is such that 'gcc' matches variations
-            # like 'ggc-9' etc that are found in distros
-            name, _, _ = name.partition("-")
-            return len(name_list) == 1 and name and name in name_list
+    finder = spack.detection.path.ExecutablesFinder()
 
-        if any(
-            [
-                name_matches(cc, compiler_cls.cc_names),
-                name_matches(cxx, compiler_cls.cxx_names),
-                name_matches(f77, compiler_cls.f77_names),
-                name_matches(fc, compiler_cls.fc_names),
-            ]
-        ):
-            tty.debug("[TOOLCHAIN] MATCH {0}".format(compiler_cls.__name__))
-            toolchains.add(compiler_cls.__name__)
+    for pkg_name in spack.repo.PATH.packages_with_tags(COMPILER_TAG):
+        pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
+        patterns = finder.search_patterns(pkg=pkg_cls)
+        if not patterns:
+            continue
+        joined_pattern = re.compile(r"|".join(patterns))
+
+        if any(joined_pattern.search(exe) for exe in executables):
+            tty.debug(f"[TOOLCHAIN] MATCH {pkg_name}")
+            toolchains.add(pkg_name)
 
     if len(toolchains) > 1:
         if (
-            toolchains == set(["Clang", "AppleClang", "Aocc"])
+            toolchains == {"llvm", "apple-clang", "aocc"}
             # Msvc toolchain uses Intel ifx
-            or toolchains == set(["Msvc", "Dpcpp", "Oneapi"])
+            or toolchains == {"msvc", "intel-oneapi-compilers"}
         ):
             return False
         tty.debug("[TOOLCHAINS] {0}".format(toolchains))
@@ -806,12 +803,11 @@ class CompilerConfigFactory:
         if not spec.architecture:
             host_platform = spack.platforms.host()
             operating_system = host_platform.operating_system("default_os")
-            target = host_platform.target("default_target").microarchitecture
+            target = host_platform.target("default_target")
         else:
             target = spec.architecture.target
             if not target:
                 target = spack.platforms.host().target("default_target")
-            target = target.microarchitecture
 
             operating_system = spec.os
             if not operating_system:

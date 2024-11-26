@@ -55,28 +55,33 @@ class Emacs(AutotoolsPackage, GNUMirrorPackage):
     depends_on("c", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("gzip", type="build")
+    depends_on("texinfo", type="build", when="@29.4:")
 
     depends_on("ncurses")
     depends_on("pcre")
     depends_on("zlib-api")
     depends_on("libxml2")
-    depends_on("libtiff", when="+X")
-    depends_on("libpng", when="+X")
-    depends_on("libxpm", when="+X")
-    depends_on("giflib", when="+X")
-    depends_on("libx11", when="+X")
-    depends_on("libxaw", when="+X toolkit=athena")
-    depends_on("gtkplus", when="+X toolkit=gtk")
-    depends_on("gnutls", when="+tls")
     depends_on("jpeg")
+    depends_on("gnutls", when="+tls")
     depends_on("tree-sitter", when="+treesitter")
+    depends_on("gcc@11: +strip languages=jit", when="+native")
+    depends_on("jansson@2.7:", when="+json")
+
+    with when("+X"):
+        depends_on("libtiff")
+        depends_on("libpng")
+        depends_on("libxpm")
+        depends_on("giflib")
+        depends_on("libx11")
+        depends_on("libxaw", when="toolkit=athena")
+        depends_on("gtkplus", when="toolkit=gtk")
+
+    # the following dependencies are required when building from a git ref
+    # so that we can run reconfigure to generate a ./configure script
     depends_on("m4", type="build", when="@master:")
     depends_on("autoconf", type="build", when="@master:")
     depends_on("automake", type="build", when="@master:")
     depends_on("libtool", type="build", when="@master:")
-    depends_on("texinfo", type="build", when="@master:")
-    depends_on("gcc@11: +strip languages=jit", when="+native")
-    depends_on("jansson@2.7:", when="+json")
 
     conflicts("@:26.3", when="platform=darwin os=catalina")
 

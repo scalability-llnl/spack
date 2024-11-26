@@ -9,10 +9,13 @@ import pytest
 
 import archspec.cpu
 
+import spack.config
 import spack.environment as ev
 import spack.main
+import spack.modules.common
 import spack.modules.lmod
 import spack.spec
+import spack.util.environment
 
 mpich_spec_string = "mpich@3.0.4"
 mpileaks_spec_string = "mpileaks"

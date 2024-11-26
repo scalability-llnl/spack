@@ -98,25 +98,25 @@ class IntelMpiBenchmarks(MakefilePackage):
     def build_targets(self):
         spec = self.spec
         targets = []
-        if "+mpi1" in spec:
+        if spec.satisfies("+mpi1"):
             targets.append("MPI1")
-        if "+ext" in spec:
+        if spec.satisfies("+ext"):
             targets.append("EXT")
-        if "+io" in spec:
+        if spec.satisfies("+io"):
             targets.append("IO")
-        if "+nbc" in spec:
+        if spec.satisfies("+nbc"):
             targets.append("NBC")
-        if "+p2p" in spec:
+        if spec.satisfies("+p2p"):
             targets.append("P2P")
-        if "+rma" in spec:
+        if spec.satisfies("+rma"):
             targets.append("RMA")
-        if "+mt" in spec:
+        if spec.satisfies("+mt"):
             targets.append("MT")
 
         if spec.satisfies("@2019:"):
             targets = ["TARGET=" + target for target in targets]
 
-        if "+check" in spec:
+        if spec.satisfies("+check"):
             targets.append("CPPFLAGS=-DCHECK")
 
         return targets
@@ -129,17 +129,17 @@ class IntelMpiBenchmarks(MakefilePackage):
         mkdir(prefix.bin)
 
         with working_dir(self.build_directory):
-            if "+mpi1" in spec:
+            if spec.satisfies("+mpi1"):
                 install("IMB-MPI1", prefix.bin)
-            if "+ext" in spec:
+            if spec.satisfies("+ext"):
                 install("IMB-EXT", prefix.bin)
-            if "+io" in spec:
+            if spec.satisfies("+io"):
                 install("IMB-IO", prefix.bin)
-            if "+nbc" in spec:
+            if spec.satisfies("+nbc"):
                 install("IMB-NBC", prefix.bin)
-            if "+p2p" in spec:
+            if spec.satisfies("+p2p"):
                 install("IMB-P2P", prefix.bin)
-            if "+rma" in spec:
+            if spec.satisfies("+rma"):
                 install("IMB-RMA", prefix.bin)
-            if "+mt" in spec:
+            if spec.satisfies("+mt"):
                 install("IMB-MT", prefix.bin)

@@ -6,6 +6,7 @@ import shutil
 
 import spack.store
 from spack.database import Database
+from spack.enums import InstallRecordStatus
 from spack.main import SpackCommand
 
 install = SpackCommand("install")
@@ -57,18 +58,18 @@ def test_reindex_with_deprecated_packages(
 
     db = spack.store.STORE.db
 
-    all_installed = db.query(installed=any)
+    all_installed = db.query(installed=InstallRecordStatus.ANY)
     non_deprecated = db.query(installed=True)
 
     _clear_db(tmp_path)
 
     reindex()
 
-    assert db.query(installed=any) == all_installed
+    assert db.query(installed=InstallRecordStatus.ANY) == all_installed
     assert db.query(installed=True) == non_deprecated
 
     old_libelf = db.query_local_by_spec_hash(
-        db.query_local("libelf@0.8.12", installed=any)[0].dag_hash()
+        db.query_local("libelf@0.8.12", installed=InstallRecordStatus.ANY)[0].dag_hash()
     )
     new_libelf = db.query_local_by_spec_hash(
         db.query_local("libelf@0.8.13", installed=True)[0].dag_hash()

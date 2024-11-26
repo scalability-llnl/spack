@@ -31,7 +31,7 @@ class Hpccg(MakefilePackage):
     def build_targets(self):
         targets = []
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             targets.append("CXX={0}".format(self.spec["mpi"].mpicxx))
             targets.append("LINKER={0}".format(self.spec["mpi"].mpicxx))
             targets.append("USE_MPI=-DUSING_MPI")
@@ -39,7 +39,7 @@ class Hpccg(MakefilePackage):
             targets.append("CXX=c++")
             targets.append("LINKER=c++")
 
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             targets.append("USE_OMP=-DUSING_OMP")
             targets.append("OMP_FLAGS={0}".format(self.compiler.openmp_flag))
 

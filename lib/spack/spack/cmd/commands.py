@@ -17,6 +17,7 @@ from llnl.util.argparsewriter import ArgparseRstWriter, ArgparseWriter, Command
 from llnl.util.tty.colify import colify
 
 import spack.cmd
+import spack.config
 import spack.main
 import spack.paths
 import spack.platforms

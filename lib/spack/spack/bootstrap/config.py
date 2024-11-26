@@ -14,6 +14,7 @@ from llnl.util import tty
 import spack.compilers
 import spack.config
 import spack.environment
+import spack.modules
 import spack.paths
 import spack.platforms
 import spack.repo

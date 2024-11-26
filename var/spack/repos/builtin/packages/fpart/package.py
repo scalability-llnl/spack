@@ -17,13 +17,11 @@ class Fpart(AutotoolsPackage):
 
     maintainers("drkrynstrng")
 
-    license("BSD-2-Clause")
+    license("BSD-2-Clause", checked_by="drkrynstrng")
 
     version("master", branch="master")
     version("1.6.0", sha256="ed1fac2853fc421071b72e4c5d8455a231bc30e50034db14af8b0485ece6e097")
     version("1.5.1", sha256="c353a28f48e4c08f597304cb4ebb88b382f66b7fabfc8d0328ccbb0ceae9220c")
-
-    depends_on("c", type="build")  # generated
 
     variant("embfts", default=False, description="Build with embedded fts functions")
     variant("static", default=False, description="Build static binary")
@@ -37,6 +35,7 @@ class Fpart(AutotoolsPackage):
         description="Tools used by fpsync to copy files",
     )
 
+    depends_on("c", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

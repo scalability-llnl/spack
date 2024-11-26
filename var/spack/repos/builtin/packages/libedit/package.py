@@ -12,8 +12,14 @@ class Libedit(AutotoolsPackage):
     homepage = "https://thrysoee.dk/editline/"
     url = "https://thrysoee.dk/editline/libedit-20170329-3.1.tar.gz"
 
-    license("BSD-3-Clause")
+    license("BSD-3-Clause", checked_by="wdconinc")
 
+    version(
+        "3.1-20240808", sha256="5f0573349d77c4a48967191cdd6634dd7aa5f6398c6a57fe037cc02696d6099f"
+    )
+    version(
+        "3.1-20240517", sha256="3a489097bb4115495f3bd85ae782852b7097c556d9500088d74b6fa38dbd12ff"
+    )
     version(
         "3.1-20230828", sha256="4ee8182b6e569290e7d1f44f0f78dac8716b35f656b76528f699c69c98814dad"
     )
@@ -33,7 +39,7 @@ class Libedit(AutotoolsPackage):
         "3.1-20150325", sha256="c88a5e4af83c5f40dda8455886ac98923a9c33125699742603a88a0253fcc8c5"
     )
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("pkgconfig", type="build")
     depends_on("ncurses")

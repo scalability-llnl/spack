@@ -8,7 +8,6 @@ import llnl.util.filesystem as fs
 
 import spack.container.images
 import spack.main
-import spack.platforms
 
 containerize = spack.main.SpackCommand("containerize")
 

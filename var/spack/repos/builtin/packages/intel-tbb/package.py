@@ -187,7 +187,7 @@ class IntelTbb(CMakePackage, MakefilePackage):
 
     @property
     def libs(self):
-        shared = True if "+shared" in self.spec else False
+        shared = True if self.spec.satisfies("+shared") else False
         return find_libraries("libtbb*", root=self.prefix, shared=shared, recursive=True)
 
 

@@ -47,12 +47,12 @@ $coverage_run $(which spack) python -c "import spack.pkg.builtin.mpileaks; repr(
 # Run unit tests with code coverage
 #-----------------------------------------------------------
 # Check if xdist is available
-if python -m pytest -VV 2>&1 | grep xdist; then
+if [[ "$UNIT_TEST_COVERAGE" != "true" ]] && python -m pytest -VV 2>&1 | grep xdist; then
   export PYTEST_ADDOPTS="$PYTEST_ADDOPTS --dist loadfile --tx '${SPACK_TEST_PARALLEL:=3}*popen//python=./bin/spack-tmpconfig python -u ./bin/spack python'"
 fi
 
 # We are running pytest-cov after the addition of pytest-xdist, since it integrates
-# other pugins for pytest automatically. We still need to use "coverage" explicitly
+# other plugins for pytest automatically. We still need to use "coverage" explicitly
 # for the commands above.
 #
 # There is a need to pass the configuration file explicitly due to a bug:
@@ -61,9 +61,9 @@ fi
 # where it seems that otherwise the configuration file might not be located by subprocesses
 # in some, not better specified, cases.
 if [[ "$UNIT_TEST_COVERAGE" == "true" ]]; then
-  $(which spack) unit-test -x --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml
+  "$(which spack)" unit-test -x --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml
 else
-  $(which spack) unit-test -x --verbose
+  "$(which spack)" unit-test -x --verbose
 fi
 
 

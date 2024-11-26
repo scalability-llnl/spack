@@ -24,6 +24,7 @@ in order to build it.  They need to define the following methods:
 """
 import copy
 import functools
+import http.client
 import os
 import os.path
 import re
@@ -45,7 +46,6 @@ from llnl.util.symlink import symlink
 import spack.config
 import spack.error
 import spack.oci.opener
-import spack.url
 import spack.util.archive
 import spack.util.crypto as crypto
 import spack.util.git
@@ -58,19 +58,6 @@ from spack.util.executable import CommandNotFoundError, Executable, which
 
 #: List of all fetch strategies, created by FetchStrategy metaclass.
 all_strategies = []
-
-CONTENT_TYPE_MISMATCH_WARNING_TEMPLATE = (
-    "The contents of {subject} look like {content_type}.  Either the URL"
-    " you are trying to use does not exist or you have an internet gateway"
-    " issue.  You can remove the bad archive using 'spack clean"
-    " <package>', then try again using the correct URL."
-)
-
-
-def warn_content_type_mismatch(subject, content_type="HTML"):
-    tty.warn(
-        CONTENT_TYPE_MISMATCH_WARNING_TEMPLATE.format(subject=subject, content_type=content_type)
-    )
 
 
 def _needs_stage(fun):
@@ -265,6 +252,7 @@ class URLFetchStrategy(FetchStrategy):
         self.extra_options: dict = kwargs.get("fetch_options", {})
         self._curl: Optional[Executable] = None
         self.extension: Optional[str] = kwargs.get("extension", None)
+        self._effective_url: Optional[str] = None
 
     @property
     def curl(self) -> Executable:
@@ -320,7 +308,13 @@ class URLFetchStrategy(FetchStrategy):
         # redirects properly.
         content_types = re.findall(r"Content-Type:[^\r\n]+", headers, flags=re.IGNORECASE)
         if content_types and "text/html" in content_types[-1]:
-            warn_content_type_mismatch(self.archive_file or "the archive")
+            msg = (
+                f"The contents of {self.archive_file or 'the archive'} fetched from {self.url} "
+                " looks like HTML. This can indicate a broken URL, or an internet gateway issue."
+            )
+            if self._effective_url != self.url:
+                msg += f" The URL redirected to {self._effective_url}."
+            tty.warn(msg)
 
     @_needs_stage
     def _fetch_urllib(self, url):
@@ -345,6 +339,12 @@ class URLFetchStrategy(FetchStrategy):
 
         with open(save_file, "wb") as f:
             shutil.copyfileobj(response, f)
+
+        # Save the redirected URL for error messages. Sometimes we're redirected to an arbitrary
+        # mirror that is broken, leading to spurious download failures. In that case it's helpful
+        # for users to know which URL was actually fetched.
+        if isinstance(response, http.client.HTTPResponse):
+            self._effective_url = response.geturl()
 
         self._check_headers(str(response.headers))
 
@@ -465,7 +465,7 @@ class URLFetchStrategy(FetchStrategy):
         if not self.digest:
             raise NoDigestError(f"Attempt to check {self.__class__.__name__} with no digest.")
 
-        verify_checksum(self.archive_file, self.digest)
+        verify_checksum(self.archive_file, self.digest, self.url, self._effective_url)
 
     @_needs_stage
     def reset(self):
@@ -1433,21 +1433,26 @@ class FetchAndVerifyExpandedFile(URLFetchStrategy):
         if len(files) != 1:
             raise ChecksumError(self, f"Expected a single file in {src_dir}.")
 
-        verify_checksum(os.path.join(src_dir, files[0]), self.expanded_sha256)
+        verify_checksum(
+            os.path.join(src_dir, files[0]), self.expanded_sha256, self.url, self._effective_url
+        )
 
 
-def verify_checksum(file, digest):
+def verify_checksum(file: str, digest: str, url: str, effective_url: Optional[str]) -> None:
     checker = crypto.Checker(digest)
     if not checker.check(file):
         # On failure, provide some information about the file size and
         # contents, so that we can quickly see what the issue is (redirect
         # was not followed, empty file, text instead of binary, ...)
         size, contents = fs.filesummary(file)
-        raise ChecksumError(
-            f"{checker.hash_name} checksum failed for {file}",
+        long_msg = (
             f"Expected {digest} but got {checker.sum}. "
-            f"File size = {size} bytes. Contents = {contents!r}",
+            f"File size = {size} bytes. Contents = {contents!r}. "
+            f"URL = {url}"
         )
+        if effective_url and effective_url != url:
+            long_msg += f", redirected to = {effective_url}"
+        raise ChecksumError(f"{checker.hash_name} checksum failed for {file}", long_msg)
 
 
 def stable_target(fetcher):
@@ -1536,7 +1541,7 @@ def _extrapolate(pkg, version):
     """Create a fetcher from an extrapolated URL for this version."""
     try:
         return URLFetchStrategy(url=pkg.url_for_version(version), fetch_options=pkg.fetch_options)
-    except spack.package_base.NoURLError:
+    except spack.error.NoURLError:
         raise ExtrapolationError(
             f"Can't extrapolate a URL for version {version} because "
             f"package {pkg.name} defines no URLs"

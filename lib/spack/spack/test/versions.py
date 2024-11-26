@@ -16,6 +16,7 @@ from llnl.util.filesystem import working_dir
 
 import spack.package_base
 import spack.spec
+import spack.version
 from spack.version import (
     EmptyRangeError,
     GitVersion,

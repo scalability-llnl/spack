@@ -27,6 +27,7 @@ class PyPybind11(CMakePackage, PythonExtension):
     maintainers("ax3l")
 
     version("master", branch="master")
+    version("2.13.5", sha256="b1e209c42b3a9ed74da3e0b25a4f4cd478d89d5efbb48f04b277df427faf6252")
     version("2.13.4", sha256="efc901aa0aab439a3fea6efeaf930b5a349fb06394bf845c64ce15a9cf8f0240")
     version("2.13.3", sha256="6e7a84ec241544f2f5e30c7a82c09c81f0541dd14e9d9ef61051e07105f9c445")
     version("2.13.2", sha256="50eebef369d28f07ce1fe1797f38149e5928817be8e539239f2aadfd95b227f3")
@@ -58,7 +59,7 @@ class PyPybind11(CMakePackage, PythonExtension):
     version("2.1.1", sha256="f2c6874f1ea5b4ad4ffffe352413f7d2cd1a49f9050940805c2a082348621540")
     version("2.1.0", sha256="2860f2b8d0c9f65f0698289a161385f59d099b7ead1bf64e8993c486f2b93ee0")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("cxx", type="build")
 
     depends_on("py-setuptools@42:", type="build")
     depends_on("py-pytest", type="test")
@@ -99,7 +100,10 @@ class PyPybind11(CMakePackage, PythonExtension):
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
-        return [self.define("PYBIND11_TEST", self.pkg.run_tests)]
+        return [
+            self.define("PYBIND11_TEST", self.pkg.run_tests),
+            self.define("prefix_for_pc_file", self.prefix),
+        ]
 
     def install(self, pkg, spec, prefix):
         super().install(pkg, spec, prefix)

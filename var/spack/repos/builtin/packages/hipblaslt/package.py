@@ -17,6 +17,7 @@ class Hipblaslt(CMakePackage):
     maintainers("srekolam", "afzpatel", "renjithravindrankannath")
 
     license("MIT")
+    version("6.2.1", sha256="9b062b1d6d945349c31828030c8c1d99fe57d14a1837196ff9aa67bf10ef43f1")
     version("6.2.0", sha256="aec9edc75ae4438aa712192c784e2bed683d2839b502b6aadb18f6012306749b")
     version("6.1.2", sha256="fcfe950f7b87c421565abe090b2de6f463afc1549841002f105ecca7bbbf59e5")
     version("6.1.1", sha256="1e21730ade59b5e32432fa0981383f689a380b1ffc92fe950822722da9521a72")
@@ -36,7 +37,7 @@ class Hipblaslt(CMakePackage):
     )
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"hipblas@{ver}", when=f"@{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"@{ver}")

@@ -20,6 +20,12 @@ class Nwchem(Package):
     maintainers("jeffhammond")
 
     version(
+        "7.2.3",
+        sha256="8cb4ec065215bc0316d8e01f67f1674a572f7d0f565c52e4a327975c04ddb6eb",
+        url="https://github.com/nwchemgit/nwchem/releases/download/v7.2.3-release/nwchem-7.2.3-release.revision-d690e065-srconly.2024-08-27.tar.bz2",
+    )
+
+    version(
         "7.2.2",
         sha256="6b68e9c12eec38c09d92472bdd1ff130b93c1b5e1f65e4702aa7ee36c80e4af7",
         url="https://github.com/nwchemgit/nwchem/releases/download/v7.2.2-release/nwchem-7.2.2-release.revision-74936fb9-srconly.2023-11-03.tar.bz2",
@@ -40,6 +46,7 @@ class Nwchem(Package):
     depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=False, description="Enables OpenMP support")
+    variant("f90allocatable", default=False, description="Use F90 allocatable instead of MA")
     variant(
         "armci",
         values=("mpi-ts", "mpi-pr", "armcimpi", "mpi3", "openib", "ofi"),
@@ -51,6 +58,7 @@ class Nwchem(Package):
         default=False,
         description="Enables rarely-used TCE features (CCSDTQ, CCSDTLR, EACCSD, IPCCSD, MRCC)",
     )
+    variant("tcecuda", default=False, description="Enable TCE CCSD(T) CUDA support")
     variant("fftw3", default=False, description="Link against the FFTW library")
     variant("libxc", default=False, description="Support additional functionals via libxc")
     variant(
@@ -71,11 +79,16 @@ class Nwchem(Package):
     # https://github.com/nwchemgit/nwchem/commit/376f86f96eb982e83f10514e9dcd994564f973b4
     # https://github.com/nwchemgit/nwchem/commit/c89fc9d1eca6689bce12564a63fdea95d962a123
     # Prior versions of NWChem, including 7.0.2, were not able to link with FFTW
-    patch("fftw_splans.patch", when="@7.2.0:7.2.2 +fftw3")
+    patch("fftw_splans.patch", when="@7.2.0:7.2.3 +fftw3")
+    # This patch is for including a working link for dft-d3 download as existing link
+    # https://www.chemiebn.uni-bonn.de/pctc/mulliken-center/software/dft-d3//dftd3.tgz is not active
+    # Same is mentioned in https://metadata.ftp-master.debian.org/changelogs/main/n/nwchem/unstable_changelog
+    patch("dft-d3_url.patch", when="@7.2.0:7.2.2")
 
     depends_on("blas")
     depends_on("lapack")
     depends_on("mpi")
+    depends_on("cuda", when="+tcecuda")
     depends_on("armcimpi", when="armci=armcimpi")
     depends_on("libfabric", when="armci=ofi")
     depends_on("rdma-core", when="armci=openib")
@@ -145,8 +158,17 @@ class Nwchem(Package):
             args.extend(["CCSDTLR=y"])
             args.extend(["CCSDTQ=y"])
 
+        if spec.satisfies("+tcecuda"):
+            args.extend(["TCE_CUDA=y"])
+            args.extend(["CUDA_INCLUDE=-I{0}".format(self.spec["cuda"].headers.directories[0])])
+            # args.extend(["CUDA_LIBS={0}".format(self.spec["cuda"].libs)])
+            args.extend(["CUDA_LIBS=-L{0} -lcudart".format(self.spec["cuda"].libs.directories[0])])
+
         if spec.satisfies("+openmp"):
             args.extend(["USE_OPENMP=y"])
+
+        if spec.satisfies("+f90allocatable"):
+            args.extend(["USE_F90_ALLOCATABLE=1"])
 
         if self.spec.variants["armci"].value == "armcimpi":
             armcimpi = spec["armci"]

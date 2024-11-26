@@ -80,6 +80,9 @@ class Gmsh(CMakePackage):
 
     # https://gmsh.info/doc/texinfo/gmsh.html#Compiling-the-source-code
     # We make changes to the GMSH default, such as external blas.
+    depends_on("libpng", when="+fltk")
+    depends_on("libjpeg-turbo", when="+fltk")
+    depends_on("zlib-api")
     depends_on("blas", when="~eigen")
     depends_on("lapack", when="~eigen")
     depends_on("eigen@3:", when="+eigen+external")

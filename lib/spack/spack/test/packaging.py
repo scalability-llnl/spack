@@ -21,14 +21,16 @@ from llnl.util.symlink import readlink, symlink
 
 import spack.binary_distribution as bindist
 import spack.cmd.buildcache as buildcache
+import spack.config
 import spack.error
 import spack.fetch_strategy
+import spack.mirror
 import spack.package_base
-import spack.repo
-import spack.store
+import spack.stage
 import spack.util.gpg
 import spack.util.url as url_util
 from spack.fetch_strategy import URLFetchStrategy
+from spack.installer import PackageInstaller
 from spack.paths import mock_gpg_keys_path
 from spack.relocate import (
     macho_find_paths,
@@ -49,7 +51,7 @@ def test_buildcache(mock_archive, tmp_path, monkeypatch, mutable_config):
     # Install a test package
     spec = Spec("trivial-install-test-package").concretized()
     monkeypatch.setattr(spec.package, "fetcher", URLFetchStrategy(url=mock_archive.url))
-    spec.package.do_install()
+    PackageInstaller([spec.package], explicit=True).install()
     pkghash = "/" + str(spec.dag_hash(7))
 
     # Put some non-relocatable file in there
@@ -547,3 +549,35 @@ def test_fetch_external_package_is_noop(default_mock_concretization, fetching_no
     spec.external_path = "/some/where"
     assert spec.external
     spec.package.do_fetch()
+
+
+@pytest.mark.parametrize(
+    "relocation_dict",
+    [
+        {"/foo/bar/baz": "/a/b/c", "/foo/bar": "/a/b"},
+        # Ensure correctness does not depend on the ordering of the dict
+        {"/foo/bar": "/a/b", "/foo/bar/baz": "/a/b/c"},
+    ],
+)
+def test_macho_relocation_with_changing_projection(relocation_dict):
+    """Tests that prefix relocation is computed correctly when the prefixes to be relocated
+    contain a directory and its subdirectories.
+
+    This happens when relocating to a new place AND changing the store projection. In that case we
+    might have a relocation dict like:
+
+    /foo/bar/baz/ -> /a/b/c
+    /foo/bar -> /a/b
+
+    What we need to check is that we don't end up in situations where we relocate to a mixture of
+    the two schemes, like /a/b/baz.
+    """
+    original_rpath = "/foo/bar/baz/abcdef"
+    result = macho_find_paths(
+        [original_rpath],
+        deps=[],
+        idpath=None,
+        old_layout_root="/foo",
+        prefix_to_prefix=relocation_dict,
+    )
+    assert result[original_rpath] == "/a/b/c/abcdef"

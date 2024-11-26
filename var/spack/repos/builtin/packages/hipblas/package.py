@@ -5,6 +5,7 @@
 
 import re
 
+import spack.variant
 from spack.package import *
 
 
@@ -24,6 +25,7 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.2.1", sha256="b770b6ebd27d5c12ad01827195e996469bfc826e8a2531831df475fc8d7f6b2e")
     version("6.2.0", sha256="33688a4d929b13e1fd800aff7e0833a9f7abf3913754b6b15995595e0d434e94")
     version("6.1.2", sha256="73699892855775a67f48c38beae78169a516078c17f1ed5d67c80abe5d308502")
     version("6.1.1", sha256="087ea82dff13c8162bf93343b174b18f1d58681711bce4fb7c8dc7212020c099")
@@ -99,6 +101,7 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
         "master",
         "develop",
     ]:
@@ -143,7 +146,5 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
         return args
 
     def check(self):
-        exe = Executable(
-            join_path(self.builder.build_directory, "clients", "staging", "hipblas-test")
-        )
+        exe = Executable(join_path(self.build_directory, "clients", "staging", "hipblas-test"))
         exe("--gtest_filter=-*known_bug*")

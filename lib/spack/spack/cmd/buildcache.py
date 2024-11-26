@@ -23,14 +23,9 @@ import spack.environment as ev
 import spack.error
 import spack.mirror
 import spack.oci.oci
-import spack.oci.opener
-import spack.relocate
-import spack.repo
 import spack.spec
 import spack.stage
 import spack.store
-import spack.user_environment
-import spack.util.crypto
 import spack.util.parallel
 import spack.util.url as url_util
 import spack.util.web as web_util
@@ -38,6 +33,8 @@ from spack import traverse
 from spack.cmd import display_specs
 from spack.cmd.common import arguments
 from spack.spec import Spec, save_dependency_specfiles
+
+from ..enums import InstallRecordStatus
 
 description = "create, download and install binary packages"
 section = "packaging"
@@ -313,7 +310,10 @@ def setup_parser(subparser: argparse.ArgumentParser):
 
 def _matching_specs(specs: List[Spec]) -> List[Spec]:
     """Disambiguate specs and return a list of matching specs"""
-    return [spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=any) for s in specs]
+    return [
+        spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=InstallRecordStatus.ANY)
+        for s in specs
+    ]
 
 
 def _format_spec(spec: Spec) -> str:

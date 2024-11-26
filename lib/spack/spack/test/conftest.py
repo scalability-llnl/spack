@@ -35,25 +35,24 @@ from llnl.util.filesystem import copy_tree, mkdirp, remove_linked_tree, touchp, 
 import spack.binary_distribution
 import spack.bootstrap.core
 import spack.caches
-import spack.cmd.buildcache
 import spack.compiler
 import spack.compilers
 import spack.config
-import spack.database
-import spack.directory_layout
+import spack.directives_meta
 import spack.environment as ev
 import spack.error
+import spack.modules.common
 import spack.package_base
-import spack.package_prefs
 import spack.paths
 import spack.platforms
 import spack.repo
 import spack.solver.asp
+import spack.spec
 import spack.stage
 import spack.store
 import spack.subprocess_context
-import spack.test.cray_manifest
 import spack.util.executable
+import spack.util.file_cache
 import spack.util.git
 import spack.util.gpg
 import spack.util.parallel
@@ -62,7 +61,11 @@ import spack.util.url as url_util
 import spack.util.web
 import spack.version
 from spack.fetch_strategy import URLFetchStrategy
+from spack.installer import PackageInstaller
+from spack.main import SpackCommand
 from spack.util.pattern import Bunch
+
+mirror_cmd = SpackCommand("mirror")
 
 
 @pytest.fixture(autouse=True)
@@ -853,7 +856,7 @@ def _populate(mock_db):
 
     def _install(spec):
         s = spack.spec.Spec(spec).concretized()
-        s.package.do_install(fake=True, explicit=True)
+        PackageInstaller([s.package], fake=True, explicit=True).install()
 
     _install("mpileaks ^mpich")
     _install("mpileaks ^mpich2")
@@ -970,12 +973,26 @@ def _return_none(*args):
     return None
 
 
+def _compiler_output(self):
+    return ""
+
+
+def _get_real_version(self):
+    return str(self.version)
+
+
 @pytest.fixture(scope="function", autouse=True)
 def disable_compiler_execution(monkeypatch, request):
     """Disable compiler execution to determine implicit link paths and libc flavor and version.
     To re-enable use `@pytest.mark.enable_compiler_execution`"""
     if "enable_compiler_execution" not in request.keywords:
-        monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _return_none)
+        monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _compiler_output)
+        monkeypatch.setattr(spack.compiler.Compiler, "get_real_version", _get_real_version)
+
+
+@pytest.fixture(autouse=True)
+def disable_compiler_output_cache(monkeypatch):
+    monkeypatch.setattr(spack.compiler, "COMPILER_CACHE", spack.compiler.CompilerCache())
 
 
 @pytest.fixture(scope="function")
@@ -987,6 +1004,38 @@ def install_mockery(temporary_store: spack.store.Store, mutable_config, mock_pac
 
     # Wipe out any cached prefix failure locks (associated with the session-scoped mock archive)
     temporary_store.failure_tracker.clear_all()
+
+
+@pytest.fixture(scope="module")
+def temporary_mirror_dir(tmpdir_factory):
+    dir = tmpdir_factory.mktemp("mirror")
+    dir.ensure("build_cache", dir=True)
+    yield str(dir)
+    dir.join("build_cache").remove()
+
+
+@pytest.fixture(scope="function")
+def temporary_mirror(temporary_mirror_dir):
+    mirror_url = url_util.path_to_file_url(temporary_mirror_dir)
+    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
+    yield temporary_mirror_dir
+    mirror_cmd("rm", "--scope=site", "test-mirror-func")
+
+
+@pytest.fixture(scope="function")
+def mutable_temporary_mirror_dir(tmpdir_factory):
+    dir = tmpdir_factory.mktemp("mirror")
+    dir.ensure("build_cache", dir=True)
+    yield str(dir)
+    dir.join("build_cache").remove()
+
+
+@pytest.fixture(scope="function")
+def mutable_temporary_mirror(mutable_temporary_mirror_dir):
+    mirror_url = url_util.path_to_file_url(mutable_temporary_mirror_dir)
+    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
+    yield mutable_temporary_mirror_dir
+    mirror_cmd("rm", "--scope=site", "test-mirror-func")
 
 
 @pytest.fixture(scope="function")
@@ -1705,7 +1754,7 @@ def clear_directive_functions():
     # Make sure any directive functions overidden by tests are cleared before
     # proceeding with subsequent tests that may depend on the original
     # functions.
-    spack.directives.DirectiveMeta._directives_to_be_executed = []
+    spack.directives_meta.DirectiveMeta._directives_to_be_executed = []
 
 
 @pytest.fixture
@@ -1980,13 +2029,20 @@ def pytest_runtest_setup(item):
     if not_on_windows_marker and sys.platform == "win32":
         pytest.skip(*not_on_windows_marker.args)
 
+    # Skip items marked "only windows" if they're run anywhere but Windows
+    only_windows_marker = item.get_closest_marker(name="only_windows")
+    if only_windows_marker and sys.platform != "win32":
+        pytest.skip(*only_windows_marker.args)
+
+
+def _sequential_executor(*args, **kwargs):
+    return spack.util.parallel.SequentialExecutor()
+
 
 @pytest.fixture(autouse=True)
 def disable_parallel_buildcache_push(monkeypatch):
     """Disable process pools in tests."""
-    monkeypatch.setattr(
-        spack.util.parallel, "make_concurrent_executor", spack.util.parallel.SequentialExecutor
-    )
+    monkeypatch.setattr(spack.util.parallel, "make_concurrent_executor", _sequential_executor)
 
 
 def _root_path(x, y, *, path):

@@ -5,7 +5,6 @@
 import io
 
 import spack.graph
-import spack.repo
 import spack.spec
 
 
@@ -72,6 +71,19 @@ o | callpath
 o dyninst
 |\
 o | libdwarf
+|/
+o libelf
+"""
+        or graph_str
+        == r"""o mpileaks
+|\
+| o callpath
+|/|
+| o dyninst
+| |\
+o | | mpich
+ / /
+| o libdwarf
 |/
 o libelf
 """

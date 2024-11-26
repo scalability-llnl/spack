@@ -24,6 +24,7 @@ class Hipcc(CMakePackage):
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
     license("MIT")
+    version("6.2.1", sha256="4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7")
     version("6.2.0", sha256="12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200")
     version("6.1.2", sha256="300e9d6a137dcd91b18d5809a316fddb615e0e7f982dc7ef1bb56876dff6e097")
     version("6.1.1", sha256="f1a67efb49f76a9b262e9735d3f75ad21e3bd6a05338c9b15c01e6c625c4460d")
@@ -40,7 +41,8 @@ class Hipcc(CMakePackage):
     depends_on("numactl")
 
     patch("0014-remove-compiler-rt-linkage-for-host.6.0.patch", when="@6.0")
-    patch("0014-remove-compiler-rt-linkage-for-host.6.1.patch", when="@6.1:")
+    patch("0014-remove-compiler-rt-linkage-for-host.6.1.patch", when="@6.1")
+    patch("0001-Update-the-ROCMINFO-HIPCLANG-PATHS-inside-hipcc-6.2.0.patch", when="@6.2:")
 
     @property
     def root_cmakelists_dir(self):

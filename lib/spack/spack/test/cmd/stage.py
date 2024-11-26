@@ -10,8 +10,6 @@ import pytest
 import spack.config
 import spack.environment as ev
 import spack.package_base
-import spack.repo
-import spack.stage
 import spack.traverse
 from spack.main import SpackCommand, SpackCommandError
 from spack.version import Version

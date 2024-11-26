@@ -8,7 +8,7 @@ import re
 from spack.package import *
 
 
-class Hugo(Package):
+class Hugo(GoPackage):
     """The world's fastest framework for building websites."""
 
     homepage = "https://gohugo.io"
@@ -20,6 +20,7 @@ class Hugo(Package):
 
     license("Apache-2.0")
 
+    version("0.135.0", sha256="a75c4c684d2125255f214d11b9834a5ec6eb64353f4de2c06952d2b3b7430f0e")
     version("0.127.0", sha256="549c7ebdf2ee6b3107ea10a9fbd9932a91bb3f30f7e8839245f6d8e318aca88c")
     version("0.126.3", sha256="2a1d65b09884e3c57a8705db99487404856c947dd847cf7bb845e0e1825b33ec")
     version("0.118.2", sha256="915d7dcb44fba949c80858f9c2a55a11256162ba28a9067752f808cfe8faedaa")
@@ -33,11 +34,11 @@ class Hugo(Package):
     version("0.107.0", sha256="31d959a3c1633087d338147782d03bdef65323b67ff3efcec7b40241413e270a")
     version("0.106.0", sha256="9219434beb51466487b9f8518edcbc671027c1998e5a5820d76d517e1dfbd96a")
 
-    # Uses go modules.
-    # See https://gohugo.io/getting-started/installing/#fetch-from-github
-    depends_on("go@1.11:", when="@0.48:", type="build")
-    depends_on("go@1.18:", when="@0.106:", type="build")
-    depends_on("go@1.20:", when="@0.123:", type="build")
+    depends_on("go@1.11:", type="build", when="@0.48:")
+    depends_on("go@1.18:", type="build", when="@0.106:")
+    depends_on("go@1.20:", type="build", when="@0.123:")
+    depends_on("go@1.21.8:", type="build", when="@0.131:")
+    depends_on("go@1.22.6:", type="build", when="@0.133:")
 
     variant("extended", default=False, description="Enable extended features")
 
@@ -49,17 +50,26 @@ class Hugo(Package):
         match = re.search(r"Hugo Static Site Generator v(\S+)", output)
         return match.group(1) if match else None
 
-    def setup_build_environment(self, env):
-        # Point GOPATH at the top of the staging dir for the build step.
-        env.prepend_path("GOPATH", self.stage.path)
-
-    def build(self, spec, prefix):
-        go_args = ["build"]
+    @property
+    def build_args(self):
+        args = super().build_args
         if self.spec.satisfies("+extended"):
-            go_args.extend(["--tags", "extended"])
+            args.extend(["--tags", "extended"])
 
-        go(*go_args)
+        return args
 
-    def install(self, spec, prefix):
-        mkdirp(prefix.bin)
-        install("hugo", prefix.bin)
+    @run_after("install")
+    def install_completions(self):
+        hugo = Executable(self.prefix.bin.hugo)
+
+        mkdirp(bash_completion_path(self.prefix))
+        with open(bash_completion_path(self.prefix) / "hugo", "w") as file:
+            hugo("completion", "bash", output=file)
+
+        mkdirp(fish_completion_path(self.prefix))
+        with open(fish_completion_path(self.prefix) / "hugo.fish", "w") as file:
+            hugo("completion", "fish", output=file)
+
+        mkdirp(zsh_completion_path(self.prefix))
+        with open(zsh_completion_path(self.prefix) / "_hugo", "w") as file:
+            hugo("completion", "zsh", output=file)

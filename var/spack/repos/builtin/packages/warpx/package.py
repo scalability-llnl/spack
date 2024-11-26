@@ -16,7 +16,7 @@ class Warpx(CMakePackage, PythonExtension):
     """
 
     homepage = "https://ecp-warpx.github.io"
-    url = "https://github.com/ECP-WarpX/WarpX/archive/refs/tags/24.08.tar.gz"
+    url = "https://github.com/ECP-WarpX/WarpX/archive/refs/tags/24.10.tar.gz"
     git = "https://github.com/ECP-WarpX/WarpX.git"
 
     maintainers("ax3l", "dpgrote", "EZoni", "RemiLehe")
@@ -26,7 +26,12 @@ class Warpx(CMakePackage, PythonExtension):
 
     # NOTE: if you update the versions here, also see py-warpx
     version("develop", branch="development")
-    version("24.08", sha256="8da1f2967f613a65a295260260aa4f081ac1d1b7c1d6987d294e02b86099df08")
+    version("24.10", sha256="1fe3a86bf820a2ecef853cdcd9427fba4e0cb1efb05326da7dc9dbf94551202f")
+    version(
+        "24.08",
+        sha256="8da1f2967f613a65a295260260aa4f081ac1d1b7c1d6987d294e02b86099df08",
+        deprecated=True,
+    )
     version(
         "23.08",
         sha256="67695ff04b83d1823ea621c19488e54ebaf268532b0e5eb4ea8ad293d7ab3ddc",
@@ -177,6 +182,12 @@ class Warpx(CMakePackage, PythonExtension):
 
     variant("app", default=True, description="Build the WarpX executable application")
     variant("ascent", default=False, description="Enable Ascent in situ visualization")
+    variant(
+        "catalyst",
+        default=False,
+        description="Enable Catalyst2 in situ visualization",
+        when="@24.09:",
+    )
     variant("sensei", default=False, description="Enable SENSEI in situ visualization")
     variant(
         "compute",
@@ -201,7 +212,8 @@ class Warpx(CMakePackage, PythonExtension):
         description="Number of spatial dimensions",
         when="@23.06:",
     )
-    variant("eb", default=False, description="Embedded boundary support (in development)")
+    variant("eb", default=True, description="Embedded boundary support", when="@24.10:")
+    variant("eb", default=False, description="Embedded boundary support", when="@:24.09")
     # Spack defaults to False but pybind11 defaults to True (and IPO is highly
     # encouraged to be used)
     variant(
@@ -231,9 +243,10 @@ class Warpx(CMakePackage, PythonExtension):
     variant("shared", default=True, description="Build a shared version of the library")
     variant("tprof", default=True, description="Enable tiny profiling features")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    for v in ["24.08", "develop"]:
+    for v in ["24.10", "24.08", "develop"]:
         depends_on(
             f"amrex@{v} build_system=cmake +linear_solvers +pic +particles +shared +tiny_profile",
             when=f"@{v}",
@@ -241,13 +254,20 @@ class Warpx(CMakePackage, PythonExtension):
         )
         depends_on("py-amrex@{0}".format(v), when="@{0} +python".format(v), type=("build", "run"))
 
-    depends_on("ascent", when="+ascent")
-    depends_on("ascent +cuda", when="+ascent compute=cuda")
-    depends_on("ascent +mpi", when="+ascent +mpi")
     depends_on("boost@1.66.0: +math", when="+qedtablegen")
     depends_on("cmake@3.15.0:", type="build")
     depends_on("cmake@3.18.0:", type="build", when="@22.01:")
     depends_on("cmake@3.20.0:", type="build", when="@22.08:")
+    depends_on("cmake@3.24.0:", type="build", when="@24.09:")
+    with when("+ascent"):
+        depends_on("ascent", when="+ascent")
+        depends_on("ascent +cuda", when="+ascent compute=cuda")
+        depends_on("ascent +mpi", when="+ascent +mpi")
+        depends_on("amrex +ascent +conduit")
+    with when("+catalyst"):
+        depends_on("libcatalyst@2.0: +conduit")
+        depends_on("libcatalyst +mpi", when="+mpi")
+        depends_on("amrex +catalyst +conduit")
     with when("dims=1"):
         depends_on("amrex dimensions=1")
     with when("dims=2"):
@@ -314,7 +334,8 @@ class Warpx(CMakePackage, PythonExtension):
         depends_on("py-mpi4py@2.1.0:", type=("build", "run"), when="+mpi")
         depends_on("py-periodictable@1.5:1", type=("build", "run"))
         depends_on("py-picmistandard@0.28.0", type=("build", "run"), when="@23.11:24.07")
-        depends_on("py-picmistandard@0.29.0", type=("build", "run"), when="@24.08:")
+        depends_on("py-picmistandard@0.29.0", type=("build", "run"), when="@24.08")
+        depends_on("py-picmistandard@0.30.0", type=("build", "run"), when="@24.09:")
         depends_on("py-pip@23:", type="build")
         depends_on("py-setuptools@42:", type="build")
         depends_on("py-pybind11@2.12.0:", type=("build", "link"))
@@ -373,6 +394,7 @@ class Warpx(CMakePackage, PythonExtension):
             # variants
             self.define_from_variant("WarpX_APP", "app"),
             self.define_from_variant("WarpX_ASCENT", "ascent"),
+            self.define_from_variant("WarpX_CATALYST", "catalyst"),
             self.define_from_variant("WarpX_SENSEI", "sensei"),
             "-DWarpX_COMPUTE={0}".format(spec.variants["compute"].value.upper()),
             "-DWarpX_DIMS={0}".format(";".join(spec.variants["dims"].value).upper()),
@@ -466,9 +488,17 @@ class Warpx(CMakePackage, PythonExtension):
             install_test_root(self) if post_install else self.stage.source_path,
             self.examples_src_dir,
         )
-        inputs_nD = {"1": "inputs_1d", "2": "inputs_2d", "3": "inputs_3d", "rz": "inputs_rz"}
-        if spec.satisfies("@:21.12"):
-            inputs_nD["rz"] = "inputs_2d_rz"
+        if spec.satisfies("@:24.09"):
+            inputs_nD = {"1": "inputs_1d", "2": "inputs_2d", "3": "inputs_3d", "rz": "inputs_rz"}
+            if spec.satisfies("@:21.12"):
+                inputs_nD["rz"] = "inputs_2d_rz"
+        else:
+            inputs_nD = {
+                "1": "inputs_test_1d_laser_acceleration",
+                "2": "inputs_base_2d",
+                "3": "inputs_base_3d",
+                "rz": "inputs_base_rz",
+            }
         inputs = join_path(examples_dir, inputs_nD[dim])
 
         cli_args = [inputs, "max_step=50", "diag1.intervals=10"]

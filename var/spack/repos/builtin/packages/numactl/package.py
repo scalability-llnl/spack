@@ -50,13 +50,6 @@ class Numactl(AutotoolsPackage):
 
     @when("%nvhpc")
     def patch(self):
-        self._nvhpc_patch()
-
-    @when("%pgi@20:")
-    def patch(self):
-        self._nvhpc_patch()
-
-    def _nvhpc_patch(self):
         # Remove flags not recognized by the NVIDIA compiler
         filter_file("-ffast-math -funroll-loops", "", "Makefile.am")
         filter_file("-std=gnu99", "-c99", "Makefile.am")

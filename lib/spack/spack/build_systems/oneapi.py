@@ -15,7 +15,7 @@ from llnl.util.link_tree import LinkTree
 import spack.util.path
 from spack.build_environment import dso_suffix
 from spack.directives import conflicts, license, redistribute, variant
-from spack.package_base import InstallError
+from spack.error import InstallError
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 
@@ -255,7 +255,7 @@ class IntelOneApiLibraryPackage(IntelOneApiPackage):
         return find_libraries("*", root=self.component_prefix.lib, recursive=not self.v2_layout)
 
 
-class IntelOneApiLibraryPackageWithSdk(IntelOneApiPackage):
+class IntelOneApiLibraryPackageWithSdk(IntelOneApiLibraryPackage):
     """Base class for Intel oneAPI library packages with SDK components.
 
     Contains some convenient default implementations for libraries

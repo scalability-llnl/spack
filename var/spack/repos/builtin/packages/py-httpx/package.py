@@ -24,7 +24,7 @@ class PyHttpx(PythonPackage):
 
     variant("http2", default=False, when="@0.15.2:", description="Enable http2 support")
 
-    depends_on("python@3.8", when="@0.27:", type=("build", "run"))
+    depends_on("python@3.8:", when="@0.27:", type=("build", "run"))
     depends_on("py-setuptools", when="@:0.22", type="build")
     depends_on("py-hatchling", when="@0.23:", type="build")
     depends_on("py-hatch-fancy-pypi-readme", when="@0.23:", type="build")
@@ -32,7 +32,7 @@ class PyHttpx(PythonPackage):
     with default_args(type=("build", "run")):
         depends_on("py-certifi")
 
-        depends_on("py-httpcore@0.11.0:0.11", when="@0.15.2")
+        depends_on("py-httpcore@0.11", when="@0.15.2")
         depends_on("py-httpcore@0.14.5:0.14", when="@0.22")
         depends_on("py-httpcore@0.15:0.16", when="@0.23")
         depends_on("py-httpcore@1", when="@0.27:")
@@ -40,19 +40,19 @@ class PyHttpx(PythonPackage):
         depends_on("py-anyio", when="@0.27:")
         depends_on("py-idna", when="@0.27:")
 
-        depends_on("py-sniffio@1.0:1", when="@0.11.1")
+        depends_on("py-sniffio@1", when="@0.11.1")
         depends_on("py-sniffio", when="@0.15.2:")
 
-        depends_on("py-h2@3.0:3", when="@0.11.1")
-        depends_on("py-h2@3.0:3", when="@0.15.2+http2")
-        depends_on("py-h2@3.0:4", when="@0.22.0:+http2")
+        depends_on("py-h2@3", when="@0.11.1")
+        depends_on("py-h2@3", when="@0.15.2+http2")
+        depends_on("py-h2@3:4", when="@0.22.0:+http2")
 
         # Historical dependencies
         depends_on("py-hstspreload", when="@0.11.1")
-        depends_on("py-chardet@3.0:3", when="@0.11.1")
+        depends_on("py-chardet@3", when="@0.11.1")
         depends_on("py-h11@0.8:0.9", when="@0.11.1")
-        depends_on("py-idna@2.0:2", when="@0.11.1")
-        depends_on("py-urllib3@1.0:1", when="@0.11.1")
+        depends_on("py-idna@2", when="@0.11.1")
+        depends_on("py-urllib3@1", when="@0.11.1")
         depends_on("py-charset-normalizer", when="@0.22")
 
         depends_on("py-rfc3986@1.3:1", when="@0.11.1")

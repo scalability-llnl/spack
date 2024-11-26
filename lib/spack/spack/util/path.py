@@ -55,6 +55,7 @@ NOMATCH = object()
 # Substitutions to perform
 def replacements():
     # break circular imports
+    import spack
     import spack.environment as ev
     import spack.paths
 
@@ -71,9 +72,10 @@ def replacements():
         "operating_system": lambda: arch.os,
         "os": lambda: arch.os,
         "target": lambda: arch.target,
-        "target_family": lambda: arch.target.microarchitecture.family,
+        "target_family": lambda: arch.target.family,
         "date": lambda: date.today().strftime("%Y-%m-%d"),
         "env": lambda: ev.active_environment().path if ev.active_environment() else NOMATCH,
+        "spack_short_version": lambda: spack.get_short_version(),
     }
 
 
@@ -95,6 +97,11 @@ SPACK_MAX_INSTALL_PATH_LENGTH = 300
 #: It starts with two underscores to make it unlikely that prefix matches would
 #: include some other component of the intallation path.
 SPACK_PATH_PADDING_CHARS = "__spack_path_placeholder__"
+
+#: Special padding char if the padded string would otherwise end with a path
+#: separator (since the path separator would otherwise get collapsed out,
+#: causing inconsistent padding).
+SPACK_PATH_PADDING_EXTRA_CHAR = "_"
 
 
 def win_exe_ext():
@@ -149,19 +156,20 @@ def substitute_config_variables(path):
 
     Spack allows paths in configs to have some placeholders, as follows:
 
-    - $env               The active Spack environment.
-    - $spack             The Spack instance's prefix
-    - $tempdir           Default temporary directory returned by tempfile.gettempdir()
-    - $user              The current user's username
-    - $user_cache_path   The user cache directory (~/.spack, unless overridden)
-    - $architecture      The spack architecture triple for the current system
-    - $arch              The spack architecture triple for the current system
-    - $platform          The spack platform for the current system
-    - $os                The OS of the current system
-    - $operating_system  The OS of the current system
-    - $target            The ISA target detected for the system
-    - $target_family     The family of the target detected for the system
-    - $date              The current date (YYYY-MM-DD)
+    - $env                 The active Spack environment.
+    - $spack               The Spack instance's prefix
+    - $tempdir             Default temporary directory returned by tempfile.gettempdir()
+    - $user                The current user's username
+    - $user_cache_path     The user cache directory (~/.spack, unless overridden)
+    - $architecture        The spack architecture triple for the current system
+    - $arch                The spack architecture triple for the current system
+    - $platform            The spack platform for the current system
+    - $os                  The OS of the current system
+    - $operating_system    The OS of the current system
+    - $target              The ISA target detected for the system
+    - $target_family       The family of the target detected for the system
+    - $date                The current date (YYYY-MM-DD)
+    - $spack_short_version The spack short version
 
     These are substituted case-insensitively into the path, and users can
     use either ``$var`` or ``${var}`` syntax for the variables. $env is only
@@ -195,7 +203,10 @@ def _get_padding_string(length):
     extra_chars = length % (spack_path_padding_size + 1)
     reps_list = [SPACK_PATH_PADDING_CHARS for i in range(num_reps)]
     reps_list.append(SPACK_PATH_PADDING_CHARS[:extra_chars])
-    return os.path.sep.join(reps_list)
+    padding = os.path.sep.join(reps_list)
+    if padding.endswith(os.path.sep):
+        padding = padding[: len(padding) - 1] + SPACK_PATH_PADDING_EXTRA_CHAR
+    return padding
 
 
 def add_padding(path, length):
@@ -313,10 +324,15 @@ def padding_filter(string):
         regex = (
             r"((?:/[^/\s]*)*?)"  # zero or more leading non-whitespace path components
             r"(/{pad})+"  # the padding string repeated one or more times
-            r"(/{longest_prefix})?(?=/)"  # trailing prefix of padding as path component
+            # trailing prefix of padding as path component
+            r"(/{longest_prefix}|/{longest_prefix}{extra_pad_character})?(?=/)"
         )
         regex = regex.replace("/", re.escape(os.sep))
-        regex = regex.format(pad=pad, longest_prefix=longest_prefix)
+        regex = regex.format(
+            pad=pad,
+            extra_pad_character=SPACK_PATH_PADDING_EXTRA_CHAR,
+            longest_prefix=longest_prefix,
+        )
         _filter_re = re.compile(regex)
 
     def replacer(match):

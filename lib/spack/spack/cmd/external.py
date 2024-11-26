@@ -18,9 +18,9 @@ import spack.config
 import spack.cray_manifest as cray_manifest
 import spack.detection
 import spack.error
+import spack.package_base
 import spack.repo
 import spack.spec
-import spack.util.environment
 from spack.cmd.common import arguments
 
 description = "manage external packages in Spack configuration"

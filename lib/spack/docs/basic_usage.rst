@@ -1175,6 +1175,17 @@ unspecified version, but packages can depend on other packages with
 could depend on ``mpich@1.2:`` if it can only build with version
 ``1.2`` or higher of ``mpich``.
 
+.. note:: Windows Spec Syntax Caveats
+   Windows has a few idiosyncrasies when it comes to the Spack spec syntax and the use of certain shells
+   Spack's spec dependency syntax uses the carat (``^``) character, however this is an escape string in CMD
+   so it must be escaped with an additional carat (i.e. ``^^``).
+   CMD also will attempt to interpret strings with ``=`` characters in them. Any spec including this symbol
+   must double quote the string.
+
+   Note: All of these issues are unique to CMD, they can be avoided by using Powershell.
+
+   For more context on these caveats see the related issues: `carat <https://github.com/spack/spack/issues/42833>`_ and `equals <https://github.com/spack/spack/issues/43348>`_
+
 Below are more details about the specifiers that you can add to specs.
 
 .. _version-specifier:
@@ -1347,6 +1358,10 @@ For example, for the ``stackstart`` variant:
 
     mpileaks stackstart==4   # variant will be propagated to dependencies
     mpileaks stackstart=4    # only mpileaks will have this variant value
+
+Spack also allows variants to be propagated from a package that does
+not have that variant.
+
 
 ^^^^^^^^^^^^^^
 Compiler Flags

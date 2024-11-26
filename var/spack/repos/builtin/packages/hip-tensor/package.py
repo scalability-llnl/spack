@@ -17,6 +17,7 @@ class HipTensor(CMakePackage, ROCmPackage):
     maintainers("srekolam", "afzpatel")
 
     version("master", branch="master")
+    version("6.2.1", sha256="592dbe73f5f95ba512f7fbe9975a68dbea85846be74da15344d74952b286f243")
     version("6.2.0", sha256="adb7459416864fb2664064f5bea5fb669839247b702209a6415b396813626b31")
     version("6.1.2", sha256="ac0e07a3019bcce4a0a98aafa4922d5fc9e953bed07084abef5306c851717783")
     version("6.1.1", sha256="09bcdbf6b1d20dc4d75932abd335a9a534b16a8343858121daa5813a38f5ad3a")
@@ -29,12 +30,22 @@ class HipTensor(CMakePackage, ROCmPackage):
     depends_on("cxx", type="build")  # generated
 
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
-
-    for ver in ["5.7.0", "5.7.1", "6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "master"]:
+    for ver in [
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "master",
+    ]:
         depends_on(f"composable-kernel@{ver}", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}", when=f"@{ver}")
 
-    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0"]:
+    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
         depends_on(f"hipcc@{ver}", when=f"@{ver}")
 
     def setup_build_environment(self, env):

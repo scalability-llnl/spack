@@ -26,5 +26,6 @@ class PyFluidfftFftw(PythonPackage):
         depends_on("py-meson-python")
         depends_on("py-transonic@0.6.4:")
         depends_on("py-fluidfft-builder")
+        depends_on("py-cython@3.0:")
 
     depends_on("py-fluidfft", type="run")
