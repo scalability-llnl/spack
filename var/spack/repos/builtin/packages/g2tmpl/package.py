@@ -38,5 +38,5 @@ class G2tmpl(CMakePackage):
         return args
 
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test")

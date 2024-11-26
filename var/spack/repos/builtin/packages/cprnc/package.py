@@ -15,6 +15,7 @@ class Cprnc(CMakePackage):
 
     maintainers("jedwards4b", "billsacks")
 
+    version("1.0.8", sha256="94ee3b4e724bc06161e576d45f34401f1452acf738803528cb80726eed230cae")
     version("1.0.3", sha256="3e7400f9a13d5de01964d7dd95151d08e6e30818d2a1efa9a9c7896cf6646d69")
     version("1.0.2", sha256="02edfa8050135ac0dc4a74aea05d19b0823d769b22cafa88b9352e29723d4179")
     version("1.0.1", sha256="b8a8fd4ad7e2716968dfa60f677217c55636580807b1309276f4c062ee432ccd")
@@ -24,6 +25,8 @@ class Cprnc(CMakePackage):
 
     depends_on("netcdf-fortran")
     depends_on("cmake@3:", type="build")
+
+    patch("install_rpath.patch", when="@:1.0.7")
 
     resource(
         name="genf90",

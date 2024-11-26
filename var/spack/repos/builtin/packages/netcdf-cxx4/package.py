@@ -39,6 +39,9 @@ class NetcdfCxx4(CMakePackage):
 
     filter_compiler_wrappers("ncxx4-config", relative_root="bin")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     def flag_handler(self, name, flags):
         if name == "cflags" and "+pic" in self.spec:
             flags.append(self.compiler.cc_pic_flag)
@@ -57,7 +60,7 @@ class NetcdfCxx4(CMakePackage):
             return libs
 
         msg = "Unable to recursively locate {0} {1} libraries in {2}"
-        raise spack.error.NoLibrariesError(
+        raise NoLibrariesError(
             msg.format("shared" if shared else "static", self.spec.name, self.spec.prefix)
         )
 

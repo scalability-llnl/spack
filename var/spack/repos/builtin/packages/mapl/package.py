@@ -5,6 +5,7 @@
 
 import subprocess
 
+import spack.compiler
 from spack.package import *
 
 
@@ -38,11 +39,14 @@ class Mapl(CMakePackage):
     version("develop", branch="develop")
     version("main", branch="main")
 
+    version("2.50.2", sha256="1c72f8598cf01bab6ef30c1f461444ba5a13f55c61164b7b3c15efb0cd1096c0")
     version("2.50.1", sha256="26dd7a3ec82d484d60a559bb90a20ad9a2a717af52c25b6a752dd971aeeb5075")
     version("2.50.0", sha256="12282e547936f667f85c95d466273dcbaccbd600add72fa5981c0c734ccb1f7d")
     version("2.49.1", sha256="975e349c7ff8be65d4e63f2a6adf74ca96127628505dbce16c7ba7a3901edc70")
     version("2.49.0", sha256="fdf4d48bd38abd1059180b123c5d9fdc2781992c783244ddc51ab0f2ef63dd67")
     version("2.48.0", sha256="60a0fc4fd82b1a05050666ae478da7d79d86305aff1643a57bc09cb5347323b7")
+    version("2.47.1.2", sha256="ae9032b4c833887b9ddc932ea9eb7e59e713829f6c39f3152fee4caf2f3ba21f")
+    version("2.47.1.1", sha256="9553e91e0325dfe57856564e9970b3871069f902fb109fcced6ad87151f95be7")
     version("2.47.2", sha256="d4ca384bf249b755454cd486a26bae76944a7cae3a706b9a7c9298825077cac0")
     version("2.47.1", sha256="ca3e94c0caa78a91591fe63603d1836196f5294d4baad7cf1d83b229b3a85916")
     version("2.47.0", sha256="66c862d2ab8bcd6969e9728091dbca54f1f420e97e41424c4ba93ef606088459")
@@ -69,6 +73,7 @@ class Mapl(CMakePackage):
     version("2.41.0", sha256="1142f9395e161174e3ec1654fba8bda1d0bd93edc7438b1927d8f5d7b42a0a86")
     version("2.40.5", sha256="85b4a4ac0d843398452808b88d7a5c29435aa37b69b91a1f4bee664e9f367b7d")
     version("2.40.4", sha256="fb843b118d6e56cd4fc4b114c4d6f91956d5c8b3d9389ada56da1dfdbc58904f")
+    version("2.40.3.1", sha256="1e5a9d6a84d23febe826b1adcd2c2b1681bcc2e61c2959a8bbf4756357e22187")
     version("2.40.3", sha256="4b82a314c88a035fc2b91395750aa7950d6bee838786178ed16a3f39a1e45519")
     version("2.40.2", sha256="7327f6f5bce6e09e7f7b930013fba86ee7cbfe8ed4c7c087fc9ab5acbf6640fd")
     version("2.40.1", sha256="6f40f946fabea6ba73b0764092e495505d220455b191b4e454736a0a25ee058c")
@@ -266,6 +271,7 @@ class Mapl(CMakePackage):
 
     # ESMF dependency
     depends_on("esmf@8.6.1:", when="@2.45:")
+    depends_on("esmf@8.6.1:", when="@=2.40.3.1")
     depends_on("esmf@8.6.0", when="@2.44")
     depends_on("esmf@8.5:", when="@2.40:2.43")
     depends_on("esmf@8.4", when="@2.34:2.39")
@@ -420,7 +426,7 @@ class Mapl(CMakePackage):
     @run_after("build")
     @on_package_attributes(run_tests=True)
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             # The test suite contains a lot of tests. We select only those
             # that are cheap. Note this requires MPI and 6 processes
             ctest("--output-on-failure", "-L", "ESSENTIAL")

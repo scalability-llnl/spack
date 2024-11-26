@@ -20,9 +20,12 @@ class Cups(AutotoolsPackage):
 
     license("Apache-2.0", checked_by="wdconinc")
 
+    version("2.4.11", sha256="9a88fe1da3a29a917c3fc67ce6eb3178399d68e1a548c6d86c70d9b13651fd71")
     version("2.4.10", sha256="d75757c2bc0f7a28b02ee4d52ca9e4b1aa1ba2affe16b985854f5336940e5ad7")
-    version("2.3.3", sha256="261fd948bce8647b6d5cb2a1784f0c24cc52b5c4e827b71d726020bcc502f3ee")
-    version("2.2.3", sha256="66701fe15838f2c892052c913bde1ba106bbee2e0a953c955a62ecacce76885f")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2023-4504
+        version("2.3.3", sha256="261fd948bce8647b6d5cb2a1784f0c24cc52b5c4e827b71d726020bcc502f3ee")
+        version("2.2.3", sha256="66701fe15838f2c892052c913bde1ba106bbee2e0a953c955a62ecacce76885f")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")

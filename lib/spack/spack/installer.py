@@ -50,6 +50,7 @@ from llnl.util.tty.log import log_output
 
 import spack.binary_distribution as binary_distribution
 import spack.build_environment
+import spack.builder
 import spack.config
 import spack.database
 import spack.deptypes as dt
@@ -212,7 +213,7 @@ def _check_last_phase(pkg: "spack.package_base.PackageBase") -> None:
     Raises:
         ``BadInstallPhase`` if stop_before or last phase is invalid
     """
-    phases = pkg.builder.phases  # type: ignore[attr-defined]
+    phases = spack.builder.create(pkg).phases  # type: ignore[attr-defined]
     if pkg.stop_before_phase and pkg.stop_before_phase not in phases:  # type: ignore[attr-defined]
         raise BadInstallPhase(pkg.name, pkg.stop_before_phase)  # type: ignore[attr-defined]
 
@@ -412,7 +413,7 @@ def _process_external_package(pkg: "spack.package_base.PackageBase", explicit: b
         tty.debug(f"{pre} already registered in DB")
         record = spack.store.STORE.db.get_record(spec)
         if explicit and not record.explicit:
-            spack.store.STORE.db.update_explicit(spec, explicit)
+            spack.store.STORE.db.mark(spec, "explicit", True)
 
     except KeyError:
         # If not, register it and generate the module file.
@@ -661,7 +662,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
             spack.store.STORE.layout.metadata_path(pkg.spec), "archived-files"
         )
 
-        for glob_expr in pkg.builder.archive_files:
+        for glob_expr in spack.builder.create(pkg).archive_files:
             # Check that we are trying to copy things that are
             # in the stage tree (not arbitrary files)
             abs_expr = os.path.realpath(glob_expr)
@@ -1507,8 +1508,8 @@ class PackageInstaller:
             self._update_installed(task)
 
             # Only update the explicit entry once for the explicit package
-            if task.explicit:
-                spack.store.STORE.db.update_explicit(task.pkg.spec, True)
+            if task.explicit and not rec.explicit:
+                spack.store.STORE.db.mark(task.pkg.spec, "explicit", True)
 
     def _cleanup_all_tasks(self) -> None:
         """Cleanup all tasks to include releasing their locks."""
@@ -2394,7 +2395,6 @@ class BuildProcessInstaller:
         fs.install_tree(pkg.stage.source_path, src_target)
 
     def _real_install(self) -> None:
-        import spack.builder
 
         pkg = self.pkg
 

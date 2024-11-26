@@ -5,6 +5,7 @@
 
 import pathlib
 
+import spack.build_systems.msbuild
 from spack.package import *
 
 

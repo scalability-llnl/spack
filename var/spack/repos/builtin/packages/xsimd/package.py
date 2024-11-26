@@ -41,7 +41,6 @@ class Xsimd(CMakePackage):
     conflicts("%gcc@:4.8")
     conflicts("%clang@:3.6")
     # untested: conflicts('%intel@:15')
-    # untested: conflicts('%pgi@:14')
 
     def cmake_args(self):
         args = [self.define("BUILD_TESTS", self.run_tests)]

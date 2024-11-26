@@ -10,6 +10,7 @@ import pytest
 
 from llnl.util.filesystem import mkdirp, working_dir
 
+import spack.cmd
 import spack.cmd.pkg
 import spack.main
 import spack.paths
@@ -311,7 +312,20 @@ def test_pkg_grep(mock_packages, capfd):
     output, _ = capfd.readouterr()
     assert output.strip() == "\n".join(
         spack.repo.PATH.get_pkg_class(name).module.__file__
-        for name in ["splice-a", "splice-h", "splice-t", "splice-vh", "splice-vt", "splice-z"]
+        for name in [
+            "depends-on-manyvariants",
+            "manyvariants",
+            "splice-a",
+            "splice-depends-on-t",
+            "splice-h",
+            "splice-t",
+            "splice-vh",
+            "splice-vt",
+            "splice-z",
+            "virtual-abi-1",
+            "virtual-abi-2",
+            "virtual-abi-multi",
+        ]
     )
 
     # ensure that this string isn't fouhnd

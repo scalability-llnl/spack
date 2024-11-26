@@ -15,6 +15,7 @@ import llnl.util.filesystem as fs
 
 import spack.build_systems.autotools
 import spack.build_systems.cmake
+import spack.builder
 import spack.environment
 import spack.error
 import spack.paths
@@ -149,7 +150,7 @@ class TestAutotoolsPackage:
 
         # Assert the libtool archive is not there and we have
         # a log of removed files
-        assert not os.path.exists(s.package.builder.libtool_archive_file)
+        assert not os.path.exists(spack.builder.create(s.package).libtool_archive_file)
         search_directory = os.path.join(s.prefix, ".spack")
         libtool_deletion_log = fs.find(search_directory, "removed_la_files.txt", recursive=True)
         assert libtool_deletion_log
@@ -160,11 +161,13 @@ class TestAutotoolsPackage:
         # Install a package that creates a mock libtool archive,
         # patch its package to preserve the installation
         s = Spec("libtool-deletion").concretized()
-        monkeypatch.setattr(type(s.package.builder), "install_libtool_archives", True)
+        monkeypatch.setattr(
+            type(spack.builder.create(s.package)), "install_libtool_archives", True
+        )
         PackageInstaller([s.package], explicit=True).install()
 
         # Assert libtool archives are installed
-        assert os.path.exists(s.package.builder.libtool_archive_file)
+        assert os.path.exists(spack.builder.create(s.package).libtool_archive_file)
 
     def test_autotools_gnuconfig_replacement(self, mutable_database):
         """
@@ -261,7 +264,7 @@ class TestCMakePackage:
         # Call the function on a CMakePackage instance
         s = default_mock_concretization("cmake-client")
         expected = spack.build_systems.cmake.CMakeBuilder.std_args(s.package)
-        assert s.package.builder.std_cmake_args == expected
+        assert spack.builder.create(s.package).std_cmake_args == expected
 
         # Call it on another kind of package
         s = default_mock_concretization("mpich")
@@ -381,7 +384,9 @@ def test_autotools_args_from_conditional_variant(default_mock_concretization):
     is not met. When this is the case, the variant is not set in the spec."""
     s = default_mock_concretization("autotools-conditional-variants-test")
     assert "example" not in s.variants
-    assert len(s.package.builder._activate_or_not("example", "enable", "disable")) == 0
+    assert (
+        len(spack.builder.create(s.package)._activate_or_not("example", "enable", "disable")) == 0
+    )
 
 
 def test_autoreconf_search_path_args_multiple(default_mock_concretization, tmpdir):

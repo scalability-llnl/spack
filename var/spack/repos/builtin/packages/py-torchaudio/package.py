@@ -18,6 +18,7 @@ class PyTorchaudio(PythonPackage):
     maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.5.1", tag="v2.5.1", commit="1661daf10599ca8889f092ec37814fabbe202bb0")
     version("2.5.0", tag="v2.5.0", commit="56bc006d56a0d4960de6a1e0b6340cba4eda05cd")
     version("2.4.1", tag="v2.4.1", commit="e8cbe17769796ce963fbc71b8990f1474774e6d2")
     version("2.4.0", tag="v2.4.0", commit="69d40773dc4ed86643820c21a8a880e4d074a46e")
@@ -64,6 +65,7 @@ class PyTorchaudio(PythonPackage):
         depends_on("python@:3.8", when="@:0.7.0")
 
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.5.1", when="@2.5.1")
         depends_on("py-torch@2.5.0", when="@2.5.0")
         depends_on("py-torch@2.4.1", when="@2.4.1")
         depends_on("py-torch@2.4.0", when="@2.4.0")
@@ -102,6 +104,9 @@ class PyTorchaudio(PythonPackage):
     depends_on("cmake@3.5:", when="@0.8:", type="build")
     depends_on("ninja", when="@0.8:", type="build")
 
+    # prior to 2.1 ffmpeg was vendored
+    depends_on("ffmpeg@:6", when="@2.1:")
+
     # setup.py
     depends_on("py-setuptools", type="build")
     depends_on("py-pybind11", when="@0.12:", type=("build", "link"))
@@ -116,6 +121,22 @@ class PyTorchaudio(PythonPackage):
     )
     conflicts("^cuda@12.5:", when="@:2.1")
 
+    def patch(self):
+        # Add missing rpaths, which requires patching due to hardcoded cmake_args
+        if self.spec.satisfies("@0.8:"):
+            rpaths = [f"{python_platlib}/torchaudio/lib", f"{python_platlib}/torio/lib"]
+            cmake_args = [
+                f"-DCMAKE_INSTALL_RPATH={';'.join(rpaths)}",
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
+            ]
+            cmake_str = ", ".join(f"'{arg}'" for arg in cmake_args)
+            filter_file(
+                "cmake_args = [",
+                f"cmake_args = [{cmake_str},",
+                "tools/setup_helpers/extension.py",
+                string=True,
+            )
+
     def flag_handler(self, name, flags):
         # https://github.com/pytorch/vision/issues/8653
         if name == "ldflags":
@@ -126,6 +147,12 @@ class PyTorchaudio(PythonPackage):
     def setup_build_environment(self, env):
         # tools/setup_helpers/extension.py
         env.set("BUILD_SOX", 0)
+
+        if self.spec.satisfies("@2.1:"):
+            env.set("FFMPEG_ROOT", self.spec["ffmpeg"].prefix)
+        else:
+            # a specific ffmpeg is built but not installed, so just disable
+            env.set("USE_FFMPEG", "0")
 
         if "+cuda" in self.spec["py-torch"]:
             env.set("USE_CUDA", 1)

@@ -138,9 +138,7 @@ class Pythia6(CMakePackage):
         # Use our provided CMakeLists.txt. The Makefile provided with
         # the source is GCC (gfortran) specific, and would have required
         # additional patching for the +root variant.
-        llnl.util.filesystem.copy(
-            os.path.join(os.path.dirname(__file__), "CMakeLists.txt"), self.stage.source_path
-        )
+        copy(os.path.join(os.path.dirname(__file__), "CMakeLists.txt"), self.stage.source_path)
         # Apply the variant value at the relevant place in the source.
         filter_file(
             r"^(\s+PARAMETER\s*\(\s*NMXHEP\s*=\s*)\d+",

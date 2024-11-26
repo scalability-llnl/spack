@@ -1,0 +1,42 @@
+From ea1ff66e448c977da9c5cff74e201850d6b9b04c Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Thu, 7 Nov 2024 22:08:17 +0000
+Subject: [PATCH] link with roctracer when building miopendriver for 6.1.0
+
+---
+ driver/CMakeLists.txt | 4 ++++
+ src/CMakeLists.txt    | 3 ++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/driver/CMakeLists.txt b/driver/CMakeLists.txt
+index 7d4fdbb..9e5ede5 100644
+--- a/driver/CMakeLists.txt
++++ b/driver/CMakeLists.txt
+@@ -34,6 +34,10 @@ endif()
+ add_dependencies(MIOpenDriver generate_kernels)
+ target_include_directories(MIOpenDriver PRIVATE ../src/kernels)
+ target_link_libraries(MIOpenDriver MIOpen Threads::Threads)
++if(MIOPEN_USE_ROCTRACER)
++    target_include_directories(MIOpenDriver PRIVATE ${ROCTRACER_INCLUDE_DIR})
++    target_link_libraries(MIOpenDriver ${rocTracer})
++endif()
+ if(NOT MIOPEN_EMBED_DB STREQUAL "")
+ target_link_libraries(MIOpenDriver $<BUILD_INTERFACE:miopen_data> )
+ endif()
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 0741a60..47573d4 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -861,7 +861,8 @@ if(NOT WIN32 AND NOT APPLE)
+ endif()
+
+ if(MIOPEN_USE_ROCTRACER)
+-    target_link_libraries(MIOpen PRIVATE roctx64)
++    target_include_directories(MIOpen PRIVATE ${ROCTRACER_INCLUDE_DIR})
++    target_link_libraries(MIOpen PRIVATE ${rocTracer})
+ endif()
+
+ ############################################################
+--
+2.43.5
+

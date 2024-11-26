@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -45,6 +46,6 @@ class LcFramework(CMakePackage, CudaPackage):
         args = [self.define_from_variant("LC_BUILD_LIBPRESSIO_PLUGIN", "libpressio")]
         if self.spec.satisfies("+cuda"):
             args.append(self.define_from_variant("LC_BUILD_CUDA", "cuda"))
-            args.append(self.builder.define_cuda_architectures(self))
+            args.append(CMakeBuilder.define_cuda_architectures(self))
 
         return args

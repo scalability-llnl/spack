@@ -38,7 +38,7 @@ import spack.caches
 import spack.compiler
 import spack.compilers
 import spack.config
-import spack.directives
+import spack.directives_meta
 import spack.environment as ev
 import spack.error
 import spack.modules.common
@@ -973,12 +973,26 @@ def _return_none(*args):
     return None
 
 
+def _compiler_output(self):
+    return ""
+
+
+def _get_real_version(self):
+    return str(self.version)
+
+
 @pytest.fixture(scope="function", autouse=True)
 def disable_compiler_execution(monkeypatch, request):
     """Disable compiler execution to determine implicit link paths and libc flavor and version.
     To re-enable use `@pytest.mark.enable_compiler_execution`"""
     if "enable_compiler_execution" not in request.keywords:
-        monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _return_none)
+        monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _compiler_output)
+        monkeypatch.setattr(spack.compiler.Compiler, "get_real_version", _get_real_version)
+
+
+@pytest.fixture(autouse=True)
+def disable_compiler_output_cache(monkeypatch):
+    monkeypatch.setattr(spack.compiler, "COMPILER_CACHE", spack.compiler.CompilerCache())
 
 
 @pytest.fixture(scope="function")
@@ -1740,7 +1754,7 @@ def clear_directive_functions():
     # Make sure any directive functions overidden by tests are cleared before
     # proceeding with subsequent tests that may depend on the original
     # functions.
-    spack.directives.DirectiveMeta._directives_to_be_executed = []
+    spack.directives_meta.DirectiveMeta._directives_to_be_executed = []
 
 
 @pytest.fixture

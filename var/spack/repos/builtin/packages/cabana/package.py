@@ -93,7 +93,7 @@ class Cabana(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("kokkos+cuda_lambda@4.1:", when="+cuda@0.7:")
 
     # Dependencies for subpackages
-    depends_on("all", when="@0.5.0:+all")
+    depends_on("all-library", when="@0.5.0:+all")
     depends_on("arborx", when="@0.3.0:+arborx")
     depends_on("hypre-cmake@2.22.0:", when="@0.4.0:+hypre")
     depends_on("hypre-cmake@2.22.1:", when="@0.5.0:+hypre")
