@@ -309,9 +309,6 @@ class RocmOpenmpExtras(Package):
     patch("0001-Avoid-duplicate-registration-on-cuda-env.patch", when="@6.1")
     patch("0001-Avoid-duplicate-registration-on-cuda-env-6.2.patch", when="@6.2")
 
-        # Patch flang for releases of 5.1 and earlier, fixed in 5.2
-        patch("flang-extern-alarm.patch", when="@:5.1")
-
     def setup_run_environment(self, env):
         # Handle case when "rocm-openmp-extras" is in an external installation of the
         # ROCm stack.
