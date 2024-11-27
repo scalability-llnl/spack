@@ -194,6 +194,7 @@ def test_unload_fails_no_shell(
     out = unload("mpileaks", fail_on_error=False)
     assert "To set up shell support" in out
 
+
 @pytest.mark.parametrize(
     "shell,set_command",
     (
@@ -204,7 +205,7 @@ def test_unload_fails_no_shell(
 )
 def test_load_and_cache_shell_script(
     shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
-): # TODO: Remove extras later
+):  # TODO: Remove extras later
     """TODO: What this test do???"""
     spec = spack.spec.Spec("mpileaks")
     spec.concretize()
@@ -230,39 +231,43 @@ def test_load_and_cache_shell_script(
 )
 def test_load_multiple_and_cache_shell_script(
     shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
-): # TODO: Remove extras later
-    """TODO: What test do??"""
+):  # TODO: Remove extras later
+    """TODO: Test does a thing"""
     mpileaks_spec = spack.spec.Spec("mpileaks")
     mpileaks_spec.concretize()
 
-    libelf_spec = spack.spec.Spec("libelf")
-    libelf_spec.concretize()
-
     install("mpileaks")
-    install("libelf")
+    concrete_mpileaks = spack.spec.Spec("mpileaks").concretized()
 
+    # Load mpileaks
     mpileaks_shell = load(shell, "mpileaks")
-    libelf_shell = load(shell, "libelf")
 
-    libelf_cache = os.path.join(libelf_spec.prefix, ".spack", f"{libelf_spec.name}_shell.{shell[2:]}")
-    with open(libelf_cache, "r") as f:
-        libelf_file = f.read()
-    print(f"\n\n before both: {libelf_file} hello")
+    # Read the cached file
+    path_to_mpileaks_file = os.path.join(
+        mpileaks_spec.prefix, ".spack", f"{mpileaks_spec.name}_shell.{shell[2:]}"
+        )
+    with open(path_to_mpileaks_file, "r") as f:
+        mpileaks_cache = f.read()
 
-    assert libelf_shell == libelf_file
+    assert mpileaks_shell == mpileaks_cache
+    old_mpileaks_cache = mpileaks_cache
 
-    unload(shell, "mpileaks")
-    unload(shell, "libelf")
+    # Set so unload has something to do
+    os.environ["FOOBAR"] = "mpileaks"
+    os.environ[uenv.spack_loaded_hashes_var] = ("%s" + os.pathsep + "%s") % (
+        concrete_mpileaks.dag_hash(),
+        "garbage",
+    )
+
+    _ = unload(shell, "mpileaks")
+
+    # Load mpileaks & libelf
     both_shell = load(shell, "mpileaks", "libelf")
 
-    libelf_cache = os.path.join(libelf_spec.prefix, ".spack", f"{libelf_spec.name}_shell.{shell[2:]}")
-    with open(libelf_cache, "r") as f:
-        libelf_file = f.read()
-    print(f"\n\n after both: {libelf_file}")
+     # Read the new cached file
+    with open(path_to_mpileaks_file, "r") as f:
+        mpileaks_cache = f.read()
 
-    # assert that what is cached is not a combination of both packages
-    assert libelf_shell == libelf_file
-    # assert mpileaks_shell == 
-    assert both_shell != libelf_file
-   # assert both_shell != 
-
+    # assert the new cached file equals the old cached file
+    assert old_mpileaks_cache == mpileaks_cache
+    assert both_shell != mpileaks_cache

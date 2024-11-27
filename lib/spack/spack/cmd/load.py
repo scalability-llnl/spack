@@ -108,7 +108,7 @@ def load(parser, args):
             spec_cmds = spec_mod.shell_modifications(shell)
 
             env_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
-            cmds = env_mod.shell_modifications(shell) # this won't work for multiple specs
+            cmds = env_mod.shell_modifications(shell)
 
             path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
             with open(path, 'w') as f:

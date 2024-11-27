@@ -306,7 +306,6 @@ else
 fi
 _spack_pathadd PATH "${_sp_prefix%/}/bin"
 
-
 # Set shell being used
 export SPACK_SHELL="sh"
 
