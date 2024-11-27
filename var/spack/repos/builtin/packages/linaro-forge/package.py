@@ -66,9 +66,6 @@ class LinaroForge(Package):
         version(
             "22.1.4", sha256="4e2af481a37b4c99dba0de6fac75ac945316955fc4170d06e321530adea7ac9f"
         )
-        version(
-            "21.1.3", sha256="4a4ff7372aad5a31fc9e18b7b6c493691ab37d8d44a3158584e62d1ab82b0eeb"
-        )
     elif platform.machine() == "ppc64le":
         # N.B. support for ppc64le was dropped in 24.0
         version(
@@ -96,9 +93,6 @@ class LinaroForge(Package):
         )
         version(
             "22.0.4", sha256="f4cb5bcbaa67f9209299fe4653186a2829760b8b16a2883913aa43766375b04c"
-        )
-        version(
-            "21.1.3", sha256="eecbc5686d60994c5468b2d7cd37bebe5d9ac0ba37bd1f98fbfc69b071db541e"
         )
     elif platform.machine() == "x86_64":
         version("24.1", sha256="0b96878ab73c20b39c4730ed15f24ca86dc5985637ff5d8e68f55e1e802e5fe3")
@@ -146,9 +140,6 @@ class LinaroForge(Package):
         )
         version(
             "22.0.4", sha256="a2c8c1da38b9684d7c4656a98b3fc42777b03fd474cd0bf969324804f47587e5"
-        )
-        version(
-            "21.1.3", sha256="03dc82f1d075deb6f08d1e3e6592dc9b630d406c08a1316d89c436b5874f3407"
         )
 
     variant(

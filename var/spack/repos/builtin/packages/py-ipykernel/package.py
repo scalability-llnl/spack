@@ -54,32 +54,44 @@ class PyIpykernel(PythonPackage):
 
     with default_args(type=("build", "run")):
         depends_on("python@3.8:", when="@6.22:")
-        depends_on("py-debugpy@1.6.5:", when="@6.22:")
-        depends_on("py-debugpy@1:", when="@6.11:")
-        depends_on("py-debugpy@1.0:1", when="@6:6.10")
-        depends_on("py-ipython@7.23.1:", when="@6.5.1:")
-        depends_on("py-ipython@7.23.1:7", when="@6.0.0:6.5.0")
-        depends_on("py-ipython@5.0:", when="@5")
-        depends_on("py-ipython@4.0:", when="@:4")
+        # use of `imp` module
+        depends_on("python@:3.11", when="@:6.10")
+
+        with when("@6:"):
+            depends_on("py-debugpy@1.6.5:", when="@6.22:")
+            depends_on("py-debugpy@1:")
+            depends_on("py-debugpy@:1", when="@:6.10")
+
+            depends_on("py-matplotlib-inline@0.1:")
+            depends_on("py-matplotlib-inline@:0.1", when="@:6.10")
+
+        depends_on("py-ipython@7.23.1:", when="@6:")
+        depends_on("py-ipython@5:", when="@5:")
+        depends_on("py-ipython@4:")
+        depends_on("py-ipython@:7", when="@:6.5")
+
         depends_on("py-comm@0.1.1:", when="@6.22:")
+
         depends_on("py-traitlets@5.4:", when="@6.22:")
-        depends_on("py-traitlets@5.1:", when="@6.11:")
-        depends_on("py-traitlets@5.1.0:5", when="@6.5:6.10")
-        depends_on("py-traitlets@4.1.0:5", when="@6.0:6.4")
+        depends_on("py-traitlets@5.1:", when="@6.5:")
         depends_on("py-traitlets@4.1.0:")
+        depends_on("py-traitlets@:5", when="@:6.10")
+
         depends_on("py-jupyter-client@6.1.12:", when="@6.11:")
-        depends_on("py-jupyter-client@:7", when="@6.2:6.10")
-        depends_on("py-jupyter-client@:6", when="@6.0.2:6.1")
         depends_on("py-jupyter-client")
+        depends_on("py-jupyter-client@:7", when="@:6.10")
+        depends_on("py-jupyter-client@:6", when="@:6.1")
+
         depends_on("py-jupyter-core@4.12:", when="@6.22:")
+
         depends_on("py-nest-asyncio", when="@6.6.1:")
+
         depends_on("py-tornado@6.1:", when="@6.11:")
-        depends_on("py-tornado@5:6", when="@6.10")
-        depends_on("py-tornado@4.2:6", when="@6:6.9")
-        depends_on("py-tornado@4.2:", when="@5")
-        depends_on("py-tornado@4:", when="@:4")
-        depends_on("py-matplotlib-inline@0.1:", when="@6.11:")
-        depends_on("py-matplotlib-inline@0.1.0:0.1", when="@6:6.10")
+        depends_on("py-tornado@5:", when="@6.10:")
+        depends_on("py-tornado@4.2:", when="@5:")
+        depends_on("py-tornado@4:")
+        depends_on("py-tornado@:6", when="@:6.10")
+
         depends_on("py-appnope", when="@5.1.3: platform=darwin")
         depends_on("py-pyzmq@24:", when="@6.28:")
         depends_on("py-pyzmq@20:", when="@6.22:")

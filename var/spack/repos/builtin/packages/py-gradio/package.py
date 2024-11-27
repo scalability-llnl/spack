@@ -14,7 +14,18 @@ class PyGradio(PythonPackage):
 
     license("Apache-2.0")
 
-    version("3.36.1", sha256="1d821cee15da066c24c197248ba9aaed5f5e59505d17754561c2f96f90e73a89")
+    version("5.1.0", sha256="d2153668e6de2df7a01bb33f01a074fc7716ec863c40f472d8e439439ef1e153")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2024-47871
+        version(
+            "4.44.1", sha256="a68a52498ac6b63f8864ef84bf7866a70e7d07ebe913edf921e1d2a3708ad5ae"
+        )
+        version(
+            "3.50.2", sha256="c6c81320566ba3e5688a1a58201d0729565a97b828b2bf6895e54f7bf25c01de"
+        )
+        version(
+            "3.36.1", sha256="1d821cee15da066c24c197248ba9aaed5f5e59505d17754561c2f96f90e73a89"
+        )
 
     depends_on("python@3.8:", type=("build", "run"))
     depends_on("py-hatchling", type="build")

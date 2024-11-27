@@ -22,7 +22,8 @@ class Voropp(CMakePackage):
     version("master", branch="master")
     version("0.4.6", sha256="ef7970071ee2ce3800daa8723649ca069dc4c71cc25f0f7d22552387f3ea437e")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     patch("voro++-0.4.6-cmake.patch", when="@0.4.6")
 
