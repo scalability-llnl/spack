@@ -972,37 +972,37 @@ with '-Wl,-commons,use_dylibs' and without
     def with_or_without_fca(self, activated):
         if not activated:
             return "--without-fca"
-        return "--with-fca={0}".format(self.spec["fca"].prefix)
+        return f"--with-fca={self.spec['fca'].prefix}"
 
     def with_or_without_hcoll(self, activated):
         if not activated:
             return "--without-hcoll"
-        return "--with-hcoll={0}".format(self.spec["hcoll"].prefix)
+        return f"--with-hcoll={self.spec['hcoll'].prefix}"
 
     def with_or_without_ucc(self, activated):
         if not activated:
             return "--without-ucc"
-        return "--with-ucc={0}".format(self.spec["ucc"].prefix)
+        return f"--with-ucc={self.spec['ucc'].prefix}"
 
     def with_or_without_xpmem(self, activated):
         if not activated:
             return "--without-xpmem"
-        return "--with-xpmem={0}".format(self.spec["xpmem"].prefix)
+        return f"--with-xpmem={self.spec['xpmem'].prefix}"
 
     def with_or_without_knem(self, activated):
         if not activated:
             return "--without-knem"
-        return "--with-knem={0}".format(self.spec["knem"].prefix)
+        return f"--with-knem={self.spec['knem'].prefix}"
 
     def with_or_without_lsf(self, activated):
         if not activated:
             return "--without-lsf"
-        return "--with-lsf={0}".format(self.spec["lsf"].prefix)
+        return f"--with-lsf={self.spec['lsf'].prefix}"
 
     def with_or_without_tm(self, activated):
         if not activated:
             return "--without-tm"
-        return "--with-tm={0}".format(self.spec["pbs"].prefix)
+        return f"--with-tm={self.spec['pbs'].prefix}"
 
     @run_before("autoreconf")
     def die_without_fortran(self):
