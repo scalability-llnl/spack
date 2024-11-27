@@ -252,7 +252,7 @@ def test_load_multiple_and_cache_shell_script(
     assert mpileaks_shell == mpileaks_cache
     old_mpileaks_cache = mpileaks_cache
 
-    # Set so unload has something to do
+    # Unload mpileaks
     os.environ["FOOBAR"] = "mpileaks"
     os.environ[uenv.spack_loaded_hashes_var] = ("%s" + os.pathsep + "%s") % (
         concrete_mpileaks.dag_hash(),
@@ -264,7 +264,7 @@ def test_load_multiple_and_cache_shell_script(
     # Load mpileaks & libelf
     both_shell = load(shell, "mpileaks", "libelf")
 
-     # Read the new cached file
+    # Read the new cached file
     with open(path_to_mpileaks_file, "r") as f:
         mpileaks_cache = f.read()
 
