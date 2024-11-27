@@ -111,7 +111,7 @@ def load(parser, args):
             cmds = env_mod.shell_modifications(shell)
 
             path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
-            with open(path, 'w') as f:
+            with open(path, "w") as f:
                 f.write(spec_cmds)
 
         sys.stdout.write(cmds)
