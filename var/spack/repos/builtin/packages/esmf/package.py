@@ -29,11 +29,8 @@ class Esmf(MakefilePackage, PythonExtension):
     # Develop is a special name for spack and is always considered the newest version
     version("develop", branch="develop")
     # generate chksum with 'spack checksum esmf@x.y.z'
+    version("8.8.0b06", commit="aed3278586544bb7687bb03b5c9b65dff67c18a8")
     version("8.7.0", sha256="d7ab266e2af8c8b230721d4df59e61aa03c612a95cc39c07a2d5695746f21f56")
-    version("8.7.0b11", commit="7b36ed9d21ecf904c95c436c8ecaa5075601893e")
-    version("8.7.0b04", commit="609c81179572747407779492c43776e34495d267")
-    version("8.6.1", sha256="dc270dcba1c0b317f5c9c6a32ab334cb79468dda283d1e395d98ed2a22866364")
-    version("8.6.1b04", commit="64d3aacc36f2d4d39255eb521c34123903cc0551")
     version("8.6.1", sha256="dc270dcba1c0b317f5c9c6a32ab334cb79468dda283d1e395d98ed2a22866364")
     version("8.6.0", sha256="ed057eaddb158a3cce2afc0712b49353b7038b45b29aee86180f381457c0ebe7")
     version("8.5.0", sha256="acd0b2641587007cc3ca318427f47b9cae5bfd2da8d2a16ea778f637107c29c4")
@@ -50,7 +47,6 @@ class Esmf(MakefilePackage, PythonExtension):
         sha256="0ff43ede83d1ac6beabd3d5e2a646f7574174b28a48d1b9f2c318a054ba268fd",
         deprecated=True,
     )
-    version("8.3.0b09", commit="5b7e546c4ba350bff9c9ebd00e5fa1c6315d17da", deprecated=True)
     version("8.2.0", sha256="27866c31fdb63c58e78211de970470ca02d274f5d4d6d97e94284d63b1c1d9e4")
     version("8.1.1", sha256="629690c7a488e84ac7252470349458d7aaa98b54c260f8b3911a2e2f3e713dd0")
     version(
@@ -198,11 +194,11 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
     filter_compiler_wrappers("esmf.mk", relative_root="lib")
 
     # Make script from mvapich2.patch executable
-    @when("@:7.0")
     @run_before("build")
     def chmod_scripts(self):
-        chmod = which("chmod")
-        chmod("+x", "scripts/libs.mvapich2f90")
+        if self.spec.satisfies("@:7.0"):
+            chmod = which("chmod")
+            chmod("+x", "scripts/libs.mvapich2f90")
 
     def url_for_version(self, version):
         if version < Version("8.0.0"):
