@@ -21,7 +21,7 @@ spack:
       variants: threads=openmp
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "@5.11 +examples ~qt ^[virtuals=gl] osmesa %gcc target=x86_64_v3"
+      require: "@5.11: +examples ~qt ^[virtuals=gl] osmesa %gcc target=x86_64_v3"
 
     # ROCm
     comgr:
