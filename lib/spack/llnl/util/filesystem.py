@@ -24,6 +24,7 @@ from typing import (
     Callable,
     Deque,
     Dict,
+    Generator,
     Iterable,
     List,
     Match,
@@ -2836,6 +2837,27 @@ def temporary_dir(
             yield tmp_dir
     finally:
         remove_directory_contents(tmp_dir)
+
+
+@contextmanager
+def edit_in_place_through_temporary_file(file_path: str) -> Generator[str, None, None]:
+    """Context manager for modifying ``file_path`` in place, preserving its inode and hardlinks,
+    for functions or external tools that do not support in-place editing. Notice that this function
+    is unsafe in that it returns a path instead of a file descriptor, but this is by design, since
+    we assume an external tool will modify the file at the temporary path by creating a new
+    inode."""
+    tmp_fd, tmp_path = tempfile.mkstemp(
+        dir=os.path.dirname(file_path), prefix=f"{os.path.basename(file_path)}."
+    )
+    try:
+        with open(file_path, "rb") as f, os.fdopen(tmp_fd, "wb", closefd=False) as g:
+            shutil.copyfileobj(f, g)
+        yield tmp_path
+        with open(tmp_path, "rb") as g, open(file_path, "wb") as f:
+            shutil.copyfileobj(g, f)
+    finally:
+        os.close(tmp_fd)
+        os.unlink(tmp_path)
 
 
 def filesummary(path, print_bytes=16) -> Tuple[int, bytes]:
