@@ -53,7 +53,7 @@ class RRsamtools(RPackage):
 
     # this is not a listed dependency but is needed
     depends_on("curl")
-    depends_on("zlib")
+    depends_on("zlib-api")
 
     def patch(self):
         with working_dir("src"):
