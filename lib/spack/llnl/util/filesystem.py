@@ -2852,6 +2852,7 @@ def edit_in_place_through_temporary_file(file_path: str) -> Generator[str, None,
     try:
         with open(file_path, "rb") as f, os.fdopen(tmp_fd, "wb", closefd=False) as g:
             shutil.copyfileobj(f, g)
+            g.flush()
         yield tmp_path
         with open(tmp_path, "rb") as g, open(file_path, "wb") as f:
             shutil.copyfileobj(g, f)
