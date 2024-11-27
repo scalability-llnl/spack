@@ -35,19 +35,20 @@ class VersionStrComponent:
 
     data: Union[int, str]
 
-    def __init__(self, data):
+    def __init__(self, data: Union[int, str]):
         # int for infinity index, str for literal.
         self.data = data
 
     @staticmethod
     def from_string(string: str) -> "VersionStrComponent":
+        value: Union[int, str] = string
         if len(string) >= iv_min_len:
             try:
-                return VersionStrComponent(infinity_versions.index(string))
+                value = infinity_versions.index(string)
             except ValueError:
                 pass
 
-        return VersionStrComponent(string)
+        return VersionStrComponent(value)
 
     def __hash__(self) -> int:
         return hash(self.data)
