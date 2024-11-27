@@ -698,8 +698,8 @@ class Mfem(Package, CudaPackage, ROCmPackage):
             options += ["MPICXX=%s" % spec["mpi"].mpicxx]
             hypre = spec["hypre"]
             all_hypre_libs = hypre.libs
-            if "+lapack" in spec:
-                all_hypre_libs += spec["lapack"].libs + spec["blas"].libs
+            if "+lapack" in hypre:
+                all_hypre_libs += hypre["lapack"].libs + hypre["blas"].libs
 
             hypre_gpu_libs = ""
             if "+cuda" in hypre:
