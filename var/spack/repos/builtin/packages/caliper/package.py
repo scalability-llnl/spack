@@ -101,6 +101,8 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant("vtune", default=False, description="Enable Intel Vtune support")
     variant("kokkos", default=True, when="@2.3.0:", description="Enable Kokkos profiling support")
     variant("tests", default=False, description="Enable tests")
+    variant("tools", default=True, description="Enable tools")
+
     # TODO change the 'when' argument for the next release of Caliper
     variant("python", default=False, when="@master", description="Build Python bindings")
 
@@ -156,6 +158,7 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
 
         entries.append(cmake_cache_option("BUILD_SHARED_LIBS", spec.satisfies("+shared")))
         entries.append(cmake_cache_option("BUILD_TESTING", spec.satisfies("+tests")))
+        entries.append(cmake_cache_option("WITH_TOOLS", spec.satisfies("+tools")))
         entries.append(cmake_cache_option("BUILD_DOCS", False))
         entries.append(cmake_cache_path("PYTHON_EXECUTABLE", spec["python"].command.path))
 

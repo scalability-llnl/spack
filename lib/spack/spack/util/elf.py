@@ -7,7 +7,7 @@ import bisect
 import re
 import struct
 from struct import calcsize, unpack, unpack_from
-from typing import BinaryIO, Dict, List, NamedTuple, Optional, Pattern, Tuple
+from typing import BinaryIO, Callable, Dict, List, NamedTuple, Optional, Pattern, Tuple
 
 
 class ElfHeader(NamedTuple):
@@ -476,6 +476,31 @@ def get_interpreter(path: str) -> Optional[str]:
         return None
 
 
+def _delete_dynamic_array_entry(
+    f: BinaryIO, elf: ElfFile, should_delete: Callable[[int, int], bool]
+) -> None:
+    f.seek(elf.pt_dynamic_p_offset)
+    dynamic_array_fmt = elf.byte_order + ("qQ" if elf.is_64_bit else "lL")
+    dynamic_array_size = calcsize(dynamic_array_fmt)
+    new_offset = elf.pt_dynamic_p_offset  # points to the new dynamic array
+    old_offset = elf.pt_dynamic_p_offset  # points to the current dynamic array
+    for _ in range(elf.pt_dynamic_p_filesz // dynamic_array_size):
+        data = read_exactly(f, dynamic_array_size, "Malformed dynamic array entry")
+        tag, val = unpack(dynamic_array_fmt, data)
+
+        if tag == ELF_CONSTANTS.DT_NULL or not should_delete(tag, val):
+            if new_offset != old_offset:
+                f.seek(new_offset)
+                f.write(data)
+                f.seek(old_offset + dynamic_array_size)
+            new_offset += dynamic_array_size
+
+        if tag == ELF_CONSTANTS.DT_NULL:
+            break
+
+        old_offset += dynamic_array_size
+
+
 def delete_rpath(path: str) -> None:
     """Modifies a binary to remove the rpath. It zeros out the rpath string and also drops the
     DT_R(UN)PATH entry from the dynamic section, so it doesn't show up in 'readelf -d file', nor
@@ -492,29 +517,22 @@ def delete_rpath(path: str) -> None:
         f.seek(rpath_offset)
         f.write(new_rpath_string)
 
-        # Next update the dynamic array
-        f.seek(elf.pt_dynamic_p_offset)
-        dynamic_array_fmt = elf.byte_order + ("qQ" if elf.is_64_bit else "lL")
-        dynamic_array_size = calcsize(dynamic_array_fmt)
-        new_offset = elf.pt_dynamic_p_offset  # points to the new dynamic array
-        old_offset = elf.pt_dynamic_p_offset  # points to the current dynamic array
-        for _ in range(elf.pt_dynamic_p_filesz // dynamic_array_size):
-            data = read_exactly(f, dynamic_array_size, "Malformed dynamic array entry")
-            tag, _ = unpack(dynamic_array_fmt, data)
+        # Delete DT_RPATH / DT_RUNPATH entries from the dynamic section
+        _delete_dynamic_array_entry(
+            f, elf, lambda tag, _: tag == ELF_CONSTANTS.DT_RPATH or tag == ELF_CONSTANTS.DT_RUNPATH
+        )
 
-            # Overwrite any entry that is not DT_RPATH or DT_RUNPATH, including DT_NULL
-            if tag != ELF_CONSTANTS.DT_RPATH and tag != ELF_CONSTANTS.DT_RUNPATH:
-                if new_offset != old_offset:
-                    f.seek(new_offset)
-                    f.write(data)
-                    f.seek(old_offset + dynamic_array_size)
-                new_offset += dynamic_array_size
 
-            # End of the dynamic array
-            if tag == ELF_CONSTANTS.DT_NULL:
-                break
+def delete_needed_from_elf(f: BinaryIO, elf: ElfFile, needed: bytes) -> None:
+    """Delete a needed library from the dynamic section of an ELF file"""
+    if not elf.has_needed or needed not in elf.dt_needed_strs:
+        return
 
-            old_offset += dynamic_array_size
+    offset = elf.dt_needed_strtab_offsets[elf.dt_needed_strs.index(needed)]
+
+    _delete_dynamic_array_entry(
+        f, elf, lambda tag, val: tag == ELF_CONSTANTS.DT_NEEDED and val == offset
+    )
 
 
 class CStringType:

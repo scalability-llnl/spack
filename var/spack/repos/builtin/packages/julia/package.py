@@ -53,8 +53,9 @@ class Julia(MakefilePackage):
     version("1.6.5", sha256="b70ae299ff6b63a9e9cbf697147a48a31b4639476d1947cb52e4201e444f23cb")
     version("1.6.4", sha256="a4aa921030250f58015201e28204bff604a007defc5a379a608723e6bb1808d4")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     variant("precompile", default=True, description="Improve julia startup time")
     variant("openlibm", default=True, description="Use openlibm instead of libm")
@@ -248,6 +249,9 @@ class Julia(MakefilePackage):
     depends_on("utf8proc")
     depends_on("zlib-api")
     depends_on("zlib +shared +pic +optimize", when="^[virtuals=zlib-api] zlib")
+
+    # https://github.com/JuliaLang/julia/pull/45649#issuecomment-1192377430
+    conflicts("%gcc@12:", when="@:1.7")
 
     # Patches for julia
     patch("julia-1.6-system-libwhich-and-p7zip-symlink.patch", when="@1.6.0:1.6")
