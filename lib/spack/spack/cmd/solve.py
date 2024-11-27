@@ -139,6 +139,10 @@ def solve(parser, args):
     if unify != "when_possible":
         # set up solver parameters
         # Note: reuse and other concretizer prefs are passed as configuration
+
+        ######
+        ######
+        ######
         result = solver.solve(
             specs,
             out=output,

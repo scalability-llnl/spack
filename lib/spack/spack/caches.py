@@ -67,5 +67,15 @@ class MirrorCache:
         fetcher.archive(dst)
 
 
+def _conc_cache():
+    import spack.solver.asp
+
+    return spack.solver.asp.ConcretizationCache()
+
+
+#: Spack's cache for concretization operations
+# cannot type this as doing so requires a circular import
+CONC_CACHE = llnl.util.lang.Singleton(_conc_cache)
+
 #: Spack's local cache for downloaded source archives
 FETCH_CACHE: spack.fetch_strategy.FsCache = llnl.util.lang.Singleton(_fetch_cache)  # type: ignore

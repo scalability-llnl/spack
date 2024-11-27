@@ -6,7 +6,9 @@ import collections.abc
 import copy
 import enum
 import functools
+import hashlib
 import itertools
+import json
 import os
 import pathlib
 import pprint
@@ -16,7 +18,19 @@ import types
 import typing
 import warnings
 from contextlib import contextmanager
-from typing import Callable, Dict, Iterator, List, NamedTuple, Optional, Set, Tuple, Type, Union
+from typing import (
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    NamedTuple,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import archspec.cpu
 
@@ -27,6 +41,7 @@ from llnl.util.lang import elide_list
 import spack
 import spack.binary_distribution
 import spack.compiler
+import spack.caches
 import spack.compilers
 import spack.concretize
 import spack.config
@@ -68,6 +83,8 @@ from .version_order import concretization_version_order
 GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVersion]
 
 TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunction]]
+
+ResultType = TypeVar("ResultType", bound="Result")
 
 #: Enable the addition of a runtime node
 WITH_RUNTIME = sys.platform != "win32"
@@ -541,6 +558,181 @@ class Result:
                 msg += "\n\t(No candidate specs from solver)"
         return msg
 
+    def to_dict(self) -> dict:
+        """Produces json representation of Result object
+
+        Does not include anything related to unsatisfiability as we
+        are only interested in storing satisfiable results
+        """
+        serial_node_arg = (
+            lambda node_dict: f"""{{"id": "{node_dict.id}", "pkg": "{node_dict.pkg}"}}"""
+        )
+        ret = dict()
+        ret["asp"] = self.asp
+        ret["criteria"] = self.criteria
+        ret["optimal"] = self.optimal
+        ret["warnings"] = self.warnings
+        ret["nmodels"] = self.nmodels
+        ret["abstract_specs"] = [x.to_dict() for x in self.abstract_specs]
+        serial_answers = []
+        for answer in self.answers:
+            serial_answer = answer[:2]
+            serial_answer = serial_answer + (
+                [{serial_node_arg(x): answer[2][x].to_dict()} for x in answer[2]],
+            )
+            serial_answers.append(serial_answer)
+        ret["answers"] = serial_answers
+        ret["specs_by_input"] = {}
+        for input, spec in self.specs_by_input.items():
+            ret["specs_by_input"][json.dumps(input.to_dict())] = spec.to_dict()
+        return ret
+
+    @staticmethod
+    def from_dict(obj: dict) -> ResultType:
+        """Returns Result object from compatible dictionary"""
+
+        def _dict_to_node_argument(dict):
+            id = dict["id"]
+            pkg = dict["pkg"]
+            return NodeArgument(id=id, pkg=pkg)
+
+        def _dict_to_spec(dict):
+            return spack.spec.Spec.from_dict(dict)
+
+        asp = obj.get("asp")
+        spec_list = obj.get("abstract_specs")
+        if not spec_list:
+            raise RuntimeError("Invalid json for concretization Result object")
+        if spec_list:
+            spec_list = [_dict_to_spec(x) for x in spec_list]
+        result = Result(spec_list, asp)
+        result.criteria = obj.get("criteria")
+        result.optimal = obj.get("optimal")
+        result.warnings = obj.get("warnings")
+        result.nmodels = obj.get("nmodels")
+        answers = []
+        for answer in obj.get("answers", []):
+            answers.append(
+                answer[:2]
+                + ([{_dict_to_node_argument(x): _dict_to_spec(answer[2][x])} for x in answer[2]])
+            )
+        result.answers = answers
+        result._concrete_specs_by_input = {}
+        result._concrete_specs = []
+        for input, spec in obj.get("specs_by_input", {}).items():
+            result._concrete_specs_by_input[_dict_to_spec(json.loads(input))] = _dict_to_spec(spec)
+            result._concrete_specs.append(_dict_to_spec(spec))
+        return result
+
+
+class ConcretizationCache:
+    """Store for Spack concretization results and statistics
+
+    Serializes solver result objects and statistics to json and stores
+    at a given endpoint in a cache associated by the sha256 of the
+    asp problem and the involved control files.
+    """
+
+    def __init__(self, root: Union[str, None] = None):
+        if not root:
+            root = (
+                spack.config.get("config:concretization_cache")
+                if spack.config.get("config:concretization_cache")
+                else spack.paths.default_conc_cache_path
+            )
+        self.root = pathlib.Path(spack.util.path.canonicalize_path(root))
+
+    def _results_from_cache(self, cache_path: pathlib.Path) -> Result:
+        """Returns a Results object from the concretizer cache
+
+        Reads the cache hit and uses `Result`'s own deserializer
+        to produce a new Result object
+        """
+        cache_entry = json.loads(cache_path.read_text())
+        result_json = cache_entry["result"]
+        return Result.from_dict(result_json)
+
+    def _stats_from_cache(self, cache_path: pathlib.Path):
+        """Returns concretization statistic from the
+        concretization associated with the cache.
+
+        Deserialzes the the json representation of the
+        statistics covering the cached concretization run
+        and returns the Python data structures
+        """
+        return json.loads(cache_path.read_text())["statistics"]
+
+    def _prefix_digest(self, problem: str) -> Tuple[str, str]:
+        """Return the first two characters of, and the full, sha256 of the given asp problem"""
+        prob_digest = hashlib.sha256(problem.encode()).hexdigest()
+        prefix = prob_digest[:2]
+        return prefix, prob_digest
+
+    def _cache_path(self, problem: str) -> pathlib.Path:
+        """Returns a Path object representing the path to the cache
+        entry for the given problem"""
+        prefix, digest = self._prefix_digest(problem)
+        return self.root / prefix / digest
+
+    @contextmanager
+    def _create_cache_entry(self, entry: pathlib.Path):
+        """Context manager for creating cache entries
+
+        Creates cache entry and file, cleans up on failure to
+        correctly populate cache
+        """
+        if not entry.exists():
+            entry.parent.mkdir(parents=True, exist_ok=True)
+        failed = False
+        try:
+            yield
+        except Exception as e:
+            failed = True
+            raise e from e
+        finally:
+            if failed:
+                if entry.exists():
+                    entry.unlink()
+                if entry.parent.exists():
+                    entry.parent.unlink()
+
+    def store(self, problem: str, result: Result, statistics: List):
+        """Creates entry in concretization cache for problem if none exists,
+        storing the concretization Result object and statistics in the cache
+        as serialized json joined as a single file.
+
+        Hash membership is computed based on the sha256 of the provided asp
+        problem.
+        """
+        cache_path = self._cache_path(problem)
+        with self._create_cache_entry(cache_path):
+            cache_dict = {"results": result.to_dict(), "statistics": statistics}
+            cache_path.write_text(json.dumps(cache_dict))
+
+    def fetch(self, problem: str) -> Union[Tuple[Result, List], Tuple[None, None]]:
+        """Returns the concretization cache result for a lookup based on the given problem.
+
+        Checks the concretization cache for the given problem, and either returns the
+        Python objects cached on disk representing the concretization results and statistics
+        or returns none if no cache entry was found.
+        """
+        cache_path = self._cache_path(problem)
+        if cache_path.exists():
+            tty.debug(f"Concretization cache hit at {str(cache_path)}")
+            result = self._results_from_cache(cache_path)
+            statistics = self._stats_from_cache(cache_path)
+            return result, statistics
+        tty.debug(f"Concretization cache miss at {str(cache_path)}")
+        return None, None
+
+    def remove(self, problem: str) -> bool:
+        """Removes cache entry associated with problem"""
+        cache_path = self._cache_path(problem)
+        if cache_path.exists():
+            cache_path.unlink()
+            return True
+        return False
+
 
 def _normalize_packages_yaml(packages_yaml):
     normalized_yaml = copy.copy(packages_yaml)
@@ -810,6 +1002,16 @@ class PyclingoDriver:
             tty.debug("Ensuring basic dependencies {win-sdk, wgl} available")
             spack.bootstrap.core.ensure_winsdk_external_or_raise()
 
+        control_files = ["concretize.lp", "heuristic.lp", "display.lp"]
+        if not setup.concretize_everything:
+            control_files.append("when_possible.lp")
+        if using_libc_compatibility():
+            control_files.append("libc_compatibility.lp")
+        else:
+            control_files.append("os_compatibility.lp")
+        if setup.enable_splicing:
+            control_files.append("splices.lp")
+
         timer.start("setup")
         asp_problem = setup.setup(specs, reuse=reuse, allow_deprecated=allow_deprecated)
         if output.out is not None:
@@ -818,104 +1020,120 @@ class PyclingoDriver:
             return Result(specs), None, None
         timer.stop("setup")
 
-        timer.start("load")
-        # Add the problem instance
-        self.control.add("base", [], asp_problem)
-        # Load the file itself
+        timer.start("cache-check")
+        timer.start("ordering")
+        # ensure deterministic output
+        problem_repr = "\n".join(sorted(asp_problem.split("\n")))
+        timer.stop("ordering")
         parent_dir = os.path.dirname(__file__)
-        self.control.load(os.path.join(parent_dir, "concretize.lp"))
-        self.control.load(os.path.join(parent_dir, "heuristic.lp"))
-        self.control.load(os.path.join(parent_dir, "display.lp"))
-        if not setup.concretize_everything:
-            self.control.load(os.path.join(parent_dir, "when_possible.lp"))
+        full_path = lambda x: os.path.join(parent_dir, x)
+        abs_control_files = [full_path(x) for x in control_files]
+        for ctrl_file in abs_control_files:
+            with open(ctrl_file, "r+") as f:
+                problem_repr += "\n" + f.read()
 
-        # Binary compatibility is based on libc on Linux, and on the os tag elsewhere
-        if using_libc_compatibility():
-            self.control.load(os.path.join(parent_dir, "libc_compatibility.lp"))
+        result, cache_statistics = spack.caches.CONC_CACHE.fetch(problem_repr)
+        timer.stop("cache-check")
+
+        if not result:
+            timer.start("load")
+            # Add the problem instance
+            self.control.add("base", [], asp_problem)
+            # Load the files
+            [self.control.load(lp) for lp in abs_control_files]
+            timer.stop("load")
+
+            # Grounding is the first step in the solve -- it turns our facts
+            # and first-order logic rules into propositional logic.
+            timer.start("ground")
+            self.control.ground([("base", [])])
+            timer.stop("ground")
+
+            # With a grounded program, we can run the solve.
+            models = []  # stable models if things go well
+            cores = []  # unsatisfiable cores if they do not
+
+            def on_model(model):
+                models.append((model.cost, model.symbols(shown=True, terms=True)))
+
+            solve_kwargs = {
+                "assumptions": setup.assumptions,
+                "on_model": on_model,
+                "on_core": cores.append,
+            }
+
+            if clingo_cffi():
+                solve_kwargs["on_unsat"] = cores.append
+
+            timer.start("solve")
+            time_limit = spack.config.CONFIG.get("concretizer:timeout", -1)
+            error_on_timeout = spack.config.CONFIG.get("concretizer:error_on_timeout", True)
+            # Spack uses 0 to set no time limit, clingo API uses -1
+            if time_limit == 0:
+                time_limit = -1
+            with self.control.solve(**solve_kwargs, async_=True) as handle:
+                finished = handle.wait(time_limit)
+                if not finished:
+                    specs_str = ", ".join(llnl.util.lang.elide_list([str(s) for s in specs], 4))
+                    header = f"Spack is taking more than {time_limit} seconds to solve for {specs_str}"
+                    if error_on_timeout:
+                        raise UnsatisfiableSpecError(f"{header}, stopping concretization")
+                    warnings.warn(f"{header}, using the best configuration found so far")
+                    handle.cancel()
+
+                solve_result = handle.get()
+            timer.stop("solve")
+            # once done, construct the solve result
+            result = Result(specs)
+            result.satisfiable = solve_result.satisfiable
+
+            if result.satisfiable:
+                timer.start("construct_specs")
+                # get the best model
+                builder = SpecBuilder(specs, hash_lookup=setup.reusable_and_possible)
+                min_cost, best_model = min(models)
+
+                # first check for errors
+                error_handler = ErrorHandler(best_model, specs)
+                error_handler.raise_if_errors()
+
+                # build specs from spec attributes in the model
+                spec_attrs = [
+                    (name, tuple(rest)) for name, *rest in extract_args(best_model, "attr")
+                ]
+                answers = builder.build_specs(spec_attrs)
+
+                # add best spec to the results
+                result.answers.append((list(min_cost), 0, answers))
+
+                # get optimization criteria
+                criteria_args = extract_args(best_model, "opt_criterion")
+                result.criteria = build_criteria_names(min_cost, criteria_args)
+
+                # record the number of models the solver considered
+                result.nmodels = len(models)
+
+                # record the possible dependencies in the solve
+                result.possible_dependencies = setup.pkgs
+                timer.stop("construct_specs")
+                timer.stop()
+            elif cores:
+                result.control = self.control
+                result.cores.extend(cores)
+
+            result.raise_if_unsat()
+
+            if result.satisfiable and result.unsolved_specs and setup.concretize_everything:
+                unsolved_str = Result.format_unsolved(result.unsolved_specs)
+                raise InternalConcretizerError(
+                    "Internal Spack error: the solver completed but produced specs"
+                    " that do not satisfy the request. Please report a bug at "
+                    f"https://github.com/spack/spack/issues\n\t{unsolved_str}"
+                )
+
+            spack.caches.CONC_CACHE.store(problem_repr, result, self.control.statistics)
         else:
-            self.control.load(os.path.join(parent_dir, "os_compatibility.lp"))
-        if setup.enable_splicing:
-            self.control.load(os.path.join(parent_dir, "splices.lp"))
-
-        timer.stop("load")
-
-        # Grounding is the first step in the solve -- it turns our facts
-        # and first-order logic rules into propositional logic.
-        timer.start("ground")
-        self.control.ground([("base", [])])
-        timer.stop("ground")
-
-        # With a grounded program, we can run the solve.
-        models = []  # stable models if things go well
-        cores = []  # unsatisfiable cores if they do not
-
-        def on_model(model):
-            models.append((model.cost, model.symbols(shown=True, terms=True)))
-
-        solve_kwargs = {
-            "assumptions": setup.assumptions,
-            "on_model": on_model,
-            "on_core": cores.append,
-        }
-
-        if clingo_cffi():
-            solve_kwargs["on_unsat"] = cores.append
-
-        timer.start("solve")
-        time_limit = spack.config.CONFIG.get("concretizer:timeout", -1)
-        error_on_timeout = spack.config.CONFIG.get("concretizer:error_on_timeout", True)
-        # Spack uses 0 to set no time limit, clingo API uses -1
-        if time_limit == 0:
-            time_limit = -1
-        with self.control.solve(**solve_kwargs, async_=True) as handle:
-            finished = handle.wait(time_limit)
-            if not finished:
-                specs_str = ", ".join(llnl.util.lang.elide_list([str(s) for s in specs], 4))
-                header = f"Spack is taking more than {time_limit} seconds to solve for {specs_str}"
-                if error_on_timeout:
-                    raise UnsatisfiableSpecError(f"{header}, stopping concretization")
-                warnings.warn(f"{header}, using the best configuration found so far")
-                handle.cancel()
-
-            solve_result = handle.get()
-        timer.stop("solve")
-
-        # once done, construct the solve result
-        result = Result(specs)
-        result.satisfiable = solve_result.satisfiable
-
-        if result.satisfiable:
-            timer.start("construct_specs")
-            # get the best model
-            builder = SpecBuilder(specs, hash_lookup=setup.reusable_and_possible)
-            min_cost, best_model = min(models)
-
-            # first check for errors
-            error_handler = ErrorHandler(best_model, specs)
-            error_handler.raise_if_errors()
-
-            # build specs from spec attributes in the model
-            spec_attrs = [(name, tuple(rest)) for name, *rest in extract_args(best_model, "attr")]
-            answers = builder.build_specs(spec_attrs)
-
-            # add best spec to the results
-            result.answers.append((list(min_cost), 0, answers))
-
-            # get optimization criteria
-            criteria_args = extract_args(best_model, "opt_criterion")
-            result.criteria = build_criteria_names(min_cost, criteria_args)
-
-            # record the number of models the solver considered
-            result.nmodels = len(models)
-
-            # record the possible dependencies in the solve
-            result.possible_dependencies = setup.pkgs
-            timer.stop("construct_specs")
-            timer.stop()
-        elif cores:
-            result.control = self.control
-            result.cores.extend(cores)
-
+            self.control.statistics = cache_statistics
         if output.timers:
             timer.write_tty()
             print()
@@ -923,17 +1141,6 @@ class PyclingoDriver:
         if output.stats:
             print("Statistics:")
             pprint.pprint(self.control.statistics)
-
-        result.raise_if_unsat()
-
-        if result.satisfiable and result.unsolved_specs and setup.concretize_everything:
-            unsolved_str = Result.format_unsolved(result.unsolved_specs)
-            raise InternalConcretizerError(
-                "Internal Spack error: the solver completed but produced specs"
-                " that do not satisfy the request. Please report a bug at "
-                f"https://github.com/spack/spack/issues\n\t{unsolved_str}"
-            )
-
         return result, timer, self.control.statistics
 
 
@@ -4175,6 +4382,9 @@ class Solver:
         reusable_specs.extend(self.selector.reusable_specs(specs))
         setup = SpackSolverSetup(tests=tests)
         output = OutputConfiguration(timers=timers, stats=stats, out=out, setup_only=setup_only)
+        #####
+        #####
+        #####
         return self.driver.solve(
             setup, specs, reuse=reusable_specs, output=output, allow_deprecated=allow_deprecated
         )
@@ -4218,6 +4428,10 @@ class Solver:
         input_specs = specs
         output = OutputConfiguration(timers=timers, stats=stats, out=out, setup_only=False)
         while True:
+            ######
+            ######
+            ######
+            ######
             result, _, _ = self.driver.solve(
                 setup,
                 input_specs,
