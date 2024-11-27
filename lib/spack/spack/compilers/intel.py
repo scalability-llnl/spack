@@ -124,8 +124,8 @@ class Intel(Compiler):
         # Edge cases for Intel's oneAPI compilers when using the legacy classic compilers:
         # Always pass flags to disable deprecation warnings, since these warnings can
         # confuse tools that parse the output of compiler commands (e.g. version checks).
-        if self.real_version >= Version("2021") and self.real_version <= Version("2023"):
+        if self.real_version >= Version("2021") and self.real_version < Version("2024"):
             env.append_flags("SPACK_ALWAYS_CFLAGS", "-diag-disable=10441")
             env.append_flags("SPACK_ALWAYS_CXXFLAGS", "-diag-disable=10441")
-        if self.real_version >= Version("2021") and self.real_version <= Version("2024"):
+        if self.real_version >= Version("2021") and self.real_version < Version("2025"):
             env.append_flags("SPACK_ALWAYS_FFLAGS", "-diag-disable=10448")
