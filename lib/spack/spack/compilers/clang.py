@@ -8,8 +8,10 @@ import re
 import sys
 
 import llnl.util.lang
+from llnl.util import tty
 
 from spack.compiler import Compiler, UnsupportedCompilerFlag
+from spack.compilers import all_compilers
 from spack.version import Version
 
 #: compiler symlink mappings for mixed f77 compilers
@@ -196,8 +198,16 @@ class Clang(Compiler):
 
     def setup_custom_environment(self, pkg, env):
         # Overwrite the compiler environment variables on Windows so we use the
-        # direct executables rather than the spack compiler wrappers (shell scripts).
+        # direct executables rather than the spack compiler wrappers (shell scripts)
+        # and reuse the environment setup provided by MSVC which calls vcvars64.bat.
         if sys.platform == "win32":
+            for compiler in all_compilers():
+                if "msvc" == compiler.spec.name:
+                    tty.info(f"Configuring clang environment using {compiler.spec}")
+                    compiler.setup_custom_environment(pkg, env)
+                    break
+            else:
+                tty.warn("No MSVC compiler found, environment may be missing MSVC vars.")
             env.set("CC", self.cc)
             env.set("CXX", self.cxx)
             env.set("FC", self.fc)
