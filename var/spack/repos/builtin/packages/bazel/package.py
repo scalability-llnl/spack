@@ -88,8 +88,8 @@ class Bazel(Package):
         "required for most builds using bazel with spack",
     )
 
-    depends_on("java@21", when="@7.2:7.4", type=("build", "run"))
     # https://bazel.build/install/compile-source#bootstrap-unix-prereq
+    depends_on("java@21", when="@7.2:7.4", type=("build", "run"))
     depends_on("java@11", when="@5.3:7.1", type=("build", "run"))
     depends_on("java@8,11", when="@3.3:5.2", type=("build", "run"))
     depends_on("java@8", when="@0.6:3.2", type=("build", "run"))
@@ -104,7 +104,7 @@ class Bazel(Package):
     patch("unix_cc_configure-0.15.patch", when="@:2")
 
     # Set CC and CXX
-    patch("compile-0.29.patch")
+    patch("compile-0.29.patch", when="@:7.0")
 
     # Disable dependency search
     patch("cppcompileaction-7.0.0.patch", when="@7.0 +nodepfail")
