@@ -26,9 +26,17 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
 
     executables = [r"^xz$"]
 
-    license("GPL-2.0-or-later AND Public-Domain AND LGPL-2.1-or-later", checked_by="tgamblin")
+    license(
+        "0BSD AND GPL-2.0-or-later AND LGPL-2.1-or-later", when="@5.6:", checked_by="drkrynstrng"
+    )
+    license(
+        "Public-Domain AND GPL-2.0-or-later AND LGPL-2.1-or-later",
+        when="@:5.4",
+        checked_by="tgamblin",
+    )
 
-    # NOTE: don't add XZ 5.6 until this compromise is resolved:
+    version("5.6.3", sha256="a95a49147b2dbb5487517acc0adcd77f9c2032cf00664eeae352405357d14a6c")
+    # NOTE: don't add XZ 5.6.0 or 5.6.1 because of this compromise:
     # https://www.openwall.com/lists/oss-security/2024/03/29/4
     version("5.4.7", sha256="9976ed9cd0764e962d852d7d519ee1c3a7f87aca3b86e5d021a45650ba3ecb41")
     version("5.4.6", sha256="913851b274e8e1d31781ec949f1c23e8dbcf0ecf6e73a2436dc21769dd3e6f49")
