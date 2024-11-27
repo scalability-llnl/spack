@@ -12,33 +12,36 @@ class GdkPixbuf(MesonPackage):
     GTK+ 2 but it was split off into a separate package in preparation for the change to GTK+ 3."""
 
     homepage = "https://gitlab.gnome.org/GNOME/gdk-pixbuf"
-    url = "https://ftp.acc.umu.se/pub/gnome/sources/gdk-pixbuf/2.40/gdk-pixbuf-2.40.0.tar.xz"
     git = "https://gitlab.gnome.org/GNOME/gdk-pixbuf"
-    list_url = "https://ftp.acc.umu.se/pub/gnome/sources/gdk-pixbuf/"
+    url = "https://gitlab.gnome.org/GNOME/gdk-pixbuf/-/archive/2.40.0/gdk-pixbuf-2.40.0.tar.gz"
+
+    # Falling back to the gitlab source since the mirror here seems to be broken
+    # url = "https://ftp.acc.umu.se/pub/gnome/sources/gdk-pixbuf/2.40/gdk-pixbuf-2.40.0.tar.xz"
+    # list_url = "https://ftp.acc.umu.se/pub/gnome/sources/gdk-pixbuf/"
     list_depth = 1
 
     license("LGPL-2.1-or-later", checked_by="wdconinc")
 
-    version("2.42.12", sha256="b9505b3445b9a7e48ced34760c3bcb73e966df3ac94c95a148cb669ab748e3c7")
+    version("2.42.12", sha256="d41966831b3d291fcdfe31f683bea4b3f03241d591ddbe550b5db873af3da364")
     # https://nvd.nist.gov/vuln/detail/CVE-2022-48622
     version(
         "2.42.10",
-        sha256="ee9b6c75d13ba096907a2e3c6b27b61bcd17f5c7ebeab5a5b439d2f2e39fe44b",
+        sha256="87a086c51d9705698b22bd598a795efaccf61e4db3a96f439dcb3cd90506dab8",
         deprecated=True,
     )
     version(
         "2.42.9",
-        sha256="28f7958e7bf29a32d4e963556d241d0a41a6786582ff6a5ad11665e0347fc962",
+        sha256="226d950375907857b23c5946ae6d30128f08cd75f65f14b14334c7a9fb686e36",
         deprecated=True,
     )
     version(
         "2.42.6",
-        sha256="c4a6b75b7ed8f58ca48da830b9fa00ed96d668d3ab4b1f723dcf902f78bde77f",
+        sha256="c4f3a84a04bc7c5f4fbd97dce7976ab648c60628f72ad4c7b79edce2bbdb494d",
         deprecated=True,
     )
     version(
         "2.42.2",
-        sha256="83c66a1cfd591d7680c144d2922c5955d38b4db336d7cd3ee109f7bcf9afef15",
+        sha256="249b977279f761979104d7befbb5ee23f1661e29d19a36da5875f3a97952d13f",
         deprecated=True,
     )
 
