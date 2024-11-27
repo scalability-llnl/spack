@@ -27,6 +27,7 @@ class PyNetcdf4(PythonPackage):
     variant("mpi", default=True, description="Parallel IO support")
 
     depends_on("python", type=("build", "link", "run"))
+    depends_on("python@3.8:", when="@1.7.1:", type=("build", "link", "run"))
     depends_on("py-cython@0.29:", when="@1.6.5:", type="build")
     depends_on("py-cython@0.19:", type="build")
     depends_on("py-setuptools@61:", when="@1.6.5:", type="build")
@@ -35,15 +36,15 @@ class PyNetcdf4(PythonPackage):
     depends_on("py-setuptools-scm@3.4:+toml", when="@1.7:", type="build")
     depends_on("py-cftime", type=("build", "run"))
     depends_on("py-certifi", when="@1.6.5:", type=("build", "run"))
-    depends_on("py-numpy", when="@1.6.5:", type=("build", "link", "run"))
+    depends_on("py-numpy", type=("build", "link", "run"))
+    depends_on("py-numpy@2.0:", when="@1.7.1:", type=("build", "link", "run"))
     depends_on("py-numpy@1.9:", when="@1.5.4:1.6.2", type=("build", "link", "run"))
-    depends_on("py-numpy@1.7:", type=("build", "link", "run"))
     # https://github.com/Unidata/netcdf4-python/pull/1317
     depends_on("py-numpy@:1", when="@:1.6", type=("build", "link", "run"))
     depends_on("py-mpi4py", when="+mpi", type=("build", "run"))
-    depends_on("netcdf-c", when="-mpi")
+    depends_on("netcdf-c~mpi", when="-mpi") #netcdf-c has +mpi by default
     depends_on("netcdf-c+mpi", when="+mpi")
-    depends_on("hdf5@1.8.0:+hl", when="-mpi")
+    depends_on("hdf5@1.8.0:+hl~mpi", when="-mpi") #hdf5 defaults to +mpi by default
     depends_on("hdf5@1.8.0:+hl+mpi", when="+mpi")
 
     # The installation script tries to find hdf5 using pkg-config. However, the
@@ -51,13 +52,14 @@ class PyNetcdf4(PythonPackage):
     # Therefore, if pkg-config finds hdf5.pc at all (e.g. provided by
     # Ubuntu/Debian package manager), it is definitely not what we need. The
     # following patch disables the usage of pkg-config at all.
-    patch("disable_pkgconf.patch")
+    patch("disable_pkgconf.patch", when="@:1.6.5")
+    patch("disable_pkgconf-1.7.patch", when="@1.7.1.post2:")
 
     # https://github.com/Unidata/netcdf4-python/pull/1322
     patch(
         "https://github.com/Unidata/netcdf4-python/commit/49dcd0b5bd25824c254770c0d41445133fc13a46.patch?full_index=1",
         sha256="71eefe1d3065ad050fb72eb61d916ae1374a3fafd96ddaee6499cda952d992c4",
-        when="@1.6: %gcc@14:",
+        when="@1.6:1.6.5 %gcc@14:",
     )
 
     def url_for_version(self, version):
