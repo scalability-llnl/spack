@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -82,6 +82,8 @@ class VotcaCsg(CMakePackage):
         sha256="c13e7febd792de8c3d426203f089bd4d33b8067f9db5e8840e4579c88b61146e",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@2.8:", type="build")
     for v in [

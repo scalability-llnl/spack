@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,9 +15,15 @@ class TrilinosCatalystIossAdapter(CMakePackage):
     version("develop", branch="develop")
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("bison", type="build")
     depends_on("flex", type="build")
-    depends_on("paraview+mpi+python+osmesa")
+    depends_on("paraview+mpi+python")
+    depends_on("gl", type="run")
+    requires("^[virtuals=gl] osmesa", msg="OSMesa is required for paraview")
     depends_on("py-numpy", type=("build", "run"))
     # Here we avoid paraview trying to use netcdf-c~parallel-netcdf
     # which is netcdf-c's default, even though paraview depends on 'netcdf-c'

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyKerasPreprocessing(PythonPackage):
 
     homepage = "https://github.com/keras-team/keras-preprocessing"
     pypi = "Keras-Preprocessing/Keras_Preprocessing-1.1.2.tar.gz"
+
+    license("MIT")
 
     version("1.1.2", sha256="add82567c50c8bc648c14195bf544a5ce7c1f76761536956c3d2978970179ef3")
     version("1.1.0", sha256="5a8debe01d840de93d49e05ccf1c9b81ae30e210d34dacbcc47aeb3049b528e5")

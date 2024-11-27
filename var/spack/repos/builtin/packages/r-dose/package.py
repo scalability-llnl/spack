@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,7 @@ class RDose(RPackage):
 
     bioc = "DOSE"
 
+    version("3.26.0", commit="9c91fb45a2ab9a875a6a7259610b7d5bc86933f6")
     version("3.24.1", commit="a78995d3b12bd4baabb69c497102687814cd4c68")
     version("3.22.1", commit="6b711a0f076a9fefcb00ddef66e8f198039e6dfa")
     version("3.22.0", commit="242ac1b746c44fbbf281fbe6e5e4424a8dc74375")
@@ -46,5 +47,4 @@ class RDose(RPackage):
     depends_on("r-scales", type=("build", "run"), when="@3.2.0:3.4.0")
     depends_on("r-rvcheck", type=("build", "run"), when="@3.4.0")
     depends_on("r-igraph", type=("build", "run"), when="@3.2.0:3.4.0")
-    depends_on("r-do-db", type=("build", "run"))
-    depends_on("r-do-db", when="@:3.22.1")
+    depends_on("r-do-db", type=("build", "run"), when="@:3.22.1")

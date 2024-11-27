@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,10 +24,16 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
 
     homepage = "https://www.gnu.org/software/octave/"
     gnu_mirror_path = "octave/octave-4.0.0.tar.gz"
-    maintainers("mtmiller", "siko1056")
+    maintainers("mtmiller")
 
     extendable = True
 
+    license("GPL-3.0-or-later")
+
+    version("9.1.0", sha256="3f8c6c6ecfa249a47c97e18e651be4db8499be2f5de1a095a3eea53efc01d6a1")
+    version("8.4.0", sha256="6b38dd9751678424aeb3a9d666432b1f378eb3971a21290a90cd3d35119d56ad")
+    version("8.2.0", sha256="57d17f918a940d38ca3348211e110b34d735a322a87db71c177c4692a49a9c84")
+    version("8.1.0", sha256="8052074d17b0ef643d037de8ab389672c752bb201ee9cea4dfa69858fb6a213f")
     version("7.3.0", sha256="6e14a4649d70af45ab660f8cbbf645aaf1ec33f25f88bfda4697cb17e440c4f5")
     version("7.2.0", sha256="b12cb652587d31c5c382b39ed73463c22a5259ecb2fa6b323a27da409222dacc")
     version("7.1.0", sha256="d4a9d81f3f67b4a6e07cb7a80dcb10ad5e9176fcc30762c70a81580a64b8b0b6")
@@ -45,40 +51,47 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
     version("4.0.2", sha256="39cd8fd36c218fc00adace28d74a6c7c9c6faab7113a5ba3c4372324c755bdc1")
     version("4.0.0", sha256="4c7ee0957f5dd877e3feb9dfe07ad5f39b311f9373932f0d2a289dc97cca3280")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # patches
     # see https://savannah.gnu.org/bugs/?50234
     patch("patch_4.2.1_inline.diff", when="@4.2.1")
 
     # Variants
-    variant("readline", default=True)
-    variant("bz2", default=True)
-    variant("arpack", default=False)
-    variant("curl", default=False)
-    variant("fftw", default=False)
-    variant("fltk", default=False)
-    variant("fontconfig", default=False)
-    variant("freetype", default=False)
-    variant("glpk", default=False)
-    variant("gl2ps", default=False)
-    variant("gnuplot", default=False)
-    variant("magick", default=False)
-    variant("hdf5", default=False)
-    variant("jdk", default=False)
-    variant("llvm", default=False)
-    variant("opengl", default=False)
-    variant("qhull", default=False)
-    variant("qrupdate", default=False)
-    variant("qscintilla", default=False)
-    variant("qt", default=False)
-    variant("suitesparse", default=False)
-    variant("zlib", default=False)
+    variant("readline", default=True, description="Use readline")
+    variant("bz2", default=True, description="Use bzip2")
+    variant("arpack", default=False, description="Use arpack")
+    variant("curl", default=False, description="Use curl")
+    variant("fftw", default=False, description="Use FFTW3")
+    variant("fltk", default=False, description="Use FLTK")
+    variant("fontconfig", default=False, description="Use fontconfig")
+    variant("freetype", default=False, description="Use freetype")
+    variant("glpk", default=False, description="Use GLPK")
+    variant("gl2ps", default=False, description="Use GL2PS")
+    variant("gnuplot", default=False, description="Use gnuplot")
+    variant("magick", default=False, description="Use magick")
+    variant("hdf5", default=False, description="Use HDF5")
+    variant("jdk", default=False, description="Use Java")
+    variant("llvm", default=False, description="Use LLVM")
+    variant("opengl", default=False, description="Use OpenGL")
+    variant("pcre2", default=True, when="@8:", description="Use PCRE2 instead of PCRE")
+    variant("qhull", default=False, description="Use qhull")
+    variant("qrupdate", default=False, description="Use qrupdate")
+    variant("qscintilla", default=False, description="Use QScintill")
+    variant("qt", default=False, description="Use Qt")
+    variant("suitesparse", default=False, description="Use SuiteSparse")
+    variant("zlib", default=False, description="Use zlib")
 
     # Required dependencies
     depends_on("blas")
     depends_on("lapack")
     # Octave does not configure with sed from darwin:
     depends_on("sed", when=sys.platform == "darwin", type="build")
-    depends_on("pcre")
+    depends_on("pcre", when="@:7")
+    depends_on("pcre", when="~pcre2")
+    depends_on("pcre2", when="+pcre2")
     depends_on("pkgconfig", type="build")
     depends_on("texinfo", type="build")
 
@@ -107,7 +120,7 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
     depends_on("qscintilla", when="+qscintilla")
     depends_on("qt+opengl", when="+qt")
     depends_on("suite-sparse", when="+suitesparse")
-    depends_on("zlib", when="+zlib")
+    depends_on("zlib-api", when="+zlib")
 
     def patch(self):
         # Filter mkoctfile.in.cc to use underlying compilers and not
@@ -165,7 +178,7 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
         config_args = []
 
         # Required dependencies
-        if "^mkl" in spec and "gfortran" in self.compiler.fc:
+        if spec["lapack"].name in INTEL_MATH_LIBRARIES and "gfortran" in self.compiler.fc:
             mkl_re = re.compile(r"(mkl_)intel(_i?lp64\b)")
             config_args.extend(
                 [
@@ -223,14 +236,42 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
 
         if "+fftw" in spec:
             fftw_string = "fftw-api"
-            config_args.extend(
-                [
-                    "--with-fftw3-includedir=%s" % spec[fftw_string].prefix.include,
-                    "--with-fftw3-libdir=%s" % spec[fftw_string].prefix.lib,
-                    "--with-fftw3f-includedir=%s" % spec[fftw_string].prefix.include,
-                    "--with-fftw3f-libdir=%s" % spec[fftw_string].prefix.lib,
-                ]
-            )
+            if ("^intel-mkl" in spec) or ("^intel-oneapi-mkl" in spec):
+                config_args.extend(
+                    [
+                        "--with-fftw3={0}".format(spec[fftw_string].libs.ld_flags),
+                        "--with-fftw3f={0}".format(spec[fftw_string].libs.ld_flags),
+                    ]
+                )
+            elif "^amdfftw" in spec:
+                specAmdfftw = spec[fftw_string].token[0]
+                AMD_FFTW3_LIBS = "-lfftw3"
+                AMD_FFTW3F_LIBS = "-lfftw3f"
+                if "+openmp" in specAmdfftw:
+                    AMD_FFTW3_LIBS += " -lfftw3_omp"
+                    AMD_FFTW3F_LIBS += " -lfftw3f_omp"
+                if "+threads" in specAmdfftw:
+                    AMD_FFTW3_LIBS += " -lfftw3_threads"
+                    AMD_FFTW3F_LIBS += " -lfftw3f_threads"
+                config_args.extend(
+                    [
+                        "--with-fftw3=-L{0} {1}".format(
+                            spec[fftw_string].libs.directories[0], AMD_FFTW3_LIBS
+                        ),
+                        "--with-fftw3f=-L{0} {1}".format(
+                            spec[fftw_string].libs.directories[0], AMD_FFTW3F_LIBS
+                        ),
+                    ]
+                )
+            else:
+                config_args.extend(
+                    [
+                        "--with-fftw3-includedir=%s" % spec[fftw_string].prefix.include,
+                        "--with-fftw3-libdir=%s" % spec[fftw_string].prefix.lib,
+                        "--with-fftw3f-includedir=%s" % spec[fftw_string].prefix.include,
+                        "--with-fftw3f-libdir=%s" % spec[fftw_string].prefix.lib,
+                    ]
+                )
         else:
             config_args.extend(["--without-fftw3", "--without-fftw3f"])
 
@@ -309,13 +350,15 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
         if "+zlib" in spec:
             config_args.extend(
                 [
-                    "--with-z-includedir=%s" % spec["zlib"].prefix.include,
-                    "--with-z-libdir=%s" % spec["zlib"].prefix.lib,
+                    "--with-z-includedir=%s" % spec["zlib-api"].prefix.include,
+                    "--with-z-libdir=%s" % spec["zlib-api"].prefix.lib,
                 ]
             )
         else:
             config_args.append("--without-z")
 
+        if spec.satisfies("~pcre2"):
+            config_args.append("--without-pcre2")
         # If 64-bit BLAS is used:
         if (
             spec.satisfies("^openblas+ilp64")

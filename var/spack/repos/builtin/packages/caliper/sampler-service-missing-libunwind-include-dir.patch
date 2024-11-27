@@ -1,0 +1,14 @@
+diff -ruN spack-src/src/services/sampler/CMakeLists.txt spack-src-patched/src/services/sampler/CMakeLists.txt
+--- spack-src/src/services/sampler/CMakeLists.txt	2022-11-30 13:52:42.000000000 -0500
++++ spack-src-patched/src/services/sampler/CMakeLists.txt	2023-05-04 20:43:47.240310306 -0400
+@@ -17,6 +17,10 @@
+ 
+ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+ 
++if (CALIPER_HAVE_LIBUNWIND)
++	  include_directories(${LIBUNWIND_INCLUDE_DIRS})
++endif()
++
+ add_library(caliper-sampler OBJECT ${CALIPER_SAMPLER_SOURCES})
+ 
+ add_service_objlib("caliper-sampler")

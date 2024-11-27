@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,11 @@ class Simplemoc(MakefilePackage):
     homepage = "https://github.com/ANL-CESAR/SimpleMOC/"
     url = "https://github.com/ANL-CESAR/SimpleMOC/archive/v4.tar.gz"
 
+    license("MIT")
+
     version("4", sha256="a39906014fdb234c43bf26e1919bdc8a13097788812e0b353a492b8e568816a6")
+
+    depends_on("c", type="build")  # generated
 
     tags = ["proxy-app"]
 

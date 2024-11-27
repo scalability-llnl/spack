@@ -1,0 +1,34 @@
+diff --git a/random/rndgetentropy.c b/random/rndgetentropy.c
+index 513da0b..d8eedce 100644
+--- a/random/rndgetentropy.c
++++ b/random/rndgetentropy.c
+@@ -81,27 +81,8 @@ _gcry_rndgetentropy_gather_random (void (*add)(const void*, size_t,
+       do
+         {
+           _gcry_pre_syscall ();
+-          if (fips_mode ())
+-            {
+-              /* DRBG chaining defined in SP 800-90A (rev 1) specify
+-               * the upstream (kernel) DRBG needs to be reseeded for
+-               * initialization of downstream (libgcrypt) DRBG. For this
+-               * in RHEL, we repurposed the GRND_RANDOM flag of getrandom API.
+-               * The libgcrypt DRBG is initialized with 48B of entropy, but
+-               * the kernel can provide only 32B at a time after reseeding
+-               * so we need to limit our requests to 32B here.
+-               * This is clarified in IG 7.19 / IG D.K. for FIPS 140-2 / 3
+-               * and might not be applicable on other FIPS modules not running
+-               * RHEL kernel.
+-               */
+-              nbytes = length < 32 ? length : 32;
+-              ret = getrandom (buffer, nbytes, GRND_RANDOM);
+-            }
+-          else
+-            {
+-              nbytes = length < sizeof (buffer) ? length : sizeof (buffer);
+-              ret = getentropy (buffer, nbytes);
+-            }
++          nbytes = length < sizeof (buffer) ? length : sizeof (buffer);
++          ret = getentropy (buffer, nbytes);
+           _gcry_post_syscall ();
+         }
+       while (ret == -1 && errno == EINTR);

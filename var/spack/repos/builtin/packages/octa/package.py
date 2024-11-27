@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,7 @@ class Octa(AutotoolsPackage):
 
     version(
         "8.4",
-        "b76d25f333fef76601bfe8262e9a748154280d5408ea823fa6530a6f3f86b51b",
+        sha256="b76d25f333fef76601bfe8262e9a748154280d5408ea823fa6530a6f3f86b51b",
         extension="tar.gz",
     )
 
@@ -25,7 +25,7 @@ class Octa(AutotoolsPackage):
     depends_on("libtool", type="build")
     depends_on("libjpeg", type="link")
     depends_on("libpng", type="link")
-    depends_on("zlib", type="link")
+    depends_on("zlib-api", type="link")
     depends_on("jogl")
     depends_on("python")
     depends_on("gnuplot", type="run")

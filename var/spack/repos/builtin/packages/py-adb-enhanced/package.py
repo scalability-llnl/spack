@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyAdbEnhanced(PythonPackage):
 
     homepage = "https://opencollective.com/ashishb"
     url = "https://github.com/ashishb/adb-enhanced/archive/2.5.4.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.5.10", sha256="9e913d09814ce99974c455a766c5b616a92bca551e657517d6e079882eb19bdb")
     version("2.5.4", sha256="329ee2e0cfceaa41c591398b365d9acdfd45ffe913c64ac06e1538041986fffb")

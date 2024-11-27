@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyStui(PythonPackage):
     pypi = "stui/stui-0.3.6.tar.gz"
 
     maintainers("meyersbs")
+
+    license("MIT")
 
     version("0.3.6", sha256="b7f4f9ff537977af0d37a3218217f2b882a30709fcd2773a07df09050c700102")
 

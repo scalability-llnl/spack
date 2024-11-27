@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class Luit(AutotoolsPackage, XorgPackage):
     homepage = "https://cgit.freedesktop.org/xorg/app/luit"
     xorg_mirror_path = "app/luit-1.1.1.tar.gz"
 
+    license("MIT")
+
     version("1.1.1", sha256="87b0be0bd01f3b857a53e6625bdd31cef18418c95394b7f4387f8ecef78e45da")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libfontenc")
     depends_on("libx11")

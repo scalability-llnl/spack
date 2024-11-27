@@ -1,0 +1,18 @@
+diff --git a/clients/CMakeLists.txt b/clients/CMakeLists.txt
+index 2ae1535..c956e00 100644
+--- a/clients/CMakeLists.txt
++++ b/clients/CMakeLists.txt
+@@ -134,13 +134,3 @@ add_custom_command( OUTPUT "${HIPBLAS_GENTEST}"
+
+ add_custom_target( hipblas-common DEPENDS "${HIPBLAS_COMMON}" "${HIPBLAS_TEMPLATE}" "${HIPBLAS_SMOKE}" "${HIPBLAS_GENTEST}" )
+
+-rocm_install(
+-  FILES ${HIPBLAS_COMMON} ${HIPBLAS_TEMPLATE} ${HIPBLAS_SMOKE}
+-  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-  COMPONENT clients-common
+-)
+-rocm_install(
+-  PROGRAMS ${HIPBLAS_GENTEST}
+-  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-  COMPONENT clients-common
+-)

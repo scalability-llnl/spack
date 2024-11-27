@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,9 @@ class PyGast(PythonPackage):
     homepage = "https://github.com/serge-sans-paille/gast"
     pypi = "gast/gast-0.3.2.tar.gz"
 
+    license("BSD-3-Clause")
+
+    version("0.5.4", sha256="9c270fe5f4b130969b54174de7db4e764b09b4f7f67ccfc32480e29f78348d97")
     version("0.5.3", sha256="cfbea25820e653af9c7d1807f659ce0a0a9c64f2439421a7bba4f0983f532dea")
     version("0.5.2", sha256="f81fcefa8b982624a31c9e4ec7761325a88a0eba60d36d1da90e47f8fe3c67f7")
     version("0.5.1", sha256="b00e63584db482ffe6107b5832042bbe5c5bf856e3c7279b6e93201b3dcfcb46")
@@ -23,4 +26,3 @@ class PyGast(PythonPackage):
     version("0.2.0", sha256="7068908321ecd2774f145193c4b34a11305bd104b4551b09273dfd1d6a374930")
 
     depends_on("py-setuptools", type="build")
-    depends_on("python@2.7:2.8,3.4:", type=("build", "run"))

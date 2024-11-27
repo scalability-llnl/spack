@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyAiodns(PythonPackage):
 
     homepage = "https://pypi.org/project/aiodns/"
     pypi = "aiodns/aiodns-2.0.0.tar.gz"
+
+    license("MIT")
 
     version("2.0.0", sha256="815fdef4607474295d68da46978a54481dd1e7be153c7d60f9e72773cd38d77d")
     version("1.2.0", sha256="d67e14b32176bcf3ff79b5d47c466011ce4adeadfa264f7949da1377332a0449")

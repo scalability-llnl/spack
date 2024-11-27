@@ -1,24 +1,24 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from __future__ import print_function
-
 import sys
+from typing import Dict, List, Optional
 
 from llnl.util import tty
 from llnl.util.tty.colify import colify
 
 import spack.cmd
-import spack.cmd.common.arguments as arguments
+import spack.cmd.common.confirmation as confirmation
 import spack.environment as ev
-import spack.error
 import spack.package_base
-import spack.repo
+import spack.spec
 import spack.store
 import spack.traverse as traverse
-from spack.database import InstallStatuses
+from spack.cmd.common import arguments
+
+from ..enums import InstallRecordStatus
 
 description = "remove installed packages"
 section = "build"
@@ -54,7 +54,7 @@ def setup_parser(subparser):
         "--force",
         action="store_true",
         dest="force",
-        help="remove regardless of whether other packages or environments " "depend on this one",
+        help="remove regardless of whether other packages or environments depend on this one",
     )
     subparser.add_argument(
         "--remove",
@@ -78,15 +78,20 @@ def setup_parser(subparser):
     )
 
 
-def find_matching_specs(env, specs, allow_multiple_matches=False, force=False, origin=None):
+def find_matching_specs(
+    env: Optional[ev.Environment],
+    specs: List[spack.spec.Spec],
+    allow_multiple_matches: bool = False,
+    origin=None,
+) -> List[spack.spec.Spec]:
     """Returns a list of specs matching the not necessarily
        concretized specs given from cli
 
     Args:
-        env (spack.environment.Environment): active environment, or ``None``
-            if there is not one
-        specs (list): list of specs to be matched against installed packages
-        allow_multiple_matches (bool): if True multiple matches are admitted
+        env: optional active environment
+        specs: list of specs to be matched against installed packages
+        allow_multiple_matches: if True multiple matches are admitted
+        origin: origin of the spec
 
     Return:
         list: list of specs
@@ -95,12 +100,14 @@ def find_matching_specs(env, specs, allow_multiple_matches=False, force=False, o
     hashes = env.all_hashes() if env else None
 
     # List of specs that match expressions given via command line
-    specs_from_cli = []
+    specs_from_cli: List[spack.spec.Spec] = []
     has_errors = False
     for spec in specs:
-        install_query = [InstallStatuses.INSTALLED, InstallStatuses.DEPRECATED]
-        matching = spack.store.db.query_local(
-            spec, hashes=hashes, installed=install_query, origin=origin
+        matching = spack.store.STORE.db.query_local(
+            spec,
+            hashes=hashes,
+            installed=(InstallRecordStatus.INSTALLED | InstallRecordStatus.DEPRECATED),
+            origin=origin,
         )
         # For each spec provided, make sure it refers to only one package.
         # Fail and ask user to be unambiguous if it doesn't
@@ -113,7 +120,7 @@ def find_matching_specs(env, specs, allow_multiple_matches=False, force=False, o
             has_errors = True
 
         # No installed package matches the query
-        if len(matching) == 0 and spec is not any:
+        if len(matching) == 0 and spec is not None:
             if env:
                 pkg_type = "packages in environment '%s'" % env.name
             else:
@@ -128,91 +135,53 @@ def find_matching_specs(env, specs, allow_multiple_matches=False, force=False, o
     return specs_from_cli
 
 
-def installed_runtime_dependents(specs, env):
-    """Map each spec to a list of its installed dependents.
+def installed_dependents(specs: List[spack.spec.Spec]) -> List[spack.spec.Spec]:
+    # Note: the combination of arguments (in particular order=breadth
+    # and root=False) ensures dependents and matching_specs are non-overlapping;
+    # In the extreme case of "spack uninstall --all" we get the entire database as
+    # input; in that case we return an empty list.
 
-    Args:
-        specs (list): list of Specs
-        env (spack.environment.Environment or None): the active environment, or None
+    def is_installed(spec):
+        record = spack.store.STORE.db.query_local_by_spec_hash(spec.dag_hash())
+        return record and record.installed
 
-    Returns:
-        tuple: two mappings: one from specs to their dependent installs in the
-        active environment, and one from specs to dependent installs outside of
-        the active environment.
+    specs = traverse.traverse_nodes(
+        specs,
+        root=False,
+        order="breadth",
+        cover="nodes",
+        deptype=("link", "run"),
+        direction="parents",
+        key=lambda s: s.dag_hash(),
+    )
 
-        Every installed dependent spec is listed once.
-
-        If there is not current active environment, the first mapping will be
-        empty.
-    """
-    active_dpts = {}
-    outside_dpts = {}
-
-    env_hashes = set(env.all_hashes()) if env else set()
-
-    # Ensure we stop traversal at input specs.
-    visited = set(s.dag_hash() for s in specs)
-
-    for spec in specs:
-        for dpt in traverse.traverse_nodes(
-            spec.dependents(deptype=("link", "run")),
-            direction="parents",
-            visited=visited,
-            deptype=("link", "run"),
-            root=True,
-            key=lambda s: s.dag_hash(),
-        ):
-            hash = dpt.dag_hash()
-            # Ensure that all the specs we get are installed
-            record = spack.store.db.query_local_by_spec_hash(hash)
-            if record is None or not record.installed:
-                continue
-            if hash in env_hashes:
-                active_dpts.setdefault(spec, set()).add(dpt)
-            else:
-                outside_dpts.setdefault(spec, set()).add(dpt)
-
-    return active_dpts, outside_dpts
+    with spack.store.STORE.db.read_transaction():
+        return [spec for spec in specs if is_installed(spec)]
 
 
-def dependent_environments(specs):
-    """Map each spec to environments that depend on it.
+def dependent_environments(
+    specs: List[spack.spec.Spec], current_env: Optional[ev.Environment] = None
+) -> Dict[ev.Environment, List[spack.spec.Spec]]:
+    # For each tracked environment, get the specs we would uninstall from it.
+    # Don't instantiate current environment twice.
+    env_names = ev.all_environment_names()
+    if current_env:
+        env_names = (name for name in env_names if name != current_env.name)
 
-    Args:
-        specs (list): list of Specs
+    # Mapping from Environment -> non-zero list of specs contained in it.
+    other_envs_to_specs: Dict[ev.Environment, List[spack.spec.Spec]] = {}
+    for other_env in (ev.Environment(ev.root(name)) for name in env_names):
+        specs_in_other_env = all_specs_in_env(other_env, specs)
+        if specs_in_other_env:
+            other_envs_to_specs[other_env] = specs_in_other_env
 
-    Returns:
-        dict: mapping from spec to lists of dependent Environments
-    """
-    dependents = {}
-    for env in ev.all_environments():
-        hashes = set(env.all_hashes())
-        for spec in specs:
-            if spec.dag_hash() in hashes:
-                dependents.setdefault(spec, []).append(env)
-    return dependents
+    return other_envs_to_specs
 
 
-def inactive_dependent_environments(spec_envs):
-    """Strip the active environment from a dependent map.
-
-    Take the output of ``dependent_environment()`` and remove the active
-    environment from all mappings.  Remove any specs in the map that now
-    have no dependent environments.  Return the result.
-
-    Args:
-        spec_envs (dict): mapping from spec to lists of dependent Environments
-
-    Returns:
-        dict: mapping from spec to lists of *inactive* dependent Environments
-    """
-    spec_inactive_envs = {}
-    for spec, de_list in spec_envs.items():
-        inactive = [de for de in de_list if not de.active]
-        if inactive:
-            spec_inactive_envs[spec] = inactive
-
-    return spec_inactive_envs
+def all_specs_in_env(env: ev.Environment, specs: List[spack.spec.Spec]) -> List[spack.spec.Spec]:
+    """Given a list of specs, return those that are in the env"""
+    hashes = set(env.all_hashes())
+    return [s for s in specs if s.dag_hash() in hashes]
 
 
 def _remove_from_env(spec, env):
@@ -225,7 +194,7 @@ def _remove_from_env(spec, env):
         pass  # ignore non-root specs
 
 
-def do_uninstall(specs, force=False):
+def do_uninstall(specs: List[spack.spec.Spec], force: bool = False):
     # TODO: get rid of the call-sites that use this function,
     # so that we don't have to do a dance of list -> set -> list -> set
     hashes_to_remove = set(s.dag_hash() for s in specs)
@@ -237,102 +206,58 @@ def do_uninstall(specs, force=False):
             spack.package_base.PackageBase.uninstall_by_spec(s, force=force)
 
 
-def get_uninstall_list(args, specs, env):
-    """Returns uninstall_list and remove_list: these may overlap (some things
+def get_uninstall_list(args, specs: List[spack.spec.Spec], env: Optional[ev.Environment]):
+    """Returns unordered uninstall_list and remove_list: these may overlap (some things
     may be both uninstalled and removed from the current environment).
 
     It is assumed we are in an environment if --remove is specified (this
-    method raises an exception otherwise).
-
-    uninstall_list is topologically sorted: dependents come before
-    dependencies (so if a user uninstalls specs in the order provided,
-    the dependents will always be uninstalled first).
-    """
+    method raises an exception otherwise)."""
     if args.remove and not env:
         raise ValueError("Can only use --remove when in an environment")
 
     # Gets the list of installed specs that match the ones given via cli
     # args.all takes care of the case where '-a' is given in the cli
-    base_uninstall_specs = set(find_matching_specs(env, specs, args.all, args.force))
+    matching_specs = find_matching_specs(env, specs, args.all, origin=args.origin)
+    dependent_specs = installed_dependents(matching_specs)
+    all_uninstall_specs = matching_specs + dependent_specs if args.dependents else matching_specs
+    other_dependent_envs = dependent_environments(all_uninstall_specs, current_env=env)
 
-    active_dpts, outside_dpts = installed_runtime_dependents(base_uninstall_specs, env)
-    # It will be useful to track the unified set of specs with dependents, as
-    # well as to separately track specs in the current env with dependents
-    spec_to_dpts = {}
-    for spec, dpts in active_dpts.items():
-        spec_to_dpts[spec] = list(dpts)
-    for spec, dpts in outside_dpts.items():
-        if spec in spec_to_dpts:
-            spec_to_dpts[spec].extend(dpts)
-        else:
-            spec_to_dpts[spec] = list(dpts)
+    # There are dependents and we didn't ask to remove dependents
+    dangling_dependents = dependent_specs and not args.dependents
 
-    all_uninstall_specs = set(base_uninstall_specs)
-    if args.dependents:
-        for spec, lst in active_dpts.items():
-            all_uninstall_specs.update(lst)
-        for spec, lst in outside_dpts.items():
-            all_uninstall_specs.update(lst)
+    # An environment different than the current env depends on
+    # one or more of the list of all specs to be uninstalled.
+    dangling_environments = not args.remove and other_dependent_envs
 
-    # For each spec that we intend to uninstall, this tracks the set of
-    # environments outside the current active environment which depend on the
-    # spec. There may be environments not managed directly with Spack: such
-    # environments would not be included here.
-    spec_to_other_envs = inactive_dependent_environments(
-        dependent_environments(all_uninstall_specs)
-    )
-
-    has_error = not args.force and (
-        # There are dependents in the current env and we didn't ask to remove
-        # dependents
-        (spec_to_dpts and not args.dependents)
-        # An environment different than the current env (if any) depends on
-        # one or more of the specs to be uninstalled. There may also be
-        # packages in those envs which depend on the base set of packages
-        # to uninstall, but this covers that scenario.
-        or (not args.remove and spec_to_other_envs)
-    )
+    has_error = not args.force and (dangling_dependents or dangling_environments)
 
     if has_error:
-        # say why each problem spec is needed
-        specs = set(spec_to_dpts)
-        specs.update(set(spec_to_other_envs))  # environments depend on this
-
-        for i, spec in enumerate(sorted(specs)):
-            # space out blocks of reasons
-            if i > 0:
-                print()
-
-            spec_format = "{name}{@version}{%compiler}{/hash:7}"
-            tty.info("Will not uninstall %s" % spec.cformat(spec_format), format="*r")
-
-            dependents = spec_to_dpts.get(spec)
-            if dependents and not args.dependents:
-                print("The following packages depend on it:")
-                spack.cmd.display_specs(dependents, **display_args)
-
-            envs = spec_to_other_envs.get(spec)
-            if envs:
-                if env:
-                    env_context_qualifier = " other"
-                else:
-                    env_context_qualifier = ""
-                print("It is used by the following{0} environments:".format(env_context_qualifier))
-                colify([e.name for e in envs], indent=4)
-
         msgs = []
-        if spec_to_dpts and not args.dependents:
+        tty.info("Refusing to uninstall the following specs")
+        spack.cmd.display_specs(matching_specs, **display_args)
+        if dangling_dependents:
+            print()
+            tty.info("The following dependents are still installed:")
+            spack.cmd.display_specs(dependent_specs, **display_args)
             msgs.append("use `spack uninstall --dependents` to remove dependents too")
-        if spec_to_other_envs:
-            msgs.append("use `spack env remove` to remove from environments")
+        if dangling_environments:
+            print()
+            tty.info("The following environments still reference these specs:")
+            colify([e.name for e in other_dependent_envs.keys()], indent=4)
+            if env:
+                msgs.append("use `spack remove` to remove the spec from the current environment")
+            msgs.append("use `spack env remove` to remove environments")
+        msgs.append("use `spack uninstall --force` to override")
         print()
         tty.die("There are still dependents.", *msgs)
 
     # If we are in an environment, this will track specs in this environment
     # which should only be removed from the environment rather than uninstalled
-    remove_only = set()
+    remove_only = []
     if args.remove and not args.force:
-        remove_only.update(spec_to_other_envs)
+        for specs_in_other_env in other_dependent_envs.values():
+            remove_only.extend(specs_in_other_env)
+
     if remove_only:
         tty.info(
             "The following specs will be removed but not uninstalled because"
@@ -344,23 +269,9 @@ def get_uninstall_list(args, specs, env):
     # Compute the set of specs that should be removed from the current env.
     # This may overlap (some specs may be uninstalled and also removed from
     # the current environment).
-    if args.remove:
-        remove_specs = set(base_uninstall_specs)
-        if args.dependents:
-            # Any spec matched from the cli, or dependent of, should be removed
-            # from the environment
-            for spec, lst in active_dpts.items():
-                remove_specs.update(lst)
-    else:
-        remove_specs = set()
+    remove_specs = all_specs_in_env(env, all_uninstall_specs) if env and args.remove else []
 
-    all_uninstall_specs -= remove_only
-    # Inefficient topological sort: uninstall dependents before dependencies
-    all_uninstall_specs = sorted(
-        all_uninstall_specs, key=lambda x: sum(1 for i in x.traverse()), reverse=True
-    )
-
-    return list(all_uninstall_specs), list(remove_specs)
+    return list(set(all_uninstall_specs) - set(remove_only)), remove_specs
 
 
 def uninstall_specs(args, specs):
@@ -373,7 +284,7 @@ def uninstall_specs(args, specs):
         return
 
     if not args.yes_to_all:
-        confirm_removal(uninstall_list)
+        confirmation.confirm_action(uninstall_list, "uninstalled", "uninstall")
 
     # Uninstall everything on the list
     do_uninstall(uninstall_list, args.force)
@@ -387,21 +298,6 @@ def uninstall_specs(args, specs):
         env.regenerate_views()
 
 
-def confirm_removal(specs):
-    """Display the list of specs to be removed and ask for confirmation.
-
-    Args:
-        specs (list): specs to be removed
-    """
-    tty.msg("The following packages will be uninstalled:\n")
-    spack.cmd.display_specs(specs, **display_args)
-    print("")
-    answer = tty.get_yes_or_no("Do you want to proceed?", default=False)
-    if not answer:
-        tty.msg("Aborting uninstallation")
-        sys.exit(0)
-
-
 def uninstall(parser, args):
     if not args.specs and not args.all:
         tty.die(
@@ -409,6 +305,6 @@ def uninstall(parser, args):
             "  Use `spack uninstall --all` to uninstall ALL packages.",
         )
 
-    # [any] here handles the --all case by forcing all specs to be returned
-    specs = spack.cmd.parse_specs(args.specs) if args.specs else [any]
+    # [None] here handles the --all case by forcing all specs to be returned
+    specs = spack.cmd.parse_specs(args.specs) if args.specs else [None]
     uninstall_specs(args, specs)

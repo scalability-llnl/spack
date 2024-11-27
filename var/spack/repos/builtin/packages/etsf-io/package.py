@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,7 +18,11 @@ class EtsfIo(Package):
     homepage = "https://github.com/ElectronicStructureLibrary/libetsf_io"
     url = "https://launchpad.net/etsf-io/1.0/1.0.4/+download/etsf_io-1.0.4.tar.gz"
 
+    license("LGPL-2.1-or-later")
+
     version("1.0.4", sha256="3140c2cde17f578a0e6b63acb27a5f6e9352257a1371a17b9c15c3d0ef078fa4")
+
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Add MPI support")
 
@@ -27,6 +31,13 @@ class EtsfIo(Package):
 
     patch("tests_module.patch")
     patch("tests_init.patch")
+
+    def flag_handler(self, name, flags):
+        if name == "fflags":
+            flags.append(self.compiler.f77_pic_flag)
+        elif name == "fcflags":
+            flags.append(self.compiler.fc_pic_flag)
+        return flags, None, None
 
     def install(self, spec, prefix):
         options = ["--prefix=%s" % prefix]
@@ -52,23 +63,10 @@ class EtsfIo(Package):
         make("check")
         make("install")
 
-    def test(self):
-        """Run this smoke test when requested explicitly"""
+    def test_etsf_io_help(self):
+        """check etsf_io can execute (--help)"""
 
-        # Test is to run "etsf_io --help"
-        spec = self.spec
-        exe = join_path(spec["etsf-io"].prefix.bin, "etsf_io")
-        options = ["--help"]
-        purpose = "Check etsf_io can execute (--help)"
-        expected = ["Usage: etsf_io"]
-
-        self.run_test(
-            exe,
-            options=options,
-            expected=expected,
-            status=[0],
-            installed=False,
-            purpose=purpose,
-            skip_missing=False,
-            work_dir=None,
-        )
+        path = self.spec["etsf-io"].prefix.bin.etsf_io
+        etsfio = which(path)
+        out = etsfio("--help", output=str.split, error=str.split)
+        assert "Usage: etsf_io" in out

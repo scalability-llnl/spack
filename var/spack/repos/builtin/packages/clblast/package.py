@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,8 @@ class Clblast(CMakePackage):
 
     maintainers("umar456")
 
+    license("Apache-2.0")
+
     version("master", branch="master")
     version("1.5.2", sha256="0e3a017c3aa352e0bf94ea65cfc9609beb2c22204d31c2ef43d0478178cfee00")
     version("1.5.1", sha256="a0f0cb7308b59a495c23beaef1674093ed26996f66d439623808755dbf568c3f")
@@ -33,7 +35,8 @@ class Clblast(CMakePackage):
     version("1.0.1", sha256="6c9415a1394c554debce85c47349ecaaebdc9d5baa187d3ecb84be00ae9c70f0")
     version("1.0.0", sha256="230a55a868bdd21425867cbd0dcb7ec046aa5ca522fb5694e42740b5b16d0f59")
 
-    depends_on("opencl +icd")
+    depends_on("opencl")
+    depends_on("pocl+icd", when="^[virtuals=opencl] pocl")
 
     variant("shared", description="Build a shared libraries", default=True)
     variant("tuners", description="Enable compilation of the tuners", default=False)

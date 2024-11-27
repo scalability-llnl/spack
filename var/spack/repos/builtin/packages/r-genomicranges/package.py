@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,7 @@ class RGenomicranges(RPackage):
 
     bioc = "GenomicRanges"
 
+    version("1.52.0", commit="883f125ea593099293dc808ec2188be3cbdbd3a7")
     version("1.50.1", commit="6b3fb388ec038fb43f3cd26684ce778ee0e80e81")
     version("1.48.0", commit="2bce60814db7c20949892587740fb484aa435978")
     version("1.46.1", commit="e422642f64815cdfee8fc340681ad87a7eafc3bb")
@@ -31,6 +32,8 @@ class RGenomicranges(RPackage):
     version("1.32.7", commit="4c56dc836dbfd0d228dc810e8d401811cdbc267c")
     version("1.30.3", commit="e99979054bc50ed8c0109bc54563036c1b368997")
     version("1.28.6", commit="197472d618f3ed04c795dc6ed435500c29619563")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@1.46.1:")

@@ -1,0 +1,36 @@
+From 14d9b4b238ea55ed2318daa337bb2393f321c457 Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Wed, 15 Mar 2023 23:36:55 +0000
+Subject: [PATCH] Include rocm-openmp-extras header and omp library
+
+---
+ Tensile/Source/client/CMakeLists.txt | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/Tensile/Source/client/CMakeLists.txt b/Tensile/Source/client/CMakeLists.txt
+index f4a13dd..46568b9 100644
+--- a/Tensile/Source/client/CMakeLists.txt
++++ b/Tensile/Source/client/CMakeLists.txt
+@@ -76,7 +76,9 @@ if(NOT WIN32)
+ endif()
+ 
+ if(TENSILE_USE_OPENMP)
+-    target_link_libraries(TensileClient PRIVATE custom_openmp_cxx)
++    target_include_directories(TensileClient PUBLIC "${ROCM_OPENMP_EXTRAS_DIR}/include")
++    target_link_libraries(TensileClient PRIVATE "${ROCM_OPENMP_EXTRAS_DIR}/lib/libomp.so")
++
+ endif()
+ 
+ 
+@@ -89,5 +91,7 @@ set_target_properties(tensile_client
+ 
+ target_link_libraries(tensile_client PRIVATE TensileHost TensileClient ${Boost_LIBRARIES})
+ if(TENSILE_USE_OPENMP)
+-    target_link_libraries(tensile_client PRIVATE custom_openmp_cxx)
++    target_include_directories(tensile_client PUBLIC "${ROCM_OPENMP_EXTRAS_DIR}/include")
++    target_link_libraries(tensile_client PRIVATE "${ROCM_OPENMP_EXTRAS_DIR}/lib/libomp.so")
++
+ endif()
+-- 
+2.17.1
+

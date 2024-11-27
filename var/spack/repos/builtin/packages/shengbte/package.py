@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,8 +9,10 @@ class Shengbte(MakefilePackage):
     """ShengBTE is a software package for solving the Boltzmann Transport
     Equation for phonons."""
 
-    homepage = "www.shengbte.org"
-    url = "www.shengbte.org/downloads/ShengBTE-v1.1.1-8a63749.tar.bz2"
+    homepage = "https://www.shengbte.org"
+    url = "https://www.shengbte.org/downloads/ShengBTE-v1.1.1-8a63749.tar.bz2"
+
+    license("GPL-3.0-only")
 
     version(
         "1.1.1-8a63749", sha256="43920740d19ae854c8ecae0b648acfdf1d7726ca4c2b44f1a1684457f2f88522"

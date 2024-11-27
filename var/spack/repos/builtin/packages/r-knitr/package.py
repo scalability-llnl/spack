@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,10 @@ class RKnitr(RPackage):
 
     cran = "knitr"
 
+    license("GPL-2.0-or-later")
+
+    version("1.48", sha256="501b5926da7da1e8df61958639537e4c30110a0a8de07381afd92b31b9bff197")
+    version("1.42", sha256="9344f1a0089e4da101def54aee38d7cfe3b2022d75c560141d8cc22ac65130f3")
     version("1.40", sha256="9b8f95ff367a0e52f024bda30315ec7cdd6a5b82371a1aaed95ab4eea78535bc")
     version("1.39", sha256="c91a65edebdca779af7f7480fa6636667497c9291ad55d6efd982db0bb91ac72")
     version("1.37", sha256="39cd2a4848baebbe7fa0c0ab8200179690fb5b9190f0c1688d987c38363ad763")
@@ -31,10 +35,11 @@ class RKnitr(RPackage):
     depends_on("r@3.1.0:", type=("build", "run"), when="@1.15:1.22")
     depends_on("r@3.2.3:", type=("build", "run"), when="@1.23:")
     depends_on("r@3.3.0:", type=("build", "run"), when="@1.39:")
+
     depends_on("r-evaluate@0.10:", type=("build", "run"))
     depends_on("r-evaluate@0.15:", type=("build", "run"), when="@1.39:")
     depends_on("r-highr", type=("build", "run"))
-    depends_on("r-stringr@0.6:", type=("build", "run"))
+    depends_on("r-highr@0.11:", type=("build", "run"), when="@1.47:")
     depends_on("r-yaml@2.1.19:", type=("build", "run"))
     depends_on("r-xfun", type=("build", "run"), when="@1.23:")
     depends_on("r-xfun@0.15:", type=("build", "run"), when="@1.30")
@@ -42,9 +47,14 @@ class RKnitr(RPackage):
     depends_on("r-xfun@0.21:", type=("build", "run"), when="@1.32:")
     depends_on("r-xfun@0.27:", type=("build", "run"), when="@1.37:")
     depends_on("r-xfun@0.29:", type=("build", "run"), when="@1.39:")
+    depends_on("r-xfun@0.34:", type=("build", "run"), when="@1.42:")
+    depends_on("r-xfun@0.39:", type=("build", "run"), when="@1.43:")
+    depends_on("r-xfun@0.43:", type=("build", "run"), when="@1.46:")
+    depends_on("r-xfun@0.44:", type=("build", "run"), when="@1.47:")
     depends_on("pandoc", type="build")
     depends_on("py-rst2pdf", type=("build", "run"))
 
     depends_on("r-digest", type=("build", "run"), when="@:1.17")
     depends_on("r-formatr", type=("build", "run"), when="@:1.14")
     depends_on("r-markdown", type=("build", "run"), when="@:1.33")
+    depends_on("r-stringr@0.6:", type=("build", "run"), when="@:1.40")

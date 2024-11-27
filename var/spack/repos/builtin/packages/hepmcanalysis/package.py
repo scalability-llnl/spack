@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,9 @@ class Hepmcanalysis(MakefilePackage):
     url = "https://hepmcanalysistool.desy.de/releases/HepMCAnalysis-00-03-04-13.tar.gz"
 
     version("3.4.13", sha256="be9937c6de493a5671258919493b0caa0cecca77853a2075f5cecce1071e0029")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     tags = ["hep"]
 

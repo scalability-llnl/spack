@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,6 +23,7 @@ class RMissmethyl(RPackage):
 
     bioc = "missMethyl"
 
+    version("1.34.0", commit="57db57c48ab79c36eb89726afc2833a981cbaf3d")
     version("1.32.0", commit="969b892e400b9821398099bcea46f2d0431daedf")
     version("1.30.0", commit="734846653f332f10e557b87aca4cb5d100b62469")
     version("1.28.0", commit="6a36aee28837736291ac630c1da3909f0e9c8d6a")

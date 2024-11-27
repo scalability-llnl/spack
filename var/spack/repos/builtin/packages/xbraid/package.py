@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,9 +13,14 @@ class Xbraid(MakefilePackage):
     url = "https://github.com/XBraid/xbraid/archive/v2.2.0.tar.gz"
     tags = ["radiuss"]
 
+    version("3.1.0", sha256="3419b22918c65555e8c552b70a0837a251a74c471dac8e4a7b2272bf7d955c88")
     version("3.0.0", sha256="06988c0599cd100d3b3f3ebb183c9ad34a4021922e0896815cbedc659aaadce6")
     version("2.3.0", sha256="706f0acde201c7c336ade3604679759752a74e2cd6c2a29a8bf5676b6e54b704")
     version("2.2.0", sha256="082623b2ddcd2150b3ace65b96c1e00be637876ec6c94dc8fefda88743b35ba3")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PySerpent(PythonPackage):
     homepage = "https://github.com/irmen/Serpent"
     pypi = "serpent/serpent-1.40.tar.gz"
     maintainers("liuyangzhuan")
+
+    license("MIT")
 
     version("1.40", sha256="10b34e7f8e3207ee6fb70dcdc9bce473851ee3daf0b47c58aec1b48032ac11ce")
 

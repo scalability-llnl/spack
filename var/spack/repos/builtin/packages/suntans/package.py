@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,9 @@ class Suntans(MakefilePackage):
 
     maintainers("ofringer", "zyaj", "mrayson", "jadelson", "lhxone")
 
-    version("3.1", "9b5d0dee5502a5650e37bf72f64b1124be86c084e7408aa517c214ddb25e36de")
+    license("LGPL-2.1-or-later")
+
+    version("3.1", sha256="9b5d0dee5502a5650e37bf72f64b1124be86c084e7408aa517c214ddb25e36de")
 
     depends_on("libx11@1.6.3")
     depends_on("mpi")

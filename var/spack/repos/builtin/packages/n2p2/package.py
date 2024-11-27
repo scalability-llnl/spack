@@ -1,7 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
 
 from spack.package import *
 from spack.pkg.builtin.boost import Boost
@@ -15,10 +16,14 @@ class N2p2(MakefilePackage):
     homepage = "https://github.com/CompPhysVienna/n2p2"
     url = "https://github.com/CompPhysVienna/n2p2/archive/v2.1.0.tar.gz"
 
+    license("GPL-3.0-only")
+
     version("2.2.0", sha256="4acaa255632a7b9811d7530fd52ac7dd0bb3a8e3a3cf8512beadd29b62c1bfef")
     version("2.1.4", sha256="f1672c09af4ed16a7f396606977e4675a0fee98f04bfd9574907fba4b83a14ef")
     version("2.1.1", sha256="90fbc0756132984d0d7e6d92d2f53358c120e75f148910d90c027158163251b9")
     version("2.1.0", sha256="283c00e9a5b964f4c84a70c5f1cef7167e9b881080b50a221da08799e5ede400")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("doc", default=False, description="build documentation with Doxygen")
     variant("shared", default=False, description="build shared libraries")
@@ -55,25 +60,26 @@ class N2p2(MakefilePackage):
 
     def edit(self, spec, prefix):
         makefile = FileFilter(join_path("src", "makefile"))
-        makefile.filter("MODE=.*", "MODE={0}".format("shared" if "+shared" in spec else "static"))
+        makefile.filter("MODE=.*", f"MODE={'shared' if '+shared' in spec else 'static'}")
 
         makefile = FileFilter(join_path("src", "makefile.gnu"))
         blas_libs = self.spec["blas"].libs
-        makefile.filter("PROJECT_CC=.*", "PROJECT_CC={0}".format(spack_cxx))
-        makefile.filter("PROJECT_MPICC=.*", "PROJECT_MPICC={0}".format(self.spec["mpi"].mpicxx))
-        makefile.filter("PROJECT_CFLAGS=.*", "PROJECT_CFLAGS={0}".format(self.compiler.cxx11_flag))
+        makefile.filter("PROJECT_CC=.*", f"PROJECT_CC={spack_cxx}")
+        makefile.filter("PROJECT_MPICC=.*", f"PROJECT_MPICC={self.spec['mpi'].mpicxx}")
+        makefile.filter("PROJECT_CFLAGS=.*", f"PROJECT_CFLAGS={self.compiler.cxx11_flag}")
         makefile.filter(
-            "PROJECT_LDFLAGS_BLAS.*",
-            "PROJECT_LDFLAGS_BLAS={0} -lgsl -lgslcblas".format(blas_libs.ld_flags),
+            "PROJECT_LDFLAGS_BLAS.*", f"PROJECT_LDFLAGS_BLAS={blas_libs.ld_flags} -lgsl -lgslcblas"
         )
 
     def build(self, spec, prefix):
         with working_dir("src"):
-            make()
-            make("lammps-nnp")
-            make("pynnp")
+            # Add --no-print-directory flag to avoid issues when variables set
+            # to value of shell function with cd cmd used as target (see #43192)
+            make("--no-print-directory")
+            make("--no-print-directory", "lammps-nnp")
+            make("--no-print-directory", "pynnp")
             if "+doc" in self.spec:
-                make("doc")
+                make("--no-print-directory", "doc")
 
     def install(self, spec, prefix):
         install_tree("bin", prefix.bin)
@@ -88,46 +94,62 @@ class N2p2(MakefilePackage):
     def setup_build_tests(self):
         """Copy the build test files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(".")
+        cache_extra_test_sources(self, ["."])
 
-    def test(self):
-        with working_dir(join_path(self.install_test_root, "test"), create=False):
+    def test_result_check(self):
+        """Build and run result-check.sh"""
+        # The results cannot be verified with the script without an expected
+        # results file added to the test subdirectory of the package repository.
+        expected_file = join_path(
+            self.test_suite.current_test_data_dir, f"expected-result-{self.version}.txt"
+        )
+        if not os.path.exists(expected_file):
+            raise SkipTest(
+                f"The expected results file is missing from the repository for {self.version}"
+            )
+
+        result_check_script = join_path(self.test_suite.current_test_data_dir, "result-check.sh")
+        if not os.path.exists(result_check_script):
+            raise SkipTest("Required result-check.sh is missing from the repository directory")
+
+        make = which("make")
+        with working_dir(self.test_suite.current_test_cache_dir.test):
             make("clean")
 
-        with working_dir(join_path(self.install_test_root, "src"), create=False):
+        with working_dir(self.test_suite.current_test_cache_dir.src):
             make("clean")
             make(
                 "MODE=test",
-                "PROJECT_GSL={0}".format(self.spec["gsl"].prefix.include),
-                "PROJECT_EIGEN={0}".format(self.spec["eigen"].prefix.include.eigen3),
+                f"PROJECT_GSL={self.spec['gsl'].prefix.include}",
+                f"PROJECT_EIGEN={self.spec['eigen'].prefix.include.eigen3}",
             )
             make(
                 "MODE=test",
                 "lammps-nnp",
-                "PROJECT_GSL={0}".format(self.spec["gsl"].prefix.include),
-                "PROJECT_EIGEN={0}".format(self.spec["eigen"].prefix.include.eigen3),
+                f"PROJECT_GSL={self.spec['gsl'].prefix.include}",
+                f"PROJECT_EIGEN={self.spec['eigen'].prefix.include.eigen3}",
             )
             make("pynnp", "MODE=test")
 
-        with working_dir(join_path(self.install_test_root, "test"), create=False):
+        with working_dir(self.test_suite.current_test_cache_dir.test):
             if self.spec.satisfies("%fj"):
                 f = FileFilter(join_path("cpp", "nnp_test.h"))
-                f.filter(
-                    "(example.co",
-                    '("{0} -n 1 " + example.co'.format(self.spec["mpi"].prefix.bin.mpirun),
-                    string=True,
-                )
+                mpirun = self.spec["mpi"].prefix.bin.mpirun
+                f.filter("(example.co", f'("{mpirun} -n 1 " + example.co', string=True)
 
+            cpp_output = "output_cpp.txt"
             f = FileFilter(join_path("cpp", "makefile"))
-            f.filter("log_level=.*", "log_level=$(LOG_LEVEL) 2>&1 | tee -a ../output_cpp.txt")
+            f.filter("log_level=.*", f"log_level=$(LOG_LEVEL) 2>&1 | tee -a ../{cpp_output}")
 
+            python_output = "output_python.txt"
             f = FileFilter(join_path("python", "makefile"))
-            f.filter("term\\s-v.*", "term -v | tee -a ../output_python.txt")
+            f.filter("term\\s-v.*", f"term -v | tee -a ../{python_output}")
 
             make("cpp", parallel=False)
-            make("python", parallel=False)
+            assert os.path.isfile(cpp_output), f"{cpp_output} was not produced"
 
-            test_dir = self.test_suite.current_test_data_dir
-            expected_file = join_path(test_dir, "expected-result-{0}.txt".format(self.version))
-            check_n2p2 = Executable(join_path(test_dir, "result-check.sh"))
-            check_n2p2("./output_cpp.txt", "./output_python.txt", expected_file)
+            make("python", parallel=False)
+            assert os.path.isfile(python_output), f"{python_output} was not produced"
+
+            result_check = which(result_check_script)
+            result_check(cpp_output, python_output, expected_file)

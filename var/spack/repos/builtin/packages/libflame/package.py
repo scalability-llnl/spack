@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -72,22 +72,22 @@ class LibflameBase(AutotoolsPackage):
         # https://github.com/flame/libflame/issues/24
         config_args = ["LIBS=" + self.spec["blas"].libs.ld_flags]
 
-        if "+lapack2flame" in self.spec:
+        if self.spec.satisfies("+lapack2flame"):
             config_args.append("--enable-lapack2flame")
         else:
             config_args.append("--disable-lapack2flame")
 
-        if "+static" in self.spec:
+        if self.spec.satisfies("+static"):
             config_args.append("--enable-static-build")
         else:
             config_args.append("--disable-static-build")
 
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             config_args.append("--enable-dynamic-build")
         else:
             config_args.append("--disable-dynamic-build")
 
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             config_args.append("--enable-debug")
         else:
             config_args.append("--disable-debug")
@@ -127,9 +127,14 @@ class Libflame(LibflameBase):
     url = "https://github.com/flame/libflame/archive/5.1.0.tar.gz"
     git = "https://github.com/flame/libflame.git"
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
     version("5.2.0", sha256="997c860f351a5c7aaed8deec00f502167599288fd0559c92d5bfd77d0b4d475c")
     version("5.1.0", sha256="e7189b750890bd781fe773f366b374518dd1d89a6513d3d6261bf549826384d1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     provides("flame@5.2", when="@5.2.0")
     provides("flame@5.1", when="@5.1.0")

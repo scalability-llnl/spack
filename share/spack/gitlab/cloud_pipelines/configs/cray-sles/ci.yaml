@@ -1,0 +1,7 @@
+ci:
+  pipeline-gen:
+  - build-job-remove:
+      image: no-image
+  - build-job:
+      variables:
+        CI_GPG_KEY_ROOT: /etc/protected-runner

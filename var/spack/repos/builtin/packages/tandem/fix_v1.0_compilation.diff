@@ -1,0 +1,29 @@
+diff --git a/app/CMakeLists.txt b/app/CMakeLists.txt
+index 515f15f..bc48092 100644
+--- a/app/CMakeLists.txt
++++ b/app/CMakeLists.txt
+@@ -82,9 +82,9 @@ function(generate_code APP)
+     if("${YATETO_ARCH}" MATCHES "skl|naples|rome")
+         set(YATETO_ARCH "hsw")
+     endif()
+-    set(WITH_LIBXSMM "")
++    set(WITH_LIBXSMM "\'\'")
+     if(${LibxsmmGenerator_FOUND})
+-        set(WITH_LIBXSMM ${LibxsmmGeneratorExecutable})
++        set(WITH_LIBXSMM "\'${LibxsmmGeneratorExecutable}\'")
+     endif()
+     add_custom_command(
+         COMMAND
+diff --git a/src/mesh/Simplex.h b/src/mesh/Simplex.h
+index 6a2cf29..36b0be3 100644
+--- a/src/mesh/Simplex.h
++++ b/src/mesh/Simplex.h
+@@ -7,7 +7,7 @@
+ #include <cstddef>
+ #include <cstdint>
+ #include <utility>
+-
++#include <limits>
+ #include "util/Combinatorics.h"
+ 
+ namespace tndm {

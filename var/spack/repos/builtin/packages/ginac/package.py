@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Ginac(CMakePackage):
     homepage = "https://www.ginac.de/"
     url = "https://www.ginac.de/ginac-1.7.8.tar.bz2"
     git = "git://www.ginac.de/ginac.git"
+
+    license("GPL-2.0-or-later")
 
     version("1.7.11", sha256="96529ddef6ae9788aca0093f4b85fc4e34318bc6704e628e6423ab5a92dfe929")
     version("1.7.9", sha256="67cdff43a4360da997ee5323cce27cf313a5b17ba58f02e8f886138c0f629821")

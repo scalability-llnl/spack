@@ -1,65 +1,12 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Data structures that represent Spack's dependency relationships."""
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List
 
+import spack.deptypes as dt
 import spack.spec
-
-#: The types of dependency relationships that Spack understands.
-all_deptypes = ("build", "link", "run", "test")
-
-#: Default dependency type if none is specified
-default_deptype = ("build", "link")
-
-#: Type hint for the arguments accepting a dependency type
-DependencyArgument = Union[str, List[str], Tuple[str, ...]]
-
-
-def deptype_chars(*type_tuples: str) -> str:
-    """Create a string representing deptypes for many dependencies.
-
-    The string will be some subset of 'blrt', like 'bl ', 'b t', or
-    ' lr ' where each letter in 'blrt' stands for 'build', 'link',
-    'run', and 'test' (the dependency types).
-
-    For a single dependency, this just indicates that the dependency has
-    the indicated deptypes. For a list of dependnecies, this shows
-    whether ANY dpeendency in the list has the deptypes (so the deptypes
-    are merged).
-    """
-    types: Set[str] = set()
-    for t in type_tuples:
-        if t:
-            types.update(t)
-
-    return "".join(t[0] if t in types else " " for t in all_deptypes)
-
-
-def canonical_deptype(deptype: DependencyArgument) -> Tuple[str, ...]:
-    """Convert deptype to a canonical sorted tuple, or raise ValueError.
-
-    Args:
-        deptype: string representing dependency type, or a list/tuple of such strings.
-            Can also be the builtin function ``all`` or the string 'all', which result in
-            a tuple of all dependency types known to Spack.
-    """
-    if deptype in ("all", all):
-        return all_deptypes
-
-    elif isinstance(deptype, str):
-        if deptype not in all_deptypes:
-            raise ValueError("Invalid dependency type: %s" % deptype)
-        return (deptype,)
-
-    elif isinstance(deptype, (tuple, list, set)):
-        bad = [d for d in deptype if d not in all_deptypes]
-        if bad:
-            raise ValueError("Invalid dependency types: %s" % ",".join(str(t) for t in bad))
-        return tuple(sorted(set(deptype)))
-
-    raise ValueError("Invalid dependency type: %s" % repr(deptype))
 
 
 class Dependency:
@@ -93,7 +40,7 @@ class Dependency:
         self,
         pkg: "spack.package_base.PackageBase",
         spec: "spack.spec.Spec",
-        type: Optional[Tuple[str, ...]] = default_deptype,
+        depflag: dt.DepFlag = dt.DEFAULT,
     ):
         """Create a new Dependency.
 
@@ -110,11 +57,7 @@ class Dependency:
         # This dict maps condition specs to lists of Patch objects, just
         # as the patches dict on packages does.
         self.patches: Dict[spack.spec.Spec, "List[spack.patch.Patch]"] = {}
-
-        if type is None:
-            self.type = set(default_deptype)
-        else:
-            self.type = set(type)
+        self.depflag = depflag
 
     @property
     def name(self) -> str:
@@ -124,7 +67,7 @@ class Dependency:
     def merge(self, other: "Dependency"):
         """Merge constraints, deptypes, and patches of other into self."""
         self.spec.constrain(other.spec)
-        self.type |= other.type
+        self.depflag |= other.depflag
 
         # concatenate patch lists, or just copy them in
         for cond, p in other.patches.items():
@@ -135,5 +78,8 @@ class Dependency:
                 self.patches[cond] = other.patches[cond]
 
     def __repr__(self) -> str:
-        types = deptype_chars(*self.type)
-        return f"<Dependency: {self.pkg.name} -> {self.spec} [{types}]>"
+        types = dt.flag_to_chars(self.depflag)
+        if self.patches:
+            return f"<Dependency: {self.pkg.name} -> {self.spec} [{types}, {self.patches}]>"
+        else:
+            return f"<Dependency: {self.pkg.name} -> {self.spec} [{types}]>"

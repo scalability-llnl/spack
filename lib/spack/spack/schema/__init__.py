@@ -1,12 +1,19 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This module contains jsonschema files for all of Spack's YAML formats."""
+import typing
 import warnings
 
 import llnl.util.lang
-import llnl.util.tty
+
+from spack.error import SpecSyntaxError
+
+
+class DeprecationMessage(typing.NamedTuple):
+    message: str
+    error: bool
 
 
 # jsonschema is imported lazily as it is heavy to import
@@ -14,11 +21,11 @@ import llnl.util.tty
 def _make_validator():
     import jsonschema
 
-    import spack.parser
-
     def _validate_spec(validator, is_spec, instance, schema):
         """Check if the attributes on instance are valid specs."""
         import jsonschema
+
+        import spack.parser
 
         if not validator.is_type(instance, "object"):
             return
@@ -26,34 +33,38 @@ def _make_validator():
         for spec_str in instance:
             try:
                 spack.parser.parse(spec_str)
-            except spack.parser.SpecSyntaxError as e:
+            except SpecSyntaxError as e:
                 yield jsonschema.ValidationError(str(e))
 
     def _deprecated_properties(validator, deprecated, instance, schema):
         if not (validator.is_type(instance, "object") or validator.is_type(instance, "array")):
             return
 
-        # Get a list of the deprecated properties, return if there is none
-        deprecated_properties = [x for x in instance if x in deprecated["properties"]]
-        if not deprecated_properties:
+        if not deprecated:
             return
 
-        # Retrieve the template message
-        msg_str_or_func = deprecated["message"]
-        if isinstance(msg_str_or_func, str):
-            msg = msg_str_or_func.format(properties=deprecated_properties)
-        else:
-            msg = msg_str_or_func(instance, deprecated_properties)
-            if msg is None:
-                return
+        deprecations = {
+            name: DeprecationMessage(message=x["message"], error=x["error"])
+            for x in deprecated
+            for name in x["names"]
+        }
 
-        is_error = deprecated["error"]
-        if not is_error:
-            warnings.warn(msg)
-        else:
-            import jsonschema
+        # Get a list of the deprecated properties, return if there is none
+        issues = [entry for entry in instance if entry in deprecations]
+        if not issues:
+            return
 
-            yield jsonschema.ValidationError(msg)
+        # Process issues
+        errors = []
+        for name in issues:
+            msg = deprecations[name].message.format(name=name)
+            if deprecations[name].error:
+                errors.append(msg)
+            else:
+                warnings.warn(msg)
+
+        if errors:
+            yield jsonschema.ValidationError("\n".join(errors))
 
     return jsonschema.validators.extend(
         jsonschema.Draft4Validator,

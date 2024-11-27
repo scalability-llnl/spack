@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyTpot(PythonPackage):
 
     homepage = "https://epistasislab.github.io/tpot/"
     pypi = "tpot/TPOT-0.11.5.tar.gz"
+
+    license("LGPL-3.0-only")
 
     version("0.11.7", sha256="64ff1845efdec3d9c70b35587f719cc0821722f27d16f542f83bf81f448e3ff1")
     version("0.11.5", sha256="909be08b29165ce48de5e5d2e3fd73fee9aeeaf1030f2e0912ce0f0bd9c3d2f3")

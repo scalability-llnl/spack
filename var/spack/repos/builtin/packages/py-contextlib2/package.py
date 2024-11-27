@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyContextlib2(PythonPackage):
 
     homepage = "https://contextlib2.readthedocs.io/en/stable/"
     pypi = "contextlib2/contextlib2-21.6.0.tar.gz"
+
+    license("PSF-2.0")
 
     version("21.6.0", sha256="ab1e2bfe1d01d968e1b7e8d9023bc51ef3509bba217bb730cee3827e1ee82869")
     version("0.6.0", sha256="7197aa736777caac513dbd800944c209a49765bf1979b12b037dce0277077ed3")

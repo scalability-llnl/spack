@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,33 @@ class Jube(PythonPackage):
     homepage = "https://www.fz-juelich.de/jsc/jube/"
     url = "https://apps.fz-juelich.de/jsc/jube/jube2/download.php?version=2.2.2"
 
+    license("GPL-3.0-or-later")
+
+    version(
+        "2.7.1",
+        sha256="fe8b505a8bf224d785df665af134a1e69063d34d1a7214700d8c7325fef9ecfc",
+        extension="tar.gz",
+    )
+    version(
+        "2.7.0",
+        sha256="31bba50c40547db6dc777d9766babb4786bb8539e988fd5de962602593304d26",
+        extension="tar.gz",
+    )
+    version(
+        "2.6.2",
+        sha256="44fd0dd74500cb2537af52850d5742e5bc09f0379036bad83984a69bd7396151",
+        extension="tar.gz",
+    )
+    version(
+        "2.6.1",
+        sha256="348ebeb4db0ea56889a5d13bf49e394fccc0992f620e8c0c61c40185db13ad64",
+        extension="tar.gz",
+    )
+    version(
+        "2.6.0",
+        sha256="cc1bfa30c4a1de010c0a203c9d22ec810c5de8b76108d5a8174b395573e2ebcc",
+        extension="tar.gz",
+    )
     version(
         "2.5.1",
         sha256="4c9a754b0e6f2b5e8cd0f5bd643dcfd7863a96b05cd02141d5eb301f2b89f6a3",

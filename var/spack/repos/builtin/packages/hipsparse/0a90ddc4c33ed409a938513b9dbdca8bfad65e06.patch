@@ -1,0 +1,30 @@
+From 0a90ddc4c33ed409a938513b9dbdca8bfad65e06 Mon Sep 17 00:00:00 2001
+From: James Sandham <33790278+jsandham@users.noreply.github.com>
+Date: Tue, 29 Nov 2022 12:19:06 -0700
+Subject: [PATCH] Fix cuda compilation (#287)
+
+Co-authored-by: jsandham <james.sandham@amd.com>
+---
+ library/src/nvcc_detail/hipsparse.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/library/src/nvcc_detail/hipsparse.cpp b/library/src/nvcc_detail/hipsparse.cpp
+index 4d692855..25d257a8 100644
+--- a/library/src/nvcc_detail/hipsparse.cpp
++++ b/library/src/nvcc_detail/hipsparse.cpp
+@@ -360,6 +360,7 @@ cusparseSolvePolicy_t hipPolicyToCudaPolicy(hipsparseSolvePolicy_t policy)
+     }
+ }
+ 
++#if CUDART_VERSION < 11050
+ cusparseSideMode_t hipSideToCudaSide(hipsparseSideMode_t side)
+ {
+     switch(side)
+@@ -385,6 +386,7 @@ hipsparseSideMode_t CudaSideToHIPSide(cusparseSideMode_t side)
+         throw "Non existent cusparseSideMode_t";
+     }
+ }
++#endif
+ 
+ #if CUDART_VERSION > 10000
+ cudaDataType hipDataTypeToCudaDataType(hipDataType datatype)

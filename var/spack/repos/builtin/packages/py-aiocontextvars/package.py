@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyAiocontextvars(PythonPackage):
 
     homepage = "https://github.com/fantix/aiocontextvars"
     pypi = "aiocontextvars/aiocontextvars-0.2.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.2.2", sha256="f027372dc48641f683c559f247bd84962becaacdc9ba711d583c3871fb5652aa")
 

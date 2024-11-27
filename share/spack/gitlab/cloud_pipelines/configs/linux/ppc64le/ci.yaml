@@ -1,0 +1,22 @@
+ci:
+  pipeline-gen:
+  - build-job:
+      tags: ["ppc64le"]
+      # Power runners overrides the default script
+      # - don't download make
+      # - no intermediate keys
+      script::
+      - uname -a || true
+      - grep -E 'vendor|model name' /proc/cpuinfo 2>/dev/null | sort -u || head -n10 /proc/cpuinfo 2>/dev/null || true
+      - nproc
+      - . "./share/spack/setup-env.sh"
+      - spack --version
+      - spack arch
+      - cd ${SPACK_CONCRETE_ENV_DIR}
+      - spack env activate --without-view .
+      - if [ -n "$SPACK_BUILD_JOBS" ]; then spack config add "config:build_jobs:$SPACK_BUILD_JOBS"; fi
+      - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+      - mkdir -p ${SPACK_ARTIFACTS_ROOT}/user_data
+      - if [[ -r /mnt/key/e4s.gpg ]]; then spack gpg trust /mnt/key/e4s.gpg; fi
+      - if [[ -r /mnt/key/spack_public_key.gpg ]]; then spack gpg trust /mnt/key/spack_public_key.gpg; fi
+      - spack --color=always --backtrace ci rebuild > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)

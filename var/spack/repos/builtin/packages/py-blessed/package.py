@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyBlessed(PythonPackage):
 
     homepage = "https://github.com/jquast/blessed"
     pypi = "blessed/blessed-1.15.0.tar.gz"
+
+    license("MIT")
 
     version("1.19.0", sha256="4db0f94e5761aea330b528e84a250027ffe996b5a94bf03e502600c9a5ad7a61")
     version("1.18.1", sha256="8b09936def6bc06583db99b65636b980075733e13550cb6af262ce724a55da23")

@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyGalaxyUtil(PythonPackage):
 
     homepage = "https://github.com/galaxyproject/galaxy"
     pypi = "galaxy-util/galaxy-util-22.1.2.tar.gz"
+
+    license("CC-BY-3.0")
 
     version("22.1.2", sha256="80257c94dc9122ebf80d643aa3962fe8beda23dbba8fc4820a0d2b720f479f98")
 

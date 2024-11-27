@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class PyInstrain(PythonPackage):
     maintainers("MrOlm")
 
     variant("prodigal", default=False, description="Enables profiling on a gene by gene level")
+
+    license("MIT")
 
     version("1.6.3", sha256="8cc4af185a41f860aa3a58dfacabfe635bf7b28535ac0bb4db67983f95dbd528")
     version("1.5.7", sha256="c5dcb01dae244927fe987b5f0695d895ccf521c9dfd87a2cb59057ad50bd9bfa")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyFlitScm(PythonPackage):
 
     homepage = "https://gitlab.com/WillDaSilva/flit_scm"
     pypi = "flit-scm/flit_scm-1.7.0.tar.gz"
+
+    license("MIT")
 
     version("1.7.0", sha256="961bd6fb24f31bba75333c234145fff88e6de0a90fc0f7e5e7c79deca69f6bb2")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -28,7 +28,7 @@ class StarCcmPlus(Package):
     version(
         "16.06.008_01", sha256="64577ec0e9a98d971114e68c4eec05bb746e061dfbf77b8d8919583c796c9e4b"
     )
-    version("11.06.010_02", "d349c6ac8293d8e6e7a53533d695588f")
+    version("11.06.010_02", md5="d349c6ac8293d8e6e7a53533d695588f")
 
     variant("doc", default=False, description="Install the documentation")
 

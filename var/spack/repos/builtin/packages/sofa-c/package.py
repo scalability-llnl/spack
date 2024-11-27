@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class SofaC(MakefilePackage):
     url = "https://www.iausofa.org/2018_0130_C/sofa_c-20180130.tar.gz"
 
     version("20180130", sha256="de09807198c977e1c58ea1d0c79c40bdafef84f2072eab586a7ac246334796db")
+
+    depends_on("c", type="build")  # generated
 
     @property
     def build_directory(self):

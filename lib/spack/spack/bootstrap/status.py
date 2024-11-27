@@ -1,9 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Query the status of bootstrapping on this machine"""
 import platform
+from typing import List, Optional, Sequence, Tuple, Union
 
 import spack.util.executable
 
@@ -19,8 +20,12 @@ from .environment import (
     pytest_root_spec,
 )
 
+ExecutablesType = Union[str, Sequence[str]]
+RequiredResponseType = Tuple[bool, Optional[str]]
+SpecLike = Union["spack.spec.Spec", str]
 
-def _required_system_executable(exes, msg):
+
+def _required_system_executable(exes: ExecutablesType, msg: str) -> RequiredResponseType:
     """Search for an executable is the system path only."""
     if isinstance(exes, str):
         exes = (exes,)
@@ -29,7 +34,9 @@ def _required_system_executable(exes, msg):
     return False, msg
 
 
-def _required_executable(exes, query_spec, msg):
+def _required_executable(
+    exes: ExecutablesType, query_spec: SpecLike, msg: str
+) -> RequiredResponseType:
     """Search for an executable in the system path or in the bootstrap store."""
     if isinstance(exes, str):
         exes = (exes,)
@@ -38,7 +45,7 @@ def _required_executable(exes, query_spec, msg):
     return False, msg
 
 
-def _required_python_module(module, query_spec, msg):
+def _required_python_module(module: str, query_spec: SpecLike, msg: str) -> RequiredResponseType:
     """Check if a Python module is available in the current interpreter or
     if it can be loaded from the bootstrap store
     """
@@ -47,7 +54,7 @@ def _required_python_module(module, query_spec, msg):
     return False, msg
 
 
-def _missing(name, purpose, system_only=True):
+def _missing(name: str, purpose: str, system_only: bool = True) -> str:
     """Message to be printed if an executable is not found"""
     msg = '[{2}] MISSING "{0}": {1}'
     if not system_only:
@@ -55,11 +62,10 @@ def _missing(name, purpose, system_only=True):
     return msg.format(name, purpose, "@*y{{-}}")
 
 
-def _core_requirements():
+def _core_requirements() -> List[RequiredResponseType]:
     _core_system_exes = {
         "make": _missing("make", "required to build software from sources"),
         "patch": _missing("patch", "required to patch source code before building"),
-        "bash": _missing("bash", "required for Spack compiler wrapper"),
         "tar": _missing("tar", "required to manage code archives"),
         "gzip": _missing("gzip", "required to compress/decompress code archives"),
         "unzip": _missing("unzip", "required to compress/decompress code archives"),
@@ -80,9 +86,9 @@ def _core_requirements():
     return result
 
 
-def _buildcache_requirements():
+def _buildcache_requirements() -> List[RequiredResponseType]:
     _buildcache_exes = {
-        "file": _missing("file", "required to analyze files for buildcaches"),
+        "file": _missing("file", "required to analyze files for buildcaches", system_only=False),
         ("gpg2", "gpg"): _missing("gpg2", "required to sign/verify buildcaches", False),
     }
     if platform.system().lower() == "darwin":
@@ -103,7 +109,7 @@ def _buildcache_requirements():
     return result
 
 
-def _optional_requirements():
+def _optional_requirements() -> List[RequiredResponseType]:
     _optional_exes = {
         "zstd": _missing("zstd", "required to compress/decompress code archives"),
         "svn": _missing("svn", "required to manage subversion repositories"),
@@ -114,11 +120,11 @@ def _optional_requirements():
     return result
 
 
-def _development_requirements():
+def _development_requirements() -> List[RequiredResponseType]:
     # Ensure we trigger environment modifications if we have an environment
     if BootstrapEnvironment.spack_yaml().exists():
         with BootstrapEnvironment() as env:
-            env.update_syspath_and_environ()
+            env.load()
 
     return [
         _required_executable(
@@ -139,7 +145,7 @@ def _development_requirements():
     ]
 
 
-def status_message(section):
+def status_message(section) -> Tuple[str, bool]:
     """Return a status message to be printed to screen that refers to the
     section passed as argument and a bool which is True if there are missing
     dependencies.
@@ -161,7 +167,7 @@ def status_message(section):
     with ensure_bootstrap_configuration():
         missing_software = False
         for found, err_msg in required_software():
-            if not found:
+            if not found and err_msg:
                 missing_software = True
                 msg += "\n  " + err_msg
         msg += "\n"

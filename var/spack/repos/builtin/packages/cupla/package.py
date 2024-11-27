@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Cupla(Package):
     version("develop", branch="dev")
     version("master", branch="master")
     version("0.3.0", sha256="035512517167967697e73544c788453de5e3f0bc4e8d4864b41b2e287365cbaf")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("alpaka@0.6.0:0.7")
 

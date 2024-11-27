@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyRequestsOauthlib(PythonPackage):
 
     homepage = "https://github.com/requests/requests-oauthlib"
     pypi = "requests-oauthlib/requests-oauthlib-1.2.0.tar.gz"
+
+    license("ISC")
 
     version("1.3.1", sha256="75beac4a47881eeb94d5ea5d6ad31ef88856affe2332b9aafb52c6452ccf0d7a")
     version("1.3.0", sha256="b4261601a71fd721a8bd6d7aa1cc1d6a8a93b4a9f5e96626f8e4d91e8beeaa6a")

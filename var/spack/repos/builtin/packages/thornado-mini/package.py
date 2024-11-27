@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class ThornadoMini(MakefilePackage):
     git = "https://github.com/ECP-Astro/thornado_mini.git"
 
     version("1.0", sha256="8a9f97acc823d374cce567831270cfcc50fa968949e49159c7e3442b93a2827d")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
     depends_on("hdf5+fortran")

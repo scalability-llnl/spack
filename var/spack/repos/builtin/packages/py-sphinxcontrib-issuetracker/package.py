@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PySphinxcontribIssuetracker(PythonPackage):
 
     homepage = "https://sphinxcontrib-issuetracker.readthedocs.org/"
     pypi = "sphinxcontrib-issuetracker/sphinxcontrib-issuetracker-0.11.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("0.11", sha256="843753d8b5e989116378ab45ecccb368fb78dc56eaa1554ed25e4fbf22745f4e")
 

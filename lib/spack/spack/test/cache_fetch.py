@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -31,13 +31,16 @@ def test_fetch_missing_cache(tmpdir, _fetch_method):
 @pytest.mark.parametrize("_fetch_method", ["curl", "urllib"])
 def test_fetch(tmpdir, _fetch_method):
     """Ensure a fetch after expanding is effectively a no-op."""
-    testpath = str(tmpdir)
-    cache = os.path.join(testpath, "cache.tar.gz")
+    cache_dir = tmpdir.join("cache")
+    stage_dir = tmpdir.join("stage")
+    mkdirp(cache_dir)
+    mkdirp(stage_dir)
+    cache = os.path.join(cache_dir, "cache.tar.gz")
     touch(cache)
     url = url_util.path_to_file_url(cache)
     with spack.config.override("config:url_fetch_method", _fetch_method):
         fetcher = CacheURLFetchStrategy(url=url)
-        with Stage(fetcher, path=testpath) as stage:
+        with Stage(fetcher, path=str(stage_dir)) as stage:
             source_path = stage.source_path
             mkdirp(source_path)
             fetcher.fetch()

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -48,7 +48,7 @@ class Amp(CMakePackage):
     depends_on("silo", when="+silo")
     depends_on("sundials", when="+sundials")
     depends_on("trilinos", when="+trilinos")
-    depends_on("zlib", when="+zlib")
+    depends_on("zlib-api", when="+zlib")
 
     # MPI related dependencies
     depends_on("mpi", when="+mpi")
@@ -70,7 +70,7 @@ class Amp(CMakePackage):
             self.define("USE_MPI", "0"),
         ]
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             options.extend(
                 [
                     self.define("CMAKE_C_COMPILER", spec["mpi"].mpicc),
@@ -101,6 +101,10 @@ class Amp(CMakePackage):
             ]
         )
 
+        if spec.satisfies("+zlib"):
+            tpl_list.append("ZLIB")
+            options.append(self.define("TPL_ZLIB_INSTALL_DIR", spec["zlib-api"].prefix))
+
         for vname in (
             "boost",
             "hdf5",
@@ -110,15 +114,12 @@ class Amp(CMakePackage):
             "silo",
             "sundials",
             "trilinos",
-            "zlib",
         ):
             if "+" + vname in spec:
                 tpl_list.append(vname.upper())
-                options.append(
-                    self.define("TPL_{0}_INSTALL_DIR".format(vname.upper()), spec[vname].prefix)
-                )
+                options.append(self.define(f"TPL_{vname.upper()}_INSTALL_DIR", spec[vname].prefix))
 
-        if "+netcdf" in spec:
+        if spec.satisfies("+netcdf"):
             tpl_list.append("NETCDF")
             options.append(self.define("TPL_NETCDF_INSTALL_DIR", spec["netcdf-c"].prefix))
 

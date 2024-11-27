@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,8 +13,13 @@ class PyRay(PythonPackage):
     homepage = "https://github.com/ray-project/ray"
     url = "https://github.com/ray-project/ray/archive/ray-0.8.7.tar.gz"
 
+    license("Apache-2.0")
+
     version("2.0.1", sha256="b8b2f0a99d2ac4c001ff11c78b4521b217e2a02df95fb6270fd621412143f28b")
     version("0.8.7", sha256="2df328f1bcd3eeb4fa33119142ea0d669396f4ab2a3e78db90178757aa61534b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("default", default=False, description="Install default extras", when="@2.0.1")
 
@@ -77,6 +82,14 @@ class PyRay(PythonPackage):
         depends_on("py-pickle5", when="^python@:3.8.1", type=("build", "run"))
 
     build_directory = "python"
+
+    def patch(self):
+        filter_file(
+            'bazel_flags = ["--verbose_failures"]',
+            f'bazel_flags = ["--verbose_failures", "--jobs={make_jobs}"]',
+            join_path("python", "setup.py"),
+            string=True,
+        )
 
     def setup_build_environment(self, env):
         env.set("SKIP_THIRDPARTY_INSTALL", "1")

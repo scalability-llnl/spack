@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyMoviepy(PythonPackage):
 
     homepage = "https://zulko.github.io/moviepy/"
     pypi = "moviepy/moviepy-1.0.3.tar.gz"
+
+    license("MIT")
 
     version("1.0.3", sha256="2884e35d1788077db3ff89e763c5ba7bfddbd7ae9108c9bc809e7ba58fa433f5")
     version("1.0.1", sha256="9d5b0a0e884c0eb92c431baa110e560059720aab15d2ef3e4cba3892c34cf1ed")

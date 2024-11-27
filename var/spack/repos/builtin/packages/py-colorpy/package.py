@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyColorpy(PythonPackage):
 
     homepage = "http://markkness.net/colorpy/ColorPy.html"
     pypi = "colorpy/colorpy-0.1.1.tar.gz"
+
+    license("LGPL-3.0-or-later")
 
     version("0.1.1", sha256="e400a7e879adc83c6098dde13cdd093723f3936778c245b1caf88f5f1411170d")
 

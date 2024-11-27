@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Zipkin(MavenPackage):
 
     homepage = "https://zipkin.io/"
     url = "https://github.com/openzipkin/zipkin/archive/2.21.5.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.21.5", sha256="e643a810f82f9ea50e2cb6847694c7645507d3deae77685a3a1bb841e0f885a2")
     version("2.21.4", sha256="ee7b0110b3852479c925b6429ff278aa38b1d5da27f4762891b1f863e67bdad5")

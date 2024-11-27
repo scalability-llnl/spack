@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyRq(PythonPackage):
 
     homepage = "https://github.com/rq/rq"
     url = "https://github.com/rq/rq/archive/v1.5.2.tar.gz"
+
+    license("BSD-2-Clause-FreeBSD")
 
     version("1.5.2", sha256="e8e7b6ffc4a962837eaff8eb0137514346e629633bf08550a1649771cdc4ace6")
     version("1.5.1", sha256="36ca5cd2762b5b15bb176943f77da933fac6c2f4e5b5d47a0475f918c167fd4c")

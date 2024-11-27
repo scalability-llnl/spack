@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PySlurmPipeline(PythonPackage):
 
     homepage = "https://github.com/acorg/slurm-pipeline"
     pypi = "slurm-pipeline/slurm-pipeline-1.1.13.tar.gz"
+
+    license("MIT")
 
     version("4.0.4", sha256="5496e46edb890ef745231b4d05b8dfd194374b3fe2c6b33da43cda9685f145c8")
     version("3.0.2", sha256="28e07eb93e846b395a16e6778fd3fc8344a82d115a6a8420276ec68f67f7131c")

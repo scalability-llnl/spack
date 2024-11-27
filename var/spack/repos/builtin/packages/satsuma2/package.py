@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,9 @@ class Satsuma2(CMakePackage):
 
     version("2021-03-04", commit="37c5f386819614cd3ce96016b423ddc4df1d86ec")
     version("2016-11-22", commit="da694aeecf352e344b790bea4a7aaa529f5b69e6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     maintainers("snehring")
 

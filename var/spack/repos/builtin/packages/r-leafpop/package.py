@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class RLeafpop(RPackage):
     with 'htmlwidgets'."""
 
     cran = "leafpop"
+
+    license("MIT")
 
     version("0.1.0", sha256="6e546886e1db4ad93a038de6d1e8331c0d686e96a0d3f0694e7575471f7d9db1")
     version("0.0.6", sha256="3d9ca31d081ce8540a87790786840bde5f833543af608c53a26623c7874e722f")

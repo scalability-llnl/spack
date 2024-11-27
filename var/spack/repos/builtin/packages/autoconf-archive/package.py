@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,11 @@ class AutoconfArchive(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.gnu.org/software/autoconf-archive/"
     gnu_mirror_path = "autoconf-archive/autoconf-archive-2019.01.06.tar.xz"
 
+    license("GPL-3.0-or-later")
+
+    version(
+        "2023.02.20", sha256="71d4048479ae28f1f5794619c3d72df9c01df49b1c628ef85fde37596dc31a33"
+    )
     version(
         "2022.02.11", sha256="78a61b611e2eeb55a89e0398e0ce387bcaf57fe2dd53c6fe427130f777ad1e8c"
     )

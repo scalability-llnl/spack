@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,12 +19,14 @@ class Netgen(AutotoolsPackage):
 
     version("5.3.1", sha256="cb97f79d8f4d55c00506ab334867285cde10873c8a8dc783522b47d2bc128bf9")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="enable mpi support")
     variant("oce", default=False, description="enable oce geometry kernel")
     variant("gui", default=False, description="enable gui")
     variant("metis", default=False, description="use metis for partitioning")
 
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("mpi", when="+mpi")
     depends_on("oce+X11", when="+oce")
     depends_on("metis", when="+metis")

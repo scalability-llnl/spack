@@ -1,0 +1,29 @@
+--- a/Makefile.am	2022-03-22 05:40:10.000000000 -0500
++++ b/Makefile.am	2023-06-29 16:26:37.759057671 -0500
+@@ -1,7 +1,6 @@
+ 
+-CYGWINFLAGS =
++CYGWINFLAGS = $(LTLIBINTL)
+ if CYGWIN
+-CYGWINFLAGS += -lintl
+ usrbin_exec_PROGRAMS =
+ endif
+ 
+@@ -137,7 +136,7 @@
+ endif
+ dist_man_MANS += kill.1
+ kill_SOURCES = kill.c lib/strutils.c lib/fileutils.c lib/signals.c
+-kill_LDADD =
++kill_LDADD = $(LTLIBINTL)
+ else
+   EXTRA_DIST += kill.1
+ endif
+@@ -228,7 +227,7 @@
+ 	sysctl.c \
+ 	lib/fileutils.c \
+ 	lib/procio.c
+-sysctl_LDADD=
++sysctl_LDADD= $(LTLIBINTL)
+ endif
+ tload_SOURCES = tload.c lib/strutils.c lib/fileutils.c
+ uptime_SOURCES = uptime.c lib/fileutils.c

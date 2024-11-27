@@ -1,0 +1,31 @@
+compilers:
+- compiler:
+    spec: cce@15.0.1
+    paths:
+      cc: cc
+      cxx: CC
+      f77: ftn
+      fc: ftn
+    flags: {}
+    operating_system: rhel8
+    target: any
+    modules:
+    - PrgEnv-cray/8.3.3
+    - cce/15.0.1
+    environment:
+      set:
+        MACHTYPE: x86_64
+- compiler:
+    spec: gcc@11.2.0
+    paths:
+      cc: gcc
+      cxx: g++
+      f77: gfortran
+      fc: gfortran
+    flags: {}
+    operating_system: rhel8
+    target: any
+    modules:
+    - PrgEnv-gnu
+    - gcc/11.2.0
+    environment: {}

@@ -1,0 +1,414 @@
+From bfd22e90c29a6975ff8f55fa968833763816e579 Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Wed, 26 Apr 2023 15:11:02 +0000
+Subject: [PATCH] Guard use of OpenMP to make it optional
+
+---
+ clients/common/blis_interface.cpp  |  3 +-
+ clients/common/cblas_interface.cpp | 14 ++++++--
+ clients/include/rocblas_init.hpp   | 52 ++++++++++++++++++++++++++++++
+ clients/include/utility.hpp        |  2 ++
+ clients/samples/example_openmp.cpp |  8 ++++-
+ 5 files changed, 75 insertions(+), 4 deletions(-)
+
+diff --git a/clients/common/blis_interface.cpp b/clients/common/blis_interface.cpp
+index da7aef3..76832f6 100644
+--- a/clients/common/blis_interface.cpp
++++ b/clients/common/blis_interface.cpp
+@@ -21,8 +21,9 @@
+  * ************************************************************************ */
+ 
+ #include "blis.h"
++#ifdef _OPENMP
+ #include "omp.h"
+-
++#endif
+ void setup_blis()
+ {
+ #ifndef WIN32
+diff --git a/clients/common/cblas_interface.cpp b/clients/common/cblas_interface.cpp
+index 91d3681..81aebf6 100644
+--- a/clients/common/cblas_interface.cpp
++++ b/clients/common/cblas_interface.cpp
+@@ -23,8 +23,9 @@
+ #include "rocblas_vector.hpp"
+ #include "utility.hpp"
+ #include <bitset>
++#ifdef _OPENMP
+ #include <omp.h>
+-
++#endif
+ /*
+  * ===========================================================================
+  *    level 1 BLAS
+@@ -461,8 +462,9 @@ void cblas_geam_helper(rocblas_operation transA,
+     rocblas_int inc2_A = transA == rocblas_operation_none ? lda : 1;
+     rocblas_int inc1_B = transB == rocblas_operation_none ? 1 : ldb;
+     rocblas_int inc2_B = transB == rocblas_operation_none ? ldb : 1;
+-
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+     for(rocblas_int i = 0; i < M; i++)
+     {
+         for(rocblas_int j = 0; j < N; j++)
+@@ -895,7 +897,9 @@ void cblas_herkx(rocblas_fill      uplo,
+     {
+         if(uplo == rocblas_fill_upper)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(int j = 0; j < n; ++j)
+             {
+                 for(int i = 0; i <= j; i++)
+@@ -917,7 +921,9 @@ void cblas_herkx(rocblas_fill      uplo,
+         }
+         else // lower
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(int j = 0; j < n; ++j)
+             {
+                 for(int i = j; i < n; i++)
+@@ -942,7 +948,9 @@ void cblas_herkx(rocblas_fill      uplo,
+     {
+         if(uplo == rocblas_fill_upper)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(int j = 0; j < n; ++j)
+             {
+                 for(int i = 0; i <= j; i++)
+@@ -966,7 +974,9 @@ void cblas_herkx(rocblas_fill      uplo,
+         }
+         else // lower
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(int j = 0; j < n; ++j)
+             {
+                 for(int i = j; i < n; i++)
+diff --git a/clients/include/rocblas_init.hpp b/clients/include/rocblas_init.hpp
+index ae2dd6d..ee812e6 100644
+--- a/clients/include/rocblas_init.hpp
++++ b/clients/include/rocblas_init.hpp
+@@ -29,7 +29,9 @@
+ #include "rocblas_random.hpp"
+ #include <cinttypes>
+ #include <iostream>
++#ifdef _OPENMP
+ #include <omp.h>
++#endif
+ #include <vector>
+ 
+ //!
+@@ -70,7 +72,9 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
+     if(matrix_type == rocblas_client_general_matrix)
+     {
+         for(size_t b = 0; b < batch_count; b++)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                 {
+@@ -81,7 +85,9 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
+     else if(matrix_type == rocblas_client_triangular_matrix)
+     {
+         for(size_t b = 0; b < batch_count; b++)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                 {
+@@ -107,7 +113,9 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
+ 
+         if(matrix_type == rocblas_client_general_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                 {
+@@ -117,7 +125,9 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
+         }
+         else if(matrix_type == rocblas_client_triangular_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                 {
+@@ -133,7 +143,9 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
+ template <typename T>
+ void rocblas_init_vector_alternating_sign(T rand_gen(), T* x, size_t N, size_t incx)
+ {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+     for(size_t j = 0; j < N; ++j)
+     {
+         auto value  = rand_gen();
+@@ -159,7 +171,9 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+     if(matrix_type == rocblas_client_general_matrix)
+     {
+         for(size_t b = 0; b < batch_count; b++)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                     A[i + j * lda + b * stride] = rand_gen();
+@@ -167,7 +181,9 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+     else if(matrix_type == rocblas_client_hermitian_matrix)
+     {
+         for(size_t b = 0; b < batch_count; ++b)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < N; ++i)
+                 for(size_t j = 0; j <= i; ++j)
+                 {
+@@ -194,7 +210,9 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+     else if(matrix_type == rocblas_client_symmetric_matrix)
+     {
+         for(size_t b = 0; b < batch_count; ++b)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < N; ++i)
+                 for(size_t j = 0; j <= i; ++j)
+                 {
+@@ -221,7 +239,9 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+     else if(matrix_type == rocblas_client_triangular_matrix)
+     {
+         for(size_t b = 0; b < batch_count; b++)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                 {
+@@ -246,14 +266,18 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+         auto  lda = hA.lda();
+         if(matrix_type == rocblas_client_general_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                     A[i + j * lda] = rand_gen();
+         }
+         else if(matrix_type == rocblas_client_hermitian_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < N; ++i)
+                 for(size_t j = 0; j <= i; ++j)
+                 {
+@@ -279,7 +303,9 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+         }
+         else if(matrix_type == rocblas_client_symmetric_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < N; ++i)
+                 for(size_t j = 0; j <= i; ++j)
+                 {
+@@ -305,7 +331,9 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+         }
+         else if(matrix_type == rocblas_client_triangular_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                 {
+@@ -323,7 +351,9 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+ template <typename T>
+ void rocblas_init_vector(T rand_gen(), T* x, size_t N, size_t incx)
+ {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+     for(size_t j = 0; j < N; ++j)
+         x[j * incx] = rand_gen();
+ }
+@@ -346,7 +376,9 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+     if(matrix_type == rocblas_client_general_matrix)
+     {
+         for(size_t b = 0; b < batch_count; b++)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                     A[i + j * lda + b * stride] = T(seedReset ? cos(i + j * lda + b * stride)
+@@ -355,7 +387,9 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+     else if(matrix_type == rocblas_client_hermitian_matrix)
+     {
+         for(size_t b = 0; b < batch_count; ++b)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < N; ++i)
+                 for(size_t j = 0; j <= i; ++j)
+                 {
+@@ -384,7 +418,9 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+     else if(matrix_type == rocblas_client_symmetric_matrix)
+     {
+         for(size_t b = 0; b < batch_count; ++b)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < N; ++i)
+                 for(size_t j = 0; j <= i; ++j)
+                 {
+@@ -412,7 +448,9 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+     else if(matrix_type == rocblas_client_triangular_matrix)
+     {
+         for(size_t b = 0; b < batch_count; b++)
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                 {
+@@ -443,14 +481,18 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+ 
+         if(matrix_type == rocblas_client_general_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                     A[i + j * lda] = T(seedReset ? cos(i + j * lda) : sin(i + j * lda));
+         }
+         else if(matrix_type == rocblas_client_hermitian_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < N; ++i)
+                 for(size_t j = 0; j <= i; ++j)
+                 {
+@@ -477,7 +519,9 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+         }
+         else if(matrix_type == rocblas_client_symmetric_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < N; ++i)
+                 for(size_t j = 0; j <= i; ++j)
+                 {
+@@ -503,7 +547,9 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+         }
+         else if(matrix_type == rocblas_client_triangular_matrix)
+         {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+             for(size_t i = 0; i < M; ++i)
+                 for(size_t j = 0; j < N; ++j)
+                 {
+@@ -524,7 +570,9 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+ template <typename T>
+ void rocblas_init_vector_trig(T* x, size_t N, size_t incx, bool seedReset = false)
+ {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+     for(size_t j = 0; j < N; ++j)
+         x[j * incx] = T(seedReset ? cos(j * incx) : sin(j * incx));
+ }
+@@ -803,7 +851,9 @@ void rocblas_copy_matrix(const T* A,
+     {
+         size_t stride_offset_a = i_batch * stridea;
+         size_t stride_offset_b = i_batch * strideb;
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+         for(size_t j = 0; j < N; ++j)
+         {
+             size_t offset_a = stride_offset_a + j * lda;
+@@ -822,7 +872,9 @@ void rocblas_copy_matrix(
+ 
+     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+     {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+         for(size_t j = 0; j < N; ++j)
+         {
+             size_t offset_a = j * lda;
+diff --git a/clients/include/utility.hpp b/clients/include/utility.hpp
+index 7635426..34f8f2a 100644
+--- a/clients/include/utility.hpp
++++ b/clients/include/utility.hpp
+@@ -280,7 +280,9 @@ inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
+ template <typename U>
+ inline void regular_to_packed(bool upper, U& h_A, U& h_AP, rocblas_int n)
+ {
++#ifdef _OPENMP
+ #pragma omp parallel for
++#endif
+     for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
+     {
+         auto* AP    = h_AP[batch_index];
+diff --git a/clients/samples/example_openmp.cpp b/clients/samples/example_openmp.cpp
+index f62dae6..8cc5f2e 100644
+--- a/clients/samples/example_openmp.cpp
++++ b/clients/samples/example_openmp.cpp
+@@ -1,5 +1,5 @@
+ /* ************************************************************************
+- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
++ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a copy
+  * of this software and associated documentation files (the "Software"), to deal
+@@ -42,7 +42,9 @@
+ #include <cstdlib>
+ #include <hip/hip_runtime.h>
+ #include <iostream>
++#ifdef _OPENMP
+ #include <omp.h>
++#endif
+ #include <vector>
+ 
+ #define NUM_THREADS 4
+@@ -100,7 +102,9 @@ int main()
+ 
+ // 1st parallel rocblas routine call : scal x
+ // spawn openmp threads
++#ifdef _OPENMP
+ #pragma omp parallel private(thread_id)
++#endif
+     {
+ 
+         thread_id = omp_get_thread_num(); // thread_id from 0,...,NUM_THREADS-1
+@@ -118,7 +122,9 @@ int main()
+ 
+ // 2nd parallel rocblas routine call : copy x to y
+ // spawn openmp threads
++#ifdef _OPENMP
+ #pragma omp parallel private(thread_id)
++#endif
+     {
+ 
+         thread_id = omp_get_thread_num(); // thread_id from 0,...,NUM_THREADS-1
+-- 
+2.17.1
+

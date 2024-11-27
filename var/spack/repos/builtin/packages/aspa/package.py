@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,8 @@ class Aspa(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI Support")
 
     depends_on("lapack")
@@ -35,12 +37,12 @@ class Aspa(MakefilePackage):
         targets = [
             "--directory=exec",
             "--file=Makefile",
-            "LIBS={0} {1} {2}".format(
+            "LIBS={} {} {}".format(
                 self.spec["lapack"].libs.ld_flags,
                 self.spec["blas"].libs.ld_flags,
                 self.spec["hdf5"].libs.ld_flags,
             ),
-            "CXX={0}".format(self.spec["mpi"].mpicxx),
+            f"CXX={self.spec['mpi'].mpicxx}",
         ]
         return targets
 

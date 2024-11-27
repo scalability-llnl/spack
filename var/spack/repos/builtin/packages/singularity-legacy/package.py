@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -35,6 +35,8 @@ class SingularityLegacy(AutotoolsPackage):
         sha256="eca09dbf4de5e971404a31f24d6c90081aef77075f51be8b3eb15b8715d6805e",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libarchive", when="@2.5.2:")
     # these are only needed if we're grabbing the unreleased tree

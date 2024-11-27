@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,9 @@ class PyNipype(PythonPackage):
     homepage = "https://github.com/nipy/nipype"
     pypi = "nipype/nipype-1.6.0.tar.gz"
 
+    license("Apache-2.0")
+
+    version("1.8.6", sha256="977b1315e8f70f94163ec07e31e5571be83f2add6023141c5a06ac700126f8d1")
     version("1.8.5", sha256="e3842743fb660464dd29de73dcfc9ef66d273be10bcc64059ff21cd5ef1e9655")
     version("1.7.0", sha256="e689fe2e5049598c9cd3708e8df1cac732fa1a88696f283e3bc0a70fecb8ab51")
     version("1.6.1", sha256="8428cfc633d8e3b8c5650e241e9eedcf637b7969bcd40f3423334d4c6b0992b5")
@@ -19,8 +22,7 @@ class PyNipype(PythonPackage):
     version("1.4.2", sha256="069dcbb0217f13af6ee5a7f1e58424b9061290a3e10d7027d73bf44e26f820db")
 
     depends_on("python@3.7:", when="@1.8:", type=("build", "run"))
-    depends_on("python@3.6:", when="@1.5:", type=("build", "run"))
-    depends_on("python@3.5:", type=("build", "run"))
+
     depends_on("py-setuptools@30.3:", when="@1.7.1:", type="build")
     depends_on("py-setuptools", type="build")
 
@@ -45,3 +47,5 @@ class PyNipype(PythonPackage):
     depends_on("py-etelemetry@0.2:", when="@1.5:", type=("build", "run"))
     depends_on("py-etelemetry", type=("build", "run"))
     depends_on("py-looseversion", when="@1.8.1:", type=("build", "run"))
+
+    skip_modules = ["nipype.sphinxext.apidoc"]

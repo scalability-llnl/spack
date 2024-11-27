@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -8,14 +8,19 @@ This test verifies that the Spack directory layout works properly.
 """
 import os
 import os.path
+from pathlib import Path
 
 import pytest
 
+from llnl.path import path_to_os_path
+
+import spack.hash_types
 import spack.paths
 import spack.repo
+import spack.spec
+import spack.util.file_cache
 from spack.directory_layout import DirectoryLayout, InvalidDirectoryLayoutParametersError
 from spack.spec import Spec
-from spack.util.path import path_to_os_path
 
 # number of packages to test (to reduce test time)
 max_packages = 10
@@ -29,8 +34,12 @@ def test_yaml_directory_layout_parameters(tmpdir, default_mock_concretization):
     # Ensure default layout matches expected spec format
     layout_default = DirectoryLayout(str(tmpdir))
     path_default = layout_default.relative_path_for_spec(spec)
-    assert path_default == spec.format(
-        "{architecture}/" "{compiler.name}-{compiler.version}/" "{name}-{version}-{hash}"
+    assert path_default == str(
+        Path(
+            spec.format(
+                "{architecture}/" "{compiler.name}-{compiler.version}/" "{name}-{version}-{hash}"
+            )
+        )
     )
 
     # Test hash_length parameter works correctly
@@ -43,7 +52,7 @@ def test_yaml_directory_layout_parameters(tmpdir, default_mock_concretization):
     assert len(path_default) - len(path_7) == 25
 
     # Test path_scheme
-    arch, compiler, package7 = path_7.split("/")
+    arch, compiler, package7 = path_7.split(os.sep)
     projections_package7 = {"all": "{name}-{version}-{hash:7}"}
     layout_package7 = DirectoryLayout(str(tmpdir), projections=projections_package7)
     path_package7 = layout_package7.relative_path_for_spec(spec)
@@ -61,10 +70,10 @@ def test_yaml_directory_layout_parameters(tmpdir, default_mock_concretization):
     layout_arch_ns = DirectoryLayout(str(tmpdir), projections=arch_ns_scheme_projections)
 
     arch_path_spec2 = layout_arch_ns.relative_path_for_spec(spec2)
-    assert arch_path_spec2 == spec2.format(arch_scheme)
+    assert arch_path_spec2 == str(Path(spec2.format(arch_scheme)))
 
     ns_path_spec = layout_arch_ns.relative_path_for_spec(spec)
-    assert ns_path_spec == spec.format(ns_scheme)
+    assert ns_path_spec == str(Path(spec.format(ns_scheme)))
 
     # Ensure conflicting parameters caught
     with pytest.raises(InvalidDirectoryLayoutParametersError):
@@ -79,7 +88,7 @@ def test_read_and_write_spec(temporary_store, config, mock_packages):
     layout.
     """
     layout = temporary_store.layout
-    pkg_names = list(spack.repo.path.all_package_names())[:max_packages]
+    pkg_names = list(spack.repo.PATH.all_package_names())[:max_packages]
 
     for name in pkg_names:
         if name.startswith("external"):
@@ -140,7 +149,7 @@ def test_read_and_write_spec(temporary_store, config, mock_packages):
         assert not os.path.exists(install_dir)
 
 
-def test_handle_unknown_package(temporary_store, config, mock_packages):
+def test_handle_unknown_package(temporary_store, config, mock_packages, tmp_path):
     """This test ensures that spack can at least do *some*
     operations with packages that are installed but that it
     does not know about.  This is actually not such an uncommon
@@ -152,7 +161,9 @@ def test_handle_unknown_package(temporary_store, config, mock_packages):
     or query them again if the package goes away.
     """
     layout = temporary_store.layout
-    mock_db = spack.repo.RepoPath(spack.paths.mock_packages_path)
+
+    repo_cache = spack.util.file_cache.FileCache(str(tmp_path / "cache"))
+    mock_db = spack.repo.RepoPath(spack.paths.mock_packages_path, cache=repo_cache)
 
     not_in_mock = set.difference(
         set(spack.repo.all_package_names()), set(mock_db.all_package_names())
@@ -191,7 +202,7 @@ def test_handle_unknown_package(temporary_store, config, mock_packages):
 def test_find(temporary_store, config, mock_packages):
     """Test that finding specs within an install layout works."""
     layout = temporary_store.layout
-    package_names = list(spack.repo.path.all_package_names())[:max_packages]
+    package_names = list(spack.repo.PATH.all_package_names())[:max_packages]
 
     # Create install prefixes for all packages in the list
     installed_specs = {}

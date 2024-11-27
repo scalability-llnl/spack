@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,9 @@ class RModelr(RPackage):
 
     cran = "modelr"
 
+    license("GPL-3.0-only")
+
+    version("0.1.11", sha256="94ebd506e9ccf3bf25318be6a182f8f89c3669a77b41864a0b9dbcc1d4337bd3")
     version("0.1.9", sha256="10e9fde89e4695bbab3de2490336f68805cc327807a809982231169963dfa9c9")
     version("0.1.8", sha256="825ba77d95d60cfb94920bec910872ca2ffe7790a44148b2992be2759cb361c4")
     version("0.1.5", sha256="45bbee387c6ba154f9f8642e9f03ea333cce0863c324ff15d23096f33f85ce5a")
@@ -27,6 +30,7 @@ class RModelr(RPackage):
     depends_on("r-magrittr", type=("build", "run"))
     depends_on("r-purrr@0.2.2:", type=("build", "run"))
     depends_on("r-rlang@0.2.0:", type=("build", "run"), when="@0.1.3:")
+    depends_on("r-rlang@1.0.6:", type=("build", "run"), when="@0.1.11:")
     depends_on("r-tibble", type=("build", "run"))
     depends_on("r-tidyr@0.8.0:", type=("build", "run"))
     depends_on("r-tidyselect", type=("build", "run"), when="@0.1.8:")

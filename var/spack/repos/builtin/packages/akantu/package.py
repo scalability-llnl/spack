@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,8 +21,13 @@ class Akantu(CMakePackage):
 
     maintainers("nrichart")
 
+    license("LGPL-3.0-or-later")
+
     version("master", branch="master")
     version("3.0.0", sha256="7e8f64e25956eba44def1b2d891f6db8ba824e4a82ff0d51d6b585b60ab465db")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "external_solvers",
@@ -65,10 +70,8 @@ class Akantu(CMakePackage):
             "-DAKANTU_HEAT_TRANSFER:BOOL=ON",
             "-DAKANTU_SOLID_MECHANICS:BOOL=ON",
             "-DAKANTU_STRUCTURAL_MECHANICS:BOOL=OFF",
-            "-DAKANTU_PARALLEL:BOOL={0}".format("ON" if spec.satisfies("+mpi") else "OFF"),
-            "-DAKANTU_PYTHON_INTERFACE:BOOL={0}".format(
-                "ON" if spec.satisfies("+python") else "OFF"
-            ),
+            f"-DAKANTU_PARALLEL:BOOL={'ON' if spec.satisfies('+mpi') else 'OFF'}",
+            f"-DAKANTU_PYTHON_INTERFACE:BOOL={'ON' if spec.satisfies('+python') else 'OFF'}",
         ]
 
         if spec.satisfies("@:3.0"):
@@ -84,14 +87,14 @@ class Akantu(CMakePackage):
         solvers = []
         if spec.satisfies("external_solvers=mumps"):
             solvers.append("Mumps")
-            args.append("-DMUMPS_DIR:PATH=${0}".format(spec["mumps"].prefix))
+            args.append(f"-DMUMPS_DIR:PATH=${spec['mumps'].prefix}")
         if spec.satisfies("external_solvers=petsc"):
             solvers.append("PETSc")
 
         if len(solvers) > 0:
             args.extend(
                 [
-                    "-DAKANTU_IMPLICIT_SOLVER:STRING={0}".format("+".join(solvers)),
+                    f"-DAKANTU_IMPLICIT_SOLVER:STRING={'+'.join(solvers)}",
                     "-DAKANTU_IMPLICIT:BOOL=ON",
                 ]
             )

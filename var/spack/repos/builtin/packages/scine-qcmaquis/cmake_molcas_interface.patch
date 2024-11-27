@@ -1,0 +1,19 @@
+diff --git a/dmrg/lib/interfaces/openmolcas/CMakeLists.txt b/dmrg/lib/interfaces/openmolcas/CMakeLists.txt
+index 46e569074..83fda1ca6 100644
+--- a/dmrg/lib/interfaces/openmolcas/CMakeLists.txt
++++ b/dmrg/lib/interfaces/openmolcas/CMakeLists.txt
+@@ -24,7 +24,13 @@ add_library(qcmaquis-hdf5-interface ${HDF5_INTERFACE_SOURCES})
+ 
+ target_link_libraries(qcmaquis-hdf5-interface ${HDF5_LIBRARIES})
+ 
+-set_target_properties(qcmaquis-driver PROPERTIES COMPILE_FLAGS "-cpp")
++if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
++  target_compile_options(qcmaquis-driver PRIVATE "-cpp")
++elseif ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Intel")
++  target_compile_options(qcmaquis-driver PRIVATE "-fpp")
++elseif ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Clang")
++  target_compile_options(qcmaquis-driver PRIVATE "-x f95")
++endif()
+ 
+ if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU"
+        AND CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER 10.0)

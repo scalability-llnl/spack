@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Opentsdb(AutotoolsPackage):
 
     homepage = "https://github.com/OpenTSDB"
     url = "https://github.com/OpenTSDB/opentsdb/archive/v2.4.0.tar.gz"
+
+    license("LGPL-2.1-or-later")
 
     version("2.4.0", sha256="eb6bf323d058bd456a3b92132f872ca0e4f4a0b0d5e3ed325ebc03dcd64abfd0")
     version("2.3.2", sha256="5de8a3ff21bfa431d53859e278e23100fddde239aa2f25e8dee7810098cfd131")

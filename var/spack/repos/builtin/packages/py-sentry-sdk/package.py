@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PySentrySdk(PythonPackage):
 
     homepage = "https://github.com/getsentry/sentry-python"
     pypi = "sentry-sdk/sentry-sdk-0.17.6.tar.gz"
+
+    license("MIT")
 
     version("1.5.5", sha256="98fd155fa5d5fec1dbabed32a1a4ae2705f1edaa5dae4e7f7b62a384ba30e759")
     version("0.17.6", sha256="1a086486ff9da15791f294f6e9915eb3747d161ef64dee2d038a4d0b4a369b24")

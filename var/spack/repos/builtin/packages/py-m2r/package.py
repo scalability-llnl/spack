@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyM2r(PythonPackage):
 
     homepage = "https://github.com/miyakogi/m2r"
     url = "https://github.com/miyakogi/m2r/archive/v0.2.1.tar.gz"
+
+    license("MIT")
 
     version("0.2.1", sha256="9286c1a5d7548f34b0a12017444e4c441781bef4b71f321f723e314b76b6c498")
     version("0.2.0", sha256="e9b7476203c4a5e3b822eb0ef110011d7b427d2c0dbdc4030f9cbcd239fbd4d6")

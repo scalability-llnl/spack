@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -65,17 +65,6 @@ def test_icc16_link_paths():
                 prefix, "gcc", "gcc-4.9.3", "lib64", "gcc", "x86_64-unknown-linux-gnu", "4.9.3"
             ),
             os.path.join(prefix, "gcc", "gcc-4.9.3", "lib64"),
-        ],
-    )
-
-
-def test_pgi_link_paths():
-    check_link_paths(
-        "pgcc-16.3.txt",
-        [
-            os.path.join(
-                root, "usr", "tce", "packages", "pgi", "pgi-16.3", "linux86-64", "16.3", "lib"
-            )
         ],
     )
 

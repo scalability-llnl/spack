@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyHistoprint(PythonPackage):
 
     homepage = "https://github.com/scikit-hep/histoprint"
     pypi = "histoprint/histoprint-2.2.0.tar.gz"
+
+    license("MIT")
 
     version("2.4.0", sha256="328f789d186e3bd76882d57b5aad3fa08c7870a856cc83bcdbad9f4aefbda94d")
     version("2.2.0", sha256="ef8b65f7926aaa989f076857b76291175245dd974804b408483091d1e28b00f6")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -372,7 +372,14 @@ end
 
 
 function spack_runner -d "Runner function for the `spack` wrapper"
-
+    # Store DYLD_* variables from spack shell function
+    # This is necessary because MacOS System Integrity Protection clears
+    # variables that affect dyld on process start.
+    for var in DYLD_LIBRARY_PATH DYLD_FALLBACK_LIBRARY_PATH
+        if set -q $var
+            set -gx SPACK_$var $$var
+        end
+    end
 
     #
     # Accumulate initial flags for main spack command
@@ -641,10 +648,10 @@ function spack_pathadd -d "Add path to specified variable (defaults to PATH)"
         # passed to regular expression matching (`string match -r`)
         set -l _a "$pa_oldvalue"
 
-        # skip path if it is already contained in the variable
+        # skip path if it is already the first in the variable
         # note spaces in regular expression: we're matching to a space delimited
         # list of paths
-        if not echo $_a | string match -q -r " *$pa_new_path *"
+        if not echo $_a | string match -q -r "^$pa_new_path *"
             if test -n "$pa_oldvalue"
                 set $pa_varname $pa_new_path $pa_oldvalue
             else
@@ -778,7 +785,15 @@ if test -z "$SPACK_SKIP_MODULES"
     sp_multi_pathadd MODULEPATH $_sp_tcl_roots
 end
 
+# Add programmable tab completion for fish
+#
+set -l fish_version (string split '.' $FISH_VERSION)
+if test $fish_version[1] -gt 3
+    or test $fish_version[1] -eq 3
+    and test $fish_version[2] -ge 2
 
+    source $sp_share_dir/spack-completion.fish
+end
 
 #
 # NOTES

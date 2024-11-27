@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPicrust2(PythonPackage):
     url = "https://github.com/picrust/picrust2/archive/v2.3.0-b.tar.gz"
 
     maintainers("dorton21")
+
+    license("GPL-3.0-only")
 
     version("2.3.0-b", sha256="ac12c372bc263e750d9101eca0cd0e57de37089b661fa1a13caf5a544d293737")
     version("2.2.0-b", sha256="c41e1f487b33179f4aecede50cfd8b652aa3cef2ea1ae5fd022f531c7d549097")

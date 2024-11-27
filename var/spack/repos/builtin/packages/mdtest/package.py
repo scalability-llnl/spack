@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,9 @@ class Mdtest(Package):
     homepage = "https://github.com/LLNL/mdtest"
     git = "https://github.com/LLNL/mdtest.git"
 
-    version("1.9.3", commit="49f3f0")
+    version("1.9.3", commit="49f3f047c254c62848c23226d6f1afa5fc3c6583")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("mpi")
 

@@ -1,7 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import sys
 
 from spack.package import *
 
@@ -15,9 +17,15 @@ class OsspUuid(AutotoolsPackage):
     homepage = "http://www.ossp.org/pkg/lib/uuid"
     url = "https://www.mirrorservice.org/sites/ftp.ossp.org/pkg/lib/uuid/uuid-1.6.2.tar.gz"
 
+    license("MIT")
+
     version("1.6.2", sha256="11a615225baa5f8bb686824423f50e4427acd3f70d394765bdff32801f0fd5b0")
 
-    provides("uuid")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
+    if sys.platform not in ["darwin", "win32"]:
+        provides("uuid")
 
     @property
     def libs(self):

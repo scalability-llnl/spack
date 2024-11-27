@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyXopen(PythonPackage):
 
     homepage = "https://github.com/pycompression/xopen"
     pypi = "xopen/xopen-0.1.1.tar.gz"
+
+    license("MIT")
 
     version("1.6.0", sha256="72219a4d690e9c90ad445c45d2119ae2a6d5d38912255631e227aceac6294353")
     version("1.1.0", sha256="38277eb96313b2e8822e19e793791801a1f41bf13ee5b48616a97afc65e9adb3")

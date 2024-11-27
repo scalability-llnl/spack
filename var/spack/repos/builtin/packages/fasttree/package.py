@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -34,7 +34,7 @@ class Fasttree(Package):
 
     def install(self, spec, prefix):
         cc = Executable(spack_cc)
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             cc(
                 "-O3",
                 self.compiler.openmp_flag,
@@ -63,5 +63,5 @@ class Fasttree(Package):
     @run_after("install")
     def create_fasttree_mp_symlink(self):
         with working_dir(prefix.bin):
-            if "+openmp" in self.spec:
+            if self.spec.satisfies("+openmp"):
                 symlink("FastTree", "FastTreeMP")

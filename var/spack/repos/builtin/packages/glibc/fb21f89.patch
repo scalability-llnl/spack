@@ -1,0 +1,13 @@
+diff --git a/sunrpc/rpc_clntout.c b/sunrpc/rpc_clntout.c
+index ec040c775e2..ce4d2a4c953 100644
+--- a/sunrpc/rpc_clntout.c
++++ b/sunrpc/rpc_clntout.c
+@@ -31,7 +31,7 @@
+  */
+ #include <stdio.h>
+ #include <string.h>
+-#include <rpc/types.h>
++#include "rpc/types.h"
+ #include "rpc_parse.h"
+ #include "rpc_util.h"
+ #include "proto.h"

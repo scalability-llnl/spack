@@ -10,6 +10,7 @@ RUN yum update -y \
         gcc-gfortran \
         git \
         gnupg2 \
+        hg \
         hostname \
         iproute \
         make \
@@ -18,6 +19,7 @@ RUN yum update -y \
         python3-pip \
         python3-setuptools \
         unzip \
+        zstd \
  && pip3 install boto3 \
  && rm -rf /var/cache/yum \
  && yum clean all

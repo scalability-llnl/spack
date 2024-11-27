@@ -1,0 +1,171 @@
+diff --git a/psana/setup.py b/psana/setup.py
+index 61412cf6..20ec023b 100644
+--- a/psana/setup.py
++++ b/psana/setup.py
+@@ -18,6 +18,18 @@ if not instdir_env:
+     raise Exception('Parameter --instdir is missing')
+ instdir = instdir_env
+ 
++xtcdatadir_env = os.environ.get('XTCDATADIR')
++if not xtcdatadir_env:
++    xtcdatadir = instdir_env
++else:
++    xtcdatadir = xtcdatadir_env
++
++psalgdir_env = os.environ.get('PSALGDIR')
++if not psalgdir_env:
++    psalgdir = instdir_env
++else:
++    psalgdir = psalgdir_env
++
+ # Shorter BUILD_LIST can be used to speedup development loop.
+ #Command example: ./build_all.sh -b PEAKFINDER:HEXANODE:CFD -md
+ BUILD_LIST = ('PSANA','SHMEM','PEAKFINDER','HEXANODE','DGRAM','HSD','CFD','NDARRAY')# ,'XTCAV')
+@@ -63,6 +75,10 @@ else:
+     openmp_link_args = ['-fopenmp']
+ 
+ extra_link_args_rpath = extra_link_args + ['-Wl,-rpath,'+ os.path.abspath(os.path.join(instdir, 'lib'))]
++if xtcdatadir_env:
++    extra_link_args_rpath = extra_link_args_rpath + ['-Wl,-rpath,'+ os.path.abspath(os.path.join(xtcdatadir, 'lib'))]
++if psalgdir_env:
++    extra_link_args_rpath = extra_link_args_rpath + ['-Wl,-rpath,'+ os.path.abspath(os.path.join(psalgdir, 'lib'))]
+ 
+ CYT_BLD_DIR = 'build'
+ 
+@@ -76,21 +92,38 @@ INSTALL_REQS = []
+ PACKAGE_DATA = {}
+ ENTRY_POINTS = {}
+ 
++if xtcdatadir_env:
++    xtc_headers =  os.path.join(xtcdatadir, 'include')
++    xtc_lib_path = os.path.join(xtcdatadir, 'lib')
++else:
++    xtc_headers =  os.path.join(instdir, 'include')
++    xtc_lib_path = os.path.join(instdir, 'lib')
++
++if psalgdir_env:
++    psalg_headers =  os.path.join(psalgdir, 'include')
++    psalg_lib_path =  os.path.join(psalgdir, 'lib')
++else:
++    psalg_headers =  os.path.join(instdir, 'include')
++    psalg_lib_path =  os.path.join(instdir, 'lib')
+ 
+ if 'PSANA' in BUILD_LIST :
+     dgram_module = Extension('psana.dgram',
+                             sources = ['src/dgram.cc'],
+                             libraries = ['xtc'],
+-                            include_dirs = ['src', np.get_include(), os.path.join(instdir, 'include')],
+-                            library_dirs = [os.path.join(instdir, 'lib')],
++                            #include_dirs = ['src', np.get_include(), os.path.join(instdir, 'include'), ],
++                            #library_dirs = [os.path.join(instdir, 'lib')],
++                            include_dirs = ['src', np.get_include(), os.path.join(instdir, 'include'), xtc_headers ],
++                            library_dirs = [os.path.join(instdir, 'lib'), xtc_lib_path],
+                             extra_link_args = extra_link_args_rpath,
+                             extra_compile_args = extra_cxx_compile_args)
+ 
+     container_module = Extension('psana.container',
+                             sources = ['src/container.cc'],
+                             libraries = ['xtc'],
+-                            include_dirs = [np.get_include(), os.path.join(instdir, 'include')],
+-                            library_dirs = [os.path.join(instdir, 'lib')],
++                            #include_dirs = [np.get_include(), os.path.join(instdir, 'include')],
++                            #library_dirs = [os.path.join(instdir, 'lib')],
++                            include_dirs = [np.get_include(), os.path.join(instdir, 'include'), xtc_headers ],
++                            library_dirs = [os.path.join(instdir, 'lib'), xtc_lib_path],
+                             extra_link_args = extra_link_args_rpath,
+                             extra_compile_args = extra_cxx_compile_args)
+ 
+@@ -122,6 +155,7 @@ if 'PSANA' in BUILD_LIST :
+             'xtcavDisplay        = psana.xtcav.app.xtcavDisplay:__main__',
+             'shmemClientSimple   = psana.app.shmemClientSimple:main',
+             'epix10ka_pedestals_calibration = psana.app.epix10ka_pedestals_calibration:do_main',
++            'epix10ka_charge_injection = psana.app.epix10ka_charge_injection:do_main',
+             'epix10ka_deploy_constants = psana.app.epix10ka_deploy_constants:do_main',
+             'epix10ka_raw_calib_image = psana.app.epix10ka_raw_calib_image:do_main',
+             'epix10ka_calib_components = psana.app.epix10ka_calib_components:__main__',
+@@ -137,8 +171,10 @@ if 'SHMEM' in BUILD_LIST and sys.platform != 'darwin':
+     ext = Extension('shmem',
+                     sources=["psana/shmem/shmem.pyx"],
+                     libraries = ['xtc','shmemcli'],
+-                    include_dirs = [np.get_include(), os.path.join(instdir, 'include')],
+-                    library_dirs = [os.path.join(instdir, 'lib')],
++                    #include_dirs = [np.get_include(), os.path.join(instdir, 'include')],
++                    #library_dirs = [os.path.join(instdir, 'lib')],
++                    include_dirs = [np.get_include(), os.path.join(instdir, 'include'), xtc_headers, psalg_headers ],
++                    library_dirs = [os.path.join(instdir, 'lib'), xtc_lib_path, psalg_lib_path],
+                     language="c++",
+                     extra_compile_args = extra_cxx_compile_args,
+                     extra_link_args = extra_link_args_rpath,
+@@ -239,8 +275,10 @@ if 'DGRAM' in BUILD_LIST :
+                     #packages=['psana.peakfinder',],
+                     sources=["psana/peakFinder/dgramCreate.pyx"],
+                     libraries = ['xtc'],
+-                    include_dirs = [np.get_include(), os.path.join(instdir, 'include')],
+-                    library_dirs = [os.path.join(instdir, 'lib')],
++                    #include_dirs = [np.get_include(), os.path.join(instdir, 'include')],
++                    #library_dirs = [os.path.join(instdir, 'lib')],
++                    include_dirs = [np.get_include(), os.path.join(instdir, 'include'), xtc_headers ],
++                    library_dirs = [os.path.join(instdir, 'lib'), xtc_lib_path],
+                     language="c++",
+                     extra_compile_args = extra_cxx_compile_args,
+                     extra_link_args = extra_link_args_rpath,
+@@ -257,7 +295,11 @@ if 'DGRAM' in BUILD_LIST :
+ 
+     ext = Extension("psana.smdreader",
+                     sources=["psana/smdreader.pyx"],
+-                    include_dirs=["psana"],
++                    libraries = ['xtc'],
++                    #include_dirs=["psana"],
++                    #include_dirs = [np.get_include(), os.path.join(instdir, 'include')],
++                    include_dirs = ["psana", np.get_include(), os.path.join(instdir, 'include'), xtc_headers ],
++                    library_dirs = [os.path.join(instdir, 'lib'), xtc_lib_path],
+                     #extra_compile_args=extra_c_compile_args,
+                     extra_compile_args=extra_c_compile_args + openmp_compile_args,
+                     #extra_link_args=extra_link_args,
+@@ -284,8 +326,10 @@ if 'DGRAM' in BUILD_LIST :
+     ext = Extension("psana.dgramedit",
+                     sources=["psana/dgramedit.pyx"],
+                     libraries = ['xtc'],
+-                    include_dirs=["psana",np.get_include(), os.path.join(instdir, 'include')],
+-                    library_dirs = [os.path.join(instdir, 'lib')],
++                    #include_dirs=["psana",np.get_include(), os.path.join(instdir, 'include')],
++                    #library_dirs = [os.path.join(instdir, 'lib')],
++                    include_dirs = ["psana", np.get_include(), os.path.join(instdir, 'include'), xtc_headers ],
++                    library_dirs = [os.path.join(instdir, 'lib'), xtc_lib_path],
+                     language="c++",
+                     extra_compile_args = extra_cxx_compile_args,
+                     extra_link_args = extra_link_args_rpath,
+@@ -305,8 +349,10 @@ if 'DGRAM' in BUILD_LIST :
+     ext = Extension("psana.dgramlite",
+                     sources=["psana/dgramlite.pyx"],
+                     libraries = ['xtc'],
+-                    include_dirs=["psana",np.get_include(), os.path.join(instdir, 'include')],
+-                    library_dirs = [os.path.join(instdir, 'lib')],
++                    #include_dirs=["psana",np.get_include(), os.path.join(instdir, 'include')],
++                    #iibrary_dirs = [os.path.join(instdir, 'lib')],
++                    include_dirs = ["psana", np.get_include(), os.path.join(instdir, 'include'), xtc_headers ],
++                    library_dirs = [os.path.join(instdir, 'lib'), xtc_lib_path],
+                     language="c++",
+                     extra_compile_args = extra_cxx_compile_args,
+                     extra_link_args = extra_link_args_rpath,
+@@ -316,15 +362,17 @@ if 'DGRAM' in BUILD_LIST :
+     ext = Extension("psana.mypybuffer",
+                     sources=["psana/mypybuffer.pyx"],
+                     libraries = ['xtc'],
+-                    include_dirs=["psana",np.get_include(), os.path.join(instdir, 'include')],
+-                    library_dirs = [os.path.join(instdir, 'lib')],
++                    #include_dirs=["psana",np.get_include(), os.path.join(instdir, 'include')],
++                    #library_dirs = [os.path.join(instdir, 'lib')],
++                    include_dirs = ["psana", np.get_include(), os.path.join(instdir, 'include'), xtc_headers ],
++                    library_dirs = [os.path.join(instdir, 'lib'), xtc_lib_path],
+                     language="c++",
+                     extra_compile_args = extra_cxx_compile_args,
+-                    extra_link_args = extra_link_args_rpath,
+     )
+     CYTHON_EXTS.append(ext)
+ 
+ 
++
+ if 'HSD' in BUILD_LIST :
+     ext = Extension("hsd",
+                     sources=["psana/hsd/hsd.pyx"],

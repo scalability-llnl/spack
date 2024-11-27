@@ -1,18 +1,19 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Schema for bootstrap.yaml configuration file."""
+from typing import Any, Dict
 
 #: Schema of a single source
-_source_schema = {
+_source_schema: Dict[str, Any] = {
     "type": "object",
     "properties": {"name": {"type": "string"}, "metadata": {"type": "string"}},
     "additionalProperties": False,
     "required": ["name", "metadata"],
 }
 
-properties = {
+properties: Dict[str, Any] = {
     "bootstrap": {
         "type": "object",
         "properties": {

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyBmapTools(PythonPackage):
 
     homepage = "https://github.com/intel/bmap-tools/"
     url = "https://github.com/intel/bmap-tools/archive/v3.4.tar.gz"
+
+    license("GPL-2.0-only")
 
     version("3.5", sha256="d410e2d97192d0fc2f88ef160a0bb6ed83fce99da97a606d7f6890cc654ec594")
     version("3.4", sha256="483c5dd9589920b5bdec85d4cdbe150adb3ca404d205504f85c0fb03edc69c2a")

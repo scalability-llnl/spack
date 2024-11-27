@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -86,11 +86,13 @@ def test_config_blame_defaults():
         if match:
             filename, line, key, val = match.groups()
             line = int(line)
-            val = val.strip("'\"")
-
-            if val.lower() in ("true", "false"):
-                val = val.lower()
-
             lines = get_file_lines(filename)
             assert key in lines[line]
-            assert val in lines[line]
+
+            val = val.strip("'\"")
+            printed_line = lines[line]
+            if val.lower() in ("true", "false"):
+                val = val.lower()
+                printed_line = printed_line.lower()
+
+            assert val in printed_line, filename

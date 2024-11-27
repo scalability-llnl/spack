@@ -1,0 +1,11 @@
+enable:
+  - lmod
+lmod:
+  core_compilers:
+    - 'clang@3.3'
+  projections:
+    all: '{name}/{version}-{compiler.name}'
+  all:
+    autoload: none
+    conflict:
+      - '{name}/{compiler.name}'

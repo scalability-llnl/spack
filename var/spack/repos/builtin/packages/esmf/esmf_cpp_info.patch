@@ -1,0 +1,11 @@
+--- a/makefile	2023-03-08 22:04:26.000000000 -0600
++++ b/makefile	2023-03-08 22:05:14.000000000 -0600
+@@ -97,7 +97,7 @@
+ 	-@echo "C Compiler version:"; $(ESMF_CCOMPILER_VERSION); echo ""
+ 	-@echo "--------------------------------------------------------------"
+ 	-@echo "Preprocessor version:"
+-	@$(ESMF_CPP) --version $(ESMF_DIR)/scripts/empty.C
++	-@echo `$(ESMF_CPP) --version $(ESMF_DIR)/scripts/empty.C`
+ ifeq ($(pathtype),abs)
+ 	-@echo "--------------------------------------------------------------"
+ 	-@echo "NetCDF library version: `$(ESMF_NETCDF) --version`"

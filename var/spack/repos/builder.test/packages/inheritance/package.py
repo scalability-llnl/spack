@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,7 @@ class Inheritance(spack.pkg.builder.test.callbacks.Callbacks):
 
 class GenericBuilder(spack.pkg.builder.test.callbacks.GenericBuilder):
     def install(self, pkg, spec, prefix):
-        super(GenericBuilder, self).install(pkg, spec, prefix)
+        super().install(pkg, spec, prefix)
         os.environ["INHERITANCE_INSTALL_CALLED"] = "1"
         os.environ["INSTALL_VALUE"] = "INHERITANCE"
 

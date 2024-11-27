@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PySimplekml(PythonPackage):
 
     homepage = "https://readthedocs.org/projects/simplekml/"
     pypi = "simplekml/simplekml-1.3.1.tar.gz"
+
+    license("GPL-3.0-only")
 
     version("1.3.6", sha256="cda687be2754395fcab664e908ebf589facd41e8436d233d2be37a69efb1c536")
     version("1.3.5", sha256="657b4e20177299a4e80bacfafff1f91102010bc23dc0ce7a7ae43bdd4246049e")

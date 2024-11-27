@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,7 @@ class RBsgenome(RPackage):
 
     bioc = "BSgenome"
 
+    version("1.68.0", commit="c546020750e900377fbdeae015a01a96d5962d09")
     version("1.66.1", commit="d1efdfa8e7242bc0f54cc1c3a9583ea555c924f6")
     version("1.64.0", commit="59cdebde613e9702985c003f699f4aea2b0f0e7b")
     version("1.62.0", commit="9b1859e11ffa082833f035a45274af6e4e83e863")

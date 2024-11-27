@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,7 +22,7 @@ class Gapfiller(Package):
     homepage = "https://www.baseclear.com/genomics/bioinformatics/basetools/gapfiller"
     manual_download = True
 
-    version("1.10", "54d5e2ada131a1305a66e41c0d380382")
+    version("1.10", md5="54d5e2ada131a1305a66e41c0d380382")
 
     def url_for_version(self, version):
         return "file://{0}/39GapFiller_v{1}_linux-x86_64.tar.gz".format(

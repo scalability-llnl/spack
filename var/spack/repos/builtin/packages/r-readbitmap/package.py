@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class RReadbitmap(RPackage):
     libjpg and libpng libraries. See file INSTALL for details if necessary."""
 
     cran = "readbitmap"
+
+    license("GPL-2.0-or-later")
 
     version("0.1.5", sha256="737d7d585eb33de2c200da64d16781e3c9522400fe2af352e1460c6a402a0291")
 

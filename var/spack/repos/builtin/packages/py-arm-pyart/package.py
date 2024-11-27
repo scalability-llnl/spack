@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class PyArmPyart(PythonPackage):
 
     version("1.12.7", sha256="b7b23ecef270c60b017d94603941f0c117de072a10125c5f58c0685d801f9161")
 
+    depends_on("c", type="build")  # generated
+
     variant("cartopy", description="Plot grids on maps", default=False)
     variant("cylp", description="Linear programming solver", default=False)
     variant("gdal", description="Output GeoTIFFs from grid objects", default=False)
@@ -39,6 +41,8 @@ class PyArmPyart(PythonPackage):
 
     depends_on("py-cython", type="build")
     depends_on("py-numpy", type=("build", "run"))
+    # https://github.com/ARM-DOE/pyart/issues/1550
+    depends_on("py-numpy@:1", when="@:1.18.1", type=("build", "run"))
     depends_on("py-scipy", type=("build", "run"))
     depends_on("py-netcdf4", type=("build", "run"))
     depends_on("py-matplotlib", type=("build", "run"))

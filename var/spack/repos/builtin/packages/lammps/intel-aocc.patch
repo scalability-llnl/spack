@@ -1,0 +1,154 @@
+diff --git a/src/INTEL/dihedral_charmm_intel.h b/src/INTEL/dihedral_charmm_intel.h
+index a4f9109aa1..4047e7c07f 100644
+--- a/src/INTEL/dihedral_charmm_intel.h
++++ b/src/INTEL/dihedral_charmm_intel.h
+@@ -67,7 +67,7 @@ class DihedralCharmmIntel : public DihedralCharmm {
+     fc_packed3 *fc;
+     flt_t *weight;
+ 
+-    ForceConst() : ljp(nullptr), fc(nullptr), _npairtypes(0), _ndihderaltypes(0) {}
++    ForceConst() : ljp(nullptr), fc(nullptr), weight(nullptr), _npairtypes(0), _ndihderaltypes(0) {}
+     ~ForceConst() { set_ntypes(0, 0, nullptr); }
+ 
+     void set_ntypes(const int npairtypes, const int ndihderaltypes, Memory *memory);
+diff --git a/src/INTEL/intel_preprocess.h b/src/INTEL/intel_preprocess.h
+index 7ff8f7d099..4a6a9ff1f6 100644
+--- a/src/INTEL/intel_preprocess.h
++++ b/src/INTEL/intel_preprocess.h
+@@ -134,6 +134,9 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
+ #undef INTEL_VECTOR_WIDTH
+ #define INTEL_VECTOR_WIDTH 1
+ #define INTEL_COMPILE_WIDTH 1
++#if defined(__AVX512F__) && !defined(INTEL_VMASK)
++#define INTEL_VMASK 1
++#endif
+ 
+ #endif
+ 
+diff --git a/src/INTEL/pair_airebo_intel.cpp b/src/INTEL/pair_airebo_intel.cpp
+index 25e52d02d2..5a228a6305 100644
+--- a/src/INTEL/pair_airebo_intel.cpp
++++ b/src/INTEL/pair_airebo_intel.cpp
+@@ -1968,7 +1968,7 @@ void ref_frebo_single_interaction(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i,
+   flt_t Aij = ka->params.A[itype][jtype];
+   flt_t alphaij = ka->params.alpha[itype][jtype];
+ 
+-  flt_t exp_alphar = exp(-alphaij * rij);
++  flt_t exp_alphar = overloaded::exp(-alphaij * rij);
+   flt_t VR_by_wij = (1.0 + (Qij / rij)) * Aij * exp_alphar;
+   flt_t VR = wij * VR_by_wij;
+   flt_t pre = wij * Aij * exp_alphar;
+@@ -2108,7 +2108,7 @@ void ref_lennard_jones_single_interaction(KernelArgsAIREBOT<flt_t,acc_t> * ka,
+ 
+   flt_t vdw, dvdw;
+   if (morseflag) {
+-    const flt_t exr = exp(-rij * ka->params.lj4[itype][jtype]);
++    const flt_t exr = overloaded::exp(-rij * ka->params.lj4[itype][jtype]);
+     vdw = ka->params.lj1[itype][jtype] * exr *
+       (ka->params.lj2[itype][jtype]*exr - 2);
+     dvdw = ka->params.lj3[itype][jtype] * exr *
+diff --git a/src/INTEL/pair_buck_coul_cut_intel.cpp b/src/INTEL/pair_buck_coul_cut_intel.cpp
+index 62d6d02952..76ce1dc8b0 100644
+--- a/src/INTEL/pair_buck_coul_cut_intel.cpp
++++ b/src/INTEL/pair_buck_coul_cut_intel.cpp
+@@ -294,7 +294,7 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
+           if (rsq < c_cuti[jtype].cut_ljsq) {
+           #endif
+             flt_t r6inv = r2inv * r2inv * r2inv;
+-            flt_t rexp = exp(-r * c_forcei[jtype].rhoinv);
++            flt_t rexp = std::exp(-r * c_forcei[jtype].rhoinv);
+             forcebuck = r * rexp * c_forcei[jtype].buck1 -
+               r6inv * c_forcei[jtype].buck2;
+             if (EFLAG)
+diff --git a/src/INTEL/pair_buck_coul_long_intel.cpp b/src/INTEL/pair_buck_coul_long_intel.cpp
+index 1425317a0a..5710f394bd 100644
+--- a/src/INTEL/pair_buck_coul_long_intel.cpp
++++ b/src/INTEL/pair_buck_coul_long_intel.cpp
+@@ -336,7 +336,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
+             const flt_t INV_EWALD_P = 1.0 / 0.3275911;
+ 
+             const flt_t grij = g_ewald * r;
+-            const flt_t expm2 = exp(-grij * grij);
++            const flt_t expm2 = std::exp(-grij * grij);
+             const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
+             const flt_t erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+             const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
+@@ -377,7 +377,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
+           if (rsq < c_forcei[jtype].cut_ljsq) {
+           #endif
+             flt_t r6inv = r2inv * r2inv * r2inv;
+-            flt_t rexp = exp(-r * rho_invi[jtype]);
++            flt_t rexp = std::exp(-r * rho_invi[jtype]);
+             forcebuck = r * rexp * c_forcei[jtype].buck1 -
+               r6inv * c_forcei[jtype].buck2;
+             if (EFLAG) evdwl = rexp * c_energyi[jtype].a -
+diff --git a/src/INTEL/pair_buck_intel.cpp b/src/INTEL/pair_buck_intel.cpp
+index 46ea291420..def49f57aa 100644
+--- a/src/INTEL/pair_buck_intel.cpp
++++ b/src/INTEL/pair_buck_intel.cpp
+@@ -262,7 +262,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
+           if (rsq < c_forcei[jtype].cutsq) {
+           #endif
+             const flt_t r6inv = r2inv * r2inv * r2inv;
+-            const flt_t rexp = exp(-r * c_forcei[jtype].rhoinv);
++            const flt_t rexp = std::exp(-r * c_forcei[jtype].rhoinv);
+             forcebuck = r * rexp * c_forcei[jtype].buck1 -
+               r6inv * c_forcei[jtype].buck2;
+ 
+diff --git a/src/INTEL/pair_lj_charmm_coul_long_intel.cpp b/src/INTEL/pair_lj_charmm_coul_long_intel.cpp
+index e30c1dec32..13f9bb3e7a 100644
+--- a/src/INTEL/pair_lj_charmm_coul_long_intel.cpp
++++ b/src/INTEL/pair_lj_charmm_coul_long_intel.cpp
+@@ -341,7 +341,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
+ 
+             const flt_t r = (flt_t)1.0 / sqrt(r2inv);
+             const flt_t grij = g_ewald * r;
+-            const flt_t expm2 = exp(-grij * grij);
++            const flt_t expm2 = std::exp(-grij * grij);
+             const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
+             const flt_t erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+             const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
+diff --git a/src/INTEL/pair_lj_cut_coul_long_intel.cpp b/src/INTEL/pair_lj_cut_coul_long_intel.cpp
+index 17e6b6361d..7d993a84db 100644
+--- a/src/INTEL/pair_lj_cut_coul_long_intel.cpp
++++ b/src/INTEL/pair_lj_cut_coul_long_intel.cpp
+@@ -334,7 +334,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
+ 
+             const flt_t r = (flt_t)1.0 / sqrt(r2inv);
+             const flt_t grij = g_ewald * r;
+-            const flt_t expm2 = exp(-grij * grij);
++            const flt_t expm2 = std::exp(-grij * grij);
+             const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
+             const flt_t erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+             const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
+diff --git a/src/INTEL/pair_sw_intel.cpp b/src/INTEL/pair_sw_intel.cpp
+index 6e239afc7d..791dc93b90 100644
+--- a/src/INTEL/pair_sw_intel.cpp
++++ b/src/INTEL/pair_sw_intel.cpp
+@@ -411,7 +411,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
+           }
+ 
+           const flt_t rainvsq = rainv1 * rainv1 * r1;
+-          flt_t expsrainv = exp(sigma * rainv1);
++          flt_t expsrainv = std::exp(sigma * rainv1);
+           if (jj >= ejnumhalf) expsrainv = (flt_t)0.0;
+           const flt_t fpair = (c1 * rp - c2 * rq + (c3 * rp - c4 * rq) *
+                                rainvsq) * expsrainv * rinvsq1;
+@@ -453,7 +453,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
+ 
+           flt_t gsrainv1 = sigma_gamma * rainv1;
+           flt_t gsrainvsq1 = gsrainv1 * rainv1 / r1;
+-          flt_t expgsrainv1 = exp(gsrainv1);
++          flt_t expgsrainv1 = std::exp(gsrainv1);
+ 
+           for (int kk = 0; kk < ejnum; kk++) {
+             int iktype, ijktype;
+@@ -479,7 +479,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
+             const flt_t rainv2 = (flt_t)1.0 / (r2 - cut);
+             const flt_t gsrainv2 = sigma_gamma * rainv2;
+             const flt_t gsrainvsq2 = gsrainv2 * rainv2 / r2;
+-            const flt_t expgsrainv2 = exp(gsrainv2);
++            const flt_t expgsrainv2 = std::exp(gsrainv2);
+ 
+             const flt_t rinv12 = (flt_t)1.0 / (r1 * r2);
+             const flt_t cs = (delx * delr2[0] + dely * delr2[1] +

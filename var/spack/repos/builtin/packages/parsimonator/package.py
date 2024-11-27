@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Parsimonator(MakefilePackage):
     git = "https://github.com/stamatak/Parsimonator-1.0.2.git"
 
     version("1.0.2", commit="78368c6ab1e9adc7e9c6ec9256dd7ff2a5bb1b0a")
+
+    depends_on("c", type="build")  # generated
 
     patch("nox86.patch")
 

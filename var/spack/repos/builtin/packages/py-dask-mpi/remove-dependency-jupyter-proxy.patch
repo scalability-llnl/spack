@@ -1,0 +1,9 @@
+diff --git a/environment.yml b/environment.yml
+index 5747157..a552b81 100644
+--- a/environment.yml
++++ b/environment.yml
+@@ -3,4 +3,3 @@ dependencies:
+   - dask>=2.19
+   - distributed>=2.19
+   - mpi4py>=3.0.3
+-  - jupyter-server-proxy

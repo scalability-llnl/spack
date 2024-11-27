@@ -1,0 +1,446 @@
+ci:
+  pipeline-gen:
+  - build-job:
+      before_script-:
+      # Test package relocation on linux using a modified prefix
+      # This is not well supported on MacOS (https://github.com/spack/spack/issues/37162)
+      - - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+  - match_behavior: first
+    submapping:
+    - match:
+      - py-torch
+      build-job:
+        tags: [ "spack", "huge" ]
+        variables:
+          CI_JOB_SIZE: huge
+          SPACK_BUILD_JOBS: "12"
+          KUBERNETES_CPU_REQUEST: 12000m
+          KUBERNETES_MEMORY_REQUEST: 48G
+
+    - match:
+      - rust
+      build-job:
+        tags: [ "spack", "huge" ]
+        variables:
+          CI_JOB_SIZE: huge
+          SPACK_BUILD_JOBS: "12"
+          KUBERNETES_CPU_REQUEST: 12000m
+          KUBERNETES_MEMORY_REQUEST: 35G
+
+    - match:
+      - py-tensorflow
+      - py-torchaudio
+      build-job:
+        tags: [ "spack", "huge" ]
+        variables:
+          CI_JOB_SIZE: huge
+          SPACK_BUILD_JOBS: "12"
+          KUBERNETES_CPU_REQUEST: 12000m
+          KUBERNETES_MEMORY_REQUEST: 32G
+
+    - match:
+      - py-jaxlib
+      build-job:
+        tags: [ "spack", "huge" ]
+        variables:
+          CI_JOB_SIZE: huge
+          SPACK_BUILD_JOBS: "12"
+          KUBERNETES_CPU_REQUEST: 12000m
+          KUBERNETES_MEMORY_REQUEST: 29G
+
+    - match:
+      - nvhpc
+      - paraview
+      build-job:
+        tags: [ "spack", "huge" ]
+        variables:
+          CI_JOB_SIZE: huge
+          SPACK_BUILD_JOBS: "12"
+          KUBERNETES_CPU_REQUEST: 12000m
+          KUBERNETES_MEMORY_REQUEST: 24G
+
+    - match:
+      - llvm
+      build-job:
+        tags: [ "spack", "huge" ]
+        variables:
+          CI_JOB_SIZE: huge
+          SPACK_BUILD_JOBS: "12"
+          KUBERNETES_CPU_REQUEST: 12000m
+          KUBERNETES_MEMORY_REQUEST: 21G
+
+    - match:
+      - dealii
+      - rocblas
+      build-job:
+        tags: [ "spack", "huge" ]
+        variables:
+          CI_JOB_SIZE: huge
+          SPACK_BUILD_JOBS: "12"
+          KUBERNETES_CPU_REQUEST: 12000m
+          KUBERNETES_MEMORY_REQUEST: 19G
+
+    - match:
+      - ecp-data-vis-sdk
+      - intel-tbb
+      - llvm-amdgpu
+      - salmon
+      - trilinos
+      build-job:
+        tags: [ "spack", "large" ]
+        variables:
+          CI_JOB_SIZE: large
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: 8000m
+          KUBERNETES_MEMORY_REQUEST: 15G
+
+    - match:
+      - ascent
+      - axom
+      - cistem
+      - cuda
+      - dray
+      - ecp-data-vis-sdk
+      - gcc
+      - ginkgo
+      - hdf5
+      - kokkos-kernels
+      - mfem
+      - mpich
+      - netlib-lapack
+      - openblas
+      - openfoam
+      - openturns
+      - raja
+      - relion
+      - rocsolver
+      - rocsparse
+      - strumpack
+      - sundials
+      - trilinos
+      - visit
+      - vtk
+      - vtk-h
+      - vtk-m
+      build-job:
+        tags: [ "spack", "large" ]
+        variables:
+          CI_JOB_SIZE: large
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: 8000m
+          KUBERNETES_MEMORY_REQUEST: 12G
+
+    - match:
+      - hpx
+      - slate
+      - warpx
+      build-job:
+        tags: [ "spack", "large" ]
+        variables:
+          CI_JOB_SIZE: "large"
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: "8000m"
+          KUBERNETES_MEMORY_REQUEST: "9G"
+
+    - match:
+      - hipblas
+      - rocfft
+      - umpire
+      build-job:
+        tags: [ "spack", "large" ]
+        variables:
+          CI_JOB_SIZE: "large"
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: "8000m"
+          KUBERNETES_MEMORY_REQUEST: "8G"
+
+    - match:
+      - lbann
+      - magma
+      - mesa
+      - qt
+      build-job:
+        tags: [ "spack", "large" ]
+        variables:
+          CI_JOB_SIZE: "large"
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: "8000m"
+          KUBERNETES_MEMORY_REQUEST: "7G"
+
+    - match:
+      - dyninst
+      - precice
+      build-job:
+        tags: [ "spack", "medium" ]
+        variables:
+          CI_JOB_SIZE: "medium"
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: "8000m"
+          KUBERNETES_MEMORY_REQUEST: "6G"
+
+    - match:
+      - cmake
+      - plumed
+      - wrf
+      build-job:
+        tags: [ "spack", "medium" ]
+        variables:
+          CI_JOB_SIZE: "medium"
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: "8000m"
+          KUBERNETES_MEMORY_REQUEST: "5G"
+
+    - match:
+      - parallelio
+      build-job:
+        tags: [ "spack", "medium" ]
+        variables:
+          CI_JOB_SIZE: "medium"
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: "8000m"
+          KUBERNETES_MEMORY_REQUEST: "3G"
+
+    - match:
+      - adios2
+      - amrex
+      - archer
+      - ascent
+      - autoconf-archive
+      - axom
+      - blt
+      - boost
+      - butterflypack
+      - cabana
+      - caliper
+      - camp
+      - chai
+      - conduit
+      - curl
+      - datatransferkit
+      - dray
+      - faodel
+      - fortrilinos
+      - gettext
+      - gptune
+      - hdf5
+      - heffte
+      - hpctoolkit
+      - hwloc
+      - hydrogen
+      - hypre
+      - kokkos
+      - lammps
+      - lapackpp
+      - legion
+      - libxml2
+      - libzmq
+      - llvm-openmp-ompt
+      - mbedtls
+      - mfem
+      - mpich
+      - mvapich2
+      - netlib-scalapack
+      - omega-h
+      - openjpeg
+      - openmpi
+      - openpmd-api
+      - pagmo2
+      - papyrus
+      - parsec
+      - petsc
+      - pumi
+      - py-beniget
+      - py-cinemasci
+      - pygmo
+      - py-ipython-genutils
+      - py-packaging
+      - py-petsc4py
+      - py-scipy
+      - py-statsmodels
+      - py-warlock
+      - raja
+      - slepc
+      - slurm
+      - sqlite
+      - strumpack
+      - sundials
+      - superlu-dist
+      - tasmanian
+      - tau
+      - upcxx
+      - vtk
+      - vtk-h
+      - vtk-m
+      - warpx +python
+      - zfp
+      build-job:
+        tags: [ "spack", "medium" ]
+        variables:
+          CI_JOB_SIZE: "medium"
+          SPACK_BUILD_JOBS: "2"
+          KUBERNETES_CPU_REQUEST: "2000m"
+          KUBERNETES_MEMORY_REQUEST: "4G"
+
+    - match:
+      - oce
+      build-job:
+        tags: [ "spack", "medium" ]
+        variables:
+          CI_JOB_SIZE: "medium"
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: "8000m"
+          KUBERNETES_MEMORY_REQUEST: "3G"
+
+    - match:
+      - binutils
+      - blaspp
+      - double-conversion
+      - eigen
+      - fftw
+      - libtool
+      - nasm
+      - pegtl
+      - pdt
+      build-job:
+        tags: [ "spack", "medium" ]
+        variables:
+          CI_JOB_SIZE: "medium"
+          SPACK_BUILD_JOBS: "2"
+          KUBERNETES_CPU_REQUEST: "2000m"
+          KUBERNETES_MEMORY_REQUEST: "2G"
+
+    - match:
+      - kokkos-nvcc-wrapper
+      build-job:
+        tags: [ "spack", "medium" ]
+        variables:
+          CI_JOB_SIZE: "medium"
+          SPACK_BUILD_JOBS: "8"
+          KUBERNETES_CPU_REQUEST: "8000m"
+          KUBERNETES_MEMORY_REQUEST: "1G"
+
+    - match:
+      - ffmpeg
+      - gperftools
+      - samrai
+      build-job:
+        tags: [ "spack", "medium" ]
+        variables:
+          CI_JOB_SIZE: "medium"
+          SPACK_BUILD_JOBS: "2"
+          KUBERNETES_CPU_REQUEST: "2000m"
+          KUBERNETES_MEMORY_REQUEST: "1G"
+
+    - match:
+      - alsa-lib
+      - ant
+      - antlr
+      - argobots
+      - autoconf-archive
+      - automake
+      - berkeley-db
+      - bison
+      - blt
+      - bzip2
+      - camp
+      - curl
+      - czmq
+      - darshan-util
+      - diffutils
+      - docbook-xml
+      - exmcutils
+      - expat
+      - findutils
+      - flit
+      - freetype
+      - gawk
+      - gdbm
+      - gettext
+      - glib
+      - gmake
+      - gotcha
+      - hpcviewer
+      - hwloc
+      - jansson
+      - json-c
+      - libbsd
+      - libedit
+      - libevent
+      - libfabric
+      - libffi
+      - libgcrypt
+      - libiconv
+      - libidn2
+      - libjpeg-turbo
+      - libmd
+      - libnrm
+      - libpciaccess
+      - libpng
+      - libsigsegv
+      - libsodium
+      - libunistring
+      - libunwind
+      - libxml2
+      - libyaml
+      - libzmq
+      - lua
+      - lua-luaposix
+      - lz4
+      - m4
+      - meson
+      - metis
+      - mpfr
+      - ncurses
+      - ninja
+      - numactl
+      - openjdk
+      - openssh
+      - openssl
+      - papi
+      - parallel-netcdf
+      - pcre
+      - pcre2
+      - pdsh
+      - perl
+      - perl-data-dumper
+      - pkgconf
+      - py-alembic
+      - py-cffi
+      - py-cycler
+      - py-decorator
+      - py-idna
+      - py-jsonschema
+      - py-kiwisolver
+      - py-mistune
+      - py-pycparser
+      - py-setuptools
+      - py-setuptools-scm
+      - py-six
+      - py-testpath
+      - py-wheel
+      - qhull
+      - readline
+      - sed
+      - slurm
+      - snappy
+      - sqlite
+      - superlu
+      - swig
+      - tar
+      - tcl
+      - texinfo
+      - unzip
+      - util-linux-uuid
+      - util-macros
+      - xz
+      - yaml-cpp
+      - zfp
+      - zlib
+      - zstd
+      build-job:
+        tags: [ "spack", "small" ]
+        variables:
+          CI_JOB_SIZE: "small"
+          SPACK_BUILD_JOBS: "1"
+          KUBERNETES_CPU_REQUEST: "500m"
+          KUBERNETES_MEMORY_REQUEST: "500M"

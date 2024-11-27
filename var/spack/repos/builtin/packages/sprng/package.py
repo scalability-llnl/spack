@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,7 +18,13 @@ class Sprng(AutotoolsPackage):
     homepage = "http://www.sprng.org"
     url = "http://www.sprng.org/Version5.0/sprng5.tar.bz2"
 
+    license("GPL-2.0-only")
+
     version("5.0", sha256="9172a495472cc24893e7489ce9b5654300dc60cba4430e436ce50d28eb749a66")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Enable MPI support")
     variant("fortran", default=False, description="Enable Fortran support")

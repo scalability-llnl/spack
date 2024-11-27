@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,7 +25,7 @@ class Turbomole(Package):
 
     version(
         "7.0.2",
-        "92b97e1e52e8dcf02a4d9ac0147c09d6",
+        md5="92b97e1e52e8dcf02a4d9ac0147c09d6",
         url="file://%s/turbolinux702.tar.gz" % os.getcwd(),
     )
 
@@ -44,7 +44,7 @@ class Turbomole(Package):
     def do_fetch(self, mirror_only=True):
         if "+mpi" in self.spec and "+smp" in self.spec:
             raise InstallError("Can not have both SMP and MPI enabled in the " "same build.")
-        super(Turbomole, self).do_fetch(mirror_only)
+        super().do_fetch(mirror_only)
 
     def get_tm_arch(self):
         if "TURBOMOLE" in os.getcwd():

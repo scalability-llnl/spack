@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class Arc(CMakePackage):
 
     version("master", branch="master")
     version("2021-12-01", commit="49d4a5df53a082f15a6959aef434224fd7b9beac")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libpressio+sz+zfp", when="+examples")
 

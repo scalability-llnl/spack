@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyJoblib(PythonPackage):
     # 'joblib.test' requires 'pytest'. Leave out of 'import_modules' to avoid
     # unnecessary dependencies.
     skip_modules = ["joblib.test"]
+
+    license("BSD-3-Clause")
 
     version("1.2.0", sha256="e1cee4a79e4af22881164f218d4311f60074197fb707e082e803b61f6d137018")
     version("1.1.0", sha256="4158fcecd13733f8be669be0683b96ebdbbd38d23559f54dca7205aea1bf1e35")

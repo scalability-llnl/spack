@@ -1,0 +1,35 @@
+diff --git a/win32/VS2008/libogg.vsprops b/win32/VS2008/libogg.vsprops
+index 1355b50..8b3c5b8 100644
+--- a/win32/VS2008/libogg.vsprops
++++ b/win32/VS2008/libogg.vsprops
+@@ -6,11 +6,11 @@
+ 	>
+ 	<Tool
+ 		Name="VCCLCompilerTool"
+-		AdditionalIncludeDirectories="&quot;..\..\..\..\libogg-$(LIBOGG_VERSION)\include&quot;;..\..\..\..\ogg\include;..\..\..\..\..\..\..\core\ogg\libogg\include"
++		AdditionalIncludeDirectories="$(SPACK_OGG_PREFIX)\include;&quot;..\..\..\..\libogg-$(LIBOGG_VERSION)\include&quot;;..\..\..\..\ogg\include;..\..\..\..\..\..\..\core\ogg\libogg\include"
+ 	/>
+ 	<Tool
+ 		Name="VCLinkerTool"
+-		AdditionalLibraryDirectories="&quot;..\..\..\..\libogg-$(LIBOGG_VERSION)\win32\VS2008\$(PlatformName)\$(ConfigurationName)&quot;;&quot;..\..\..\..\ogg\win32\VS2008\$(PlatformName)\$(ConfigurationName)&quot;;&quot;..\..\..\..\..\..\..\core\ogg\libogg\win32\VS2008\$(PlatformName)\$(ConfigurationName)&quot;"
++		AdditionalLibraryDirectories="$(SPACK_OGG_PREFIX)\lib;&quot;..\..\..\..\libogg-$(LIBOGG_VERSION)\win32\VS2008\$(PlatformName)\$(ConfigurationName)&quot;;&quot;..\..\..\..\ogg\win32\VS2008\$(PlatformName)\$(ConfigurationName)&quot;;&quot;..\..\..\..\..\..\..\core\ogg\libogg\win32\VS2008\$(PlatformName)\$(ConfigurationName)&quot;"
+ 	/>
+ 	<UserMacro
+ 		Name="LIBOGG_VERSION"
+diff --git a/win32/VS2008/libtheora_static.sln b/win32/VS2008/libtheora_static.sln
+index 2b39635..fa40518 100644
+--- a/win32/VS2008/libtheora_static.sln
++++ b/win32/VS2008/libtheora_static.sln
+@@ -1,12 +1,8 @@
+
+ Microsoft Visual Studio Solution File, Format Version 10.00
+ # Visual Studio 2008
+-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dump_video_static", "dump_video\dump_video_static.vcproj", "{1A8CA99D-B6C7-48CB-B263-6CECDADF5FBF}"
+-EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtheora_static", "libtheora\libtheora_static.vcproj", "{653F3841-3F26-49B9-AFCF-091DB4B67031}"
+ EndProject
+-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "encoder_example_static", "encoder_example\encoder_example_static.vcproj", "{AD710263-EBFA-4388-BAA9-AD73C32AFF26}"
+-EndProject
+ Global
+ 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+ 		Debug|Win32 = Debug|Win32

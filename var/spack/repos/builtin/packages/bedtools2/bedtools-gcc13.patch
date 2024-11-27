@@ -1,0 +1,25 @@
+https://github.com/arq5x/bedtools2/pull/1045
+
+From 7d7fb513b9b05b7a0512a83520e9f60036e5ff9a Mon Sep 17 00:00:00 2001
+From: David Seifert <soap@gentoo.org>
+Date: Tue, 18 Apr 2023 11:59:58 +0200
+Subject: [PATCH] Add missing <cstdint> include
+
+* breaks build with GCC 13:
+  https://bugs.gentoo.org/895860
+---
+ src/utils/general/ParseTools.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/utils/general/ParseTools.h b/src/utils/general/ParseTools.h
+index e056c149..3418eff1 100644
+--- a/src/utils/general/ParseTools.h
++++ b/src/utils/general/ParseTools.h
+@@ -16,6 +16,7 @@
+ #include "string.h"
+ #include <cstdio>
+ #include <cstdlib>
++#include <cstdint>
+ 
+ using namespace std;
+ 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,7 @@ class Wgl(Package):
 
     homepage = "https://learn.microsoft.com/en-us/windows/win32/opengl/wgl-and-windows-reference"
     has_code = False
-    tags = ["windows"]
+    tags = ["windows", "windows-system"]
     # hard code the extension as shared lib
     libraries = ["OpenGL32.Lib"]
 
@@ -34,6 +34,11 @@ class Wgl(Package):
     version("10.0.14393")
     version("10.0.10586")
     version("10.0.26639")
+    version("10.0.20348")
+
+    variant(
+        "plat", values=("x64", "x86", "arm", "arm64"), default="x64", description="Toolchain arch"
+    )
 
     # As per https://github.com/spack/spack/pull/31748 this provisory version represents
     # an arbitrary openGL version designed for maximum compatibility with calling packages
@@ -42,12 +47,12 @@ class Wgl(Package):
     # satisfied appropriately
     provides("gl@4.6")
 
-    variant("plat", values=("x64", "x86", "arm", "arm64"), default="x64")
-
     # WGL exists on all Windows systems post win 98, however the headers
     # needed to use OpenGL are found in the SDK (GL/gl.h)
     # Dep is needed to consolidate sdk version to locate header files for
     # version of SDK being used
+    # Generic depends to capture handling for external versions
+    depends_on("win-sdk")
     depends_on("win-sdk@10.0.19041", when="@10.0.19041")
     depends_on("win-sdk@10.0.18362", when="@10.0.18362")
     depends_on("win-sdk@10.0.17763", when="@10.0.17763")
@@ -57,7 +62,7 @@ class Wgl(Package):
     depends_on("win-sdk@10.0.14393", when="@10.0.14393")
 
     # WGL has no meaning on other platforms, should not be able to spec
-    for plat in ["linux", "darwin", "cray"]:
+    for plat in ["linux", "darwin"]:
         conflicts("platform=%s" % plat)
 
     @classmethod
@@ -77,14 +82,32 @@ class Wgl(Package):
             variants.append("plat=%s" % arch)
         return variants
 
+    def _spec_arch_to_sdk_arch(self):
+        spec_arch = str(self.spec.architecture.target.family).lower()
+        _64bit = "64" in spec_arch
+        arm = "arm" in spec_arch
+        if arm:
+            return "arm64" if _64bit else "arm"
+        else:
+            return "x64" if _64bit else "x86"
+
     # As noted above, the headers neccesary to include
     @property
     def headers(self):
-        return find_headers("GL/gl.h", root=self.spec["win-sdk"].prefix.includes, recursive=True)
+        return find_headers(
+            "GL", root=os.path.join(self.prefix.Include, str(self.version) + ".0"), recursive=True
+        )
 
     @property
     def libs(self):
-        return find_libraries("opengl32", shared=False, root=self.prefix, recursive=True)
+        return find_libraries(
+            "opengl32",
+            shared=False,
+            root=os.path.join(
+                self.prefix.Lib, str(self.version) + ".0", "um", self._spec_arch_to_sdk_arch()
+            ),
+            recursive=True,
+        )
 
     def install(self, spec, prefix):
         raise RuntimeError(

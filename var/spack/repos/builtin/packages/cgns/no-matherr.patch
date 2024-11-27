@@ -1,0 +1,58 @@
+Description: Remove matherr hack
+ Remove matherr hack, that is only needed for Sun shared libraries and
+ causes an FTBFS with glibc 2.27 onwards, as SVID error handling has
+ been removed.
+Author: Aurelien Jarno <aurel32@debian.org>
+Last-Update: 2018-02-12
+
+--- libcgns-3.3.0.orig/src/cgnstools/cgnscalc/calcwish.c
++++ libcgns-3.3.0/src/cgnstools/cgnscalc/calcwish.c
+@@ -15,14 +15,6 @@
+ #include "tk.h"
+ #include "locale.h"
+ 
+-/*
+- * The following variable is a special hack that is needed in order for
+- * Sun shared libraries to be used for Tcl.
+- */
+-
+-extern int matherr();
+-int *tclDummyMathPtr = (int *) matherr;
+-
+ #ifdef TK_TEST
+ extern int		Tcltest_Init _ANSI_ARGS_((Tcl_Interp *interp));
+ extern int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));
+--- libcgns-3.3.0.orig/src/cgnstools/cgnsplot/plotwish.c
++++ libcgns-3.3.0/src/cgnstools/cgnsplot/plotwish.c
+@@ -15,14 +15,6 @@
+ #include "tk.h"
+ #include "locale.h"
+ 
+-/*
+- * The following variable is a special hack that is needed in order for
+- * Sun shared libraries to be used for Tcl.
+- */
+-
+-extern int matherr();
+-int *tclDummyMathPtr = (int *) matherr;
+-
+ extern int Cgnstcl_Init _ANSI_ARGS_((Tcl_Interp *interp));
+ extern int Tkogl_Init _ANSI_ARGS_((Tcl_Interp *interp));
+ 
+--- libcgns-3.3.0.orig/src/cgnstools/cgnsview/cgiowish.c
++++ libcgns-3.3.0/src/cgnstools/cgnsview/cgiowish.c
+@@ -15,14 +15,6 @@
+ #include "tk.h"
+ #include "locale.h"
+ 
+-/*
+- * The following variable is a special hack that is needed in order for
+- * Sun shared libraries to be used for Tcl.
+- */
+-
+-extern int matherr();
+-int *tclDummyMathPtr = (int *) matherr;
+-
+ #ifdef TK_TEST
+ extern int		Tcltest_Init _ANSI_ARGS_((Tcl_Interp *interp));
+ extern int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));

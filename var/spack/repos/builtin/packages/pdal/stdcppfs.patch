@@ -1,0 +1,8 @@
+--- spack-src/pdal/util/CMakeLists.txt	2022-08-05 10:29:13.000000000 -0700
++++ spack-src/pdal/util/CMakeLists.txt_new	2024-02-15 17:50:10.882186258 -0800
+@@ -46,3 +46,5 @@
+     CLEAN_DIRECT_OUTPUT 1)
+ 
+ set_property(GLOBAL PROPERTY _UTIL_INCLUDED TRUE)
++
++target_link_libraries(${PDAL_UTIL_LIB_NAME} PRIVATE -lstdc++fs)

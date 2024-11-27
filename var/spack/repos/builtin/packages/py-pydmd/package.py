@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyPydmd(PythonPackage):
 
     homepage = "https://mathlab.github.io/PyDMD/"
     url = "https://github.com/mathLab/PyDMD/archive/v0.3.tar.gz"
+
+    license("MIT")
 
     version("0.3", sha256="f490fc139677e4d9fc1240636a2c5992d22879517c9574d13164dc5179b0f785")
 

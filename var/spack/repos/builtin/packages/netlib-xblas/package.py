@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,7 +23,12 @@ class NetlibXblas(AutotoolsPackage):
     homepage = "https://www.netlib.org/xblas"
     url = "https://www.netlib.org/xblas/xblas.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("1.0.248", sha256="b5fe7c71c2da1ed9bcdc5784a12c5fa9fb417577513fe8a38de5de0007f7aaa1")
+
+    depends_on("c", type="build")
+    depends_on("m4", type="build")
 
     variant("fortran", default=True, description="Build Fortran interfaces")
     variant("plain_blas", default=True, description="As part of XBLAS, build plain BLAS routines")

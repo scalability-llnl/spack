@@ -1,0 +1,20 @@
+diff --git a/src/clib/pio_internal.h b/src/clib/pio_internal.h
+index c360ae4e..79cc48eb 100644
+--- a/src/clib/pio_internal.h
++++ b/src/clib/pio_internal.h
+@@ -17,11 +17,13 @@
+ #include <limits.h>
+ #include <math.h>
+ #include <netcdf.h>
+-#ifdef _NETCDF4
+-#include <netcdf_par.h>
++#ifdef PIO_HAS_PAR_FILTERS
+ #include <netcdf_filter.h>
+ #include <netcdf_meta.h>
+ #endif
++#ifdef _NETCDF4
++#include <netcdf_par.h>
++#endif
+ #ifdef _PNETCDF
+ #include <pnetcdf.h>
+ #endif

@@ -1,0 +1,17 @@
+diff --git a/include/hip/hip_runtime_api.h b/include/hip/hip_runtime_api.h
+index 88e6850..d280504 100644
+--- a/include/hip/hip_runtime_api.h
++++ b/include/hip/hip_runtime_api.h
+@@ -259,7 +259,11 @@ typedef enum hipMemoryType {
+  * Pointer attributes
+  */
+ typedef struct hipPointerAttribute_t {
+-    enum hipMemoryType type;
++    union {
++      // Deprecated, use instead type
++      enum hipMemoryType memoryType;
++      enum hipMemoryType type;
++    };
+     int device;
+     void* devicePointer;
+     void* hostPointer;

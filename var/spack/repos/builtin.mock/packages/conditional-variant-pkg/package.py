@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,8 +12,8 @@ class ConditionalVariantPkg(Package):
     homepage = "http://www.example.com/conditional-variant-pkg"
     url = "http://www.unit-test-should-replace-this-url/conditional-variant-1.0.tar.gz"
 
-    version("1.0", "0123456789abcdef0123456789abcdef")
-    version("2.0", "abcdef0123456789abcdef0123456789")
+    version("1.0", md5="0123456789abcdef0123456789abcdef")
+    version("2.0", md5="abcdef0123456789abcdef0123456789")
 
     variant(
         "version_based",

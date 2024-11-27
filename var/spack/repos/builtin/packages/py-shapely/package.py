@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,7 +18,14 @@ class PyShapely(PythonPackage):
 
     maintainers("adamjstewart")
 
+    license("BSD-3-Clause")
+
     version("main", branch="main")
+    version("2.0.6", sha256="997f6159b1484059ec239cacaa53467fd8b5564dabe186cd84ac2944663b0bf6")
+    version("2.0.5", sha256="bff2366bc786bfa6cb353d6b47d0443c570c32776612e527ee47b6df63fcfe32")
+    version("2.0.4", sha256="5dc736127fac70009b8d309a0eeb74f3e08979e530cf7017f2f507ef62e6cfb8")
+    version("2.0.3", sha256="4d65d0aa7910af71efa72fd6447e02a8e5dd44da81a983de9d736d6e6ccbe674")
+    version("2.0.2", sha256="1713cc04c171baffc5b259ba8531c58acc2a301707b7f021d88a15ed090649e7")
     version("2.0.1", sha256="66a6b1a3e72ece97fc85536a281476f9b7794de2e646ca8a4517e2e3c1446893")
     version("2.0.0", sha256="11f1b1231a6c04213fb1226c6968d1b1b3b369ec42d1e9655066af87631860ea")
     version("1.8.5", sha256="e82b6d60ecfb124120c88fe106a478596bbeab142116d7e7f64a364dac902a92")
@@ -29,17 +36,29 @@ class PyShapely(PythonPackage):
     version("1.8.0", sha256="f5307ee14ba4199f8bbcf6532ca33064661c1433960c432c84f0daa73b47ef9c")
     version("1.7.1", sha256="1641724c1055459a7e2b8bbe47ba25bdc89554582e62aec23cb3f3ca25f9b129")
     version("1.7.0", sha256="e21a9fe1a416463ff11ae037766fe410526c95700b9e545372475d2361cc951e")
-    version("1.6.4", sha256="b10bc4199cfefcf1c0e5d932eac89369550320ca4bdf40559328d85f1ca4f655")
+    version(
+        "1.6.4",
+        sha256="b10bc4199cfefcf1c0e5d932eac89369550320ca4bdf40559328d85f1ca4f655",
+        deprecated=True,
+    )
+
+    depends_on("c", type="build")
 
     # pyproject.toml
-    depends_on("py-cython@0.29:0", when="@2:", type="build")
-    depends_on("py-cython@0.29.24:2", when="@:1", type="build")
-    depends_on("py-setuptools@61:", when="@2:", type="build")
-    depends_on("py-setuptools@:63", when="@:1", type="build")
-    depends_on("py-numpy@1.14:", when="@2:", type=("build", "link", "run"))
-    depends_on("py-numpy", type=("build", "link", "run"))
-    depends_on("py-pytest", type="test")
-    depends_on("py-pytest-cov", type="test")
+    with default_args(type="build"):
+        depends_on("py-cython", when="@2.0.2:")
+        depends_on("py-cython@0.29:0", when="@2.0.0:2.0.1")
+        depends_on("py-cython@0.29.24:2", when="@:1")
+        depends_on("py-setuptools@61:", when="@2:")
+        depends_on("py-setuptools@:63", when="@:1")
+
+    with default_args(type=("build", "link", "run")):
+        depends_on("py-numpy@1.14:2", when="@2.0.6:")
+        # https://github.com/shapely/shapely/issues/2098
+        depends_on("py-numpy@1.14:2.0", when="@2.0.4:2.0.5")
+        # https://github.com/shapely/shapely/issues/1972
+        depends_on("py-numpy@1.14:1", when="@2.0.0:2.0.3")
+        depends_on("py-numpy@:1", when="@1")
 
     # setup.py
     depends_on("geos@3.5:", when="@2:")
@@ -60,7 +79,7 @@ class PyShapely(PythonPackage):
             letter = "S"
         return url.format(letter, version)
 
-    @when("^python@3.7:")
+    @when("@:1.8.1")
     def patch(self):
         # Python 3.7 changed the thread storage API, precompiled *.c files
         # need to be re-cythonized
@@ -86,13 +105,3 @@ class PyShapely(PythonPackage):
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         self.setup_build_environment(env)
-
-    @run_after("install")
-    @on_package_attributes(run_tests=True)
-    def test_install(self):
-        # https://shapely.readthedocs.io/en/latest/installation.html#testing-shapely
-        if self.version >= Version("2"):
-            with working_dir("spack-test", create=True):
-                python("-m", "pytest", "--pyargs", "shapely.tests")
-        else:
-            python("-m", "pytest")

@@ -1,17 +1,17 @@
-From b5a49e6de81e7a6cba86694ee5ba2486cd999976 Mon Sep 17 00:00:00 2001
-From: Harmen Stoppels <harmenstoppels@gmail.com>
-Date: Fri, 28 Aug 2020 18:26:54 +0200
-Subject: [PATCH] Remove explicit RPATH again
+From fb6bc54d50ec511118557bfad7f1b892adcc1a1d Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Tue, 10 Oct 2023 01:15:08 +0000
+Subject: [PATCH] Updating patch for the latest code
 
 ---
  src/CMakeLists.txt | 3 ---
  1 file changed, 3 deletions(-)
 
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 9de7842..66c6880 100644
+index 8fb02b1..b40c972 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -134,9 +134,6 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
+@@ -122,9 +122,6 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
    ${CMAKE_CURRENT_SOURCE_DIR}
    ${CMAKE_CURRENT_SOURCE_DIR}/libamdhsacode )
  
@@ -19,8 +19,8 @@ index 9de7842..66c6880 100644
 -set_property(TARGET ${CORE_RUNTIME_TARGET} PROPERTY INSTALL_RPATH "$ORIGIN;$ORIGIN/../../lib;$ORIGIN/../../lib64;$ORIGIN/../lib64" )
 -
  ## ------------------------- Linux Compiler and Linker options -------------------------
- set ( HSA_CXX_FLAGS ${HSA_COMMON_CXX_FLAGS} -Werror -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=missing-braces -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-function )
+ set ( HSA_CXX_FLAGS ${HSA_COMMON_CXX_FLAGS} -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=missing-braces -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-function )
  
 -- 
-2.25.1
+2.31.1
 

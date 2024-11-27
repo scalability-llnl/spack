@@ -1,0 +1,231 @@
+diff --git a/Wrapping/PythonCore/PyVTKMethodDescriptor.cxx b/Wrapping/PythonCore/PyVTKMethodDescriptor.cxx
+index 2b0d443537..945767acc0 100644
+--- a/Wrapping/PythonCore/PyVTKMethodDescriptor.cxx
++++ b/Wrapping/PythonCore/PyVTKMethodDescriptor.cxx
+@@ -186,7 +186,11 @@ PyTypeObject PyVTKMethodDescriptor_Type = {
+   sizeof(PyMethodDescrObject),           // tp_basicsize
+   0,                                     // tp_itemsize
+   PyVTKMethodDescriptor_Delete,          // tp_dealloc
++#if PY_VERSION_HEX >= 0x03080000
++  0,                                     // tp_vectorcall_offseta
++#else
+   nullptr,                               // tp_print
++#endif
+   nullptr,                               // tp_getattr
+   nullptr,                               // tp_setattr
+   nullptr,                               // tp_compare
+diff --git a/Wrapping/PythonCore/PyVTKNamespace.cxx b/Wrapping/PythonCore/PyVTKNamespace.cxx
+index 71ee2a3516..ccc57db893 100644
+--- a/Wrapping/PythonCore/PyVTKNamespace.cxx
++++ b/Wrapping/PythonCore/PyVTKNamespace.cxx
+@@ -49,7 +49,11 @@ PyTypeObject PyVTKNamespace_Type = {
+   0,                                     // tp_basicsize
+   0,                                     // tp_itemsize
+   PyVTKNamespace_Delete,                 // tp_dealloc
++#if PY_VERSION_HEX >= 0x03080000
++  0,                                     // tp_vectorcall_offseta
++#else
+   nullptr,                               // tp_print
++#endif
+   nullptr,                               // tp_getattr
+   nullptr,                               // tp_setattr
+   nullptr,                               // tp_compare
+diff --git a/Wrapping/PythonCore/PyVTKReference.cxx b/Wrapping/PythonCore/PyVTKReference.cxx
+index 943ac71080..6e42309323 100644
+--- a/Wrapping/PythonCore/PyVTKReference.cxx
++++ b/Wrapping/PythonCore/PyVTKReference.cxx
+@@ -1010,7 +1010,11 @@ PyTypeObject PyVTKReference_Type = {
+   sizeof(PyVTKReference),                // tp_basicsize
+   0,                                     // tp_itemsize
+   PyVTKReference_Delete,                 // tp_dealloc
++#if PY_VERSION_HEX >= 0x03080000
++  0,                                     // tp_vectorcall_offseta
++#else
+   nullptr,                               // tp_print
++#endif
+   nullptr,                               // tp_getattr
+   nullptr,                               // tp_setattr
+   nullptr,                               // tp_compare
+@@ -1067,7 +1071,11 @@ PyTypeObject PyVTKNumberReference_Type = {
+   sizeof(PyVTKReference),                // tp_basicsize
+   0,                                     // tp_itemsize
+   PyVTKReference_Delete,                 // tp_dealloc
++#if PY_VERSION_HEX >= 0x03080000
++  0,                                     // tp_vectorcall_offseta
++#else
+   nullptr,                               // tp_print
++#endif
+   nullptr,                               // tp_getattr
+   nullptr,                               // tp_setattr
+   nullptr,                               // tp_compare
+@@ -1124,7 +1132,11 @@ PyTypeObject PyVTKStringReference_Type = {
+   sizeof(PyVTKReference),                // tp_basicsize
+   0,                                     // tp_itemsize
+   PyVTKReference_Delete,                 // tp_dealloc
++#if PY_VERSION_HEX >= 0x03080000
++  0,                                     // tp_vectorcall_offseta
++#else
+   nullptr,                               // tp_print
++#endif
+   nullptr,                               // tp_getattr
+   nullptr,                               // tp_setattr
+   nullptr,                               // tp_compare
+@@ -1181,7 +1193,11 @@ PyTypeObject PyVTKTupleReference_Type = {
+   sizeof(PyVTKReference),                // tp_basicsize
+   0,                                     // tp_itemsize
+   PyVTKReference_Delete,                 // tp_dealloc
++#if PY_VERSION_HEX >= 0x03080000
++  0,                                     // tp_vectorcall_offseta
++#else
+   nullptr,                               // tp_print
++#endif
+   nullptr,                               // tp_getattr
+   nullptr,                               // tp_setattr
+   nullptr,                               // tp_compare
+diff --git a/Wrapping/PythonCore/PyVTKTemplate.cxx b/Wrapping/PythonCore/PyVTKTemplate.cxx
+index be200985b3..73993e6ad7 100644
+--- a/Wrapping/PythonCore/PyVTKTemplate.cxx
++++ b/Wrapping/PythonCore/PyVTKTemplate.cxx
+@@ -268,7 +268,11 @@ PyTypeObject PyVTKTemplate_Type = {
+   0,                                     // tp_basicsize
+   0,                                     // tp_itemsize
+   nullptr,                               // tp_dealloc
++#if PY_VERSION_HEX >= 0x03080000
++  0,                                     // tp_vectorcall_offseta
++#else
+   nullptr,                               // tp_print
++#endif
+   nullptr,                               // tp_getattr
+   nullptr,                               // tp_setattr
+   nullptr,                               // tp_compare
+diff --git a/Wrapping/Tools/vtkWrapPythonClass.c b/Wrapping/Tools/vtkWrapPythonClass.c
+index b1e45f8e80..f37ef1d17b 100644
+--- a/Wrapping/Tools/vtkWrapPythonClass.c
++++ b/Wrapping/Tools/vtkWrapPythonClass.c
+@@ -521,7 +521,11 @@ void vtkWrapPython_GenerateObjectType(
+     "  sizeof(PyVTKObject), // tp_basicsize\n"
+     "  0, // tp_itemsize\n"
+     "  PyVTKObject_Delete, // tp_dealloc\n"
++    "#if PY_VERSION_HEX >= 0x03080000\n"
++    "  0, // tp_vectorcall_offset\n"
++    "#else\n"
+     "  nullptr, // tp_print\n"
++    "#endif\n"
+     "  nullptr, // tp_getattr\n"
+     "  nullptr, // tp_setattr\n"
+     "  nullptr, // tp_compare\n"
+diff --git a/Wrapping/Tools/vtkWrapPythonEnum.c b/Wrapping/Tools/vtkWrapPythonEnum.c
+index b933702242..a6d1a96384 100644
+--- a/Wrapping/Tools/vtkWrapPythonEnum.c
++++ b/Wrapping/Tools/vtkWrapPythonEnum.c
+@@ -145,7 +145,11 @@ void vtkWrapPython_GenerateEnumType(
+     "  sizeof(PyIntObject), // tp_basicsize\n"
+     "  0, // tp_itemsize\n"
+     "  nullptr, // tp_dealloc\n"
++    "#if PY_VERSION_HEX >= 0x03080000\n"
++    "  0, // tp_vectorcall_offset\n"
++    "#else\n"
+     "  nullptr, // tp_print\n"
++    "#endif\n"
+     "  nullptr, // tp_getattr\n"
+     "  nullptr, // tp_setattr\n"
+     "  nullptr, // tp_compare\n"
+diff --git a/Wrapping/Tools/vtkWrapPythonInit.c b/Wrapping/Tools/vtkWrapPythonInit.c
+index d1eb3b890c..f89501f322 100644
+--- a/Wrapping/Tools/vtkWrapPythonInit.c
++++ b/Wrapping/Tools/vtkWrapPythonInit.c
+@@ -54,7 +54,7 @@ static void CreateImplFile(const char *libName,
+   fprintf(fout,"#include \"vtkPython.h\"\n");
+   fprintf(fout,"#include \"vtkPythonCompatibility.h\"\n");
+   fprintf(fout,"#include \"vtkSystemIncludes.h\"\n");
+-  fprintf(fout,"#include <string.h>\n");
++  fprintf(fout,"#include <cstring>\n");
+   fprintf(fout,"// Handle compiler warning messages, etc.\n"
+           "#if defined( _MSC_VER ) && !defined(VTK_DISPLAY_WIN32_WARNINGS)\n"
+           "#pragma warning ( disable : 4706 )\n"
+diff --git a/Wrapping/Tools/vtkWrapPythonMethod.c b/Wrapping/Tools/vtkWrapPythonMethod.c
+index 17d1a8cb2e..61a639ed38 100644
+--- a/Wrapping/Tools/vtkWrapPythonMethod.c
++++ b/Wrapping/Tools/vtkWrapPythonMethod.c
+@@ -659,7 +659,7 @@ void vtkWrapPython_ReturnValue(
+       fprintf(fp,
+             "      if (result && PyVTKObject_Check(result))\n"
+             "      {\n"
+-            "        PyVTKObject_GetObject(result)->UnRegister(0);\n"
++            "        PyVTKObject_GetObject(result)->UnRegister(nullptr);\n"
+             "        PyVTKObject_SetFlag(result, VTK_PYTHON_IGNORE_UNREGISTER, 1);\n"
+             "      }\n");
+     }
+@@ -700,9 +700,7 @@ void vtkWrapPython_ReturnValue(
+   }
+   else if (vtkWrap_IsArray(val))
+   {
+-    fprintf(fp,
+-            "      result = %sBuildTuple(tempr, sizer);\n",
+-            prefix);
++    fprintf(fp, "      result = vtkPythonArgs::BuildTuple(tempr, sizer);\n");
+   }
+   else if (vtkWrap_IsStdVector(val))
+   {
+@@ -809,9 +807,8 @@ void vtkWrapPython_SaveArgs(FILE *fp, FunctionInfo *currentFunction)
+     {
+       noneDone = 0;
+ 
+-      fprintf(fp,
+-              "    ap.Save(%.*stemp%d, %.*ssave%d, ",
+-              (n-1), asterisks, i, (n-1), asterisks, i);
++      fprintf(fp, "    vtkPythonArgs::Save(%.*stemp%d, %.*ssave%d, ", (n - 1), asterisks, i,
++        (n - 1), asterisks, i);
+ 
+       if (vtkWrap_IsNArray(arg))
+       {
+@@ -1096,9 +1093,8 @@ static void vtkWrapPython_WriteBackToArgs(
+              !vtkWrap_IsConst(arg) &&
+              !vtkWrap_IsSetVectorMethod(currentFunction))
+     {
+-      fprintf(fp,
+-              "    if (ap.HasChanged(%.*stemp%d, %.*ssave%d, ",
+-              (n-1), asterisks, i, (n-1), asterisks, i);
++      fprintf(fp, "    if (vtkPythonArgs::HasChanged(%.*stemp%d, %.*ssave%d, ", (n - 1), asterisks,
++        i, (n - 1), asterisks, i);
+ 
+       if (vtkWrap_IsNArray(arg))
+       {
+@@ -1140,7 +1136,7 @@ static void vtkWrapPython_WriteBackToArgs(
+               "    {\n"
+               "      PyObject *vec = (temp%d.size() == 0 ?\n"
+               "        PyTuple_New(0) :\n"
+-              "        ap.BuildTuple(temp%d.data(), temp%d.size()));\n"
++              "        vtkPythonArgs::BuildTuple(temp%d.data(), temp%d.size()));\n"
+               "      ap.SetContents(%d, vec);\n"
+               "      Py_DECREF(vec);\n"
+               "    }\n"
+diff --git a/Wrapping/Tools/vtkWrapPythonMethodDef.c b/Wrapping/Tools/vtkWrapPythonMethodDef.c
+index 8e9735f312..05cee2f740 100644
+--- a/Wrapping/Tools/vtkWrapPythonMethodDef.c
++++ b/Wrapping/Tools/vtkWrapPythonMethodDef.c
+@@ -1038,7 +1038,7 @@ static void vtkWrapPython_CustomMethods(
+             "    if (tempr != nullptr)\n"
+             "    {\n"
+             "      result = vtkPythonArgs::BuildVTKObject(tempr);\n"
+-            "      PyVTKObject_GetObject(result)->UnRegister(0);\n"
++            "      PyVTKObject_GetObject(result)->UnRegister(nullptr);\n"
+             "    }\n"
+             "  }\n"
+             "\n"
+diff --git a/Wrapping/Tools/vtkWrapPythonType.c b/Wrapping/Tools/vtkWrapPythonType.c
+index 744cb1b9d3..b7a7ea0d15 100644
+--- a/Wrapping/Tools/vtkWrapPythonType.c
++++ b/Wrapping/Tools/vtkWrapPythonType.c
+@@ -709,7 +709,11 @@ void vtkWrapPython_GenerateSpecialType(
+     "  sizeof(PyVTKSpecialObject), // tp_basicsize\n"
+     "  0, // tp_itemsize\n"
+     "  Py%s_Delete, // tp_dealloc\n"
++    "#if PY_VERSION_HEX >= 0x03080000\n"
++    "  0, // tp_vectorcall_offset\n"
++    "#else\n"
+     "  nullptr, // tp_print\n"
++    "#endif\n"
+     "  nullptr, // tp_getattr\n"
+     "  nullptr, // tp_setattr\n"
+     "  nullptr, // tp_compare\n"

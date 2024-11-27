@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,7 +20,7 @@ class PyApacheBeam(PythonPackage):
     depends_on("py-cython@0.28.1:", type="build")
     depends_on("py-avro-python3@1.8.1:1.9.1,1.9.3:1.9", type=("build", "run"))
     depends_on("py-crcmod@1.7:1", type=("build", "run"))
-    depends_on("py-dill@0.3.1.1:0.3.1", type=("build", "run"))
+    depends_on("py-dill@0.3.1:0.3.1", type=("build", "run"))
     depends_on("py-fastavro@0.21.4:0.23", type=("build", "run"))
     depends_on("py-future@0.18.2:0", type=("build", "run"))
     depends_on("py-grpcio@1.29:1", type=("build", "run"))

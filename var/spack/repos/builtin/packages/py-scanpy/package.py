@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyScanpy(PythonPackage):
 
     homepage = "https://scanpy.readthedocs.io/en/stable/"
     pypi = "scanpy/scanpy-1.9.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.9.1", sha256="00c9a83b649da7e0171c91e9a08cff632102faa760614fd05cd4d1dbba4eb541")
 

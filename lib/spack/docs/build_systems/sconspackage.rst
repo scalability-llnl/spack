@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -49,15 +49,15 @@ following phases:
 #. ``install`` - install the package
 
 Package developers often add unit tests that can be invoked with
-``scons test`` or ``scons check``. Spack provides a ``test`` method
+``scons test`` or ``scons check``. Spack provides a ``build_test`` method
 to handle this. Since we don't know which one the package developer
-chose, the ``test`` method does nothing by default, but can be easily
+chose, the ``build_test`` method does nothing by default, but can be easily
 overridden like so:
 
 .. code-block:: python
 
-   def test(self):
-       scons('check')
+   def build_test(self):
+       scons("check")
 
 
 ^^^^^^^^^^^^^^^
@@ -88,7 +88,7 @@ base class already contains:
 
 .. code-block:: python
 
-   depends_on('scons', type='build')
+   depends_on("scons", type="build")
 
 
 If you want to specify a particular version requirement, you can override
@@ -96,7 +96,7 @@ this in your package:
 
 .. code-block:: python
 
-   depends_on('scons@2.3.0:', type='build')
+   depends_on("scons@2.3.0:", type="build")
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -238,14 +238,14 @@ the package build phase. This is done by overriding ``build_args`` like so:
 
    def build_args(self, spec, prefix):
        args = [
-         'PREFIX={0}'.format(prefix),
-         'ZLIB={0}'.format(spec['zlib'].prefix),
+         f"PREFIX={prefix}",
+         f"ZLIB={spec['zlib'].prefix}",
        ]
 
-       if '+debug' in spec:
-           args.append('DEBUG=yes')
+       if spec.satisfies("+debug"):
+           args.append("DEBUG=yes")
        else:
-           args.append('DEBUG=no')
+           args.append("DEBUG=no")
 
        return args
 
@@ -275,8 +275,8 @@ environment variables. For example, cantera has the following option:
    * env_vars: [ string ]
        Environment variables to propagate through to SCons. Either the
        string "all" or a comma separated list of variable names, e.g.
-       'LD_LIBRARY_PATH,HOME'.
-       - default: 'LD_LIBRARY_PATH,PYTHONPATH'
+       "LD_LIBRARY_PATH,HOME".
+       - default: "LD_LIBRARY_PATH,PYTHONPATH"
 
 
 In the case of cantera, using ``env_vars=all`` allows us to use

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,10 @@ class PyPsutil(PythonPackage):
     homepage = "https://github.com/giampaolo/psutil"
     pypi = "psutil/psutil-5.6.3.tar.gz"
 
+    license("BSD-3-Clause")
+
+    version("5.9.5", sha256="5410638e4df39c54d957fc51ce03048acd8e6d60abc0f5107af51e5fb566eb3c")
+    version("5.9.4", sha256="3d7f9739eb435d4b1338944abe23f49584bde5395f27487d2ee25ad9a8774a62")
     version("5.9.2", sha256="feb861a10b6c3bb00701063b37e4afc754f8217f0f09c42280586bd6ac712b5c")
     version("5.8.0", sha256="0c9ccb99ab76025f2f0bbecf341d4656e9c1351db8cc8a03ccd62e318ab4b5c6")
     version("5.7.2", sha256="90990af1c3c67195c44c9a889184f84f5b2320dce3ee3acbd054e3ba0b4a7beb")
@@ -23,6 +27,8 @@ class PyPsutil(PythonPackage):
     version("5.4.5", sha256="ebe293be36bb24b95cdefc5131635496e88b17fabbcf1e4bc9b5c01f5e489cfe")
     version("5.0.1", sha256="9d8b7f8353a2b2eb6eb7271d42ec99d0d264a9338a37be46424d56b4e473b39e")
 
-    depends_on("python@2.6:2.8,3.4:", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.4:", when="@5.9.2:", type=("build", "run"))
+    depends_on("c", type="build")  # generated
+
+    # pyproject.toml
+    depends_on("py-setuptools@43:", when="@5.9.4:", type="build")
     depends_on("py-setuptools", type="build")

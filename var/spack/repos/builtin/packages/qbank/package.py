@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,7 +25,7 @@ class Qbank(Package):
     url = "file://{0}/qbank-2.10.4.tar.gz".format(os.getcwd())
     manual_download = True
 
-    version("2.10.4", "0820587353e63d32ddb49689dd4289e7")
+    version("2.10.4", md5="0820587353e63d32ddb49689dd4289e7")
 
     variant("doc", default=False, description="Build documentation")
 

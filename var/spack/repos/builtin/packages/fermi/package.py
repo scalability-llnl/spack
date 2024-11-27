@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,7 @@ class Fermi(MakefilePackage):
 
     version("1.1", sha256="f1351b52a4ff40e5d708899e90ecf747e7af8d4eac795f6968e5b58c2ba11a67")
 
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("perl", type="run")
     depends_on("sse2neon", when="target=aarch64:")
 

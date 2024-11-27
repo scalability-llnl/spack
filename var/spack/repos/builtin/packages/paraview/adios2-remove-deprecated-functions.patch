@@ -1,0 +1,31 @@
+From fdb93d3e9d447b9dd6ce5c77aca18396cf9b6aa3 Mon Sep 17 00:00:00 2001
+From: Vicente Bolea <vicente.bolea@kitware.com>
+Date: Mon, 3 Apr 2023 12:58:58 -0400
+Subject: [PATCH] Update /VTK/IO/ADIOS2/vtkADIOS2CoreImageReader.cxx
+
+---
+ VTK/IO/ADIOS2/vtkADIOS2CoreImageReader.cxx | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/VTK/IO/ADIOS2/vtkADIOS2CoreImageReader.cxx b/VTK/IO/ADIOS2/vtkADIOS2CoreImageReader.cxx
+index 5d58905a88..3ce039345a 100644
+--- a/VTK/IO/ADIOS2/vtkADIOS2CoreImageReader.cxx
++++ b/VTK/IO/ADIOS2/vtkADIOS2CoreImageReader.cxx
+@@ -361,12 +361,12 @@ bool vtkADIOS2CoreImageReader::OpenAndReadMetaData()
+     vtkMPICommunicator* comm =
+       static_cast<vtkMPICommunicator*>(this->Controller->GetCommunicator());
+ 
+-    this->Impl->Adios.reset(new adios2::ADIOS(*comm->GetMPIComm()->GetHandle(), adios2::DebugON));
++    this->Impl->Adios.reset(new adios2::ADIOS(*comm->GetMPIComm()->GetHandle()));
+ #else
+     // Make sure the ADIOS subsystem is initialized before processing any
+     // sort of request.
+ 
+-    this->Impl->Adios.reset(new adios2::ADIOS(adios2::DebugON));
++    this->Impl->Adios.reset(new adios2::ADIOS());
+     // Before processing any request, read the meta data first
+ #endif
+   }
+-- 
+2.35.3
+

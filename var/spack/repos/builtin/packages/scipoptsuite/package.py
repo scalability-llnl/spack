@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -27,6 +27,6 @@ class Scipoptsuite(CMakePackage):
     version("7.0.1", sha256="971962f2d896b0c8b8fa554c18afd2b5037092685735d9494a05dc16d56ad422")
 
     depends_on("gmp")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("readline")
     depends_on("ncurses")

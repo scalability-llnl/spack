@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,7 @@ class OldSbang(Package):
     homepage = "https://www.example.com"
     url = "https://www.example.com/old-sbang.tar.gz"
 
-    version("1.0.0", "0123456789abcdef0123456789abcdef")
+    version("1.0.0", md5="0123456789abcdef0123456789abcdef")
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
@@ -30,7 +30,7 @@ class OldSbang(Package):
 
 {1}
 """.format(
-            spack.store.unpadded_root, prefix.bin
+            spack.store.STORE.unpadded_root, prefix.bin
         )
         with open("%s/sbang-style-1.sh" % self.prefix.bin, "w") as f:
             f.write(sbang_style_1)

@@ -1,0 +1,14 @@
+diff --git a/libs/pika/coroutines/include/pika/coroutines/detail/context_generic_context.hpp b/libs/pika/coroutines/include/pika/coroutines/detail/context_generic_context.hpp
+index 79eabdb7a..0a6028ae8 100644
+--- a/libs/pika/coroutines/include/pika/coroutines/detail/context_generic_context.hpp
++++ b/libs/pika/coroutines/include/pika/coroutines/detail/context_generic_context.hpp
+@@ -91,8 +91,7 @@ namespace pika::threads::coroutines {
+ 
+             void* allocate(std::size_t size) const
+             {
+-# if defined(_POSIX_VERSION) &&                                                                    \
+-     !(defined(__APPLE__) && (defined(arm64) || defined(__arm64) || defined(__arm64__)))
++# if defined(_POSIX_VERSION)
+                 void* limit = posix::alloc_stack(size);
+                 posix::watermark_stack(limit, size);
+ # else

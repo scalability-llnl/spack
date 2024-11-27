@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,10 @@ class Cfitsio(AutotoolsPackage):
     homepage = "https://heasarc.gsfc.nasa.gov/fitsio/"
     url = "https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-3.49.tar.gz"
 
+    license("custom")
+
+    version("4.4.0", sha256="95900cf95ae760839e7cb9678a7b2fad0858d6ac12234f934bd1cb6bfc246ba9")
+    version("4.3.0", sha256="fdadc01d09cf9f54253802c5ec87eb10de51ce4130411415ae88c30940621b8b")
     version("4.2.0", sha256="eba53d1b3f6e345632bb09a7b752ec7ced3d63ec5153a848380f3880c5d61889")
     version("4.1.0", sha256="b367c695d2831958e7166921c3b356d5dfa51b1ecee505b97416ba39d1b6c17a")
     version("4.0.0", sha256="b2a8efba0b9f86d3e1bd619f662a476ec18112b4f27cc441cc680a4e3777425e")
@@ -25,6 +29,9 @@ class Cfitsio(AutotoolsPackage):
     version("3.41", sha256="a556ac7ea1965545dcb4d41cfef8e4915eeb8c0faa1b52f7ff70870f8bb5734c")
     version("3.37", sha256="092897c6dae4dfe42d91d35a738e45e8236aa3d8f9b3ffc7f0e6545b8319c63a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("bzip2", default=True, description="Enable bzip2 support")
     variant("shared", default=True, description="Build shared libraries")
 
@@ -33,7 +40,7 @@ class Cfitsio(AutotoolsPackage):
 
     def url_for_version(self, version):
         if version >= Version("3.47"):
-            return super(Cfitsio, self).url_for_version(version)
+            return super().url_for_version(version)
 
         url = "http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio{0}0.tar.gz"
         return url.format(version.joined)
@@ -41,8 +48,8 @@ class Cfitsio(AutotoolsPackage):
     def configure_args(self):
         spec = self.spec
         extra_args = []
-        if "+bzip2" in spec:
-            extra_args.append("--with-bzip2=%s" % spec["bzip2"].prefix),
+        if spec.satisfies("+bzip2"):
+            extra_args.append(f"--with-bzip2={spec['bzip2'].prefix}"),
         return extra_args
 
     @property
@@ -50,7 +57,7 @@ class Cfitsio(AutotoolsPackage):
         targets = ["all"]
 
         # Build shared if variant is set.
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             targets += ["shared"]
 
         return targets

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,8 +22,12 @@ class Remhos(MakefilePackage):
 
     maintainers("v-dobrev", "tzanio", "vladotomov")
 
+    license("BSD-2-Clause")
+
     version("develop", branch="master")
     version("1.0", sha256="e60464a867fe5b1fd694fbb37bb51773723427f071c0ae26852a2804c08bbb32")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("metis", default=True, description="Enable/disable METIS support")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,10 +21,14 @@ class Fxt(AutotoolsPackage):
 
     maintainers("nfurmento", "sthibaul")
 
+    license("GPL-2.0-only")
+
     version("0.3.14", sha256="317d8d93175cd9f27ec43b8390b6d29dc66114f06aa74f2329847d49baaaebf2")
     version("0.3.5", sha256="3c0b33c82a01c4fb710c53ee9fc2c803314beba6fb60c397e13e874811e34a22")
     version("0.3.4", sha256="fcd35a5278ac0f10eba12fed4fa436dce79559897fde5b8176d5eee9081970f7")
     version("0.3.3", sha256="3f6fea5211cc242a54496e6242365c99522a5039916789cdbe25a58d05d6a626")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "moreparams",
@@ -44,7 +48,7 @@ class Fxt(AutotoolsPackage):
 
     def patch(self):
         # Increase the value of FXT_MAX_PARAMS (to allow longer task names)
-        if "+moreparams" in self.spec:
+        if self.spec.satisfies("+moreparams"):
             filter_file("#define FXT_MAX_PARAMS.*", "#define FXT_MAX_PARAMS 16", "tools/fxt.h")
 
     def autoreconf(self, spec, prefix):

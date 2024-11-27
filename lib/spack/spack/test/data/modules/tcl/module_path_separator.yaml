@@ -1,0 +1,5 @@
+enable:
+  - tcl
+tcl:
+  all:
+    autoload: none

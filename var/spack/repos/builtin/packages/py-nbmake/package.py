@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,9 @@ class PyNbmake(PythonPackage):
     homepage = "https://github.com/treebeardtech/nbmake"
     pypi = "nbmake/nbmake-0.5.tar.gz"
 
+    license("Apache-2.0")
+
+    version("1.4.3", sha256="9afc46ba05cc22f5a78047a758dca32386c95eaaa41501b25ce108cf733d9622")
     version("1.4.1", sha256="7f602ba5195e80e4f2527944bb06d3b4df0d1520e73ba66126b51132b1f646ea")
     version("1.4", sha256="2d3b97b83a8a378d5d828ad7b5412e509b82ed883662af16533236c909cfa20a")
     version("1.3.5", sha256="95d4716928171120fae562e69440989a636e2af8616c829573e9574f5bea30db")
@@ -33,7 +36,6 @@ class PyNbmake(PythonPackage):
 
     depends_on("py-setuptools", type="build")
     depends_on("py-poetry-core@1:", type="build")
-    depends_on("py-pydantic@1.7.2:1", type=("build", "run"))
     depends_on("py-pytest@6.1.0:", when="@1.2.1:", type=("build", "run"))
     depends_on("py-pytest@6.1.0:6", when="@0.10:1.2.0", type=("build", "run"))
     depends_on("py-pytest@6.1.2:6", when="@:0.9", type=("build", "run"))
@@ -47,3 +49,6 @@ class PyNbmake(PythonPackage):
     depends_on("py-pygments@2.7.3:2", type=("build", "run"))
     depends_on("py-ipykernel@5.4.0:", when="@0.7:", type=("build", "run"))
     depends_on("py-ipykernel@5.4.0:5", when="@0.5", type=("build", "run"))
+
+    # Historical dependencies
+    depends_on("py-pydantic@1.7.2:1", when="@:1.4.1", type=("build", "run"))

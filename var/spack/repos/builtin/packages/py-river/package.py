@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,11 @@ class PyRiver(PythonPackage):
     homepage = "https://riverml.xyz/0.13.0/"
     pypi = "river/river-0.13.0.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("0.13.0", sha256="9d068b7a9db32302fbd581af81315681dfe61774a5d777fb3d5982d3c3061340")
+
+    depends_on("c", type="build")  # generated
 
     # pyproject.toml
     depends_on("py-cython", type="build")

@@ -1,0 +1,8 @@
+--- a/cmake/atlas_compile_flags.cmake
++++ b/cmake/atlas_compile_flags.cmake
+@@ -20,3 +20,5 @@ if( CMAKE_CXX_COMPILER_ID MATCHES Cray )
+ #          directives, ACC directives, or ASM intrinsics.
+
+ endif()
++
++ecbuild_add_cxx_flags("-fp-speculation=safe")

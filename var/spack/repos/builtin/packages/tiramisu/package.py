@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,10 +16,15 @@ class Tiramisu(CMakePackage, CudaPackage, PythonExtension):
 
     maintainers("wraith1995")
 
-    generator = "Ninja"
+    generator("ninja")
+
+    license("MIT")
 
     version("master", branch="master")
     version("2023-2-8", commit="2cd0c43cc1656bfa43cfb6e81d06f770cbf7251e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("python", default=True, description="Install python bindings.")
     extends("python", when="+python")
@@ -32,8 +37,6 @@ class Tiramisu(CMakePackage, CudaPackage, PythonExtension):
     )
 
     depends_on("cmake@3.5:", type="build")
-    depends_on("ninja", type="build")
-
     depends_on("halide@14.0.0:", type=("build", "link", "run"))
     depends_on("isl", type=("build", "link", "run"))
     depends_on("python@3.8:", type=("build", "link", "run"), when="+python")
@@ -57,10 +60,7 @@ class Tiramisu(CMakePackage, CudaPackage, PythonExtension):
             self.define("USE_FLEXNLP", False),
         ]
         if "+python" in spec:
-            args += [
-                self.define("Tiramisu_INSTALL_PYTHONDIR", python_platlib),
-                self.define("Python3_EXECUTABLE", spec["python"].command.path),
-            ]
+            args += [self.define("Tiramisu_INSTALL_PYTHONDIR", python_platlib)]
         return args
 
     @property

@@ -1,0 +1,23 @@
+https://bugs.gentoo.org/828082
+--- a/librtmp/rtmp.c
++++ b/librtmp/rtmp.c
+@@ -28,6 +28,7 @@
+ #include <string.h>
+ #include <assert.h>
+ #include <time.h>
++#include <limits.h>
+ 
+ #include "rtmp_sys.h"
+ #include "log.h"
+diff --git a/librtmp/hashswf.c b/librtmp/hashswf.c
+index 32b2eed..e3669e3 100644
+--- a/librtmp/hashswf.c
++++ b/librtmp/hashswf.c
+@@ -25,6 +25,7 @@
+ #include <string.h>
+ #include <ctype.h>
+ #include <time.h>
++#include <limits.h>
+ 
+ #include "rtmp_sys.h"
+ #include "log.h"

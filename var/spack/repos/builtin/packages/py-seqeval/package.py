@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PySeqeval(PythonPackage):
 
     homepage = "https://github.com/chakki-works/seqeval"
     pypi = "seqeval/seqeval-1.2.2.tar.gz"
+
+    license("MIT")
 
     version("1.2.2", sha256="f28e97c3ab96d6fcd32b648f6438ff2e09cfba87f05939da9b3970713ec56e6f")
 

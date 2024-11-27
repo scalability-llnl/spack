@@ -1,0 +1,24 @@
+From 0d01d90aaa0574868db867f64c8504fc847bae9b Mon Sep 17 00:00:00 2001
+From: Stefan Behnel <stefan_ml@behnel.de>
+Date: Wed, 2 Feb 2022 23:41:45 +0100
+Subject: [PATCH] Allow globally forcing C file regeneration by setting the env
+ var CYTHON_FORCE_REGEN=1, e.g. from external build systems.
+
+---
+ Cython/Build/Dependencies.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Cython/Build/Dependencies.py b/Cython/Build/Dependencies.py
+index 1ba574d52f..28c48ed8c3 100644
+--- a/Cython/Build/Dependencies.py
++++ b/Cython/Build/Dependencies.py
+@@ -963,6 +963,9 @@ def cythonize(module_list, exclude=None, nthreads=0, aliases=None, quiet=False,
+         pythran_options.cplus = True
+         pythran_options.np_pythran = True
+ 
++    if force is None:
++        force = os.environ.get("CYTHON_FORCE_REGEN") == "1"  # allow global overrides for build systems
++
+     c_options = CompilationOptions(**options)
+     cpp_options = CompilationOptions(**options); cpp_options.cplus = True
+     ctx = c_options.create_context()

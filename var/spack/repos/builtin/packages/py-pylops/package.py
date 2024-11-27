@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class PyPylops(PythonPackage):
     git = "https://github.com/PyLops/pylops.git"
 
     maintainers("archxlith")
+
+    license("LGPL-3.0-or-later")
 
     version("master", branch="master")
     version("1.12.0", sha256="0e9caef46bbef9691acd133cb9b6d13e19510e8682aaa8f4eb15d9bd9ff9ebb6")

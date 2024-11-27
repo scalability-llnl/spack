@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyLoompy(PythonPackage):
 
     homepage = "https://github.com/linnarsson-lab/loompy"
     pypi = "loompy/loompy-3.0.7.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("3.0.7", sha256="b5cdf7b54734c6bed3a181d11947af70af2c6e0dcadc02fd0e871df232faa8f4")
 

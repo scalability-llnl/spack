@@ -1,0 +1,19 @@
+diff -ruN spack-src/configure spack-src-patched/configure
+--- spack-src/configure	2024-04-16 00:20:41.000000000 +0000
++++ spack-src-patched/configure	2024-06-12 19:35:50.799407280 +0000
+@@ -3101,7 +3101,6 @@
+             rocprofiler=yes
+             tauoptions="${tauoptions}-rocm"
+             pthread=yes
+-            build_llvm_plugin=yes
+             shift
+             ;;
+ 
+@@ -3118,7 +3117,6 @@
+             rocprofiler=yes
+             tauoptions="${tauoptions}-rocm"
+             pthread=yes
+-            build_llvm_plugin=yes
+             shift
+             ;;
+ 

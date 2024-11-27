@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -73,24 +73,28 @@ class PrefixReplacer:
         """Returns true when the prefix to prefix map
         is mapping everything to the same location (identity)
         or there are no prefixes to replace."""
-        return not bool(self.prefix_to_prefix)
+        return not self.prefix_to_prefix
 
     def apply(self, filenames: list):
+        """Returns a list of files that were modified"""
+        changed_files = []
         if self.is_noop:
-            return
+            return []
         for filename in filenames:
-            self.apply_to_filename(filename)
+            if self.apply_to_filename(filename):
+                changed_files.append(filename)
+        return changed_files
 
     def apply_to_filename(self, filename):
         if self.is_noop:
-            return
+            return False
         with open(filename, "rb+") as f:
-            self.apply_to_file(f)
+            return self.apply_to_file(f)
 
     def apply_to_file(self, f):
         if self.is_noop:
-            return
-        self._apply_to_file(f)
+            return False
+        return self._apply_to_file(f)
 
 
 class TextFilePrefixReplacer(PrefixReplacer):
@@ -122,10 +126,11 @@ class TextFilePrefixReplacer(PrefixReplacer):
         data = f.read()
         new_data = re.sub(self.regex, replacement, data)
         if id(data) == id(new_data):
-            return
+            return False
         f.seek(0)
         f.write(new_data)
         f.truncate()
+        return True
 
 
 class BinaryFilePrefixReplacer(PrefixReplacer):
@@ -194,12 +199,17 @@ class BinaryFilePrefixReplacer(PrefixReplacer):
 
         Arguments:
             f: file opened in rb+ mode
+
+        Returns:
+            bool: True if file was modified
         """
         assert f.tell() == 0
 
         # We *could* read binary data in chunks to avoid loading all in memory,
         # but it's nasty to deal with matches across boundaries, so let's stick to
         # something simple.
+
+        modified = True
 
         for match in self.regex.finditer(f.read()):
             # The matching prefix (old) and its replacement (new)
@@ -243,6 +253,9 @@ class BinaryFilePrefixReplacer(PrefixReplacer):
 
             f.seek(match.start())
             f.write(replacement)
+            modified = True
+
+        return modified
 
 
 class BinaryStringReplacementError(spack.error.SpackError):
@@ -254,7 +267,7 @@ class BinaryStringReplacementError(spack.error.SpackError):
             old_len (str): original length of the file
             new_len (str): length of the file after substitution
         """
-        super(BinaryStringReplacementError, self).__init__(
+        super().__init__(
             "Doing a binary string replacement in %s failed.\n"
             "The size of the file changed from %s to %s\n"
             "when it should have remanined the same." % (file_path, old_len, new_len)
@@ -267,13 +280,13 @@ class BinaryTextReplaceError(spack.error.SpackError):
             " To fix this, compile with more padding "
             "(config:install_tree:padded_length), or install to a shorter prefix."
         )
-        super(BinaryTextReplaceError, self).__init__(msg)
+        super().__init__(msg)
 
 
 class CannotGrowString(BinaryTextReplaceError):
     def __init__(self, old, new):
         msg = "Cannot replace {!r} with {!r} because the new prefix is longer.".format(old, new)
-        super(CannotGrowString, self).__init__(msg)
+        super().__init__(msg)
 
 
 class CannotShrinkCString(BinaryTextReplaceError):
@@ -285,4 +298,4 @@ class CannotShrinkCString(BinaryTextReplaceError):
         msg = "Cannot replace {!r} with {!r} in the C-string {!r}.".format(
             old, new, full_old_string
         )
-        super(CannotShrinkCString, self).__init__(msg)
+        super().__init__(msg)

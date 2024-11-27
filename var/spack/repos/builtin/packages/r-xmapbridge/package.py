@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,7 @@ class RXmapbridge(RPackage):
 
     bioc = "xmapbridge"
 
+    version("1.58.0", commit="905077b7935c4678376f3f2afd9881ff0c45ad00")
     version("1.56.0", commit="fdf2cafca8ad348813d3381fee57623fab53f0ab")
     version("1.54.0", commit="a316e2399894191646c229378fa138b7461c75ab")
     version("1.52.0", commit="fe32fcd2a83432c721eb948cb3af73dd187065f6")

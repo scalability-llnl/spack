@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,7 @@ class RTfbstools(RPackage):
 
     bioc = "TFBSTools"
 
+    version("1.38.0", commit="2ce17166b6f73b5093acec2a3dde33b6bcfa56bc")
     version("1.36.0", commit="3358c89227a4d2e237ee5f8c532f468460a16ee2")
     version("1.34.0", commit="7f8d0cb58a527a5d7ba94a773279f13aedca6ec7")
     version("1.32.0", commit="235505626b910de29156a07e1f990daa3b5d57d9")
@@ -27,6 +28,8 @@ class RTfbstools(RPackage):
     version("1.18.0", commit="17e12b9f3dcb9059d414307ec0bc23ed1ee33294")
     version("1.16.0", commit="565436a5a674d4dea7279e796a20c5bd2034f65a")
     version("1.14.2", commit="e429fdefb6f7ee4585dd2a8ca3d0ced7a5bed4ff")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.2.2:", type=("build", "run"))
     depends_on("r-biobase@2.28:", type=("build", "run"))

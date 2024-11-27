@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyZxcvbn(PythonPackage):
 
     homepage = "https://github.com/dwolfhub/zxcvbn-python"
     url = "https://github.com/dwolfhub/zxcvbn-python/archive/v4.4.25.tar.gz"
+
+    license("MIT")
 
     version("4.4.28", sha256="b7275765acdf8028c21aa502d742e56de2252bac604c04ba5e336c39f88d5576")
     version("4.4.27", sha256="9b84927fff7b4cc557b63a49adbd74f7a92026e25edd9e1b2867c1610d15fa5d")

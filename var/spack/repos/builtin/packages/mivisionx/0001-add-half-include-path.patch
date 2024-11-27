@@ -1,0 +1,21 @@
+diff --git a/rocAL/rocAL/CMakeLists.txt b/rocAL/rocAL/CMakeLists.txt
+index bb28810..3c97eab 100644
+--- a/rocAL/rocAL/CMakeLists.txt
++++ b/rocAL/rocAL/CMakeLists.txt
+@@ -39,6 +39,8 @@ find_package(Boost COMPONENTS ${BOOST_COMPONENTS} QUIET)
+ set(THREADS_PREFER_PTHREAD_FLAG ON)
+ find_package(Threads QUIET)
+
++find_path(HALF_INCLUDE_DIR half.hpp)
++
+ if( GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
+     if(NOT DEFINED HIP_PATH)
+         if(NOT DEFINED ENV{HIP_PATH})
+@@ -120,6 +122,7 @@ if(NOT Threads_FOUND)
+ endif()
+
+ if(${BUILD_ROCAL})
++    include_directories(${HALF_INCLUDE_DIR})
+     # AMD OpenVX & RPP
+     include_directories(${AMDRPP_INCLUDE_DIRS})
+     set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} openvx vx_rpp)

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Ack(Package):
 
     homepage = "https://beyondgrep.com/"
     url = "https://beyondgrep.com/ack-2.14-single-file"
+
+    license("Artistic-2.0")
 
     version(
         "2.22",
@@ -41,7 +43,7 @@ class Ack(Package):
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
-        ack_source = "ack-{0}-single-file".format(self.version)
+        ack_source = f"ack-{self.version}-single-file"
         ack_installed = join_path(prefix.bin, "ack")
 
         # install source

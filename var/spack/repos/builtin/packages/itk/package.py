@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,7 +22,7 @@ class Itk(CMakePackage):
     homepage = "https://itk.org/"
     url = "https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.1.1/InsightToolkit-5.1.1.tar.gz"
 
-    maintainers("glennpj")
+    license("Apache-2.0")
 
     version("5.3.0", sha256="57a4471133dc8f76bde3d6eb45285c440bd40d113428884a1487472b7b71e383")
     version("5.3rc02", sha256="163aaf4a6cecd5b70ff718c1a986c746581797212fd1b629fa81f12ae4756d14")
@@ -35,9 +35,14 @@ class Itk(CMakePackage):
     version("5.1.2", sha256="f1e5a78e11125348f68f655c6b89b617c3a8b2c09f710081f621054811a70c98")
     version("5.1.1", sha256="39e2a63840054361b728878a35b21bbe38374682ffb4b5c4f8f8f7514dedb58e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("review", default=False, description="enable modules under review")
     variant("rtk", default=False, description="build the RTK (Reconstruction Toolkit module")
     variant("minc", default=False, description="enable support for MINC files")
+    variant("antspy", default=False, description="enable support features for antspy")
 
     # TODO: This will not work if the resource is pulled from a spack mirror.
     # The build process will checkout the appropriate commit but it needs to be
@@ -58,24 +63,34 @@ class Itk(CMakePackage):
     depends_on("eigen")
     depends_on("expat")
     depends_on("fftw-api")
-    depends_on("googletest")
-    depends_on("hdf5+cxx")
+    depends_on("hdf5+cxx+hl")
     depends_on("jpeg")
     depends_on("libpng")
     depends_on("libtiff")
-    depends_on("mpi")
-    depends_on("zlib")
+    depends_on("zlib-api")
+
+    patch(
+        "https://github.com/InsightSoftwareConsortium/ITK/commit/9a719a0d2f5f489eeb9351b0ef913c3693147a4f.patch?full_index=1",
+        sha256="ec1f7fa71f2b7f05d9632c6b0321e7d436fff86fca92c60c12839b13ea79bd70",
+        when="@5.2.0:5.3.0",
+    )
 
     def cmake_args(self):
-        use_mkl = "^mkl" in self.spec
+        use_mkl = self.spec["fftw-api"].name in INTEL_MATH_LIBRARIES
         args = [
+            self.define("BUILD_TESTING", False),
             self.define("BUILD_SHARED_LIBS", True),
             self.define("ITK_USE_SYSTEM_LIBRARIES", True),
+            # https://github.com/InsightSoftwareConsortium/ITK/issues/303
+            self.define("ITK_USE_SYSTEM_GOOGLETEST", False),
             self.define("ITK_USE_MKL", use_mkl),
             self.define_from_variant("Module_ITKReview", "review"),
             self.define_from_variant("Module_RTK", "rtk"),
             self.define_from_variant("Module_ITKIOMINC", "minc"),
             self.define_from_variant("Module_ITKIOTransformMINC", "minc"),
+            self.define_from_variant("Module_MGHIO", "antspy"),
+            self.define_from_variant("Module_GenericLabelInterpolator", "antspy"),
+            self.define_from_variant("Module_AdaptiveDenoising", "antspy"),
         ]
 
         if not use_mkl:

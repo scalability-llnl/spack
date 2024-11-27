@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,12 +9,18 @@ from spack.package import *
 class Cardioid(CMakePackage):
     """Cardiac simulation suite."""
 
-    homepage = "https://baasic.llnl.gov/comp-bio/cardioid-code.php"
+    homepage = "https://baasic.llnl.gov/comp-bio/cardioid-code"
     git = "https://github.com/LLNL/cardioid.git"
     maintainers("rblake-llnl")
 
+    license("MIT")
+
     version("develop", branch="master")
     version("elecfem", branch="elec-fem")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("cuda", default=False, description="Build with cuda support")
     variant("mfem", default=False, description="Build with mfem support")
@@ -42,12 +48,12 @@ class Cardioid(CMakePackage):
             "-DCMAKE_CXX_COMPILER:STRING=" + spec["mpi"].mpicxx,
         ]
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append("-DENABLE_CUDA:BOOL=ON")
             args.append("-DCUDA_TOOLKIT_ROOT:PATH=" + spec["cuda"].prefix)
         else:
             args.append("-DENABLE_CUDA:BOOL=OFF")
 
-        if "+mfem" in self.spec:
+        if self.spec.satisfies("+mfem"):
             args.append("-DMFEM_DIR:PATH=" + spec["mfem"].prefix)
         return args

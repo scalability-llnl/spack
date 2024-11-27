@@ -1,22 +1,8 @@
 spack:
   view: false
-
-  concretizer:
-    reuse: false
-    unify: false
-
-  config:
-    build_jobs: 32
-    concretizer: clingo
-    install_tree:
-      root: /home/software/radiuss
-      padded_length: 512
-      projections:
-        all: '{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'
-
   packages:
     all:
-      target: [x86_64]
+      require: target=x86_64_v3
 
       providers:
         mpi: [mvapich2]
@@ -31,12 +17,11 @@ spack:
       - axom
       - blt
       - caliper
-      #- care  ## ~benchmarks ~examples ~tests
-      #- chai  ## ~benchmarks ~examples ~tests
+      - care  # ~benchmarks ~examples ~tests
+      - chai  # ~examples
       - conduit  # ^hdf5+shared
       - flux-core
       #- flux-sched
-      #- glvis   # ^mesa-glu@9.0.0 ^mesa18~llvm  # same issue w/chai
       - hypre
       - lbann
       - lvarray ~tests  # per Spack issue #23192  # ~examples
@@ -46,6 +31,7 @@ spack:
       - py-merlin
       - py-shroud
       - raja # ~examples  # ~tests
+      - raja-perf
       - samrai
       - scr
       - sundials
@@ -54,153 +40,10 @@ spack:
       - xbraid
       - zfp
 
-  mirrors:
-    mirror: "s3://spack-binaries/develop/radiuss"
-
   specs:
   - matrix:
     - [$radiuss]
     - [$compilers]
 
-  gitlab-ci:
-    image: { "name": "ghcr.io/spack/e4s-ubuntu-18.04:v2021-10-18", "entrypoint": [""] }
-    script:
-      - uname -a || true
-      - grep -E 'vendor|model name' /proc/cpuinfo 2>/dev/null | sort -u || head -n10 /proc/cpuinfo 2>/dev/null || true
-      - nproc
-      - curl -Lfs 'https://github.com/JuliaBinaryWrappers/GNUMake_jll.jl/releases/download/GNUMake-v4.3.0+1/GNUMake.v4.3.0.x86_64-linux-gnu.tar.gz' -o gmake.tar.gz
-      - printf 'fef1f59e56d2d11e6d700ba22d3444b6e583c663d6883fd0a4f63ab8bd280f0f gmake.tar.gz' | sha256sum --check --strict --quiet
-      - tar -xzf gmake.tar.gz -C /usr bin/make 2> /dev/null
-      - . "./share/spack/setup-env.sh"
-      - spack --version
-      - spack arch
-      - cd ${SPACK_CONCRETE_ENV_DIR}
-      - spack env activate --without-view .
-      - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
-      # AWS runners mount E4S public key (verification), UO runners mount public/private (signing/verification)
-      - if [[ -r /mnt/key/e4s.gpg ]]; then spack gpg trust /mnt/key/e4s.gpg; fi
-      # UO runners mount intermediate ci public key (verification), AWS runners mount public/private (signing/verification)
-      - if [[ -r /mnt/key/intermediate_ci_signing_key.gpg ]]; then spack gpg trust /mnt/key/intermediate_ci_signing_key.gpg; fi
-      - if [[ -r /mnt/key/spack_public_key.gpg ]]; then spack gpg trust /mnt/key/spack_public_key.gpg; fi
-      - spack --color=always --backtrace ci rebuild
-    after_script:
-      - cat /proc/loadavg || true
-
-    match_behavior: first
-    mappings:
-      - match:
-          - lbann
-          - openblas
-          - qt
-          - rust
-          - visit
-        runner-attributes:
-          tags: ["spack", "large", "x86_64"]
-          variables:
-            CI_JOB_SIZE: large
-            KUBERNETES_CPU_REQUEST: 8000m
-            KUBERNETES_MEMORY_REQUEST: 12G
-
-      - match:
-          - ascent
-          - axom
-          - conduit
-          - hdf5
-          - hydrogen
-          - mfem
-          - mvapich2
-          - py-packaging
-          - py-scipy
-          - samrai
-          - vtk-h
-          - vtk-m
-          - vtk
-        runner-attributes:
-          tags: ["spack", "medium", "x86_64"]
-          variables:
-            CI_JOB_SIZE: "medium"
-            KUBERNETES_CPU_REQUEST: "2000m"
-            KUBERNETES_MEMORY_REQUEST: "4G"
-
-      - match:
-          - autoconf-archive
-          - camp
-          - cmake
-          - curl
-          - czmq
-          - diffutils
-          - gawk
-          - gdbm
-          - gettext
-          - glib
-          - gmake
-          - libgcrypt
-          - libpciaccess
-          - libpng
-          - libsigsegv
-          - libsodium
-          - libxml2
-          - libyaml
-          - libzmq
-          - lua
-          - lz4
-          - m4
-          - meson
-          - metis
-          - ninja
-          - pcre
-          - pdsh
-          - perl
-          - pkgconf
-          - py-cffi
-          - py-jsonschema
-          - py-kiwisolver
-          - py-pycparser
-          - py-setuptools-scm
-          - py-six
-          - py-wheel
-          - qhull
-          - readline
-          - sed
-          - slurm
-          - sqlite
-          - unzip
-          - util-linux-uuid
-          - util-macros
-          - zfp
-          - zlib
-        runner-attributes:
-          tags: ["spack", "small", "x86_64"]
-          variables:
-            CI_JOB_SIZE: "small"
-            KUBERNETES_CPU_REQUEST: "500m"
-            KUBERNETES_MEMORY_REQUEST: "500M"
-
-      - match: ['os=ubuntu18.04']
-        runner-attributes:
-          tags: ["spack", "x86_64"]
-          variables:
-            CI_JOB_SIZE: "default"
-
-    broken-specs-url: "s3://spack-binaries/broken-specs"
-
-    service-job-attributes:
-      before_script:
-        - . "./share/spack/setup-env.sh"
-        - spack --version
-      image: { "name": "ghcr.io/spack/e4s-ubuntu-18.04:v2021-10-18", "entrypoint": [""] }
-      tags: ["spack", "public", "x86_64"]
-
-    signing-job-attributes:
-      image: { "name": "ghcr.io/spack/notary:latest", "entrypoint": [""] }
-      tags: ["spack", "aws"]
-      script:
-        - aws s3 sync --exclude "*" --include "*spec.json*" ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache /tmp
-        - /sign.sh
-        - aws s3 sync --exclude "*" --include "*spec.json.sig*" /tmp ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache
-
   cdash:
     build-group: RADIUSS
-    url: https://cdash.spack.io
-    project: Spack Testing
-    site: Cloud Gitlab Infrastructure

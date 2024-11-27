@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,10 +15,14 @@ class Xeus(CMakePackage):
 
     maintainers("tomstitt")
 
+    license("BSD-3-Clause")
+
     version("develop", branch="master")
     version("1.0.4", sha256="7324ff013eb97d579fd3b6f9770a13f8863d6046c8bbcdbe2fc7d2ac02f0161f")
     version("0.15.0", sha256="bc99235b24d5757dc129f3ed531501fb0d0667913927ed39ee24281952649183")
     version("0.14.1", sha256="a6815845d4522ec279f142d3b4e92ef52cd80847b512146a65f256a77e058cfe")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("examples", default=False, description="Build examples")
     variant("shared", default=True, description="Build shared libraries")

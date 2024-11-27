@@ -1,0 +1,57 @@
+--- cmake/modules/SearchInstalledSoftware.cmake	2023-08-28 06:26:43.000000000 -0500
++++ cmake/modules/SearchInstalledSoftware.cmake	2023-11-03 10:26:13.383171830 -0500
+@@ -1711,8 +1711,12 @@
+ 
+ if(tmva-sofie)
+   message(STATUS "Looking for Protobuf")
+-  find_package(Protobuf)
++  set(protobuf_MODULE_COMPATIBLE TRUE)
++  find_package(Protobuf CONFIG)
+   if(NOT Protobuf_FOUND)
++    find_package(Protobuf MODULE)
++  endif()
++  if(NOT Protobuf_FOUND)
+     if(fail-on-missing)
+       message(FATAL_ERROR "Protobuf libraries not found and they are required (tmva-sofie option enabled)")
+     else()
+--- tmva/sofie/test/CMakeLists.txt	2023-08-28 06:26:43.000000000 -0500
++++ tmva/sofie/test/CMakeLists.txt	2023-11-03 10:41:04.048362415 -0500
+@@ -46,7 +46,7 @@
+    ${CMAKE_BINARY_DIR}/ginclude   # this is for RConfigure.h
+ )
+ 
+-target_link_libraries(emitFromONNX ${Protobuf_LIBRARIES} ROOTTMVASofie ROOTTMVASofieParser)
++target_link_libraries(emitFromONNX protobuf::libprotobuf ROOTTMVASofie ROOTTMVASofieParser)
+ set_target_properties(emitFromONNX PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+ ## silence protobuf warnings seen in version 3.0 and 3.6. Not needed from protobuf version 3.17
+ target_compile_options(emitFromONNX PRIVATE -Wno-unused-parameter -Wno-array-bounds)
+@@ -88,7 +88,7 @@
+    ${CMAKE_SOURCE_DIR}/core/foundation/inc
+    ${CMAKE_BINARY_DIR}/ginclude   # this is for RConfigure.h
+ )
+-target_link_libraries(emitFromROOT ${Protobuf_LIBRARIES} ROOTTMVASofie ROOTTMVASofieParser)
++target_link_libraries(emitFromROOT protobuf::libprotobuf ROOTTMVASofie ROOTTMVASofieParser)
+ set_target_properties(emitFromROOT PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+ ## silence protobuf warnings seen in version 3.0 and 3.6. Not needed from protobuf version 3.17
+ target_compile_options(emitFromROOT PRIVATE -Wno-unused-parameter -Wno-array-bounds)
+--- tmva/sofie_parsers/CMakeLists.txt	2023-08-28 06:26:43.000000000 -0500
++++ tmva/sofie_parsers/CMakeLists.txt	2023-11-03 10:46:44.101759248 -0500
+@@ -55,8 +55,8 @@
+     src/ParseFuseConvTransposeAdd.cxx
+     src/ParseFuseMatMulAdd.cxx
+     ${PROTO_SRCS}
+-  LIBRARIES
+-    ${Protobuf_LIBRARIES}
++  LIBRARIES PUBLIC
++    protobuf::libprotobuf
+   DEPENDENCIES
+     TMVA
+     ROOTTMVASofie
+@@ -64,7 +64,5 @@
+ 
+ target_include_directories(ROOTTMVASofieParser PUBLIC
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+-target_include_directories(ROOTTMVASofieParser PUBLIC
+-  ${Protobuf_INCLUDE_DIRS})
+ set_target_properties(ROOTTMVASofieParser PROPERTIES
+   POSITION_INDEPENDENT_CODE TRUE)

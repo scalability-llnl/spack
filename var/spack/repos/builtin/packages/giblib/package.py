@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Giblib(AutotoolsPackage):
 
     homepage = "https://web.archive.org/web/20071002210842/http://linuxbrit.co.uk/giblib/"
     url = "https://mirror.amdmi3.ru/distfiles/giblib-1.2.4.tar.gz"
+
+    license("MIT")
 
     version("1.2.4", sha256="176611c4d88d742ea4013991ad54c2f9d2feefbc97a28434c0f48922ebaa8bac")
 

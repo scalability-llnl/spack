@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,15 +18,15 @@ class PhotosF(MakefilePackage):
         "http://cern.ch/service-spi/external/MCGenerators/distribution/photos/photos-215.5-src.tgz"
     )
 
-    maintainers("iarspider")
-
     version("215.5", sha256="3e2b3f60ffe2d3a6a95cf2f156aa24b93e1fa3c439a85fa0ae780ca2f6e0dbb5")
+
+    depends_on("fortran", type="build")  # generated
 
     patch("photos-215.5-update-configure.patch", level=2)
 
     def do_stage(self, mirror_only=False):
         # Fix directory structure - remove extra "<version>" subdirectory
-        super(PhotosF, self).do_stage(mirror_only)
+        super().do_stage(mirror_only)
         root = join_path(self.stage.source_path, self.spec.version)
         for fn in os.listdir(root):
             shutil.move(join_path(root, fn), self.stage.source_path)

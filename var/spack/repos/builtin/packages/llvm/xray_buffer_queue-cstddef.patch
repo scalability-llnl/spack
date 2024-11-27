@@ -1,4 +1,12 @@
-# Fix missing std:size_t in 'llvm@4:5' for build with '%clang@7:'
+# The patched file uses size_t, a.k.a. ::size_t (not std::size_t), but does not
+# include <stddef.h> explicitly. Whether or not the header is included
+# implicitly via other headers, depends on the implementation of the standard
+# library. Therefore, we should not apply this patch depending on the compiler
+# version. Strictly speaking, <cstddef> is not guaranteed to provide ::size_t
+# (in contrast to std::size_t). However, it does that in most cases and that is
+# what the upstream developers seem to rely on starting LLVM 6.0.0
+# (see https://reviews.llvm.org/D39175).
+
 --- a/compiler-rt/lib/xray/xray_buffer_queue.h
 +++ b/compiler-rt/lib/xray/xray_buffer_queue.h
 @@ -18,0 +18,1 @@

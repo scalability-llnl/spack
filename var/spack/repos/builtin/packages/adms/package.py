@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,8 +18,12 @@ class Adms(AutotoolsPackage):
 
     maintainers("cessenat")
 
+    license("GPL-3.0-only")
+
     version("master", branch="master")
     version("2.3.7", sha256="3a78e1283ecdc3f356410474b3ff44c4dcc82cb89772087fd3bbde8a1038ce08")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("bison@2.5:", type="build")
     depends_on("flex", type="build")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Redundans(Package):
     homepage = "https://github.com/Gabaldonlab/redundans"
     url = "https://github.com/Gabaldonlab/redundans/archive/v0.13c.tar.gz"
     git = "https://github.com/Gabaldonlab/redundans.git"
+
+    license("GPL-2.0-or-later")
 
     version("0.14a", commit="a20215a862aed161cbfc79df9133206156a1e9f0")
     version("0.13c", sha256="26d48f27a32678d94c1d00cb3b8991d74891d6cad64a94569901ff9607a7a736")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,8 @@ class Cosp2(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     variant("double", default=True, description="Build with double precision.")
     variant("mpi", default=True, description="Build with MPI Support")
 
@@ -31,14 +33,14 @@ class Cosp2(MakefilePackage):
     def edit(self, spec, prefix):
         cc = spack_cc
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             cc = spec["mpi"].mpicc
 
         with working_dir(self.build_directory):
             makefile = FileFilter("Makefile.vanilla")
             makefile.filter(r"^CC\s*=.*", "CC = {0}".format(cc))
 
-            if "+double" in spec:
+            if spec.satisfies("+double"):
                 filter_file("DOUBLE_PRECISION = O.*", "DOUBLE_PRECISION = OFF", "Makefile.vanilla")
             copy("Makefile.vanilla", "Makefile")
 

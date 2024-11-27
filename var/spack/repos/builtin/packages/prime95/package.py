@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class Prime95(Package):
     homepage = "https://www.mersenne.org/"
     url = "https://www.mersenne.org/ftp_root/gimps/p95v308b17.linux64.tar.gz"
     maintainers("saqibkh")
+
+    license("Unlicense")
 
     version("95v308b17", sha256="5180c3843d2b5a7c7de4aa5393c13171b0e0709e377c01ca44154608f498bec7")
     version("95v308b16", sha256="9fa9b30dd175be287d3a3f4b85139d02d4e64aa2dad88324abd4fdfcbbfe10d4")

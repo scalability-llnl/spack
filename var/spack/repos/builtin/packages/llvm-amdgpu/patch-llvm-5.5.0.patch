@@ -1,0 +1,38 @@
+From 7010d5da727825321d31863ceb9e2fe9eb22b5b9 Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Tue, 10 Oct 2023 05:16:47 +0000
+Subject: [PATCH] Condition check for enabling the flag
+ -mcode-object-version=none is failing in spack when device-libsis built with
+ llvm-amdgpu. The flag is required here as well as standalon build.
+
+---
+ rocm-device-libs/cmake/OCL.cmake | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
+
+diff --git a/rocm-device-libs/cmake/OCL.cmake b/rocm-device-libs/cmake/OCL.cmake
+index 773c6f62e..30f60030b 100644
+--- a/rocm-device-libs/cmake/OCL.cmake
++++ b/rocm-device-libs/cmake/OCL.cmake
+@@ -30,17 +30,8 @@ if (WIN32)
+   set(CLANG_OCL_FLAGS ${CLANG_OCL_FLAGS} -fshort-wchar)
+ endif()
+ 
+-# Disable code object version module flag if available.
+-file(WRITE ${CMAKE_BINARY_DIR}/tmp.cl "")
+-execute_process (
+-  COMMAND ${LLVM_TOOLS_BINARY_DIR}/clang${EXE_SUFFIX} ${CLANG_OCL_FLAGS} -Xclang -mcode-object-version=none ${CMAKE_BINARY_DIR}/tmp.cl
+-  RESULT_VARIABLE TEST_CODE_OBJECT_VERSION_NONE_RESULT
+-  ERROR_QUIET
+-)
+-file(REMOVE ${CMAKE_BINARY_DIR}/tmp.cl)
+-if (NOT TEST_CODE_OBJECT_VERSION_NONE_RESULT)
+-  set(CLANG_OCL_FLAGS ${CLANG_OCL_FLAGS} -Xclang -mcode-object-version=none)
+-endif()
++# Disable code object version module flag.
++set(CLANG_OCL_FLAGS ${CLANG_OCL_FLAGS} -Xclang -mcode-object-version=none)
+ 
+ set (BC_EXT .bc)
+ set (LIB_SUFFIX ".lib${BC_EXT}")
+-- 
+2.31.1
+

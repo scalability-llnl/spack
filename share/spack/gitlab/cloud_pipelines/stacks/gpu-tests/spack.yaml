@@ -1,26 +1,13 @@
 spack:
   view: false
 
-  concretizer:
-    reuse: false
-    unify: false
-
-  config:
-    build_jobs: 32
-    concretizer: clingo
-    install_tree:
-      root: /home/software/spack
-      padded_length: 512
-      projections:
-        all: '{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'
-
   packages:
     all:
       compiler: [gcc@11.1.0]
       providers:
         blas: [openblas]
         mpi: [mpich]
-      target: [x86_64]
+      require: target=x86_64_v3
       variants: +mpi amdgpu_target=gfx90a cuda_arch=80
     tbb:
       require: "intel-tbb"
@@ -29,7 +16,7 @@ spack:
     boost:
       variants: +python +filesystem +iostreams +system
     elfutils:
-      variants: +bzip2 ~nls +xz
+      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
@@ -44,9 +31,7 @@ spack:
       variants: threads=openmp
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "@5.11 ~qt+osmesa"
-    python:
-      version: [3.8.13]
+      require: "@5.11 ~qt ^[virtuals=gl] osmesa"
     trilinos:
       require: +amesos +amesos2 +anasazi +aztec +boost +epetra +epetraext
         +ifpack +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
@@ -64,262 +49,26 @@ spack:
   # FAILURES
   # - kokkos +wrapper +cuda cuda_arch=80 ^cuda@12.0.0     # https://github.com/spack/spack/issues/35378
 
-  mirrors: { "mirror": "s3://spack-binaries/develop/gpu-tests" }
-
-  gitlab-ci:
-
-    script:
-    - uname -a || true
-    - grep -E 'vendor|model name' /proc/cpuinfo 2>/dev/null | sort -u || head -n10 /proc/cpuinfo 2>/dev/null || true
-    - nproc
-    - nvidia-smi || true
-    - curl -Lfs 'https://github.com/JuliaBinaryWrappers/GNUMake_jll.jl/releases/download/GNUMake-v4.3.0+1/GNUMake.v4.3.0.x86_64-linux-gnu.tar.gz' -o gmake.tar.gz
-    - printf 'fef1f59e56d2d11e6d700ba22d3444b6e583c663d6883fd0a4f63ab8bd280f0f gmake.tar.gz' | sha256sum --check --strict --quiet
-    - tar -xzf gmake.tar.gz -C /usr bin/make 2> /dev/null
-    - . "./share/spack/setup-env.sh"
-    - spack --version
-    - spack arch
-    - cd ${SPACK_CONCRETE_ENV_DIR}
-    - spack env activate --without-view .
-    - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
-    - mkdir -p ${SPACK_ARTIFACTS_ROOT}/user_data
-    # AWS runners mount E4S public key (verification), UO runners mount public/private (signing/verification)
-    - if [[ -r /mnt/key/e4s.gpg ]]; then spack gpg trust /mnt/key/e4s.gpg; fi
-    # UO runners mount intermediate ci public key (verification), AWS runners mount public/private (signing/verification)
-    - if [[ -r /mnt/key/intermediate_ci_signing_key.gpg ]]; then spack gpg trust /mnt/key/intermediate_ci_signing_key.gpg; fi
-    - if [[ -r /mnt/key/spack_public_key.gpg ]]; then spack gpg trust /mnt/key/spack_public_key.gpg; fi
-    - spack --color=always --backtrace ci rebuild --tests > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)
-
-    after_script:
-    - cat /proc/loadavg || true
-
-    image: ecpe4s/ubuntu20.04-runner-x86_64:2023-01-01
-
-    broken-tests-packages:
-    - gptune
-
-    match_behavior: first
-    mappings:
+  ci:
+    pipeline-gen:
+    - build-job:
+        image: ghcr.io/spack/ubuntu20.04-runner-x86_64:2023-01-01
+    - match_behavior: first
+      submapping:
       - match:
         - kokkos +rocm amdgpu_target=gfx90a
-        runner-attributes:
-          tags: [ "rocm-5.4.0", "mi210" ]
-          variables:
-            CI_JOB_SIZE: large
+        build-job-remove:
+          tags: [ "x86_64", "x86_64_v3" ]
+        build-job:
+          tags: [ "x86_64_v3-rocm", "rocm-5.4.0", "mi210" ]
 
       - match:
         - kokkos +cuda cuda_arch=80 ^cuda@12.0.0
         - raja +cuda cuda_arch=80 ^cuda@12.0.0
-        runner-attributes:
-          tags: [ "nvidia-525.85.12", "cuda-12.0", "a100" ]
-          variables:
-            CI_JOB_SIZE: large
-
-      - match:
-        - hipblas
-        - llvm
-        - llvm-amdgpu
-        - rocblas
-        - paraview
-        - py-torch
-        runner-attributes:
-          tags: [ "spack", "huge", "x86_64" ]
-          variables:
-            CI_JOB_SIZE: huge
-            KUBERNETES_CPU_REQUEST: 11000m
-            KUBERNETES_MEMORY_REQUEST: 42G
-
-      - match:
-        - cuda
-        - dealii
-        - dray
-        - dyninst
-        - ginkgo
-        - hpx
-        - kokkos-kernels
-        - kokkos-nvcc-wrapper
-        - magma
-        - mfem
-        - mpich
-        - nvhpc
-        - oce
-        - openturns
-        - plumed
-        - precice
-        - py-tensorflow
-        - qt
-        - raja
-        - rocfft
-        - rocsolver
-        - rocsparse
-        - rust
-        - slate
-        - trilinos
-        - visit
-        - vtk
-        - vtk-m
-        - warpx
-        runner-attributes:
-          tags: [ "spack", "large", "x86_64" ]
-          variables:
-            CI_JOB_SIZE: large
-            KUBERNETES_CPU_REQUEST: 8000m
-            KUBERNETES_MEMORY_REQUEST: 12G
-
-      - match:
-        - adios2
-        - amrex
-        - archer
-        - ascent
-        - axom
-        - binutils
-        - blaspp
-        - boost
-        - butterflypack
-        - cabana
-        - caliper
-        - camp
-        - chai
-        - conduit
-        - datatransferkit
-        - faodel
-        - ffmpeg
-        - fftw
-        - fortrilinos
-        - gperftools
-        - gptune
-        - hdf5
-        - heffte
-        - hpctoolkit
-        - hwloc
-        - hypre
-        - kokkos
-        - lammps
-        - lapackpp
-        - legion
-        - libzmq
-        - llvm-openmp-ompt
-        - mbedtls
-        - netlib-scalapack
-        - omega-h
-        - openmpi
-        - openpmd-api
-        - pagmo2
-        - papyrus
-        - parsec
-        - pdt
-        - petsc
-        - pumi
-        - py-ipython-genutils
-        - py-petsc4py
-        - py-scipy
-        - py-statsmodels
-        - py-warlock
-        - py-warpx
-        - pygmo
-        - slepc
-        - slurm
-        - strumpack
-        - sundials
-        - superlu-dist
-        - tasmanian
-        - tau
-        - upcxx
-        - vtk-h
-        - zfp
-        runner-attributes:
-          tags: [ "spack", "medium", "x86_64" ]
-          variables:
-            CI_JOB_SIZE: "medium"
-            KUBERNETES_CPU_REQUEST: "2000m"
-            KUBERNETES_MEMORY_REQUEST: "4G"
-
-      - match:
-        - alsa-lib
-        - ant
-        - antlr
-        - argobots
-        - automake
-        - berkeley-db
-        - bison
-        - blt
-        - cmake
-        - curl
-        - darshan-util
-        - diffutils
-        - exmcutils
-        - expat
-        - flit
-        - freetype
-        - gdbm
-        - gotcha
-        - hpcviewer
-        - jansson
-        - json-c
-        - libbsd
-        - libevent
-        - libjpeg-turbo
-        - libnrm
-        - libpng
-        - libunistring
-        - lua-luaposix
-        - m4
-        - mpfr
-        - ncurses
-        - openblas
-        - openjdk
-        - papi
-        - parallel-netcdf
-        - pcre2
-        - perl-data-dumper
-        - pkgconf
-        - py-alembic
-        - py-idna
-        - py-testpath
-        - qhull
-        - snappy
-        - swig
-        - tar
-        - tcl
-        - texinfo
-        - unzip
-        - util-linux-uuid
-        - util-macros
-        - yaml-cpp
-        - zlib
-        - zstd
-        runner-attributes:
-          tags: [ "spack", "small", "x86_64" ]
-          variables:
-            CI_JOB_SIZE: "small"
-            KUBERNETES_CPU_REQUEST: "500m"
-            KUBERNETES_MEMORY_REQUEST: "500M"
-
-      - match: ['os=ubuntu20.04']
-        runner-attributes:
-          tags: ["spack", "x86_64"]
-          variables:
-            CI_JOB_SIZE: "default"
-
-    broken-specs-url: "s3://spack-binaries/broken-specs"
-
-    service-job-attributes:
-      before_script:
-        - . "./share/spack/setup-env.sh"
-        - spack --version
-      image: ecpe4s/ubuntu20.04-runner-x86_64:2023-01-01
-      tags: ["spack", "public", "x86_64"]
-
-    signing-job-attributes:
-      image: { "name": "ghcr.io/spack/notary:latest", "entrypoint": [""] }
-      tags: ["spack", "aws"]
-      script:
-        - aws s3 sync --exclude "*" --include "*spec.json*" ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache /tmp
-        - /sign.sh
-        - aws s3 sync --exclude "*" --include "*spec.json.sig*" /tmp ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache
+        build-job-remove:
+          tags: [ "x86_64", "x86_64_v3" ]
+        build-job:
+          tags: [ "x86_64_v3-cuda", "nvidia-525.85.12", "cuda-12.0", "a100" ]
 
   cdash:
     build-group: GPU Testing
-    url: https://cdash.spack.io
-    project: Spack Testing
-    site: Cloud Gitlab Infrastructure

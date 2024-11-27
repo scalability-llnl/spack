@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,7 +6,7 @@
 """Tests for the `spack.verify` module"""
 import os
 import shutil
-import sys
+import stat
 
 import pytest
 
@@ -18,7 +18,7 @@ import spack.store
 import spack.util.spack_json as sjson
 import spack.verify
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="Tests fail on Win")
+pytestmark = pytest.mark.not_on_windows("Tests fail on Win")
 
 
 def test_link_manifest_entry(tmpdir):
@@ -30,21 +30,11 @@ def test_link_manifest_entry(tmpdir):
     os.symlink(file, link)
 
     data = spack.verify.create_manifest_entry(link)
-    assert data["type"] == "link"
     assert data["dest"] == file
     assert all(x in data for x in ("mode", "owner", "group"))
 
     results = spack.verify.check_entry(link, data)
     assert not results.has_errors()
-
-    data["type"] = "garbage"
-
-    results = spack.verify.check_entry(link, data)
-    assert results.has_errors()
-    assert link in results.errors
-    assert results.errors[link] == ["type"]
-
-    data["type"] = "link"
 
     file2 = str(tmpdir.join("file2"))
     open(file2, "a").close()
@@ -64,18 +54,18 @@ def test_dir_manifest_entry(tmpdir):
     fs.mkdirp(dirent)
 
     data = spack.verify.create_manifest_entry(dirent)
-    assert data["type"] == "dir"
+    assert stat.S_ISDIR(data["mode"])
     assert all(x in data for x in ("mode", "owner", "group"))
 
     results = spack.verify.check_entry(dirent, data)
     assert not results.has_errors()
 
-    data["type"] = "garbage"
+    data["mode"] = "garbage"
 
     results = spack.verify.check_entry(dirent, data)
     assert results.has_errors()
     assert dirent in results.errors
-    assert results.errors[dirent] == ["type"]
+    assert results.errors[dirent] == ["mode"]
 
 
 def test_file_manifest_entry(tmpdir):
@@ -89,24 +79,24 @@ def test_file_manifest_entry(tmpdir):
         f.write(orig_str)
 
     data = spack.verify.create_manifest_entry(file)
-    assert data["type"] == "file"
+    assert stat.S_ISREG(data["mode"])
     assert data["size"] == len(orig_str)
-    assert all(x in data for x in ("mode", "owner", "group"))
+    assert all(x in data for x in ("owner", "group"))
 
     results = spack.verify.check_entry(file, data)
     assert not results.has_errors()
 
-    data["type"] = "garbage"
+    data["mode"] = 0x99999
 
     results = spack.verify.check_entry(file, data)
     assert results.has_errors()
     assert file in results.errors
-    assert results.errors[file] == ["type"]
-
-    data["type"] = "file"
+    assert results.errors[file] == ["mode"]
 
     with open(file, "w") as f:
         f.write(new_str)
+
+    data["mode"] = os.stat(file).st_mode
 
     results = spack.verify.check_entry(file, data)
 
@@ -183,7 +173,9 @@ def test_check_prefix_manifest(tmpdir):
     assert results.errors[malware] == ["added"]
 
     manifest_file = os.path.join(
-        spec.prefix, spack.store.layout.metadata_dir, spack.store.layout.manifest_file_name
+        spec.prefix,
+        spack.store.STORE.layout.metadata_dir,
+        spack.store.STORE.layout.manifest_file_name,
     )
     with open(manifest_file, "w") as f:
         f.write("{This) string is not proper json")
@@ -198,7 +190,7 @@ def test_single_file_verification(tmpdir):
     # to which it belongs
     filedir = os.path.join(str(tmpdir), "a", "b", "c", "d")
     filepath = os.path.join(filedir, "file")
-    metadir = os.path.join(str(tmpdir), spack.store.layout.metadata_dir)
+    metadir = os.path.join(str(tmpdir), spack.store.STORE.layout.metadata_dir)
 
     fs.mkdirp(filedir)
     fs.mkdirp(metadir)
@@ -208,7 +200,7 @@ def test_single_file_verification(tmpdir):
 
     data = spack.verify.create_manifest_entry(filepath)
 
-    manifest_file = os.path.join(metadir, spack.store.layout.manifest_file_name)
+    manifest_file = os.path.join(metadir, spack.store.STORE.layout.manifest_file_name)
 
     with open(manifest_file, "w") as f:
         sjson.dump({filepath: data}, f)

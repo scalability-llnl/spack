@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,19 +7,24 @@ import sys
 from os.path import dirname as dn
 
 
+def get_spack_sys_paths(spack_prefix):
+    """Given a spack prefix, return all the paths Spack needs to function."""
+    spack_libs = os.path.join(spack_prefix, "lib", "spack")
+    external_libs = os.path.join(spack_libs, "external")
+    vendored_libs = os.path.join(external_libs, "_vendoring")
+
+    # spack externals take precedence, then vendored packages, then spack itself
+    return [external_libs, vendored_libs, spack_libs]
+
+
 def main(argv=None):
     # Find spack's location and its prefix.
     this_file = os.path.realpath(os.path.expanduser(__file__))
     spack_prefix = dn(dn(dn(dn(this_file))))
 
-    # Allow spack libs to be imported in our scripts
-    spack_lib_path = os.path.join(spack_prefix, "lib", "spack")
-    sys.path.insert(0, spack_lib_path)
+    # Add all the sys paths that allow spack libs to be imported
+    sys.path[:0] = get_spack_sys_paths(spack_prefix)
 
-    # Add external libs
-    spack_external_libs = os.path.join(spack_lib_path, "external")
-    sys.path.insert(0, os.path.join(spack_external_libs, "_vendoring"))
-    sys.path.insert(0, spack_external_libs)
     # Here we delete ruamel.yaml in case it has been already imported from site
     # (see #9206 for a broader description of the issue).
     #

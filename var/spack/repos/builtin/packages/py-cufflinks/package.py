@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyCufflinks(PythonPackage):
 
     homepage = "https://github.com/santosjorge/cufflinks"
     pypi = "cufflinks/cufflinks-0.17.3.tar.gz"
+
+    license("MIT")
 
     version("0.17.3", sha256="48c1b3406dc030004121966489eebc5518cea70fd4e3f16379b491328501a644")
 

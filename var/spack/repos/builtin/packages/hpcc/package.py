@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,6 +7,7 @@ import os
 import platform
 import re
 
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
@@ -40,6 +41,8 @@ class Hpcc(MakefilePackage):
     version("develop", branch="main")
     version("1.5.0", sha256="0a6fef7ab9f3347e549fed65ebb98234feea9ee18aea0c8f59baefbe3cf7ffb8")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "fft",
         default="internal",
@@ -51,10 +54,10 @@ class Hpcc(MakefilePackage):
     depends_on("gmake", type="build")
     depends_on("mpi@1.1:")
     depends_on("blas")
-    depends_on("fftw-api@2+mpi", when="fft=fftw2")
+    depends_on("fftw@2+mpi", when="fft=fftw2")
     depends_on("mkl", when="fft=mkl")
 
-    arch = "{0}-{1}".format(platform.system(), platform.processor())
+    arch = f"{platform.system()}-{platform.processor()}"
 
     config = {
         "@SHELL@": "/bin/sh",
@@ -83,7 +86,7 @@ class Hpcc(MakefilePackage):
     }
 
     def patch(self):
-        if "fftw" in self.spec:
+        if self.spec.satisfies("^fftw"):
             # spack's fftw2 prefix headers with floating point type
             filter_file(r"^\s*#include <fftw.h>", "#include <sfftw.h>", "FFT/wrapfftw.h")
             filter_file(
@@ -94,7 +97,7 @@ class Hpcc(MakefilePackage):
         """write make.arch file"""
         with working_dir("hpl"):
             # copy template make.arch file
-            make_arch_filename = "Make.{0}".format(self.arch)
+            make_arch_filename = f"Make.{self.arch}"
             copy(join_path("setup", "Make.UNKNOWN.in"), make_arch_filename)
 
             # fill template with values
@@ -118,9 +121,12 @@ class Hpcc(MakefilePackage):
                 lin_alg_libs.append(join_path(spec["fftw-api"].prefix.lib, "libsfftw_mpi.so"))
                 lin_alg_libs.append(join_path(spec["fftw-api"].prefix.lib, "libsfftw.so"))
 
-            elif self.spec.variants["fft"].value == "mkl" and "^mkl" in spec:
+            elif (
+                self.spec.variants["fft"].value == "mkl"
+                and spec["fftw-api"].name in INTEL_MATH_LIBRARIES
+            ):
                 mklroot = env["MKLROOT"]
-                self.config["@LAINC@"] += " -I{0}".format(join_path(mklroot, "include/fftw"))
+                self.config["@LAINC@"] += f" -I{join_path(mklroot, 'include/fftw')}"
                 libfftw2x_cdft = join_path(
                     mklroot, "lib", "intel64", "libfftw2x_cdft_DOUBLE_ilp64.a"
                 )
@@ -150,19 +156,19 @@ class Hpcc(MakefilePackage):
         self.config["@LALIB@"] = " ".join(lin_alg_libs)
 
         # Compilers / linkers - Optimization flags
-        self.config["@CC@"] = "{0}".format(spec["mpi"].mpicc)
+        self.config["@CC@"] = f"{spec['mpi'].mpicc}"
 
         # Compiler flags for CPU architecture optimizations
         if spec.satisfies("%intel"):
             # with intel-parallel-studio+mpi the '-march' arguments
             # are not passed to icc
-            arch_opt = spec.target.optimization_flags(spec.compiler.name, spec.compiler.version)
-            self.config["@CCFLAGS@"] = "-O3 -restrict -ansi-alias -ip {0}".format(arch_opt)
+            arch_opt = optimization_flags(self.compiler, spec.target)
+            self.config["@CCFLAGS@"] = f"-O3 -restrict -ansi-alias -ip {arch_opt}"
             self.config["@CCNOOPT@"] = "-restrict"
         self._write_make_arch(spec, prefix)
 
     def build(self, spec, prefix):
-        make("arch={0}".format(self.arch))
+        make(f"arch={self.arch}")
 
     def check(self):
         """Simple check that compiled binary is working:

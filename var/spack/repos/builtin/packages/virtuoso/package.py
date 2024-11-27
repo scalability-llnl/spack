@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,9 @@ class Virtuoso(AutotoolsPackage):
     git = "https://github.com/openlink/virtuoso-opensource.git"
 
     version("7.2.5.1-dev", commit="3ff1d4b3de3977337baf909c264968b9f70b7d2c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("dbpedia-vad", default=False, description="DBpedia vad package")
     variant("demo-vad", default=False, description="Demo vad package")

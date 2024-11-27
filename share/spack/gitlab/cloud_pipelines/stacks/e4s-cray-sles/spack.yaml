@@ -1,0 +1,175 @@
+spack:
+  include:
+  - $spack/share/spack/gitlab/cloud_pipelines/configs/linux/ci.yaml
+
+  view: false
+
+  concretizer:
+    reuse: false
+    unify: false
+
+  packages:
+    all:
+      require: '%gcc'
+      providers:
+        blas: [cray-libsci]
+        lapack: [cray-libsci]
+        mpi: [cray-mpich]
+        tbb: [intel-tbb]
+        scalapack: [netlib-scalapack]
+      target: [zen4]
+      variants: +mpi
+
+    tbb:
+      require: "intel-tbb"
+    binutils:
+      variants: +ld +gold +headers +libiberty ~nls
+    boost:
+      variants: +python +filesystem +iostreams +system
+    cuda:
+      version: [11.7.0]
+    elfutils:
+      variants: ~nls
+      require: "%gcc"
+    hdf5:
+      variants: +fortran +hl +shared
+    libfabric:
+      variants: fabrics=sockets,tcp,udp,rxm
+    libunwind:
+      variants: +pic +xz
+    mpich:
+      variants: ~wrapperrpath
+    ncurses:
+      variants: +termlib
+    paraview:
+      # Don't build GUI support or GLX rendering for HPC/container deployments
+      require: "@5.11 ~qt ^[virtuals=gl] osmesa"
+    python:
+      version: [3.8.13]
+    trilinos:
+      require:
+      - one_of: [+amesos +amesos2 +anasazi +aztec +boost +epetra +epetraext +ifpack
+            +intrepid +intrepid2 +isorropia +kokkos +minitensor +nox +piro +phalanx
+            +rol +rythmos +sacado +stk +shards +stratimikos +tempus +tpetra
+            +trilinoscouplings +zoltan]
+      - one_of: [gotype=long_long, gotype=all]
+      - one_of: [~ml ~muelu ~zoltan2 ~teko, +ml +muelu +zoltan2 +teko]
+    xz:
+      variants: +pic
+    mesa:
+      version: [21.3.8]
+    unzip:
+      require: "%gcc"
+
+  specs:
+  # CPU
+  - adios
+  - aml
+  - arborx
+  - argobots
+  - bolt
+  - butterflypack
+  - boost +python +filesystem +iostreams +system
+  - cabana
+  - chai
+  - conduit
+  # - cp2k +mpi         # cp2k: Error: Type mismatch between actual argument at (1) and actual argument at (2) (LOGICAL(4)/COMPLEX(4)).
+  - datatransferkit
+  - flecsi
+  - fortrilinos
+  - ginkgo
+  - globalarrays
+  - gmp
+  - gotcha
+  - h5bench
+  - hdf5-vol-async
+  - hdf5-vol-cache
+  - hdf5-vol-log
+  - heffte +fftw
+  - hypre
+  - kokkos +openmp
+  - kokkos-kernels +openmp
+  - lammps
+  - legion
+  - libnrm
+  - libquo
+  - libunwind
+  - mercury
+  - metall
+  - mfem
+  - mgard +serial +openmp +timing +unstructured ~cuda
+  - mpark-variant
+  - mpifileutils ~xattr
+  - nccmp
+  - nco
+  - netlib-scalapack
+  - omega-h
+  - openmpi
+  - openpmd-api
+  - papi
+  - papyrus
+  - pdt
+  - pumi
+  - qthreads scheduler=distrib
+  - raja
+  - slate ~cuda
+  - stc
+  - sundials
+  - superlu
+  - superlu-dist
+  - swig
+  - swig@4.0.2-fortran
+  - sz3
+  - tasmanian
+  - trilinos +belos +ifpack2 +stokhos
+  - turbine
+  - umap
+  - umpire
+  - veloc
+  - wannier90
+
+  # ERRORS
+  # - caliper                     # caliper: ModuleNotFoundError: No module named 'math'; src/mpi/services/mpiwrap/CMakeFiles/caliper-mpiwrap.dir/build.make:77: src/mpi/services/mpiwrap/Wrapper.cpp] Error 1
+  # - charliecloud                # python: Could not find platform dependent libraries <exec_prefix>
+  # - flit                        # python: Could not find platform dependent libraries <exec_prefix>
+  # - flux-core                   # python: Could not find platform dependent libraries <exec_prefix>
+  # - hpx max_cpu_count=512 networking=mpi # python: Could not find platform dependent libraries <exec_prefix>
+  # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +mgard # python: Could not find platform dependent libraries <exec_prefix>
+  # - petsc                       # petsc: SyntaxError: (unicode error) \N escapes not supported (can't load unicodedata module)
+  # - plumed                      # python: Could not find platform dependent libraries <exec_prefix>
+  # - precice                     # petsc: SyntaxError: (unicode error) \N escapes not supported (can't load unicodedata module)
+  # - py-h5py +mpi                # python: Could not find platform dependent libraries <exec_prefix>
+  # - py-h5py ~mpi                # python: Could not find platform dependent libraries <exec_prefix>
+  # - py-libensemble +mpi +nlopt  # python: Could not find platform dependent libraries <exec_prefix>
+  # - py-petsc4py                 # python: Could not find platform dependent libraries <exec_prefix>
+  # - slepc                       # petsc: SyntaxError: (unicode error) \N escapes not supported (can't load unicodedata module)
+  # - tau +mpi +python            # tau: ERROR: Cannot find python library (libpython*.[so|dylib]
+
+  # HOLDING THESE BACK UNTIL CRAY SLES CAPACITY IS EXPANDED AT UO
+  # - alquimia
+  # - amrex
+  # - axom
+  # - bricks
+  # - dealii
+  # - dyninst
+  # - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp ^hdf5@1.14 # llvm@14.0.6: ?;
+  # - exaworks
+  # - gasnet
+  # - gptune
+  # - hpctoolkit
+  # - nrm
+  # - nvhpc
+  # - parsec ~cuda
+  # - phist
+  # - plasma
+  # - py-jupyterhub
+  # - quantum-espresso
+  # - scr
+  # - strumpack ~slate
+  # - upcxx
+  # - variorum
+  # - xyce +mpi +shared +pymi +pymi_static_tpls ^trilinos~shylu
+  # - warpx +python
+
+  cdash:
+    build-group: E4S Cray SLES

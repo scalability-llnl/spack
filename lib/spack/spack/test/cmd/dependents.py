@@ -1,10 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
-import sys
 
 import pytest
 
@@ -14,8 +13,6 @@ import spack.store
 from spack.main import SpackCommand
 
 dependents = SpackCommand("dependents")
-
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
 
 
 def test_immediate_dependents(mock_packages):
@@ -60,9 +57,11 @@ def test_immediate_installed_dependents(mock_packages, database):
     lines = [li for li in out.strip().split("\n") if not li.startswith("--")]
     hashes = set([re.split(r"\s+", li)[0] for li in lines])
 
-    expected = set([spack.store.db.query_one(s).dag_hash(7) for s in ["dyninst", "libdwarf"]])
+    expected = set(
+        [spack.store.STORE.db.query_one(s).dag_hash(7) for s in ["dyninst", "libdwarf"]]
+    )
 
-    libelf = spack.store.db.query_one("libelf")
+    libelf = spack.store.STORE.db.query_one("libelf")
     expected = set([d.dag_hash(7) for d in libelf.dependents()])
 
     assert expected == hashes
@@ -78,7 +77,7 @@ def test_transitive_installed_dependents(mock_packages, database):
 
     expected = set(
         [
-            spack.store.db.query_one(s).dag_hash(7)
+            spack.store.STORE.db.query_one(s).dag_hash(7)
             for s in ["zmpi", "callpath^zmpi", "mpileaks^zmpi"]
         ]
     )

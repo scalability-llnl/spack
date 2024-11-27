@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPyyamlEnvTag(PythonPackage):
 
     homepage = "https://github.com/waylan/pyyaml-env-tag"
     pypi = "pyyaml_env_tag/pyyaml_env_tag-0.1.tar.gz"
+
+    license("MIT")
 
     version("0.1", sha256="70092675bda14fdec33b31ba77e7543de9ddc88f2e5b99160396572d11525bdb")
 

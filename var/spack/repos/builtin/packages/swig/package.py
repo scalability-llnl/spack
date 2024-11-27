@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,13 +19,15 @@ class Swig(AutotoolsPackage, SourceforgePackage):
     features that let you tailor the wrapping process to suit your
     application."""
 
-    homepage = "http://www.swig.org"
+    homepage = "https://www.swig.org"
     sourceforge_mirror_path = "swig/swig-3.0.12.tar.gz"
     maintainers("sethrj")
 
     tags = ["e4s", "build-tools"]
 
     executables = ["^swig$"]
+
+    license("GPL-3.0-only")
 
     version("master", git="https://github.com/swig/swig.git")
     version(
@@ -67,9 +69,12 @@ class Swig(AutotoolsPackage, SourceforgePackage):
         url="https://github.com/swig-fortran/swig/archive/v4.0.2+fortran.tar.gz",
     )
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("pcre", when="@:4.0")
     depends_on("pcre2", when="@4.1:")
-    depends_on("zlib")
+    depends_on("zlib-api")
 
     AUTOCONF_VERSIONS = "@" + ",".join(
         [
@@ -102,47 +107,41 @@ class Swig(AutotoolsPackage, SourceforgePackage):
         return match.group(1) if match else None
 
     @property
-    def _installed_exe(self):
-        return join_path(self.prefix, "bin", "swig")
+    def _swig(self):
+        return Executable(join_path(self.prefix, "bin", "swig"))
 
-    def _test_version(self):
+    @property
+    def _swiglib(self):
+        return self._swig("-swiglib", output=str).strip()
+
+    def test_version(self):
+        """check swig version"""
         version = str(self.version)
         if version.endswith("-fortran"):
-            version = version.replace("-", r"\+")
+            version = version.replace("-", r"+")
         elif version in ("fortran", "master"):
-            version = r".*"
+            version = ""
 
-        self.run_test(
-            self._installed_exe,
-            "-version",
-            expected=[r"SWIG Version {0}".format(version)],
-            purpose="test: version",
-        )
+        out = self._swig("-version", output=str.split, error=str.split)
+        expected = f"SWIG Version {version}"
+        assert expected in out, f"Expected '{expected}' in output"
 
-    def _test_swiglib(self):
-        # Get SWIG's alleged path to library files
-        swig = Executable(self._installed_exe)
-        swiglib = swig("-swiglib", output=str).strip()
+    def test_swiglib(self):
+        """check that the lib dir exists"""
+        assert os.path.isdir(self._swiglib), f"SWIG library does not exist at '{swiglib}'"
 
-        # Check that the lib dir exists
-        if not os.path.isdir(swiglib):
-            msg = "SWIG library does not exist at '{0}'".format(swiglib)
-            self.test_failures.append([None, msg])
+    def test_swig_swg(self):
+        """check that swig.swg exists"""
+        swigfile = join_path(self._swiglib, "swig.swg")
+        assert os.path.exists(swigfile), f"SWIG runtime does not exist at '{swigfile}'"
 
-        # Check for existence of other critical SWIG library files
-        swigfile = join_path(swiglib, "swig.swg")
-        if not os.path.exists(swigfile):
-            msg = "SWIG runtime does not exist at '{0}'".format(swigfile)
-            self.test_failures.append([None, msg])
-        if "fortran" in str(self.version):
-            swigfile = join_path(swiglib, "fortran", "fortran.swg")
-            if not os.path.exists(swigfile):
-                msg = "SWIG+Fortran runtime does not exist at '{0}'".format(swigfile)
-                self.test_failures.append([None, msg])
+    def test_fortran_swg(self):
+        """check that fortran.swg exists"""
+        if "fortran" not in str(self.version):
+            raise SkipTest(f"Test does not work with version {self.version}")
 
-    def test(self):
-        self._test_version()
-        self._test_swiglib()
+        swigfile = join_path(self._swiglib, "fortran", "fortran.swg")
+        assert os.path.exists(swigfile), f"SWIG+Fortran runtime does not exist at '{swigfile}'"
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
@@ -152,7 +151,7 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def create_symlink(self):
         # CMake compatibility: see https://github.com/spack/spack/pull/6240
         with working_dir(self.prefix.bin):
-            os.symlink("swig", "swig{0}".format(self.spec.version.up_to(2)))
+            os.symlink("swig", "swig{0}.0".format(self.spec.version.up_to(1)))
 
     @when(Swig.AUTOCONF_VERSIONS)
     def autoreconf(self, pkg, spec, prefix):

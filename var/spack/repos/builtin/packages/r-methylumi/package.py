@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,7 @@ class RMethylumi(RPackage):
 
     bioc = "methylumi"
 
+    version("2.46.0", commit="eb09e6508f1619c789d6b3091a8065cb6571cdac")
     version("2.44.0", commit="8f1f1f944993800da2776cb3240b4482c09429ad")
     version("2.42.0", commit="73e9c7fe1252c4ca20dc7b4e58decf04bf22d5e0")
     version("2.40.1", commit="211039225ca6fca9af75b8266f656161912ce10f")

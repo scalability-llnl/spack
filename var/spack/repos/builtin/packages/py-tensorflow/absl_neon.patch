@@ -1,0 +1,55 @@
+From 32321ebf22c32ed4bbc9f98b44f2a67fe6c86823 Mon Sep 17 00:00:00 2001
+From: Andrew Elble <aweits@rit.edu>
+Date: Wed, 1 May 2024 18:46:42 -0400
+Subject: [PATCH] patch
+
+---
+ third_party/absl/absl_neon.patch | 23 +++++++++++++++++++++++
+ third_party/absl/workspace.bzl   |  1 +
+ 2 files changed, 24 insertions(+)
+ create mode 100644 third_party/absl/absl_neon.patch
+
+diff --git a/third_party/absl/absl_neon.patch b/third_party/absl/absl_neon.patch
+new file mode 100644
+index 000000000000..d4eb77bc3f86
+--- /dev/null
++++ b/third_party/absl/absl_neon.patch
+@@ -0,0 +1,23 @@
++From: Andrew Elble <aweits@rit.edu>
++Date: Thu, 25 Apr 2024 08:09:36 -0400
++Subject: [PATCH] fix
++
++---
++ absl/base/config.h | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++diff --git a/absl/base/config.h b/absl/base/config.h
++index 5fa9f0efe5a4..bfedf4e1d7bd 100644
++--- a/absl/base/config.h
+++++ b/absl/base/config.h
++@@ -962,7 +962,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
++ // https://llvm.org/docs/CompileCudaWithLLVM.html#detecting-clang-vs-nvcc-from-code
++ #ifdef ABSL_INTERNAL_HAVE_ARM_NEON
++ #error ABSL_INTERNAL_HAVE_ARM_NEON cannot be directly set
++-#elif defined(__ARM_NEON) && !defined(__CUDA_ARCH__)
+++#elif defined(__ARM_NEON) && !(defined(__NVCC__) && defined(__CUDACC__))
++ #define ABSL_INTERNAL_HAVE_ARM_NEON 1
++ #endif
++ 
++-- 
++2.31.1
+diff --git a/third_party/absl/workspace.bzl b/third_party/absl/workspace.bzl
+index 06f75166ce4b..56d146d65abe 100644
+--- a/third_party/absl/workspace.bzl
++++ b/third_party/absl/workspace.bzl
+@@ -42,6 +42,7 @@ def repo():
+         build_file = "//third_party/absl:com_google_absl.BUILD",
+         system_build_file = "//third_party/absl:system.BUILD",
+         system_link_files = SYS_LINKS,
++	patch_file = ["//third_party/absl:absl_neon.patch"],
+         strip_prefix = "abseil-cpp-{commit}".format(commit = ABSL_COMMIT),
+         urls = tf_mirror_urls("https://github.com/abseil/abseil-cpp/archive/{commit}.tar.gz".format(commit = ABSL_COMMIT)),
+     )
+-- 
+2.31.1
+

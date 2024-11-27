@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,11 +14,15 @@ class PyGpaw(PythonPackage):
     homepage = "https://wiki.fysik.dtu.dk/gpaw/index.html"
     pypi = "gpaw/gpaw-1.3.0.tar.gz"
 
+    license("GPL-3.0-only")
+
     version("21.1.0", sha256="96843b68e04bd1c12606036c9f99b0ddfa5e6ee08ce46835e6bb347a6bd560a3")
     version("20.10.0", sha256="77c3d3918f5cc118e448f8063af4807d163b31d502067f5cbe31fc756eb3971d")
     version("20.1.0", sha256="c84307eb9943852d78d966c0c8856fcefdefa68621139906909908fb641b8421")
     version("19.8.1", sha256="79dee367d695d68409c4d69edcbad5c8679137d6715da403f6c2500cb2178c2a")
     version("1.3.0", sha256="cf601c69ac496421e36111682bcc1d23da2dba2aabc96be51accf73dea30655c")
+
+    depends_on("c", type="build")  # generated
 
     variant("mpi", default=True, description="Build with MPI support")
     variant("scalapack", default=True, description="Build with ScaLAPACK support")
@@ -35,7 +39,7 @@ class PyGpaw(PythonPackage):
     depends_on("py-ase@3.19.0:", type=("build", "run"), when="@20.1.0")
     depends_on("py-ase@3.20.1:", type=("build", "run"), when="@20.10.0")
     depends_on("py-ase@3.21.0:", type=("build", "run"), when="@21.1.0")
-    depends_on("py-numpy +blas +lapack", type=("build", "run"))
+    depends_on("py-numpy", type=("build", "run"))
     depends_on("py-scipy", type=("build", "run"))
     depends_on("libxc@3:4.3.4")
     depends_on("blas")
@@ -57,7 +61,7 @@ class PyGpaw(PythonPackage):
 
         python_include = spec["python"].headers.directories[0]
         numpy_include = join_path(
-            spec["py-numpy"].prefix, spec["python"].package.platlib, "numpy", "core", "include"
+            spec["py-numpy"].package.module.python_platlib, "numpy", "core", "include"
         )
 
         libs = blas.libs + lapack.libs + libxc.libs

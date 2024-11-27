@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class RRadialmr(RPackage):
 
     homepage = "https://github.com/WSpiller/RadialMR"
     git = "https://github.com/WSpiller/RadialMR"
+
+    license("GPL-3.0-or-later")
 
     version("1.0", commit="d63d3fc8270836ab441b9e14a5ba3eeb2795d7cb")
 

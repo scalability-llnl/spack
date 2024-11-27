@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPlanetaryComputer(PythonPackage):
 
     homepage = "https://github.com/microsoft/PlanetaryComputer"
     pypi = "planetary-computer/planetary-computer-0.4.9.tar.gz"
+
+    license("MIT")
 
     version("0.4.9", sha256="f25030aa5b1fc3e44bd0d48300325ffbdbbabbed4a837dfcea55764359249720")
 

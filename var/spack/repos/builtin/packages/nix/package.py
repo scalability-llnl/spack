@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Nix(AutotoolsPackage):
     homepage = "https://nixos.org/nix"
     url = "https://github.com/NixOS/nix/archive/2.3.15.zip"
     maintainers("charmoniumq")
+
+    license("LGPL-2.1-or-later")
 
     version("2.3.15", sha256="7bf04e47960e7895655ad40461f2cf8038b97e98165672db7a7ac1990fc77a22")
     version("2.2.1", sha256="b591664dd1b04a8f197407d445799ece41140a3117bcbdf8e3c5e94cd3f59854")

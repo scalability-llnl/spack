@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -32,9 +32,14 @@ can't be found. You can readily check if any prerequisite for using Spack is mis
 
    Spack will take care of bootstrapping any missing dependency marked as [B]. Dependencies marked as [-] are instead required to be found on the system.
 
+   % echo $?
+   1
+
 In the case of the output shown above Spack detected that both ``clingo`` and ``gnupg``
 are missing and it's giving detailed information on why they are needed and whether
-they can be bootstrapped. Running a command that concretize a spec, like:
+they can be bootstrapped. The return code of this command summarizes the results, if any
+dependencies are missing the return code is ``1``, otherwise ``0``. Running a command that
+concretizes a spec, like:
 
 .. code-block:: console
 
@@ -44,7 +49,7 @@ they can be bootstrapped. Running a command that concretize a spec, like:
    ==> Installing "clingo-bootstrap@spack%apple-clang@12.0.0~docs~ipo+python build_type=Release arch=darwin-catalina-x86_64" from a buildcache
    [ ... ]
 
-triggers the bootstrapping of clingo from pre-built binaries as expected.
+automatically triggers the bootstrapping of clingo from pre-built binaries as expected.
 
 Users can also bootstrap all the dependencies needed by Spack in a single command, which
 might be useful to setup containers or other similar environments:
@@ -82,7 +87,7 @@ You can check what is installed in the bootstrapping store at any time using:
 
 .. code-block:: console
 
-   % spack find -b
+   % spack -b find
    ==> Showing internal bootstrap store at "/Users/spack/.spack/bootstrap/store"
    ==> 11 installed packages
    -- darwin-catalina-x86_64 / apple-clang@12.0.0 ------------------
@@ -96,7 +101,7 @@ In case it is needed you can remove all the software in the current bootstrappin
    % spack clean -b
    ==> Removing bootstrapped software and configuration in "/Users/spack/.spack/bootstrap"
 
-   % spack find -b
+   % spack -b find
    ==> Showing internal bootstrap store at "/Users/spack/.spack/bootstrap/store"
    ==> 0 installed packages
 

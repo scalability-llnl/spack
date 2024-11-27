@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyFracridge(PythonPackage):
     homepage = "https://nrdg.github.io/fracridge"
     pypi = "fracridge/fracridge-1.4.3.tar.gz"
     git = "https://github.com/nrdg/fracridge"
+
+    license("BSD-2-Clause")
 
     version("2.0", sha256="d49fbffbd58e85da38f572e6ca2ef7563b1a6c8c4e1ab779e2dd207ac944db90")
     version("1.4.3", sha256="0446d486f00fea02110567fd9df14b8b2a7b155dc72700af9201873ea11c27cc")

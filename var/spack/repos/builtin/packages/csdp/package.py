@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,11 @@ class Csdp(MakefilePackage):
     homepage = "https://projects.coin-or.org/Csdp"
     url = "https://www.coin-or.org/download/source/Csdp/Csdp-6.1.1.tgz"
 
+    license("CPL-1.0")
+
     version("6.1.1", sha256="0558a46ac534e846bf866b76a9a44e8a854d84558efa50988ffc092f99a138b9")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("atlas")
 

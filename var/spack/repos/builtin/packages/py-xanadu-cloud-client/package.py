@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyXanaduCloudClient(PythonPackage):
 
     homepage = "https://github.com/XanaduAI/xanadu-cloud-client"
     pypi = "xanadu-cloud-client/xanadu-cloud-client-0.3.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.3.0", sha256="ef65ab7a629e7cd801b20bca8d300d278bf0136c6157c49e12d52c9108171edf")
 

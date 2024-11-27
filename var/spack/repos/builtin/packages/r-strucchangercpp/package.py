@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class RStrucchangercpp(RPackage):
     version(
         "1.5-3-1.0.4", sha256="f506fcb593ce4bacf1892de25154257d0fe02260ef956a75438c6330195cd86d"
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@2.10.0:", type=("build", "run"))
     depends_on("r-zoo", type=("build", "run"))

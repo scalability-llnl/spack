@@ -3,6 +3,7 @@ From: {{ build.image }}
 Stage: build
 
 %post
+{% block build_stage %}
 {% if os_packages_build.list %}
   # Update, install and cleanup of system packages needed at build-time
   {% if os_package_update %}
@@ -20,10 +21,14 @@ EOF
 
   # Install all the required software
   . /opt/spack/share/spack/setup-env.sh
-  spack env activate .
-  spack install --fail-fast
+  spack -e . concretize
+{% if depfile %}
+  spack -e . env depfile -o Makefile
+  make -j $(nproc)
+{% else %}
+  spack -e . install
+{% endif %}
   spack gc -y
-  spack env deactivate
   spack env activate --sh -d . >> {{ paths.environment }}/environment_modifications.sh
 {% if strip %}
 
@@ -32,17 +37,14 @@ EOF
     xargs file -i | \
     grep 'charset=binary' | \
     grep 'x-executable\|x-archive\|x-sharedlib' | \
-    awk -F: '{print $1}' | xargs strip -s
+    awk -F: '{print $1}' | xargs strip
 {% endif %}
-{% if extra_instructions.build %}
-{{ extra_instructions.build }}
-{% endif %}
-
+{% endblock build_stage %}
 {% if apps %}
 {% for application, help_text in apps.items() %}
 
 %apprun {{ application }}
-    exec /opt/view/bin/{{ application }} "$@"
+    exec {{ paths.view }}/bin/{{ application }} "$@"
 
 %apphelp {{ application }}
     {{help_text }}
@@ -56,11 +58,15 @@ Stage: final
 %files from build
   {{ paths.environment }} /opt
   {{ paths.store }} /opt
-  {{ paths.hidden_view }} /opt
-  {{ paths.view }} /opt
+  {{ paths.view_parent }} /opt
   {{ paths.environment }}/environment_modifications.sh {{ paths.environment }}/environment_modifications.sh
 
 %post
+
+  # Symlink the old view location
+  ln -s {{ paths.view }} {{ paths.former_view }}
+
+{% block final_stage %}
 {% if os_packages_final.list %}
   # Update, install and cleanup of system packages needed at run-time
   {% if os_package_update %}
@@ -71,9 +77,7 @@ Stage: final
 {% endif %}
   # Modify the environment without relying on sourcing shell specific files at startup
   cat {{ paths.environment }}/environment_modifications.sh >> $SINGULARITY_ENVIRONMENT
-{% if extra_instructions.final %}
-{{ extra_instructions.final }}
-{% endif %}
+{% endblock final_stage %}
 {% if runscript %}
 
 %runscript

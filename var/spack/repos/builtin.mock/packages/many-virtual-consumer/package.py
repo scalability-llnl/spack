@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,7 +11,7 @@ class ManyVirtualConsumer(Package):
     url = "http://www.example.com/"
     url = "http://www.example.com/2.0.tar.gz"
 
-    version("1.0", "abcdef1234567890abcdef1234567890")
+    version("1.0", md5="abcdef1234567890abcdef1234567890")
 
     depends_on("mpi")
     depends_on("lapack")
@@ -19,4 +19,4 @@ class ManyVirtualConsumer(Package):
     # This directive is an example of imposing a constraint on a
     # dependency is that dependency is in the DAG. This pattern
     # is mainly used with virtual providers.
-    depends_on("low-priority-provider@1.0", when="^low-priority-provider")
+    depends_on("low-priority-provider@1.0", when="^[virtuals=mpi,lapack] low-priority-provider")

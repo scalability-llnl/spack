@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,7 @@ class RA4classif(RPackage):
 
     bioc = "a4Classif"
 
+    version("1.48.0", commit="1e2ff90d5af6332beac630395a7494c8fd30aff4")
     version("1.46.0", commit="96794183a76ab7da7a1863ccd421640254447af5")
     version("1.44.0", commit="df0fce781f9bc480a1159d958c9a63c314a9ed01")
     version("1.42.0", commit="820854a7ca9ed0c295479a25b7e3375c6d01d0b5")

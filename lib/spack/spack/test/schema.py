@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -80,7 +80,17 @@ def test_module_suffixes(module_suffixes_schema):
 @pytest.mark.regression("10246")
 @pytest.mark.parametrize(
     "config_name",
-    ["compilers", "config", "env", "merged", "mirrors", "modules", "packages", "repos"],
+    [
+        "compilers",
+        "config",
+        "definitions",
+        "env",
+        "merged",
+        "mirrors",
+        "modules",
+        "packages",
+        "repos",
+    ],
 )
 def test_schema_validation(meta_schema, config_name):
     import importlib
@@ -95,25 +105,21 @@ def test_schema_validation(meta_schema, config_name):
 
 def test_deprecated_properties(module_suffixes_schema):
     # Test that an error is reported when 'error: True'
-    msg_fmt = r"deprecated properties detected [properties={properties}]"
-    module_suffixes_schema["deprecatedProperties"] = {
-        "properties": ["tcl"],
-        "message": msg_fmt,
-        "error": True,
-    }
+    msg_fmt = r"{name} is deprecated"
+    module_suffixes_schema["deprecatedProperties"] = [
+        {"names": ["tcl"], "message": msg_fmt, "error": True}
+    ]
     v = spack.schema.Validator(module_suffixes_schema)
     data = {"tcl": {"all": {"suffixes": {"^python": "py"}}}}
 
-    expected_match = "deprecated properties detected"
+    expected_match = "tcl is deprecated"
     with pytest.raises(jsonschema.ValidationError, match=expected_match):
         v.validate(data)
 
     # Test that just a warning is reported when 'error: False'
-    module_suffixes_schema["deprecatedProperties"] = {
-        "properties": ["tcl"],
-        "message": msg_fmt,
-        "error": False,
-    }
+    module_suffixes_schema["deprecatedProperties"] = [
+        {"names": ["tcl"], "message": msg_fmt, "error": False}
+    ]
     v = spack.schema.Validator(module_suffixes_schema)
     data = {"tcl": {"all": {"suffixes": {"^python": "py"}}}}
     # The next validation doesn't raise anymore

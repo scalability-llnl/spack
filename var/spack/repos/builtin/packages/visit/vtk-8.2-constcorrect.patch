@@ -1,0 +1,83 @@
+diff --git a/src/visit_vtk/full/vtkCSGCell.C b/src/visit_vtk/full/vtkCSGCell.C
+index fa89df8325..28e82a0b86 100644
+--- a/src/visit_vtk/full/vtkCSGCell.C
++++ b/src/visit_vtk/full/vtkCSGCell.C
+@@ -11,7 +11,7 @@
+ 
+ vtkStandardNewMacro(vtkCSGCell);
+ 
+-int vtkCSGCell::EvaluatePosition(double  vtkNotUsed(x)[3], 
++int vtkCSGCell::EvaluatePosition(const double  vtkNotUsed(x)[3], 
+                                   double  vtkNotUsed(closestPoint)[3],
+                                   int&   vtkNotUsed(subId), 
+                                   double  vtkNotUsed(pcoords)[3], 
+@@ -22,14 +22,14 @@ int vtkCSGCell::EvaluatePosition(double  vtkNotUsed(x)[3],
+ }
+ 
+ void vtkCSGCell::EvaluateLocation(int&  vtkNotUsed(subId), 
+-                                   double vtkNotUsed(pcoords)[3],
++                                   const double vtkNotUsed(pcoords)[3],
+                                    double vtkNotUsed(x)[3],
+                                    double *vtkNotUsed(weights))
+ {
+ }
+ 
+ int vtkCSGCell::CellBoundary(int vtkNotUsed(subId), 
+-                            double vtkNotUsed(pcoords)[3], 
++                            const double vtkNotUsed(pcoords)[3], 
+                             vtkIdList *vtkNotUsed(pts))
+ {
+   return 0;
+@@ -47,8 +47,8 @@ vtkCSGCell::Clip(double, vtkDataArray*, vtkIncrementalPointLocator*, vtkCellArra
+ 
+ // Project point on line. If it lies between 0<=t<=1 and distance off line
+ // is less than tolerance, intersection detected.
+-int vtkCSGCell::IntersectWithLine(double vtkNotUsed(p1)[3], 
+-                                   double vtkNotUsed(p2)[3], 
++int vtkCSGCell::IntersectWithLine(const double vtkNotUsed(p1)[3], 
++                                   const double vtkNotUsed(p2)[3], 
+                                    double vtkNotUsed(tol), 
+                                    double& vtkNotUsed(t),
+                                    double vtkNotUsed(x)[3], 
+@@ -69,8 +69,8 @@ int vtkCSGCell::Triangulate(int vtkNotUsed(index),
+ }
+ 
+ void vtkCSGCell::Derivatives(int vtkNotUsed(subId), 
+-                            double vtkNotUsed(pcoords)[3], 
+-                            double *vtkNotUsed(values), 
++                            const double vtkNotUsed(pcoords)[3], 
++                            const double *vtkNotUsed(values), 
+                             int vtkNotUsed(dim), 
+                             double *vtkNotUsed(derivs))
+ {
+diff --git a/src/visit_vtk/full/vtkCSGCell.h b/src/visit_vtk/full/vtkCSGCell.h
+index f8543cd822..b19f209f1e 100644
+--- a/src/visit_vtk/full/vtkCSGCell.h
++++ b/src/visit_vtk/full/vtkCSGCell.h
+@@ -35,21 +35,21 @@ public:
+   int GetNumberOfFaces() override {return 0;};
+   vtkCell *GetEdge(int) override {return 0;};
+   vtkCell *GetFace(int) override {return 0;};
+-  int CellBoundary(int subId, double pcoords[3], vtkIdList *pts) override;
++  int CellBoundary(int subId, const double pcoords[3], vtkIdList *pts) override;
+ 
+   virtual void Contour(double, vtkDataArray*, vtkIncrementalPointLocator*, vtkCellArray*, vtkCellArray*, vtkCellArray*, vtkPointData*, vtkPointData*, vtkCellData*, vtkIdType, vtkCellData*) override;
+ 
+   virtual void Clip(double, vtkDataArray*, vtkIncrementalPointLocator*, vtkCellArray*, vtkPointData*, vtkPointData*, vtkCellData*, vtkIdType, vtkCellData*, int) override;
+ 
+-  int EvaluatePosition(double x[3], double* closestPoint, 
++  int EvaluatePosition(const double x[3], double* closestPoint, 
+                        int& subId, double pcoords[3], 
+                        double& dist2, double *weights) override;
+-  void EvaluateLocation(int& subId, double pcoords[3], double x[3],
++  void EvaluateLocation(int& subId, const double pcoords[3], double x[3],
+                         double *weights) override;
+-  int IntersectWithLine(double p1[3], double p2[3], double tol, double& t,
++  int IntersectWithLine(const double p1[3], const double p2[3], double tol, double& t,
+                         double x[3], double pcoords[3], int& subId) override;
+   int Triangulate(int index, vtkIdList *ptIds, vtkPoints *pts) override;
+-  void Derivatives(int subId, double pcoords[3], double *values, 
++  void Derivatives(int subId, const double pcoords[3], const double *values, 
+                    int dim, double *derivs) override;
+ 
+ protected:

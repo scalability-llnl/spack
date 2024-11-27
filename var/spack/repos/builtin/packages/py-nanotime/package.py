@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyNanotime(PythonPackage):
 
     homepage = "https://github.com/jbenet/nanotime"
     pypi = "nanotime/nanotime-0.5.2.tar.gz"
+
+    license("MIT")
 
     version("0.5.2", sha256="c7cc231fc5f6db401b448d7ab51c96d0a4733f4b69fabe569a576f89ffdf966b")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyIpythonClusterHelper(PythonPackage):
 
     homepage = "https://github.com/roryk/ipython-cluster-helper"
     url = "https://github.com/roryk/ipython-cluster-helper/archive/v0.6.4.tar.gz"
+
+    license("MIT")
 
     version("0.6.4", sha256="6c8b42e1428305eeb0c54d1a8ecf3c551ec9ee02e1f039b4b12260bef66fc446")
     version("0.6.3", sha256="0256e6f72c31f846fd3bf7ed0a87bc362d77a0731cb52dbdc19c41686e44faeb")

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -60,6 +60,15 @@ contains 'packages' _spack_completions spack config edit ''
 contains 'python' _spack_completions spack extensions ''
 contains 'hdf5' _spack_completions spack -d install --jobs 8 ''
 contains 'hdf5' _spack_completions spack install -v ''
+
+title 'Testing alias handling'
+contains 'concretize' _spack_completions spack c
+contains 'concretise' _spack_completions spack c
+contains 'concretize' _spack_completions spack conc
+does_not_contain 'concretise' _spack_completions spack conc
+
+does_not_contain 'concretize' _spack_completions spack isnotacommand
+does_not_contain 'concretize' _spack_completions spack env isnotacommand
 
 # XFAIL: Fails for Python 2.6 because pkg_resources not found?
 #contains 'compilers.py' _spack_completions spack unit-test ''

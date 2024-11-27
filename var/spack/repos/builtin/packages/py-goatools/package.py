@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyGoatools(PythonPackage):
 
     homepage = "https://github.com/tanghaibao/goatools"
     pypi = "goatools/goatools-0.7.11.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("0.7.11", sha256="753c6fb8c901367aa5d64ce5ad487d82903e424cf8ec7bac50ee069b307f6364")
 

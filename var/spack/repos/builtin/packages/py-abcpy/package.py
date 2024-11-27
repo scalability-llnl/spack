@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyAbcpy(PythonPackage):
 
     homepage = "https://github.com/eth-cscs/abcpy"
     pypi = "abcpy/abcpy-0.6.3.tar.gz"
+
+    license("BSD-3-Clause-Clear")
 
     version("0.6.3", sha256="14cd959f3ccff8f5fd1d16239b8706cc8d1c1e2fe25d72855f500f005de41245")
 

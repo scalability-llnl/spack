@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -36,6 +36,9 @@ class Sctk(Package):
         sha256="73886bf3b879882a132141967ffe6b365178a2226390d2212f51a63e5df066e2",
         url="https://www.openslr.org/resources/4/sctk-2.4.0-20091110-0958.tar.bz2",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def install(self, spec, prefix):
         make("config")

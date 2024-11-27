@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyRocrate(PythonPackage):
 
     homepage = "https://github.com/ResearchObject/ro-crate-py/"
     pypi = "rocrate/rocrate-0.7.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.7.0", sha256="f7537132f45b724bfa6a212b2ed3daa0aaee1d602a773f0f049b8ca9a14958e1")
 

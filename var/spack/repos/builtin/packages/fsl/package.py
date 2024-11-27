@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,6 +6,7 @@
 import glob
 import os
 
+import spack.util.environment
 from spack.package import *
 from spack.util.environment import EnvironmentModifications
 
@@ -31,7 +32,7 @@ class Fsl(Package, CudaPackage):
     depends_on("expat")
     depends_on("libx11")
     depends_on("glu")
-    depends_on("libiconv")
+    depends_on("iconv")
     depends_on("openblas", when="@6:")
     depends_on("vtk@:8")
 
@@ -40,7 +41,7 @@ class Fsl(Package, CudaPackage):
 
     patch("build_log.patch")
     patch("eddy_Makefile.patch", when="@6.0.4")
-    patch("iconv.patch")
+    patch("iconv.patch", when="^libiconv")
     patch("fslpython_install_v5.patch", when="@:5")
     patch("fslpython_install_v604.patch", when="@6.0.4")
     patch("fslpython_install_v605.patch", when="@6.0.5")
@@ -111,7 +112,7 @@ class Fsl(Package, CudaPackage):
         vtk_settings.filter(r"(^VTKDIR_LIB)\s*=.*", r"\1 = {0}".format(vtk_lib_dir))
         vtk_settings.filter(r"(^VTKSUFFIX)\s*=.*", r"\1 = -{0}".format(vtk_suffix))
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             cuda_gencode = " ".join(self.cuda_flags(cuda_arch))
             cuda_installation = self.spec["cuda"].prefix

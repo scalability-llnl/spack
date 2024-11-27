@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,45 +14,22 @@ class FenicsBasix(CMakePackage):
     git = "https://github.com/FEniCS/basix.git"
     maintainers("mscroggs", "chrisrichardson", "garth-wells", "jhale")
 
-    version("main", branch="main")
-    version("0.6.0", sha256="687ae53153c98facac4080dcdc7081701db1dcea8c5e7ae3feb72aec17f83304")
-    version("0.5.1", sha256="69133476ac35f0bd0deccb480676030378c341d7dfb2adaca22cd16b7e1dc1cb")
-    version("0.4.2", sha256="a54f5e442b7cbf3dbb6319c682f9161272557bd7f42e2b8b8ccef88bc1b7a22f")
-    version(
-        "0.3.0",
-        sha256="9b148fd2a5485c94011fc6ca977ebdef0e51782a62b3654fc044f35b60e2bd07",
-        deprecated=True,
-    )
-    version(
-        "0.2.0",
-        sha256="e1ec537737adb283717060221635092474e3f2b5b5ba79dfac74aa496bec2fcb",
-        deprecated=True,
-    )
-    version(
-        "0.1.0",
-        sha256="2ab41fe6ad4f6c42f01b17a6e7c39debb4e0ae61c334d1caebee78b741bca4e7",
-        deprecated=True,
-    )
+    license("MIT")
 
-    depends_on("cmake@3.19:", type="build")
+    version("main", branch="main")
+    version("0.9.0", sha256="60e96b2393084729b261cb10370f0e44d12735ab3dbd1f15890dec23b9e85329")
+    version("0.8.0", sha256="b299af82daf8fa3e4845e17f202491fe71b313bf6ab64c767a5287190b3dd7fe")
+    version("0.7.0", sha256="9bee81b396ee452eec8d9735f278cb44cb6994c6bc30aec8ed9bb4b12d83fa7f")
+    version("0.6.0", sha256="687ae53153c98facac4080dcdc7081701db1dcea8c5e7ae3feb72aec17f83304")
+
+    depends_on("cxx", type="build")  # generated
+
+    depends_on("cmake@3.21:", when="@0.9:", type="build")
+    depends_on("cmake@3.19:", when="@:0.8", type="build")
     depends_on("blas")
     depends_on("lapack")
 
-    depends_on("xtensor@0.23.10:", when="@:0.4")
-    depends_on("xtl@0.7.2:", when="@:0.4")
-    depends_on("xtensor-blas@0.19.1:", when="@:0.3")
+    conflicts("%gcc@:9.10", msg="fenics-basix requires GCC-10 or newer for C++20 support")
+    conflicts("%clang@:9.10", msg="fenics-basix requires Clang-10 or newer for C++20 support")
 
-    conflicts(
-        "%gcc@:9.10", when="@0.5.0:", msg="fenics-basix requires GCC-10 or newer for C++20 support"
-    )
-    conflicts(
-        "%clang@:9.10",
-        when="@0.5.0:",
-        msg="fenics-basix requires Clang-10 or newer for C++20 support",
-    )
-
-    @property
-    def root_cmakelists_dir(self):
-        if self.spec.satisfies("@0.4.0:"):
-            return "cpp"
-        return self.stage.source_path
+    root_cmakelists_dir = "cpp"

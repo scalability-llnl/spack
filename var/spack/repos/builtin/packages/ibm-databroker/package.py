@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,10 +21,15 @@ class IbmDatabroker(CMakePackage, PythonExtension):
     # IBM dev team should take over
     maintainers("bhatiaharsh")
 
+    license("Apache-2.0")
+
     version("master", branch="master")
     version("0.7.0", sha256="5460fa1c5c05ad25c759b2ee4cecee92980d4dde5bc7c5f6da9242806cf22bb8")
     version("0.6.1", sha256="2c7d6c6a269d4ae97aad4d770533e742f367da84758130c283733f25df83e535")
     version("0.6.0", sha256="5856209d965c923548ebb69119344f1fc596d4c0631121b230448cc91bac4290")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("python", default=False, description="Build Python bindings")
 
@@ -42,6 +47,6 @@ class IbmDatabroker(CMakePackage, PythonExtension):
     def cmake_args(self):
         args = []
         args.append("-DDEFAULT_BE=redis")
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args.append("-DPYDBR=1")
         return args

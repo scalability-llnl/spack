@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Lxc(AutotoolsPackage):
     homepage = "https://linuxcontainers.org/lxc/"
     url = "https://github.com/lxc/lxc/archive/lxc-4.0.2.tar.gz"
 
+    license("LGPL-2.1-or-later")
+
     version("4.0.2", sha256="89a9f1c6c9c0c43ffc4ec4d281381d60dcf698af1578effa491be97885ab282a")
     version("4.0.1", sha256="5b17c48db24d93f8a687bf4557358e252126c50a66f5756b3e0ea2cf04a60d05")
     version("4.0.0", sha256="8cd36f002f656bbcd01679e6b8892f81ed036d5589aed45b36358014b32277dd")
@@ -26,6 +28,8 @@ class Lxc(AutotoolsPackage):
     version("3.0.3", sha256="e794f287755d2529cb49f01b72802abfec31f2a02259719b60a62897da6e8298")
     version("2.0.11", sha256="31334ffe0e2d8e38779d80ce670a523f4f5559c2a02c9e085c2f0cf43995d0b0")
     version("2.0.10", sha256="b748de0914467aafea18a568602735907fc95f4272609dba7b0f8c91d7dde776")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

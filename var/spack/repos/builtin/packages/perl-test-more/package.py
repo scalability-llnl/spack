@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PerlTestMore(PerlPackage):
 
     homepage = "https://github.com/Test-More/test-more"
     url = "https://github.com/Test-More/test-more/archive/v1.302183.tar.gz"
+
+    license("Artistic-1.0")
 
     version("1.302183", sha256="1356ec24c5ab3f7ad8327091ddc6ace164a27767be10325776bf9743360ab4f7")
     version("1.302182", sha256="60727db9435cb244f6dcf4ca598c8ef39ac3035a0c36fd5c9c5b89be4f138366")

@@ -657,9 +657,7 @@ diff -ru a/docs/zzipdoc/match.py b/docs/zzipdoc/match.py
 diff -ru a/docs/zzipdoc/options.py b/docs/zzipdoc/options.py
 --- a/docs/zzipdoc/options.py	2019-12-27 17:22:22.058961305 -0600
 +++ b/docs/zzipdoc/options.py	2019-12-27 17:22:44.036908116 -0600
-@@ -3,13 +3,13 @@
- # @creator (C) 2003 Guido U. Draheim
- # @license http://creativecommons.org/licenses/by-nc-sa/2.0/de/
+@@ -5,11 +5,11 @@
  
 -from match import Match
 +from .match import Match

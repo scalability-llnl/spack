@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -57,13 +57,13 @@ If you look at the ``perl`` package, you'll see:
 
 .. code-block:: python
 
-   phases = ['configure', 'build', 'install']
+   phases = ["configure", "build", "install"]
 
 Similarly, ``cmake`` defines:
 
 .. code-block:: python
 
-   phases = ['bootstrap', 'build', 'install']
+   phases = ["bootstrap", "build", "install"]
 
 If we look at the ``cmake`` example, this tells Spack's ``PackageBase``
 class to run the ``bootstrap``, ``build``, and ``install`` functions
@@ -78,7 +78,7 @@ If we look at ``perl``, we see that it defines a ``configure`` method:
 .. code-block:: python
 
    def configure(self, spec, prefix):
-       configure = Executable('./Configure')
+       configure = Executable("./Configure")
        configure(*self.configure_args())
 
 There is also a corresponding ``configure_args`` function that handles
@@ -92,7 +92,7 @@ phases are pretty simple:
        make()
 
    def install(self, spec, prefix):
-       make('install')
+       make("install")
 
 The ``cmake`` package looks very similar, but with a ``bootstrap``
 function instead of ``configure``:
@@ -100,14 +100,14 @@ function instead of ``configure``:
 .. code-block:: python
 
    def bootstrap(self, spec, prefix):
-       bootstrap = Executable('./bootstrap')
+       bootstrap = Executable("./bootstrap")
        bootstrap(*self.bootstrap_args())
 
    def build(self, spec, prefix):
        make()
 
    def install(self, spec, prefix):
-       make('install')
+       make("install")
 
 Again, there is a ``boostrap_args`` function that determines the
 correct bootstrap flags to use.
@@ -128,16 +128,21 @@ before or after a particular phase. For example, in ``perl``, we see:
 
 .. code-block:: python
 
-   @run_after('install')
+   @run_after("install")
    def install_cpanm(self):
-       spec = self.spec
-
-       if '+cpanm' in spec:
-           with working_dir(join_path('cpanm', 'cpanm')):
-               perl = spec['perl'].command
-               perl('Makefile.PL')
-               make()
-               make('install')
+        spec = self.spec
+        maker = make
+        cpan_dir = join_path("cpanm", "cpanm")
+        if sys.platform == "win32":
+            maker = nmake
+            cpan_dir = join_path(self.stage.source_path, cpan_dir)
+            cpan_dir = windows_sfn(cpan_dir)
+        if "+cpanm" in spec:
+            with working_dir(cpan_dir):
+                perl = spec["perl"].command
+                perl("Makefile.PL")
+                maker()
+                maker("install")
 
 This extra step automatically installs ``cpanm`` in addition to the
 base Perl installation.
@@ -174,10 +179,16 @@ In the ``perl`` package, we can see:
 
 .. code-block:: python
 
-   @run_after('build')
+   @run_after("build")
    @on_package_attributes(run_tests=True)
-   def test(self):
-       make('test')
+   def build_test(self):
+        if sys.platform == "win32":
+            win32_dir = os.path.join(self.stage.source_path, "win32")
+            win32_dir = windows_sfn(win32_dir)
+            with working_dir(win32_dir):
+                nmake("test", ignore_quotes=True)
+        else:
+            make("test")
 
 As you can guess, this runs ``make test`` *after* building the package,
 if and only if testing is requested. Again, this is not specific to
@@ -189,7 +200,7 @@ custom build systems, it can be added to existing build systems as well.
 
    .. code-block:: python
 
-      @run_after('install')
+      @run_after("install")
       @on_package_attributes(run_tests=True)
 
    works as expected. However, if you reverse the ordering:
@@ -197,7 +208,7 @@ custom build systems, it can be added to existing build systems as well.
    .. code-block:: python
 
       @on_package_attributes(run_tests=True)
-      @run_after('install')
+      @run_after("install")
 
    the tests will always be run regardless of whether or not
    ``--test=root`` is requested. See https://github.com/spack/spack/issues/3833

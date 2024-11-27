@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyQueryablelist(PythonPackage):
 
     homepage = "https://github.com/kata198/QueryableList"
     pypi = "queryablelist/QueryableList-3.1.0.tar.gz"
+
+    license("LGPL-2.1-or-later")
 
     version("3.1.0", sha256="8891dccbadc69a35f5944e1826d8f8db224522aa3af913e301a7a448f5b411e9")
 

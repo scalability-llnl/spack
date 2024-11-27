@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,11 +16,13 @@ class Lhapdfsets(BundlePackage):
 
     tags = ["hep"]
 
-    maintainers("vvolkl")
+    maintainers("vvolkl", "wdconinc")
 
     version("6.3.0")
 
     depends_on("lhapdf", type="build")
+    depends_on("tar", type="build")
+    depends_on("curl", type="build")
 
     phases = ["install"]
 
@@ -36,7 +38,8 @@ class Lhapdfsets(BundlePackage):
 
     def install(self, spec, prefix):
         mkdirp(self.prefix.share.lhapdfsets)
-        lhapdf = which("lhapdf")
+        tar = which("tar")
+        curl = which("curl")
         sets = self.spec.variants["sets"].value
         if sets == "all":
             # parse set names from index file
@@ -50,7 +53,17 @@ class Lhapdfsets(BundlePackage):
         elif sets == "default":
             default_sets = ["MMHT2014lo68cl", "MMHT2014nlo68cl", "CT14lo", "CT14nlo"]
             sets = default_sets
-        lhapdf("--pdfdir=" + self.prefix.share.lhapdfsets, "install", *sets)
+        with working_dir(self.prefix.share.lhapdfsets):
+            for s in sets:
+                _filename = "%s.tar.gz" % s
+                curl(
+                    "-L",
+                    "-o",
+                    _filename,
+                    "http://lhapdfsets.web.cern.ch/lhapdfsets/current/%s" % _filename,
+                )
+                tar("xfz", _filename)
+                os.remove(_filename)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.set("LHAPDF_DATA_PATH", self.prefix.share.lhapdfsets)
@@ -61,8 +74,8 @@ class Lhapdfsets(BundlePackage):
     @classmethod
     def determine_spec_details(cls, prefix, exes_in_prefix):
         path = os.environ.get("LHAPDF_DATA_PATH", None)
+        if not path:
+            return None
         # unfortunately the sets are not versioned -
         # just hardcode the current version and hope it is fine
-        s = Spec.from_detection("lhapdfsets@6.3.0")
-        s.external_path = path
-        return s if path else None
+        return Spec.from_detection("lhapdfsets@6.3.0", external_path=path)

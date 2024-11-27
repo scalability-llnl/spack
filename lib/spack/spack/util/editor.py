@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,17 +14,18 @@ raising an EnvironmentError if we are unable to find one.
 """
 import os
 import shlex
+from typing import Callable, List
 
 import llnl.util.tty as tty
 
 import spack.config
-from spack.util.executable import which_string
+import spack.util.executable
 
 #: editors to try if VISUAL and EDITOR are not set
 _default_editors = ["vim", "vi", "emacs", "nano", "notepad"]
 
 
-def _find_exe_from_env_var(var):
+def _find_exe_from_env_var(var: str):
     """Find an executable from an environment variable.
 
     Args:
@@ -45,12 +46,22 @@ def _find_exe_from_env_var(var):
     if not args:
         return None, []
 
-    exe = which_string(args[0])
+    exe = spack.util.executable.which_string(args[0])
     args = [exe] + args[1:]
     return exe, args
 
 
-def editor(*args, **kwargs):
+def executable(exe: str, args: List[str]) -> int:
+    """Wrapper that makes ``spack.util.executable.Executable`` look like ``os.execv()``.
+
+    Use this with ``editor()`` if you want it to return instead of running ``execv``.
+    """
+    cmd = spack.util.executable.Executable(exe)
+    cmd(*args[1:], fail_on_error=False)
+    return cmd.returncode
+
+
+def editor(*args: str, exec_fn: Callable[[str, List[str]], int] = os.execv) -> bool:
     """Invoke the user's editor.
 
     This will try to execute the following, in order:
@@ -65,27 +76,30 @@ def editor(*args, **kwargs):
     searching the full list above, we'll raise an error.
 
     Arguments:
-        args (list): args to pass to editor
+        args: args to pass to editor
 
     Optional Arguments:
-        _exec_func (function): invoke this function instead of ``os.execv()``
-
+        exec_fn: invoke this function to run; use ``spack.util.editor.executable`` if you
+            want something that returns, instead of the default ``os.execv()``.
     """
-    # allow this to be customized for testing
-    _exec_func = kwargs.get("_exec_func", os.execv)
 
     def try_exec(exe, args, var=None):
         """Try to execute an editor with execv, and warn if it fails.
 
         Returns: (bool) False if the editor failed, ideally does not
             return if ``execv`` succeeds, and ``True`` if the
-            ``_exec_func`` does return successfully.
+            ``exec`` does return successfully.
         """
-        try:
-            _exec_func(exe, args)
-            return True
+        # gvim runs in the background by default so we force it to run
+        # in the foreground to ensure it gets attention.
+        if "gvim" in exe and "-f" not in args:
+            exe, *rest = args
+            args = [exe, "-f"] + rest
 
-        except OSError as e:
+        try:
+            return exec_fn(exe, args) == 0
+
+        except (OSError, spack.util.executable.ProcessError) as e:
             if spack.config.get("config:debug"):
                 raise
 
@@ -113,17 +127,19 @@ def editor(*args, **kwargs):
         return try_exec(exe, full_args, var)
 
     # try standard environment variables
+    if try_env_var("SPACK_EDITOR"):
+        return True
     if try_env_var("VISUAL"):
-        return
+        return True
     if try_env_var("EDITOR"):
-        return
+        return True
 
     # nothing worked -- try the first default we can find don't bother
     # trying them all -- if we get here and one fails, something is
     # probably much more deeply wrong with the environment.
-    exe = which_string(*_default_editors)
+    exe = spack.util.executable.which_string(*_default_editors)
     if exe and try_exec(exe, [exe] + list(args)):
-        return
+        return True
 
     # Fail if nothing could be found
     raise EnvironmentError(

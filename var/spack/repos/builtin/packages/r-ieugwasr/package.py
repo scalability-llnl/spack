@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class RIeugwasr(RPackage):
 
     homepage = "https://github.com/MRCIEU/ieugwasr"
     url = "https://github.com/MRCIEU/ieugwasr/archive/refs/tags/0.1.5.tar.gz"
+
+    license("MIT")
 
     version("0.1.5", sha256="8d900d5a780f23836c80191f9635fbf48a0ca94f828452948c0f445e3217f422")
 

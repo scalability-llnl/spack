@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyNose2(PythonPackage):
 
     homepage = "https://github.com/nose-devs/nose2"
     pypi = "nose2/nose2-0.9.1.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("0.9.1", sha256="0ede156fd7974fa40893edeca0b709f402c0ccacd7b81b22e76f73c116d1b999")
     version("0.6.0", sha256="daa633e92a52e0db60ade7e105a2ba5cad7ac819f3608740dcfc6140b9fd0a94")

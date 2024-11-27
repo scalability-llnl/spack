@@ -1,0 +1,22 @@
+diff --git a/smartsim/_core/_cli/cli.py b/smartsim/_core/_cli/cli.py
+index 7dbb144..93da137 100644
+--- a/smartsim/_core/_cli/cli.py
++++ b/smartsim/_core/_cli/cli.py
+@@ -68,14 +68,17 @@ class SmartCli:
+         getattr(self, args.command)()
+ 
+     def build(self) -> None:
++        raise RuntimeError("`smart build` not supported through spack install")
+         Build()
+         sys.exit(0)
+ 
+     def clean(self) -> None:
++        raise RuntimeError("`smart clean` not supported through spack install")
+         Clean()
+         sys.exit(0)
+ 
+     def clobber(self) -> None:
++        raise RuntimeError("`smart clobber` not supported through spack install")
+         Clean(clean_all=True)
+         sys.exit(0)
+ 

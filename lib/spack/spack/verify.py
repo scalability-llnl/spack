@@ -1,55 +1,58 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import base64
 import hashlib
 import os
+import stat
+from typing import Any, Dict
 
 import llnl.util.tty as tty
+from llnl.util.symlink import readlink
 
-import spack.filesystem_view
 import spack.store
 import spack.util.file_permissions as fp
 import spack.util.spack_json as sjson
+from spack.package_base import spack_times_log
 
 
-def compute_hash(path):
-    with open(path, "rb") as f:
-        sha1 = hashlib.sha1(f.read()).digest()
-        b32 = base64.b32encode(sha1)
-        return b32.decode()
+def compute_hash(path: str, block_size: int = 1048576) -> str:
+    # why is this not using spack.util.crypto.checksum...
+    hasher = hashlib.sha1()
+    with open(path, "rb") as file:
+        while True:
+            data = file.read(block_size)
+            if not data:
+                break
+            hasher.update(data)
+    return base64.b32encode(hasher.digest()).decode()
 
 
-def create_manifest_entry(path):
-    data = {}
+def create_manifest_entry(path: str) -> Dict[str, Any]:
+    try:
+        s = os.lstat(path)
+    except OSError:
+        return {}
 
-    if os.path.exists(path):
-        stat = os.stat(path)
+    data: Dict[str, Any] = {"mode": s.st_mode, "owner": s.st_uid, "group": s.st_gid}
 
-        data["mode"] = stat.st_mode
-        data["owner"] = stat.st_uid
-        data["group"] = stat.st_gid
+    if stat.S_ISLNK(s.st_mode):
+        data["dest"] = readlink(path)
 
-        if os.path.islink(path):
-            data["type"] = "link"
-            data["dest"] = os.readlink(path)
-
-        elif os.path.isdir(path):
-            data["type"] = "dir"
-
-        else:
-            data["type"] = "file"
-            data["hash"] = compute_hash(path)
-            data["time"] = stat.st_mtime
-            data["size"] = stat.st_size
+    elif stat.S_ISREG(s.st_mode):
+        data["hash"] = compute_hash(path)
+        data["time"] = s.st_mtime
+        data["size"] = s.st_size
 
     return data
 
 
 def write_manifest(spec):
     manifest_file = os.path.join(
-        spec.prefix, spack.store.layout.metadata_dir, spack.store.layout.manifest_file_name
+        spec.prefix,
+        spack.store.STORE.layout.metadata_dir,
+        spack.store.STORE.layout.manifest_file_name,
     )
 
     if not os.path.exists(manifest_file):
@@ -75,38 +78,28 @@ def check_entry(path, data):
         res.add_error(path, "added")
         return res
 
-    stat = os.stat(path)
+    s = os.lstat(path)
 
     # Check for all entries
-    if stat.st_mode != data["mode"]:
-        res.add_error(path, "mode")
-    if stat.st_uid != data["owner"]:
+    if s.st_uid != data["owner"]:
         res.add_error(path, "owner")
-    if stat.st_gid != data["group"]:
+    if s.st_gid != data["group"]:
         res.add_error(path, "group")
 
-    # Check for symlink targets  and listed as symlink
-    if os.path.islink(path):
-        if data["type"] != "link":
-            res.add_error(path, "type")
-        if os.readlink(path) != data.get("dest", ""):
-            res.add_error(path, "link")
-
-    # Check directories are listed as directory
-    elif os.path.isdir(path):
-        if data["type"] != "dir":
-            res.add_error(path, "type")
-
-    else:
+    # In the past, `stat(...).st_mode` was stored
+    # instead of `lstat(...).st_mode`. So, ignore mode errors for symlinks.
+    if not stat.S_ISLNK(s.st_mode) and s.st_mode != data["mode"]:
+        res.add_error(path, "mode")
+    elif stat.S_ISLNK(s.st_mode) and readlink(path) != data.get("dest"):
+        res.add_error(path, "link")
+    elif stat.S_ISREG(s.st_mode):
         # Check file contents against hash and listed as file
         # Check mtime and size as well
-        if stat.st_size != data["size"]:
+        if s.st_size != data["size"]:
             res.add_error(path, "size")
-        if stat.st_mtime != data["time"]:
+        if s.st_mtime != data["time"]:
             res.add_error(path, "mtime")
-        if data["type"] != "file":
-            res.add_error(path, "type")
-        if compute_hash(path) != data.get("hash", ""):
+        if compute_hash(path) != data.get("hash"):
             res.add_error(path, "hash")
 
     return res
@@ -116,14 +109,14 @@ def check_file_manifest(filename):
     dirname = os.path.dirname(filename)
 
     results = VerificationResults()
-    while spack.store.layout.metadata_dir not in os.listdir(dirname):
+    while spack.store.STORE.layout.metadata_dir not in os.listdir(dirname):
         if dirname == os.path.sep:
             results.add_error(filename, "not owned by any package")
             return results
         dirname = os.path.dirname(dirname)
 
     manifest_file = os.path.join(
-        dirname, spack.store.layout.metadata_dir, spack.store.layout.manifest_file_name
+        dirname, spack.store.STORE.layout.metadata_dir, spack.store.STORE.layout.manifest_file_name
     )
 
     if not os.path.exists(manifest_file):
@@ -149,7 +142,7 @@ def check_spec_manifest(spec):
 
     results = VerificationResults()
     manifest_file = os.path.join(
-        prefix, spack.store.layout.metadata_dir, spack.store.layout.manifest_file_name
+        prefix, spack.store.STORE.layout.metadata_dir, spack.store.STORE.layout.manifest_file_name
     )
 
     if not os.path.exists(manifest_file):
@@ -171,6 +164,10 @@ def check_spec_manifest(spec):
             if path == manifest_file:
                 continue
 
+            # Do not check the install times log file.
+            if entry == spack_times_log:
+                continue
+
             data = manifest.pop(path, {})
             results += check_entry(path, data)
 
@@ -182,7 +179,7 @@ def check_spec_manifest(spec):
     return results
 
 
-class VerificationResults(object):
+class VerificationResults:
     def __init__(self):
         self.errors = {}
 

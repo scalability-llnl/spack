@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,12 @@ class Minife(MakefilePackage):
 
     tags = ["proxy-app", "ecp-proxy-app"]
 
+    license("LGPL-3.0-or-later")
+
     version("2.1.0", sha256="59f4c56d73d2a758cba86939db2d36e12705282cb4174ce78223d984527f5d15")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "build",

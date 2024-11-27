@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -142,7 +142,7 @@ const int quux_version_minor = %s;
                 "-o",
                 "libquux.dylib",
                 "-install_name",
-                "@rpath/libcorge.dylib",
+                "@rpath/libquux.dylib",
                 "quux.cc.o",
                 "-Wl,-rpath,%s" % prefix.lib64,
                 "-Wl,-rpath,%s" % spec["garply"].prefix.lib64,

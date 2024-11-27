@@ -1,0 +1,13 @@
+diff -ruN spack-src/cmake/fc.cmake spack-src-new/cmake/fc.cmake
+--- spack-src/cmake/fc.cmake	2023-04-01 14:18:01.000000000 -0600
++++ spack-src-new/cmake/fc.cmake	2023-06-06 09:34:12.921982500 -0600
+@@ -89,6 +89,9 @@
+ 
+ if (${F_COMPILER} STREQUAL "INTEL")
+   set(CCOMMON_OPT "${CCOMMON_OPT} -DF_INTERFACE_INTEL")
++  if (MSVC)
++    set(FCOMMON_OPT "${FCOMMON_OPT} -names:uppercase -assume:underscore")
++  endif ()  
+   if (INTERFACE64)
+     set(FCOMMON_OPT "${FCOMMON_OPT} -i8")
+   endif ()

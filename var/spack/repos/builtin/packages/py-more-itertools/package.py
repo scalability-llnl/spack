@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,9 @@ class PyMoreItertools(PythonPackage):
     homepage = "https://github.com/erikrose/more-itertools"
     pypi = "more-itertools/more-itertools-7.2.0.tar.gz"
 
+    license("MIT")
+
+    version("9.1.0", sha256="cabaa341ad0389ea83c17a94566a53ae4c9d07349861ecb14dc6d0345cf9ac5d")
     version("8.14.0", sha256="c09443cd3d5438b8dafccd867a6bc1cb0894389e90cb53d227456b0b0bccb750")
     version("8.12.0", sha256="7dc6ad46f05f545f900dd59e8dfb4e84a4827b97b3cfecb175ea0c7d247f6064")
     version("8.11.0", sha256="0a2fd25d343c08d7e7212071820e7e7ea2f41d8fb45d6bc8a00cd6ce3b7aab88")
@@ -23,12 +26,8 @@ class PyMoreItertools(PythonPackage):
     version("4.1.0", sha256="c9ce7eccdcb901a2c75d326ea134e0886abfbea5f93e91cc95de9507c0816c44")
     version("2.2", sha256="93e62e05c7ad3da1a233def6731e8285156701e3419a5fe279017c429ec67ce0")
 
-    # https://github.com/more-itertools/more-itertools/issues/578
-    depends_on("python@3.6:", when="@8.11", type=("build", "run"))
-    depends_on("python@3.5:", when="@7.1:", type=("build", "run"))
-    depends_on("python@3.4:", when="@6:", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.2:", when="@2.3:", type=("build", "run"))
-    depends_on("python@2.6:2.8,3.2:", type=("build", "run"))
-    depends_on("py-setuptools", when="@:8.12.0", type="build")
     depends_on("py-flit-core@3.2:3", when="@8.14.0:", type="build")
+
+    # Historical dependencies
+    depends_on("py-setuptools", when="@:8.12.0", type="build")
     depends_on("py-six@1.0.0:1", when="@:5", type=("build", "run"))

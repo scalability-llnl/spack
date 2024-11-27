@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,9 @@ class Vifi(Package):
     homepage = "https://github.com/namphuon/ViFi"
     git = "https://github.com/namphuon/ViFi.git"
 
-    version("master", tag="master")
+    license("GPL-3.0-only")
+
+    version("master", branch="master")
 
     depends_on("perl", type="run")
     depends_on("python", type="run")

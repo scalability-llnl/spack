@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Kineto(CMakePackage):
     homepage = "https://github.com/pytorch/kineto"
     git = "https://github.com/pytorch/kineto.git"
 
+    license("BSD-3-Clause")
+
     version("master", branch="master", submodules=True)
     version(
         "2021-05-12", commit="a631215ac294805d5360e0ecceceb34de6557ba8", submodules=True
@@ -24,11 +26,11 @@ class Kineto(CMakePackage):
         "2021-02-04", commit="258d9a471f8d3a50a0f52b85c3fe0902f65489df", submodules=True
     )  # py-torch@1.8.0
 
+    depends_on("cxx", type="build")  # generated
+
     root_cmakelists_dir = "libkineto"
 
+    generator("ninja")
     depends_on("cmake@3.5:", type="build")
-    depends_on("ninja", type="build")
     depends_on("python", type="build")
     depends_on("cuda")
-
-    generator = "Ninja"

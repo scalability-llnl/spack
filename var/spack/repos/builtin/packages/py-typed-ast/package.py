@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyTypedAst(PythonPackage):
     homepage = "https://github.com/python/typed_ast"
     pypi = "typed-ast/typed_ast-1.4.0.tar.gz"
 
+    license("Apache-2.0")
+
     version("1.5.4", sha256="39e21ceb7388e4bb37f4c679d72707ed46c2fbf2a5609b8b8ebc4b067d977df2")
     version("1.4.3", sha256="fb1bbeac803adea29cedd70781399c99138358c26d05fcbd23c13016b7f5ec65")
     version("1.4.2", sha256="9fc0b3cb5d1720e7141d103cf4819aea239f7d136acf9ee4a69b047b7986175a")
@@ -22,6 +24,8 @@ class PyTypedAst(PythonPackage):
         sha256="5315f4509c1476718a4825f45a203b82d7fdf2a6f5f0c8f166435975b1c9f7d4",
         url="https://files.pythonhosted.org/packages/source/t/typed-ast/typed-ast-1.3.5.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "wheel",

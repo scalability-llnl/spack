@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -87,7 +87,7 @@ A typical usage of these methods may look something like this:
 
 .. code-block:: python
 
-   def initconfig_mpi_entries(self)
+   def initconfig_mpi_entries(self):
        # Get existing MPI configurations
        entries = super(self, Foo).initconfig_mpi_entries()
 
@@ -95,25 +95,25 @@ A typical usage of these methods may look something like this:
        # This spec has an MPI variant, and we need to enable MPI when it is on.
        # This hypothetical package controls MPI with the ``FOO_MPI`` option to
        # cmake.
-       if '+mpi' in self.spec:
-           entries.append(cmake_cache_option('FOO_MPI', True, "enable mpi"))
+       if self.spec.satisfies("+mpi"):
+           entries.append(cmake_cache_option("FOO_MPI", True, "enable mpi"))
        else:
-           entries.append(cmake_cache_option('FOO_MPI', False, "disable mpi"))
+           entries.append(cmake_cache_option("FOO_MPI", False, "disable mpi"))
 
    def initconfig_package_entries(self):
        # Package specific options
        entries = []
 
-       entries.append('#Entries for build options')
+       entries.append("#Entries for build options")
 
-       bar_on = '+bar' in self.spec
-       entries.append(cmake_cache_option('FOO_BAR', bar_on, 'toggle bar'))
+       bar_on = self.spec.satisfies("+bar")
+       entries.append(cmake_cache_option("FOO_BAR", bar_on, "toggle bar"))
 
-       entries.append('#Entries for dependencies')
+       entries.append("#Entries for dependencies")
 
-       if self.spec['blas'].name == 'baz':  # baz is our blas provider
-       entries.append(cmake_cache_string('FOO_BLAS', 'baz', 'Use baz'))
-       entries.append(cmake_cache_path('BAZ_PREFIX', self.spec['baz'].prefix))
+       if self.spec["blas"].name == "baz":  # baz is our blas provider
+           entries.append(cmake_cache_string("FOO_BLAS", "baz", "Use baz"))
+           entries.append(cmake_cache_path("BAZ_PREFIX", self.spec["baz"].prefix))
 
 ^^^^^^^^^^^^^^^^^^^^^^
 External documentation

@@ -1,0 +1,13 @@
+diff --git a/win/rules.vc b/win/rules.vc
+index 8a91b58b46..9e888ce8cb 100644
+--- a/win/rules.vc
++++ b/win/rules.vc
+@@ -416,7 +416,7 @@ _INSTALLDIR=$(_INSTALLDIR)\lib
+ # MACHINE - same as $(ARCH) - legacy
+ # _VC_MANIFEST_EMBED_{DLL,EXE} - commands for embedding a manifest if needed
+
+-cc32		= $(CC)   # built-in default.
++cc32		= "$(CC)"   # built-in default.
+ link32		= link
+ lib32		= lib
+ rc32		= $(RC)   # built-in default.

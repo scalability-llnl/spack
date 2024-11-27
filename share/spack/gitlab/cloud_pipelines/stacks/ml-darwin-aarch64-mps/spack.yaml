@@ -1,0 +1,98 @@
+spack:
+  view: false
+
+  packages:
+    all:
+      require:
+      - target=aarch64
+      - +mps
+      - ~cuda
+      - ~rocm
+    mpi:
+      require: openmpi
+    openblas:
+      require: ~fortran
+
+  specs:
+  # Horovod
+  - py-horovod
+
+  # Hugging Face
+  - py-transformers
+
+  # JAX
+  # Bazel codesign issues
+  # - py-jax
+  # - py-jaxlib
+
+  # Keras
+  # Bazel codesign issues
+  # - py-keras backend=tensorflow
+  # - py-keras backend=jax
+  - py-keras backend=torch
+  - py-keras-applications
+  - py-keras-preprocessing
+  - py-keras2onnx
+
+  # PyTorch
+  - py-botorch
+  - py-efficientnet-pytorch
+  - py-gpytorch
+  - py-kornia
+  - py-lightning
+  - py-pytorch-gradual-warmup-lr
+  - py-pytorch-lightning
+  - py-segmentation-models-pytorch
+  - py-timm
+  - py-torch
+  - py-torch-cluster
+  - py-torch-geometric
+  - py-torch-nvidia-apex
+  - py-torch-scatter
+  - py-torch-sparse
+  - py-torch-spline-conv
+  - py-torchaudio
+  - py-torchdata
+  - py-torchfile
+  - py-torchgeo
+  - py-torchmetrics
+  - py-torchtext
+  - py-torchvision
+  - py-vector-quantize-pytorch
+
+  # scikit-learn
+  - py-scikit-learn
+  - py-scikit-learn-extra
+
+  # TensorBoard
+  - py-tensorboard
+  - py-tensorboard-data-server
+  - py-tensorboard-plugin-wit
+  - py-tensorboardx
+
+  # TensorFlow
+  # Bazel codesign issues
+  # - py-tensorflow
+  # - py-tensorflow-datasets
+  # - py-tensorflow-estimator
+  # - py-tensorflow-hub
+  # - py-tensorflow-metadata
+  # - py-tensorflow-probability
+
+  # XGBoost
+  - py-xgboost
+
+  ci:
+    pipeline-gen:
+    - build-job-remove:
+        tags: [ spack, public ]
+    - build-job:
+        variables:
+          CI_GPG_KEY_ROOT: /etc/protected-runner
+        tags: [ "macos-ventura", "apple-clang-15", "aarch64-macos" ]
+
+  cdash:
+    build-group: Machine Learning MPS
+    url: https://cdash.spack.io
+    project: Spack Testing
+    site: Cloud Gitlab Infrastructure

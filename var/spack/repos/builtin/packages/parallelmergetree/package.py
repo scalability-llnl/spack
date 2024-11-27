@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,7 @@ class Parallelmergetree(CMakePackage):
         "1.1.2",
         git="https://bitbucket.org/cedmav/parallelmergetree.git",
         tag="v1.1.2",
+        commit="22ec85177a66b3850ec3aa8ae73da4ad187f6156",
         submodules=True,
     )
 
@@ -28,6 +29,7 @@ class Parallelmergetree(CMakePackage):
         "1.1.1",
         git="https://bitbucket.org/cedmav/parallelmergetree.git",
         tag="v1.1.1",
+        commit="d4b56978dd1b9c9d62d5dd3a0caadfc3102bdf42",
         submodules=True,
     )
 
@@ -35,6 +37,7 @@ class Parallelmergetree(CMakePackage):
         "1.1.0",
         git="https://bitbucket.org/cedmav/parallelmergetree.git",
         tag="v1.1.0",
+        commit="4a5a81b2c857eda9599f257de8719f68f31a5900",
         submodules=True,
     )
 
@@ -42,6 +45,7 @@ class Parallelmergetree(CMakePackage):
         "1.0.2",
         git="https://bitbucket.org/cedmav/parallelmergetree.git",
         tag="v1.0.2",
+        commit="c0b1f305d7f8e3d0bf7cffe22c1e2ac1c0faf05e",
         submodules=True,
     )
 
@@ -49,8 +53,12 @@ class Parallelmergetree(CMakePackage):
         "1.0.0",
         git="https://bitbucket.org/cedmav/parallelmergetree.git",
         tag="v1.0.0",
+        commit="9cfb68fdf0f8e881a4bfd94ae5d3ae25c9e01ea6",
         submodules=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("babelflow@1.1.0", when="@1.1.2")
     depends_on("babelflow@1.1.0", when="@1.1.1")

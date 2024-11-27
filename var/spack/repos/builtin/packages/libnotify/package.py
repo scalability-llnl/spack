@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,11 @@ class Libnotify(MesonPackage):
     homepage = "https://github.com/GNOME/libnotify"
     url = "https://github.com/GNOME/libnotify/archive/0.7.9.tar.gz"
 
+    license("LGPL-2.1-or-later")
+
     version("0.7.9", sha256="9bd4f5fa911d27567e7cc2d2d09d69356c16703c4e8d22c0b49a5c45651f3af0")
+
+    depends_on("c", type="build")  # generated
 
     # Libnotify is having trouble with finding the DTD and XSLT for docbook,
     # which is required for both of these varients.

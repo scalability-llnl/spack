@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,11 @@ class RtTests(MakefilePackage):
     homepage = "https://git.kernel.org"
     url = "https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snapshot/rt-tests-1.2.tar.gz"
 
+    license("GPL-2.0-only")
+
     version("1.2", sha256="7ccde036059c87681a4b00e7138678d9551b1232113441f6edda31ea45452426")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

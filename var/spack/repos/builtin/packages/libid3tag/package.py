@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,9 +15,13 @@ class Libid3tag(AutotoolsPackage):
 
     maintainers("TheQueasle")
 
-    version("0.15.1b", "63da4f6e7997278f8a3fef4c6a372d342f705051d1eeb6a46a86b03610e26151")
+    license("GPL-2.0-or-later")
 
-    depends_on("zlib")
+    version("0.15.1b", sha256="63da4f6e7997278f8a3fef4c6a372d342f705051d1eeb6a46a86b03610e26151")
+
+    depends_on("c", type="build")  # generated
+
+    depends_on("zlib-api")
     depends_on("gperf")
 
     # source: https://git.archlinux.org/svntogit/packages.git/tree/trunk/10_utf16.diff?h=packages/libid3tag

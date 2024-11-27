@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,7 +18,7 @@ class Unblur(AutotoolsPackage):
     variant("openmp", default=True, description="Enable OpenMP support")
     variant("shared", default=True, description="Dynamic linking")
 
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("jpeg")
     depends_on("libtiff")
     depends_on("gsl")
@@ -26,7 +26,6 @@ class Unblur(AutotoolsPackage):
     depends_on("fftw@3:")
     # Requires Intel Fortran compiler
     conflicts("%gcc")
-    conflicts("%pgi")
     conflicts("%apple-clang")
     conflicts("%clang")
     conflicts("%cce")

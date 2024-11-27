@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPureEval(PythonPackage):
     homepage = "https://github.com/alexmojaki/pure_eval"
     git = "https://github.com/alexmojaki/pure_eval.git"
     pypi = "pure_eval/pure_eval-0.2.2.tar.gz"
+
+    license("MIT")
 
     version("master", branch="master")
     version("0.2.2", sha256="2b45320af6dfaa1750f543d714b6d1c520a1688dec6fd24d339063ce0aaa9ac3")

@@ -1,4 +1,4 @@
-name: "\U0001F38A Feature request" 
+name: "\U0001F38A Feature request"
 description: Suggest adding a feature that is not yet in Spack
 labels: [feature]
 body:
@@ -29,13 +29,11 @@ body:
     attributes:
       label: General information
       options:
-        - label: I have run `spack --version` and reported the version of Spack
-          required: true
         - label: I have searched the issues of this repo and believe this is not a duplicate
           required: true
   - type: markdown
     attributes:
       value: |
         If you want to ask a question about the tool (how to use it, what it can currently do, etc.), try the `#general` channel on [our Slack](https://slack.spack.io/) first. We have a welcoming community and chances are you'll get your reply faster and without opening an issue.
-        
+
         Other than that, thanks for taking the time to contribute to Spack!

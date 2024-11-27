@@ -1,17 +1,17 @@
-From 9eb0c715cfcefb3df204200d44f5e8526bd14e31 Mon Sep 17 00:00:00 2001
-From: Phil Tooley <phil.tooley@nag.co.uk>
-Date: Fri, 16 Oct 2020 13:20:24 +0100
-Subject: [PATCH] add aarch64 gcc support
-
----
- arch/configure.defaults | 43 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
-
 diff --git a/arch/configure.defaults b/arch/configure.defaults
-index 7767a81e..bfd2a802 100644
+index 6e98941a..17a94e48 100644
 --- a/arch/configure.defaults
 +++ b/arch/configure.defaults
-@@ -1975,6 +1975,49 @@ LIB_BUNDLED     = \
+@@ -44,7 +44,7 @@ RLFLAGS		=
+ CC_TOOLS        =      cc 
+ 
+ ###########################################################
+-#ARCH    Linux i486 i586 i686 armv7l aarch64, gfortran compiler with gcc #serial smpar dmpar dm+sm
++#ARCH    Linux i486 i586 i686, gfortran compiler with gcc #serial smpar dmpar dm+sm
+ #
+ DESCRIPTION     =       GNU ($SFC/$SCC)
+ DMPARALLEL      =       # 1
+@@ -1981,6 +1981,49 @@ LIB_BUNDLED     = \
                       $(WRF_SRC_ROOT_DIR)/frame/module_internal_header_util.o \
                       $(WRF_SRC_ROOT_DIR)/frame/pack_utils.o
  
@@ -26,7 +26,7 @@ index 7767a81e..bfd2a802 100644
 +SFC             =       gfortran
 +SCC             =       gcc
 +CCOMP           =       gcc
-+DM_FC           =       mpif90 
++DM_FC           =       mpif90
 +DM_CC           =       mpicc -DMPI2_SUPPORT
 +FC              =       CONFIGURE_FC
 +CC              =       CONFIGURE_CC
@@ -34,33 +34,30 @@ index 7767a81e..bfd2a802 100644
 +RWORDSIZE       =       CONFIGURE_RWORDSIZE
 +PROMOTION       =       #-fdefault-real-8
 +ARCH_LOCAL      =       -DNONSTANDARD_SYSTEM_SUBR  -DWRF_USE_CLM
-+CFLAGS_LOCAL    =       -w -O3 -c -march=native -mtune=native
-+DFLAGS_LOCAL   =       
-+CPLUSPLUSLIB    =       
++CFLAGS_LOCAL    =       -w -O3 -c
++DFLAGS_LOCAL   =
++CPLUSPLUSLIB    =
 +ESMF_LDFLAG     =       $(CPLUSPLUSLIB)
-+FCOPTIM         =       -O3 -ftree-vectorize -funroll-loops -march=native -mtune=native
-+FCREDUCEDOPT	=       $(FCOPTIM)
-+FCNOOPT		=       -O0
++FCOPTIM         =       -Ofast -fno-expensive-optimizations -fno-reciprocal-math -fsigned-zeros -fno-unsafe-math-optimizations -funroll-loops
++FCREDUCEDOPT   =       $(FCOPTIM)
++FCNOOPT                =       -O0
 +FCDEBUG         =       -g # -g $(FCNOOPT) # -ggdb -fbacktrace -fcheck=bounds,do,mem,pointer -ffpe-trap=invalid,zero,overflow
 +FORMAT_FIXED    =       -ffixed-form
 +FORMAT_FREE     =       -ffree-form -ffree-line-length-none
-+FCSUFFIX        =       
++FCCOMPAT        =
 +BYTESWAPIO      =       -fconvert=big-endian -frecord-marker=4
-+FCBASEOPTS_NO_G =       -w $(FORMAT_FREE) $(BYTESWAPIO)
++FCBASEOPTS_NO_G =       -w $(FORMAT_FREE) $(BYTESWAPIO) $(FCCOMPAT)
 +FCBASEOPTS      =       $(FCBASEOPTS_NO_G) $(FCDEBUG)
-+MODULE_SRCH_FLAG =     
++MODULE_SRCH_FLAG =
 +TRADFLAG        =      CONFIGURE_TRADFLAG
 +CPP             =      /lib/cpp CONFIGURE_CPPFLAGS
 +AR              =      ar
 +ARFLAGS         =      ru
 +M4              =      m4 -G
 +RANLIB          =      ranlib
-+RLFLAGS		=	
-+CC_TOOLS        =      $(SCC) 
++RLFLAGS                =
++CC_TOOLS        =      $(SCC)
 +
  #insert new stanza here
  
  ###########################################################
--- 
-2.28.0
-

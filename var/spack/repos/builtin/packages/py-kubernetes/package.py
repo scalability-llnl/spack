@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,12 @@ class PyKubernetes(PythonPackage):
 
     maintainers("vvolkl")
 
+    license("Apache-2.0")
+
+    version("29.0.0", sha256="c4812e227ae74d07d53c88293e564e54b850452715a59a927e7e1bc6b9a60459")
+    version("28.1.0", sha256="1468069a573430fb1cb5ad22876868f57977930f80a6749405da31cd6086a7e9")
+    version("27.2.0", sha256="d479931c6f37561dbfdf28fc5f46384b1cb8b28f9db344ed4a232ce91990825a")
+    version("26.1.0", sha256="5854b0c508e8d217ca205591384ab58389abdae608576f9c9afc35a3c76a366c")
     version("25.3.0", sha256="213befbb4e5aed95f94950c7eed0c2322fc5a2f8f40932e58d28fdd42d90836c")
     version("21.7.0", sha256="c9849afc2eafdce60efa210049ee7a94e7ef6cf3a7afa14a69b3bf0447825977")
     version("20.13.0", sha256="ce5e881c13dc56f21a243804f90bc3c507af93c380f505c00e392c823968e4de")
@@ -29,7 +35,6 @@ class PyKubernetes(PythonPackage):
     version("10.0.1", sha256="3770a496663396ad1def665eeadb947b3f45217a08b64b10c01a57e981ac8592")
     version("9.0.0", sha256="a8b0aed55ba946faea660712595a52ae53a8854df773d96f47a63fa0c9d4e3bf")
 
-    depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-certifi@14.05.14:", type=("build", "run"))
     depends_on("py-six@1.9.0:", type=("build", "run"))
     depends_on("py-python-dateutil@2.5.3:", type=("build", "run"))
@@ -40,4 +45,6 @@ class PyKubernetes(PythonPackage):
     depends_on("py-websocket-client@0.32:0.39,0.43:", type=("build", "run"))
     depends_on("py-requests", type=("build", "run"))
     depends_on("py-requests-oauthlib", type=("build", "run"))
+    depends_on("py-oauthlib@3.2.2:", type=("build", "run"), when="@27.2:")
+    depends_on("py-urllib3@1.24.2:1", type=("build", "run"), when="@28.1.0")
     depends_on("py-urllib3@1.24.2:", type=("build", "run"))

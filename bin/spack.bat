@@ -1,4 +1,4 @@
-:: Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+:: Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 :: Spack Project Developers. See the top-level COPYRIGHT file for details.
 ::
 :: SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,7 @@
 ::
 @echo off
 
-set spack=%SPACK_ROOT%\bin\spack
+set spack="%SPACK_ROOT%"\bin\spack
 
 ::#######################################################################
 :: This is a wrapper around the spack command that forwards calls to
@@ -50,24 +50,47 @@ setlocal enabledelayedexpansion
 :: flags will always start with '-', e.g. --help or -V
 :: subcommands will never start with '-'
 :: everything after the subcommand is an arg
-for %%x in (%*) do (
-    set t="%%~x"
-    if "!t:~0,1!" == "-" (
-        if defined _sp_subcommand (
-            :: We already have a subcommand, processing args now
+
+
+:process_cl_args
+rem Set first cl argument (denoted by %1) to be processed
+set t=%1
+rem shift moves all cl positional arguments left by one
+rem meaning %2 is now %1, this allows us to iterate over each
+rem argument
+shift
+rem assign next "first" cl argument to cl_args, will be null when
+rem there are now further arguments to process
+set cl_args=%1
+if "!t:~0,1!" == "-" (
+    if defined _sp_subcommand (
+        rem  We already have a subcommand, processing args now
+        if not defined _sp_args (
+            set "_sp_args=!t!"
+        ) else (
             set "_sp_args=!_sp_args! !t!"
+        )
+    ) else (
+        if not defined _sp_flags (
+            set "_sp_flags=!t!"
         ) else (
             set "_sp_flags=!_sp_flags! !t!"
-            shift
         )
-    ) else if not defined _sp_subcommand (
-        set "_sp_subcommand=!t!"
-        shift
+    )
+) else if not defined _sp_subcommand (
+    set "_sp_subcommand=!t!"
+) else (
+    if not defined _sp_args (
+        set "_sp_args=!t!"
     ) else (
         set "_sp_args=!_sp_args! !t!"
-        shift
     )
 )
+
+rem  if this is not nu;ll, we have more tokens to process
+rem  start above process again with remaining unprocessed cl args
+if defined cl_args goto :process_cl_args
+
 
 :: --help, -h and -V flags don't require further output parsing.
 :: If we encounter, execute and exit
@@ -95,31 +118,21 @@ if not defined _sp_subcommand (
 
 :: pass parsed variables outside of local scope. Need to do
 :: this because delayedexpansion can only be set by setlocal
-echo %_sp_flags%>flags
-echo %_sp_args%>args
-echo %_sp_subcommand%>subcmd
-endlocal
-set /p _sp_subcommand=<subcmd
-set /p _sp_flags=<flags
-set /p _sp_args=<args
-if "%_sp_subcommand%"=="ECHO is off." (set "_sp_subcommand=")
-if "%_sp_subcommand%"=="ECHO is on." (set "_sp_subcommand=")
-if "%_sp_flags%"=="ECHO is off." (set "_sp_flags=")
-if "%_sp_flags%"=="ECHO is on." (set "_sp_flags=")
-if "%_sp_args%"=="ECHO is off." (set "_sp_args=")
-if "%_sp_args%"=="ECHO is on." (set "_sp_args=")
-del subcmd
-del flags
-del args
+endlocal & (
+    set "_sp_flags=%_sp_flags%"
+    set "_sp_args=%_sp_args%"
+    set "_sp_subcommand=%_sp_subcommand%"
+)
+
 
 :: Filter out some commands. For any others, just run the command.
-if %_sp_subcommand% == "cd" (
+if "%_sp_subcommand%" == "cd" (
     goto :case_cd
-) else if %_sp_subcommand% == "env" (
+) else if "%_sp_subcommand%" == "env" (
     goto :case_env
-) else if %_sp_subcommand% == "load" (
+) else if "%_sp_subcommand%" == "load" (
     goto :case_load
-) else if %_sp_subcommand% == "unload" (
+) else if "%_sp_subcommand%" == "unload" (
     goto :case_load
 ) else (
     goto :default_case
@@ -154,20 +167,20 @@ goto :end_switch
 if NOT defined _sp_args (
     goto :default_case
 )
-set args_no_quote=%_sp_args:"=%
-if NOT "%args_no_quote%"=="%args_no_quote:--help=%" (
+
+if NOT "%_sp_args%"=="%_sp_args:--help=%" (
     goto :default_case
-) else if NOT "%args_no_quote%"=="%args_no_quote: -h=%" (
+) else if NOT "%_sp_args%"=="%_sp_args: -h=%" (
     goto :default_case
-) else if NOT "%args_no_quote%"=="%args_no_quote:--bat=%" (
+) else if NOT "%_sp_args%"=="%_sp_args:--bat=%" (
     goto :default_case
-) else if NOT "%args_no_quote%"=="%args_no_quote:deactivate=%" (
+) else if NOT "%_sp_args%"=="%_sp_args:deactivate=%" (
     for /f "tokens=* USEBACKQ" %%I in (
-        `call python %spack% %_sp_flags% env deactivate --bat %args_no_quote:deactivate=%`
+        `call python %spack% %_sp_flags% env deactivate --bat %_sp_args:deactivate=%`
     ) do %%I
-) else if NOT "%args_no_quote%"=="%args_no_quote:activate=%" (
+) else if NOT "%_sp_args%"=="%_sp_args:activate=%" (
     for /f "tokens=* USEBACKQ" %%I in (
-        `python %spack% %_sp_flags% env activate --bat %args_no_quote:activate=%`
+        `python %spack% %_sp_flags% env activate --bat %_sp_args:activate=%`
     ) do %%I
 ) else (
     goto :default_case
@@ -175,24 +188,26 @@ if NOT "%args_no_quote%"=="%args_no_quote:--help=%" (
 goto :end_switch
 
 :case_load
-:: If args contain --sh, --csh, or -h/--help: just execute.
-if defined _sp_args (
-    if NOT "%_sp_args%"=="%_sp_args:--help=%" (
-        goto :default_case
-    ) else if NOT "%_sp_args%"=="%_sp_args: -h=%" (
-        goto :default_case
-    ) else if NOT "%_sp_args%"=="%_sp_args:--bat=%" (
-        goto :default_case
-    )
+if NOT defined _sp_args (
+   exit /B 0
+)
+
+:: If args contain --bat, or -h/--help: just execute.
+if NOT "%_sp_args%"=="%_sp_args:--help=%" (
+    goto :default_case
+) else if NOT "%_sp_args%"=="%_sp_args:-h=%" (
+    goto :default_case
+) else if NOT "%_sp_args%"=="%_sp_args:--bat=%" (
+    goto :default_case
+) else if NOT "%_sp_args%"=="%_sp_args:--list=%" (
+    goto :default_case
 )
 
 for /f "tokens=* USEBACKQ" %%I in (
-    `python "%spack%" %_sp_flags% %_sp_subcommand% --bat %_sp_args%`) do %%I
-)
-goto :end_switch
+    `python "%spack%" %_sp_flags% %_sp_subcommand% --bat %_sp_args%`
+    ) do %%I
 
-:case_unload
-goto :case_load
+goto :end_switch
 
 :default_case
 python "%spack%" %_sp_flags% %_sp_subcommand% %_sp_args%

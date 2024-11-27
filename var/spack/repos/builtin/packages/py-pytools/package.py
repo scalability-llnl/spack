@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPytools(PythonPackage):
 
     homepage = "https://github.com/inducer/pytools"
     pypi = "pytools/pytools-2019.1.1.tar.gz"
+
+    license("MIT")
 
     version("2022.1.14", sha256="41017371610bb2a03685597c5285205e6597c7f177383d95c8b871244b12c14e")
     version("2022.1.12", sha256="4d62875e9a2ab2a24e393a9a8b799492f1a721bffa840af3807bfd42871dd1f4")

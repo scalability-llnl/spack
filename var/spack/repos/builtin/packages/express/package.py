@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Express(CMakePackage):
     homepage = "http://bio.math.berkeley.edu/eXpress/"
     url = "https://github.com/adarob/eXpress/archive/1.5.2.zip"
 
+    license("Artistic-2.0")
+
     # 1.5.1 used to be known as 2015-11-29 (same commit), but they've
     # added tags, so lets use 'em
     version("1.5.3", sha256="dfea819bbe7187a06462d6549a13f9cad7f3f128cb5c62bd90946f972c45a1f2")
@@ -28,7 +30,7 @@ class Express(CMakePackage):
         "+atomic+container+math+thread+program_options"
     )
     depends_on("bamtools")
-    depends_on("zlib")
+    depends_on("zlib-api")
 
     # patch from the debian package repo:
     # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=811859

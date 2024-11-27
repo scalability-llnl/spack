@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyTypingInspect(PythonPackage):
 
     homepage = "https://github.com/ilevkivskyi/typing_inspect"
     pypi = "typing_inspect/typing_inspect-0.8.0.tar.gz"
+
+    license("MIT")
 
     version("0.8.0", sha256="8b1ff0c400943b6145df8119c41c244ca8207f1f10c9c057aeed1560e4806e3d")
 

@@ -1,0 +1,3 @@
+packages:
+  all:
+    target: [x86_64]

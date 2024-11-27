@@ -1,0 +1,11 @@
+diff -ur a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	2023-08-01 13:46:16.726147070 -0400
++++ b/CMakeLists.txt	2023-08-01 13:46:36.819307049 -0400
+@@ -197,6 +197,7 @@
+     add_executable(ex_matt examples/matt.cc phmap.natvis)
+     add_executable(ex_mt_word_counter examples/mt_word_counter.cc phmap.natvis)
+ 
++    target_link_libraries(ex_mt_word_counter Threads::Threads)
+     target_link_libraries(ex_knucleotide Threads::Threads)
+     target_link_libraries(ex_bench Threads::Threads)
+ endif()

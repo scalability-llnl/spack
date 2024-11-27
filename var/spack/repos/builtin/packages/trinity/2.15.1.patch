@@ -1,0 +1,11 @@
+--- a/trinity-plugins/bamsifter/sift_bam_max_cov.cpp      2023-02-05 18:46:28.000000000 +0000
++++ b/trinity-plugins/bamsifter/sift_bam_max_cov.cpp      2023-04-20 22:25:49.785300259 +0000
+@@ -2,7 +2,7 @@
+ #include <stdio.h>
+ // #include <unistd.h>
+ #include <stdlib.h>
+-#include <string.h>
++#include <string>
+ #include <cstring>
+ #include <getopt.h>
+ #include <stdint.h>

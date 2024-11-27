@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyFenicsInstant(PythonPackage):
     homepage = "https://fenicsproject.org"
     url = "https://bitbucket.org/fenics-project/instant/downloads/instant-2017.2.0.tar.gz"
     maintainers("emai-imcs")
+
+    license("LGPL-3.0-or-later")
 
     version("2017.2.0", sha256="be24f162fd1a89b82fae002db8df0b4f111fd50db83d78c0c121015c02e45b7b")
     version("2016.2.0", sha256="df5e8ca306546fd1ee1a28e36b61c5d46456dc8b07e3293d674ddff62cf8d953")

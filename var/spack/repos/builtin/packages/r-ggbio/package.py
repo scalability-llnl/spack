@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,7 @@ class RGgbio(RPackage):
 
     bioc = "ggbio"
 
+    version("1.48.0", commit="fd4ebca44151e8f8e20ad2a38292398a3a4bb948")
     version("1.46.0", commit="d9c6cb495c7268bcaaab141231a9038aec8498bc")
     version("1.44.1", commit="0301d9464e304a8113ea4479185cd358855ca365")
     version("1.44.0", commit="cb21284a9803917fa76e116adfc456525c95f660")

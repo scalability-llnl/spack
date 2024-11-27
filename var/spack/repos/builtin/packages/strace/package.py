@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,10 +13,13 @@ class Strace(AutotoolsPackage):
     signal deliveries, and changes of process state."""
 
     homepage = "https://strace.io"
-    url = "https://github.com/strace/strace/releases/download/v5.2/strace-5.2.tar.xz"
+    url = "https://github.com/strace/strace/releases/download/v6.11/strace-6.11.tar.xz"
 
     maintainers("michaelkuhn")
 
+    license("BSD-3-Clause")
+
+    version("6.11", sha256="83262583a3529f02c3501aa8b8ac772b4cbc03dc934e98bab6e4883626e283a5")
     version("5.19", sha256="aa3dc1c8e60e4f6ff3d396514aa247f3c7bf719d8a8dc4dd4fa793be786beca3")
     version("5.17", sha256="5fb298dbd1331fd1e1bc94c5c32395860d376101b87c6cd3d1ba9f9aa15c161f")
     version("5.12", sha256="29171edf9d252f89c988a4c340dfdec662f458cb8c63d85431d64bab5911e7c4")
@@ -34,12 +37,18 @@ class Strace(AutotoolsPackage):
     version("5.0", sha256="3b7ad77eb2b81dc6078046a9cc56eed5242b67b63748e7fc28f7c2daf4e647da")
     version("4.21", sha256="5c7688db44073e94c59a5627744e5699454419824cc8166e8bcfd7ec58375c37")
 
-    conflicts("platform=darwin", msg="strace runs only on Linux.")
+    variant("mpers", default=False, description="Enable multiple personalities support")
+
+    depends_on("c", type="build")
+    depends_on("gawk", when="+mpers", type="build")
+
+    conflicts("platform=darwin", msg="strace runs only on Linux")
+    conflicts("platform=windows", msg="strace runs only on Linux")
 
     def configure_args(self):
         args = []
-        if self.spec.target.family == "aarch64":
-            args.append("--enable-mpers=no")
-        else:
+        if self.spec.satisfies("+mpers"):
             args.append("--enable-mpers=yes")
+        else:
+            args.append("--enable-mpers=no")
         return args

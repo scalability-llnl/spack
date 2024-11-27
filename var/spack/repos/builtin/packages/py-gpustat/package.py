@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyGpustat(PythonPackage):
 
     homepage = "https://github.com/wookayin/gpustat"
     pypi = "gpustat/gpustat-0.6.0.tar.gz"
+
+    license("MIT")
 
     version("1.0.0b1", sha256="a25c460c5751180265814f457249ba5100baf7a055b23ad762a4e3ab3f6496dd")
     version(

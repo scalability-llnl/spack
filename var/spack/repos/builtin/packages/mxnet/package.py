@@ -1,36 +1,31 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
 class Mxnet(CMakePackage, CudaPackage, PythonExtension):
-    """MXNet is a deep learning framework
-    designed for both efficiency and flexibility."""
+    """MXNet is a deep learning framework designed for both efficiency and flexibility."""
 
     homepage = "https://mxnet.apache.org"
     url = "https://archive.apache.org/dist/incubator/mxnet/1.7.0/apache-mxnet-src-1.7.0-incubating.tar.gz"
     list_url = "https://mxnet.apache.org/get_started/download"
-    git = "https://github.com/apache/incubator-mxnet.git"
+    git = "https://github.com/apache/mxnet.git"
 
-    maintainers("adamjstewart")
+    license("Apache-2.0")
 
     version("master", branch="master", submodules=True)
-    version("1.master", branch="v1.x", submodules=True)
-    version(
-        "1.8.0",
-        sha256="95aff985895aba409c08d5514510ae38b88490cfb6281ab3a5ff0f5826c8db54",
-        preferred=True,
-    )
+    version("1.9.1", sha256="11ea61328174d8c29b96f341977e03deb0bf4b0c37ace658f93e38d9eb8c9322")
+    version("1.9.0", sha256="a2a99cf604d57094269cacdfc4066492b2dc886593ee02b862e034f6180f712d")
+    version("1.8.0", sha256="95aff985895aba409c08d5514510ae38b88490cfb6281ab3a5ff0f5826c8db54")
     version("1.7.0", sha256="1d20c9be7d16ccb4e830e9ee3406796efaf96b0d93414d676337b64bc59ced18")
     version("1.6.0", sha256="01eb06069c90f33469c7354946261b0a94824bbaf819fd5d5a7318e8ee596def")
-    version(
-        "1.3.0",
-        sha256="c00d6fbb2947144ce36c835308e603f002c1eb90a9f4c5a62f4d398154eed4d2",
-        deprecated=True,
-    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "build_type",
@@ -47,12 +42,11 @@ class Mxnet(CMakePackage, CudaPackage, PythonExtension):
     variant("mkldnn", default=False, description="Build with MKL-DNN support")
     variant("python", default=True, description="Install python bindings")
 
+    generator("ninja")
     depends_on("cmake@3.13:", type="build")
-    depends_on("ninja", type="build")
     depends_on("pkgconfig", when="@1.6.0", type="build")
     depends_on("blas")
-    depends_on("cuda@:10.2", when="@:1.8.0 +cuda")
-    depends_on("cuda@:11.3", when="@2.0.0: +cuda")
+    depends_on("cuda", when="+cuda")
     depends_on("cudnn", when="+cudnn")
     depends_on("nccl", when="+nccl")
     depends_on("opencv+highgui+imgproc+imgcodecs", when="+opencv")
@@ -61,30 +55,26 @@ class Mxnet(CMakePackage, CudaPackage, PythonExtension):
 
     # python/setup.py
     extends("python", when="+python")
-    depends_on("python@2.7:2.8,3.4:", when="@:1.8.0+python", type=("build", "run"))
-    depends_on("python@3.6:", when="@2.0.0:+python", type=("build", "run"))
     depends_on("py-pip", when="+python", type="build")
     depends_on("py-wheel", when="+python", type="build")
     depends_on("py-setuptools", when="+python", type="build")
     depends_on("py-cython", when="+python", type="build")
     depends_on("py-numpy@1.17:", when="@2.0.0:+python", type=("build", "run"))
     depends_on("py-numpy@1.16.1:1", when="@1.6:1.8.0+python", type=("build", "run"))
-    depends_on("py-numpy@1.8.2:1.15.0", when="@1.3.0+python", type=("build", "run"))
     depends_on("py-requests@2.20.0:2", when="@1.6:+python", type=("build", "run"))
-    depends_on("py-requests@2.18.4:2.18", when="@1.3.0+python", type=("build", "run"))
     depends_on("py-graphviz@0.8.1:0.8", when="+python", type=("build", "run"))
 
     conflicts("+cudnn", when="~cuda")
     conflicts("+nccl", when="~cuda")
+    conflicts("platform=darwin target=aarch64:", when="@:1")
 
-    patch("openblas-1.7.0.patch", when="@1.7.0:1.master")
+    patch("openblas-1.7.0.patch", when="@1.7.0:1")
     patch("openblas-1.6.0.patch", when="@1.6.0")
     patch("cmake_cuda_flags.patch", when="@1.6:1.7")
     patch("parallell_shuffle.patch", when="@1.6.0")
 
     # python/setup.py assumes libs can be found in build directory
     build_directory = "build"
-    generator = "Ninja"
 
     def setup_run_environment(self, env):
         env.set("MXNET_LIBRARY_PATH", self.spec["mxnet"].libs[0])
@@ -100,10 +90,12 @@ class Mxnet(CMakePackage, CudaPackage, PythonExtension):
             self.define_from_variant("USE_OPENCV", "opencv"),
             self.define_from_variant("USE_OPENMP", "openmp"),
             self.define_from_variant("USE_LAPACK", "lapack"),
+            self.define("BLAS_LIBRARIES", self.spec["blas"].libs[0]),
         ]
-        if self.spec.satisfies("@:1.8.0"):
+
+        if self.spec.satisfies("@:1"):
             args.append(self.define_from_variant("USE_MKLDNN", "mkldnn"))
-        if self.spec.satisfies("@2.0.0:"):
+        elif self.spec.satisfies("@2:"):
             args.append(self.define_from_variant("USE_ONEDNN", "mkldnn"))
             args.append(self.define("USE_CUTENSOR", False))
 
@@ -115,10 +107,19 @@ class Mxnet(CMakePackage, CudaPackage, PythonExtension):
                 )
                 args.append(self.define("MXNET_CUDA_ARCH", cuda_arch))
 
-            args.append(self.define_from_variant("USE_NCCL", "nccl"))
-
-            # Workaround for bug in GCC 8+ and CUDA 10 on PowerPC
-            args.append(self.define("CMAKE_CUDA_FLAGS", self.compiler.cxx11_flag))
+            args.extend(
+                [
+                    self.define_from_variant("USE_NCCL", "nccl"),
+                    # Workaround for bug in GCC 8+ and CUDA 10 on PowerPC
+                    self.define("CMAKE_CUDA_FLAGS", self.compiler.cxx11_flag),
+                    # https://github.com/apache/mxnet/issues/21193
+                    # https://github.com/spack/spack/issues/36922
+                    self.define(
+                        "CMAKE_CXX_FLAGS",
+                        "-L" + join_path(self.spec["cuda"].libs.directories[0], "stubs"),
+                    ),
+                ]
+            )
 
         return args
 
@@ -126,5 +127,4 @@ class Mxnet(CMakePackage, CudaPackage, PythonExtension):
     def install_python(self):
         if "+python" in self.spec:
             with working_dir("python"):
-                args = std_pip_args + ["--prefix=" + prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

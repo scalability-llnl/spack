@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,6 +24,8 @@ class Libcumlprims(Package):
         "0.15.0-cuda10.1_gdbd0d39_0",
         sha256="f055f904b5ef67995869b0bc648d9fe30839b08e77cb335573bf9f1c816d4d9b",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cuda@11.0.0:11.0", when="@0.15.0-cuda11.0_gdbd0d39_0")
     depends_on("cuda@10.2.0:10.2", when="@0.15.0-cuda10.2_gdbd0d39_0")

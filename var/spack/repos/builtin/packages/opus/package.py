@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,17 @@ class Opus(AutotoolsPackage):
     homepage = "https://opus-codec.org/"
     url = "http://downloads.xiph.org/releases/opus/opus-1.1.4.tar.gz"
 
+    license("BSD-3-Clause")
+
+    version("1.5.2", sha256="65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1")
+    version("1.5.1", sha256="b84610959b8d417b611aa12a22565e0a3732097c6389d19098d844543e340f85")
+    version("1.5", sha256="d8230bbeb99e6d558645aaad25d79de8f4f28fdcc55f8af230050586d62c4f2c")
+    version("1.4", sha256="c9b32b4253be5ae63d1ff16eea06b94b5f0f2951b7a02aceef58e3a3ce49c51f")
     version("1.3.1", sha256="65b58e1e25b2a114157014736a3d9dfeaad8d41be1c8179866f144a2fb44ff9d")
+    version("1.3", sha256="4f3d69aefdf2dbaf9825408e452a8a414ffc60494c70633560700398820dc550")
+    version("1.2.1", sha256="cfafd339ccd9c5ef8d6ab15d7e1a412c054bf4cb4ecbbbcc78c12ef2def70732")
+    version("1.2", sha256="77db45a87b51578fbc49555ef1b10926179861d854eb2613207dc79d9ec0a9a9")
+    version("1.1.5", sha256="eb84981ca0f40a3e5d5e58d2e8582cb2fee05a022825a6dfe14d14b04eb563e4")
     version("1.1.4", sha256="9122b6b380081dd2665189f97bfd777f04f92dc3ab6698eea1dbb27ad59d8692")
     version("1.1.3", sha256="58b6fe802e7e30182e95d0cde890c0ace40b6f125cffc50635f0ad2eef69b633")
     version("1.1.2", sha256="0e290078e31211baa7b5886bcc8ab6bc048b9fc83882532da4a1a45e58e907fd")
@@ -34,4 +44,4 @@ class Opus(AutotoolsPackage):
     version("0.9.1", sha256="206221afc47b87496588013bd4523e1e9f556336c0813f4372773fc536dd4293")
     version("0.9.0", sha256="b2f75c4ac5ab837845eb028413fae2a28754bfb0a6d76416e2af1441ef447649")
 
-    depends_on("libvorbis")
+    depends_on("c", type="build")  # generated

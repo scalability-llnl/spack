@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,7 @@ class RSinglecellexperiment(RPackage):
 
     bioc = "SingleCellExperiment"
 
+    version("1.22.0", commit="d477e8ef442dec60576e08bb660081b8bccc978c")
     version("1.20.0", commit="467f02c0346e3ca5ec8825a6faa80a90d20fcd29")
     version("1.18.1", commit="db7768a7cb5eca724bcf7e4cea3234992ac714a1")
     version("1.18.0", commit="3a72dcd97e628055b2d02294eaecca9a41aba604")

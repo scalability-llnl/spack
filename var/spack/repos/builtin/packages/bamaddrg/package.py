@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Bamaddrg(MakefilePackage):
     git = "https://github.com/ilbiondo/bamaddrg.git"
 
     version("0.1", sha256="725a689d8326d72f865837b231005a9211d6c70a25b7a3a754df4f90d2996355")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("bamtools", type="build")
 

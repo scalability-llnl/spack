@@ -1,0 +1,12 @@
+--- a/src/sockets.c     2019-12-24 01:41:57.000000000 +0530
++++ b/src/sockets.c     2023-05-15 18:35:33.941236292 +0530
+@@ -35,6 +35,7 @@
+ */
+ #ifndef __NO_IPI_DRIVER
+
++#define _POSIX_C_SOURCE 200112L
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+
+

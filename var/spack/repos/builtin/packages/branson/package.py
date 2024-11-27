@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,8 +18,11 @@ class Branson(CMakePackage):
 
     tags = ["proxy-app"]
 
+    license("MIT")
+
     version("develop", branch="develop")
 
+    version("1.01", sha256="90208eaec4f6d64a4fd81cd838e30b5e7207246cb7f407e482965f23bbcee848")
     version(
         "0.82",
         sha256="7d83d41d0c7ab9c1c906a902165af31182da4604dd0b69aec28d709fe4d7a6ec",
@@ -27,6 +30,8 @@ class Branson(CMakePackage):
     )
     version("0.81", sha256="493f720904791f06b49ff48c17a681532c6a4d9fa59636522cf3f9700e77efe4")
     version("0.8", sha256="85ffee110f89be00c37798700508b66b0d15de1d98c54328b6d02a9eb2cf1cb8")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("mpi@2:")
 
@@ -42,9 +47,9 @@ class Branson(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         args = []
-        args.append("-DCMAKE_C_COMPILER=%s" % spec["mpi"].mpicc)
-        args.append("-DCMAKE_CXX_COMPILER=%s" % spec["mpi"].mpicxx)
-        args.append("-DCMAKE_Fortran_COMPILER=%s" % spec["mpi"].mpifc)
+        args.append(f"-DCMAKE_C_COMPILER={spec['mpi'].mpicc}")
+        args.append(f"-DCMAKE_CXX_COMPILER={spec['mpi'].mpicxx}")
+        args.append(f"-DCMAKE_Fortran_COMPILER={spec['mpi'].mpifc}")
         return args
 
     def install(self, spec, prefix):

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,8 +18,14 @@ class Gtksourceview(AutotoolsPackage):
     homepage = "https://projects.gnome.org/gtksourceview"
     url = "https://download.gnome.org/sources/gtksourceview/4.2/gtksourceview-4.2.0.tar.xz"
 
+    license("LGPL-2.1-or-later")
+
     version("4.2.0", sha256="c431eb234dc83c7819e58f77dd2af973252c7750da1c9d125ddc94268f94f675")
     version("3.24.11", sha256="691b074a37b2a307f7f48edc5b8c7afa7301709be56378ccf9cc9735909077fd")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")

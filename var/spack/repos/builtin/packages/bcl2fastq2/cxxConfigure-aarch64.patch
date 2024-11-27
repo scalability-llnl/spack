@@ -1,0 +1,11 @@
+--- a/src/cmake/cxxConfigure.cmake      2017-06-22 12:14:50.000000000 -0500
++++ b/src/cmake/cxxConfigure.cmake      2023-09-25 11:50:55.819690648 -0500
+@@ -118,7 +118,7 @@
+ set(BCL2FASTQ_DEP_LIB ${BCL2FASTQ_DEP_LIB} "${LIBEXSLT_LIBRARIES}" "${LIBXSLT_LIBRARIES}" "${LIBXML2_LIBRARIES}")
+
+ #set (CMAKE_CXX_FLAGS "$ENV{CXX_FLAGS} $ENV{CXXFLAGS} -fopenmp -msse2 -Werror -Wall -Wextra -Wunused -Wno-long-long -Wsign-compare -Wpointer-arith" CACHE STRING "g++ flags" FORCE)
+-set (CMAKE_CXX_FLAGS "$ENV{CXX_FLAGS} $ENV{CXXFLAGS} -std=c++11 -fopenmp -msse2 -Wall -Wextra -Wunused -Wno-long-long -Wsign-compare -Wpointer-arith" CACHE STRING "g++ flags" FORCE)
++set (CMAKE_CXX_FLAGS "$ENV{CXX_FLAGS} $ENV{CXXFLAGS} -std=c++11 -fopenmp -Wall -Wextra -Wunused -Wno-long-long -Wsign-compare -Wpointer-arith" CACHE STRING "g++ flags" FORCE)
+ #set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g -pg -fprofile-arcs -ftest-coverage -D_GLIBCXX_DEBUG" CACHE STRING "g++ flags" FORCE)
+ set (CMAKE_CXX_FLAGS_DEBUG "-O0 -std=c++11 -g -pg -fprofile-arcs -ftest-coverage" CACHE STRING "g++ flags" FORCE)
+ #set (CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -O0 -g -pg -fprofile-arcs -ftest-coverage" CACHE STRING "g++ flags" FORCE)

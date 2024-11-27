@@ -1,0 +1,105 @@
+diff --git a/src/Makefile.in b/src/Makefile.in
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -90,7 +90,7 @@
+ build_triplet = @build@
+ host_triplet = @host@
+ @AUTHDES_TRUE@am__append_1 = auth_des.c  authdes_prot.c  des_crypt.c  des_impl.c  des_soft.c  svc_auth_des.c
+-@SYMVERS_TRUE@am__append_2 = -Wl,--version-script=$(srcdir)/libtirpc.map
++@SYMVERS_TRUE@am__append_2 = -Wl
+ @GSS_TRUE@am__append_3 = auth_gss.c authgss_prot.c svc_auth_gss.c \
+ @GSS_TRUE@			   rpc_gss_utils.c
+ 
+diff --git a/src/getpeereid.c b/src/getpeereid.c
+--- a/src/getpeereid.c
++++ b/src/getpeereid.c
+@@ -24,7 +24,7 @@
+  * SUCH DAMAGE.
+  */
+ 
+-
++#ifndef __APPLE__
+ #include <sys/param.h>
+ #include <sys/socket.h>
+ #include <sys/un.h>
+@@ -49,3 +49,4 @@
+ 	*egid = uc.gid;
+ 	return (0);
+  }
++#endif
+diff --git a/src/rpc_com.h b/src/rpc_com.h
+--- a/src/rpc_com.h
++++ b/src/rpc_com.h
+@@ -42,6 +42,11 @@
+ 
+ #include <rpc/rpc_com.h>
+ 
++#ifdef __APPLE__
++    #define SOL_IPV6 IPPROTO_IPV6
++    #define SOL_IP IPPROTO_IP
++#endif
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+diff --git a/src/svc_dg.c b/src/svc_dg.c
+--- a/src/svc_dg.c
++++ b/src/svc_dg.c
+@@ -37,6 +37,7 @@
+  *
+  * Does some caching in the hopes of achieving execute-at-most-once semantics.
+  */
++#define __APPLE_USE_RFC_3542
+ #include <pthread.h>
+ #include <reentrant.h>
+ #include <sys/types.h>
+diff --git a/src/svc_raw.c b/src/svc_raw.c
+--- a/src/svc_raw.c
++++ b/src/svc_raw.c
+@@ -43,6 +43,7 @@
+ #include <sys/types.h>
+ #include <rpc/raw.h>
+ #include <stdlib.h>
++#include <string.h>
+ 
+ #ifndef UDPMSGSIZE
+ #define	UDPMSGSIZE 8800
+diff --git a/src/xdr_float.c b/src/xdr_float.c
+--- a/src/xdr_float.c
++++ b/src/xdr_float.c
+@@ -83,7 +83,11 @@
+ };
+ #else
+ 
++#ifndef __APPLE__
+ #include <endian.h>
++#else
++#include <machine/endian.h>
++#endif
+ #define IEEEFP
+ 
+ #endif /* vax */
+diff --git a/tirpc/reentrant.h b/tirpc/reentrant.h
+--- a/tirpc/reentrant.h
++++ b/tirpc/reentrant.h
+@@ -36,7 +36,7 @@
+  * These definitions are only guaranteed to be valid on Linux. 
+  */
+ 
+-#if defined(__linux__)
++#if defined(__linux__) || defined(__APPLE__)
+ 
+ #include <pthread.h>
+ 
+diff --git a/tirpc/rpc/rpcent.h b/tirpc/rpc/rpcent.h
+--- a/tirpc/rpc/rpcent.h
++++ b/tirpc/rpc/rpcent.h
+@@ -50,7 +50,7 @@
+ 
+ /* These are defined in /usr/include/rpc/netdb.h, unless we are using
+    the C library without RPC support. */
+-#if defined(__UCLIBC__) && !defined(__UCLIBC_HAS_RPC__) || !defined(__GLIBC__)
++#if defined(__UCLIBC__) && !defined(__UCLIBC_HAS_RPC__) || !defined(__GLIBC__) && !defined(__APPLE__)
+ struct rpcent {
+ 	char	*r_name;	/* name of server for this rpc program */
+ 	char	**r_aliases;	/* alias list */

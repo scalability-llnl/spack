@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,7 +20,11 @@ class Ebms(MakefilePackage):
     homepage = "https://github.com/ANL-CESAR/EBMS"
     git = "https://github.com/ANL-CESAR/EBMS.git"
 
+    license("MIT")
+
     version("develop")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("mpi@2:")
 
@@ -32,7 +36,7 @@ class Ebms(MakefilePackage):
 
         cflags = "-g -O3 -std=gnu99"
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             targets.append("CC={0}".format(self.spec["mpi"].mpicc))
 
         targets.append("CFLAGS={0}".format(cflags))

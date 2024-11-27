@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,11 +15,11 @@ class Memsurfer(PythonPackage):
     git = "https://github.com/LLNL/MemSurfer.git"
     maintainers("bhatiaharsh")
 
-    version("1.0", tag="v1.0", submodules=True)
+    version("1.0", tag="v1.0", commit="93d114016cd3ef48950bc53cca0a6e9f70589361", submodules=True)
     version("master", branch="master", submodules=True)
     version("develop", branch="develop", submodules=True)
 
-    variant("osmesa", default=False, description="Enable OSMesa support (for VTK)")
+    depends_on("cxx", type="build")  # generated
 
     extends("python")
     depends_on("python@3.7:", type=("build", "run"))
@@ -36,8 +36,6 @@ class Memsurfer(PythonPackage):
 
     # vtk needs to know whether to build with mesa or opengl
     depends_on("vtk@8.1.2 ~ffmpeg~mpi+opengl2~qt~xdmf+python")
-    depends_on("vtk ~osmesa", when="~osmesa")
-    depends_on("vtk +osmesa", when="+osmesa")
 
     # memsurfer's setup needs path to these deps to build extension modules
     def setup_build_environment(self, env):

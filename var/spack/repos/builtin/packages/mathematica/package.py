@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,11 @@ class Mathematica(Package):
     url = "file://{0}/Mathematica_12.0.0_LINUX.sh".format(os.getcwd())
     manual_download = True
 
+    version(
+        "13.0.1",
+        sha256="3672a920c1b4af1afd480733f6d67665baf8258757dfe59a6ed6d7440cf26dba",
+        expand=False,
+    )
     version(
         "12.2.0",
         sha256="3b6676a203c6adb7e9c418a5484b037974287b5be09c64e7dfea74ddc0e400d7",

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PySalib(PythonPackage):
     pypi = "SALib/SALib-1.4.0.1.tar.gz"
 
     maintainers("schmitts")
+
+    license("MIT")
 
     version("1.4.4", sha256="50a6459088700f55261a683752818530d14ede30cece2c324ac94d4b9e288b6d")
     version("1.4.0.1", sha256="dbf6e865af9f3be82a79cf64889ed66d6d3b6803f0c22a242a112876789d49e7")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Oras(Package):
     url = "https://github.com/oras-project/oras/archive/refs/tags/v0.12.0.tar.gz"
 
     maintainers("vsoch")
+
+    license("MIT")
 
     version("main", branch="main")
     version("0.12.0", sha256="5e19d61683a57b414efd75bd1b0290c941b8faace5fcc9d488f5e4aa674bf03e")

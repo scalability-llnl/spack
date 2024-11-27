@@ -1,0 +1,23 @@
+diff --git a/site_scons/SGppConfigure.py b/site_scons/SGppConfigure.py
+index e5f54931f..2b0adc82a 100644
+--- a/site_scons/SGppConfigure.py
++++ b/site_scons/SGppConfigure.py
+@@ -3,7 +3,8 @@
+ # use, please see the copyright notice provided with SG++ or at
+ # sgpp.sparsegrids.org
+ 
+-
++import warnings
++warnings.filterwarnings("ignore", category=DeprecationWarning) 
+ import distutils.sysconfig
+ import errno
+ import os
+@@ -311,6 +312,8 @@ def checkPython(config):
+         raise Exception("Python 3 is required for SGpp python support!")
+       
+     pythonpath = getOutput(["python3", "-c",
++          "import warnings; "
++          "warnings.filterwarnings(\"ignore\", category=DeprecationWarning); " 
+           "import distutils.sysconfig; "
+           "print(distutils.sysconfig.get_python_inc())"])
+     package = "python3-dev"

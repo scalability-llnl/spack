@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,8 @@ class PyAlembic(PythonPackage):
     """Alembic is a database migrations tool."""
 
     pypi = "alembic/alembic-1.0.7.tar.gz"
+
+    license("MIT")
 
     version("1.5.5", sha256="df0028c19275a2cff137e39617a39cdcdbd1173733b87b6bfa257b7c0860213b")
     version("1.0.7", sha256="16505782b229007ae905ef9e0ae6e880fddafa406f086ac7d442c1aaf712f8c2")

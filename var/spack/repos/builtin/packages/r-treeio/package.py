@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,7 @@ class RTreeio(RPackage):
 
     bioc = "treeio"
 
+    version("1.24.0", commit="81425559d71ab87ee683c6a8833f0f165632e416")
     version("1.22.0", commit="eb24a854806a671e7b37ef36dafc60b4eb9ddaa1")
     version("1.20.2", commit="ed457d6fd85a50e0993c8c9acbd9b701be01a348")
     version("1.20.0", commit="5f7c3704fc8202c52451d092148fdcfe683f026a")
@@ -32,3 +33,4 @@ class RTreeio(RPackage):
     depends_on("r-tibble", type=("build", "run"))
     depends_on("r-tidytree@0.3.0:", type=("build", "run"))
     depends_on("r-tidytree@0.3.9:", type=("build", "run"), when="@1.20.0:")
+    depends_on("r-cli", type=("build", "run"), when="@1.24.0:")

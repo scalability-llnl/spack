@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -27,6 +27,9 @@ class Pgplot(MakefilePackage):
         url="ftp://ftp.astro.caltech.edu/pub/pgplot/pgplot5.2.tar.gz",
         sha256="a5799ff719a510d84d26df4ae7409ae61fe66477e3f1e8820422a9a4727a5be4",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Replace hard-coded compilers and options by tokens, so that Spack can
     # edit the file more easily
@@ -173,5 +176,9 @@ class Pgplot(MakefilePackage):
         return find_libraries(libnames, root=self.prefix, shared=shared, recursive=True)
 
     def setup_run_environment(self, env):
+        env.set("PGPLOT_FONT", self.prefix.include + "/grfont.dat")
+        env.set("PGPLOT_DIR", self.prefix.lib + "/pgplot5")
+
+    def setup_dependent_run_environment(self, env, dependent_spec):
         env.set("PGPLOT_FONT", self.prefix.include + "/grfont.dat")
         env.set("PGPLOT_DIR", self.prefix.lib + "/pgplot5")

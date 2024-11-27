@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyFastapiUtils(PythonPackage):
 
     homepage = "https://fastapi-utils.davidmontague.xyz"
     pypi = "fastapi-utils/fastapi-utils-0.2.1.tar.gz"
+
+    license("MIT")
 
     version("0.2.1", sha256="0e6c7fc1870b80e681494957abf65d4f4f42f4c7f70005918e9181b22f1bd759")
 

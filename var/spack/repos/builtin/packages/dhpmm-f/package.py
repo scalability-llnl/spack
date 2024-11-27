@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class DhpmmF(MakefilePackage):
 
     homepage = "http://www.math.twcu.ac.jp/ogita/post-k/"
     url = "http://www.math.twcu.ac.jp/ogita/post-k/software/DHPMM_F/DHPMM_F_alpha.tar.gz"
+
+    license("MIT")
 
     version("alpha", sha256="35321ecbc749f2682775ffcd27833afc8c8eb4fa7753ce769727c9d1fe097848")
 

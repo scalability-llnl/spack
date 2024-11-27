@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 80c8a3f..d2b88c0 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -137,7 +137,7 @@ install(
+ # install all folders under clang/version/ in CMAKE_INSTALL_PREFIX path
+ install(
+     DIRECTORY ${LLVM_DIR}/../../clang/${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}/
+-    DESTINATION .
++    DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+     COMPONENT clang-resource-headers
+     FILES_MATCHING
+     PATTERN "*.h"

@@ -1,0 +1,30 @@
+diff --git a/bin/hipcc.pl b/bin/hipcc.pl
+index 513a427..780dc5c 100755
+--- a/bin/hipcc.pl
++++ b/bin/hipcc.pl
+@@ -160,11 +160,13 @@ if ($HIP_PLATFORM eq "amd") {
+     if($isWindows) {
+         $execExtension = ".exe";
+     }
+-    $HIPCC=get_normalized_path("$HIP_CLANG_PATH/clang++" . $execExtension);
++    # llvm_path is set inside the hip recipe
++    $HIP_CLANG_PATH= $ENV{'HIP_CLANG_PATH'};
++    $HIPCC="${HIP_CLANG_PATH}/clang++" . $execExtension;
+
+     # If $HIPCC clang++ is not compiled, use clang instead
+     if ( ! -e $HIPCC ) {
+-        $HIPCC=get_normalized_path("$HIP_CLANG_PATH/clang" . $execExtension);
++        $HIPCC="${HIP_CLANG_PATH}/clang" . $execExtension;
+         $HIPLDFLAGS = "--driver-mode=g++";
+     }
+     # to avoid using dk linker or MSVC linker
+@@ -484,7 +486,8 @@ if($HIP_PLATFORM eq "amd"){
+             $targetsStr = $ENV{HCC_AMDGPU_TARGET};
+         } elsif (not $isWindows) {
+             # Else try using rocm_agent_enumerator
+-            $ROCM_AGENT_ENUM = "${ROCM_PATH}/bin/rocm_agent_enumerator";
++            $ROCMINFO_PATH = $ENV{'ROCMINFO_PATH'} // $ROCMINFO_PATH;
++            $ROCM_AGENT_ENUM = "${ROCMINFO_PATH}/bin/rocm_agent_enumerator";
+             $targetsStr = `${ROCM_AGENT_ENUM} -t GPU`;
+             $targetsStr =~ s/\n/,/g;
+         }

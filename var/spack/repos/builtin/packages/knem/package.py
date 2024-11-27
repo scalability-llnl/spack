@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -29,11 +29,13 @@ class Knem(AutotoolsPackage):
         url="https://gitlab.inria.fr/knem/knem/uploads/59375c38537e6ff2d94209f190c54aa6/knem-1.1.3.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     variant("hwloc", default=True, description="Enable hwloc in the user-space tools")
 
     patch(
-        "https://gitlab.inria.fr/knem/knem/-/commit/5c8cb902d6040df58cdc4e4e4c10d1f1426c3525.patch",
-        sha256="78885a02d6f031a793db6a7190549f8d64c8606b353051d65f8e3f802b801902",
+        "https://gitlab.inria.fr/knem/knem/-/commit/5c8cb902d6040df58cdc4e4e4c10d1f1426c3525.diff",
+        sha256="a422277f02247bde680d4a3c8ccb8c05498a79109ba1ade4a037bedd6efe3c79",
         when="@1.1.4",
     )
 
@@ -49,12 +51,7 @@ class Knem(AutotoolsPackage):
     # Ideally, we should list all non-Linux-based platforms here:
     conflicts("platform=darwin")
 
-    # All compilers except for gcc are in conflict:
-    for __compiler in spack.compilers.supported_compilers():
-        if __compiler != "gcc":
-            conflicts(
-                "%{0}".format(__compiler), msg="Linux kernel module must be compiled with gcc"
-            )
+    requires("%gcc", msg="Linux kernel module must be compiled with gcc")
 
     @run_before("build")
     def override_kernel_compiler(self):

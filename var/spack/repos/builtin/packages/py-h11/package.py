@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyH11(PythonPackage):
 
     homepage = "https://github.com/python-hyper/h11"
     pypi = "h11/h11-0.10.0.tar.gz"
+
+    license("MIT")
 
     version("0.13.0", sha256="70813c1135087a248a4d38cc0e1a0181ffab2188141a93eaf567940c3957ff06")
     version("0.12.0", sha256="47222cb6067e4a307d535814917cd98fd0a57b6788ce715755fa2b6c28b56042")

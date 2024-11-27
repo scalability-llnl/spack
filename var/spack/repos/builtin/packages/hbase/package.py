@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,10 @@ class Hbase(Package):
     list_url = "https://archive.apache.org/dist/hbase"
     list_depth = 1
 
+    license("Apache-2.0")
+
+    version("2.5.4", sha256="ffb929d1ffcaf0309e1617833f3b36645a9c9d9c10b47d6baccc7e50c6d0ed33")
+    version("2.5.3", sha256="874f239c341a6a4a646051c79fda9e838242481b70463bf8daa28ba7239576c2")
     version("2.4.9", sha256="ed282a165fe0910b27d143f3ea21d552110bc155fd5456250a05dc51b0f0b6bd")
     version("2.2.5", sha256="25d08f8f038d9de5beb43dfb0392e8a8b34eae7e0f2670d6c2c172abc3855194")
     version("2.2.4", sha256="ec91b628352931e22a091a206be93061b6bf5364044a28fb9e82f0023aca3ca4")

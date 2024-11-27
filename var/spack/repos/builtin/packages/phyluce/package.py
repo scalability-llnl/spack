@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Phyluce(PythonPackage):
 
     homepage = "https://github.com/faircloth-lab/phyluce"
     url = "https://github.com/faircloth-lab/phyluce/archive/v1.6.7.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.6.7", sha256="98c213ab1610506722ad1440ffc93f9cbc78d8b3aaf3d9a47837e1231452cdb6")
 

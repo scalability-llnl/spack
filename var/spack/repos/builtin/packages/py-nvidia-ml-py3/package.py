@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyNvidiaMlPy3(PythonPackage):
 
     homepage = "https://www.nvidia.com/"
     pypi = "nvidia-ml-py3/nvidia-ml-py3-7.352.0.tar.gz"
+
+    license("Unlicense")
 
     version("7.352.0", sha256="390f02919ee9d73fe63a98c73101061a6b37fa694a793abf56673320f1f51277")
 

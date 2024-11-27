@@ -1,0 +1,12 @@
+diff --git a/src/include/common/rpp/handle.hpp b/src/include/common/rpp/handle.hpp
+index 7dc29e4..6e5ccea 100644
+--- a/src/include/common/rpp/handle.hpp
++++ b/src/include/common/rpp/handle.hpp
+@@ -99,6 +99,7 @@ struct Handle : rppHandle
+     // Device handle related
+     Handle(rppAcceleratorQueue_t stream);
+     Handle(rppAcceleratorQueue_t stream, size_t nBatchSize);
++    Handle(size_t nBatchSize);
+     void rpp_destroy_object_gpu();
+     rppAcceleratorQueue_t GetStream() const;
+     void SetStream(rppAcceleratorQueue_t streamID) const;

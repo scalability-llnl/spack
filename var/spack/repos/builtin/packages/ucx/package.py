@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,15 +11,26 @@ class Ucx(AutotoolsPackage, CudaPackage):
     """a communication library implementing high-performance messaging for
     MPI/PGAS frameworks"""
 
-    homepage = "http://www.openucx.org"
+    homepage = "https://www.openucx.org"
     url = "https://github.com/openucx/ucx/releases/download/v1.3.1/ucx-1.3.1.tar.gz"
     git = "https://github.com/openucx/ucx.git"
 
     maintainers("hppritcha")
 
+    license("BSD-3-Clause")
+
     # Current
+    version("1.17.0", sha256="34658e282f99f89ce7a991c542e9727552734ac6ad408c52f22b4c2653b04276")
+
+    # Still supported
+    version("1.16.0", sha256="f73770d3b583c91aba5fb07557e655ead0786e057018bfe42f0ebe8716e9d28c")
+    version("1.15.0", sha256="4b202087076bc1c98f9249144f0c277a8ea88ad4ca6f404f94baa9cb3aebda6d")
+    version("1.14.1", sha256="baa0634cafb269a3112f626eb226bcd2ca8c9fcf0fec3b8e2a3553baad5f77aa")
+    version("1.14.0", sha256="9bd95e2059de5dece9dddd049aacfca3d21bfca025748a6a0b1be4486e28afdd")
     version("1.13.1", sha256="efc37829b68e131d2acc82a3fd4334bfd611156a756837ffeb650ab9a9dd3828")
     version("1.13.0", sha256="8a3881f21fe2788113789f5bae1c8174e931f7542de0a934322a96ef354e5e3d")
+
+    # Retired
     version("1.12.1", sha256="40b447c8e7da94a253f2828001b2d76021eb4ad39647107d433d62d61e18ae8e")
     version("1.12.0", sha256="93e994de2d1a4df32381ea92ba4c98a249010d1720eb0f6110dc72c9a7d25db6")
     version("1.11.2", sha256="deebf86a5344fc2bd9e55449f88c650c4514928592807c9bc6fe4190e516c6df")
@@ -38,13 +49,14 @@ class Ucx(AutotoolsPackage, CudaPackage):
     version("1.5.1", sha256="567119cd80ad2ae6968ecaa4bd1d2a80afadd037ccc988740f668de10d2fdb7e")
     version("1.5.0", sha256="84f6e4fa5740afebb9b1c8bb405c07206e58c56f83120dcfcd8dc89e4b7d7458")
     version("1.4.0", sha256="99891a98476bcadc6ac4ef9c9f083bc6ffb188a96b3c3bc89c8bbca64de2c76e")
-
-    # Still supported
     version("1.3.1", sha256="e058c8ec830d2f50d9db1e3aaaee105cd2ad6c1e6df20ae58b9b4179de7a8992")
     version("1.3.0", sha256="71e69e6d78a4950cc5a1edcbe59bf7a8f8e38d59c9f823109853927c4d442952")
     version("1.2.2", sha256="914d10fee8f970d4fb286079dd656cf8a260ec7d724d5f751b3109ed32a6da63")
     version("1.2.1", sha256="fc63760601c03ff60a2531ec3c6637e98f5b743576eb410f245839c84a0ad617")
     version("1.2.0", sha256="1e1a62d6d0f89ce59e384b0b5b30b416b8fd8d7cedec4182a5319d0dfddf649c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     simd_values = ("avx", "sse41", "sse42")
 
@@ -68,6 +80,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
         description="Build shared libs, static libs or both",
     )
     variant("logging", default=False, description="Enable logging")
+    variant("numa", default=True, when="@:1.14", description="Enable NUMA support")
     variant("openmp", default=True, description="Use OpenMP")
     variant(
         "opt",
@@ -82,6 +95,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
     variant("rocm", default=False, description="Enable ROCm support")
     variant(
         "simd",
+        description="SIMD features",
         values=disjoint_sets(("auto",), simd_values)
         .with_default("auto")
         .with_non_feature_values("auto"),
@@ -112,6 +126,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
     variant("ud", default=False, description="Compile with IB Unreliable Datagram support")
     variant("verbs", default=False, description="Build OpenFabrics support")
     variant("xpmem", default=False, description="Enable XPMEM support")
+    variant("gtest", default=False, description="Build and install Googletest")
 
     depends_on("binutils+ld", when="%aocc", type="build")
     depends_on("binutils", when="+backtrace_detail")
@@ -121,11 +136,13 @@ class Ucx(AutotoolsPackage, CudaPackage):
     depends_on("knem", when="+knem")
     depends_on("libfuse@3:", when="+vfs")
     depends_on("maven", when="+java")
-    depends_on("numactl")
+    depends_on("numactl", when="+numa")
     depends_on("pkgconfig", type="build")
     depends_on("rdma-core", when="+rdmacm")
     depends_on("rdma-core", when="+verbs")
     depends_on("xpmem", when="+xpmem")
+    depends_on("hip", when="+rocm")
+    depends_on("hsa-rocr-dev", when="+rocm")
 
     conflicts("+gdrcopy", when="~cuda", msg="gdrcopy currently requires cuda support")
     conflicts("+rocm", when="+gdrcopy", msg="gdrcopy > 2.0 does not support rocm")
@@ -135,6 +152,22 @@ class Ucx(AutotoolsPackage, CudaPackage):
     # See https://github.com/openucx/ucx/pull/8629, wrong int type
     patch("commit-2523555.patch", when="@1.13.1")
 
+    def patch(self):
+        if self.spec.satisfies("+rocm"):
+            filter_file("$$with_rocm", "${with_rocm[@]}", "configure", string=True)
+            filter_file(
+                "-I$with_rocm/include/hip -I$with_rocm/include",
+                "$ROCM_CPPFLAGS",
+                "configure",
+                string=True,
+            )
+            filter_file(
+                "-L$with_rocm/hip/lib -L$with_rocm/lib", "$ROCM_LDFLAGS", "configure", string=True
+            )
+
+            if self.spec.satisfies("@:1.15 ^hip@6:"):
+                filter_file("HIP_PLATFORM_HCC", "HIP_PLATFORM_AMD", "configure", string=True)
+
     @when("@1.9-dev")
     def autoreconf(self, spec, prefix):
         Executable("./autogen.sh")()
@@ -143,6 +176,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
         spec = self.spec
         args = ["--without-go", "--disable-doxygen-doc"]  # todo  # todo
 
+        args += self.enable_or_disable("numa")
         args += self.enable_or_disable("assertions")
         args.append("--enable-compiler-opt=" + self.spec.variants["opt"].value)
         args += self.with_or_without("java", activation_value="prefix")
@@ -152,10 +186,10 @@ class Ucx(AutotoolsPackage, CudaPackage):
         args += self.with_or_without("openmp")
         args += self.enable_or_disable("optimizations")
         args += self.enable_or_disable("params-check", variant="parameter_checking")
+        args += self.enable_or_disable("gtest")
         args += self.with_or_without("pic")
 
         args += self.with_or_without("cuda", activation_value="prefix")
-        args += self.with_or_without("rocm")  # todo, prefix, avoid /opt/rocm guess.
 
         args += self.with_or_without("cm")
         args += self.enable_or_disable("cma")
@@ -216,9 +250,28 @@ class Ucx(AutotoolsPackage, CudaPackage):
         if "%aocc" in spec:
             args.append("LDFLAGS=-fuse-ld=bfd")
 
+        if "+rocm" in spec:
+            rocm_flags = " ".join(
+                [
+                    "-I" + self.spec["hip"].prefix.include,
+                    "-I" + self.spec["hip"].prefix.include.hip,
+                    "-I" + self.spec["hsa-rocr-dev"].prefix.include.hsa,
+                    "-L" + self.spec["hip"].prefix.lib,
+                    "-L" + self.spec["hsa-rocr-dev"].prefix.lib,
+                ]
+            )
+            args.append("--with-rocm=" + rocm_flags)
+        else:
+            args.append("--without-rocm")
+
         return args
 
     @run_after("install")
     def drop_examples(self):
         if self.spec.satisfies("~examples"):
             shutil.rmtree(join_path(self.spec.prefix, "share", "ucx", "examples"))
+
+    @run_after("install")
+    def install_gtest(self):
+        if self.spec.satisfies("+gtest"):
+            install_tree("test", self.spec.prefix.test)

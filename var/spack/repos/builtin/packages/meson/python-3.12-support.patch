@@ -1,0 +1,283 @@
+From 5f96e35b873d6230970fd63ba2e706bbd3f4e26f Mon Sep 17 00:00:00 2001
+From: Eli Schwartz <eschwartz93@gmail.com>
+Date: Fri, 8 Sep 2023 16:54:48 -0400
+Subject: [PATCH 1/6] python dependency: ensure that setuptools doesn't inject
+ itself into distutils
+
+We do not use setuptools for anything, and only lightly use distutils.
+Unpredictable issues can occur due to setuptools monkey-patching, which
+interferes with our intended use. Tell setuptools to simply never get
+involved.
+
+Note: while it's otherwise possible to check if the probe is run using
+sys.executable and avoid forking, setuptools unconditionally injects
+itself at startup in a way that requires subprocess isolation to
+disable.
+
+(cherry picked from commit 9f610ad5b72ea91de2d7aeb6f3266d0a7477062e)
+---
+ mesonbuild/dependencies/python.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/mesonbuild/dependencies/python.py b/mesonbuild/dependencies/python.py
+index 160772888..f04494674 100644
+--- a/mesonbuild/dependencies/python.py
++++ b/mesonbuild/dependencies/python.py
+@@ -113,7 +113,9 @@ class BasicPythonExternalProgram(ExternalProgram):
+ 
+         with importlib.resources.path('mesonbuild.scripts', 'python_info.py') as f:
+             cmd = self.get_command() + [str(f)]
+-            p, stdout, stderr = mesonlib.Popen_safe(cmd)
++            env = os.environ.copy()
++            env['SETUPTOOLS_USE_DISTUTILS'] = 'stdlib'
++            p, stdout, stderr = mesonlib.Popen_safe(cmd, env=env)
+ 
+         try:
+             info = json.loads(stdout)
+-- 
+2.39.2
+
+
+From cb4e62a8c55118988babac8b8254e0af1dc9698b Mon Sep 17 00:00:00 2001
+From: Eli Schwartz <eschwartz@archlinux.org>
+Date: Mon, 21 Nov 2022 20:47:14 -0500
+Subject: [PATCH 2/6] python module: stop using distutils schemes on
+ sufficiently new Debian
+
+Since 3.10.3, Debian finally started patching sysconfig with custom
+paths, instead of just distutils. This means we can now go use that
+instead. It reduces our reliance on the deprecated distutils module.
+
+Partial fix for #7702
+
+(cherry picked from commit 40f897fa92f7d3cc43788d3000733310ce77cf0c)
+---
+ mesonbuild/scripts/python_info.py | 32 +++++++++++++++++++++++--------
+ 1 file changed, 24 insertions(+), 8 deletions(-)
+
+diff --git a/mesonbuild/scripts/python_info.py b/mesonbuild/scripts/python_info.py
+index 9c3a0791a..65597b121 100755
+--- a/mesonbuild/scripts/python_info.py
++++ b/mesonbuild/scripts/python_info.py
+@@ -13,7 +13,6 @@ if sys.path[0].endswith('scripts'):
+     del sys.path[0]
+ 
+ import json, os, sysconfig
+-import distutils.command.install
+ 
+ def get_distutils_paths(scheme=None, prefix=None):
+     import distutils.dist
+@@ -37,15 +36,32 @@ def get_distutils_paths(scheme=None, prefix=None):
+ # default scheme to a custom one pointing to /usr/local and replacing
+ # site-packages with dist-packages.
+ # See https://github.com/mesonbuild/meson/issues/8739.
+-# XXX: We should be using sysconfig, but Debian only patches distutils.
++#
++# We should be using sysconfig, but before 3.10.3, Debian only patches distutils.
++# So we may end up falling back.
+ 
+-if 'deb_system' in distutils.command.install.INSTALL_SCHEMES:
+-    paths = get_distutils_paths(scheme='deb_system')
+-    install_paths = get_distutils_paths(scheme='deb_system', prefix='')
+-else:
+-    paths = sysconfig.get_paths()
++def get_install_paths():
++    if sys.version_info >= (3, 10):
++        scheme = sysconfig.get_default_scheme()
++    else:
++        scheme = sysconfig._get_default_scheme()
++
++    if sys.version_info >= (3, 10, 3):
++        if 'deb_system' in sysconfig.get_scheme_names():
++            scheme = 'deb_system'
++    else:
++        import distutils.command.install
++        if 'deb_system' in distutils.command.install.INSTALL_SCHEMES:
++            paths = get_distutils_paths(scheme='deb_system')
++            install_paths = get_distutils_paths(scheme='deb_system', prefix='')
++            return paths, install_paths
++
++    paths = sysconfig.get_paths(scheme=scheme)
+     empty_vars = {'base': '', 'platbase': '', 'installed_base': ''}
+-    install_paths = sysconfig.get_paths(vars=empty_vars)
++    install_paths = sysconfig.get_paths(scheme=scheme, vars=empty_vars)
++    return paths, install_paths
++
++paths, install_paths = get_install_paths()
+ 
+ def links_against_libpython():
+     from distutils.core import Distribution, Extension
+-- 
+2.39.2
+
+
+From c179c18765514d5c37737dec996b4c91cb31477f Mon Sep 17 00:00:00 2001
+From: Eli Schwartz <eschwartz93@gmail.com>
+Date: Mon, 2 Oct 2023 16:40:15 -0400
+Subject: [PATCH 3/6] python module: refactor pypy detection into a consistent
+ variable
+
+(cherry picked from commit 3d3a10ef022284c8377bd9f8e1b1adec73c50d95)
+---
+ mesonbuild/scripts/python_info.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/mesonbuild/scripts/python_info.py b/mesonbuild/scripts/python_info.py
+index 65597b121..d17b3a376 100755
+--- a/mesonbuild/scripts/python_info.py
++++ b/mesonbuild/scripts/python_info.py
+@@ -72,6 +72,8 @@ def links_against_libpython():
+ variables = sysconfig.get_config_vars()
+ variables.update({'base_prefix': getattr(sys, 'base_prefix', sys.prefix)})
+ 
++is_pypy = '__pypy__' in sys.builtin_module_names
++
+ if sys.version_info < (3, 0):
+     suffix = variables.get('SO')
+ elif sys.version_info < (3, 8, 7):
+@@ -88,7 +90,7 @@ print(json.dumps({
+   'install_paths': install_paths,
+   'version': sysconfig.get_python_version(),
+   'platform': sysconfig.get_platform(),
+-  'is_pypy': '__pypy__' in sys.builtin_module_names,
++  'is_pypy': is_pypy,
+   'is_venv': sys.prefix != variables['base_prefix'],
+   'link_libpython': links_against_libpython(),
+   'suffix': suffix,
+-- 
+2.39.2
+
+
+From 3c493dae4bd8410bfb09e8f654605f65e15d8e66 Mon Sep 17 00:00:00 2001
+From: Eli Schwartz <eschwartz@archlinux.org>
+Date: Tue, 22 Nov 2022 22:56:10 -0500
+Subject: [PATCH 4/6] python module: stop using distutils "link to libpython"
+ probe on recent python
+
+On python >=3.8, this information is expected to be encoded in the
+sysconfig vars.
+
+In distutils, it is always necessary to link to libpython on Windows;
+for posix platforms, it depends on the value of LIBPYTHON (which is the
+library to link to, possibly the empty string) as generated by
+configure.ac and embedded into python.pc and python-config.sh, and then
+coded a second time in the distutils python sources.
+
+There are a couple of caveats which have ramifications for Cygwin and
+Android:
+
+- python.pc and python-config.sh disagree with distutils when python is
+  not built shared. In that case, the former act the same as a shared
+  build, while the latter *never* links to libpython
+
+- python.pc disagrees with python-config.sh and distutils when python is
+  built shared. The former never links to libpython, while the latter do
+
+The disagreement is resolved in favor of distutils' behavior in all
+cases, and python.pc is correct for our purposes on python 3.12; see:
+https://github.com/python/cpython/pull/100356
+https://github.com/python/cpython/pull/100967
+
+Although it was not backported to older releases, Cygwin at least has
+always patched in a fix for python.pc, which behavior is now declared
+canonical. We can reliably assume it is always correct.
+
+This is the other half of the fix for #7702
+
+(cherry picked from commit 2d6c10908b3771216e7ce086af1ee4dc77e698c2)
+---
+ mesonbuild/scripts/python_info.py | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/mesonbuild/scripts/python_info.py b/mesonbuild/scripts/python_info.py
+index d17b3a376..a3f3d3535 100755
+--- a/mesonbuild/scripts/python_info.py
++++ b/mesonbuild/scripts/python_info.py
+@@ -64,10 +64,19 @@ def get_install_paths():
+ paths, install_paths = get_install_paths()
+ 
+ def links_against_libpython():
+-    from distutils.core import Distribution, Extension
+-    cmd = Distribution().get_command_obj('build_ext')
+-    cmd.ensure_finalized()
+-    return bool(cmd.get_libraries(Extension('dummy', [])))
++    # on versions supporting python-embed.pc, this is the non-embed lib
++    #
++    # PyPy is not yet up to 3.12 and work is still pending to export the
++    # relevant information (it doesn't automatically provide arbitrary
++    # Makefile vars)
++    if sys.version_info >= (3, 8) and not is_pypy:
++        variables = sysconfig.get_config_vars()
++        return bool(variables.get('LIBPYTHON', 'yes'))
++    else:
++        from distutils.core import Distribution, Extension
++        cmd = Distribution().get_command_obj('build_ext')
++        cmd.ensure_finalized()
++        return bool(cmd.get_libraries(Extension('dummy', [])))
+ 
+ variables = sysconfig.get_config_vars()
+ variables.update({'base_prefix': getattr(sys, 'base_prefix', sys.prefix)})
+-- 
+2.39.2
+
+
+From ae44d9a379faca6274db819be44ffca3e0159f56 Mon Sep 17 00:00:00 2001
+From: Eli Schwartz <eschwartz93@gmail.com>
+Date: Mon, 2 Oct 2023 23:51:57 -0400
+Subject: [PATCH 5/6] tests: fix test case to not import distutils on python
+ 3.12
+
+Testing the correctness of the `modules: ` kwarg can be done with other
+guaranteed stdlib modules that are even more guaranteed since they
+didn't get deprecated for removal.
+
+(cherry picked from commit ecf261330c498783760cbde00b613b7469f8d3c0)
+---
+ test cases/python/5 modules kwarg/meson.build | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test cases/python/5 modules kwarg/meson.build b/test cases/python/5 modules kwarg/meson.build
+index 9751adaab..41a9a4fae 100644
+--- a/test cases/python/5 modules kwarg/meson.build	
++++ b/test cases/python/5 modules kwarg/meson.build	
+@@ -1,7 +1,7 @@
+ project('python kwarg')
+ 
+ py = import('python')
+-prog_python = py.find_installation('python3', modules : ['distutils'])
++prog_python = py.find_installation('python3', modules : ['os', 'sys', 're'])
+ assert(prog_python.found() == true, 'python not found when should be')
+ prog_python = py.find_installation('python3', modules : ['thisbetternotexistmod'], required : false)
+ assert(prog_python.found() == false, 'python not found but reported as found')
+-- 
+2.39.2
+
+
+From d9abf4a97dc182b3c57204a792000d620f9f941e Mon Sep 17 00:00:00 2001
+From: Eli Schwartz <eschwartz93@gmail.com>
+Date: Tue, 3 Oct 2023 00:22:25 -0400
+Subject: [PATCH 6/6] mark the PyPI metadata as supporting python 3.12
+
+meson itself runs okay on 3.12, and the last issue for *probing* against
+3.12 is solved. Tests pass here locally.
+
+(cherry picked from commit 880f21281ee359e01de659fe7d45549d19e6b84d)
+---
+ setup.cfg | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/setup.cfg b/setup.cfg
+index dfaba76dd..2f2962eed 100644
+--- a/setup.cfg
++++ b/setup.cfg
+@@ -30,6 +30,7 @@ classifiers =
+   Programming Language :: Python :: 3.9
+   Programming Language :: Python :: 3.10
+   Programming Language :: Python :: 3.11
++  Programming Language :: Python :: 3.12
+   Topic :: Software Development :: Build Tools
+ long_description = Meson is a cross-platform build system designed to be both as fast and as user friendly as possible. It supports many languages and compilers, including GCC, Clang, PGI, Intel, and Visual Studio. Its build definitions are written in a simple non-Turing complete DSL.
+ 
+-- 
+2.39.2
+

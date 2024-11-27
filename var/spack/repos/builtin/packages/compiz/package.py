@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,12 @@ class Compiz(AutotoolsPackage, XorgPackage):
     homepage = "http://www.compiz.org/"
     xorg_mirror_path = "app/compiz-0.7.8.tar.gz"
 
+    license("MIT")
+
     version("0.7.8", sha256="b46f52b776cc78e85357a07688d04b36ec19c65eadeaf6f6cfcca7b8515e6503")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libxcb")
     depends_on("libxcomposite")

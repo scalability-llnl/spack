@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PySetuptoolsCpp(PythonPackage):
 
     maintainers("dorton")
 
+    license("MIT")
+
     version("0.1.0", sha256="4fd5e08603237578d06d28efd592d9847b523ede3e502f660be44b1e6254674d")
 
     depends_on("py-setuptools", type="build")
@@ -26,7 +28,6 @@ class PySetuptoolsCpp(PythonPackage):
     depends_on("py-chardet", type=("build", "run"))
     depends_on("py-certifi", type=("build", "run"))
     depends_on("py-click", type=("build", "run"))
-    depends_on("py-codecov", type=("build", "run"))
     depends_on("py-coverage", type=("build", "run"))
     depends_on("py-entrypoints", type=("build", "run"))
     depends_on("py-flake8", type=("build", "run"))

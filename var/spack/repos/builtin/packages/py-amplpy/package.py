@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,7 +18,11 @@ class PyAmplpy(PythonPackage):
     homepage = "https://ampl.com/"
     pypi = "amplpy/amplpy-0.8.6.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("0.8.6", sha256="ad0945d69f75e7762802bb54849009717fbcf226a6da6f37b539d9534bdcf68d")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-future@0.15.0:", type=("build", "run"))
     depends_on("py-ampltools@0.4.5:", type=("build", "run"))

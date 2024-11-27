@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,7 +25,6 @@ class Gplates(CMakePackage):
     depends_on("cmake@3.5:", when="@2.3:", type="build")
     depends_on("cmake@2.8.8:", when="@2.1", type="build")
     depends_on("cmake@2.6.2:", when="@2.0", type="build")
-    depends_on("ninja", type="build")
     depends_on("gl")
     depends_on("glu")
     depends_on("glew")
@@ -46,11 +45,11 @@ class Gplates(CMakePackage):
     # Released before PROJ.6 was released, so assuming it's not supported
     depends_on("proj@4.6:5", when="@:2.1")
     depends_on("qwt@6.0.1:")
-    depends_on("zlib", when="@2.3:")
+    depends_on("zlib-api", when="@2.3:")
 
     # When built in parallel, headers are not generated before they are used
     # (specifically, ViewportWindowUi.h) with the Makefiles generator.
-    generator = "Ninja"
+    generator("ninja")
 
     @when("@:2.1")
     def patch(self):

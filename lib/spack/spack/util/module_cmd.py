@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,7 @@ parsing environment modules.
 import os
 import re
 import subprocess
+from typing import MutableMapping, Optional
 
 import llnl.util.tty as tty
 
@@ -21,8 +22,13 @@ module_change_commands = ["load", "swap", "unload", "purge", "use", "unuse"]
 awk_cmd = r"""awk 'BEGIN{for(name in ENVIRON)""" r"""printf("%s=%s%c", name, ENVIRON[name], 0)}'"""
 
 
-def module(*args, **kwargs):
-    module_cmd = kwargs.get("module_template", "module " + " ".join(args))
+def module(
+    *args,
+    module_template: Optional[str] = None,
+    environb: Optional[MutableMapping[bytes, bytes]] = None,
+):
+    module_cmd = module_template or ("module " + " ".join(args))
+    environb = environb or os.environb
 
     if args[0] in module_change_commands:
         # Suppress module output
@@ -33,10 +39,10 @@ def module(*args, **kwargs):
             stderr=subprocess.STDOUT,
             shell=True,
             executable="/bin/bash",
+            env=environb,
         )
 
-        # In Python 3, keys and values of `environ` are byte strings.
-        environ = {}
+        new_environb = {}
         output = module_p.communicate()[0]
 
         # Loop over each environment variable key=value byte string
@@ -45,11 +51,11 @@ def module(*args, **kwargs):
             parts = entry.split(b"=", 1)
             if len(parts) != 2:
                 continue
-            environ[parts[0]] = parts[1]
+            new_environb[parts[0]] = parts[1]
 
         # Update os.environ with new dict
-        os.environ.clear()
-        os.environb.update(environ)  # novermin
+        environb.clear()
+        environb.update(new_environb)  # novermin
 
     else:
         # Simply execute commands that don't change state and return output
@@ -98,7 +104,7 @@ def get_path_args_from_module_line(line):
         words_and_symbols = line.split(lua_quote)
         path_arg = words_and_symbols[-2]
     else:
-        # The path arg is the 3rd "word" of the line in a TCL module
+        # The path arg is the 3rd "word" of the line in a Tcl module
         # OPERATION VAR_NAME PATH_ARG
         words = line.split()
         if len(words) > 2:
@@ -111,7 +117,7 @@ def get_path_args_from_module_line(line):
 
 
 def path_from_modules(modules):
-    """Inspect a list of TCL modules for entries that indicate the absolute
+    """Inspect a list of Tcl modules for entries that indicate the absolute
     path at which the library supported by said module can be found.
 
     Args:

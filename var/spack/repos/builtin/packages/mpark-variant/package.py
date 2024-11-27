@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,8 +16,12 @@ class MparkVariant(CMakePackage):
 
     tags = ["e4s"]
 
+    license("BSL-1.0")
+
     version("1.4.0", sha256="8f6b28ab3640b5d76d5b6664dda7257a4405ce59179220431b8fd196c79b2ecb")
     version("1.3.0", sha256="d0f7e41f818fcc839797a8017e76b8b66b323651c304cff641a83a56ae9943c6")
+
+    depends_on("cxx", type="build")  # generated
 
     # Ref.: https://github.com/mpark/variant/pull/73
     patch("nvcc.patch", when="@:1.4.0")

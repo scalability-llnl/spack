@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,5 +16,13 @@ class Chgcentre(CMakePackage):
 
     version("1.6", sha256="5b14f9f56b900072c42dab2a8217cd399fb1bb50aae20f9e3b6ff30ec5b12008")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("casacore")
     depends_on("gsl")
+
+    # this patch is required to fix a programming error that is not acceptable by
+    # latest compilers. In particular, the `std::min` function was given `int` and
+    # `unsigned int` arguments. The `int` argument is explicitly casted to `unsigned int`.
+    # This patch was created by the staff at the Pawsey Supercomputing Research Centre.
+    patch("main.patch")

@@ -1,0 +1,68 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c0a83ca..00c5dd0 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -90,6 +90,13 @@ set(MIGRAPHX_ENABLE_CPU Off CACHE BOOL "")
+ # Disable fpga backend by default
+ set(MIGRAPHX_ENABLE_FPGA Off CACHE BOOL "")
+
++if(WIN32) # CK is not yet ported to Windows
++option(MIGRAPHX_USE_COMPOSABLEKERNEL "Enable MIGraphX to use composable kernel JIT library" OFF)
++else()
++option(MIGRAPHX_USE_COMPOSABLEKERNEL "Enable MIGraphX to use composable kernel JIT library" ON)
++endif()
++
++
+ set(CMAKE_CXX_STANDARD_DEFAULT "")
+ add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
+
+diff --git a/src/targets/gpu/CMakeLists.txt b/src/targets/gpu/CMakeLists.txt
+index ddb3c1b..e36117a 100644
+--- a/src/targets/gpu/CMakeLists.txt
++++ b/src/targets/gpu/CMakeLists.txt
+@@ -42,8 +42,7 @@ if(NOT TARGET MIOpen)
+     message(SEND_ERROR "Cant find miopen")
+ endif()
+
+-if(NOT WIN32)
+-    # TODO: re-enable when CK is ported to Windows
++if(MIGRAPHX_USE_COMPOSABLEKERNEL)
+     find_package(composable_kernel 1.0.0 REQUIRED COMPONENTS jit_library)
+ endif()
+
+@@ -98,8 +97,7 @@ rocm_clang_tidy_check(kernel_file_check)
+
+ file(GLOB JIT_GPU_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/jit/*.cpp)
+
+-if(WIN32)
+-    # TODO: re-enable when CK is ported to Windows
++if(NOT MIGRAPHX_USE_COMPOSABLEKERNEL)
+     list(REMOVE_ITEM JIT_GPU_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/jit/ck_gemm.cpp)
+ endif()
+
+@@ -275,8 +273,7 @@ endif()
+
+ target_link_libraries(migraphx_gpu PUBLIC migraphx MIOpen roc::rocblas)
+ target_link_libraries(migraphx_gpu PRIVATE migraphx_device migraphx_kernels)
+-if(NOT WIN32)
+-    # TODO: re-enable when CK is ported to Windows
++if(MIGRAPHX_USE_COMPOSABLEKERNEL)
+     target_link_libraries(migraphx_gpu PRIVATE composable_kernel::jit_library)
+ endif()
+
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index 71fe513..441d3bf 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -222,7 +222,10 @@ endfunction()
+
+ function(test_headers PREFIX)
+     file(GLOB HEADERS CONFIGURE_DEPENDS ${ARGN})
+-
++    if(NOT MIGRAPHX_USE_COMPOSABLEKERNEL)
++        list(REMOVE_ITEM HEADERS
++              ${CMAKE_SOURCE_DIR}/src/targets/gpu/include/migraphx/gpu/ck.hpp)
++    endif()
+     foreach(HEADER ${HEADERS})
+         file(RELATIVE_PATH HEADER_REL ${CMAKE_SOURCE_DIR} ${HEADER})
+         string(MAKE_C_IDENTIFIER ${HEADER_REL} TEST_NAME)

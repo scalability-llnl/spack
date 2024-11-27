@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -27,12 +27,9 @@
 # avoids the need to come up with a user-friendly naming scheme for
 # spack module files.
 ########################################################################
-# Store LD_LIBRARY_PATH variables from spack shell function
+# Store DYLD_* variables from spack shell function
 # This is necessary because MacOS System Integrity Protection clears
 # variables that affect dyld on process start.
-if ( ${?LD_LIBRARY_PATH} ) then
-    setenv SPACK_LD_LIBRARY_PATH $LD_LIBRARY_PATH
-endif
 if ( ${?DYLD_LIBRARY_PATH} ) then
     setenv SPACK_DYLD_LIBRARY_PATH $DYLD_LIBRARY_PATH
 endif

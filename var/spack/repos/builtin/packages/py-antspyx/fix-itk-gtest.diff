@@ -1,0 +1,12 @@
+--- spack-src/ants/lib/CMakeLists.txt.orig	2021-11-17 20:09:44.586523746 +0100
++++ spack-src/ants/lib/CMakeLists.txt	2021-11-17 20:10:14.057924013 +0100
+@@ -10,6 +10,9 @@
+ find_package(ITK REQUIRED)
+ include(${ITK_USE_FILE})
+ 
++# Somehow not passed through from ITK
++find_package(GTest REQUIRED)
++
+ 
+ ## SETUP PYBIND11 ##
+ add_subdirectory(pybind11)

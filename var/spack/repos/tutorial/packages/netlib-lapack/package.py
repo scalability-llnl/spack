@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,15 +23,15 @@ class NetlibLapack(CMakePackage):
         "96591affdbf58c450d45c1daa540dbd2",
         url="http://www.netlib.org/lapack/lapack-3.8.0.tar.gz",
     )
-    version("3.7.1", "dcdeeed73de152c4643ccc5b1aeb453c")
-    version("3.7.0", "697bb8d67c7d336a0f339cc9dd0fa72f")
-    version("3.6.1", "421b2cb72e15f237e144428f9c460ee0")
-    version("3.6.0", "f2f6c67134e851fe189bb3ca1fbb5101")
-    version("3.5.0", "b1d3e3e425b2e44a06760ff173104bdf")
-    version("3.4.2", "61bf1a8a4469d4bdb7604f5897179478")
-    version("3.4.1", "44c3869c38c8335c2b9c2a8bb276eb55")
-    version("3.4.0", "02d5706ec03ba885fc246e5fa10d8c70")
-    version("3.3.1", "d0d533ec9a5b74933c2a1e84eedc58b4")
+    version("3.7.1", md5="dcdeeed73de152c4643ccc5b1aeb453c")
+    version("3.7.0", md5="697bb8d67c7d336a0f339cc9dd0fa72f")
+    version("3.6.1", md5="421b2cb72e15f237e144428f9c460ee0")
+    version("3.6.0", md5="f2f6c67134e851fe189bb3ca1fbb5101")
+    version("3.5.0", md5="b1d3e3e425b2e44a06760ff173104bdf")
+    version("3.4.2", md5="61bf1a8a4469d4bdb7604f5897179478")
+    version("3.4.1", md5="44c3869c38c8335c2b9c2a8bb276eb55")
+    version("3.4.0", md5="02d5706ec03ba885fc246e5fa10d8c70")
+    version("3.3.1", md5="d0d533ec9a5b74933c2a1e84eedc58b4")
 
     variant("shared", default=True, description="Build shared library version")
     variant("external-blas", default=False, description="Build lapack with an external blas")
@@ -170,19 +170,19 @@ class NetlibLapack(CMakePackage):
     @when("+shared")
     def cmake(self, spec, prefix):
         for self._building_shared in (False, True):
-            super(NetlibLapack, self).cmake(spec, prefix)
+            super().cmake(spec, prefix)
 
     @when("+shared")
     def build(self, spec, prefix):
         for self._building_shared in (False, True):
-            super(NetlibLapack, self).build(spec, prefix)
+            super().build(spec, prefix)
 
     @when("+shared")
     def install(self, spec, prefix):
         for self._building_shared in (False, True):
-            super(NetlibLapack, self).install(spec, prefix)
+            super().install(spec, prefix)
 
     @when("+shared")
     def check(self):
         for self._building_shared in (False, True):
-            super(NetlibLapack, self).check()
+            super().check()

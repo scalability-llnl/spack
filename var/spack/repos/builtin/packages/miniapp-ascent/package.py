@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class MiniappAscent(Package):
     homepage = "https://github.com/cinemascienceworkflows/2021-04_Miniapp-Ascent"
     git = "https://github.com/cinemascienceworkflows/2021-04_Miniapp-Ascent.git"
     url = "https://github.com/cinemascienceworkflows/2021-04_Miniapp-Ascent/archive/refs/heads/master.zip"
+
+    license("BSD-3-Clause")
 
     version("master", branch="master")
 

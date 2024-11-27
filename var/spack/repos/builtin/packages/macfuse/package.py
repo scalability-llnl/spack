@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,6 @@ class Macfuse(Package):
 
     provides("fuse")
     conflicts("platform=linux", msg="macfuse does not support linux, use libfuse instead")
-    conflicts("platform=cray", msg="macfuse does not support cray, use libfuse instead")
 
     def install(self, spec, prefix):
         msg = """

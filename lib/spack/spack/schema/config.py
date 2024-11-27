@@ -1,19 +1,21 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Schema for config.yaml configuration file.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/config.py
-   :lines: 13-
+   :lines: 17-
 """
+from typing import Any, Dict
 
 from llnl.util.lang import union_dicts
 
+import spack.config
 import spack.schema.projections
 
 #: Properties for inclusion in other schemas
-properties = {
+properties: Dict[str, Any] = {
     "config": {
         "type": "object",
         "default": {},
@@ -61,6 +63,8 @@ properties = {
             "build_stage": {
                 "oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]
             },
+            "stage_name": {"type": "string"},
+            "develop_stage_link": {"type": "string"},
             "test_stage": {"type": "string"},
             "extensions": {"type": "array", "items": {"type": "string"}},
             "template_dirs": {"type": "array", "items": {"type": "string"}},
@@ -70,8 +74,8 @@ properties = {
             "environments_root": {"type": "string"},
             "connect_timeout": {"type": "integer", "minimum": 0},
             "verify_ssl": {"type": "boolean"},
+            "ssl_certs": {"type": "string"},
             "suppress_gpg_warnings": {"type": "boolean"},
-            "install_missing_compilers": {"type": "boolean"},
             "debug": {"type": "boolean"},
             "checksum": {"type": "boolean"},
             "deprecated": {"type": "boolean"},
@@ -80,23 +84,33 @@ properties = {
             "build_language": {"type": "string"},
             "build_jobs": {"type": "integer", "minimum": 1},
             "ccache": {"type": "boolean"},
-            "concretizer": {"type": "string", "enum": ["original", "clingo"]},
             "db_lock_timeout": {"type": "integer", "minimum": 1},
             "package_lock_timeout": {
                 "anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]
             },
             "allow_sgid": {"type": "boolean"},
+            "install_status": {"type": "boolean"},
             "binary_index_root": {"type": "string"},
             "url_fetch_method": {"type": "string", "enum": ["urllib", "curl"]},
             "additional_external_search_paths": {"type": "array", "items": {"type": "string"}},
             "binary_index_ttl": {"type": "integer", "minimum": 0},
+            "aliases": {"type": "object", "patternProperties": {r"\w[\w-]*": {"type": "string"}}},
         },
-        "deprecatedProperties": {
-            "properties": ["module_roots"],
-            "message": "config:module_roots has been replaced by "
-            "modules:[module set]:roots and is ignored",
-            "error": False,
-        },
+        "deprecatedProperties": [
+            {
+                "names": ["concretizer"],
+                "message": "Spack supports only clingo as a concretizer from v0.23. "
+                "The config:concretizer config option is ignored.",
+                "error": False,
+            },
+            {
+                "names": ["install_missing_compilers"],
+                "message": "The config:install_missing_compilers option has been deprecated in "
+                "Spack v0.23, and is currently ignored. It will be removed from config in "
+                "Spack v0.25.",
+                "error": False,
+            },
+        ],
     }
 }
 

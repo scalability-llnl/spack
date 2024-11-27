@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class RShinystan(RPackage):
     using the 'rstan' and 'rstanarm' packages)."""
 
     cran = "shinystan"
+
+    license("GPL-3.0-or-later")
 
     version("2.6.0", sha256="a084856a2d66d8744f2c72e3e19ca35e600a508ed7ef1f7ebed8c7fc0738d529")
     version("2.5.0", sha256="45f9c552a31035c5de8658bb9e5d72da7ec1f88fbddb520d15fe701c677154a1")

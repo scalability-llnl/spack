@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,9 @@ class Tmux(AutotoolsPackage):
     url = "https://github.com/tmux/tmux/releases/download/2.6/tmux-2.6.tar.gz"
     git = "https://github.com/tmux/tmux.git"
 
+    license("ISC")
+
+    version("3.4", sha256="551ab8dea0bf505c0ad6b7bb35ef567cdde0ccb84357df142c254f35a23e19aa")
     version("3.3a", sha256="e4fd347843bd0772c4f48d6dde625b0b109b7a380ff15db21e97c11a4dcdf93f")
     version("3.2a", sha256="551553a4f82beaa8dadc9256800bcc284d7c000081e47aa6ecbb6ff36eacd05f")
     version("3.2", sha256="664d345338c11cbe429d7ff939b92a5191e231a7c1ef42f381cebacb1e08a399")
@@ -40,6 +43,8 @@ class Tmux(AutotoolsPackage):
     version("1.9a", sha256="c5e3b22b901cf109b20dab54a4a651f0471abd1f79f6039d79b250d21c2733f5")
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "utf8proc", default=False, description="Build with UTF-8 support from utf8proc library"
     )
@@ -55,7 +60,15 @@ class Tmux(AutotoolsPackage):
     depends_on("automake", when="@master")
     depends_on("autoconf", when="@master")
 
+    depends_on("yacc", type="build", when="@3:")
+
     conflicts("+static", when="platform=darwin", msg="Static build not supported on MacOS")
+
+    patch(
+        "https://github.com/tmux/tmux/commit/775789fbd5c4f3aa93061480cd64e61daf7fb689.patch?full_index=1",
+        sha256="c1b61a1244f758480578888d3f89cac470271c376ea0879996b81e10b397cad0",
+        when="@2.4:",
+    )
 
     @run_before("autoreconf")
     def autogen(self):

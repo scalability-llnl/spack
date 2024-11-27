@@ -1,0 +1,310 @@
+spack:
+  view: false
+
+  concretizer:
+    reuse: false
+    unify: false
+
+  packages:
+    all:
+      require: '%gcc target=x86_64_v3'
+      providers:
+        blas: [openblas]
+      variants: +mpi
+    tbb:
+      require: intel-tbb
+    mpi:
+      require: mpich
+    mpich:
+      require: '~wrapperrpath ~hwloc %gcc target=x86_64_v3'
+    openblas:
+      variants: threads=openmp
+    paraview:
+      # Don't build GUI support or GLX rendering for HPC/container deployments
+      require: "@5.11 +examples ~qt ^[virtuals=gl] osmesa %gcc target=x86_64_v3"
+
+    # ROCm
+    comgr:
+      buildable: false
+      externals:
+      - spec: comgr@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    hip-rocclr:
+      buildable: false
+      externals:
+      - spec: hip-rocclr@6.2.1
+        prefix: /opt/rocm-6.2.1/hip
+    hipblas:
+      buildable: false
+      externals:
+      - spec: hipblas@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    hipcub:
+      buildable: false
+      externals:
+      - spec: hipcub@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    hipfft:
+      buildable: false
+      externals:
+      - spec: hipfft@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    hipsparse:
+      buildable: false
+      externals:
+      - spec: hipsparse@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    miopen-hip:
+      buildable: false
+      externals:
+      - spec: miopen-hip@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    miopengemm:
+      buildable: false
+      externals:
+      - spec: miopengemm@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rccl:
+      buildable: false
+      externals:
+      - spec: rccl@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rocblas:
+      buildable: false
+      externals:
+      - spec: rocblas@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rocfft:
+      buildable: false
+      externals:
+      - spec: rocfft@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rocm-clang-ocl:
+      buildable: false
+      externals:
+      - spec: rocm-clang-ocl@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rocm-cmake:
+      buildable: false
+      externals:
+      - spec: rocm-cmake@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rocm-dbgapi:
+      buildable: false
+      externals:
+      - spec: rocm-dbgapi@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rocm-debug-agent:
+      buildable: false
+      externals:
+      - spec: rocm-debug-agent@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rocm-device-libs:
+      buildable: false
+      externals:
+      - spec: rocm-device-libs@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rocm-gdb:
+      buildable: false
+      externals:
+      - spec: rocm-gdb@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    rocm-opencl:
+      buildable: false
+      externals:
+      - spec: rocm-opencl@6.2.1
+        prefix: /opt/rocm-6.2.1/opencl
+    rocm-smi-lib:
+      buildable: false
+      externals:
+      - spec: rocm-smi-lib@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    hip:
+      buildable: false
+      externals:
+      - spec: hip@6.2.1
+        prefix: /opt/rocm-6.2.1
+        extra_attributes:
+          compilers:
+            c: /opt/rocm-6.2.1/llvm/bin/clang++
+            c++: /opt/rocm-6.2.1/llvm/bin/clang++
+            hip: /opt/rocm-6.2.1/hip/bin/hipcc
+    hipify-clang:
+      buildable: false
+      externals:
+      - spec: hipify-clang@6.2.1
+        prefix: /opt/rocm-6.2.1
+    llvm-amdgpu:
+      buildable: false
+      externals:
+      - spec: llvm-amdgpu@6.2.1
+        prefix: /opt/rocm-6.2.1/llvm
+        extra_attributes:
+          compilers:
+            c: /opt/rocm-6.2.1/llvm/bin/clang++
+            cxx: /opt/rocm-6.2.1/llvm/bin/clang++
+    hsakmt-roct:
+      buildable: false
+      externals:
+      - spec: hsakmt-roct@6.2.1
+        prefix: /opt/rocm-6.2.1/
+    hsa-rocr-dev:
+      buildable: false
+      externals:
+      - spec: hsa-rocr-dev@6.2.1
+        prefix: /opt/rocm-6.2.1/
+        extra_atributes:
+          compilers:
+            c: /opt/rocm-6.2.1/llvm/bin/clang++
+            cxx: /opt/rocm-6.2.1/llvm/bin/clang++
+    roctracer-dev-api:
+      buildable: false
+      externals:
+      - spec: roctracer-dev-api@6.2.1
+        prefix: /opt/rocm-6.2.1
+    roctracer-dev:
+      buildable: false
+      externals:
+      - spec: roctracer-dev@4.5.3
+        prefix: /opt/rocm-6.2.1
+    rocprim:
+      buildable: false
+      externals:
+      - spec: rocprim@6.2.1
+        prefix: /opt/rocm-6.2.1
+    rocrand:
+      buildable: false
+      externals:
+      - spec: rocrand@6.2.1
+        prefix: /opt/rocm-6.2.1
+    hipsolver:
+      buildable: false
+      externals:
+      - spec: hipsolver@6.2.1
+        prefix: /opt/rocm-6.2.1
+    rocsolver:
+      buildable: false
+      externals:
+      - spec: rocsolver@6.2.1
+        prefix: /opt/rocm-6.2.1
+    rocsparse:
+      buildable: false
+      externals:
+      - spec: rocsparse@6.2.1
+        prefix: /opt/rocm-6.2.1
+    rocthrust:
+      buildable: false
+      externals:
+      - spec: rocthrust@6.2.1
+        prefix: /opt/rocm-6.2.1
+    rocprofiler-dev:
+      buildable: false
+      externals:
+      - spec: rocprofiler-dev@6.2.1
+        prefix: /opt/rocm-6.2.1
+    rocm-core:
+      buildable: false
+      externals:
+      - spec: rocm-core@6.2.1
+        prefix: /opt/rocm-6.2.1
+
+  specs:
+  # ROCM NOARCH
+  - hpctoolkit +rocm
+  - tau +mpi +rocm +syscall
+
+  # ROCM 908
+  - adios2 +kokkos +rocm amdgpu_target=gfx908
+  - amrex +rocm amdgpu_target=gfx908
+  - arborx +rocm amdgpu_target=gfx908
+  - cabana +rocm amdgpu_target=gfx908
+  - caliper +rocm amdgpu_target=gfx908
+  - chai +rocm amdgpu_target=gfx908
+  - ecp-data-vis-sdk +paraview +vtkm +rocm amdgpu_target=gfx908
+  - fftx +rocm amdgpu_target=gfx908
+  - gasnet +rocm amdgpu_target=gfx908
+  - ginkgo +rocm amdgpu_target=gfx908
+  - heffte +rocm amdgpu_target=gfx908
+  - hpx +rocm amdgpu_target=gfx908
+  - hypre +rocm amdgpu_target=gfx908
+  - kokkos +rocm amdgpu_target=gfx908
+  - legion +rocm amdgpu_target=gfx908
+  - magma ~cuda +rocm amdgpu_target=gfx908
+  - mfem +rocm amdgpu_target=gfx908
+  - raja ~openmp +rocm amdgpu_target=gfx908
+  - strumpack ~slate +rocm amdgpu_target=gfx908
+  - superlu-dist +rocm amdgpu_target=gfx908
+  - tasmanian ~openmp +rocm amdgpu_target=gfx908
+  - trilinos +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext +ifpack ~ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu ~stokhos +stratimikos +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long +rocm amdgpu_target=gfx908
+  - umpire +rocm amdgpu_target=gfx908
+  - upcxx +rocm amdgpu_target=gfx908
+  # INCLUDED IN ECP DAV ROCM
+  # - hdf5
+  # - hdf5-vol-async
+  # - hdf5-vol-cache
+  # - hdf5-vol-log
+  # - libcatalyst
+  # - paraview +rocm amdgpu_target=gfx908 # mesa: https://github.com/spack/spack/issues/44745
+  # - vtk-m ~openmp +rocm amdgpu_target=gfx908  # vtk-m: https://github.com/spack/spack/issues/40268
+  # --
+  # - chapel +rocm amdgpu_target=gfx908         # chapel: need chapel >= 2.2 to support ROCm >5.4
+  # - cp2k +mpi +rocm amdgpu_target=gfx908      # cp2k: Error: KeyError: 'No spec with name rocm in... "-L{}".format(spec["rocm"].libs.directories[0]),
+  # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx908 ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop@1.0.0 ~sparse +mpi +raja +rocm amdgpu_target=gfx908 # raja: https://github.com/spack/spack/issues/44593
+  # - lbann ~cuda +rocm amdgpu_target=gfx908    # aluminum: https://github.com/spack/spack/issues/38807
+  # - papi +rocm amdgpu_target=gfx908           # papi: https://github.com/spack/spack/issues/27898
+  # - petsc +rocm amdgpu_target=gfx908          # petsc: https://github.com/spack/spack/issues/44600
+  # - slate +rocm amdgpu_target=gfx908          # slate: hip/device_gescale_row_col.hip.cc:58:49: error: use of overloaded operator '*' is ambiguous (with operand types 'HIP_vector_type<double, 2>' and 'const HIP_vector_type<double, 2>')
+  # - slepc +rocm amdgpu_target=gfx908 ^petsc +rocm amdgpu_target=gfx908 # petsc: https://github.com/spack/spack/issues/44600
+  # - sundials +rocm amdgpu_target=gfx908       # sundials: https://github.com/spack/spack/issues/44601
+
+  # ROCM 90a
+  - adios2 +kokkos +rocm amdgpu_target=gfx90a
+  - amrex +rocm amdgpu_target=gfx90a
+  - arborx +rocm amdgpu_target=gfx90a
+  - cabana +rocm amdgpu_target=gfx90a
+  - caliper +rocm amdgpu_target=gfx90a
+  - chai +rocm amdgpu_target=gfx90a
+  - ecp-data-vis-sdk +paraview +vtkm +rocm amdgpu_target=gfx90a
+  - fftx +rocm amdgpu_target=gfx90a
+  - gasnet +rocm amdgpu_target=gfx90a
+  - ginkgo +rocm amdgpu_target=gfx90a
+  - heffte +rocm amdgpu_target=gfx90a
+  - hpx +rocm amdgpu_target=gfx90a
+  - hypre +rocm amdgpu_target=gfx90a
+  - kokkos +rocm amdgpu_target=gfx90a
+  - legion +rocm amdgpu_target=gfx90a
+  - magma ~cuda +rocm amdgpu_target=gfx90a
+  - mfem +rocm amdgpu_target=gfx90a
+  - raja ~openmp +rocm amdgpu_target=gfx90a
+  - strumpack ~slate +rocm amdgpu_target=gfx90a
+  - superlu-dist +rocm amdgpu_target=gfx90a
+  - tasmanian ~openmp +rocm amdgpu_target=gfx90a
+  - trilinos +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext +ifpack ~ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu ~stokhos +stratimikos +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long +rocm amdgpu_target=gfx90a
+  - umpire +rocm amdgpu_target=gfx90a
+  - upcxx +rocm amdgpu_target=gfx90a
+  # INCLUDED IN ECP DAV ROCM
+  # - hdf5
+  # - hdf5-vol-async
+  # - hdf5-vol-cache
+  # - hdf5-vol-log
+  # - libcatalyst
+  # - paraview +rocm amdgpu_target=gfx90a # mesa: https://github.com/spack/spack/issues/44745
+  # - vtk-m ~openmp +rocm amdgpu_target=gfx90a  # vtk-m: https://github.com/spack/spack/issues/40268
+  # --
+  # - chapel +rocm amdgpu_target=gfx9a          # chapel: need chapel >= 2.2 to support ROCm >5.4
+  # - cp2k +mpi +rocm amdgpu_target=gfx90a      # cp2k: Error: KeyError: 'No spec with name rocm in... "-L{}".format(spec["rocm"].libs.directories[0]),
+  # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop@1.0.0 ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # raja: https://github.com/spack/spack/issues/44593
+  # - lbann ~cuda +rocm amdgpu_target=gfx90a    # aluminum: https://github.com/spack/spack/issues/38807
+  # - papi +rocm amdgpu_target=gfx90a           # papi: https://github.com/spack/spack/issues/27898
+  # - petsc +rocm amdgpu_target=gfx90a          # petsc: https://github.com/spack/spack/issues/44600
+  # - slate +rocm amdgpu_target=gfx90a          # slate: hip/device_gescale_row_col.hip.cc:58:49: error: use of overloaded operator '*' is ambiguous (with operand types 'HIP_vector_type<double, 2>' and 'const HIP_vector_type<double, 2>')
+  # - slepc +rocm amdgpu_target=gfx90a ^petsc +rocm amdgpu_target=gfx90a # petsc: https://github.com/spack/spack/issues/44600  
+  # - sundials +rocm amdgpu_target=gfx90a       # sundials: https://github.com/spack/spack/issues/44601
+
+  ci:
+    pipeline-gen:
+    - build-job:
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4-rocm6.2.1:2024.10.08
+
+  cdash:
+    build-group: E4S ROCm External

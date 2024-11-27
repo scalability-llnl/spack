@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class PyApplicationinsights(PythonPackage):
         "applicationinsights.channel.contracts",
         "applicationinsights.logging",
     ]
+
+    license("MIT")
 
     version("0.11.9", sha256="30a11aafacea34f8b160fbdc35254c9029c7e325267874e3c68f6bdbcd6ed2c3")
 

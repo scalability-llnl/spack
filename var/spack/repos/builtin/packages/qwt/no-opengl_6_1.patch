@@ -1,0 +1,12 @@
+diff -Naur qwt-6.1.4_orig/qwtconfig.pri qwt-6.1.4_dest/qwtconfig.pri
+--- qwt-6.1.4_orig/qwtconfig.pri	2019-01-02 17:21:31.556467499 +0100
++++ qwt-6.1.4_dest/qwtconfig.pri	2023-02-24 12:21:06.730207447 +0100
+@@ -99,7 +99,7 @@
+ # If you want to use a OpenGL plot canvas
+ ######################################################################
+ 
+-QWT_CONFIG     += QwtOpenGL
++#QWT_CONFIG     += QwtOpenGL
+ 
+ ######################################################################
+ # You can use the MathML renderer of the Qt solutions package to

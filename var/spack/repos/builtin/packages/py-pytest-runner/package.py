@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPytestRunner(PythonPackage):
 
     homepage = "https://github.com/pytest-dev/pytest-runner"
     pypi = "pytest-runner/pytest-runner-5.1.tar.gz"
+
+    license("MIT")
 
     version("6.0.0", sha256="b4d85362ed29b4c348678de797df438f0f0509497ddb8c647096c02a6d87b685")
     version("5.3.1", sha256="0fce5b8dc68760f353979d99fdd6b3ad46330b6b1837e2077a89ebcf204aac91")

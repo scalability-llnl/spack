@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Bonniepp(AutotoolsPackage):
     url = "https://www.coker.com.au/bonnie++/bonnie++-1.98.tgz"
 
     version("1.98", sha256="6e0bcbc08b78856fd998dd7bcb352d4615a99c26c2dc83d5b8345b102bad0b04")
+
+    depends_on("cxx", type="build")  # generated
 
     def configure_args(self):
         configure_args = []

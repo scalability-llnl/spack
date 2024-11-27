@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,77 +13,133 @@ class Nwchem(Package):
     """High-performance computational chemistry software"""
 
     homepage = "https://nwchemgit.github.io"
-    url = "https://github.com/nwchemgit/nwchem/releases/download/v7.0.2-release/nwchem-7.0.2-release.revision-b9985dfa-srconly.2020-10-12.tar.bz2"
+    url = "https://github.com/nwchemgit/nwchem/releases/download/v7.2.0-release/nwchem-7.2.0-release.revision-d0d141fd-srconly.2023-03-10.tar.bz2"
 
     tags = ["ecp", "ecp-apps"]
 
+    maintainers("jeffhammond")
+
+    version(
+        "7.2.3",
+        sha256="8cb4ec065215bc0316d8e01f67f1674a572f7d0f565c52e4a327975c04ddb6eb",
+        url="https://github.com/nwchemgit/nwchem/releases/download/v7.2.3-release/nwchem-7.2.3-release.revision-d690e065-srconly.2024-08-27.tar.bz2",
+    )
+
+    version(
+        "7.2.2",
+        sha256="6b68e9c12eec38c09d92472bdd1ff130b93c1b5e1f65e4702aa7ee36c80e4af7",
+        url="https://github.com/nwchemgit/nwchem/releases/download/v7.2.2-release/nwchem-7.2.2-release.revision-74936fb9-srconly.2023-11-03.tar.bz2",
+    )
+    version(
+        "7.2.0",
+        sha256="28ea70947e77886337c84e6fae3bdf88f25f0acfdeaf95e722615779c19f7a7e",
+        url="https://github.com/nwchemgit/nwchem/releases/download/v7.2.0-release/nwchem-7.2.0-release.revision-d0d141fd-srconly.2023-03-10.tar.bz2",
+    )
     version(
         "7.0.2",
         sha256="9bf913b811b97c8ed51bc5a02bf1c8e18456d0719c0a82b2e71223a596d945a7",
         url="https://github.com/nwchemgit/nwchem/releases/download/v7.0.2-release/nwchem-7.0.2-release.revision-b9985dfa-srconly.2020-10-12.tar.bz2",
     )
-    version(
-        "7.0.0",
-        sha256="e3c6510627345be596f4079047e5e7b59e6c20599798ecfe122e3527f8ad6eb0",
-        url="https://github.com/nwchemgit/nwchem/releases/download/v7.0.0-release/nwchem-7.0.0-release.revision-2c9a1c7c-srconly.2020-02-26.tar.bz2",
-    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=False, description="Enables OpenMP support")
-    variant("mpipr", default=False, description="Enables ARMCI with progress rank")
+    variant("f90allocatable", default=False, description="Use F90 allocatable instead of MA")
+    variant(
+        "armci",
+        values=("mpi-ts", "mpi-pr", "armcimpi", "mpi3", "openib", "ofi"),
+        default="mpi-ts",
+        description="ARMCI runtime",
+    )
+    variant(
+        "extratce",
+        default=False,
+        description="Enables rarely-used TCE features (CCSDTQ, CCSDTLR, EACCSD, IPCCSD, MRCC)",
+    )
+    variant("tcecuda", default=False, description="Enable TCE CCSD(T) CUDA support")
+    variant("fftw3", default=False, description="Link against the FFTW library")
+    variant("libxc", default=False, description="Support additional functionals via libxc")
+    variant(
+        "elpa", default=False, description="Enable optimised diagonalisation routines from ELPA"
+    )
 
     # This patch is for the modification of the build system (e.g. compiler flags) and
     # Fortran syntax to enable the compilation with Fujitsu compilers. The modification
     # will be merged to the next release of NWChem (see https://github.com/nwchemgit/nwchem/issues/347
     # for more detail.
     patch("fj.patch", when="@7.0.2 %fj")
+    # This patch is for linking the FFTW library in NWChem.
+    # It applys only to the 7.2.0 source code.
+    # will be merged to the next release of NWChem (see https://github.com/nwchemgit/nwchem/issues/792
+    # for more detail.
+    # This patch is the combination of the following commits
+    # https://github.com/nwchemgit/nwchem/commit/b4ec4ade1af434bc80470d6874aebf6fdcd12489
+    # https://github.com/nwchemgit/nwchem/commit/376f86f96eb982e83f10514e9dcd994564f973b4
+    # https://github.com/nwchemgit/nwchem/commit/c89fc9d1eca6689bce12564a63fdea95d962a123
+    # Prior versions of NWChem, including 7.0.2, were not able to link with FFTW
+    patch("fftw_splans.patch", when="@7.2.0:7.2.3 +fftw3")
+    # This patch is for including a working link for dft-d3 download as existing link
+    # https://www.chemiebn.uni-bonn.de/pctc/mulliken-center/software/dft-d3//dftd3.tgz is not active
+    # Same is mentioned in https://metadata.ftp-master.debian.org/changelogs/main/n/nwchem/unstable_changelog
+    patch("dft-d3_url.patch", when="@7.2.0:7.2.2")
 
     depends_on("blas")
     depends_on("lapack")
     depends_on("mpi")
+    depends_on("cuda", when="+tcecuda")
+    depends_on("armcimpi", when="armci=armcimpi")
+    depends_on("libfabric", when="armci=ofi")
+    depends_on("rdma-core", when="armci=openib")
     depends_on("scalapack")
-    depends_on("fftw-api")
+    depends_on("fftw-api@3", when="+fftw3")
+    depends_on("libxc", when="+libxc")
+    depends_on("elpa", when="+elpa")
     depends_on("python@3:3.9", type=("build", "link", "run"), when="@:7.0.2")
+    depends_on("python@3", type=("build", "link", "run"), when="@7.2.0:")
 
     def install(self, spec, prefix):
         scalapack = spec["scalapack"].libs
         lapack = spec["lapack"].libs
         blas = spec["blas"].libs
-        fftw = spec["fftw-api"].libs
+        fftw = spec["fftw-api:double,float"].libs if self.spec.satisfies("+fftw3") else ""
         # see https://nwchemgit.github.io/Compiling-NWChem.html
         args = []
         args.extend(
             [
-                "NWCHEM_TOP=%s" % self.stage.source_path,
+                f"NWCHEM_TOP={self.stage.source_path}",
                 # NWCHEM is picky about FC and CC. They should NOT be full path.
                 # see https://nwchemgit.github.io/Special_AWCforum/sp/id7524
-                "CC=%s" % os.path.basename(spack_cc),
-                "FC=%s" % os.path.basename(spack_fc),
+                f"CC={os.path.basename(spack_cc)}",
+                f"FC={os.path.basename(spack_fc)}",
                 "USE_MPI=y",
-                "USE_BLAS=y",
-                "USE_FFTW3=y",
-                "PYTHONVERSION=%s" % spec["python"].version.up_to(2),
-                "BLASOPT=%s" % ((lapack + blas).ld_flags),
-                "BLAS_LIB=%s" % blas.ld_flags,
-                "LAPACK_LIB=%s" % lapack.ld_flags,
-                "SCALAPACK_LIB=%s" % scalapack.ld_flags,
-                "FFTW3_LIB=%s" % fftw.ld_flags,
-                "FFTW3_INCLUDE={0}".format(spec["fftw-api"].prefix.include),
-                "NWCHEM_MODULES=all python",
-                "NWCHEM_LONG_PATHS=Y",  # by default NWCHEM_TOP is 64 char max
+                "USE_MPIF=y",
+                "PYTHONVERSION={}".format(spec["python"].version.up_to(2)),
+                f"BLASOPT={(lapack + blas).ld_flags}",
+                f"LAPACK_LIB={lapack.ld_flags}",
+                f"SCALAPACK_LIB={scalapack.ld_flags}",
                 "USE_NOIO=Y",  # skip I/O algorithms
-                "USE_NOFSCHECK=TRUE",  # FSCHECK, caused problems like code crashes
+                "V=1",  # verbose build
             ]
         )
+        if self.spec.satisfies("@7.2.0:"):
+            args.extend(["NWCHEM_MODULES=all python gwmol"])
+            args.extend(["USE_HWOPT=n"])
+        else:
+            args.extend(["NWCHEM_MODULES=all python"])
+            # archspec flags are injected through the compiler wrapper
+            filter_file("(-mtune=native|-mcpu=native|-xHost)", "", "src/config/makefile.h")
 
         # TODO: query if blas/lapack/scalapack uses 64bit Ints
         # A flag to distinguish between 32bit and 64bit integers in linear
         # algebra (Blas, Lapack, Scalapack)
-        use_32_bit_lin_alg = True
+        use_32_bit_lin_alg = True if "~ilp64" in self.spec["blas"] else False
 
         if use_32_bit_lin_alg:
-            args.extend(["USE_64TO32=y", "BLAS_SIZE=4", "LAPACK_SIZE=4", "SCALAPACK_SIZE=4"])
+            args.extend(["USE_64TO32=y", "BLAS_SIZE=4", "SCALAPACK_SIZE=4", "USE_MPIF4=y"])
         else:
-            args.extend(["BLAS_SIZE=8", "LAPACK_SIZE=8" "SCALAPACK_SIZE=8"])
+            args.extend(["BLAS_SIZE=8", "SCALAPACK_SIZE=8"])
 
         if sys.platform == "darwin":
             target = "MACX64"
@@ -91,13 +147,60 @@ class Nwchem(Package):
         else:
             target = "LINUX64"
 
-        args.extend(["NWCHEM_TARGET=%s" % target])
+        args.extend([f"NWCHEM_TARGET={target}"])
 
-        if "+openmp" in spec:
+        # These optional components of TCE are rarely used and in some cases
+        # increase the compilation time significantly (CCSDTLR and CCSDTQ).
+        if spec.satisfies("+extratce"):
+            args.extend(["MRCC_METHODS=y"])
+            args.extend(["IPCCSD=y"])
+            args.extend(["EACCSD=y"])
+            args.extend(["CCSDTLR=y"])
+            args.extend(["CCSDTQ=y"])
+
+        if spec.satisfies("+tcecuda"):
+            args.extend(["TCE_CUDA=y"])
+            args.extend(["CUDA_INCLUDE=-I{0}".format(self.spec["cuda"].headers.directories[0])])
+            # args.extend(["CUDA_LIBS={0}".format(self.spec["cuda"].libs)])
+            args.extend(["CUDA_LIBS=-L{0} -lcudart".format(self.spec["cuda"].libs.directories[0])])
+
+        if spec.satisfies("+openmp"):
             args.extend(["USE_OPENMP=y"])
 
-        if "+mpipr" in spec:
+        if spec.satisfies("+f90allocatable"):
+            args.extend(["USE_F90_ALLOCATABLE=1"])
+
+        if self.spec.variants["armci"].value == "armcimpi":
+            armcimpi = spec["armci"]
+            args.extend(["ARMCI_NETWORK=ARMCI"])
+            args.extend([f"EXTERNAL_ARMCI_PATH={armcimpi.prefix}"])
+        elif self.spec.variants["armci"].value == "mpi-pr":
             args.extend(["ARMCI_NETWORK=MPI-PR"])
+        elif self.spec.variants["armci"].value == "mpi-ts":
+            args.extend(["ARMCI_NETWORK=MPI-TS"])
+        elif self.spec.variants["armci"].value == "mpi3":
+            args.extend(["ARMCI_NETWORK=MPI3"])
+        elif self.spec.variants["armci"].value == "openib":
+            args.extend(["ARMCI_NETWORK=OPENIB"])
+        elif self.spec.variants["armci"].value == "ofi":
+            args.extend(["ARMCI_NETWORK=OFI"])
+
+        if spec.satisfies("+fftw3"):
+            args.extend(["USE_FFTW3=y"])
+            args.extend([f"LIBFFTW3={fftw.ld_flags}"])
+            args.extend(["FFTW3_INCLUDE={0}".format(spec["fftw-api"].prefix.include)])
+
+        if spec.satisfies("+libxc"):
+            args.extend(["LIBXC_LIB={0}".format(spec["libxc"].libs.ld_flags)])
+            args.extend(["LIBXC_INCLUDE={0}".format(spec["libxc"].prefix.include)])
+
+        if spec.satisfies("+elpa"):
+            elpa = spec["elpa"]
+            args.extend([f"ELPA={elpa.libs.ld_flags} -I{elpa.prefix.include}"])
+            if use_32_bit_lin_alg:
+                args.extend(["ELPA_SIZE=4"])
+            else:
+                args.extend(["ELPA_SIZE=8"])
 
         with working_dir("src"):
             make("nwchem_config", *args)
@@ -113,6 +216,7 @@ class Nwchem(Package):
 
             install_tree("data", share_path)
             install_tree(join_path("basis", "libraries"), join_path(share_path, "libraries"))
+            install_tree(join_path("basis", "libraries.bse"), join_path(share_path, "libraries"))
             install_tree(join_path("nwpw", "libraryps"), join_path(share_path, "libraryps"))
 
             b_path = join_path(self.stage.source_path, "bin", target, "nwchem")

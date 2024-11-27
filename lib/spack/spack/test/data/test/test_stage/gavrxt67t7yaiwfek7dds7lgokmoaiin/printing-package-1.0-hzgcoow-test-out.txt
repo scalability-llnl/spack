@@ -1,6 +1,7 @@
 ==> Testing package printing-package-1.0-hzgcoow
-BEFORE TEST
-==> [2022-02-28-20:21:46.510616] test: true: expect command status in [0]
-==> [2022-02-28-20:21:46.510937] '/bin/true'
-PASSED
-AFTER TEST
+==> [2022-12-06-20:21:46.550943] test: test_print: Test python print example.
+==> [2022-12-06-20:21:46.553219] '/usr/tce/bin/python' '-c' 'print("Running test_print")'
+Running test_print
+==> [2022-12-06-20:21:46.721077] '/usr/tce/bin/python' '-c' 'print("Running test_print")'
+PASSED: test_print
+==> [2022-12-06-20:21:46.822608] Completed testing

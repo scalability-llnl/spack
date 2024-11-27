@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Vala(AutotoolsPackage):
 
     maintainers("benkirk")
 
+    license("LGPL-2.0-or-later")
+
     version("0.48.25", sha256="50cb3c5eccddc7fd4368bfa96414a556045e79d2b15a68918c727b8c83b18a24")
     version("0.48.24", sha256="3649ef84573b6865fc3470640ee603720099eb915b39faad19b7498de1a7df24")
     version("0.48.23", sha256="de3cc858d995e07474219e25a3e1f0ed998070d2e206d3a313d4379a5f77a06a")
@@ -29,6 +31,8 @@ class Vala(AutotoolsPackage):
     version("0.48.16", sha256="4553663bfca3fa8a48c434e3fab18b6dabd429cfdec47ee25b957b6d2e20d390")
     version("0.48.15", sha256="5f64283f8e69a48c73256cb93578c7db4c35c0b7df079568a4d5b6065b602a50")
     version("0.48.14", sha256="dca57de29f4ce18ee8c6b1e4f1b37ca3843d19dae5c455fceebccc5ae3ffe347")
+
+    depends_on("c", type="build")  # generated
 
     variant("doc", default=False, description="build valadoc")
 

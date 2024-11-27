@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,14 +19,14 @@ class Mpich(AutotoolsPackage):
     list_depth = 1
 
     version("develop", submodules=True)
-    version("3.2.1", "e175452f4d61646a52c73031683fc375")
-    version("3.2", "f414cfa77099cd1fa1a5ae4e22db508a")
-    version("3.1.4", "2ab544607986486562e076b83937bba2")
-    version("3.1.3", "93cb17f91ac758cbf9174ecb03563778")
-    version("3.1.2", "7fbf4b81dcb74b07ae85939d1ceee7f1")
-    version("3.1.1", "40dc408b1e03cc36d80209baaa2d32b7")
-    version("3.1", "5643dd176499bfb7d25079aaff25f2ec")
-    version("3.0.4", "9c5d5d4fe1e17dd12153f40bc5b6dbc0")
+    version("3.2.1", md5="e175452f4d61646a52c73031683fc375")
+    version("3.2", md5="f414cfa77099cd1fa1a5ae4e22db508a")
+    version("3.1.4", md5="2ab544607986486562e076b83937bba2")
+    version("3.1.3", md5="93cb17f91ac758cbf9174ecb03563778")
+    version("3.1.2", md5="7fbf4b81dcb74b07ae85939d1ceee7f1")
+    version("3.1.1", md5="40dc408b1e03cc36d80209baaa2d32b7")
+    version("3.1", md5="5643dd176499bfb7d25079aaff25f2ec")
+    version("3.0.4", md5="9c5d5d4fe1e17dd12153f40bc5b6dbc0")
 
     variant("hydra", default=True, description="Build the hydra process manager")
     variant("pmi", default=True, description="Build with PMI support")
@@ -60,7 +60,7 @@ spack package at this time.""",
     # fix MPI_Barrier segmentation fault
     # see https://lists.mpich.org/pipermail/discuss/2016-May/004764.html
     # and https://lists.mpich.org/pipermail/discuss/2016-June/004768.html
-    patch("mpich32_clang.patch", when="@3.2:3.2.0%clang")
+    patch("mpich32_clang.patch", when="@=3.2%clang")
 
     depends_on("findutils", type="build")
 
@@ -88,16 +88,10 @@ spack package at this time.""",
         pass
 
     def setup_dependent_package(self, module, dependent_spec):
-        if "platform=cray" in self.spec:
-            self.spec.mpicc = spack_cc
-            self.spec.mpicxx = spack_cxx
-            self.spec.mpifc = spack_fc
-            self.spec.mpif77 = spack_f77
-        else:
-            self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
-            self.spec.mpicxx = join_path(self.prefix.bin, "mpic++")
-            self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
-            self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
+        self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
+        self.spec.mpicxx = join_path(self.prefix.bin, "mpic++")
+        self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
+        self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
 
         self.spec.mpicxx_shared_libs = [
             join_path(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),

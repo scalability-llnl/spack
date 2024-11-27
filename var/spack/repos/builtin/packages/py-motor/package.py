@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyMotor(PythonPackage):
 
     homepage = "https://github.com/mongodb/motor/"
     pypi = "motor/motor-2.5.1.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.5.1", sha256="663473f4498f955d35db7b6f25651cb165514c247136f368b84419cb7635f6b8")
 

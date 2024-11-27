@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -127,9 +127,9 @@ check out a commit from the ``master`` branch, you would want to add:
 
 .. code-block:: python
 
-   depends_on('autoconf', type='build', when='@master')
-   depends_on('automake', type='build', when='@master')
-   depends_on('libtool',  type='build', when='@master')
+   depends_on("autoconf", type="build", when="@master")
+   depends_on("automake", type="build", when="@master")
+   depends_on("libtool",  type="build", when="@master")
 
 It is typically redundant to list the ``m4`` macro processor package as a
 dependency, since ``autoconf`` already depends on it.
@@ -145,7 +145,16 @@ example, the ``bash`` shell is used to run the ``autogen.sh`` script.
 .. code-block:: python
 
    def autoreconf(self, spec, prefix):
-       which('bash')('autogen.sh')
+       which("bash")("autogen.sh")
+
+If the ``package.py`` has build instructions in a separate
+:ref:`builder class <multiple_build_systems>`, the signature for a phase changes slightly:
+
+.. code-block:: python
+
+   class AutotoolsBuilder(AutotoolsBuilder):
+      def autoreconf(self, pkg, spec, prefix):
+         which("bash")("autogen.sh")
 
 """""""""""""""""""""""""""""""""""""""
 patching configure or Makefile.in files
@@ -186,9 +195,9 @@ To opt out of this feature, use the following setting:
 To enable it conditionally on different architectures, define a property and
 make the package depend on ``gnuconfig`` as a build dependency:
 
-.. code-block
+.. code-block:: python
 
-   depends_on('gnuconfig', when='@1.0:')
+   depends_on("gnuconfig", when="@1.0:")
 
    @property
    def patch_config_files(self):
@@ -230,7 +239,7 @@ version, this can be done like so:
 
    @property
    def force_autoreconf(self):
-       return self.version == Version('1.2.3')
+       return self.version == Version("1.2.3")
 
 ^^^^^^^^^^^^^^^^^^^^^^^
 Finding configure flags
@@ -278,12 +287,21 @@ function like so:
    def configure_args(self):
        args = []
 
-       if '+mpi' in self.spec:
-           args.append('--enable-mpi')
+       if self.spec.satisfies("+mpi"):
+           args.append("--enable-mpi")
        else:
-           args.append('--disable-mpi')
+           args.append("--disable-mpi")
 
        return args
+
+
+Alternatively, you can use the :ref:`enable_or_disable  <autotools_enable_or_disable>` helper:
+
+.. code-block:: python
+
+   def configure_args(self):
+       return [self.enable_or_disable("mpi")]
+
 
 Note that we are explicitly disabling MPI support if it is not
 requested. This is important, as many Autotools packages will enable
@@ -295,9 +313,11 @@ and `here <https://wiki.gentoo.org/wiki/Project:Quality_Assurance/Automagic_depe
 for a rationale as to why these so-called "automagic" dependencies
 are a problem.
 
-By default, Autotools installs packages to ``/usr``. We don't want this,
-so Spack automatically adds ``--prefix=/path/to/installation/prefix``
-to your list of ``configure_args``. You don't need to add this yourself.
+.. note::
+
+   By default, Autotools installs packages to ``/usr``. We don't want this,
+   so Spack automatically adds ``--prefix=/path/to/installation/prefix``
+   to your list of ``configure_args``. You don't need to add this yourself.
 
 ^^^^^^^^^^^^^^^^
 Helper functions
@@ -307,6 +327,8 @@ You may have noticed that most of the Autotools flags are of the form
 ``--enable-foo``, ``--disable-bar``, ``--with-baz=<prefix>``, or
 ``--without-baz``. Since these flags are so common, Spack provides a
 couple of helper functions to make your life easier.
+
+.. _autotools_enable_or_disable:
 
 """""""""""""""""
 enable_or_disable
@@ -319,11 +341,11 @@ typically used to enable or disable some feature within the package.
 .. code-block:: python
 
    variant(
-       'memchecker',
+       "memchecker",
        default=False,
-       description='Memchecker support for debugging [degrades performance]'
+       description="Memchecker support for debugging [degrades performance]"
    )
-   config_args.extend(self.enable_or_disable('memchecker'))
+   config_args.extend(self.enable_or_disable("memchecker"))
 
 In this example, specifying the variant ``+memchecker`` will generate
 the following configuration options:
@@ -343,15 +365,15 @@ the ``with_or_without`` method.
 .. code-block:: python
 
    variant(
-       'schedulers',
+       "schedulers",
        values=disjoint_sets(
-           ('auto',), ('alps', 'lsf', 'tm', 'slurm', 'sge', 'loadleveler')
-       ).with_non_feature_values('auto', 'none'),
+           ("auto",), ("alps", "lsf", "tm", "slurm", "sge", "loadleveler")
+       ).with_non_feature_values("auto", "none"),
        description="List of schedulers for which support is enabled; "
        "'auto' lets openmpi determine",
    )
-   if 'schedulers=auto' not in spec:
-       config_args.extend(self.with_or_without('schedulers'))
+   if not spec.satisfies("schedulers=auto"):
+       config_args.extend(self.with_or_without("schedulers"))
 
 In this example, specifying the variant ``schedulers=slurm,sge`` will
 generate the following configuration options:
@@ -376,16 +398,16 @@ generated, using the ``activation_value`` argument to
 .. code-block:: python
 
    variant(
-      'fabrics',
+      "fabrics",
        values=disjoint_sets(
-           ('auto',), ('psm', 'psm2', 'verbs', 'mxm', 'ucx', 'libfabric')
-       ).with_non_feature_values('auto', 'none'),
+           ("auto",), ("psm", "psm2", "verbs", "mxm", "ucx", "libfabric")
+       ).with_non_feature_values("auto", "none"),
        description="List of fabrics that are enabled; "
        "'auto' lets openmpi determine",
    )
-   if 'fabrics=auto' not in spec:
-       config_args.extend(self.with_or_without('fabrics',
-           activation_value='prefix'))
+   if not spec.satisfies("fabrics=auto"):
+       config_args.extend(self.with_or_without("fabrics",
+           activation_value="prefix"))
 
 ``activation_value`` accepts a callable that generates the configure
 parameter value given the variant value; but the special value
@@ -409,16 +431,16 @@ When Spack variants and configure flags do not correspond one-to-one, the
 
 .. code-block:: python
 
-   variant('debug_tools', default=False)
-   config_args += self.enable_or_disable('debug-tools', variant='debug_tools')
+   variant("debug_tools", default=False)
+   config_args += self.enable_or_disable("debug-tools", variant="debug_tools")
 
 Or when one variant controls multiple flags:
 
 .. code-block:: python
 
-   variant('debug_tools', default=False)
-   config_args += self.with_or_without('memchecker', variant='debug_tools')
-   config_args += self.with_or_without('profiler', variant='debug_tools')
+   variant("debug_tools", default=False)
+   config_args += self.with_or_without("memchecker", variant="debug_tools")
+   config_args += self.with_or_without("profiler", variant="debug_tools")
 
 
 """"""""""""""""""""
@@ -432,8 +454,8 @@ For example:
 
 .. code-block:: python
 
-   variant('profiler', when='@2.0:')
-   config_args += self.with_or_without('profiler')
+   variant("profiler", when="@2.0:")
+   config_args += self.with_or_without("profiler")
 
 will neither add ``--with-profiler`` nor ``--without-profiler`` when the version is
 below ``2.0``.
@@ -452,10 +474,10 @@ the variant values require atypical behavior.
    def with_or_without_verbs(self, activated):
        # Up through version 1.6, this option was named --with-openib.
        # In version 1.7, it was renamed to be --with-verbs.
-       opt = 'verbs' if self.spec.satisfies('@1.7:') else 'openib'
+       opt = "verbs" if self.spec.satisfies("@1.7:") else "openib"
        if not activated:
-           return '--without-{0}'.format(opt)
-       return '--with-{0}={1}'.format(opt, self.spec['rdma-core'].prefix)
+           return f"--without-{opt}"
+       return f"--with-{opt}={self.spec['rdma-core'].prefix}"
 
 Defining ``with_or_without_verbs`` overrides the behavior of a
 ``fabrics=verbs`` variant, changing the configure-time option to
@@ -479,7 +501,7 @@ do this like so:
 
 .. code-block:: python
 
-   configure_directory = 'src'
+   configure_directory = "src"
 
 ^^^^^^^^^^^^^^^^^^^^^^
 Building out of source
@@ -491,7 +513,7 @@ This can be done using the ``build_directory`` variable:
 
 .. code-block:: python
 
-   build_directory = 'spack-build'
+   build_directory = "spack-build"
 
 By default, Spack will build the package in the same directory that
 contains the ``configure`` script
@@ -514,8 +536,8 @@ library or build the documentation, you can add these like so:
 
 .. code-block:: python
 
-   build_targets = ['all', 'docs']
-   install_targets = ['install', 'docs']
+   build_targets = ["all", "docs"]
+   install_targets = ["install", "docs"]
 
 ^^^^^^^
 Testing

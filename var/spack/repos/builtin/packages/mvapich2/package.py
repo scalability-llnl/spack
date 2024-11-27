@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,6 +7,7 @@ import os.path
 import re
 import sys
 
+import spack.compilers
 from spack.package import *
 
 
@@ -24,6 +25,7 @@ class Mvapich2(AutotoolsPackage):
     executables = ["^mpiname$", "^mpichversion$"]
 
     # Prefer the latest stable release
+    version("2.3.7-1", sha256="fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4")
     version("2.3.7", sha256="c39a4492f4be50df6100785748ba2894e23ce450a94128181d516da5757751ae")
     version("2.3.6", sha256="b3a62f2a05407191b856485f99da05f5e769d6381cd63e2fcb83ee98fc46a249")
     version("2.3.5", sha256="f9f467fec5fc981a89a7beee0374347b10c683023c76880f92a1a0ad4b961a8c")
@@ -37,6 +39,10 @@ class Mvapich2(AutotoolsPackage):
     version("2.3a", sha256="7f0bc94265de9f66af567a263b1be6ef01755f7f6aedd25303d640cc4d8b1cff")
     version("2.2", sha256="791a6fc2b23de63b430b3e598bf05b1b25b82ba8bf7e0622fc81ba593b3bb131")
     version("2.1", sha256="49f3225ad17d2f3b6b127236a0abdc979ca8a3efb8d47ab4b6cd4f5252d05d29")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     provides("mpi")
     provides("mpi@:3.1", when="@2.3:")
@@ -83,6 +89,15 @@ class Mvapich2(AutotoolsPackage):
     )
 
     variant(
+        "pmi_version",
+        description=("The pmi version to be used with slurm"),
+        when="process_managers=slurm",
+        default="pmi2",
+        values=("pmi1", "pmi2", "pmix"),
+        multi=False,
+    )
+
+    variant(
         "fabrics",
         description="Select the fabric to be enabled for this build."
         "If you have verbs (either from OFED or MOFED), PSM or PSM2 "
@@ -108,16 +123,19 @@ class Mvapich2(AutotoolsPackage):
         "alloca", default=False, description="Use alloca to allocate temporary memory if available"
     )
 
+    variant("hwlocv2", default=False, description="Builds mvapich2 with hwloc v2")
+    variant("hwloc_graphics", default=False, description="Enables hwloc graphics")
     variant(
         "file_systems",
         description="List of the ROMIO file systems to activate",
         values=auto_or_any_combination_of("lustre", "gpfs", "nfs", "ufs"),
     )
 
+    depends_on("automake@1.15", type="build")  # needed for torque patch
     depends_on("findutils", type="build")
     depends_on("bison", type="build")
     depends_on("pkgconfig", type="build")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("libpciaccess", when=(sys.platform != "darwin"))
     depends_on("libxml2")
     depends_on("cuda", when="+cuda")
@@ -129,8 +147,15 @@ class Mvapich2(AutotoolsPackage):
     depends_on("rdma-core", when="fabrics=nemesisibtcp")
     depends_on("libfabric", when="fabrics=nemesisofi")
     depends_on("slurm", when="process_managers=slurm")
+    depends_on("pmix", when="pmi_version=pmix")
+
+    # Fix segmentation fault in `MPIR_Attr_delete_list`:
+    # <https://lists.osu.edu/pipermail/mvapich-discuss/2023-January/010695.html>.
+    patch("mpir_attr_delete_list_segfault.patch", when="@2.3.7")
 
     conflicts("fabrics=psm2", when="@:2.1")  # psm2 support was added at version 2.2
+
+    patch("fix-torque.patch", when="@2.3.7-1")
 
     filter_compiler_wrappers("mpicc", "mpicxx", "mpif77", "mpif90", "mpifort", relative_root="bin")
 
@@ -267,11 +292,14 @@ class Mvapich2(AutotoolsPackage):
 
         # See: http://slurm.schedmd.com/mpi_guide.html#mvapich2
         if "process_managers=slurm" in spec:
-            opts = [
-                "--with-pmi=pmi2",
-                "--with-pm=slurm",
-                "--with-slurm={0}".format(spec["slurm"].prefix),
-            ]
+            opts = ["--with-pm=slurm", "--with-slurm={0}".format(spec["slurm"].prefix)]
+            if "pmi_version=pmi1" in spec:
+                opts.append("--with-pmi=pmi1")
+            elif "pmi_version=pmi2" in spec:
+                opts.append("--with-pmi=pmi2")
+            elif "pmi_version=pmix" in spec:
+                opts.append("--with-pmi=pmix")
+                opts.append("--with-pmix={0}".format(spec["pmix"].prefix))
 
         return opts
 
@@ -337,7 +365,12 @@ class Mvapich2(AutotoolsPackage):
 
     def setup_run_environment(self, env):
         if "process_managers=slurm" in self.spec:
-            env.set("SLURM_MPI_TYPE", "pmi2")
+            if "pmi_version=pmi1" in self.spec:
+                env.set("SLURM_MPI_TYPE", "pmi1")
+            elif "pmi_version=pmi2" in self.spec:
+                env.set("SLURM_MPI_TYPE", "pmi2")
+            elif "pmi_version=pmix" in self.spec:
+                env.set("SLURM_MPI_TYPE", "pmix")
 
         env.set("MPI_ROOT", self.prefix)
 
@@ -347,42 +380,25 @@ class Mvapich2(AutotoolsPackage):
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         self.setup_compiler_environment(env)
-
         # use the Spack compiler wrappers under MPI
-        env.set("MPICH_CC", spack_cc)
-        env.set("MPICH_CXX", spack_cxx)
-        env.set("MPICH_F77", spack_f77)
-        env.set("MPICH_F90", spack_fc)
-        env.set("MPICH_FC", spack_fc)
+        dependent_module = dependent_spec.package.module
+        env.set("MPICH_CC", dependent_module.spack_cc)
+        env.set("MPICH_CXX", dependent_module.spack_cxx)
+        env.set("MPICH_F77", dependent_module.spack_f77)
+        env.set("MPICH_F90", dependent_module.spack_fc)
+        env.set("MPICH_FC", dependent_module.spack_fc)
 
     def setup_compiler_environment(self, env):
-        # For Cray MPIs, the regular compiler wrappers *are* the MPI wrappers.
-        # Cray MPIs always have cray in the module name, e.g. "cray-mvapich"
-        if self.spec.satisfies("platform=cray"):
-            env.set("MPICC", spack_cc)
-            env.set("MPICXX", spack_cxx)
-            env.set("MPIF77", spack_fc)
-            env.set("MPIF90", spack_fc)
-        else:
-            env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-            env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
-            env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
-            env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
+        env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
+        env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
+        env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
+        env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
 
     def setup_dependent_package(self, module, dependent_spec):
-        # For Cray MPIs, the regular compiler wrappers *are* the MPI wrappers.
-        # Cray MPIs always have cray in the module name, e.g. "cray-mvapich"
-        if self.spec.satisfies("platform=cray"):
-            self.spec.mpicc = spack_cc
-            self.spec.mpicxx = spack_cxx
-            self.spec.mpifc = spack_fc
-            self.spec.mpif77 = spack_f77
-        else:
-            self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
-            self.spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
-            self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
-            self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-
+        self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
+        self.spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
+        self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
+        self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
         self.spec.mpicxx_shared_libs = [
             os.path.join(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
             os.path.join(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
@@ -429,7 +445,12 @@ class Mvapich2(AutotoolsPackage):
             args.extend(["--enable-cuda", "--with-cuda={0}".format(spec["cuda"].prefix)])
         else:
             args.append("--disable-cuda")
-
+        if "~hwloc_graphics" in self.spec:
+            args.append("--disable-opencl")
+            args.append("--disable-gl")
+            args.append("--disable-nvml")
+        if "+hwlocv2" in self.spec:
+            args.append("--with-hwloc=v2")
         if "+regcache" in self.spec:
             args.append("--enable-registration-cache")
         else:

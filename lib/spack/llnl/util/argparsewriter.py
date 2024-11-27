@@ -1,35 +1,44 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from __future__ import print_function
-
+import abc
 import argparse
-import errno
 import io
 import re
 import sys
+from argparse import ArgumentParser
+from typing import IO, Any, Iterable, List, Optional, Sequence, Tuple, Union
 
 
-class Command(object):
+class Command:
     """Parsed representation of a command from argparse.
 
-    This is a single command from an argparse parser. ``ArgparseWriter``
-    creates these and returns them from ``parse()``, and it passes one of
-    these to each call to ``format()`` so that we can take an action for
-    a single command.
-
-    Parts of a Command:
-      - prog: command name (str)
-      - description: command description (str)
-      - usage: command usage (str)
-      - positionals: list of positional arguments (list)
-      - optionals: list of optional arguments (list)
-      - subcommands: list of subcommand parsers (list)
+    This is a single command from an argparse parser. ``ArgparseWriter`` creates these and returns
+    them from ``parse()``, and it passes one of these to each call to ``format()`` so that we can
+    take an action for a single command.
     """
 
-    def __init__(self, prog, description, usage, positionals, optionals, subcommands):
+    def __init__(
+        self,
+        prog: str,
+        description: Optional[str],
+        usage: str,
+        positionals: List[Tuple[str, Optional[Iterable[Any]], Union[int, str, None], str]],
+        optionals: List[Tuple[Sequence[str], List[str], str, Union[int, str, None], str]],
+        subcommands: List[Tuple[ArgumentParser, str, str]],
+    ) -> None:
+        """Initialize a new Command instance.
+
+        Args:
+            prog: Program name.
+            description: Command description.
+            usage: Command usage.
+            positionals: List of positional arguments.
+            optionals: List of optional arguments.
+            subcommands: List of subcommand parsers.
+        """
         self.prog = prog
         self.description = description
         self.usage = usage
@@ -38,35 +47,34 @@ class Command(object):
         self.subcommands = subcommands
 
 
-# NOTE: The only reason we subclass argparse.HelpFormatter is to get access
-# to self._expand_help(), ArgparseWriter is not intended to be used as a
-# formatter_class.
-class ArgparseWriter(argparse.HelpFormatter):
-    """Analyzes an argparse ArgumentParser for easy generation of help."""
+# NOTE: The only reason we subclass argparse.HelpFormatter is to get access to self._expand_help(),
+# ArgparseWriter is not intended to be used as a formatter_class.
+class ArgparseWriter(argparse.HelpFormatter, abc.ABC):
+    """Analyze an argparse ArgumentParser for easy generation of help."""
 
-    def __init__(self, prog, out=None, aliases=False):
-        """Initializes a new ArgparseWriter instance.
+    def __init__(self, prog: str, out: IO = sys.stdout, aliases: bool = False) -> None:
+        """Initialize a new ArgparseWriter instance.
 
-        Parameters:
-            prog (str): the program name
-            out (file object): the file to write to (default sys.stdout)
-            aliases (bool): whether or not to include subparsers for aliases
+        Args:
+            prog: Program name.
+            out: File object to write to.
+            aliases: Whether or not to include subparsers for aliases.
         """
-        super(ArgparseWriter, self).__init__(prog)
+        super().__init__(prog)
         self.level = 0
         self.prog = prog
-        self.out = sys.stdout if out is None else out
+        self.out = out
         self.aliases = aliases
 
-    def parse(self, parser, prog):
-        """Parses the parser object and returns the relavent components.
+    def parse(self, parser: ArgumentParser, prog: str) -> Command:
+        """Parse the parser object and return the relavent components.
 
-        Parameters:
-            parser (argparse.ArgumentParser): the parser
-            prog (str): the command name
+        Args:
+            parser: Command parser.
+            prog: Program name.
 
         Returns:
-            (Command) information about the command from the parser
+            Information about the command from the parser.
         """
         self.parser = parser
 
@@ -80,8 +88,7 @@ class ArgparseWriter(argparse.HelpFormatter):
         groups = parser._mutually_exclusive_groups
         usage = fmt._format_usage(None, actions, groups, "").strip()
 
-        # Go through actions and split them into optionals, positionals,
-        # and subcommands
+        # Go through actions and split them into optionals, positionals, and subcommands
         optionals = []
         positionals = []
         subcommands = []
@@ -89,74 +96,97 @@ class ArgparseWriter(argparse.HelpFormatter):
             if action.option_strings:
                 flags = action.option_strings
                 dest_flags = fmt._format_action_invocation(action)
-                help = self._expand_help(action) if action.help else ""
-                help = help.replace("\n", " ")
-                optionals.append((flags, dest_flags, help))
+                nargs = action.nargs
+                help = (
+                    self._expand_help(action)
+                    if action.help and action.help != argparse.SUPPRESS
+                    else ""
+                )
+                help = help.split("\n")[0]
+
+                if action.choices is not None:
+                    dest = [str(choice) for choice in action.choices]
+                else:
+                    dest = [action.dest]
+
+                optionals.append((flags, dest, dest_flags, nargs, help))
             elif isinstance(action, argparse._SubParsersAction):
                 for subaction in action._choices_actions:
                     subparser = action._name_parser_map[subaction.dest]
-                    subcommands.append((subparser, subaction.dest))
+                    help = (
+                        self._expand_help(subaction)
+                        if subaction.help and action.help != argparse.SUPPRESS
+                        else ""
+                    )
+                    help = help.split("\n")[0]
+                    subcommands.append((subparser, subaction.dest, help))
 
                     # Look for aliases of the form 'name (alias, ...)'
-                    if self.aliases:
+                    if self.aliases and isinstance(subaction.metavar, str):
                         match = re.match(r"(.*) \((.*)\)", subaction.metavar)
                         if match:
                             aliases = match.group(2).split(", ")
                             for alias in aliases:
                                 subparser = action._name_parser_map[alias]
-                                subcommands.append((subparser, alias))
+                                help = (
+                                    self._expand_help(subaction)
+                                    if subaction.help and action.help != argparse.SUPPRESS
+                                    else ""
+                                )
+                                help = help.split("\n")[0]
+                                subcommands.append((subparser, alias, help))
             else:
                 args = fmt._format_action_invocation(action)
-                help = self._expand_help(action) if action.help else ""
-                help = help.replace("\n", " ")
-                positionals.append((args, help))
+                help = (
+                    self._expand_help(action)
+                    if action.help and action.help != argparse.SUPPRESS
+                    else ""
+                )
+                help = help.split("\n")[0]
+                positionals.append((args, action.choices, action.nargs, help))
 
         return Command(prog, description, usage, positionals, optionals, subcommands)
 
-    def format(self, cmd):
-        """Returns the string representation of a single node in the
-        parser tree.
+    @abc.abstractmethod
+    def format(self, cmd: Command) -> str:
+        """Return the string representation of a single node in the parser tree.
 
-        Override this in subclasses to define how each subcommand
-        should be displayed.
+        Override this in subclasses to define how each subcommand should be displayed.
 
-        Parameters:
-            (Command): parsed information about a command or subcommand
+        Args:
+            cmd: Parsed information about a command or subcommand.
 
         Returns:
-            str: the string representation of this subcommand
+            String representation of this subcommand.
         """
-        raise NotImplementedError
 
-    def _write(self, parser, prog, level=0):
-        """Recursively writes a parser.
+    def _write(self, parser: ArgumentParser, prog: str, level: int = 0) -> None:
+        """Recursively write a parser.
 
-        Parameters:
-            parser (argparse.ArgumentParser): the parser
-            prog (str): the command name
-            level (int): the current level
+        Args:
+            parser: Command parser.
+            prog: Program name.
+            level: Current level.
         """
         self.level = level
 
         cmd = self.parse(parser, prog)
         self.out.write(self.format(cmd))
 
-        for subparser, prog in cmd.subcommands:
+        for subparser, prog, help in cmd.subcommands:
             self._write(subparser, prog, level=level + 1)
 
-    def write(self, parser):
+    def write(self, parser: ArgumentParser) -> None:
         """Write out details about an ArgumentParser.
 
         Args:
-            parser (argparse.ArgumentParser): the parser
+            parser: Command parser.
         """
         try:
             self._write(parser, self.prog)
-        except IOError as e:
+        except BrokenPipeError:
             # Swallow pipe errors
-            # Raises IOError in Python 2 and BrokenPipeError in Python 3
-            if e.errno != errno.EPIPE:
-                raise
+            pass
 
 
 _rst_levels = ["=", "-", "^", "~", ":", "`"]
@@ -165,21 +195,33 @@ _rst_levels = ["=", "-", "^", "~", ":", "`"]
 class ArgparseRstWriter(ArgparseWriter):
     """Write argparse output as rst sections."""
 
-    def __init__(self, prog, out=None, aliases=False, rst_levels=_rst_levels):
-        """Create a new ArgparseRstWriter.
+    def __init__(
+        self,
+        prog: str,
+        out: IO = sys.stdout,
+        aliases: bool = False,
+        rst_levels: Sequence[str] = _rst_levels,
+    ) -> None:
+        """Initialize a new ArgparseRstWriter instance.
 
-        Parameters:
-            prog (str): program name
-            out (file object): file to write to
-            aliases (bool): whether or not to include subparsers for aliases
-            rst_levels (list of str): list of characters
-                for rst section headings
+        Args:
+            prog: Program name.
+            out: File object to write to.
+            aliases: Whether or not to include subparsers for aliases.
+            rst_levels: List of characters for rst section headings.
         """
-        out = sys.stdout if out is None else out
-        super(ArgparseRstWriter, self).__init__(prog, out, aliases)
+        super().__init__(prog, out, aliases)
         self.rst_levels = rst_levels
 
-    def format(self, cmd):
+    def format(self, cmd: Command) -> str:
+        """Return the string representation of a single node in the parser tree.
+
+        Args:
+            cmd: Parsed information about a command or subcommand.
+
+        Returns:
+            String representation of a node.
+        """
         string = io.StringIO()
         string.write(self.begin_command(cmd.prog))
 
@@ -190,13 +232,13 @@ class ArgparseRstWriter(ArgparseWriter):
 
         if cmd.positionals:
             string.write(self.begin_positionals())
-            for args, help in cmd.positionals:
+            for args, choices, nargs, help in cmd.positionals:
                 string.write(self.positional(args, help))
             string.write(self.end_positionals())
 
         if cmd.optionals:
             string.write(self.begin_optionals())
-            for flags, dest_flags, help in cmd.optionals:
+            for flags, dest, dest_flags, nargs, help in cmd.optionals:
                 string.write(self.optional(dest_flags, help))
             string.write(self.end_optionals())
 
@@ -205,7 +247,15 @@ class ArgparseRstWriter(ArgparseWriter):
 
         return string.getvalue()
 
-    def begin_command(self, prog):
+    def begin_command(self, prog: str) -> str:
+        """Text to print before a command.
+
+        Args:
+            prog: Program name.
+
+        Returns:
+            Text before a command.
+        """
         return """
 ----
 
@@ -218,10 +268,26 @@ class ArgparseRstWriter(ArgparseWriter):
             prog.replace(" ", "-"), prog, self.rst_levels[self.level] * len(prog)
         )
 
-    def description(self, description):
+    def description(self, description: str) -> str:
+        """Description of a command.
+
+        Args:
+            description: Command description.
+
+        Returns:
+            Description of a command.
+        """
         return description + "\n\n"
 
-    def usage(self, usage):
+    def usage(self, usage: str) -> str:
+        """Example usage of a command.
+
+        Args:
+            usage: Command usage.
+
+        Returns:
+            Usage of a command.
+        """
         return """\
 .. code-block:: console
 
@@ -231,10 +297,24 @@ class ArgparseRstWriter(ArgparseWriter):
             usage
         )
 
-    def begin_positionals(self):
+    def begin_positionals(self) -> str:
+        """Text to print before positional arguments.
+
+        Returns:
+            Positional arguments header.
+        """
         return "\n**Positional arguments**\n\n"
 
-    def positional(self, name, help):
+    def positional(self, name: str, help: str) -> str:
+        """Description of a positional argument.
+
+        Args:
+            name: Argument name.
+            help: Help text.
+
+        Returns:
+            Positional argument description.
+        """
         return """\
 {0}
   {1}
@@ -243,13 +323,32 @@ class ArgparseRstWriter(ArgparseWriter):
             name, help
         )
 
-    def end_positionals(self):
+    def end_positionals(self) -> str:
+        """Text to print after positional arguments.
+
+        Returns:
+            Positional arguments footer.
+        """
         return ""
 
-    def begin_optionals(self):
+    def begin_optionals(self) -> str:
+        """Text to print before optional arguments.
+
+        Returns:
+            Optional arguments header.
+        """
         return "\n**Optional arguments**\n\n"
 
-    def optional(self, opts, help):
+    def optional(self, opts: str, help: str) -> str:
+        """Description of an optional argument.
+
+        Args:
+            opts: Optional argument.
+            help: Help text.
+
+        Returns:
+            Optional argument description.
+        """
         return """\
 ``{0}``
   {1}
@@ -258,10 +357,23 @@ class ArgparseRstWriter(ArgparseWriter):
             opts, help
         )
 
-    def end_optionals(self):
+    def end_optionals(self) -> str:
+        """Text to print after optional arguments.
+
+        Returns:
+            Optional arguments footer.
+        """
         return ""
 
-    def begin_subcommands(self, subcommands):
+    def begin_subcommands(self, subcommands: List[Tuple[ArgumentParser, str, str]]) -> str:
+        """Table with links to other subcommands.
+
+        Arguments:
+            subcommands: List of subcommands.
+
+        Returns:
+            Subcommand linking text.
+        """
         string = """
 **Subcommands**
 
@@ -270,116 +382,8 @@ class ArgparseRstWriter(ArgparseWriter):
 
 """
 
-        for cmd, _ in subcommands:
+        for cmd, _, _ in subcommands:
             prog = re.sub(r"^[^ ]* ", "", cmd.prog)
             string += "   * :ref:`{0} <{1}>`\n".format(prog, cmd.prog.replace(" ", "-"))
 
         return string + "\n"
-
-
-class ArgparseCompletionWriter(ArgparseWriter):
-    """Write argparse output as shell programmable tab completion functions."""
-
-    def format(self, cmd):
-        """Returns the string representation of a single node in the
-        parser tree.
-
-        Override this in subclasses to define how each subcommand
-        should be displayed.
-
-        Parameters:
-            (Command): parsed information about a command or subcommand
-
-        Returns:
-            str: the string representation of this subcommand
-        """
-
-        assert cmd.optionals  # we should always at least have -h, --help
-        assert not (cmd.positionals and cmd.subcommands)  # one or the other
-
-        # We only care about the arguments/flags, not the help messages
-        positionals = []
-        if cmd.positionals:
-            positionals, _ = zip(*cmd.positionals)
-        optionals, _, _ = zip(*cmd.optionals)
-        subcommands = []
-        if cmd.subcommands:
-            _, subcommands = zip(*cmd.subcommands)
-
-        # Flatten lists of lists
-        optionals = [x for xx in optionals for x in xx]
-
-        return (
-            self.start_function(cmd.prog)
-            + self.body(positionals, optionals, subcommands)
-            + self.end_function(cmd.prog)
-        )
-
-    def start_function(self, prog):
-        """Returns the syntax needed to begin a function definition.
-
-        Parameters:
-            prog (str): the command name
-
-        Returns:
-            str: the function definition beginning
-        """
-        name = prog.replace("-", "_").replace(" ", "_")
-        return "\n_{0}() {{".format(name)
-
-    def end_function(self, prog=None):
-        """Returns the syntax needed to end a function definition.
-
-        Parameters:
-            prog (str or None): the command name
-
-        Returns:
-            str: the function definition ending
-        """
-        return "}\n"
-
-    def body(self, positionals, optionals, subcommands):
-        """Returns the body of the function.
-
-        Parameters:
-            positionals (list): list of positional arguments
-            optionals (list): list of optional arguments
-            subcommands (list): list of subcommand parsers
-
-        Returns:
-            str: the function body
-        """
-        return ""
-
-    def positionals(self, positionals):
-        """Returns the syntax for reporting positional arguments.
-
-        Parameters:
-            positionals (list): list of positional arguments
-
-        Returns:
-            str: the syntax for positional arguments
-        """
-        return ""
-
-    def optionals(self, optionals):
-        """Returns the syntax for reporting optional flags.
-
-        Parameters:
-            optionals (list): list of optional arguments
-
-        Returns:
-            str: the syntax for optional flags
-        """
-        return ""
-
-    def subcommands(self, subcommands):
-        """Returns the syntax for reporting subcommands.
-
-        Parameters:
-            subcommands (list): list of subcommand parsers
-
-        Returns:
-            str: the syntax for subcommand parsers
-        """
-        return ""

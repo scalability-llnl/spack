@@ -1,19 +1,5 @@
 spack:
   view: false
-
-  concretizer:
-    reuse: false
-    unify: false
-
-  config:
-    build_jobs: 32
-    concretizer: clingo
-    install_tree:
-      root: /home/software/spack
-      padded_length: 384
-      projections:
-        all: '{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'
-
   packages:
     all:
       providers:
@@ -52,114 +38,10 @@ spack:
     - - $compiler
     - - $target
 
-  mirrors: { "mirror": "s3://spack-binaries/develop/radiuss-aws-aarch64" }
-
-  gitlab-ci:
-
-    script:
-      - uname -a || true
-      - grep -E 'vendor|model name' /proc/cpuinfo 2>/dev/null | sort -u || head -n10 /proc/cpuinfo 2>/dev/null || true
-      - nproc
-      - curl -Lfs 'https://github.com/JuliaBinaryWrappers/GNUMake_jll.jl/releases/download/GNUMake-v4.3.0+1/GNUMake.v4.3.0.aarch64-linux-gnu.tar.gz' -o gmake.tar.gz
-      - printf '2322c175fb092b426f9eb6c24ee22d94ffa6759c3d0c260b74d81abd8120122b gmake.tar.gz' | sha256sum --check --strict --quiet
-      - tar -xzf gmake.tar.gz -C /usr bin/make 2> /dev/null
-      - . "./share/spack/setup-env.sh"
-      - spack --version
-      - spack arch
-      - cd ${SPACK_CONCRETE_ENV_DIR}
-      - spack env activate --without-view .
-      - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
-      - mkdir -p ${SPACK_ARTIFACTS_ROOT}/user_data
-      - if [[ -r /mnt/key/intermediate_ci_signing_key.gpg ]]; then spack gpg trust /mnt/key/intermediate_ci_signing_key.gpg; fi
-      - if [[ -r /mnt/key/spack_public_key.gpg ]]; then spack gpg trust /mnt/key/spack_public_key.gpg; fi
-      - spack --color=always --backtrace ci rebuild > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)
-    after_script:
-      - cat /proc/loadavg || true
-
-    image: { "name": "ghcr.io/spack/e4s-amazonlinux-2:v2022-03-21", "entrypoint": [""] }
-    match_behavior: first
-    mappings:
-      - match:
-        - llvm
-        - llvm-amdgpu
-        - pango
-        - paraview
-        runner-attributes:
-          tags: [ "spack", "huge", "aarch64" ]
-          variables:
-            CI_JOB_SIZE: huge
-            KUBERNETES_CPU_REQUEST: 11000m
-            KUBERNETES_MEMORY_REQUEST: 42G
-
-
-      - match:
-        - ascent
-        - atk
-        - axom
-        - cistem
-        - ctffind
-        - cuda
-        - dyninst
-        - gcc
-        - ginkgo
-        - hdf5
-        - hpx
-        - kokkos-kernels
-        - kokkos-nvcc-wrapper
-        - magma
-        - mfem
-        - mpich
-        - openturns
-        - parallelio
-        - precice
-        - raja
-        - relion
-        - rocblas
-        - rocsolver
-        - rust
-        - slate
-        - strumpack
-        - sundials
-        - trilinos
-        - umpire
-        - vtk
-        - vtk-h
-        - vtk-m
-        - warpx
-        - wrf
-        - wxwidgets
-        runner-attributes:
-          tags: [ "spack", "large", "aarch64" ]
-          variables:
-            CI_JOB_SIZE: large
-            KUBERNETES_CPU_REQUEST: 8000m
-            KUBERNETES_MEMORY_REQUEST: 12G
-
-      - match: ['os=amzn2']
-        runner-attributes:
-          tags: ["spack", "aarch64"]
-          variables:
-            CI_JOB_SIZE: "default"
-
-    broken-specs-url: "s3://spack-binaries/broken-specs"
-
-    service-job-attributes:
-      before_script:
-        - . "./share/spack/setup-env.sh"
-        - spack --version
-      image: { "name": "ghcr.io/spack/e4s-amazonlinux-2:v2022-03-21", "entrypoint": [""] }
-      tags: ["spack", "public", "aarch64"]
-
-    signing-job-attributes:
-      image: { "name": "ghcr.io/spack/notary:latest", "entrypoint": [""] }
-      tags: ["spack", "aws"]
-      script:
-        - aws s3 sync --exclude "*" --include "*spec.json*" ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache /tmp
-        - /sign.sh
-        - aws s3 sync --exclude "*" --include "*spec.json.sig*" /tmp ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache
+  ci:
+    pipeline-gen:
+    - build-job:
+        image: { "name": "ghcr.io/spack/e4s-amazonlinux-2:v2023-03-09", "entrypoint": [""] }
 
   cdash:
     build-group: RADIUSS AWS Packages
-    url: https://cdash.spack.io
-    project: Spack Testing
-    site: Cloud Gitlab Infrastructure

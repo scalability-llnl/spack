@@ -7,3 +7,4 @@ jinja2==3.0.3
 six==1.16.0
 macholib==1.16.2
   altgraph==0.17.3
+ruamel.yaml==0.17.21

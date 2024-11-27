@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class RubyXdg(RubyPackage):
     # Source code can be found at https://github.com/bkuhlmann/xdg and
     # https://github.com/rubyworks/xdg but I was unable to get it to build
     # from source
+
+    license("Hippocratic-2.1")
 
     version(
         "2.2.5",

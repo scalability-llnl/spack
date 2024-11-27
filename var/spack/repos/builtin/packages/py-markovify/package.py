@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyMarkovify(PythonPackage):
 
     homepage = "https://github.com/jsvine/markovify"
     pypi = "markovify/markovify-0.8.3.tar.gz"
+
+    license("MIT")
 
     version("0.8.3", sha256="254405c5b2f819ae388c39a53e6bc038bfbc24713441869ce90a1cd67e4a89ce")
 

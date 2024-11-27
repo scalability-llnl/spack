@@ -1,0 +1,18 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 90bddf2e..47ab5998 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -217,11 +217,13 @@ endif(EXAGO_ENABLE_GPU)
+ if(EXAGO_ENABLE_PETSC)
+   include(FindPkgConfig)
+   # Include petsc package path in pkg_config_path
++  set(PKG_CONFIG_PATH_save $ENV{PKG_CONFIG_PATH})
+   set(ENV{PKG_CONFIG_PATH}
+       ${PETSC_DIR}/lib/pkgconfig:${PETSC_DIR}/${PETSC_ARCH}/lib/pkgconfig
+   )
+   pkg_check_modules(PETSC REQUIRED IMPORTED_TARGET PETSc)
+   set(EXAGO_HAVE_PETSC 1)
++  set(ENV{PKG_CONFIG_PATH} ${PKG_CONFIG_PATH_save})
+ endif()
+ 
+ # Set install rpath to the locations where EXAGO and PETSc libraries reside.

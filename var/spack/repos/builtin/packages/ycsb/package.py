@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Ycsb(MavenPackage):
     homepage = "https://research.yahoo.com/news/yahoo-cloud-serving-benchmark/"
     url = "https://github.com/brianfrankcooper/YCSB/archive/0.17.0.tar.gz"
     git = "https://github.com/brianfrankcooper/YCSB.git"
+
+    license("Apache-2.0")
 
     version("master", branch="master")
     version("0.17.0", sha256="5dd1a3d4dd7ac336eadccc83b097c811e142cfe1b23fc278f247054a1892c0e0")

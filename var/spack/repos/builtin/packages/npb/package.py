@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -35,6 +35,9 @@ class Npb(MakefilePackage):
     version("3.3.1", sha256="4a8ea679b1df69f583c544c47198b3c26a50ec2bb6f8f69aef66c04c9a747d2d")
     version("3.4.1", sha256="f3a43467da6e84a829ea869156d3ea86c17932136bb413a4b6dab23018a28881")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Valid Benchmark Names
     valid_names = (
         "is",  # Integer Sort, random memory access
@@ -58,7 +61,7 @@ class Npb(MakefilePackage):
         # ~4X size increase going from one class to the next
         "D",
         "E",
-        "F"  # large test problems
+        "F",  # large test problems
         # ~16X size increase from each of the previous classes
     )
 
@@ -119,6 +122,10 @@ class Npb(MakefilePackage):
         nprocs = spec.variants["nprocs"].value
 
         if "implementation=mpi" in spec:
+            fflags = fflags = ["-O3"]
+            if spec.satisfies("%gcc@10:"):
+                fflags.append("-fallow-argument-mismatch")
+
             definitions = {
                 # Parallel Fortran
                 "MPIFC": spec["mpi"].mpifc,
@@ -126,7 +133,7 @@ class Npb(MakefilePackage):
                 "FLINK": spec["mpi"].mpif77,
                 "FMPI_LIB": spec["mpi"].libs.ld_flags,
                 "FMPI_INC": "-I" + spec["mpi"].prefix.include,
-                "FFLAGS": "-O3",
+                "FFLAGS": " ".join(fflags),
                 "FLINKFLAGS": "-O3",
                 # Parallel C
                 "MPICC": spec["mpi"].mpicc,

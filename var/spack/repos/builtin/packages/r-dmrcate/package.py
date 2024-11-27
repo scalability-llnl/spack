@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,7 @@ class RDmrcate(RPackage):
 
     bioc = "DMRcate"
 
+    version("2.14.0", commit="6e7bae0917001e7664f01c3f8d261f9fe28c2f4d")
     version("2.12.0", commit="560dd5067b05715631739d0fb58ef9cebdbf7078")
     version("2.10.0", commit="81e83701da5c55ac83d0e0b5e640a9d431f09551")
     version("2.8.5", commit="c65dc79a33a047c10932a98b3383709a6bcb8903")

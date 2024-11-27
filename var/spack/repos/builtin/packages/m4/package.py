@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,9 +15,14 @@ class M4(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.gnu.org/software/m4/m4.html"
     gnu_mirror_path = "m4/m4-1.4.18.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("1.4.19", sha256="3be4a26d825ffdfda52a56fc43246456989a3630093cced3fbddf4771ee58a70")
     version("1.4.18", sha256="ab2633921a5cd38e48797bf5521ad259bdc4b979078034a3b790d7fec5493fab")
     version("1.4.17", sha256="3ce725133ee552b8b4baca7837fb772940b25e81b2a9dc92537aeaf733538c9e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     patch("gnulib-pgi.patch", when="@1.4.18")
     patch("pgi.patch", when="@1.4.17")
@@ -78,6 +83,13 @@ class M4(AutotoolsPackage, GNUMirrorPackage):
         # https://www.gnu.org/software/autoconf/manual/autoconf-2.67/html_node/autom4te-Invocation.html
         env.set("M4", self.prefix.bin.m4)
 
+    def setup_build_environment(self, env):
+        # The default optimization level for icx/icpx is "-O2",
+        # but building m4 with this level breaks the build of dependents.
+        # So we set it explicitely to "-O0".
+        if self.spec.satisfies("%intel") or self.spec.satisfies("%oneapi"):
+            env.append_flags("CFLAGS", "-O0")
+
     def setup_run_environment(self, env):
         env.set("M4", self.prefix.bin.m4)
 
@@ -111,17 +123,18 @@ class M4(AutotoolsPackage, GNUMirrorPackage):
 
         return args
 
-    def test(self):
-        spec_vers = str(self.spec.version)
-        reason = "test: ensuring m4 version is {0}".format(spec_vers)
-        self.run_test(
-            "m4", "--version", spec_vers, installed=True, purpose=reason, skip_missing=False
-        )
+    def test_version(self):
+        """ensure m4 version matches installed spec"""
+        m4 = which(self.prefix.bin.m4)
+        out = m4("--version", output=str.split, error=str.split)
+        assert str(self.spec.version) in out
 
-        reason = "test: ensuring m4 example succeeds"
+    def test_hello(self):
+        """ensure m4 hello example runs"""
         test_data_dir = self.test_suite.current_test_data_dir
         hello_file = test_data_dir.join("hello.m4")
+        m4 = which(self.prefix.bin.m4)
+        out = m4(hello_file, output=str.split, error=str.split)
+
         expected = get_escaped_text_output(test_data_dir.join("hello.out"))
-        self.run_test(
-            "m4", hello_file, expected, installed=True, purpose=reason, skip_missing=False
-        )
+        check_outputs(expected, out)

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,7 @@ class RLumi(RPackage):
 
     bioc = "lumi"
 
+    version("2.52.0", commit="c6aa992a622dbaba4dae1b54c61835a37cce8e95")
     version("2.50.0", commit="8711b77a1b5b0a58770d25d3d079ad02208704f5")
     version("2.48.0", commit="1f988ffe04d2c0707b2202d2074d02b679a3204b")
     version("2.46.0", commit="a68932c17a61c99e58ebbd8008d078bec6adb4e7")

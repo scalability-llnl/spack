@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -38,6 +38,10 @@ class VisitCgns(CMakePackage):
     version("2.10.3", sha256="05018215c4727eb42d47bb5cc4ff937b2a2ccaca90d141bc7fa426a0843a5dbc")
     version("2.10.2", sha256="89ecdfaf197ef431685e31b75628774deb6cd75d3e332ef26505774403e8beff")
     version("2.10.1", sha256="6b53dea89a241fd03300a7a3a50c0f773e2fb8458cd3ad06816e9bd2f0337cd8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake", type="build")
     depends_on("cgns@3.3.1+int64~scoping~legacy", when="@2.10.1:3.1.4")

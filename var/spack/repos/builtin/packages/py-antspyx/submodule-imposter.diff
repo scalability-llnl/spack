@@ -1,0 +1,52 @@
+--- spack-src/scripts/configure_ANTsPy.sh.orig	2021-11-19 13:27:28.551737371 +0100
++++ spack-src/scripts/configure_ANTsPy.sh	2021-11-19 13:28:07.422251249 +0100
+@@ -1,26 +1,7 @@
+ #!/bin/bash
+ 
+ # ---------------------------------------------
+-# clone pybind11 into library directory
+-
+-cd ants/lib # go to lib dir
+-if [[ ! -d ~/pybind11 ]]; then
+-  git clone https://github.com/stnava/pybind11.git
+-#  git clone https://github.com/ncullen93/pybind11.git
+-fi
+-cd ../../ # go back to main dir
+-
+-# ---------------------------------------------
+-# create local ~/.antspy dir and move package data to it
+-
+-if [[ ! -d ~/.antspy ]]; then
+-    mkdir ~/.antspy
+-fi
+-
+-cp data/* ~/.antspy/
+-
+-# ---------------------------------------------
+-# clone ANTs and move all files into library directory
++# move all files from ANTs into library directory
+ 
+ antsgit=https://github.com/ANTsX/ANTs.git
+ antstag=4528978446c73ed09927ea5ae1721b280d534dc0 # 2020 n4 type
+@@ -30,20 +11,11 @@
+ 
+ # if antscore doesnt exist, create it
+ if [[ ! -d antscore ]] ; then
+-    git clone $antsbranch $antsgit antsrepo
+-
+     if [[ ! -d antscore ]] ; then
+         mkdir antscore
+     fi
+ 
+-    cd antsrepo # go to antscore
+-    # check out right branch
+-    if [[ -d .git ]]; then
+-        git checkout master
+-        git pull
+-        git checkout $antstag
+-    fi
+-    cd ..
++    ln -sf ANTs antsrepo
+     # copy antscore files into library
+     cp -r antsrepo/Examples/*  antscore/
+     cp -r antsrepo/Examples/include/*  antscore

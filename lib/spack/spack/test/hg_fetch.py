@@ -1,28 +1,26 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import sys
 
 import pytest
 
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
 import spack.config
-import spack.repo
 from spack.fetch_strategy import HgFetchStrategy
 from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which
-from spack.version import ver
+from spack.version import Version
 
 # Test functionality covered is supported on Windows, but currently failing
 # and expected to be fixed
 pytestmark = [
     pytest.mark.skipif(not which("hg"), reason="requires mercurial to be installed"),
-    pytest.mark.skipif(sys.platform == "win32", reason="Failing on Win"),
+    pytest.mark.not_on_windows("Failing on Win"),
 ]
 
 
@@ -44,7 +42,7 @@ def test_fetch(type_of_test, secure, mock_hg_repository, config, mutable_mock_re
 
     # Construct the package under test
     s = Spec("hg-test").concretized()
-    monkeypatch.setitem(s.package.versions, ver("hg"), t.args)
+    monkeypatch.setitem(s.package.versions, Version("hg"), t.args)
 
     # Enter the stage directory and check some properties
     with s.package.stage:

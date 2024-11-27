@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -103,9 +103,9 @@ def hello_world_with_module_in_root(extension_creator):
 
     @contextlib.contextmanager
     def _hwwmir(extension_name=None):
-        with extension_creator(
-            extension_name
-        ) if extension_name else extension_creator() as extension:
+        with (
+            extension_creator(extension_name) if extension_name else extension_creator()
+        ) as extension:
             # Note that the namespace of the extension is derived from the
             # fixture.
             extension.add_command(

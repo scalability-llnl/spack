@@ -1,7 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
 
 from spack.package import *
 
@@ -13,6 +15,9 @@ class PyJupyterCore(PythonPackage):
     pypi = "jupyter-core/jupyter_core-4.6.0.tar.gz"
     git = "https://github.com/jupyter/jupyter_core.git"
 
+    license("BSD-3-Clause")
+
+    version("5.3.0", sha256="6db75be0c83edbf1b7c9f91ec266a9a24ef945da630f3120e1a0046dc13713fc")
     version("5.1.0", sha256="a5ae7c09c55c0b26f692ec69323ba2b62e8d7295354d20f6cd57b749de4a05bf")
     version("4.11.1", sha256="2e5f244d44894c4154d06aeae3419dd7f1b0ef4494dc5584929b398c61cfd314")
     version("4.9.2", sha256="d69baeb9ffb128b8cd2657fcf2703f89c769d1673c851812119e3a2a0e93ad9a")
@@ -33,14 +38,19 @@ class PyJupyterCore(PythonPackage):
     version("4.0.0", sha256="9025208cdfc40718c7e3ab62b5e17aacf68e3fc66e34ff21fe032d553620122a")
 
     depends_on("python@3.8:", when="@5:", type=("build", "run"))
-    depends_on("python@3.7:", when="@4.11.1:", type=("build", "run"))
-    depends_on("python@3.6:", when="@4.7:", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.5:", when="@4.6.2:", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.3:", type=("build", "run"))
-    depends_on("py-setuptools", when="@:4.9.2", type=("build", "run"))
     depends_on("py-hatchling@1.4:", when="@4.11.1:", type="build")
 
     depends_on("py-platformdirs@2.5:", when="@5.1:", type=("build", "run"))
     depends_on("py-traitlets@5.3:", when="@5.1:", type=("build", "run"))
     depends_on("py-traitlets", type=("build", "run"))
-    # additional pywin32>=1.0 dependency for windows
+    # additional pywin32>=300 dependency for windows
+
+    # Historical dependencies
+    depends_on("py-setuptools", when="@:4.9.2", type=("build", "run"))
+
+    def setup_dependent_run_environment(self, env, dependent_spec):
+        # https://docs.jupyter.org/en/stable/use/jupyter-directories.html
+        if os.path.exists(dependent_spec.prefix.etc.jupyter):
+            env.prepend_path("JUPYTER_CONFIG_PATH", dependent_spec.prefix.etc.jupyter)
+        if os.path.exists(dependent_spec.prefix.share.jupyter):
+            env.prepend_path("JUPYTER_PATH", dependent_spec.prefix.share.jupyter)

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPystan(PythonPackage):
     pypi = "pystan/pystan-3.4.0.tar.gz"
 
     maintainers("haralmha")
+
+    license("ISC")
 
     version("3.5.0", sha256="078571d071a5b7c0af59206d4994a0979f4ac4b61f4a720b640c44fe35514929")
     version("3.4.0", sha256="325e2fb0ab804555c05a603e0c9152ab11fcc3af01f3e9a9ff9fe9954b93184f")

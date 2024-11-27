@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class PyTensorflowMetadata(PythonPackage):
     # Only available as a wheel on PyPI
     url = "https://github.com/tensorflow/metadata/archive/refs/tags/v1.5.0.tar.gz"
 
+    license("Apache-2.0")
+
     version("1.10.0", sha256="e7aa81aa01433e2a75c11425affd55125b64f384baf96b71eeb3a88dca8cf2ae")
     version("1.5.0", sha256="f0ec8aaf62fd772ef908efe4ee5ea3bc0d67dcbf10ae118415b7b206a1d61745")
 
@@ -36,6 +38,21 @@ class PyTensorflowMetadata(PythonPackage):
     depends_on("py-absl-py@0.9:0.12", when="@:1.5", type=("build", "run"))
     depends_on("py-googleapis-common-protos@1.52:1", type=("build", "run"))
     depends_on("py-protobuf@3.13:3", type=("build", "run"))
+
+    def patch(self):
+        filter_file(
+            "self._additional_build_options = ['--copt=-DWIN32_LEAN_AND_MEAN']",
+            "self._additional_build_options = ['--copt=-DWIN32_LEAN_AND_MEAN',"
+            f" '--jobs={make_jobs}']",
+            "setup.py",
+            string=True,
+        )
+        filter_file(
+            "self._additional_build_options = []",
+            f"self._additional_build_options = ['--jobs={make_jobs}']",
+            "setup.py",
+            string=True,
+        )
 
     def setup_build_environment(self, env):
         tmp_path = tempfile.mkdtemp(prefix="spack")

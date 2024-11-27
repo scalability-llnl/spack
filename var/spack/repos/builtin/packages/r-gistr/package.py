@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class RGistr(RPackage):
     'Gists' website:  <https://gist.github.com/>."""
 
     cran = "gistr"
+
+    license("MIT")
 
     version("0.9.0", sha256="170ae025151ee688e7d31b9e49112086a8ddf4fef10155e9ee289ad7f28c8929")
     version("0.4.2", sha256="43c00c7f565732125f45f6c067724771ba1b337d6dd3a6e301639fe16e11032e")

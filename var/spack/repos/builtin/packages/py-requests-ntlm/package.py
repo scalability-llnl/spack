@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyRequestsNtlm(PythonPackage):
 
     homepage = "https://github.com/requests/requests-ntlm"
     pypi = "requests_ntlm/requests_ntlm-1.1.0.tar.gz"
+
+    license("ISC")
 
     version("1.1.0", sha256="9189c92e8c61ae91402a64b972c4802b2457ce6a799d658256ebf084d5c7eb71")
 

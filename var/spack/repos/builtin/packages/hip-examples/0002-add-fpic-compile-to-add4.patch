@@ -1,0 +1,9 @@
+diff --git a/add4/Makefile b/add4/Makefile
+index a0c6826..d7b26b1 100644
+--- a/add4/Makefile
++++ b/add4/Makefile
+@@ -1,4 +1,4 @@
+-CXXFLAGS += -std=c++11 -O3
++CXXFLAGS += -std=c++11 -O3 -fPIC
+
+ all:  gpu-stream-hip

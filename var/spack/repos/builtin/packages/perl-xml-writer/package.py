@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,4 +24,5 @@ class PerlXmlWriter(PerlPackage):
     homepage = "https://metacpan.org/pod/XML::Writer"
     url = "https://cpan.metacpan.org/authors/id/J/JO/JOSEPHW/XML-Writer-0.625.tar.gz"
 
+    version("0.900", sha256="73c8f5bd3ecf2b350f4adae6d6676d52e08ecc2d7df4a9f089fa68360d400d1f")
     version("0.625", sha256="e080522c6ce050397af482665f3965a93c5d16f5e81d93f6e2fe98084ed15fbe")

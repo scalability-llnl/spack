@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyYoutubeDl(PythonPackage):
 
     homepage = "https://github.com/ytdl-org/youtube-dl"
     pypi = "youtube_dl/youtube_dl-2020.3.24.tar.gz"
+
+    license("Unlicense")
 
     version(
         "2021.12.17", sha256="bc59e86c5d15d887ac590454511f08ce2c47698d5a82c27bfe27b5d814bbaed2"

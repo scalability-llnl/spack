@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyPyro4(PythonPackage):
     homepage = "http://pyro4.readthedocs.io"
     pypi = "Pyro4/Pyro4-4.81.tar.gz"
     maintainers("liuyangzhuan")
+
+    license("MIT")
 
     version("4.81", sha256="e130da06478b813173b959f7013d134865e07fbf58cc5f1a2598f99479cdac5f")
     version("4.80", sha256="46847ca703de3f483fbd0b2d22622f36eff03e6ef7ec7704d4ecaa3964cb2220")

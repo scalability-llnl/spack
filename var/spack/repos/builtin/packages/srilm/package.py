@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -71,7 +71,7 @@ class Srilm(MakefilePackage):
         makefile_machine.filter(r"PIC_FLAG\s*=.*", "")
 
         with open(makefile_machine_fn, "a") as makefile_machine:
-            # TCL is only needed for tests so disable it
+            # Tcl is only needed for tests so disable it
             makefile_machine.write("\nNO_TCL = 1\n")
             if "+pic" in spec:
                 makefile_machine.write("MAKE_PIC = 1\n")

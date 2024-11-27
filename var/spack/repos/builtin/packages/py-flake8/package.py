@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,10 @@ class PyFlake8(PythonPackage):
     homepage = "https://github.com/PyCQA/flake8"
     pypi = "flake8/flake8-4.0.1.tar.gz"
 
+    license("MIT")
+
+    version("6.1.0", sha256="d5b3857f07c030bdb5bf41c7f53799571d75c4491748a3adcd47de929e34cd23")
+    version("6.0.0", sha256="c61007e76655af75e6785a931f452915b371dc48f56efd765247c8fe68f2b181")
     version("5.0.4", sha256="6fbe320aad8d6b95cec8b8e47bc933004678dc63095be98528b7bdd2a9f510db")
     version("5.0.2", sha256="9cc32bc0c5d16eacc014c7ec6f0e9565fd81df66c2092c3c9df06e3c1ac95e5d")
     version("5.0.1", sha256="9c51d3d1426379fd444d3b79eabbeb887849368bd053039066439523d8486961")
@@ -27,7 +31,7 @@ class PyFlake8(PythonPackage):
     version("3.0.4", sha256="b4c210c998f07d6ff24325dd91fbc011f2c37bcd6bf576b188de01d8656e970d")
     version("2.5.4", sha256="cc1e58179f6cf10524c7bfdd378f5536d0a61497688517791639a5ecc867492f")
 
-    extends("python", ignore="bin/(pyflakes|pycodestyle)")
+    depends_on("python@3.8.1:", when="@6:", type=("build", "run"))
     depends_on("python@3.6.1:", when="@5:", type=("build", "run"))
     depends_on("python@3.6:", when="@4:", type=("build", "run"))
     depends_on("python@2.7:2.8,3.5:", when="@3.9.2:", type=("build", "run"))
@@ -41,6 +45,16 @@ class PyFlake8(PythonPackage):
     # error codes within each minor release:
     # http://flake8.pycqa.org/en/latest/faq.html#why-does-flake8-use-ranges-for-its-dependencies
     # http://flake8.pycqa.org/en/latest/internal/releases.html#releasing-flake8
+
+    # Flake8 6.1.X
+    depends_on("py-mccabe@0.7", when="@6.1", type=("build", "run"))
+    depends_on("py-pycodestyle@2.11", when="@6.1", type=("build", "run"))
+    depends_on("py-pyflakes@3.1", when="@6.1", type=("build", "run"))
+
+    # Flake8 6.0.X
+    depends_on("py-mccabe@0.7", when="@6.0", type=("build", "run"))
+    depends_on("py-pycodestyle@2.10", when="@6.0", type=("build", "run"))
+    depends_on("py-pyflakes@3.0", when="@6.0", type=("build", "run"))
 
     # Flake8 5.0.X
     depends_on("py-mccabe@0.7", when="@5.0", type=("build", "run"))

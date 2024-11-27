@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,10 +16,14 @@ class Gnuconfig(Package):
     homepage = "https://www.gnu.org/software/config/"
     git = "https://github.com/spack/gnuconfig.git"
     url = "https://github.com/spack/gnuconfig/releases/download/2021-08-14/gnuconfig-2021-08-14.tar.gz"
+    tags = ["build-tools"]
 
     maintainers("haampie")
 
     version("master", branch="master")
+    version(
+        "2024-07-27", sha256="1135044961853c7f116145cee9bb15c3d29b1b081cf8293954efd0f05d801a7c"
+    )
     version(
         "2022-09-17", sha256="95306801ad7086e6a6e13397cb859183d8b7adbba2e372ce0819bad5fcb919b7"
     )

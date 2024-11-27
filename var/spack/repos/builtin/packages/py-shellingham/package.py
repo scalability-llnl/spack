@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyShellingham(PythonPackage):
 
     homepage = "https://github.com/sarugaku/shellingham"
     pypi = "shellingham/shellingham-1.4.0.tar.gz"
+
+    license("0BSD")
 
     version("1.5.0", sha256="72fb7f5c63103ca2cb91b23dee0c71fe8ad6fbfd46418ef17dbe40db51592dad")
     version("1.4.0", sha256="4855c2458d6904829bd34c299f11fdeed7cfefbf8a2c522e4caea6cd76b3171e")

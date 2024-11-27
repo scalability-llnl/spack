@@ -1,0 +1,27 @@
+diff -ruN spack-src/src/pm/hydra/configure.ac spack-src-patched/src/pm/hydra/configure.ac
+--- spack-src/src/pm/hydra/configure.ac	2022-05-16 16:58:22.000000000 +0000
++++ spack-src-patched/src/pm/hydra/configure.ac	2023-07-20 15:23:21.802299913 +0000
+@@ -306,15 +306,16 @@
+ 		    available_launchers="$available_launchers pbs"
+ 		    PAC_APPEND_FLAG([-ltorque],[WRAPPER_LIBS])
+                 fi
+-		PAC_SET_HEADER_LIB_PATH(pbs)
+ 		PAC_PUSH_FLAG(LIBS)
+-		PAC_CHECK_HEADER_LIB(tm.h, pbs, tm_init, have_pbs_launcher=yes,
++                if test "have_pbs_launcher" = "no" ; then
++		  PAC_CHECK_HEADER_LIB(tm.h, pbs, tm_init, have_pbs_launcher=yes,
+ 					   have_pbs_launcher=no)
+-		PAC_POP_FLAG(LIBS)
+-                if test "$have_pbs_launcher" = "yes" ; then
+-		    available_launchers="$available_launchers pbs"
+-		    PAC_APPEND_FLAG([-lpbs],[WRAPPER_LIBS])
+-                    AC_DEFINE(HAVE_PBS_PRO, 1, [Define if PBS Pro support is enabled])
++		  PAC_POP_FLAG(LIBS)
++                  if test "$have_pbs_launcher" = "yes" ; then
++		      available_launchers="$available_launchers pbs"
++		      PAC_APPEND_FLAG([-lpbs],[WRAPPER_LIBS])
++                      AC_DEFINE(HAVE_PBS_PRO, 1, [Define if PBS Pro support is enabled])
++                  fi
+                 fi
+ 		available_rmks="$available_rmks pbs"
+ 		;;

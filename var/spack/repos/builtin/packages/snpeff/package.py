@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,7 @@ class Snpeff(Package, SourceforgePackage):
     annotates and predicts the effects of genetic variants (such as
     amino acid changes)."""
 
-    homepage = "http://snpeff.sourceforge.net/"
+    homepage = "https://snpeff.sourceforge.net/"
     sourceforge_mirror_path = "snpeff/snpEff_latest_core.zip"
 
     version(

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,7 @@ class RSpem(RPackage):
 
     bioc = "SPEM"
 
+    version("1.40.0", commit="2eb948950c01ced90ebf27558817e2849da81a32")
     version("1.38.0", commit="43ff6b0a84e7aef947d1a793583d2e9a0119c99d")
     version("1.36.0", commit="75832966ba3e2bae6b56aa138764f7a98c7ba9b1")
     version("1.34.0", commit="53fd404638a04ec8e2e826e55c3f2d91d8b28e3d")

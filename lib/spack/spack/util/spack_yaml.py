@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,12 +15,14 @@
 import collections
 import collections.abc
 import ctypes
+import enum
+import functools
 import io
 import re
-from typing import List
+from typing import IO, Any, Callable, Dict, List, Optional, Union
 
-import ruamel.yaml as yaml
-from ruamel.yaml import RoundTripDumper, RoundTripLoader
+import ruamel.yaml
+from ruamel.yaml import comments, constructor, emitter, error, representer
 
 from llnl.util.tty.color import cextra, clen, colorize
 
@@ -34,7 +36,7 @@ __all__ = ["load", "dump", "SpackYAMLError"]
 # Also, use OrderedDict instead of just dict.
 class syaml_dict(collections.OrderedDict):
     def __repr__(self):
-        mappings = ("%r: %r" % (k, v) for k, v in self.items())
+        mappings = (f"{k!r}: {v!r}" for k, v in self.items())
         return "{%s}" % ", ".join(mappings)
 
 
@@ -54,7 +56,7 @@ class syaml_int(int):
 syaml_types = {syaml_str: str, syaml_int: int, syaml_dict: dict, syaml_list: list}
 
 
-markable_types = set(syaml_types) | set([yaml.comments.CommentedSeq, yaml.comments.CommentedMap])
+markable_types = set(syaml_types) | {comments.CommentedSeq, comments.CommentedMap}
 
 
 def syaml_type(obj):
@@ -65,7 +67,7 @@ def syaml_type(obj):
     """
     for syaml_t, t in syaml_types.items():
         if type(obj) is not bool and isinstance(obj, t):
-            return syaml_t(obj) if type(obj) != syaml_t else obj
+            return syaml_t(obj) if type(obj) is not syaml_t else obj
     return obj
 
 
@@ -96,7 +98,7 @@ def marked(obj):
     )
 
 
-class OrderedLineLoader(RoundTripLoader):
+class OrderedLineConstructor(constructor.RoundTripConstructor):
     """YAML loader specifically intended for reading Spack configuration
     files. It preserves order and line numbers. It also has special-purpose
     logic for handling dictionary keys that indicate a Spack config
@@ -120,7 +122,7 @@ class OrderedLineLoader(RoundTripLoader):
     #
 
     def construct_yaml_str(self, node):
-        value = super(OrderedLineLoader, self).construct_yaml_str(node)
+        value = super().construct_yaml_str(node)
         # There is no specific marker to indicate that we are parsing a key,
         # so this assumes we are talking about a Spack config override key if
         # it ends with a ':' and does not contain a '@' (which can appear
@@ -134,7 +136,7 @@ class OrderedLineLoader(RoundTripLoader):
         return value
 
     def construct_yaml_seq(self, node):
-        gen = super(OrderedLineLoader, self).construct_yaml_seq(node)
+        gen = super().construct_yaml_seq(node)
         data = next(gen)
         if markable(data):
             mark(data, node)
@@ -143,7 +145,7 @@ class OrderedLineLoader(RoundTripLoader):
             pass
 
     def construct_yaml_map(self, node):
-        gen = super(OrderedLineLoader, self).construct_yaml_map(node)
+        gen = super().construct_yaml_map(node)
         data = next(gen)
         if markable(data):
             mark(data, node)
@@ -153,19 +155,24 @@ class OrderedLineLoader(RoundTripLoader):
 
 
 # register above new constructors
-OrderedLineLoader.add_constructor("tag:yaml.org,2002:map", OrderedLineLoader.construct_yaml_map)
-OrderedLineLoader.add_constructor("tag:yaml.org,2002:seq", OrderedLineLoader.construct_yaml_seq)
-OrderedLineLoader.add_constructor("tag:yaml.org,2002:str", OrderedLineLoader.construct_yaml_str)
+OrderedLineConstructor.add_constructor(
+    "tag:yaml.org,2002:map", OrderedLineConstructor.construct_yaml_map
+)
+OrderedLineConstructor.add_constructor(
+    "tag:yaml.org,2002:seq", OrderedLineConstructor.construct_yaml_seq
+)
+OrderedLineConstructor.add_constructor(
+    "tag:yaml.org,2002:str", OrderedLineConstructor.construct_yaml_str
+)
 
 
-class OrderedLineDumper(RoundTripDumper):
-    """Dumper that preserves ordering and formats ``syaml_*`` objects.
+class OrderedLineRepresenter(representer.RoundTripRepresenter):
+    """Representer that preserves ordering and formats ``syaml_*`` objects.
 
-    This dumper preserves insertion ordering ``syaml_dict`` objects
+    This representer preserves insertion ordering ``syaml_dict`` objects
     when they're written out.  It also has some custom formatters
     for ``syaml_*`` objects so that they are formatted like their
     regular Python equivalents, instead of ugly YAML pyobjects.
-
     """
 
     def ignore_aliases(self, _data):
@@ -173,7 +180,7 @@ class OrderedLineDumper(RoundTripDumper):
         return True
 
     def represent_data(self, data):
-        result = super(OrderedLineDumper, self).represent_data(data)
+        result = super().represent_data(data)
         if data is None:
             result.value = syaml_str("null")
         return result
@@ -181,31 +188,53 @@ class OrderedLineDumper(RoundTripDumper):
     def represent_str(self, data):
         if hasattr(data, "override") and data.override:
             data = data + ":"
-        return super(OrderedLineDumper, self).represent_str(data)
+        return super().represent_str(data)
 
 
-class SafeDumper(RoundTripDumper):
+class SafeRepresenter(representer.RoundTripRepresenter):
     def ignore_aliases(self, _data):
         """Make the dumper NEVER print YAML aliases."""
         return True
 
 
 # Make our special objects look like normal YAML ones.
-RoundTripDumper.add_representer(syaml_dict, RoundTripDumper.represent_dict)
-RoundTripDumper.add_representer(syaml_list, RoundTripDumper.represent_list)
-RoundTripDumper.add_representer(syaml_int, RoundTripDumper.represent_int)
-RoundTripDumper.add_representer(syaml_str, RoundTripDumper.represent_str)
-OrderedLineDumper.add_representer(syaml_str, OrderedLineDumper.represent_str)
+representer.RoundTripRepresenter.add_representer(
+    syaml_dict, representer.RoundTripRepresenter.represent_dict
+)
+representer.RoundTripRepresenter.add_representer(
+    syaml_list, representer.RoundTripRepresenter.represent_list
+)
+representer.RoundTripRepresenter.add_representer(
+    syaml_int, representer.RoundTripRepresenter.represent_int
+)
+representer.RoundTripRepresenter.add_representer(
+    syaml_str, representer.RoundTripRepresenter.represent_str
+)
+OrderedLineRepresenter.add_representer(syaml_str, OrderedLineRepresenter.represent_str)
 
 
 #: Max integer helps avoid passing too large a value to cyaml.
 maxint = 2 ** (ctypes.sizeof(ctypes.c_int) * 8 - 1) - 1
 
 
-def dump(obj, default_flow_style=False, stream=None):
-    return yaml.dump(
-        obj, default_flow_style=default_flow_style, width=maxint, Dumper=SafeDumper, stream=stream
-    )
+def return_string_when_no_stream(func):
+    @functools.wraps(func)
+    def wrapper(data, stream=None, **kwargs):
+        if stream:
+            return func(data, stream=stream, **kwargs)
+        stream = io.StringIO()
+        func(data, stream=stream, **kwargs)
+        return stream.getvalue()
+
+    return wrapper
+
+
+@return_string_when_no_stream
+def dump(data, stream=None, default_flow_style=False):
+    handler = ConfigYAML(yaml_type=YAMLType.GENERIC_YAML)
+    handler.yaml.default_flow_style = default_flow_style
+    handler.yaml.width = maxint
+    return handler.dump(data, stream=stream)
 
 
 def file_line(mark):
@@ -220,11 +249,11 @@ def file_line(mark):
 #: This is nasty but YAML doesn't give us many ways to pass arguments --
 #: yaml.dump() takes a class (not an instance) and instantiates the dumper
 #: itself, so we can't just pass an instance
-_annotations: List[str] = []
+_ANNOTATIONS: List[str] = []
 
 
-class LineAnnotationDumper(OrderedLineDumper):
-    """Dumper that generates per-line annotations.
+class LineAnnotationRepresenter(OrderedLineRepresenter):
+    """Representer that generates per-line annotations.
 
     Annotations are stored in the ``_annotations`` global.  After one
     dump pass, the strings in ``_annotations`` will correspond one-to-one
@@ -240,22 +269,9 @@ class LineAnnotationDumper(OrderedLineDumper):
     annotations.
     """
 
-    saved = None
-
-    def __init__(self, *args, **kwargs):
-        super(LineAnnotationDumper, self).__init__(*args, **kwargs)
-        del _annotations[:]
-        self.colors = "KgrbmcyGRBMCY"
-        self.filename_colors = {}
-
-    def process_scalar(self):
-        super(LineAnnotationDumper, self).process_scalar()
-        if marked(self.event.value):
-            self.saved = self.event.value
-
     def represent_data(self, data):
         """Force syaml_str to be passed through with marks."""
-        result = super(LineAnnotationDumper, self).represent_data(data)
+        result = super().represent_data(data)
         if data is None:
             result.value = syaml_str("null")
         elif isinstance(result.value, str):
@@ -264,10 +280,25 @@ class LineAnnotationDumper(OrderedLineDumper):
             mark(result.value, data)
         return result
 
-    def write_line_break(self):
-        super(LineAnnotationDumper, self).write_line_break()
+
+class LineAnnotationEmitter(emitter.Emitter):
+    saved = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        del _ANNOTATIONS[:]
+        self.colors = "KgrbmcyGRBMCY"
+        self.filename_colors = {}
+
+    def process_scalar(self):
+        super().process_scalar()
+        if marked(self.event.value):
+            self.saved = self.event.value
+
+    def write_line_break(self, data=None):
+        super().write_line_break(data)
         if self.saved is None:
-            _annotations.append(colorize("@K{---}"))
+            _ANNOTATIONS.append(colorize("@K{---}"))
             return
 
         # append annotations at the end of each line
@@ -284,37 +315,117 @@ class LineAnnotationDumper(OrderedLineDumper):
             ann = fmt % mark.name
             if mark.line is not None:
                 ann += ":@c{%s}" % (mark.line + 1)
-            _annotations.append(colorize(ann))
+            _ANNOTATIONS.append(colorize(ann))
         else:
-            _annotations.append("")
+            _ANNOTATIONS.append("")
+
+    def write_comment(self, comment, pre=False):
+        pass
 
 
-def load_config(*args, **kwargs):
+class YAMLType(enum.Enum):
+    """YAML configurations handled by Spack"""
+
+    #: Generic YAML configuration
+    GENERIC_YAML = enum.auto()
+    #: A Spack config file with overrides
+    SPACK_CONFIG_FILE = enum.auto()
+    #: A Spack config file with line annotations
+    ANNOTATED_SPACK_CONFIG_FILE = enum.auto()
+
+
+class ConfigYAML:
+    """Handles the loading and dumping of Spack's YAML files."""
+
+    def __init__(self, yaml_type: YAMLType) -> None:
+        self.yaml = ruamel.yaml.YAML(typ="rt", pure=True)
+        if yaml_type == YAMLType.GENERIC_YAML:
+            self.yaml.Representer = SafeRepresenter
+        elif yaml_type == YAMLType.ANNOTATED_SPACK_CONFIG_FILE:
+            self.yaml.Representer = LineAnnotationRepresenter
+            self.yaml.Emitter = LineAnnotationEmitter
+            self.yaml.Constructor = OrderedLineConstructor
+        else:
+            self.yaml.Representer = OrderedLineRepresenter
+            self.yaml.Constructor = OrderedLineConstructor
+
+    def load(self, stream: IO):
+        """Loads the YAML data from a stream and returns it.
+
+        Args:
+            stream: stream to load from.
+
+        Raises:
+            SpackYAMLError: if anything goes wrong while loading
+        """
+        try:
+            return self.yaml.load(stream)
+
+        except error.MarkedYAMLError as e:
+            msg = "error parsing YAML"
+            error_mark = e.context_mark if e.context_mark else e.problem_mark
+            if error_mark:
+                line, column = error_mark.line, error_mark.column
+                msg += f": near {error_mark.name}, {str(line)}, {str(column)}"
+            else:
+                msg += f": {stream.name}"
+            msg += f": {e.problem}"
+            raise SpackYAMLError(msg, e) from e
+
+        except Exception as e:
+            msg = "cannot load Spack YAML configuration"
+            raise SpackYAMLError(msg, e) from e
+
+    def dump(self, data, stream: Optional[IO] = None, *, transform=None) -> None:
+        """Dumps the YAML data to a stream.
+
+        Args:
+            data: data to be dumped
+            stream: stream to dump the data into.
+
+        Raises:
+            SpackYAMLError: if anything goes wrong while dumping
+        """
+        try:
+            return self.yaml.dump(data, stream=stream, transform=transform)
+        except Exception as e:
+            msg = "cannot dump Spack YAML configuration"
+            raise SpackYAMLError(msg, str(e)) from e
+
+    def as_string(self, data) -> str:
+        """Returns a string representing the YAML data passed as input."""
+        result = io.StringIO()
+        self.dump(data, stream=result)
+        return result.getvalue()
+
+
+def load_config(str_or_file):
     """Load but modify the loader instance so that it will add __line__
     attributes to the returned object."""
-    kwargs["Loader"] = OrderedLineLoader
-    return yaml.load(*args, **kwargs)
+    handler = ConfigYAML(yaml_type=YAMLType.SPACK_CONFIG_FILE)
+    return handler.load(str_or_file)
 
 
 def load(*args, **kwargs):
-    return yaml.load(*args, **kwargs)
+    handler = ConfigYAML(yaml_type=YAMLType.GENERIC_YAML)
+    return handler.load(*args, **kwargs)
 
 
-def dump_config(*args, **kwargs):
-    blame = kwargs.pop("blame", False)
-
+@return_string_when_no_stream
+def dump_config(data, stream, *, default_flow_style=False, blame=False):
     if blame:
-        return dump_annotated(*args, **kwargs)
-    else:
-        kwargs["Dumper"] = OrderedLineDumper
-        return yaml.dump(*args, **kwargs)
+        handler = ConfigYAML(yaml_type=YAMLType.ANNOTATED_SPACK_CONFIG_FILE)
+        handler.yaml.default_flow_style = default_flow_style
+        return _dump_annotated(handler, data, stream)
+
+    handler = ConfigYAML(yaml_type=YAMLType.SPACK_CONFIG_FILE)
+    handler.yaml.default_flow_style = default_flow_style
+    return handler.dump(data, stream)
 
 
-def dump_annotated(data, stream=None, *args, **kwargs):
-    kwargs["Dumper"] = LineAnnotationDumper
-
+def _dump_annotated(handler, data, stream=None):
     sio = io.StringIO()
-    yaml.dump(data, sio, *args, **kwargs)
+    handler.dump(data, sio)
 
     # write_line_break() is not called by YAML for empty lines, so we
     # skip empty lines here with \n+.
@@ -326,10 +437,10 @@ def dump_annotated(data, stream=None, *args, **kwargs):
         getvalue = stream.getvalue
 
     # write out annotations and lines, accounting for color
-    width = max(clen(a) for a in _annotations)
-    formats = ["%%-%ds  %%s\n" % (width + cextra(a)) for a in _annotations]
+    width = max(clen(a) for a in _ANNOTATIONS)
+    formats = ["%%-%ds  %%s\n" % (width + cextra(a)) for a in _ANNOTATIONS]
 
-    for f, a, l in zip(formats, _annotations, lines):
+    for f, a, l in zip(formats, _ANNOTATIONS, lines):
         stream.write(f % (a, l))
 
     if getvalue:
@@ -352,8 +463,46 @@ def sorted_dict(dict_like):
     return result
 
 
+def extract_comments(data):
+    """Extract and returns comments from some YAML data"""
+    return getattr(data, comments.Comment.attrib, None)
+
+
+def set_comments(data, *, data_comments):
+    """Set comments on some YAML data"""
+    return setattr(data, comments.Comment.attrib, data_comments)
+
+
+def name_mark(name):
+    """Returns a mark with just a name"""
+    return error.StringMark(name, None, None, None, None, None)
+
+
+def anchorify(data: Union[dict, list], identifier: Callable[[Any], str] = repr) -> None:
+    """Replace identical dict/list branches in tree with references to earlier instances. The YAML
+    serializer generate anchors for them, resulting in small yaml files."""
+    anchors: Dict[str, Union[dict, list]] = {}
+    stack: List[Union[dict, list]] = [data]
+
+    while stack:
+        item = stack.pop()
+
+        for key, value in item.items() if isinstance(item, dict) else enumerate(item):
+            if not isinstance(value, (dict, list)):
+                continue
+
+            id = identifier(value)
+            anchor = anchors.get(id)
+
+            if anchor is None:
+                anchors[id] = value
+                stack.append(value)
+            else:
+                item[key] = anchor  # replace with reference
+
+
 class SpackYAMLError(spack.error.SpackError):
     """Raised when there are issues with YAML parsing."""
 
     def __init__(self, msg, yaml_error):
-        super(SpackYAMLError, self).__init__(msg, str(yaml_error))
+        super().__init__(msg, str(yaml_error))

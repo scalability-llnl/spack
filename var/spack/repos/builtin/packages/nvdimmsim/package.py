@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Nvdimmsim(MakefilePackage):
     maintainers("jjwilke")
 
     version("2.0.0", sha256="2a621ef10be5e52a1f543985d08354a2e6ee6532b5720e5f17ad6362cfd4adef")
+
+    depends_on("cxx", type="build")  # generated
 
     def build(self, spec, prefix):
         with working_dir("src"):

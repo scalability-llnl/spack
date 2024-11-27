@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,12 @@ class PyChemfiles(PythonPackage):
 
     maintainers("RMeli")
 
+    license("BSD-3-Clause")
+
     version("0.10.3", sha256="4bbb8b116492a57dbf6ddb4c84aad0133cd782e0cc0e53e4b957f2d93e6806ea")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("chemfiles@0.10.3+shared", when="@0.10.3")
 
@@ -22,5 +27,5 @@ class PyChemfiles(PythonPackage):
 
     depends_on("py-setuptools@44:", type="build")
     depends_on("py-wheel@0.36:", type="build")
-    depends_on("py-cmake", type="build")
-    depends_on("py-ninja", type="build")
+    depends_on("cmake", type="build")
+    depends_on("ninja", type="build")

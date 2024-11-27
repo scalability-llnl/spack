@@ -1,10 +1,13 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
+import email.message
 import os
-import sys
+import pickle
+import ssl
+import urllib.request
 
 import pytest
 
@@ -13,10 +16,11 @@ import llnl.util.tty as tty
 import spack.config
 import spack.mirror
 import spack.paths
+import spack.url
 import spack.util.s3
 import spack.util.url as url_util
 import spack.util.web
-from spack.version import ver
+from spack.version import Version
 
 
 def _create_url(relative_url):
@@ -31,8 +35,10 @@ page_2 = _create_url("2.html")
 page_3 = _create_url("3.html")
 page_4 = _create_url("4.html")
 
+root_with_fragment = _create_url("index_with_fragment.html")
+root_with_javascript = _create_url("index_with_javascript.html")
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
+
 @pytest.mark.parametrize(
     "depth,expected_found,expected_not_found,expected_text",
     [
@@ -93,54 +99,58 @@ def test_spider(depth, expected_found, expected_not_found, expected_text):
 def test_spider_no_response(monkeypatch):
     # Mock the absence of a response
     monkeypatch.setattr(spack.util.web, "read_from_url", lambda x, y: (None, None, None))
-    pages, links = spack.util.web.spider(root, depth=0)
+    pages, links, _, _ = spack.util.web._spider(root, collect_nested=False, _visited=set())
     assert not pages and not links
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_find_versions_of_archive_0():
-    versions = spack.util.web.find_versions_of_archive(root_tarball, root, list_depth=0)
-    assert ver("0.0.0") in versions
+    versions = spack.url.find_versions_of_archive(root_tarball, root, list_depth=0)
+    assert Version("0.0.0") in versions
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_find_versions_of_archive_1():
-    versions = spack.util.web.find_versions_of_archive(root_tarball, root, list_depth=1)
-    assert ver("0.0.0") in versions
-    assert ver("1.0.0") in versions
+    versions = spack.url.find_versions_of_archive(root_tarball, root, list_depth=1)
+    assert Version("0.0.0") in versions
+    assert Version("1.0.0") in versions
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_find_versions_of_archive_2():
-    versions = spack.util.web.find_versions_of_archive(root_tarball, root, list_depth=2)
-    assert ver("0.0.0") in versions
-    assert ver("1.0.0") in versions
-    assert ver("2.0.0") in versions
+    versions = spack.url.find_versions_of_archive(root_tarball, root, list_depth=2)
+    assert Version("0.0.0") in versions
+    assert Version("1.0.0") in versions
+    assert Version("2.0.0") in versions
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_find_exotic_versions_of_archive_2():
-    versions = spack.util.web.find_versions_of_archive(root_tarball, root, list_depth=2)
+    versions = spack.url.find_versions_of_archive(root_tarball, root, list_depth=2)
     # up for grabs to make this better.
-    assert ver("2.0.0b2") in versions
+    assert Version("2.0.0b2") in versions
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_find_versions_of_archive_3():
-    versions = spack.util.web.find_versions_of_archive(root_tarball, root, list_depth=3)
-    assert ver("0.0.0") in versions
-    assert ver("1.0.0") in versions
-    assert ver("2.0.0") in versions
-    assert ver("3.0") in versions
-    assert ver("4.5") in versions
+    versions = spack.url.find_versions_of_archive(root_tarball, root, list_depth=3)
+    assert Version("0.0.0") in versions
+    assert Version("1.0.0") in versions
+    assert Version("2.0.0") in versions
+    assert Version("3.0") in versions
+    assert Version("4.5") in versions
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_find_exotic_versions_of_archive_3():
-    versions = spack.util.web.find_versions_of_archive(root_tarball, root, list_depth=3)
-    assert ver("2.0.0b2") in versions
-    assert ver("3.0a1") in versions
-    assert ver("4.5-rc5") in versions
+    versions = spack.url.find_versions_of_archive(root_tarball, root, list_depth=3)
+    assert Version("2.0.0b2") in versions
+    assert Version("3.0a1") in versions
+    assert Version("4.5-rc5") in versions
+
+
+def test_find_versions_of_archive_with_fragment():
+    versions = spack.url.find_versions_of_archive(root_tarball, root_with_fragment, list_depth=0)
+    assert Version("5.0.0") in versions
+
+
+def test_find_versions_of_archive_with_javascript():
+    versions = spack.url.find_versions_of_archive(root_tarball, root_with_javascript, list_depth=0)
+    assert Version("5.0.0") in versions
 
 
 def test_get_header():
@@ -196,7 +206,6 @@ def test_etag_parser():
     assert spack.util.web.parse_etag("abc def") is None
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_list_url(tmpdir):
     testpath = str(tmpdir)
     testpath_url = url_util.path_to_file_url(testpath)
@@ -222,12 +231,12 @@ def test_list_url(tmpdir):
     assert list_url(True) == ["dir/another-file.txt", "file-0.txt", "file-1.txt", "file-2.txt"]
 
 
-class MockPages(object):
+class MockPages:
     def search(self, *args, **kwargs):
         return [{"Key": "keyone"}, {"Key": "keytwo"}, {"Key": "keythree"}]
 
 
-class MockPaginator(object):
+class MockPaginator:
     def paginate(self, *args, **kwargs):
         return MockPages()
 
@@ -240,7 +249,7 @@ class MockClientError(Exception):
         }
 
 
-class MockS3Client(object):
+class MockS3Client:
     def get_paginator(self, *args, **kwargs):
         return MockPaginator()
 
@@ -267,7 +276,7 @@ class MockS3Client(object):
 
 
 def test_gather_s3_information(monkeypatch, capfd):
-    mirror = spack.mirror.Mirror.from_dict(
+    mirror = spack.mirror.Mirror(
         {
             "fetch": {
                 "access_token": "AAAAAAA",
@@ -307,7 +316,7 @@ def test_remove_s3_url(monkeypatch, capfd):
     def get_s3_session(url, method="fetch"):
         return MockS3Client()
 
-    monkeypatch.setattr(spack.util.s3, "get_s3_session", get_s3_session)
+    monkeypatch.setattr(spack.util.web, "get_s3_session", get_s3_session)
 
     current_debug_level = tty.debug_level()
     tty.set_debug(1)
@@ -338,3 +347,103 @@ def test_s3_url_exists(monkeypatch, capfd):
 def test_s3_url_parsing():
     assert spack.util.s3._parse_s3_endpoint_url("example.com") == "https://example.com"
     assert spack.util.s3._parse_s3_endpoint_url("http://example.com") == "http://example.com"
+
+
+def test_detailed_http_error_pickle(tmpdir):
+    tmpdir.join("response").write("response")
+
+    headers = email.message.Message()
+    headers.add_header("Content-Type", "text/plain")
+
+    # Use a temporary file object as a response body
+    with open(str(tmpdir.join("response")), "rb") as f:
+        error = spack.util.web.DetailedHTTPError(
+            urllib.request.Request("http://example.com"), 404, "Not Found", headers, f
+        )
+
+        deserialized = pickle.loads(pickle.dumps(error))
+
+    assert isinstance(deserialized, spack.util.web.DetailedHTTPError)
+    assert deserialized.code == 404
+    assert deserialized.filename == "http://example.com"
+    assert deserialized.reason == "Not Found"
+    assert str(deserialized.info()) == str(headers)
+    assert str(deserialized) == str(error)
+
+
+@pytest.fixture()
+def ssl_scrubbed_env(mutable_config, monkeypatch):
+    """clear out environment variables that could give false positives for SSL Cert tests"""
+    monkeypatch.delenv("SSL_CERT_FILE", raising=False)
+    monkeypatch.delenv("SSL_CERT_DIR", raising=False)
+    monkeypatch.delenv("CURL_CA_BUNDLE", raising=False)
+    spack.config.set("config:verify_ssl", True)
+
+
+@pytest.mark.parametrize(
+    "cert_path,cert_creator",
+    [
+        pytest.param(
+            lambda base_path: os.path.join(base_path, "mock_cert.crt"),
+            lambda cert_path: open(cert_path, "w").close(),
+            id="cert_file",
+        ),
+        pytest.param(
+            lambda base_path: os.path.join(base_path, "mock_cert"),
+            lambda cert_path: os.mkdir(cert_path),
+            id="cert_directory",
+        ),
+    ],
+)
+def test_ssl_urllib(
+    cert_path, cert_creator, tmpdir, ssl_scrubbed_env, mutable_config, monkeypatch
+):
+    """
+    create a proposed cert type and then verify that they exist inside ssl's checks
+    """
+    spack.config.set("config:url_fetch_method", "urllib")
+
+    def mock_verify_locations(self, cafile, capath, cadata):
+        """overwrite ssl's verification to simply check for valid file/path"""
+        assert cafile or capath
+        if cafile:
+            assert os.path.isfile(cafile)
+        if capath:
+            assert os.path.isdir(capath)
+
+    monkeypatch.setattr(ssl.SSLContext, "load_verify_locations", mock_verify_locations)
+
+    with tmpdir.as_cwd():
+        mock_cert = cert_path(tmpdir.strpath)
+        cert_creator(mock_cert)
+        spack.config.set("config:ssl_certs", mock_cert)
+
+        assert mock_cert == spack.config.get("config:ssl_certs", None)
+
+        ssl_context = spack.util.web.ssl_create_default_context()
+        assert ssl_context.verify_mode == ssl.CERT_REQUIRED
+
+
+@pytest.mark.parametrize("cert_exists", [True, False], ids=["exists", "missing"])
+def test_ssl_curl_cert_file(cert_exists, tmpdir, ssl_scrubbed_env, mutable_config, monkeypatch):
+    """
+    Assure that if a valid cert file is specified curl executes
+    with CURL_CA_BUNDLE in the env
+    """
+    spack.config.set("config:url_fetch_method", "curl")
+    with tmpdir.as_cwd():
+        mock_cert = str(tmpdir.join("mock_cert.crt"))
+        spack.config.set("config:ssl_certs", mock_cert)
+        if cert_exists:
+            open(mock_cert, "w").close()
+            assert os.path.isfile(mock_cert)
+        curl = spack.util.web.require_curl()
+
+        # arbitrary call to query the run env
+        dump_env = {}
+        curl("--help", output=str, _dump_env=dump_env)
+
+        if cert_exists:
+            assert dump_env["CURL_CA_BUNDLE"] == mock_cert
+        else:
+            assert "CURL_CA_BUNDLE" not in dump_env

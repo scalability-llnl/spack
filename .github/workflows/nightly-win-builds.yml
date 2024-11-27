@@ -1,0 +1,31 @@
+name: Windows Paraview Nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Run at 2 am
+
+defaults:
+  run:
+    shell:
+     powershell Invoke-Expression -Command "./share/spack/qa/windows_test_setup.ps1"; {0}
+
+
+jobs:
+  build-paraview-deps:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+      with:
+        python-version: 3.9
+    - name: Install Python packages
+      run: |
+          python -m pip install --upgrade pip six pywin32 setuptools coverage
+    - name: Build Test
+      run: |
+        spack compiler find
+        spack external find cmake ninja win-sdk win-wdk wgl msmpi
+        spack -d install -y --cdash-upload-url https://cdash.spack.io/submit.php?project=Spack+on+Windows --cdash-track Nightly --only dependencies paraview
+        exit 0

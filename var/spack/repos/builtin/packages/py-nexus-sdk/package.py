@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyNexusSdk(PythonPackage):
 
     homepage = "https://github.com/BlueBrain/nexus-python-sdk"
     pypi = "nexus-sdk/nexus-sdk-0.3.2.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.3.2", sha256="cd5668a062283410c5ff57a68c218440df607da84e0a813a8c9390611f7212b3")
 

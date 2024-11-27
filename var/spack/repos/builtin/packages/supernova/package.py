@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -30,7 +30,7 @@ class Supernova(Package):
     manual_download = True
 
     version("2.1.1", sha256="2f58eb66951e257b89359134ab8e35ad638c4ed51cb3fb8121625dfcc7761938")
-    version("2.0.1", "3697ce043c798fcb672fe0a66c56d6f0")
+    version("2.0.1", md5="3697ce043c798fcb672fe0a66c56d6f0")
 
     depends_on("bcl2fastq2")
 

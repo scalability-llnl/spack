@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPymbolic(PythonPackage):
     git = "https://github.com/inducer/pymbolic.git"
 
     maintainers("cgcgcg")
+
+    license("MIT")
 
     version("2022.2", sha256="f82776942bb3cb72329fa1f1aa2b68ec09f237db9178c95cfdc92a6aea7cec89")
 

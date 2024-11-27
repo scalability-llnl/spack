@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ba66a6d4..217aa712 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -856,7 +856,7 @@ IF(USE_HDF5)
+   # This needs to be near the beginning since we
+   # need to know whether to add "-lz" to the symbol
+   # tests below.
+-  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
++  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
+    #if !H5_HAVE_ZLIB_H
+    #error
+    #endif

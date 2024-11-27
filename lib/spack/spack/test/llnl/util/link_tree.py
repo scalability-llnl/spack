@@ -1,15 +1,18 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import pathlib
+import sys
 
 import pytest
 
+import llnl.util.symlink
 from llnl.util.filesystem import mkdirp, touchp, visit_directory_tree, working_dir
 from llnl.util.link_tree import DestinationMergeVisitor, LinkTree, SourceMergeVisitor
-from llnl.util.symlink import islink
+from llnl.util.symlink import _windows_can_symlink, islink, readlink, symlink
 
 from spack.stage import Stage
 
@@ -44,77 +47,116 @@ def link_tree(stage):
 def check_file_link(filename, expected_target):
     assert os.path.isfile(filename)
     assert islink(filename)
-    assert os.path.abspath(os.path.realpath(filename)) == os.path.abspath(expected_target)
+    if sys.platform != "win32" or llnl.util.symlink._windows_can_symlink():
+        assert os.path.abspath(os.path.realpath(filename)) == os.path.abspath(expected_target)
 
 
 def check_dir(filename):
     assert os.path.isdir(filename)
 
 
-def test_merge_to_new_directory(stage, link_tree):
+@pytest.mark.parametrize("run_as_root", [True, False])
+def test_merge_to_new_directory(stage, link_tree, monkeypatch, run_as_root):
+    if sys.platform != "win32":
+        if run_as_root:
+            pass
+        else:
+            pytest.skip("Skipping duplicate test.")
+    elif _windows_can_symlink() or not run_as_root:
+        monkeypatch.setattr(llnl.util.symlink, "_windows_can_symlink", lambda: run_as_root)
+    else:
+        # Skip if trying to run as dev-mode without having dev-mode.
+        pytest.skip("Skipping portion of test which required dev-mode privileges.")
+
     with working_dir(stage.path):
         link_tree.merge("dest")
 
-        check_file_link("dest/1", "source/1")
-        check_file_link("dest/a/b/2", "source/a/b/2")
-        check_file_link("dest/a/b/3", "source/a/b/3")
-        check_file_link("dest/c/4", "source/c/4")
-        check_file_link("dest/c/d/5", "source/c/d/5")
-        check_file_link("dest/c/d/6", "source/c/d/6")
-        check_file_link("dest/c/d/e/7", "source/c/d/e/7")
+        files = [
+            ("dest/1", "source/1"),
+            ("dest/a/b/2", "source/a/b/2"),
+            ("dest/a/b/3", "source/a/b/3"),
+            ("dest/c/4", "source/c/4"),
+            ("dest/c/d/5", "source/c/d/5"),
+            ("dest/c/d/6", "source/c/d/6"),
+            ("dest/c/d/e/7", "source/c/d/e/7"),
+        ]
 
-        assert os.path.isabs(os.readlink("dest/1"))
-        assert os.path.isabs(os.readlink("dest/a/b/2"))
-        assert os.path.isabs(os.readlink("dest/a/b/3"))
-        assert os.path.isabs(os.readlink("dest/c/4"))
-        assert os.path.isabs(os.readlink("dest/c/d/5"))
-        assert os.path.isabs(os.readlink("dest/c/d/6"))
-        assert os.path.isabs(os.readlink("dest/c/d/e/7"))
+        for dest, source in files:
+            check_file_link(dest, source)
+            assert os.path.isabs(readlink(dest))
 
         link_tree.unmerge("dest")
 
         assert not os.path.exists("dest")
 
 
-def test_merge_to_new_directory_relative(stage, link_tree):
+@pytest.mark.parametrize("run_as_root", [True, False])
+def test_merge_to_new_directory_relative(stage, link_tree, monkeypatch, run_as_root):
+    if sys.platform != "win32":
+        if run_as_root:
+            pass
+        else:
+            pytest.skip("Skipping duplicate test.")
+    elif _windows_can_symlink() or not run_as_root:
+        monkeypatch.setattr(llnl.util.symlink, "_windows_can_symlink", lambda: run_as_root)
+    else:
+        # Skip if trying to run as dev-mode without having dev-mode.
+        pytest.skip("Skipping portion of test which required dev-mode privileges.")
+
     with working_dir(stage.path):
         link_tree.merge("dest", relative=True)
 
-        check_file_link("dest/1", "source/1")
-        check_file_link("dest/a/b/2", "source/a/b/2")
-        check_file_link("dest/a/b/3", "source/a/b/3")
-        check_file_link("dest/c/4", "source/c/4")
-        check_file_link("dest/c/d/5", "source/c/d/5")
-        check_file_link("dest/c/d/6", "source/c/d/6")
-        check_file_link("dest/c/d/e/7", "source/c/d/e/7")
+        files = [
+            ("dest/1", "source/1"),
+            ("dest/a/b/2", "source/a/b/2"),
+            ("dest/a/b/3", "source/a/b/3"),
+            ("dest/c/4", "source/c/4"),
+            ("dest/c/d/5", "source/c/d/5"),
+            ("dest/c/d/6", "source/c/d/6"),
+            ("dest/c/d/e/7", "source/c/d/e/7"),
+        ]
 
-        assert not os.path.isabs(os.readlink("dest/1"))
-        assert not os.path.isabs(os.readlink("dest/a/b/2"))
-        assert not os.path.isabs(os.readlink("dest/a/b/3"))
-        assert not os.path.isabs(os.readlink("dest/c/4"))
-        assert not os.path.isabs(os.readlink("dest/c/d/5"))
-        assert not os.path.isabs(os.readlink("dest/c/d/6"))
-        assert not os.path.isabs(os.readlink("dest/c/d/e/7"))
+        for dest, source in files:
+            check_file_link(dest, source)
+            # Hard links/junctions are inherently absolute.
+            if sys.platform != "win32" or run_as_root:
+                assert not os.path.isabs(readlink(dest))
 
         link_tree.unmerge("dest")
 
         assert not os.path.exists("dest")
 
 
-def test_merge_to_existing_directory(stage, link_tree):
+@pytest.mark.parametrize("run_as_root", [True, False])
+def test_merge_to_existing_directory(stage, link_tree, monkeypatch, run_as_root):
+    if sys.platform != "win32":
+        if run_as_root:
+            pass
+        else:
+            pytest.skip("Skipping duplicate test.")
+    elif _windows_can_symlink() or not run_as_root:
+        monkeypatch.setattr(llnl.util.symlink, "_windows_can_symlink", lambda: run_as_root)
+    else:
+        # Skip if trying to run as dev-mode without having dev-mode.
+        pytest.skip("Skipping portion of test which required dev-mode privileges.")
+
     with working_dir(stage.path):
         touchp("dest/x")
         touchp("dest/a/b/y")
 
         link_tree.merge("dest")
 
-        check_file_link("dest/1", "source/1")
-        check_file_link("dest/a/b/2", "source/a/b/2")
-        check_file_link("dest/a/b/3", "source/a/b/3")
-        check_file_link("dest/c/4", "source/c/4")
-        check_file_link("dest/c/d/5", "source/c/d/5")
-        check_file_link("dest/c/d/6", "source/c/d/6")
-        check_file_link("dest/c/d/e/7", "source/c/d/e/7")
+        files = [
+            ("dest/1", "source/1"),
+            ("dest/a/b/2", "source/a/b/2"),
+            ("dest/a/b/3", "source/a/b/3"),
+            ("dest/c/4", "source/c/4"),
+            ("dest/c/d/5", "source/c/d/5"),
+            ("dest/c/d/6", "source/c/d/6"),
+            ("dest/c/d/e/7", "source/c/d/e/7"),
+        ]
+        for dest, source in files:
+            check_file_link(dest, source)
 
         assert os.path.isfile("dest/x")
         assert os.path.isfile("dest/a/b/y")
@@ -124,13 +166,8 @@ def test_merge_to_existing_directory(stage, link_tree):
         assert os.path.isfile("dest/x")
         assert os.path.isfile("dest/a/b/y")
 
-        assert not os.path.isfile("dest/1")
-        assert not os.path.isfile("dest/a/b/2")
-        assert not os.path.isfile("dest/a/b/3")
-        assert not os.path.isfile("dest/c/4")
-        assert not os.path.isfile("dest/c/d/5")
-        assert not os.path.isfile("dest/c/d/6")
-        assert not os.path.isfile("dest/c/d/e/7")
+        for dest, _ in files:
+            assert not os.path.isfile(dest)
 
 
 def test_merge_with_empty_directories(stage, link_tree):
@@ -192,9 +229,9 @@ def test_source_merge_visitor_does_not_follow_symlinked_dirs_at_depth(tmpdir):
         os.mkdir(j("a", "b"))
         os.mkdir(j("a", "b", "c"))
         os.mkdir(j("a", "b", "c", "d"))
-        os.symlink(j("b"), j("a", "symlink_b"))
-        os.symlink(j("c"), j("a", "b", "symlink_c"))
-        os.symlink(j("d"), j("a", "b", "c", "symlink_d"))
+        symlink(j("b"), j("a", "symlink_b"))
+        symlink(j("c"), j("a", "b", "symlink_c"))
+        symlink(j("d"), j("a", "b", "c", "symlink_d"))
         with open(j("a", "b", "c", "d", "file"), "wb"):
             pass
 
@@ -236,10 +273,11 @@ def test_source_merge_visitor_cant_be_cyclical(tmpdir):
     j = os.path.join
     with tmpdir.as_cwd():
         os.mkdir(j("a"))
-        os.symlink(j("..", "b"), j("a", "symlink_b"))
-        os.symlink(j("symlink_b"), j("a", "symlink_b_b"))
         os.mkdir(j("b"))
-        os.symlink(j("..", "a"), j("b", "symlink_a"))
+
+        symlink(j("..", "b"), j("a", "symlink_b"))
+        symlink(j("symlink_b"), j("a", "symlink_b_b"))
+        symlink(j("..", "a"), j("b", "symlink_a"))
 
     visitor = SourceMergeVisitor()
     visit_directory_tree(str(tmpdir), visitor)
@@ -302,3 +340,60 @@ def test_destination_merge_visitor_file_dir_clashes(tmpdir):
     visit_directory_tree(str(tmpdir.join("a")), DestinationMergeVisitor(b_to_a))
     assert b_to_a.fatal_conflicts
     assert b_to_a.fatal_conflicts[0].dst == "example"
+
+
+def test_source_merge_visitor_does_not_register_identical_file_conflicts(tmp_path: pathlib.Path):
+    """Tests whether the SourceMergeVisitor does not register identical file conflicts.
+    but instead registers the file that triggers the potential conflict."""
+    (tmp_path / "dir_bottom").mkdir()
+    (tmp_path / "dir_bottom" / "file").write_bytes(b"hello")
+
+    (tmp_path / "dir_top").mkdir()
+    (tmp_path / "dir_top" / "file").symlink_to(tmp_path / "dir_bottom" / "file")
+    (tmp_path / "dir_top" / "zzzz").write_bytes(b"hello")
+
+    visitor = SourceMergeVisitor()
+    visitor.set_projection(str(tmp_path / "view"))
+
+    visit_directory_tree(str(tmp_path / "dir_top"), visitor)
+
+    # After visiting the top dir, we should have `file` and `zzzz` listed, in that order. Using
+    # .items() to test order.
+    assert list(visitor.files.items()) == [
+        (str(tmp_path / "view" / "file"), (str(tmp_path / "dir_top"), "file")),
+        (str(tmp_path / "view" / "zzzz"), (str(tmp_path / "dir_top"), "zzzz")),
+    ]
+
+    # Then after visiting the bottom dir, the "conflict" should be resolved, and `file` should
+    # come from the bottom dir.
+    visit_directory_tree(str(tmp_path / "dir_bottom"), visitor)
+    assert not visitor.file_conflicts
+    assert list(visitor.files.items()) == [
+        (str(tmp_path / "view" / "zzzz"), (str(tmp_path / "dir_top"), "zzzz")),
+        (str(tmp_path / "view" / "file"), (str(tmp_path / "dir_bottom"), "file")),
+    ]
+
+
+def test_source_merge_visitor_does_deals_with_dangling_symlinks(tmp_path: pathlib.Path):
+    """When a file and a dangling symlink conflict, this should be handled like a file conflict."""
+    (tmp_path / "dir_a").mkdir()
+    os.symlink("non-existent", str(tmp_path / "dir_a" / "file"))
+
+    (tmp_path / "dir_b").mkdir()
+    (tmp_path / "dir_b" / "file").write_bytes(b"data")
+
+    visitor = SourceMergeVisitor()
+    visitor.set_projection(str(tmp_path / "view"))
+
+    visit_directory_tree(str(tmp_path / "dir_a"), visitor)
+    visit_directory_tree(str(tmp_path / "dir_b"), visitor)
+
+    # Check that a conflict was registered.
+    assert len(visitor.file_conflicts) == 1
+    conflict = visitor.file_conflicts[0]
+    assert conflict.src_a == str(tmp_path / "dir_a" / "file")
+    assert conflict.src_b == str(tmp_path / "dir_b" / "file")
+    assert conflict.dst == str(tmp_path / "view" / "file")
+
+    # The first file encountered should be listed.
+    assert visitor.files == {str(tmp_path / "view" / "file"): (str(tmp_path / "dir_a"), "file")}

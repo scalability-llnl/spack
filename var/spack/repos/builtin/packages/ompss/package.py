@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,6 +26,10 @@ class Ompss(Package):
     list_url = "https://pm.bsc.es/ompss-downloads"
 
     version("14.10", sha256="5b38d3e6ce108e7ca73a2599bc698d75ea9f6d90a3be0349faf6d61022e62a38")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # all dependencies are optional, really
     depends_on("mpi")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,10 +9,12 @@ from spack.package import *
 class Microbiomeutil(MakefilePackage, SourceforgePackage):
     """Microbiome analysis utilities"""
 
-    homepage = "http://microbiomeutil.sourceforge.net/"
+    homepage = "https://microbiomeutil.sourceforge.net/"
     sourceforge_mirror_path = "microbiomeutil/microbiomeutil-r20110519.tgz"
 
     version("20110519", sha256="9233de80ea57bfb9e9371cbe7e3bfad2d4a51168fddaf60fa144c4046c80d823")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("perl", type=("build", "run"))
     depends_on("blast-plus")

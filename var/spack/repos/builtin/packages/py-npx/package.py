@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyNpx(PythonPackage):
 
     homepage = "https://github.com/nschloe/npx"
     pypi = "npx/npx-0.1.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.1.0", sha256="3edec9508326b6724d7c176dbcba2098508788241b8a671aab583d0c72b2f05b")
 
