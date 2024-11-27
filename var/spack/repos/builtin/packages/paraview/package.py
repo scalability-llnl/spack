@@ -299,6 +299,8 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("zlib-api")
     depends_on("libcatalyst@2:", when="+libcatalyst")
     depends_on("hip@5.2:", when="+rocm")
+    # CUDA thrust is already include in the CUDA pkg
+    depends_on("rocthrust", when="@5.13: +rocm ^cmake@3.24:")
     for target in ROCmPackage.amdgpu_targets:
         depends_on(
             "kokkos@:3.7.01 +rocm amdgpu_target={0}".format(target),
