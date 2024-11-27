@@ -42,7 +42,7 @@ class HipRocclr(CMakePackage):
     depends_on("cmake@3:", type="build")
     depends_on("gl@4.5:", type="link")
     depends_on("numactl", type="link")
-    depends_on("glx", type="build")
+    requires("^[virtuals=gl] glx")
 
     for ver in [
         "5.1.0",
