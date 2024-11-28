@@ -9,10 +9,11 @@ import re
 
 from spack.build_systems.autotools import AutotoolsBuilder
 from spack.build_systems.msbuild import MSBuildBuilder
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
-class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
+class Xz(MSBuildPackage, AutotoolsPackage, CMakePackage, SourceforgePackage):
     """XZ Utils is free general-purpose data compression software with
     high compression ratio. XZ Utils were written for POSIX-like systems,
     but also work on some not-so-POSIX systems. XZ Utils are the successor
@@ -71,7 +72,7 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
     # prior to 5.2.3, build system is for MinGW only, not currently supported by Spack
     conflicts("platform=windows", when="@:5.2.3")
 
-    build_system(conditional("msbuild", when="platform=windows"), "autotools", default="autotools")
+    build_system(conditional("msbuild", when="@:5.4.7 platform=windows"), conditional("cmake", when="@5.4.7:"), "autotools", default="autotools")
 
     def flag_handler(self, name, flags):
         if name == "cflags" and "+pic" in self.spec:
@@ -103,6 +104,12 @@ class AutotoolsBuilder(AutotoolsBuilder):
         if self.spec.satisfies("platform=darwin"):
             fix_darwin_install_name(self.prefix.lib)
 
+
+class CMakeBuilder(CMakeBuilder):
+    def cmake_args(self):
+        build_shared = True if "shared" in self.spec else False
+        return [self.define("BUILD_SHARED_LIBS", build_shared)]
+    
 
 class MSBuildBuilder(MSBuildBuilder):
     @property
