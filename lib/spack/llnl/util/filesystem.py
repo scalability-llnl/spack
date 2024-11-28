@@ -2773,22 +2773,6 @@ def prefixes(path):
 
 
 @system_path_filter
-def md5sum(file):
-    """Compute the MD5 sum of a file.
-
-    Args:
-        file (str): file to be checksummed
-
-    Returns:
-        MD5 sum of the file's content
-    """
-    md5 = hashlib.md5()
-    with open(file, "rb") as f:
-        md5.update(f.read())
-    return md5.digest()
-
-
-@system_path_filter
 def remove_directory_contents(dir):
     """Remove all contents of a directory."""
     if os.path.exists(dir):
