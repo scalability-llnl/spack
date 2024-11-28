@@ -15,6 +15,7 @@ class PyNetcdf4(PythonPackage):
 
     license("MIT")
 
+    version("1.7.2", sha256="a4c6375540b19989896136943abb6d44850ff6f1fa7d3f063253b1ad3f8b7fce")
     version(
         "1.7.1.post2", sha256="37d557e36654889d7020192bfb56f9d5f93894cb32997eb837ae586c538fd7b6"
     )
