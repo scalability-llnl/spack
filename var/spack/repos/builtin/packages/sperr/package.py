@@ -26,6 +26,9 @@ class Sperr(CMakePackage):
     version("0.6.2", sha256="d986997e2d79a1f27146ad02c623359976a1e72a1ab0d957e128d430cda3782d")
     version("0.5", sha256="20ad48c0e7599d3e5866e024d0c49648eb817f72ad5459f5468122cf14a97171")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # Variants
     variant("shared", description="build shared libaries", default=True)
     variant("openmp", description="use OpenMP in 3D inputs", default=True)

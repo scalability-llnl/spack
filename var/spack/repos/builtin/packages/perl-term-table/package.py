@@ -19,11 +19,3 @@ class PerlTermTable(PerlPackage):
     version("0.018", sha256="9159b9131ee6b3f3956b74f45422985553574babbfaeba60be5c17bc114ac011")
 
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Term::Table; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

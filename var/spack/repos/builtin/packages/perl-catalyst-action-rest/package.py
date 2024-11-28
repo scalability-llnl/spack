@@ -29,11 +29,3 @@ class PerlCatalystActionRest(PerlPackage):
     depends_on("perl-params-validate@0.76:", type=("build", "run", "test"))
     depends_on("perl-test-requires", type=("build", "test"))
     depends_on("perl-uri-find", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Catalyst::Action::REST; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

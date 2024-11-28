@@ -24,11 +24,3 @@ class PerlCatalystPluginConfigloader(PerlPackage):
     depends_on("perl-config-any@0.20:", type=("build", "run", "test"))
     depends_on("perl-data-visitor@0.24:", type=("build", "run", "test"))
     depends_on("perl-mro-compat@0.09:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Catalyst::Plugin::ConfigLoader; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

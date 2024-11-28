@@ -14,6 +14,7 @@ class PyFlitCore(PythonPackage):
 
     # Tests import of a non-existing package
     skip_modules = ["flit_core.tests"]
+    tags = ["build-tools"]
 
     maintainers("takluyver")
 

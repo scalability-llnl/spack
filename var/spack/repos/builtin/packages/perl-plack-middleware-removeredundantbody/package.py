@@ -20,11 +20,3 @@ class PerlPlackMiddlewareRemoveredundantbody(PerlPackage):
 
     depends_on("perl-http-message", type=("build", "test"))
     depends_on("perl-plack", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Plack::Middleware::RemoveRedundantBody; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

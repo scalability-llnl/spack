@@ -21,11 +21,3 @@ class PerlPlackMiddlewareMethodoverride(PerlPackage):
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
     depends_on("perl-plack", type=("build", "run", "test"))
     depends_on("perl-uri", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Plack::Middleware::MethodOverride; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

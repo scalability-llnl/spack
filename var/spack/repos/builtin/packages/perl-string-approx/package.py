@@ -16,10 +16,4 @@ class PerlStringApprox(PerlPackage):
 
     version("3.28", sha256="43201e762d8699cb0ac2c0764a5454bdc2306c0771014d6c8fba821480631342")
 
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use String::Approx; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out
+    depends_on("c", type="build")  # generated

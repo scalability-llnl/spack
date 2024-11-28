@@ -7,6 +7,7 @@ import os.path
 import sys
 from textwrap import dedent
 
+import spack.paths
 import spack.repo
 from spack.main import SpackCommand
 
@@ -144,12 +145,9 @@ def test_list_repos():
         os.path.join(spack.paths.repos_path, "builder.test"),
     ):
         total_pkgs = len(list().strip().split())
-
         mock_pkgs = len(list("-r", "builtin.mock").strip().split())
         builder_pkgs = len(list("-r", "builder.test").strip().split())
-
-        assert builder_pkgs == 8
-        assert total_pkgs > mock_pkgs > builder_pkgs
-
         both_repos = len(list("-r", "builtin.mock", "-r", "builder.test").strip().split())
+
+        assert total_pkgs > mock_pkgs > builder_pkgs
         assert both_repos == total_pkgs

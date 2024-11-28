@@ -47,7 +47,7 @@ class GitAnnex(Package):
     # - $ git annex whereis git-annex/linux/current/git-annex-standalone-arm64.tar.gz
     #     -> gives web url
 
-    skip_version_audit = ["platform=darwin"]
+    skip_version_audit = ["platform=darwin", "platform=windows"]
 
     license("AGPL-3.0-or-later")
 
@@ -124,7 +124,7 @@ class GitAnnex(Package):
     def install(self, spec, prefix):
         install_tree(".", prefix.bin)
 
-        if "~standalone" in spec:
+        if spec.satisfies("~standalone"):
             # use git provided by spack instead of the one in the package
             git_files = ["git", "git-receive-pack", "git-shell", "git-upload-pack"]
             for i in git_files:

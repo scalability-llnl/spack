@@ -19,11 +19,3 @@ class PerlDevelStacktraceAshtml(PerlPackage):
     version("0.15", sha256="6283dbe2197e2f20009cc4b449997742169cdd951bfc44cbc6e62c2a962d3147")
 
     depends_on("perl-devel-stacktrace", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Devel::StackTrace::AsHTML; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

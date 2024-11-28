@@ -14,6 +14,8 @@ class Highway(CMakePackage):
 
     license("Apache-2.0")
 
+    version("1.2.0", sha256="7e0be78b8318e8bdbf6fa545d2ecb4c90f947df03f7aadc42c1967f019e63343")
+    version("1.1.0", sha256="354a8b4539b588e70b98ec70844273e3f2741302c4c377bcc4e81b3d1866f7c9")
     version("1.0.7", sha256="5434488108186c170a5e2fca5e3c9b6ef59a1caa4d520b008a9b8be6b8abe6c5")
     version("1.0.6", sha256="d89664a045a41d822146e787bceeefbf648cc228ce354f347b18f2b419e57207")
     version("1.0.5", sha256="99b7dad98b8fa088673b720151458fae698ae5df9154016e39de4afdc23bb927")
@@ -23,11 +25,26 @@ class Highway(CMakePackage):
     version("1.0.1", sha256="7ca6af7dc2e3e054de9e17b9dfd88609a7fd202812b1c216f43cc41647c97311")
     version("1.0.0", sha256="ab4f5f864932268356f9f6aa86f612fa4430a7db3c8de0391076750197e876b8")
 
+    variant("shared", default=True, description="Build shared libs")
+    variant("examples", default=False, description="Build examples")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("cmake@3.10:", type="build")
+
     depends_on("googletest", type="test")
 
     def cmake_args(self):
-        args = []
-        if self.run_tests:
-            args.append(self.define("HWY_SYSTEM_GTEST", True))
+        define = self.define
+        from_variant = self.define_from_variant
+
+        args = [
+            from_variant("BUILD_SHARED_LIBS", "shared"),
+            from_variant("HWY_ENABLE_EXAMPLES", "examples"),
+            define("HWY_ENABLE_TESTS", self.run_tests),
+            define("BUILD_TESTING", self.run_tests),
+            define("HWY_SYSTEM_GTEST", self.run_tests),
+        ]
+
         return args

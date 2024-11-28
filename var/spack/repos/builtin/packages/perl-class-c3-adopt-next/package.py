@@ -22,11 +22,3 @@ class PerlClassC3AdoptNext(PerlPackage):
     depends_on("perl-module-build-tiny@0.039:", type=("build"))
     depends_on("perl-mro-compat", type=("build", "run", "test"))
     depends_on("perl-test-exception@0.27:", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Class::C3::Adopt::NEXT; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

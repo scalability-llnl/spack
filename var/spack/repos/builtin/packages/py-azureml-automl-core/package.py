@@ -14,11 +14,7 @@ class PyAzuremlAutomlCore(PythonPackage):
     homepage = "https://docs.microsoft.com/en-us/azure/machine-learning/service/"
     url = "https://pypi.io/packages/py3/a/azureml_automl_core/azureml_automl_core-1.11.0-py3-none-any.whl"
 
-    version(
-        "1.23.0",
-        sha256="1fa4a900856b15e1ec9a6bb949946ed0c873a5a54da3db592f03dbb46a117ceb",
-        expand=False,
-    )
+    version("1.23.0", sha256="1fa4a900856b15e1ec9a6bb949946ed0c873a5a54da3db592f03dbb46a117ceb")
 
     depends_on("python@3.5:3", type=("build", "run"))
 

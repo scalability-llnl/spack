@@ -16,3 +16,6 @@ class Libinih(MesonPackage):
     git = "https://github.com/benhoyt/inih.git"
 
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

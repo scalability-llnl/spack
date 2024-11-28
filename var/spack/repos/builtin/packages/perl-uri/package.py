@@ -12,6 +12,8 @@ class PerlUri(PerlPackage):
     homepage = "https://metacpan.org/pod/URI"
     url = "http://search.cpan.org/CPAN/authors/id/E/ET/ETHER/URI-1.72.tar.gz"
 
+    skip_modules = ["URI::urn::isbn"]  # required missing Business::ISBN
+
     license("GPL-1.0-or-later OR Artistic-1.0-Perl")
 
     version("5.08", sha256="7e2c6fe3b1d5947da334fa558a96e748aaa619213b85bcdce5b5347d4d26c46e")

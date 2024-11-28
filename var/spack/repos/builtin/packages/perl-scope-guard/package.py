@@ -17,11 +17,3 @@ class PerlScopeGuard(PerlPackage):
     version("0.21", sha256="8c9b1bea5c56448e2c3fadc65d05be9e4690a3823a80f39d2f10fdd8f777d278")
 
     depends_on("perl@5.6.1:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Scope::Guard; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

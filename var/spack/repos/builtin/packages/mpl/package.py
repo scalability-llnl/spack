@@ -22,4 +22,7 @@ class Mpl(CMakePackage):
     version("0.2.0", tag="v0.2.0", commit="f322352c93627c1b91d8efb1c4ee2e4873aed016")
     version("0.1", tag="v0.1", commit="970d0f3436ddbfcf2eba12c5bc7f4f7660e433ca")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")

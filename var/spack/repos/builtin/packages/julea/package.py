@@ -23,6 +23,9 @@ class Julea(MesonPackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("hdf5", default=True, description="Enable HDF5 support")
     variant("leveldb", default=True, description="Enable LevelDB support")
     variant("lmdb", default=True, description="Enable LMDB support")

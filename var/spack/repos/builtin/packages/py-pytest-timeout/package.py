@@ -16,8 +16,9 @@ class PyPytestTimeout(PythonPackage):
 
     license("MIT")
 
+    version("2.2.0", sha256="3b0b95dabf3cb50bac9ef5ca912fa0cfc286526af17afc806824df20c2f72c90")
     version("1.4.2", sha256="20b3113cf6e4e80ce2d403b6fb56e9e1b871b510259206d40ff8d609f48bda76")
 
-    depends_on("python@2.7:2.8,3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
+    depends_on("py-pytest@5:", when="@2:", type=("build", "run"))
     depends_on("py-pytest@3.6.0:", type=("build", "run"))

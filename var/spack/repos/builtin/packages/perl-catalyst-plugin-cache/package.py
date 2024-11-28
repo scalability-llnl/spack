@@ -24,11 +24,3 @@ class PerlCatalystPluginCache(PerlPackage):
     depends_on("perl-test-deep", type=("build", "link"))
     depends_on("perl-test-exception", type=("build", "link"))
     depends_on("perl-class-accessor", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Catalyst::Plugin::Cache; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

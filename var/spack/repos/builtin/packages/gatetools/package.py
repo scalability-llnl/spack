@@ -14,6 +14,7 @@ class Gatetools(PythonPackage):
 
     license("LGPL-3.0-only")
 
+    version("0.12.1", sha256="eb4847442594e466f0fc01eb5ff1eb89f1dfc4e4b5968d611dacb75a88d24013")
     version("0.11.2", sha256="6eef8a779278b862823ae79d6aab210db4f7889c9127b2c2e4c3a4195f9a9928")
     version("0.9.14", sha256="78fe864bb52fd4c6aeeee90d8f6c1bc5406ce02ac6f48712379efac606b5c006")
 

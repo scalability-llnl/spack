@@ -16,6 +16,8 @@ class CubeBlade(AutotoolsPackage):
 
     version("0.2", sha256="ab3c5bbca79e2ec599166e75b3c96a8f6a18b3064414fc39e56f78aaae9c165c")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cube@4.5:")
     depends_on("cubelib@4.5:")
     depends_on("qt@5.9.1:")

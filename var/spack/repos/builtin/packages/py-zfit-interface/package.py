@@ -22,7 +22,7 @@ class PyZfitInterface(PythonPackage):
     depends_on("python@3.8:", type=("build", "run"))
 
     depends_on("py-setuptools@42:", type="build")
-    depends_on("py-setuptools_scm@3.4:+toml", type="build")
+    depends_on("py-setuptools-scm@3.4:+toml", type="build")
     depends_on("py-setuptools-scm-git-archive", type="build")
     depends_on("py-numpy", type=("build", "run"))
     depends_on("py-uhi", type=("build", "run"))

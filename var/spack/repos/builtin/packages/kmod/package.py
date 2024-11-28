@@ -22,6 +22,8 @@ class Kmod(AutotoolsPackage):
     version("24", sha256="f7a5ee07d4901c87711880536604de7e31c182d85a72de7b8d7dd04d4ee0aa59")
     version("23", sha256="8f139543d82e8ccc2227dec4c016d6656e9789365a6dce73f90b620a53e62ee6")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

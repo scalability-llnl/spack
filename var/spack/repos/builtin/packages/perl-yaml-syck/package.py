@@ -18,12 +18,6 @@ class PerlYamlSyck(PerlPackage):
 
     version("1.34", sha256="cc9156ccaebda798ebfe2f31b619e806577f860ed1704262f17ffad3c6e34159")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use YAML::Syck; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

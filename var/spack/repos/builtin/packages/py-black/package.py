@@ -15,10 +15,10 @@ class PyBlack(PythonPackage):
     homepage = "https://github.com/psf/black"
     pypi = "black/black-22.1.0.tar.gz"
 
-    maintainers("adamjstewart")
-
     license("MIT", checked_by="tgamblin")
+    maintainers("spack/spack-releasers")
 
+    version("24.3.0", sha256="a0c9c4a0771afc6919578cec71ce82a3e31e054904e7197deacbc9382671c41f")
     version("24.2.0", sha256="bce4f25c27c3435e4dace4815bcb2008b87e167e3bf4ee47ccdc5ce906eb4894")
     version("24.1.1", sha256="48b5760dcbfe5cf97fd4fba23946681f3a81514c6ab8a45b50da67ac8fbc6c7b")
     version("24.1.0", sha256="30fbf768cd4f4576598b1db0202413fafea9a227ef808d1a12230c643cefe9fc")

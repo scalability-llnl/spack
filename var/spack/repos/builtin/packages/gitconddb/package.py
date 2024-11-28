@@ -24,6 +24,8 @@ class Gitconddb(CMakePackage):
     version("0.1.2", sha256="121ac34d8afffbd97b052cbb10f15e78cef962fe25ded85d88ab26e1677b72b5")
     version("0.1.1", sha256="024a6867722a3a622ed4327ea7d15641dd48e4e8411bdcc21915e406b3c479a2")
 
+    depends_on("cxx", type="build")  # generated
+
     # Add the cxxstd variant for forward compatibility, though we require 17
     _cxxstd_values = ("17",)
     variant(

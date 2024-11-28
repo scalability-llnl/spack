@@ -19,11 +19,3 @@ class PerlAlgorithmC3(PerlPackage):
     version("0.11", sha256="aaf48467765deea6e48054bc7d43e46e4d40cbcda16552c629d37be098289309")
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Algorithm::C3; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

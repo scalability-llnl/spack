@@ -21,3 +21,5 @@ class RLog4r(RPackage):
     version("0.3.2", sha256="14ba6b096283279f0accbde26a600771ab2df271db6c8eeb04d6f113107825a3")
     version("0.3.0", sha256="8e5d0221298410e48bee9d9a983a23e1834ce88592f9d931471bfdb05f37a691")
     version("0.2", sha256="321bee6babb92376b538624027a36e7d2a6c8edb360aa38ab0a6762dfea9081f")
+
+    depends_on("c", type="build")  # generated

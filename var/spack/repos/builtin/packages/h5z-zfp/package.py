@@ -20,6 +20,9 @@ class H5zZfp(CMakePackage):
     version("1.1.1", sha256="921af7b9d1c8c46c036b46544f2785f69d405c0701abe1c1ce3aca2bd5899171")
     version("1.1.0", sha256="48a81e69d1f3b61d9a1eb07e868164fadf3b88690ec930efd849f5889681a893")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fortran", default=True, description="Enable Fortran support")
 
     depends_on("hdf5+fortran", when="+fortran")
@@ -31,7 +34,7 @@ class H5zZfp(CMakePackage):
     def make_defs(self):
         cc = spack_cc
         fc = spack_fc
-        if "^hdf5+mpi" in self.spec:
+        if self.spec.satisfies("^hdf5+mpi"):
             cc = self.spec["mpi"].mpicc
             fc = self.spec["mpi"].mpifc
         make_defs = [
@@ -41,7 +44,7 @@ class H5zZfp(CMakePackage):
             "ZFP_HOME=%s" % self.spec["zfp"].prefix,
         ]
 
-        if "+fortran" in self.spec and fc:
+        if self.spec.satisfies("+fortran") and fc:
             make_defs += ["FC=%s" % fc]
         else:
             make_defs += ["FC="]

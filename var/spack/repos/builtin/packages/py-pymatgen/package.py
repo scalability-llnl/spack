@@ -52,3 +52,8 @@ class PyPymatgen(PythonPackage):
     depends_on("py-uncertainties@3.1.4:", when="@2021.1.1:", type=("build", "run"))
     depends_on("py-pybtex", when="@2022.1.9:", type=("build", "run"))
     depends_on("py-tqdm", when="@2022.1.9:", type=("build", "run"))
+
+    # <<< manual changes
+    # https://github.com/materialsproject/pymatgen/commit/29b5b909e109cb04d4b118d0de5b3929819b9378
+    depends_on("py-cython@:2", when="@:2023.7.16", type="build")
+    # manual changes >>>

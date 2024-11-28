@@ -18,6 +18,8 @@ class Metal(CMakePackage):
         "2020-05-05", sha256="0ffa2419ca2ab43766e7e6e8c97822c8ce1f5b6233fb5f992d1b1be1955fede7"
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.1:", type="build")
     depends_on("zlib-ng")
 

@@ -27,11 +27,3 @@ class PerlDatetimeTimezone(PerlPackage):
     depends_on("perl-test-fatal", type=("build", "test"))
     depends_on("perl-test-requires", type=("build", "test"))
     depends_on("perl-try-tiny", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use DateTime::TimeZone; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

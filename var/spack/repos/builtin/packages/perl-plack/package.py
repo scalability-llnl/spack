@@ -36,11 +36,3 @@ class PerlPlack(PerlPackage):
     depends_on("perl-try-tiny", type=("build", "run", "test"))
     depends_on("perl-uri@1.59:", type=("build", "run", "test"))
     depends_on("perl-www-form-urlencoded@0.23:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Plack; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

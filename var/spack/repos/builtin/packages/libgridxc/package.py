@@ -26,6 +26,8 @@ class Libgridxc(MakefilePackage):
     version("0.8.0", sha256="ff89b3302f850d1d9f651951e4ade20dfa4c71c809a2d86382c6797392064c9c")
     version("0.7.6", sha256="058b80f40c85997eea0eae3f15b7cc8105f817e59564106308b22f57a03b216b")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("autoconf@2.69:", type="build")
     depends_on("automake@1.14:", type="build")
     depends_on("libtool@2.4.2:", type="build")

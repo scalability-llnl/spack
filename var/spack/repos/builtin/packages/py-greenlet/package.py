@@ -17,6 +17,8 @@ class PyGreenlet(PythonPackage):
 
     license("MIT AND PSF-2.0", checked_by="tgamblin")
 
+    version("3.1.1", sha256="4ce3ac6cdb6adf7946475d7ef31777c26d94bccc377e070a7986bd2d5c515467")
+    version("3.0.3", sha256="43374442353259554ce33599da8b692d5aa96f8976d567d4badf263371fbe491")
     version("3.0.0a1", sha256="1bd4ea36f0aeb14ca335e0c9594a5aaefa1ac4e2db7d86ba38f0be96166b3102")
     version(
         "2.0.2",
@@ -29,5 +31,13 @@ class PyGreenlet(PythonPackage):
     version("0.4.17", sha256="41d8835c69a78de718e466dd0e6bfd4b46125f21a67c3ff6d76d8d8059868d6b")
     version("0.4.13", sha256="0fef83d43bf87a5196c91e73cb9772f945a4caaff91242766c5916d1dd1381e4")
 
-    depends_on("python", type=("build", "link", "run"))
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
+    with default_args(type=("build", "link", "run")):
+        depends_on("python")
+        depends_on("python@:3.11", when="@:2")
+        depends_on("python@:3.12", when="@:3.0")
+
     depends_on("py-setuptools", type="build")
+    depends_on("py-setuptools@40.8.0:", type="build", when="@3.0.2:")

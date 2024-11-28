@@ -250,7 +250,7 @@ generator is Ninja. To switch to the Ninja generator, simply add:
 
 .. code-block:: python
 
-   generator = "Ninja"
+   generator("ninja")
 
 
 ``CMakePackage`` defaults to "Unix Makefiles". If you switch to the

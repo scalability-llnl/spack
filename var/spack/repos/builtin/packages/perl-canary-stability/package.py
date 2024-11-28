@@ -15,11 +15,3 @@ class PerlCanaryStability(PerlPackage):
     maintainers("EbiArnie")
 
     version("2013", sha256="a5c91c62cf95fcb868f60eab5c832908f6905221013fea2bce3ff57046d7b6ea")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Canary::Stability; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

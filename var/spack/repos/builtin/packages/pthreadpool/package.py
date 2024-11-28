@@ -15,13 +15,16 @@ class Pthreadpool(CMakePackage):
     license("BSD-2-Clause")
 
     version("master", branch="master")
-    version("2023-08-29", commit="4fe0e1e183925bf8cfa6aae24237e724a96479b8")  # py-torch@2.2
+    version("2023-08-29", commit="4fe0e1e183925bf8cfa6aae24237e724a96479b8")  # py-torch@2.2:
     version("2021-04-13", commit="a134dd5d4cee80cce15db81a72e7f929d71dd413")  # py-torch@1.9:2.1
     version("2020-10-05", commit="fa75e65a58a5c70c09c30d17a1fe1c1dff1093ae")  # py-torch@1.8
     version("2020-06-15", commit="029c88620802e1361ccf41d1970bd5b07fd6b7bb")  # py-torch@1.6:1.7
     version("2019-10-29", commit="d465747660ecf9ebbaddf8c3db37e4a13d0c9103")  # py-torch@1.5
     version("2018-10-08", commit="13da0b4c21d17f94150713366420baaf1b5a46f4")  # py-torch@1.0:1.4
     version("2018-02-25", commit="2b06b31f6a315162348e1f3c24325eedaf6cc559")  # py-torch@:0.4
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     generator("ninja")
     depends_on("cmake@3.5:", type="build")
@@ -51,7 +54,6 @@ class Pthreadpool(CMakePackage):
 
     def cmake_args(self):
         return [
-            self.define("BUILD_SHARED_LIBS", True),
             self.define("FXDIV_SOURCE_DIR", join_path(self.stage.source_path, "deps", "fxdiv")),
             self.define(
                 "GOOGLETEST_SOURCE_DIR", join_path(self.stage.source_path, "deps", "googletest")
@@ -60,6 +62,10 @@ class Pthreadpool(CMakePackage):
                 "GOOGLEBENCHMARK_SOURCE_DIR",
                 join_path(self.stage.source_path, "deps", "googlebenchmark"),
             ),
-            self.define("PTHREADPOOL_BUILD_TESTS", self.run_tests),
-            self.define("PTHREADPOOL_BUILD_BENCHMARKS", self.run_tests),
+            # https://github.com/pytorch/pytorch/blob/main/cmake/Dependencies.cmake
+            self.define("PTHREADPOOL_BUILD_TESTS", False),
+            self.define("PTHREADPOOL_BUILD_BENCHMARKS", False),
+            self.define("PTHREADPOOL_LIBRARY_TYPE", "static"),
+            self.define("PTHREADPOOL_ALLOW_DEPRECATED_API", True),
+            self.define("CMAKE_POSITION_INDEPENDENT_CODE", True),
         ]

@@ -23,6 +23,8 @@ class Graphblast(MakefilePackage, CudaPackage):
         preferred=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     variant("cuda", default=True, description="Build with Cuda support")
 
     depends_on("boost +program_options")

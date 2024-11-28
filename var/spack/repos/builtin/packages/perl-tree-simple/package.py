@@ -19,11 +19,3 @@ class PerlTreeSimple(PerlPackage):
     version("1.34", sha256="b7e9799bd222bb94cff993f7d765980cbea1b6cd2aaa5ecbead635abdf47d29c")
 
     depends_on("perl-test-exception@0.15:", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Tree::Simple; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

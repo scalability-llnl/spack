@@ -22,11 +22,3 @@ class PerlKyotocabinet(PerlPackage):
     depends_on("zlib-api", type=("build", "link", "run", "test"))
     depends_on("lzo", type=("build", "link", "run", "test"))
     depends_on("xz", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use KyotoCabinet; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

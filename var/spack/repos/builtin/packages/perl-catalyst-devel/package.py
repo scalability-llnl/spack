@@ -36,11 +36,3 @@ class PerlCatalystDevel(PerlPackage):
     depends_on("perl-template-toolkit", type=("build", "run", "test"))
     depends_on("perl-test-fatal@0.003:", type=("build", "test"))
     depends_on("perl-yaml-tiny", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Catalyst::Devel; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

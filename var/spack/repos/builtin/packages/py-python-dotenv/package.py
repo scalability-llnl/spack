@@ -16,11 +16,10 @@ class PyPythonDotenv(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("1.0.1", sha256="e324ee90a023d808f1959c46bcbc04446a10ced277783dc6ee09987c37ec10ca")
     version("0.19.2", sha256="a5de49a31e953b45ff2d2fd434bbc2670e8db5273606c1e737cc6b93eff3655f")
 
     variant("cli", default=False, description="Add commandline tools")
 
-    depends_on("python@3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
-
     depends_on("py-click@5:", when="+cli", type=("build", "run"))

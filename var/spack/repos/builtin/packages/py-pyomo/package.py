@@ -18,6 +18,7 @@ class PyPyomo(PythonPackage):
     # Maintainer accurate as of 2024-02-21
     maintainers("mrmundt")
 
+    version("6.7.2", sha256="53bef766854f7607ca1fcfe3f218594ab382f137a275cee3d925d2b2f96876bf")
     version("6.7.1", sha256="735b66c45937f1caa43f073d8218a4918b6de658914a699397d38d5b8c219a40")
     version("6.7.0", sha256="a245ec609ef2fd907269f0b8e0923f74d5bf868b2ec0e62bf2a30b3f253bd17b")
     version("6.6.2", sha256="c8ad55213ff8b1a2c4e469110db8079722d5a6f364c6c46a42e2f750fc9e4d26")
@@ -44,6 +45,9 @@ class PyPyomo(PythonPackage):
     version("5.6.8", sha256="28cbe034b06a477053616a3ce5ef43149bfd7d025cac490c2a3dd006c388b60d")
     version("5.6.7", sha256="fc97cc9d5a55c5185358ba65c1f9530c9af17e67a9aae7b36c3414f159030ae0")
     version("5.6.6", sha256="813e14a604b9d3ac63bdd0880c07f5f4e1b8f0a8a10345f1b42bee762219c001")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("cython", default=False, description="Enable cythonization of Pyomo.")
     variant("tests", default=False, description="Install testing dependencies.", when="@6.1:")
@@ -94,7 +98,8 @@ class PyPyomo(PythonPackage):
     depends_on("py-sphinx-toolbox@2.16:", when="@6.7.1:+docs", type=("run"))
     depends_on("py-sphinx-jinja2-compat@0.1.1:", when="@6.7.1:+docs", type=("run"))
     depends_on("py-enum-tools", when="@6.7.1:+docs", type=("run"))
-    depends_on("py-numpy", when="@6.1:+docs", type=("run"))
+    # Pyomo does not support NumPy2 (May 9, 2024)
+    depends_on("py-numpy@1", when="@6.1:+docs", type=("run"))
     depends_on("py-scipy", when="@6.4.2:+docs", type=("run"))
 
     # when optional is requested
@@ -102,7 +107,8 @@ class PyPyomo(PythonPackage):
     depends_on("py-ipython", when="@6.1:+optional", type=("run"))
     depends_on("py-matplotlib@:3.6.0,3.6.2:", when="@6.1:+optional", type=("run"))
     depends_on("py-networkx", when="@6.1:+optional", type=("run"))
-    depends_on("py-numpy", when="@6.1:+optional", type=("run"))
+    # Pyomo does not support NumPy2 (May 9, 2024)
+    depends_on("py-numpy@1", when="@6.1:+optional", type=("run"))
     depends_on("py-openpyxl", when="@6.1:+optional", type=("run"))
     depends_on("py-pint", when="@6.1:+optional", type=("run"))
     depends_on("py-plotly", when="@6.6:+optional", type=("run"))

@@ -333,6 +333,9 @@ class Openfoam(Package):
     version("1706", sha256="7779048bb53798d9a5bd2b2be0bf302c5fd3dff98e29249d6e0ef7eeb83db79a")
     version("1612", sha256="2909c43506a68e1f23efd0ca6186a6948ae0fc8fe1e39c78cc23ef0d69f3569d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("int64", default=False, description="With 64-bit labels")
     variant("knl", default=False, description="Use KNL compiler settings")
     variant("kahip", default=False, description="With kahip decomposition")
@@ -369,8 +372,12 @@ class Openfoam(Package):
     # See https://github.com/spack/spack/pull/22303 for reference
     depends_on(Boost.with_default_variants)
 
-    # OpenFOAM does not play nice with CGAL 5.X
-    depends_on("cgal@:4")
+    # Earlier versions of OpenFOAM may not work with CGAL 5.6. I do
+    # not know which OpenFOAM added support for 5.x and conservatively
+    # use 2312 in the check.
+    depends_on("cgal", when="@2312:")
+    depends_on("cgal@:4", when="@:2306")
+
     # The flex restriction is ONLY to deal with a spec resolution clash
     # introduced by the restriction within scotch!
     depends_on("flex@:2.6.1,2.6.4:")

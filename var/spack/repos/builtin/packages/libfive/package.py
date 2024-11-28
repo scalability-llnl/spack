@@ -19,6 +19,8 @@ class Libfive(CMakePackage):
     # and currently, all tags are from 2017:
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("cmake@3.12:", type="build")
     depends_on("boost@1.65:")

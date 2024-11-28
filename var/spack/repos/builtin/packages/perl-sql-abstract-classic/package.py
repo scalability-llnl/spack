@@ -24,11 +24,3 @@ class PerlSqlAbstractClassic(PerlPackage):
     depends_on("perl-test-deep@0.101:", type=("build", "link"))
     depends_on("perl-test-exception@0.31:", type=("build", "link"))
     depends_on("perl-test-warn", type=("build", "link"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use SQL::Abstract::Classic; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

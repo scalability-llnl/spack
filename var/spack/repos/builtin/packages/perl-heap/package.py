@@ -17,11 +17,3 @@ class PerlHeap(PerlPackage):
     license("GPL-1.0-or-later OR Artistic-1.0-Perl")
 
     version("0.80", sha256="ccda29f3c93176ad0fdfff4dd6f5e4ac90b370cba4b028386b7343bf64139bde")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Heap; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -24,11 +24,3 @@ class PerlCatalystActionRenderview(PerlPackage):
     depends_on("perl-data-visitor@0.24:", type=("build", "run", "test"))
     depends_on("perl-http-request-ascgi", type=("build", "link"))
     depends_on("perl-mro-compat", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Catalyst::Action::RenderView; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

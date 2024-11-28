@@ -25,6 +25,9 @@ class G2o(CMakePackage):
         "20200410_git", sha256="b79eb1407ae7f2a9e6a002bb4b41d65402c185855db41a9ef4a6e3b42abaec4c"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.1:", type="build")
     depends_on("eigen@2.91.0:", type="link")
     depends_on("ceres-solver")

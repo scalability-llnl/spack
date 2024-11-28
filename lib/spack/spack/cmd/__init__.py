@@ -4,10 +4,12 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
+import importlib
 import os
 import re
 import sys
-from typing import List, Union
+from collections import Counter
+from typing import List, Optional, Union
 
 import llnl.string
 import llnl.util.tty as tty
@@ -16,18 +18,22 @@ from llnl.util.lang import attr_setdefault, index_by
 from llnl.util.tty.colify import colify
 from llnl.util.tty.color import colorize
 
-import spack.config
+import spack.concretize
+import spack.config  # breaks a cycle.
 import spack.environment as ev
 import spack.error
 import spack.extensions
 import spack.parser
 import spack.paths
+import spack.repo
 import spack.spec
 import spack.store
 import spack.traverse as traverse
 import spack.user_environment as uenv
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
+
+from ..enums import InstallRecordStatus
 
 # cmd has a submodule called "list" so preserve the python list module
 python_list = list
@@ -114,8 +120,8 @@ def get_module(cmd_name):
 
     try:
         # Try to import the command from the built-in directory
-        module_name = "%s.%s" % (__name__, pname)
-        module = __import__(module_name, fromlist=[pname, SETUP_PARSER, DESCRIPTION], level=0)
+        module_name = f"{__name__}.{pname}"
+        module = importlib.import_module(module_name)
         tty.debug("Imported {0} from built-in commands".format(pname))
     except ImportError:
         module = spack.extensions.get_module(cmd_name)
@@ -172,10 +178,66 @@ def parse_specs(
     arg_string = " ".join([quote_kvp(arg) for arg in args])
 
     specs = spack.parser.parse(arg_string)
-    for spec in specs:
-        if concretize:
-            spec.concretize(tests=tests)
-    return specs
+    if not concretize:
+        return specs
+
+    to_concretize = [(s, None) for s in specs]
+    return _concretize_spec_pairs(to_concretize, tests=tests)
+
+
+def _concretize_spec_pairs(to_concretize, tests=False):
+    """Helper method that concretizes abstract specs from a list of abstract,concrete pairs.
+
+    Any spec with a concrete spec associated with it will concretize to that spec. Any spec
+    with ``None`` for its concrete spec will be newly concretized. This method respects unification
+    rules from config."""
+    unify = spack.config.get("concretizer:unify", False)
+
+    # Special case for concretizing a single spec
+    if len(to_concretize) == 1:
+        abstract, concrete = to_concretize[0]
+        return [concrete or abstract.concretized()]
+
+    # Special case if every spec is either concrete or has an abstract hash
+    if all(
+        concrete or abstract.concrete or abstract.abstract_hash
+        for abstract, concrete in to_concretize
+    ):
+        # Get all the concrete specs
+        ret = [
+            concrete or (abstract if abstract.concrete else abstract.lookup_hash())
+            for abstract, concrete in to_concretize
+        ]
+
+        # If unify: true, check that specs don't conflict
+        # Since all concrete, "when_possible" is not relevant
+        if unify is True:  # True, "when_possible", False are possible values
+            runtimes = spack.repo.PATH.packages_with_tags("runtime")
+            specs_per_name = Counter(
+                spec.name
+                for spec in traverse.traverse_nodes(
+                    ret, deptype=("link", "run"), key=traverse.by_dag_hash
+                )
+                if spec.name not in runtimes  # runtimes are allowed multiple times
+            )
+
+            conflicts = sorted(name for name, count in specs_per_name.items() if count > 1)
+            if conflicts:
+                raise spack.error.SpecError(
+                    "Specs conflict and `concretizer:unify` is configured true.",
+                    f"    specs depend on multiple versions of {', '.join(conflicts)}",
+                )
+        return ret
+
+    # Standard case
+    concretize_method = spack.concretize.concretize_separately  # unify: false
+    if unify is True:
+        concretize_method = spack.concretize.concretize_together
+    elif unify == "when_possible":
+        concretize_method = spack.concretize.concretize_together_when_possible
+
+    concretized = concretize_method(to_concretize, tests=tests)
+    return [concrete for _, concrete in concretized]
 
 
 def matching_spec_from_env(spec):
@@ -191,39 +253,64 @@ def matching_spec_from_env(spec):
         return spec.concretized()
 
 
-def disambiguate_spec(spec, env, local=False, installed=True, first=False):
+def matching_specs_from_env(specs):
+    """
+    Same as ``matching_spec_from_env`` but respects spec unification rules.
+
+    For each spec, if there is a matching spec in the environment it is used. If no
+    matching spec is found, this will return the given spec but concretized in the
+    context of the active environment and other given specs, with unification rules applied.
+    """
+    env = ev.active_environment()
+    spec_pairs = [(spec, env.matching_spec(spec) if env else None) for spec in specs]
+    additional_concrete_specs = (
+        [(concrete, concrete) for _, concrete in env.concretized_specs()] if env else []
+    )
+    return _concretize_spec_pairs(spec_pairs + additional_concrete_specs)[: len(spec_pairs)]
+
+
+def disambiguate_spec(
+    spec: spack.spec.Spec,
+    env: Optional[ev.Environment],
+    local: bool = False,
+    installed: Union[bool, InstallRecordStatus] = True,
+    first: bool = False,
+) -> spack.spec.Spec:
     """Given a spec, figure out which installed package it refers to.
 
-    Arguments:
-        spec (spack.spec.Spec): a spec to disambiguate
-        env (spack.environment.Environment): a spack environment,
-            if one is active, or None if no environment is active
-        local (bool): do not search chained spack instances
-        installed (bool or spack.database.InstallStatus or typing.Iterable):
-            install status argument passed to database query.
-            See ``spack.database.Database._query`` for details.
+    Args:
+        spec: a spec to disambiguate
+        env: a spack environment, if one is active, or None if no environment is active
+        local: do not search chained spack instances
+        installed: install status argument passed to database query.
+        first: returns the first matching spec, even if more than one match is found
     """
     hashes = env.all_hashes() if env else None
     return disambiguate_spec_from_hashes(spec, hashes, local, installed, first)
 
 
-def disambiguate_spec_from_hashes(spec, hashes, local=False, installed=True, first=False):
+def disambiguate_spec_from_hashes(
+    spec: spack.spec.Spec,
+    hashes: List[str],
+    local: bool = False,
+    installed: Union[bool, InstallRecordStatus] = True,
+    first: bool = False,
+) -> spack.spec.Spec:
     """Given a spec and a list of hashes, get concrete spec the spec refers to.
 
     Arguments:
-        spec (spack.spec.Spec): a spec to disambiguate
-        hashes (typing.Iterable): a set of hashes of specs among which to disambiguate
-        local (bool): do not search chained spack instances
-        installed (bool or spack.database.InstallStatus or typing.Iterable):
-            install status argument passed to database query.
-            See ``spack.database.Database._query`` for details.
+        spec: a spec to disambiguate
+        hashes: a set of hashes of specs among which to disambiguate
+        local: if True, do not search chained spack instances
+        installed: install status argument passed to database query.
+        first: returns the first matching spec, even if more than one match is found
     """
     if local:
         matching_specs = spack.store.STORE.db.query_local(spec, hashes=hashes, installed=installed)
     else:
         matching_specs = spack.store.STORE.db.query(spec, hashes=hashes, installed=installed)
     if not matching_specs:
-        tty.die("Spec '%s' matches no installed packages." % spec)
+        tty.die(f"Spec '{spec}' matches no installed packages.")
 
     elif first:
         return matching_specs[0]
@@ -237,7 +324,7 @@ def ensure_single_spec_or_die(spec, matching_specs):
     if len(matching_specs) <= 1:
         return
 
-    format_string = "{name}{@version}{%compiler.name}{@compiler.version}{arch=architecture}"
+    format_string = "{name}{@version}{%compiler.name}{@compiler.version}{ arch=architecture}"
     args = ["%s matches multiple packages." % spec, "Matching packages:"]
     args += [
         colorize("  @K{%s} " % s.dag_hash(7)) + s.cformat(format_string) for s in matching_specs
@@ -334,9 +421,9 @@ def display_specs(specs, args=None, **kwargs):
         variants (bool): Show variants with specs
         indent (int): indent each line this much
         groups (bool): display specs grouped by arch/compiler (default True)
-        decorators (dict): dictionary mappng specs to decorators
-        header_callback (typing.Callable): called at start of arch/compiler groups
+        decorator (typing.Callable): function to call to decorate specs
         all_headers (bool): show headers even when arch/compiler aren't defined
+        status_fn (typing.Callable): if provided, prepend install-status info
         output (typing.IO): A file object to write to. Default is ``sys.stdout``
 
     """
@@ -360,6 +447,7 @@ def display_specs(specs, args=None, **kwargs):
     groups = get_arg("groups", True)
     all_headers = get_arg("all_headers", False)
     output = get_arg("output", sys.stdout)
+    status_fn = get_arg("status_fn", None)
 
     decorator = get_arg("decorator", None)
     if decorator is None:
@@ -384,15 +472,20 @@ def display_specs(specs, args=None, **kwargs):
         vfmt = "{variants}" if variants else ""
         format_string = nfmt + "{@version}" + ffmt + vfmt
 
-    transform = {"package": decorator, "fullpackage": decorator}
-
     def fmt(s, depth=0):
         """Formatter function for all output specs"""
         string = ""
+
+        if status_fn:
+            # This was copied from spec.tree's colorization logic
+            # then shortened because it seems like status_fn should
+            # always return an InstallStatus
+            string += colorize(status_fn(s).value)
+
         if hashes:
             string += gray_hash(s, hlen) + " "
         string += depth * "    "
-        string += s.cformat(format_string, transform=transform)
+        string += decorator(s, s.cformat(format_string))
         return string
 
     def format_list(specs):
@@ -447,11 +540,11 @@ def display_specs(specs, args=None, **kwargs):
 def filter_loaded_specs(specs):
     """Filter a list of specs returning only those that are
     currently loaded."""
-    hashes = os.environ.get(uenv.spack_loaded_hashes_var, "").split(":")
+    hashes = os.environ.get(uenv.spack_loaded_hashes_var, "").split(os.pathsep)
     return [x for x in specs if x.dag_hash() in hashes]
 
 
-def print_how_many_pkgs(specs, pkg_type=""):
+def print_how_many_pkgs(specs, pkg_type="", suffix=""):
     """Given a list of specs, this will print a message about how many
     specs are in that list.
 
@@ -462,7 +555,7 @@ def print_how_many_pkgs(specs, pkg_type=""):
             category, e.g. if pkg_type is "installed" then the message
             would be "3 installed packages"
     """
-    tty.msg("%s" % llnl.string.plural(len(specs), pkg_type + " package"))
+    tty.msg("%s" % llnl.string.plural(len(specs), pkg_type + " package") + suffix)
 
 
 def spack_is_git_repo():
@@ -500,6 +593,18 @@ class CommandNameError(spack.error.SpackError):
     def __init__(self, name):
         self.name = name
         super().__init__("{0} is not a permissible Spack command name.".format(name))
+
+
+class MultipleSpecsMatch(Exception):
+    """Raised when multiple specs match a constraint, in a context where
+    this is not allowed.
+    """
+
+
+class NoSpecMatches(Exception):
+    """Raised when no spec matches a constraint, in a context where
+    this is not allowed.
+    """
 
 
 ########################################

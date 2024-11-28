@@ -27,6 +27,9 @@ class Gengetopt(AutotoolsPackage):
     version("2.21", sha256="355a32310b2fee5e7289d6d6e89eddd13275a7c85a243dc5dd293a6cb5bb047e")
     version("2.20", sha256="4c8b3b42cecff579f5f9de5ccad47e0849e0245e325a04ff5985c248141af1a4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("texinfo", type="build")
 
     parallel = False

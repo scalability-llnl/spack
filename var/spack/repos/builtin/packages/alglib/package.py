@@ -16,9 +16,12 @@ class Alglib(MakefilePackage):
     homepage = "https://www.alglib.net/"
     url = "https://www.alglib.net/translator/re/alglib-3.11.0.cpp.gpl.tgz"
 
+    version("4.01.0", sha256="95e8ea41b32c92346f49a694759e786c5f3a1087b401a9259ef592c0eea4befb")
     version("4.00.0", sha256="827b5f559713a3e8c7c1452ed1ffd5227adb9622d1a165ceb70c117c8ed3ccb4")
     version("3.20.0", sha256="e7357f0f894313ff1b640ec9cb5e8b63f06d2d3411c2143a374aa0e9740da8a9")
     version("3.11.0", sha256="34e391594aac89fb354bdaf58c42849489cd1199197398ba98bb69961f42bdb0")
+
+    depends_on("cxx", type="build")  # generated
 
     build_directory = "src"
 

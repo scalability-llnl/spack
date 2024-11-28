@@ -16,6 +16,9 @@ class Uthash(Package):
 
     version("2.3.0", sha256="e10382ab75518bad8319eb922ad04f907cb20cccb451a3aa980c9d005e661acc")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.include)
         for header in find(join_path(self.stage.source_path, "src"), "*.h"):

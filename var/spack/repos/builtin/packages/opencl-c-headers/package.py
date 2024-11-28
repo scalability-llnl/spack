@@ -17,6 +17,9 @@ class OpenclCHeaders(CMakePackage):
     license("Apache-2.0")
 
     version(
+        "2024.05.08", sha256="3c3dd236d35f4960028f4f58ce8d963fb63f3d50251d1e9854b76f1caab9a309"
+    )
+    version(
         "2023.12.14", sha256="407d5e109a70ec1b6cd3380ce357c21e3d3651a91caae6d0d8e1719c69a1791d"
     )
     version(
@@ -52,6 +55,8 @@ class OpenclCHeaders(CMakePackage):
     version(
         "2020.03.13", sha256="664bbe587e5a0a00aac267f645b7c413586e7bc56dca9ff3b00037050d06f476"
     )
+
+    depends_on("c", type="build")  # generated
 
     def cmake_args(self):
         # Disable testing the headers. They definitely work.

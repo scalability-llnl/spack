@@ -14,11 +14,7 @@ class PyAzuremlDatasetRuntime(PythonPackage):
     homepage = "https://docs.microsoft.com/en-us/azure/machine-learning/service/"
     url = "https://pypi.io/packages/py3/a/azureml-dataset-runtime/azureml_dataset_runtime-1.11.0.post1-py3-none-any.whl"
 
-    version(
-        "1.23.0",
-        sha256="96ca73d03ffedc0dd336d9383d2e17cf74548a89fc7ca4c201c599817c97bbc6",
-        expand=False,
-    )
+    version("1.23.0", sha256="96ca73d03ffedc0dd336d9383d2e17cf74548a89fc7ca4c201c599817c97bbc6")
 
     variant("fuse", default=False, description="Build with FUSE support")
 

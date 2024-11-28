@@ -24,6 +24,10 @@ class Yorick(Package):
     version("2.2.04", sha256="4a4f3a18aed533cc5fadbb3d4bafb48f04834a22cbff6ad5c19d9dba74facbda")
     version("f90-plugin", branch="f90-plugin")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("X", default=False, description="Enable X11 support")
 
     depends_on("libx11", when="+X")

@@ -37,10 +37,14 @@ if __name__ == "__main__":
 
     # Look in the list of prefixes for logs
     for prefix in prefixes:
-        logs = find_logs(prefix, args.log)
+        print(f"Walking {prefix}")
+        logs = [log for log in find_logs(prefix, args.log)]
+        print(f"  * found {len(logs)} logs")
         for log in logs:
+            print(f"  * appending data for {log}")
             with open(log) as fd:
                 data.append(json.load(fd))
 
+    print(f"Writing {args.output_file}")
     with open(args.output_file, "w") as fd:
         json.dump(data, fd)

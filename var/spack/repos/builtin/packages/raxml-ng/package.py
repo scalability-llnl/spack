@@ -27,6 +27,9 @@ class RaxmlNg(CMakePackage):
     version("1.0.2", submodules=True)
     version("1.0.1", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Use MPI")
 
     depends_on("bison")

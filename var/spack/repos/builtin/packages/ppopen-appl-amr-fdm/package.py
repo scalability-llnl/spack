@@ -18,6 +18,8 @@ class PpopenApplAmrFdm(MakefilePackage):
 
     version("master", branch="APPL/FDM_AMR")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
 
     parallel = False

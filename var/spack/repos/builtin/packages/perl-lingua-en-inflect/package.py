@@ -15,11 +15,3 @@ class PerlLinguaEnInflect(PerlPackage):
     maintainers("EbiArnie")
 
     version("1.905", sha256="05c29ec3482e572313a60da2181b0b30c5db7cf01f8ae7616ad67e1b66263296")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Lingua::EN::Inflect; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

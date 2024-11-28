@@ -20,6 +20,9 @@ class PrunersNinja(AutotoolsPackage):
     version("1.0.1", sha256="53df5c019054b60c68e63d3e249127f1d5f267a70539c8809fb42a8ddbfcb29b")
     version("1.0.0", sha256="f25c189783b57801f298dfff8770f42733a43f926668aceff4abd287b6e3a4d1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

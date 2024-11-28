@@ -16,6 +16,8 @@ class Elsd(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("blas")
     depends_on("lapack")
 

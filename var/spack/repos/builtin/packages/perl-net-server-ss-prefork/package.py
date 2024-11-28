@@ -23,11 +23,3 @@ class PerlNetServerSsPrefork(PerlPackage):
     depends_on("perl-net-server", type=("build", "run", "test"))
     depends_on("perl-server-starter@0.02:", type=("build", "run", "test"))
     depends_on("perl-test-tcp@0.06:", type=("build", "link"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Net::Server::SS::PreFork; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -11,7 +11,8 @@ class Cubew(AutotoolsPackage):
 
     homepage = "https://www.scalasca.org/software/cube-4.x/download.html"
     url = "https://apps.fz-juelich.de/scalasca/releases/cube/4.4/dist/cubew-4.4.tar.gz"
-    maintainers = ("swat-jsc", "wrwilliams")
+
+    maintainers("swat-jsc", "wrwilliams")
 
     version("4.8.2", sha256="4f3bcf0622c2429b8972b5eb3f14d79ec89b8161e3c1cc5862ceda417d7975d2")
     version("4.8.1", sha256="42cbd743d87c16e805c8e28e79292ab33de259f2cfba46f2682cb35c1bc032d6")
@@ -44,6 +45,9 @@ class Cubew(AutotoolsPackage):
         sha256="b1d6fecb546bc645ced430ea3fc166e85835f3b997d4e5f0dece71919fc95a99",
         deprecated="true",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("pkgconfig", type="build")
     depends_on("zlib-api")

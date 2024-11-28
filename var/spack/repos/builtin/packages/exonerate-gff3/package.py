@@ -18,6 +18,8 @@ class ExonerateGff3(AutotoolsPackage):
 
     version("2.3.0", sha256="eeab7ea8bc815fc4a37d4c3b89c625167a9a60a4a833b5cc96e32dc313eafd1f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("glib")
 
     # parallel builds fail occasionally

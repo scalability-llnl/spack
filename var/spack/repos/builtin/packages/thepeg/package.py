@@ -40,6 +40,8 @@ class Thepeg(AutotoolsPackage):
     # version('1.9.1', sha256='8ec6d0669eba51e308be4e33aeb219999418170eae3aad93ec1491c942c2a4e9')
     version("1.9.0", sha256="3ee58e5e3a26184567df1b9a10ca70df228e86f322e72f018dd7d8d5a4700a5d")
     version("1.8.3", sha256="55ede3a3dd0bd07b90d0d49cf7ae28c18cd965780fdf53528508b97d57152fc7")
+
+    depends_on("cxx", type="build")  # generated
     # version('1.8.2', sha256='44ccd0d70e42bb6ecd801a51bade6c25b3953c56f33017402d4f52ee6492dffa')
     # version('1.8.1', sha256='84c2a212a681545cddd541dca191eb65d96f41df86c87480b6f4f7d4f9683562')
     # version('1.8.0', sha256='4b22fda1078f410b999a23a17f611c9ae3a7f0f4cee4e83dc82c9336b7adf037')

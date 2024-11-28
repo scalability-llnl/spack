@@ -21,6 +21,9 @@ class F77Zmq(MakefilePackage):
     version("4.3.2", sha256="f1fb7544d38d9bb7235f98c96f241875ddcb0d37ed950618c23d4e4d666a73ca")
     version("4.3.1", sha256="a15d72d93022d3e095528d2808c7767cece974a2dc0e2dd95e4c122f60fcf0a8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("libzmq")
     depends_on("python@3:", type="build", when="@:4.3.1")
     depends_on("python", type="build", when="@4.3.2:")

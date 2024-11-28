@@ -6,7 +6,6 @@
 import re
 
 from spack.package import *
-from spack.util.environment import is_system_path
 
 
 class Gnupg(AutotoolsPackage):
@@ -36,16 +35,23 @@ class Gnupg(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("npth@1.2:", when="@2:")
 
     depends_on("libgpg-error@1.24:", when="@2:")
     depends_on("libgpg-error@1.41:", when="@2.3:")
+    depends_on("libgpg-error@1.46:", when="@2.4:")
 
     depends_on("libgcrypt@1.7.0:", when="@2:")
     depends_on("libgcrypt@1.9.1:", when="@2.3:")
 
-    depends_on("libksba@1.3.4:", when="@2.0.0:")
+    depends_on("libksba@1.3.4:", when="@2:")
+    depends_on("libksba@1.6.3:", when="@2.4:")
+
     depends_on("libassuan@2.5:", when="@2.2.15:")
+    depends_on("libassuan@:2", when="@:2.4.3")
+
     depends_on("pinentry", type="run", when="@2:")
     depends_on("iconv", when="@2:")
     depends_on("zlib-api")
@@ -95,10 +101,10 @@ class Gnupg(AutotoolsPackage):
                     f"--with-npth-prefix={self.spec['npth'].prefix}",
                 ]
             )
-            if self.spec["iconv"].name == "libc":
-                args.append("--without-libiconv-prefix")
-            elif not is_system_path(self.spec["iconv"].prefix):
+            if self.spec["iconv"].name == "libiconv":
                 args.append(f"--with-libiconv-prefix={self.spec['iconv'].prefix}")
+            else:
+                args.append("--without-libiconv-prefix")
 
         if self.spec.satisfies("@:1"):
             args.extend(

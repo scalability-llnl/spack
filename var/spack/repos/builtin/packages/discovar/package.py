@@ -16,4 +16,6 @@ class Discovar(AutotoolsPackage):
 
     version("52488", sha256="c46e8f5727b3c8116d715c02e20a83e6261c762e8964d00709abfb322a501d4e")
 
+    depends_on("cxx", type="build")  # generated
+
     conflicts("%gcc@6:")

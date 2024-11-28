@@ -10,7 +10,7 @@ class PyStackData(PythonPackage):
     """Extract data from python stack frames and tracebacks for informative
     displays."""
 
-    homepage = "http://github.com/alexmojaki/stack_data"
+    homepage = "https://github.com/alexmojaki/stack_data"
     pypi = "stack_data/stack_data-0.2.0.tar.gz"
 
     license("MIT")

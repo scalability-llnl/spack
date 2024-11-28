@@ -17,6 +17,9 @@ class Virtuoso(AutotoolsPackage):
 
     version("7.2.5.1-dev", commit="3ff1d4b3de3977337baf909c264968b9f70b7d2c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("dbpedia-vad", default=False, description="DBpedia vad package")
     variant("demo-vad", default=False, description="Demo vad package")
     variant("fct-vad", default=True, description="Facet Browser vad package")

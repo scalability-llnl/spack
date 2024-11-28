@@ -29,6 +29,8 @@ class Glfw(CMakePackage):
     version("3.0.4", sha256="a4e7c57db2086803de4fc853bd472ff8b6d2639b9aa16e6ac6b19ffb53958caf")
     version("3.0.3", sha256="7a182047ba6b1fdcda778b79aac249bb2328b6d141188cb5df29560715d01693")
 
+    depends_on("c", type="build")  # generated
+
     variant("doc", default=False, description="Build documentation")
     variant("shared", default=False, description="Builds a shared version of the library")
 

@@ -20,4 +20,6 @@ class Libnbc(AutotoolsPackage):
 
     version("1.1.1", sha256="63aa5f75f84c191da0688cb551ebd0e9e46928edfba350b2a534eb0c704dd9c3")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")

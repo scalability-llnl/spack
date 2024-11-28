@@ -23,6 +23,9 @@ class Latte(CMakePackage):
     version("1.2.1", sha256="a21dda5ebdcefa56e9ff7296d74ef03f89c200d2e110a02af7a84612668bf702")
     version("1.0.1", sha256="67b2957639ad8e36b69bc6ea9a13085183a881562af9ca6d2b90b412ff073789")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Build with mpi")
     variant("progress", default=False, description="Use progress for fast")
     variant("shared", default=True, description="Build shared libs")
@@ -37,13 +40,13 @@ class Latte(CMakePackage):
 
     def cmake_args(self):
         options = []
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             options.append("-DBUILD_SHARED_LIBS=ON")
         else:
             options.append("-DBUILD_SHARED_LIBS=OFF")
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             options.append("-DO_MPI=yes")
-        if "+progress" in self.spec:
+        if self.spec.satisfies("+progress"):
             options.append("-DPROGRESS=yes")
 
         blas_list = ";".join(self.spec["blas"].libs)

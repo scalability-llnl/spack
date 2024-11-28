@@ -22,11 +22,3 @@ class PerlCookieBaker(PerlPackage):
     depends_on("perl-module-build-tiny@0.035:", type=("build"))
     depends_on("perl-test-time", type=("build", "test"))
     depends_on("perl-uri", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Cookie::Baker; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

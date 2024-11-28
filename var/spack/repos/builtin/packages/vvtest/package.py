@@ -24,6 +24,8 @@ class Vvtest(Package):
     version("1.1.0", sha256="674585f12d393ab9745a5ab26f59cb0f0e213f9c597b37467125979b5955ca79")
     version("1.0.0", sha256="acd04e8e6635ed1b1725b793e8287a58831d6380759a81159142a6ff3397a8dd")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@2.6.0:3", type=("build", "run"))
 
     def install(self, spec, prefix):

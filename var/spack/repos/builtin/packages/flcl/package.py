@@ -23,6 +23,9 @@ class Flcl(CMakePackage):
     version("0.4.0", sha256="0fe327906a991262866b126a7d58098eb48297148f117fd59a2dbcc14e76f394")
     version("0.3", sha256="fc18c8fa3ae33db61203b647ad9025d894612b0faaf7fe07426aaa8bbfa9e703")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("kokkos")
     depends_on("cmake@3.17:", type="build", when="@:0.4.0")
     depends_on("cmake@3.19:", type="build", when="@0.5.0:")

@@ -12,6 +12,7 @@ import pytest
 import llnl.util.filesystem as fs
 
 import spack
+import spack.main
 import spack.util.executable as ex
 from spack.hooks.sbang import filter_shebangs_in_directory
 

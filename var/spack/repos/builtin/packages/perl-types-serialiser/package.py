@@ -17,11 +17,3 @@ class PerlTypesSerialiser(PerlPackage):
     version("1.01", sha256="f8c7173b0914d0e3d957282077b366f0c8c70256715eaef3298ff32b92388a80")
 
     depends_on("perl-common-sense", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Types::Serialiser; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

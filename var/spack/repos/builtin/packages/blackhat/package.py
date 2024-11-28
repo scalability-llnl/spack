@@ -14,6 +14,9 @@ class Blackhat(AutotoolsPackage):
 
     version("0.9.9", branch="cms/v0.9.9")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("qd")
     depends_on("python")
     extends("python")

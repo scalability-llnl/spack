@@ -21,11 +21,3 @@ class PerlHttpRequestAscgi(PerlPackage):
     depends_on("perl-class-accessor", type=("build", "run", "test"))
     depends_on("perl-http-message", type=("build", "run", "test"))
     depends_on("perl-uri", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use HTTP::Request::AsCGI; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

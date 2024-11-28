@@ -27,6 +27,8 @@ class RBeachmat(RPackage):
     version("1.2.1", commit="ebae81772045a314e568c2f7d73ea3b27e7bf7d8")
     version("1.0.2", commit="6bd57b91d6428ac916f46572d685d3cb01a757f7")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r@3.5:", type=("build", "run"), when="@1.2.1:1.4.0")
     depends_on("r-delayedarray", type=("build", "run"))

@@ -20,6 +20,9 @@ class Vite(CMakePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.1:", type="build")
     depends_on("qt+opengl")
     depends_on("glm")

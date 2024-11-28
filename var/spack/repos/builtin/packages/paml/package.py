@@ -34,6 +34,8 @@ class Paml(MakefilePackage):
         url="http://abacus.gene.ucl.ac.uk/software/SoftOld/paml4.9h.tgz",
     )
 
+    depends_on("c", type="build")  # generated
+
     build_directory = "src"
 
     def install(self, spec, prefix):

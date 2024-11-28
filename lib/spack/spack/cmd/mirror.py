@@ -17,7 +17,6 @@ import spack.environment as ev
 import spack.mirror
 import spack.repo
 import spack.spec
-import spack.util.path
 import spack.util.web as web_util
 from spack.cmd.common import arguments
 from spack.error import SpackError
@@ -28,7 +27,7 @@ level = "long"
 
 
 def setup_parser(subparser):
-    arguments.add_common_arguments(subparser, ["no_checksum", "deprecated"])
+    arguments.add_common_arguments(subparser, ["no_checksum"])
 
     sp = subparser.add_subparsers(metavar="SUBCOMMAND", dest="mirror_command")
 
@@ -71,7 +70,13 @@ def setup_parser(subparser):
         help="the number of versions to fetch for each spec, choose 'all' to"
         " retrieve all versions of each package",
     )
+    create_parser.add_argument(
+        "--private",
+        action="store_true",
+        help="for a private mirror, include non-redistributable packages",
+    )
     arguments.add_common_arguments(create_parser, ["specs"])
+    arguments.add_concretizer_args(create_parser)
 
     # Destroy
     destroy_parser = sp.add_parser("destroy", help=mirror_destroy.__doc__)
@@ -106,6 +111,11 @@ def setup_parser(subparser):
             "specify the mirror type: for both binary "
             "and source use `--type binary --type source` (default)"
         ),
+    )
+    add_parser.add_argument(
+        "--autopush",
+        action="store_true",
+        help=("set mirror to push automatically after installation"),
     )
     add_parser_signed = add_parser.add_mutually_exclusive_group(required=False)
     add_parser_signed.add_argument(
@@ -174,6 +184,21 @@ def setup_parser(subparser):
         ),
     )
     set_parser.add_argument("--url", help="url of mirror directory from 'spack mirror create'")
+    set_parser_autopush = set_parser.add_mutually_exclusive_group(required=False)
+    set_parser_autopush.add_argument(
+        "--autopush",
+        help="set mirror to push automatically after installation",
+        action="store_true",
+        default=None,
+        dest="autopush",
+    )
+    set_parser_autopush.add_argument(
+        "--no-autopush",
+        help="set mirror to not push automatically after installation",
+        action="store_false",
+        default=None,
+        dest="autopush",
+    )
     set_parser_unsigned = set_parser.add_mutually_exclusive_group(required=False)
     set_parser_unsigned.add_argument(
         "--unsigned",
@@ -206,33 +231,138 @@ def setup_parser(subparser):
     )
 
 
+def _configure_access_pair(
+    args, id_tok, id_variable_tok, secret_tok, secret_variable_tok, default=None
+):
+    """Configure the access_pair options"""
+
+    # Check if any of the arguments are set to update this access_pair.
+    # If none are set, then skip computing the new access pair
+    args_id = getattr(args, id_tok)
+    args_id_variable = getattr(args, id_variable_tok)
+    args_secret = getattr(args, secret_tok)
+    args_secret_variable = getattr(args, secret_variable_tok)
+    if not any([args_id, args_id_variable, args_secret, args_secret_variable]):
+        return None
+
+    def _default_value(id_):
+        if isinstance(default, list):
+            return default[0] if id_ == "id" else default[1]
+        elif isinstance(default, dict):
+            return default.get(id_)
+        else:
+            return None
+
+    def _default_variable(id_):
+        if isinstance(default, dict):
+            return default.get(id_ + "_variable")
+        else:
+            return None
+
+    id_ = None
+    id_variable = None
+    secret = None
+    secret_variable = None
+
+    # Get the value/default value if the argument of the inverse
+    if not args_id_variable:
+        id_ = getattr(args, id_tok) or _default_value("id")
+    if not args_id:
+        id_variable = getattr(args, id_variable_tok) or _default_variable("id")
+    if not args_secret_variable:
+        secret = getattr(args, secret_tok) or _default_value("secret")
+    if not args_secret:
+        secret_variable = getattr(args, secret_variable_tok) or _default_variable("secret")
+
+    if (id_ or id_variable) and (secret or secret_variable):
+        if secret:
+            if not id_:
+                raise SpackError("Cannot add mirror with a variable id and text secret")
+
+            return [id_, secret]
+        else:
+            return dict(
+                [
+                    (("id", id_) if id_ else ("id_variable", id_variable)),
+                    ("secret_variable", secret_variable),
+                ]
+            )
+    else:
+        if id_ or id_variable or secret or secret_variable is not None:
+            id_arg_tok = id_tok.replace("_", "-")
+            secret_arg_tok = secret_tok.replace("_", "-")
+            tty.warn(
+                "Expected both parts of the access pair to be specified. "
+                f"(i.e. --{id_arg_tok} and --{secret_arg_tok})"
+            )
+
+        return None
+
+
 def mirror_add(args):
     """add a mirror to Spack"""
     if (
         args.s3_access_key_id
         or args.s3_access_key_secret
         or args.s3_access_token
+        or args.s3_access_key_id_variable
+        or args.s3_access_key_secret_variable
+        or args.s3_access_token_variable
         or args.s3_profile
         or args.s3_endpoint_url
         or args.type
         or args.oci_username
         or args.oci_password
+        or args.oci_username_variable
+        or args.oci_password_variable
+        or args.autopush
         or args.signed is not None
     ):
         connection = {"url": args.url}
-        if args.s3_access_key_id and args.s3_access_key_secret:
-            connection["access_pair"] = [args.s3_access_key_id, args.s3_access_key_secret]
+        # S3 Connection
+        if args.s3_access_key_secret:
+            tty.warn(
+                "Configuring mirror secrets as plain text with --s3-access-key-secret is "
+                "deprecated. Use --s3-access-key-secret-variable instead"
+            )
+        if args.oci_password:
+            tty.warn(
+                "Configuring mirror secrets as plain text with --oci-password is deprecated. "
+                "Use --oci-password-variable instead"
+            )
+        access_pair = _configure_access_pair(
+            args,
+            "s3_access_key_id",
+            "s3_access_key_id_variable",
+            "s3_access_key_secret",
+            "s3_access_key_secret_variable",
+        )
+        if access_pair:
+            connection["access_pair"] = access_pair
+
         if args.s3_access_token:
             connection["access_token"] = args.s3_access_token
+        elif args.s3_access_token_variable:
+            connection["access_token_variable"] = args.s3_access_token_variable
+
         if args.s3_profile:
             connection["profile"] = args.s3_profile
+
         if args.s3_endpoint_url:
             connection["endpoint_url"] = args.s3_endpoint_url
-        if args.oci_username and args.oci_password:
-            connection["access_pair"] = [args.oci_username, args.oci_password]
+
+        # OCI Connection
+        access_pair = _configure_access_pair(
+            args, "oci_username", "oci_username_variable", "oci_password", "oci_password_variable"
+        )
+        if access_pair:
+            connection["access_pair"] = access_pair
+
         if args.type:
             connection["binary"] = "binary" in args.type
             connection["source"] = "source" in args.type
+        if args.autopush:
+            connection["autopush"] = args.autopush
         if args.signed is not None:
             connection["signed"] = args.signed
         mirror = spack.mirror.Mirror(connection, name=args.name)
@@ -257,18 +387,39 @@ def _configure_mirror(args):
     changes = {}
     if args.url:
         changes["url"] = args.url
-    if args.s3_access_key_id and args.s3_access_key_secret:
-        changes["access_pair"] = [args.s3_access_key_id, args.s3_access_key_secret]
+
+    default_access_pair = entry._get_value("access_pair", direction or "fetch")
+    # TODO: Init access_pair args with the fetch/push/base values in the current mirror state
+    access_pair = _configure_access_pair(
+        args,
+        "s3_access_key_id",
+        "s3_access_key_id_variable",
+        "s3_access_key_secret",
+        "s3_access_key_secret_variable",
+        default=default_access_pair,
+    )
+    if access_pair:
+        changes["access_pair"] = access_pair
     if args.s3_access_token:
         changes["access_token"] = args.s3_access_token
     if args.s3_profile:
         changes["profile"] = args.s3_profile
     if args.s3_endpoint_url:
         changes["endpoint_url"] = args.s3_endpoint_url
-    if args.oci_username and args.oci_password:
-        changes["access_pair"] = [args.oci_username, args.oci_password]
+    access_pair = _configure_access_pair(
+        args,
+        "oci_username",
+        "oci_username_variable",
+        "oci_password",
+        "oci_password_variable",
+        default=default_access_pair,
+    )
+    if access_pair:
+        changes["access_pair"] = access_pair
     if getattr(args, "signed", None) is not None:
         changes["signed"] = args.signed
+    if getattr(args, "autopush", None) is not None:
+        changes["autopush"] = args.autopush
 
     # argparse cannot distinguish between --binary and --no-binary when same dest :(
     # notice that set-url does not have these args, so getattr
@@ -333,7 +484,6 @@ def concrete_specs_from_user(args):
     specs = filter_externals(specs)
     specs = list(set(specs))
     specs.sort(key=lambda s: (s.name, s.version))
-    specs, _ = lang.stable_partition(specs, predicate_fn=not_excluded_fn(args))
     return specs
 
 
@@ -378,36 +528,50 @@ def concrete_specs_from_cli_or_file(args):
     return specs
 
 
-def not_excluded_fn(args):
-    """Return a predicate that evaluate to True if a spec was not explicitly
-    excluded by the user.
-    """
-    exclude_specs = []
-    if args.exclude_file:
-        exclude_specs.extend(specs_from_text_file(args.exclude_file, concretize=False))
-    if args.exclude_specs:
-        exclude_specs.extend(spack.cmd.parse_specs(str(args.exclude_specs).split()))
+class IncludeFilter:
+    def __init__(self, args):
+        self.exclude_specs = []
+        if args.exclude_file:
+            self.exclude_specs.extend(specs_from_text_file(args.exclude_file, concretize=False))
+        if args.exclude_specs:
+            self.exclude_specs.extend(spack.cmd.parse_specs(str(args.exclude_specs).split()))
+        self.private = args.private
 
-    def not_excluded(x):
-        return not any(x.satisfies(y) for y in exclude_specs)
+    def __call__(self, x):
+        return all([self._not_license_excluded(x), self._not_cmdline_excluded(x)])
 
-    return not_excluded
+    def _not_license_excluded(self, x):
+        """True if the spec is for a private mirror, or as long as the
+        package does not explicitly forbid redistributing source."""
+        if self.private:
+            return True
+        elif x.package_class.redistribute_source(x):
+            return True
+        else:
+            tty.debug(
+                "Skip adding {0} to mirror: the package.py file"
+                " indicates that a public mirror should not contain"
+                " it.".format(x.name)
+            )
+            return False
+
+    def _not_cmdline_excluded(self, x):
+        """True if a spec was not explicitly excluded by the user."""
+        return not any(x.satisfies(y) for y in self.exclude_specs)
 
 
-def concrete_specs_from_environment(selection_fn):
+def concrete_specs_from_environment():
     env = ev.active_environment()
     assert env, "an active environment is required"
     mirror_specs = env.all_specs()
     mirror_specs = filter_externals(mirror_specs)
-    mirror_specs, _ = lang.stable_partition(mirror_specs, predicate_fn=selection_fn)
     return mirror_specs
 
 
-def all_specs_with_all_versions(selection_fn):
+def all_specs_with_all_versions():
     specs = [spack.spec.Spec(n) for n in spack.repo.all_package_names()]
     mirror_specs = spack.mirror.get_all_versions(specs)
     mirror_specs.sort(key=lambda s: (s.name, s.version))
-    mirror_specs, _ = lang.stable_partition(mirror_specs, predicate_fn=selection_fn)
     return mirror_specs
 
 
@@ -426,12 +590,6 @@ def versions_per_spec(args):
                 " got '{0}'".format(args.versions_per_spec)
             )
     return num_versions
-
-
-def create_mirror_for_individual_specs(mirror_specs, path, skip_unstable_versions):
-    present, mirrored, error = spack.mirror.create(path, mirror_specs, skip_unstable_versions)
-    tty.msg("Summary for mirror in {}".format(path))
-    process_mirror_stats(present, mirrored, error)
 
 
 def process_mirror_stats(present, mirrored, error):
@@ -479,30 +637,28 @@ def mirror_create(args):
     # When no directory is provided, the source dir is used
     path = args.directory or spack.caches.fetch_cache_location()
 
+    mirror_specs, mirror_fn = _specs_and_action(args)
+    mirror_fn(mirror_specs, path=path, skip_unstable_versions=args.skip_unstable_versions)
+
+
+def _specs_and_action(args):
+    include_fn = IncludeFilter(args)
+
     if args.all and not ev.active_environment():
-        create_mirror_for_all_specs(
-            path=path,
-            skip_unstable_versions=args.skip_unstable_versions,
-            selection_fn=not_excluded_fn(args),
-        )
-        return
+        mirror_specs = all_specs_with_all_versions()
+        mirror_fn = create_mirror_for_all_specs
+    elif args.all and ev.active_environment():
+        mirror_specs = concrete_specs_from_environment()
+        mirror_fn = create_mirror_for_individual_specs
+    else:
+        mirror_specs = concrete_specs_from_user(args)
+        mirror_fn = create_mirror_for_individual_specs
 
-    if args.all and ev.active_environment():
-        create_mirror_for_all_specs_inside_environment(
-            path=path,
-            skip_unstable_versions=args.skip_unstable_versions,
-            selection_fn=not_excluded_fn(args),
-        )
-        return
-
-    mirror_specs = concrete_specs_from_user(args)
-    create_mirror_for_individual_specs(
-        mirror_specs, path=path, skip_unstable_versions=args.skip_unstable_versions
-    )
+    mirror_specs, _ = lang.stable_partition(mirror_specs, predicate_fn=include_fn)
+    return mirror_specs, mirror_fn
 
 
-def create_mirror_for_all_specs(path, skip_unstable_versions, selection_fn):
-    mirror_specs = all_specs_with_all_versions(selection_fn=selection_fn)
+def create_mirror_for_all_specs(mirror_specs, path, skip_unstable_versions):
     mirror_cache, mirror_stats = spack.mirror.mirror_cache_and_stats(
         path, skip_unstable_versions=skip_unstable_versions
     )
@@ -514,11 +670,10 @@ def create_mirror_for_all_specs(path, skip_unstable_versions, selection_fn):
     process_mirror_stats(*mirror_stats.stats())
 
 
-def create_mirror_for_all_specs_inside_environment(path, skip_unstable_versions, selection_fn):
-    mirror_specs = concrete_specs_from_environment(selection_fn=selection_fn)
-    create_mirror_for_individual_specs(
-        mirror_specs, path=path, skip_unstable_versions=skip_unstable_versions
-    )
+def create_mirror_for_individual_specs(mirror_specs, path, skip_unstable_versions):
+    present, mirrored, error = spack.mirror.create(path, mirror_specs, skip_unstable_versions)
+    tty.msg("Summary for mirror in {}".format(path))
+    process_mirror_stats(present, mirrored, error)
 
 
 def mirror_destroy(args):
@@ -548,8 +703,5 @@ def mirror(parser, args):
 
     if args.no_checksum:
         spack.config.set("config:checksum", False, scope="command_line")
-
-    if args.deprecated:
-        spack.config.set("config:deprecated", True, scope="command_line")
 
     action[args.mirror_command](args)

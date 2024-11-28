@@ -16,7 +16,11 @@ class Dorado(CMakePackage, CudaPackage):
 
     maintainers("snehring")
 
+    version("0.5.3", commit="d9af343c0097e0e60503231e036d69e6eda2f19a", submodules=True)
     version("0.5.1", commit="a7fb3e3d4afa7a11cb52422e7eecb1a2cdb7860f", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
@@ -29,6 +33,9 @@ class Dorado(CMakePackage, CudaPackage):
     depends_on("zstd")
     depends_on("libdeflate")
     depends_on("zlib-api")
+
+    conflicts("%gcc@:8", msg="Dorado requires at least gcc@9 to compile.")
+    conflicts("%gcc@13:", msg="Dorado will not build with gcc@13 and newer.")
 
     patch("cmake-htslib.patch")
 

@@ -18,6 +18,8 @@ class Nnvm(CMakePackage):
     version("master", branch="master")
     version("20170418", commit="b279286304ac954098d94a2695bca599e832effb")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build a shared NNVM lib.")
 
     depends_on("dmlc-core")

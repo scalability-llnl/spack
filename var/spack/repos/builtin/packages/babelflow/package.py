@@ -23,6 +23,8 @@ class Babelflow(CMakePackage):
     version("1.0.1", sha256="b7817870b7a1d7ae7ae2eff1a1acec2824675fb856f666d5dc95c41ce453ae91")
     version("1.0.0", sha256="4c4d7ddf60e25e8d3550c07875dba3e46e7c9e61b309cc47a409461b7ffa405e")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")
 
     variant("shared", default=True, description="Build Babelflow as shared libs")

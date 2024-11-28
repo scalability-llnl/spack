@@ -22,6 +22,9 @@ class Netgauge(AutotoolsPackage):
 
     version("2.4.6", sha256="dc9398e4e042efec70881f2c7074ff18cc5b74bc5ffc4b8a4aaf813b39f83444")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")
 
     def configure_args(self):

@@ -17,6 +17,7 @@ class Qualimap(Package):
 
     license("GPL-2.0-or-later")
 
+    version("2.3", sha256="2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40")
     version("2.2.1", sha256="08f1d66e49c83c76c56c4225c53aee44f41e0592c8bdc84b8c4ecd975700e045")
 
     depends_on("java", type="run")

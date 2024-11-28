@@ -19,11 +19,3 @@ class PerlStreamBuffered(PerlPackage):
     version("0.03", sha256="9b2d4390b5de6b0cf4558e4ad04317a73c5e13dd19af29149c4e47c37fb2423b")
 
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Stream::Buffered; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

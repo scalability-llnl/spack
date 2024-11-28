@@ -4,19 +4,18 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import hashlib
-import inspect
 import os
 import os.path
 import pathlib
 import sys
-from typing import Any, Dict, Optional, Tuple, Type
+from typing import Any, Dict, Optional, Tuple, Type, Union
 
 import llnl.util.filesystem
 from llnl.url import allowed_archive
 
 import spack
 import spack.error
-import spack.fetch_strategy as fs
+import spack.fetch_strategy
 import spack.mirror
 import spack.repo
 import spack.stage
@@ -26,7 +25,11 @@ from spack.util.executable import which, which_string
 
 
 def apply_patch(
-    stage: "spack.stage.Stage", patch_path: str, level: int = 1, working_dir: str = "."
+    stage: "spack.stage.Stage",
+    patch_path: str,
+    level: int = 1,
+    working_dir: str = ".",
+    reverse: bool = False,
 ) -> None:
     """Apply the patch at patch_path to code in the stage.
 
@@ -35,6 +38,7 @@ def apply_patch(
         patch_path: filesystem location for the patch to apply
         level: patch level
         working_dir: relative path *within* the stage to change to
+        reverse: reverse the patch
     """
     git_utils_path = os.environ.get("PATH", "")
     if sys.platform == "win32":
@@ -45,6 +49,10 @@ def apply_patch(
             git_root = git_root / "usr" / "bin"
             git_utils_path = os.pathsep.join([str(git_root), git_utils_path])
 
+    args = ["-s", "-p", str(level), "-i", patch_path, "-d", working_dir]
+    if reverse:
+        args.append("-R")
+
     # TODO: Decouple Spack's patch support on Windows from Git
     # for Windows, and instead have Spack directly fetch, install, and
     # utilize that patch.
@@ -53,7 +61,10 @@ def apply_patch(
     # flag is passed.
     patch = which("patch", required=True, path=git_utils_path)
     with llnl.util.filesystem.working_dir(stage.source_path):
-        patch("-s", "-p", str(level), "-i", patch_path, "-d", working_dir)
+        patch(*args)
+
+
+PatchPackageType = Union["spack.package_base.PackageBase", Type["spack.package_base.PackageBase"]]
 
 
 class Patch:
@@ -67,7 +78,12 @@ class Patch:
     sha256: str
 
     def __init__(
-        self, pkg: "spack.package_base.PackageBase", path_or_url: str, level: int, working_dir: str
+        self,
+        pkg: PatchPackageType,
+        path_or_url: str,
+        level: int,
+        working_dir: str,
+        reverse: bool = False,
     ) -> None:
         """Initialize a new Patch instance.
 
@@ -76,6 +92,7 @@ class Patch:
             path_or_url: the relative path or URL to a patch file
             level: patch level
             working_dir: relative path *within* the stage to change to
+            reverse: reverse the patch
         """
         # validate level (must be an integer >= 0)
         if not isinstance(level, int) or not level >= 0:
@@ -87,6 +104,7 @@ class Patch:
         self.path: Optional[str] = None  # must be set before apply()
         self.level = level
         self.working_dir = working_dir
+        self.reverse = reverse
 
     def apply(self, stage: "spack.stage.Stage") -> None:
         """Apply a patch to source in a stage.
@@ -95,9 +113,9 @@ class Patch:
             stage: stage where source code lives
         """
         if not self.path or not os.path.isfile(self.path):
-            raise NoSuchPatchError(f"No such patch: {self.path}")
+            raise spack.error.NoSuchPatchError(f"No such patch: {self.path}")
 
-        apply_patch(stage, self.path, self.level, self.working_dir)
+        apply_patch(stage, self.path, self.level, self.working_dir, self.reverse)
 
     # TODO: Use TypedDict once Spack supports Python 3.8+ only
     def to_dict(self) -> Dict[str, Any]:
@@ -111,6 +129,7 @@ class Patch:
             "sha256": self.sha256,
             "level": self.level,
             "working_dir": self.working_dir,
+            "reverse": self.reverse,
         }
 
     def __eq__(self, other: object) -> bool:
@@ -142,10 +161,11 @@ class FilePatch(Patch):
 
     def __init__(
         self,
-        pkg: "spack.package_base.PackageBase",
+        pkg: PatchPackageType,
         relative_path: str,
         level: int,
         working_dir: str,
+        reverse: bool = False,
         ordering_key: Optional[Tuple[str, int]] = None,
     ) -> None:
         """Initialize a new FilePatch instance.
@@ -155,6 +175,7 @@ class FilePatch(Patch):
             relative_path: path to patch, relative to the repository directory for a package.
             level: level to pass to patch command
             working_dir: path within the source directory where patch should be applied
+            reverse: reverse the patch
             ordering_key: key used to ensure patches are applied in a consistent order
         """
         self.relative_path = relative_path
@@ -163,8 +184,8 @@ class FilePatch(Patch):
         # search mro to look for the file
         abs_path: Optional[str] = None
         # At different times we call FilePatch on instances and classes
-        pkg_cls = pkg if inspect.isclass(pkg) else pkg.__class__
-        for cls in inspect.getmro(pkg_cls):
+        pkg_cls = pkg if isinstance(pkg, type) else pkg.__class__
+        for cls in pkg_cls.__mro__:  # type: ignore
             if not hasattr(cls, "module"):
                 # We've gone too far up the MRO
                 break
@@ -182,7 +203,7 @@ class FilePatch(Patch):
             msg += "package %s.%s does not exist." % (pkg.namespace, pkg.name)
             raise ValueError(msg)
 
-        super().__init__(pkg, abs_path, level, working_dir)
+        super().__init__(pkg, abs_path, level, working_dir, reverse)
         self.path = abs_path
         self.ordering_key = ordering_key
 
@@ -223,11 +244,12 @@ class UrlPatch(Patch):
 
     def __init__(
         self,
-        pkg: "spack.package_base.PackageBase",
+        pkg: PatchPackageType,
         url: str,
         level: int = 1,
         *,
         working_dir: str = ".",
+        reverse: bool = False,
         sha256: str,  # This is required for UrlPatch
         ordering_key: Optional[Tuple[str, int]] = None,
         archive_sha256: Optional[str] = None,
@@ -239,12 +261,13 @@ class UrlPatch(Patch):
             url: URL where the patch can be fetched
             level: level to pass to patch command
             working_dir: path within the source directory where patch should be applied
+            reverse: reverse the patch
             ordering_key: key used to ensure patches are applied in a consistent order
             sha256: sha256 sum of the patch, used to verify the patch
             archive_sha256: sha256 sum of the *archive*, if the patch is compressed
                 (only required for compressed URL patches)
         """
-        super().__init__(pkg, url, level, working_dir)
+        super().__init__(pkg, url, level, working_dir, reverse)
 
         self.url = url
         self._stage: Optional["spack.stage.Stage"] = None
@@ -252,14 +275,14 @@ class UrlPatch(Patch):
         self.ordering_key = ordering_key
 
         if allowed_archive(self.url) and not archive_sha256:
-            raise PatchDirectiveError(
+            raise spack.error.PatchDirectiveError(
                 "Compressed patches require 'archive_sha256' "
                 "and patch 'sha256' attributes: %s" % self.url
             )
         self.archive_sha256 = archive_sha256
 
         if not sha256:
-            raise PatchDirectiveError("URL patches require a sha256 checksum")
+            raise spack.error.PatchDirectiveError("URL patches require a sha256 checksum")
         self.sha256 = sha256
 
     def apply(self, stage: "spack.stage.Stage") -> None:
@@ -291,22 +314,27 @@ class UrlPatch(Patch):
 
         # Two checksums, one for compressed file, one for its contents
         if self.archive_sha256 and self.sha256:
-            fetcher: fs.FetchStrategy = fs.FetchAndVerifyExpandedFile(
-                self.url, archive_sha256=self.archive_sha256, expanded_sha256=self.sha256
+            fetcher: spack.fetch_strategy.FetchStrategy = (
+                spack.fetch_strategy.FetchAndVerifyExpandedFile(
+                    self.url, archive_sha256=self.archive_sha256, expanded_sha256=self.sha256
+                )
             )
         else:
-            fetcher = fs.URLFetchStrategy(self.url, sha256=self.sha256, expand=False)
+            fetcher = spack.fetch_strategy.URLFetchStrategy(
+                url=self.url, sha256=self.sha256, expand=False
+            )
 
         # The same package can have multiple patches with the same name but
         # with different contents, therefore apply a subset of the hash.
         name = "{0}-{1}".format(os.path.basename(self.url), fetch_digest[:7])
 
         per_package_ref = os.path.join(self.owner.split(".")[-1], name)
-        mirror_ref = spack.mirror.mirror_archive_paths(fetcher, per_package_ref)
+        mirror_ref = spack.mirror.default_mirror_layout(fetcher, per_package_ref)
         self._stage = spack.stage.Stage(
             fetcher,
             name=f"{spack.stage.stage_prefix}patch-{fetch_digest}",
             mirror_paths=mirror_ref,
+            mirrors=spack.mirror.MirrorCollection(source=True).values(),
         )
         return self._stage
 
@@ -340,8 +368,9 @@ def from_dict(
     """
     repository = repository or spack.repo.PATH
     owner = dictionary.get("owner")
-    if "owner" not in dictionary:
-        raise ValueError("Invalid patch dictionary: %s" % dictionary)
+    if owner is None:
+        raise ValueError(f"Invalid patch dictionary: {dictionary}")
+    assert isinstance(owner, str)
     pkg_cls = repository.get_pkg_class(owner)
 
     if "url" in dictionary:
@@ -350,13 +379,20 @@ def from_dict(
             dictionary["url"],
             dictionary["level"],
             working_dir=dictionary["working_dir"],
+            # Added in v0.22, fallback required for backwards compatibility
+            reverse=dictionary.get("reverse", False),
             sha256=dictionary["sha256"],
             archive_sha256=dictionary.get("archive_sha256"),
         )
 
     elif "relative_path" in dictionary:
         patch = FilePatch(
-            pkg_cls, dictionary["relative_path"], dictionary["level"], dictionary["working_dir"]
+            pkg_cls,
+            dictionary["relative_path"],
+            dictionary["level"],
+            dictionary["working_dir"],
+            # Added in v0.22, fallback required for backwards compatibility
+            dictionary.get("reverse", False),
         )
 
         # If the patch in the repo changes, we cannot get it back, so we
@@ -365,7 +401,7 @@ def from_dict(
         sha256 = dictionary["sha256"]
         checker = Checker(sha256)
         if patch.path and not checker.check(patch.path):
-            raise fs.ChecksumError(
+            raise spack.fetch_strategy.ChecksumError(
                 "sha256 checksum failed for %s" % patch.path,
                 "Expected %s but got %s " % (sha256, checker.sum)
                 + "Patch may have changed since concretization.",
@@ -448,7 +484,7 @@ class PatchCache:
         """
         sha_index = self.index.get(sha256)
         if not sha_index:
-            raise PatchLookupError(
+            raise spack.error.PatchLookupError(
                 f"Couldn't find patch for package {pkg.fullname} with sha256: {sha256}"
             )
 
@@ -458,7 +494,7 @@ class PatchCache:
             if patch_dict:
                 break
         else:
-            raise PatchLookupError(
+            raise spack.error.PatchLookupError(
                 f"Couldn't find patch for package {pkg.fullname} with sha256: {sha256}"
             )
 
@@ -541,15 +577,3 @@ class PatchCache:
                         index[patch.sha256] = {dspec_cls.fullname: patch_dict}
 
         return index
-
-
-class NoSuchPatchError(spack.error.SpackError):
-    """Raised when a patch file doesn't exist."""
-
-
-class PatchLookupError(NoSuchPatchError):
-    """Raised when a patch file cannot be located from sha256."""
-
-
-class PatchDirectiveError(spack.error.SpackError):
-    """Raised when the wrong arguments are suppled to the patch directive."""

@@ -476,9 +476,3 @@ implemented using Python's built-in `sys.path
 :py:mod:`spack.repo` module implements a custom `Python importer
 <https://docs.python.org/2/library/imp.html>`_.
 
-.. warning::
-
-   The mechanism for extending packages is not yet extensively tested,
-   and extending packages across repositories imposes inter-repo
-   dependencies, which may be hard to manage.  Use this feature at your
-   own risk, but let us know if you have a use case for it.

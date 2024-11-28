@@ -19,11 +19,3 @@ class PerlCgiStruct(PerlPackage):
     version("1.21", sha256="d13d8da7fdcd6d906054e4760fc28a718aec91bd3cf067a58927fb7cb1c09d6c")
 
     depends_on("perl-test-deep", type=("build", "link"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use CGI::Struct; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

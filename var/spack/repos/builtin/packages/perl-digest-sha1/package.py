@@ -19,11 +19,3 @@ class PerlDigestSha1(PerlPackage):
     version("2.13", sha256="68c1dac2187421f0eb7abf71452a06f190181b8fc4b28ededf5b90296fb943cc")
 
     depends_on("perl@5.4.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Digest::SHA1; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -20,6 +20,8 @@ class OsuMicroBenchmarks(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     maintainers("natshineman", "harisubramoni", "MatthewLieber")
 
+    version("7.5", sha256="1cf84ac5419456202757a757c5f9a4f5c6ecd05c65783c7976421cfd6020b3b3")
+    version("7.4", sha256="1edd0c2efa61999409bfb28740a7f39689a5b42b1a1b4c66d1656e5637f7cefc")
     version("7.3", sha256="8fa25b8aaa34e4b07ab3a4f30b7690ab46b038b08d204a853a9b6aa7bdb02f2f")
     version("7.2", sha256="1a4e1f2aab0e65404b3414e23bd46616184b69b6231ce9313d9c630bd6e633c1")
     version("7.1-1", sha256="85f4dd8be1df31255e232852769ae5b82e87a5fb14be2f8eba1ae9de8ffe391a")
@@ -42,6 +44,9 @@ class OsuMicroBenchmarks(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("5.5", sha256="1e5a4ae5ef2b03143a815b21fefc23373c1b079cc163c2fa1ed1e0c9b83c28ad")
     version("5.4", sha256="e1ca762e13a07205a59b59ad85e85ce0f826b70f76fd555ce5568efb1f2a8f33")
     version("5.3", sha256="d7b3ad4bee48ac32f5bef39650a88f8f2c23a3050b17130c63966283edced89b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("mpi")
     variant("papi", description="Enable/Disable support for papi", default=False)

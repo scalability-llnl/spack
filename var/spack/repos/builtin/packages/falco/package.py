@@ -16,6 +16,8 @@ class Falco(AutotoolsPackage):
 
     version("1.2.1", sha256="33de8aafac45c7aea055ed7ab837d0a39d12dcf782816cea8a6c648acb911057")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("htslib", default=False, description="Add support for BAM files")
 
     depends_on("gmake", type="build")

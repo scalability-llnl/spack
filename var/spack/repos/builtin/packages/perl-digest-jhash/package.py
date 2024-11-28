@@ -19,11 +19,3 @@ class PerlDigestJhash(PerlPackage):
     version("0.10", sha256="c746cf0a861a004090263cd54d7728d0c7595a0cf90cbbfd8409b396ee3b0063")
 
     depends_on("perl@5.8.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Digest::JHash; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

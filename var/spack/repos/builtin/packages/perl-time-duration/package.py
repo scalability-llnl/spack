@@ -19,11 +19,3 @@ class PerlTimeDuration(PerlPackage):
     version("1.21", sha256="fe340eba8765f9263694674e5dff14833443e19865e5ff427bbd79b7b5f8a9b8")
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Time::Duration; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

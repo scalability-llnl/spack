@@ -40,6 +40,9 @@ class Nektools(Package):
     version("19.0", sha256="db129877a10ff568d49edc77cf65f9e732eecb1fce10edbd91ffc5ac10c41ad6")
     version("17.0", sha256="4d8d4793ce3c926c54e09a5a5968fa959fe0ba46bd2e6b8043e099528ee35a60")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Variant for MAXNEL, we need to read this from user
     variant(
         "MAXNEL",

@@ -18,6 +18,8 @@ class Fyba(AutotoolsPackage):
 
     version("4.1.1", sha256="99f658d52e8fd8997118bb6207b9c121500700996d9481a736683474e2534179")
 
+    depends_on("cxx", type="build")  # generated
+
     # configure: error: cannot find install-sh or install.sh
     force_autoreconf = True
 

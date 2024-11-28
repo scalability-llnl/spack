@@ -27,6 +27,8 @@ class Nfft(AutotoolsPackage):
         url="https://www-user.tu-chemnitz.de/~potts/nfft/download/nfft-3.2.4.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("fftw")
 
     _fftw_precisions = None

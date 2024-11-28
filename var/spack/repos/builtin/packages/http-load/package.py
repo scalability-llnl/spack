@@ -18,6 +18,8 @@ class HttpLoad(MakefilePackage):
         "2016-03-09", sha256="5a7b00688680e3fca8726dc836fd3f94f403fde831c71d73d9a1537f215b4587"
     )
 
+    depends_on("c", type="build")  # generated
+
     def url_for_version(self, version):
         ver = datetime.datetime.strptime(str(version), "%Y-%m-%d").date()
         verstr = datetime.datetime.strftime(ver, "%d%b%Y")

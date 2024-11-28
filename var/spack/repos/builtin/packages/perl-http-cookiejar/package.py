@@ -23,11 +23,3 @@ class PerlHttpCookiejar(PerlPackage):
     depends_on("perl-test-deep", type=("test"))
     depends_on("perl-test-requires", type=("test"))
     depends_on("perl-uri", type=("test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use HTTP::CookieJar; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

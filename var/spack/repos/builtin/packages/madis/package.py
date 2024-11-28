@@ -23,6 +23,8 @@ class Madis(MakefilePackage):
 
     version("4.3", sha256="5d1ee9800c84e623dcf4271653aa66d17a744143e58354e70f8a0646cd6b246c")
 
+    depends_on("fortran", type="build")  # generated
+
     variant("pic", default=True, description="Build with position-independent code (PIC)")
     variant("pnetcdf", default=False, description="Build with parallel NetCDF")
 

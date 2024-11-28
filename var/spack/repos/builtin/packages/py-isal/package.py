@@ -19,6 +19,8 @@ class PyIsal(PythonPackage):
     version("1.1.0", sha256="1364f4e3255a57d51c01422ab3ae785a43c076d516ebf49f6a25adecf8232105")
     version("1.0.0", sha256="a30369de6852109eef8ca1bdd46d7e4b5c4517846a25acfc707cbb19db66ac80")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools@51:", type="build")
     depends_on("libisal")

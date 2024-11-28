@@ -18,6 +18,8 @@ class Pangolin(CMakePackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     # Required dependencies
     depends_on("cmake@2.8.12:", type="build")
     depends_on("gl")

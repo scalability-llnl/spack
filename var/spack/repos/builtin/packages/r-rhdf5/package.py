@@ -30,6 +30,9 @@ class RRhdf5(RPackage):
     version("2.22.0", commit="4431bdc0a2bcbb8086ee08a0f2300129b808d1be")
     version("2.20.0", commit="37b5165325062728bbec9167f89f5f4b794f30bc")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.5.0:", type=("build", "run"), when="@2.26.2:")
     depends_on("r@4.0.0:", type=("build", "run"), when="@2.38.0:")
     depends_on("r-rhdf5lib", type=("build", "run"), when="@2.24.0:")

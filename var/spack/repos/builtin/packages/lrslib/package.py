@@ -23,6 +23,9 @@ class Lrslib(Package):
     version("5.1", sha256="500893df61631944bac14a76c6e13fc08e6e729727443fa5480b2510de0db635")
     version("4.3", sha256="04fc1916ea122b3f2446968d2739717aa2c6c94b21fba1f2c627fd17fcf7a963")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # Note: lrslib can also be built with Boost, and probably without gmp
 
     # depends_on("boost")

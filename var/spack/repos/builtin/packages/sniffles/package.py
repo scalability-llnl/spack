@@ -17,6 +17,9 @@ class Sniffles(CMakePackage):
     version("1.0.7", sha256="03fa703873bdf9c32055c584448e1eece45f94b4bc68e60c9624cf3841e6d8a9")
     version("1.0.5", sha256="386c6536bdaa4637579e235bac48444c08297337c490652d1e165accd34b258f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api", type="link")
     depends_on("bamtools", type="link")
 

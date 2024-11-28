@@ -23,11 +23,3 @@ class PerlNamespaceAutoclean(PerlPackage):
     depends_on("perl-namespace-clean@0.20:", type=("build", "run", "test"))
     depends_on("perl-sub-identify", type=("build", "run", "test"))
     depends_on("perl-test-needs", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use namespace::autoclean; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

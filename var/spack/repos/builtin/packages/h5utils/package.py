@@ -15,12 +15,16 @@ class H5utils(AutotoolsPackage):
 
     license("GPL-2.0-only")
 
+    version("1.13.2", sha256="eea7855a8235facb7c454e61103098e55658da0ddf4b6de5b82a992e5f024351")
     version("1.13.1", sha256="c5a76f064d6daa3e65583dce2b61202510e67cf6590f076af9a8aa72511d7d65")
     version(
         "1.12.1",
         sha256="7e6db86fee00a8008f78b2be921177042c661203c0936b078fcc8f9c71e4a883",
         url="https://github.com/NanoComp/h5utils/archive/refs/tags/1.12.1.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("png", default=True, description="Enable PNG support")
     variant("vis5d", default=False, description="Enable Vis5d support")
@@ -43,17 +47,17 @@ class H5utils(AutotoolsPackage):
         spec = self.spec
         args = []
 
-        if "+vis5d" in spec:
-            args.append("--with-v5d={0}".format(spec["vis5d"].prefix))
+        if spec.satisfies("+vis5d"):
+            args.append(f"--with-v5d={spec['vis5d'].prefix}")
         else:
             args.append("--without-v5d")
 
-        if "+octave" in spec:
+        if spec.satisfies("+octave"):
             args.append("--with-octave")
         else:
             args.append("--without-octave")
 
-        if "+hdf" in spec:
+        if spec.satisfies("+hdf"):
             args.append("--with-hdf4")
         else:
             args.append("--without-hdf4")

@@ -14,6 +14,8 @@ class Grandr(AutotoolsPackage, XorgPackage):
 
     version("0.1", sha256="67a049c8dccdb48897efbd86c2b1d3b0ff5ce3c7859c46b0297d64c881b36d24")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("gtkplus@2.0.0:")
     depends_on("gconf")
     depends_on("xrandr@1.2:")

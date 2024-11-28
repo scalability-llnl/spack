@@ -21,11 +21,3 @@ class PerlMoosexEmulateClassAccessorFast(PerlPackage):
     depends_on("perl-moose@0.84:", type=("build", "run", "test"))
     depends_on("perl-namespace-clean", type=("build", "run", "test"))
     depends_on("perl-test-exception", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use MooseX::Emulate::Class::Accessor::Fast; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

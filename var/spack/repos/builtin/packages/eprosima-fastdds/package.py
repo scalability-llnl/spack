@@ -20,6 +20,9 @@ class EprosimaFastdds(CMakePackage):
 
     version("2.10.1", sha256="2cc2682db5dc7e87684b7f23166e2f32faf8d5c4b4a8c94c6c21211a8a38f553")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("asio")
     depends_on("tinyxml2")
     depends_on("openssl")

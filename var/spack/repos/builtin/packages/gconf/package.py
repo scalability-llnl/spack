@@ -22,6 +22,8 @@ class Gconf(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("gettext", type="build")
     depends_on("intltool", type="build")

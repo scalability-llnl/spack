@@ -20,11 +20,3 @@ class PerlTestXpath(PerlPackage):
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
     depends_on("perl-xml-libxml@1.70:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Test::XPath; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

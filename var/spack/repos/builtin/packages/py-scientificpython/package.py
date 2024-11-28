@@ -19,6 +19,8 @@ class PyScientificpython(PythonPackage):
 
     version("2.8.1", sha256="d9ef354736410bbb2e8be33cb7433cf62114307a44e3a96baaa793b58b4b518b")
 
+    depends_on("c", type="build")  # generated
+
     # pip silently replaces distutils with setuptools
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy", type=("build", "run"))

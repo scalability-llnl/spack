@@ -25,4 +25,6 @@ class Openblas(Package):
     # To ensure test works with newer gcc versions
     conflicts("%gcc@:10.1", when="@0.2.16:")
 
+    depends_on("perl")
+
     provides("blas")

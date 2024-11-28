@@ -16,6 +16,9 @@ class Biobloom(AutotoolsPackage):
     version("2.3.5", sha256="03fbc0d0fc867f76d64f756d556598e5fe5f015363df8f97fbed4cfd541c6749")
     version("2.2.0", sha256="5d09f8690f0b6402f967ac09c5b0f769961f3fe3791000f8f73af6af7324f02c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost+exception+math+serialization+container")
     depends_on("sdsl-lite")
     depends_on("sparsehash")

@@ -17,11 +17,3 @@ class PerlCacheMemcached(PerlPackage):
     version("1.30", sha256="31b3c51ec0eaaf03002e2cc8e3d7d5cbe61919cfdada61c008eb9853acac42a9")
 
     depends_on("perl-string-crc32", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Cache::Memcached; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

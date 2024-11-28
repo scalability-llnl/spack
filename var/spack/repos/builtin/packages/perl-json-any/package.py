@@ -23,11 +23,3 @@ class PerlJsonAny(PerlPackage):
     depends_on("perl-test-needs", type=("build", "test"))
     depends_on("perl-test-warnings@0.009:", type=("build", "test"))
     depends_on("perl-test-without-module", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use JSON::Any; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -19,6 +19,9 @@ class Spindle(AutotoolsPackage):
     version("0.12", sha256="3fd9d0afefa9072fffdf2cfd80a0b5e557e201a0b0eb02e7379eae65e64eb1f2")
     version("0.8.1", sha256="c1e099e913faa8199be5811dc7b8be0266f0d1fd65f0a3a25bb46fbc70954ed6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("launchmon")
     # All versions provide the runtime option --no-mpi to not use MPI, but mpi
     # is needed for the build:

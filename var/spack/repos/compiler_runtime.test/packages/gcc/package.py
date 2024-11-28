@@ -14,7 +14,7 @@ class Gcc(Package):
     version("12.3.0")
 
     @classmethod
-    def runtime_constraints(cls, *, compiler, pkg):
+    def runtime_constraints(cls, *, spec, pkg):
         pkg("*").depends_on(
             "gcc-runtime",
             when="%gcc",
@@ -22,11 +22,14 @@ class Gcc(Package):
             description="If any package uses %gcc, it depends on gcc-runtime",
         )
         pkg("*").depends_on(
-            f"gcc-runtime@{str(compiler.version)}:",
-            when=f"%{str(compiler.spec)}",
+            f"gcc-runtime@{str(spec.version)}:",
+            when=f"%{str(spec)}",
             type="link",
-            description=f"If any package uses %{str(compiler.spec)}, "
-            f"it depends on gcc-runtime@{str(compiler.version)}:",
+            description=f"If any package uses %{str(spec)}, "
+            f"it depends on gcc-runtime@{str(spec.version)}:",
         )
         # The version of gcc-runtime is the same as the %gcc used to "compile" it
-        pkg("gcc-runtime").requires(f"@={str(compiler.version)}", when=f"%{str(compiler.spec)}")
+        pkg("gcc-runtime").requires(f"@={str(spec.version)}", when=f"%{str(spec)}")
+
+        # If a node used %gcc@X.Y its dependencies must use gcc-runtime@:X.Y
+        pkg("*").propagate(f"%gcc@:{str(spec.version)}", when=f"%{str(spec)}")

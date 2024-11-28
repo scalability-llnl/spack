@@ -18,8 +18,11 @@ class Bracken(Package):
 
     license("GPL-3.0-only")
 
+    version("2.9", sha256="b8fd43fc396a2184d9351fb4a459f95ae9bb5865b195a18e22436f643044c788")
     version("2.8", sha256="b0c8a803cc020b7d1cbca47b53e71e874d9688b836911e4a4b71b0e4b826b61a")
     version("2.7", sha256="1795ecd9f9e5582f37549795ba68854780936110a2f6f285c3e626d448cd1532")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python", type="run")
     depends_on("kraken2", type="run")

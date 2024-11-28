@@ -16,5 +16,9 @@ class PyCasadi(PythonPackage):
 
     version("3.6.4", sha256="affdca1a99c14580992cdf34d247754b7d851080b712c2922ad2e92442eeaa35")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy", type=("build", "run"))

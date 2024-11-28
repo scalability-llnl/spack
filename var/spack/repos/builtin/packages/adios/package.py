@@ -28,6 +28,10 @@ class Adios(AutotoolsPackage):
     version("1.10.0", sha256="6713069259ee7bfd4d03f47640bf841874e9114bab24e7b0c58e310c42a0ec48")
     version("1.9.0", sha256="23b2bb70540d51ab0855af0b205ca484fd1bd963c39580c29e3133f9e6fffd46")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Builds a shared version of the library")
 
     variant("fortran", default=False, description="Enable Fortran bindings support")
@@ -140,14 +144,14 @@ class Adios(AutotoolsPackage):
         extra_args += self.enable_or_disable("shared")
         extra_args += self.enable_or_disable("fortran")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             env["MPICC"] = spec["mpi"].mpicc
             env["MPICXX"] = spec["mpi"].mpicxx
 
         extra_args += self.with_or_without("mpi", activation_value="prefix")
         extra_args += self.with_or_without("infiniband")
 
-        if "+zlib" in spec:
+        if spec.satisfies("+zlib"):
             extra_args.append(f"--with-zlib={spec['zlib-api'].prefix}")
         else:
             extra_args.append("--without-zlib")

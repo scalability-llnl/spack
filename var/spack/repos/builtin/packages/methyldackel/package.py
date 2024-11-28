@@ -22,6 +22,8 @@ class Methyldackel(MakefilePackage):
 
     version("0.6.1", sha256="eeb1da4c830bcd9f3e6663a764947d957c41337643069524a4b545812fcf4819")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("htslib@1.11:")
     depends_on("libbigwig")
     depends_on("curl")

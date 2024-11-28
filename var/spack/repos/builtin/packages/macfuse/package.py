@@ -17,7 +17,6 @@ class Macfuse(Package):
 
     provides("fuse")
     conflicts("platform=linux", msg="macfuse does not support linux, use libfuse instead")
-    conflicts("platform=cray", msg="macfuse does not support cray, use libfuse instead")
 
     def install(self, spec, prefix):
         msg = """

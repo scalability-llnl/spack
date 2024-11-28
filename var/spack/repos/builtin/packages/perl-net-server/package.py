@@ -17,11 +17,3 @@ class PerlNetServer(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("2.014", sha256="3406b9ca5a662a0075eed47fb78de1316b601c94f62a0ee34a5544db9baa3720")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Net::Server; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

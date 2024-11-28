@@ -4,31 +4,26 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import errno
-import glob
 import os
-import posixpath
 import re
 import shutil
 import sys
-from contextlib import contextmanager
 from pathlib import Path
+from typing import List, Optional, Tuple
 
 import llnl.util.filesystem as fs
-import llnl.util.tty as tty
+from llnl.util.symlink import readlink
 
 import spack.config
 import spack.hash_types as ht
+import spack.projections
 import spack.spec
+import spack.store
 import spack.util.spack_json as sjson
 from spack.error import SpackError
 
-# Note: Posixpath is used here as opposed to
-# os.path.join due to spack.spec.Spec.format
-# requiring forward slash path seperators at this stage
 default_projections = {
-    "all": posixpath.join(
-        "{architecture}", "{compiler.name}-{compiler.version}", "{name}-{version}-{hash}"
-    )
+    "all": "{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}"
 }
 
 
@@ -36,6 +31,42 @@ def _check_concrete(spec):
     """If the spec is not concrete, raise a ValueError"""
     if not spec.concrete:
         raise ValueError("Specs passed to a DirectoryLayout must be concrete!")
+
+
+def _get_spec(prefix: str) -> Optional["spack.spec.Spec"]:
+    """Returns a spec if the prefix contains a spec file in the .spack subdir"""
+    for f in ("spec.json", "spec.yaml"):
+        try:
+            return spack.spec.Spec.from_specfile(os.path.join(prefix, ".spack", f))
+        except Exception:
+            continue
+    return None
+
+
+def specs_from_metadata_dirs(root: str) -> List["spack.spec.Spec"]:
+    stack = [root]
+    specs = []
+
+    while stack:
+        prefix = stack.pop()
+
+        spec = _get_spec(prefix)
+
+        if spec:
+            spec.prefix = prefix
+            specs.append(spec)
+            continue
+
+        try:
+            scandir = os.scandir(prefix)
+        except OSError:
+            continue
+
+        with scandir as entries:
+            for entry in entries:
+                if entry.is_dir(follow_symlinks=False):
+                    stack.append(entry.path)
+    return specs
 
 
 class DirectoryLayout:
@@ -151,20 +182,9 @@ class DirectoryLayout:
     def spec_file_path(self, spec):
         """Gets full path to spec file"""
         _check_concrete(spec)
-        # Attempts to convert to JSON if possible.
-        # Otherwise just returns the YAML.
         yaml_path = os.path.join(self.metadata_path(spec), self._spec_file_name_yaml)
         json_path = os.path.join(self.metadata_path(spec), self.spec_file_name)
-        if os.path.exists(yaml_path) and fs.can_write_to_dir(yaml_path):
-            self.write_spec(spec, json_path)
-            try:
-                os.remove(yaml_path)
-            except OSError as err:
-                tty.debug("Could not remove deprecated {0}".format(yaml_path))
-                tty.debug(err)
-        elif os.path.exists(yaml_path):
-            return yaml_path
-        return json_path
+        return yaml_path if os.path.exists(yaml_path) else json_path
 
     def deprecated_file_path(self, deprecated_spec, deprecator_spec=None):
         """Gets full path to spec file for deprecated spec
@@ -181,7 +201,7 @@ class DirectoryLayout:
         base_dir = (
             self.path_for_spec(deprecator_spec)
             if deprecator_spec
-            else os.readlink(deprecated_spec.prefix)
+            else readlink(deprecated_spec.prefix)
         )
 
         yaml_path = os.path.join(
@@ -198,23 +218,7 @@ class DirectoryLayout:
             deprecated_spec.dag_hash() + "_" + self.spec_file_name,
         )
 
-        if os.path.exists(yaml_path) and fs.can_write_to_dir(yaml_path):
-            self.write_spec(deprecated_spec, json_path)
-            try:
-                os.remove(yaml_path)
-            except (IOError, OSError) as err:
-                tty.debug("Could not remove deprecated {0}".format(yaml_path))
-                tty.debug(err)
-        elif os.path.exists(yaml_path):
-            return yaml_path
-
-        return json_path
-
-    @contextmanager
-    def disable_upstream_check(self):
-        self.check_upstream = False
-        yield
-        self.check_upstream = True
+        return yaml_path if os.path.exists(yaml_path) else json_path
 
     def metadata_path(self, spec):
         return os.path.join(spec.prefix, self.metadata_dir)
@@ -269,53 +273,6 @@ class DirectoryLayout:
             raise InconsistentInstallDirectoryError(
                 "Spec file in %s does not match hash!" % spec_file_path
             )
-
-    def all_specs(self):
-        if not os.path.isdir(self.root):
-            return []
-
-        specs = []
-        for _, path_scheme in self.projections.items():
-            path_elems = ["*"] * len(path_scheme.split(posixpath.sep))
-            # NOTE: Does not validate filename extension; should happen later
-            path_elems += [self.metadata_dir, "spec.json"]
-            pattern = os.path.join(self.root, *path_elems)
-            spec_files = glob.glob(pattern)
-            if not spec_files:  # we're probably looking at legacy yaml...
-                path_elems += [self.metadata_dir, "spec.yaml"]
-                pattern = os.path.join(self.root, *path_elems)
-                spec_files = glob.glob(pattern)
-            specs.extend([self.read_spec(s) for s in spec_files])
-        return specs
-
-    def all_deprecated_specs(self):
-        if not os.path.isdir(self.root):
-            return []
-
-        deprecated_specs = set()
-        for _, path_scheme in self.projections.items():
-            path_elems = ["*"] * len(path_scheme.split(posixpath.sep))
-            # NOTE: Does not validate filename extension; should happen later
-            path_elems += [
-                self.metadata_dir,
-                self.deprecated_dir,
-                "*_spec.*",
-            ]  # + self.spec_file_name]
-            pattern = os.path.join(self.root, *path_elems)
-            spec_files = glob.glob(pattern)
-            get_depr_spec_file = lambda x: os.path.join(
-                os.path.dirname(os.path.dirname(x)), self.spec_file_name
-            )
-            deprecated_specs |= set(
-                (self.read_spec(s), self.read_spec(get_depr_spec_file(s))) for s in spec_files
-            )
-        return deprecated_specs
-
-    def specs_by_hash(self):
-        by_hash = {}
-        for spec in self.all_specs():
-            by_hash[spec.dag_hash()] = spec
-        return by_hash
 
     def path_for_spec(self, spec):
         """Return absolute path from the root to a directory for the spec."""
@@ -381,6 +338,35 @@ class DirectoryLayout:
                     else:
                         raise e
             path = os.path.dirname(path)
+
+    def all_specs(self) -> List["spack.spec.Spec"]:
+        """Returns a list of all specs detected in self.root, detected by `.spack` directories.
+        Their prefix is set to the directory containing the `.spack` directory. Note that these
+        specs may follow a different layout than the current layout if it was changed after
+        installation."""
+        return specs_from_metadata_dirs(self.root)
+
+    def deprecated_for(
+        self, specs: List["spack.spec.Spec"]
+    ) -> List[Tuple["spack.spec.Spec", "spack.spec.Spec"]]:
+        """Returns a list of tuples of specs (new, old) where new is deprecated for old"""
+        spec_with_deprecated = []
+        for spec in specs:
+            try:
+                deprecated = os.scandir(
+                    os.path.join(str(spec.prefix), self.metadata_dir, self.deprecated_dir)
+                )
+            except OSError:
+                continue
+
+            with deprecated as entries:
+                for entry in entries:
+                    try:
+                        deprecated_spec = spack.spec.Spec.from_specfile(entry.path)
+                        spec_with_deprecated.append((spec, deprecated_spec))
+                    except Exception:
+                        continue
+        return spec_with_deprecated
 
 
 class DirectoryLayoutError(SpackError):

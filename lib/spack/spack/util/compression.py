@@ -9,7 +9,7 @@ import io
 import os
 import shutil
 import sys
-from typing import BinaryIO, Callable, Dict, List, Optional
+from typing import Any, BinaryIO, Callable, Dict, List, Optional
 
 import llnl.url
 from llnl.util import tty
@@ -157,6 +157,10 @@ def _system_gunzip(archive_file: str) -> str:
     return destination_abspath
 
 
+def _do_nothing(archive_file: str) -> None:
+    return None
+
+
 def _unzip(archive_file: str) -> str:
     """Returns path to extracted zip archive. Extract Zipfile, searching for unzip system
     executable. If unavailable, search for 'tar' executable on system and use instead.
@@ -283,7 +287,7 @@ def decompressor_for(path: str, extension: Optional[str] = None):
         return decompressor_for_nix(extension)
 
 
-def decompressor_for_nix(extension: str) -> Callable[[str], str]:
+def decompressor_for_nix(extension: str) -> Callable[[str], Any]:
     """Returns a function pointer to appropriate decompression algorithm based on extension type
     and unix specific considerations i.e. a reasonable expectation system utils like gzip, bzip2,
     and xz are available
@@ -291,18 +295,19 @@ def decompressor_for_nix(extension: str) -> Callable[[str], str]:
     Args:
         extension: path of the archive file requiring decompression
     """
-    extension_to_decompressor: Dict[str, Callable[[str], str]] = {
+    extension_to_decompressor: Dict[str, Callable[[str], Any]] = {
         "zip": _unzip,
         "gz": _gunzip,
         "bz2": _bunzip2,
         "Z": _system_unZ,  # no builtin support for .Z files
         "xz": _lzma_decomp,
+        "whl": _do_nothing,
     }
 
     return extension_to_decompressor.get(extension, _system_untar)
 
 
-def _determine_py_decomp_archive_strategy(extension: str) -> Optional[Callable[[str], str]]:
+def _determine_py_decomp_archive_strategy(extension: str) -> Optional[Callable[[str], Any]]:
     """Returns appropriate python based decompression strategy
     based on extension type"""
     extension_to_decompressor: Dict[str, Callable[[str], str]] = {
@@ -313,7 +318,7 @@ def _determine_py_decomp_archive_strategy(extension: str) -> Optional[Callable[[
     return extension_to_decompressor.get(extension, None)
 
 
-def decompressor_for_win(extension: str) -> Callable[[str], str]:
+def decompressor_for_win(extension: str) -> Callable[[str], Any]:
     """Returns a function pointer to appropriate decompression
     algorithm based on extension type and Windows specific considerations
 
@@ -323,7 +328,7 @@ def decompressor_for_win(extension: str) -> Callable[[str], str]:
     and files as Python does not provide support for the UNIX compress algorithm
     """
     extension = llnl.url.expand_contracted_extension(extension)
-    extension_to_decompressor: Dict[str, Callable[[str], str]] = {
+    extension_to_decompressor: Dict[str, Callable[[str], Any]] = {
         # Windows native tar can handle .zip extensions, use standard unzip method
         "zip": _unzip,
         # if extension is standard tarball, invoke Windows native tar
@@ -333,6 +338,7 @@ def decompressor_for_win(extension: str) -> Callable[[str], str]:
         # detected
         "Z": _system_unZ,
         "xz": _lzma_decomp,
+        "whl": _do_nothing,
     }
 
     decompressor = extension_to_decompressor.get(extension)

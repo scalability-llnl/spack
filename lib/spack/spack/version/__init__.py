@@ -30,9 +30,9 @@ from .version_types import (
     Version,
     VersionList,
     VersionRange,
+    _next_version,
+    _prev_version,
     from_string,
-    next_version,
-    prev_version,
     ver,
 )
 
@@ -46,8 +46,8 @@ __all__ = [
     "from_string",
     "is_git_version",
     "infinity_versions",
-    "prev_version",
-    "next_version",
+    "_prev_version",
+    "_next_version",
     "VersionList",
     "ClosedOpenRange",
     "StandardVersion",

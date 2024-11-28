@@ -34,9 +34,6 @@ spack:
   - py-keras-preprocessing
   - py-keras2onnx
 
-  # MXNet not supported on darwin aarch64 yet
-  # - mxnet
-
   # PyTorch
   - py-botorch
   - py-efficientnet-pytorch
@@ -84,8 +81,6 @@ spack:
 
   # XGBoost
   - py-xgboost
-  # - r-xgboost
-  - xgboost
 
   ci:
     pipeline-gen:

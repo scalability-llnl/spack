@@ -18,10 +18,4 @@ class PerlXmlHashXs(PerlPackage):
 
     version("0.56", sha256="be4c60ded94c5ebe53a81ef74928dfbec9613986d2a6056dd253665c6ae9802f")
 
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use XML::Hash::XS; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out
+    depends_on("c", type="build")  # generated

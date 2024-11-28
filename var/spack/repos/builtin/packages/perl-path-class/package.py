@@ -17,11 +17,3 @@ class PerlPathClass(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("0.37", sha256="654781948602386f2cb2e4473a739f17dc6953d92aabc2498a4ca2561bc248ce")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Path::Class; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -23,6 +23,7 @@ class CommonsLogging(Package):
 
     license("Apache-2.0")
 
+    version("1.3.0", sha256="8a3ea33a2d58fe243ff47b78d672ad98e7590af7f436636c7851b1069caad5f8")
     version("1.2", sha256="3f758805c7290d9c6d22d1451587c9f7232744aef4c984e88aa683cdea0587bd")
     version("1.1.3", sha256="9e7093c93529792563b5c19ab5cccb73ef4ca7d82b886bdec6d0af182ba9908a")
     version("1.1.1", sha256="88c721d66f570a87f710a2449f0e3bffea86489d9dd2fa70b805104c4f8d69e6")
@@ -31,4 +32,4 @@ class CommonsLogging(Package):
     depends_on("java", type="run")
 
     def install(self, spec, prefix):
-        install("commons-logging-{0}.jar".format(self.version), prefix)
+        install(f"commons-logging-{self.version}.jar", prefix)

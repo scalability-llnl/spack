@@ -16,6 +16,8 @@ class Hyphen(AutotoolsPackage):
     version("master", branch="master")
     version("2.8.8", sha256="304636d4eccd81a14b6914d07b84c79ebb815288c76fe027b9ebff6ff24d5705")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

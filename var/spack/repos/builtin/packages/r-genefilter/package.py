@@ -25,6 +25,10 @@ class RGenefilter(RPackage):
     version("1.60.0", commit="c98f695253c330a9380b2b4ffa27f3b7d66773e4")
     version("1.58.1", commit="ace2556049677f60882adfe91f8cc96791556fc2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("r-matrixgenerics@1.11.1:", type=("build", "run"), when="@1.82.0:")
     depends_on("r-annotationdbi", type=("build", "run"))
     depends_on("r-annotate", type=("build", "run"))

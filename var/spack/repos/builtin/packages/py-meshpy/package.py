@@ -19,6 +19,8 @@ class PyMeshpy(PythonPackage):
 
     version("2022.1.3", sha256="a7158e31ece25fa6c6cebce9fd1e968157d661dc8769fb30ceba69c351478475")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.6:3", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-pybind11", type="build")

@@ -17,6 +17,8 @@ class Parsimonator(MakefilePackage):
 
     version("1.0.2", commit="78368c6ab1e9adc7e9c6ec9256dd7ff2a5bb1b0a")
 
+    depends_on("c", type="build")  # generated
+
     patch("nox86.patch")
 
     @property

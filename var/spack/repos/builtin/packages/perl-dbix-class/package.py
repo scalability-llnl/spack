@@ -42,11 +42,3 @@ class PerlDbixClass(PerlPackage):
     depends_on("perl-test-exception@0.31:", type=("build", "link"))
     depends_on("perl-test-warn@0.21:", type=("build", "link"))
     depends_on("perl-try-tiny@0.07:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use DBIx::Class; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

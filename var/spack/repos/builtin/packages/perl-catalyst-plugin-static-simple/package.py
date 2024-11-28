@@ -22,11 +22,3 @@ class PerlCatalystPluginStaticSimple(PerlPackage):
     depends_on("perl-mime-types@2.03:", type=("build", "run", "test"))
     depends_on("perl-moose", type=("build", "run", "test"))
     depends_on("perl-namespace-autoclean", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Catalyst::Plugin::Static::Simple; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

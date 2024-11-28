@@ -37,6 +37,8 @@ class RDensvis(RPackage):
 
     version("1.10.0", commit="833db1fb7b2a5667575cc2e7c2fefc8360c8d7fb")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-basilisk", type=("build", "run"))
     depends_on("r-assertthat", type=("build", "run"))

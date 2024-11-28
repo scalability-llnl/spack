@@ -18,10 +18,4 @@ class PerlHttpParserXs(PerlPackage):
 
     version("0.17", sha256="794e6833e326b10d24369f9cdbfc1667105ef6591e8f41e561a3d41a7027a809")
 
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use HTTP::Parser::XS; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out
+    depends_on("c", type="build")  # generated

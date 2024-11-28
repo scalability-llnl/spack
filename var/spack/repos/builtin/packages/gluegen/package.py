@@ -19,6 +19,8 @@ class Gluegen(Package):
 
     version("java-11-fixes", branch="java-11-fixes", submodules=True)
 
+    depends_on("c", type="build")  # generated
+
     # ant optional jar file to execute antlr tasks
     resource(
         name="ant-optional",

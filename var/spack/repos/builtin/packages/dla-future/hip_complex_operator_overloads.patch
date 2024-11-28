@@ -1,0 +1,23 @@
+diff --git a/src/lapack/gpu/add.cu b/src/lapack/gpu/add.cu
+index a55110c2..5d839540 100644
+--- a/src/lapack/gpu/add.cu
++++ b/src/lapack/gpu/add.cu
+@@ -32,6 +32,18 @@ __device__ inline void addAlpha(const T& alpha, const T& a, T& b) {
+   b = b + alpha * a;
+ }
+
++template <>
++__device__ inline void addAlpha<hipFloatComplex>(const hipFloatComplex& alpha, const hipFloatComplex& a,
++                                                 hipFloatComplex& b) {
++  b = b + hipCmulf(alpha, a);
++}
++
++template <>
++__device__ inline void addAlpha<hipDoubleComplex>(const hipDoubleComplex& alpha,
++                                                  const hipDoubleComplex& a, hipDoubleComplex& b) {
++  b = b + hipCmul(alpha, a);
++}
++
+ template <class T>
+ __device__ inline void sum(const T& /*alpha*/, const T& a, T& b) {
+   b = b + a;

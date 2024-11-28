@@ -1,0 +1,14 @@
+paths:
+- layout:
+  - executables:
+    - cl.bat
+    script: |
+      echo "Microsoft (R) C/C++ Optimizing Compiler Version 19.04.54321 for x86"
+  platforms: [windows]
+  results:
+  - spec: msvc@19.04.54321
+    extra_attributes:
+      compilers:
+        c: ".*cl.bat$"
+        cxx: ".*cl.bat"
+

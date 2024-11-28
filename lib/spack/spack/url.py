@@ -258,7 +258,9 @@ def parse_version_offset(path):
         # 9th Pass: Version in path
         # github.com/repo/name/releases/download/vver/name
         # e.g. https://github.com/nextflow-io/nextflow/releases/download/v0.20.1/nextflow
+        # e.g. https://gitlab.com/hpctoolkit/hpcviewer/-/releases/2024.02/downloads/hpcviewer.tgz
         (r"github\.com/[^/]+/[^/]+/releases/download/[a-zA-Z+._-]*v?(\d[\da-zA-Z._-]*)/", path),
+        (r"gitlab\.com/[^/]+/.+/-/releases/[a-zA-Z+._-]*v?(\d[\da-zA-Z._-]*)/downloads/", path),
         # e.g. ftp://ftp.ncbi.nlm.nih.gov/blast/executables/legacy.NOTSUPPORTED/2.2.26/ncbi.tar.gz
         (r"(\d[\da-zA-Z._-]*)/[^/]+$", path),
     ]

@@ -23,6 +23,9 @@ class PyQuast(PythonPackage):
     version("4.6.1", sha256="7ace5bebebe9d2a70ad45e5339f998bd651c1c6b9025f7a3b51f44c87ea5bae0")
     version("4.6.0", sha256="3a7ee7a2abfeb0541b299b67f263ba95f9743f8809ddf5dfaca9c3c8f9b6a215")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@1.56.0")
 
     # TODO: replace this with an explicit list of components of Boost,

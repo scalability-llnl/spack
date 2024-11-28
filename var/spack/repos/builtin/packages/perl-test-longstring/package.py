@@ -17,11 +17,3 @@ class PerlTestLongstring(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("0.17", sha256="abc4349eaf04d1bec1e464166a3018591ea846d8f3c5c9c8af4ac4905d3e974f")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Test::LongString; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

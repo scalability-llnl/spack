@@ -21,11 +21,3 @@ class PerlBioAsn1Entrezgene(PerlPackage):
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
     depends_on("perl-bio-cluster", type=("build", "run", "test"))
     depends_on("perl-bioperl", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Bio::ASN1::EntrezGene; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

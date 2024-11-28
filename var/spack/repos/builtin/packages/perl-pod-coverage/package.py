@@ -18,11 +18,3 @@ class PerlPodCoverage(PerlPackage):
 
     depends_on("perl-devel-symdump@2.01:", type=("build", "run", "test"))
     depends_on("perl-pod-parser@1.13:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Pod::Coverage; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -17,11 +17,3 @@ class PerlTestMocktime(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("0.17", sha256="3363e118b2606f1d6abc956f22b0d09109772b7086155fb5c9c7f983350602f9")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Test::MockTime; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

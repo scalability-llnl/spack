@@ -20,6 +20,8 @@ class Psi4(CMakePackage):
 
     version("1.3.2", sha256="ed76c67803b6420f35f57a6dd31c47108b9145b8c9fced5c94cdc179f6b5fbf3")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "build_type",
         default="Release",

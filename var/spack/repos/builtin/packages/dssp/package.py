@@ -18,6 +18,8 @@ class Dssp(AutotoolsPackage):
     version("3.1.4", sha256="496282b4b5defc55d111190ab9f1b615a9574a2f090e7cf5444521c747b272d4")
     version("2.3.0", sha256="4c95976d86dc64949cb0807fbd58c7bee5393df0001999405863dc90f05846c6")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
@@ -51,7 +53,7 @@ class Dssp(AutotoolsPackage):
     @run_after("install")
     def cache_test_sources(self):
         """Save off the pdb sources for stand-alone testing."""
-        self.cache_extra_test_sources("pdb")
+        cache_extra_test_sources(self, "pdb")
 
     def test_mkdssp(self):
         """calculate structure for example"""

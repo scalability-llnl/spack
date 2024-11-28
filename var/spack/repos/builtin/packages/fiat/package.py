@@ -23,6 +23,10 @@ class Fiat(CMakePackage):
     version("1.1.0", sha256="58354e60d29a1b710bfcea9b87a72c0d89c39182cb2c9523ead76a142c695f82")
     version("1.0.0", sha256="45afe86117142831fdd61771cf59f31131f2b97f52a2bd04ac5eae9b2ab746b8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "build_type",
         default="RelWithDebInfo",

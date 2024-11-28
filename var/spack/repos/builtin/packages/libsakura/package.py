@@ -20,6 +20,9 @@ class Libsakura(CMakePackage):
     version("4.0.2065", sha256="3fde3713b1ca539f0b2397ec72a0086a3138ef63f89dce4be51ee60585df995f")
     version("3.0.2025", sha256="381a49d57cbc88dea15e08f7ed64ba57481d25bce8e5f68938dd4b6a30589c16")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8:", type="build")
 
     depends_on("eigen@3.2:")

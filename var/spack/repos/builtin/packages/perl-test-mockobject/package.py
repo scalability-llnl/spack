@@ -25,11 +25,3 @@ class PerlTestMockobject(PerlPackage):
     depends_on("perl-test-warn@0.23:", type=("build", "test"))
     depends_on("perl-universal-can@1.20110617:", type=("build", "run", "test"))
     depends_on("perl-universal-isa@1.20110614:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Test::MockObject; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

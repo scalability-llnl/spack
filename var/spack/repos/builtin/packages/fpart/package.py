@@ -17,7 +17,7 @@ class Fpart(AutotoolsPackage):
 
     maintainers("drkrynstrng")
 
-    license("BSD-2-Clause")
+    license("BSD-2-Clause", checked_by="drkrynstrng")
 
     version("master", branch="master")
     version("1.6.0", sha256="ed1fac2853fc421071b72e4c5d8455a231bc30e50034db14af8b0485ece6e097")
@@ -35,6 +35,7 @@ class Fpart(AutotoolsPackage):
         description="Tools used by fpsync to copy files",
     )
 
+    depends_on("c", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

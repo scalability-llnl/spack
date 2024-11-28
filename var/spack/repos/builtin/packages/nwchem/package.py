@@ -17,6 +17,14 @@ class Nwchem(Package):
 
     tags = ["ecp", "ecp-apps"]
 
+    maintainers("jeffhammond")
+
+    version(
+        "7.2.3",
+        sha256="8cb4ec065215bc0316d8e01f67f1674a572f7d0f565c52e4a327975c04ddb6eb",
+        url="https://github.com/nwchemgit/nwchem/releases/download/v7.2.3-release/nwchem-7.2.3-release.revision-d690e065-srconly.2024-08-27.tar.bz2",
+    )
+
     version(
         "7.2.2",
         sha256="6b68e9c12eec38c09d92472bdd1ff130b93c1b5e1f65e4702aa7ee36c80e4af7",
@@ -33,8 +41,24 @@ class Nwchem(Package):
         url="https://github.com/nwchemgit/nwchem/releases/download/v7.0.2-release/nwchem-7.0.2-release.revision-b9985dfa-srconly.2020-10-12.tar.bz2",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=False, description="Enables OpenMP support")
-    variant("mpipr", default=False, description="Enables ARMCI with progress rank")
+    variant("f90allocatable", default=False, description="Use F90 allocatable instead of MA")
+    variant(
+        "armci",
+        values=("mpi-ts", "mpi-pr", "armcimpi", "mpi3", "openib", "ofi"),
+        default="mpi-ts",
+        description="ARMCI runtime",
+    )
+    variant(
+        "extratce",
+        default=False,
+        description="Enables rarely-used TCE features (CCSDTQ, CCSDTLR, EACCSD, IPCCSD, MRCC)",
+    )
+    variant("tcecuda", default=False, description="Enable TCE CCSD(T) CUDA support")
     variant("fftw3", default=False, description="Link against the FFTW library")
     variant("libxc", default=False, description="Support additional functionals via libxc")
     variant(
@@ -55,11 +79,19 @@ class Nwchem(Package):
     # https://github.com/nwchemgit/nwchem/commit/376f86f96eb982e83f10514e9dcd994564f973b4
     # https://github.com/nwchemgit/nwchem/commit/c89fc9d1eca6689bce12564a63fdea95d962a123
     # Prior versions of NWChem, including 7.0.2, were not able to link with FFTW
-    patch("fftw_splans.patch", when="@7.2.0 +fftw3")
+    patch("fftw_splans.patch", when="@7.2.0:7.2.3 +fftw3")
+    # This patch is for including a working link for dft-d3 download as existing link
+    # https://www.chemiebn.uni-bonn.de/pctc/mulliken-center/software/dft-d3//dftd3.tgz is not active
+    # Same is mentioned in https://metadata.ftp-master.debian.org/changelogs/main/n/nwchem/unstable_changelog
+    patch("dft-d3_url.patch", when="@7.2.0:7.2.2")
 
     depends_on("blas")
     depends_on("lapack")
     depends_on("mpi")
+    depends_on("cuda", when="+tcecuda")
+    depends_on("armcimpi", when="armci=armcimpi")
+    depends_on("libfabric", when="armci=ofi")
+    depends_on("rdma-core", when="armci=openib")
     depends_on("scalapack")
     depends_on("fftw-api@3", when="+fftw3")
     depends_on("libxc", when="+libxc")
@@ -88,10 +120,6 @@ class Nwchem(Package):
                 f"LAPACK_LIB={lapack.ld_flags}",
                 f"SCALAPACK_LIB={scalapack.ld_flags}",
                 "USE_NOIO=Y",  # skip I/O algorithms
-                "MRCC_METHODS=y",  # TCE extra module
-                "IPCCSD=y",  # TCE extra module
-                "EACCSD=y",  # TCE extra module
-                "CCSDTQ=y",  # TCE extra module
                 "V=1",  # verbose build
             ]
         )
@@ -121,11 +149,41 @@ class Nwchem(Package):
 
         args.extend([f"NWCHEM_TARGET={target}"])
 
+        # These optional components of TCE are rarely used and in some cases
+        # increase the compilation time significantly (CCSDTLR and CCSDTQ).
+        if spec.satisfies("+extratce"):
+            args.extend(["MRCC_METHODS=y"])
+            args.extend(["IPCCSD=y"])
+            args.extend(["EACCSD=y"])
+            args.extend(["CCSDTLR=y"])
+            args.extend(["CCSDTQ=y"])
+
+        if spec.satisfies("+tcecuda"):
+            args.extend(["TCE_CUDA=y"])
+            args.extend(["CUDA_INCLUDE=-I{0}".format(self.spec["cuda"].headers.directories[0])])
+            # args.extend(["CUDA_LIBS={0}".format(self.spec["cuda"].libs)])
+            args.extend(["CUDA_LIBS=-L{0} -lcudart".format(self.spec["cuda"].libs.directories[0])])
+
         if spec.satisfies("+openmp"):
             args.extend(["USE_OPENMP=y"])
 
-        if spec.satisfies("+mpipr"):
+        if spec.satisfies("+f90allocatable"):
+            args.extend(["USE_F90_ALLOCATABLE=1"])
+
+        if self.spec.variants["armci"].value == "armcimpi":
+            armcimpi = spec["armci"]
+            args.extend(["ARMCI_NETWORK=ARMCI"])
+            args.extend([f"EXTERNAL_ARMCI_PATH={armcimpi.prefix}"])
+        elif self.spec.variants["armci"].value == "mpi-pr":
             args.extend(["ARMCI_NETWORK=MPI-PR"])
+        elif self.spec.variants["armci"].value == "mpi-ts":
+            args.extend(["ARMCI_NETWORK=MPI-TS"])
+        elif self.spec.variants["armci"].value == "mpi3":
+            args.extend(["ARMCI_NETWORK=MPI3"])
+        elif self.spec.variants["armci"].value == "openib":
+            args.extend(["ARMCI_NETWORK=OPENIB"])
+        elif self.spec.variants["armci"].value == "ofi":
+            args.extend(["ARMCI_NETWORK=OFI"])
 
         if spec.satisfies("+fftw3"):
             args.extend(["USE_FFTW3=y"])
@@ -133,8 +191,8 @@ class Nwchem(Package):
             args.extend(["FFTW3_INCLUDE={0}".format(spec["fftw-api"].prefix.include)])
 
         if spec.satisfies("+libxc"):
-            args.extend([f"LIBXC_LIB={0}".format(spec["libxc"].libs.ld_flags)])
-            args.extend([f"LIBXC_INCLUDE={0}".format(spec["libxc"].prefix.include)])
+            args.extend(["LIBXC_LIB={0}".format(spec["libxc"].libs.ld_flags)])
+            args.extend(["LIBXC_INCLUDE={0}".format(spec["libxc"].prefix.include)])
 
         if spec.satisfies("+elpa"):
             elpa = spec["elpa"]

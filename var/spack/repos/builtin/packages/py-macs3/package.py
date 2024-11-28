@@ -18,6 +18,8 @@ class PyMacs3(PythonPackage):
 
     version("3.0.0b3", sha256="caa794d4cfcd7368447eae15878505315dac44c21546e8fecebb3561e9cee362")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.9:", type=("build", "run"))
 
     depends_on("py-setuptools@60.0:", type="build")

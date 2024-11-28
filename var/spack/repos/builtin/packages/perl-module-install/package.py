@@ -12,6 +12,8 @@ class PerlModuleInstall(PerlPackage):
     homepage = "https://metacpan.org/pod/Module::Install"
     url = "https://cpan.metacpan.org/authors/id/E/ET/ETHER/Module-Install-1.19.tar.gz"
 
+    skip_modules = ["Module::Install"]  # requires prepend "inc::"
+
     license("GPL-1.0-or-later OR Artistic-1.0-Perl")
 
     version("1.21", sha256="fbf91007f30565f3920e106055fd0d4287981d5e7dad8b35323ce4b733f15a7b")

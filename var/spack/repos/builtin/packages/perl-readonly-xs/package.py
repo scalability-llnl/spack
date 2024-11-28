@@ -19,7 +19,3 @@ class PerlReadonlyXs(PerlPackage):
     version("1.05", sha256="8ae5c4e85299e5c8bddd1b196f2eea38f00709e0dc0cb60454dc9114ae3fff0d")
 
     depends_on("perl-readonly@1.02:", type=("build", "run", "test"))
-
-    def test_use(self):
-        # This module can not be "use"d.
-        pass

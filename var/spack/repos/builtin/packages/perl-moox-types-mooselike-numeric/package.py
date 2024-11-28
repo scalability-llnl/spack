@@ -24,11 +24,3 @@ class PerlMooxTypesMooselikeNumeric(PerlPackage):
     depends_on("perl-moo@1.004002:", type=("build", "link"))
     depends_on("perl-moox-types-mooselike@0.23:", type=("build", "run", "test"))
     depends_on("perl-test-fatal@0.003:", type=("build", "link"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use MooX::Types::MooseLike::Numeric; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

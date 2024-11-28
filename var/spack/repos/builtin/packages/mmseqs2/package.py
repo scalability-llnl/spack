@@ -16,8 +16,12 @@ class Mmseqs2(CMakePackage):
 
     license("GPL-3.0-only")
 
+    version("15-6f452", sha256="7115ac5a7e2a49229466806aaa760d00204bb08c870e3c231b00e525c77531dc")
     version("14-7e284", sha256="a15fd59b121073fdcc8b259fc703e5ce4c671d2c56eb5c027749f4bd4c28dfe1")
     version("13-45111", sha256="6444bb682ebf5ced54b2eda7a301fa3e933c2a28b7661f96ef5bdab1d53695a2")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("openmp", default=False, description="build with OpenMP support")
     variant("mpi", default=False, description="build with MPI support")
@@ -29,7 +33,7 @@ class Mmseqs2(CMakePackage):
     patch(
         "https://github.com/soedinglab/MMseqs2/commit/3e43617.patch?full_index=1",
         sha256="673737ac545260e7800ca191c6eee14feef3318d9cfa5005db32bd2ab3c006fe",
-        when="%gcc@13:",
+        when="@:14 %gcc@13:",
         level=1,
     )
 

@@ -28,6 +28,8 @@ class Blktrace(MakefilePackage):
     version("1.0.3", sha256="78c6825212fe6700039fab77d53bc02e6b324e712caea718fff190e4e034cfa8")
     version("1.0.2", sha256="15f01e2a952919ba3c7b90f8bd891d1a98c454626501094030df632666786343")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libaio")
 
     def edit(self, spec, prefix):

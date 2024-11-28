@@ -18,4 +18,6 @@ class Libdatrie(AutotoolsPackage):
     version("0.2.12", sha256="452dcc4d3a96c01f80f7c291b42be11863cd1554ff78b93e110becce6e00b149")
     version("0.2.11", sha256="547c7bd2ab9e10ad65f3270cae8ca7027f52db9c30f7327d24354ad41a98e94b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("doxygen@1.8.8:", type="build")

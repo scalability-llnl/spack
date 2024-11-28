@@ -17,6 +17,9 @@ class C3d(CMakePackage):
 
     version("1.3.0", sha256="bd45482247fa4ac5ab98b3a775b5438390671e3e224a42f73967904b3895050d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("itk")
 
     def cmake_args(self):

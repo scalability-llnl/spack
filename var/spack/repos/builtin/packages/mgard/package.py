@@ -22,11 +22,15 @@ class Mgard(CMakePackage, CudaPackage):
 
     license("Apache-2.0")
 
-    version("2023-03-31", commit="a8a04a86ff30f91d0b430a7c52960a12fa119589", preferred=True)
+    version("2023-12-09", commit="d61d8c06c49a72b2e582cc02de88b7b27e1275d2", preferred=True)
+    version("2023-03-31", commit="a8a04a86ff30f91d0b430a7c52960a12fa119589")
     version("2023-01-10", commit="3808bd8889a0f8e6647fc0251a3189bc4dfc920f")
     version("2022-11-18", commit="72dd230ed1af88f62ed3c0f662e2387a6e587748")
     version("2021-11-12", commit="3c05c80a45a51bb6cc5fb5fffe7b1b16787d3366")
     version("2020-10-01", commit="b67a0ac963587f190e106cc3c0b30773a9455f7a")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant(
         "serial",
@@ -46,9 +50,10 @@ class Mgard(CMakePackage, CudaPackage):
     depends_on("python", type=("build",), when="@2022-11-18:")
     depends_on("sed", type=("build",), when="@2022-11-18:")
     depends_on("zlib-api")
+    depends_on("zlib@1.2.9:", when="^[virtuals=zlib-api] zlib")  # crc32_z
     depends_on("pkgconfig", type=("build",), when="@2022-11-18:")
     depends_on("zstd")
-    depends_on("protobuf@:3.21.12", when="@2022-11-18:")
+    depends_on("protobuf@3.4:", when="@2022-11-18:")
     depends_on("libarchive", when="@2021-11-12:")
     depends_on("tclap", when="@2021-11-12")
     depends_on("yaml-cpp", when="@2021-11-12:")
@@ -63,11 +68,22 @@ class Mgard(CMakePackage, CudaPackage):
         "~cuda", when="@2021-11-12", msg="without cuda MGARD@2021-11-12 has undefined symbols"
     )
     conflicts("%gcc@:7", when="@2022-11-18:", msg="requires std::optional and other c++17 things")
+    conflicts("protobuf@3.22:", when="target=ppc64le", msg="GCC 9.4 segfault in CI")
+    conflicts("protobuf@3.22:", when="+cuda target=aarch64:", msg="nvcc fails on ARM SIMD headers")
+    # https://github.com/abseil/abseil-cpp/issues/1629
+    conflicts("abseil-cpp@20240116.1", when="+cuda", msg="triggers nvcc parser bug")
 
     def flag_handler(self, name, flags):
         if name == "cxxflags":
-            if self.spec.satisfies("@2020-10-01 %oneapi@2023:"):
-                flags.append("-Wno-error=c++11-narrowing")
+            for a_spec in [
+                "@2020-10-01 %oneapi@2023:",
+                "@2020-10-01 %apple-clang@15:",
+                "@2020-10-01 %aocc@3:",
+                "@2020-10-01 %cce@15:",
+                "@2020-10-01 %rocmcc@4:",
+            ]:
+                if self.spec.satisfies(a_spec):
+                    flags.append("-Wno-error=c++11-narrowing")
         return (flags, None, None)
 
     def cmake_args(self):

@@ -21,11 +21,3 @@ class PerlChiDriverMemcached(PerlPackage):
     depends_on("perl-chi@0.33:", type=("build", "run", "test"))
     depends_on("perl-moose@0.66:", type=("build", "run", "test"))
     depends_on("perl-test-class", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use CHI::Driver::Memcached; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

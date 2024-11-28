@@ -60,11 +60,3 @@ class PerlCatalystRuntime(PerlPackage):
     depends_on("perl-try-tiny@0.17:", type=("build", "run", "test"))
     depends_on("perl-uri@1.65:", type=("build", "run", "test"))
     depends_on("perl-uri-ws@0.03:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Catalyst::Test; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

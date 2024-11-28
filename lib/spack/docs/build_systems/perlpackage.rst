@@ -173,6 +173,72 @@ arguments to ``Makefile.PL`` or ``Build.PL`` by overriding
        ]
 
 
+^^^^^^^
+Testing
+^^^^^^^
+
+``PerlPackage`` provides a simple stand-alone test of the successfully
+installed package to confirm that installed perl module(s) can be used.
+These tests can be performed any time after the installation using
+``spack -v test run``. (For more information on the command, see 
+:ref:`cmd-spack-test-run`.)
+
+The base class automatically detects perl modules based on the presence
+of ``*.pm`` files under the package's library directory. For example,
+the files under ``perl-bignum``'s perl library are:
+
+.. code-block:: console
+
+   $ find . -name "*.pm"
+   ./bigfloat.pm
+   ./bigrat.pm
+   ./Math/BigFloat/Trace.pm
+   ./Math/BigInt/Trace.pm
+   ./Math/BigRat/Trace.pm
+   ./bigint.pm
+   ./bignum.pm
+
+
+which results in the package having the ``use_modules`` property containing:
+
+.. code-block:: python
+
+   use_modules = [
+       "bigfloat",
+       "bigrat",
+       "Math::BigFloat::Trace",
+       "Math::BigInt::Trace",
+       "Math::BigRat::Trace",
+       "bigint",
+       "bignum",
+   ]
+
+.. note::
+
+   This list can often be used to catch missing dependencies.
+
+If the list is somehow wrong, you can provide the names of the modules
+yourself by overriding ``use_modules`` like so:
+
+ .. code-block:: python
+
+    use_modules = ["bigfloat", "bigrat", "bigint", "bignum"]
+
+If you only want a subset of the automatically detected modules to be
+tested, you could instead define the ``skip_modules`` property on the
+package. So, instead of overriding ``use_modules`` as shown above, you
+could define the following:
+
+ .. code-block:: python
+
+    skip_modules = [
+        "Math::BigFloat::Trace",
+        "Math::BigInt::Trace",
+        "Math::BigRat::Trace",
+    ]
+
+for the same use tests.
+
 ^^^^^^^^^^^^^^^^^^^^^
 Alternatives to Spack
 ^^^^^^^^^^^^^^^^^^^^^

@@ -13,7 +13,7 @@ class Snpeff(Package, SourceforgePackage):
     annotates and predicts the effects of genetic variants (such as
     amino acid changes)."""
 
-    homepage = "http://snpeff.sourceforge.net/"
+    homepage = "https://snpeff.sourceforge.net/"
     sourceforge_mirror_path = "snpeff/snpEff_latest_core.zip"
 
     version(

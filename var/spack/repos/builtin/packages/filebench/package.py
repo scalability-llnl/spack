@@ -26,6 +26,9 @@ class Filebench(AutotoolsPackage):
     version("1.4.9.1", sha256="77ae91b83c828ded1219550aec74fbbd6975dce02cb5ab13c3b99ac2154e5c2e")
     version("1.4.9", sha256="61b8a838c1450b51a4ce61481a19a1bf0d6e3993180c524ff4051f7c18bd9c6a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

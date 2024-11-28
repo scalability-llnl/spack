@@ -20,6 +20,8 @@ class RAnytime(RPackage):
 
     version("0.3.9", sha256="1096c15249ac70997a8a41c37eeb2a6d38530621abeae05d3dcd96a8acc7574a")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.2.0:", type=("build", "run"))
     depends_on("r-rcpp@0.12.9:", type=("build", "run"))
     depends_on("r-bh", type=("build", "run"))

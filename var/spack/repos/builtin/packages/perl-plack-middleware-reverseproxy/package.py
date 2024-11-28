@@ -20,11 +20,3 @@ class PerlPlackMiddlewareReverseproxy(PerlPackage):
 
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
     depends_on("perl-plack@0.9988:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Plack::Middleware::ReverseProxy; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

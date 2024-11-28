@@ -21,6 +21,8 @@ class RQqconf(RPackage):
     version("1.3.0", sha256="1c42ab81403568f3ad53217cc85190dad7c2fae957bfd0f0f30d57be0a065087")
     version("1.2.3", sha256="9b5b6042ea8e52e6e049807c0b5e3bfd534b624bd257be769de69cf505fece62")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.0.0:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@1.3.0:")
     depends_on("r-mass@7.3-50:", type=("build", "run"))

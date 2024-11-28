@@ -46,6 +46,8 @@ class PyBokeh(PythonPackage):
     depends_on("py-numpy@1.7.1:", type=("build", "run"))
     depends_on("py-numpy@1.11.3:", type=("build", "run"), when="@2.3.3:")
     depends_on("py-numpy@1.16:", type=("build", "run"), when="@3.1:")
+    # https://github.com/bokeh/bokeh/issues/13835
+    depends_on("py-numpy@:1", when="@:3.4.0", type=("build", "run"))
 
     depends_on("py-packaging@16.8:", type=("build", "run"), when="@1.3.4:")
 

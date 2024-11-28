@@ -17,11 +17,3 @@ class PerlProcDaemon(PerlPackage):
     version("0.23", sha256="34c0b85b7948b431cbabc97cee580835e515ccf43badbd8339eb109474089b69")
 
     depends_on("perl-proc-processtable", type=("build", "link"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Proc::Daemon; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

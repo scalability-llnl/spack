@@ -16,6 +16,8 @@ class Libgit2(CMakePackage):
     homepage = "https://libgit2.github.com/"
     url = "https://github.com/libgit2/libgit2/archive/v0.26.0.tar.gz"
 
+    version("1.8.0", sha256="9e1d6a880d59026b675456fbb1593c724c68d73c34c0d214d6eb848e9bbd8ae4")
+    version("1.7.2", sha256="de384e29d7efc9330c6cdb126ebf88342b5025d920dcb7c645defad85195ea7f")
     version("1.7.0", sha256="d9d0f84a86bf98b73e68997f5c1543cc5067d0ca9c7a5acaba3e8d117ecefef3")
     version("1.6.4", sha256="d25866a4ee275a64f65be2d9a663680a5cf1ed87b7ee4c534997562c828e500d")
     version("1.6.3", sha256="a8e2a09835eabb24ace2fd597a78af182e1e199a894e99a90e4c87c849fcd9c4")
@@ -64,6 +66,8 @@ class Libgit2(CMakePackage):
     version("0.26.1", sha256="68cd0f8ee9e0ca84dcf0f0267d0a8297471d3365622d22d3da67c57165bb0722")
     version("0.26.0", sha256="6a62393e0ceb37d02fe0d5707713f504e7acac9006ef33da1e88960bd78b6eac")
 
+    depends_on("c", type="build")  # generated
+
     # Backends
     variant(
         "https",
@@ -88,7 +92,6 @@ class Libgit2(CMakePackage):
     # Runtime Dependencies
     depends_on("libssh2", when="+ssh")
     depends_on("openssl", when="https=system platform=linux")
-    depends_on("openssl", when="https=system platform=cray")
     depends_on("openssl", when="https=openssl")
     depends_on("curl", when="+curl")
     depends_on("pcre", when="@0.99:")
@@ -102,25 +105,25 @@ class Libgit2(CMakePackage):
 
     def cmake_args(self):
         args = []
-        if "https=system" in self.spec:
-            if "platform=linux" in self.spec or "platform=cray" in self.spec:
+        if self.spec.satisfies("https=system"):
+            if self.spec.satisfies("platform=linux"):
                 args.append("-DUSE_HTTPS=OpenSSL")
-            elif "platform=darwin" in self.spec:
+            elif self.spec.satisfies("platform=darwin"):
                 args.append("-DUSE_HTTPS=SecureTransport")
             else:
                 # Let CMake try to find an HTTPS implementation. Mileage on
                 # your platform may vary
                 args.append("-DUSE_HTTPS=ON")
-        elif "https=openssl" in self.spec:
+        elif self.spec.satisfies("https=openssl"):
             args.append("-DUSE_HTTPS=OpenSSL")
         else:
             args.append("-DUSE_HTTPS=OFF")
 
-        args.append("-DUSE_SSH={0}".format("ON" if "+ssh" in self.spec else "OFF"))
+        args.append(f"-DUSE_SSH={'ON' if '+ssh' in self.spec else 'OFF'}")
 
         # The curl backed is not supported after 0.27.x
-        if "@:0.27 +curl" in self.spec:
-            args.append("-DCURL={0}".format("ON" if "+curl" in self.spec else "OFF"))
+        if self.spec.satisfies("@:0.27 +curl"):
+            args.append(f"-DCURL={'ON' if '+curl' in self.spec else 'OFF'}")
 
         # Control tests
         args.append(self.define("BUILD_CLAR", self.run_tests))

@@ -18,6 +18,8 @@ class GamessRiMp2Miniapp(MakefilePackage):
 
     version("1.5", sha256="0ff4e8e556caa99ce1ab85c53e78932a32d2e2fa3c5d883fa321d5000f8a731e")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("lapack")
 

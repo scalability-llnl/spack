@@ -18,6 +18,9 @@ class Libsvm(MakefilePackage):
     version("323", sha256="7a466f90f327a98f8ed1cb217570547bcb00077933d1619f3cb9e73518f38196")
     version("322", sha256="a3469436f795bb3f8b1e65ea761e14e5599ec7ee941c001d771c07b7da318ac6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         mkdirp(prefix.lib)

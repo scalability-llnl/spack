@@ -21,11 +21,3 @@ class PerlCatalystViewJson(PerlPackage):
     depends_on("perl-catalyst-runtime", type=("build", "run", "test"))
     depends_on("perl-json-maybexs@1.003000:", type=("build", "run", "test"))
     depends_on("perl-mro-compat", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Catalyst::View::JSON; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -20,11 +20,3 @@ class PerlHtmlTemplate(PerlPackage):
 
     depends_on("perl-cgi", type=("build", "run", "test"))
     depends_on("perl-test-pod", type=("build", "link"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use HTML::Template; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

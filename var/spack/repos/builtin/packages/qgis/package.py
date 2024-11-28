@@ -19,13 +19,17 @@ class Qgis(CMakePackage):
 
     license("GPL-2.0-or-later")
 
-    version("3.34.0", sha256="348a2df4c4520813a319b7f72546b3823e044cacd28646ba189b56a49c7d1b5f")
-    # Prefer latest long term release
+    # TODO version 3.36 isn't building right now.
+    version("3.36.0", sha256="1b64bc92660bf07edc6b6478fc6a13656149e87d92eabe5c3db9493072506e2c")
+    # Prefer latest LTR
     version(
-        "3.28.12",
-        sha256="d6d0ea39ed3433d553f8b83324dc14cfa90f8caaf766fa484791df9169800f25",
+        "3.34.4",
+        sha256="7d1c5fafff13f508a9bcf6244c9666f891351deb1ace2aedcc63504f070c5ce4",
         preferred=True,
     )
+    version("3.34.0", sha256="348a2df4c4520813a319b7f72546b3823e044cacd28646ba189b56a49c7d1b5f")
+    version("3.28.15", sha256="217342ba2232cc8fe5bf8f3671c2b3d6daf5504c33006b67424373e70d568dfa")
+    version("3.28.12", sha256="d6d0ea39ed3433d553f8b83324dc14cfa90f8caaf766fa484791df9169800f25")
     version("3.28.11", sha256="c5eb703893c7f98de051c45d677c4a34b40f986db51782a4930ddefad4e193b4")
     version("3.28.10", sha256="cff867e97909bbc2facce6343770dcb1b61fc6e4855f57783e30bf63d51c5218")
     version("3.28.3", sha256="a09124f46465a520f6d735306ba3954c339b84aa396d6f52b476b82edcc4fe0e")
@@ -56,6 +60,9 @@ class Qgis(CMakePackage):
     version("3.4.15", sha256="81c93b72adbea41bd765294c0cdb09476a632d8b3f90101abc409ca9ea7fb04d")
     version("3.4.14", sha256="e138716c7ea84011d3b28fb9c75e6a79322fb66f532246393571906a595d7261")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("3d", default=False, description="Build QGIS 3D library")
     variant("analysis", default=True, description="Build QGIS analysis library")
     variant("apidoc", default=False, description="Build QGIS API doxygen documentation")
@@ -82,7 +89,7 @@ class Qgis(CMakePackage):
     )
     variant("oauth2_plugin", default=True, description="Build OAuth2 authentication method plugin")
     variant("oracle", default=False, description="Build with Oracle support")
-    # variant("pdal", default=False, description="Build with PDAL support") #TODO
+    variant("pdal", default=False, description="Build with PDAL support")
     variant("postgresql", default=True, description="Build with PostreSQL support")
     variant(
         "py_compile",
@@ -135,10 +142,12 @@ class Qgis(CMakePackage):
     depends_on("qt+dbus+location")
     depends_on("qt+dbus+location@5.12.0:", when="@3.20:")
     depends_on("qt+dbus+location@5.14.0:", when="@3.28:")
+    depends_on("qt+dbus+location@5.15.2:", when="@3.36:")
     depends_on("qtkeychain@0.5:", when="@3:")
     depends_on("qwt@5:")
     depends_on("qwtpolar")
     depends_on("sqlite@3.0.0: +column_metadata")
+    depends_on("pdal", when="+pdal")
     depends_on("protobuf", when="@3.16.4:")
     depends_on("protobuf@:3.21", when="@:3.28")
     depends_on("zstd", when="@3.22:")
@@ -182,9 +191,7 @@ class Qgis(CMakePackage):
     @run_before("cmake", when="^py-pyqt5")
     def fix_pyqt5_cmake(self):
         cmfile = FileFilter(join_path("cmake", "FindPyQt5.cmake"))
-        pyqtpath = join_path(
-            self.spec["py-pyqt5"].prefix, self.spec["python"].package.platlib, "PyQt5"
-        )
+        pyqtpath = join_path(self.spec["py-pyqt5"].package.module.python_platlib, "PyQt5")
         cmfile.filter(
             'SET(PYQT5_MOD_DIR "${Python_SITEARCH}/PyQt5")',
             'SET(PYQT5_MOD_DIR "' + pyqtpath + '")',
@@ -204,7 +211,7 @@ class Qgis(CMakePackage):
             pyqtx = "PyQt6"
 
         sip_inc_dir = join_path(
-            self.spec["qscintilla"].prefix, self.spec["python"].package.platlib, pyqtx, "bindings"
+            self.spec["qscintilla"].package.module.python_platlib, pyqtx, "bindings"
         )
         with open(join_path("python", "gui", "pyproject.toml.in"), "a") as tomlfile:
             tomlfile.write(f'\n[tool.sip.project]\nsip-include-dirs = ["{sip_inc_dir}"]\n')

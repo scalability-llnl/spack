@@ -20,11 +20,3 @@ class PerlUriFind(PerlPackage):
 
     depends_on("perl@5.8.8:", type=("build", "link", "run", "test"))
     depends_on("perl-uri@1.60:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use URI::Find; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

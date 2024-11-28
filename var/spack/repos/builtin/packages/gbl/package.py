@@ -17,6 +17,9 @@ class Gbl(CMakePackage):
     version("V02-04-01", commit="1061b643c6656fbf7ceba579997eb43f0a9e9d3c")
     version("V02-01-03", commit="8acaade19c20e9ef23d1244a555fead6ef149c33")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("root", default=True, description="Support ROOT for user I/O")
     depends_on("eigen", type=("build", "link"))
     depends_on("root", type=("build", "link"), when="+root")

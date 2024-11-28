@@ -15,8 +15,11 @@ class Dateutils(AutotoolsPackage):
 
     license("BSD-3-Clause")
 
+    version("0.4.11", sha256="b8fea0b09714bbadf202b9b3434cce6b59c282e7869268d0c08b85880fdbb446")
     version("0.4.7", sha256="49725457f5bef45ea424baade8999a6e54496e357f64280474ff7134a54f599a")
     version("0.4.6", sha256="26a071317ae5710f226a3e6ba9a54d3764cd9efe3965aecc18e75372088757cd")
     version("0.4.5", sha256="16d6a0fe7b7d49ddbb303f33538dd7304a0d4af5a0369bcbf275db6a5060cbde")
+
+    depends_on("c", type="build")  # generated
 
     build_directory = "spack-build"

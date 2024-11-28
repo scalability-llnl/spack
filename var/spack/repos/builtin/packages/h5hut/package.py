@@ -19,6 +19,10 @@ class H5hut(AutotoolsPackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fortran", default=True, description="Enable Fortran support")
     variant("mpi", default=True, description="Enable MPI support")
 
@@ -39,7 +43,7 @@ class H5hut(AutotoolsPackage):
     def validate(self):
         """Checks if Fortran compiler is available."""
 
-        if "+fortran" in self.spec and not self.compiler.fc:
+        if self.spec.satisfies("+fortran") and not self.compiler.fc:
             raise RuntimeError("Cannot build Fortran variant without a Fortran compiler.")
 
     def flag_handler(self, name, flags):
@@ -55,10 +59,10 @@ class H5hut(AutotoolsPackage):
         spec = self.spec
         config_args = ["--enable-shared"]
 
-        if "+fortran" in spec:
+        if spec.satisfies("+fortran"):
             config_args.append("--enable-fortran")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             config_args.extend(
                 [
                     "--enable-parallel",
@@ -67,7 +71,7 @@ class H5hut(AutotoolsPackage):
                 ]
             )
 
-            if "+fortran" in spec:
+            if spec.satisfies("+fortran"):
                 config_args.append("FC={0}".format(spec["mpi"].mpifc))
 
         return config_args

@@ -15,6 +15,8 @@ class Idba(AutotoolsPackage):
 
     version("1.1.3", sha256="6b1746a29884f4fa17b110d94d9ead677ab5557c084a93b16b6a043dbb148709")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

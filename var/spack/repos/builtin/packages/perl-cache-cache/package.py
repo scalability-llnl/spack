@@ -21,11 +21,3 @@ class PerlCacheCache(PerlPackage):
     depends_on("perl-digest-sha1@2.02:", type=("build", "run", "test"))
     depends_on("perl-error@0.15:", type=("build", "run", "test"))
     depends_on("perl-ipc-sharelite@0.09:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Cache::Cache; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

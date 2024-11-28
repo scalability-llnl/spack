@@ -32,6 +32,9 @@ class Paraver(Package):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@1.36: +serialization")
     depends_on("wxwidgets@2.8:")  # NOTE: using external for this one is usually simpler
     depends_on("wxpropgrid@1.4:")

@@ -29,11 +29,3 @@ class PerlStarman(PerlPackage):
     depends_on("perl-plack@0.9971:", type=("build", "run", "test"))
     depends_on("perl-test-requires", type=("build", "test"))
     depends_on("perl-test-tcp@2.00:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Starman; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

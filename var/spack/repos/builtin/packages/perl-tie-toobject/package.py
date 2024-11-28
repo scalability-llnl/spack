@@ -15,11 +15,3 @@ class PerlTieToobject(PerlPackage):
     maintainers("EbiArnie")
 
     version("0.03", sha256="a31a0d4430fe14f59622f31db7f25b2275dad2ec52f1040beb030d3e83ad3af4")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Tie::ToObject; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

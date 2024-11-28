@@ -15,7 +15,9 @@ pycmake_versions = {
 
 class PyCmake(PythonPackage):
     """CMake is an open-source, cross-platform family of tools designed to
-    build, test and package software
+    build, test and package software.
+
+    Deprecated: use cmake instead.
     """
 
     homepage = "https://cmake.org"
@@ -25,7 +27,7 @@ class PyCmake(PythonPackage):
     license("Apache-2.0")
 
     for v, sha in pycmake_versions.items():
-        version(v, sha256=sha)
+        version(v, sha256=sha, deprecated=True)
 
     depends_on("ninja", type="build")
     depends_on("py-scikit-build@0.12:", type="build")
@@ -53,3 +55,16 @@ class PyCmake(PythonPackage):
 
     def install_options(self, spec, prefix):
         return ["-DBUILD_CMAKE_FROM_SOURCE=ON", "-DCMakeProject_SOURCE_DIR=cmake-src"]
+
+    def setup_build_environment(self, env):
+        if self.run_tests:
+            env.set(
+                "SKBUILD_CONFIGURE_OPTIONS",
+                # BootstrapTest is already exlcude upstream,
+                # The rest are (non-understood) known failures, disabled to get test suite working
+                # todo: investigate test failures / check if still needed in newer versions
+                "-DRUN_CMAKE_TEST=ON -DRUN_CMAKE_TEST_EXCLUDE=BootstrapTest|CompileWarningAsError"
+                "|GET_RUNTIME_DEPENDENCIES",
+            )
+        else:
+            env.set("SKBUILD_CONFIGURE_OPTIONS", "-DRUN_CMAKE_TEST=OFF")

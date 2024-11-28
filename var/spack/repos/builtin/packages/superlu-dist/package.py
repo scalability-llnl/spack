@@ -16,10 +16,12 @@ class SuperluDist(CMakePackage, CudaPackage, ROCmPackage):
 
     tags = ["e4s"]
 
-    maintainers("xiaoye", "gchavez2", "balay", "pghysels", "liuyangzhuan")
+    maintainers("xiaoyeli", "gchavez2", "balay", "pghysels", "liuyangzhuan")
 
     version("develop", branch="master")
     version("amd", branch="amd")
+    version("9.1.0", sha256="1cb2c6dc7e8231b2ec30c1266e55e440ffca9f55527771d8df28f900dd179f9d")
+    version("9.0.0", sha256="aa43d33d4b1b0f5f7b5ad7685e9a6bc25088832c6c74d2ab8f75a2c9f4e9e955")
     version("8.2.1", sha256="b77d065cafa6bc1a1dcc15bf23fd854f54b05762b165badcffc195835ad2bddf")
     version("8.2.0", sha256="d53573e5a399b2b4ab1fcc36e8421c1b6fab36345c0af14f8fa20326e3365f1f")
     version("8.1.2", sha256="7b16c442bb01ea8b298c0aab9a2584aa4615d09786aac968cb2f3118c058206b")
@@ -44,6 +46,10 @@ class SuperluDist(CMakePackage, CudaPackage, ROCmPackage):
     version("5.1.2", sha256="e34865ad6696ee6a6d178b4a01c8e19103a7d241ba9de043603970d63b0ee1e2")
     version("5.1.0", sha256="73f292ab748b590b6dd7469e6986aeb95d279b8b8b3da511c695a396bdbc996c")
     version("5.0.0", sha256="78d1d6460ff16b3f71e4bcd7306397574d54d421249553ccc26567f00a10bfc6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("int64", default=False, description="Build with 64 bit integers")
     variant(
@@ -93,8 +99,8 @@ class SuperluDist(CMakePackage, CudaPackage, ROCmPackage):
         append_define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx)
         append_define("CMAKE_INSTALL_LIBDIR", self.prefix.lib)
         append_define("CMAKE_INSTALL_BINDIR", self.prefix.bin)
-        append_define("TPL_BLAS_LIBRARIES", spec["blas"].libs)
-        append_define("TPL_LAPACK_LIBRARIES", spec["lapack"].libs)
+        append_define("TPL_BLAS_LIBRARIES", spec["blas"].libs.ld_flags)
+        append_define("TPL_LAPACK_LIBRARIES", spec["lapack"].libs.ld_flags)
         append_define("TPL_ENABLE_LAPACKLIB", True)
         append_define("USE_XSDK_DEFAULTS", True)
 
@@ -165,7 +171,7 @@ class SuperluDist(CMakePackage, CudaPackage, ROCmPackage):
     def cache_test_sources(self):
         """Copy the example matrices after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.examples_src_dir])
+        cache_extra_test_sources(self, [self.examples_src_dir])
 
     def test_pddrive(self):
         """run cached pddrive"""

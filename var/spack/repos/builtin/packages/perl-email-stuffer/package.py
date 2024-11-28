@@ -25,11 +25,3 @@ class PerlEmailStuffer(PerlPackage):
     depends_on("perl-moo", type=("build", "test"))
     depends_on("perl-params-util@1.05:", type=("build", "run", "test"))
     depends_on("perl-test-fatal", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Email::Stuffer; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

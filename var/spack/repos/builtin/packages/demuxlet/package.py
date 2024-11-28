@@ -19,6 +19,8 @@ class Demuxlet(AutotoolsPackage):
 
     version("20210211", commit="f5044eb9ed5c6678aa3a80a8f2be7db7748ee732")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

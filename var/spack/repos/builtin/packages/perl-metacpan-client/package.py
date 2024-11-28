@@ -30,11 +30,3 @@ class PerlMetacpanClient(PerlPackage):
     depends_on("perl-test-needs@0.002005:", type=("build", "test"))
     depends_on("perl-type-tiny", type=("build", "run", "test"))
     depends_on("perl-uri", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use MetaCPAN::Client; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

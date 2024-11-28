@@ -16,6 +16,8 @@ class PyBrotlipy(PythonPackage):
 
     version("0.7.0", sha256="36def0b859beaf21910157b4c33eb3b06d8ce459c942102f16988cca6ea164df")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-cffi@1.0.0:", type=("build", "run"))
 

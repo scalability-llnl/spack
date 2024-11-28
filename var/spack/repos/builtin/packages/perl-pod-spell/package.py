@@ -23,11 +23,3 @@ class PerlPodSpell(PerlPackage):
     depends_on("perl-file-sharedir", type=("build", "run", "test"))
     depends_on("perl-file-sharedir-install@0.06:", type=("build"))
     depends_on("perl-lingua-en-inflect", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Pod::Spell; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -23,11 +23,3 @@ class PerlBioVariation(PerlPackage):
     depends_on("perl-io-string", type=("build", "run", "test"))
     depends_on("perl-xml-twig", type=("build", "run", "test"))
     depends_on("perl-xml-writer@0.4:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Bio::Variation; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

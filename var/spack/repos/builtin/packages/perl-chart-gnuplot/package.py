@@ -17,11 +17,3 @@ class PerlChartGnuplot(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("0.23", sha256="dcb46c0f93436464bdc3403469c828c6c33e954123a2adf4092fbb30bb244b6c")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Chart::Gnuplot; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

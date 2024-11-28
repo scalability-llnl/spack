@@ -19,6 +19,8 @@ class Wcs(CMakePackage):
     version("master", branch="master")
     version("develop", branch="devel")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost+graph+filesystem+regex+system")
 
     # TODO: replace this with an explicit list of components of Boost,

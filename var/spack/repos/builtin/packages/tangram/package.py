@@ -24,6 +24,9 @@ class Tangram(CMakePackage):
     version("1.0.1", sha256="8f2f8c01bb2d726b0f64e5a5bc3aa2bd8057ccaee7a29c68f1439d16e39aaa90")
     version("master", branch="master", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=False, description="Enable interface reconstruction with MPI")
     variant("thrust", default=False, description="Enable on-node parallelism with NVidia Thrust")
     variant(

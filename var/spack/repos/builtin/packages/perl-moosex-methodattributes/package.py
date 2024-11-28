@@ -24,11 +24,3 @@ class PerlMoosexMethodattributes(PerlPackage):
     depends_on("perl-namespace-autoclean@0.08:", type=("build", "run", "test"))
     depends_on("perl-test-fatal", type=("build", "test"))
     depends_on("perl-test-needs", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use MooseX::MethodAttributes; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

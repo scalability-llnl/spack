@@ -19,11 +19,3 @@ class PerlConfigAny(PerlPackage):
     version("0.33", sha256="c0668eb5f2cd355bf20557f04dc18a25474b7a0bcfa79562e3165d9a3c789333")
 
     depends_on("perl-module-pluggable", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Config::Any; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -19,11 +19,3 @@ class PerlMojolicious(PerlPackage):
     version("9.35", sha256="6a4a446ee07fca7c6db72f5d817540d6833009cb8de7cce4c6fb24a15ee7d46b")
 
     depends_on("perl@5.16.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Mojolicious; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

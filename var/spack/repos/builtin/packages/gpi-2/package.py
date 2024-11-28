@@ -37,6 +37,10 @@ class Gpi2(AutotoolsPackage):
     version("1.0.2", sha256="b03b4ac9f0715279b2a5e064fd85047cb640a85c2361d732930307f8bbf2aeb8")
     version("1.0.1", sha256="b1341bb39e7e70334d7acf831fe7f2061376e7516b44d18b31797748c2a169a3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fortran", default=False, description="Enable Fortran modules")
     variant("mpi", default=False, description="Enable MPI support")
     variant(
@@ -101,17 +105,17 @@ class Gpi2(AutotoolsPackage):
         self.set_specific_cflags(spec)
 
         config_args = ["-p {0}".format(prefix)]
-        if "fabrics=ethernet" in spec:
+        if spec.satisfies("fabrics=ethernet"):
             config_args += ["--with-ethernet"]
-        elif "fabrics=infiniband" in spec:
+        elif spec.satisfies("fabrics=infiniband"):
             config_args += ["--with-infiniband={0}".format(spec["rdma-core"].prefix)]
-        if "schedulers=loadleveler" in spec:
+        if spec.satisfies("schedulers=loadleveler"):
             config_args += ["--with-ll"]
-        if "+fortran" in spec:
+        if spec.satisfies("+fortran"):
             config_args += ["--with-fortran=true"]
         else:
             config_args += ["--with-fortran=false"]
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             config_args += ["--with-mpi={0}".format(spec["mpi"].prefix)]
 
         with working_dir(self.build_directory):
@@ -143,7 +147,7 @@ class Gpi2(AutotoolsPackage):
 
         config_args.extend(self.with_or_without("fortran"))
         # Mpi
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             config_args += ["--with-mpi={0}".format(spec["mpi"].prefix)]
         # Fabrics
         if "fabrics=none" not in spec:

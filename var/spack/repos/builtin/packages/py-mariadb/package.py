@@ -22,6 +22,8 @@ class PyMariadb(PythonPackage):
         url="https://www.pypi.org/packages/source/m/mariadb/mariadb-1.0.10.zip",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-packaging", type=("build", "run"))
     depends_on("mariadb-c-client", type=("build", "run"))

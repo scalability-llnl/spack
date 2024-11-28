@@ -11,12 +11,13 @@ import llnl.util.tty as tty
 import llnl.util.tty.color as color
 from llnl.util.tty.colify import colify
 
+import spack.builder
 import spack.deptypes as dt
 import spack.fetch_strategy as fs
 import spack.install_test
 import spack.repo
 import spack.spec
-import spack.version
+import spack.variant
 from spack.cmd.common import arguments
 from spack.package_base import preferred_version
 
@@ -48,6 +49,7 @@ def setup_parser(subparser):
     options = [
         ("--detectable", print_detectable.__doc__),
         ("--maintainers", print_maintainers.__doc__),
+        ("--namespace", print_namespace.__doc__),
         ("--no-dependencies", "do not " + print_dependencies.__doc__),
         ("--no-variants", "do not " + print_variants.__doc__),
         ("--no-versions", "do not " + print_versions.__doc__),
@@ -189,14 +191,25 @@ def print_maintainers(pkg, args):
         color.cprint(section_title("Maintainers: ") + mnt)
 
 
+def print_namespace(pkg, args):
+    """output package namespace"""
+
+    repo = spack.repo.PATH.get_repo(pkg.namespace)
+    color.cprint("")
+    color.cprint(section_title("Namespace:"))
+    color.cprint(f"    @c{{{repo.namespace}}} at {repo.root}")
+
+
 def print_phases(pkg, args):
     """output installation phases"""
 
-    if hasattr(pkg.builder, "phases") and pkg.builder.phases:
+    builder = spack.builder.create(pkg)
+
+    if hasattr(builder, "phases") and builder.phases:
         color.cprint("")
         color.cprint(section_title("Installation Phases:"))
         phase_str = ""
-        for phase in pkg.builder.phases:
+        for phase in builder.phases:
             phase_str += "    {0}".format(phase)
         color.cprint(phase_str)
 
@@ -263,8 +276,8 @@ def _fmt_name_and_default(variant):
     return color.colorize(f"@c{{{variant.name}}} @C{{[{_fmt_value(variant.default)}]}}")
 
 
-def _fmt_when(when, indent):
-    return color.colorize(f"{indent * ' '}@B{{when}} {color.cescape(when)}")
+def _fmt_when(when: "spack.spec.Spec", indent: int):
+    return color.colorize(f"{indent * ' '}@B{{when}} {color.cescape(str(when))}")
 
 
 def _fmt_variant_description(variant, width, indent):
@@ -323,26 +336,6 @@ def _fmt_variant(variant, max_name_default_len, indent, when=None, out=None):
     out.write("\n")
 
 
-def _variants_by_name_when(pkg):
-    """Adaptor to get variants keyed by { name: { when: { [Variant...] } }."""
-    # TODO: replace with pkg.variants_by_name(when=True) when unified directive dicts are merged.
-    variants = {}
-    for name, (variant, whens) in sorted(pkg.variants.items()):
-        for when in whens:
-            variants.setdefault(name, {}).setdefault(when, []).append(variant)
-    return variants
-
-
-def _variants_by_when_name(pkg):
-    """Adaptor to get variants keyed by { when: { name: Variant } }"""
-    # TODO: replace with pkg.variants when unified directive dicts are merged.
-    variants = {}
-    for name, (variant, whens) in pkg.variants.items():
-        for when in whens:
-            variants.setdefault(when, {})[name] = variant
-    return variants
-
-
 def _print_variants_header(pkg):
     """output variants"""
 
@@ -353,32 +346,22 @@ def _print_variants_header(pkg):
     color.cprint("")
     color.cprint(section_title("Variants:"))
 
-    variants_by_name = _variants_by_name_when(pkg)
-
     # Calculate the max length of the "name [default]" part of the variant display
     # This lets us know where to print variant values.
     max_name_default_len = max(
         color.clen(_fmt_name_and_default(variant))
-        for name, when_variants in variants_by_name.items()
-        for variants in when_variants.values()
-        for variant in variants
+        for name in pkg.variant_names()
+        for _, variant in pkg.variant_definitions(name)
     )
 
-    return max_name_default_len, variants_by_name
-
-
-def _unconstrained_ver_first(item):
-    """sort key that puts specs with open version ranges first"""
-    spec, _ = item
-    return (spack.version.any_version not in spec.versions, spec)
+    return max_name_default_len
 
 
 def print_variants_grouped_by_when(pkg):
-    max_name_default_len, _ = _print_variants_header(pkg)
+    max_name_default_len = _print_variants_header(pkg)
 
     indent = 4
-    variants = _variants_by_when_name(pkg)
-    for when, variants_by_name in sorted(variants.items(), key=_unconstrained_ver_first):
+    for when, variants_by_name in pkg.variant_items():
         padded_values = max_name_default_len + 4
         start_indent = indent
 
@@ -396,15 +379,14 @@ def print_variants_grouped_by_when(pkg):
 
 
 def print_variants_by_name(pkg):
-    max_name_default_len, variants_by_name = _print_variants_header(pkg)
+    max_name_default_len = _print_variants_header(pkg)
     max_name_default_len += 4
 
     indent = 4
-    for name, when_variants in variants_by_name.items():
-        for when, variants in sorted(when_variants.items(), key=_unconstrained_ver_first):
-            for variant in variants:
-                _fmt_variant(variant, max_name_default_len, indent, when, out=sys.stdout)
-                sys.stdout.write("\n")
+    for name in pkg.variant_names():
+        for when, variant in pkg.variant_definitions(name):
+            _fmt_variant(variant, max_name_default_len, indent, when, out=sys.stdout)
+            sys.stdout.write("\n")
 
 
 def print_variants(pkg, args):
@@ -441,7 +423,7 @@ def print_versions(pkg, args):
                 return "No URL"
 
         url = get_url(preferred) if pkg.has_code else ""
-        line = version("    {0}".format(pad(preferred))) + color.cescape(url)
+        line = version("    {0}".format(pad(preferred))) + color.cescape(str(url))
         color.cwrite(line)
 
         print()
@@ -464,7 +446,7 @@ def print_versions(pkg, args):
                 continue
 
             for v, url in vers:
-                line = version("    {0}".format(pad(v))) + color.cescape(url)
+                line = version("    {0}".format(pad(v))) + color.cescape(str(url))
                 color.cprint(line)
 
 
@@ -475,10 +457,7 @@ def print_virtuals(pkg, args):
     color.cprint(section_title("Virtual Packages: "))
     if pkg.provided:
         for when, specs in reversed(sorted(pkg.provided.items())):
-            line = "    %s provides %s" % (
-                when.colorized(),
-                ", ".join(s.colorized() for s in specs),
-            )
+            line = "    %s provides %s" % (when.cformat(), ", ".join(s.cformat() for s in specs))
             print(line)
 
     else:
@@ -497,13 +476,15 @@ def print_licenses(pkg, args):
         pad = padder(pkg.licenses, 4)
         for when_spec in pkg.licenses:
             license_identifier = pkg.licenses[when_spec]
-            line = license("    {0}".format(pad(license_identifier))) + color.cescape(when_spec)
+            line = license("    {0}".format(pad(license_identifier))) + color.cescape(
+                str(when_spec)
+            )
             color.cprint(line)
 
 
 def info(parser, args):
     spec = spack.spec.Spec(args.package)
-    pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
+    pkg_cls = spack.repo.PATH.get_pkg_class(spec.fullname)
     pkg = pkg_cls(spec)
 
     # Output core package information
@@ -523,6 +504,7 @@ def info(parser, args):
     # Now output optional information in expected order
     sections = [
         (args.all or args.maintainers, print_maintainers),
+        (args.all or args.namespace, print_namespace),
         (args.all or args.detectable, print_detectable),
         (args.all or args.tags, print_tags),
         (args.all or not args.no_versions, print_versions),

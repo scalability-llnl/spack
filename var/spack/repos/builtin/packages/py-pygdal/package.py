@@ -30,6 +30,9 @@ class PyPygdal(PythonPackage):
     version("2.4.1.6", sha256="5d1af98ad09f59e34e3b332cf20630b532b33c7120295aaaabbccebf58a11aa4")
     version("2.4.0.6", sha256="728d11f3ecae0cd3493cd27dab599a0b6184f5504cc172d49400d88ea2b24a9c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.6:", when="@3.3:", type="build")
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy@1.0.0:", type=("build", "run"))

@@ -26,6 +26,10 @@ class Hpddm(Package):
     version("2.1.3", commit="32025e4ee75a16fa67399d26dd86910c03910dba")
     version("2.1.2", commit="e58205623814f59bf2aec2e2bab8eafcfbd22466")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("blas")
     depends_on("lapack")

@@ -22,11 +22,3 @@ class PerlJsonXs(PerlPackage):
 
     def setup_build_environment(self, env):
         env.set("PERL_CANARY_STABILITY_NOPROMPT", "1")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use JSON::XS; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

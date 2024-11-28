@@ -18,11 +18,3 @@ class PerlConvertNlsDateFormat(PerlPackage):
 
     depends_on("perl@5.6.1:", type=("build", "link", "run", "test"))
     depends_on("perl-module-build-tiny@0.035:", type=("build"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Convert::NLS_DATE_FORMAT; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

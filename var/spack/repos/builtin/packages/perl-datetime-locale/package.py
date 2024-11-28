@@ -31,11 +31,3 @@ class PerlDatetimeLocale(PerlPackage):
     depends_on("perl-test-file-sharedir", type=("build", "test"))
     depends_on("perl-test2-plugin-nowarnings", type=("build", "test"))
     depends_on("perl-test2-suite", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use DateTime::Locale; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

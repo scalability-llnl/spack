@@ -22,11 +22,3 @@ class PerlServerStarter(PerlPackage):
     depends_on("perl-test-requires", type=("build", "test"))
     depends_on("perl-test-sharedfork", type=("build", "test"))
     depends_on("perl-test-tcp@2.08:", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Server::Starter; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

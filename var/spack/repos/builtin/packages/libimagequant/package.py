@@ -19,5 +19,7 @@ class Libimagequant(MakefilePackage):
 
     version("2.12.6", sha256="b34964512c0dbe550c5f1b394c246c42a988cd73b71a76c5838aa2b4a96e43a0")
 
+    depends_on("c", type="build")  # generated
+
     def edit(self, spec, prefix):
         configure("--prefix=" + prefix)

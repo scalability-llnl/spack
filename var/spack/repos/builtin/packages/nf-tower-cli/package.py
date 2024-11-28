@@ -17,6 +17,8 @@ class NfTowerCli(Package):
     homepage = "https://github.com/seqeralabs/tower-cli"
     maintainers("marcodelapierre")
 
+    skip_version_audit = ["platform=windows"]
+
     if platform.machine() == "x86_64":
         if platform.system() == "Darwin":
             version(
@@ -104,7 +106,7 @@ class NfTowerCli(Package):
                 url="https://github.com/seqeralabs/tower-cli/releases/download/v0.6.2/tw-0.6.2-linux-x86_64",
                 expand=False,
             )
-    elif platform.machine() == "aarch64":
+    elif platform.machine() == "arm64":
         if platform.system() == "Darwin":
             version(
                 "0.9.2",

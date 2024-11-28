@@ -24,11 +24,3 @@ class PerlDatetimeFormatIso8601(PerlPackage):
     depends_on("perl-params-validationcompiler@0.26:", type=("build", "run", "test"))
     depends_on("perl-specio@0.18:", type=("build", "run", "test"))
     depends_on("perl-test2-suite", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use DateTime::Format::ISO8601; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

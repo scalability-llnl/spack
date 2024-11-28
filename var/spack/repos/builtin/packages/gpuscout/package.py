@@ -24,5 +24,7 @@ class Gpuscout(CMakePackage, CudaPackage):
     )
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.27:", type="build")
     depends_on("cuda@12:")

@@ -70,6 +70,7 @@ class OpenfoamOrg(Package):
     license("GPL-3.0-or-later")
 
     version("develop", branch="master")
+    version("11", sha256="ebc0f86ead699abba61290ba8aac5b730aa93256e675d1d93a5d5f116d51e0c0")
     version("10", sha256="59d712ba798ca44b989b6ac50bcb7c534eeccb82bcf961e10ec19fc8d84000cf")
     version("9", sha256="0c48fb56e2fbb4dd534112811364d3b2dc12106e670a6486b361e4f864b435ee")
     version("8", sha256="94ba11cbaaa12fbb5b356e01758df403ac8832d69da309a5d79f76f42eb008fc")
@@ -83,6 +84,9 @@ class OpenfoamOrg(Package):
         sha256="2bbcf4d5932397c2087a9b6d7eeee6d2b1350c8ea4f455415f05e7cd94d9e5ba",
         url="http://downloads.sourceforge.net/foam/OpenFOAM-2.3.1.tgz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("int64", default=False, description="Compile with 64-bit label")
     variant(
@@ -103,6 +107,8 @@ class OpenfoamOrg(Package):
     depends_on("zlib-api")
     depends_on("flex")
     depends_on("cmake", type="build")
+    # The setSet tool (removed in version 10) depends on readline
+    depends_on("readline", when="@:9")
 
     # Require scotch with ptscotch - corresponds to standard OpenFOAM setup
     depends_on("scotch~metis+mpi~int64", when="+scotch~int64")

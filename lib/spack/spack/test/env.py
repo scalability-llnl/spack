@@ -11,7 +11,9 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.config
 import spack.environment as ev
+import spack.solver.asp
 import spack.spec
 from spack.environment.environment import (
     EnvironmentManifestFile,
@@ -96,7 +98,7 @@ spack:
 """
 
 
-def test_env_change_spec_in_definition(tmp_path, mock_packages, config, mutable_mock_env_path):
+def test_env_change_spec_in_definition(tmp_path, mock_packages, mutable_mock_env_path):
     manifest_file = tmp_path / ev.manifest_name
     manifest_file.write_text(_test_matrix_yaml)
     e = ev.create("test", manifest_file)
@@ -118,9 +120,7 @@ def test_env_change_spec_in_definition(tmp_path, mock_packages, config, mutable_
     assert not any(x.intersects("mpileaks@2.1%gcc") for x in e.user_specs)
 
 
-def test_env_change_spec_in_matrix_raises_error(
-    tmp_path, mock_packages, config, mutable_mock_env_path
-):
+def test_env_change_spec_in_matrix_raises_error(tmp_path, mock_packages, mutable_mock_env_path):
     manifest_file = tmp_path / ev.manifest_name
     manifest_file.write_text(_test_matrix_yaml)
     e = ev.create("test", manifest_file)
@@ -255,7 +255,7 @@ def test_update_default_view(init_view, update_value, tmp_path, mock_packages, c
     if isinstance(init_view, str) and update_value is True:
         expected_value = init_view
 
-    assert env.manifest.pristine_yaml_content["spack"]["view"] == expected_value
+    assert env.manifest.yaml_content["spack"]["view"] == expected_value
 
 
 @pytest.mark.parametrize(
@@ -383,10 +383,10 @@ spack:
     """
     )
     env = ev.Environment(tmp_path)
-    env.add("a")
+    env.add("pkg-a")
 
     assert len(env.user_specs) == 1
-    assert env.manifest.pristine_yaml_content["spack"]["specs"] == ["a"]
+    assert env.manifest.yaml_content["spack"]["specs"] == ["pkg-a"]
 
 
 @pytest.mark.parametrize(
@@ -575,16 +575,13 @@ def test_conflicts_with_packages_that_are_not_dependencies(
     """Tests that we cannot concretize two specs together, if one conflicts with the other,
     even though they don't have a dependency relation.
     """
-    if spack.config.get("config:concretizer") == "original":
-        pytest.xfail("Known failure of the original concretizer")
-
     manifest = tmp_path / "spack.yaml"
     manifest.write_text(
         f"""\
 spack:
   specs:
   - {spec_str}
-  - b
+  - pkg-b
   concretizer:
     unify: true
 """
@@ -599,7 +596,6 @@ spack:
 
 
 @pytest.mark.regression("39455")
-@pytest.mark.only_clingo("Known failure of the original concretizer")
 @pytest.mark.parametrize(
     "possible_mpi_spec,unify", [("mpich", False), ("mpich", True), ("zmpi", False), ("zmpi", True)]
 )
@@ -700,7 +696,6 @@ def test_removing_spec_from_manifest_with_exact_duplicates(
 
 
 @pytest.mark.regression("35298")
-@pytest.mark.only_clingo("Propagation not supported in the original concretizer")
 def test_variant_propagation_with_unify_false(tmp_path, mock_packages, config):
     """Spack distributes concretizations to different processes, when unify:false is selected and
     the number of roots is 2 or more. When that happens, the specs to be concretized need to be
@@ -712,7 +707,7 @@ def test_variant_propagation_with_unify_false(tmp_path, mock_packages, config):
     spack:
       specs:
       - parent-foo ++foo
-      - c
+      - pkg-c
       concretizer:
         unify: false
     """
@@ -797,10 +792,10 @@ def test_deconcretize_then_concretize_does_not_error(mutable_mock_env_path, mock
         """spack:
       specs:
       # These two specs concretize to the same hash
-      - c
-      - c@1.0
+      - pkg-c
+      - pkg-c@1.0
       # Spec used to trigger the bug
-      - a
+      - pkg-a
       concretizer:
         unify: true
     """
@@ -808,8 +803,121 @@ def test_deconcretize_then_concretize_does_not_error(mutable_mock_env_path, mock
     e = ev.Environment(mutable_mock_env_path)
     with e:
         e.concretize()
-        e.deconcretize(spack.spec.Spec("a"), concrete=False)
+        e.deconcretize(spack.spec.Spec("pkg-a"), concrete=False)
         e.concretize()
     assert len(e.concrete_roots()) == 3
-    all_root_hashes = set(x.dag_hash() for x in e.concrete_roots())
+    all_root_hashes = {x.dag_hash() for x in e.concrete_roots()}
     assert len(all_root_hashes) == 2
+
+
+@pytest.mark.regression("44216")
+def test_root_version_weights_for_old_versions(mutable_mock_env_path, mock_packages):
+    """Tests that, when we select two old versions of root specs that have the same version
+    optimization penalty, both are considered.
+    """
+    mutable_mock_env_path.mkdir()
+    spack_yaml = mutable_mock_env_path / ev.manifest_name
+    spack_yaml.write_text(
+        """spack:
+      specs:
+      # allow any version, but the most recent
+      - bowtie@:1.3
+      # allows only the third most recent, so penalty is 2
+      - gcc@1
+      concretizer:
+        unify: true
+    """
+    )
+    e = ev.Environment(mutable_mock_env_path)
+    with e:
+        e.concretize()
+
+    bowtie = [x for x in e.concrete_roots() if x.name == "bowtie"][0]
+    gcc = [x for x in e.concrete_roots() if x.name == "gcc"][0]
+
+    assert bowtie.satisfies("@=1.3.0")
+    assert gcc.satisfies("@=1.0")
+
+
+def test_env_view_on_empty_dir_is_fine(tmp_path, config, mock_packages, temporary_store):
+    """Tests that creating a view pointing to an empty dir is not an error."""
+    view_dir = tmp_path / "view"
+    view_dir.mkdir()
+    env = ev.create_in_dir(tmp_path, with_view="view")
+    env.add("mpileaks")
+    env.concretize()
+    env.install_all(fake=True)
+    env.regenerate_views()
+    assert view_dir.is_symlink()
+
+
+def test_env_view_on_non_empty_dir_errors(tmp_path, config, mock_packages, temporary_store):
+    """Tests that creating a view pointing to a non-empty dir errors."""
+    view_dir = tmp_path / "view"
+    view_dir.mkdir()
+    (view_dir / "file").write_text("")
+    env = ev.create_in_dir(tmp_path, with_view="view")
+    env.add("mpileaks")
+    env.concretize()
+    env.install_all(fake=True)
+    with pytest.raises(ev.SpackEnvironmentError, match="because it is a non-empty dir"):
+        env.regenerate_views()
+
+
+@pytest.mark.parametrize(
+    "matrix_line", [("^zmpi", "^mpich"), ("~shared", "+shared"), ("shared=False", "+shared-libs")]
+)
+@pytest.mark.regression("40791")
+def test_stack_enforcement_is_strict(tmp_path, matrix_line, config, mock_packages):
+    """Ensure that constraints in matrices are applied strictly after expansion, to avoid
+    inconsistencies between abstract user specs and concrete specs.
+    """
+    manifest = tmp_path / "spack.yaml"
+    manifest.write_text(
+        f"""\
+spack:
+  definitions:
+    - packages: [libelf, mpileaks]
+    - install:
+        - matrix:
+            - [$packages]
+            - [{", ".join(item for item in matrix_line)}]
+  specs:
+    - $install
+  concretizer:
+    unify: false
+"""
+    )
+    # Here we raise different exceptions depending on whether we solve serially or not
+    with pytest.raises(Exception):
+        with ev.Environment(tmp_path) as e:
+            e.concretize()
+
+
+def test_only_roots_are_explicitly_installed(tmp_path, mock_packages, config, temporary_store):
+    """When installing specific non-root specs from an environment, we continue to mark them
+    as implicitly installed. What makes installs explicit is that they are root of the env."""
+    env = ev.create_in_dir(tmp_path)
+    env.add("mpileaks")
+    env.concretize()
+    mpileaks = env.concrete_roots()[0]
+    callpath = mpileaks["callpath"]
+    env.install_specs([callpath], fake=True)
+    assert callpath in temporary_store.db.query(explicit=False)
+    env.install_specs([mpileaks], fake=True)
+    assert temporary_store.db.query(explicit=True) == [mpileaks]
+
+
+def test_environment_from_name_or_dir(mock_packages, mutable_mock_env_path, tmp_path):
+    test_env = ev.create("test")
+
+    name_env = ev.environment_from_name_or_dir(test_env.name)
+    assert name_env.name == test_env.name
+    assert name_env.path == test_env.path
+
+    dir_env = ev.environment_from_name_or_dir(test_env.path)
+    assert dir_env.name == test_env.name
+    assert dir_env.path == test_env.path
+
+    with pytest.raises(ev.SpackEnvironmentError, match="no such environment"):
+        _ = ev.environment_from_name_or_dir("fake-env")

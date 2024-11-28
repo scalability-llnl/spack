@@ -21,11 +21,3 @@ class PerlDatetimeFormatBuilder(PerlPackage):
     depends_on("perl-datetime@1.00:", type=("build", "run", "test"))
     depends_on("perl-datetime-format-strptime@1.04:", type=("build", "run", "test"))
     depends_on("perl-params-validate@0.72:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use DateTime::Format::Builder; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

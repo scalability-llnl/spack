@@ -22,11 +22,3 @@ class PerlDateException(PerlPackage):
     depends_on("perl-moo@2.000000:", type=("build", "run", "test"))
     depends_on("perl-namespace-autoclean@0.28:", type=("build", "run", "test"))
     depends_on("perl-throwable@0.200011:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Date::Exception; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

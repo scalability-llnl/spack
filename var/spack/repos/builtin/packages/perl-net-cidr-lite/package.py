@@ -17,11 +17,3 @@ class PerlNetCidrLite(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("0.22", sha256="4317d8cb341a617b9e0888da43c09cdffffcb0c9edf7b8c9928d742a563b8517")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Net::CIDR::Lite; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

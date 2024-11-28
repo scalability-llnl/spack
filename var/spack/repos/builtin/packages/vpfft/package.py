@@ -24,6 +24,8 @@ class Vpfft(MakefilePackage):
 
     version("develop")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("eigen")
     depends_on("fftw")
     depends_on("mpi")

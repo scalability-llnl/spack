@@ -17,6 +17,8 @@ class Relax(CMakePackage):
 
     version("root6", sha256="1d24b1a0884bbe99d60f7d02fea45d59695c158ab5e53516ac3fb780eb460bb4")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("clhep")
     depends_on("gsl")
     depends_on("hepmc@:2")

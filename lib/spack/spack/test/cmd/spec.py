@@ -7,14 +7,14 @@ import re
 
 import pytest
 
+import spack.config
 import spack.environment as ev
 import spack.error
-import spack.parser
 import spack.spec
 import spack.store
 from spack.main import SpackCommand, SpackCommandError
 
-pytestmark = pytest.mark.usefixtures("config", "mutable_mock_repo")
+pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_repo")
 
 spec = SpackCommand("spec")
 
@@ -30,8 +30,7 @@ def test_spec():
     assert "mpich@3.0.4" in output
 
 
-@pytest.mark.only_clingo("Known failure of the original concretizer")
-def test_spec_concretizer_args(mutable_config, mutable_database):
+def test_spec_concretizer_args(mutable_database, do_not_check_runtimes_on_reuse):
     """End-to-end test of CLI concretizer prefs.
 
     It's here to make sure that everything works from CLI
@@ -58,7 +57,7 @@ def test_spec_concretizer_args(mutable_config, mutable_database):
 def test_spec_parse_dependency_variant_value():
     """Verify that we can provide multiple key=value variants to multiple separate
     packages within a spec string."""
-    output = spec("multivalue-variant fee=barbaz ^ a foobar=baz")
+    output = spec("multivalue-variant fee=barbaz ^ pkg-a foobar=baz")
 
     assert "fee=barbaz" in output
     assert "foobar=baz" in output
@@ -97,7 +96,7 @@ def test_spec_json():
     assert "mpich" in mpileaks
 
 
-def test_spec_format(database, config):
+def test_spec_format(mutable_database):
     output = spec("--format", "{name}-{^mpi.name}", "mpileaks^mpich")
     assert output.rstrip("\n") == "mpileaks-mpich"
 
@@ -143,7 +142,7 @@ def test_spec_returncode():
 
 
 def test_spec_parse_error():
-    with pytest.raises(spack.parser.SpecSyntaxError) as e:
+    with pytest.raises(spack.error.SpecSyntaxError) as e:
         spec("1.15:")
 
     # make sure the error is formatted properly
@@ -181,3 +180,43 @@ def test_spec_version_assigned_git_ref_as_version(name, version, error):
     else:
         output = spec(name + "@" + version)
         assert version in output
+
+
+@pytest.mark.parametrize(
+    "unify, spec_hash_args, match, error",
+    [
+        # success cases with unfiy:true
+        (True, ["mpileaks_mpich"], "mpich", None),
+        (True, ["mpileaks_zmpi"], "zmpi", None),
+        (True, ["mpileaks_mpich", "dyninst"], "mpich", None),
+        (True, ["mpileaks_zmpi", "dyninst"], "zmpi", None),
+        # same success cases with unfiy:false
+        (False, ["mpileaks_mpich"], "mpich", None),
+        (False, ["mpileaks_zmpi"], "zmpi", None),
+        (False, ["mpileaks_mpich", "dyninst"], "mpich", None),
+        (False, ["mpileaks_zmpi", "dyninst"], "zmpi", None),
+        # cases with unfiy:false
+        (True, ["mpileaks_mpich", "mpileaks_zmpi"], "callpath, mpileaks", spack.error.SpecError),
+        (False, ["mpileaks_mpich", "mpileaks_zmpi"], "zmpi", None),
+    ],
+)
+def test_spec_unification_from_cli(
+    install_mockery, mutable_config, mutable_database, unify, spec_hash_args, match, error
+):
+    """Ensure specs grouped together on the CLI are concretized together when unify:true."""
+    spack.config.set("concretizer:unify", unify)
+
+    db = spack.store.STORE.db
+    spec_lookup = {
+        "mpileaks_mpich": db.query_one("mpileaks ^mpich").dag_hash(),
+        "mpileaks_zmpi": db.query_one("mpileaks ^zmpi").dag_hash(),
+        "dyninst": db.query_one("dyninst").dag_hash(),
+    }
+
+    hashes = [f"/{spec_lookup[name]}" for name in spec_hash_args]
+    if error:
+        with pytest.raises(error, match=match):
+            output = spec(*hashes)
+    else:
+        output = spec(*hashes)
+        assert match in output

@@ -31,6 +31,10 @@ class Opari2(AutotoolsPackage):
     version("1.1.4", sha256="b80c04fe876faaa4ee9a0654486ecbeba516b27fc14a90d20c6384e81060cffe")
     version("1.1.2", sha256="8405c2903730d94c828724b3a5f8889653553fb8567045a6c54ac0816237835d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     def url_for_version(self, version):
         if version >= Version("2.0.6"):
             url = "https://perftools.pages.jsc.fz-juelich.de/cicd/opari2/tags/opari2-{0}/opari2-{0}.tar.gz"

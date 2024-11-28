@@ -30,6 +30,8 @@ class Metabat(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("cmake", type="build", when="@2.13:")
     depends_on("boost@1.55.0:", type=("build", "run"))

@@ -23,3 +23,6 @@ class Stressapptest(AutotoolsPackage):
 
     version("1.0.9", sha256="2ba470587ad4f6ae92057d427c3a2a2756e5f10bd25cd91e62eaef55a40b30a1")
     version("1.0.8", sha256="b0432f39055166156ed04eb234f3c226b17a42f802a3f81d76ee999838e205df")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

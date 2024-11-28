@@ -20,11 +20,3 @@ class PerlClassAccessorLvalue(PerlPackage):
 
     depends_on("perl-class-accessor", type=("build", "run", "test"))
     depends_on("perl-want", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Class::Accessor::Lvalue; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

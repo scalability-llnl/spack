@@ -15,11 +15,3 @@ class PerlBsdResource(PerlPackage):
     maintainers("EbiArnie")
 
     version("1.2911", sha256="9d1cfba063cc18f72427a22451f7908836b7331ac8785dbe07553c5b043a0c3d")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use BSD::Resource; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

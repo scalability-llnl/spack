@@ -12,6 +12,8 @@ from contextlib import closing, contextmanager
 from gzip import GzipFile
 from typing import Callable, Dict, Tuple
 
+from llnl.util.symlink import readlink
+
 
 class ChecksumWriter(io.BufferedIOBase):
     """Checksum writer computes a checksum while writing to a file."""
@@ -194,7 +196,7 @@ def reproducible_tarfile_from_prefix(
 
             if entry.is_symlink():
                 file_info.type = tarfile.SYMTYPE
-                file_info.linkname = os.readlink(entry.path)
+                file_info.linkname = readlink(entry.path)
                 # According to POSIX: "the value of the file mode bits returned in the
                 # st_mode field of the stat structure is unspecified." So we set it to
                 # something sensible without lstat'ing the link.

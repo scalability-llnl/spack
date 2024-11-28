@@ -18,6 +18,8 @@ class Gearshifft(CMakePackage):
 
     version("0.4.0", sha256="15b9e4bfa1d9b4fe4ae316f289c67b7be0774cdada5bd7310df4d0e026d9d227")
 
+    depends_on("cxx", type="build")  # generated
+
     # gearshifft used the variable name `CMAKE_DEFAULT_BUILD_TYPE` which was
     # later introduced by CMake leading to an error in newer CMake versions.
     # This patch renames the variable to `GEARSHIFFT_DEFAULT_BUILD_TYPE`.

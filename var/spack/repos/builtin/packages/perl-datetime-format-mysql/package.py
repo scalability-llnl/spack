@@ -20,11 +20,3 @@ class PerlDatetimeFormatMysql(PerlPackage):
 
     depends_on("perl-datetime", type=("build", "run", "test"))
     depends_on("perl-datetime-format-builder@0.6:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use DateTime::Format::MySQL; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

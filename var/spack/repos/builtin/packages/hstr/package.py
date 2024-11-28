@@ -18,6 +18,8 @@ class Hstr(AutotoolsPackage):
 
     version("1.22", sha256="384fee04e4c80a1964dcf443131c1da4a20dd474fb48132a51d3de0a946ba996")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

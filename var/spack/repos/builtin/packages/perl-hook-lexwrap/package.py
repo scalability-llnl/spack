@@ -19,11 +19,3 @@ class PerlHookLexwrap(PerlPackage):
     version("0.26", sha256="b60bdc5f98f94f9294b06adef82b1d996da192d5f183f9f434b610fd1137ec2d")
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Hook::LexWrap; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

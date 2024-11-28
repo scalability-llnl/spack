@@ -14,6 +14,8 @@ class Liboldx(AutotoolsPackage, XorgPackage):
 
     version("1.0.1", sha256="74322dbf04df69787485eb24b16e12783dfc3454befaf18482ead51bd7b55dc8")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
 
     depends_on("pkgconfig", type="build")

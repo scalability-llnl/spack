@@ -42,11 +42,6 @@ def convert_to_posix_path(path: str) -> str:
     return format_os_path(path, mode=Path.unix)
 
 
-def convert_to_windows_path(path: str) -> str:
-    """Converts the input path to Windows style."""
-    return format_os_path(path, mode=Path.windows)
-
-
 def convert_to_platform_path(path: str) -> str:
     """Converts the input path to the current platform's native style."""
     return format_os_path(path, mode=Path.platform_path)
@@ -103,3 +98,10 @@ def system_path_filter(_func=None, arg_slice: Optional[slice] = None):
     if _func:
         return holder_func(_func)
     return holder_func
+
+
+def sanitize_win_longpath(path: str) -> str:
+    """Strip Windows extended path prefix from strings
+    Returns sanitized string.
+    no-op if extended path prefix is not present"""
+    return path.lstrip("\\\\?\\")

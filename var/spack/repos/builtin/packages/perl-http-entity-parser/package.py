@@ -26,11 +26,3 @@ class PerlHttpEntityParser(PerlPackage):
     depends_on("perl-module-build-tiny@0.035:", type=("build"))
     depends_on("perl-stream-buffered", type=("build", "run", "test"))
     depends_on("perl-www-form-urlencoded@0.23:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use HTTP::Entity::Parser; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

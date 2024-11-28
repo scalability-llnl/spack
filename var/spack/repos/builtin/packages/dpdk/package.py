@@ -29,6 +29,9 @@ class Dpdk(MakefilePackage, MesonPackage):
     version("19.05", sha256="5fea95cb726e6adaa506dab330e79563ccd4dacf03f126c826aabdced605d32b")
     version("19.02", sha256="04885d32c86fff5aefcfffdb8257fed405233602dbcd22f8298be13c2e285a50")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     conflicts("target=aarch64:", msg="DPDK is not supported on aarch64.")
 
     # Build system

@@ -19,11 +19,3 @@ class PerlSafeIsa(PerlPackage):
     version("1.000010", sha256="87f4148aa0ff1d5e652723322eab7dafa3801c967d6f91ac9147a3c467b8a66a")
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Safe::Isa; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

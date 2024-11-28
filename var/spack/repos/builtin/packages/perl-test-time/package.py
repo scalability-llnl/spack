@@ -17,11 +17,3 @@ class PerlTestTime(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("0.092", sha256="30d90f54ce840893c7ba2cac2a4d1eecd4c9cdf805910c595e3ae89dfd644738")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Test::Time; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

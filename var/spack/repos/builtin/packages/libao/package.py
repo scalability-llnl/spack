@@ -18,6 +18,8 @@ class Libao(AutotoolsPackage):
     version("1.2.0", sha256="5ec2d15ee39f218e93a87f5cc8508aaebf5c8b544f42488dcb2b504d97392c99")
     version("1.1.0", sha256="69edc39fa2759133edfcdee0ec47559067a1a8e7cd718db0eb3c82ca4254aa6b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

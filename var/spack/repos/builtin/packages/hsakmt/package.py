@@ -16,3 +16,5 @@ class Hsakmt(AutotoolsPackage, XorgPackage):
     license("MIT")
 
     version("1.0.0", sha256="3d46af85c27091937618f5e92f7446cff3e9e6378888645e6e238806461e5b77")
+
+    depends_on("c", type="build")  # generated

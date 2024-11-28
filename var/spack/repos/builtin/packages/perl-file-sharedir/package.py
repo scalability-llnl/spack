@@ -20,11 +20,3 @@ class PerlFileSharedir(PerlPackage):
 
     depends_on("perl-class-inspector@1.12:", type=("build", "run", "test"))
     depends_on("perl-file-sharedir-install@0.13:", type=("build", "link"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use File::ShareDir; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

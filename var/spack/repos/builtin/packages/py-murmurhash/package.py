@@ -17,5 +17,7 @@ class PyMurmurhash(PythonPackage):
 
     version("1.0.2", sha256="c7a646f6b07b033642b4f52ae2e45efd8b80780b3b90e8092a0cec935fbf81e2")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-wheel@0.32.0:0.32", type="build")

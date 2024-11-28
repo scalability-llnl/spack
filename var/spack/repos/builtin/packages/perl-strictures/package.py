@@ -19,11 +19,3 @@ class PerlStrictures(PerlPackage):
     version("2.000006", sha256="09d57974a6d1b2380c802870fed471108f51170da81458e2751859f2714f8d57")
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use strictures; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

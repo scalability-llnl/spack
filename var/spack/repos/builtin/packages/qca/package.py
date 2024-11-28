@@ -28,6 +28,9 @@ class Qca(CMakePackage):
     version("2.2.1", sha256="c67fc0fa8ae6cb3d0ba0fbd8fca8ee8e4c5061b99f1fd685fd7d9800cef17f6b")
     version("2.1.3", sha256="a5135ffb0250a40e9c361eb10cd3fe28293f0cf4e5c69d3761481eafd7968067")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("qt@4.2:")
 
     depends_on("qt@:5.10.0", when="@2.1.3")

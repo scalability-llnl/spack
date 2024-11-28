@@ -22,7 +22,10 @@ class XcbUtilErrors(AutotoolsPackage, XorgPackage):
         "1.0",
         sha256="7752a722e580efdbada30632cb23aed35c18757399ac3b547b59fd7257cf5e33",
         url="https://xcb.freedesktop.org/dist/xcb-util-errors-1.0.tar.gz",
+        deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libxcb@1.4:")
 

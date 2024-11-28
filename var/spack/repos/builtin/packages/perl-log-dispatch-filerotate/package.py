@@ -24,11 +24,3 @@ class PerlLogDispatchFilerotate(PerlPackage):
     depends_on("perl-sub-uplevel", type=("build", "run", "test"))
     depends_on("perl-path-tiny@0.018:", type=("build", "test"))
     depends_on("perl-test-warn", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Log::Dispatch::FileRotate; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

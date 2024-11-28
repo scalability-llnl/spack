@@ -20,11 +20,3 @@ class PerlTypeTiny(PerlPackage):
 
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
     depends_on("perl-exporter-tiny@1.006000:", type=("run"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Type::Tiny; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

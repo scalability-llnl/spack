@@ -19,6 +19,8 @@ class Libbytesize(AutotoolsPackage):
     version("2.3", sha256="3c74113fc8cd1a2fbd8870fa0ed7cef2ef24d60ef91e7145fbc041f9aa144479")
     version("2.2", sha256="b93c54b502880c095c9f5767a42464853e2687db2e5e3084908a615bafe73baa")
 
+    depends_on("c", type="build")  # generated
+
     extends("python")
     depends_on("pcre2")
     depends_on("gmp")

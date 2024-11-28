@@ -17,11 +17,3 @@ class PerlSqlReservedwords(PerlPackage):
     version("0.8", sha256="09f4aecf1bd8efdd3f9b39f16a240c4e9ceb61eb295b88145c96eb9d58504a2a")
 
     depends_on("perl-sub-exporter", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use SQL::ReservedWords; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

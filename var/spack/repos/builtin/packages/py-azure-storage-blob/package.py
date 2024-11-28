@@ -16,6 +16,7 @@ class PyAzureStorageBlob(PythonPackage):
 
     license("MIT")
 
+    version("12.22.0", sha256="b3804bb4fe8ab1c32771fa464053da772a682c2737b19da438a3f4e5e3b3736e")
     version("12.19.0", sha256="26c0a4320a34a3c2a1b74528ba6812ebcb632a04cd67b1c7377232c4b01a5897")
     version("12.18.3", sha256="d8ced0deee3367fa3d4f3d1a03cd9edadf4440c0a371f503d623fa6c807554ee")
     version("12.17.0", sha256="c14b785a17050b30fc326a315bdae6bc4a078855f4f94a4c303ad74a48dc8c63")
@@ -28,16 +29,19 @@ class PyAzureStorageBlob(PythonPackage):
     version("12.10.0", sha256="3c7dc2c93e7ff2a731acd66a36a1f0a6266072b4154deba4894dab891285ea3a")
     version("12.9.0", sha256="cff66a115c73c90e496c8c8b3026898a3ce64100840276e9245434e28a864225")
 
-    # https://github.com/Azure/azure-sdk-for-python/blob/azure-storage-blob_12.19.0/sdk/storage/azure-storage-blob/setup.py
+    # https://github.com/Azure/azure-sdk-for-python/blob/azure-storage-blob_12.22.0/sdk/storage/azure-storage-blob/setup.py
 
+    depends_on("python@3.8:", type=("build", "run"), when="@12.20:")
     depends_on("py-setuptools", type="build")
-    depends_on("py-azure-core@1.28:1", type=("build", "run"), when="@12.17:")
-    depends_on("py-azure-core@1.26:1", type=("build", "run"), when="@12.15:")
-    depends_on("py-azure-core@1.24.2:1", type=("build", "run"), when="@12.14:")
-    depends_on("py-azure-core@1.23.1:1", type=("build", "run"), when="@12.12:")
-    depends_on("py-azure-core@1.15:1", type=("build", "run"), when="@12.10:")
-    depends_on("py-azure-core@1.10:1", type=("build", "run"))
+    depends_on("py-azure-core@1.28:", type=("build", "run"), when="@12.20:")
+    depends_on("py-azure-core@1.28:1", type=("build", "run"), when="@12.17:12.19")
+    depends_on("py-azure-core@1.26:1", type=("build", "run"), when="@12.15:12.16")
+    depends_on("py-azure-core@1.24.2:1", type=("build", "run"), when="@12.14")
+    depends_on("py-azure-core@1.23.1:1", type=("build", "run"), when="@12.12:12.13")
+    depends_on("py-azure-core@1.15:1", type=("build", "run"), when="@12.10:12.11")
+    depends_on("py-azure-core@1.10:1", type=("build", "run"), when="@:12.19")
     depends_on("py-cryptography@2.1.4:", type=("build", "run"))
+    depends_on("py-typing-extensions@4.6:", type=("build", "run"), when="@12.20:")
     depends_on("py-typing-extensions@4.3:", type=("build", "run"), when="@12.17:")
     depends_on("py-typing-extensions@4.0.1:", type=("build", "run"), when="@12.15:")
     depends_on("py-isodate@0.6.1:", type=("build", "run"), when="@12.15:")

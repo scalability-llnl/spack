@@ -25,11 +25,3 @@ class PerlTestTrap(PerlPackage):
         return (
             f"https://cpan.metacpan.org/authors/id/E/EB/EBHANSSEN/Test-Trap-{str(version)}.tar.gz"
         )
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Test::Trap; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

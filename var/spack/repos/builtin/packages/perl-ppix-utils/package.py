@@ -21,11 +21,3 @@ class PerlPpixUtils(PerlPackage):
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
     depends_on("perl-b-keywords@1.09:", type=("build", "run", "test"))
     depends_on("perl-ppi@1.250:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use PPIx::Utils; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

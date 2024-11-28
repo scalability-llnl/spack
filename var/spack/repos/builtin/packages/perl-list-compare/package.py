@@ -19,11 +19,3 @@ class PerlListCompare(PerlPackage):
     version("0.55", sha256="cc719479836579d52b02bc328ed80a98f679df043a99b5710ab2c191669eb837")
 
     depends_on("perl-capture-tiny", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use List::Compare; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

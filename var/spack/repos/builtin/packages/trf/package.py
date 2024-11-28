@@ -38,6 +38,8 @@ class Trf(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     @when("@4.07b")
     def autoreconf(self, spec, prefix):
         touch("configure")

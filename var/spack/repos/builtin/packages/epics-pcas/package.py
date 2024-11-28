@@ -18,6 +18,9 @@ class EpicsPcas(MakefilePackage):
 
     version("4.13.3", sha256="5004e39339c8e592fcb9b4275c84143635c6e688c0fbe01f17dafe19850398a0")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("epics-base", type=("build", "link", "run"))
 
     @property

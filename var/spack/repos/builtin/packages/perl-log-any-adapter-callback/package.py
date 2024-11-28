@@ -22,11 +22,3 @@ class PerlLogAnyAdapterCallback(PerlPackage):
     version("0.102", sha256="7c01883265bdab65344257c1b1d1e69fbe300e7693dddeebb98f9f67310e07cd")
 
     depends_on("perl-log-any", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Log::Any::Adapter::Callback; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

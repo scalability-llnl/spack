@@ -1,0 +1,22 @@
+diff --git a/openmp/libomptarget/cmake/Modules/LibomptargetGetDependencies.cmake b/openmp/libomptarget/cmake/Modules/LibomptargetGetDependencies.cmake
+index 1f2a50667c4f..d3ff232f6bd3 100644
+--- a/openmp/libomptarget/cmake/Modules/LibomptargetGetDependencies.cmake
++++ b/openmp/libomptarget/cmake/Modules/LibomptargetGetDependencies.cmake
+@@ -280,4 +280,5 @@ if (NOT LIBOMPTARGET_CUDA_TOOLKIT_ROOT_DIR_PRESET AND
+   endif()
+ endif()
+ 
+-set(OPENMP_PTHREAD_LIB ${LLVM_PTHREAD_LIB})
++find_package(Threads REQUIRED)
++set(OPENMP_PTHREAD_LIB Threads::Threads)
+diff --git a/openmp/libomptarget/src/CMakeLists.txt b/openmp/libomptarget/src/CMakeLists.txt
+index 071ec61889a2..b782c3b07e6f 100644
+--- a/openmp/libomptarget/src/CMakeLists.txt.orig	2024-03-26 14:30:52.000000000 +0900
++++ b/openmp/libomptarget/src/CMakeLists.txt	2024-03-26 14:34:02.000000000 +0900
+@@ -41,5 +41,6 @@
+ 
+ if (LIBOMP_HAVE_VERSION_SCRIPT_FLAG)
+   target_link_libraries(omptarget PRIVATE
++    ${OPENMP_PTHREAD_LIB}
+     "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/exports")
+ endif()

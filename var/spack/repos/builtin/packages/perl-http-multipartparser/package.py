@@ -20,11 +20,3 @@ class PerlHttpMultipartparser(PerlPackage):
 
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
     depends_on("perl-test-deep", type=("build", "link"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use HTTP::MultiPartParser; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

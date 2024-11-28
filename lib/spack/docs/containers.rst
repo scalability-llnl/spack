@@ -194,21 +194,18 @@ The OS that are currently supported are summarized in the table below:
    * - Operating System
      - Base Image
      - Spack Image
-   * - Ubuntu 18.04
-     - ``ubuntu:18.04``
-     - ``spack/ubuntu-bionic``
    * - Ubuntu 20.04
      - ``ubuntu:20.04``
      - ``spack/ubuntu-focal``
    * - Ubuntu 22.04
      - ``ubuntu:22.04``
      - ``spack/ubuntu-jammy``
-   * - CentOS 7
-     - ``centos:7``
-     - ``spack/centos7``
-   * - CentOS Stream
-     - ``quay.io/centos/centos:stream``
-     - ``spack/centos-stream``
+   * - Ubuntu 24.04
+     - ``ubuntu:24.04``
+     - ``spack/ubuntu-noble``
+   * - CentOS Stream9
+     - ``quay.io/centos/centos:stream9``
+     - ``spack/centos-stream9``
    * - openSUSE Leap
      - ``opensuse/leap``
      - ``spack/leap15``
@@ -227,12 +224,12 @@ The OS that are currently supported are summarized in the table below:
    * - Rocky Linux 9
      - ``rockylinux:9``
      - ``spack/rockylinux9``
-   * - Fedora Linux 37
-     - ``fedora:37``
-     - ``spack/fedora37``
-   * - Fedora Linux 38
-     - ``fedora:38``
-     - ``spack/fedora38``
+   * - Fedora Linux 39
+     - ``fedora:39``
+     - ``spack/fedora39``
+   * - Fedora Linux 40
+     - ``fedora:40``
+     - ``spack/fedora40``
 
 
 

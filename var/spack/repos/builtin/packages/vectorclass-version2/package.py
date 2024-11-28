@@ -20,6 +20,8 @@ class VectorclassVersion2(Package):
 
     version("2.01.04", sha256="7885c343b1af9eb940f4debdd7cd19544130a06ed70e0000e1a8471fb9c15118")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         # Put all cpp files to an include folder
         # (makes a filesystem view with this

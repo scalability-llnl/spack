@@ -28,6 +28,8 @@ class Libtomlc99(Package):
     # Does not build shared libraries.
     version("0.2019.03.06", commit="bd76f1276ee5f5df0eb064f1842af5ad1737cf1e")
 
+    depends_on("c", type="build")  # generated
+
     variant("debug", default=False, description="Build with debug enabled.")
 
     def install(self, spec, prefix):

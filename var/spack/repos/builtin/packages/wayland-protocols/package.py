@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.meson
 from spack.package import *
 
 
@@ -28,6 +29,12 @@ class WaylandProtocols(MesonPackage, AutotoolsPackage):
 
     license("MIT")
 
+    version("1.37", sha256="c3b215084eb4cf318415533554c2c2714e58ed75847d7c3a8e50923215ffbbf3")
+    version("1.36", sha256="c839dd4325565fd59a93d6cde17335357328f66983c2e1fb03c33e92d6918b17")
+    version("1.35", sha256="6e62dfa92ce82487d107b76064cfe2d7ca107c87c239ea9036a763d79c09105a")
+    version("1.34", sha256="cd3cc9dedb838e6fc8f55bbeb688e8569ffac7df53bc59dbfac8acbb39267f05")
+    version("1.33", sha256="71a7d2f062d463aa839497ddfac97e4bd3f00aa306e014f94529aa3a2be193a8")
+    version("1.32", sha256="444b5d823ad0163dfe505c97ea1a0689ca7e2978a87cf59b03f06573b87db260")
     version("1.31", sha256="04d3f66eca99d638ec8dbfdfdf79334290e22028f7d0b04c7034d9ef18a3248a")
     version("1.30", sha256="1c02ce27d5267c904f2f0d31039265f3e4112f15bf274b1c72bdacd5322f243d")
     version("1.29", sha256="4a85786ae69cd6d53bbe9278572f3c3d6ea342875ea444960edb6089237c3a18")
@@ -50,7 +57,9 @@ class WaylandProtocols(MesonPackage, AutotoolsPackage):
         depends_on("meson@0.55:")
 
     depends_on("pkgconfig", type="build")
-    depends_on("doxygen", type="build")
-    depends_on("xmlto", type="build")
-    depends_on("libxslt", type="build")
     depends_on("wayland")
+
+
+class MesonBuilder(spack.build_systems.meson.MesonBuilder):
+    def meson_args(self):
+        return ["-Dtests={}".format("true" if self.pkg.run_tests else "false")]

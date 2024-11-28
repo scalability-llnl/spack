@@ -15,6 +15,8 @@ class Cnvnator(MakefilePackage):
 
     version("0.3.3", sha256="58c5acf61f9a1e5febf546c196f8917a5e084b729e5c4cfd3eba83471b3fe5c1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("samtools@:1.13")
     depends_on("htslib")
     depends_on("root")

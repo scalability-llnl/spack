@@ -19,6 +19,8 @@ class Tycho2(MakefilePackage):
 
     version("develop", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")
 
     def patch(self):

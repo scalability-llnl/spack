@@ -16,6 +16,8 @@ class PyTriangle(PythonPackage):
 
     version("20200424", sha256="fc207641f8f39986f7d2bee1b91688a588cd235d2e67777422f94e61fece27e9")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@:3.9", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-cython", type="build")

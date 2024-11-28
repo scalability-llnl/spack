@@ -1,0 +1,12 @@
+diff --git a/gold/merge.cc b/gold/merge.cc
+index ca15149..a270bc0 100644
+--- a/gold/merge.cc
++++ b/gold/merge.cc
+@@ -24,6 +24,7 @@
+ 
+ #include <cstdlib>
+ #include <algorithm>
++#include <uchar.h>
+ 
+ #include "merge.h"
+ #include "compressed_output.h"

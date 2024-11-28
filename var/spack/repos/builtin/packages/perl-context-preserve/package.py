@@ -21,11 +21,3 @@ class PerlContextPreserve(PerlPackage):
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
     depends_on("perl-test-exception", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Context::Preserve; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

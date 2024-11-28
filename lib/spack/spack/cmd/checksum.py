@@ -15,7 +15,6 @@ import spack.cmd
 import spack.repo
 import spack.spec
 import spack.stage
-import spack.util.crypto
 import spack.util.web as web_util
 from spack.cmd.common import arguments
 from spack.package_base import (
@@ -183,7 +182,7 @@ def checksum(parser, args):
     print()
 
     if args.add_to_package:
-        add_versions_to_package(pkg, version_lines)
+        add_versions_to_package(pkg, version_lines, args.batch)
 
 
 def print_checksum_status(pkg: PackageBase, version_hashes: dict):
@@ -229,7 +228,7 @@ def print_checksum_status(pkg: PackageBase, version_hashes: dict):
         tty.die("Invalid checksums found.")
 
 
-def add_versions_to_package(pkg: PackageBase, version_lines: str):
+def add_versions_to_package(pkg: PackageBase, version_lines: str, is_batch: bool):
     """
     Add checksumed versions to a package's instructions and open a user's
     editor so they may double check the work of the function.
@@ -282,5 +281,5 @@ def add_versions_to_package(pkg: PackageBase, version_lines: str):
         tty.msg(f"Added {num_versions_added} new versions to {pkg.name}")
         tty.msg(f"Open {filename} to review the additions.")
 
-    if sys.stdout.isatty():
+    if sys.stdout.isatty() and not is_batch:
         editor(filename)

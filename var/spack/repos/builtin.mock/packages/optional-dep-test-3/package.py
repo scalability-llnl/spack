@@ -16,5 +16,5 @@ class OptionalDepTest3(Package):
 
     variant("var", default=False)
 
-    depends_on("a", when="~var")
-    depends_on("b", when="+var")
+    depends_on("pkg-a", when="~var")
+    depends_on("pkg-b", when="+var")

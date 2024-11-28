@@ -17,11 +17,3 @@ class PerlDataUuid(PerlPackage):
     license("BSD")
 
     version("1.226", sha256="093d57ffa0d411a94bafafae495697db26f5c9d0277198fe3f7cf2be22996453")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Data::UUID; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

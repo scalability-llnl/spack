@@ -23,6 +23,8 @@ class PyTheano(PythonPackage, CudaPackage):
     version("1.0.1", sha256="88d8aba1fe2b6b75eacf455d01bc7e31e838c5a0fb8c13dde2d9472495ff4662")
     version("0.8.2", sha256="7463c8f7ed1a787bf881f36d38a38607150186697e7ce7e78bfb94b7c6af8930")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@2.6:2.8,3.3:", type=("build", "run"))
 
     depends_on("py-setuptools", type=("build", "run"))

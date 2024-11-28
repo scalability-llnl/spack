@@ -19,6 +19,8 @@ class Mitos(CMakePackage):
     version("0.9.2", commit="8cb143a2e8c00353ff531a781a9ca0992b0aaa3d")
     version("0.9.1", sha256="67abe227d2f9b4d2f235031b526d3ceb2c4792ad98772b1b1d5af0d227a795fc")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("dyninst@8.2.1:")
     depends_on("hwloc")
     depends_on("mpi")

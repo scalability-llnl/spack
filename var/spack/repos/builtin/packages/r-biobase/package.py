@@ -25,6 +25,8 @@ class RBiobase(RPackage):
     version("2.38.0", commit="83f89829e0278ac014b0bc6664e621ac147ba424")
     version("2.36.2", commit="15f50912f3fa08ccb15c33b7baebe6b8a59ce075")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-biocgenerics@0.3.2:", type=("build", "run"))
     depends_on("r-biocgenerics@0.27.1:", type=("build", "run"), when="@2.42.0:")

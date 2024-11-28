@@ -18,6 +18,9 @@ class Fmt(CMakePackage):
 
     license("MIT")
 
+    version("11.0.2", sha256="40fc58bebcf38c759e11a7bd8fdc163507d2423ef5058bba7f26280c5b9c5465")
+    version("11.0.1", sha256="62ca45531814109b5d6cef0cf2fd17db92c32a30dd23012976e768c685534814")
+    version("11.0.0", sha256="583ce480ef07fad76ef86e1e2a639fc231c3daa86c4aa6bcba524ce908f30699")
     version("10.2.1", sha256="312151a2d13c8327f5c9c586ac6cf7cddc1658e8f53edae0ec56509c8fa516c9")
     version("10.2.0", sha256="8a942861a94f8461a280f823041cde8f620a6d8b0e0aacc98c15bb5a9dd92399")
     version("10.1.1", sha256="b84e58a310c9b50196cda48d5678d5fa0849bca19e5fdba6b684f0ee93ed9d1b")
@@ -42,6 +45,10 @@ class Fmt(CMakePackage):
     version("3.0.2", sha256="51407b62a202b29d1a9c0eb5ecd4095d30031aea65407c42c25cb10cb5c59ad4")
     version("3.0.1", sha256="4c9af0dc919a8ae7022b44e1a03c435e42d65c866f44667d8d920d342b098550")
     version("3.0.0", sha256="1b050b66fa31b74f1d75a14f15e99e728ab79572f176a53b2f8ad7c201c30ceb")
+    version("master", branch="master")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant(
         "cxxstd",
@@ -93,6 +100,14 @@ class Fmt(CMakePackage):
         when="@10.0.0:10.1.1",
     )
 
+    # Fix 'variable "buffer" may not be initialized' compiler error
+    patch(
+        "fmt-no-variable-initialize_10.0.0.patch", when="@10.0.0:11.0.2%clang@12.0.1.ibm.gcc.8.3.1"
+    )
+    patch(
+        "fmt-no-variable-initialize_10.0.0.patch", when="@10.0.0:11.0.2%clang@14.0.5.ibm.gcc.8.3.1"
+    )
+
     def cmake_args(self):
         spec = self.spec
         args = []
@@ -100,7 +115,7 @@ class Fmt(CMakePackage):
         if self.spec.satisfies("+shared"):
             args.append("-DBUILD_SHARED_LIBS=ON")
 
-        if "+pic" in spec:
+        if spec.satisfies("+pic"):
             args.extend(
                 [
                     "-DCMAKE_C_FLAGS={0}".format(self.compiler.cc_pic_flag),
@@ -114,7 +129,7 @@ class Fmt(CMakePackage):
         args.append("-DCMAKE_CXX_STANDARD_REQUIRED=ON")
 
         # When cxxstd is 98, must disable FMT_USE_CPP11
-        if "cxxstd=98" in spec:
+        if spec.satisfies("cxxstd=98"):
             args.append("-DFMT_USE_CPP11=OFF")
 
         # Can't build docs without doxygen+python+virtualenv

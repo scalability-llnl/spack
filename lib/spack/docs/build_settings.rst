@@ -21,23 +21,86 @@ is the following:
 Reuse already installed packages
 --------------------------------
 
-The ``reuse`` attribute controls whether Spack will prefer to use installed packages (``true``), or
-whether it will do a "fresh" installation and prefer the latest settings from
-``package.py`` files and ``packages.yaml`` (``false``).
-You can use:
+The ``reuse`` attribute controls how aggressively Spack reuses binary packages during concretization. The
+attribute can either be a single value, or an object for more complex configurations.
+
+In the former case ("single value") it allows Spack to:
+
+1. Reuse installed packages and buildcaches for all the specs to be concretized, when ``true``
+2. Reuse installed packages and buildcaches only for the dependencies of the root specs, when ``dependencies``
+3. Disregard reusing installed packages and buildcaches, when ``false``
+
+In case a finer control over which specs are reused is needed, then the value of this attribute can be
+an object, with the following keys:
+
+1. ``roots``: if ``true`` root specs are reused, if ``false`` only dependencies of root specs are reused
+2. ``from``: list of sources from which reused specs are taken
+
+Each source in ``from`` is itself an object:
+
+.. list-table:: Attributes for a source or reusable specs
+   :header-rows: 1
+
+   * - Attribute name
+     - Description
+   * - type (mandatory, string)
+     - Can be ``local``, ``buildcache``, or ``external``
+   * - include (optional, list of specs)
+     - If present, reusable specs must match at least one of the constraint in the list
+   * - exclude (optional, list of specs)
+     - If present, reusable specs must not match any of the constraint in the list.
+
+For instance, the following configuration:
+
+.. code-block:: yaml
+
+   concretizer:
+     reuse:
+       roots: true
+       from:
+       - type: local
+         include:
+         - "%gcc"
+         - "%clang"
+
+tells the concretizer to reuse all specs compiled with either ``gcc`` or ``clang``, that are installed
+in the local store. Any spec from remote buildcaches is disregarded.
+
+To reduce the boilerplate in configuration files, default values for the ``include`` and
+``exclude`` options can be pushed up one level:
+
+.. code-block:: yaml
+
+   concretizer:
+     reuse:
+       roots: true
+       include:
+       - "%gcc"
+       from:
+       - type: local
+       - type: buildcache
+       - type: local
+         include:
+         - "foo %oneapi"
+
+In the example above we reuse all specs compiled with ``gcc`` from the local store
+and remote buildcaches, and we also reuse ``foo %oneapi``. Note that the last source of
+specs override the default ``include`` attribute.
+
+For one-off concretizations, the are command line arguments for each of the simple "single value"
+configurations. This means a user can:
 
 .. code-block:: console
 
    % spack install --reuse <spec>
 
-to enable reuse for a single installation, and you can use:
+to enable reuse for a single installation, or:
 
 .. code-block:: console
 
    spack install --fresh <spec>
 
 to do a fresh install if ``reuse`` is enabled by default.
-``reuse: dependencies`` is the default.
 
 .. seealso::
 
@@ -103,3 +166,106 @@ while `py-numpy` still needs an older version:
 
 Up to Spack v0.20 ``duplicates:strategy:none`` was the default (and only) behavior. From Spack v0.21 the
 default behavior is ``duplicates:strategy:minimal``.
+
+--------
+Splicing
+--------
+
+The ``splice`` key covers config attributes for splicing specs in the solver.
+
+"Splicing" is a method for replacing a dependency with another spec
+that provides the same package or virtual. There are two types of
+splices, referring to different behaviors for shared dependencies
+between the root spec and the new spec replacing a dependency:
+"transitive" and "intransitive". A "transitive" splice is one that
+resolves all conflicts by taking the dependency from the new node. An
+"intransitive" splice is one that resolves all conflicts by taking the
+dependency from the original root. From a theory perspective, hybrid
+splices are possible but are not modeled by Spack.
+
+All spliced specs retain a ``build_spec`` attribute that points to the
+original Spec before any splice occurred. The ``build_spec`` for a
+non-spliced spec is itself.
+
+The figure below shows examples of transitive and intransitive splices:
+
+.. figure:: images/splices.png
+   :align: center
+
+The concretizer can be configured to explicitly splice particular
+replacements for a target spec. Splicing will allow the user to make
+use of generically built public binary caches, while swapping in
+highly optimized local builds for performance critical components
+and/or components that interact closely with the specific hardware
+details of the system. The most prominent candidate for splicing is
+MPI providers. MPI packages have relatively well-understood ABI
+characteristics, and most High Performance Computing facilities deploy
+highly optimized MPI packages tailored to their particular
+hardware. The following config block configures Spack to replace
+whatever MPI provider each spec was concretized to use with the
+particular package of ``mpich`` with the hash that begins ``abcdef``.
+
+.. code-block:: yaml
+
+   concretizer:
+     splice:
+       explicit:
+       - target: mpi
+         replacement: mpich/abcdef
+         transitive: false
+
+.. warning::
+
+   When configuring an explicit splice, you as the user take on the
+   responsibility for ensuring ABI compatibility between the specs
+   matched by the target and the replacement you provide. If they are
+   not compatible, Spack will not warn you and your application will
+   fail to run.
+
+The ``target`` field of an explicit splice can be any abstract
+spec. The ``replacement`` field must be a spec that includes the hash
+of a concrete spec, and the replacement must either be the same
+package as the target, provide the virtual that is the target, or
+provide a virtual that the target provides. The ``transitive`` field
+is optional -- by default, splices will be transitive.
+
+.. note::
+
+   With explicit splices configured, it is possible for Spack to
+   concretize to a spec that does not satisfy the input. For example,
+   with the config above ``hdf5 ^mvapich2`` will concretize to user
+   ``mpich/abcdef`` instead of ``mvapich2`` as the MPI provider. Spack
+   will warn the user in this case, but will not fail the
+   concretization.
+
+.. _automatic_splicing:
+
+^^^^^^^^^^^^^^^^^^
+Automatic Splicing
+^^^^^^^^^^^^^^^^^^
+
+The Spack solver can be configured to do automatic splicing for
+ABI-compatible packages. Automatic splices are enabled in the concretizer
+config section
+
+.. code-block:: yaml
+
+   concretizer:
+     splice:
+       automatic: True
+
+Packages can include ABI-compatibility information using the
+``can_splice`` directive. See :ref:`the packaging
+guide<abi_compatibility>` for instructions on specifying ABI
+compatibility using the ``can_splice`` directive.
+
+.. note::
+
+   The ``can_splice`` directive is experimental and may be changed in
+   future versions.
+
+When automatic splicing is enabled, the concretizer will combine any
+number of ABI-compatible specs if possible to reuse installed packages
+and packages available from binary caches. The end result of these
+specs is equivalent to a series of transitive/intransitive splices,
+but the series may be non-obvious.

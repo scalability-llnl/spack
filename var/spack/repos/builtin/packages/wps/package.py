@@ -22,6 +22,10 @@ class Wps(Package):
     version("4.3", sha256="1913cb24de549f029d65635feea27f3304a8f42ec025954a0887651fc89d1e9e")
     version("4.2", sha256="3e175d033355d3e7638be75bc7c0bc0de6da299ebd175a9bbc1b7a121acd0168")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Serial variant recommended in WRF/WPS docs
     variant(
         "build_type",
@@ -91,7 +95,6 @@ class Wps(Package):
                 "dmpar": "19",
                 "dmpar_NO_GRIB2": "20",
             },
-            "pgi": {"serial": "5", "serial_NO_GRIB2": "6", "dmpar": "7", "dmpar_NO_GRIB2": "8"},
         }
 
         try:

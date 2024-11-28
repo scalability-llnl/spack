@@ -19,6 +19,8 @@ class Bueno(PythonPackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.7:", type=("build", "run"))
 
     depends_on("py-pyyaml", type=("build", "run"))

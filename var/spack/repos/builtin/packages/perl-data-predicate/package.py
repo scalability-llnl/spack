@@ -18,11 +18,3 @@ class PerlDataPredicate(PerlPackage):
 
     depends_on("perl-test-exception", type=("build", "test"))
     depends_on("perl-readonly", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Data::Predicate; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

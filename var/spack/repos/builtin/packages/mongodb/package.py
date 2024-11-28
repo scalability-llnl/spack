@@ -21,6 +21,9 @@ class Mongodb(SConsPackage):
 
     version("6.2", git="https://github.com/mongodb/mongo.git", branch="v6.2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     requires(
         "%gcc", "%clang", policy="one_of", msg="<myNicePackage> builds only with GCC or Clang"
     )

@@ -22,11 +22,3 @@ class PerlBioCluster(PerlPackage):
     depends_on("perl-bio-variation", type=("build", "run", "test"))
     depends_on("perl-bioperl", type=("build", "run", "test"))
     depends_on("perl-xml-sax", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Bio::Cluster; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

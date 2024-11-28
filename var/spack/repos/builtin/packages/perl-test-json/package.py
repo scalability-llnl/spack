@@ -20,11 +20,3 @@ class PerlTestJson(PerlPackage):
 
     depends_on("perl-json-any@1.2:", type=("build", "run", "test"))
     depends_on("perl-test-differences@0.47:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Test::JSON; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

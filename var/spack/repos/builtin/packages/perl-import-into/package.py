@@ -20,11 +20,3 @@ class PerlImportInto(PerlPackage):
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
     depends_on("perl-module-runtime", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Import::Into; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

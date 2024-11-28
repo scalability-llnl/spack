@@ -22,5 +22,7 @@ class RRcpptoml(RPackage):
     version("0.2.2", sha256="371391f9ca82221e76a424082ea9ebc5ea2c50f14e8408469b09d7dc3e6f63aa")
     version("0.1.7", sha256="2f09f00cbee6c6eeff5d5f0195c10de0155496de15fbe8189c18627ee3090541")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r-rcpp@0.11.5:", type=("build", "run"))

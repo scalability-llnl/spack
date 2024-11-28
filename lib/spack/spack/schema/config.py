@@ -11,6 +11,7 @@ from typing import Any, Dict
 
 from llnl.util.lang import union_dicts
 
+import spack.config
 import spack.schema.projections
 
 #: Properties for inclusion in other schemas
@@ -63,6 +64,7 @@ properties: Dict[str, Any] = {
                 "oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]
             },
             "stage_name": {"type": "string"},
+            "develop_stage_link": {"type": "string"},
             "test_stage": {"type": "string"},
             "extensions": {"type": "array", "items": {"type": "string"}},
             "template_dirs": {"type": "array", "items": {"type": "string"}},
@@ -72,8 +74,8 @@ properties: Dict[str, Any] = {
             "environments_root": {"type": "string"},
             "connect_timeout": {"type": "integer", "minimum": 0},
             "verify_ssl": {"type": "boolean"},
+            "ssl_certs": {"type": "string"},
             "suppress_gpg_warnings": {"type": "boolean"},
-            "install_missing_compilers": {"type": "boolean"},
             "debug": {"type": "boolean"},
             "checksum": {"type": "boolean"},
             "deprecated": {"type": "boolean"},
@@ -82,7 +84,6 @@ properties: Dict[str, Any] = {
             "build_language": {"type": "string"},
             "build_jobs": {"type": "integer", "minimum": 1},
             "ccache": {"type": "boolean"},
-            "concretizer": {"type": "string", "enum": ["original", "clingo"]},
             "db_lock_timeout": {"type": "integer", "minimum": 1},
             "package_lock_timeout": {
                 "anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]
@@ -95,12 +96,21 @@ properties: Dict[str, Any] = {
             "binary_index_ttl": {"type": "integer", "minimum": 0},
             "aliases": {"type": "object", "patternProperties": {r"\w[\w-]*": {"type": "string"}}},
         },
-        "deprecatedProperties": {
-            "properties": ["terminal_title"],
-            "message": "config:terminal_title has been replaced by "
-            "install_status and is ignored",
-            "error": False,
-        },
+        "deprecatedProperties": [
+            {
+                "names": ["concretizer"],
+                "message": "Spack supports only clingo as a concretizer from v0.23. "
+                "The config:concretizer config option is ignored.",
+                "error": False,
+            },
+            {
+                "names": ["install_missing_compilers"],
+                "message": "The config:install_missing_compilers option has been deprecated in "
+                "Spack v0.23, and is currently ignored. It will be removed from config in "
+                "Spack v0.25.",
+                "error": False,
+            },
+        ],
     }
 }
 

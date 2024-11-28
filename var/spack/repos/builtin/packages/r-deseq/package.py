@@ -23,6 +23,8 @@ class RDeseq(RPackage):
     version("1.30.0", commit="90c93d991dd980d538c13b0361d3345f9546794e")
     version("1.28.0", commit="738371466e6ccf00179fd35b617c8ba0e1e91630")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r-biocgenerics@0.7.5:", type=("build", "run"))
     depends_on("r-biobase@2.21.7:", type=("build", "run"))
     depends_on("r-locfit", type=("build", "run"))

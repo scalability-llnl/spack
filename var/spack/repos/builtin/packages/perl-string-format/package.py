@@ -15,11 +15,3 @@ class PerlStringFormat(PerlPackage):
     maintainers("EbiArnie")
 
     version("1.18", sha256="9e417a8f8d9ea623beea2d13a47c0d5a696fc8602c0509b826cd45f97b76e778")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use String::Format; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

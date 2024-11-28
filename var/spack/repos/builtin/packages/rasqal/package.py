@@ -21,4 +21,6 @@ class Rasqal(AutotoolsPackage):
     version("0.9.32", sha256="eeba03218e3b7dfa033934d523a1a64671a9a0f64eadc38a01e4b43367be2e8f")
     version("0.9.31", sha256="28d743c9f1b0e5b0486ae4a945fa1e021c8495707e7adbfa0e232244b28b7fee")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("raptor2")

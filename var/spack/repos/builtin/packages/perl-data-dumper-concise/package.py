@@ -19,11 +19,3 @@ class PerlDataDumperConcise(PerlPackage):
     version("2.023", sha256="a6c22f113caf31137590def1b7028a7e718eface3228272d0672c25e035d5853")
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Data::Dumper::Concise; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

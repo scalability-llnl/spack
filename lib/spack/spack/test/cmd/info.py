@@ -57,9 +57,9 @@ def test_info_noversion(mock_packages, print_buffer):
 
 
 @pytest.mark.parametrize(
-    "pkg_query,expected", [("zlib", "False"), ("gcc", "True (version, variants)")]
+    "pkg_query,expected", [("zlib", "False"), ("find-externals1", "True (version)")]
 )
-def test_is_externally_detectable(pkg_query, expected, parser, print_buffer):
+def test_is_externally_detectable(mock_packages, pkg_query, expected, parser, print_buffer):
     args = parser.parse_args(["--detectable", pkg_query])
     spack.cmd.info.info(parser, args)
 

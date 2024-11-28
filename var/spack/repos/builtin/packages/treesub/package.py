@@ -15,7 +15,7 @@ class Treesub(Package):
     occurred on a given branch. Originally written for colleagues at
     the MRC NIMR."""
 
-    homepage = "https:/github.com/tamuri/treesub"
+    homepage = "https://github.com/tamuri/treesub"
     url = "https://github.com/tamuri/treesub/archive/v0.2.tar.gz"
 
     version("0.2", sha256="58b0d2638cf9ae1ad8705df26a57c32b52a69f50e7954debbd678c82772fdc56")

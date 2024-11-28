@@ -15,11 +15,7 @@ class PyIgor2(PythonPackage):
 
     license("LGPL-3.0-or-later")
 
-    version(
-        "0.5.3",
-        sha256="bb7b54a5926ec640e0e9176f46e0dd88ad956fec2d17ba3b0a7687eba82cefee",
-        expand=False,
-    )
+    version("0.5.3", sha256="bb7b54a5926ec640e0e9176f46e0dd88ad956fec2d17ba3b0a7687eba82cefee")
 
     depends_on("python@3.8:3", type=("build", "run"))
     depends_on("py-numpy@1.25.1:", type=("build", "run"))

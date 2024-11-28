@@ -22,11 +22,3 @@ class PerlDatetimeFormatPg(PerlPackage):
     depends_on("perl-datetime-format-builder@0.72:", type=("build", "run", "test"))
     depends_on("perl-datetime-timezone@0.05:", type=("build", "run", "test"))
     depends_on("perl-module-build-tiny@0.035:", type=("build"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use DateTime::Format::Pg; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

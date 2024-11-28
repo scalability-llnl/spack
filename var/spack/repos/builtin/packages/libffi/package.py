@@ -17,6 +17,8 @@ class Libffi(AutotoolsPackage):
 
     license("MIT")
 
+    version("3.4.6", sha256="b0dea9df23c863a7a50e825440f3ebffabd65df1497108e5d437747843895a4e")
+    version("3.4.5", sha256="96fff4e589e3b239d888d9aa44b3ff30693c2ba1617f953925a70ddebcc102b2")
     version("3.4.4", sha256="d66c56ad259a82cf2a9dfc408b32bf5da52371500b84745f7fb8b645712df676")
     version("3.4.3", sha256="4416dd92b6ae8fcb5b10421e711c4d3cb31203d77521a77d85d0102311e6c3b8")
     version("3.4.2", sha256="540fb721619a6aba3bdeef7d940d8e9e0e6d2c193595bc243241b77ff9e93620")
@@ -30,6 +32,9 @@ class Libffi(AutotoolsPackage):
         url="https://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz",
         sha256="d06ebb8e1d9a22d19e38d63fdb83954253f39bedc5d46232a05645685722ca37",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     patch("clang-powerpc-3.2.1.patch", when="@3.2.1%clang platform=linux")
     # ref.: https://github.com/libffi/libffi/pull/561
@@ -56,7 +61,7 @@ class Libffi(AutotoolsPackage):
         return (flags, None, None)
 
     def configure_args(self):
-        args = []
+        args = ["--with-pic"]
         if self.spec.version >= Version("3.3"):
             # Spack adds its own target flags, so tell libffi not to
             # second-guess us

@@ -21,11 +21,3 @@ class PerlGetoptLongDescriptive(PerlPackage):
     depends_on("perl@5.12.0:", type=("build", "link", "run", "test"))
     depends_on("perl-params-validate@0.97:", type=("build", "run", "test"))
     depends_on("perl-sub-exporter@0.972:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Getopt::Long::Descriptive; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

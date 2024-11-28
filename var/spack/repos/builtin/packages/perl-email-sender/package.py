@@ -29,11 +29,3 @@ class PerlEmailSender(PerlPackage):
     depends_on("perl-sub-exporter", type=("build", "run", "test"))
     depends_on("perl-throwable", type=("build", "run", "test"))
     depends_on("perl-try-tiny", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Email::Sender; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

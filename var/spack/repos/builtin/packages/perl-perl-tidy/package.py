@@ -19,11 +19,3 @@ class PerlPerlTidy(PerlPackage):
     version("20240202", sha256="9451adde47c2713652d39b150fb3eeb3ccc702add46913e989125184cd7ec57d")
 
     depends_on("perl@5.8.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Perl::Tidy; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -14,10 +14,6 @@ class PyClimate(PythonPackage):
 
     license("Apache-2.0")
 
-    version(
-        "0.1.0",
-        sha256="01026c764b34d8204b8f527a730ef667fa5827fca765993ff1ed3e9dab2c11ae",
-        expand=False,
-    )
+    version("0.1.0", sha256="01026c764b34d8204b8f527a730ef667fa5827fca765993ff1ed3e9dab2c11ae")
 
     depends_on("python@3.7:3", type=("build", "run"))

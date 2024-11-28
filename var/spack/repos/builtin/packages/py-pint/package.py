@@ -21,6 +21,7 @@ class PyPint(PythonPackage):
     version("0.22", sha256="2d139f6abbcf3016cad7d3cec05707fe908ac4f99cf59aedfd6ee667b7a64433")
     version("0.21.1", sha256="5d5b6b518d0c5a7ab03a776175db500f1ed1523ee75fb7fafe38af8149431c8d")
     version("0.20.1", sha256="387cf04078dc7dfe4a708033baad54ab61d82ab06c4ee3d4922b1e45d5626067")
+    version("0.19.2", sha256="e1d4989ff510b378dad64f91711e7bdabe5ca78d75b06a18569ac454678c4baf")
     version("0.18", sha256="8c4bce884c269051feb7abc69dbfd18403c0c764abc83da132e8a7222f8ba801")
     version("0.17", sha256="f4d0caa713239e6847a7c6eefe2427358566451fe56497d533f21fb590a3f313")
     version("0.11", sha256="308f1070500e102f83b6adfca6db53debfce2ffc5d3cbe3f6c367da359b5cf4d")

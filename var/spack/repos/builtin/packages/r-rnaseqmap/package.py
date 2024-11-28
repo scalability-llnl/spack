@@ -22,6 +22,8 @@ class RRnaseqmap(RPackage):
     version("2.36.0", commit="69c46fa467be0ac30776ede85a521f7622539b7e")
     version("2.34.0", commit="7881bc00600ed824ac437edf3cfba35573261e46")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.11.0:", type=("build", "run"))
     depends_on("r-biobase", type=("build", "run"))
     depends_on("r-rsamtools", type=("build", "run"))

@@ -21,11 +21,3 @@ class PerlNamespaceClean(PerlPackage):
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
     depends_on("perl-b-hooks-endofscope@0.12:", type=("build", "run", "test"))
     depends_on("perl-package-stash@0.23:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use namespace::clean; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

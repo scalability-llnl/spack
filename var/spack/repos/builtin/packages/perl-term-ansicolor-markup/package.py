@@ -23,11 +23,3 @@ class PerlTermAnsicolorMarkup(PerlPackage):
     depends_on("perl-html-parser", type=("build", "run", "test"))
     depends_on("perl-test-exception", type=("build", "link"))
     depends_on("perl-module-install", type=("build", "link"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Term::ANSIColor::Markup; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

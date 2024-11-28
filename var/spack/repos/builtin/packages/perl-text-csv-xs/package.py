@@ -19,11 +19,3 @@ class PerlTextCsvXs(PerlPackage):
     version("1.53", sha256="ba3231610fc755a69e14eb4a3c6d8cce46cc4fd32853777a6c9ce485a8878b42")
 
     depends_on("perl@5.6.1:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Text::CSV_XS; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

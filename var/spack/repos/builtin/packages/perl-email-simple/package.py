@@ -18,11 +18,3 @@ class PerlEmailSimple(PerlPackage):
 
     depends_on("perl@5.12.0:", type=("build", "link", "run", "test"))
     depends_on("perl-email-date-format", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Email::Simple; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

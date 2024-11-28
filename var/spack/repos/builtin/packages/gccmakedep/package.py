@@ -14,6 +14,7 @@ class Gccmakedep(AutotoolsPackage, XorgPackage):
 
     license("MIT")
 
+    version("1.0.4", sha256="5f36cde3f7cce8150a6eeb8026759977be523068a64fad899776122c3f03311f")
     version("1.0.3", sha256="f9e2e7a590e27f84b6708ab7a81e546399b949bf652fb9b95193e0e543e6a548")
 
     depends_on("pkgconfig", type="build")

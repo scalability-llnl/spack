@@ -29,6 +29,10 @@ class Starlight(CMakePackage):
         url="https://starlight.hepforge.org/downloads?f=starlight_r300.tar",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     patch(
         "https://gitlab.cern.ch/sft/lcgcmake/-/raw/master/generators/patches/starlight-r313.patch",
         sha256="c70f70fd7c96dc0417f9254d25b584222abcb2c452e1e6dd4b8cfb0b64bf10e0",

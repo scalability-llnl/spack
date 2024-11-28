@@ -15,11 +15,3 @@ class PerlBKeywords(PerlPackage):
     maintainers("EbiArnie")
 
     version("1.26", sha256="2daa155d2f267fb0dedd87f8a4c4fb5663879fc106517b1ee258353ef87aed34")
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use B::Keywords; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

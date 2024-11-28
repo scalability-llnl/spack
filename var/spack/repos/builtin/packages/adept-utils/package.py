@@ -15,6 +15,9 @@ class AdeptUtils(CMakePackage):
     version("1.0.1", sha256="259f777aeb368ede3583d3617bb779f0fde778319bf2122fdd216bdf223c015e")
     version("1.0", sha256="fed29366c9bcf5f3799220ae3b351d2cb338e2aa42133d61584ea650aa8d6ff7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@:1.72.0")
     depends_on("mpi")
     depends_on("cmake@2.8:", type="build")

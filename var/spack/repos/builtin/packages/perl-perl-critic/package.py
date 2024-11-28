@@ -34,11 +34,3 @@ class PerlPerlCritic(PerlPackage):
     depends_on("perl-ppix-utils", type=("build", "run", "test"))
     depends_on("perl-readonly@2:", type=("build", "run", "test"))
     depends_on("perl-string-format@1.18:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Perl::Critic; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

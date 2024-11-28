@@ -22,11 +22,3 @@ class PerlPlackMiddlewareAssets(PerlPackage):
     depends_on("perl-http-date", type=("build", "run", "test"))
     depends_on("perl-javascript-minifier-xs", type=("build", "run", "test"))
     depends_on("perl-plack", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Plack::Middleware::Assets; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

@@ -10,7 +10,7 @@ from spack.package import *
 class PyPythonJose(PythonPackage):
     """JOSE implementation in Python"""
 
-    homepage = "http://github.com/mpdavis/python-jose"
+    homepage = "https://github.com/mpdavis/python-jose"
     pypi = "python-jose/python-jose-3.3.0.tar.gz"
 
     license("MIT")

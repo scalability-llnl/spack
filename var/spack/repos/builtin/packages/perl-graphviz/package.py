@@ -18,17 +18,10 @@ class PerlGraphviz(PerlPackage):
 
     version("2.26", sha256="9a5d2520b3262bf30475272dd764a445f8e7f931bef88be0e3d3bff445da7328")
 
+    depends_on("graphviz", type=("build", "run", "test"))
     depends_on("perl-file-which@1.09:", type=("build", "run", "test"))
     depends_on("perl-ipc-run@0.6:", type=("build", "run", "test"))
     depends_on("perl-libwww-perl", type=("build", "run", "test"))
     depends_on("perl-parse-recdescent@1.965001:", type=("build", "run", "test"))
     depends_on("perl-xml-twig@3.52:", type=("build", "run", "test"))
     depends_on("perl-xml-xpath@1.13:", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use GraphViz; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

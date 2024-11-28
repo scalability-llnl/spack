@@ -17,11 +17,3 @@ class PerlAnyUriEscape(PerlPackage):
     version("0.01", sha256="e3813cec9f108fa5c0be66e08c1986bfba4d242151b0f9f4ec5e0c5e17108c4c")
 
     depends_on("perl-uri", type=("run"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Any::URI::Escape; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

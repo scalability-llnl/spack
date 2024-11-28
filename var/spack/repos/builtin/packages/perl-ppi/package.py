@@ -26,11 +26,3 @@ class PerlPpi(PerlPackage):
     depends_on("perl-test-nowarnings", type=("build", "test"))
     depends_on("perl-test-object@0.07:", type=("build", "test"))
     depends_on("perl-test-subcalls@1.07:", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use PPI; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

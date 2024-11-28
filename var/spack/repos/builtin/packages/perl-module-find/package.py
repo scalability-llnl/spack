@@ -19,11 +19,3 @@ class PerlModuleFind(PerlPackage):
     version("0.16", sha256="4bcaaa376915014728d4f533a98c5b59d665051cd3cdbafc960e5a66fd131092")
 
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Module::Find; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

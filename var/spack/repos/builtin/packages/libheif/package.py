@@ -16,4 +16,7 @@ class Libheif(CMakePackage):
 
     version("1.12.0", sha256="086145b0d990182a033b0011caadb1b642da84f39ab83aa66d005610650b3c65")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.13:", type="build")

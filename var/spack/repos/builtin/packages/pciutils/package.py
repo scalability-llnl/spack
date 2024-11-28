@@ -18,6 +18,8 @@ class Pciutils(MakefilePackage):
     version("3.6.4", sha256="551d0ac33f030868b7e95c29e58dc2b1882455dbc9c15c15adf7086e664131f1")
     version("3.6.3", sha256="7ab0fbb35cffa326eb852539260562bac14f3d27cda8c70bc2cf3211ed97c014")
 
+    depends_on("c", type="build")  # generated
+
     variant("lib", default=False, description="Install libraries with headers")
 
     def build(self, spec, prefix):

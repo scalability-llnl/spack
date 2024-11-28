@@ -17,11 +17,3 @@ class PerlMockConfig(PerlPackage):
     version("0.03", sha256="a5b8345757ca4f2b9335f5be14e93ebbb502865233a755bf53bc7156deec001b")
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Mock::Config; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

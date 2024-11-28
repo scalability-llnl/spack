@@ -19,11 +19,3 @@ class PerlHashMoreutils(PerlPackage):
     version("0.06", sha256="db9a8fb867d50753c380889a5e54075651b5e08c9b3b721cb7220c0883547de8")
 
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Hash::MoreUtils; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

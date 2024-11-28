@@ -18,6 +18,9 @@ class Cvs(AutotoolsPackage, GNUMirrorPackage):
 
     version("1.12.13", sha256="78853613b9a6873a30e1cc2417f738c330e75f887afdaf7b3d0800cb19ca515e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # To avoid the problem: The use of %n in format strings in writable memory
     # may crash the program on glibc2 systems from 2004-10-18 or newer.
     patch(

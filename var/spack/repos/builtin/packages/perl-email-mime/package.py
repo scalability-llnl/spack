@@ -26,11 +26,3 @@ class PerlEmailMime(PerlPackage):
     depends_on("perl-email-simple@2.212:", type=("build", "run", "test"))
     depends_on("perl-mime-types@1.13:", type=("build", "run", "test"))
     depends_on("perl-module-runtime", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Email::MIME; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

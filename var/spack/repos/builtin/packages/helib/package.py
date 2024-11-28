@@ -39,6 +39,9 @@ class Helib(CMakePackage):
     version("1.1.0", sha256="77a912ed3c86f8bde31b7d476321d0c2d810570c04a60fa95c4bd32a1955b5cf")
     version("1.0.2", sha256="b907eaa8381af3d001d7fb8383273f4c652415b3320c11d5be2ad8f19757c998")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=False, description="Build shared library.")
     depends_on("gmp@6.2.1:")
     depends_on("ntl@11.5.1:")

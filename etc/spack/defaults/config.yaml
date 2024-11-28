@@ -101,18 +101,18 @@ config:
   verify_ssl: true
 
 
+  # This is where custom certs for proxy/firewall are stored.
+  # It can be a path or environment variable. To match ssl env configuration
+  # the default is the environment variable SSL_CERT_FILE
+  ssl_certs: $SSL_CERT_FILE
+
+
   # Suppress gpg warnings from binary package verification
   # Only suppresses warnings, gpg failure will still fail the install
   # Potential rationale to set True: users have already explicitly trusted the
   # gpg key they are using, and may not want to see repeated warnings that it
   # is self-signed or something of the sort.
   suppress_gpg_warnings: false
-
-
-  # If set to true, Spack will attempt to build any compiler on the spec
-  # that is not already available. If set to False, Spack will only use
-  # compilers already configured in compilers.yaml
-  install_missing_compilers: false
 
 
   # If set to true, Spack will always check checksums after downloading
@@ -163,23 +163,6 @@ config:
 
   # If set to true, Spack will use ccache to cache C compiles.
   ccache: false
-
-
-  # The concretization algorithm to use in Spack. Options are:
-  #
-  #   'clingo': Uses a logic solver under the hood to solve DAGs with full
-  #       backtracking and optimization for user preferences. Spack will
-  #       try to bootstrap the logic solver, if not already available.
-  #
-  #   'original': Spack's original greedy, fixed-point concretizer. This
-  #       algorithm can make decisions too early and will not backtrack
-  #       sufficiently for many specs. This will soon be deprecated in
-  #       favor of clingo.
-  #
-  # See `concretizer.yaml` for more settings you can fine-tune when
-  # using clingo.
-  concretizer: clingo
-
 
   # How long to wait to lock the Spack installation database. This lock is used
   # when Spack needs to manage its own package metadata and all operations are

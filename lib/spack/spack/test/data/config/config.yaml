@@ -1,6 +1,6 @@
 config:
   install_tree:
-    root: $spack/opt/spack
+    root: {0}
   template_dirs:
   - $spack/share/spack/templates
   - $spack/lib/spack/spack/test/data/templates
@@ -10,7 +10,7 @@ config:
   source_cache: $user_cache_path/source
   misc_cache: $user_cache_path/cache
   verify_ssl: true
+  ssl_certs: $SSL_CERT_FILE
   checksum: true
   dirty: false
-  concretizer: {0}
   locks: {1}

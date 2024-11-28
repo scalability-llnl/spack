@@ -19,11 +19,3 @@ class PerlClonePp(PerlPackage):
     version("1.08", sha256="57203094a5d8574b6a00951e8f2399b666f4e74f9511d9c9fb5b453d5d11f578")
 
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Clone::PP; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

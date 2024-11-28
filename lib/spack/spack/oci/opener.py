@@ -22,7 +22,6 @@ import llnl.util.lang
 import spack.config
 import spack.mirror
 import spack.parser
-import spack.repo
 import spack.util.web
 
 from .image import ImageReference
@@ -378,9 +377,10 @@ def credentials_from_mirrors(
         # Prefer push credentials over fetch. Unlikely that those are different
         # but our config format allows it.
         for direction in ("push", "fetch"):
-            pair = mirror.get_access_pair(direction)
-            if pair is None:
+            pair = mirror.get_credentials(direction).get("access_pair")
+            if not pair:
                 continue
+
             url = mirror.get_url(direction)
             if not url.startswith("oci://"):
                 continue
@@ -398,7 +398,7 @@ def create_opener():
     opener = urllib.request.OpenerDirector()
     for handler in [
         urllib.request.UnknownHandler(),
-        urllib.request.HTTPSHandler(),
+        urllib.request.HTTPSHandler(context=spack.util.web.ssl_create_default_context()),
         spack.util.web.SpackHTTPDefaultErrorHandler(),
         urllib.request.HTTPRedirectHandler(),
         urllib.request.HTTPErrorProcessor(),
@@ -418,18 +418,27 @@ def ensure_status(request: urllib.request.Request, response: HTTPResponse, statu
     )
 
 
-def default_retry(f, retries: int = 3, sleep=None):
+def default_retry(f, retries: int = 5, sleep=None):
     sleep = sleep or time.sleep
 
     def wrapper(*args, **kwargs):
         for i in range(retries):
             try:
                 return f(*args, **kwargs)
-            except urllib.error.HTTPError as e:
+            except (urllib.error.URLError, TimeoutError) as e:
                 # Retry on internal server errors, and rate limit errors
                 # Potentially this could take into account the Retry-After header
                 # if registries support it
-                if i + 1 != retries and (500 <= e.code < 600 or e.code == 429):
+                if i + 1 != retries and (
+                    (
+                        isinstance(e, urllib.error.HTTPError)
+                        and (500 <= e.code < 600 or e.code == 429)
+                    )
+                    or (
+                        isinstance(e, urllib.error.URLError) and isinstance(e.reason, TimeoutError)
+                    )
+                    or isinstance(e, TimeoutError)
+                ):
                     # Exponential backoff
                     sleep(2**i)
                     continue

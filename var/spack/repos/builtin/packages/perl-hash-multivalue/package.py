@@ -19,11 +19,3 @@ class PerlHashMultivalue(PerlPackage):
     version("0.16", sha256="66181df7aa68e2786faf6895c88b18b95c800a8e4e6fb4c07fd176410a3c73f4")
 
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Hash::MultiValue; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

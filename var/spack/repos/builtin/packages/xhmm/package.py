@@ -17,6 +17,9 @@ class Xhmm(MakefilePackage):
 
     version("20160104", commit="cc14e528d90932f059ac4fe94e869e81221fd732")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("lapack")
 
     def edit(self, spec, prefix):

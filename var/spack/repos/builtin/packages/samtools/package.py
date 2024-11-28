@@ -44,6 +44,9 @@ class Samtools(Package):
         url="https://github.com/samtools/samtools/archive/0.1.8.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
     depends_on("ncurses")
     depends_on("perl", type="run")

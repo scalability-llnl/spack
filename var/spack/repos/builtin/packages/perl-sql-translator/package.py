@@ -33,11 +33,3 @@ class PerlSqlTranslator(PerlPackage):
     depends_on("perl-try-tiny@0.04:", type=("build", "run", "test"))
     depends_on("perl-xml-writer@0.500:", type=("build", "test"))
     depends_on("perl-yaml@0.66:", type=("build", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use SQL::Translator; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

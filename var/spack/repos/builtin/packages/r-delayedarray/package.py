@@ -31,6 +31,8 @@ class RDelayedarray(RPackage):
     version("0.4.1", commit="ffe932ef8c255614340e4856fc6e0b44128a27a1")
     version("0.2.7", commit="909c2ce1665ebae2543172ead50abbe10bd42bc4")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@0.20.0:")
     depends_on("r-matrix", type=("build", "run"), when="@0.10.0:")

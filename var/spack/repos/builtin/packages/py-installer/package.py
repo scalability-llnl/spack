@@ -17,16 +17,8 @@ class PyInstaller(Package, PythonExtension):
     )
     list_url = "https://pypi.org/simple/installer/"
 
-    version(
-        "0.7.0",
-        sha256="05d1933f0a5ba7d8d6296bb6d5018e7c94fa473ceb10cf198a92ccea19c27b53",
-        expand=False,
-    )
-    version(
-        "0.6.0",
-        sha256="ae7c62d1d6158b5c096419102ad0d01fdccebf857e784cee57f94165635fe038",
-        expand=False,
-    )
+    version("0.7.0", sha256="05d1933f0a5ba7d8d6296bb6d5018e7c94fa473ceb10cf198a92ccea19c27b53")
+    version("0.6.0", sha256="ae7c62d1d6158b5c096419102ad0d01fdccebf857e784cee57f94165635fe038")
 
     extends("python")
 
@@ -44,6 +36,4 @@ class PyInstaller(Package, PythonExtension):
         python(*args)
 
     def setup_dependent_package(self, module, dependent_spec):
-        installer = dependent_spec["python"].command
-        installer.add_default_arg("-m", "installer")
-        setattr(module, "installer", installer)
+        setattr(module, "installer", python.with_default_args("-m", "installer"))

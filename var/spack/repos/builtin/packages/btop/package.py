@@ -22,6 +22,8 @@ class Btop(MakefilePackage, CMakePackage):
     version("1.3.0", sha256="375e078ce2091969f0cd14030620bd1a94987451cf7a73859127a786006a32cf")
     version("1.2.13", sha256="668dc4782432564c35ad0d32748f972248cc5c5448c9009faeb3445282920e02")
 
+    depends_on("cxx", type="build")  # generated
+
     build_system("makefile", conditional("cmake", when="@1.3.0:"), default="cmake")
 
     variant("gpu", default=False, description="Enable GPU support", when="build_system=cmake")

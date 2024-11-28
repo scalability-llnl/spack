@@ -24,11 +24,3 @@ class PerlTestXmlSimple(PerlPackage):
     # The test suite from upstream is failing, so we just skip the tests
     def check(self):
         pass
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Test::XML::Simple; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out

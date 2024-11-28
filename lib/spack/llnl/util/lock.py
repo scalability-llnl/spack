@@ -815,10 +815,6 @@ class LockDowngradeError(LockError):
         super().__init__(msg)
 
 
-class LockLimitError(LockError):
-    """Raised when exceed maximum attempts to acquire a lock."""
-
-
 class LockTimeoutError(LockError):
     """Raised when an attempt to acquire a lock times out."""
 

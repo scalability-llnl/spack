@@ -23,7 +23,9 @@ class Libsigsegv(AutotoolsPackage, GNUMirrorPackage):
     version("2.11", sha256="dd7c2eb2ef6c47189406d562c1dc0f96f2fc808036834d596075d58377e37a18")
     version("2.10", sha256="8460a4a3dd4954c3d96d7a4f5dd5bc4d9b76f5754196aa245287553b26d2199a")
 
-    patch("patch.new_config_guess", when="@2.10")
+    depends_on("c", type="build")  # generated
+
+    patch("new_config_guess.patch", when="@2.10")
 
     def configure_args(self):
         return ["--enable-shared"]
@@ -34,7 +36,7 @@ class Libsigsegv(AutotoolsPackage, GNUMirrorPackage):
     def setup_tests(self):
         """Copy the build test files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(self.extra_install_tests)
+        cache_extra_test_sources(self, self.extra_install_tests)
 
     def test_smoke_test(self):
         """build and run smoke test"""

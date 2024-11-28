@@ -9,10 +9,12 @@ from spack.package import *
 class Xphelloworld(AutotoolsPackage, XorgPackage):
     """Xprint sample applications."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/app/xphelloworld"
+    homepage = "https://gitlab.freedesktop.org/xorg/app/xphelloworld"
     xorg_mirror_path = "app/xphelloworld-1.0.1.tar.gz"
 
     version("1.0.1", sha256="ead6437c4dc9540698a41e174c9d1ac792de07baeead81935d72cb123196f866")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libx11")
     depends_on("libxaw")

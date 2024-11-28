@@ -17,6 +17,8 @@ class PyFaststructure(PythonPackage):
 
     version("1.0", sha256="f1bfb24bb5ecd108bc3a90145fad232012165c1e60608003f1c87d200f867b81")
 
+    depends_on("c", type="build")  # generated
+
     # pip silently replaces distutils with setuptools
     depends_on("py-setuptools", type="build")
     depends_on("py-cython", type="build")

@@ -22,6 +22,8 @@ class Wrk(MakefilePackage):
     version("4.0.0", sha256="8fa8fb05f4663d03c1ca7804367eb602882f9630441bd56e8e9aaf3a2bd26067")
     version("3.1.2", sha256="da88a25f0eeb9e1fd6a9dcf4a96859e9e758f9446f0787cf7c95e4ccde14eefc")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install("wrk", prefix.bin)

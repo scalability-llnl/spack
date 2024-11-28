@@ -1,0 +1,14 @@
+diff --git a/syscall.c b/syscall.c
+index 63b3e53..5b354c4 100644
+--- a/syscall.c
++++ b/syscall.c
+@@ -141,7 +141,7 @@
+ 
+ #if !defined(__NR_set_mempolicy_home_node)
+ 
+-#if defined(__x86_64__) || defined(__aarch64__)
++#if defined(__x86_64__) || defined(__aarch64__) || defined(__PPC64__)
+ #define __NR_set_mempolicy_home_node 450
+ #else
+ #error "Add syscalls for your architecture or update kernel headers"
+ 

@@ -53,6 +53,7 @@ def setup_parser(subparser):
         "-S", "--stages", action="store_true", help="top level stage directory"
     )
     directories.add_argument(
+        "-c",
         "--source-dir",
         action="store_true",
         help="source directory for a spec (requires it to be staged first)",

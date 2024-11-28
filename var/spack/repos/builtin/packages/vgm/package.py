@@ -33,6 +33,8 @@ class Vgm(CMakePackage):
     version("4-00", sha256="c24de76f919dca7c92b3c9fce7a39142c6e61fd39f691d2e4df15fe413b5190d")
     version("3-06", sha256="41948869f2e4dcfa31f4bad42b938c25dd174660c427feb2f9effa9af5e59c7d")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.8:", type="build")
     depends_on("clhep")
     depends_on("root")

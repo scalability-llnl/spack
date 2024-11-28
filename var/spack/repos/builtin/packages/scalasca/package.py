@@ -28,6 +28,9 @@ class Scalasca(AutotoolsPackage):
     version("2.2.2", sha256="909567ca294366119bbcb7e8122b94f43982cbb328e18c6f6ce7a722d72cd6d4")
     version("2.1", sha256="fefe43f10becf7893863380546c80ac8db171a3b1ebf97d0258602667572c2fc")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")
 
     # version 2.6.1+

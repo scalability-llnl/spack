@@ -21,11 +21,3 @@ class PerlAlienBuildPluginDownloadGitlab(PerlPackage):
     depends_on("perl-path-tiny", type=("build", "run", "test"))
     depends_on("perl-test2-suite", type=("build", "test"))
     depends_on("perl-uri", type=("build", "run", "test"))
-
-    def test_use(self):
-        """Test 'use module'"""
-        options = ["-we", 'use strict; use Alien::Build::Plugin::Download::GitLab; print("OK\n")']
-
-        perl = self.spec["perl"].command
-        out = perl(*options, output=str.split, error=str.split)
-        assert "OK" in out
