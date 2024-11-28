@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import hashlib
-from typing import BinaryIO, Callable, Dict, Optional
+import os
+from typing import Callable, Dict, Optional
 
 import llnl.util.tty as tty
 
@@ -80,20 +81,24 @@ def hash_fun_for_digest(hexdigest: str) -> HashFactory:
     return hash_fun_for_algo(hash_algo_for_digest(hexdigest))
 
 
-def checksum_stream(hashlib_algo: HashFactory, fp: BinaryIO, *, block_size: int = 2**20) -> str:
+def checksum_stream(hashlib_algo: HashFactory, fp, *, block_size: int = 2**20) -> str:
     """Returns a hex digest of the stream generated using given algorithm from hashlib."""
     hasher = hashlib_algo()
-    while True:
-        data = fp.read(block_size)
-        if not data:
-            break
-        hasher.update(data)
+    with memoryview(bytearray(block_size)) as view:
+        while True:
+            n = fp.readinto(view)
+            if n == block_size:
+                hasher.update(view)
+            else:
+                hasher.update(view[:n])
+                break
     return hasher.hexdigest()
 
 
 def checksum(hashlib_algo: HashFactory, filename: str, *, block_size: int = 2**20) -> str:
     """Returns a hex digest of the filename generated using an algorithm from hashlib."""
     with open(filename, "rb") as f:
+        block_size = min(block_size, os.fstat(f.fileno()).st_size)
         return checksum_stream(hashlib_algo, f, block_size=block_size)
 
 
