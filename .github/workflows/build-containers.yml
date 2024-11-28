@@ -57,6 +57,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
+      - name: Determine latest release tag
+        id: latest
+        run: |
+          git fetch --quiet --tags
+          echo "tag=$(git tag --list --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)" | tee -a $GITHUB_OUTPUT
+
       - uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96
         id: docker_meta
         with:
@@ -71,6 +77,7 @@ jobs:
               type=semver,pattern={{major}}
               type=ref,event=branch
               type=ref,event=pr
+              type=raw,value=latest,enable=${{ github.ref == format('refs/tags/{0}', steps.latest.outputs.tag) }}
 
       - name: Generate the Dockerfile
         env:
@@ -113,7 +120,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & Deploy ${{ matrix.dockerfile[0] }}
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355
         with:
           context: dockerfiles/${{ matrix.dockerfile[0] }}
           platforms: ${{ matrix.dockerfile[1] }}
