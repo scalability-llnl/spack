@@ -2848,12 +2848,13 @@ def edit_in_place_through_temporary_file(file_path: str) -> Generator[str, None,
     tmp_fd, tmp_path = tempfile.mkstemp(
         dir=os.path.dirname(file_path), prefix=f"{os.path.basename(file_path)}."
     )
+    # windows cannot replace a file with open fds, so close since the call site needs to replace.
+    os.close(tmp_fd)
     try:
         shutil.copyfile(file_path, tmp_path, follow_symlinks=True)
         yield tmp_path
         shutil.copyfile(tmp_path, file_path, follow_symlinks=True)
     finally:
-        os.close(tmp_fd)
         os.unlink(tmp_path)
 
 
