@@ -63,27 +63,27 @@ class VersionStrComponent:
     def __repr__(self) -> str:
         return f'VersionStrComponent("{self}")'
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, VersionStrComponent) and self.data == other.data
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: object) -> bool:
         lhs_inf = isinstance(self.data, int)
         if isinstance(other, int):
             return not lhs_inf
         rhs_inf = isinstance(other.data, int)
         return (not lhs_inf and rhs_inf) if lhs_inf ^ rhs_inf else self.data < other.data
 
-    def __le__(self, other) -> bool:
+    def __le__(self, other: object) -> bool:
         return self < other or self == other
 
-    def __gt__(self, other) -> bool:
+    def __gt__(self, other: object) -> bool:
         lhs_inf = isinstance(self.data, int)
         if isinstance(other, int):
             return lhs_inf
         rhs_inf = isinstance(other.data, int)
         return (lhs_inf and not rhs_inf) if lhs_inf ^ rhs_inf else self.data > other.data
 
-    def __ge__(self, other) -> bool:
+    def __ge__(self, other: object) -> bool:
         return self > other or self == other
 
 
@@ -155,19 +155,19 @@ class VersionType:
 
     # We can use SupportsRichComparisonT in Python 3.8 or later, but alas in 3.6 we need
     # to write all the operators out
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         raise NotImplementedError
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: object) -> bool:
         raise NotImplementedError
 
-    def __gt__(self, other) -> bool:
+    def __gt__(self, other: object) -> bool:
         raise NotImplementedError
 
-    def __ge__(self, other) -> bool:
+    def __ge__(self, other: object) -> bool:
         raise NotImplementedError
 
-    def __le__(self, other) -> bool:
+    def __le__(self, other: object) -> bool:
         raise NotImplementedError
 
     def __hash__(self) -> int:
@@ -209,23 +209,23 @@ class StandardVersion(ConcreteVersion):
         return _STANDARD_VERSION_TYPEMIN
 
     @staticmethod
-    def typemax():
+    def typemax() -> "StandardVersion":
         return _STANDARD_VERSION_TYPEMAX
 
     def __bool__(self) -> bool:
         return True
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, StandardVersion):
             return self.version == other.version
         return False
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: object) -> bool:
         if isinstance(other, StandardVersion):
             return self.version != other.version
         return True
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: object) -> bool:
         if isinstance(other, StandardVersion):
             return self.version < other.version
         if isinstance(other, ClosedOpenRange):
@@ -233,7 +233,7 @@ class StandardVersion(ConcreteVersion):
             return self <= other.lo
         return NotImplemented
 
-    def __le__(self, other) -> bool:
+    def __le__(self, other: object) -> bool:
         if isinstance(other, StandardVersion):
             return self.version <= other.version
         if isinstance(other, ClosedOpenRange):
@@ -241,7 +241,7 @@ class StandardVersion(ConcreteVersion):
             return self <= other.lo
         return NotImplemented
 
-    def __ge__(self, other) -> bool:
+    def __ge__(self, other: object) -> bool:
         if isinstance(other, StandardVersion):
             return self.version >= other.version
         if isinstance(other, ClosedOpenRange):
@@ -249,7 +249,7 @@ class StandardVersion(ConcreteVersion):
             return self > other.lo
         return NotImplemented
 
-    def __gt__(self, other) -> bool:
+    def __gt__(self, other: object) -> bool:
         if isinstance(other, StandardVersion):
             return self.version > other.version
         if isinstance(other, ClosedOpenRange):
@@ -304,7 +304,7 @@ class StandardVersion(ConcreteVersion):
         # rhs-set. Instead this function also does subset checks.
         if isinstance(lhs, VersionType):
             return lhs.satisfies(rhs)
-        raise TypeError(lhs)
+        raise TypeError(f"'in' not supported for instances of {type(lhs)}")
 
     def intersects(self, other: VersionType) -> bool:
         if isinstance(other, StandardVersion):
@@ -324,7 +324,7 @@ class StandardVersion(ConcreteVersion):
         if isinstance(other, VersionList):
             return other.intersects(self)
 
-        return NotImplemented
+        raise NotImplementedError
 
     def union(self, other: VersionType) -> VersionType:
         if isinstance(other, StandardVersion):
@@ -545,7 +545,7 @@ class GitVersion(ConcreteVersion):
             return self.ref_version.intersects(other)
         if isinstance(other, VersionList):
             return any(self.intersects(rhs) for rhs in other)
-        raise ValueError(f"Unexpected type {type(other)}")
+        raise TypeError(f"'intersects()' not supported for instances of {type(other)}")
 
     def intersection(self, other: VersionType) -> VersionType:
         if isinstance(other, ConcreteVersion):
@@ -562,7 +562,7 @@ class GitVersion(ConcreteVersion):
             return self.ref_version.satisfies(other)
         if isinstance(other, VersionList):
             return any(self.satisfies(rhs) for rhs in other)
-        raise ValueError(f"Unexpected type {type(other)}")
+        raise TypeError(f"'satisfies()' not supported for instances of {type(other)}")
 
     def __str__(self) -> str:
         s = f"git.{self.ref}" if self.has_git_prefix else self.ref
@@ -582,7 +582,7 @@ class GitVersion(ConcreteVersion):
     def __bool__(self):
         return True
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         # GitVersion cannot be equal to StandardVersion, otherwise == is not transitive
         return (
             isinstance(other, GitVersion)
@@ -590,10 +590,10 @@ class GitVersion(ConcreteVersion):
             and self.ref_version == other.ref_version
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
         if isinstance(other, GitVersion):
             return (self.ref_version, self.ref) < (other.ref_version, other.ref)
         if isinstance(other, StandardVersion):
@@ -601,9 +601,9 @@ class GitVersion(ConcreteVersion):
             return self.ref_version < other
         if isinstance(other, ClosedOpenRange):
             return self.ref_version < other
-        raise ValueError(f"Unexpected type {type(other)}")
+        raise TypeError(f"'<' not supported between instances of {type(self)} and {type(other)}")
 
-    def __le__(self, other):
+    def __le__(self, other: object) -> bool:
         if isinstance(other, GitVersion):
             return (self.ref_version, self.ref) <= (other.ref_version, other.ref)
         if isinstance(other, StandardVersion):
@@ -612,9 +612,9 @@ class GitVersion(ConcreteVersion):
         if isinstance(other, ClosedOpenRange):
             # Equality is not a thing
             return self.ref_version < other
-        raise ValueError(f"Unexpected type {type(other)}")
+        raise TypeError(f"'<=' not supported between instances of {type(self)} and {type(other)}")
 
-    def __ge__(self, other):
+    def __ge__(self, other: object) -> bool:
         if isinstance(other, GitVersion):
             return (self.ref_version, self.ref) >= (other.ref_version, other.ref)
         if isinstance(other, StandardVersion):
@@ -622,9 +622,9 @@ class GitVersion(ConcreteVersion):
             return self.ref_version >= other
         if isinstance(other, ClosedOpenRange):
             return self.ref_version > other
-        raise ValueError(f"Unexpected type {type(other)}")
+        raise TypeError(f"'>=' not supported between instances of {type(self)} and {type(other)}")
 
-    def __gt__(self, other):
+    def __gt__(self, other: object) -> bool:
         if isinstance(other, GitVersion):
             return (self.ref_version, self.ref) > (other.ref_version, other.ref)
         if isinstance(other, StandardVersion):
@@ -632,14 +632,14 @@ class GitVersion(ConcreteVersion):
             return self.ref_version >= other
         if isinstance(other, ClosedOpenRange):
             return self.ref_version > other
-        raise ValueError(f"Unexpected type {type(other)}")
+        raise TypeError(f"'>' not supported between instances of {type(self)} and {type(other)}")
 
     def __hash__(self):
         # hashing should not cause version lookup
         return hash(self.ref)
 
-    def __contains__(self, other):
-        raise Exception("Not implemented yet")
+    def __contains__(self, other: object) -> bool:
+        raise NotImplementedError
 
     @property
     def ref_lookup(self):
@@ -774,7 +774,7 @@ class ClosedOpenRange(VersionType):
     def __contains__(rhs, lhs):
         if isinstance(lhs, (ConcreteVersion, ClosedOpenRange, VersionList)):
             return lhs.satisfies(rhs)
-        raise ValueError(f"Unexpected type {type(lhs)}")
+        raise TypeError(f"'in' not supported between instances of {type(rhs)} and {type(lhs)}")
 
     def intersects(self, other: VersionType) -> bool:
         if isinstance(other, StandardVersion):
@@ -785,7 +785,7 @@ class ClosedOpenRange(VersionType):
             return (self.lo < other.hi) and (other.lo < self.hi)
         if isinstance(other, VersionList):
             return any(self.intersects(rhs) for rhs in other)
-        raise ValueError(f"Unexpected type {type(other)}")
+        raise TypeError(f"'intersects' not supported for instances of {type(other)}")
 
     def satisfies(self, other: VersionType) -> bool:
         if isinstance(other, ConcreteVersion):
@@ -794,7 +794,7 @@ class ClosedOpenRange(VersionType):
             return not (self.lo < other.lo or other.hi < self.hi)
         if isinstance(other, VersionList):
             return any(self.satisfies(rhs) for rhs in other)
-        raise ValueError(other)
+        raise TypeError(f"'satisfies()' not supported for instances of {type(other)}")
 
     def _union_if_not_disjoint(self, other: VersionType) -> Optional["ClosedOpenRange"]:
         """Same as union, but returns None when the union is not connected. This function is not
@@ -813,7 +813,7 @@ class ClosedOpenRange(VersionType):
                 else None
             )
 
-        raise TypeError(f"Unexpected type {type(other)}")
+        raise TypeError(f"'union()' not supported for instances of {type(other)}")
 
     def union(self, other: VersionType) -> VersionType:
         if isinstance(other, VersionList):
@@ -835,7 +835,7 @@ class ClosedOpenRange(VersionType):
         if isinstance(other, ConcreteVersion):
             return other if self.intersects(other) else VersionList()
 
-        raise TypeError(f"Unexpected type {type(other)}")
+        raise TypeError(f"'intersection()' not supported for instances of {type(other)}")
 
 
 class VersionList(VersionType):
@@ -957,7 +957,7 @@ class VersionList(VersionType):
         if isinstance(other, (ConcreteVersion, ClosedOpenRange)):
             return all(lhs.satisfies(other) for lhs in self)
 
-        raise ValueError(f"Unsupported type {type(other)}")
+        raise TypeError(f"'satisfies()' not supported for instances of {type(other)}")
 
     def intersects(self, other: VersionType) -> bool:
         if isinstance(other, VersionList):
@@ -974,7 +974,7 @@ class VersionList(VersionType):
         if isinstance(other, (ClosedOpenRange, StandardVersion)):
             return any(v.intersects(other) for v in self)
 
-        raise ValueError(f"Unsupported type {type(other)}")
+        raise TypeError(f"'intersects()' not supported for instances of {type(other)}")
 
     def to_dict(self) -> Dict:
         """Generate human-readable dict for YAML."""
@@ -1201,7 +1201,7 @@ def _prev_version(v: StandardVersion) -> StandardVersion:
 
 def Version(string: Union[str, int]) -> ConcreteVersion:
     if not isinstance(string, (str, int)):
-        raise ValueError(f"Cannot construct a version from {type(string)}")
+        raise TypeError(f"Cannot construct a version from {type(string)}")
     string = str(string)
     if is_git_version(string):
         return GitVersion(string)
