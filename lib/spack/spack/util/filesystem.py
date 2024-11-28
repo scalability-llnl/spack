@@ -13,7 +13,7 @@ import os
 import sys
 
 from llnl.util import tty
-from llnl.util.filesystem import join_path
+from llnl.util.filesystem import edit_in_place_through_temporary_file
 from llnl.util.lang import memoized
 
 from spack.util.executable import Executable, which
@@ -81,12 +81,11 @@ def fix_darwin_install_name(path):
     Parameters:
         path (str): directory in which .dylib files are located
     """
-    libs = glob.glob(join_path(path, "*.dylib"))
+    libs = glob.glob(os.path.join(path, "*.dylib"))
+    install_name_tool = Executable("install_name_tool")
+    otool = Executable("otool")
     for lib in libs:
-        # fix install name first:
-        install_name_tool = Executable("install_name_tool")
-        install_name_tool("-id", lib, lib)
-        otool = Executable("otool")
+        args = ["-id", lib]
         long_deps = otool("-L", lib, output=str).split("\n")
         deps = [dep.partition(" ")[0][1::] for dep in long_deps[2:-1]]
         # fix all dependencies:
@@ -98,5 +97,8 @@ def fix_darwin_install_name(path):
                 # but we don't know builddir (nor how symbolic links look
                 # in builddir). We thus only compare the basenames.
                 if os.path.basename(dep) == os.path.basename(loc):
-                    install_name_tool("-change", dep, loc, lib)
+                    args.extend(("-change", dep, loc))
                     break
+
+        with edit_in_place_through_temporary_file(lib) as tmp:
+            install_name_tool(*args, tmp)

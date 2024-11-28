@@ -13,6 +13,7 @@ from typing import List, Optional
 import macholib.mach_o
 import macholib.MachO
 
+import llnl.util.filesystem as fs
 import llnl.util.lang
 import llnl.util.tty as tty
 from llnl.util.lang import memoized
@@ -275,10 +276,10 @@ def modify_macho_object(cur_path, rpaths, deps, idpath, paths_to_paths):
 
     # Deduplicate and flatten
     args = list(itertools.chain.from_iterable(llnl.util.lang.dedupe(args)))
+    install_name_tool = executable.Executable("install_name_tool")
     if args:
-        args.append(str(cur_path))
-        install_name_tool = executable.Executable("install_name_tool")
-        install_name_tool(*args)
+        with fs.edit_in_place_through_temporary_file(cur_path) as temp_path:
+            install_name_tool(*args, temp_path)
 
 
 def macholib_get_paths(cur_path):
@@ -717,8 +718,8 @@ def fixup_macos_rpath(root, filename):
         # No fixes needed
         return False
 
-    args.append(abspath)
-    executable.Executable("install_name_tool")(*args)
+    with fs.edit_in_place_through_temporary_file(abspath) as temp_path:
+        executable.Executable("install_name_tool")(*args, temp_path)
     return True
 
 
