@@ -42,7 +42,6 @@ class Fpm(Package):
     depends_on("git@1.8.5:", type="build")
 
     depends_on("c", type="build")
-    depends_on("cxx", type="build")
     depends_on("fortran", type="build")
 
     def setup_build_environment(self, env):
