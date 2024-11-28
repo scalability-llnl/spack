@@ -79,7 +79,6 @@ class TclModulefileWriter(BaseModuleFileWriter):
     """Writer class for tcl module files."""
 
     default_template = "modules/modulefile.tcl"
+    modulerc_template = "modules/modulerc.tcl"
 
-    modulerc_header = ["#%Module4.7"]
-
-    hide_cmd_format = "module-hide --soft --hidden-loaded %s"
+    hide_cmd_regexp = r"module-hide --soft --hidden-loaded (\S*)"

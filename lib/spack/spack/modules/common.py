@@ -35,7 +35,7 @@ import inspect
 import os.path
 import re
 import string
-from typing import List, Optional
+from typing import Optional
 
 import llnl.util.filesystem
 import llnl.util.tty as tty
@@ -767,8 +767,8 @@ class BaseContext(tengine.Context):
 
 class BaseModuleFileWriter:
     default_template: str
-    hide_cmd_format: str
-    modulerc_header: List[str]
+    modulerc_template: str
+    hide_cmd_regexp: str
 
     def __init__(
         self, spec: spack.spec.Spec, module_set_name: str, explicit: Optional[bool] = None
@@ -796,25 +796,25 @@ class BaseModuleFileWriter:
             name = type(self).__name__
             raise DefaultTemplateNotDefined(msg.format(name))
 
+        # Check if a modulerc template has been defined,
+        # throw if not found
+        try:
+            self.modulerc_template
+        except AttributeError:
+            msg = "'{0}' object has no attribute 'modulerc_template'\n"
+            msg += "Did you forget to define it in the class?"
+            name = type(self).__name__
+            raise ModulercTemplateNotDefined(msg.format(name))
+
         # Check if format for module hide command has been defined,
         # throw if not found
         try:
-            self.hide_cmd_format
+            self.hide_cmd_regexp
         except AttributeError:
-            msg = "'{0}' object has no attribute 'hide_cmd_format'\n"
+            msg = "'{0}' object has no attribute 'hide_cmd_regexp'\n"
             msg += "Did you forget to define it in the class?"
             name = type(self).__name__
-            raise HideCmdFormatNotDefined(msg.format(name))
-
-        # Check if modulerc header content has been defined,
-        # throw if not found
-        try:
-            self.modulerc_header
-        except AttributeError:
-            msg = "'{0}' object has no attribute 'modulerc_header'\n"
-            msg += "Did you forget to define it in the class?"
-            name = type(self).__name__
-            raise ModulercHeaderNotDefined(msg.format(name))
+            raise HideCmdRegexpNotDefined(msg.format(name))
 
     def _get_template(self):
         """Gets the template that will be rendered for this spec."""
@@ -932,50 +932,58 @@ class BaseModuleFileWriter:
                 removed from modulerc.
         """
         modulerc_path = self.layout.modulerc
-        hide_module_cmd = self.hide_cmd_format % self.layout.use_name
         hidden = self.conf.hidden and not remove
         modulerc_exists = os.path.exists(modulerc_path)
         updated = False
 
         if modulerc_exists:
-            # retrieve modulerc content
+            # get already hidden modules from modulerc content
             with open(modulerc_path) as f:
-                content = f.readlines()
-                content = "".join(content).split("\n")
-                # remove last empty item if any
-                if len(content[-1]) == 0:
-                    del content[-1]
-            already_hidden = hide_module_cmd in content
+                hidden_modules = re.findall(self.hide_cmd_regexp, f.read())
+            already_hidden = self.layout.use_name in hidden_modules
 
-            # remove hide command if module not hidden
+            # remove not hidden anymore module
             if already_hidden and not hidden:
-                content.remove(hide_module_cmd)
+                hidden_modules.remove(self.layout.use_name)
                 updated = True
-
-            # add hide command if module is hidden
+            # add hidden module
             elif not already_hidden and hidden:
-                if len(content) == 0:
-                    content = self.modulerc_header.copy()
-                content.append(hide_module_cmd)
+                hidden_modules.append(self.layout.use_name)
                 updated = True
         else:
-            content = self.modulerc_header.copy()
+            hidden_modules = []
             if hidden:
-                content.append(hide_module_cmd)
+                hidden_modules.append(self.layout.use_name)
                 updated = True
 
         # no modulerc file change if no content update
         if updated:
-            is_empty = content == self.modulerc_header or len(content) == 0
             # remove existing modulerc if empty
-            if modulerc_exists and is_empty:
+            if modulerc_exists and len(hidden_modules) == 0:
                 os.remove(modulerc_path)
             # create or update modulerc
-            elif content != self.modulerc_header:
-                # ensure file ends with a newline character
-                content.append("")
+            elif len(hidden_modules) > 0:
+                import jinja2
+
+                try:
+                    env = tengine.make_environment()
+                    template = env.get_template(self.modulerc_template)
+                except jinja2.TemplateNotFound:
+                    # If the template was not found raise an exception with a little
+                    # more information
+                    msg = "template '{0}' was not found for '{1}'"
+                    name = type(self).__name__
+                    msg = msg.format(self.modulerc_template, name)
+                    raise ModulesTemplateNotFoundError(msg)
+
+                context = self.context.to_dict()
+                context.update({"hidden_modules": hidden_modules})
+
+                # Render the template
+                text = template.render(context)
+                # Write it to file
                 with open(modulerc_path, "w") as f:
-                    f.write("\n".join(content))
+                    f.write(text)
 
     def remove(self):
         """Deletes the module file."""
@@ -1028,14 +1036,14 @@ class DefaultTemplateNotDefined(AttributeError, ModulesError):
     """
 
 
-class HideCmdFormatNotDefined(AttributeError, ModulesError):
-    """Raised if the attribute 'hide_cmd_format' has not been specified
+class ModulercTemplateNotDefined(AttributeError, ModulesError):
+    """Raised if the attribute 'modulerc_template' has not been specified
     in the derived classes.
     """
 
 
-class ModulercHeaderNotDefined(AttributeError, ModulesError):
-    """Raised if the attribute 'modulerc_header' has not been specified
+class HideCmdRegexpNotDefined(AttributeError, ModulesError):
+    """Raised if the attribute 'hide_cmd_regexp' has not been specified
     in the derived classes.
     """
 

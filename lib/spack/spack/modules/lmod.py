@@ -476,10 +476,9 @@ class LmodModulefileWriter(BaseModuleFileWriter):
     """Writer class for lmod module files."""
 
     default_template = "modules/modulefile.lua"
+    modulerc_template = "modules/modulerc.lua"
 
-    modulerc_header = []
-
-    hide_cmd_format = 'hide_version("%s")'
+    hide_cmd_regexp = r'hide_version\("(.*?)"\)'
 
 
 class CoreCompilersNotFoundError(spack.error.SpackError, KeyError):

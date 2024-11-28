@@ -521,6 +521,8 @@ class TestTcl:
             content = [line.strip() for line in f.readlines()]
         hide_implicit_mpileaks = f"module-hide --soft --hidden-loaded {writer.layout.use_name}"
         assert len([x for x in content if hide_implicit_mpileaks == x]) == 1
+        lmod_hide_implicit_mpileaks = f"hide-version {writer.layout.use_name}"
+        assert len([x for x in content if lmod_hide_implicit_mpileaks == x]) == 1
 
         # The direct dependencies are all implicit, and they should have depends-on with fixed
         # 7 character hash, even though the config is set to hash_length = 0.
@@ -537,7 +539,9 @@ class TestTcl:
         with open(writer.layout.modulerc) as f:
             content = [line.strip() for line in f.readlines()]
         assert hide_implicit_mpileaks in content  # old, implicit mpileaks is still hidden
+        assert lmod_hide_implicit_mpileaks in content  # old, implicit mpileaks is still hidden
         assert f"module-hide --soft --hidden-loaded {writer.layout.use_name}" not in content
+        assert f"hide-version {writer.layout.use_name}" not in content
 
         # after removing both the implicit and explicit module, the modulerc file would be empty
         # and should be removed.
@@ -570,9 +574,15 @@ class TestTcl:
         hide_cmd = f"module-hide --soft --hidden-loaded {writer.layout.use_name}"
         hide_cmd_alt1 = f"module-hide --soft --hidden-loaded {writer_alt1.layout.use_name}"
         hide_cmd_alt2 = f"module-hide --soft --hidden-loaded {writer_alt2.layout.use_name}"
+        lmod_hide_cmd = f"hide-version {writer.layout.use_name}"
+        lmod_hide_cmd_alt1 = f"hide-version {writer_alt1.layout.use_name}"
+        lmod_hide_cmd_alt2 = f"hide-version {writer_alt2.layout.use_name}"
         assert len([x for x in content if hide_cmd == x]) == 1
         assert len([x for x in content if hide_cmd_alt1 == x]) == 1
         assert len([x for x in content if hide_cmd_alt2 == x]) == 1
+        assert len([x for x in content if lmod_hide_cmd == x]) == 1
+        assert len([x for x in content if lmod_hide_cmd_alt1 == x]) == 1
+        assert len([x for x in content if lmod_hide_cmd_alt2 == x]) == 1
 
         # one version is removed
         writer_alt1.remove()
@@ -582,3 +592,6 @@ class TestTcl:
         assert len([x for x in content if hide_cmd == x]) == 1
         assert len([x for x in content if hide_cmd_alt1 == x]) == 0
         assert len([x for x in content if hide_cmd_alt2 == x]) == 1
+        assert len([x for x in content if lmod_hide_cmd == x]) == 1
+        assert len([x for x in content if lmod_hide_cmd_alt1 == x]) == 0
+        assert len([x for x in content if lmod_hide_cmd_alt2 == x]) == 1
