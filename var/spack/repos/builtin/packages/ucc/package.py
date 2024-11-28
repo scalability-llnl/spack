@@ -73,7 +73,7 @@ class Ucc(AutotoolsPackage, CudaPackage, ROCmPackage):
             args.extend(["CPPFLAGS=" + cppflags, "LDFLAGS=" + ldflags])
             args.append("--with-rocm=" + self.spec["hip"].prefix)
             args.append("--with-ucx=" + self.spec["ucx"].prefix)
+            args.extend(self.with_or_without("rccl", activation_value="prefix"))
         else:
             args.append("--without-rocm")
-        args.extend(self.with_or_without("rccl", activation_value="prefix"))
         return args
