@@ -12,10 +12,10 @@ class GdkPixbuf(MesonPackage):
     GTK+ 2 but it was split off into a separate package in preparation for the change to GTK+ 3."""
 
     homepage = "https://gitlab.gnome.org/GNOME/gdk-pixbuf"
-    url = "https://download.gnome.org/sources/gdk-pixbuf/2.42/gdk-pixbuf-2.42.12.tar.xz" 
+    url = "https://download.gnome.org/sources/gdk-pixbuf/2.42/gdk-pixbuf-2.42.12.tar.xz"
     git = "https://gitlab.gnome.org/GNOME/gdk-pixbuf"
 
-    list_url = "https://download.gnome.org/sources/gdk-pixbuf/" 
+    list_url = "https://download.gnome.org/sources/gdk-pixbuf/"
     list_depth = 1
 
     license("LGPL-2.1-or-later", checked_by="wdconinc")
@@ -68,7 +68,7 @@ class GdkPixbuf(MesonPackage):
     patch("docbook-cdn.patch", when="+man")
 
     def url_for_version(self, version):
-        url = "https://download.gnome.org/sources/gdk-pixbuf/{0}/gdk-pixbuf-{1}.tar.xz" 
+        url = "https://download.gnome.org/sources/gdk-pixbuf/{0}/gdk-pixbuf-{1}.tar.xz"
         return url.format(version.up_to(2), version)
 
     def setup_run_environment(self, env):
