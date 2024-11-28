@@ -2843,19 +2843,15 @@ def temporary_dir(
 def edit_in_place_through_temporary_file(file_path: str) -> Generator[str, None, None]:
     """Context manager for modifying ``file_path`` in place, preserving its inode and hardlinks,
     for functions or external tools that do not support in-place editing. Notice that this function
-    is unsafe in that it returns a path instead of a file descriptor, but this is by design, since
-    we assume an external tool will modify the file at the temporary path by creating a new
-    inode."""
+    is unsafe in that it works with paths instead of a file descriptors, but this is by design,
+    since we assume the call site will create a new inode at the same path."""
     tmp_fd, tmp_path = tempfile.mkstemp(
         dir=os.path.dirname(file_path), prefix=f"{os.path.basename(file_path)}."
     )
     try:
-        with open(file_path, "rb") as f, os.fdopen(tmp_fd, "wb", closefd=False) as g:
-            shutil.copyfileobj(f, g)
-            g.flush()
+        shutil.copyfile(file_path, tmp_path, follow_symlinks=True)
         yield tmp_path
-        with open(tmp_path, "rb") as g, open(file_path, "wb") as f:
-            shutil.copyfileobj(g, f)
+        shutil.copyfile(tmp_path, file_path, follow_symlinks=True)
     finally:
         os.close(tmp_fd)
         os.unlink(tmp_path)
