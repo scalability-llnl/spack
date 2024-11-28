@@ -58,6 +58,9 @@ class Hip(CMakePackage):
     conflicts("+asan", when="os=centos7")
     conflicts("+asan", when="os=centos8")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("cuda", when="+cuda")
 
     depends_on("cmake@3.16.8:", type="build")
