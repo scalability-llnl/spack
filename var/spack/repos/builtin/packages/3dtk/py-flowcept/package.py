@@ -15,8 +15,6 @@ class PyFlowcept(PythonPackage):
 
     maintainers("renan-souza", "mdorier")
 
-    # See https://spdx.org/licenses/ for a list. Upon manually verifying
-    # the license, set checked_by to your Github username.
     license("MIT", checked_by="mdorier")
 
     version("0.6.11", sha256="3a87c5f6835410a34b158efc9ab21ba686af26b609cff8beebc53bfb2a20c3dc")
