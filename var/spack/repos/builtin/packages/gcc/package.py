@@ -439,6 +439,11 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
             sha256="1529cff128792fe197ede301a81b02036c8168cb0338df21e4bc7aafe755305a",
             when="@14.1.0 target=aarch64:",
         )
+        patch(
+            "https://raw.githubusercontent.com/Homebrew/formula-patches/f30c309442a60cfb926e780eae5d70571f8ab2cb/gcc/gcc-14.2.0-r2.diff",
+            sha256="6c0a4708f35ccf2275e6401197a491e3ad77f9f0f9ef5761860768fa6da14d3d",
+            when="@14.2.0 target=aarch64:",
+        )
         conflicts("+bootstrap", when="@11.3.0,13.1: target=aarch64:")
 
         # Use -headerpad_max_install_names in the build,
