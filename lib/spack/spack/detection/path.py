@@ -26,15 +26,17 @@ import spack.util.environment
 import spack.util.environment as environment
 import spack.util.ld_so_conf
 import spack.util.parallel
-
-from .common import (
+from spack.util.filesystem import (
     WindowsCompilerExternalPaths,
     WindowsKitExternalPaths,
+    find_win32_additional_install_paths,
+)
+
+from .common import (
     _convert_to_iterable,
     compute_windows_program_path_for_package,
     compute_windows_user_path_for_package,
     executable_prefix,
-    find_win32_additional_install_paths,
     library_prefix,
     path_to_dict,
 )
