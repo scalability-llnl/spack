@@ -66,22 +66,25 @@ class VersionStrComponent:
     def __eq__(self, other: object) -> bool:
         return isinstance(other, VersionStrComponent) and self.data == other.data
 
+    # ignore typing for certain parts of these methods b/c a) they are performance-critical, and
+    # b) mypy isn't smart enough to figure out that if l_inf and r_inf are the same, comparing
+    # self.data and other.data is type safe.
     def __lt__(self, other: object) -> bool:
-        lhs_inf = isinstance(self.data, int)
+        l_inf = isinstance(self.data, int)
         if isinstance(other, int):
-            return not lhs_inf
-        rhs_inf = isinstance(other.data, int)
-        return (not lhs_inf and rhs_inf) if lhs_inf ^ rhs_inf else self.data < other.data
+            return not l_inf
+        r_inf = isinstance(other.data, int)  # type: ignore
+        return (not l_inf and r_inf) if l_inf ^ r_inf else self.data < other.data  # type: ignore
+
+    def __gt__(self, other) -> bool:
+        l_inf = isinstance(self.data, int)
+        if isinstance(other, int):
+            return l_inf
+        r_inf = isinstance(other.data, int)  # type: ignore
+        return (l_inf and not r_inf) if l_inf ^ r_inf else self.data > other.data  # type: ignore
 
     def __le__(self, other: object) -> bool:
         return self < other or self == other
-
-    def __gt__(self, other: object) -> bool:
-        lhs_inf = isinstance(self.data, int)
-        if isinstance(other, int):
-            return lhs_inf
-        rhs_inf = isinstance(other.data, int)
-        return (lhs_inf and not rhs_inf) if lhs_inf ^ rhs_inf else self.data > other.data
 
     def __ge__(self, other: object) -> bool:
         return self > other or self == other
