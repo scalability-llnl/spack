@@ -5,6 +5,8 @@
 
 import os
 
+import spack.error
+import spack.platforms
 from spack.package import *
 
 _os_map_before_23 = {

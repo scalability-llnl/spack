@@ -21,6 +21,7 @@ import spack.compilers
 import spack.deptypes as dt
 import spack.error
 import spack.install_test
+import spack.package
 import spack.package_base
 import spack.repo
 import spack.spec

@@ -18,12 +18,26 @@ class Duckdb(MakefilePackage):
     maintainers("glentner", "teaguesterling")
 
     version("master", branch="master")
+    version("1.1.3", sha256="2aea0af898ad753fee82b776fea1bf78ccbc9648986e7f7a87372df5e74cdb98")
     version("1.1.2", sha256="a3319a64c390ed0454c869b2e4fc0af2413cd49f55cd0f1400aaed9069cdbc4c")
     version("1.1.1", sha256="a764cef80287ccfd8555884d8facbe962154e7c747043c0842cd07873b4d6752")
     version("1.1.0", sha256="d9be2c6d3a5ebe2b3d33044fb2cb535bb0bd972a27ae38c4de5e1b4caa4bf68d")
-    version("1.0.0", sha256="04e472e646f5cadd0a3f877a143610674b0d2bcf9f4102203ac3c3d02f1c5f26")
-    version("0.10.3", sha256="7855587b3491dd488993287caee28720bee43ae28e92e8f41ea4631e9afcbf88")
-    version("0.10.2", sha256="662a0ba5c35d678ab6870db8f65ffa1c72e6096ad525a35b41b275139684cea6")
+    # CVE-2024-41672
+    version(
+        "1.0.0",
+        sha256="04e472e646f5cadd0a3f877a143610674b0d2bcf9f4102203ac3c3d02f1c5f26",
+        deprecated=True,
+    )
+    version(
+        "0.10.3",
+        sha256="7855587b3491dd488993287caee28720bee43ae28e92e8f41ea4631e9afcbf88",
+        deprecated=True,
+    )
+    version(
+        "0.10.2",
+        sha256="662a0ba5c35d678ab6870db8f65ffa1c72e6096ad525a35b41b275139684cea6",
+        deprecated=True,
+    )
     version(
         "0.10.0",
         sha256="5a925b8607d00a97c1a3ffe6df05c0a62a4df063abd022ada82ac1e917792013",

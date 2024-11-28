@@ -33,6 +33,7 @@ class Hdf5(CMakePackage):
 
     license("custom")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build", when="+cxx")
     depends_on("fortran", type="build", when="+fortran")
 
@@ -108,10 +109,6 @@ class Hdf5(CMakePackage):
     version("1.8.13", sha256="82f6b38eec103b4fccfbf14892786e0c27a8135d3252d8601cf5bf20066d38c1")
     version("1.8.12", sha256="b5cccea850096962b5fd9e96f22c4f47d2379224bb41130d9bc038bb6c37dfcb")
     version("1.8.10", sha256="4813b79c5fb8701a625b9924b8203bc7154a77f9b826ad4e034144b4056a160a")
-
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Builds a shared version of the library")
 
@@ -673,6 +670,24 @@ class Hdf5(CMakePackage):
                     if os.path.isfile(old):
                         os.remove(old)
                         symlink(new, old)
+
+    @run_after("install")
+    def symlink_mpi_libs(self):
+        """Compatibility layer to support projects looking for the MPI suffix"""
+        if not self.spec.satisfies("+mpi"):
+            return
+
+        mpi_libs = ["libhdf5{mpi_suffix}", "libhdf5{mpi_suffix}_hl"]
+        for lib_f in mpi_libs:
+            src_name = lib_f.format(mpi_suffix="")
+            dst_name = lib_f.format(mpi_suffix="_mpi")
+            libs = find_libraries(src_name, root=self.prefix, recursive=True)
+            for lib_path in libs:
+                prefix = os.path.dirname(lib_path)
+                src_lib = os.path.basename(lib_path)
+                dst_lib = dst_name.join(src_lib.rsplit(src_name, 1))
+                with working_dir(prefix):
+                    symlink(src_lib, dst_lib)
 
     @property
     @llnl.util.lang.memoized

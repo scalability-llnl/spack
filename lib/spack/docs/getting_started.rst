@@ -1326,6 +1326,7 @@ Required:
 * Microsoft Visual Studio
 * Python
 * Git
+* 7z
 
 Optional:
 * Intel Fortran (needed for some packages)
@@ -1390,6 +1391,13 @@ Spack support on Windows is currently dependent on installing the Git for Window
 as the project providing Git support on Windows. This is additionally the recommended method
 for installing Git on Windows, a link to which can be found above. Spack requires the
 utilities vendored by this project.
+
+"""
+7zip
+"""
+
+A tool for extracting ``.xz`` files is required for extracting source tarballs. The latest 7zip
+can be located at https://sourceforge.net/projects/sevenzip/.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Step 2: Install and setup Spack

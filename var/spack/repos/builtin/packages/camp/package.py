@@ -54,7 +54,8 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
     version("0.2.2", sha256="194d38b57e50e3494482a7f94940b27f37a2bee8291f2574d64db342b981d819")
     version("0.1.0", sha256="fd4f0f2a60b82a12a1d9f943f8893dc6fe770db493f8fae5ef6f7d0c439bebcc")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # TODO: figure out gtest dependency and then set this default True.
     variant("tests", default=False, description="Build tests")

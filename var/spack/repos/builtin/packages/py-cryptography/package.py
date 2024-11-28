@@ -16,6 +16,7 @@ class PyCryptography(PythonPackage):
     license("Apache-2.0")
 
     version("43.0.3", sha256="315b9001266a492a6ff443b61238f956b214dbec9910a081ba5b6646a055a805")
+    version("43.0.1", sha256="203e92a75716d8cfb491dc47c79e17d0d9207ccffcbcb35f598fbe463ae3444d")
     version("42.0.8", sha256="8d09d05439ce7baa8e9e95b07ec5b6c886f548deb7e0f69ef25f64b3bce842f2")
     version("41.0.7", sha256="13f93ce9bea8016c253b34afc6bd6a75993e5c40672ed5405a9c832f0d4a00bc")
     version("41.0.3", sha256="6d192741113ef5e30d89dcb5b956ef4e1578f304708701b8b73d38e3e1461f34")
@@ -35,6 +36,8 @@ class PyCryptography(PythonPackage):
 
     variant("idna", default=False, when="@2.5:3.0", description="Deprecated U-label support")
 
+    # pyo3 <= 0.22 required in version <= 42
+    depends_on("python@:3.12", when="@:42", type=("build", "run"))
     # distutils required in version <= 40
     depends_on("python@:3.11", when="@:40", type=("build", "run"))
     depends_on("py-setuptools@61.0:", when="@41:", type="build")

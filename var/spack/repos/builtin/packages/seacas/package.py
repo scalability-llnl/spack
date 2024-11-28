@@ -304,6 +304,9 @@ class Seacas(CMakePackage):
         when="@:2023-10-24",
     )
 
+    # Based on install-tpl.sh script, cereal seems to only be used when faodel enabled
+    depends_on("cereal", when="@2021-04-02: +faodel")
+
     def setup_run_environment(self, env):
         env.prepend_path("PYTHONPATH", self.prefix.lib)
 
@@ -485,6 +488,15 @@ class Seacas(CMakePackage):
         for pkg in ("Faodel", "BOOST"):
             if pkg.lower() in spec:
                 options.append(define(pkg + "_ROOT", spec[pkg.lower()].prefix))
+
+        if "+faodel" in spec:
+            # faodel headers are under $faodel_prefix/include/faodel but seacas
+            # leaves off the faodel part
+            faodel_incdir = spec["faodel"].prefix.include
+            faodel_incdir2 = spec["faodel"].prefix.include.faodel
+            faodel_incdirs = [faodel_incdir, faodel_incdir2]
+            options.append(define("Faodel_INCLUDE_DIRS", ";".join(faodel_incdirs)))
+            options.append(define("Faodel_LIBRARY_DIRS", spec["faodel"].prefix.lib))
 
         options.append(from_variant("TPL_ENABLE_ADIOS2", "adios2"))
         if "+adios2" in spec:

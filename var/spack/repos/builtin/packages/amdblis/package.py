@@ -86,7 +86,7 @@ class Amdblis(BlisBase):
         elif spec.satisfies("@3.0.1: %aocc"):
             args.append("--complex-return=intel")
 
-        if spec.satisfies("@3.1:"):
+        if spec.satisfies("@3.1"):
             args.append("--disable-aocl-dynamic")
 
         if spec.satisfies("+logging"):

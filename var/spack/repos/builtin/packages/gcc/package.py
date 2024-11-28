@@ -11,8 +11,8 @@ import archspec.cpu
 import llnl.util.tty as tty
 from llnl.util.symlink import readlink
 
+import spack.compiler
 import spack.platforms
-import spack.util.executable
 import spack.util.libc
 from spack.operating_systems.mac_os import macos_sdk_path, macos_version
 from spack.package import *
@@ -103,9 +103,8 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
     version("4.6.4", sha256="35af16afa0b67af9b8eb15cafb76d2bc5f568540552522f5dc2c88dd45d977e8")
     version("4.5.4", sha256="eef3f0456db8c3d992cbb51d5d32558190bc14f3bc19383dd93acc27acc6befc")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # We specifically do not add 'all' variant here because:
     # (i) Ada, D, Go, Jit, and Objective-C++ are not default languages.
@@ -439,6 +438,11 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
             "https://raw.githubusercontent.com/Homebrew/formula-patches/82b5c1cd38826ab67ac7fc498a8fe74376a40f4a/gcc/gcc-14.1.0.diff",
             sha256="1529cff128792fe197ede301a81b02036c8168cb0338df21e4bc7aafe755305a",
             when="@14.1.0 target=aarch64:",
+        )
+        patch(
+            "https://raw.githubusercontent.com/Homebrew/formula-patches/f30c309442a60cfb926e780eae5d70571f8ab2cb/gcc/gcc-14.2.0-r2.diff",
+            sha256="6c0a4708f35ccf2275e6401197a491e3ad77f9f0f9ef5761860768fa6da14d3d",
+            when="@14.2.0 target=aarch64:",
         )
         conflicts("+bootstrap", when="@11.3.0,13.1: target=aarch64:")
 
