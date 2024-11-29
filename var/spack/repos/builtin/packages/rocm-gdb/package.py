@@ -53,6 +53,7 @@ class RocmGdb(AutotoolsPackage):
     depends_on("babeltrace@1.2.4", type="link")
     depends_on("gmp", type=("build", "link"))
     depends_on("mpfr", type=("build", "link"))
+    depends_on("pkgconfig", type="build")
 
     for ver in [
         "5.3.0",
