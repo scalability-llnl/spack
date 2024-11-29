@@ -21,6 +21,7 @@ packages:
       armci: [armcimpi]
       blas: [openblas, amdblis]
       c: [gcc]
+      cub: [cub]
       cxx: [gcc]
       D: [ldc]
       daal: [intel-oneapi-daal]
