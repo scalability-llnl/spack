@@ -12,7 +12,7 @@ class NetcdfCxx4(CMakePackage):
     sharing of array-oriented scientific data. This is the C++ distribution."""
 
     homepage = "https://www.unidata.ucar.edu/software/netcdf"
-    url = "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx4-4.3.1.tar.gz"
+    url = "https://downloads.unidata.ucar.edu/netcdf-cxx/4.3.1/netcdf-cxx4-4.3.1.tar.gz"
 
     maintainers("WardF")
 
