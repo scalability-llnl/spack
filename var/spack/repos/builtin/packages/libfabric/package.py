@@ -134,8 +134,8 @@ class Libfabric(AutotoolsPackage, CudaPackage):
     depends_on("autoconf", when="@main", type="build")
     depends_on("automake", when="@main", type="build")
     depends_on("libtool", when="@main", type="build")
-    depends_on("json-c", when="fabrics=cxi", type="build")
-    depends_on("curl", when="fabrics=cxi", type="build")
+    depends_on("json-c", when="fabrics=cxi")
+    depends_on("curl", when="fabrics=cxi")
 
     conflicts("@1.9.0", when="platform=darwin", msg="This distribution is missing critical files")
     conflicts("fabrics=opx", when="@:1.14.99")
@@ -173,20 +173,6 @@ class Libfabric(AutotoolsPackage, CudaPackage):
         return results
 
     def setup_build_environment(self, env):
-        if self.spec.satisfies("fabrics=cxi"):
-
-            def add_ldflags(name):
-                lib_dir = self.spec[name].libs.directories[0]
-                env.append_flags("LDFLAGS", f"-L{lib_dir}")
-                env.append_flags("LDFLAGS", f"-Wl,-rpath={lib_dir}")
-
-            env.append_flags("CFLAGS", f"-I{self.spec['json-c'].prefix.include}")
-            env.append_flags("CFLAGS", f"-I{self.spec['curl'].prefix.include}")
-            add_ldflags("json-c")
-            add_ldflags("curl")
-            if self.spec.satisfies("^curl +nghttp2"):
-                add_ldflags("nghttp2")
-                env.append_flags("LDFLAGS", "-lnghttp2")
         if self.run_tests:
             env.prepend_path("PATH", self.prefix.bin)
 
