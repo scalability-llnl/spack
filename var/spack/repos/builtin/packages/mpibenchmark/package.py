@@ -55,6 +55,8 @@ class Mpibenchmark(AutotoolsPackage):
         spec = self.spec
         config_args = [
             "--with-hwloc",  # always use hwloc in spack
+            "--without-cuda",
+            "--without-hip",
             "--enable-optimize" if "+optimize" in spec else "--disable-optimize",
             "--enable-debug" if "+debug" in spec else "--disable-debug",
             "--enable-asan" if "+asan" in spec else "--disable-asan",
