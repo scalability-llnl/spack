@@ -47,6 +47,10 @@ class Rocpydecode(CMakePackage):
             self.define("CMAKE_INSTALL_PREFIX_PYTHON", self.spec.prefix),
             self.define("CMAKE_CXX_FLAGS", "-I{0}".format(self.spec["dlpack"].prefix.include)),
             self.define(
-                "CMAKE_CXX_FLAGS", "-DUSE_AVCODEC_GREATER_THAN_58_134 -I{0}".format(self.spec["dlpack"].prefix.include)),
+                "CMAKE_CXX_FLAGS",
+                "-DUSE_AVCODEC_GREATER_THAN_58_134 -I{0}".format(
+                    self.spec["dlpack"].prefix.include
+                ),
+            ),
         ]
         return args
