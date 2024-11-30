@@ -82,7 +82,7 @@ SpecType = str
 DepType = Union[Tuple[str, ...], str]
 WhenType = Optional[Union[spack.spec.Spec, str, bool]]
 Patcher = Callable[[Union[spack.package_base.PackageBase, Dependency]], None]
-PatchesType = Optional[Union[Patcher, str, List[Union[Patcher, str]]]]
+PatchesType = Union[Patcher, str, List[Union[Patcher, str]]]
 
 
 SUPPORTED_LANGUAGES = ("fortran", "cxx", "c")
@@ -254,7 +254,7 @@ def _depends_on(
     *,
     when: WhenType = None,
     type: DepType = dt.DEFAULT_TYPES,
-    patches: PatchesType = None,
+    patches: Optional[PatchesType] = None,
 ):
     when_spec = _make_when_spec(when)
     if not when_spec:
@@ -348,7 +348,7 @@ def depends_on(
     spec: SpecType,
     when: WhenType = None,
     type: DepType = dt.DEFAULT_TYPES,
-    patches: PatchesType = None,
+    patches: Optional[PatchesType] = None,
 ):
     """Creates a dict of deps with specs defining when they apply.
 
