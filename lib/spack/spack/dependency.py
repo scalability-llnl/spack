@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Data structures that represent Spack's dependency relationships."""
-from typing import Dict, List
+from typing import Dict, List, Type
 
 import spack.deptypes as dt
 import spack.spec
@@ -38,7 +38,7 @@ class Dependency:
 
     def __init__(
         self,
-        pkg: "spack.package_base.PackageBase",
+        pkg: Type["spack.package_base.PackageBase"],
         spec: "spack.spec.Spec",
         depflag: dt.DepFlag = dt.DEFAULT,
     ):

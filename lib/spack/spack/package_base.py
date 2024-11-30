@@ -595,6 +595,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     patches: Dict[spack.spec.Spec, List[spack.patch.Patch]]
     variants: Dict[spack.spec.Spec, Dict[str, spack.variant.Variant]]
     languages: Dict[spack.spec.Spec, Set[str]]
+    licenses: Dict[spack.spec.Spec, str]
     splice_specs: Dict[spack.spec.Spec, Tuple[spack.spec.Spec, Union[None, str, List[str]]]]
 
     #: Store whether a given Spec source/binary should not be redistributed.
