@@ -91,7 +91,7 @@ class VersionStrComponent:
         r_inf = isinstance(other.data, int)  # type: ignore
         return (not l_inf and r_inf) if l_inf ^ r_inf else self.data < other.data  # type: ignore
 
-    def __gt__(self, other) -> bool:
+    def __gt__(self, other: object) -> bool:
         l_inf = isinstance(self.data, int)
         if isinstance(other, int):
             return l_inf
