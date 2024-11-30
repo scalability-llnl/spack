@@ -1,0 +1,46 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d11da31..eca39dc 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,27 +1,31 @@
+-cmake_minimum_required(VERSION 2.8)
+-set(CMAKE_BUILD_TYPE  "Release")
+-SET(CMAKE_C_FLAGS   "-w -O3")
++cmake_minimum_required(VERSION 3.7.1)
++
+ set(CMAKE_MACOSX_RPATH 1)
+ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+ 
++#Path management
++if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
++    set (CMAKE_INSTALL_PREFIX "$ENV{HOME}"
++        CACHE PATH "Default install prefix" FORCE)
++endif()
++
+ project(libMshdist)
+ file(                  GLOB_RECURSE sources sources/*)
+ file(                  GLOB_RECURSE headers sources/*.h)
+ add_library(           libMshdist SHARED ${sources})
+ set_target_properties( libMshdist PROPERTIES PREFIX "")
+ 
+-find_library(          Commons NAMES Commons HINTS "$ENV{HOME}/lib" required)
++find_library(          Commons NAMES Commons HINTS ${CMAKE_INSTALL_PREFIX}/lib required)
+ FIND_LIBRARY(          M_LIB m)
+ SET(                   EXTRA_LIBS ${M_LIB} "-lpthread")
+-include_directories(   "$ENV{HOME}/include")
++include_directories(   ${CMAKE_INSTALL_PREFIX}/include)
+ target_link_libraries( libMshdist ${EXTRA_LIBS} ${Commons})
+ 
+ #Executable
+ add_executable(        mshdist sources/mshdist.c)
+ target_link_libraries( mshdist libMshdist ${Commons})
+ 
+-install(               TARGETS mshdist RUNTIME  DESTINATION "bin")
+-install(               TARGETS libMshdist LIBRARY DESTINATION "lib")
+-install(               FILES   ${headers} DESTINATION "include")
+-set_target_properties( mshdist PROPERTIES INSTALL_RPATH "/usr/local/lib")
+-
++install(               TARGETS mshdist RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
++install(               TARGETS libMshdist LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
++install(               FILES   ${headers} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
++set_target_properties( mshdist PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)

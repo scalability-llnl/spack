@@ -50,10 +50,12 @@ class Mmg(CMakePackage):
     variant("scotch", default=True, description="Enable SCOTCH library support")
     variant("doc", default=False, description="Build documentation")
     variant("vtk", default=False, when="@5.5.0:", description="Enable VTK I/O support")
+    variant("elas", default=False, description="Required to enable Lagrangian motion")
 
     depends_on("scotch", when="+scotch")
     depends_on("doxygen", when="+doc")
     depends_on("vtk", when="+vtk")
+    depends_on("iscdtoolbox-elasticity", when="+elas")
 
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
@@ -62,6 +64,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         return [
             self.define_from_variant("USE_SCOTCH", "scotch"),
             self.define_from_variant("USE_VTK", "vtk"),
+            self.define_from_variant("USE_ELAS", "elas"),
             self.define("BUILD_SHARED_LIBS", shared_active),
             self.define("LIBMMG3D_SHARED", shared_active),
             self.define("LIBMMG2D_SHARED", shared_active),

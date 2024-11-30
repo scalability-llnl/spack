@@ -1,0 +1,41 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a2df9e2..8d40792 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,13 +1,22 @@
+-cmake_minimum_required(VERSION 2.8)
+-set(CMAKE_BUILD_TYPE  "Release")
+-SET(CMAKE_C_FLAGS   "-w -g -O3 -funroll-loops")
++cmake_minimum_required(VERSION 3.7.1)
++
+ set(CMAKE_MACOSX_RPATH 1)
+ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+ 
++#Path management
++if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
++    set (CMAKE_INSTALL_PREFIX "$ENV{HOME}"
++        CACHE PATH "Default install prefix" FORCE)
++endif()
++
+ project(Commons)
+ 
+ set(CMAKE_CXX_STANDARD 17)
+ 
++if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
++    add_compile_options("-funroll-loops")
++endif()
++
+ #Find libraries
+ if(OPENMP)
+   find_package(OpenMP)
+@@ -29,7 +38,7 @@ TARGET_LINK_LIBRARIES( Commons ${LIBRARIES})
+ 
+ INSTALL(
+   TARGETS Commons
+-  RUNTIME DESTINATION "$ENV{HOME}/lib"
+-  LIBRARY DESTINATION "$ENV{HOME}/lib")
++  RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
++  LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+ 
+-INSTALL(               FILES   ${header_files} DESTINATION "$ENV{HOME}/include")
++INSTALL(FILES ${header_files} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
