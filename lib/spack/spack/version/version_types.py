@@ -108,10 +108,10 @@ class VersionStrComponent:
 # Tuple types that make up the internal representation of StandardVersion.
 # We use Tuples so that Python can quickly compare versions.
 
-#: Version components: integers for numeric parts, VersionStrComponents for string parts.
+#: Version components are integers for numeric parts, VersionStrComponents for string parts.
 VersionComponentTuple = Tuple[Union[int, VersionStrComponent], ...]
 
-#: Prerelease identifier: a constant for alpha/beta/rc/final and one optional number.
+#: A Prerelease identifier is a constant for alpha/beta/rc/final and one optional number.
 #: Most versions will have this set to ``(FINAL,)``. Prereleases will have some other
 #: initial constant followed by a number, e.g. ``(RC, 1)``.
 PrereleaseTuple = Tuple[int, ...]
