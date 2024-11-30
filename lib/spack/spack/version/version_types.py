@@ -31,6 +31,21 @@ SEGMENT_REGEX = re.compile(r"(?:(?P<num>[0-9]+)|(?P<str>[a-zA-Z]+))(?P<sep>[_.-]
 
 
 class VersionStrComponent:
+    """Internal representation of the string (non-integer) components of Spack versions.
+
+    Versions comprise string and integer components (see ``SEGMENT_REGEX`` above).
+
+    This represents a string component, which is either some component consisting only
+    of alphabetical characters, *or* a special "infinity version" like ``main``,
+    ``develop``, ``master``, etc.
+
+    For speed, Spack versions are designed to map to Python tuples, so that we can use
+    Python's fast lexicographic tuple comparison on them. ``VersionStrComponent`` is
+    designed to work as a component in these version tuples, and as such must compare
+    directly with ``int`` or other ``VersionStrComponent`` objects.
+
+    """
+
     __slots__ = ["data"]
 
     data: Union[int, str]
@@ -90,14 +105,34 @@ class VersionStrComponent:
         return self > other or self == other
 
 
-def parse_string_components(string: str) -> Tuple[tuple, tuple]:
+# Tuple types that make up the internal representation of StandardVersion.
+# We use Tuples so that Python can quickly compare versions.
+
+#: Version components: integers for numeric parts, VersionStrComponents for string parts.
+VersionComponentTuple = Tuple[Union[int, VersionStrComponent], ...]
+
+#: Prerelease identifier: a constant for alpha/beta/rc/final and one optional number.
+#: Most versions will have this set to ``(FINAL,)``. Prereleases will have some other
+#: initial constant followed by a number, e.g. ``(RC, 1)``.
+PrereleaseTuple = Tuple[int, ...]
+
+#: Actual version tuple, including the split version number itself and the prerelease,
+#: all represented as tuples.
+VersionTuple = Tuple[VersionComponentTuple, PrereleaseTuple]
+
+#: Separators from a parsed version.
+SeparatorTuple = Tuple[str, ...]
+
+
+def parse_string_components(string: str) -> Tuple[VersionTuple, SeparatorTuple]:
+    """Parse a string into a ``VersionTuple`` and ``SeparatorTuple``."""
     string = string.strip()
 
     if string and not VALID_VERSION.match(string):
         raise ValueError("Bad characters in version string: %s" % string)
 
     segments = SEGMENT_REGEX.findall(string)
-    separators = tuple(m[2] for m in segments)
+    separators: Tuple[str] = tuple(m[2] for m in segments)
     prerelease: Tuple[int, ...]
 
     # <version>(alpha|beta|rc)<number>
@@ -114,7 +149,9 @@ def parse_string_components(string: str) -> Tuple[tuple, tuple]:
     else:
         prerelease = (FINAL,)
 
-    release = tuple(int(m[0]) if m[0] else VersionStrComponent.from_string(m[1]) for m in segments)
+    release: VersionComponentTuple = tuple(
+        int(m[0]) if m[0] else VersionStrComponent.from_string(m[1]) for m in segments
+    )
 
     return (release, prerelease), separators
 
@@ -181,16 +218,18 @@ class ConcreteVersion(VersionType):
     """Base type for versions that represents a single (non-range or list) version."""
 
 
-def _stringify_version(versions: Tuple[tuple, tuple], separators: tuple) -> str:
+def _stringify_version(versions: VersionTuple, separators: Tuple[str, ...]) -> str:
+    """Create a string representation from version components."""
     release, prerelease = versions
-    string = ""
-    for i in range(len(release)):
-        string += f"{release[i]}{separators[i]}"
+
+    components = [f"{rel}{sep}" for rel, sep in zip(release, separators)]
     if prerelease[0] != FINAL:
-        string += f"{PRERELEASE_TO_STRING[prerelease[0]]}{separators[len(release)]}"
-        if len(prerelease) > 1:
-            string += str(prerelease[1])
-    return string
+        components.append(PRERELEASE_TO_STRING[prerelease[0]])
+    if len(prerelease) > 1:
+        components.append(separators[len(release)])
+        components.append(str(prerelease[1]))
+
+    return "".join(components)
 
 
 class StandardVersion(ConcreteVersion):
@@ -198,7 +237,22 @@ class StandardVersion(ConcreteVersion):
 
     __slots__ = ["version", "string", "separators"]
 
-    def __init__(self, string: str, version: Tuple[tuple, tuple], separators: tuple):
+    string: str
+    version: VersionTuple
+    separators: Tuple[str, ...]
+
+    def __init__(self, string: str, version: VersionTuple, separators: Tuple[str, ...]):
+        """Create a StandardVersion from a string and parsed version components.
+
+        Arguments:
+            string: The original version string, or ``""``  if the it is not available.
+            version: A tuple as returned by ``parse_string_components()``. Contains two tuples:
+                one with alpha or numeric components and another with prerelease components.
+            separators: separators parsed from the original version string.
+
+        If constructed with ``string=""``, the string will be lazily constructed from components
+        when ``str()`` is called.
+        """
         self.string = string
         self.version = version
         self.separators = separators
@@ -1168,12 +1222,10 @@ def _next_version(v: StandardVersion) -> StandardVersion:
         release = release[:-1] + (_next_version_str_component(release[-1]),)
     else:
         release = release[:-1] + (release[-1] + 1,)
-    components = [""] * (2 * len(release))
-    components[::2] = release
-    components[1::2] = separators[: len(release)]
-    if prerelease_type != FINAL:
-        components.extend((PRERELEASE_TO_STRING[prerelease_type], prerelease[1]))
-    return StandardVersion("".join(str(c) for c in components), (release, prerelease), separators)
+
+    # Avoid constructing a string here for performance. Instead, pass "" to
+    # StandardVersion to lazily stringify.
+    return StandardVersion("", (release, prerelease), separators)
 
 
 def _prev_version(v: StandardVersion) -> StandardVersion:
@@ -1192,13 +1244,9 @@ def _prev_version(v: StandardVersion) -> StandardVersion:
         release = release[:-1] + (_prev_version_str_component(release[-1]),)
     else:
         release = release[:-1] + (release[-1] - 1,)
-    components = [""] * (2 * len(release))
-    components[::2] = release
-    components[1::2] = separators[: len(release)]
-    if prerelease_type != FINAL:
-        components.extend((PRERELEASE_TO_STRING[prerelease_type], *prerelease[1:]))
 
-    # this is only used for comparison functions, so don't bother making a string
+    # Avoid constructing a string here for performance. Instead, pass "" to
+    # StandardVersion to lazily stringify.
     return StandardVersion("", (release, prerelease), separators)
 
 
