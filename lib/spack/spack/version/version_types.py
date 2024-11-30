@@ -235,9 +235,9 @@ def _stringify_version(versions: VersionTuple, separators: Tuple[str, ...]) -> s
 class StandardVersion(ConcreteVersion):
     """Class to represent versions"""
 
-    __slots__ = ["version", "string", "separators"]
+    __slots__ = ["version", "_string", "separators"]
 
-    string: str
+    _string: str
     version: VersionTuple
     separators: Tuple[str, ...]
 
@@ -253,7 +253,7 @@ class StandardVersion(ConcreteVersion):
         If constructed with ``string=""``, the string will be lazily constructed from components
         when ``str()`` is called.
         """
-        self.string = string
+        self._string = string
         self.version = version
         self.separators = separators
 
@@ -268,6 +268,16 @@ class StandardVersion(ConcreteVersion):
     @staticmethod
     def typemax() -> "StandardVersion":
         return _STANDARD_VERSION_TYPEMAX
+
+    @property
+    def string(self) -> str:
+        if not self._string:
+            self._string = _stringify_version(self.version, self.separators)
+        return self._string
+
+    @string.setter
+    def string(self, string) -> None:
+        self._string = string
 
     def __bool__(self) -> bool:
         return True
@@ -344,7 +354,7 @@ class StandardVersion(ConcreteVersion):
         raise TypeError(f"{cls.__name__} indices must be integers or slices")
 
     def __str__(self) -> str:
-        return self.string or _stringify_version(self.version, self.separators)
+        return self.string
 
     def __repr__(self) -> str:
         # Print indirect repr through Version(...)
