@@ -149,6 +149,7 @@ class Seacas(CMakePackage):
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
 
     # ###################### Variants ##########################
     # Package options
