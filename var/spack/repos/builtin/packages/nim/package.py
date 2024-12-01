@@ -13,10 +13,12 @@ class Nim(Package):
     """
 
     homepage = "https://nim-lang.org/"
-    url = "https://nim-lang.org/download/nim-1.4.4.tar.xz"
+    url = "https://nim-lang.org/download/nim-2.2.0.tar.xz"
+    git = "https://github.com/nim-lang/Nim.git"
 
     license("MIT")
 
+    version("devel", branch="devel")
     version("2.2.0", sha256="ce9842849c9760e487ecdd1cdadf7c0f2844cafae605401c7c72ae257644893c")
     version("2.0.12", sha256="c4887949c5eb8d7f9a9f56f0aeb2bf2140fabf0aee0f0580a319e2a09815733a")
     version("2.0.4", sha256="71526bd07439dc8e378fa1a6eb407eda1298f1f3d4df4476dca0e3ca3cbe3f09")
@@ -50,24 +52,39 @@ class Nim(Package):
     depends_on("pcre")
     depends_on("openssl")
 
-    phases = ["build", "install"]
+    resource(
+        name="csources_v2",
+        git="https://github.com/nim-lang/csources_v2.git",
+        commit="86742fb02c6606ab01a532a0085784effb2e753e",
+        when="@devel",
+    )
 
-    def patch(self):
-        install_sh_path = join_path(self.stage.source_path, "install.sh")
-        filter_file("1/nim", "1", install_sh_path)
+    phases = ["build", "install"]
 
     def build(self, spec, prefix):
         bash = which("bash")
-        bash("./build.sh")
+        if spec.satisfies("@devel"):
+            with working_dir("csources_v2"):
+                bash("./build.sh")
+        else:
+            bash("./build.sh")
 
         nim = Executable(join_path("bin", "nim"))
-        nim("c", "koch")
+        # Separate nimcache allows parallel compilation of different versions of the Nim compiler
+        nim_flags = ["--skipUserCfg", "--skipParentCfg", "--nimcache:nimcache"]
+        nim("c", *nim_flags, "koch")
 
         koch = Executable("./koch")
-        koch("boot", "-d:release")
-        koch("tools")
+        koch("boot", "-d:release", *nim_flags)
+        koch("tools", *nim_flags)
+
+        if spec.satisfies("@devel"):
+            koch("geninstall")
 
     def install(self, spec, prefix):
+        filter_file("1/nim", "1", "install.sh")
+
         bash = which("bash")
         bash("./install.sh", prefix)
+
         install_tree("bin", prefix.bin)
